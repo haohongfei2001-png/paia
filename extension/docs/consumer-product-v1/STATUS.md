@@ -1,5 +1,21 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Latest coordinated checkpoint — 2026-10-08 21:15 UTC
+
+PR216/0.29 merged normally at main `fa251c3d64d977f55cbec61962b3004dc3df2698`; tested merge71270895 and final head97418efb share exact tree6728b3df085d2187cd73e29ed73aae20e689acdf. Candidate Full37843556298 (all nine current browser groups and final aggregate) and Prompt37843556217 passed. Exact-main Full37845431936/Prompt37845430575 are running; not yet claimed complete. Prior96fb failures and all earlier cancellations remain failures.
+
+The next0.30 candidate reconciles fresh main at a459ddf6 and retains reviewed bounded Working inbox, saved-AI cache qualification and Context05/17 evidence. Complete local4294unit/8affectednative and final6Context evidence retain their exact original identities in COHERENT-030-CANDIDATE. Sourcebootstrap is a separate local future batch under independent review; current real-service/device/paid-model/installed/visual-reference gates remain open. Continue available development while hosted gates run.
+
+## Current delivered and active batches — 2026-10-08 20:38 UTC
+
+Remote main `53217db61b8364e5f5708e89e63c10ba2fba0e8c` delivers0.28 via PR210. Its tree `560ce8e5301e9b2bc1929674a05d532745415cb8` equals the final reviewed98af candidate. Candidate Full37837339573/Prompt37837339622 and exact-main Full37839080097/Prompt37839080116 all passed. Earlier failures/cancellations below remain failed. The exact-main0.28 package has402 files, SHA256 `6d573cf8cde7e05e2c3b01c47bfb85eaaa79fb084f6d499772baf5bc4470f7f0`, with fresh build guards, ZIP CRC and every packaged byte verified. No automatic installation or formal deployment was performed.
+
+PR216 is the separate0.29 recovery/Working-receive/AI-request-scope follow-up. Its96fb head Full37839224739 has a known Unit2 historical inventory failure; one added removed-Placement file was omitted by an old Root oracle. Reviewed local8050ea1d explicitly admits this sole addition while preserving all74 old routes and exact85-file coverage. The current hosted run is allowed to finish before one corrective push; it is not a passing candidate. All other local combination evidence remains attached to its actual code/dependency versions.
+
+Local0.30 adds bounded body-free incomplete Working transfer and restart/resume, with six whole native files42/42 passing on2d7c5cc9 and the actual Full inline six-family receipt block passing at that exact head/tree. Strict final validation now covers20 inbox cases,8 current production hashes and both real restarts; original17 receive cases/7 hashes remain. The later full-unit run4276PASS/1FAIL exposed the same Root inventory omission; reviewed corrected owning guards pass, not a retroactive full-suite success. CTX4 exact未保存编辑/new-Topic-default-off evidence is also reviewed; no runtime redesign. AI cache qualification passed independent review and is locally integrated. Final77987f34 complete units4294/4294 and affected browser8/8 pass; the406-file0.30 package builds. See COHERENT-030-CANDIDATE for exact prior/final evidence boundaries; this batch is not yet delivered. These local results do not establish complete new-device recovery, a real provider or physical-device acceptance.
+
+This block supersedes historical scheduling statements below. See SEVEN_PLAN_EXECUTION_2026-10-08.md and each exact owning receipt for next work. Continue approved independent work while gates run; no old Archive1.0 or remoteStage3B work is opened.
+
 ## 0.28 hosted failure closure — 2026-10-09 CST
 
 PR210 f1db321e full37827671006 failed Unit4 and Browser1/2/3. Browser4–7, Unit1–3, both Mac jobs, native Sync, privacy and release passed; Prompt37827671120 failed the same Unit4 contract and Visual37827671087 passed. None of these partial results certifies the batch.

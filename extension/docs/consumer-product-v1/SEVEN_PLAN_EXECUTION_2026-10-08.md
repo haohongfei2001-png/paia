@@ -2,6 +2,28 @@
 
 The owner's latest scope includes all seven lanes and IAH-1.1's confirmed minimal design. Work continues while any approved independent task is executable; the20-minute heartbeat is a recovery/check-in mechanism, not a turn deadline. Preserve each failure and exact code/dependency evidence. This record is an engineering checkpoint, not whole-product completion or installation acceptance.
 
+## Current integration checkpoint — 2026-10-08 21:15 UTC
+
+0.29 is merged as mainfa251c3d after all candidate Full37843556298/Prompt37843556217 gates passed. Exact-main Full37845431936/Prompt37845430575 remain pending. This delivers SET2 single-Placement recovery/copy fixes and CTX coarse targets, plus local SYNC existing-Input receive and exact AI child metadata. It does not activate providers or certify full numbered lanes.
+
+0.30 fresh-main candidate follows with bounded Working inbox, internal saved-AI cache qualification and precise Context05/17 evidence. Future Sourcebootstrap is independently reviewed and excluded from0.30. AI-COST05 next local feature lifecycle is separately bounded to one child/legacy eight fields, no worker/provider activation; multi-child incremental200+5/versioned manifests remain unfinished. Other lane positions and external gates in the following table remain applicable where not superseded by these exact integration facts.
+
+## Current seven-lane checkpoint — 2026-10-08 20:38 UTC
+
+Main53217db6 /0.28 is merged and exact-main certified: Full37839080097 and Prompt37839080116 PASS, matching reviewed candidate tree. The local package is built and verified, not installed. PR216/0.29 has a known historical routing-inventory failure with independently reviewed correction awaiting one coherent push after current results. Future0.30 remains local. Older checkpoint blocks below preserve history and do not supersede these facts.
+
+| Lane / current phase | Existing result and next actual dependency | Responsible owner |
+|---|---|---|
+| TOPIC01–06,05.1–05.8 |0.28 Section reading/writing/actions and exact-repeat disclosure delivered;0.29 Root font/compact evidence awaits gates. Full visual/device and real AI quality remain separate. | Coordinator integration; independent review |
+| CTX401–07 | Manual/internal owners delivered;0.29 coarse44px fix tested;0.30 precise05/17 state proofs reviewed6/6. Exact private22-state reference package is unavailable in the supplied25-entry handoff. Real connections and physical-device proof remain open. | Context evidence executor; coordinator |
+| SET201–05 | Input restore already exists;0.28 removed-Topic pagination delivered.0.29 adds single removed-Placement restoration, bilingual recovery and History copy-owner repair. Do not redesign or duplicate working owners. | Coordinator handles PR216 |
+| SYNC01–06 |0.29 complete existing-Input receive;0.30 bounded partial transfer/resume tested with native storage. Still SYNC01 local foundation: fresh-device Source/Input creation and checkpoint owner closure remain code gaps. Real Chrome/Edge/Safari accounts are separate prerequisites. | Sole assigned Sync data writer; coordinator CI |
+| AI-COST01–07 |0.28 local foundation/style/maintenance/Assist guards;0.29 exact child metadata scope.0.30 next cache qualification binds current evidence, style and generation profile; legacy metadata stays unqualified. Qwen/billing/real-quality gates remain closed. | Isolated AI cache writer; independent reviewer |
+| Prompt Surface / Stage3A / AI-COST06 | Default-off local Next/Family retained;0.28 stale availability repair delivered. Keep explicit reply consent/no-send and current-live qualification; Stage3B remains unauthorized. | Coordinator; no duplicate writer |
+| IAH1.1 | Selected minimal navigation/search/Find/Back already delivered and retained. Maintain affected regressions; no old1.0 Home redesign. Installation and physical acceptance remain distinct. | Coordinator |
+
+The heartbeat is recovery/check-in, not a stopping interval. Only external prerequisites with no independent work justify ending an active development turn. A code/test/merge/package result is not a claim that an entire numbered lane or connected service is complete.
+
 ## Current execution checkpoint — 2026-10-09 CST, 19:32Z
 
 This block supersedes the older scheduling statements below; their evidence remains historical. Remote main is `3d69b95f` (runtime0.24). PR210 exact `baec9af2` is the frozen0.28 candidate. Prior76db Prompt37830791928 and Visual37830791633 passed; Full37830791787 was cancelled by Browser1 capacity. Reviewed whole-file1→6 rebalance preserves all coverage and budgets; fresh Full37833847645/Prompt37833847508 are running. The previous f1db full failure is retained. No0.28 merge or installation is claimed.

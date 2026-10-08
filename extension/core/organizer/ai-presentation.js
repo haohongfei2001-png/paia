@@ -1,3 +1,5 @@
+import {readAIStyle} from '../ai-organize-style-preference.js';
+import {qualifyOrganizeCache,organizeCacheEvidenceVersion} from './organize-cache-qualification.js';
 import {entryTime} from './topic-chronology.js';
 import {expressionTime} from './expression-time.js';
 import {userAIDraft} from './ai-draft.js';
@@ -39,12 +41,26 @@ async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false,entryIds=nu
 }
 const sourceBinding=(topic,epoch,policy)=>({organizationRevision:topic.organizationRevision,generation:topic.generation??topic.activeLayoutGeneration,epoch:String(epoch??''),coverage:JSON.stringify([topic.intendedCount,topic.excluded||[],topic.unavailable||[]]),policy});
 async function sourcePolicy(t){const filter=await t.get('meta','smart-filter'),config=await t.get('meta','memory:config');return JSON.stringify({filterMode:filter?.mode??'off',externalAccess:config?.externalAccess===true,localOnly:config?.localOnly===true});}
-async function topicState(s,t,topic,cp,epoch,{summaryOnly=false}={}){
+async function cacheSnapshot(s,t,topic,current){
+ const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),recovering=await t.get('meta','backup-recovery-settings');
+ const sections=await t.all('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));
+ const evidenceVersion=organizeCacheEvidenceVersion({topicId:topic.id,name:topic.name,organizationRevision:topic.organizationRevision,generation:topic.activeLayoutGeneration,gateEpoch:gate?.epoch??null,restoreEpoch:restore?.value??'initial',policy:await sourcePolicy(t),scopeVersions:current.scopeVersions,inputVersions:current.inputVersions,sections:sections.map(row=>({id:row.id,revision:row.revision,name:row.name??row.title??'',rank:row.rank})),coverage:{intendedCount:current.intendedCount,excluded:current.excluded,unavailable:current.unavailable}});
+ const selected=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
+ return {topicId:topic.id,evidenceVersion,style:selected,complete:!recovering&&!current.truncated&&!current.unavailable.length&&!current.excluded.length};
+}
+// Internal transaction owner for future qualified writers and synthetic tests.
+// No RPC exposes this metadata; the caller must already hold the repository txn.
+export async function readOrganizeCacheSnapshotInTransaction(s,t,topicId){
+ const topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic,{summaryOnly:true});
+ return cacheSnapshot(s,t,topic,current);
+}
+async function topicState(s,t,topic,cp,epoch,{summaryOnly=false,expectedProfile=null}={}){
  const current=await topicSnapshot(s,t,topic,{summaryOnly}),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
  const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),none=isBaseNoneEnvelope(stored),binding=sourceBinding({...topic,...current},epoch,await sourcePolicy(t)),candidate=readable||none?publicAIPresentationCandidate(stored,allowed,stored.candidate?.schemaVersion===1?current.versions:current.scopeVersions,binding):null;
  const resetCandidate=!!stored?.candidate&&(!candidate||candidate.stale),baseline=stored?.basedOnCheckpoint?.entryVersions,prior=resetCandidate?(baseline&&typeof baseline==='object'&&!Array.isArray(baseline)?baseline:{}):readable||none||!current.entries.length?rawPrior:{};
  const changed=current.entries.filter(e=>prior[e.id]!==current.versions[e.id]),removed=Object.keys(prior).filter(id=>!allowed.has(id));
- return {...current,id:topic.id,name:topic.name,organizationRevision:topic.organizationRevision,generation:topic.activeLayoutGeneration,binding,prior,storedRevision:stored?.revision||0,stored,emptyCurrent:none,userDraft:!readable&&!none?userAIDraft(stored):null,presentation:readable?stored:null,candidate,changed,removed,pending:changed.length>0||removed.length>0||!!stored&&(!readable&&!none||stored.needsUpdate===true),stale:!!stored&&(!readable&&!none||stored.needsUpdate===true||changed.length>0||removed.length>0)};
+ const cacheQualification=qualifyOrganizeCache({stored,readable,ownerPending:changed.length>0||removed.length>0,snapshot:readable&&stored?.cacheBinding?await cacheSnapshot(s,t,topic,current):null,expectedProfile});
+ return {...current,cacheQualification,id:topic.id,name:topic.name,organizationRevision:topic.organizationRevision,generation:topic.activeLayoutGeneration,binding,prior,storedRevision:stored?.revision||0,stored,emptyCurrent:none,userDraft:!readable&&!none?userAIDraft(stored):null,presentation:readable?stored:null,candidate,changed,removed,pending:changed.length>0||removed.length>0||!!stored&&(!readable&&!none||stored.needsUpdate===true),stale:!!stored&&(!readable&&!none||stored.needsUpdate===true||changed.length>0||removed.length>0)};
 }
 // UX-R2 reuses the canonical pending-delta tokens without loading every topic's
 // bodies or invoking the organizer/migration path just to display Revisit.
@@ -58,10 +74,10 @@ export async function revisitTopicDeltas(s,t){
  }
  return {topics,truncated};
 }
-async function snapshot(s,{topicId=null,summaryOnly=false}={}){await migrateAIPresentations(s);return s.run(()=>s.repository.transaction(false,async t=>{
+async function snapshot(s,{topicId=null,summaryOnly=false}={},expectedProfile=null){await migrateAIPresentations(s);return s.run(()=>s.repository.transaction(false,async t=>{
  const gate=await t.get('meta','gate'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0},topics=[];
  const rows=topicId?[await s.canonicalTopic(t,topicId)]:await t.all('topics');
- for(const raw of rows){if(raw.lifecycle!=='active'||raw.redirectTo)continue;const topic=await s.canonicalTopic(t,raw.id);if(!validTopicGeneration(topic.activeLayoutGeneration))continue;topics.push(await topicState(s,t,topic,cp,gate?.epoch,{summaryOnly}));}
+ for(const raw of rows){if(raw.lifecycle!=='active'||raw.redirectTo)continue;const topic=await s.canonicalTopic(t,raw.id);if(!validTopicGeneration(topic.activeLayoutGeneration))continue;topics.push(await topicState(s,t,topic,cp,gate?.epoch,{summaryOnly,expectedProfile}));}
  return {topics,checkpoint:cp,epoch:gate?.epoch,enabled:gate?.enabled};
  }));}
 function versionInputs(value){try{return (JSON.parse(value)[2]||[]).map(x=>x[0]);}catch{return [];}}
@@ -75,15 +91,17 @@ async function acknowledgedInputs(s,t,checkpoint,topic,completedVersions){
   if(pending)continue;const row=await t.get('inputStates',id),projection=await inputProjection(s,t,id);if(row)versions[id]={contentRevision:row.contentRevision,removalState:row.removalState,sourcePurged:!!row.sourcePurged,eligible:!!projection&&!await s.isFiltered(t,projection.block,filter)};else delete versions[id];
  }return versions;
 }
-const publicTopic=t=>({topicId:t.id,name:t.name,sourceHint:sourceFaithfulSummary(t.entries),userDraft:t.userDraft,presentation:t.presentation?{...presentationContent(t.presentation),revision:t.presentation.revision,recoveryGeneration:t.presentation.recoveryGeneration||'legacy',schemaVersion:t.presentation.schemaVersion,protections:t.presentation.protections||{},updatedAt:t.presentation.updatedAt,stale:t.stale}:null,candidate:t.candidate,stale:t.stale,pending:t.pending,pendingEntryCount:t.changed.length+t.removed.length});
-async function readAIPresentationStatus(s,{topicId=null,summaryOnly=false}={}){
+const publicTopic=t=>({cacheQualification:t.cacheQualification,topicId:t.id,name:t.name,sourceHint:sourceFaithfulSummary(t.entries),userDraft:t.userDraft,presentation:t.presentation?{...presentationContent(t.presentation),revision:t.presentation.revision,recoveryGeneration:t.presentation.recoveryGeneration||'legacy',schemaVersion:t.presentation.schemaVersion,protections:t.presentation.protections||{},updatedAt:t.presentation.updatedAt,stale:t.stale}:null,candidate:t.candidate,stale:t.stale,pending:t.pending,pendingEntryCount:t.changed.length+t.removed.length});
+async function readAIPresentationStatus(s,{topicId=null,summaryOnly=false}={},expectedProfile=null){
  if(topicId!==null&&!idOK(topicId)||typeof summaryOnly!=='boolean')reject('INVALID_OUTPUT');
- const all=summaryOnly?{topics:[]}:await snapshot(s,{topicId}),delta=topicId||summaryOnly?null:await planDelta(s,'ai');
+ const all=summaryOnly?{topics:[]}:await snapshot(s,{topicId},expectedProfile),delta=topicId||summaryOnly?null:await planDelta(s,'ai');
  const runtime=await s.run(()=>s.repository.transaction(false,async t=>{const pointer=await t.get('meta',CURRENT),row=pointer?await t.get('meta',REQUEST+pointer.requestId):null;return row&&(!topicId||row.topicId===topicId)?row:null;},['meta']));
  return {topics:summaryOnly?[]:all.topics.map(publicTopic),pendingTopics:all.topics.filter(t=>t.pending).length,nextTopic:all.topics.filter(t=>t.pending).map(t=>({topicId:t.id,name:t.name,inputCount:Math.min(t.changed.length||t.entries.length,8)}))[0]||null,counts:delta?.counts||{addedInput:0,changedInput:0,removedInput:0,affectedTopic:all.topics.filter(t=>t.pending).length,affectedEntry:all.topics.reduce((n,t)=>n+t.changed.length+t.removed.length,0)},approximateBytes:summaryOnly?0:all.topics.filter(t=>t.pending).reduce((n,t)=>n+bytes(t.changed.slice(0,8).map(e=>e.body)),0),runtime:runtime?{topicId:runtime.topicId,phase:runtime.phase,state:runtime.state,errorCode:runtime.errorCode||null,httpStatus:runtime.httpStatus??null,responseBytes:runtime.responseBytes||0,requestCount:runtime.requestCount||0}:null};
 }
-export async function aiPresentationStatus(s,options={}){
- const result=await readAIPresentationStatus(s,options),compatibility=await s.libraryCompatibilityStatus?.().catch(()=>null);
+export async function aiPresentationStatus(s,options={},expectedProfile=null){
+ // Third argument is internal only; worker request options cannot supply it.
+ const profile=expectedProfile===null?null:structuredClone(expectedProfile);
+ const result=await readAIPresentationStatus(s,options,profile),compatibility=await s.libraryCompatibilityStatus?.().catch(()=>null);
  return compatibility?.unresolvedLayouts>0?{...result,degraded:{reason:'topic_compatibility_unresolved',unresolvedLayouts:compatibility.unresolvedLayouts}}:result;
 }
 

@@ -1516,7 +1516,7 @@ jobs:
           import {execFileSync} from 'node:child_process';
           import {assertReceipt,assertInputWorkingReceipt} from './tests/native-sync/receipt.mjs';
           import {createHash} from 'node:crypto';
-          import {assertInputWorkingReceiveReceipt,INPUT_WORKING_RECEIVE_PATHS} from './tests/native-sync/input-working-receive-receipt.mjs';
+          import {assertInputWorkingReceiveReceipt,INPUT_WORKING_RECEIVE_PATHS,INPUT_WORKING_INBOX_PATHS} from './tests/native-sync/input-working-receive-receipt.mjs';
           import {assertWorkerLifecycle,assertNetworkLedger} from './tests/native-sync/proof-oracles.mjs';
           const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant,requiredFilterIntent:true}));
           const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
@@ -1568,6 +1568,9 @@ jobs:
           assert.deepEqual(received[0].cases,received[1].cases);assert.deepEqual(received[0].hashes,received[1].hashes);assert.equal(received[0].browserVersion,received[1].browserVersion);
           const receiveHashes=Object.fromEntries(INPUT_WORKING_RECEIVE_PATHS.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
           for(const receipt of received)assert.deepEqual(receipt.hashes,receiveHashes);
+          assert.deepEqual(received[0].inboxCases,received[1].inboxCases);assert.deepEqual(received[0].inboxHashes,received[1].inboxHashes);
+          const inboxHashes=Object.fromEntries(INPUT_WORKING_INBOX_PATHS.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+          for(const receipt of received)assert.deepEqual(receipt.inboxHashes,inboxHashes);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
