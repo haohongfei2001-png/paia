@@ -11,11 +11,29 @@ export function topicPresentationFacts(overview,sort='desc'){
  return {caption:range.length?(range[0]===range.at(-1)?String(range[0]):`${range[0]}—${range.at(-1)}`)+' · 已收录的表达':'表达时间未知',coverage:`按时间完整浏览，不按“重要性”删表达。${known}条有时间${unknown?`，另${unknown}条时间未知`:''}。`,years:[...years.map(String),...(unknown?['unknown']:[])]};
 }
 
+// Chromium's native caret scrolling does not account for the compact sticky
+// navigation rail. Keep only the active Topic title's selection below it;
+// neither editable nodes nor the native Selection are replaced.
+export function revealCompactTopicTitleSelection(root){
+ const title=root?.querySelector('#topic-heading h1');
+ if(!title||document.activeElement!==title||!title.isConnected||innerWidth>=768)return;
+ const selection=getSelection();if(!selection?.rangeCount)return;
+ const range=selection.getRangeAt(0);if(!title.contains(range.commonAncestorContainer))return;
+ const rail=document.querySelector('.sidebar');if(!rail)return;
+ const style=getComputedStyle(rail);if(!['sticky','fixed'].includes(style.position))return;
+ const barrier=rail.getBoundingClientRect(),rect=range.getBoundingClientRect();
+ if(barrier.top>0||barrier.bottom<=0||!rect.height)return;
+ const top=barrier.bottom+4;
+ if(rect.top<top)window.scrollBy(0,rect.top-top);
+ else if(rect.bottom>innerHeight-4)window.scrollBy(0,rect.bottom-innerHeight+4);
+}
+
 export class TopicWorkspacePresentation {
  constructor(owner){
   this.owner=owner;this.topicId=owner.id;this.view=owner.view;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
   const previous=readingOptions.get(owner),active=document.activeElement;readingOptions.delete(owner);
   const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
+  this.selectionFrame=null;this.onTitleSelection=()=>{if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);this.selectionFrame=requestAnimationFrame(()=>{this.selectionFrame=null;if(!this.disposed)revealCompactTopicTitleSelection(this.root);});};document.addEventListener('selectionchange',this.onTitleSelection);
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
   move(toolbar.querySelector('.library-history-tools'),menu);
   this.caption=make('p','dvn-topic-caption');title.after(this.caption);
@@ -41,7 +59,7 @@ export class TopicWorkspacePresentation {
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
-  if(this.disposed)return;this.disposed=true;
+  if(this.disposed)return;this.disposed=true;document.removeEventListener('selectionchange',this.onTitleSelection);if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);
   readingOptions.set(this.owner,{topicId:this.topicId,view:this.view,open:this.options.open});
   const active=document.activeElement,moved=this.moves.some(({node})=>node===active||node.contains(active));
   this.root.classList.remove('dvn-topic-composition');this.write.textContent=this.writeLabel;for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();

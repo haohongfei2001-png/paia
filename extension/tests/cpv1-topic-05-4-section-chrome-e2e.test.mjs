@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
-import {resolve} from 'node:path';
+import {resolve,join} from 'node:path';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of ['source','release'])test('TOPIC-05.4 native bounded Section reading and exact retained prose '+variant,{timeout:180000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.')}),p=h.archive,dir='work/qa-topic05-section/'+variant;await mkdir(dir,{recursive:true});
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-section-reading-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,dir='work/qa-topic05-section/'+variant;await mkdir(dir,{recursive:true});
  try{
   await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const f=await p.evaluate(async()=>{
@@ -47,12 +49,13 @@ for(const variant of ['source','release'])test('TOPIC-05.4 native bounded Sectio
   assert.equal(await field(f.ids[0]).textContent(),f.bodies[0]);await field(f.ids[0]).focus();assert.equal(await field(f.ids[0]).evaluate(node=>document.activeElement===node),true);assert.equal(await field(f.ids[1]).textContent(),f.largeBody,'explicit expansion survives eviction and hydration');
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await writeFile(dir+'/result.json',JSON.stringify({head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,count:165,window:120,compositionPinned:true,longExpansion:true,evictedAndReturned:true,status:'PASS'}));
- }catch(error){await writeFile(dir+'/failure.json',JSON.stringify({error:String(error),stack:error.stack}));await p.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();}
+ }catch(error){await writeFile(dir+'/failure.json',JSON.stringify({error:String(error),stack:error.stack}));await p.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });
 
 for(const variant of ['source','release'])test('TOPIC-05.4 native late Section response cannot repaint purged synthetic Source '+variant,{timeout:120000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.')}),p=h.archive;
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-section-reading-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive;
  try{
   await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const f=await p.evaluate(async()=>{
@@ -76,5 +79,5 @@ for(const variant of ['source','release'])test('TOPIC-05.4 native late Section r
   await p.waitForFunction(()=>document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert);
   assert.equal(await p.locator(`#topic-body [data-entry-id="${f.entryId}"]`).count(),0,'a late pre-purge response cannot repaint the removed body');assert.equal(await p.locator('#topic-body').innerText().then(text=>text.includes('PURGE_OLD_PROSE')),false);
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });

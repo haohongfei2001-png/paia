@@ -145,6 +145,14 @@ for(const variant of ['source','release'])test(`D2 Section durable order and tru
 
 // The visual/preference journey owns a separate real reader instance. The
 // original complete-extent journey above keeps its exact pre-Q5 interaction state.
+function installVisualWindowEvidence(targetId){
+ const owner=__d2Content,events=[],snapshot=()=>{const r=owner.topicReader,n=document.querySelector(`[data-entry-id="${targetId}"] [data-entry-field="body"]`),box=n?.getBoundingClientRect();return {targetId,scrollY,width:innerWidth,active:document.activeElement?.id,rect:box?{top:box.top,bottom:box.bottom}:null,windowStart:r?.windowStart,windowRevision:r?.windowRevision,bodyRevision:r?.bodyRevision,ids:r?.items.map(x=>x.entry.id),loadingNext:r?.loadingNext,loadingPrevious:r?.loadingPrevious,hydrating:r?.hydrating,restoring:owner.topicRestoring(),anchor:owner.topicAnchor()};};
+ const record=(name,detail={})=>{try{events.push({at:performance.now(),name,detail,state:snapshot()});}catch(error){events.push({at:performance.now(),name,diagnosticError:String(error)});}if(events.length>250)events.shift();};
+ globalThis.__d5WindowEvidence={events,snapshot,record};
+ for(const name of ['loadTopicContinuous','renderTopicReader','shiftTopicWindow']){const original=owner[name];owner[name]=function(...args){record(name+':start',{argument:args[0]});const result=original.apply(this,args);if(result?.then)result.then(()=>record(name+':end'),()=>record(name+':error'));return result;};}
+ const original=window.scrollBy;window.scrollBy=function(...args){record('scrollBy',{args,stack:new Error().stack});return original.apply(this,args);};
+ addEventListener('scroll',()=>record('scroll'),{passive:true});record('full-extent-before-section');
+}
 for(const variant of ['source','release'])test(`D5 Content paired reading roles, preferences and pointer targets (${variant})`,{timeout:180000},async()=>{
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;let d5;
  try{
@@ -165,13 +173,15 @@ for(const variant of ['source','release'])test(`D5 Content paired reading roles,
   // Establish the complete 165-reference fixture before measuring successive layouts.
   // The visual matrix must not race a still-streaming Section navigation.
   for(let i=0;i<6&&!await p.evaluate(()=>__d2Content.topicReader.terminalNext);i++){const count=await p.evaluate(()=>__d2Content.topicReader.items.length);await p.locator('#topic-continuous-after').evaluate(node=>node.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true})));await eventually(()=>p.evaluate(n=>!__d2Content.topicReader.loadingNext&&(__d2Content.topicReader.items.length>n||__d2Content.topicReader.terminalNext),count),'visual Section fixture completes the actual reference extent');}assert.equal(await p.evaluate(()=>__d2Content.topicReader.items.length),165);
+  await p.evaluate(installVisualWindowEvidence,seed.records[0].id);
   await p.evaluate(id=>__d2Content.focusSection(id),seed.sectionId);
+  await p.evaluate(()=>__d5WindowEvidence.record('after-section'));
   d5=await openSectionReading(h,variant,'content',seed.records[0].id);
 
-  for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.setViewportSize({width,height:900});await d5.capture(width,appearance);}}
+  for(const appearance of ['light','dark']){await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance}});for(const width of [1440,1280,1024,768,390,320]){await p.evaluate(()=>__d5WindowEvidence.record('before-resize'));await p.setViewportSize({width,height:900});await p.evaluate(()=>__d5WindowEvidence.record('after-resize'));await d5.capture(width,appearance);}}
   await d5.verifyPreferences();await d5.verifyTextZoom();await d5.finishInteractions();await d5.verifyHeaderInteractions(seed.records[1].id);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);await d5.finish();
- }finally{try{await d5?.close();}finally{await h.close();}}
+ }finally{try{try{await writeFile(`work/qa-dvn-topic-content/${variant}-visual-window.json`,JSON.stringify(await p.evaluate(()=>({events:globalThis.__d5WindowEvidence?.events,final:globalThis.__d5WindowEvidence?.snapshot()})),null,2));}catch(error){console.error('D5_WINDOW_DIAGNOSTIC_FAILED',String(error));}await d5?.close();}finally{await h.close();}}
 });
 
 // Test-local successor to retired D5 year geometry; unchanged shared header owner.
@@ -226,7 +236,7 @@ async function openSectionReading(h,variant,kind,id){
    const current=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences;await verifyPreference(label,current.fontSize,current.readingWidth);
    const stem=`${directory}/${variant}-${width}-${theme}`;await p.screenshot({path:stem+'-top-production.png'});const reference=await ref.capture(theme,stem+'-top-reference.png');
    const header={width,theme,production:await measureTopicHeader(p),reference};headers.push(header);await persist('PENDING');assertTopicHeader(header.production,reference,label);
-   await body().scrollIntoViewIfNeeded();await frame(p);
+   await p.evaluate(()=>__d5WindowEvidence?.record('before-body-scroll'));await body().scrollIntoViewIfNeeded();await p.evaluate(()=>__d5WindowEvidence?.record('after-body-scroll'));await frame(p);await p.evaluate(()=>__d5WindowEvidence?.record('after-body-frames'));
    const bodyProduction=await measure(p,kind,id);assert.ok(bodyProduction.nodes.prose.visible&&bodyProduction.nodes.prose.text.trim(),label+' actual body intersects viewport '+JSON.stringify({scroll:bodyProduction.scrollY,prose:bodyProduction.nodes.prose,section:bodyProduction.nodes.year}));
    await p.screenshot({path:stem+'-body-production.png'});rows.push({width,theme,production,reference,bodyProduction});await persist('PENDING');
    if(kind==='content'&&width<=390)await overflowTarget(label+' overflow');await p.evaluate(()=>scrollTo(0,0));await frame(p);
@@ -259,7 +269,7 @@ async function openSectionReading(h,variant,kind,id){
    await p.setViewportSize({width:320,height:900});const before=await measure(p,kind,id);
    try{
     await p.evaluate(()=>{globalThis.__d5ReadingZoom=[...document.querySelectorAll('#thought-document h1,#thought-document h2,#thought-document p,#thought-document button,#thought-document summary,#thought-document select,#thought-document .entry-prose,#thought-document .entry-sent-time')].map(node=>({node,prior:node.style.getPropertyValue('font-size'),priority:node.style.getPropertyPriority('font-size'),size:parseFloat(getComputedStyle(node).fontSize)}));for(const item of __d5ReadingZoom)item.node.style.setProperty('font-size',(item.size*2)+'px','important');});
-    await body().scrollIntoViewIfNeeded();await frame(p);const measured=await measure(p,kind,id),overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+    await p.evaluate(()=>__d5WindowEvidence?.record('before-body-scroll'));await body().scrollIntoViewIfNeeded();await p.evaluate(()=>__d5WindowEvidence?.record('after-body-scroll'));await frame(p);await p.evaluate(()=>__d5WindowEvidence?.record('after-body-frames'));const measured=await measure(p,kind,id),overflow=await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
     targets.push({label:'320px 200% text',overflow,measured});await persist('PENDING');await p.screenshot({path:`${directory}/${variant}-text200-320.png`});assert.equal(parseFloat(measured.nodes.prose.fontSize),parseFloat(before.nodes.prose.fontSize)*2,'actual prose computed size doubles');assert.ok(overflow<=2,'200% reading text has no horizontal page overflow');assert.ok(measured.nodes.prose.visible&&measured.nodes.prose.text.trim(),'200% actual body is visible');
     if(kind==='content')await overflowTarget('320px 200% text overflow');
    }finally{await p.evaluate(()=>{for(const item of globalThis.__d5ReadingZoom||[])item.node.style.setProperty('font-size',item.prior,item.priority);delete globalThis.__d5ReadingZoom;scrollTo(0,0);});await p.setViewportSize({width:1440,height:900});await frame(p);}

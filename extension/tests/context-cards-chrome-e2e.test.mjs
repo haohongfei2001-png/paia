@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {installContextInputsTrace,readContextInputsTrace} from './harness/context-inputs-trace.mjs';
@@ -65,8 +66,9 @@ for(const variant of ['source','release'])test('CTX4 real four-card durable edit
 });
 
 for(const variant of ['source','release'])test('CTX4-02 all local cards, isolated recovery, access and page return '+variant,{timeout:180000},async t=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.'),headless:true}),p=h.archive;
+ const releaseDir=variant==='release'?await mkdtemp(join(tmpdir(),'paia-ctx4-locale-')):null;
+ if(releaseDir){t.after(()=>rm(releaseDir,{recursive:true,force:true}));execFileSync('python3',['scripts/build_current_release.py',releaseDir],{stdio:'pipe'});}
+ const h=await FakeChatGPT.start({extensionPath:releaseDir||resolve('.'),headless:true}),p=h.archive;
  const dir=`work/ctx4-01/${variant}/ctx4-02`;await mkdir(dir,{recursive:true});
  // Keep the case budget unchanged; an individual hung action must produce its
  // own failing stack and current phase rather than consuming the whole case.
@@ -105,6 +107,14 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
   await field(p).focus();const opposite=card==='rules'?'now':'rules',other=(await items(opposite))[0];await field(p).evaluate(el=>{el.dataset.nativeIdentity='retained';el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='SYNTHETIC 正在组合 '+el.getAttribute('aria-label');});
   const snap=await read(p);await rpc(p,'PAIA_CONTEXT_CARDS_CHANGE',{change:{kind:'put',card:opposite,operationId:crypto.randomUUID(),epoch:snap.epoch,itemId:other.id,expectedRevision:other.revision,section:other.section,body:other.body+' [other card]'}});await pause(850);
   assert.equal(await p.locator('.item-text').count(),1);assert.equal(await field(p).getAttribute('data-native-identity'),'retained');assert.equal(await field(p).evaluate(el=>el===document.activeElement),true);assert.equal((await items(card))[0].body.includes('正在组合'),false);
+  // A preference refresh must translate chrome without replacing the live IME body.
+  await field(p).evaluate(el=>{globalThis.__ctxLocaleNode=el;const range=document.createRange();range.setStart(el.firstChild,10);range.setEnd(el.firstChild,14);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);globalThis.__ctxLocaleText=selection.toString();});
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});
+  await eventually(()=>p.locator('#memory-panel h1').textContent().then(value=>value===(card==='rules'?'My Rules':'My Now')),'Context chrome follows preferences');
+  assert.equal(await field(p).evaluate(el=>el===globalThis.__ctxLocaleNode&&getSelection().anchorNode===el.firstChild&&getSelection().toString()===globalThis.__ctxLocaleText),true,'locale preserves the exact body node and selected Unicode range');
+  assert.equal((await items(card))[0].body.includes('正在组合'),false,'locale does not commit composition');
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+  await eventually(()=>p.locator('#memory-panel h1').textContent().then(value=>value===(card==='rules'?'我的规则':'我的现在')),'Context chrome returns to Chinese');
   await field(p).press('Control+Enter');assert.equal((await items(card))[0].body.includes('正在组合'),false,'shortcut does not commit IME');await field(p).evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));await field(p).press('Control+Enter');await eventually(async()=>(await items(card))[0]?.body.includes('正在组合'));
   const restore=await failCommits(h);await field(p).fill(`SYNTHETIC ${card} failed draft`);await field(p).press('Control+Enter');await eventually(()=>p.locator('.item-feedback.error').isVisible());await p.locator('.context-back').click();assert.equal(await field(p).innerText(),`SYNTHETIC ${card} failed draft`);await restore();await p.locator('.item-feedback').getByRole('button',{name:'重试',exact:true}).click();await eventually(async()=>(await items(card))[0]?.body===`SYNTHETIC ${card} failed draft`);await home();
  }

@@ -13,11 +13,11 @@ class Node extends PresentationNode {
 }
 
 function fixture(){
- const keys=['document','chrome','scrollY','innerHeight','getSelection'],prior=Object.fromEntries(keys.map(key=>[key,globalThis[key]])),pins=new Set();
+ const keys=['requestAnimationFrame','document','chrome','scrollY','innerHeight','getSelection'],prior=Object.fromEntries(keys.map(key=>[key,globalThis[key]])),pins=new Set();
 const unplaced=new Node('div'),sentinel=new Node('div'),collection=new Node('div'),list=new Node('div');unplaced.hidden=true;unplaced.append(sentinel);collection.append(list);
 const body=new Node('body'),pane=new Node('div'),heading=new Node('div'),panel=new Node('div'),search=new Node('input');pane.id='original-reading-body';panel.hidden=false;body.append(pane,heading,panel,search,collection);
 globalThis.document={body,documentElement:{lang:'en'},activeElement:null,querySelectorAll:selector=>body.querySelectorAll(selector),createElement:tag=>new Node(tag),createTextNode:presentationText,getElementById:id=>({'thought-panel':panel,'thought-collection':collection,'thought-list':list,'topic-body':pane,'topic-heading':heading,'topic-search':search,'thought-search':search,'library-unplaced-list':unplaced,'unplaced-continuous-sentinel':sentinel}[id]||null)};
-globalThis.scrollY=0;globalThis.innerHeight=1000;globalThis.getSelection=()=>null;
+globalThis.requestAnimationFrame=callback=>callback();globalThis.scrollY=0;globalThis.innerHeight=1000;globalThis.getSelection=()=>null;
 const section={id:'SYNTHETIC-section',sectionId:'SYNTHETIC-section',topicId:'SYNTHETIC-topic',title:'SYNTHETIC qualified named Section',lifecycle:'active',revision:1,layoutGeneration:1,sourceUnavailable:false,titleProtected:true,protections:{title:{locked:true}}},entry={id:'SYNTHETIC-entry',revision:1,body:'SYNTHETIC canonical expression',expressionTime:{at:'2026-10-07T00:00:00Z'}};
 const page={topic:{id:section.topicId,name:'SYNTHETIC Topic',activeLayoutGeneration:1},sections:[section],items:[{entry,placement:{sectionId:section.id}}],nextCursor:null,previousCursor:null,sectionCursor:null,coverage:{activeGeneration:'SYNTHETIC-generation'}};
 const rpc=[];globalThis.chrome={runtime:{sendMessage:async message=>{rpc.push(message.type);if(message.type==='GET_LIBRARY_SECTION_PROJECTION')return {ok:true,data:{topic:page.topic,items:[section]}};if(message.type==='TOPIC_DOCUMENT_PAGE')return {ok:true,data:page};throw Error('Unexpected fixture RPC '+message.type);}}};

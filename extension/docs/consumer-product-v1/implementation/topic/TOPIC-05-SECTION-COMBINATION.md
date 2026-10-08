@@ -275,3 +275,81 @@ review and the complete five-case guard pass. No runtime changes in this repair.
 On83d28ba, the complete Section source/release native file also passes4/4 in
 24.62s, including late purge refusal.1307 non-document tracked files matched the
 pre/post byte manifest. These results do not turn the failed aggregate into PASS.
+
+## Explicit Section/Entry arrival restoration — local reviewed repair
+
+Base `b2fe6cb169fb3005ff6ce788aaf7eeb296db88f9`; Full run37707292560
+retained Root05.2 exact-heading-focus and UX-R3 nearby-text-position failures in
+both source/release. The latter's existing diagnostic showed target range275.5
+at the initial scroll limit23, then range510.9 after previous entries loaded,
+while scroll remained23 despite a new limit258. No alignment/focus assertion,
+data fixture, timeout or test was removed.
+
+`resetTopicReader` now uses the existing restoration lifecycle for an explicit
+anchorId/sectionId as well as a saved window. Initial hydration and target arrival
+cannot race automatic adjacent paging or window shifting. Existing generation,
+reader/serial/intent qualification, two-animation-frame completion and deliberate
+reading-input cancellation stay intact. Three deterministic actual-owner tests
+cover the held initial target, queued layout release and PageDown cancellation.
+Two existing DOM fixtures supply the browser rAF interface; all old assertions
+remain. The Root browser file builds the audited release into an exclusive
+temporary directory, retaining the original source/release journey and budget.
+The coordinator independently reviewed this bounded repair.
+
+Local dirty-candidate evidence: complete related unit files113/113PASS; complete
+Root05.2 source/release2/2PASS125.44s; complete UX-R3 file26/26PASS311.39s including
+F-LARGE100kInputs/1000documents/300Topics/5000Thoughts. No skipped/cancelled cases.
+The runtime tested also includes the separately reviewed compact-title visibility
+repair; that repair remains a separate checkpoint, not part of this commit.
+Preserve coordination logs `work/section-root-uxr3-local-before.log`,
+`work/section-root-restore-guard.log`, `work/section-uxr3-arrival-final.log`,
+`work/section-restore-guard-unit-final.log` and the exact candidate byte manifest
+`work/section-arrival-candidate-bytes.json`. Diagnostic-only runs do not replace
+complete-file evidence; temporary Root instrumentation was removed.
+
+Content's combined run remains3PASS/1FAIL: release390/light body was outside the
+viewport before header interactions. This unresolved boundary is not called
+flaky, skipped or covered by Root/UX-R3 successes. Overall combination, refreshed
+full certification, integration and user availability remain pending. No CI,
+shared data, version, provider or permission change is included here.
+
+## Normal continuation preserves the current viewport — reviewed combination
+
+The retained Content release failure was a real timing boundary. Its qualified
+Section navigation reset the earlier165-reference window to40; automatic previous
+reads then loaded80/120/150 references during the responsive matrix. Native trace
+recorded a body positioned at387 while a previous read was pending, followed by
+restoration of an earlier222/259.97 viewport anchor and late scrollBy7467.97/5514.78.
+A trace-only run happened to pass and was not treated as resolution.
+
+Six deterministic tests call the actual continuation/render owners. Before the
+repair, scroll, resize and a removed live anchor failed (3FAIL/3PASS); unchanged
+viewport, replaced route and explicit snapshot controls passed. Normal continuation
+now samples its live DOM anchor synchronously immediately before paint, after all
+existing hydration, metadata, read-generation, reader, serial, window-revision,
+cue, intent and view checks. A missing live anchor never falls back to the earlier
+ID. Explicit navigation/reset and saved snapshot restoration retain their exact
+qualified target. The coordinator independently reviewed this repair. No extra
+sleep, timeout, weakened oracle, dropped fixture or provider/data change is used.
+
+Final local combination: five complete related unit files119/119PASS; complete
+Root05.2 + Section05.4 + UX-R3 native files32/32PASS427.65s, including both release
+variants, empty/named Section behavior, exact focus/Back, retained prose/IME,
+late-response purge refusal and F-LARGE100kInputs/1000documents/300Topics/5000Thoughts.
+The separate complete Content file passed4/4 on the same runtime after the compact
+title repair, closing its previously retained3/4 result. All36 native cases passed;
+none skipped or cancelled. Section's existing audited release build now uses an
+exclusive temporary output and cleanup, preserving every case and budget.
+
+Evidence is the exact dirty candidate, not an inferred clean-HEAD certificate.
+`work/section-live-anchor-native-bytes.json` records start basec460ebd3 plus SHA256
+of the runtime, reader, presentation and all three native owners; its final
+`endBytesUnchanged:true` proves unchanged bytes throughout32case execution.
+The presentation checkpoint226c1548 recorded already-present tested bytes during
+that execution; it did not replace runtime. Preserve logs
+`work/section-live-anchor-before.log`, `work/section-live-anchor-after.log`,
+`work/section-live-anchor-native-final.log`, and Content's separate complete
+`extension/work/section-content-liveanchor-native.log`/byte receipt recorded by its owner.
+Old hosted/local failures remain above and in coordination evidence. This local
+combination does not replace refreshed current-head CI, integration or installed
+user availability; those remain the coordinator's next delivery gates.
