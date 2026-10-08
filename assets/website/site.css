@@ -556,9 +556,9 @@ section[id] { scroll-margin-top: 124px; }
 }
 @media (max-width: 360px) {
   .wrap { width: calc(100% - 32px); }
-  .header-inner { gap: 6px; }
+  .header-inner { gap: 4px; padding-inline: 8px; }
   .header-inner .wordmark { font-size: 1.625rem; }
-  .header-actions .button-small { padding-inline: 10px; gap: 6px; }
+  .header-actions .button-small { padding-inline: 8px; gap: 4px; }
   .feature-visual { padding: 20px; }
   .mini-paper { padding: 18px; }
   .article-layout > .prose, .about-prose, .legal-prose, .essay, .status-page > article, .beta-form { padding-inline: 20px; }

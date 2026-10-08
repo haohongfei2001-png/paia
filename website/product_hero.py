@@ -41,7 +41,7 @@ def render_hero(t, a, button, icon):
 <div class="optical-field" aria-hidden="true"><span class="optical-ribbon ribbon-blue"></span><span class="optical-ribbon ribbon-lilac"></span><span class="optical-ribbon ribbon-mint"></span><span class="optical-caustic"></span></div>
 <div class="hero-heading wrap"><p class="hero-eyebrow"><span class="status-dot" aria-hidden="true"></span>{t('PAIA · 个人 AI 输入档案', 'PAIA · YOUR PERSONAL AI INPUT ARCHIVE')}</p>
 <h1 id="hero-title">{t('你的表达，<br><span>不止于一次对话。</span>', 'Your words.<br><span>Beyond a conversation.</span>')}</h1>
-<p class="hero-description">{t('找回散落的输入，串起持续的思考，复用真正好用的提示词。<br>让下一次与 AI 的协作，从你已经积累的地方开始。', 'Find your past inputs. Connect your ideas. Reuse your best prompts.<br>Start your next conversation with everything you’ve already learned.')}</p>
+<p class="hero-description">{t('找回散落的输入，串起持续的思考，复用真正好用的提示词。<br>让下一次与 AI 的协作，从你已经积累的地方开始。', 'Find your past inputs. Connect your ideas. Reuse your best prompts.<br> Start your next conversation with everything you’ve already learned.')}</p>
 <div class="hero-actions">{button('demo.html', t('体验产品示例', 'Explore the product'))}{a('beta.html', t('申请内测', 'Request beta access') + ' <span aria-hidden="true">↗</span>', 'button button-secondary')}</div>
 <p class="hero-scope">{t('桌面 Chrome · ChatGPT · 邀请制内测', 'Chrome desktop · ChatGPT · Private beta')}</p></div>
 <div class="hero-product wrap" data-hero-product><div class="hero-product-label"><span><i class="example-dot" aria-hidden="true"></i>{t('产品预览 · 示例数据', 'PRODUCT PREVIEW · FICTIONAL DATA')}</span><button type="button" class="motion-control" data-motion-toggle aria-pressed="false" hidden>{t('暂停动效', 'Pause motion')}</button></div>
