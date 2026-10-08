@@ -218,3 +218,32 @@ retained JSON diagnostics: work/native-visibility-local-failure/. Neither this
 attempt nor the earlier hosted run validates the new Settings foreground fix.
 The complete hosted native owner remains required; no timeout/assertion change
 or local visible browser was introduced to bypass the failure.
+
+
+## 3669aa62 retired-export oracle correction
+
+Hosted Prompt37712841227 passed the Settings foreground/hidden/return subcase
+in both variants and reached the privacy/light/dark/compact subcase8. Both
+failed at its direct BackupService.beginExport call with FEATURE_UNAVAILABLE,
+as required by the approved retired-export production boundary. The visual
+loop preceded that call; the failed subcase and whole run remain FAIL, not
+certified visual/privacy acceptance. The original coordinator log remains
+work/prompt-3669-hosted-failure.log.
+
+The test now explicitly requires that production beginExport rejects with
+FEATURE_UNAVAILABLE. It snapshots every IndexedDB object store plus all
+chrome.storage.local/session both before and after the attempt, requiring exact
+equality and preserving the candidate-body absence assertion across both
+snapshots. Host localStorage/sessionStorage, model/network and no-send checks
+remain. No production export/RPC is restored, no historical encoder is used,
+and no nonexistent export artifact is claimed as tested.
+
+Syntax/diff checks passed. Complete related files passed127/127:
+backup-current-version, prompt-next-reopen-boundary, cpv1-12-next-security,
+cpv1-12-next-lifecycle and cpv1-12-next-detector. Further complete
+privacy-product, ux-r6-backup-export and cpv1-01-5-backup passed8/8.
+Both groups have zero fail/skip/cancel; local logs are
+work/prompt-retired-export-unit.log and work/prompt-retired-export-privacy.log.
+The unit files/runtime bytes did not change with the native oracle edit.
+No repeated local macOS native attempt was made. Independent review and the
+next exact-head hosted full source/release result remain pending.
