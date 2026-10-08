@@ -38,8 +38,8 @@ Producer proof is not inferred from canonical similarity: current exact revision
 - `tests/browser-native-sync-group-checkpoint-plan.test.mjs` `5280350e3433718688f79dc985318357f89006b25860ea71d992e8d42fcdc8de`
 - `tests/browser-native-sync-group-checkpoint-restore.test.mjs` `a49829da6c8aea7ee006c9fa4e5f5351377121f589d60392fe53af4eda4526eb`
 - `tests/browser-native-sync-group-checkpoint-old-reader.test.mjs` `f3dffad04fcce8860a568b8ae3a913d8fceba66a1d48d2df510824b3bc73bd6b`
-- `tests/native-sync/group-checkpoint-fixture.mjs` `3defc2fb6ddb24b33a2d89a66924c1365ba4db87e552bdc808fd07853b0d7f90`
-- `tests/native-sync/group-checkpoint-fixture.test.mjs` `06d62e6ebd39e12b6a765a1db27311c4fa9c33418f8e363d98a07e21715180c9`
+- `tests/native-sync/group-checkpoint-fixture.mjs` `61be877c86127425615083f51006da6970b0bfb27001fec34cfdae13f6013cab`
+- `tests/native-sync/group-checkpoint-fixture.test.mjs` `a46169e31225d42e25405c9fa45fc1700566e2dd34b14ea17ebcedf6e22f6b02`
 - `tests/native-sync/group-checkpoint-chrome.test.mjs` `2add6fdece7095187af614be555606115787e19c31e56f30b35f9e06d2e05526`
 
 ## Final publication await review correction
@@ -51,3 +51,7 @@ Current runtime complete related regression: `/tmp/group-checkpoint-post-put-fin
 ## Independent review
 
 Root and root_finish approved the final candidate. Independent four whole files: 32/32 PASS, 3998.698125 ms, `/tmp/group-checkpoint-independent-fixed.log`; all 14 receipt hashes and 39 frozen reader original Git bytes verified. Final transport fence and preserved negative verified. Approval is code/unit scope; native remains pending until the exact committed run.
+
+## Native first attempt and fixture correction
+
+Exact `aa33e0cc` source/release both failed before domain execution at the original 30 s consent visibility precondition (`/tmp/group-checkpoint-native-committed.log`). Generated-module `node --check` identified duplicate `const canonical`: the shared assertion bridge and owning test's canonical-row snapshot helper collided. No recovery case had run. Only the new compiler's owner-local helper name is isolated as `groupCanonicalRows`; actual case names, all assertions, runtime imports, consent and 240 s budgets are retained. A first broad identifier replacement also changed a test-title string and was rejected by the existing exact-name guard; it was narrowed to the declaration and await-call syntax. Actual generated-module syntax plus full compiler guard now pass 1/1 (`/tmp/group-checkpoint-compiler-fixed-final.log`). Production modules unchanged. Final exact-commit native remains pending.
