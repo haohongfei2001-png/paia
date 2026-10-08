@@ -238,7 +238,7 @@ export class TopicController {
   // Section read establishes arrival, including a genuinely empty Section.
   const node=[...this.originalPane.querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===sectionId);
   if(!node)return false;
-  node.scrollIntoView({block:'start'});(node.querySelector('h2')||node).focus({preventScroll:true});return true;
+  node.scrollIntoView({block:'start'});(node.querySelector('h2')||node).focus({preventScroll:true});this.writingSection={topicId,sectionId,openIntent:intent,presentationIntent:this.presentationIntent};return true;
  }
  async topicSectionRows(){
   // Contextual destinations use the existing source-qualified Section owner,
@@ -615,7 +615,7 @@ export class TopicController {
    if(current())await this.focusSection(section.sectionId,{isCurrent:current});
   }finally{this.sectionActionPending=false;this.syncSectionActionControls();}
  }
- async createEntry(){return this.actions.compose({topicId:this.id||undefined});}
+ async createEntry(){const topicId=this.id||undefined,intent=this.openIntent,presentation=this.presentationIntent,target=this.writingSection;const isCurrent=()=>this.id===(topicId||null)&&this.openIntent===intent&&this.presentationIntent===presentation;if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;const sectionId=this.view==='original'&&target?.topicId===topicId&&target.openIntent===intent&&target.presentationIntent===presentation?target.sectionId:undefined;return this.actions.compose({topicId,...(sectionId?{sectionId}:{}),isCurrent});}
  async manageSections(){
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
   const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
