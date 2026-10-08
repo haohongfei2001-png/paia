@@ -28,3 +28,6 @@ Before and after native run SHA-256 lists matched exactly (`/tmp/iah-source-path
 - `tests/iah11-result-presentation-chrome-e2e.test.mjs`: `1a4836960b32798f7bb949dd3a680e73ce05e02ac4179d9146adc2a732f6bca9`
 
 This local batch is not exact-head hosted full certification, main integration, installed-user acceptance, or completion of every IAH outcome. Earlier hosted IAH release timeouts remain failures; local duration cannot prove those resolved.
+
+
+Coordinator broad affected-consumer check on the same final runtime: ten complete unit files selected by actual searchInputs/SEARCH_INPUTS use and existing unit classification passed60/60, zero failed/skipped/cancelled,96487.5575ms. This includes ranked cache/scan equivalence, scope/generation races, existing smart-filter behavior, Universal Search and complete1000/10000 historical-Input ingestion/search/idempotence fixtures. The10000 case completed in89834.01225ms. Runtime and dependency bytes did not change after the author's final32-unit and source/release evidence; this is additional local compatibility proof, not hosted acceptance.
