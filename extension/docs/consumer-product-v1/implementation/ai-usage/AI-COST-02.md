@@ -105,3 +105,108 @@ acceptance are still open.
 Exact10546bcf reconciles current Settings main a733ae5. Independent review verified all300 prior browser routes against actual main, all9 AI runtime files unchanged from c24128ab, and46/46 foundation checks. Related AI/partition files41/41 passed. The unchanged complete AI-COST-01 native source/release file2/2 passed6.24s using explicit Playwright1.63.0, with HEAD and recorded bytes unchanged and an isolated audited release. This remains page/IndexedDB synthetic evidence, not worker termination or paid/cloud acceptance.
 
 Candidate37709124549 failed the retained10k history performance case at its original240-second limit while running four unit workers. The history test and production owners are unchanged from Settings main. Candidate unit execution now uses one worker within its existing15-minute job budget; no file selection, assertion or timeout changes. Independent YAML/environment review and17 complete CI/routing checks passed. The failed old run remains FAIL; a new exact-head complete suite must establish whether the unchanged budget is met.
+
+
+## Fixture settlement contract follow-up (independent review pending)
+
+Base2b3ba9148cabe9c016f201dc9bc011d72e3576b3, independent worktree
+ai-cost-settlement. This extends only FixtureAtomicReservation and its owning
+unit tests; no worker/store/schema/CI/model/entitlement adapter is connected.
+
+Settlement is a separate injected verification boundary binding the exact
+immutable request and metadata-only evidence. A missing verifier, incomplete
+usage, operation/receipt rebinding, nonmatching tariff or contradictory final
+receipt fails without changing occupation. Identical receipts are idempotent
+across concurrent/reconstructed instances. UNKNOWN retains its full reservation
+across windows; it is neither zero usage nor proof of nonbilling. Final fees or
+tokens above the original reservation fail with SETTLEMENT_OVER_BOUND and retain
+the existing dispatched/unknown occupation. No implicit replacement dispatch is
+possible; every returned receipt still says dispatchAllowed=false.
+
+Reservation retains its qualified tariff/FX snapshot. Final complete normalized
+usage is priced against that snapshot, never a later tariff. USD arithmetic must
+match exactly. For non-USD, actual USD billing conversion is an explicit verified
+receipt fact bounded by the conservative original FX quote, not a claim that the
+reservation FX estimate is an actual bill. No real provider receipt parser or
+signature validation is supplied. Older fixture rows lacking the tariff snapshot
+remain held rather than guessing settlement prices.
+
+Billed FAILED outcomes retain actual spend and physical attempt occupancy but do
+not consume an effective result. VALIDATED children retain a provisional job slot.
+COMMITTED requires independently verified complete-scope evidence: all planned
+children, exact operation/receipt pairs, and previously settled VALIDATED siblings;
+a failed/missing child cannot be presented as a complete result. Result quota is
+charged once per logical job, independently from each child's financial spend.
+Token/attempt accounting remains conservatively bounded by admitted requests;
+rolling expiry, NOT_ACCEPTED retry proof, reconciliation of over-bound invoices,
+production financial storage and actual service signatures remain unimplemented.
+
+Tests were written before implementation: the nine initial owning cases failed
+with missing settle API, preserved in work-settlement-negative.log. An initial
+command used the wrong test path and found no file; it is not negative-test
+coverage. After implementation and four additional negative/accounting cases,
+all AI-COST-02 files plus the full AI-COST-01 foundation passed87/87, zero
+fail/skip/cancel,1716.166334ms. There are13 new settlement cases, including missing
+verifier, partial usage, excessive/mismatched fees, duplicate/conflicting/cross-
+operation receipts, asynchronous caller mutation, transaction abort, unknown
+across31days, complete child-set binding, failed sibling, result cap and retained
+spend. Log: work-settlement-final.log. Existing unchanged83-pass intermediate
+results are not the final complete selection. Final comment-only correction
+clarifies that rolling expiry, not settlement, remains absent.
+
+No browser or paid/cloud call was needed or performed. This proves a serialized
+synthetic transaction contract, not real durable service restart, signed billing,
+production cross-device admission or whole AI-COST-02 completion. Independent
+review and later exact candidate integration remain pending.
+
+Independent review follow-up: a new actual-service regression reproduced a
+terminal quota defect (work-settlement-cancelled-sibling-negative.log): filtering
+cancelled rows before examining logical-job completion left a billed FAILED
+child plus cancelled sibling holding a result slot forever. Result occupancy
+now examines the complete principal/feature sibling collection. Financial,
+physical-attempt and token accounting still exclude pre-dispatch cancellations.
+The regression confirms three such failed jobs admit a new job while billed
+spend remains budget-constrained. UNKNOWN with a cancelled sibling still holds
+its provisional slot; all-VALIDATED without COMMITTED also holds a provisional
+slot and reports zero effective results.
+
+The first combined rerun exposed test-fixture aliasing: the existing asynchronous
+caller-mutation test mutated a shared usage object. Evidence fixtures now clone
+that object per receipt. The failure remains recorded in
+work-settlement-cancelled-sibling-fixed.log (87 pass/1 fail); it was not a product
+usage-normalization relaxation. The intermediate corrected selection passed88.
+Final complete command:
+`node --test --test-concurrency=1 extension/tests/ai-cost-02-*.test.mjs extension/tests/cpv1-ai-cost-01-foundation.test.mjs`
+passed89/89, zero fail/skip/cancel,1825.243083ms, including15 settlement cases
+(work-settlement-review-final.log). Earlier87/88 counts are superseded, not
+rewritten. Production service integration and final independent re-review remain
+pending; this evidence remains synthetic and does not authorize dispatch.
+
+Second independent review requested actual first-settlement financial coverage.
+The old changed-ratebook test was accurately renamed: it tested a conflicting
+already-settled receipt, not changing the current tariff. Four new service cases
+now reserve with a CNY tariff/FX snapshot, then change the current verifier facts
+(and separately expire them) before first settlement. Both the original pricing
+snapshot and FX have expired at actual settlement time; the original qualified
+reservation-time snapshot still prices incurred usage. Verified actual USD429
+for CNY3000 is distinct from the conservative quote ceiling USD500. Wrong FX
+version, fees above total reservation and fees above the actual-usage quote
+ceiling reject with identical persisted rows. USD never undergoes an available
+CNY FX conversion. A verifier that substitutes evidence while preserving request
+identity also rejects without mutation.
+
+The full AI-COST-02/foundation command above now passes93/93, zero fail/skip/
+cancel,1594.843958ms (work-settlement-pricing-proof.log), including19 settlement
+cases. The unchanged owning admission-route file additionally passes1/1 via
+`node --test extension/tests/ai-cost-current-browser-admission.test.mjs`
+(work-settlement-admission-route.log). No production changes were required by
+these cases, and no browser was repeated. Injected synthetic tariff, billing and
+FX attestations are not signed provider receipts, current real pricing, actual
+invoice reconciliation, production storage or dispatch authorization.
+
+Final independent review: the coordinator and a separate reviewer accepted the
+quota sibling correction and additional first-settlement pricing proof above.
+This closes independent review of this bounded fixture-only slice (93 owning/
+foundation cases plus1 admission-route case), not subsequent main integration or
+any production service/whole AI-COST-02 gate. Earlier pending notes describe the
+historical review state and remain preserved.
