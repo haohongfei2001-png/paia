@@ -8,6 +8,13 @@
   const menu = document.querySelector('.mobile-menu');
   if (menu) {
     const trigger = menu.querySelector('summary');
+    const panel = document.querySelector('.header-inner');
+    // Text enlargement can wrap the header. Keep its menu inside the viewport.
+    const sizeMenu = () => panel.style.setProperty('--header-panel-height', `${Math.ceil(panel.getBoundingClientRect().height)}px`);
+    sizeMenu();
+    document.fonts.ready.then(sizeMenu);
+    if ('ResizeObserver' in window) new ResizeObserver(sizeMenu).observe(panel);
+    else addEventListener('resize', sizeMenu, {passive: true});
     const close = restore => { menu.open = false; if (restore) trigger.focus(); };
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && menu.open) { event.preventDefault(); close(true); }
