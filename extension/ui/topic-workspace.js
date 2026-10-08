@@ -373,7 +373,7 @@ export class TopicController {
  closeDialog(){if(this.formCloseLabel!==undefined){$('library-dialog-close').textContent=this.formCloseLabel;delete this.formCloseLabel;}$('library-dialog-content').inert=false;this.dialogResolve?.(null);this.dialogResolve=null;$('library-dialog').close();$('standalone-revisions').hidden=true;$('library-form').replaceChildren();$('library-dialog-content').replaceChildren();}
  form(title,fields,{submitLabel='确定',closeLabel}={}){this.closeDialog();if(closeLabel!==undefined){this.formCloseLabel=$('library-dialog-close').textContent;$('library-dialog-close').textContent=closeLabel;}$('library-dialog-title').textContent=title;const form=$('library-form');const controls={};for(const f of fields){const label=element('label','',f.label);const input=element(f.options?'select':f.multiline?'textarea':'input');input.name=f.key;input.setAttribute('aria-label',f.label);if(f.options)for(const [value,text]of f.options){const option=element('option','',text);option.value=value;input.append(option);}if(f.value!==undefined)input.value=f.value;input.required=!!f.required;if(Number.isInteger(f.maxLength))input.maxLength=f.maxLength;label.append(input);form.append(label);controls[f.key]=input;}const submit=element('button','',submitLabel);submit.type='submit';form.append(submit);$('library-dialog').showModal();return new Promise(resolve=>{this.dialogResolve=resolve;form.onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,v.value]));this.dialogResolve=null;this.closeDialog();resolve(data);};});}
  async checked(type,data={}){try{const r=await request(type,data);if(r?.conflict){this.onStatus('内容或组织已更新，请重读后再试。','conflict');throw Object.assign(new Error('CONFLICT'),{handled:true});}return r;}catch(e){if(e.handled)throw e;this.onStatus('操作尚未完成，当前内容保留。请重试。','error');throw e;}}
- setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;}
+ setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;this.syncSectionActionControls(value||this.sectionActionPending);}
  async mutate(run){if(this.mutating)return;const wasHome=!this.id;this.mutating=true;this.setBusy(true);if(!await this.leave()){this.mutating=false;this.setBusy(false);return;}try{await run();this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}catch{showLocalFailure();return false;}finally{this.mutating=false;this.history=null;if(wasHome)this.resetHomeCollection();await this.refresh();this.setBusy(false);}}
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
  organizerSettingsVisible(){const panel=$('settings-panel'),group=$('ux-settings-ai-group');return !!panel&&!panel.hidden&&!!group&&!group.hidden;}
@@ -565,13 +565,27 @@ export class TopicController {
   if(decision.decision==='mine')await owner.flush();
  }
  async createTopic(){const value=await this.form(tc('新建主题'),[{key:'name',label:'主题名称',required:true}]);if(!value)return;try{const r=await this.checked('CREATE_LIBRARY_TOPIC',{topic:{...value,operationId:op()}});await this.open(r.id);}catch{}}
+ updateSectionActionControls(menu,busy=!!(this.sectionActionPending||this.mutating)){
+  menu.setAttribute('aria-busy',String(busy));
+  const trigger=menu.querySelector('summary');trigger.setAttribute('aria-disabled',String(busy));trigger.tabIndex=busy?-1:0;trigger.inert=busy;
+  for(const control of menu.querySelectorAll('button'))control.disabled=busy;
+  if(busy)menu.open=false;
+ }
+ syncSectionActionControls(busy=!!(this.sectionActionPending||this.mutating)){
+  for(const menu of this.originalPane?.querySelectorAll('.topic-section-actions')||[])this.updateSectionActionControls(menu,!!busy);
+ }
  renderSectionActions(header,section){
-  // Retain the native menu while updating its qualified identity, so paging
-  // does not steal focus or leave handlers bound to an older Section revision.
+  // Keep every retained or newly painted control aligned with the entire
+  // operation, including post-commit refresh and exact-heading arrival.
   header.sectionActionRow={...section};
-  if(header.querySelector('.topic-section-actions'))return;
-  const menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
-  menu.classList.add('topic-section-actions');header.append(menu);
+  let menu=header.querySelector('.topic-section-actions');
+  if(!menu){
+   menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
+   menu.classList.add('topic-section-actions');
+   menu.querySelector('summary').addEventListener('click',event=>{if(menu.getAttribute('aria-busy')==='true'){event.preventDefault();event.stopPropagation();}});
+   header.append(menu);
+  }
+  this.updateSectionActionControls(menu);
  }
  async sectionContextAction(section,action){
   if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault)return;
@@ -581,7 +595,7 @@ export class TopicController {
   const read=async()=>{const rows=await this.topicSectionRows();guard();const row=rows.find(row=>row.sectionId===section.sectionId);
    if(!row||row.isDefault||row.revision!==section.revision||row.layoutGeneration!==section.layoutGeneration||row.title!==section.title)throw Error('TOPIC_SECTION_CHANGED');return row;};
   if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
-  this.sectionActionPending=true;
+  this.sectionActionPending=true;this.syncSectionActionControls();
   try{
    if(!await this.flushEditors()||!current())return;
    await read();let name=null;
@@ -598,7 +612,7 @@ export class TopicController {
     await this.waitLayout(result.jobId);
    });
    if(current())await this.focusSection(section.sectionId,{isCurrent:current});
-  }finally{this.sectionActionPending=false;}
+  }finally{this.sectionActionPending=false;this.syncSectionActionControls();}
  }
  async createEntry(){return this.actions.compose({topicId:this.id||undefined});}
  async manageSections(){
@@ -619,7 +633,7 @@ export class TopicController {
   if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
   const drafts=this.sectionCreationDrafts??=new Map();
   if(!drafts.has(topicId)&&drafts.size>=8){this.onStatus(tc('已有八个主题的章节创建待处理。请先核对原请求或取消未保存的名称。'));return;}
-  this.sectionActionPending=true;
+  this.sectionActionPending=true;this.syncSectionActionControls();
   try{
    if(!await this.flushEditors()||!current())return;
    let draft=drafts.get(topicId);
@@ -651,7 +665,7 @@ export class TopicController {
    });
    if(!saved&&current())this.onStatus(tc(draft.uncertain?'章节创建结果尚未确认。再次选择新建章节会先核对原请求。':'章节未保存，名称仍保留。再次选择新建章节可重试。'));
    if(saved&&created?.sectionId&&current())await this.focusSection(created.sectionId,{isCurrent:current});
-  }finally{this.sectionActionPending=false;}
+  }finally{this.sectionActionPending=false;this.syncSectionActionControls();}
  }
  async topics(){let cursor=null,rows=[];do{const p=await request('LIBRARY_INDEX_PAGE',{options:{mode:'all',cursor,limit:100}});rows.push(...p.items);cursor=p.nextCursor;}while(cursor&&rows.length<1000);return rows;}
  async mergeSuggestions(){if(!await this.leave())return;this.closeDialog();$('library-dialog-title').textContent='可能相关的主题';const list=$('library-dialog-content'),result=await request('GET_LIBRARY_MERGE_SUGGESTIONS');list.append(element('p','muted','这些主题可能在讨论同一件事。只有你选择合并后才会改变组织，内容原文保持独立。'));

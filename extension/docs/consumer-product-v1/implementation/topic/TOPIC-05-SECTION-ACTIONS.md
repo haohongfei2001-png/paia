@@ -188,3 +188,80 @@ the actions whole file on4 at widths4/5/6; its separate7-way guard is unchanged.
 Three complete routing test files passed15/15. Independent review found no removed
 assertion or changed timeout. Production runtime, dependencies and browser cases
 are unchanged. The failed06df run is retained, not certification success.
+
+
+## PR203 hosted focus completion failure and bounded fixture repair
+
+Full37715972815 at exact5a82ec7cf5b0dff77773693ec1c00ebd9a0bc9b9 failed
+Current Browser4/7 job113112408722:92 passed,2 failed,0 skipped. Both failures
+were this whole native file's source/release first rename assertion, “focus
+returns to exact Section heading”. Other browser shards succeeded. Preserve
+`ROOT/work/topic203-full-shard4-failed.log`; this run is not certification PASS.
+
+The test waited only for updated heading text, then synchronously asserted
+focus. Actual sectionContextAction awaits mutate/refresh before focusSection;
+text publication can occur before that continuation completes. The existing
+wait now requires both exact title and exact activeElement within its original
+budget; the subsequent exact focus assertion remains. No runtime, assertion,
+case timeout, geometry or CI routing change is included. A deterministic actual
+controller deferred-refresh test proves focus is restored only after refresh.
+
+Owning complete unit file18/18 PASS (91.164875ms),
+`ROOT/work/topic203-focus-unit.log`. Complete headless source/release native
+file2/2 PASS (12141.809833ms), zero fail/skip/cancel,
+`ROOT/work/topic203-focus-native.log`. These are local5a82 plus this test delta,
+not evidence that the failed hosted run passed. Hosted certification remains
+pending on the resulting integrated candidate.
+
+
+## PR203 complete-operation busy lifecycle repair
+
+Base8aa722e2be212d5c78cf92f25c5cc80009290ca0. Hosted Full37746532454
+failed shard4: source could not focus the next down action; release did not
+observe the requested downward order. Preserve ROOT/work/topic203-current-shard4.log.
+Unlike the preceding text/focus assertion timing repair, this exposed a product
+interaction gap: mutate/refresh re-enabled controls before awaited exact-heading
+arrival completed, while sectionActionPending still silently rejected a next
+operation. A menu opened in that interval could also lose focus to that arrival.
+
+Section summaries now publish aria-busy/aria-disabled, become natively inert and
+leave the tab order; their buttons remain disabled from the first pending await
+through refresh and focus completion. Retained and rebuilt menus inherit that
+state. Generic setBusy(false) cannot unlock a pending Section operation; finally
+releases controls. The existing identity, route, revision/CAS, IME and draft
+checks are unchanged. No schema, permission, CI, version or timeout changes.
+
+The actual-controller regression holds refresh and focus independently, checks
+rebuilt/retained controls and duplicate rejection, then verifies release and a
+subsequent operation. Its pre-fix failure is retained in
+ROOT/work/topic203-busy-before.log. Native coverage separately exercises the
+actual busy presenter on real DOM with native Enter/Space/mouse, and the complete
+rename/up/down journey waits for public readiness rather than treating durable
+order publication as operation completion. This presenter check is not a claim
+that the browser fixture holds the domain RPC; the deterministic owner unit does.
+
+The first local combined attempt is retained in ROOT/work/topic203-busy-native.log:
+2 passed,4 failed. Three release builds correctly rejected an added keyboard
+listener; that listener was removed in favor of native inert without changing
+the package guard. The source action fixture also queried accessibility roles
+inside closed details; readiness now reads the actual button disabled state
+without opening the menu. Original action/focus/order assertions remain.
+
+Final complete owning/Section-reader/Root-anchor units:125/125 PASS,0 skipped or
+cancelled (237.95075ms), ROOT/work/topic203-busy-unit-final.log. Package guard:
+11635 checks across347 runtime resources PASS,
+ROOT/work/topic203-busy-package-final.log. Complete05.4 and05.5 headless source/
+release files:6/6 PASS,0 failed/skipped/cancelled (22735.662375ms),
+ROOT/work/topic203-busy-native-final.log. Runtime and tests were frozen throughout
+that run; final byte manifest is ROOT/work/topic203-busy-final-bytes.txt:
+
+- ui/topic-workspace.js:1840ee17c0f8dc3896940da69feccbc459465f6083be3306f4c24f8298b8929e
+- ui/topic-workspace-presentation.css:df34c77d885f58fe6badd902c7a1c04b4393533546a2818bb2ba1fa58f149510
+- actions unit:123cc01aad18a9811cd267369eea5d0c273b3524dc993e898c15bdcffcd4d95d
+- actions native:3f9926686bd49c8c89f7094686fc1a66a62574d8ef94d5eb2b564856950df4b7
+- Section native:334e24aaf4c72ebaa304db10503b5cff9ee362b7ddba7e9c45fad297b63d8e83
+
+Independent lifecycle review covered pending publication, generic busy release,
+rebuilt menus and qualified arrival. Final native-inert follow-up review was
+requested separately; its result is not inferred from package/native success. This is local bounded repair evidence, not success for the
+failed hosted run, exact-main certification, installed availability or whole05.5.

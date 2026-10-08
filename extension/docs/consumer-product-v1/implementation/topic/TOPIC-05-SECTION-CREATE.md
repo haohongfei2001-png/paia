@@ -89,3 +89,48 @@ cross-Topic blocker and the English dialog control gap. The coordinator reviewed
 the final scoped form options. Browser evidence proves synthetic local behavior,
 not real-user migration, full product accessibility, private-reference visual
 acceptance, formal hosted certification or the remaining05.5/05.6–05.8 outcomes.
+
+
+## PR203 busy lifecycle pre-integration combination
+
+Creation checkpoint b1f42c84249ca799c52331f3ab722ca4db549755 is combined
+with reviewed/pushed PR2033f1f35a1. This is a pre-integration branch base, not a
+claim that PR203 or creation has merged to main. The incoming branch includes
+previously merged Sync mainc168. No CI conflict occurred; workflows/Sync files
+are preserved from the incoming parent without local modification.
+
+The only text conflict was the whole05.5 native owner: retained all creation,
+English form, cancellation and user-title assertions alongside the incoming
+busy presenter/native keyboard/mouse, operation readiness and exact focus
+assertions. The draft Map cap8, unknown exact-operation retry, independent
+Topic drafts, captured route/intent, CAS, IME and scoped localization remain.
+
+Combination inspection found a real additional lifecycle seam: creation shares
+sectionActionPending but did not call the new Section-control synchronizer at
+its start/finally. The deterministic actual-owner deferred form/arrival test
+failed before repair (undefined versus aria-busy true), preserved in
+ROOT/work/topic-create-busy-before.log. Creation now synchronizes both boundaries;
+the test checks native-control properties throughout and release after arrival.
+The native journey also checks the new Section menu is no longer inert after
+exact-heading arrival. The first combination native6/6 passed without that
+new assertion and is retained as limited evidence, not proof of this repair.
+
+Final four complete related unit files151/151 PASS,0 failed/skipped/cancelled,
+260.949416ms, ROOT/work/topic-create-combined-unit-final.log. Final complete05.4
+and05.5 source/release native6/6 PASS,0 failed/skipped/cancelled,25375.34475ms,
+ROOT/work/topic-create-combined-native-final.log. Package check also passed,
+ROOT/work/topic-create-combined-package.log. No timeout/assertion/guard weakening,
+visible Chrome, provider call, full CI or push. Runtime was frozen; the following
+pre-run manifest was rechecked after the final native run with every file OK:
+
+```text
+d1f95be59a1ac986c3fac9ce07265763e1f6295424b571eb6f9431365e520a58  ui/topic-workspace.js
+8d1a50122c1fa5108db466b0299a0a45b14fb5d202c063ec818c591c8461fc3a  ui/thought-copy.js
+df34c77d885f58fe6badd902c7a1c04b4393533546a2818bb2ba1fa58f149510  ui/topic-workspace-presentation.css
+a9a2dc48f7bd3535988d94023fe2b3f15a6021aa94a42a77ace846ad012ccaf5  tests/topic-section-create.test.mjs
+5edcf9dc393d93352e29aa6a3b89b520f64aa07b5381141585baa05d3ed5da11  tests/cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs
+
+```
+
+Independent review of this combination is requested separately; these local
+results do not establish hosted certification, installed availability or whole05.5.

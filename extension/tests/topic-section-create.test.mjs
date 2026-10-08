@@ -58,3 +58,11 @@ test('eight unknown requests retain their exact payloads and capacity refuses a 
 test('explicit cancellation abandons a known-unsaved title but not another Topic unknown request',()=>fixture(async({w,writes})=>{
  const unknown={topicId:'other',title:'Unknown',uncertain:true,attempt:{operationId:'retained'}};w.sectionCreationDrafts=new Map([['other',unknown],['original',{topicId:'original',title:'Unsaved',uncertain:false,attempt:null}]]);w.form=async(_,fields)=>{assert.equal(fields[0].value,'Unsaved');return null;};await w.createSection();assert.equal(w.sectionCreationDrafts.has('original'),false);assert.equal(w.sectionCreationDrafts.get('other'),unknown);assert.deepEqual(writes,[]);
 }));
+test('creation publishes Section busy through form and arrival then releases actual controls',()=>fixture(async({w})=>{
+ const attrs=new Map(),trigger={setAttribute:(key,value)=>attrs.set('summary:'+key,value)},control={disabled:false},menu={open:true,setAttribute:(key,value)=>attrs.set(key,value),querySelector:()=>trigger,querySelectorAll:()=>[control]};
+ w.originalPane={querySelectorAll:()=>[menu]};
+ const form=deferred(),formEntered=deferred(),focus=deferred(),focusEntered=deferred();w.form=()=>{formEntered.resolve();return form.promise;};w.focusSection=()=>{focusEntered.resolve();return focus.promise;};
+ const pending=w.createSection();await formEntered.promise;assert.equal(attrs.get('aria-busy'),'true');assert.equal(trigger.inert,true);assert.equal(control.disabled,true);assert.equal(menu.open,false);
+ form.resolve({title:'SYNTHETIC held create'});await focusEntered.promise;assert.equal(attrs.get('aria-busy'),'true');assert.equal(control.disabled,true);focus.resolve();await pending;
+ assert.equal(attrs.get('aria-busy'),'false');assert.equal(trigger.inert,false);assert.equal(control.disabled,false);
+}));

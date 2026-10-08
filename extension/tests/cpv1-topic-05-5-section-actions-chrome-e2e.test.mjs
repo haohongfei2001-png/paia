@@ -25,11 +25,19 @@ for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Sec
   await createSection();await p.locator('#library-form input[name="title"]').fill('SYNTHETIC keyboard-created Section');await p.keyboard.press('Enter');
   let created;await eventually(async()=>{created=(await sections()).find(row=>row.title==='SYNTHETIC keyboard-created Section');return !!created;},'new named Section is durably acknowledged');
   await eventually(async()=>await heading(created.id).isVisible()&&await heading(created.id).evaluate(n=>document.activeElement===n),'keyboard create returns focus to exact new Section');
+  await eventually(async()=>await menu(created.id).getAttribute('aria-busy')==='false'&&await menu(created.id).locator('summary').evaluate(n=>!n.inert),'created Section controls unlock after exact arrival');
   assert.equal(await host(created.id).locator('[data-entry-id]').count(),0);assert.equal((await sections()).length,initialSections.length+1);assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body,bodyBefore);
   await p.reload();await heading(created.id).waitFor({state:'visible'});assert.equal(await heading(created.id).textContent(),'SYNTHETIC keyboard-created Section');assert.equal((await sections()).filter(row=>row.id===created.id).length,1);
-  const activate=async(id,label)=>{const trigger=menu(id).locator('summary');await trigger.focus();await p.keyboard.press('Enter');await menu(id).getByRole('button',{name:label,exact:true}).focus();await p.keyboard.press('Enter');};
+  // Exercise the actual busy presenter on real native controls; domain pending
+  // lifetime is separately covered by the held controller regression.
+  const busyMenu=menu(f.ids[1]),busyTrigger=busyMenu.locator('summary');await busyTrigger.focus();
+  await busyMenu.evaluate(async node=>{const {TopicController}=await import('./topic-workspace.js');TopicController.prototype.updateSectionActionControls(node,true);});
+  assert.equal(await busyTrigger.evaluate(n=>n.inert),true);for(const key of ['Enter','Space']){await p.keyboard.press(key);assert.equal(await busyMenu.evaluate(n=>n.open),false,'busy summary cannot open from native '+key);}
+  const busyBox=await busyTrigger.boundingBox();await p.mouse.click(busyBox.x+busyBox.width/2,busyBox.y+busyBox.height/2);assert.equal(await busyMenu.evaluate(n=>n.open),false,'busy summary cannot open from native click');
+  await busyMenu.evaluate(async node=>{const {TopicController}=await import('./topic-workspace.js');TopicController.prototype.updateSectionActionControls(node,false);});
+  const activate=async(id,label)=>{await eventually(async()=>await menu(id).getAttribute('aria-busy')==='false'&&await menu(id).locator('button').evaluateAll(nodes=>nodes.length===3&&nodes.every(n=>!n.disabled)),'Section action controls finish the prior complete operation');const trigger=menu(id).locator('summary');await trigger.focus();await p.keyboard.press('Enter');await menu(id).getByRole('button',{name:label,exact:true}).focus();await p.keyboard.press('Enter');};
   await activate(f.ids[1],'重命名');await p.locator('#library-form input[name="title"]').fill('SYNTHETIC Renamed B');await p.locator('#library-form button[type="submit"]').click();
-  await eventually(async()=>await heading(f.ids[1]).textContent()==='SYNTHETIC Renamed B','same Section renamed');assert.equal(await heading(f.ids[1]).evaluate(n=>document.activeElement===n),true,'focus returns to exact Section heading');
+  await eventually(async()=>await heading(f.ids[1]).textContent()==='SYNTHETIC Renamed B'&&await heading(f.ids[1]).evaluate(n=>document.activeElement===n),'same Section renamed and exact heading focus restored');assert.equal(await heading(f.ids[1]).evaluate(n=>document.activeElement===n),true,'focus returns to exact Section heading');
   const renamed=(await sections()).find(s=>s.id===f.ids[1]);assert.equal(renamed.title,'SYNTHETIC Renamed B');
   await activate(f.ids[1],'向上移动');await eventually(async()=>{const ids=(await sections()).map(s=>s.id);return ids.indexOf(f.ids[1])<ids.indexOf(f.ids[0]);},'empty Section moves before A');
   await eventually(async()=>{const ids=await p.locator('#original-reading-body .topic-section').evaluateAll(ns=>ns.map(n=>n.dataset.sectionId));return ids.indexOf(f.ids[1])<ids.indexOf(f.ids[0]);},'reader reflects protected Section order');
