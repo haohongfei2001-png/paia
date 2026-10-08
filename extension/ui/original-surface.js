@@ -5,18 +5,19 @@ import {readOriginalText} from './original-sequence.js';
 import {setIconLabel} from './icons.js';
 export class OriginalSurface {
  constructor({dialog,content,host,read}){Object.assign(this,{dialog,content,host,read});}
+ retainProtectedInput(){return this.protectionRefresh?.()===true;}
  async open(target,trigger){
   const {dialog,content,host,read}=this;content.replaceChildren();
   dialog.querySelector('h2').textContent=target.kind==='conversation'?tc('当前 Conversation · 原始内容'):tc('所选 Input · 原始内容');
   dialog.dataset.readingSurface='original';setIconLabel(dialog.querySelector('#close-info'),'close',tc('关闭'));
-  const isCurrent=host.open(dialog,{target,trigger}),history=[];let generation=null,cursor=null,next=null,index=0,loading=false;
+  const isCurrent=host.open(dialog,{target,trigger}),history=[];let generation=null,cursor=null,next=null,index=0,loading=false,qualified=null,initialRead,protectionSerial=0;
   const rows=element('div','original-rows'),status=element('p','muted'),position=element('p','muted'),controls=element('nav','original-navigation');status.setAttribute('role','status');controls.setAttribute('aria-label',tc('原文位置'));
   const previous=element('button','',tc('上一段')),more=element('button','',tc('下一段')),copy=element('button','',tc('复制原文'));copy.id='original-copy';previous.disabled=true;more.hidden=true;copy.disabled=true;controls.append(previous,position,more);content.append(rows,status,controls,copy);
   const load=async()=>{
    if(loading||!isCurrent())return;loading=true;copy.disabled=true;previous.disabled=true;more.disabled=true;status.textContent=tc('正在读取原始内容…');rows.replaceChildren();
    try{
     const page=await read({target,cursor,limit:40,...(generation===null?{}:{expectedGeneration:generation})});if(!isCurrent())return;
-    generation=page.generation;next=page.nextCursor;
+    generation=page.generation;next=page.nextCursor;qualified=page;
     dialog.querySelector('h2').textContent=(target.kind==='conversation'?(page.title||tc('当前 Conversation')):tc('所选 Input'))+tc(' · 原始内容');
     for(const r of page.records){const row=element('section','original-row');row.append(element('p','original-time',r.sourceSentAt?tc('发送于 ')+dateLabel(r.sourceSentAt):tc('发送时间未知')),element('pre','source-original',r.originalText));rows.append(row);}
     const singleComplete=target.kind==='input'&&page.availability==='available'&&page.records.length===1&&page.intended===1&&!next&&!history.length;
@@ -39,6 +40,25 @@ export class OriginalSurface {
    }catch{if(isCurrent()){rows.replaceChildren();status.textContent=tc('原文暂时无法读取或已经变化。关闭后重新核对；未复制旧文本。');more.hidden=true;previous.disabled=true;}}
    finally{if(isCurrent())copy.disabled=!copyReady;}
   };
-  await load();
+  // Keep only a fully qualified single Input open across its keep-protection
+  // notification. This never admits a changed, missing or paginated Source.
+  this.protectionRefresh=()=>{
+   if(target.kind!=='input'||!isCurrent())return false;
+   const serial=++protectionSerial;
+   void (async()=>{
+    await initialRead;if(!isCurrent()||serial!==protectionSerial)return;
+    const before=qualified;
+    const single=p=>p?.availability==='available'&&p.records?.length===1&&p.intended===1&&!p.nextCursor;
+    const identity=p=>JSON.stringify({target:p.target,records:p.records,intended:p.intended,unavailable:p.unavailable,availability:p.availability,title:p.title});
+    if(!single(before)||cursor!==null||history.length){host.close();return;}
+    try{
+     const current=await read({target,cursor:null,limit:40});
+     if(!isCurrent()||serial!==protectionSerial)return;
+     if(!single(current)||identity(current)!==identity(before)){host.close();return;}
+     generation=current.generation;qualified=current;
+    }catch{if(isCurrent()&&serial===protectionSerial)host.close();}
+   })();return true;
+  };
+  initialRead=load();await initialRead;
  }
 }
