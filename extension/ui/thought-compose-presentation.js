@@ -5,6 +5,7 @@ const english={
  '写下想法':'Write a thought',
  '写下此刻的想法，不改写过去的输入。':'Write what is on your mind now. Earlier inputs stay unchanged.',
  '主题':'Topic',
+ '创建时间为这次保存的时间':'Creation time is the time of this save',
  '更多':'More',
  '外观预览：保存与返回尚未接通。文字仅留在本页，可继续编辑、选择主题或复制。':'Appearance preview: saving and returning are not connected yet. Text stays on this page; you can edit, choose a topic or copy it.',
  '外观预览不能创建主题；已有主题仍可选择。':'This appearance preview cannot create topics. You can still choose an existing topic.'
@@ -23,19 +24,22 @@ export function createThoughtComposeNodes({topicId,quote=''}={}){
  return {explanation,quotePreview,draft,destination,choices,choiceHost};
 }
 
-export function mountThoughtComposePresentation({content,feedback,nodes,submit,copy,cancel,workspacePreview=false}){
+export function mountThoughtComposePresentation({content,feedback,nodes,submit,copy,cancel,workspacePreview=false,workspace=false}){
  const {explanation,quotePreview,draft,destination,choices}=nodes;
  const optional=[quotePreview].filter(Boolean);
- if(!workspacePreview){content.append(explanation,...optional,draft,destination,choices,submit,copy,cancel);return {};}
+ if(!workspacePreview&&!workspace){content.append(explanation,...optional,draft,destination,choices,submit,copy,cancel);return {};}
 
  const heading=element('h1','thought-compose-title',composeCopy('写下想法'));heading.id='thought-compose-workspace-title';content.setAttribute('aria-labelledby',heading.id);
  explanation.className='thought-compose-explanation';explanation.textContent=composeCopy('写下此刻的想法，不改写过去的输入。');
  const topicLabel=element('label','thought-compose-topic',composeCopy('主题')),topicSelect=element('select');topicSelect.setAttribute('aria-label',composeCopy('主题'));topicLabel.append(topicSelect);
- const actions=element('div','thought-compose-actions');submit.className='thought-compose-save';cancel.className='thought-compose-cancel';actions.append(submit,cancel);
+ const context=workspace&&!workspacePreview?element('h2','thought-compose-context'):null;
+ const actions=element('div','thought-compose-actions');submit.className='thought-compose-save';cancel.className='thought-compose-cancel';if(context)actions.append(element('p','thought-compose-created-at',composeCopy('创建时间为这次保存的时间')));actions.append(submit,cancel);
  const notice=element('p','thought-compose-preview-note',composeCopy('外观预览：保存与返回尚未接通。文字仅留在本页，可继续编辑、选择主题或复制。'));notice.id='thought-compose-preview-note';
- for(const control of [submit,cancel]){control.disabled=true;control.setAttribute('aria-describedby',notice.id);}
+ if(workspacePreview)for(const control of [submit,cancel]){control.disabled=true;control.setAttribute('aria-describedby',notice.id);}
  const more=element('details','thought-compose-more');more.append(element('summary','',composeCopy('更多')),copy,...optional,destination,choices);
  feedback.className='topic-action-feedback thought-compose-feedback';
- content.append(heading,explanation,topicLabel,draft,actions,notice,feedback,more);
- return {heading,topicSelect,more,notice};
+ if(workspace&&!workspacePreview){const back=element('button','thought-compose-back',document.documentElement.lang==='en'?'Back':'返回');back.type='button';back.onclick=()=>cancel.onclick();content.append(back);}
+ if(context)content.append(context);
+ content.append(heading,explanation,topicLabel,draft,actions,...(workspacePreview?[notice]:[]),feedback,more);
+ return {heading,topicSelect,more,notice,context};
 }

@@ -22,7 +22,7 @@ export function appShellRoute(current,navigator=null){
  };
 }
 
-export function presentAppShell(root,route,{consented=false}={}){
+export function presentAppShell(root,route,{consented=false,writing=false}={}){
  const get=id=>root.getElementById(id),view=route.view,documentId=route.documentId;
  for(const button of root.querySelectorAll('[data-view]')){
   button.disabled=!consented;
@@ -40,5 +40,7 @@ export function presentAppShell(root,route,{consented=false}={}){
   'memory-panel':consented&&view==='memory',
   'revisit-panel':view==='revisit'
  };
- for(const [id,shown] of Object.entries(visible)){const panel=get(id);if(panel)panel.hidden=!shown;}
+ const navigatorHost=get('archive-reader-navigator-slot');if(navigatorHost)navigatorHost.hidden=writing;
+ const workspace=get('thought-writing-workspace');if(workspace)workspace.hidden=!consented||!writing;const header=root.querySelector?.('.workspace-header');if(header)header.hidden=consented&&writing;
+ for(const [id,shown] of Object.entries(visible)){const panel=get(id);if(panel)panel.hidden=writing||!shown;}
 }
