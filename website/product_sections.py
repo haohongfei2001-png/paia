@@ -18,7 +18,8 @@ def context_section(t, a, ctl, sample):
          ('本周验证第一版范围，先考虑已有素材的找回。', 'This week I am validating the first release, starting with material retrieval.')),
     ]
     def capsule(key, title, attr='data-card-allow'):
-        return ctl(t('仅自己', 'Only me'), f'{attr}="{key}" aria-pressed="false" aria-label="{t("切换访问", "Toggle access")} — {title} {t("（示例）", "(example)")}"', 'pc-card-permission')
+        label = (f'<span class="pc-topic-name">{title}</span><span data-topic-access-state>{t("仅自己", "Only me")}</span>' if attr == 'data-topic-allow' else t('仅自己', 'Only me'))
+        return ctl(label, f'{attr}="{key}" aria-pressed="false" aria-label="{t("切换访问", "Toggle access")} — {title} {t("（示例）", "(example)")}"', 'pc-card-permission')
     manual = ''.join(f'''<article class="pc-context-card" data-context-card="{key}">
 <button type="button" class="pc-card-open" data-card-open="{key}" disabled><strong>{title}</strong><span class="pc-card-description">{description}</span><span data-card-count="{key}">{t('1 条内容', '1 item')}</span></button>
 {capsule(key, title)}</article>''' for key, title, description, value in cards)
@@ -31,7 +32,7 @@ def context_section(t, a, ctl, sample):
 {ctl(t('删除这条示例内容', 'Remove this example item'), f'data-context-remove="{key}"', 'pc-quiet')}</div>
 <div data-context-empty="{key}" hidden><p>{t('这张卡片已没有内容。', 'This card has no items.')}</p>{ctl(t('撤销删除', 'Undo removal'), f'data-context-undo="{key}"', 'pc-control')}</div></section>''' for key, title, description, value in cards)
     return f'''<section class="pc-section pc-context" id="personal-context" aria-labelledby="pc-context-title"><div class="wrap">
-<div class="pc-heading"><div><p class="eyebrow">05 / AI CONTEXT</p><h2 id="pc-context-title">{t('让 AI 接上你的背景，<br>范围由你决定。', 'Let AI meet you<br>where you are.')}</h2></div>
+<div class="pc-heading"><div><p class="eyebrow">04 / AI CONTEXT</p><h2 id="pc-context-title">{t('让 AI 更懂你，<br>边界由你定义。', 'More understanding.<br>On your terms.')}</h2></div>
 <div class="pc-intro"><p>{t('用四张卡片管理背景、规则、近况和开放的主题。连接可用后，获准的 AI 将按需读取，不必每次整理一份材料。你随时可以修改内容、暂停访问或撤回允许。', 'Manage your background, rules, current work and open topics in four cards. Once connections are available, an authorized AI will read what it needs within your permissions. Edit the content, pause access or withdraw permission whenever you choose.')}</p>
 <span class="pc-instruction">{t('试着修改卡片，开启允许范围，再暂停。', 'Try editing a card, allowing a scope, then pausing it.')} <span aria-hidden="true">↙</span></span></div></div>
 <div class="pc-context-stage pc-context-four pc-reveal">
@@ -41,8 +42,7 @@ def context_section(t, a, ctl, sample):
 </div>{details}
 <section class="pc-context-detail" data-card-detail="inputs" hidden aria-labelledby="pc-detail-inputs">{ctl(t('返回四卡概览', 'Back to the four cards'), 'data-context-back', 'pc-quiet')}<h3 id="pc-detail-inputs" tabindex="-1">{t('我的输入', 'My Inputs')}</h3>
 <p>{t('逐个决定哪些主题可以深入读取。', 'Decide which topics can be read in depth.')}</p>
-<div class="pc-topic-permissions"><div><span>{t('产品的第一步', 'A product’s first step')}</span>{capsule('product', t('产品的第一步', 'A product’s first step'), 'data-topic-allow')}</div>
-<div><span>{t('写作习惯', 'Writing practice')}</span>{capsule('writing', t('写作习惯', 'Writing practice'), 'data-topic-allow')}</div></div>
+<div class="pc-topic-permissions">{capsule('product', t('产品的第一步', 'A product’s first step'), 'data-topic-allow')}{capsule('writing', t('写作习惯', 'Writing practice'), 'data-topic-allow')}</div>
 <p class="pc-access-help">{t('新主题默认关闭。关闭输入卡或暂停全局访问，都会保留这里的选择。', 'New topics start closed. Closing My Inputs or pausing global access keeps these choices.')}</p></section>
 <p class="pc-context-connection">{t('AI 连接 · 尚未开放', 'AI connections · Not available yet')}</p></div>
 <aside class="pc-access pc-access-four"><span class="pc-local-tag">{t('连接体验 · 规划中', 'CONNECTIONS · PLANNED')}</span>

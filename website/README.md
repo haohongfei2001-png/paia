@@ -1,21 +1,31 @@
-# Current website: approved-product consistency (8 October 2026)
+# Current website: PAIA product visual system (8 October 2026)
 
-The website now follows the completed form of the current approved product plan,
-with explicit availability labels. The text-first hero, native scroll cards,
-V7.1 design system and brand assets are retained. The four downstream previews
-cover working inputs, personal prompts, personal Topics and four-card Context;
-the standalone example uses the same component to prevent product-model drift.
-Optional personal-cloud sync is explained as planned, with actual beta/sample
-CTA routes. No extension source, permission, model service or cloud connection
-is changed by this work.
+The Owner explicitly redirected the website after PR #212: follow the current
+PAIA product mockups and design language, with a modern technology/art direction,
+more motion and frosted glass. The old website hero and card-layout preservation
+requirement is superseded. Product capability boundaries remain unchanged.
 
-[Product capability map](PRODUCT_CAPABILITY_MAP.md) binds each main claim to its
-approved source and records the retired features that no longer belong in the
-site. `product_sections.py`, `product_pages.py` and the scoped
-`assets/website/product-consistency.css` extend the existing generators. Shared
-`site.css`/`site.js`, `home-origin-v7.css`, `home-core-v1.css` and brand/media/font
-assets remain byte-identical. `assets/website/demo.js` is retained as a historical
-asset; current routes no longer load its retired Context-packet flow.
+The homepage now opens with an accessible, three-space product window. Its
+Archive follows the D6.2 Reader; Thought Library uses the newer PT1 grid and
+continuous Section reader; Context uses the current four-card model. The local
+interactive examples share their implementation with `demo.html`. Prompt reuse
+uses the soft optical material direction and deliberate draft-preserving fill.
+
+- `site.css`: one shared foundation, navigation, controls and all interior pages.
+- `product-experience.css`: hero, optical layers and all product-example surfaces.
+- `site.js`: real preview tabs, native-scroll optical motion, reduced/manual motion
+  controls and bounded arrivals. No scroll interception or hidden-content gate.
+- `home-core-v2.js`: source-safe editing, prompt reuse, Topic navigation/search,
+  derived-reading example and independent Context permissions.
+- `product_hero.py` / `topic_preview.py` / `prompt_preview.py`: current product composition, synthetic data.
+
+The old `home-core-v1.css`, `home-origin-v7.css`, `product-consistency.css` and
+`demo.js` are historical assets, no longer loaded. Brand asset bytes are intact.
+Product core code, permissions, services and deployment workflows are untouched.
+
+[Product capability map](PRODUCT_CAPABILITY_MAP.md) records every main claim,
+the actual visual sources, the superseded website restrictions and the two
+private current mockups that were not accessible for direct visual comparison.
 
 Run the normal build and complete website gate:
 
@@ -25,11 +35,15 @@ python website/build.py --check
 python website/test.py
 ```
 
+The browser gate covers all routes at desktop/tablet/phone/320px and enlarged
+text, actual interactions, keyboard focus, motion preferences, JS-off reading,
+real link destinations and absence of unsolicited requests. Existing brand and
+content/permission safety checks remain. Old hero hashes and neutral-only color
+assertions are replaced by meaningful current-design checks, not bypassed.
+
 After normal GitHub Pages deployment, `python website/verify_live.py` verifies
-actual deployed bytes and the current homepage/standalone interactions. Hosted
-CI runs the full browser gate when the local environment cannot launch Chromium.
-No private data or form submission is used. This is website verification, not
-certification of installed-product, model, cloud or real-device capabilities.
+actual deployed bytes and live browser interactions. Browser CI is used when the
+local execution environment cannot launch Chromium. No beta form is submitted.
 
 ---
 

@@ -1,3 +1,10 @@
+> **Current visual direction — Owner correction, 8 October 2026:** the website
+> now follows current PAIA product mockups and the D6.2 / PT1 / Context4 material
+> language, with a modern frosted-glass presentation and richer motion. The
+> earlier website hero/card preservation rules below are superseded. See
+> [the implemented source and authority record](website/PRODUCT_CAPABILITY_MAP.md).
+> Original brand assets and all product/availability boundaries remain.
+
 # PAIA website — current owner design authority
 
 ## 2026-09-28: preserve capture, strengthen the four downstream experiences
