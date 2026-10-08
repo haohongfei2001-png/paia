@@ -98,8 +98,8 @@ export class PromptReuseService{
   return this.s.run(()=>this.s.repository.transaction(true,async t=>{
    // A late acknowledgement cannot recreate an override deleted since selection.
    if(await generation(t)!==x.generation)changed();
-   const p=await readPromptPreferences(t);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
-   o.reuseCount=Math.min(1000000,o.reuseCount+1);p.revision++;if(!validPromptPreferences(p))fail();await t.put('meta',p);
+   const p=await readPromptPreferences(t),before=structuredClone(p);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
+   o.reuseCount=Math.min(1000000,o.reuseCount+1);p.revision++;if(!validPromptPreferences(p))fail();await t.put('meta',p);if(this.syncJournal?.noteVerifiedReuse)await this.syncJournal.noteVerifiedReuse(t,before,p);
   }));
  }
 }
