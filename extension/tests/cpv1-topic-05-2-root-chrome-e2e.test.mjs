@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {resolve,join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
@@ -14,7 +15,18 @@ async function rootReady(p,count){
  await p.waitForFunction(()=>history.state?.paiaReader?.view==='thoughts'&&!history.state?.paiaReader?.topicId&&!document.querySelector('.workspace').inert);
  await p.evaluate(()=>scrollTo(0,0));
 }
+// The continuous reader owns real Section nodes; the prior temporary Root
+// anchor is intentionally absent. Assert the exact durable target and focus.
+async function assertSectionTarget(p,topicId,sectionId,title){
+ const node=p.locator(`#topic-body .topic-section[data-section-id="${sectionId}"]`),heading=node.locator(':scope > .section-heading > h2');
+ await node.waitFor({state:'visible'});assert.equal(await node.count(),1,'one canonical Section target');
+ assert.equal(await heading.textContent(),title,'the exact named Section is rendered');
+ await eventually(()=>heading.evaluate(el=>document.activeElement===el),'Section navigation completes at its own heading');
+ assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),topicId,'the Section belongs to the intended Topic');
+ assert.equal(await heading.evaluate(el=>document.activeElement===el),true,'the canonical Section heading owns focus');
+}
 async function multipleHitSearch(p,topic){
+
  const needle='SYNTHETIC_MULTI_ROOT_NEEDLE',current=await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id});
  await rpc(p,'EDIT_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:current.revision,changes:{name:needle+' Topic'},operationId:crypto.randomUUID()}});
  const sections=(await rpc(p,'GET_LIBRARY_TOPIC_SECTIONS',{options:{topicId:topic.id,limit:100}})).items,targets=[topic.sections[0],topic.sections.at(-1)],entries=[];
@@ -41,7 +53,7 @@ async function multipleHitSearch(p,topic){
    assert.equal(await tile.locator('.personal-entry-match,.personal-root-match-nav').evaluateAll(nodes=>nodes.some(node=>[node,...node.querySelectorAll('*')].some(el=>/ALPHA|BETA/.test((el.getAttribute('title')||'')+' '+(el.getAttribute('aria-label')||''))))),false,'masked snippets do not escape into match controls');
    await tile.locator('.personal-entry-match').focus();await p.keyboard.press('Enter');const field=p.locator(`[data-entry-id="${entryId}"] [data-entry-field="body"]`);await field.waitFor({state:'visible'});assert.equal(await field.textContent(),entries.find(row=>row.id===entryId).body);await eventually(()=>field.evaluate(node=>node===document.activeElement),'Entry navigation completes at its own canonical target');assert.equal(await field.evaluate(node=>node===document.activeElement),true,'each Entry opens its own canonical target');
   }else if(kind==='section'){
-   await tile.locator('.personal-root-search-extra.personal-section-link').focus();await p.keyboard.press('Enter');await p.locator(`.topic-root-section-anchor[data-section-id="${sectionId}"]`).waitFor({state:'visible'});
+   await tile.locator('.personal-root-search-extra.personal-section-link').focus();await p.keyboard.press('Enter');await assertSectionTarget(p,topic.id,sectionId,needle+' Section '+targets.indexOf(sectionId));
   }else{assert.equal(kind,'topic');await tile.locator('.personal-topic-link').focus();await p.keyboard.press('Enter');await p.locator('#thought-document').waitFor({state:'visible'});}
   await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert,topic.id);
   await p.locator('#back').evaluate(node=>node.focus({preventScroll:true}));await p.keyboard.press('Enter');await tile.locator('.personal-root-match-status').waitFor({state:'visible'});
@@ -81,8 +93,9 @@ async function traceSelection(target){
  });
 }
 for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders real durable Section overview and stable144 Topic slots '+variant,{timeout:180000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-root-section-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});
  try{
   await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const topics=await p.evaluate(async()=>{
@@ -107,10 +120,10 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await rpc(p,'CONTINUE_THINKING',{thought:{topicId:topics[0].id,operationId:crypto.randomUUID(),body:'SYNTHETIC PRIVATE_ROOT_NEEDLE'}});await rootReady(p,144);await p.locator('#thought-search').fill('PRIVATE_ROOT_NEEDLE');
   const preview=p.locator('.personal-entry-preview').filter({hasText:'SYNTHETIC PRIVATE_ROOT_NEEDLE'});await preview.waitFor();await rpc(p,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});await eventually(()=>preview.isHidden(),'existing privacy choice masks the actual Root search body');assert.equal(await p.locator('.personal-entry-mask-label').first().isVisible(),true);assert.equal(await titleOnly.locator('.personal-topic-link').isVisible(),true,'organization labels stay readable');assert.equal(await preview.evaluate(node=>[node,node.parentElement].some(el=>el.getAttribute('title')?.includes('PRIVATE_ROOT_NEEDLE')||el.getAttribute('aria-label')?.includes('PRIVATE_ROOT_NEEDLE'))),false,'body is never copied into masking-bypass attributes');await rpc(p,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:false}});await eventually(()=>preview.isVisible(),'explicitly restoring previews exposes the same current match');await p.locator('#thought-search').fill('');await rootReady(p,144);
   const multipleMatches=await multipleHitSearch(p,topics[5]);
-  const sectionLink=p.locator(`.personal-topic-block[data-topic-id="${topics[1].id}"] .personal-section-link:not([hidden])`).first(),sectionHref=await sectionLink.getAttribute('href');
-  await sectionLink.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator(`.topic-root-section-anchor[data-section-id="${topics[1].sections[0]}"]`).isVisible(),'empty named Section has an actual safe anchor');
+  const sectionLink=p.locator(`.personal-topic-block[data-topic-id="${topics[1].id}"] .personal-section-link:not([hidden])`).first(),sectionHref=await sectionLink.getAttribute('href'),sectionTitle=await sectionLink.textContent();
+  await sectionLink.focus();await p.keyboard.press('Enter');await assertSectionTarget(p,topics[1].id,topics[1].sections[0],sectionTitle);
   await p.goBack();await eventually(()=>p.locator('.personal-topic-block').count().then(n=>n===144),'Back returns complete Root');await eventually(()=>p.evaluate(id=>document.activeElement?.dataset.sectionId===id,topics[1].sections[0]),'Back restores the activated Section link focus');
-  const linked=await h.context.newPage();await linked.goto(sectionHref);await linked.bringToFront();await eventually(()=>linked.locator(`.topic-root-section-anchor[data-section-id="${topics[1].sections[0]}"]`).isVisible(),'native link opens exact Section in another tab',30000);await linked.reload();await eventually(()=>linked.locator(`.topic-root-section-anchor[data-section-id="${topics[1].sections[0]}"]`).isVisible(),'native Section target survives refresh',30000);await linked.close();await p.bringToFront();
+  const linked=await h.context.newPage();await linked.goto(sectionHref);await linked.bringToFront();await assertSectionTarget(linked,topics[1].id,topics[1].sections[0],sectionTitle);await linked.reload();await assertSectionTarget(linked,topics[1].id,topics[1].sections[0],sectionTitle);await linked.close();await p.bringToFront();
   const first=p.locator(`.personal-topic-block[data-topic-id="${topics[0].id}"] .personal-topic-link`);await first.scrollIntoViewIfNeeded();await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const r=await first.boundingBox();assert.ok(r&&r.y>=0&&r.y+r.height<=await p.evaluate(()=>innerHeight),'native selection target is wholly inside the current viewport');await traceSelection(first);assert.equal(await first.evaluate(node=>getComputedStyle(node).userSelect),'text','native title has an explicit selectable text subtree');await p.mouse.move(r.x+5,r.y+12);await p.mouse.down();await p.mouse.move(r.x+Math.min(r.width-8,150),r.y+12,{steps:12});await p.mouse.up();assert.equal(await p.locator('#thought-document').isVisible(),false,'selection does not activate the Topic');const selection=await p.evaluate(()=>getSelection().toString());await writeFile(output+'/selection.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,trace:await p.evaluate(()=>globalThis.__rootSelectionTrace||[])}));assert.ok(selection.length>0);assert.equal(await first.evaluate(node=>{const selected=getSelection();return node.contains(selected.anchorNode)&&node.contains(selected.focusNode);}),true,'native drag selects only the intended Topic title');
   const sectionOwner=await rpc(p,'GET_LIBRARY_TOPIC_SECTIONS',{options:{topicId:topics[3].id}}),edited=sectionOwner.items.find(x=>x.sectionId===topics[3].sections[0]);await rpc(p,'EDIT_LIBRARY_SECTION',{edit:{topicId:topics[3].id,sectionId:edited.sectionId,expectedRevision:edited.revision,title:'SYNTHETIC changed unrelated Section',operationId:crypto.randomUUID()}});await eventually(()=>p.locator(`.personal-topic-block[data-topic-id="${topics[3].id}"]`).textContent().then(x=>x.includes('changed unrelated')),'unrelated Section refresh settles while a single native title selection remains pinned');assert.equal(await p.evaluate(()=>getSelection().toString()),selection,'unrelated metadata update preserves the native selection');
   const beforeResize=await first.evaluate(node=>{globalThis.__rootResizeSelectedTitle=node;return {scroll:scrollY,columns:getComputedStyle(document.getElementById('thought-list')).gridTemplateColumns.split(' ').length,width:document.getElementById('thought-list').clientWidth,slots:[...document.querySelectorAll('.personal-topic-block')].map(row=>[row.dataset.topicId,row.dataset.rootSlot])};});
@@ -133,5 +146,5 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__rootRestore=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=(message,...args)=>message.type==='GET_LIBRARY_ROOT_PROJECTION'?Promise.resolve({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'}):send(message,...args);});await thoughtPrimary(p,'thoughts');await eventually(()=>p.locator('#library-read-retry').isVisible(),'outage exposes retry');assert.equal(await p.locator('.personal-topic-block').count(),144,'ordinary read failure retains current blocks');await p.evaluate(()=>__rootRestore());await p.locator('#library-read-retry').click();await rootReady(p,144);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await writeFile(output+'/result.json',JSON.stringify({status:'PASS',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,actualCounts:[30,50,100,144],renameStable:true,deleteBlank:true,newIdentityReusesHole:true,responsiveReturn:true,deleteRestore:true,deepHistory,multipleMatches,activeSearchSameColumnResize:true,nativeSection:true,newTabRefresh:true,backFocus:true,selection:true,sameColumnResize:true,outageRetry:true}));
- }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();}
+ }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });

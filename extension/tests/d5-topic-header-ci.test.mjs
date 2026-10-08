@@ -19,7 +19,7 @@ test('D5 Topic header validates actual exact-head d7 receipts and the single nam
  assert.match(workflow,/TOPIC_RETAINED_SELECTED:.*PAIA_DVN_TOPIC_BROWSER/);assert.match(workflow,/test \"\$TOPIC_RETAINED\" = success; test \"\$TOPIC_RETAINED_RESULTS\" = success/);
 });
 test('D5 Topic header interaction lives only after the isolated visual journey; original read cases retain their budgets',()=>{
- const content=read('./cpv1-02-dvn-topic-content-chrome-e2e.test.mjs'),split=content.indexOf('// The visual/preference journey owns a separate real reader instance.');assert.ok(split>0);assert.doesNotMatch(content.slice(0,split),/verifyHeaderInteractions/);assert.match(content.slice(split),/finishInteractions\(\);await d5.verifyHeaderInteractions\(\)/);assert.equal((content.match(/timeout:180000/g)||[]).length,2);assert.doesNotMatch(read('./harness/d5-topic-header.mjs'),/setEmitTouchEventsForMouse|force:true|force: true/);
+ const content=read('./cpv1-02-dvn-topic-content-chrome-e2e.test.mjs'),split=content.indexOf('// The visual/preference journey owns a separate real reader instance.');assert.ok(split>0);assert.doesNotMatch(content.slice(0,split),/verifyHeaderInteractions/);assert.match(content.slice(split),/finishInteractions\(\);await d5.verifyHeaderInteractions\(seed\.records\[1\]\.id\)/);assert.equal((content.match(/timeout:180000/g)||[]).length,2);assert.doesNotMatch(read('./harness/d5-topic-header.mjs'),/setEmitTouchEventsForMouse|force:true|force: true/);
 });
 
 test('D5 Topic manifest requires all22 registrations in the current executable contract',()=>{

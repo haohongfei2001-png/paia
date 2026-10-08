@@ -6,6 +6,7 @@ import {group,testShard} from '../scripts/test-groups.mjs';
 // Frozen from parent main 4fe2afd; reconciled against exact main f1740bc47ff8495bdf3457b5db195075a7404c87.
 // Current main test-groups blob 7269dd60afe91640e0eecbdb9b68de399d08773d.
 // Main moved historical comparison from1 to4 only at width7; no other parent route changes.
+// Main03a adds only Section, preserving the preceding300 routes.
 const baseline=[
  ["activation-return-round410-chrome-e2e.test.mjs",1,1,1,1],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",2,2,2,2],
@@ -57,6 +58,7 @@ const baseline=[
  ["cpv1-09-prompt-surface-chrome-e2e.test.mjs",3,3,3,3],
  ["cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",4,4,4,4],
  ["cpv1-topic-05-2-root-chrome-e2e.test.mjs",3,3,3,3],
+ ["cpv1-topic-05-4-section-chrome-e2e.test.mjs",4,4,4,7],
  ["desktop-vnext-context-chrome-e2e.test.mjs",3,3,3,3],
  ["release-certification-round48-chrome-e2e.test.mjs",4,4,4,4],
  ["release-certification-round49-chrome-e2e.test.mjs",1,1,1,1],
@@ -84,15 +86,15 @@ const baseline=[
  ["ux-r6-release-chrome-e2e.test.mjs",3,3,3,3],
  ];
 const iah='iah11-result-presentation-chrome-e2e.test.mjs';
-test('IAH11 admits one whole file on4 and preserves all300 exact parent routes',async()=>{
+test('IAH11 admits one whole file on4 and preserves all304 exact main routes',async()=>{
  const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort();
- assert.equal(baseline.length,75);assert.equal(names.length,76);assert.equal(new Set(baseline.map(row=>row[0])).size,75);assert.deepEqual(names.filter(name=>name!==iah),baseline.map(row=>row[0]));
+ assert.equal(baseline.length,76);assert.equal(names.length,77);assert.equal(new Set(baseline.map(row=>row[0])).size,76);assert.deepEqual(names.filter(name=>name!==iah),baseline.map(row=>row[0]));
  assert.equal(group(iah),'browser E2E');assert.equal(group('iah11-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  let checked=0;for(const [column,total]of [4,5,6,7].entries()){
   assert.equal(testShard(iah,names.indexOf(iah),total,'browser E2E'),4);
   for(const [file,...routes]of baseline){assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),routes[column],`${total}:${file}`);assert.equal(testShard('tests/'+file,names.indexOf(file),total,'browser E2E'),routes[column]);checked++;}
-  const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,76);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(iah));
- }assert.equal(checked,300);
+  const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,77);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(iah));
+ }assert.equal(checked,304);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
  assert.deepEqual([...job.matchAll(/shard: '(\d\/7)'/g)].map(row=>row[1]),['1/7','2/7','3/7','4/7','5/7','6/7','7/7']);assert.match(job,/timeout-minutes: 18/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
 });
