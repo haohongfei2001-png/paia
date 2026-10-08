@@ -248,3 +248,18 @@ Section-worker/reading/reader, Root anchor and Settings boundary tests. No skips
 timeout increases or assertion removals. These are local merge checks only.
 The candidate still requires the next release identity and exact-head combined
 browser/full acceptance after independent Settings integration.
+
+## Post-Settings next release candidate
+
+Settings PR198 merged as main f1740bc47ff8495bdf3457b5db195075a7404c87 after
+Full37704406932 and Prompt37704406755 succeeded. This Section branch reconciles
+that actual main, preserving both Settings fixes and the reviewed Section work.
+Main tree801227d1b4945082226eb0ea745c589601a97df6 equals the certified Settings
+head tree; its separate exact-main Full37706096966 is still in progress.
+
+The next Section candidate identifies as0.21.0, with no format/schema change.
+Backup accepts the new producer minor21 while retaining historical versions and
+strict rejection of22/malformed versions. Independent review passed; four
+complete version checks and11416 package checks pass. Previously recorded
+Section/Content/Years evidence stays component evidence; current-head candidate
+and final combined acceptance remain required before integration.
