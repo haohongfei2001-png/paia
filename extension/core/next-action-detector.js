@@ -4,17 +4,17 @@ export const NEXT_REPLY_LIMITS=Object.freeze({characters:32768,bytes:131072,bloc
 const defer=reason=>({version:NEXT_ACTION_VERSION,type:'DEFER',confidence:'LOW',reason});
 const count=text=>Array.from(text).length;
 const risk=/(?:删除|清空|销毁|覆盖|付款|支付|转账|购买|订阅|退订|授权|权限|密码|口令|密钥|凭证|令牌|验证码|登录码|银行卡|身份证|全部资料|所有资料|整个档案|自动发送|PAIA|delete|erase|purge|wipe|overwrite|pay\b|payment|transfer|purchase|subscribe|permission|authori[sz]|consent|password|credential|secret|token|cookie|api\s*key|verification\s*code|one.time\s*(?:code|password)|bank|medical|diagnos|contract|resign|send\s+automatically|whole\s+archive)/iu;
-const contextual=/(?:例如|示例|举例|例子|文档|教程|手册|引用|原话|他(?:说|写)|她(?:说|写)|对方|第三方|假设|假如|若是|终端|命令行|其他应用|另一个应用|for\s+example|example|documentation|manual|tutorial|quoted?|someone|they\s+(?:said|wrote)|he\s+said|she\s+said|suppose|hypothetical|terminal|command\s+line|another\s+app)/iu;
+const contextual=/(?:例如|示例|举例|例子|文档(?:中|里|写道|说明|要求|指出|[：:])|教程|手册|引用|原话|他(?:说|写)|她(?:说|写)|对方|第三方|假设|假如|若是|终端|命令行|其他应用|另一个应用|for\s+example|example|documentation(?:\s*(?:[:：]|\b(?:says|states|instructs|requires|recommends|requests|tells|indicates)\b))|manual|tutorial|quoted?|someone|they\s+(?:said|wrote)|he\s+said|she\s+said|suppose|hypothetical|terminal|command\s+line|another\s+app)/iu;
 const negation=/(?:不要|不能|不可|无需|不必|不是让|别(?:回复|说|输入)|do\s+not|don['’]t|never|shouldn['’]t|not\s+(?:reply|say|type|tell))/iu;
 const material=/(?:日志|文件|截图|链接|路径|附件|上传|粘贴|error\s+log|screenshot|attach|upload|paste|file|link|path)/iu;
-const requestPattern=/(?:回复|告诉我|只要你说|Reply\s+with|Tell\s+me|Say|Type)\s*[“"「]/giu;
+const requestPattern=/(?:回复|告诉我|只要你说|Reply(?:\s+with)?|Tell\s+me|Say|Type)\s*[“"「]/giu;
 // Direct v1 accepts non-consequential acknowledgement/continuation literals only.
 // Unknown literal meanings are unsupported, even when their quotation is exact.
 const safeLiteral=/^(?:继续|停止|已登录|完成了|已完成|准备好了|准备好|好了|收到|未完成|还没准备好|保留原文|ready|done|finished|continue|stop|not ready|not done|I am ready)(?:[。.!！])?$/iu;
 const quote='[“"「]([^”"」\\n]+)[”"」]';
 const zhBefore='(登录完成后|登录后|完成后|准备好后|确认完成后|如果已经完成|如果已经登录|只要你准备好|)';
 const zh=new RegExp('^(?:请)?'+zhBefore+'(?:请)?(?:回复|告诉我|只要你说)\\s*'+quote+'(?:[，,]我就继续)?[。.!！]?$', 'u');
-const en=new RegExp('^(?:(When (?:finished|ready|done)|After (?:logging in|you finish|you have finished))[, ]+)?(?:Please )?(?:Reply with|Tell me|Say|Type)\\s*'+quote+'(?: (when (?:finished|ready|done)|after (?:logging in|you finish|you have finished)|to continue))?[.!]?$', 'iu');
+const en=new RegExp('^(?:(When (?:finished|ready|done)|After (?:logging in|you finish|you have finished))[, ]+)?(?:Please )?(?:Reply(?: with)?|Tell me|Say|Type)\\s*'+quote+'(?: (when (?:finished|ready|done)|after (?:logging in|you finish|you have finished)|to continue))?[.!]?$', 'iu');
 const conditionLabel=s=>({'登录完成后':'登录后','如果已经登录':'如果已登录','如果已经完成':'如果已完成'}[s]||s);
 
 export function detectNextAction(snapshot){
