@@ -1,5 +1,13 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Current repair checkpoint — 2026-10-09 CST
+
+Remote main is `3d69b95f643800407720605dd1b4094d00ba2b54`; PR213 changes only the website and is preserved in this candidate. Extension runtime on main remains0.24. PR210 is not merged: intermediate25eaa Full37805632506 failed one Data browser case, while Browser2–7, four unit shards, contracts/build and native Sync passed; both macOS jobs were cancelled. Prompt37805632430 passed. These are not full certification.
+
+The final Topic metadata repair05f9cdef has independent approval: genuine current-reader authority loss is checked before a retired read can exit at either asynchronous boundary.152 related cases, five overlapping independent boundary cases and the complete26-case UX-R3 native file pass; its owning receipt preserves the previous negatives. The Data cancellation-completion repair5ceca673 has independent approval and the complete source/restore/release file passes1/1. A held real worker acknowledgement deterministically reproduces the premature assertion; the final test waits for actual completion and preserves the original assertion and budget. The next coherent candidate still requires fresh hosted gates.
+
+Review agents resumed successfully after direct current account evidence showed ordinary usage was allowed. The earlier quota error is historical, not a current external blocker. Independent work continues: stable0.27 remains separate; bounded Input Working publication03ae8495 and AI maintenance capacityec529905 are reviewed local future slices, not delivered features. Settings history-import language work is in progress. No paid model, account transport, installation or deployment is inferred.
+
 ## Current integration checkpoint — 2026-10-08
 
 Latest runtime main is `050e43b72269a0fedb02ab780dd20ad4e813f351` (0.24). PR164 integrated guarded Next/Family matching, the Settings Next owner and reviewed Sync conflict fix0e6aed9f; PR204 was consequently merged through the same history. Candidatea22dc7e0 Full37781576916 and Prompt37781576849 passed. Tested mergebae86ad4435e2277ab53ce5f50ddc867def45443 and main share the entire tree8a58dd4cb421eed2b809f3499fc40690bfa07934. Exact-main Prompt37784369525 and Full37784369628 both passed. An exact-main build exists; no automatic installation or deployment was performed.
