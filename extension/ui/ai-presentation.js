@@ -7,8 +7,19 @@ import {readingCopyButton} from './reading-actions.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
 export class AIReadingEditor {
- constructor(root,presentation,onEvidence,onStatus){
+ constructor(root,presentation,onEvidence,onStatus,{fieldsOnly=false}={}){
+  this.fieldsOnly=fieldsOnly;
   this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.recovery=new RecoveryDraftSession({epoch:this.row.recoveryEpoch,kind:'ai_presentation',ownerId:this.row.topicId});this.recoveryLast=null;this.recoveryFailed=false;this.nodes=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
+  if(fieldsOnly){
+   const legacy=element('details','ai-legacy');legacy.dataset.aiSavedFields='true';legacy.append(element('summary','','已保存的 AI 整理'));
+   this.field('blockSummary',this.row.blockSummary,legacy,'主题速览','ai-summary');
+   this.field('currentView',this.row.currentView,legacy,'当前理解','entry-prose');
+   for(const [field,label]of Object.entries({...labels,possibleEvolution:'已保存的思考线索'})){
+    if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));
+    const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);
+   }
+   root.append(legacy);
+  }else{
   const overview=element('section','ai-reading-section ai-overview');overview.append(element('h2','','当前理解'));
   this.field('blockSummary',this.row.blockSummary,overview,'主题速览','ai-summary');
   this.field('currentView',this.row.currentView,overview,'当前理解','entry-prose');
@@ -29,6 +40,7 @@ export class AIReadingEditor {
   const legacy=element('details','ai-legacy');legacy.append(element('summary','','其他已保存的整理'));
   for(const [field,label]of Object.entries(labels)){if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);}
   if(legacy.children.length>1)root.append(legacy);
+  }
   root.addEventListener('keydown',e=>{if(e.target.closest('[data-entry-field]'))return;if((e.metaKey||e.ctrlKey)&&!e.altKey&&['z','y'].includes(e.key.toLowerCase())){e.preventDefault();void this.history(e.shiftKey||e.key.toLowerCase()==='y');}},{signal:this.controller.signal});
   const resume=()=>this.resumeDeferredReading();
   document.addEventListener('selectionchange',resume,{signal:this.controller.signal});
@@ -56,6 +68,7 @@ export class AIReadingEditor {
    for(const item of batch){if(item.ok)rows.push(item.value);else unavailable.push(item.id);}
   }
   if(this.disposed||epoch!==this.evidenceEpoch)return;
+  if(this.fieldsOnly){this.evidenceRows=new Map(rows.filter(usableEvolutionEntry).map(e=>[e.id,e]));return;}
   if(this.evidenceMounted){
    for(const editor of this.excerptEditors){
     // Failed reads cannot establish freshness. Retain drafts but disable unsafe excerpts.
