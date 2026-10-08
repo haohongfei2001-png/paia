@@ -117,7 +117,7 @@ export class TopicController {
   $('library-undo').addEventListener('click',()=>void readingHistory(false));$('library-redo').addEventListener('click',()=>void readingHistory(true));
   this.ensureTopicContinuous();
   $('library-removed-topics').addEventListener('click',productAction(()=>this.removedTopics()));$('library-removed').addEventListener('click',productAction(()=>this.removed()));$('library-rebuild-search').addEventListener('click',productAction(()=>this.checked('REBUILD_LIBRARY_SEARCH').then(()=>{$('library-maintenance-status').textContent='已请求更新本地搜索索引；搜索时会显示进度。';})));
-  $('topic-menu').append(actionMenu('主题操作',[["管理结构",()=>this.manageSections()],[tc("主题说明"),()=>this.editTopicCue()],["合并主题",()=>this.mergeTopic()],["重命名",()=>this.renameTopic(this.id)],["删除主题",()=>this.deleteTopic(this.id)]]));$('topic-menu').querySelector('button').id='topic-structure';$('topic-menu').querySelectorAll('button')[2].id='topic-merge';
+  $('topic-menu').append(actionMenu('主题操作',[["管理结构",()=>this.manageSections()],[tc("主题说明"),()=>this.editTopicCue()],["合并主题",()=>this.mergeTopic()],["重命名",()=>this.renameTopic(this.id)],["删除主题",()=>this.deleteTopic(this.id)],[tc("新建章节"),()=>this.createSection()]]));$('topic-menu').querySelector('button').id='topic-structure';$('topic-menu').querySelectorAll('button')[2].id='topic-merge';$('topic-menu').querySelectorAll('button')[5].id='topic-create-section';
  const homeMenu=actionMenu(tc('思想库更多'),[[tc('添加主题'),()=>this.createTopic()],[tc('单独写下的想法'),()=>{const container=$('library-unplaced').parentElement;container.hidden=false;return this.unplaced();}]]);$('thought-home-tools').append(homeMenu,button(tc('接着写'),()=>this.createStandalone()));
  $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
  $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
@@ -370,8 +370,8 @@ export class TopicController {
  async aiRevisions(){if(!await this.leave())return;const result=await request('GET_AI_PRESENTATION_REVISIONS',{options:{topicId:this.id}});this.closeDialog();$('library-dialog-title').textContent='AI整理版本';const list=$('library-dialog-content');for(const r of [...result.items].reverse()){const section=element('section','revision-row'),detail=element('details');section.append(element('p','',`${new Date(r.at).toLocaleString()} · ${r.actor==='ai'?'AI 更新':'用户编辑'}`));detail.append(element('summary','','查看此版本'),element('pre','',[r.after.blockSummary,r.after.currentView,...['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'].flatMap(f=>r.after[f].map(x=>x.text))].filter(Boolean).join('\n\n')));section.append(detail);list.append(section);}if(!result.items.length)list.append(element('p','muted','尚无可查看版本。'));$('library-dialog').showModal();await this.refresh();}
  async togglePin(){await this.mutate(async()=>{const t=await request('GET_LIBRARY_TOPIC',{id:this.id});await this.checked('EDIT_LIBRARY_TOPIC',{edit:{id:t.id,expectedRevision:t.revision,changes:{pinned:t.pinKey!==0},operationId:op()}});});}
  async requestCloseDialog(){this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;const active=this.dialogEditor;if(active){active.collect();if(!await active.flush()&&(active.dirty()||isComposing(active))&&!window.confirm('当前草稿尚未保存。关闭会放弃这些修改，已保存内容不会改变。仍要关闭？'))return;if(this.dialogEditor===active){active.dispose();this.dialogEditor=null;}}this.closeDialog();if(!this.id)await this.refresh();}
- closeDialog(){$('library-dialog-content').inert=false;this.dialogResolve?.(null);this.dialogResolve=null;$('library-dialog').close();$('standalone-revisions').hidden=true;$('library-form').replaceChildren();$('library-dialog-content').replaceChildren();}
- form(title,fields){this.closeDialog();$('library-dialog-title').textContent=title;const form=$('library-form');const controls={};for(const f of fields){const label=element('label','',f.label);const input=element(f.options?'select':f.multiline?'textarea':'input');input.name=f.key;input.setAttribute('aria-label',f.label);if(f.options)for(const [value,text]of f.options){const option=element('option','',text);option.value=value;input.append(option);}if(f.value!==undefined)input.value=f.value;input.required=!!f.required;label.append(input);form.append(label);controls[f.key]=input;}const submit=element('button','','确定');submit.type='submit';form.append(submit);$('library-dialog').showModal();return new Promise(resolve=>{this.dialogResolve=resolve;form.onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,v.value]));this.dialogResolve=null;this.closeDialog();resolve(data);};});}
+ closeDialog(){if(this.formCloseLabel!==undefined){$('library-dialog-close').textContent=this.formCloseLabel;delete this.formCloseLabel;}$('library-dialog-content').inert=false;this.dialogResolve?.(null);this.dialogResolve=null;$('library-dialog').close();$('standalone-revisions').hidden=true;$('library-form').replaceChildren();$('library-dialog-content').replaceChildren();}
+ form(title,fields,{submitLabel='确定',closeLabel}={}){this.closeDialog();if(closeLabel!==undefined){this.formCloseLabel=$('library-dialog-close').textContent;$('library-dialog-close').textContent=closeLabel;}$('library-dialog-title').textContent=title;const form=$('library-form');const controls={};for(const f of fields){const label=element('label','',f.label);const input=element(f.options?'select':f.multiline?'textarea':'input');input.name=f.key;input.setAttribute('aria-label',f.label);if(f.options)for(const [value,text]of f.options){const option=element('option','',text);option.value=value;input.append(option);}if(f.value!==undefined)input.value=f.value;input.required=!!f.required;if(Number.isInteger(f.maxLength))input.maxLength=f.maxLength;label.append(input);form.append(label);controls[f.key]=input;}const submit=element('button','',submitLabel);submit.type='submit';form.append(submit);$('library-dialog').showModal();return new Promise(resolve=>{this.dialogResolve=resolve;form.onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,v.value]));this.dialogResolve=null;this.closeDialog();resolve(data);};});}
  async checked(type,data={}){try{const r=await request(type,data);if(r?.conflict){this.onStatus('内容或组织已更新，请重读后再试。','conflict');throw Object.assign(new Error('CONFLICT'),{handled:true});}return r;}catch(e){if(e.handled)throw e;this.onStatus('操作尚未完成，当前内容保留。请重试。','error');throw e;}}
  setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;}
  async mutate(run){if(this.mutating)return;const wasHome=!this.id;this.mutating=true;this.setBusy(true);if(!await this.leave()){this.mutating=false;this.setBusy(false);return;}try{await run();this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}catch{showLocalFailure();return false;}finally{this.mutating=false;this.history=null;if(wasHome)this.resetHomeCollection();await this.refresh();this.setBusy(false);}}
@@ -602,13 +602,57 @@ export class TopicController {
  }
  async createEntry(){return this.actions.compose({topicId:this.id||undefined});}
  async manageSections(){
-  if(!this.id||!await this.flushEditors())return;const topicId=this.id,sections=await this.topicSectionRows();if(this.id!==topicId)return;
-  this.closeDialog();$('library-dialog-title').textContent='管理主题结构';const host=$('library-dialog-content');
-  host.append(element('p','muted','章节与手动顺序仍保留；内容阅读按真实表达时间排列。'),button('新建章节',()=>this.createSection()));
-  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||'正文'));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(label,()=>{this.closeDialog();return this.sectionActions(section,action);}));host.append(row);}
+  const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
+  if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushEditors()||!current())return;
+  const sections=await this.topicSectionRows();if(!current())return;
+  this.closeDialog();$('library-dialog-title').textContent=tc('管理主题结构');const host=$('library-dialog-content');
+  host.append(element('p','muted',tc('内容按章节与手动顺序连续阅读。')),button(tc('新建章节'),()=>{if(current())return this.createSection();}));
+  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||'正文'));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(label,()=>{if(!current())return;this.closeDialog();return this.sectionActions(section,action);}));host.append(row);}
   $('library-dialog').showModal();
  }
- async createSection(){const v=await this.form('新建章节',[{key:'title',label:'章节名称'}]);if(!v)return;await this.mutate(async()=>{const t=await request('GET_LIBRARY_TOPIC',{id:this.id});await this.checked('CREATE_LIBRARY_SECTION',{section:{topicId:t.id,expectedTopicRevision:t.organizationRevision,title:v.title,operationId:op()}});});}
+ async createSection(){
+  if(this.sectionActionPending)return;
+  const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
+  const guard=()=>{if(!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))throw Error('TOPIC_SECTION_ROUTE_CHANGED');};
+  if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
+  const drafts=this.sectionCreationDrafts??=new Map();
+  if(!drafts.has(topicId)&&drafts.size>=8){this.onStatus(tc('已有八个主题的章节创建待处理。请先核对原请求或取消未保存的名称。'));return;}
+  this.sectionActionPending=true;
+  try{
+   if(!await this.flushEditors()||!current())return;
+   let draft=drafts.get(topicId);
+   // A lost acknowledgement must retry its exact operation, never create a
+   // second Section or substitute a newly edited title into that operation.
+   if(!draft?.uncertain){
+    const value=await this.form(tc('新建章节'),[{key:'title',label:tc('章节名称'),required:true,maxLength:300,value:draft?.title||''}],{submitLabel:tc('创建章节'),closeLabel:tc('关闭')});
+    if(!current())return;
+    if(!value){drafts.delete(topicId);return;}
+    if(!value.title.trim()||value.title.length>300)return;
+    draft={topicId,title:value.title,attempt:null,uncertain:false};drafts.set(topicId,draft);
+   }
+   let created;
+   const saved=await this.mutate(async()=>{
+    guard();
+    if(!draft.attempt){const topic=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
+     if(topic.id!==topicId)throw Error('TOPIC_SECTION_CHANGED');
+     draft.attempt={topicId,expectedTopicRevision:topic.organizationRevision,title:draft.title,operationId:op()};
+    }
+    try{
+     created=await this.checked('CREATE_LIBRARY_SECTION',{section:draft.attempt});
+     if(typeof created?.sectionId!=='string'||!created.sectionId)throw Object.assign(Error('UNAVAILABLE'),{code:'UNAVAILABLE'});
+     if(drafts.get(topicId)===draft)drafts.delete(topicId);
+    }catch(error){
+     draft.uncertain=draft.uncertain||['MESSAGE_CHANNEL_INTERRUPTED','UNAVAILABLE','TIMEOUT','WORKER_INTERRUPTED'].includes(error?.code);
+     if(!draft.uncertain)draft.attempt=null;
+     throw error;
+    }
+   });
+   if(!saved&&current())this.onStatus(tc(draft.uncertain?'章节创建结果尚未确认。再次选择新建章节会先核对原请求。':'章节未保存，名称仍保留。再次选择新建章节可重试。'));
+   if(saved&&created?.sectionId&&current())await this.focusSection(created.sectionId,{isCurrent:current});
+  }finally{this.sectionActionPending=false;}
+ }
  async topics(){let cursor=null,rows=[];do{const p=await request('LIBRARY_INDEX_PAGE',{options:{mode:'all',cursor,limit:100}});rows.push(...p.items);cursor=p.nextCursor;}while(cursor&&rows.length<1000);return rows;}
  async mergeSuggestions(){if(!await this.leave())return;this.closeDialog();$('library-dialog-title').textContent='可能相关的主题';const list=$('library-dialog-content'),result=await request('GET_LIBRARY_MERGE_SUGGESTIONS');list.append(element('p','muted','这些主题可能在讨论同一件事。只有你选择合并后才会改变组织，内容原文保持独立。'));
  for(const item of result.items){const row=element('section','merge-suggestion');row.append(element('p','',item.sourceName+' → '+item.targetName),button('合并到“'+item.targetName+'”',async()=>{this.closeDialog();await this.mutate(async()=>{const source=await request('GET_LIBRARY_TOPIC',{id:item.sourceId}),target=await request('GET_LIBRARY_TOPIC',{id:item.targetId}),r=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'topic_merge',topicId:source.id,survivorId:target.id,expectedTopicRevision:source.organizationRevision,expectedSurvivorRevision:target.organizationRevision,operationId:op()}});await this.waitLayout(r.jobId);this.id=target.id;});}),button('保持分开',async()=>{await request('KEEP_LIBRARY_TOPICS_SEPARATE',{options:{sourceId:item.sourceId,targetId:item.targetId}});row.replaceChildren(element('p','muted','已记住：这两个主题保持分开。'));}));list.append(row);}if(!result.items.length)list.append(element('p','muted','暂未发现需要合并的主题。'));const renames=await request('GET_LIBRARY_RENAME_SUGGESTIONS');for(const item of renames.items){const row=element('section','merge-suggestion');row.append(element('p','','名称建议：'+item.name+' → '+item.suggestedName),button('使用建议名称',async()=>{await this.checked('EDIT_LIBRARY_TOPIC',{edit:{id:item.topicId,expectedRevision:item.revision,changes:{name:item.suggestedName},operationId:op()}});row.replaceChildren(element('p','muted','已按你的确认更新主题名称。'));await this.refresh();}),button('自己命名',()=>this.renameTopic(item.topicId)));list.append(row);}$('library-dialog').showModal();}
