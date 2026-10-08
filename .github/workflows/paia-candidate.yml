@@ -1211,7 +1211,7 @@ jobs:
   macos_reload_diagnostic:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_MAC')
     name: Candidate hosted Mac extension-reload diagnostic
-    runs-on: macos-latest
+    runs-on: macos-26-intel
     timeout-minutes: 12
     defaults:
       run:
