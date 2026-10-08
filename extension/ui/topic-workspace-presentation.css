@@ -74,3 +74,8 @@
 #thought-document.dvn-topic-composition #original-reading-body .topic-section:focus-visible{outline:2px solid var(--focus);outline-offset:6px}
 
 @media(max-width:767px){#thought-document.dvn-topic-composition #original-reading-body .section-heading h2{font-size:20px}}
+/* Contextual Section actions remain usable by touch without changing prose. */
+@media(max-width:767px),(pointer:coarse){#thought-document.dvn-topic-composition .topic-section-actions>summary,#thought-document.dvn-topic-composition .topic-section-actions button{min-width:44px;min-height:44px}}
+#thought-document.dvn-topic-composition .topic-section-actions button{opacity:1;color:var(--paia-text)}
+
+.topic-section-actions[aria-busy="true"]>summary{opacity:.55;cursor:wait;}

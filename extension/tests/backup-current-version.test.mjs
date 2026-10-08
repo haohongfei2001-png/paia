@@ -16,8 +16,8 @@ test('product version agrees across manifest, version name and package identity'
 });
 
 test('current compatible product version and every prior admitted minor retain strict existing-file admission',()=>{
- for(const version of ['0.7.0','0.8.1','0.9.1','0.10.0','0.11.0','0.12.1','0.13.0','0.14.0','0.15.0','0.16.0','0.17.0','0.18.0','0.19.0','0.20.0','0.20.1','0.20.0.1','0.21.0','0.21.1','0.21.0.1',manifest.version])assert.equal(validateBackupHeader(header(version)).appVersion,version);
- for(const version of ['0.6.0','0.22.0','0.99.0','1.0.0','0.13','0.13.0-extra','0.14','0.14.0-extra','0.15','0.15.0-extra','0.16','0.16.0-extra','0.17','0.17.0-extra','0.18','0.18.0-extra','0.19','0.19.0-extra','0.20','0.20.0-extra','0.20.0.0.1','0.21','0.21.0-extra','0.21.0.0.1','not-a-version'])assert.throws(()=>validateBackupHeader(header(version)),e=>e.code==='BACKUP_VERSION_UNSUPPORTED');
+ for(const version of ['0.7.0','0.8.1','0.9.1','0.10.0','0.11.0','0.12.1','0.13.0','0.14.0','0.15.0','0.16.0','0.17.0','0.18.0','0.19.0','0.20.0','0.20.1','0.20.0.1','0.21.0','0.21.1','0.21.0.1','0.22.0','0.22.1','0.22.0.1','0.23.0','0.23.1','0.23.0.1',manifest.version])assert.equal(validateBackupHeader(header(version)).appVersion,version);
+ for(const version of ['0.6.0','0.24.0','0.99.0','1.0.0','0.13','0.13.0-extra','0.14','0.14.0-extra','0.15','0.15.0-extra','0.16','0.16.0-extra','0.17','0.17.0-extra','0.18','0.18.0-extra','0.19','0.19.0-extra','0.20','0.20.0-extra','0.20.0.0.1','0.21','0.21.0-extra','0.21.0.0.1','0.22','0.22.0-extra','0.22.0.0.1','0.23','0.23.0-extra','0.23.0.0.1','not-a-version'])assert.throws(()=>validateBackupHeader(header(version)),e=>e.code==='BACKUP_VERSION_UNSUPPORTED');
  assert.throws(()=>validateBackupHeader({...header(manifest.version),schemaVersion:999}),e=>e.code==='BACKUP_VERSION_UNSUPPORTED');
  assert.throws(()=>validateBackupHeader({...header(manifest.version),formatVersion:999}),e=>e.code==='BACKUP_VERSION_UNSUPPORTED');
  assert.throws(()=>validateBackupHeader({...header(manifest.version),contentSections:[]}),e=>e.code==='BACKUP_VERSION_UNSUPPORTED');

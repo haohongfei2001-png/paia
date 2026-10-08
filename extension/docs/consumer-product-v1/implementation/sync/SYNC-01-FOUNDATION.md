@@ -157,3 +157,12 @@ On exact merge HEAD, fourteen complete Sync/Core/Prompt/AI owner test files pass
 Generated source and release receipts identify the exact merge HEAD and agree on all six production hashes. Receipt SHA-256: source `9a0751846c5f68aecc642d7e6c23c6782aadea6668b485a8c7318ae6261ccecd`; release `de6d3eb337f5efc56c46554f4e40d8990cb2f83f8d012704735dc6c151da94ff`. Integrated repository SHA-256 is `48c1ce41777821288db4d6c0ce5a99853346b206f1eb6ef6474e9d14b2ce1916`; Core `12d74ef9c641084a2b454e2dc7020840b0d49b03013bb74d9cd57a88976573ca`; Prompt journal `4ac0b312140b29126a9d37f00c5b115d726dde32d615218ddf88afcdd6dc1cf3`.
 
 The subsequent receipt-only commit does not change tested bytes. This is local integration evidence, not full CI, current-main availability, real cloud transport, full Prompt purge/restore or all-codec recovery qualification. All prior failures and limitations above remain retained.
+
+
+### Final protected-owner batch0.23.1
+
+Full37762330185 on c67db15a is CANCELLED, not PASS: Browser5 font setup spent over16 minutes downloading61MB over the hosted Azure HTTP mirror before its unchanged budget expired. Raw coordinator log sync-ai-shard5-cancelled.log retains the failure; other completed jobs are not a substitute. No identical retry was dispatched.
+
+The final candidate incorporates reviewed Archivecf10ea7c and Section4ff675d6 (main15091f1a included). This inherits the independently reviewed mirror-list HTTPS correction without further workflow modification. Existing Sync Core/Prompt materializer bytes remain exactly c67db15a; no runtime conflict resolution was needed. Under the runtime version policy and intended Topic0.22→Archive0.23→Sync integration sequence, this compatible safety fix is0.23.1 Sync Owner Safety. The existing strictminor23 admission already accepts the patch; schema/permissions/export remain unchanged.
+
+Final local combination:197 complete Sync/AI/version unit cases PASS; complete native storage source/release32/32 PASS20.47s including unmanaged/locally edited owner refusal, atomic receipts/head/frontier/outbox rollback, restore and generation boundaries. Zero failed/skipped/cancelled. Independent review compared exact c67 runtime and cf10 workflows/router/backup format, and reran actual0.23.1 restore3/3. Final-head hosted certification and prerequisite integrations are still required. This does not enable a production cloud journal or claim full canonical restoration/browser account transport.

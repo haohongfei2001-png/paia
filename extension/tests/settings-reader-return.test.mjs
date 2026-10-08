@@ -31,7 +31,7 @@ test('Settings Back preserves the existing Reader parent through repeated return
   const back=doc.getElementById('ux-settings-back');assert.ok(back);assert.deepEqual(reads.map(message=>message.type).sort(),['GET_PAGE','PAIA_SETTINGS_AI_STYLE']);
   const history=new RouteHistory();
   for(const parent of ['library','archive','revisit']){
-   const before={view:parent==='archive'?'archive':'library',documentId:'synthetic-conversation',topicId:null,returnTo:parent,searchQuery:'SYNTHETIC reader query',anchor:{documentId:'synthetic-conversation',inputId:'synthetic-input',offset:12,sort:'desc'}};
+   const before={originKey:'11111111-1111-4111-8111-111111111111',view:parent==='archive'?'archive':'library',documentId:'synthetic-conversation',topicId:null,returnTo:parent,searchQuery:'SYNTHETIC reader query',anchor:{documentId:'synthetic-conversation',inputId:'synthetic-input',offset:12,sort:'desc'}};
    for(let round=0;round<2;round++){
     owner.route=before;owner.present({view:'settings'},{consented:true});owner.present({view:'settings'},{consented:true});
     assert.equal(owner.settingsReturn,before,'Settings refresh cannot replace its captured Reader');
@@ -39,6 +39,7 @@ test('Settings Back preserves the existing Reader parent through repeated return
     assert.equal(doc.getElementById('ux-settings-back'),back,'same Back control and listener remain mounted');
     const [view,id,contextId,options]=calls.at(-1);
     assert.deepEqual([view,id,contextId],[before.view,before.documentId,null]);
+    assert.equal(options.originKey,before.originKey,'Settings retains the opaque same-tab Archive origin');
     assert.equal(options.returnTo,parent,'the Reader parent must not become Settings');
     assert.equal(options.searchQuery,before.searchQuery);assert.equal(options.anchor,before.anchor);
     assert.equal(owner.route.view,'settings','a refused navigation is not bypassed by the shell');
