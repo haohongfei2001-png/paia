@@ -22,3 +22,15 @@ Exact files SHA-256:
 - `tests/cpv1-12-next-prompt-chrome-e2e.test.mjs`: `e9eda2e6705972e3525328a770d5166797bccf1e1c72959e8c25f00d8c4547ea`
 
 Coordinator independent code/fixture review passed, including the reopen rejection sharing the availability epoch while preserving current-failure hiding. The dedicated complete owner file independently passed **6/6**, 86.932 ms, `/tmp/prompt-next-availability-root-review.log`; `git diff --check` passed. Approval is only to enter the existing Linux Prompt workflow on a `feat/prompt-reuse-vs09-*` validation branch. Local native failures above remain failures; browser acceptance and delivery remain pending. This author checkpoint does not push or change CI.
+
+### Linux fixture sender correction
+
+Linux Prompt run 37811296433 at 2b8ba5f1 failed in the new case; the five preceding scenarios passed in both variants. Raw log: coordinator work/prompt-availability-linux-2b8-failure.log. The artificial popup-tab announcement never caused the expected held RPC; this is not a passed race test.
+
+Actual headless Chrome sender diagnostic /tmp/prompt-availability-sender-diagnostic.log confirms that this fixture's extension popup page runtime.sendMessage includes sender.tab, while worker runtime.sendMessage does not. Both have the correct extension ID. The unchanged UI properly accepts only the latter. No sender guard is loosened.
+
+The corrected case invokes the existing real reply cycle(). Actual detector/OFFER completion publishes the trusted worker notification. The wrapper holds only its first real available:true response, ignoring earlier unavailable responses that retire the prior reply. Real reply mutation then triggers INVALIDATE and a newer available:false response; the earlier response is released unchanged. No response, authority or successful RPC is fabricated.
+
+Production code and original assertions/budgets are unchanged. Syntax and two complete UI/background owner files pass 12/12 in /tmp/prompt-availability-sender-fix-unit.log; diff-check passes. Full corrected native validation remains pending the next coordinated Linux run; the known local iframe-hit failure was not repeatedly retried. Updated native SHA-256: 24e48081e8e6d42953b7130fe4e055c402ed445f7ffe74ca06163b3b868e47e7. Earlier native hashes and failures remain historical evidence.
+
+Coordinator independent review approved the corrected real-worker broadcast precondition and unchanged trusted-sender guard. The response is held only after the actual worker answered; no available result is fabricated. The sender finding is explicitly limited to this fixture popup page. Approval is to commit these two files and validate one new head through the existing Linux workflow, not to relabel the failed 2b8ba5f1 run.
