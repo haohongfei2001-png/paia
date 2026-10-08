@@ -1,3 +1,4 @@
+import {thoughtCopy as tc} from './thought-copy.js';
 import {request,element,statusLabel} from './common.js';
 import {textOf,AutosaveSession,UndoJournal,RevisionSession} from './editor-primitives.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
@@ -6,19 +7,20 @@ import {evolutionEntryIds,evolutionPlan,evolutionDateLabel,usableEvolutionEntry}
 import {readingCopyButton} from './reading-actions.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
+export function localizeSavedAIControls(root){for(const node of root.querySelectorAll('[data-ai-product-label]'))node.textContent=tc(node.dataset.aiProductLabel);for(const node of root.querySelectorAll('[data-ai-product-aria]'))node.setAttribute('aria-label',tc(node.dataset.aiProductAria));}
 export class AIReadingEditor {
  constructor(root,presentation,onEvidence,onStatus,{fieldsOnly=false}={}){
   this.fieldsOnly=fieldsOnly;
   this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.recovery=new RecoveryDraftSession({epoch:this.row.recoveryEpoch,kind:'ai_presentation',ownerId:this.row.topicId});this.recoveryLast=null;this.recoveryFailed=false;this.nodes=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
   if(fieldsOnly){
-   const legacy=element('details','ai-legacy');legacy.dataset.aiSavedFields='true';legacy.append(element('summary','','已保存的 AI 整理'));
+   const legacy=element('details','ai-legacy');legacy.dataset.aiSavedFields='true';const summary=element('summary','',tc('已保存的 AI 整理'));summary.dataset.aiProductLabel='已保存的 AI 整理';legacy.append(summary);
    this.field('blockSummary',this.row.blockSummary,legacy,'主题速览','ai-summary');
    this.field('currentView',this.row.currentView,legacy,'当前理解','entry-prose');
    for(const [field,label]of Object.entries({...labels,possibleEvolution:'已保存的思考线索'})){
-    if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));
+    if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');const heading=element('h2','',tc(label));heading.dataset.aiProductLabel=label;section.append(heading);
     const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);
    }
-   root.append(legacy);
+   root.append(legacy);document.addEventListener('paia:preferences-applied',()=>localizeSavedAIControls(root),{signal:this.controller.signal});
   }else{
   const overview=element('section','ai-reading-section ai-overview');overview.append(element('h2','','当前理解'));
   this.field('blockSummary',this.row.blockSummary,overview,'主题速览','ai-summary');
@@ -51,7 +53,7 @@ export class AIReadingEditor {
  deferReadingRefresh(refresh){this.deferredReadingRefresh=refresh;}
  resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked())return;const refresh=this.deferredReadingRefresh,evidence=this.deferredEvidenceRefresh;this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;if(evidence)void Promise.resolve(evidence()).then(()=>{if(!this.disposed)refresh?.();});else if(refresh)void refresh();}
  fieldNode(field,text,host,label,className){
-  const prose=element('div',className,text||'');prose.contentEditable='plaintext-only';prose.setAttribute('aria-label',label);prose.dataset.aiField=field;
+  const prose=element('div',className,text||'');prose.contentEditable='plaintext-only';prose.setAttribute('aria-label',this.fieldsOnly?tc(label):label);if(this.fieldsOnly)prose.dataset.aiProductAria=label;prose.dataset.aiField=field;
   const options={signal:this.controller.signal};
   prose.addEventListener('compositionstart',()=>{this.composing=true;this.autosave.cancel();},options);
   prose.addEventListener('compositionend',()=>{this.composing=false;this.schedule();},options);
