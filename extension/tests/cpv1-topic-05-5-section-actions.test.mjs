@@ -50,3 +50,17 @@ test('05.5 rename finishes refresh before restoring exact Section focus',()=>fix
  w.mutate=async run=>{await run();entered();await heldRefresh;return true;};
  const pending=w.sectionContextAction(section,'rename');await enteredRefresh;assert.deepEqual(focus,[],'published rename does not imply completed refresh or restored focus');release();await pending;assert.deepEqual(focus,['named']);assert.equal(w.sectionActionPending,false);
 }));
+
+test('05.5 controls stay unavailable through refresh and focus, including rebuilt menus and rapid next action',()=>fixture(async({w,body,writes})=>{
+ w.originalPane=body;const header=new Node('header');body.append(header);w.renderSectionActions(header,section);
+ let releaseRefresh,releaseFocus,enteredRefresh,enteredFocus;
+ const refreshHeld=new Promise(r=>releaseRefresh=r),focusHeld=new Promise(r=>releaseFocus=r),refreshEntered=new Promise(r=>enteredRefresh=r),focusEntered=new Promise(r=>enteredFocus=r);
+ w.mutate=async run=>{await run();enteredRefresh();await refreshHeld;w.setBusy(false);return true;};w.focusSection=async()=>{enteredFocus();await focusHeld;};
+ const pending=w.sectionContextAction(section,'up');await refreshEntered;
+ const assertBusy=host=>{const menu=host.querySelector('.topic-section-actions');assert.equal(menu.getAttribute('aria-busy'),'true');assert.equal(menu.querySelector('summary').getAttribute('aria-disabled'),'true');assert.ok(menu.querySelectorAll('button').every(b=>b.disabled===true));};
+ assertBusy(header);const trigger=header.querySelector('summary');assert.equal(trigger.inert,true);for(const [type,key]of [['click',null]]){let prevented=false;trigger.listeners.get(type)({key,preventDefault(){prevented=true;},stopPropagation(){}});assert.equal(prevented,true,type+':'+key);}await w.sectionContextAction(section,'down');assert.equal(writes.length,1);
+ const rebuilt=new Node('header');body.append(rebuilt);w.renderSectionActions(rebuilt,section);assertBusy(rebuilt);
+ releaseRefresh();await focusEntered;assertBusy(header);assertBusy(rebuilt);releaseFocus();await pending;
+ for(const host of [header,rebuilt]){const menu=host.querySelector('.topic-section-actions');assert.equal(menu.getAttribute('aria-busy'),'false');assert.equal(menu.querySelector('summary').getAttribute('aria-disabled'),'false');assert.equal(menu.querySelector('summary').inert,false);assert.ok(menu.querySelectorAll('button').every(b=>b.disabled===false));}
+ await w.sectionContextAction(section,'down');assert.equal(writes.length,2);
+}));

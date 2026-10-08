@@ -19,7 +19,14 @@ for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Sec
   await thoughtPrimary(p,'thoughts');await p.locator(`.personal-topic-block[data-topic-id="${f.topic}"] .personal-topic-link`).click();
   const host=id=>p.locator(`#original-reading-body .topic-section[data-section-id="${id}"]`),menu=id=>host(id).locator('.topic-section-actions'),heading=id=>host(id).locator('h2');
   await heading(f.ids[1]).waitFor({state:'visible'});assert.equal(await host(f.ids[1]).locator('[data-entry-id]').count(),0);assert.equal(await host(f.defaultId).locator('h2,.topic-section-actions').count(),0);
-  const activate=async(id,label)=>{const trigger=menu(id).locator('summary');await trigger.focus();await p.keyboard.press('Enter');await menu(id).getByRole('button',{name:label,exact:true}).focus();await p.keyboard.press('Enter');};
+  // Exercise the actual busy presenter on real native controls; domain pending
+  // lifetime is separately covered by the held controller regression.
+  const busyMenu=menu(f.ids[1]),busyTrigger=busyMenu.locator('summary');await busyTrigger.focus();
+  await busyMenu.evaluate(async node=>{const {TopicController}=await import('./topic-workspace.js');TopicController.prototype.updateSectionActionControls(node,true);});
+  assert.equal(await busyTrigger.evaluate(n=>n.inert),true);for(const key of ['Enter','Space']){await p.keyboard.press(key);assert.equal(await busyMenu.evaluate(n=>n.open),false,'busy summary cannot open from native '+key);}
+  const busyBox=await busyTrigger.boundingBox();await p.mouse.click(busyBox.x+busyBox.width/2,busyBox.y+busyBox.height/2);assert.equal(await busyMenu.evaluate(n=>n.open),false,'busy summary cannot open from native click');
+  await busyMenu.evaluate(async node=>{const {TopicController}=await import('./topic-workspace.js');TopicController.prototype.updateSectionActionControls(node,false);});
+  const activate=async(id,label)=>{await eventually(async()=>await menu(id).getAttribute('aria-busy')==='false'&&await menu(id).locator('button').evaluateAll(nodes=>nodes.length===3&&nodes.every(n=>!n.disabled)),'Section action controls finish the prior complete operation');const trigger=menu(id).locator('summary');await trigger.focus();await p.keyboard.press('Enter');await menu(id).getByRole('button',{name:label,exact:true}).focus();await p.keyboard.press('Enter');};
   await activate(f.ids[1],'重命名');await p.locator('#library-form input[name="title"]').fill('SYNTHETIC Renamed B');await p.locator('#library-form button[type="submit"]').click();
   await eventually(async()=>await heading(f.ids[1]).textContent()==='SYNTHETIC Renamed B'&&await heading(f.ids[1]).evaluate(n=>document.activeElement===n),'same Section renamed and exact heading focus restored');assert.equal(await heading(f.ids[1]).evaluate(n=>document.activeElement===n),true,'focus returns to exact Section heading');
   const renamed=(await sections()).find(s=>s.id===f.ids[1]);assert.equal(renamed.title,'SYNTHETIC Renamed B');
