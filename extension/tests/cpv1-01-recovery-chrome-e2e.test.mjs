@@ -42,13 +42,13 @@ test('CPV1-01.1 interrupted Input edit survives page loss and service-worker res
 test('CPV1-01.1 interrupted Thought edit is recoverable without turning the draft into Source truth',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{
   let p=await ready(h),topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'恢复测试主题',operationId:op()}}),thought=await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'已保存思想',topicId:topic.id}});
-  await p.locator('[data-view="thoughts"]').first().click();await p.locator(`[data-topic-id="${topic.id}"]`).click();
+  await p.locator('[data-view="thoughts"]').first().click();await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();
   const body=p.locator(`[data-entry-id="${thought.id}"] [data-entry-field="body"]`);await body.waitFor();
   await stall(p,'EDIT_LIBRARY_BATCH');await body.fill('中断前尚未提交的思想文字');
   await eventually(async()=>{const d=await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:'library_entry',ownerId:thought.id}});return d?.operation?.edit?.entries?.[0]?.changes?.body==='中断前尚未提交的思想文字';},'Thought recovery draft becomes durable');
   assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:thought.id})).body,'已保存思想');
   await p.close({runBeforeUnload:false});p=await reopen(h);await h.restartWorker();
-  await p.locator('[data-view="thoughts"]').first().click();await p.locator(`[data-topic-id="${topic.id}"]`).click();
+  await p.locator('[data-view="thoughts"]').first().click();await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();
   await eventually(async()=>(await rpc(p,'GET_LIBRARY_ENTRY',{id:thought.id})).body==='中断前尚未提交的思想文字','Thought recovery replay commits');
   await eventually(async()=>!(await rpc(p,'PAIA_RECOVERY_DRAFT_LOAD',{draft:{kind:'library_entry',ownerId:thought.id}})),'Thought recovery draft clears after commit');
   assert.deepEqual(h.errors,[]);assert.equal(h.extensionNetworkRequests,0);

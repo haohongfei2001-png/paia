@@ -6,6 +6,19 @@ Current runtime baseline: **v0.12.0 + post-release consolidation rounds**
 
 This document defines what PAIA is now, what it is trying to become, and which product bets are intentionally frozen while they are being validated. Historical version specifications remain evidence of past implementation decisions, but they do not override this document for new product work.
 
+## Current consumer scope
+
+Input Archive, Thought Library and AI Context remain the product direction. AI Context execution remains disabled. The current consumer scope supersedes conflicting feature descriptions and follow-up tasks in historical packages:
+
+- Remove dedicated multi-Profile management, Thought response relations, Material Tray, activity-retention configuration and Product Signals collection/dashboard. Preserve independent Thoughts, edits, history and necessary legacy-data compatibility.
+- Hide Candidate approval management; retain saved drafts, revision checks and protection against overwriting human edits. Do not auto-apply candidates.
+- Keep only minimal internal diagnostics/audit and maintenance. Ordinary Settings has no diagnostic, trace, usage-audit or integrity dashboard; recovery appears only for an actual data/index failure. Do not expand collection or audit retention.
+- Remove user API keys, model/address/request-count/batch settings and direct AI transport. Do not read or clear stored legacy credentials.
+- Cancel all content/statistics/Context exports, backup creation and dedicated sharing, including their implementation and follow-up work. Old commands must refuse without side effects. Existing files and data are not automatically deleted; existing-file restore, integrity and deletion fences remain supported.
+- Ordinary AI entry points are the Topic reader's AI Organize action and Settings' Membership / AI service. The service is not launched; saved AI work remains readable/editable. Real payment, server-side membership validation and a unified AI backend remain unimplemented; see the [service task](docs/consumer-product-v1/MASTER_PLAN.md#paid-ai-service--not-implemented).
+
+Local search, Smart Filter, Project recognition, history import, Prompt Reuse and Passport privacy/revocation remain in scope. This does not open future sync, semantic retrieval, mobile or connector implementation.
+
 ## Production Readiness v1 validation focus
 
 The current active product-validation package is
@@ -45,10 +58,13 @@ capabilities remain unverified and fall back honestly to PAIA ordering.
 
 Thought overview, search/unplaced results and Topic original text load
 continuously. Bounded pages and edit-safe windows preserve original/AI separation,
-manual revisions, IME, selection and save failure buffers. Whole Input reuse stays
-in its menu, native selected-text reuse stays available, and whole Topic selection
-is in its existing menu. Material Tray, versions and explicit Context authorization
-remain available; ordinary reading/order/scrolling makes no provider call.
+manual revisions, IME, selection and save failure buffers. Normal temporary
+selections and reference validation remain available without a Material Tray.
+Versions remain readable; ordinary reading/order/scrolling makes no provider call.
+Archive opens with its narrow project/conversation navigator and a blank Reader.
+Only selecting a conversation opens its title, time, order and body. Returning to
+the root clears the Reader while retaining navigator state; explicit reading routes,
+unsaved edits and reading anchors remain protected.
 
 Implementation completion, integration certification and provider coverage are
 separate claims. Consult the package [canonical status](docs/archive-navigation-source-v1/STATUS.md),
@@ -65,7 +81,7 @@ The current product loop is:
 
 **Catch → Read → Remember → Organize → Reuse**
 
-A cross-cutting authorization layer, **Passport**, governs reusable external Context exports without owning another copy of the user's content.
+A cross-cutting authorization layer, **Passport**, preserves external-use restrictions and revocation without owning another copy of the user's content. Context release is disabled.
 
 PAIA is not intended to become another general note editor, another chat client, or an autonomous agent that silently rewrites a person's archive.
 
@@ -118,11 +134,11 @@ Current state:
 - Reader search results can open directly around the matched Input and highlight the query.
 - Input/Thought/Context lexical retrieval shares a common Search Service foundation.
 - **Visible search is page-scoped**: Archive root, one Archive document, Thought Library root and one Thought topic each expose one search for that container; Settings has no content search or search launcher.
-- **Universal Search** remains a bounded internal coordinator across Input Archive, Thought Library and existing AI-organized projections for explicit material selection and Context preparation. It is not a competing normal-page launcher and creates no additional search index or truth layer.
-- Universal Search can reopen the matching Input/Thought/AI-organized location and can explicitly carry a selected result into AI Context as a local retrieval focus; it never auto-generates or auto-shares Context.
+- **Universal Search** remains a bounded internal coordinator across Input Archive, Thought Library and existing AI-organized projections. It is not a competing normal-page launcher and creates no additional search index or truth layer.
+- Search can reopen matching Input/Thought/AI-organized locations. It does not launch the retired Context execution path.
 - **“以前的我”** is a time-oriented projection over matching Input expressions. It orders available source-send-time evidence from earlier to later and explicitly does not infer that the user's belief changed.
 - **Revisit / 回访** is an on-demand local Reader surface. UX-R2 shows true reading positions, a fixed window of newly collected visible Inputs and bounded topic material changes. Older Inputs appear only after explicit opt-in; Input/conversation/topic exclusions also suppress related previews.
-- **Thought Library / 思想库** uses stable topic cards or a saved list layout, without a Recent Reading section on its root. Reading-position and recent-read metadata remain available to existing Reader/Revisit services. UX-R3 adds explicit whole/selected-text placement, today's independent Thoughts without a required topic, and safe editing of the existing Thought body. The first actual edit normally stops following its Input and leaves the archive unchanged. Following can be restored through an explicit comparison. Advanced reverse editing remains off by default and after Backup restore, applies only to a valid whole one-to-one reference, and never broadens AI or external-use authorization.
+- **Thought Library / 思想库** uses the adopted Topic list, without a Recent Reading section on its root. Reading-position and recent-read metadata remain available to existing Reader/Revisit services. Whole/selected-text placement, independent Thoughts without a required topic, and safe body editing remain. The first actual edit normally stops following its Input and leaves the archive unchanged. Following can be restored through an explicit comparison. Advanced reverse editing remains off by default and after Backup restore, applies only to a valid whole one-to-one reference, and never broadens AI or external-use authorization. Explicit Thought response creation/viewing is removed; legacy relation data remains compatible.
 - Older resurfacing is deliberately explainable: PAIA prefers Inputs at least 90 days old that the user edited or that already became Thought evidence; it does not use random engagement sampling or a hidden recommendation model.
 
 Direction:
@@ -154,9 +170,10 @@ Purpose: help the user turn accumulated expressions into a more useful current v
 
 Current state:
 
-- Explicit bounded Organizer/AI presentation flows exist. Thought Library root does not expose AI organization/presentation controls; concrete open topics retain their existing AI presentation/update controls, and Settings retains bounded organizer maintenance.
+- New AI generation is unavailable until the paid service exists. The Topic reader's AI Organize entry and Settings' Membership / AI service show that boundary honestly; no other ordinary AI launchers remain.
 - v0.12.0 includes evidence-grounded current understanding and thought-evolution reading.
 - AI-generated organization is separated from Source and protected human work.
+- Existing AI results remain readable/editable, and saved candidates remain readable. Hidden approval management does not remove version checks or permit automatic replacement of human work.
 
 Direction:
 
@@ -170,12 +187,9 @@ Purpose: compile relevant, authorized personal material into context that can be
 
 Current state:
 
-- Local Context retrieval/build/preview exists over existing AI Context Profile authorization.
-- Retrieval shares the common lexical Search Service foundation with Input and Thought search.
-- A stable **Context Package** metadata contract wraps the existing preview/share lifecycle.
-- Context Package bodies remain ephemeral and are not stored as another canonical content layer.
-- Existing copy/export remains explicit and stale previews cannot be shared until rebuilt.
-- Universal Search may prefill Context Builder with a selected historical result as a retrieval focus, but this does not change authorization, invoke an external AI, generate a preview, or share anything until the user explicitly continues.
+- The previous Context retrieval/build/preview/release execution path is disabled; old commands must refuse without reading protected content or causing side effects.
+- Dedicated Profile management, Material Tray, Context copy/export and sharing are cancelled.
+- Legacy scope/exclusion data remains compatible without creating a new canonical content layer or reactivating authorization.
 
 Direction:
 
@@ -185,15 +199,12 @@ Direction:
 
 ### 3.6 Passport
 
-Purpose: define and audit what an AI or external tool may export, for what purpose and for how long, without expanding what the user has already authorized as eligible context.
+Purpose: preserve controlled external-use permissions, privacy restrictions and revocation without expanding authorized scope.
 
 Current state:
 
-- A minimum Passport implementation exists as a low-frequency local tool.
-- AI Context Profile remains the content scope: Topic/Profile allow/deny/never and exclusions decide what may participate.
-- Passport Grant adds fixed consumer, fixed purpose, `resourceScope=profile`, Profile reference, `context_export` permission and `once / 7d / 30d` duration.
-- Grants can expire, be revoked, or be consumed once; access audit is metadata-only and bounded.
-- Context Package preview is explicitly bound to a Grant before protected export, and export revalidates/consumes the bound Grant.
+- Existing permissions and revocation remain available. Legacy scope, allow/deny/never and exclusions remain restrictive compatibility data.
+- Grants can expire or be revoked; internal access audit remains metadata-only under its existing retention bounds. This does not authorize new grants or Context release.
 - Passport metadata does not contain Context body text and is deliberately excluded from PAIA Backup so restore cannot silently reactivate old external-use permissions.
 
 Direction:
@@ -217,7 +228,7 @@ Thought evidence / Topics     │
   ↓                           │
 Organized projections         │
   ↓                           │
-Context Package ─────→ AI     │
+Context (future; disabled)    │
                               │
 Reader + Search + Revisit ────┘
 
@@ -244,11 +255,11 @@ The interaction model is current location → current content → current action
 | One Thought topic | That topic/document only |
 | Settings | No search box or search launcher |
 
-Search-focus shortcuts target the current surface rather than opening global search. Explicit material selection retains its existing internal search and authorization path.
+Search-focus shortcuts target the current surface rather than opening global search. Temporary selections and reference validation do not launch AI or expand authorization.
 
-Archive root has no redundant Archive intro or Browse by source heading. Its accessible `···` menu contains history completion/import and the existing Source Records JSON/Markdown export actions. A concrete Thought topic keeps its existing topic-scoped export in `···`; no whole-Library export was added. System-level complete export, Backup and restore remain distinct Settings / Data & devices actions.
+Archive root has no redundant Archive intro or Browse by source heading. History completion/import remains contextual. Archive, Topic and Settings have no export, backup-generation or dedicated sharing actions. Settings retains existing-file restore and its validation/confirmation safeguards.
 
-Thought Library root has no Recent Reading section and no primary AI organization controls. Topic-only AI controls, independent Thoughts, user edits, saved AI projections, version history and read metadata remain intact. This package changes presentation and action placement only: no Source/Input/Thought ownership, durable schema, tombstone, revision, capture, Provider permission or paid-AI semantics changed.
+Thought Library root has no Recent Reading section and no primary AI organization controls. Independent Thoughts, user edits, saved AI projections, version history and read metadata remain intact. Retiring controls and execution paths does not delete their historical data or weaken Source/Input/Thought ownership, tombstones or revision protection.
 
 ## 5. Current product priorities
 
@@ -258,7 +269,7 @@ For the next development stages, priorities are:
 2. **Retrieval quality** — page-scoped Archive/Thought search and local Reader search should make old expression retrieval visibly easier than returning to the original chat product.
 3. **Return value without engagement tricks** — Revisit should give a concrete reason to come back by surfacing real newly accumulated or older meaningful material, without push loops or opaque recommendation logic.
 4. **Longitudinal understanding without fabrication** — time-oriented views should help the user compare their own earlier expressions without silently claiming a change of belief.
-5. **Reuse rate** — Search → Read → Context preparation and Context copy/export should solve repeated tasks rather than exist as impressive demos.
+5. **Reuse rate** — Search, reading and Prompt Reuse should solve repeated tasks. Future Context integration must prove value separately before execution is reopened.
 6. **Trust** — source identity, deletion, edit boundaries, authorization and provenance must remain understandable and reliable.
 7. **Complexity control** — new product value should not automatically imply a new durable entity, index or schema store.
 
@@ -281,19 +292,7 @@ These are product freezes, not claims that the ideas are permanently rejected.
 
 ## 7. Product validation
 
-PAIA currently has stronger engineering validation than product-market validation. Product behavior should be measured locally where possible without transmitting private archive content.
-
-The current Product Signals implementation can observe coarse behavior such as:
-
-- local Input/Thought searches that hit or miss and lead to opening/copying a result;
-- internal Universal Search/material-selection hit/miss, result opening and explicit Search → AI Context preparation; these counters do not imply a visible global launcher;
-- Revisit opens, whether a visit has new material, opening newly collected/older Inputs or updated Thought topics, and explicit reading-position actions (legacy mark events remain historical only);
-- revisits to older Inputs using coarse age buckets;
-- Thought Topic first/repeat visits;
-- opening AI-organized view, returning to Original and saving AI-organized edits;
-- Context previews that find content and explicit copy/Markdown actions.
-
-These signals are fixed-field aggregate counters, are off by default, and do not store raw private text, search text, titles or object identifiers. They still require real use over time before they support product conclusions.
+PAIA currently has stronger engineering validation than product-market validation. Product Signals collection and its validation dashboard are removed. Existing records are not automatically cleared. Product validation uses deliberate testing and user feedback without adding hidden telemetry.
 
 ## 8. Success gates for expansion
 
@@ -303,10 +302,10 @@ Before prioritizing cloud sync, Web App, native apps or broad Passport integrati
 
 - Reader/Search is clearly better than returning to ChatGPT history for a meaningful class of tasks.
 - Users repeatedly retrieve material older than the current session/week.
-- Page-scoped search and explicit material selection produce result opening, rereading or Context preparation rather than only searches with no follow-through.
+- Page-scoped search produces result opening and rereading rather than only searches with no follow-through.
 - Revisit produces voluntary opening of older/newly accumulated material rather than becoming an ignored badge or notification substitute.
 - Thought organization produces repeat visits rather than one-time curiosity.
-- Context reuse occurs repeatedly enough that cross-AI authorization solves an observed problem.
+- Any future Context integration must separately demonstrate that cross-AI authorization solves an observed problem; this gate does not reopen disabled execution.
 
 The explicit decisions to implement Minimum Passport and the Round 5A second-import-adapter validation early are implementation-order overrides, not evidence that this gate has been met.
 
@@ -324,4 +323,4 @@ The following remain important evidence but are not current product source-of-tr
 
 `PRIVACY.md`, `BACKUP.md`, `AI_CONTEXT.md` and other feature contracts still contain detailed behavioral/security constraints for existing implemented features. Consult them when changing those features, but do not infer new product priorities from old version plans.
 
-The retained UX-R4 explicit material-selection workflow connects internal cross-surface lexical retrieval, verifiable Source history, fixed manual materials and an editable exact-output Preview. It is not the normal page-search launcher; normal content surfaces follow the page-scoped search contract above. Explicit Inputs need no Topic/Profile setup; selection does not expand future permissions. Local-only blocks active cloud/connection access while preserving user-directed local copy and file export. Source restrictions and existing Passport checks remain authoritative; historical coverage and partial search are stated explicitly.
+The UX-R4 Material Tray, Profile and preview/release workflows are historical implementation evidence. They do not authorize restoring retired products or outputs. Only normal temporary selections, reference validation, historical compatibility and existing privacy restrictions remain.

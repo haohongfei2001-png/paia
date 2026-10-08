@@ -1,47 +1,56 @@
-import {ContextController} from './context-workspace.js';
-import {request,element,dateLabel} from './common.js';
+import {request} from './common.js';
 import {setProductState} from './product-state.js';
-const $=id=>document.getElementById(id), labels={allowed:'允许 AI 使用',default:'未授权',denied:'不允许 AI 使用',never:'永不提供给 AI'};
-const option=(value,label)=>{const e=element('option','',label);e.value=value;return e;};
-const action=(label,fn)=>{const b=element('button','',label);b.type='button';b.addEventListener('click',()=>void fn());return b;};
-const messages={MEMORY_EXTERNAL_DISABLED:'对外提供 AI 上下文已关闭。请前往 Settings 开启后，再明确选择复制或导出。',MEMORY_PROFILE_CONFLICT:'此 Profile 已在其他页面修改。你的草稿仍保留，请重新读取已保存设置后再编辑。',MEMORY_NAME_EXISTS:'这个 Profile 名称已存在，请使用不同名称。',MEMORY_STALE:'授权或思想内容已变化，旧预览已停用。请重新生成预览；没有修改你的授权设置。',MEMORY_DENIED:'此主题已明确禁止使用。请先将长期设置改为“未授权”，再选择仅本次允许。',MEMORY_CONFIRM_REQUIRED:'请确认本次所选主题的授权范围。',MEMORY_UNAVAILABLE:'主题已删除、合并或正在更新。请重新打开授权列表核对。',MEMORY_LIMIT:'最多可保留 20 个 Profile。请先整理已有 Profile。',MEMORY_EMPTY:'当前预览没有可以分享的内容。请检查授权或换一个问题。',MEMORY_INVALID:'本次设置未保存，请检查名称、详细度和授权范围后重试。'};
+
+const $=id=>document.getElementById(id);
+const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
+
+// Privacy remains available while the retired Context workspace has no owner.
+// This panel can restrict local processing or revoke access, never grant access.
 export class MemoryPanel {
- constructor({onThought,onInput,onHome,onMemory,contextDisabled=false}={}){this.onThought=onThought;this.onInput=onInput;this.onHome=onHome;this.onMemory=onMemory;this.profileId='default';this.page='home';this.active=false;this.cursor=0;this.expanded=new Set();this.profileDirty=false;this.selected=new Set();this.removed=new Set();this.serial=0;this.busy=false;
-  const legacy=element('section');legacy.id='memory-legacy';const panel=$('memory-panel');legacy.append(...panel.childNodes);panel.append(legacy);this.contextDisabled=contextDisabled;this.materials=new ContextController({onInput,onThought,onHome,onMemory,legacy,disabled:contextDisabled});this.materialReturn=action('返回本次任务',()=>this.returnToMaterials());this.materialReturn.id='material-return-to-task';this.materialReturn.hidden=true;legacy.prepend(this.materialReturn);this.materials.onLegacy=()=>this.openMaterialScopes();
-  this.bind('memory-start',()=>this.perform(async()=>{await this.rpc('SETTINGS',{onboarded:true});await this.open('authorizations');}));
-  for(const id of ['memory-manage'])this.bind(id,()=>this.open('authorizations'));
-  this.bind('memory-prepare',()=>this.returnToMaterials());this.bind('memory-home-back',()=>this.returnToMaterials());this.bind('memory-to-thoughts',()=>this.onHome());
-  for(const id of ['memory-profile-name','memory-instruction'])$(id).addEventListener('input',()=>{this.profileDirty=true;});
-  for(const id of ['memory-auth-profile'])$(id).addEventListener('change',()=>{if(this.profileDirty&&!window.confirm('放弃尚未保存的 Profile 名称或使用偏好？')){$(id).value=this.profileId;return;}this.profileDirty=false;this.lastProfile=null;this.profileId=$(id).value;this.cursor=0;this.selected.clear();this.invalidate(false);void this.perform(()=>this.refresh());});
-  $('memory-auth-search').addEventListener('input',()=>{clearTimeout(this.searchTimer);this.cursor=0;this.selected.clear();this.selectionCount();this.searchTimer=setTimeout(()=>void this.perform(()=>this.refresh()),180);});
-  $('memory-select-page').addEventListener('change',()=>{this.selected.clear();if($('memory-select-page').checked)for(const row of this.data?.items||[])this.selected.add(row.id);this.renderTopics();});
-  this.bind('memory-auth-next',()=>{this.cursor=this.data?.nextCursor??0;this.selected.clear();return this.perform(()=>this.refresh());});
-  this.bind('memory-select-results',()=>this.selectResults());this.bind('memory-profile-reload',()=>this.perform(async()=>{if(this.profileDirty&&!window.confirm('放弃当前草稿并重新读取已保存的 Profile 设置？'))return;this.profileDirty=false;this.lastProfile=null;await this.refresh();this.feedback('已重新读取保存的 Profile。');}));
-  this.bind('memory-bulk-allow',()=>this.bulk('allowed'));this.bind('memory-bulk-deny',()=>this.bulk('denied'));
-  this.bind('memory-clear-session',()=>this.perform(async()=>{await this.rpc('SETTINGS',{clearTemporary:true});this.invalidate(false);await this.refresh();this.feedback('所有临时授权已撤销。');}));
-  this.bind('memory-clear-activity',()=>this.perform(async()=>{await this.rpc('SETTINGS',{clearActivity:true});await this.refresh();this.feedback('活动记录已清除，思想与授权保持不变。');}));
-  $('memory-profile-form').addEventListener('submit',e=>{e.preventDefault();void this.saveProfile('edit');});this.bind('memory-profile-create',()=>this.saveProfile('create'));this.bind('memory-profile-delete',()=>this.saveProfile('delete'));
-  if(contextDisabled){$('memory-settings-open').disabled=true;$('memory-settings-open').title='AI Context 功能待重新设计，当前入口未开放。';}
-  this.bind('memory-settings-open',async()=>{await this.onMemory();await this.open('authorizations');});this.bind('memory-settings-save',()=>this.perform(async()=>{await this.rpc('SETTINGS',{budget:$('memory-default-budget').value,retentionDays:Number($('memory-retention').value),externalAccess:$('memory-external-access').checked,localOnly:$('memory-local-only').checked,includeUnorganizedInputs:$('memory-include-unorganized-inputs').checked});$('memory-settings-status').textContent='AI Context 设置已保存。';await this.refreshSettings();}));this.bind('memory-input-exclusions-clear',()=>this.perform(async()=>{if(!window.confirm('恢复所有已长期排除的未整理 Input？它们仍需满足智能过滤、移除状态和未被 Thought 表示等条件，才可能进入后续上下文。'))return;await this.rpc('SETTINGS',{clearInputExclusions:true});await this.refreshSettings();$('memory-settings-status').textContent='已恢复所有直接 Input 排除。';}));
+ constructor(){
+  this.contextDisabled=true;this.active=false;this.busy=false;this.loaded=false;this.serial=0;this.localOnly=false;
+  $('memory-local-only')?.addEventListener('change',()=>void this.perform(()=>this.saveLocalOnly()));
+  $('memory-clear-session')?.addEventListener('click',()=>void this.perform(()=>this.revoke()));
+  this.lock();
  }
- bind(id,fn){$(id).addEventListener('click',()=>void fn());}
- rpc(name,options={}){if(this.contextDisabled&&!['STATUS','SETTINGS'].includes(name))throw Object.assign(Error('Context is awaiting redesign'),{code:'CONTEXT_DESIGN_ONLY'});return request('PAIA_MEMORY_'+name,{options});}
- feedback(text,state='ready'){const el=this.active?$('memory-status'):$('memory-settings-status');setProductState(el,state);el.textContent=text;}
- async perform(fn){try{return await fn();}catch(e){if(e.code==='MEMORY_STALE')this.invalidate();this.feedback(messages[e.code]||'本机操作未完成，请重试。已保存的思想内容不会因此改变。','failed');if(this.active&&this.data&&!this.busy)await this.refresh().catch(()=>{});return null;}}
- leave(){if(this.profileDirty&&!window.confirm('Profile 使用偏好尚未保存。放弃这些修改并离开？'))return false;this.profileDirty=false;return true;}
- async activate(active){if(!active)this.materialReturn.hidden=true;this.materials.activate(active);if(this.active===active)return;this.active=active;if(!active){this.serial++;clearTimeout(this.searchTimer);this.invalidate(false);this.page='home';}}
- invalidate(){this.materials.invalidateOutput();}
- fillProfile(profile){for(const id of ['memory-profile-name','memory-instruction','memory-profile-create','memory-profile-reload'])$(id).disabled=!profile;if(!profile)return;this.draftRevision=profile.revision;$('memory-profile-name').value=profile.name;$('memory-instruction').value=profile.instruction;if(this.lastProfile!==this.profileId){$('memory-budget').value=profile.budget;this.lastProfile=this.profileId;}}
- async openMaterialScopes(){this.materialReturn.hidden=false;await this.open('authorizations');}
- async returnToMaterials(){if(!this.leave())return;this.serial++;clearTimeout(this.searchTimer);this.invalidate(false);await this.materials.returnFromScopes();this.materialReturn.hidden=true;}
- async open(page){if(this.contextDisabled){this.feedback('AI Context 功能待重新设计，目前仅展示界面。');return false;}this.materials.legacy();this.serial++;this.page='authorizations';for(const name of ['home','authorizations'])$('memory-'+name).hidden=name!==this.page;$('memory-trail').hidden=false;$('memory-location').textContent='AI Context / 管理授权';this.feedback('');$('memory-auth-search').focus();await this.perform(()=>this.refresh());}
- async refresh(){if(!this.active)return;if(!this.materials.advanced)return this.materials.refresh();const seq=++this.serial,d=await this.rpc('STATUS',{profileId:this.profileId,query:this.page==='authorizations'?$('memory-auth-search').value:'',cursor:this.page==='authorizations'?this.cursor:0});if(!this.active||seq!==this.serial)return;this.data=d;$('memory-onboarding').hidden=d.config.onboarded||this.page!=='home';$('memory-no-authorization').hidden=d.allowed>0||d.config.includeUnorganizedInputs;for(const id of ['memory-auth-profile'])$(id).parentElement.hidden=d.profiles.length===1;$('memory-allowed').textContent=d.allowed+' 个主题';$('memory-denied').textContent=d.denied+' 个主题';$('memory-empty').hidden=d.total>0;$('memory-prepare').disabled=d.total===0&&!d.config.includeUnorganizedInputs;$('memory-manage').disabled=d.total===0;for(const id of ['memory-auth-profile']){const select=$(id);select.replaceChildren(...d.profiles.map(p=>option(p.profileId,p.name)));select.value=this.profileId;}const profile=d.profiles.find(p=>p.profileId===this.profileId);if(this.page==='authorizations'&&profile&&!this.profileDirty&&document.activeElement!==$('memory-profile-name')&&document.activeElement!==$('memory-instruction')){this.fillProfile(profile);}$('memory-profile-delete').disabled=this.profileId==='default';if(this.page==='authorizations')this.renderTopics();this.renderActivity();}
- selectionCount(){$('memory-selection-count').textContent=this.selected.size?'已选 '+this.selected.size+' 个主题':'';}
- renderTopics(){this.selectionCount();const d=this.data,list=$('memory-topic-list');list.replaceChildren();$('memory-select-page').checked=d.items.length>0&&d.items.every(x=>this.selected.has(x.id));for(const item of d.items){const row=element('section','memory-topic-row');row.dataset.memoryTopic=item.id;const label=element('label','memory-topic-label'),check=element('input');check.type='checkbox';check.checked=this.selected.has(item.id);check.setAttribute('aria-label','选择 '+item.name);check.addEventListener('change',()=>{if(check.checked)this.selected.add(item.id);else this.selected.delete(item.id);this.selectionCount();});label.append(check,element('strong','',item.name));const controls=element('div','memory-topic-controls'),select=element('select');select.setAttribute('aria-label',item.name+' · 长期授权');select.replaceChildren(...Object.entries(labels).map(([v,l])=>option(v,l)));select.value=item.permanentDecision;select.addEventListener('change',()=>void this.perform(async()=>{await this.rpc('AUTHORIZE',{profileId:this.profileId,topicIds:[item.id],decision:select.value});this.invalidate(false);await this.refresh();this.feedback('授权已保存。');}));const temporary=action(item.temporary?'撤销本次允许':'仅本次允许',()=>this.perform(async()=>{await this.rpc('AUTHORIZE',{profileId:this.profileId,topicIds:[item.id],decision:item.temporary?'default':'allowed',scope:'session'});this.invalidate(false);await this.refresh();this.feedback(item.temporary?'临时授权已撤销。':'仅本次允许，Chrome 会话结束后失效。');}));temporary.disabled=['denied','never'].includes(item.decision)||item.permanentDecision==='allowed';const details=element('details','memory-entry-controls');details.append(element('summary','','管理单条排除'));details.open=this.expanded.has(item.id);let loaded=false;details.addEventListener('toggle',()=>{if(!details.isConnected)return;if(details.open)this.expanded.add(item.id);else this.expanded.delete(item.id);if(details.open&&!loaded){loaded=true;void this.perform(()=>this.renderEntries(details,item.id)).then(result=>{if(result===null)loaded=false;});}});controls.append(select,temporary);row.append(label,controls,element('small','muted',item.temporary?'本次会话允许':labels[item.decision]+(item.neverProfiles?.length?' · 在 '+item.neverProfiles.join(' / ')+' 中设为永不提供，可切换到该 Profile 撤销。':'')),details);list.append(row);}if(!d.items.length)list.append(element('p','muted','没有找到匹配的主题。'));$('memory-auth-next').hidden=d.nextCursor===null;if(this.cursor>0)list.append(action('返回第一页',()=>{this.cursor=0;this.selected.clear();return this.perform(()=>this.refresh());}));}
- async renderEntries(root,topicId,cursor=null){const result=await this.rpc('ENTRIES',{topicId,profileId:this.profileId,cursor});for(const section of result.sections||[]){if([...root.querySelectorAll('[data-memory-section]')].some(el=>el.dataset.memorySection===section.id))continue;const label=element('label','memory-entry-rule'),box=element('input');label.dataset.memorySection=section.id;box.type='checkbox';box.checked=section.excluded;box.setAttribute('aria-label','排除整个章节：'+(section.title||'默认章节'));box.addEventListener('change',()=>void this.perform(async()=>{await this.rpc('EXCLUDE',{topicId,sectionId:section.id,excluded:box.checked});this.invalidate(false);this.feedback(box.checked?'此章节已排除，对所有 Profile 生效。':'章节排除已撤销，单条排除仍然有效。');}));label.append(box,element('strong','','排除整个章节：'+(section.title||'默认章节')));root.append(label);}for(const e of result.items){const label=element('label','memory-entry-rule'),check=element('input');check.type='checkbox';check.checked=e.excluded;check.setAttribute('aria-label','长期排除此条：'+(e.title||e.body.slice(0,40)));check.addEventListener('change',()=>void this.perform(async()=>{await this.rpc('EXCLUDE',{entryId:e.id,excluded:check.checked});this.invalidate(false);this.feedback(check.checked?'此条已长期排除，对所有 Profile 生效。':'此条排除已撤销；仍需主题授权才能使用。');}));label.append(check,element('span','',e.body),element('small','muted','勾选：长期不提供给 AI'));root.append(label);}if(result.nextCursor){const more=action('更多内容',async()=>{more.remove();await this.perform(()=>this.renderEntries(root,topicId,result.nextCursor));});root.append(more);}return true;}
- async selectResults(){clearTimeout(this.searchTimer);await this.perform(async()=>{const query=$('memory-auth-search').value,profileId=this.profileId,selected=new Set();let cursor=0,generation=null;do{const d=await this.rpc('STATUS',{profileId,query,cursor,limit:100});if(d.resultCount>1000){this.feedback('匹配超过 1000 个主题，请缩小搜索范围后选择。');return;}if(generation!==null&&generation!==d.generation){this.feedback('主题列表已变化，请重新选择。');return;}generation=d.generation;for(const item of d.items)selected.add(item.id);cursor=d.nextCursor;}while(cursor!==null);if(profileId!==this.profileId||query!==$('memory-auth-search').value||this.page!=='authorizations')return;this.selected=selected;this.cursor=0;await this.refresh();this.feedback('已选中当前搜索匹配的 '+selected.size+' 个主题，尚未更改授权。');});}
- async bulk(decision){if(!this.selected.size){this.feedback('请先选择要更改的主题。');return;}if(decision==='allowed'&&!window.confirm('允许当前所选 '+this.selected.size+' 个主题用于本地 AI 上下文？分享仍需要你明确点击。'))return;await this.perform(async()=>{await this.rpc('AUTHORIZE',{profileId:this.profileId,topicIds:[...this.selected],decision,confirmed:true});this.selected.clear();this.invalidate(false);await this.refresh();this.feedback('所选主题的授权已保存。');});}
- async saveProfile(actionName){if(actionName==='delete'&&!window.confirm('删除此 Profile 及其主题授权？思想内容和全局单条排除保留。'))return;await this.perform(async()=>{const current=this.data.profiles.find(p=>p.profileId===this.profileId);const result=await this.rpc('PROFILE',{action:actionName,profileId:this.profileId,expectedRevision:actionName==='delete'?current.revision:this.draftRevision,name:$('memory-profile-name').value,budget:$('memory-budget').value,instruction:$('memory-instruction').value});this.profileDirty=false;this.profileId=actionName==='delete'?'default':result.profileId;this.lastProfile=null;this.invalidate(false);await this.refresh();this.feedback(actionName==='delete'?'Profile 已删除。':'Profile 已保存。新 Profile 的主题默认未授权。');});}
- renderActivity(){const root=$('memory-activity-list');root.replaceChildren();const names={build:'准备上下文',copy:'准备复制',markdown:'准备导出 Markdown',permission:'修改授权',profile:'修改 Profile',settings:'修改设置'};for(const row of this.data.activity){root.append(element('p','muted',dateLabel(row.createdAt)+' · '+(names[row.action]||'本机操作')+' · '+row.profileName+(row.topicNames.length?' · '+row.topicNames.join(' / '):'')));}if(!this.data.activity.length)root.append(element('p','muted','尚无活动记录。这里不保存上下文正文。'));}
- async refreshSettings(){const result=await this.rpc('STATUS');if(document.activeElement!==$('memory-local-only'))$('memory-local-only').checked=result.config.localOnly===true;if(document.activeElement!==$('memory-external-access'))$('memory-external-access').checked=result.config.externalAccess!==false;if(document.activeElement!==$('memory-include-unorganized-inputs'))$('memory-include-unorganized-inputs').checked=result.config.includeUnorganizedInputs===true;if(document.activeElement!==$('memory-default-budget'))$('memory-default-budget').value=result.config.budget;if(document.activeElement!==$('memory-retention'))$('memory-retention').value=String(result.config.retentionDays);$('memory-input-exclusions-clear').hidden=!result.excludedInputs;$('memory-input-exclusions-status').textContent=result.excludedInputs?`已长期排除 ${result.excludedInputs} 条直接 Input。`:'没有长期排除的直接 Input。';}
+ lock(){
+  const local=$('memory-local-only'),external=$('memory-external-access'),revoke=$('memory-clear-session');
+  if(local)local.disabled=this.busy||!this.loaded;
+  if(external){external.checked=false;external.disabled=true;}
+  if(revoke)revoke.disabled=this.busy;
+ }
+ feedback(text,state='ready'){const el=$('memory-settings-status');if(el){setProductState(el,state);el.textContent=text;}}
+ async perform(fn){try{return await fn();}catch{this.feedback(copy('操作未全部完成，请重试。','The action did not finish. Please retry.'),'failed');return null;}}
+ leave(){return true;}
+ activate(active){this.active=active===true;}
+ invalidate(){this.serial++;}
+ open(){return false;}
+ refresh(){return Promise.resolve(false);}
+ async refreshSettings(){
+  if(this.busy)return;
+  const serial=++this.serial;
+  try{
+   const result=await request('PAIA_MEMORY_STATUS');if(serial!==this.serial)return;
+   this.localOnly=result.config.localOnly===true;this.loaded=true;
+   const local=$('memory-local-only');if(local)local.checked=this.localOnly;
+  }catch(error){if(serial===this.serial){this.loaded=false;this.feedback(copy('无法读取隐私设置，请重新打开设置。','Privacy settings could not be loaded. Reopen Settings to retry.'),'failed');}throw error;}
+  finally{if(serial===this.serial)this.lock();}
+ }
+ async saveLocalOnly(){
+  const local=$('memory-local-only');if(this.busy||!this.loaded||!local){if(local)local.checked=this.localOnly;return;}
+  const value=local.checked===true;this.busy=true;this.serial++;this.lock();
+  try{
+   await request('PAIA_MEMORY_SETTINGS',{options:{localOnly:value,externalAccess:false}});
+   this.localOnly=value;this.feedback(copy('已保存','Saved'),'saved');
+  }catch(error){local.checked=this.localOnly;throw error;}
+  finally{this.busy=false;this.lock();}
+ }
+ async revoke(){
+  if(this.busy)return;this.busy=true;this.serial++;this.lock();
+  try{
+   await request('PAIA_MEMORY_SETTINGS',{options:{externalAccess:false,clearTemporary:true}});
+   await request('PAIA_PASSPORT_REVOKE_ALL');
+   this.feedback(copy('已有连接与临时授权已撤销。','Previous connections and temporary permissions were revoked.'),'saved');
+  }finally{this.busy=false;this.lock();}
+ }
 }

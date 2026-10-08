@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ReaderExperience} from '../ui/reader-experience.js';
 import {DocumentEditor} from '../ui/library.js';
+import {PresentationNode} from './harness/presentation-dom.mjs';
 
 // Exercise the production presentation methods against an editor-owned field.
 // Any editability write, body replacement or breakpoint read is a contract error.
@@ -12,10 +13,12 @@ for(const locked of [false,true])test(`Reader mount preserves the domain-owned $
  const section={dataset:{blockId:'synthetic-input'},querySelector:selector=>selector==='.library-prose'?field:null,append:node=>appended.push(node)};
  const body={querySelectorAll:()=>[section],querySelector:()=>section};
  globalThis.innerHeight=800;globalThis.matchMedia=()=>assert.fail('Reader presentation must not choose editing authority from a breakpoint');
- globalThis.document={documentElement:{lang:'zh-CN'},getElementById:id=>{assert.equal(id,'document-body');return body;},createElement:tag=>{const node={tag,children:[],setAttribute(){},append(...nodes){this.children.push(...nodes);}};created.push(node);return node;}};
+ const make=(tag,namespace)=>{const node=new PresentationNode(tag,namespace);node.tag=tag;created.push(node);return node;};
+ globalThis.document={documentElement:{lang:'zh-CN'},getElementById:id=>{assert.equal(id,'document-body');return body;},createElement:tag=>make(tag),createElementNS:(namespace,tag)=>make(tag,namespace)};
  try{
   const reader=Object.create(ReaderExperience.prototype);let scheduled=0;Object.assign(reader,{read:()=>({view:'library',editor:{}}),expanded:new Set(),schedule:()=>scheduled++,menu(){}});reader.mount();
-  assert.equal(reader.active,true);assert.equal(scheduled,1);assert.equal(appended.length,1);assert.deepEqual(created.filter(node=>node.tag==='button').map(node=>node.className),['reader-more']);assert.equal(field.contentEditable,locked?'false':'plaintext-only');
+  assert.equal(reader.active,true);assert.equal(scheduled,1);assert.equal(appended.length,1);assert.deepEqual(created.filter(node=>node.tag==='button').map(node=>node.className),['reader-more paia-icon-only']);assert.equal(field.contentEditable,locked?'false':'plaintext-only');
+  const more=created.find(node=>node.tag==='button');assert.equal(more.getAttribute('aria-label'),'这条输入的更多操作');assert.equal(more.textContent,'');assert.equal(more.children[0].namespaceURI,'http://www.w3.org/2000/svg');assert.equal(more.children[0].dataset.paiaIcon,'more');
  }finally{for(const [key,value]of Object.entries(previous)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}}
 });
 

@@ -2,11 +2,20 @@ import {setProductState} from './product-state.js';
 import {OfficialExportProvider} from '../core/import/provider.js';
 import {ImportError,safeImportError} from '../core/import/errors.js';
 const phases={idle:'选择本次要读取的导出文件。',selected:'文件已选择。',checking:'正在检查文件，尚未写入档案…',ready:'检查完成。确认后才会写入档案。',importing:'正在补全历史输入…',completed:'历史补全完成。',partial:'已补全可识别的内容，部分输入需要确认。',unsupported:'无法可靠识别这份聊天记录，未写入档案。',failed:'本次处理未完成，已完成的部分仍保留。',paused:'已暂停。重新选择同一文件即可继续。',cancelled:'本次补全已取消，已完成的部分仍保留。',awaiting_file:'请重新同意并选择原文件，继续上次进度。'};
-const errors={SCHEMA_UNSUPPORTED:'暂不支持这份文件的聊天结构。请确认选择的是受支持的 AI 聊天导出 ZIP 或 JSON 文件。',SCHEMA_UNVERIFIED:'这份格式尚未得到支持，未写入档案。',PAIA_BACKUP_FILE:'这是 PAIA 备份，请到 Settings 的“数据备份”中恢复。',IMPORT_FILE_MISMATCH:'这不是上次选择的文件。请重新选择原文件，或另开一次补全。',IMPORT_SESSION_EXPIRED:'读取授权已结束。重新选择原文件即可继续。',STORAGE_FULL:'本机空间不足。请释放空间后，重新选择原文件继续。',STORAGE_FAILED:'暂时无法保存到本机。已完成的部分保留，请稍后重试。',FILE_INVALID:'文件为空或超过 1 GB。请检查所选文件。',RESOURCE_LIMIT:'文件超过安全处理上限，未继续读取。',CANCELLED:''};
+const errors={SCHEMA_UNSUPPORTED:'暂不支持这份文件的聊天结构。请确认选择的是受支持的 AI 聊天导出 ZIP 或 JSON 文件。',SCHEMA_UNVERIFIED:'这份格式尚未得到支持，未写入档案。',PAIA_BACKUP_FILE:'这是 PAIA 备份，请到设置的“数据与恢复”中恢复。',IMPORT_FILE_MISMATCH:'这不是上次选择的文件。请重新选择原文件，或另开一次补全。',IMPORT_SESSION_EXPIRED:'读取授权已结束。重新选择原文件即可继续。',STORAGE_FULL:'本机空间不足。请释放空间后，重新选择原文件继续。',STORAGE_FAILED:'暂时无法保存到本机。已完成的部分保留，请稍后重试。',FILE_INVALID:'文件为空或超过 1 GB。请检查所选文件。',RESOURCE_LIMIT:'文件超过安全处理上限，未继续读取。',CANCELLED:''};
 const $=id=>document.getElementById(id);
 const sourceName=id=>id==='claude-conversations-v1'?'Claude':id==='chatgpt-mapping-v1'?'ChatGPT':'AI';
 async function send(type,payload){const r=await chrome.runtime.sendMessage({type,payload});if(!r?.ok)throw new ImportError(r?.error);return r.data;}
 const errorText=code=>errors[code]??(code?.startsWith('ZIP_')?'压缩包损坏、加密或包含不支持的内容。请检查文件或重新下载。':code?.startsWith('JSON_')||code==='UTF8_INVALID'?'文件内容不完整或格式无效。请重新下载后再试。':'暂时无法完成处理，请重新选择文件再试。');
+// The Settings summary follows the existing resolved document locale. No new
+// preference, import request or shared modal language owner is introduced.
+export function historyLatestText(record,language='zh-CN',failed=false){
+ const english=language==='en';
+ if(failed)return english?'The last import record could not be loaded. Saved inputs are still available; reopen this page to retry.':'上次补全记录未能载入。已保存的输入仍保留；重新打开此页可再试。';
+ if(!record)return english?'No history has been imported yet. Choose an export file to begin.':'尚未补全历史输入。随时可以选择导出文件开始。';
+ const date=new Date(record.completedAt).toLocaleDateString(english?'en':'zh-CN'),source=sourceName(record.adapterId),c=record.counts;
+ return english?'Last import: '+date+' · '+source+' official export · Added '+c.added+' · Already saved '+c.duplicates+' · Times completed '+(c.timeEnriched||0)+' · Issues '+c.issues+(record.phase==='partial'?' · Some inputs need review':''):'最近补全：'+date+' · '+source+' 官方导出 · 新增 '+c.added+' · 已存在 '+c.duplicates+' · 补全时间 '+(c.timeEnriched||0)+' · 异常 '+c.issues+(record.phase==='partial'?' · 部分输入待确认':'');
+}
 export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},onNavigate=()=>{},onRead=()=>onNavigate('library')}={}){
  let resumeTaskId,processing=false,port=null;
  const controller=new OfficialExportProvider().createSession({transport:(method,q)=>send('IMPORT_'+method.toUpperCase(),q),onProgress:paint});
@@ -28,8 +37,12 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
   $('history-success').hidden=!done;$('history-review').hidden=!(s.counts?.review>0);
   $('history-diagnostic').textContent=JSON.stringify({state:s.phase,code:s.reason||null,profile:d?.profileId||s.adapterId||null,profileVersion:d?.profileVersion||s.profileVersion||null,realExportVerified:false,processedBytes:s.processedBytes||0,checkedBatches:s.checkedBatches||0,committedBatches:s.committedBatches||0,counts:c||null,storagePreflight:s.storagePreflight?.state||null},null,2);
  }
+ let latestRecord,latestState='unread';
+ function paintLatest(){if(latestState==='unread')return;$('history-latest').textContent=historyLatestText(latestRecord,document.documentElement.lang,latestState==='failed');}
+ document.addEventListener('paia:preferences-applied',paintLatest);
  async function latest(){
-  try{const {lastImport:r}=await send('IMPORT_LATEST');$('history-latest').textContent=r?'最近补全：'+new Date(r.completedAt).toLocaleDateString('zh-CN')+' · '+sourceName(r.adapterId)+' 官方导出 · 新增 '+r.counts.added+' · 已存在 '+r.counts.duplicates+' · 补全时间 '+(r.counts.timeEnriched||0)+' · 异常 '+r.counts.issues+(r.phase==='partial'?' · 部分输入待确认':''):'尚未补全历史输入。随时可以选择导出文件开始。';}catch{$('history-latest').textContent='上次补全记录未能载入。已保存的输入仍保留；重新打开此页可再试。';}
+  try{const {lastImport}=await send('IMPORT_LATEST');latestRecord=lastImport;latestState='loaded';paintLatest();}
+  catch{latestState='failed';paintLatest();}
  }
  async function tasks(cursor){
   try{

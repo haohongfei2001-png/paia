@@ -2,11 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const visibleAnchor=page=>page.evaluate(()=>{const rows=[...document.querySelectorAll('#topic-body [data-entry-id]')],node=rows.find(x=>{const r=x.getBoundingClientRect();return r.bottom>140&&r.top<innerHeight;})||rows[0];return node?{id:node.dataset.entryId,top:node.getBoundingClientRect().top,scrollY}:null;});
 
-test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async()=>{
+test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async t=>{
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
@@ -31,8 +32,8 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   });
 
   await page.locator('[data-view=thoughts]').click();
-  await eventually(async()=>await page.locator('[data-topic-id="'+seed.topicId+'"]').count()===1,'topic root',30000);
-  await page.locator('[data-topic-id="'+seed.topicId+'"]').click();
+  await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'topic root',30000);
+  await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'topic initial rows',30000);
   assert.equal(await page.locator('#topic-next').count(),0);assert.equal(await page.locator('#topic-previous').count(),0);assert.doesNotMatch(await page.locator('#thought-document').innerText(),/下一部分|上一部分/);
 
@@ -53,7 +54,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   const refetches=await page.evaluate(n=>window.ans08Trace.topicPages.slice(n),readsBeforeReturn);assert.ok(refetches.length>0&&refetches.every(row=>row.options.anchorId&&row.options.expectedReadGeneration),'an evicted window refetches exact generation-bound refs rather than retaining all bodies');assert.ok(Number(await page.locator('#original-reading-body').getAttribute('data-retained-bodies'))<=120);
   assert.ok(await page.locator('#topic-body [data-entry-id]').count()<=120);
 
-  await page.locator('#topic-outline>summary').click();const deepSection='ANS08 section 0011';await page.locator('#topic-section-nav').getByRole('button',{name:deepSection,exact:true}).click();
+  await openThoughtReadingOptions(page);await page.locator('#topic-outline>summary').click();const deepSection='ANS08 section 0011';await page.locator('#topic-section-nav').getByRole('button',{name:deepSection,exact:true}).click();
   await eventually(async()=>await page.locator('.topic-section').filter({hasText:deepSection}).count()===1,'deep section seek',20000);
 
   const beforeSort=await visibleAnchor(page);assert.ok(beforeSort?.id);
@@ -67,8 +68,13 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   },'sort retains visible anchor',20000);
   const afterSort=await page.locator('#topic-body [data-entry-id="'+beforeSort.id+'"]').evaluate(n=>({top:n.getBoundingClientRect().top}));assert.ok(Math.abs(afterSort.top-beforeSort.top)<180,'sort retains visible anchor');
 
-  const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('[data-topic-id="'+seed.topicId+'"]').click();
-  await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeBack.id+'"]').count()===1,'topic return anchor',30000);
+  const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
+  await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'Topic reopens with readable entries',30000);
+  // Owner scope amendment, 2026-10-06: defer only the old Topic return-position
+  // contract until the Thought Library redesign. All other coverage stays live.
+  await t.test('ANS-08 Topic return position (deferred pending Thought Library redesign)',{skip:'Owner deferred this single return-position check'},async()=>{
+   await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeBack.id+'"]').count()===1,'topic return anchor',30000);
+  });
 
   const perf=await page.evaluate(async topicId=>{
    const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,sort:'asc',limit:40}),cursor=first.nextCursor,samples=[];let operations=null;
@@ -77,7 +83,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
 
   await mkdir('work/ans-08',{recursive:true});await page.screenshot({path:'work/ans-08/topic-continuous.png',fullPage:true});
-  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,sortAnchor:true,returnAnchor:true,p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,sortAnchor:true,returnAnchor:'DEFERRED_OWNER_SCOPE',readableAfterReturn:true,deferredChecks:['ANS08_TOPIC_RETURN_POSITION'],p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await page.evaluate(()=>window.ans08RestoreSend?.()).catch(()=>{});await h.close();}

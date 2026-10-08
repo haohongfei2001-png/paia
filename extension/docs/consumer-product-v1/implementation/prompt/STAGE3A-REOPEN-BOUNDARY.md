@@ -22,3 +22,32 @@ UI leak, real ChatGPT qualification or complete Stage3A acceptance. PR164 has si
 known main integration conflicts and failed/cancelled full evidence; this branch
 preserves its work but is not yet reconciled or merged. Source/release browser
 and final integration evidence must bind the future combined head.
+
+## Current Settings combination preparation
+
+Reconciled Settings0f750af into this branch with seven individually reviewed
+conflicts. Prompt surface keeps both Stage3A frame ownership and the Settings
+serialized geometry queue. Current Worker imports/local owners, current popup
+cleanup, consent/revoke fences and ChatGPT-only host permissions are retained.
+Retired ProductSignals/diagnostic controls are not restored. Content surface
+auto-merge was independently reviewed for frame/nonce/draft preservation.
+
+The old security source oracle required a ProductSignals observe exception and
+an obsolete DeepSeek host permission. Both stale expectations failed locally;
+they are replaced with stricter no-global-observer and exact current ChatGPT-only
+permission assertions. All original no-network/body-persistence checks remain.
+Complete eight related Stage3A/Stage1-2/Settings owner files pass165/165. Package
+audit passes11537 checks across344 runtime resources.
+
+Whole-file admission adds only the Stage3A native journey on shard3 at4/5/6/7.
+A frozen independently generated0f750af predecessor fixture proves all300 old
+placements unchanged;14 existing partition guards and the new admission case
+pass. Two interim guard failures from incorrectly treating the new file as part
+of the historical corpus remain recorded; historical68/73/74 counts are not
+redefined. No job budget or assertion was reduced.
+
+This is local merged-worktree evidence, not formal delivery. Complete native
+Stage3A plus Settings reset/draft/temporary-card coexistence remains pending.
+Preserve PR164 Full37358353603: browser4/5 failed and other browser/full/aggregate
+cancelled. Reconciliation does not turn those into passes. No provider or paid
+call, permission expansion, public release or installed-user availability.

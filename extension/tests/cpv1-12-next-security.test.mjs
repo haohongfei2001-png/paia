@@ -53,9 +53,9 @@ test('Stage 3A has no network/body persistence/logging; existing user-only captu
  for(const path of ['adapter/chatgpt-current-reply.js','content/prompt-next.js','core/next-action-detector.js','core/prompt-next-layout.js','background/prompt-next.js','ui/prompt-next.js']){
   const s=await readFile(new URL('../'+path,import.meta.url),'utf8');assert.doesNotMatch(s,/\b(?:fetch|XMLHttpRequest|WebSocket|sendBeacon|indexedDB|localStorage|sessionStorage)\b|console\.|\.submit\(|\.requestSubmit\(|postMessage\(|innerHTML|outerHTML|createObjectStore/,path);
  }
- const worker=await readFile(new URL('../background/service-worker.js',import.meta.url),'utf8');assert.match(worker,/if\(!request.type.startsWith\('PAIA_PROMPT_NEXT_'\)\)await productSignals.observe/);assert.match(worker,/PAIA_BACKUP_RESTORE.*promptNext.configure\(false\)/);
+ const worker=await readFile(new URL('../background/service-worker.js',import.meta.url),'utf8');assert.doesNotMatch(worker,/productSignals\.observe|new ProductSignals\(/,'retired analytics cannot persist any request, including transient reply bodies');assert.match(worker,/PAIA_BACKUP_RESTORE.*promptNext.configure\(false\)/);
  const capture=await readFile(new URL('../adapter/chatgpt-adapter.js',import.meta.url),'utf8');assert.doesNotMatch(capture,/CurrentReply|next-action/);
- const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'));assert.deepEqual(manifest.permissions,['storage','scripting']);assert.deepEqual(manifest.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
+ const manifest=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8'));assert.deepEqual(manifest.permissions,['storage','scripting']);assert.deepEqual(manifest.host_permissions,['https://chatgpt.com/*'],'current local-only host permission baseline remains exact');
 });
 
 test('exact trusted popup document tab has the same opt-in as action popup',async()=>{const f=await fixture(),sender={...f.popup,tab:{id:8},frameId:0};assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_STATUS'},sender)).enabled,false);assert.equal((await f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},sender)).enabled,true);await assert.rejects(()=>f.c.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},{...sender,frameId:4}));});

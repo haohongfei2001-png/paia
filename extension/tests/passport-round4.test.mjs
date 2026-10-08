@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
+import {configDefault,profileDefault} from '../core/memory/model.js';
 import {MemoryService} from '../core/memory/service.js';
 import {PassportService,grantState,validateGrantRequest,validatePassportRow} from '../core/passport.js';
 import {createContextPackage,contextPackageEnvelope,contextPackageExpired} from '../core/context-package.js';
@@ -31,7 +32,7 @@ test('Passport accepts only fixed consumer/purpose/profile/duration metadata',()
 
 test('Passport grant is profile-scoped, expires/revokes, consumes once grants and keeps metadata-only audit',async()=>{
  const {s}=await setup(OrganizerStore,{clock:()=>new Date(now).toISOString()});
- const memory=new MemoryService(s,{clock:()=>now});await memory.ready();await memory.settings({externalAccess:true});
+ const memory=new MemoryService(s,{clock:()=>now});await memory.ready();/* Synthetic historical grants need their pre-retirement profile. */await s.repository.transaction(true,async t=>{await t.put('meta',profileDefault());await t.put('meta',{...configDefault(),externalAccess:true});});
  let clock=now,n=0;const passport=new PassportService(s,{clock:()=>clock,uuid:()=>`id-${++n}`});
  const once=await passport.create({consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'});
  assert.equal(validatePassportRow(stored(once)),true);assert.equal(grantState(stored(once),clock),'active');

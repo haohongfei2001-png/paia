@@ -4,10 +4,10 @@ import {completeFixture,response,rows,meta,append} from './harness/original-comp
 import {reviewAI,adoptFirstAI} from './harness/ai-reviewed.mjs';
 import {inputEdit} from './harness/thought-m1.mjs';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation,aiPresentationOperationOutcome} from '../core/organizer/ai-presentation.js';
-import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
 import {AI_FIELDS,AI_LIST_FIELDS,validateAIPresentation} from '../core/organizer/ai-contract.js';
 import {aiCandidateKey,isBaseNoneEnvelope} from '../core/organizer/ai-candidate.js';
-import {BackupService} from '../core/backup-service.js';
+import {BackupService} from './harness/historical-backup.mjs';
 const op=()=>crypto.randomUUID(),action=()=>({userActionId:op()});
 async function fixture({count=2,reply=null,hold=null,limits=null}={}){
  const f=await completeFixture({texts:Array.from({length:count},(_,i)=>`Synthetic expression ${i}: uncertainty and evidence remain explicit.`),batchLimit:20,...(limits?{organizerBudget:limits}:{})});

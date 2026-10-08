@@ -85,13 +85,18 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   let reads = 0;
   let writes = 0;
   let isolate;
-  const accessRequests = [],notifications=[];
+  const accessRequests = [],notifications=[],notificationWaiters=new Set();
   const isolation = delayedIsolation ? new Promise(resolve => { isolate = resolve; }) : Promise.resolve();
   globalThis.chrome = {
     runtime: {
       id: EXTENSION_ID,
       getManifest: () => ({version:'0.8.1'}),
-      sendMessage: async message => {notifications.push(structuredClone(message));},
+      sendMessage: async message => {
+        notifications.push(structuredClone(message));
+        for(const waiter of notificationWaiters)if(waiter.matches(message)){
+          notificationWaiters.delete(waiter);clearTimeout(waiter.timeout);waiter.resolve();
+        }
+      },
       getURL: path => `${EXTENSION_ORIGIN}${path}`,
       onMessage: { addListener: callback => { listener = callback; } }
     },
@@ -117,6 +122,13 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   assert.equal(typeof listener, 'function');
   return {
     accessRequests,notifications,
+    nextNotification(matches){
+      return new Promise((resolve,reject)=>{
+        const waiter={matches,resolve};
+        waiter.timeout=setTimeout(()=>{notificationWaiters.delete(waiter);reject(new Error('Synthetic notification timed out'));},2000);
+        notificationWaiters.add(waiter);
+      });
+    },
     releaseIsolation: () => isolate?.(),
     persisted: () => structuredClone(persisted),
     counts: () => ({ reads, writes }),
@@ -400,7 +412,13 @@ test('ANS-03 source observations require trusted current-route sender, current e
  await expectError(app.send(unverified,content),'UNAVAILABLE');
  const poisoned={...req,observations:[{...req.observations[0],originalText:'SYNTHETIC_PRIVATE_BODY'}]};
  await expectError(app.send(poisoned,content),'INVALID_REQUEST');
+ // CAPTURE also starts the real asynchronous FilterRunner. Its completion
+ // notification belongs to capture, not the following source observation.
+ // Wait for that actual completion instead of a timing delay or filtering out
+ // ARCHIVE_CHANGED from the unchanged negative observation oracle below.
+ const captureFilterSettled=app.nextNotification(message=>message.type==='ARCHIVE_CHANGED'&&!Object.hasOwn(message,'cause'));
  assert.equal((await app.send(capture(epoch),content)).ok,true);
+ await captureFilterSettled;
  const notificationsBefore=app.notifications.length;
  const settled=await app.send(sourceObservation(epoch),content);
  assert.equal(settled.ok,true);assert.equal(settled.data.settled,true);
@@ -563,7 +581,7 @@ test('UX-R2 Reader, Revisit and capture policy RPCs require exact trusted UI and
  await app.send({type:'CONSENT',accepted:true});assert.equal((await app.send({type:'PAIA_READER_POLICY'})).data.revisit.oldContent,false);assert.deepEqual((await app.send({type:'PAIA_READER_RECENT'})).data,[]);
 });
 test('UX-R3 Thought selection, binding, reverse policy, history and positions require exact trusted UI and consent',async t=>{const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const h=await fixture();for(const type of ['ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT']){for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'#spoof'}])await expectError(h.send({type,enabled:true},sender),'FORBIDDEN');await expectError(h.send({type}),'CONSENT_REQUIRED');}await h.send({type:'CONSENT',accepted:true});assert.equal((await h.send({type:'GET_THOUGHT_REVERSE_EDIT'})).data.enabled,false);});
-test('UX-R4 manual Context intent is minted only by exact trusted UI with consent and cannot accept a Grant identity',async t=>{const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const h=await fixture(),request={type:'PAIA_CONTEXT_MANUAL',options:{action:'create'}};for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?manual=1'}])await expectError(h.send(request,sender),'FORBIDDEN');await expectError(h.send(request),'CONSENT_REQUIRED');await h.send({type:'CONSENT',accepted:true});const data=(await h.send(request)).data;assert.equal(data.intent,'manual_selection');await expectError(h.send({type:'PAIA_CONTEXT_MANUAL',options:{action:'create',grantId:'forged'}}),'MEMORY_INVALID');await expectError(h.send({type:'PAIA_CONTEXT_MANUAL',options:{action:'share',selectionId:'protected-preview',generation:0,format:'copy'}}),'MEMORY_EXPIRED');});
+test('retired manual Context rejects trusted calls after consent while preserving sender and consent gates',async t=>{const previousChrome=globalThis.chrome;t.after(()=>{globalThis.chrome=previousChrome;});const h=await fixture(),request={type:'PAIA_CONTEXT_MANUAL',options:{action:'create'}};for(const sender of [content,{...ui,id:'foreign-extension'},{...ui,url:ui.url+'?manual=1'}])await expectError(h.send(request,sender),'FORBIDDEN');await expectError(h.send(request),'CONSENT_REQUIRED');await h.send({type:'CONSENT',accepted:true});for(const options of [{action:'create'},{action:'create',grantId:'forged'},{action:'share',selectionId:'protected-preview',generation:0,format:'copy'}])await expectError(h.send({type:'PAIA_CONTEXT_MANUAL',options}),'FEATURE_UNAVAILABLE');});
 
 
 test('foundation worker: time-only CAPTURE notifies readers but unchanged replay does not',async t=>{

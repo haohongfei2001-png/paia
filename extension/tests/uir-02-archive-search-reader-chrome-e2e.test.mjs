@@ -1,3 +1,5 @@
+import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
+import {assertContextUnavailable,settleContextCapture} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -5,6 +7,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
+import {rememberArchiveDirectory,assertArchiveDirectoryUnchanged,assertBlankArchiveReader} from './harness/d7-archive-reference.mjs';
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{
@@ -19,8 +22,8 @@ async function consent(page){
   await eventually(async()=>!(await action.isDisabled()),'UIR-02 consent action is available');
   await action.click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-02 consent is durable');
-  await eventually(async()=>await page.locator('#onboarding-skip').isVisible(),'optional history onboarding appears');
-  await page.locator('#onboarding-skip').click();
+  const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history','hiding the old card does not complete onboarding');assert.equal(onboarding.historyState,'not_started','hiding the old card does not silently skip history import');
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank after consent');
   await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding is dismissed before Archive evidence');
 }
 
@@ -39,7 +42,7 @@ async function prepare(h,label='UIR02_SOURCE'){
     ]
   });
   await eventually(async()=>(await h.state()).records.length>=3,'UIR-02 synthetic inputs captured');
-  await page.bringToFront();
+  await settleContextCapture(h);await page.bringToFront();
   await waitArchiveWindow(page,{label:'Archive document row is reachable'});
   return page;
 }
@@ -59,10 +62,8 @@ async function assertOffline(h){
 async function openSearch(page,query){
   assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');
   assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root no longer duplicates the material-selection entry');
-  await page.locator('#primary-nav [data-view="memory"]').click();
-  await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material tray opens');
-  await page.getByRole('button',{name:'从档案选择',exact:true}).click();
-  await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'internal material Search opens from retained tray selection task');
+  await assertContextUnavailable(page);
+  await openRetainedSearchComponent(page,{types:['input','thought','ai']});
   const input=page.getByRole('searchbox',{name:'全局搜索'});
   await input.fill(query);
   await eventually(async()=>await page.locator('#universal-search-dialog').getAttribute('data-query')===query&&await page.locator('.universal-hit').count()>0,'internal material Search returns current-scope results');
@@ -83,22 +84,28 @@ async function sourceJourney(page,h){
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
 
-  assert.equal(await page.locator('h1:visible').count(),1,'Archive has one visible page heading');
+  assert.equal(await page.locator('h1:visible').count(),0,'Archive root has no duplicate title above its persistent directory');await assertBlankArchiveReader(page);
+  assert.deepEqual(await page.locator('#scope-search,#reader-scope-search').evaluateAll(nodes=>nodes.map(node=>node.placeholder)),['',''],'search controls have accessible labels without placeholder copy');
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive evidence is not dominated by optional onboarding');
   assert.equal(await page.locator('.conversation-document .summary').first().evaluate(el=>getComputedStyle(el).display),'none','generic Archive subtitle is not presented');
   assert.match(await page.locator('#result-count').evaluate(el=>getComputedStyle(el,'::before').content),/当前范围/,'Archive count is explicitly scoped');
   const archiveOverflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
   assert.ok(archiveOverflow<=2,`Archive has no root horizontal overflow; got ${archiveOverflow}`);
-  await shot(page,'uir-02-archive-1440x900-light');
+  const target=await waitArchiveWindow(page);await target.scrollIntoViewIfNeeded();await rememberArchiveDirectory(page,'UIR normal selection');
+  await shot(page,'uir-02-archive-1440x900-light',{fullPage:false});
 
   await openArchiveWindow(page,{label:'Archive window opens through current navigation'});
-  await eventually(()=>page.locator('#document-panel').isVisible(),'Reader opens from Archive');
+  await eventually(()=>page.locator('#document-panel').isVisible(),'Reader opens from Archive');await assertArchiveDirectoryUnchanged(page,'UIR normal selection');
+  assert.equal(await page.locator('#archive-reader-navigator-slot #back').count(),0,'directory header is not replaced by Back');
+  assert.equal(await page.locator('#reader-compact-tools #archive-reader-back-slot #back').count(),1,'existing Back belongs to the right Reader tools');
+  for(const shortcut of ['Control+f','Meta+f']){await page.locator('#back').focus();await page.keyboard.press(shortcut);assert.equal(await page.evaluate(()=>document.activeElement.id),'reader-scope-search');}
+  await page.locator('#reader-scope-search').fill('第二段');await eventually(()=>page.locator('.document-search-hit').count().then(count=>count===1),'Reader query finds only its conversation');assert.equal(await page.locator('#scope-search').inputValue(),'','Archive query remains independent');await page.locator('#reader-scope-search').fill('');await eventually(async()=>!await page.locator('#document-search-tools').isVisible(),'Reader query clears');await assertArchiveDirectoryUnchanged(page,'UIR normal selection');
   const shell=await page.locator('#document-page').boundingBox();
   const body=await page.locator('#document-body').boundingBox();
   assert.ok(shell&&body&&shell.width>body.width,'Reader workspace is wider than the saved prose column');
   assert.ok(body.width<=722,'Reader prose keeps the saved 640/680/720px width semantics');
   assert.equal(await page.locator('h1:visible').count(),1,'Reader has only its document h1');
-  await shot(page,'uir-02-reader-1440x900-light');
+  await shot(page,'uir-02-reader-1440x900-light',{fullPage:false});
   await pause(3300);
 
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});
@@ -106,8 +113,8 @@ async function sourceJourney(page,h){
   assert.notEqual(await page.locator('#document-page').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)','dark Reader has no forced white page');
   await shot(page,'uir-02-reader-1440x900-dark');
 
-  await page.locator('#back').click();
-  await eventually(()=>page.locator('#collection-panel').isVisible(),'Reader returns to Archive');
+  await rememberArchiveDirectory(page,'UIR Reader closes');await page.locator('#back').click();
+  await eventually(()=>page.locator('#collection-panel').isVisible(),'Reader returns to Archive');await assertArchiveDirectoryUnchanged(page,'UIR Reader closes');await assertBlankArchiveReader(page);
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');
 
@@ -131,8 +138,8 @@ async function sourceJourney(page,h){
 
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Search result opens Reader');
-  await eventually(()=>page.locator('#scope-search').isEnabled(),'actual Reader scope is ready');
-  assert.equal(await page.locator('#scope-search').inputValue(),'UIR02_TARGET','explicit result query belongs to the Reader scope');
+  await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'actual Reader scope is ready');
+  assert.equal(await page.locator('#reader-scope-search').inputValue(),'UIR02_TARGET','explicit result query belongs to the Reader scope');assert.equal(await page.locator('#scope-search').inputValue(),'','explicit result does not overwrite the Archive query');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'explicit Reader full text remains readable while preview mask is enabled');
   const detailField=page.locator('.library-prose').first();
   const detailId=await detailField.getAttribute('data-edit-id');
@@ -159,7 +166,7 @@ async function sourceJourney(page,h){
   await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:false}});
   await eventually(async()=>!(await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews'))),'preview mask can be removed without leaving Search');
   await page.locator('.universal-close').click();
-  await eventually(()=>page.locator('#material-workbench').isVisible(),'Search close restores the retained For AI material surface');
+  await assertContextUnavailable(page,{navigate:false});
   await page.locator('#primary-nav [data-view="library"]').click();
   await eventually(()=>page.locator('#collection-panel').isVisible(),'Archive remains directly reachable after material selection');
   await eventually(()=>page.locator('#scope-search').isEnabled(),'actual Archive scope is ready after the task closes');
@@ -221,7 +228,9 @@ async function releaseJourney(page,h){
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
   await waitArchiveWindow(page,{label:'built release Archive is usable'});
-  await shot(page,'uir-02-current-release-archive-1440x900-light');
+  await assertBlankArchiveReader(page);await shot(page,'uir-02-current-release-archive-1440x900-light',{fullPage:false});
+  const target=await waitArchiveWindow(page);await target.scrollIntoViewIfNeeded();await rememberArchiveDirectory(page,'release normal selection');await openArchiveWindow(page);await eventually(()=>page.locator('#document-panel').isVisible(),'release ordinary Reader opens');await assertArchiveDirectoryUnchanged(page,'release normal selection');await shot(page,'uir-02-current-release-reader-1440x900-light',{fullPage:false});
+  await page.locator('#back').click();await eventually(()=>page.locator('#collection-panel').isVisible(),'release closes to Archive');await assertArchiveDirectoryUnchanged(page,'release normal selection');await assertBlankArchiveReader(page);
   const input=await openSearch(page,'UIR02_TARGET');
   await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});
   await eventually(async()=>await page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'built release preview mask applies');
@@ -231,7 +240,7 @@ async function releaseJourney(page,h){
   await page.getByRole('button',{name:'全部结果',exact:true}).click();
   await eventually(async()=>(await page.getByRole('button',{name:'全部结果',exact:true}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0);
   await page.locator('.universal-open').first().click();
-  await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');
+  await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'release Reader query ready');assert.equal(await page.locator('#reader-scope-search').inputValue(),'UIR02_TARGET');assert.equal(await page.locator('#scope-search').inputValue(),'');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'built release Reader full text is not masked');
   await page.locator('#back').click();
   await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'built release Reader returns to Search');

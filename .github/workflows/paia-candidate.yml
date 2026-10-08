@@ -172,6 +172,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Use signed Ubuntu archive over HTTPS before adapter dependencies
+        run: |
+          # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - name: Install Chromium for adapter contracts
         run: npx playwright install --with-deps chromium
       - name: Adapter contract
@@ -255,9 +269,9 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  targeted_browser:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE'))
-    name: Candidate affected browser
+  topic05_root:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_TOPIC05_ROOT_BROWSER')
+    name: Candidate Personal Topic Root
     runs-on: ubuntu-latest
     timeout-minutes: 12
     defaults:
@@ -279,14 +293,192 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Provide the same paired Thought glyph coverage
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          fc-list :lang=zh | grep -q .
+          fc-match 'Noto Serif CJK SC'
+      - name: TOPIC05 complete production Root source and release journeys
+        if: contains(github.event.pull_request.body, 'PAIA_TOPIC05_ROOT_BROWSER')
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          mkdir -p work/qa-topic05-root
+          fc-match 'Noto Sans CJK SC' > work/qa-topic05-root/fonts.txt
+          fc-match 'Noto Serif CJK SC' >> work/qa-topic05-root/fonts.txt
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/cpv1-topic-05-2-root-chrome-e2e.test.mjs 2>&1 | tee work/qa-topic05-root/acceptance.log
+          cp work/test-summary.json work/qa-topic05-root/test-summary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          const read=path=>JSON.parse(readFileSync(path)),report=read('work/qa-topic05-root/test-summary.json');assert.equal(report.total,2);assert.equal(report.pass,2);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files),['cpv1-topic-05-2-root-chrome-e2e.test.mjs']);
+          for(const variant of ['source','release']){const result=read(`work/qa-topic05-root/${variant}/result.json`);assert.equal(result.status,'PASS');assert.equal(result.head,process.env.PAIA_TESTED_HEAD);assert.equal(result.variant,variant);assert.deepEqual(result.actualCounts,[30,50,100,144]);for(const key of ['renameStable','deleteBlank','newIdentityReusesHole','responsiveReturn','nativeSection','newTabRefresh','backFocus','selection','sameColumnResize','outageRetry'])assert.equal(result[key],true,key);}
+          JS
+      - name: Retain actual TOPIC05 Root screenshots and journey evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_TOPIC05_ROOT_BROWSER')
+        uses: actions/upload-artifact@v4
+        with:
+          name: topic05-root-${{ github.event.pull_request.head.sha }}
+          path: extension/work/qa-topic05-root/
+          if-no-files-found: error
+          retention-days: 7
+
+  topic_retained:
+    if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')
+    name: Candidate retained Thought (${{ matrix.part }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: core
+            files: tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs tests/ans-07-library-root-chrome-e2e.test.mjs tests/ans-08-topic-continuous-chrome-e2e.test.mjs tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs tests/uir-03-thought-original-chrome-e2e.test.mjs
+          - part: content
+            files: tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs
+          - part: years
+            files: tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+      PAIA_TOPIC_RETAINED_PART: ${{ matrix.part }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Select full hosted Chrome for extension CDP
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Preserve paired Thought glyph coverage
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
+          fc-list :lang=zh | grep -q .
+          fc-match 'Noto Serif CJK SC'
+      - name: Run every case in the fixed complete-file partition
+        run: |
+          set -o pipefail
+          mkdir -p work/topic-retained/${{ matrix.part }}
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/topic-retained-report.mjs ${{ matrix.files }} 2>&1 | tee work/topic-retained/${{ matrix.part }}/acceptance.log
+          cp work/test-summary.json work/topic-retained/${{ matrix.part }}/test-summary.json
+          node scripts/verify-topic-retained.mjs part ${{ matrix.part }} "$PAIA_TESTED_HEAD"
+      - name: Retain complete or interrupted whole-file evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: topic-retained-${{ matrix.part }}-${{ github.event.pull_request.head.sha }}
+          path: |
+            extension/work/topic-retained/${{ matrix.part }}/
+            extension/work/test-summary.json
+            extension/work/qa-dvn-topic-root/
+            extension/work/qa-dvn-topic-years/
+            extension/work/qa-dvn-topic-content/
+            extension/work/ans-07/
+            extension/work/ans-08/
+            extension/work/uir-03/
+          if-no-files-found: error
+          retention-days: 7
+
+  topic_retained_results:
+    if: always() && github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')
+    name: Candidate retained Thought exact coverage
+    needs: [topic_retained]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: topic-retained-*-${{ github.event.pull_request.head.sha }}
+          path: work/topic-retained-results
+      - name: Require exact disjoint whole-file coverage and the named historical deferral
+        run: node extension/scripts/verify-topic-retained.mjs all work/topic-retained-results "${{ github.event.pull_request.head.sha }}"
+      - name: Retain bounded compatibility accounting
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: topic-retained-summary-${{ github.event.pull_request.head.sha }}
+          path: work/topic-retained-results/combined.json
+          if-no-files-found: error
+          retention-days: 7
+
+  targeted_browser:
+    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_VS04_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_TARGETED_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_RUNNING_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS06_MANIFEST_BROWSER') || contains(github.event.pull_request.body, 'PAIA_ANS04_CURSOR_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_REVISIT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_HISTORY_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_INDEX_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS07_SEARCH_REGRESSION') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC'))
+    name: Candidate affected browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - name: Use signed Ubuntu archive over HTTPS before targeted browser dependencies
+        run: |
+          # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
+      - run: npx playwright install --with-deps chromium
+      - name: Select full hosted Chrome for extension CDP
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Pin verified full Chrome for Settings native evidence
+        if: contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        run: |
+          set -euo pipefail
+          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+          echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status
+          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
       - name: Provide Chinese glyph coverage for paired Thought evidence
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER')
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_VS05_AI_CANDIDATE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
           fc-list :lang=zh | grep -q .
       - name: Provide approved confirmation title glyphs
-        if: contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE')
+        if: contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_TOPIC05_ROOT_BROWSER')
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
@@ -438,8 +630,31 @@ jobs:
             extension/work/ux-r4/
           if-no-files-found: error
 
+      - name: Settings native device diagnosis and independent About evidence
+        if: contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
+        env:
+          PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/qa-dvn-settings-touch-diagnostic
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/settings-touch-diagnostic-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-settings-touch-diagnostic/diagnostic.log
+          cp work/test-summary.json work/qa-dvn-settings-touch-diagnostic/test-summary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync('work/qa-dvn-settings-touch-diagnostic/test-summary.json'));assert.equal(report.total,2);assert.equal(report.pass,2);assert.equal(report.fail,0);assert.equal(report.skipped,0);
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings-touch-diagnostic/${variant}.json`));assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.match(receipt.scope,/^DIAGNOSTIC_ONLY/);assert.equal(receipt.trials.length,4);assert.equal(receipt.browser,'155.0.8059.39');assert.match(receipt.browserZipSha256,/^[a-f0-9]{64}$/);assert.equal(receipt.aboutResult,'PASS');assert.deepEqual(receipt.aboutRows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
+          JS
+      - name: Retain Settings device diagnostic evidence
+        if: always() && contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-touch-diagnostic
+          path: extension/work/qa-dvn-settings-touch-diagnostic/
+          if-no-files-found: error
+
       - name: D5 Settings reading column and complete Settings Data and Back journeys
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        if: contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') && !contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -452,12 +667,12 @@ jobs:
           cp work/test-summary.json work/qa-dvn-settings/test-summary.json
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          const report=JSON.parse(readFileSync('work/qa-dvn-settings/test-summary.json'));assert.equal(report.total,9);assert.equal(report.pass,9);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-01-shell-chrome-e2e.test.mjs','uir-04-data-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs','ux-r1-shell-chrome-e2e.test.mjs']);
+          const report=JSON.parse(readFileSync('work/qa-dvn-settings/test-summary.json'));assert.equal(report.total,11);assert.equal(report.pass,11);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-01-shell-chrome-e2e.test.mjs','uir-04-data-chrome-e2e.test.mjs','uir-04-settings-chrome-e2e.test.mjs','ux-r1-shell-chrome-e2e.test.mjs']);
           const baseline=JSON.parse(readFileSync('work/qa-dvn-settings/baseline.json'));assert.equal(baseline.result,'PASS');assert.equal(baseline.head,process.env.PAIA_TESTED_HEAD);assert.equal(baseline.baselineHead,'96832cd7e07db7f9946648c0079d1c49e2dfd6cc');assert.equal(baseline.rows.length,6);
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,30);assert.equal(receipt.targets.length,3);assert.equal(receipt.interactions.length,4);}
+          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-settings/${variant}.json`));assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,288);assert.equal(receipt.targets.length,3);const coarse=receipt.targets.find(row=>row.mode==='coarse');assert.equal(coarse.browser,'155.0.8059.39');assert.equal(coarse.browserZipSha256,'55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea');assert.equal(receipt.interactions.length,6);const style=receipt.interactions[5];assert.equal(style.kind,'offline-ai-style');assert.deepEqual(style.rows.map(row=>row.kind),['explicit-default','native-radio-keyboard','modal-escape-back-focus','cross-window-focus','failed-write-preserves-confirmed','lost-ack-reconciles-canonical','future-version-inert','compact-200-percent']);assert.deepEqual(receipt.interactions.slice(0,4).map(row=>row.kind),['native-select-keyboard','compact-failure-visible','directory-keyboard-history-focus','capture-filter-preview-persistence']);const about=receipt.interactions[4];assert.equal(about.kind,'read-only-about-status');assert.equal(about.rows.length,8);assert.deepEqual(about.rows.map(row=>row.language+':'+row.state).sort(),['en:available','en:installed','en:read-error','en:unknown','zh-CN:available','zh-CN:installed','zh-CN:read-error','zh-CN:unknown']);}
           JS
       - name: Retain D5 Settings before and paired presentation evidence
-        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER')
+        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') && !contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC')
         uses: actions/upload-artifact@v4
         with:
           name: dvn-settings-presentation-candidate
@@ -578,34 +793,28 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: D2 exact root and existing Topic read regressions
-        if: contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')
+      - name: Observe the complete synthetic Content return journey
+        if: contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -o pipefail
-          mkdir -p work/qa-dvn-topic-root
-          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs tests/cpv1-02-dvn-topic-years-chrome-e2e.test.mjs tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs tests/ans-07-library-root-chrome-e2e.test.mjs tests/ans-08-topic-continuous-chrome-e2e.test.mjs tests/ans-08-topic-edit-preservation-chrome-e2e.test.mjs tests/uir-03-thought-original-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-topic-root/acceptance.log
-          cp work/test-summary.json work/qa-dvn-topic-root/test-summary.json
+          test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
+          mkdir -p work/qa-dvn-topic-content
+          xvfb-run -a node --test --test-concurrency=1 --test-reporter=./scripts/test-report.mjs tests/cpv1-02-dvn-topic-content-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-topic-content/diagnostic-test.log
+          cp work/test-summary.json work/qa-dvn-topic-content/diagnostic-test-summary.json
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          const read=path=>JSON.parse(readFileSync(path));const report=read('work/qa-dvn-topic-root/test-summary.json');assert.equal(report.total,16);assert.equal(report.pass,16);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['ans-07-library-root-chrome-e2e.test.mjs','ans-08-topic-continuous-chrome-e2e.test.mjs','ans-08-topic-edit-preservation-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','uir-03-thought-original-chrome-e2e.test.mjs']);
-          for(const kind of ['content','years'])for(const variant of ['source','release']){const receipt=read(`work/qa-dvn-topic-${kind}/d5/${variant}.json`);assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.headers.length,12);if(kind==='content'){assert.deepEqual(receipt.headerInteractions.map(row=>row.kind),['native-keyboard-history','search-clear','text200-failure-layout','text200-failure-layout','coarse-history','saved-ai-header','back-original-return']);for(const row of receipt.headerInteractions.filter(row=>row.kind==='text200-failure-layout'))assert.equal(row.contentFocus.length,2);}}
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-topic-root/${variant}.json`));assert.equal(receipt.status,'PASS');assert.equal(receipt.headSha,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.matrix.length,12);assert.equal(receipt.zeroProviderCalls,true);}
-          for(const variant of ['source','release']){const receipt=JSON.parse(readFileSync(`work/qa-dvn-topic-root/${variant}-dense.json`));assert.equal(receipt.status,'PASS');assert.equal(receipt.headSha,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.topics,300);assert.ok(receipt.retainedBodies<=120);assert.equal(receipt.zeroProviderCalls,true);}
+          const read=path=>JSON.parse(readFileSync(path)),root='work/qa-dvn-topic-content/',report=read(root+'diagnostic-test-summary.json');
+          assert.equal(report.total,4);assert.equal(report.pass,4);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files),['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs']);
+          for(const variant of ['source','release']){const evidence=read(root+variant+'-return-diagnostic.json');assert.equal(evidence.kind,'synthetic-read-only-return-diagnostic');assert.equal(evidence.head,process.env.PAIA_TESTED_HEAD);assert.equal(evidence.variant,variant);assert.equal(evidence.result,'PASS');assert.ok(evidence.evidence.events.length>0&&evidence.evidence.events.length<=96);}
           JS
-      - name: Retain D2 synthetic root evidence
-        if: always() && contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER')
+      - name: Retain completed or failed Content return diagnostics
+        if: always() && contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC')
         uses: actions/upload-artifact@v4
         with:
-          name: topic-root-${{ github.event.pull_request.head.sha }}
-          path: |
-            extension/work/qa-dvn-topic-root/
-            extension/work/qa-dvn-topic-years/
-            extension/work/qa-dvn-topic-content/
-            extension/work/uir-03/
-            extension/work/ans-07/
-            extension/work/ans-08/
+          name: content-return-diagnostic-${{ github.event.pull_request.head.sha }}
+          path: extension/work/qa-dvn-topic-content/
           if-no-files-found: error
           retention-days: 7
 
@@ -891,12 +1100,13 @@ jobs:
         if: contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE')
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk imagemagick
       - name: Verify complete popup document and native owners
         if: contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE')
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
           PLAYWRIGHT_MODULE: playwright
+          PAIA_NATIVE_BROWSER_FRAME: '1'
         run: |
           set -o pipefail
           mkdir -p work/bounded-popup
@@ -918,6 +1128,7 @@ jobs:
       - name: Require completed native-popup evidence for this exact head
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          NATIVE_BROWSER_FRAME_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') }}
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
@@ -947,6 +1158,11 @@ jobs:
             assert.ok(png.readUInt32BE(16)>0&&png.readUInt32BE(20)>0,'PNG dimensions must be positive');
             assert.equal(png.readUInt32BE(16),report.screenshot.width);
             assert.equal(png.readUInt32BE(20),report.screenshot.height);
+          }
+          if(process.env.NATIVE_BROWSER_FRAME_SELECTED==='true'){
+            const frame=evidence.nativeBrowserFrame;assert.equal(frame?.status,'captured');assert.equal(frame.headSha,evidence.headSha);assert.equal(frame.kind,'synthetic-hosted-browser-window');assert.equal(frame.viewportEmulation,null);
+            const png=await readFile(root+frame.file);assert.ok(png.length>24&&png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));assert.equal(png.readUInt32BE(16),frame.display.width);assert.equal(png.readUInt32BE(20),frame.display.height);
+            for(const size of [16,32,48,128])assert.equal(frame.display.icons[size],`icons/icon${size}.png`);
           }
           console.log('NATIVE_POPUP_EVIDENCE_PASS '+evidence.headSha+' states='+expected.length);
           JS
@@ -1195,8 +1411,10 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Explicit Context full-certification pushes retain a fast native probe too.
+  # This additional job never substitutes the separate mandatory full gate.
   context_compatibility:
-    if: github.event.pull_request.draft == true && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))
+    if: (github.event.pull_request.draft == true || contains(github.event.pull_request.body, 'PAIA_FULL_CERTIFICATION')) && (contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_COMPAT_BROWSER'))
     name: Candidate Context compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -1213,6 +1431,13 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - name: Install approved Context CJK font families
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          mkdir -p work/ctx4-01
+          fc-match 'Noto Sans CJK SC' > work/ctx4-01/fonts.txt
+          fc-match 'Noto Serif CJK SC' >> work/ctx4-01/fonts.txt
       - name: Select hosted Chrome for complete release and Topic journeys
         run: |
           CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
@@ -1222,7 +1447,7 @@ jobs:
         run: |
           mkdir -p work/qa-dvn-context-compat
           set -o pipefail
-          xvfb-run -a node --test --test-concurrency=1 tests/release-certification-round48-chrome-e2e.test.mjs tests/release-certification-round49-chrome-e2e.test.mjs tests/ans-01-reader-surfaces-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-context-compat/acceptance.log
+          xvfb-run -a node --test --test-concurrency=1 tests/context-cards-chrome-e2e.test.mjs tests/release-certification-round48-chrome-e2e.test.mjs tests/release-certification-round49-chrome-e2e.test.mjs tests/ans-01-reader-surfaces-chrome-e2e.test.mjs tests/uir-01-shell-chrome-e2e.test.mjs tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs 2>&1 | tee work/qa-dvn-context-compat/acceptance.log
       - name: Retain compatibility evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -1230,7 +1455,11 @@ jobs:
           name: dvn-context-compatibility
           path: |
             extension/work/qa-dvn-context-compat/
+            extension/work/ctx4-01/
+            extension/work/ctx4-05/
             extension/work/ans-01/
+            extension/work/d7-archive-reader-compat/
+            extension/work/ux-r1/
           if-no-files-found: error
           retention-days: 7
 
@@ -1238,7 +1467,7 @@ jobs:
     name: Candidate gate
     runs-on: ubuntu-latest
     if: always() && github.event.pull_request.draft == true
-    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility]
+    needs: [unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, topic05_root, topic_retained, topic_retained_results, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility]
     steps:
       - name: Require light candidate gates
         env:
@@ -1254,9 +1483,14 @@ jobs:
           ORGANIZE_COMPAT: ${{ needs.organize_candidate_compatibility.result }}
           ORGANIZE_COMPAT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') }}
           TARGETED_BROWSER: ${{ needs.targeted_browser.result }}
+          TOPIC05_ROOT: ${{ needs.topic05_root.result }}
+          TOPIC05_ROOT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_TOPIC05_ROOT_BROWSER') }}
+          TOPIC_RETAINED: ${{ needs.topic_retained.result }}
+          TOPIC_RETAINED_RESULTS: ${{ needs.topic_retained_results.result }}
+          TOPIC_RETAINED_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') }}
           TOPIC_COMPAT: ${{ needs.topic_compatibility.result }}
           TOPIC_COMPAT_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') }}
-          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_TOPIC_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') }}
+          TOPIC_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_DVN_SETTINGS_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_SET2_TOUCH_DIAGNOSTIC') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_PRESENTATION_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_COMPOSE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_CONTEXT_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_SCOPE_ORDER_BROWSER') || contains(github.event.pull_request.body, 'PAIA_DVN_ORGANIZE_NOTICES_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_READER_DIALOGS') || contains(github.event.pull_request.body, 'PAIA_D7_CONFIRMATION_UI') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') || contains(github.event.pull_request.body, 'PAIA_CONTENT_RETURN_DIAGNOSTIC') }}
           NATIVE_POPUP: ${{ needs.native_popup.result }}
           NATIVE_POPUP_SELECTED: ${{ contains(github.event.pull_request.body, 'PAIA_BOUNDED_POPUP_BROWSER') || contains(github.event.pull_request.body, 'PAIA_D7_UI_COHERENCE') }}
           CAPTURE_RECOVERY: ${{ needs.capture_recovery.result }}
@@ -1275,6 +1509,8 @@ jobs:
           if [ "$DIRECT_EDIT_SELECTED" = true ]; then test "$DIRECT_EDIT" = success; elif [ "$DIRECT_EDIT" != skipped ]; then test "$DIRECT_EDIT" = success; fi
           if [ "$ORGANIZE_COMPAT_SELECTED" = true ]; then test "$ORGANIZE_COMPAT" = success; elif [ "$ORGANIZE_COMPAT" != skipped ]; then test "$ORGANIZE_COMPAT" = success; fi
           if [ "$TOPIC_SELECTED" = true ]; then test "$TARGETED_BROWSER" = success; elif [ "$TARGETED_BROWSER" != skipped ]; then test "$TARGETED_BROWSER" = success; fi
+          if [ "$TOPIC05_ROOT_SELECTED" = true ]; then test "$TOPIC05_ROOT" = success; elif [ "$TOPIC05_ROOT" != skipped ]; then test "$TOPIC05_ROOT" = success; fi
+          if [ "$TOPIC_RETAINED_SELECTED" = true ]; then test "$TOPIC_RETAINED" = success; test "$TOPIC_RETAINED_RESULTS" = success; else for result in "$TOPIC_RETAINED" "$TOPIC_RETAINED_RESULTS"; do if [ "$result" != skipped ]; then test "$result" = success; fi; done; fi
           if [ "$TOPIC_COMPAT_SELECTED" = true ]; then test "$TOPIC_COMPAT" = success; elif [ "$TOPIC_COMPAT" != skipped ]; then test "$TOPIC_COMPAT" = success; fi
           if [ "$NATIVE_POPUP_SELECTED" = true ]; then test "$NATIVE_POPUP" = success; elif [ "$NATIVE_POPUP" != skipped ]; then test "$NATIVE_POPUP" = success; fi
           if [ "$CAPTURE_RECOVERY_SELECTED" = true ]; then test "$CAPTURE_RECOVERY" = success; elif [ "$CAPTURE_RECOVERY" != skipped ]; then test "$CAPTURE_RECOVERY" = success; fi

@@ -111,11 +111,11 @@ async function selectWidePrimary(page,view){
 const rootMenuSelector='#thought-root-source>.library-actions>summary,.topic-compact-row>.library-actions>summary';
 async function verifyRootMenuGlyphs(page){
  const rows=await page.locator(rootMenuSelector).evaluateAll(nodes=>nodes.map(node=>{
-  const box=node.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(node);const glyph=range.getBoundingClientRect(),style=getComputedStyle(node),row=node.closest('.topic-compact-row')?.getBoundingClientRect();
-  return {label:node.getAttribute('aria-label'),text:node.textContent,font:style.fontFamily,size:style.fontSize,box:{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height},glyph:{left:glyph.left,right:glyph.right,top:glyph.top,bottom:glyph.bottom,width:glyph.width},rowRight:row?.right};
+  const box=node.getBoundingClientRect(),svg=node.querySelector('svg[data-paia-icon="more"]'),glyph=svg?.getBoundingClientRect(),style=getComputedStyle(node),row=node.closest('.topic-compact-row')?.getBoundingClientRect();
+  return {label:node.getAttribute('aria-label'),text:node.textContent,font:style.fontFamily,size:style.fontSize,box:{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height},glyph:glyph?{left:glyph.left,right:glyph.right,top:glyph.top,bottom:glyph.bottom,width:glyph.width,height:glyph.height,painted:svg.querySelectorAll('circle[fill="currentColor"]').length,hidden:svg.getAttribute('aria-hidden'),focusable:svg.getAttribute('focusable'),color:getComputedStyle(svg).color}:null,rowRight:row?.right};
  }));
  assert.equal(rows.length,7,'six real Topic menus and the existing root menu remain');
- for(const row of rows){assert.equal(row.text,'···');assert.ok(row.label);assert.ok(row.box.width>=44&&row.box.height>=44,'native menu retains its 44px target');assert.ok(row.glyph.left>=row.box.left-1&&row.glyph.right<=row.box.right+1,'all three visible dots fit the real trigger');if(row.rowRight)assert.ok(row.glyph.right<=row.rowRight+1,'Topic marker stays inside its row');}
+ for(const row of rows){assert.equal(row.text,'');assert.ok(row.label);assert.ok(row.glyph,'the real trigger contains a visible native SVG');assert.equal(row.glyph.width,18);assert.equal(row.glyph.height,18);assert.equal(row.glyph.painted,3);assert.equal(row.glyph.hidden,'true');assert.equal(row.glyph.focusable,'false');assert.notEqual(row.glyph.color,'rgba(0, 0, 0, 0)');assert.ok(row.box.width>=44&&row.box.height>=44,'native menu retains its 44px target');assert.ok(row.glyph.left>=row.box.left-1&&row.glyph.right<=row.box.right+1,'all three visible dots fit the real trigger');if(row.rowRight)assert.ok(row.glyph.right<=row.rowRight+1,'Topic marker stays inside its row');}
  return rows;
 }
 async function verifyRootMenus(page,variant){

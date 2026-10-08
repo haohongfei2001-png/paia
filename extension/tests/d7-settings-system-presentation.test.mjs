@@ -2,32 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {BackupPanel} from '../ui/backup.js';
+import {PresentationNode} from './harness/presentation-dom.mjs';
 
-class Node {
- constructor(registry){this.registry=registry;this.dataset={};this.children=[];this.attributes=new Map();this.textContent='';this.hidden=false;this.value='';this.checked=false;this.disabled=false;}
- append(...nodes){this.children.push(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
- prepend(...nodes){this.children.unshift(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
- setAttribute(name,value){this.attributes.set(name,value);}
+class Node extends PresentationNode {
+ constructor(registry,tag='div',namespaceURI){super(tag,namespaceURI);this.registry=registry;this.checked=false;this.disabled=false;}
+ append(...nodes){super.append(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
+ prepend(...nodes){super.prepend(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
  getAttribute(name){return this.attributes.get(name);}
- removeAttribute(name){this.attributes.delete(name);}
- focus(){document.activeElement=this;}
- addEventListener(){}
 }
 async function withDOM(run){
  const names=['document','navigator','chrome'],prior=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(globalThis,name)])),nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Node(nodes));return nodes.get(id);};
- Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:()=>new Node(nodes),addEventListener(){},getElementById:get}});
+ Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{documentElement:{lang:'zh-CN'},createElement:tag=>new Node(nodes,tag),createElementNS:(namespace,tag)=>new Node(nodes,tag,namespace),addEventListener(){},getElementById:get}});
  Object.defineProperty(globalThis,'navigator',{configurable:true,writable:true,value:{language:'zh-CN'}});
  Object.defineProperty(globalThis,'chrome',{configurable:true,writable:true,value:new Proxy({}, {get(){throw Error('Read-only presentation cannot access extension services');}})});
  try{await run({get,nodes});}finally{for(const [name,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];}
 }
 
-test('S03 presents real successful-scan metadata without inventing capture or history completeness',()=>withDOM(async({get})=>{
+test('S03 keeps successful metadata quiet, shows genuine errors and makes no completeness claim',()=>withDOM(async({get})=>{
  const {presentSettingsStatus}=await import('../ui/settings-preferences.js');
- const empty={settings:{consentVersion:1,enabled:true},diagnostics:{lastSuccessAt:null,lastScanAt:null}};
- const before=structuredClone(empty);presentSettingsStatus(empty);assert.match(get('ux-capture-last').textContent,/尚无成功扫描/);assert.match(get('ux-capture-health').textContent,/首次扫描/);assert.deepEqual(empty,before);
- const paused={settings:{consentVersion:1,enabled:false},diagnostics:{lastSuccessAt:'2026-01-02T03:04:05.000Z',lastScanAt:'2026-01-02T03:04:05.000Z',status:'CAPTURING',added:0}};
- presentSettingsStatus(paused);assert.equal(get('ux-capture-last').textContent,'最近一次成功扫描：'+new Date(paused.diagnostics.lastSuccessAt).toLocaleString('zh-CN'));assert.match(get('ux-capture-health').textContent,/暂停/);assert.doesNotMatch(get('ux-capture-last').textContent,/新增|完整历史/);
- paused.settings.enabled=true;presentSettingsStatus(paused);assert.match(get('ux-capture-health').textContent,/状态已过期/);paused.diagnostics.lastSuccessAt='invalid';presentSettingsStatus(paused);assert.match(get('ux-capture-last').textContent,/尚无成功扫描/);
+ const empty={settings:{consentVersion:1,enabled:true},diagnostics:{lastSuccessAt:null,lastScanAt:null}};const before=structuredClone(empty);presentSettingsStatus(empty);assert.equal(get('ux-capture-health').hidden,true);assert.deepEqual(empty,before);
+ const paused={settings:{consentVersion:1,enabled:false},diagnostics:{lastSuccessAt:'2026-01-02T03:04:05.000Z',status:'CAPTURING',added:0}};presentSettingsStatus(paused);assert.equal(get('ux-capture-health').hidden,true);assert.equal(get('ux-capture-last').textContent,'','SETTINGS-CV2 removes the successful scan summary');paused.settings.enabled=true;presentSettingsStatus(paused);assert.equal(get('ux-capture-health').hidden,true,'old successful scans are not fabricated failures');
+ for(const [status,message]of [['STORAGE_FAILED',/保存失败/],['STORAGE_FULL',/空间不足/],['ADAPTER_MISMATCH',/页面结构不匹配/]]){
+  paused.diagnostics.status=status;presentSettingsStatus(paused);assert.equal(get('ux-capture-health').hidden,false);assert.match(get('ux-capture-health').textContent,message);
+ }
 }));
 
 test('S05 is driven only by rejected backup inspection; cancellation clears it and no restore is attempted',()=>withDOM(async({get})=>{
@@ -53,7 +50,7 @@ test('New Settings copy follows active language without replacing its nodes',()=
 
 test('S01 keeps legal saved sizes, six groups and actual controls; system styling cannot activate retired Context',async()=>{
  const source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');
- assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key,zh\] of SETTINGS_GROUPS\)/);assert.match(source,/importButton.addEventListener\('click',\(\)=>\$\('settings-history'\)\?\.click\(\)\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
+ assert.match(source,/FONT_PX=\{small:16,standard:17,large:19,xlarge:21\}/);assert.match(source,/WIDTH_PX=\{narrow:640,standard:680,wide:720\}/);assert.match(source,/for\(const \[key\]of SETTINGS_GROUPS\)/);assert.match(source,/move\('history-settings','data'\)/);assert.doesNotMatch(source,/savePreference\('(?:reducedMotion|motion)'/);assert.match(css,/\.reader-confirm:has\(\.reader-conflict-comparison\)/);assert.doesNotMatch(source,/PAIA_RECOVERY_DRAFT|PAIA_BACKUP_RESTORE|SAVE_DEEPSEEK_CREDENTIAL|AUTHORIZE/);
 });
 
 test('S05 uses one existing picker and cancellation owner, with local-only presentation and explicit return focus',()=>withDOM(async({get})=>{
@@ -82,5 +79,5 @@ test('S05 late inspection rejection does not move navigation or focus after leav
  const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null});const file=new Blob(['{}']);file.name='synthetic.paia-backup';const pending=panel.inspect([file]);
  await Promise.resolve();get('settings-panel').hidden=true;get('ux-settings-data-group').hidden=true;const library=get('primary-library');library.focus();reject();await pending;
  assert.equal(document.activeElement,library);assert.equal(get('settings-panel').hidden,true);assert.equal(get('ux-settings-data-group').hidden,true);assert.equal(get('backup-settings').dataset.inspectionFailure,'true');
- const css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');assert.match(css,/#ux-settings-data-group:not\(\[hidden\]\)>#backup-settings\[data-inspection-failure\]/);assert.doesNotMatch(css,/#backup-settings\[data-inspection-failure\][^{]*\{[^}]*position:fixed/);
+ const css=await readFile(new URL('../ui/settings-preferences.css',import.meta.url),'utf8');assert.match(css,/#ux-settings-data-group:not\(\[hidden\]\) #backup-settings\[data-inspection-failure\]/);assert.doesNotMatch(css,/#backup-settings\[data-inspection-failure\][^{]*\{[^}]*position:fixed/);assert.doesNotMatch(css,/#ux-settings-data-group:has\(>#backup-settings/);assert.ok(css.includes('#ux-settings-data-group:has(#backup-settings[data-inspection-failure])>:not(.ux-settings-detail:has(>#backup-settings[data-inspection-failure]))'));assert.ok(css.includes('#ux-settings-data-group>.ux-settings-detail:has(>#backup-settings[data-inspection-failure])>summary{display:none}'));assert.ok(css.includes('#ux-settings-data-group:not([hidden])>.ux-settings-detail:has(>#backup-settings[data-inspection-failure]){display:block!important;border:0}'));
 }));

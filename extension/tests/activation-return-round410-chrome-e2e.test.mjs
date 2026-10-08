@@ -6,7 +6,10 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 
 async function homeState(page,state){
- await eventually(()=>page.locator('#archive-root-main').isVisible(),'Archive root is visible');
+ await eventually(()=>page.locator('#archive-reader-navigator-slot').isVisible(),'blank Archive keeps its narrow directory');
+ assert.equal(await page.locator('#document-title').textContent(),'');
+ assert.equal(await page.locator('#document-body').textContent(),'');
+ assert.equal(await page.locator('.archive-navigator-window[aria-current]').count(),0);
  assert.equal(await page.locator('#archive-root-recent,#archive-root-continue').count(),0);
  assert.equal(await page.locator('#revisit-open').isVisible(),false);
  await eventually(async()=>{const status=await rpc(page,'PAIA_REVISIT_STATUS');return state==='return-new'?status.newInputs.count>0:status.newInputs.count===0;},`retained Revisit service reaches ${state}`);

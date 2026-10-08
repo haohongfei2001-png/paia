@@ -33,7 +33,7 @@ async function inspect(t,name,raw,c){const r=['records','blocks'].includes(name)
    if(r.kind==='topic'||r.kind==='section'){if(!await t.get('topics',r.topicId)){c.missing_memory_topic++;c.dangling_memory_authorization++;}}
    if(r.kind==='entry'&&!await t.get('thoughts',r.entryId))c.excluded_missing_entry++;
    if(r.kind==='input'&&(!await t.get('inputStates',r.inputId)||!await t.get('blocks',r.inputId)))c.excluded_missing_input++;
-   if(r.kind==='topic'&&!await t.get('meta',key('profile',r.profileId))){c.invalid_memory_profile_ref++;c.dangling_memory_authorization++;}
+   if(r.kind==='topic'&&r.profileId!=='default'&&!await t.get('meta',key('profile',r.profileId))){c.invalid_memory_profile_ref++;c.dangling_memory_authorization++;}
    if(r.kind==='profile'&&!await t.get('meta','memory:config'))c.invalid_memory_profile_ref++;
   }
 

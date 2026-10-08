@@ -60,5 +60,28 @@
     "organize": 16.089
   },
   "existingTotalSeconds": 677.097,
-  "newFixtureSeconds": "NOT_YET_MEASURED"
+  "newFixtureSeconds": "NOT_YET_MEASURED",
+  "d7Scope": "The old candidate marker and visual receipts remain historical. Current full certification retains these complete owner files with explicitly labelled synthetic fixture/current held-route names.",
+  "d7Current": {
+    "uir-03-ai-presentation-chrome-e2e.test.mjs": [
+      "D7 retired worker launch cannot create pending work or replace saved AI (release)",
+      "D7 retired worker launch cannot create pending work or replace saved AI (source)",
+      "UIR-03 saved Organized presentation remains readable and editable while retired Provider commands refuse in source and release",
+      "VS-05 long Topic remains interactive across refused AI, navigation and reduced motion in source and release"
+    ],
+    "ux-r5-ai-organize-chrome-e2e.test.mjs": [
+      "UX-R5 ON-01 Local-only and external-access refusal cannot authorize a Provider",
+      "UX-R5 ON-01 Original and saved AI remain readable; switching never generates",
+      "UX-R5 ON-01 historical Source purge invalidates saved source-bound AI without regeneration",
+      "UX-R5 ON-01 unavailable first generation cannot start or reopen a Topic after leaving"
+    ],
+    "uir-03-ai-candidate-chrome-e2e.test.mjs": [
+      "D7 saved candidate preserves literal text and reading preferences without approval controls (release)",
+      "D7 saved candidate preserves literal text and reading preferences without approval controls (source)",
+      "UIR-03 saved candidate stays distinct and read-only; current edits make it stale without adoption in source and release",
+      "VS-05 all six authored AI lists and deliberately empty overview survive hidden panes in source and release",
+      "VS-05 saved candidate and source evidence survive refused generation and human edits in source and release"
+    ]
+  },
+  "consumerRetirement": "Current owner decision retires provider launches and candidate approval. Historical names stay in before/after; current cases retain saved content, refusal, version and privacy coverage."
 }

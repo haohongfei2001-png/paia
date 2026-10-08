@@ -11,7 +11,7 @@ test('CPV1-02.6 Reader and Archive keep long multilingual content, focus, 200% s
   const p=h.archive;
   await p.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
-  await eventually(()=>p.locator('#onboarding-skip').isVisible());await p.locator('#onboarding-skip').click();
+  assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank; optional history import belongs to Settings');
   const title='跨语言长标题 Chinese English 👩‍💻 '.repeat(12),body='中文段落与 emoji 👩‍💻🚀\n```js\nconst retained = "code";\n```\nEnglish paragraph '.repeat(32);
   await h.open({id:'cpv1-026-a11y',title,base:1609459200,messages:[{id:'cpv1-026-input',text:body}]});
   await eventually(async()=>(await h.state()).records.some(row=>row.originalText===body),'synthetic long text is captured unchanged');

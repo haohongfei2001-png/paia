@@ -23,9 +23,9 @@ test('CPV1-01.4 storage pressure gives one safe next action without hiding the l
       await page.evaluate(()=>chrome.storage.local.set({'paia-test-recovery-pulse':Date.now()}));
       await eventually(async()=>await page.locator('#recovery-card').isVisible());
       assert.match(await page.locator('#recovery-title').textContent(),/本机空间不足/);
-      assert.match(await page.locator('#recovery-detail').textContent(),/先打开 PAIA 导出备份/);
-      assert.equal(await page.locator('#recovery-action').textContent(),'打开 PAIA 备份');
-      assert.equal(await page.locator('#open-archive').isEnabled(),true);
+      assert.match(await page.locator('#recovery-detail').textContent(),/检查本机可用空间.*保留当前安装和资料/);
+      assert.equal(await page.locator('#recovery-action').textContent(),'打开 PAIA 核对');
+      assert.equal(await page.locator('#open-archive').isEnabled(),true);assert.doesNotMatch(await page.locator('#recovery-card').textContent(),/导出|生成备份/);
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
       assert.ok(overflow<=2,`320px popup recovery has no horizontal overflow: ${overflow}`);
       assert.deepEqual(h.errors,[]);
@@ -58,7 +58,7 @@ test('CPV1-01.4 archive read failure retains a bounded retry and hides raw error
       assert.doesNotMatch(await page.locator('body').textContent(),/SYNTHETIC_PRIVATE_DETAIL/);
       await page.locator('#recovery-action').click();
       await eventually(async()=>!(await page.locator('#recovery-card').isVisible()));
-      assert.equal(await page.locator('#open-archive').isEnabled(),true);
+      assert.equal(await page.locator('#open-archive').isEnabled(),true);assert.doesNotMatch(await page.locator('#recovery-card').textContent(),/导出|生成备份/);
       assert.deepEqual(h.errors,[]);
     } finally { await h?.close(); }
   });

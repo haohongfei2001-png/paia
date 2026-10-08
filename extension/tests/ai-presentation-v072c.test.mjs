@@ -2,7 +2,7 @@ import {reviewAndAdoptFirstAI} from './harness/ai-reviewed.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {completeFixture,response,success,rows,meta} from './harness/original-complete.mjs';
-import {DeepSeekOrganizerProvider} from '../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider} from './harness/historical-provider.mjs';
 import {AIPresentationRunner,aiPresentationStatus,editAIPresentation,validateAIPresentation} from '../core/organizer/ai-presentation.js';
 import {inputEdit} from './harness/thought-m1.mjs';
 export function synthesis(request){const ids=request.inputs.map(x=>x.ref);return {topicId:request.topicCandidates[0].id,blockSummary:'虚构主题的理解逐步清晰',currentView:'用小实验验证想法，保留变化过程。',keyInformation:[{text:'这是有原文依据的虚构信息。',evidenceEntryIds:ids}],preferences:[],decisions:[{text:'先保留证据。',evidenceEntryIds:ids}],judgments:[],openQuestions:[],possibleEvolution:[],evidenceEntryIds:ids};}

@@ -8,9 +8,7 @@ async function consent(page){
   await action.waitFor({state:'visible'});
   await eventually(async()=>!(await action.isDisabled()),'consent action is available');
   await action.click();
-  await eventually(()=>page.locator('#onboarding-skip').isVisible(),'optional history onboarding appears');
-  await page.locator('#onboarding-skip').click();
-  await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding closes');
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'blank root has no history onboarding');
 }
 
 async function openArchiveMenu(page){
@@ -21,15 +19,7 @@ async function openArchiveMenu(page){
   return trigger;
 }
 
-async function download(page,format){
-  await openArchiveMenu(page);
-  const pending=page.waitForEvent('download');
-  await page.locator(`#archive-root-export-${format}`).click();
-  const item=await pending;
-  return readFile(await item.path(),'utf8');
-}
-
-test('UIS-01 quiets Archive root and consolidates history/export actions without changing export semantics',{timeout:120000},async()=>{
+test('UIS-01 quiets Archive root and keeps history reachable while retired exports refuse without side effects',{timeout:120000},async()=>{
   let h;
   try{
     h=await FakeChatGPT.start({onboarding:true});
@@ -43,7 +33,7 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     ]});
     await eventually(async()=>(await h.state()).records.length===2,'synthetic Archive records captured');
     await page.bringToFront();
-    await eventually(async()=>await page.locator('.conversation-document').count()===2,'Archive root has both documents');
+    await eventually(async()=>await page.locator('.archive-navigator-group-toggle').count()>0,'Archive directory has captured content');
 
     assert.equal(await page.locator('.core-loop-intro').isVisible(),false,'redundant Archive intro is hidden');
     assert.equal(await page.locator('#core-loop-browse-title').count(),0,'Browse by source heading is removed');
@@ -54,19 +44,42 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     assert.equal(await page.locator('#revisit-open').isVisible(),false,'Revisit does not add root chrome');
 
     const trigger=await openArchiveMenu(page);
-    assert.equal(await trigger.getAttribute('aria-haspopup'),'menu');
+    assert.deepEqual(await trigger.evaluate(node=>({tag:node.tagName,parent:node.parentElement.tagName,popup:node.getAttribute('aria-haspopup')})),{tag:'SUMMARY',parent:'DETAILS',popup:null},'Archive actions use a native disclosure that also contains the source chooser');
+    assert.equal(await page.locator('#archive-root-overflow .archive-root-overflow-actions').getAttribute('role'),'group');
     await eventually(async()=>await trigger.getAttribute('aria-expanded')==='true','overflow announces expanded state');
     await page.locator('#archive-root-history').waitFor({state:'visible'});
-    await page.locator('#archive-root-export-json').waitFor({state:'visible'});
-    await page.locator('#archive-root-export-markdown').waitFor({state:'visible'});
+    assert.equal(await page.locator('#archive-root-export-json,#archive-root-export-markdown').count(),0);
+    await page.locator('#archive-source-scope').focus();await page.keyboard.press('ArrowDown');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-source-scope','native source selection keeps its own arrow-key behavior');
+    await page.locator('#archive-source-scope').selectOption('');
+    const actionKeys=()=>page.locator('#archive-root-overflow .archive-root-overflow-actions button').evaluateAll(nodes=>nodes.map(node=>node.id||node.dataset.view));
+    assert.deepEqual(await actionKeys(),['filter-recent-open','revisit','archive-root-history'],'SET2 contextual actions keep their explicit order and single owners');
+    const order=page.locator('#archive-order-mode');await eventually(async()=>!await order.isDisabled(),'source-order control is ready');
+    assert.equal(await order.inputValue(),'paia');await order.focus();await page.keyboard.press('ArrowUp');
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-order-mode','native order selection keeps its own arrow-key behavior');
+    assert.equal(await order.inputValue(),'paia','ArrowUp at the first native option does not enter the action list or change the setting');
+    const activeAction=()=>page.evaluate(()=>document.activeElement?.id||document.activeElement?.dataset.view);
     await trigger.focus();await page.keyboard.press('ArrowDown');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-history','arrow navigation enters the first menu action');
+    assert.equal(await activeAction(),'filter-recent-open','arrow navigation enters the first contextual action');
+    for(const expected of ['revisit','archive-root-history','filter-recent-open']){await page.keyboard.press('ArrowDown');assert.equal(await activeAction(),expected,'ArrowDown visits each action and wraps');}
+    await page.keyboard.press('ArrowUp');assert.equal(await activeAction(),'archive-root-history','ArrowUp wraps to the retained history action');
+    await page.keyboard.press('Home');assert.equal(await activeAction(),'filter-recent-open','Home reaches the first action');
     await page.keyboard.press('End');
-    assert.equal(await page.evaluate(()=>document.activeElement?.id),'archive-root-export-markdown','keyboard can reach the final export action');
+    assert.equal(await activeAction(),'archive-root-history','End still reaches the retained history action');
     await page.keyboard.press('Escape');
     await eventually(async()=>!(await page.locator('#archive-root-overflow').evaluate(el=>el.open)),'Escape closes Archive action menu');
     assert.equal(await page.evaluate(()=>document.activeElement?.closest('details')?.id),'archive-root-overflow','Escape returns focus to Archive overflow control');
+    assert.equal(await trigger.evaluate(node=>document.activeElement===node),true,'Escape returns focus to the exact disclosure trigger');
 
+    await openArchiveMenu(page);await page.locator('#filter-recent-open').click();
+    await eventually(()=>page.locator('#filter-recent-dialog').evaluate(node=>node.open),'moved filter discovery opens its existing dialog');
+    await page.locator('#filter-recent-close').click();await eventually(()=>page.locator('#filter-recent-dialog').isHidden(),'filter discovery closes normally');
+    assert.equal(await page.locator('#filter-recent-open').evaluate(node=>document.activeElement===node),true,'native dialog close returns focus to its filter trigger');
+    await page.keyboard.press('Escape');await eventually(async()=>!await page.locator('#archive-root-overflow').evaluate(node=>node.open),'dismiss filter menu before reopening another action');
+    await openArchiveMenu(page);await page.locator('#archive-root-overflow [data-view="revisit"]').click();
+    await eventually(()=>page.locator('#revisit-panel').isVisible(),'moved Revisit entry reaches its existing owner');
+    assert.equal(await page.locator('#archive-root-overflow').evaluate(node=>node.open),false,'leaving Archive closes its contextual menu');
+    await page.locator('.sidebar [data-view="library"]').click();await eventually(()=>page.locator('#collection-panel').isVisible(),'return to Archive before retained history flow');
     await openArchiveMenu(page);
     await page.locator('#archive-root-history').click();
     await eventually(()=>page.locator('#history-dialog').evaluate(el=>el.open),'history completion remains reachable from overflow menu');
@@ -78,27 +91,12 @@ test('UIS-01 quiets Archive root and consolidates history/export actions without
     await page.locator('[data-settings-group="data"]').click();
     await eventually(()=>page.locator('#r6-source-records').isVisible(),'Data & devices shows Source Records entry');
     assert.equal(await page.locator('#archive-root-overflow').isVisible(),false,'Archive overflow is not exposed in Settings');
-    assert.equal(await page.locator('#r6-complete-export').isVisible(),true,'complete export remains a separate Settings surface');
-    assert.match(await page.locator('#r6-complete-export').textContent(),/完整导出/,'complete export keeps its distinct identity');
-    assert.match(await page.locator('#r6-source-records').textContent(),/不是完整导出/,'Source Records explains that current-scope export is not complete export');
-
+    assert.equal(await page.locator('#r6-complete-export').count(),0,'complete export implementation has no UI owner');
     await page.locator('#r6-source-records button').click();
     await eventually(()=>page.locator('#collection-panel').isVisible(),'Source Records root opens');
     await page.locator('#scope-search').fill('UIS01_EXPORT_FILTER_A');
     await eventually(async()=>await page.locator('.conversation-document').count()===1,'Source Records filter narrows the current scope');
-    const json=JSON.parse(await download(page,'json'));
-    assert.equal(json.format,'personal-ai-input-archive');
-    assert.equal(json.schemaVersion,2);
-    assert.equal(json.recordCount,1,'JSON export preserves current Source Records filter semantics');
-    assert.equal(json.records[0].originalText,'UIS01_EXPORT_FILTER_A 只用于档案动作测试。');
-    assert.ok(json.records[0].capturedAt,'raw export still includes capture time evidence');
-    assert.ok(Object.hasOwn(json.records[0],'sourceSentAt'),'raw export still includes source-send-time field');
-
-    const markdown=await download(page,'markdown');
-    assert.match(markdown,/UIS01_EXPORT_FILTER_A/,'Markdown export remains reachable from the same overflow menu');
-    assert.doesNotMatch(markdown,/UIS01_EXPORT_FILTER_B/,'Markdown export preserves the current Source Records filter');
-    assert.match(markdown,/发送时间:/);
-    assert.match(markdown,/捕获时间:/);
+    const before=await h.state();let downloads=0;page.on('download',()=>downloads++);for(const type of ['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_MEMORY_SHARE']){const result=await page.evaluate(type=>chrome.runtime.sendMessage({type}),type);assert.equal(result.error,'FEATURE_UNAVAILABLE');}assert.deepEqual(await h.state(),before,'retired export requests preserve all archive data');assert.equal(downloads,0);
 
     assert.equal(h.deepSeekRequests.length,0,'UIS-01 navigation/import/export entry changes invoke no Provider');
     assert.equal(h.extensionNetworkRequests,0,'UIS-01 makes no extension external request');

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,conversation,eventually} from './harness/fake-chatgpt.mjs';
 
 async function consent(page){
@@ -32,7 +33,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
   await first.evaluate(el=>{const range=document.createRange();range.setStart(el.firstChild,0);range.setEnd(el.firstChild,Math.min(8,el.firstChild.length));getSelection().removeAllRanges();getSelection().addRange(range);});
   await eventually(()=>p.locator('.reader-selection').isVisible());
-  assert.deepEqual(await p.locator('.reader-selection button').allTextContents(),['复制所选文字','加入主题','加入本次材料','更多']);
+  assert.deepEqual(await p.locator('.reader-selection button').allTextContents(),['复制所选文字','加入主题','更多']);
   await p.locator('.reader-selection').getByRole('button',{name:'更多'}).click();
   assert.equal(await p.getByRole('menuitem',{name:'复制这条输入'}).count(),1);
   await p.getByRole('menuitem',{name:'从档案移除'}).click();
@@ -89,7 +90,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   await openCapturedReader(p);
   const first=p.locator('.library-prose').first();await first.focus();await first.scrollIntoViewIfNeeded();
   const firstId=await first.getAttribute('data-edit-id');
-  await p.locator('#scope-search').fill('CPV1_MATCH');
+  await p.locator('#reader-scope-search').fill('CPV1_MATCH');
   await eventually(async()=>await p.locator('.document-search-hit').count()===2,'both mounted and unmounted matches are indexed');
   await p.locator('#document-search-match-next').click();
   await eventually(async()=>await p.locator('#document-search-status').textContent().then(t=>t.includes('已定位 1/2')));
@@ -98,7 +99,7 @@ test('CPV1-02.4 conversation search steps into unmounted text and close restores
   await eventually(async()=>await p.locator('.library-prose').filter({hasText:'Synthetic text 100'}).isVisible(),'next match opens unmounted body');
   await p.locator('#document-search-close').click();
   await eventually(async()=>await p.locator(`[data-edit-id="${firstId}"]`).isVisible(),'closing search restores the prior reading Input');
-  assert.equal(await p.locator('#scope-search').inputValue(),'');
+  assert.equal(await p.locator('#reader-scope-search').inputValue(),'');
   assert.equal(await p.locator('#document-search-results').isVisible(),false);
   assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
@@ -112,7 +113,7 @@ test('VS-04 search positions a lexical hit inside a long Input without mutating 
   const c=conversation('vs04-long-search');c.messages=[{id:'vs04-long-search-input',text:body}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await openCapturedReader(p);
-  await p.locator('#scope-search').fill('UNIQUE_LEXICAL_TARGET');
+  await p.locator('#reader-scope-search').fill('UNIQUE_LEXICAL_TARGET');
   await eventually(async()=>await p.locator('.document-search-hit').count()===1,'long Input is indexed');
   await p.locator('.document-search-hit').click();
   await eventually(async()=>p.evaluate(async()=>{
@@ -193,7 +194,7 @@ test('VS-04 direct Input edit stays traceable through search, Source and restore
 test('VS-04 current-document search saves a live edit before indexing it',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('vs04-search-during-edit');c.messages=[{id:'vs04-search-edit-input',text:'Original search body'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
@@ -202,7 +203,7 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
   const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
   const id=await prose.getAttribute('data-edit-id'),changed='中文 🧭 code const searchDuringEdit = 42; UNIQUE_VS04_LIVE_EDIT';
   await prose.fill(changed);
-  await p.locator('#scope-search').fill('UNIQUE_VS04_LIVE_EDIT');
+  await p.locator('#reader-scope-search').fill('UNIQUE_VS04_LIVE_EDIT');
   await eventually(()=>p.locator('.document-search-hit').count().then(n=>n===1),'the live edit is searchable');
   assert.equal(await p.locator('.document-search-hit').first().getAttribute('data-input-id'),id);
   assert.equal((await h.state()).library.blocks.find(b=>b.id===id)?.libraryText,changed);
@@ -214,7 +215,7 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
 test('VS-04 undo survives navigation back to the same Reader only while revisions match',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
-  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);await p.locator('#onboarding-skip').click();
+  const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('vs04-undo-after-navigation');c.messages=[{id:'vs04-undo-input',text:'Source before edit'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
@@ -242,11 +243,19 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
  const h=await FakeChatGPT.start({launchThroughPort:true});
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);
+  // Observe the actual modal and invalidation boundary without changing admission.
+  await p.evaluate(()=>{
+   const dialog=document.getElementById('info-dialog'),events=[];
+   const note=(event,cause=null)=>{if(events.length===32)events.shift();events.push({event,cause,open:dialog.open,surface:dialog.dataset.readingSurface||null});};
+   globalThis.readerPurgeImeTrace={events,note};
+   chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED')note('archive-changed',typeof message.cause==='string'?message.cause.slice(0,80):null);});
+   new MutationObserver(()=>note('modal-open-attribute')).observe(dialog,{attributes:true,attributeFilter:['open']});dialog.addEventListener('close',()=>note('modal-close'));note('armed');
+  });
   // CDP-port Chrome uses the host locale, unlike the persistent-context harness.
   // Exercise the complete IME safety journey in explicit English on every host.
   const locale=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'en'}}));assert.equal(locale.ok,true);
   await eventually(()=>p.evaluate(()=>document.documentElement.lang==='en'),'existing English preference applies');
-  await p.locator('#onboarding-skip').click();
+  assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('cpv1-purge-ime');c.messages=[{id:'cpv1-purge-ime-input',text:'Synthetic source kept'}];
   await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();
@@ -277,7 +286,9 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
   const prose=p.locator('.library-prose').first();
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
+  await p.evaluate(()=>readerPurgeImeTrace.note('before-original-click'));
   await p.getByRole('menuitem',{name:/^(查看原始内容|View original content)$/}).click();
+  await p.evaluate(()=>readerPurgeImeTrace.note('after-original-click'));
   await p.locator('#info-dialog').waitFor({state:'visible'});
   assert.equal(await p.locator('#info-content .source-original').innerText(),'Synthetic source kept','Original displays the actual admitted immutable Source while IME remains unfinished');
   assert.equal(await p.locator('#info-content button.danger').count(),0,'Original admits no destructive action');
@@ -289,7 +300,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
-  await p.locator('#scope-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
+  await p.locator('#reader-scope-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await eventually(async()=>/请先完成并保存当前输入修改|Finish and save the current Input edit/.test(await p.locator('#document-search-status').textContent()),'search waits for unfinished IME edit');
   assert.equal(await p.locator('.document-search-hit').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
@@ -305,5 +316,9 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal(await prose.isVisible(),true,'navigation preserves the unfinished Reader edit');
   assert.equal(await prose.textContent(),'未完成的输入');
   assert.deepEqual(h.errors,[]);
+ }catch(error){
+  const observation=await h.archive.evaluate(()=>({events:globalThis.readerPurgeImeTrace?.events||[],dialogOpen:document.getElementById('info-dialog')?.open===true,readerProseCount:document.querySelectorAll('.library-prose').length,activeTag:document.activeElement?.tagName||null})).catch(()=>({observation:'unavailable'}));
+  try{await mkdir(new URL('../work/reader-purge-ime/',import.meta.url),{recursive:true});await writeFile(new URL('../work/reader-purge-ime/failure-state.json',import.meta.url),JSON.stringify(observation));}catch{}
+  throw error;
  }finally{await h.close();}
 });

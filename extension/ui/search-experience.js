@@ -1,15 +1,5 @@
 import {element} from './common.js';
 
-// `data-view` is the primary-navigation contract. Auxiliary CTAs may navigate to
-// a view, but they must not masquerade as another nav item (it also makes test
-// selectors and aria-current updates unambiguous).
-if(typeof document!=='undefined'){
- const settingsCTA=document.getElementById('thought-empty-settings');
- if(settingsCTA?.dataset.view==='settings'){
-  settingsCTA.removeAttribute('data-view');
-  settingsCTA.addEventListener('click',()=>document.querySelector('.sidebar [data-view="settings"]')?.click());
- }
-}
 // Literal text only. Reading highlights use CSS ranges, never mutate editable DOM.
 export function highlightText(node,text,query){node.replaceChildren();const value=String(text||''),needle=String(query||'').trim().toLocaleLowerCase();let from=0,found;if(!needle){node.textContent=value;return;}while((found=value.toLocaleLowerCase().indexOf(needle,from))>=0){node.append(document.createTextNode(value.slice(from,found)),element('mark','search-match',value.slice(found,found+needle.length)));from=found+needle.length;}node.append(document.createTextNode(value.slice(from)));}
 export function highlightReading(root,query){if(!globalThis.CSS?.highlights||!globalThis.Highlight)return;CSS.highlights.delete('paia-search');const q=String(query||'').trim().toLocaleLowerCase();if(!q||!root)return;const ranges=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())&&ranges.length<500){if(node.parentElement.closest('[hidden],button,select'))continue;const text=node.data.toLocaleLowerCase();let from=0,index;while((index=text.indexOf(q,from))>=0&&ranges.length<500){const range=new Range();range.setStart(node,index);range.setEnd(node,index+q.length);ranges.push(range);from=index+q.length;}}CSS.highlights.set('paia-search',new Highlight(...ranges));}
@@ -58,7 +48,7 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
  setTimeout(attempt,0);
 }
 
-export function wireSearchKeyboard(input,results,{listenInput=true,onScrollIntent=()=>{}}={}){if(listenInput)input.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!e.isComposing&&e.keyCode!==229&&e.key==='ArrowDown'){const first=results.querySelector('button:not(:disabled)');if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll('button:not(:disabled)')].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
+export function wireSearchKeyboard(input,results,{listenInput=true,onScrollIntent=()=>{},selector='button:not(:disabled)'}={}){if(listenInput)input.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!e.isComposing&&e.keyCode!==229&&e.key==='ArrowDown'){const first=results.querySelector(selector);if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll(selector)].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
 // A single input listener chooses only the admitted, visible page. Result
 // lists keep their reviewed keyboard behavior without duplicate input owners.
 export function wireScopeSearchKeyboard(input,pages){

@@ -1,4 +1,8 @@
 const CURRENT_BROWSER=new Set([
+ 'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
+ 'context-cards-chrome-e2e.test.mjs',
+ 'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs',
+ 'consumer-cleanup-chrome-e2e.test.mjs',
  'desktop-vnext-context-chrome-e2e.test.mjs',
  'capture-foundation-chrome-e2e.test.mjs',
  'release-certification-round48-chrome-e2e.test.mjs',
@@ -12,6 +16,7 @@ const CURRENT_BROWSER=new Set([
  'uir-03-preview-mask-chrome-e2e.test.mjs'
 ]);
 const EXPERIMENTAL=new Set([
+ 'settings-touch-diagnostic-chrome-e2e.test.mjs',
  'cpv1-07-lab-cadence.test.mjs',
  'cpv1-07-official-minilm.test.mjs',
  'cpv1-07-public-model-provenance.test.mjs',
@@ -48,27 +53,58 @@ export function group(file) {
  * and1 finishes8m45s; its complete historical17 took6m11s. Route it to1,
  * preserving every case/fixture and the unchanged18-minute job limit.
  */
-export function testShard(file, position, total, category) {
+function priorStage3ATestShard(file, position, total, category) {
+ const name=file.split('/').at(-1),root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
+ // Full37648849130 exhausted shard6 while Thought shared the same18-minute
+ // budget with Context and Settings. Isolate this whole file on7 and retain
+ // every prior six-way placement, fixture, case and deadline exactly.
+ // Full37684301966 shard4 used764s plus280s font setup and was cancelled
+ // at job completion. Move its complete213s retained Root file to shard7,
+ // which finished in553s total. Keep all75 files and the18-minute budget.
+ // Main 37691533146 exhausted shard1 twice; move this complete ~258s file to shard4.
+ // Preserve every case, all older-width routes and the unchanged 18-minute budget.
+ if(category==='browser E2E'&&total===7&&name==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 4;
+ if(category==='browser E2E'&&total===7)return ['ux-r3-thought-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs'].includes(name)?7:priorStage3ATestShard(file,position,6,category);
+ // Full37554248921: shard3 took561s of1080s. Add the whole two-case
+ // Root journey there, preserving every prior73 placement and every timeout.
+ if(category==='browser E2E'&&[4,5,6].includes(total)){if(name===root)return 3;if(name>root)position--;}
+ return previousTestShard(file,position,total,category);
+}
+function previousTestShard(file, position, total, category) {
  const name=file.split('/').at(-1),purge='cpv1-02-dvn-purge-chrome-e2e.test.mjs',removal='cpv1-02-dvn-removal-chrome-e2e.test.mjs',search='cpv1-02-dvn-search-chrome-e2e.test.mjs',directEdit='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs';
  // Full37134318053 exhausted2/4's18-minute budgets. Preserve all65
  // other placements; move complete Thought ownership to6 and the measured
  // Content/Years pair onto5's spare capacity. No file/case is split or skipped.
  if(category==='browser E2E'&&total===6){
+  // Full37554001210 exhausted5 after both Context cases passed;6 took670s.
+  // Move only the complete Context file (~182s) to6, preserving the prior72.
+  if(name==='context-cards-chrome-e2e.test.mjs')return 6;
+  // Full37323881161 exhausted3 while Settings alone took400s and6 took331s.
+  // Move this complete file to6; keep all cases and the same18-minute budgets.
+  if(name==='uir-04-settings-chrome-e2e.test.mjs')return 6;
   if(name==='ux-r3-thought-chrome-e2e.test.mjs')return 6;
   if(['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs'].includes(name))return 5;
-  return testShard(file,position,5,category);
+  return previousTestShard(file,position,5,category);
  }
  // D5 expands native/visual direct editing by more than200s. Keep every
  // other certified4-way placement; isolate this whole file on a fifth job.
- if(category==='browser E2E'&&total===5)return name===directEdit?5:testShard(file,position,4,category);
+ if(category==='browser E2E'&&total===5)return name===directEdit?5:previousTestShard(file,position,4,category);
  // Preserve the exact previously certified 59-file routing when inserting Q4.
  // Full36776666083 browser2 took9m16s versus1=16m04,3=14m31,4=12m46.
  // Put the complete six Source/release purge journeys on2; retain all cases
  // and the unchanged18-minute budget, without shifting every later file.
  if(category==='browser E2E'&&total===4){
-  // Stage 3A is one complete additional file; retain every prior placement.
-  if(name==='cpv1-12-next-prompt-chrome-e2e.test.mjs')return 3;
-  if(name>'cpv1-12-next-prompt-chrome-e2e.test.mjs')position--;
+  // CTX4-05 adds one complete native source/release owner on4. Compensate
+  // here once, after the6->5->4 fallthrough, to preserve all73 old routes.
+  if(name==='cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')return 4;
+  if(name>'cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs')position--;
+  // CTX4 adds its whole source/release journey without shifting old placements.
+  if(name==='context-cards-chrome-e2e.test.mjs')return 1;
+  if(name>'context-cards-chrome-e2e.test.mjs')position--;
+  // Consumer cleanup adds one complete source/release journey to shard1.
+  // Subtract only its insertion so every preceding 71-file route is retained.
+  if(name==='consumer-cleanup-chrome-e2e.test.mjs')return 1;
+  if(name>'consumer-cleanup-chrome-e2e.test.mjs')position--;
   if(name==='cpv1-09-prompt-surface-chrome-e2e.test.mjs')return 3;
   if(name>'cpv1-09-prompt-surface-chrome-e2e.test.mjs')position--;
   // Keep all existing placements stable when adding the complete VS09 owner.
@@ -113,4 +149,11 @@ export function testShard(file, position, total, category) {
  if(category==='browser E2E'&&total===4
     &&file.split('/').at(-1)==='cpv1-07-historical-comparison-chrome-e2e.test.mjs')return 1;
  return position%total+1;
+}
+
+// Admit the complete Stage3A owner without reindexing any preceding route.
+export function testShard(file,position,total,category){
+ const name=file.replaceAll('\\','/').split('/').pop(),next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===next)return 3;if(name>next)position--;}
+ return priorStage3ATestShard(file,position,total,category);
 }

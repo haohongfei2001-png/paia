@@ -1,3 +1,11 @@
+# Current restore-only contract
+
+Backup-file generation, all content/statistics/Context exports and dedicated sharing are cancelled. Their old commands must refuse without side effects; no Settings entry remains. Existing backup files, content and credentials are not automatically deleted.
+
+Existing-file restore remains: select a file, validate its supported format and integrity, preview its effect, then explicitly confirm. Restore must preserve current data on failure, enforce deletion/tombstone and revision protections, and never reactivate external grants, restore credentials or invoke AI. Supported restore modes and size limits follow the current format validator and acceptance coverage.
+
+The version-specific sections below document historical formats and compatibility, including retired creation paths. They are decoder/migration history, not current backup-generation features or development tasks.
+
 ## UX-R4 compatibility (MIG-07/08/10)
 
 Existing Memory config gains a strictly validated optional boolean `localOnly`, defaulting only when absent. Backup preserves its value, the independent `externalAccess` value, Profiles and exact exclusions. Old false connection access remains false; restore creates no consumers or Grants. The new fixed manual materials, revisions/spans selected for this task, output generations, overrides, redactions and note remain ephemeral and never enter Backup. Old Preview identity is not migrated into manual authorization. Unknown config fields/types remain rejected; format version, physical schema and existing size limits are unchanged.

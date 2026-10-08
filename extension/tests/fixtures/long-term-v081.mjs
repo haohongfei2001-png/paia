@@ -1,7 +1,7 @@
 import {aiCandidateKey} from '../../core/organizer/ai-candidate.js';
 // Entirely synthetic. Usable in Node fake-IDB or an isolated Chrome worker.
 import {AIPresentationRunner} from '../../core/organizer/ai-presentation.js';
-import {DeepSeekOrganizerProvider} from '../../core/organizer/deepseek.js';
+import {DeepSeekOrganizerProvider} from '../harness/historical-provider.mjs';
 import {AI_LIST_FIELDS} from '../../core/organizer/ai-contract.js';
 export const longTermNames=['PAIA 产品设计','ChatGPT 会话与上下文管理','会话窗口问题','学习实验','阅读与笔记','园艺观察','旅行准备','健康作息','写作练习','职业选择','家庭沟通','语言学习','研究方法','财务记录','空间设计','时间安排','代码质量','界面体验','数据保护','复盘习惯','音乐欣赏','摄影练习','运动计划','团队协作','工具选择','问题清单','生活记录','项目进度','创作方向','长期目标'];
 const op=()=>crypto.randomUUID(),generator={providerId:'fixture',providerVersion:'1',modelVersion:'synthetic-long-term',taskSchemaVersion:1,promptTemplateVersion:1,policyVersion:1};

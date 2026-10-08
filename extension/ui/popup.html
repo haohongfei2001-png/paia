@@ -4,21 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PAIA</title>
+  <link rel="icon" href="../icons/icon32.png">
+  <link rel="stylesheet" href="icons.css">
   <link rel="stylesheet" href="popup.css">
   <script type="module" src="popup.js"></script>
 </head>
 <body>
   <header>
     <img class="brand-mark" src="assets/paia-logo-32.png" width="32" height="32" alt="">
-    <div class="brand-copy"><h1>PAIA</h1><p class="eyebrow">PERSONAL AI ARCHIVE</p></div>
+    <h1>PAIA</h1>
   </header>
   <main>
-    <div class="status-row"><span class="status-dot" id="status-dot"></span><strong id="enabled-state">读取状态中…</strong><span class="local-tag">仅本机</span></div>
-    <div class="count"><strong id="record-count">—</strong><span>条已保存输入<span class="subtle">你的原始表达仍保留在本机</span></span></div>
+    <div class="capture-overview">
+      <div class="capture-summary">
+        <div class="status-row"><span class="status-dot" id="status-dot" aria-hidden="true"></span><strong id="enabled-state">读取状态中…</strong></div>
+        <div class="count"><strong id="record-count">—</strong><span>条已保存输入</span></div>
+      </div>
+      <button id="toggle-capture" class="quiet" type="button" disabled>暂停收录</button>
+    </div>
     <p id="first-use" hidden>默认关闭。阅读完整说明并主动同意后，才会收录已显示的 ChatGPT 用户文字。</p>
-    <button id="open-archive" class="primary" type="button">回到 PAIA <span aria-hidden="true">↗</span></button>
-    <button id="toggle-capture" class="secondary" type="button" disabled>暂停捕获</button>
     <p class="subtle" id="resume-note" hidden>恢复后，会补收当前已显示的普通聊天用户文字。</p>
+    <button id="open-archive" class="primary" type="button">打开 PAIA</button>
     <p class="error" id="error" role="alert" hidden></p>
     <section id="recovery-card" class="recovery-card" aria-labelledby="recovery-title" hidden>
       <h2 id="recovery-title"></h2>
@@ -26,9 +32,13 @@
       <button id="recovery-action" class="secondary" type="button"></button>
     </section>
     <section class="update-status" aria-labelledby="update-heading">
-      <h2 id="update-heading">PAIA 更新</h2>
-      <p id="update-message" role="status">正在读取当前版本…</p>
-      <button id="check-update" class="secondary" type="button">检查此安装的更新</button>
+      <h2 id="update-heading" class="visually-hidden">版本与更新</h2>
+      <div class="update-row">
+        <span id="update-version">正在读取版本…</span>
+        <button id="check-update" class="quiet" type="button">检查更新</button>
+      </div>
+      <p id="update-message" role="status" hidden></p>
+      <details id="update-details"><summary>更新方式</summary><p>仅检查此安装来源的更新；其他来源的版本需另行核对。不会自动重启或删除资料。</p></details>
     </section>
     <section class="update-status" aria-labelledby="next-heading">
       <h2 id="next-heading">当前回复建议</h2>
@@ -36,9 +46,6 @@
       <label><input id="next-enabled" type="checkbox" aria-describedby="next-explanation" disabled> 本次浏览器会话开启</label>
       <p id="next-state" class="subtle" role="status">默认关闭；与捕获暂停独立。</p>
     </section>
-    <details id="prompt-reuse-diagnostics"><summary>Prompt Reuse 诊断</summary><p id="diagnostic-prompt-reuse" role="status">Prompt Reuse：打开此区域时检查当前页面</p></details>
-    <details id="popup-internal-tools"><summary>捕获与本机工具</summary><p id="diagnostic-status">等待读取</p><p class="subtle" id="diagnostic-time"></p><p class="subtle" id="diagnostic-version"></p><p class="subtle" id="diagnostic-error"></p><p class="subtle" id="diagnostic-capture-health"></p><p id="diagnostic-structure">结构概览：暂无</p><p class="subtle">v0.6.2 Light Filter Coverage · 保留已验证的捕获规则。<a href="response-time.html" target="_blank" rel="noopener">打开响应时间诊断</a></p><p class="subtle"><a href="product-signals.html" target="_blank" rel="noopener">产品验证 / Passport</a></p></details>
   </main>
-  <footer>保存原话 · 本机优先 · 随时暂停</footer>
 </body>
 </html>

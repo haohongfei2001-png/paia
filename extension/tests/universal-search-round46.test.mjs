@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {UniversalSearchService,aiProjectionMatches,inputTimeline,contextReuseQuery} from '../core/universal-search.js';
-import {validateProductSignal} from '../core/product-signals.js';
+import {assertFeatureAvailable} from '../core/feature-availability.js';
 
 const inputPages=[
  {items:[{id:'i2',documentId:'d2',title:'Later',text:'Later PAIA product thought '+'.'.repeat(500),sourceSentAt:'2026-08-10T00:00:00Z',rank:2}],nextCursor:{phase:2,offset:9}},
@@ -40,10 +40,9 @@ test('search to Context creates only a bounded local retrieval query',()=>{
  assert.ok([...query].length<=1000);assert.match(query,/重点参考我以前的这段表达/);assert.match(query,/我现在想继续了解/);
 });
 
-test('Round 4.6 signals reject query text and object identifiers',()=>{
- assert.deepEqual(validateProductSignal({name:'universal_result_open',dimensions:{kind:'input'}}),{name:'universal_result_open',dimensions:{kind:'input'}});
- assert.equal(validateProductSignal({name:'universal_result_open',dimensions:{kind:'input'},query:'private'}),null);
- assert.equal(validateProductSignal({name:'context_prepare_from_search',dimensions:{kind:'thought',id:'private'}}),null);
+test('retired signals reject even old valid enum events without examining private payloads',()=>{
+ let reads=0;const signal=new Proxy({}, {get(){reads++;throw Error('must not inspect signal');}});
+ assert.throws(()=>assertFeatureAvailable({type:'PAIA_PRODUCT_SIGNAL',signal}),{code:'FEATURE_UNAVAILABLE'});assert.equal(reads,0);
 });
 
 test('Universal Search remains a read coordinator, not another persistence or network layer',()=>{

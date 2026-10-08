@@ -1,3 +1,5 @@
+import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
+import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects,assertNoContextSession} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -9,7 +11,7 @@ const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bott
 async function noRemovedControls(page){
   for(const selector of ['#universal-search-open','#thought-recent','#thought-organize-tools','#core-loop-browse-title'])assert.equal(await page.locator(selector).count(),0,selector+' cannot be recreated');
 }
-test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and explicit material selection',{timeout:180000},async()=>{
+test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit and retained Search while Context selection stays unavailable',{timeout:180000},async()=>{
   const h=await FakeChatGPT.start({onboarding:true});
   try{
     const page=h.archive;
@@ -40,28 +42,16 @@ test('UIS-04 cleanup survives locale/navigation changes and preserves Revisit an
       await pause(60);await noRemovedControls(page);
       assert.equal(await page.locator('#universal-search-dialog').isVisible(),false,'Settings shortcuts do not open the picker');
 await page.locator('.ux-settings-nav [data-settings-group="ai"]').click();
-assert.equal(await page.locator('#ux-settings-ai-group #organizer-reading-actions').count(),1,'the existing organizer has one Settings AI owner');
-assert.equal(await page.locator('#organizer-reading-actions').isVisible(),true);
-await eventually(()=>page.locator('#original-library-update').isVisible(),'single-pass organizer is reachable after bounded local status loads');
-await eventually(()=>page.locator('#original-library-update').isEnabled(),'the available single-pass action is not left in an unknown-status disabled state');
-assert.equal(h.deepSeekRequests.length,0,'loading Settings organizer status is not authorization');
-await page.locator('#organizer-batch-actions > summary').click();
-assert.equal(await page.locator('#bounded-original-start').isVisible(),true);
-assert.equal(await page.locator('#bounded-ai-start').count(),1,'the scoped AI action owner remains installed');
-assert.equal(await page.locator('#bounded-ai-start').isVisible(),false,'D3 cannot start AI organization from Settings without a concrete Topic');
-await page.locator('#bounded-original-start').click();
-await eventually(()=>page.locator('#library-dialog').isVisible(),'Settings reaches the unchanged bounded confirmation');
-assert.equal(await page.locator('#library-form [name="requests"]').inputValue(),'1');
-await page.locator('#library-dialog-close').click();
-await eventually(async()=>!(await page.locator('#library-dialog').isVisible()),'cancel leaves the Provider unauthorized');
-await page.locator('#organizer-batch-actions > summary').click();
-assert.equal(h.deepSeekRequests.length,0);
+assert.equal(await page.locator('#organizer-reading-actions,#original-library-update,#organizer-batch-actions,#bounded-original-start,#bounded-ai-start').count(),0,'retired organizing management is absent');
+assert.match(await page.locator('#settings-ai-context').textContent(),/外部连接尚未开放|not available/i);
+assert.equal(await page.locator('#membership-ai-service').count(),0,'there is no fake purchase or AI launch');assert.equal(await page.locator('#settings-context-open').count(),1,'one real local Context entry');
+assert.equal(h.deepSeekRequests.length,0,'opening membership never starts a provider request');
       await nav(page,'thoughts');
       await eventually(()=>page.locator('#thought-search').isVisible(),'Thought root is ready');
       assert.equal(await page.locator('input[type="search"]:visible').count(),1);
       assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false);
 assert.equal(await page.locator('#thought-panel #organizer-reading-actions').count(),0,'Thought root cannot own a collapsed AI organizer');
-assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,'Settings organizer stays outside the Thought root');
+assert.equal(await page.locator('#organizer-reading-actions').count(),0,'retired Settings organizer is absent from every root');
       await noRemovedControls(page);
       const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
       assert.ok(index.recent.some(item=>item.id===topic.id),'recent metadata survives presentation cleanup');
@@ -75,18 +65,16 @@ assert.equal(await page.locator('#organizer-reading-actions').isVisible(),false,
     await page.locator('.revisit-close').click();
     await eventually(()=>page.locator('#scope-search').isVisible(),'Revisit returns to Archive');
     assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root duplicate material launcher stays removed');
-    await page.locator('#primary-nav [data-view="memory"]').click();
-    await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material surface is available');
-    await page.getByRole('button',{name:'从档案选择',exact:true}).click();
-    await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'retained material selection still opens internal search');
+    await settleContextCapture(h);const before=await contextSafetySnapshot(page);await observeContextEffects(page);
+    await assertContextUnavailable(page);
+    assert.deepEqual(await contextSafetySnapshot(page),before,'unavailable navigation preserves stored data and authorization');
+    await openRetainedSearchComponent(page,{types:['input','thought','ai']});
     await page.locator('#universal-search-dialog input[type="search"]').fill('UIS04_KEEP_INTERNAL_MATERIAL');
-    await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'internal coordinator finds the synthetic input');
-    await page.locator('#universal-search-dialog .universal-context').click();
-    await eventually(async()=>await page.evaluate(async()=>{
-      const {getContextController}=await import(chrome.runtime.getURL('ui/context-workspace.js'));return getContextController()?.data?.items.length===1;
-    }),'explicit selection reaches the existing material tray');
-    await eventually(async()=>!await page.locator('#universal-search-dialog').isVisible(),'explicit selection closes the picker for the single Context workspace');
-    await eventually(()=>page.locator('#material-workbench').isVisible(),'selection returns to the same Context owner');
+    await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()===1,'retained component still finds the synthetic input');
+    await assertNoContextSession(page);
+    await page.locator('.universal-close').click();
+    await assertContextUnavailable(page,{navigate:false});
+    await assertNoContextEffects(page,h);
     await nav(page,'library');
     await eventually(()=>page.locator('#scope-search').isVisible(),'Archive scoped search remains reachable');
     await noRemovedControls(page);

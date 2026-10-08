@@ -19,8 +19,10 @@
   if(!open)return {orb,card};
   // Saved position owns the visible handle, never an invisible collapsed orb.
   // Project the complete attached surface into safe bands around the composer.
-  if(position){
-   const desired={x:position.x*(width-44),y:position.y*(height-44)},placements=[],preferredHeight=card?.h||(width<=400?340:350);
+  // A default/reset open card also needs lateral space when a tall composer
+  // leaves no vertical band. Use its default orb, never the cleared old offset.
+  if(position||!card){
+   const desired=position?{x:position.x*(width-44),y:position.y*(height-44)}:orb,placements=[],preferredHeight=card?.h||(width<=400?340:350);
    for(const [zoneLeft,zoneRight,zoneTop,zoneBottom]of [[8,width-8,8,form.top-16],[8,width-8,form.bottom+8,height-8],[8,form.left-16,8,height-8],[form.right+16,width-8,8,height-8]]){
     const left=Math.max(8,zoneLeft),right=Math.min(width-8,zoneRight),start=Math.max(8,zoneTop),end=Math.min(height-8,zoneBottom);
     if(right-left<w)continue;

@@ -1,562 +1,81 @@
 # Consumer UX Contract — PAIA Consumer Product v1
 
-This is an implementation contract derived from PRODUCT_INTENT_CONTRACT.md. It may evolve with real usability evidence, but it must not delete higher product intent.
+Current scoped Archive authority: **IAH-1.1, 2026-10-08**. [INPUT_ARCHIVE_INTERACTION_CONTRACT.md](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns behavior; [INPUT_ARCHIVE_HOME_UX.md](INPUT_ARCHIVE_HOME_UX.md) owns selected minimal Archive presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation and evidence. The [adoption ledger](INPUT_ARCHIVE_HOME_ADOPTION.md) explicitly excludes unselected B details.
 
-There is no mandatory standalone prototype phase. The production implementation is iterated until it satisfies this contract.
+## Complete retained UX contract
 
-## 1. Global product shell
+[UX_CONTRACT_PRE_ARCHIVE_HOME_2026-10-08.md](UX_CONTRACT_PRE_ARCHIVE_HOME_2026-10-08.md) is the exact prior file, blob `cdfc21ef5e507c40cbb38012d82f3ed5f0437aa8`. **Its entire nonconflicting requirements are incorporated**, including shared visual/typographic/accessibility roles, global loading/save/conflict/error behavior, Archive direct editing/source/version/import safeguards, all Thought/Context/Settings/Prompt and other unaffected surfaces. This overlay is not a substitute summary or permission to skip the full relevant baseline.
 
-Desktop primary navigation is fixed:
+Only conflicting Archive requirements are superseded as precisely recorded in [ADOPTION section 4](INPUT_ARCHIVE_HOME_ADOPTION.md#4-scoped-supersession-ledger), now correcting IAH-1.0 Main-only/Home/split-click rules. Frozen historical visuals/acceptance remain evidence for their original scope. No mandatory independent prototype phase is introduced.
 
-- Input Archive
-- Thought Library
-- AI Context
+## 1. Global product shell — Archive entry amendment
 
-Settings is low-frequency. Capture health is system status, not a dashboard destination. Revisit is retrieval/re-entry, not a new truth space.
+Primary product spaces remain Input Archive, Thought Library and AI Context, with low-frequency Settings. IAH adds no top-level destination. Wide Archive retains current Primary Nav | Archive navigator | Main, brand and geometry. Main is intentionally blank before content selection, not a new Find welcome page. Other spaces retain their own adopted composition and do not acquire an Archive navigator.
 
-Wide desktop uses a stable primary rail; Archive/Thought may add a contextual navigator; the Reader/workspace owns the remaining area. Compact desktop may compress navigation but must preserve object identity and back behavior. Tablet uses a sheet/panel navigator. Phone uses stacked navigation instead of squeezing desktop columns.
-
-Root pages must not keep empty navigator columns.
+Every primary-nav Archive click requests Home(all, empty query, no content/scope selection) after the existing editor leave guard. Explicit Back/Forward or explicit-route reload restores recorded context; it is not another fresh entry. A failed save preserves the current page/text rather than clearing Reader to satisfy navigation.
 
 ## 2. Visual language
 
-- system-font stack with reliable Chinese fallback;
-- long-form body optimized for serious reading;
-- restrained surfaces and borders;
-- metadata subordinate but legible;
-- one restrained accent family;
-- destructive color only for destructive actions;
-- no gratuitous decorative gradient/glow/glass or generic AI styling; restrained glass is allowed when it has a functional surface/adaptation role, including the approved Prompt Reuse overlay;
-- no dashboard statistics unless a real user task requires them;
-- no per-message card chrome when whitespace can provide structure.
-
-Use one shared component language: AppShell, PrimaryNav, SourceScope, ProjectTree, ConversationRow, TopicTile, ReaderHeader, ProseBlock, TimeStamp, ScopeSearch, SelectionToolbar, OverflowMenu, InspectorPanel, InlineStatus, ProgressRow, ReviewDiff, PermissionSummary, RecoverySheet.
-
-Do not create page-specific variants of the same search/menu/toast/dialog without a product reason.
+The complete predecessor section 2 applies unchanged, including shared semantic tokens, source fonts, quiet metadata, restrained controls, long-form reading, visible focus and reduced motion. Settings Consumer v2 and TL-PT1-UI-1.0 continue to control their respective spaces. Saved reading size/width choices are not overwritten by a new Home or a prototype metric. No separate Archive theme, glass search overlay, cards, thumbnails, tree connector lines or dashboard styling is adopted.
 
 ## 3. Global state behavior
 
-### Loading
-Keep already usable content visible. Delay skeleton/spinner until latency is perceptible. Later-page loading is local to the end of the list.
+The full previous loading/save/failure/partial/external-change/confirmation requirements remain. Existing content is not replaced by stale requests; durable acknowledgement precedes saved; IME and dirty drafts survive background changes and navigation failures. New IAH loading/error states do not weaken any of these guarantees.
 
-### Save
-Durable acknowledgement precedes "saved". Avoid per-keystroke success noise. If saving is slow, show a quiet local state.
-
-### Save failure
-Preserve current text. Provide retry and a safe copy/recovery path. Never overwrite unsaved text by re-reading the persisted version.
-
-### Partial/degraded
-Limit failure to the affected provider/feature. Existing local content remains readable/editable where safe. Give a user action, not epoch/hash/adapter jargon.
-
-### External changes
-Do not rebuild active editor DOM or break IME/selection. Preserve dirty state and offer compare/reconcile when needed.
-
-### Confirmation
-Use only for true destructive, restore or external-authorization risks. Normal reading, local copy, autosave and reversible removal remain low friction.
-
-## 4. Input Archive surfaces
+## 4. Input Archive surfaces — IAH-1.1
 
 ### A1 — Archive root
 
-Purpose: find prior expression using familiar source organization.
+ARCHIVE_HOME is the existing unselected shell/search/tree with blank Main. Default scope is all archives with no selected Source/Project/Conversation/Input. No previous Reader title/year/order/body appears. No Home heading, Welcome, Main global-search block, persistent P1/P3 hint, Recently viewed, suggestions, statistics, feed or automatic content selection.
 
-Default visible content:
-- current source scope;
-- one scope search;
-- collapsed Project groups;
-- unassigned conversations;
-- Conversation title;
-- short content cue;
-- latest reliable expression time.
-
-Unknown Project membership is distinct from confirmed unassigned.
-
-Do not add a permanent side dashboard, permanent material tray or duplicate explanatory headings.
-
-Opening a Conversation turns the same tree into the Navigator. Returning restores expansion/scroll.
-
-Low-frequency import/export/data actions live in overflow.
+Archive Search remains at the middle-column top with 搜索全部档案 when unrestricted; preserve its current size/style and accessible label. No duplicate same-scope field is added to Main. Existing contextual history import and actual-fault recovery remain reachable without a permanent maintenance toolbar. Normal no-selection is distinct from actual empty data or failed coverage.
 
 ### A2 — Project/Conversation Navigator
 
-Desktop Reader keeps this navigator available.
+Retain actual Source -> Project -> Conversation identity, current hierarchy, row targets, selected Conversation treatment, stable expansion/scroll and full-name wrapping. Project name and arrow stay one whole-row disclosure action. Expansion is local tree state and does not change query/search scope, select a Conversation or create a Main Browse page. BROWSE_SCOPE remains for explicit scope/return contexts, without a compulsory new visual surface.
 
-Requirements:
-- clear selected row;
-- stable Project collapse state;
-- stable Conversation identity through Project moves;
-- rename/membership updates affect only the relevant tree projection;
-- temporary evidence loss preserves last known state rather than inventing unassigned;
-- source-deleted state does not erase PAIA content.
-
-No second content search lives in the Navigator.
-
-Sorting may offer local deterministic order. "Source order" appears only when backed by reliable provider evidence.
+A distinct explicit supported Source/Project search-scope operation can retain query in SEARCH_RESULTS; prefer existing low-frequency controls. A new permanently visible scope selector is not approved. Preserve provider-qualified Project IDs, duplicate-title identity, last-known placement and source-deleted local content. Current membership copy remains; B M6 and the earlier mandatory 项目待确认 rewrite are not selected. Unknown and confirmed unassigned never merge into one fact. Real-end paging and honest empty/incomplete states remain required.
 
 ### A3 — Conversation Reader
 
-Purpose: view, think, directly edit and reuse one Conversation's user expression.
+Retain the existing continuous working-text Reader, title, every attributable time, sort/menu placement, direct editing, Input spacing and saved reading-size/width logic. Desktop retains the middle Archive field and existing Reader field with distinct scope/query; Reader's visible hint is 在此对话中查找. Opening an Input hit carries a temporary location highlight, not an automatic Reader-Find query, edit or Keep.
 
-Reader header:
-- current Conversation title;
-- current-scope search;
-- one ascending/descending order control;
-- overflow.
-
-The body is a continuous editable document. Date groups and concrete times remain visible but quiet. Source/provider is not repeated beside every paragraph.
-
-Do not keep permanent per-entry rows of copy/source/context buttons. Use native text selection plus a contextual toolbar for Copy / Add to Thought / Use with AI / More.
-
-Delete remains available using standard destructive semantics, not an X icon.
-
-Search:
-- one search for this Conversation;
-- result count plus previous/next;
-- match lands at the real body offset;
-- searching must include content not currently mounted in DOM;
-- closing search restores the reading anchor.
-
-New capture while reading must not yank scroll. Show a small "new expressions" affordance.
+Existing normal-flow Back is origin-aware: 返回搜索结果 / 返回项目浏览 / 返回档案 restore actual saved query/scope/result/tree/reading state. It is not sticky/floating. Verified original-site opening is separate, secondary and reuses existing contextual/overflow placement. Generic open does not infer intent from the host page. Safety for valid supported explicit/contextual entry remains; a new host entry is not required by this visual approval.
 
 ### A4 — Direct editing
 
-Editing is direct, not a separate mode.
-
-State model:
-clean → editing/composing → saving → saved
-with retryable/conflict/storage failure branches.
-
-IME composition must never persist broken intermediate text. Navigation flushes safely or holds a recoverable draft. Failure blocks destructive navigation only when real work would be lost.
-
-Concurrent change:
-- preserve local text;
-- show compare;
-- allow keep local as new version / adopt persisted / manually reconcile;
-- never silent last-write-wins over protected user work.
+The full prior A4 applies unchanged: one editor/body owner, IME safety, durable save, retry/conflict recovery, navigation guards and no silent overwrite. IAH does not create an editing mode or remove version/undo protection.
 
 ### A5 — Source / Time / Version Inspector
 
-A low-frequency side panel/sheet exposes:
-- source/provider;
-- source title/link when reliable;
-- send-time evidence;
-- capture/import/edit times;
-- source original versus working version;
-- version comparison/restore;
-- Thought/Topic relationships.
-
-Unknown time is explicit. Full internal IDs/ISO timestamps remain behind details/copy.
-
-Restoring a version creates a new current version; it does not erase later history.
+The full prior A5 applies unchanged. Original source facts and working versions remain distinct; real/unknown send time remains truthful; restoring a version creates a new current version. Main Back is not this inspector or an external-source action.
 
 ### A6 — Archive search and filters
 
-One current-container search.
+SEARCH_RESULTS is explicit and preserves query, scope, deterministic result ordering, continuation/window, identity-relative scroll/focus and origin history. Exact current Input text/excerpt is primary; reliable time/Source/Project/Conversation path are subordinate. Use flat results, not cards or AI summaries, preserving meaningful negation/conditions and Unicode-safe continuation. Local lexical/full-text queries reach unmounted eligible content through existing trusted owners. No remote query rewrite, answer, summary or model cost.
 
-Results show:
-- title/location;
-- matching original/working text excerpt;
-- time;
-- necessary source/Project path.
+All/Source/Project/Conversation scope is clear without an advanced filter console or implicit scope-on-Project-disclosure. Only an explicit supported scope action narrows/broadens a query. Clearing query returns neutral Home or explicit BROWSE_SCOPE with blank Main, never a recent-Input stream. Archive Search remains in the navigator on desktop, Reader Find local to its document; no duplicate global field is added to Main.
 
-Useful filters may include time/source/Project. Search results return to the real Reader location.
-
-"Include filtered content" is separate from removed/deleted content.
-
-Index-building/partial coverage must not be presented as "no results".
+An activated hit resolves the actual current Input and revision, loads its bounded Reader window, safely recalculates the original-text match and scrolls/highlights precisely. Back restores the recorded results after current eligibility validation. Changed/removed/purged targets use the contract's honest fallback, not stale-text resurrection or another default Conversation. Incomplete index/search coverage is not no-result; partial counts are not full totals.
 
 ### A7 — Smart Filter
 
-Settings controls light/medium/strong where supported; default light.
-
-Reader only shows an unobtrusive scope indicator when content is filtered and can temporarily show all. User restore/edit/keep creates protected intent that automatic re-filtering cannot override.
-
-Filtering is not deletion or AI exclusion.
+Prior light/off reading preference and protected human intent remain. Otherwise eligible smart-filtered Inputs participate in ordinary Find by default; a result may say `平时已收起`. Viewing it permits only a route/Input-local temporary reveal, never automatic Keep/protect/restore or a global setting change. Explicit removals and purges cannot be bypassed. A deliberate edit remains a separate human action under existing protections.
 
 ### A8 — History import
 
-Flow:
-1. select provider/file;
-2. preflight;
-3. import;
-4. result/review.
+The complete prior A8 import/preflight/idempotence/recovery contract is retained. Archive optimization does not add automatic history capture/import or restore export/backup-generation.
 
-Preflight explains:
-- provider;
-- time range;
-- estimated Conversations/Inputs;
-- existing/new;
-- unresolved branches;
-- missing time;
-- excluded author roles.
+## 5. Thought Library surfaces — TL-PT1-UI-1.0
 
-Interrupted import is resumable/idempotent. Re-import does not duplicate or overwrite protected edits.
-
-Do not require understanding ZIP/JSON internals.
-
-## 5. Thought Library surfaces
-
-### T1 — Thought root
-
-Purpose: rapidly scan long-term topics.
-
-Use compact topic blocks/list with real information density, not large decorative cards. No Recent Reading section and no root-wide AI Organize control.
-
-Each Topic can show title, a short real-content cue and quiet recency. Source scope may become All / one source without duplicating the Topic system.
-
-### T2 — Topic original view
-
-Header:
-- back;
-- Topic name;
-- source scope if relevant;
-- Original / AI Organize switch;
-- one Topic search;
-- overflow;
-- one compact Add Thought action.
-
-The body uses the same reading system as Archive. Original/user expression is default. Evidence/source detail is available on demand, not permanently attached to every paragraph.
-
-### T3 — Add Thought
-
-A user may write a new Thought directly:
-- body;
-- optional Topic;
-- optional relation to prior expression;
-- real current creation time.
-
-Failure preserves text. Background classification must not block safe save.
-
-### T4 — AI Organize
-
-Existing valid output switches instantly. Generating/updating has a distinct flow:
-not generated → scope review → running → candidate → applied.
-
-Running never locks the original text. The user may leave.
-
-A returned result is a candidate when source or protected human output has changed. Show compare with Adopt update / Keep current. Invalid output leaves the previous valid result intact.
-
-AI output is editable and protected after human editing.
-
-Transition may express structure change, but never obscure long text for decoration.
-
-### T5 — Longitudinal/evolution view
-
-Navigate real historical expression by reliable time. "Early / later / recent" are navigation labels, not psychological conclusions.
-
-Unknown-time material remains visible in an explicit unknown section.
-
-Comparisons preserve source text and distinguish original expression date from current edit date.
-
-### T6 — Relationships and propagation
-
-Expose user concepts:
-- follows this Input;
-- independently edited;
-- used in these Topics;
-- allowed/not allowed for AI.
-
-Do not expose Binding/Placement/Entry internals as default UI.
-
-Removing from Topic changes a relationship, not Source existence. Reverse edit is advanced and OFF by default.
-
-B-01 determines final old-Thought edit semantics. B-02 determines high-risk purge of mixed human derivative material.
+All prior section 5 requirements remain incorporated and controlled by THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES and TOPIC_ARCHITECTURE_PLAN.md. No Archive result directory, scope tree, recency block or response/relation feature is transplanted into Thought.
 
 ## 6. AI Context surfaces
 
-### C1 — AI Context workspace
+The complete prior section and its explicit current-over-historical precedence remain under AI_CONTEXT_CARDS_V2_ADOPTION/PLAN/REFERENCES. Archive navigation grants no Context access, Archive fallback or external capability.
 
-Purpose: answer "what of my material should this AI task receive?"
+## Responsive, dark and final acceptance
 
-Start with:
-- task/purpose;
-- currently selected material;
-- Prepare Context;
-- Select material;
-- Connections & permissions.
+Current Archive UX U7/U8 and INTERACTION IAH-11 retain the existing responsive shell, navigation/overlay and safe single-content-pane behavior. Wide retains the familiar columns; narrow can show its existing search/tree directly without a standalone welcome stage or three thin columns. Preserve one logical list/field per scope and correct focus while adapting placement. No rejected sticky return is imported from deep/dark/narrow B references.
 
-A user may do a one-off task without first creating a persistent Profile.
-
-Entering from Archive/Thought preselects the user's chosen material but does not auto-build or send.
-
-### C2 — Material selection
-
-Support explicit:
-- span;
-- whole Input;
-- Conversation;
-- whole Topic;
-- multiple Topics.
-
-Selection mode is temporary and only appears when invoked.
-
-A whole Topic selection records the whole intended set/version. Algorithmic retrieval cannot silently replace explicit material.
-
-Upstream changes mark a material as updated/stale and require review where relevant.
-
-### C3 — Task retrieval / semantic future
-
-Task retrieval searches only authorized scope.
-
-Lexical remains available. Semantic becomes another capability of the same retrieval experience once real quality is proven.
-
-Every result exposes real text/time/source. Low confidence is not a user-truth score.
-
-### C4 — Profile / reusable scope
-
-Profile is a convenience for reusable eligibility and preference, not a permanent identity/personality model.
-
-Allow sources/Topics, explicit exclusions and never-use rules. Deleting a Profile deletes configuration, not content.
-
-Changing Profile does not itself send data.
-
-### C5 — Context build and budget
-
-Explicitly selected material is fixed.
-
-If total material exceeds one output budget, show:
-- what is included;
-- what is not;
-- split into multiple packages;
-- reduce optional retrieval;
-- use a retrieval/connector mode where supported.
-
-Never silently truncate a whole-Topic selection and call it complete.
-
-### C6 — Review/edit
-
-The review surface shows exactly what will be copied/exported/sent in readable form.
-
-The user may edit/redact the current output without rewriting Source/Thought. Any edit invalidates previous release binding and creates a new reviewable version.
-
-Do not display raw Markdown markers/internal IDs/ISO noise by default.
-
-### C7 — Release
-
-Distinct outputs:
-- Copy
-- Export file
-- Send/provide to a connected AI
-
-Success wording must match the real action.
-
-Sending requires a real connection and current authorization. If acknowledgement is uncertain, report uncertain status and avoid blind duplicate send.
-
-### C8 — Passport
-
-Manage controlled external access by:
-- consumer;
-- purpose;
-- scope;
-- operation;
-- once/limited/longer duration;
-- last controlled use;
-- revoke.
-
-Read and write permissions are distinct. Backup restore does not silently reactivate grants. Revocation affects future controlled access; it cannot recall copied/exported text.
-
-### C9 — External AI connector
-
-A real connector must:
-- list/query authorized Topics/material;
-- retrieve by stable references;
-- enforce authorization before content release;
-- log minimal metadata without private body leakage;
-- support revocation;
-- treat retrieved historical prompts as data, not tool instructions.
-
-Write/organize capability, if later added, is a separate permission and uses reviewable changesets rather than direct database writes.
-
-## 7. Search / Revisit
-
-### R1 — Revisit
-
-A light, user-invoked re-entry surface:
-- continue a known reading position;
-- show recent meaningful additions;
-- optionally show a small explainable older set.
-
-No infinite feed, unread debt or push loop. Every item explains why it is present and can be excluded.
-
-### R2 — Longitudinal retrieval
-
-Answer "what did I say about X over time?" with real expression and time evidence. Comparison may show difference, but never assert belief change without evidence.
-
-### R3 — Semantic retrieval
-
-Once implemented, allow differently worded recollection to find relevant historical expression. Show index coverage/degraded lexical mode honestly. Delete/exclusion/revision invalidates semantic projections.
-
-## 8. System surfaces
-
-### S1 — Capture status
-
-A small popup/surface shows:
-- enabled/paused;
-- current source applicability;
-- recent successful capture;
-- Temporary Chat not captured;
-- current-page refresh/reconnect needed when applicable;
-- storage/source failure with one safe action.
-
-"Capture healthy" does not mean "full history imported".
-
-### S2 — Backup / Restore
-
-Backup UI distinguishes backup from open export.
-
-Show:
-- last successfully validated recoverable backup;
-- scope/format/privacy;
-- create backup;
-- restore preview.
-
-Restore:
-select → validate → preview impact/conflicts → confirm → stage → validate → atomically activate.
-
-Failure preserves current usable library. A checksum is integrity, not encryption.
-
-### S3 — Update
-
-Consumer UI never requires GitHub Desktop, branch SHA or chrome://extensions as the normal update flow.
-
-Update path:
-validated release → compatibility check → protect unsaved work → update → reconnect pages as required → health check → success or safe rollback.
-
-Developer script may remain as maintenance fallback, not consumer distribution.
-
-### S4 — Recovery
-
-After abnormal exit, show recovery only when actual unfinished work exists.
-
-Allow continue/copy/save as new version/discard. Index corruption rebuilds index rather than recommending data deletion. Provider/AI failures do not block local archive access.
-
-### S5 — Settings
-
-Groups:
-- Content & capture
-- Reading & appearance
-- AI processing
-- Privacy & external use
-- Data & recovery
-- About / advanced
-
-No content search. Settings that can apply immediately do so, or visibly roll back on failure.
-
-### S6 — Privacy / authorization / deletion
-
-Clearly distinguish:
-- local retention/capture;
-- AI processing;
-- device Sync;
-- external AI access.
-
-Delete flows distinguish:
-- remove from Topic;
-- remove from ordinary Archive;
-- permanent Source purge.
-
-Permanent deletion previews actual affected material and obeys B-02.
-
-## 9. Mobile and prompt surfaces
-
-### M1 — MyWrite
-
-Mobile cold start prioritizes fast write. Archive, Thought and AI Context remain reachable.
-
-MyWrite can be unsorted initially or target a Topic. Save locally first where architecture permits; Sync status is separate.
-
-### M2 — Voice
-
-Explicit record → transcribe → review → save.
-
-No background listening. Cloud transcription, if used, is separately disclosed. Text can always be corrected before final save.
-
-### M3 — Multi-source / Sync
-
-All-source versus source-specific browsing does not duplicate the data model. Disconnection stops new intake but does not erase historical local content.
-
-### P1/P2 — Prompt reuse
-
-The detailed owner-approved contract is
-[PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md).
-
-PAIA shows the user's own useful Prompt Families, not a prompt marketplace.
-Automatic ranking is stable while the surface is open. User pin/order/edit/hide
-outranks automatic ranking; edited reusable text is independent from historical
-Input and never writes back to Input Archive.
-
-On a supported AI page the normal state is a very small floating PAIA entry.
-Opening it reveals a persistent compact card whose normal presentation is
-essentially just the user's prompt rows. Row controls appear only on hover,
-keyboard focus or explicit management interaction. The approved visual direction
-is a restrained frosted-glass orb that expands into an anchored rectangular card;
-the material is functional adaptation to third-party page backgrounds, not a
-generic AI-decoration rule.
-
-One ordinary prompt click fills the exact reusable text into the current AI
-composer and returns focus there. It never sends. The default click preserves all
-existing draft text and inserts at the current/last reliable caret; an active
-selection is not destructively replaced by default. Explicit replace remains a
-secondary action. If exact insertion cannot be verified, PAIA leaves the draft
-unchanged, reports failure/uncertainty and may offer an explicit clipboard
-fallback. It must not retry automatically in a way that can duplicate text.
-
-The floating entry/card may remember a user-chosen position per supported site.
-Open/closed preference may persist; transient edit/drag state does not. SPA
-navigation must not create duplicate surfaces. Compact widths reflow the same
-surface rather than introducing a second prompt product.
-
-### P3 — Reply-aware prompt suggestions
-
-Stage 3A follows the owner-approved
-[PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md) contract.
-
-It is OFF by default and has an explicit enable/pause control independent from
-ordinary capture pause. After the newly completed latest assistant reply is
-verified, PAIA may show one transient capsule/strip attached to the existing
-Prompt Reuse surface. It never becomes a normal prompt row and never reshuffles
-the stable prompt card.
-
-Stage 3A presentation rules:
-- the orb remains the stable entry and keeps its saved position;
-- the suggestion capsule is a separate nearby target with at least a 44 px
-  effective interaction height;
-- normal suggestion width is bounded by the existing Prompt Reuse surface;
-- conditions such as "登录后" / "when ready" are visible and are not hidden in
-  tooltip-only copy;
-- explicit choices are peers; PAIA does not preselect the affirmative option;
-- a request for user material may show what is needed without pretending the
-  material has been supplied;
-- direct-reply, personal-Family and material-needed origins are distinguishable
-  through restrained secondary affordance/accessible naming, not a permanent
-  "AI recommendation" badge or confidence score;
-- automatic display initially targets about 12 seconds, pauses while hover/focus
-  is inside the suggestion, and explicit dismiss suppresses that reply's
-  automatic suggestion;
-- while the same reply remains current, a low-frequency "本轮建议" action keeps
-  the suggestion accessible after automatic retraction;
-- active typing/IME, Prompt edit, surface drag or in-flight Prompt actions prevent
-  the suggestion from stealing focus or appearing under the active pointer;
-- if safe placement cannot be found promptly, skip automatic display rather than
-  move the user's orb or cover host composer controls.
-
-Clicking an insertable suggestion revalidates authorization and current-reply
-identity, then uses the existing verified composer insertion contract. It
-preserves the draft/selection/IME behavior, fills only and never sends.
-
-Stage 3B model-generated new prompts remain not authorized.
-
-## 10. Motion, accessibility and performance
-
-Motion should be short and state-expressive:
-- menu/floating controls roughly 100–140 ms;
-- Project expand/collapse roughly 140–180 ms;
-- Reader navigation roughly 160–200 ms;
-- Original ↔ AI Organize roughly 180–240 ms;
-- reduced-motion removes nonessential translation/blur.
-
-These are implementation targets, not product identity.
-
-Accessibility target: WCAG 2.2 AA where applicable, including keyboard-complete flows, focus restoration, 200% text scaling, 320 CSS px reflow and reduced motion.
-
-Performance targets and evidence are governed by VERIFICATION.md. Production UI must be tested with realistic long Chinese/English text, code, revisions, deletions, long titles and dense libraries—not sparse showcase fixtures.
+Use shared dark/field/selection/highlight/focus/metadata roles, text enlargement, 320 CSS-pixel equivalent reflow, touch/keyboard targets and reduced motion. Narrow entry does not open the keyboard automatically; Back restores initiating focus/viewport instead of stealing it on updates. Selected visual direction is owner-approved; actual source/release visual, accessibility, performance and supported-entry evidence remain separate future acceptance. Prototype checks do not supply those PASS claims.

@@ -3,7 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {completeFixture,rows} from './harness/original-complete.mjs';
 import {ImportLedger} from '../core/import/ledger.js';import {ImportCoordinator} from '../core/import/coordinator.js';import {officialExportAdapter} from '../core/import/chatgpt-export.js';
 import {conversation,branched,historyFile} from './fixtures/history-v090.mjs';
-import {BackupService} from '../core/backup-service.js';import {exported,prepared} from './harness/backup-v081.mjs';
+import {BackupService} from './harness/historical-backup.mjs';import {exported,prepared} from './harness/backup-v081.mjs';
 async function fixture(data){const f=await completeFixture({texts:[]}),ledger=new ImportLedger(f.s);const load=async()=>{const c=new ImportCoordinator({adapter:officialExportAdapter,transport:(m,q)=>ledger[m](q,'review-test')});await c.select(historyFile(data),{consent:true});await c.preflight();await c.commit();};await load();return {...f,ledger,load};}
 test('Input order is global across pages, independent of Thought preference and stable after reopen',async()=>{
  const f=await fixture([conversation(1,125)]),doc=(await f.s.page({view:'library'})).documents[0];

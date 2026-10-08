@@ -1,0 +1,65 @@
+// Historical synthetic file encoder only. Not imported by production or packaged.
+// Import and integrity validation always use the current production implementation.
+import {BACKUP_LIMITS,backupError} from '../../core/backup-format.js';
+
+const encoder=new TextEncoder();
+const SHA256=/^[0-9a-f]{64}$/;
+const DEFAULT_SEGMENT_BYTES=8*1024*1024;
+const MAX_PARTS=8192;
+
+async function digest(blob){
+ const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()));
+ return [...bytes].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+
+// Each part ends at a complete NDJSON row. A missing final manifest or footer
+// cannot be mistaken for a usable backup.
+export class BackupSegmentWriter{
+ constructor({name,maxBytes=DEFAULT_SEGMENT_BYTES,onSegment}){
+  if(!/^[A-Za-z0-9][A-Za-z0-9._-]{0,180}$/.test(name)||typeof onSegment!=='function'
+      ||!Number.isSafeInteger(maxBytes)||maxBytes<128
+      ||maxBytes>16*1024*1024)backupError('BACKUP_INVALID');
+  this.name=name;this.maxBytes=maxBytes;this.onSegment=onSegment;
+  this.parts=[];this.lines=[];this.bytes=0;this.totalBytes=0;
+  this.started=false;this.finished=false;this.footerSeen=false;this.busy=false;this.failed=false;
+ }
+ async add(row){
+  if(this.busy||this.finished||this.footerSeen||this.failed)backupError('BACKUP_INVALID');
+  if(!this.started&&row?.type!=='header'||this.started&&!['item','footer'].includes(row?.type))
+   backupError('BACKUP_INVALID');
+  this.busy=true;
+  try{
+   const line=JSON.stringify(row)+'\n',size=encoder.encode(line).length;
+   if(size>BACKUP_LIMITS.lineBytes+1||size>this.maxBytes)backupError('BACKUP_TOO_LARGE');
+   if(this.bytes&&this.bytes+size>this.maxBytes)await this.flush();
+   this.lines.push(line);this.bytes+=size;this.totalBytes+=size;
+   this.started=true;if(row.type==='footer')this.footerSeen=true;
+  }catch(error){this.failed=true;throw error;}finally{this.busy=false;}
+ }
+ async flush(){
+  if(!this.lines.length)return;
+  if(this.parts.length>=MAX_PARTS)backupError('BACKUP_TOO_LARGE');
+  const blob=new Blob(this.lines,{type:'application/x-ndjson'});
+  if(blob.size!==this.bytes)backupError('BACKUP_INVALID');
+  const index=this.parts.length+1;
+  const name=`${this.name}.part-${String(index).padStart(6,'0')}.paia-backup`;
+  const sha256=await digest(blob);
+  await this.onSegment({name,blob,index});
+  this.parts.push({name,bytes:blob.size,sha256});
+  this.lines=[];this.bytes=0;
+ }
+ async finish(){
+  if(this.busy||this.finished||this.failed||!this.started||!this.footerSeen)backupError('BACKUP_INCOMPLETE');
+  this.busy=true;
+  try{
+   await this.flush();
+   this.finished=true;
+   return {
+    format:'PAIA Backup Segments',formatVersion:1,
+    contentFormat:'PAIA Backup v1',complete:true,
+    totalBytes:this.totalBytes,parts:this.parts.map(part=>({...part})),
+   };
+  }catch(error){this.failed=true;throw error;}finally{this.busy=false;}
+ }
+}
+

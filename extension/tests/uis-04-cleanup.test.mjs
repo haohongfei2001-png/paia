@@ -21,19 +21,12 @@ test('UIS-04 keeps real bootstrap owners and reusable search/read capabilities',
   assert.match(await read('ui/topic-workspace.js'),/RECORD_TOPIC_READ/,'read metadata remains recorded');
 });
 
-test('UIS-04 keeps bounded organizer maintenance in the existing Settings AI group',async()=>{
-  const shell=await read('ui/settings-preferences.js');
-  assert.ok(shell.includes("['organizer-reading-actions','deepseek-settings','library-updates-drawer']"));
-  assert.ok(shell.includes("move(id,'ai')"));
+test('Settings AI group follows SETTINGS-CV2 with one Context entry and truthful Prompt status',async()=>{
+ const shell=await read('ui/settings-preferences.js');assert.ok(shell.includes("move('settings-ai-context','ai')"));assert.ok(shell.includes("move('settings-prompt-status','ai')"));assert.doesNotMatch(shell,/move\('membership-ai-service'/);
+ assert.doesNotMatch(shell,/deepseek-settings|organizer-reading-actions|library-updates-drawer/);
 });
-
-test('UIS-04 relocated Settings controls keep bounded read-only status loading',async()=>{
-  const shell=await read('ui/settings-preferences.js'),thought=await read('ui/topic-workspace.js');
-  assert.ok(shell.includes('notifyOrganizerSettings();'));
-  assert.ok(shell.includes("export function presentSettingsPreferences"));
-  assert.doesNotMatch(shell,/MutationObserver/);
-  assert.ok(shell.includes("new CustomEvent('paia:organizer-settings-visible')"));
-  assert.ok(thought.includes("document.addEventListener('paia:organizer-settings-visible',()=>this.queueOptionalStatus())"));
-  assert.ok(thought.includes('isCurrent:()=>this.organizerSettingsVisible()'));
-  assert.ok(thought.includes('this.updateViewStatus({strict:false'));
+test('Settings no longer polls organizer usage while bounded Topic reading remains',async()=>{
+ const shell=await read('ui/settings-preferences.js'),thought=await read('ui/topic-workspace.js');
+ assert.ok(shell.includes('export function presentSettingsPreferences'));assert.doesNotMatch(shell,/MutationObserver|notifyOrganizerSettings|paia:organizer-settings-visible/);
+ assert.doesNotMatch(thought,/paia:organizer-settings-visible/);assert.match(thought,/GET_AI_PRESENTATION_STATUS/);
 });

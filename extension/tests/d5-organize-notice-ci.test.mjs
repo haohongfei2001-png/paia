@@ -7,10 +7,10 @@ const targeted=workflow.slice(workflow.indexOf('  targeted_browser:'),workflow.i
 const compatibility=workflow.slice(workflow.indexOf('  organize_candidate_compatibility:'),workflow.indexOf('  context_compatibility:')),aggregate=workflow.slice(workflow.indexOf('  candidate:'));
 const manifest=JSON.parse(read('./harness/d5-organize-notice-manifest.json'));
 const names=source=>{const result=[...source.matchAll(/^test\('([^']+)'/gm)].map(match=>match[1]);for(const match of source.matchAll(/^for\(const variant of \['source','release'\]\)test\(`([^`]+)`/gm))for(const variant of ['source','release'])result.push(match[1].replace('${variant}',variant));return result.sort();};
-test('D5 notice whole-file split preserves every old registration and adds only two isolated cases',()=>{
+test('D5 notice historical mapping and D7 retained owner registrations stay explicit',()=>{
  assert.equal(manifest.totalCases,13);assert.equal(Object.values(manifest.before).flat().length,11);assert.equal(Object.values(manifest.after).flat().length,13);
  const allFiles=Object.values(manifest.jobs).flat();assert.equal(new Set(allFiles).size,3);assert.deepEqual(allFiles.sort(),Object.keys(manifest.after).sort());
- for(const [file,expected]of Object.entries(manifest.after)){assert.deepEqual(names(read('./'+file)),expected,file);for(const prior of manifest.before[file])assert.ok(expected.includes(prior),prior);assert.equal(new Set(expected).size,expected.length);}
+ for(const [file,expected]of Object.entries(manifest.after)){assert.deepEqual(names(read('./'+file)),manifest.d7Current[file],file);assert.equal(manifest.d7Current[file].length,expected.length);assert.equal(new Set(manifest.d7Current[file]).size,expected.length);for(const prior of manifest.before[file])assert.ok(expected.includes(prior),prior);assert.equal(new Set(expected).size,expected.length);}
  assert.equal(manifest.after['uir-03-ai-presentation-chrome-e2e.test.mjs'].length,4);assert.equal(manifest.after['ux-r5-ai-organize-chrome-e2e.test.mjs'].length,4);assert.equal(manifest.after['uir-03-ai-candidate-chrome-e2e.test.mjs'].length,5);
 });
 test('D5 notice marker admits exactly the two required bounded jobs and all complete files',()=>{

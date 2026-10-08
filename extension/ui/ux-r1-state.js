@@ -35,5 +35,5 @@ export function onboardingTarget({consented=false,existingUser=false,hasContent=
  return step;
 }
 export const SETTINGS_GROUPS=Object.freeze([
- ['content','内容与收录'],['reading','阅读与外观'],['ai','AI'],['privacy','隐私与对外使用'],['data','数据与设备'],['advanced','高级']
+ ['content','输入档案'],['reading','阅读与外观'],['ai','AI 与提示词'],['privacy','隐私与访问'],['data','数据与恢复'],['about','关于 PAIA']
 ]);

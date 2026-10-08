@@ -1,304 +1,43 @@
 # Product Intent Contract — PAIA Consumer Product v1
 
-This file is a public executable derivation of the product owner's design intent. It is lower authority than the private Google Drive source `PAIA设计想法.docx`.
+Current scoped amendment: **IAH-1.1, 2026-10-08 — existing Archive UI, selected minimal optimization**. Full authority order: [AUTHORITY.md](AUTHORITY.md).
 
-## 1. Product definition
+## Complete retained product contract
 
-PAIA is a personal system for expressions, thoughts and related information created in the AI era. It lets the user keep them as user-owned material that can be found, read, edited, organized and reused with AI over time.
+The entire preceding Product Intent Contract is retained byte-for-byte in [PRODUCT_INTENT_CONTRACT_PRE_ARCHIVE_HOME_2026-10-08.md](PRODUCT_INTENT_CONTRACT_PRE_ARCHIVE_HOME_2026-10-08.md), Git blob `8cb731e6cab003f55471e54e5e47d9599191cf4d`. **All its nonconflicting sections and detailed requirements are incorporated in full**, not replaced by the summary below. Read that baseline together with this scoped amendment. Its Source, editing, filtering, Topic, Context, Prompt, mobile, future/service and unresolved-gate obligations remain; only the Archive decisions listed in [the adoption ledger](INPUT_ARCHIVE_HOME_ADOPTION.md#4-scoped-supersession-ledger) supersede earlier wording.
 
-The product is not merely a prompt archive. It is not a general note suite, chat client, social network or autonomous agent.
+PAIA remains a personal system for attributable, user-owned expression that can be found, read, edited, organized and reused. It is not a generic note suite, chat client, social network, dashboard or autonomous agent. Input Archive, Thought Library and AI Context remain the three primary product spaces. Source Project and Personal Topic are different concepts, with no body copy or permission granted by navigation.
 
-Core loop:
+## 4. Input Archive — IAH-1.1
 
-`Capture → Revisit → Understand → Reuse`
+The sole detailed interaction contract is [INPUT_ARCHIVE_INTERACTION_CONTRACT.md](INPUT_ARCHIVE_INTERACTION_CONTRACT.md); selected presentation is [INPUT_ARCHIVE_HOME_UX.md](INPUT_ARCHIVE_HOME_UX.md). [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) fixes the approved/rejected scope and [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) aligns necessary gaps without starting runtime work. The current UI plus explicitly selected B improvements controls; the whole B prototype is not adopted.
 
-Revisit/read serves finding, thinking, editing and reuse. Re-reading for its own sake is not the end goal.
+Input Archive helps the user find what they previously said, where and when. Find searches actual Inputs; Browse uses familiar Source/Project/Conversation organization; Reader appears only after explicit content selection.
 
-## 2. Primary product spaces
+**Fresh Archive Entry ≠ Resume Previous Reader. Back restores context; primary navigation opens neutral Archive.** Ordinary opening and every primary-nav Archive click target ARCHIVE_HOME: all-archive scope, empty query and no selected Source, Project, Conversation or Input. No arbitrary recent/first/current-host Conversation is opened. Existing unsaved text must pass the leave/save/IME guard before navigation can commit.
 
-The primary desktop product spaces are fixed:
+The four logical states remain ARCHIVE_HOME, SEARCH_RESULTS, BROWSE_SCOPE and CONVERSATION_READER. The existing right-hand Main stays blank before content selection; no Home title, Welcome/search block, P1/P3 hint, Recently viewed, common-search suggestions, Input stream, recommendation, statistic, dashboard or Revisit feed is added. Logical BROWSE_SCOPE does not require a separate Main page.
 
-1. Input Archive
-2. Thought Library
-3. AI Context
+Keep Project name/arrow as the current whole-row expand/collapse action. Tree expansion does not change query/search scope or select content. Source/Project search narrowing uses a distinct explicit supported scope operation, preferably an existing low-frequency facility; a new permanent scope control is unapproved follow-up. Conversation, exact Input result or valid supported explicit entry selects Reader. Explicit Back/Forward restores recorded query, scope, result/tree position, focus and applicable reading anchor after revalidation. Explicit Reader reload restores that route; primary Archive does not resume it.
 
-These are product spaces, not mandates for separate databases.
+Archive Search stays at the middle-column top with visible truthful scope wording such as 搜索全部档案; existing Reader Find stays in Reader with 在此对话中查找. They retain separate query/scope owners within the one navigation/query system. No duplicate global search appears in Main. Results foreground actual current Working Input wording with secondary real time/source/path, without AI summaries or cards. Activation reaches the actual Input/occurrence, not merely the Conversation top. Existing normal-flow Back uses 返回搜索结果 / 返回项目浏览 / 返回档案 and actual origin restoration; no sticky return. Verified original-site opening is a separate secondary action.
 
-Supporting responsibilities:
+Preserve all existing Source/Project/Conversation identity, human editing, revisions/undo, real-versus-unknown time, source attribution, original/working distinction, explicit removal/purge boundaries, continuous reading, long-content search and contextual import/history/recovery. The Reader remains one continuous editable document, not per-message cards. Keep its title/time/prose-width/size/Input spacing and current brand/navigation/visual system. Safe capture/save does not wait for Topic admission, AI or a valid search index. Other unselected B copy/controls are not implied requirements.
 
-- Source — immutable/attributable facts about what came from where and when.
-- Passport — authorization for controlled external use.
-- MyWrite — a first-party active-expression source, especially important on mobile.
+## 6. Smart Filter — scoped Find clarification
 
-Project is source organization. Topic is thought organization. They are not interchangeable.
+The prior Smart Filter contract remains fully incorporated: light by default, reversible reading visibility, no Source deletion, conservative content retention and explicit human Keep/edit/restore priority.
 
-## 3. Capture and Source
+Ordinary full-text Find includes otherwise eligible smart-filtered Inputs without requiring a separate include-filtered opt-in. Search entry may temporarily show the matched Input and bounded eligible surrounding context. **Search view exception is not user Keep intent.** Focus, highlight and navigation do not write Keep/protection, restore removed content or alter filter mode. Deliberate edits retain their existing separate human-intent semantics. Explicit Archive removal and permanent purge remain stronger and cannot be bypassed by search or old result caches.
 
-Confirmed intent:
+## 9. Search, longitudinal retrieval and Revisit — scoped Archive clarification
 
-- Save eligible sent user-authored inputs, not drafts/keystrokes by default.
-- Temporary Chat is not automatically captured; explicit one-off saving may be added later.
-- Preserve the best available real send time; do not replace unknown historical time with capture time.
-- Opening old conversations may supplement observable history, but this is not the same as complete account history.
-- Provide an official-export history import path with dedupe, time preservation and recoverable errors.
-- Import, device Sync and AI Update/Refresh are distinct operations.
-- Support long-term, multi-year/decade scale; hidden tiny total-size ceilings cannot define the product.
-- Distinguish author roles. Text sent by a user can still be quotation/third-party material; "user sent it" does not automatically mean "user believes it."
-- Source facts are not ordinary editable content.
+The complete predecessor section remains, with IAH's explicit Archive state/scope/return rules. V1 Archive Find is local lexical/full-text first, with no model query rewrite, generated answer/summary, paid rerank or semantic dependency. All/Source/Project/Conversation scopes are explicit and use current trusted query owners, not a filter over mounted DOM. Incomplete coverage is not no-result. Search never changes Source/Topic identity, body ownership, AI consent or external permissions.
 
-Future/extension intent:
+Revisit retains its separately approved scope, but does not populate fresh Archive Home. Existing reading anchors may remain stored; they cannot select content for fresh entry. No new activity/history recommendation collection is justified.
 
-- additional AI providers and first-party creation sources;
-- mutable sources such as notes need explicit revision/time semantics;
-- a one-authorization "bring my whole history in" path may be explored where a legitimate platform interface exists.
+## Unchanged cross-product meaning and execution
 
-## 4. Input Archive
+Personal Topic/PT-1.0, final Thought presentation, Context Cards v2, Prompt Reuse/Stage 3A, Settings Consumer v2, BNS and AIU/AIOS/Qwen remain as specified by their current authorities and the full baseline. No old cancelled Profile, Material Tray, candidate approval, export/backup-generation, sharing, diagnostic or BYO-provider surface returns. Archive Home neither expands Context access into Archive nor changes the 22-row Settings target.
 
-Input Archive is the base working layer.
-
-Required behavior:
-
-- source/Project/Conversation structure remains recognizable;
-- Projects are collapsible; unassigned conversations remain first-class;
-- opening a Conversation retains global navigation → Project/Conversation navigator → Reader;
-- Project membership/name changes may update source organization without creating a duplicate Conversation or rewriting Source identity;
-- upstream platform deletion does not automatically delete PAIA content;
-- source-deleted/unknown/unassigned are distinct;
-- collections load continuously to their real end without "next part" dead ends;
-- date and concrete time are visible but visually quiet;
-- one simple ascending/descending order control;
-- long inputs may collapse visually without affecting search, edit, export or Context;
-- source/provider metadata stays available but does not dominate normal reading;
-- import/export/version history belong in contextual menus, not permanent toolbars;
-- the default Archive is not a persistent material-selection mode.
-
-The Reader is a continuous editable document, not a pile of database cards.
-
-## 5. Editing and version truth
-
-Confirmed:
-
-- Working Input is directly editable with document-tool-like behavior.
-- User edits, additions, exclusions and deletions outrank automatic filtering/organization.
-- Ordinary edits do not rewrite original Source facts.
-- Changes to Working Input safely invalidate/update dependent Thought/AI/Context views as appropriate.
-- Undo and version history remain available even when visually de-emphasized.
-- Thought→Archive reverse editing is advanced and OFF by default.
-- Independent new Thought material has its real current creation time.
-- Delete/removal/Source purge are different semantics.
-
-Owner gate B-01:
-- final semantics for direct editing of existing/old Thought versus appending a correction/new Thought.
-
-Owner gate B-02:
-- permanent Source deletion treatment for user-rewritten derivative material.
-
-## 6. Smart Filter
-
-Smart Filter is a core reading aid, default light.
-
-It:
-
-- changes default visibility, not Source existence;
-- favors hiding high-confidence low-value control utterances;
-- must not silently suppress facts, opinions, corrections or user-protected material;
-- is reversible;
-- cannot override explicit restore/edit/keep;
-- is separate from Thought membership and AI authorization.
-
-## 7. Thought Library
-
-Thought Library represents long-term topics across conversations.
-
-Required intent:
-
-- Topic is the main user concept.
-- It is not a reclassification of chat windows.
-- Whole Inputs or selections can be added to a Topic.
-- Users can create independent new Thought material.
-- Root presentation is compact topic-oriented scanning, not a chat list.
-- No root Recent Reading section.
-- AI Organize is not a root-wide constant control; it operates inside a concrete Topic.
-- Default view preserves original/user expression.
-- Long-term views may surface early, turning-point and recent evidence without fabricating a growth story.
-- Multi-source future views may show all sources or one source within the same Topic system.
-- Avoid unbounded automatic creation of tiny Topics; deeper hierarchy is optional only where it improves real use.
-
-## 8. AI Organize
-
-AI Organize is a second presentation over traceable Topic evidence.
-
-Owner clarification (2026-10-02): Input Archive and human Thought Library
-content are not AI-editable. AI may read explicitly authorized material; its
-organization, generation and updates belong to a separate derivative layer.
-Adopt/Keep chooses the saved AI derivative only. Adoption never authorizes a
-write-back to Source, Working Input or human Thought bodies or organization.
-Existing direct human editing remains governed by its own product rules and
-B-01; this clarification neither removes that editing nor resolves B-01.
-
-
-It may:
-
-- change structure, ordering, grouping, headings and hierarchy;
-- incrementally process new/changed material and affected old relations;
-- generate a candidate view;
-- be edited by the user;
-- support a distinctive but restrained structure-change transition.
-
-It may not:
-
-- silently alter the user's position, certainty, causality or emotional intensity;
-- convert AI inference into the user's stated belief;
-- overwrite protected human edits;
-- become the only surviving body of the user's thought;
-- silently retry paid AI calls.
-
-Generated validity has separate levels: structural validity, evidence-link validity and semantic fidelity.
-
-## 9. Search, longitudinal retrieval and Revisit
-
-Confirmed:
-
-- one content search per current surface;
-- Settings has no content search;
-- search supports text plus useful time/source/topic constraints;
-- results return to real original/working context;
-- lexical search remains useful after semantic retrieval exists;
-- semantic/natural-language retrieval is a committed future capability, not a new truth model;
-- longitudinal retrieval shows attributable expressions over time and does not automatically claim belief change;
-- Revisit is part of the core loop but must not become engagement feed, unread debt or notification-growth machinery.
-
-## 10. AI Context and Passport
-
-AI Context remains a primary product space.
-
-It supports:
-
-- explicit Inputs, selections, Conversations, whole Topics or multiple Topics;
-- task-oriented retrieval within authorized material;
-- preserving explicit selections when relevance ranking disagrees;
-- generating reviewable/editable Context;
-- making incomplete/over-budget coverage visible;
-- copy/export or, when a real connection exists, provide Context to an AI.
-
-A whole Topic selection must not be silently reduced to a few snippets and called complete.
-
-Context is a compiler/projection, not a fourth canonical body store.
-
-Passport controls external access by consumer/purpose/scope/operation/duration and revocation. Manual copy/export cannot be retroactively recalled.
-
-Confirmed future direction:
-
-- a real GPT/AI connector that can query/read authorized PAIA material;
-- external AI may later propose PAIA organization changes under separate write permission;
-- read permission never implies write permission.
-
-## 11. Prompt reuse
-
-The owner-approved product contract for this capability is
-[PROMPT_REUSE_SURFACE.md](PROMPT_REUSE_SURFACE.md). Prompt reuse is a stable
-cross-AI PAIA surface, not a fourth primary product space and not a prompt
-marketplace.
-
-Stages remain part of product intent:
-
-1. **Frequent reuse** — PAIA derives useful personal Prompt Families from eligible
-   user-authored Inputs, removes cautious near-duplicates, and exposes a stable
-   frequent/fixed list. Manual pin/order/edit/hide always outranks automatic
-   ranking. Editing the reusable prompt never rewrites historical Input Archive.
-2. **AI-page insertion** — supported AI pages expose the same personal prompt
-   surface. One ordinary click fills the selected prompt into the current AI
-   composer and returns focus there. It never auto-sends. Existing draft text is
-   preserved by default; destructive replacement is never the implicit click
-   behavior.
-3. **Reply-aware next prompt** — Stage 3 is split by authorization:
-   - **Stage 3A — local reply-to-next-action assistance:** owner-approved on
-     2026-10-05. It is default-off and explicitly enabled. PAIA may read only the
-     newly completed latest assistant reply in the current supported conversation,
-     process it locally and ephemerally, and recommend only when there is strong
-     evidence: an explicit literal reply, explicit choice, conservative request
-     for user material, or a clearly relevant existing Prompt Family. `DEFER`
-     is a normal result. Assistant reply text is not persisted or sent to a
-     Provider/model.
-   - **Stage 3B — model-generated new next prompts:** future and not authorized.
-     It requires a separate owner decision for Provider/context scope, retention,
-     cost and quality.
-   - Stage 3 suggestions remain a transient surface separate from the stable
-     frequent/fixed list. Clicking fills only; the user sends.
-
-Stage 1/2 remain reply-blind and require no Provider call. The detailed Stage 3A
-contract is [PROMPT_REUSE_STAGE_3A.md](PROMPT_REUSE_STAGE_3A.md). B-04-3A is
-resolved only for that exact local ephemeral scope; B-04-3B remains open.
-
-## 12. Mobile, MyWrite, voice and multiple sources
-
-Confirmed direction:
-
-- Extension: capture and fast reuse.
-- Desktop/Web: full reading, organization and Context work.
-- Mobile: quick look, quick write and voice.
-- MyWrite is a first-party active-expression source integrated into the same Source/Thought system.
-- Mobile makes writing/speaking possible without first sending text to an AI.
-- Voice is explicit record → transcribe → review → save, not background listening.
-- More AI and personal-expression sources remain part of the roadmap.
-- All-source versus single-source Thought views remain supported.
-
-B-03 controls long-term local/cloud default and therefore production Sync/cloud architecture.
-
-## 13. Data ownership, deletion and exit
-
-Confirmed:
-
-- Source facts and editable working content are separate.
-- Smart Filter, Topic removal, Archive removal, permanent Source deletion and "never give to AI" are distinct.
-- Permanent deletion prevents resurrection through re-capture/import/index rebuild.
-- Platform-side deletion does not equal PAIA deletion.
-- Open export lets users leave with understandable Source/Archive/Thought data and necessary metadata.
-- Backup, restore, migrations, dedupe, deletion fences and index rebuild are foundational.
-- Historical text is data, not current authorization/instruction.
-
-## 14. Consumer experience
-
-PAIA should be:
-
-- quiet;
-- coherent;
-- reading-first;
-- fast;
-- dense enough for serious use;
-- visually restrained;
-- strong in typography and hierarchy;
-- intuitive without exposing database concepts;
-- 120 Hz-friendly on supported hardware;
-- low friction for selection, editing, copying and returning.
-
-Avoid generic SaaS dashboards, decorative cards, unnecessary borders/labels,
-gratuitous AI-purple/glow/gradient/glass and developer-facing state leakage.
-This is not a ban on glass as a material: restrained glass is allowed when it
-serves a real interaction need such as keeping the approved cross-site Prompt
-Reuse overlay legible across heterogeneous host-page backgrounds.
-
-AI visual identity comes from real structure transformation and coherent product
-behavior, not decoration alone.
-
-## 15. Commercial/product policy
-
-Confirmed:
-
-- basic early functionality should remain low-barrier/free;
-- AI cost should be managed by scope, incremental work and reuse rather than exposing token mechanics;
-- future monetization maps to durable value, not per-sync anxiety.
-
-B-05 controls actual regions, quotas, service commitments and prices.
-
-## 16. Explicitly superseded directions
-
-Do not revive without a new owner decision:
-
-- defining PAIA primarily as an "AI display" brand concept;
-- assuming one model subscription can automatically fund all apps;
-- an internal social-feed/showcase product;
-- charging by small sync-count/recharge tiers;
-- a third-party paid skin marketplace.
-
-These supersessions do not remove still-confirmed connector, export or appearance-customization capabilities.
+Saved reading preferences, human body/organization intent, revisions, exclusions/tombstones, privacy, strict restore and B-01/B-02 are unchanged. This is selective visual adoption and plan alignment, not shipped UI or runtime activation. STATUS retains the current coordinated programme and Archive execution exclusion, not the historical single-next-task pointer.

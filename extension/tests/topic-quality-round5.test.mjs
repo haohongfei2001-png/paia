@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateDeepSeekResponse} from '../core/organizer/deepseek.js';
+import {validateDeepSeekResponse} from './harness/historical-provider.mjs';
 import {existingSectionForProposal,isLowDurabilityTopic,stabilizeTopicProposal} from '../core/organizer/topic-quality.js';
 import {completeFixture,append,rows,success} from './harness/original-complete.mjs';
 

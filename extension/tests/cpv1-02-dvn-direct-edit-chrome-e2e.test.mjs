@@ -36,7 +36,7 @@ async function fixture(variant,count=2){
   },'verified ordinary Conversation membership settles before opening Navigator');
   await rpc(p,'SET_ENABLED',{enabled:false});await p.bringToFront();await openArchiveWindow(p,{text:title});
   await eventually(()=>p.locator('.library-prose').count().then(n=>n===Math.min(count,40)));
-  await eventually(()=>p.locator('#scope-search').isEnabled(),'Reader route is admitted');
+  await eventually(()=>p.locator('#reader-scope-search').isEnabled(),'Reader route is admitted');
   const field=p.locator('.library-prose').first(),id=await field.getAttribute('data-edit-id');
   return {h,p,field,id,documentId};
  }catch(error){await h.close();throw error;}
@@ -44,6 +44,19 @@ async function fixture(variant,count=2){
 async function assertEditable(p){
  assert.equal(await p.locator('.reader-mobile-edit,#reader-title-edit').count(),0,'legacy Edit/Done controls are absent, not hidden');
  assert.deepEqual(await p.locator('#document-title,.library-prose').evaluateAll(nodes=>nodes.map(el=>el.getAttribute('contenteditable'))),['plaintext-only','plaintext-only','plaintext-only']);
+}
+async function settleReaderPresentation(p,width=p.viewportSize().width){
+ await eventually(()=>p.evaluate(width=>{
+  const get=id=>document.getElementById(id),compact=width<768,desktop=width>=1024;
+  return innerWidth===width&&get('archive-compact-navigation').hidden===!compact&&get('archive-navigator').parentElement.id==='archive-reader-navigator-slot'&&get('scope-search-host').parentElement.id==='archive-root-header-actions'&&get('reader-scope-search-host').parentElement.id==='reader-search-slot'&&get('archive-reader-back-slot').parentElement.id==='reader-compact-tools'&&get('back').parentElement.id==='archive-reader-back-slot'&&get('archive-navigator-toggle').parentElement.id===(compact?'archive-compact-reader-actions':desktop?'reader-compact-tools':'archive-reader-back-slot')&&get('document-menu').parentElement.id===(compact?'archive-compact-reader-actions':'reader-heading-actions');
+ },width),'existing Reader controls reach their D7 responsive slots');
+}
+async function openDocumentMenu(p){
+ await settleReaderPresentation(p);
+ const compact=p.locator('#archive-compact-navigation');
+ if(await compact.isVisible()&&!await compact.evaluate(node=>node.open))await compact.locator('summary').click();
+ assert.equal(await p.locator('#document-menu').isVisible(),true,'document action is exposed through the current native disclosure');
+ await p.locator('#document-menu').click();
 }
 function offline(h){assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);}
 async function evidence(p,variant,name){
@@ -63,15 +76,16 @@ for(const variant of ['source','release']){
    });
    const measurements=[];
    for(const width of [1440,1280,1024,768,390,320]){
-    await p.setViewportSize({width,height:844});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+    await p.setViewportSize({width,height:844});await settleReaderPresentation(p,width);await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
     await assertEditable(p);
     assert.equal(await p.evaluate(()=>__directNodes.every(node=>node.isConnected)&&document.activeElement===__directNodes[1]),true,'resize keeps the same active editor nodes');
     // Compare against the captured DOM range, not a re-derived normalized string.
     assert.equal(await p.evaluate(()=>{const s=getSelection();return s.anchorNode===__directRange.node&&s.focusNode===__directRange.node&&s.anchorOffset===__directRange.start&&s.focusOffset===__directRange.end&&s.toString()===__directRange.text;}),true,'complete emoji and combining selection survives resize');
     const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${width}px Reader overflow ${overflow}`);
-    const geometry=await p.evaluate(()=>({rail:document.querySelector('.sidebar').getBoundingClientRect().width,nav:document.querySelector('#archive-navigator').getBoundingClientRect().width,display:getComputedStyle(document.querySelector('#document-panel')).display,rootSlot:document.querySelector('#archive-root-navigator-slot').children.length,readerSlot:document.querySelector('#archive-reader-navigator-slot').children.length}));
-    assert.equal(geometry.rootSlot,0);assert.equal(geometry.readerSlot,1,'one contextual navigator in its explicit Reader slot');
-    if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1440?184:160);assert.equal(Math.round(geometry.nav),width>=1440?280:240);assert.equal(geometry.display,'grid');}
+    const geometry=await p.evaluate(()=>({rail:document.querySelector('.sidebar').getBoundingClientRect().width,nav:document.querySelector('#archive-reader-navigator-slot').getBoundingClientRect().width,display:getComputedStyle(document.querySelector('#document-panel')).display,rootSlot:document.querySelectorAll('#archive-root-navigator-slot > #archive-navigator').length,readerSlot:document.querySelectorAll('#archive-reader-navigator-slot > #archive-navigator').length,navigators:document.querySelectorAll('#archive-navigator').length}));
+    assert.equal(geometry.rootSlot,0);assert.equal(geometry.readerSlot,1,'one contextual navigator in its explicit Reader slot');assert.equal(geometry.navigators,1,'responsive search/back slots never duplicate the navigator');
+    // D6.2 RESPONSIVE defines the whole navigation column, including its border.
+    if(width>=1024){assert.equal(Math.round(geometry.rail),width>=1280?184:160);assert.equal(Math.round(geometry.nav),width>=1440?272:width>=1280?280:240);assert.equal(geometry.display,'block');}
     else if(width>=768){assert.equal(Math.round(geometry.rail),64);assert.equal(geometry.display,'block');}
     await eventually(()=>p.locator('.reader-selection').isVisible(),'native selection exposes its adjacent toolbar');
     const toolbar=await p.locator('.reader-selection').boundingBox();
@@ -153,7 +167,7 @@ for(const variant of ['source','release']){
     if(message.type==='EDIT_DOCUMENT'&&message.edit?.removeScope){__directRemovalWrites++;await new Promise(resolve=>globalThis.__releaseDirectRemoval=resolve);}return send(message);
    };window.scrollTo(0,document.documentElement.scrollHeight);window.dispatchEvent(new Event('scroll'));});
    await eventually(()=>p.evaluate(()=>typeof __releaseDirectPage==='function'),'real next-page response is in flight before removal acquires the lock');
-   await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:/移出整段对话|Remove entire conversation/}).click();
+   await openDocumentMenu(p);await p.getByRole('menuitem',{name:/移出整段对话|Remove entire conversation/}).click();
    await p.locator('dialog[data-removal-target][open]').getByRole('button',{name:/确认移出整段对话|Confirm entire conversation removal/}).click();
    await eventually(()=>p.evaluate(()=>typeof __releaseDirectRemoval==='function'),'actual removal request is in flight');
    await p.evaluate(async()=>{__releaseDirectPage();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});

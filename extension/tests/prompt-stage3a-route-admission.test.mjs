@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile,readdir} from 'node:fs/promises';import {group,testShard} from '../scripts/test-groups.mjs';
+test('Stage3A complete native admission preserves all300 exact Settings predecessor routes',async()=>{
+ const frozen=JSON.parse(await readFile(new URL('./fixtures/prompt-stage3a-prior-routes.json',import.meta.url),'utf8')),next='cpv1-12-next-prompt-chrome-e2e.test.mjs',names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort();
+ assert.equal(frozen.base,'0f750af29987df37f6782c3bc730dcc449194bdb');assert.equal(frozen.files,75);assert.equal(frozen.rows.length,75);assert.equal(names.length,76);assert.deepEqual(names.filter(name=>name!==next),frozen.rows.map(row=>row.file));
+ for(const [index,total]of [4,5,6,7].entries()){for(const row of frozen.rows)assert.equal(testShard(row.file,names.indexOf(row.file),total,'browser E2E'),row.routes[index],total+':'+row.file);assert.equal(testShard(next,names.indexOf(next),total,'browser E2E'),3);const parts=Array.from({length:total},(_,i)=>names.filter((name,pos)=>testShard(name,pos,total,'browser E2E')===i+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,76);}
+});

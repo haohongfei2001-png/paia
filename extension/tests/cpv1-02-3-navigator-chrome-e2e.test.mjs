@@ -18,7 +18,7 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>!(await page.locator('#enable-consent').isDisabled()));
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);
-  await page.locator('#onboarding-skip').click();
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const chatId='cpv1-023-move';
   await harness.open({id:chatId,title:'Stable Conversation identity',base:1609459200,messages:[{id:'cpv1-023-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
   await harness.open({id:'cpv1-023-other',title:'Unassigned search control',base:1609459200,messages:[{id:'cpv1-023-other-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
@@ -101,7 +101,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
  try{
   const p=h.archive;await p.setViewportSize({width:1440,height:900});
   await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
-  await p.locator('#onboarding-skip').click();
+  assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN',timeEmphasis:'subtle'}});
   await eventually(()=>p.evaluate(()=>document.documentElement.dataset.paiaTheme==='light'&&document.documentElement.lang==='zh-CN'),'light Chinese preferences are rendered');
   for(const [id,title] of [['bounded-a','相同标题'],['bounded-b','相同标题'],['bounded-c','独立标题']])
@@ -110,11 +110,11 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').filter({hasText:'未归属 Project'}).first();
   await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   await eventually(async()=>await p.locator('.archive-navigator-window').count()===3);
-  const white=async selectors=>{for(const selector of selectors){const background=await p.locator(selector).evaluate(el=>{for(let node=el;node;node=node.parentElement){const color=getComputedStyle(node).backgroundColor;if(color!=='rgba(0, 0, 0, 0)'&&color!=='transparent')return color;}return 'transparent';});assert.equal(background,selector==='.sidebar'?'rgb(247, 248, 246)':'rgb(255, 255, 255)',selector+' uses the frozen light rail/reading surface');}};
+  const white=async selectors=>{for(const selector of selectors){const background=await p.locator(selector).evaluate(el=>{for(let node=el;node;node=node.parentElement){const color=getComputedStyle(node).backgroundColor;if(color!=='rgba(0, 0, 0, 0)'&&color!=='transparent')return color;}return 'transparent';});assert.equal(background,selector==='.sidebar'?'rgb(250, 251, 253)':'rgb(255, 255, 255)',selector+' uses the adopted D6.2 light rail/reading surface');}};
   await white(['body','.sidebar','.workspace','#archive-navigator']);
   const rootContract=async()=>{
    assert.equal(await p.locator('input[type="search"]:visible').count(),1);
-   const tools=await p.locator('#archive-root-tools').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
+   const tools=await p.locator('#archive-root-header-actions').boundingBox(),tree=await p.locator('#archive-navigator').boundingBox();
    assert.ok(tools&&tree&&tools.y+tools.height<=tree.y,'all primary search tools precede the Project tree');
    assert.equal(await p.locator('.archive-navigator-window-cue,.archive-navigator-window-time,.archive-navigator-detail,#archive-root-recent,#archive-root-continue').count(),0);
    assert.equal(await p.locator('#archive-search-date-scope').isVisible(),false);
@@ -130,7 +130,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   for(const [id] of duplicates){
    await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).click();
    await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.documentId)===id);
-   assert.equal(await p.locator('input[type="search"]:visible').count(),1,'Reader has one current-document search');
+   assert.equal(await p.locator('input[type="search"]:visible').count(),2,'persistent Archive search and current-document search have separate owners');assert.equal(await p.locator('#reader-scope-search').isVisible(),true);
    assert.equal(await p.locator('#scope-search').isVisible(),true);
    assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0);
    await white(['body','.sidebar','.workspace','#archive-navigator']);
@@ -146,7 +146,7 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length&&await p.locator(`.archive-navigator-window[data-document-id="${id}"][aria-current="page"]`).count()===1,'Navigator completes the actual post-sort projection');
    assert.deepEqual(await labels(),before,'same-title labels survive Reader sort');
    assert.deepEqual((await h.state()).records,sources,'sorting never mutates Source');
-   await p.locator('#back').click();await eventually(()=>p.locator('#archive-root-tools').isVisible());
+   await p.locator('#back').click();await eventually(async()=>await p.locator('#collection-panel').isVisible()&&await p.locator('#scope-search').isEnabled()&&await p.evaluate(()=>history.state?.paiaReader?.view==='library'&&history.state.paiaReader.documentId===null&&document.getElementById('document-panel').hidden),'Back completes the empty Reader route before checking the persistent Archive search owner');
    await eventually(async()=>await p.locator('.archive-navigator-window').count()===Object.keys(before).length,'Navigator restores the complete root projection after Back');
    await rootContract();assert.deepEqual(await labels(),before,'same-title identity survives Reader/back');
   }

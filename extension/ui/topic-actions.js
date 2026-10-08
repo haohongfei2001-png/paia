@@ -1,14 +1,14 @@
-import {hashText} from '../core/dedupe.js';
 import {thoughtCopy as tc} from './thought-copy.js';
 import {request,element} from './common.js';
 import {copyReadingText} from './reading-actions.js';
 import {createThoughtComposeNodes,mountThoughtComposePresentation,composeCopy} from './thought-compose-presentation.js';
+import {setIconLabel} from './icons.js';
 const op=()=>crypto.randomUUID();
 const creationResult=result=>{if(!result||typeof result.id!=='string'||!result.id.length||result.id.length>200){const error=Error('UNAVAILABLE');error.code='UNAVAILABLE';throw error;}return result;};
 const uncertainResult=error=>['MESSAGE_CHANNEL_INTERRUPTED','UNAVAILABLE','TIMEOUT','WORKER_INTERRUPTED'].includes(error?.code);
-const button=(text,run)=>{const b=element('button','',text);b.type='button';b.onclick=()=>void run();return b;};
+const button=(text,run,icon)=>{const b=element('button','',text);if(icon)setIconLabel(b,icon,text);b.type='button';b.onclick=()=>void run();return b;};
 export class TopicActions {
- constructor({flush,notify,onThought,onTopic}){Object.assign(this,{flush,notify,onThought,onTopic});this.dialog=element('dialog','topic-action-dialog');this.dialog.id='topic-action-dialog';this.dialog.setAttribute('aria-labelledby','topic-action-title');document.body.append(this.dialog);this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.close();});this.dialog.addEventListener('paia:request-close',e=>{e.preventDefault();this.close();});window.addEventListener('beforeunload',e=>{if(this.draft?.value.trim()){e.preventDefault();e.returnValue='';}});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&this.quotePreview&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.quotePreview.remove();this.quotePreview=null;}if(m.type==='ARCHIVE_CHANGED'&&this.comparing&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ORGANIZER_CONTROLS','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.dialog.replaceChildren(element('p','',tc('内容已变化，请重新打开核对。')),button(tc('关闭'),()=>this.close()));this.comparing=false;}});}
+ constructor({flush,notify,onThought,onTopic}){Object.assign(this,{flush,notify,onThought,onTopic});this.dialog=element('dialog','topic-action-dialog');this.dialog.id='topic-action-dialog';this.dialog.setAttribute('aria-labelledby','topic-action-title');document.body.append(this.dialog);this.dialog.addEventListener('cancel',e=>{e.preventDefault();this.close();});this.dialog.addEventListener('paia:request-close',e=>{e.preventDefault();this.close();});window.addEventListener('beforeunload',e=>{if(this.draft?.value.trim()){e.preventDefault();e.returnValue='';}});chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED'&&this.quotePreview&&!['UPDATE_PREFERENCES','SET_ORGANIZER_CONTROLS','RECORD_TOPIC_READ','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.quotePreview.remove();this.quotePreview=null;}if(m.type==='ARCHIVE_CHANGED'&&this.comparing&&!['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ORGANIZER_CONTROLS','SET_THOUGHT_REVERSE_EDIT'].includes(m.cause)){this.dialog.replaceChildren(element('p','',tc('内容已变化，请重新打开核对。')),button(tc('关闭'),()=>this.close(),'close'));this.comparing=false;}});}
  beginOpen(){return this.openIntent=(this.openIntent||0)+1;}
  currentSurface(owner){return !!owner&&this.surface===owner;}
  leave(){if(!this.surface){this.beginOpen();return true;}return this.close();}
@@ -21,7 +21,7 @@ export class TopicActions {
   if(!this.close())return false;
   this.trigger=document.activeElement;const head=element('header'),heading=element('h2','',title);heading.id='topic-action-title';this.feedback=element('p','topic-action-feedback');this.feedback.setAttribute('role','status');this.content=element('div','topic-action-content');
   const owner={content:this.content,feedback:this.feedback,trigger:this.trigger,pendingChoices:0,submitPending:false};this.surface=owner;
-  head.append(heading,button(tc('关闭'),()=>this.close(false,owner)));this.dialog.append(head,owner.content,owner.feedback);this.dialog.showModal();return true;
+  head.append(heading,button(tc('关闭'),()=>this.close(false,owner),'close'));this.dialog.append(head,owner.content,owner.feedback);this.dialog.showModal();return true;
  }
  openComposePreview(host){
   if(!host?.isConnected||host.tagName==='DIALOG'||host.getAttribute?.('role')==='dialog')throw new TypeError('Compose preview requires a connected ordinary workspace host.');
@@ -69,11 +69,11 @@ export class TopicActions {
    finally{owner.submitPending=false;if(this.currentSurface(owner)){owner.content.inert=false;submit.disabled=owner.pendingChoices>0;}}
   });owner.onChoicePending=()=>{if(this.currentSurface(owner))submit.disabled=owner.submitPending||owner.pendingChoices>0;};owner.content.append(submit);
  }
- async compose({topicId,inputId,quote='',relatedThought=null,isCurrent=()=>true,workspacePreview=null}={}){
-  if(!workspacePreview&&this.composePresentation)return this.composePresentation({topicId,inputId,quote,relatedThought,isCurrent});
+ async compose({topicId,inputId,quote='',isCurrent=()=>true,workspacePreview=null}={}){
+  if(!workspacePreview&&this.composePresentation)return this.composePresentation({topicId,inputId,quote,isCurrent});
   const opening=this.beginOpen();if((!workspacePreview&&!await this.flush())||!isCurrent()||opening!==this.openIntent)return;
   if(!(workspacePreview?this.openComposePreview(workspacePreview.host):this.open(tc('补充今天的想法'))))return;
-  const nodes=createThoughtComposeNodes({topicId,quote,relatedThought}),{draft,relation:relate,choices,choiceHost:host}=nodes;this.draft=draft;this.quotePreview=nodes.quotePreview;
+  const nodes=createThoughtComposeNodes({topicId,quote}),{draft,choices,choiceHost:host}=nodes;this.draft=draft;this.quotePreview=nodes.quotePreview;
   const owner=this.surface,session={draft,feedback:owner.feedback,attempt:null,acknowledged:null,pending:false,uncertain:false,composing:false};this.composeSession=session;
   const current=()=>this.currentSurface(owner)&&this.composeSession===session&&this.draft===draft&&draft.isConnected;
   draft.addEventListener('compositionstart',()=>session.composing=true);draft.addEventListener('compositionend',()=>session.composing=false);
@@ -87,20 +87,20 @@ export class TopicActions {
     if(!draft.value.trim()){session.feedback.textContent=tc('先写下一点内容。');return;}
     if(selected.size>1){session.feedback.textContent=tc('新想法先选一个主题；保存后可加入更多主题。');return;}
    }
-   session.pending=true;owner.submitPending=true;choices.inert=true;if(relate)relate.disabled=true;submit.disabled=true;
+   session.pending=true;owner.submitPending=true;choices.inert=true;submit.disabled=true;
    try{
     if(!session.uncertain||!session.attempt){
-     const body=draft.value,selectedTopic=[...selected][0],relation=relate?.checked?{id:relatedThought.id,expectedRevision:relatedThought.revision,expectedBodySha256:await hashText(relatedThought.body)}:undefined;
+     const body=draft.value,selectedTopic=[...selected][0];
      if(!current())return;
      const acknowledged=session.acknowledged;
-     if(acknowledged&&acknowledged.body===body&&acknowledged.topicId===selectedTopic&&JSON.stringify(acknowledged.relation)===JSON.stringify(relation)){if(!session.composing&&draft.value===body&&selected.size<2&&[...selected][0]===selectedTopic&&!!relate?.checked===!!relation)this.close(true,owner);return;}
-     if(!session.attempt||session.attempt.body!==body||session.attempt.topicId!==selectedTopic||JSON.stringify(session.attempt.relation)!==JSON.stringify(relation))session.attempt={operationId:op(),body,...(inputId?{inputId}:{}),...(selectedTopic?{topicId:selectedTopic}:{}),...(relation?{relation}:{})};
+     if(acknowledged&&acknowledged.body===body&&acknowledged.topicId===selectedTopic){if(!session.composing&&draft.value===body&&selected.size<2&&[...selected][0]===selectedTopic)this.close(true,owner);return;}
+     if(!session.attempt||session.attempt.body!==body||session.attempt.topicId!==selectedTopic)session.attempt={operationId:op(),body,...(inputId?{inputId}:{}),...(selectedTopic?{topicId:selectedTopic}:{})};
     }
     const submitted=session.attempt,result=await request('CONTINUE_THINKING',{thought:submitted});
-    if(result?.conflict){session.uncertain=false;if(result.relatedChanged){if(current())session.feedback.textContent=tc('回应的内容刚有变化；新想法尚未保存，文字仍在这里。取消关联可独立保存，或重新打开原内容核对。');return;}throw Error('CONFLICT');}
+    if(result?.conflict){session.uncertain=false;throw Error('CONFLICT');}
     creationResult(result);session.acknowledged=submitted;session.attempt=null;session.uncertain=false;
     if(current()){
-     const unchanged=!session.composing&&draft.value===submitted.body&&selected.size<2&&[...selected][0]===submitted.topicId&&!!relate?.checked===!!submitted.relation;
+     const unchanged=!session.composing&&draft.value===submitted.body&&selected.size<2&&[...selected][0]===submitted.topicId;
      if(unchanged)this.close(true,owner);
      else session.feedback.textContent=tc('先前提交已保存。这里的新文字或选择尚未保存，仍保留在此。');
     }
@@ -108,7 +108,7 @@ export class TopicActions {
    }catch(error){
     session.uncertain=session.uncertain||uncertainResult(error);
     if(current())session.feedback.textContent=tc(session.uncertain?'保存结果尚未确认，文字保留。再次保存会先核对上次提交。':'尚未保存，文字仍在这里。可以重试或复制。');
-   }finally{session.pending=false;owner.submitPending=false;if(current()){choices.inert=false;if(relate)relate.disabled=false;submit.disabled=owner.pendingChoices>0;}}
+   }finally{session.pending=false;owner.submitPending=false;if(current()){choices.inert=false;submit.disabled=owner.pendingChoices>0;}}
   });
   owner.onChoicePending=()=>{if(current())submit.disabled=owner.workspacePreview||session.pending||owner.pendingChoices>0;};
   draft.onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!event.isComposing){event.preventDefault();submit.click();}};
@@ -116,11 +116,6 @@ export class TopicActions {
   const presentation=mountThoughtComposePresentation({content:owner.content,feedback:owner.feedback,nodes,submit,copy,cancel,workspacePreview:!!workspacePreview});
   if(workspacePreview){choices.dataset.loaded='true';await this.topicChoices(host,topicId,{owner,selected,select:presentation.topicSelect});}
   if(current()&&!workspacePreview)draft.focus();
- }
- async inspectRelations(id){
-  const intent=this.beginOpen();if(!await this.flush()||intent!==this.openIntent)return;const result=await request('COMPARE_THOUGHT_INPUT',{id});if(intent!==this.openIntent||!this.open(tc('想法关联')))return;
-  const owner=this.surface;this.comparing=true;owner.content.append(element('p','muted',tc('这里只显示你明确选择的关系，不自动判断观点变化。')));if(!result.relations?.length)owner.content.append(element('p','',tc('这条想法没有记录回应关系。')));
-  for(const relation of result.relations||[]){const row=element('section','thought-relation');row.append(element('h3','',tc('回应的内容')));if(relation.state==='current'){row.append(element('pre','topic-selection-preview',relation.body),button(tc('查看关联内容'),()=>{if(!this.currentSurface(owner))return;this.close(true,owner);this.onThought(relation.id);}));}else row.append(element('p','muted',tc(relation.state==='changed'?'关联内容已变化，请重新核对；不把当前文字当作当时版本。':'关联内容已不可用；这条独立想法仍保留。')));owner.content.append(row);}
  }
  async compare(id,{source=false}={}){
   const intent=this.beginOpen();if(!await this.flush()||intent!==this.openIntent)return;const result=await request('COMPARE_THOUGHT_INPUT',{id});if(intent!==this.openIntent||!this.open(source?tc('查看当时记录'):tc('查看档案当前文字')))return;

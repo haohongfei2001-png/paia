@@ -1,14 +1,15 @@
-import {captureHealthText} from './common.js';
-import { request, enabledLabel, diagnosticText, dateLabel, statusLabel } from './common.js';
-import { briefStructure } from './structure-diagnostics.js';
+import { request, enabledLabel, statusLabel } from './common.js';
 import { normalizeUXPreferences, resolveAppearance } from './ux-r1-state.js';
 import { recoveryGuidance } from './recovery-guidance.js';
+import { setIconLabel } from './icons.js';
 
 // Native action views need intrinsic width before Chrome chooses their viewport.
 // An explicitly opened document tab can instead reflow at a narrower viewport.
 if (!chrome.extension.getViews({type: 'popup'}).includes(window)) document.documentElement.dataset.popupView = 'document';
 
 const $ = (id) => document.getElementById(id);
+setIconLabel($('open-archive'), 'external-link', $('open-archive').textContent, {side:'end'});
+for (const summary of document.querySelectorAll('details > summary')) setIconLabel(summary, 'chevron-right', summary.textContent, {side:'end',iconClass:'popup-disclosure-icon'});
 const UPDATE_STATE_KEY = 'paia-consumer-update:v1';
 let state;
 let busy = false;
@@ -44,18 +45,6 @@ async function openArchive() {
   window.close();
 }
 
-// Read only, on demand while the low-frequency diagnostic section is open.
-let promptDiagnosticAt=0,promptDiagnosticEpoch=0;
-async function refreshPromptDiagnostic(force=false){
- if(state&&state.settings.consentVersion!==1){++promptDiagnosticEpoch;$('diagnostic-prompt-reuse').textContent='Prompt Reuse：请先在 PAIA 完成授权';return;}
- if(!$('prompt-reuse-diagnostics').open||(!force&&Date.now()-promptDiagnosticAt<15000))return;
- promptDiagnosticAt=Date.now();const ticket=++promptDiagnosticEpoch;
- const labels={visible:'Prompt Reuse：悬浮球可用',composer_unrecognized:'Prompt Reuse：未识别当前 ChatGPT 输入框',composer_ambiguous:'Prompt Reuse：发现多个输入框，已暂停定位',layout_unavailable:'Prompt Reuse：当前页面空间不足，暂无法显示悬浮球',surface_unavailable:'Prompt Reuse：页面尚未就绪',consent_required:'Prompt Reuse：请先在 PAIA 完成授权',not_chatgpt:'Prompt Reuse：请在当前 ChatGPT 页面查看',page_unavailable:'Prompt Reuse：暂时无法连接当前 ChatGPT 页面'};
- try{const result=await request('PAIA_PROMPT_SURFACE_DIAGNOSTIC');if(ticket===promptDiagnosticEpoch)$('diagnostic-prompt-reuse').textContent=labels[result?.status]||labels.page_unavailable;}
- catch{if(ticket===promptDiagnosticEpoch)$('diagnostic-prompt-reuse').textContent=labels.page_unavailable;}
-}
-$('prompt-reuse-diagnostics').addEventListener('toggle',()=>{if($('prompt-reuse-diagnostics').open)void refreshPromptDiagnostic(true);else ++promptDiagnosticEpoch;});
-
 async function refresh() {
   try {
     state = await request('GET_PAGE',{page:{view:'settings'}});
@@ -67,20 +56,13 @@ async function refresh() {
     $('status-dot').classList.toggle('active', consented && state.settings.enabled);
     $('record-count').textContent = state.stats.total.toLocaleString('zh-CN');
     $('first-use').hidden = consented;
-    $('open-archive').textContent = consented ? '回到 PAIA ↗' : '阅读说明并启用 ↗';
+    setIconLabel($('open-archive'), 'external-link', consented ? '打开 PAIA' : '阅读说明并启用', {side:'end'});
     $('toggle-capture').hidden = !consented;
     $('toggle-capture').disabled = busy;
-    $('toggle-capture').textContent = state.settings.enabled ? '暂停捕获' : '恢复捕获';
+    $('toggle-capture').textContent = state.settings.enabled ? '暂停收录' : '恢复收录';
     $('resume-note').hidden = !consented || state.settings.enabled;
-    void refreshPromptDiagnostic();
-    $('diagnostic-status').textContent = diagnosticText(state);
-    $('diagnostic-capture-health').textContent = captureHealthText(state.diagnostics);
-    $('diagnostic-time').textContent = `最近扫描：${dateLabel(state.diagnostics.lastScanAt)}`;
-    $('diagnostic-version').textContent = `适配器版本：${state.adapterVersion}`;
-    $('diagnostic-structure').textContent = briefStructure(state.diagnostics.structure, state.diagnostics.structureAt);
-    const lastError = state.diagnostics.lastError;
-    $('diagnostic-error').textContent = lastError ? `最近错误：${statusLabel(lastError.code)} · ${dateLabel(lastError.at)}` : '最近错误：无';
     showRecovery();
+
   } catch {
     state = undefined;
     archiveReadFailed = true;
@@ -91,22 +73,28 @@ async function refresh() {
   }
 }
 
+function setUpdateMessage(message) {
+  $('update-message').textContent = message;
+  $('update-message').hidden = !message;
+}
+
 async function refreshUpdate() {
   const version = chrome.runtime.getManifest().version;
+  $('update-version').textContent = `版本 ${version}`;
   try {
     const update = (await chrome.storage.local.get(UPDATE_STATE_KEY))[UPDATE_STATE_KEY];
     if (update?.state === 'available' && update.fromVersion === version && update.toVersion !== version) {
-      $('update-message').textContent = `当前版本 ${version}；${update.toVersion} 已准备好。请先保存正在编辑的内容，再关闭并重新打开 PAIA 页面。现有资料仍保存在本机。`;
+      setUpdateMessage(`${update.toVersion} 已准备好。请先保存正在编辑的内容，再关闭并重新打开 PAIA 页面。`);
     } else if (update?.state === 'installed' && update.toVersion === version) {
-      $('update-message').textContent = state
-        ? `已安装 ${version}，本机档案已读取。打开 PAIA 核对资料；如果 ChatGPT 页面显示连接过期，请刷新该页面。`
-        : `已安装 ${version}，暂时无法确认本机档案状态。请重新打开 PAIA；如果仍无法读取，请保留现有安装和资料。`;
+      setUpdateMessage(state
+        ? `已安装 ${version}。如果 ChatGPT 页面显示连接过期，请刷新该页面。`
+        : `已安装 ${version}，暂时无法确认档案状态。请重新打开 PAIA；仍无法读取时，请保留现有安装和资料。`);
     } else {
-      $('update-message').textContent = `当前版本 ${version}。安装来源决定后续更新方式；这里不会强制重启或删除资料。`;
+      setUpdateMessage('');
     }
     showRecovery();
   } catch {
-    $('update-message').textContent = `当前版本 ${version}；暂时无法读取更新状态。现有资料仍可在 PAIA 中查看。`;
+    setUpdateMessage('暂时无法读取更新状态，请稍后重试。');
     updateCheckFailed = true;
     showRecovery();
   }
@@ -115,7 +103,7 @@ async function refreshUpdate() {
 $('check-update').addEventListener('click', async () => {
   const button = $('check-update');
   button.disabled = true;
-  $('update-message').textContent = '正在检查此安装的更新…';
+  setUpdateMessage('正在检查此安装的更新…');
   try {
     if (!chrome.runtime.requestUpdateCheck) throw new Error('unavailable');
     const result = await new Promise((resolve, reject) => chrome.runtime.requestUpdateCheck((status, details) => {
@@ -130,14 +118,14 @@ $('check-update').addEventListener('click', async () => {
       await refreshUpdate();
     } else if (result.status === 'no_update') {
       updateCheckFailed = false;
-      $('update-message').textContent = `此安装目前没有待安装更新（当前 ${chrome.runtime.getManifest().version}）。这不验证其他安装来源是否有新版本。`;
+      setUpdateMessage('此安装来源目前没有待安装更新。');
     } else {
       updateCheckFailed = true;
-      $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
+      setUpdateMessage('此安装暂时无法检查更新，请稍后重试。');
     }
   } catch {
     updateCheckFailed = true;
-    $('update-message').textContent = '此安装暂时无法检查更新。资料仍保存在本机，请稍后重试。';
+    setUpdateMessage('此安装暂时无法检查更新，请稍后重试。');
   } finally {
     button.disabled = false;
     showRecovery();

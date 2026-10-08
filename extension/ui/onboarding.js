@@ -13,6 +13,8 @@ export class OnboardingUI {
   const consented=page.settings.consentVersion===1,step=this.state?.step;
   $('onboarding-welcome').hidden=consented||step!=='welcome';
   $('consent-panel').hidden=consented||step==='welcome'||!this.state;
-  $('onboarding-history-step').hidden=!consented||!home||step!=='history';
+  const showHistory=consented&&home&&step==='history';
+  $('onboarding-history-step').hidden=!showHistory;
+  if($('history-settings'))$('history-settings').hidden=showHistory;
  }
 }

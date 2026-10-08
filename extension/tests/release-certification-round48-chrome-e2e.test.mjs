@@ -1,4 +1,5 @@
-import {previewReviewedContext} from './harness/context-browser-review.mjs';
+import {openRetainedSearchComponent} from './harness/retained-search-component.mjs';
+import {settleContextCapture,assertContextUnavailable,contextSafetySnapshot,observeContextEffects,assertNoContextEffects} from './current-context-scope-helper.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -7,9 +8,9 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 const rawRpc=(page,type,fields={})=>page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});
 
 async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
-async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await page.locator('#primary-nav [data-view="memory"]').click();await eventually(()=>page.locator('#material-workbench').isVisible(),'For AI material tray opens');await page.getByRole('button',{name:'从档案选择',exact:true}).click();const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
+async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await assertContextUnavailable(page);await openRetainedSearchComponent(page,{types:['input','thought','ai']});const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
 
-test('Round 4.8 current release: internal material Search -> Reader / Context and Revisit are real Chrome journeys',{timeout:120000},async()=>{
+test('Round 4.8 current release: retained Search component -> Reader and Revisit survive the unavailable Context route',{timeout:120000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive,first='ROUND48_SEARCH_TARGET 我决定把 PAIA 做成长期可阅读的个人输入档案。',second='ROUND48_REVISIT_NEW 我后来补充：回访应该只提示真正新增的本机内容。';
@@ -17,24 +18,23 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first}]});
   await eventually(async()=>(await h.state()).records.length===1,'first Input is captured');
 
-  // Explicit material selection uses the retained internal Search coordinator and the real
-  // Input Archive navigation path, rather than a unit-only projection.
+  // Component-only Search still uses the real Input Archive Reader. Its former
+  // Context picker launcher is withdrawn and is checked unavailable above.
   let hit=await openUniversal(p,'ROUND48_SEARCH_TARGET');
   await hit.locator('.universal-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_SEARCH_TARGET'),'search result opens its Input document');
 
   await p.locator('#back').click();await eventually(()=>p.locator('#universal-search-dialog').isVisible(),'Reader returns to its Search task');assert.equal(await p.getByRole('searchbox',{name:'全局搜索'}).inputValue(),'ROUND48_SEARCH_TARGET');
 
-  // DELTA-04: fixed explicit Input selection replaces snippet-driven retrieval.
-  // It remains local and does not grant future access to unorganized Inputs.
-  hit=p.locator('#universal-search-dialog .universal-hit').first();await hit.locator('.universal-context').click();
-  await eventually(()=>p.locator('#material-preview').isVisible(),'Search adds a real material reference');
-  await previewReviewedContext(p);await eventually(()=>p.locator('#material-output-text').isVisible(),'explicit material reaches trusted Preview');
-  assert.match(await p.locator('#material-output-text').textContent(),/ROUND48_SEARCH_TARGET/);
+  // The withdrawn Context segment is a truthful no-op through ordinary navigation.
+  await p.locator('.universal-close').click();
+  await settleContextCapture(h);const before=await contextSafetySnapshot(p);await observeContextEffects(p);
+  await assertContextUnavailable(p);
+  assert.deepEqual(await contextSafetySnapshot(p),before);
   assert.equal((await rpc(p,'PAIA_MEMORY_STATUS')).config.includeUnorganizedInputs,false);
-  assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);
+  await assertNoContextEffects(p,h);
 
-  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#collection-panel').isVisible());await p.locator('#scope-search').fill('');await eventually(()=>p.locator('#archive-root-main').isVisible());
+  p.once('dialog',dialog=>dialog.accept());await p.locator('#primary-nav [data-view="library"]').click();await p.locator('#scope-search').fill('');await eventually(()=>p.locator('#archive-navigator').isVisible());assert.equal(await p.locator('.library-prose').count(),0,'Archive root clears only the Reader');
   // UX-R2 creates a fixed visit window; a later captured Input becomes the
   // only new-item signal and can navigate back to the canonical reader.
   await p.evaluate(()=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'revisit'}})));await eventually(async()=>await p.locator('#revisit-panel').isVisible(),'Revisit opens');
@@ -52,17 +52,31 @@ test('Round 4.8 current release: internal material Search -> Reader / Context an
  }finally{await h.close();}
 });
 
-test('Round 4.8 current release: Passport grant binds a Context package and revoke fails closed in Chrome',{timeout:60000},async()=>{
+test('Round 4.8 current release: Context requests remain retired while saved Passport grants can be revoked without releasing content',{timeout:60000},async()=>{
  const h=await FakeChatGPT.start();
  try{
   const p=h.archive;await consent(p);
-  await rpc(p,'PAIA_MEMORY_SETTINGS',{options:{externalAccess:true}});
-  const status=await rpc(p,'PAIA_PASSPORT_STATUS');assert.equal(status.localOnly,true);assert.equal(status.storesBody,false);assert.equal(status.permission,'context_export');
-  const built=await rpc(p,'PAIA_MEMORY_BUILD',{options:{query:'ROUND48 passport certification',profileId:'default',budget:'short'}});assert.equal(built.contextPackage.grantId,null);assert.equal(built.contextPackage.persistedBody,false);
-  const grant=await rpc(p,'PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}});assert.equal(grant.state,'active');
-  const bound=await rpc(p,'PAIA_CONTEXT_BIND',{previewId:built.previewId,grantId:grant.grantId});assert.equal(bound.grantId,grant.grantId);assert.equal(bound.consumer,'chatgpt');assert.equal(bound.purpose,'research');assert.equal(bound.persistedBody,false);
-  const revoked=await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId:grant.grantId});assert.equal(revoked.state,'revoked');
-  const denied=await rawRpc(p,'PAIA_MEMORY_SHARE',{options:{previewId:built.previewId,grantId:grant.grantId,format:'copy',removed:[]}});assert.equal(denied.ok,false);assert.equal(denied.error,'MEMORY_DENIED');
+  await h.open({id:'round48-passport-history',title:'Synthetic retained grant',base:1609459200,messages:[{id:'round48-history-one',text:'ROUND48 retained original evidence'}]});await eventually(async()=>(await h.state()).records.length===1);await settleContextCapture(h);
+  const grantId=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{profileDefault,configDefault}=await import('../core/memory/model.js'),{validatePassportRow}=await import('../core/passport.js');
+   const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+   // A synthetic grant already stored by the historical release, never a current grant-creation call.
+   const grant={id:'passport:grant:round48-historical',kind:'grant',version:1,grantId:'round48-historical',consumer:'chatgpt',purpose:'research',resourceScope:'profile',profileId:'default',permission:'context_export',duration:'once',createdAt:'2026-01-01T00:00:00.000Z',expiresAt:null,revokedAt:null,consumedAt:null,lastUsedAt:null,useCount:0};
+   if(!validatePassportRow(grant))throw Error('invalid historical synthetic grant');
+   await s.repository.transaction(true,async t=>{await t.put('meta',profileDefault());await t.put('meta',{...configDefault(),externalAccess:true});await t.put('meta',grant);});return grant.grantId;
+  });
+  const before=await contextSafetySnapshot(p),status=before.passport;assert.equal(status.localOnly,true);assert.equal(status.storesBody,false);assert.equal(status.permission,'context_export');assert.equal(status.grants[0].state,'active');
+  for(const [type,fields]of [
+   ['PAIA_MEMORY_SETTINGS',{options:{externalAccess:true}}],
+   ['PAIA_MEMORY_BUILD',{options:{query:'ROUND48 private query',profileId:'default',budget:'short'}}],
+   ['PAIA_PASSPORT_CREATE',{grant:{consumer:'chatgpt',purpose:'research',profileId:'default',duration:'once'}}],
+   ['PAIA_CONTEXT_BIND',{previewId:'historical-preview',grantId}],
+   ['PAIA_MEMORY_SHARE',{options:{previewId:'historical-preview',grantId,format:'copy'}}]
+  ]){const denied=await rawRpc(p,type,fields);assert.equal(denied.ok,false);assert.equal(denied.error,'FEATURE_UNAVAILABLE');}
+  assert.deepEqual(await contextSafetySnapshot(p),before,'old commands do not edit content, consume a grant, collect audit or change permissions');
+  const revoked=await rpc(p,'PAIA_PASSPORT_REVOKE',{grantId});assert.equal(revoked.state,'revoked');assert.equal(revoked.useCount,0);
+  for(const format of ['copy','markdown']){const denied=await rawRpc(p,'PAIA_MEMORY_SHARE',{options:{previewId:'historical-preview',grantId,format}});assert.equal(denied.error,'FEATURE_UNAVAILABLE');}
+  const after=await contextSafetySnapshot(p);assert.deepEqual(after.records,before.records);assert.deepEqual(after.library,before.library);assert.deepEqual(after.session,before.session);assert.deepEqual(after.permissions,before.permissions);assert.deepEqual(after.passport.audits,[]);assert.equal(after.passport.grants[0].consumedAt,null);
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

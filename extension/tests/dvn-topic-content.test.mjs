@@ -158,3 +158,82 @@ test('D2 cold-indexing metadata is fenced after an admitted purge without invent
  s.repository.transaction=async(...args)=>{const result=await transaction(...args);if(!triggered&&result?.indexing===true&&result.topic&&Array.isArray(result.items)){triggered=true;scanned=result.coverage?.scanned;purge=s.purge(record.id,true).then(()=>{finished=true;});}return result;};
  try{const response=await s.topicDocumentPage({topicId:topic.id,chronology:'expression'});assert.equal(triggered,true);assert.equal(scanned,10000,'real bounded index build, not a fabricated indexing DTO');assert.equal(finished,true);assert.equal(response.cursorInvalid,true);assert.equal(response.complete,false);assert.deepEqual(response.items,[]);assert.doesNotMatch(JSON.stringify(response),/SYNTHETIC_INDEXING_(METADATA|SUMMARY)_CANARY/);await purge;}finally{s.repository.transaction=transaction;}
 });
+
+// A real saved reader plus the actual workspace methods. Only page transport,
+// DOM painting and the animation-frame clock are synthetic; no paging method is
+// replaced. This reproduces the native delayed top-scroll after a saved return.
+async function withTopicRestoreFixture(run,{hold=true,failRead=false,partial=false}={}){
+ const names=['document','scrollY','scrollBy','requestAnimationFrame','chrome'],prior=new Map(names.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)])),frames=[],reads=[],paints=[],scrolls=[];
+ const source=Array.from({length:partial?245:165},(_,i)=>({entry:{id:'restore-'+i,revision:1,body:'SYNTHETIC_RESTORE_'+i}})),saved={topicId:'restore-topic',sort:'asc',query:'',extent:(partial?source.slice(40,205):source).map(item=>({entry:{id:item.entry.id,revision:1},unloaded:true})),windowStart:45,nextCursor:partial?{at:205}:null,previousCursor:partial?{at:40}:null,terminalNext:!partial,terminalPrevious:!partial,generation:'restore-generation',anchor:{id:partial?'restore-85':'restore-45',top:8441}};
+ let release,first=true,nodes=[];const gate=new Promise(resolve=>release=resolve),elements=new Map();
+ globalThis.document={getElementById:id=>{if(!elements.has(id))elements.set(id,{id,hidden:false,value:'',inert:false,replaceChildren(){},classList:{toggle(){}}});return elements.get(id);}};globalThis.scrollY=0;globalThis.scrollBy=(_x,delta)=>{scrolls.push(delta);globalThis.scrollY+=delta;};globalThis.requestAnimationFrame=callback=>{frames.push(callback);return frames.length;};
+ const owner=Object.assign(Object.create(ThoughtWorkspace.prototype),{id:'restore-topic',view:'original',originalMode:'content',serial:11,openIntent:3,readRetry:{},originalPane:{dataset:{},querySelectorAll:()=>nodes},onStatus(){},observeTopicWindowSpacers(){},updateTopicContinuous(){},loadRemainingTopicSections(){},checkAllTracked:async()=>true,topicPageFromReader(){return {topic:{id:this.id}};},renderDocument(){paints.push(this.topicReader.windowStart);nodes=this.topicReader.layout().filter(row=>row.kind==='item').map(row=>({dataset:{entryId:row.item.entry.id},getBoundingClientRect:()=>({top:341+row.index*180-scrollY,bottom:521+row.index*180-scrollY,height:180})}));},createTopicReader(){const reader=new ContinuousTopicReader({load:async options=>{reads.push(structuredClone(options));if(first){first=false;if(hold)await gate;}if(failRead)throw Error('SYNTHETIC_RESTORE_READ_FAILED');const start=options.anchorId?Number(options.anchorId.split('-').at(-1)):options.direction==='prev'?Math.max(0,options.cursor.at-40):options.cursor?.at||0,end=options.direction==='prev'&&!options.anchorId?options.cursor.at:Math.min(source.length,start+40);return {topic:{id:this.id},items:source.slice(start,end),previousCursor:start?{at:start}:null,nextCursor:end<source.length?{at:end}:null,coverage:{activeGeneration:'restore-generation'}};}});reader.reset({topicId:this.id});return reader;}});
+ try{await run({owner,saved,release,frames,reads,paints,scrolls,frame:()=>frames.shift()?.()});}finally{for(const [key,descriptor]of prior){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
+}
+
+test('D2 saved return ignores delayed automatic window shifts through both layout frames, then allows normal paging',()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});assert.equal(f.owner.topicRestoring(),true);assert.equal(f.owner.topicReader.windowStart,45);
+ await f.owner.shiftTopicWindow('previous');assert.equal(f.owner.topicReader.windowStart,45,'held hydration cannot be displaced by a top-scroll callback');f.release();await pending;
+ assert.deepEqual(f.reads.map(row=>row.anchorId),['restore-45','restore-85','restore-125']);assert.equal(f.owner.topicReader.state().retainedBodies,120);
+ await f.owner.shiftTopicWindow('previous');assert.equal(f.owner.topicReader.windowStart,45,'ready state still owns its queued layout scroll');f.frame();await f.owner.shiftTopicWindow('previous');assert.equal(f.owner.topicReader.windowStart,45);
+ f.frame();assert.equal(f.owner.topicRestoring(),false);await f.owner.shiftTopicWindow('previous');assert.equal(f.owner.topicReader.windowStart,0);assert.equal(f.owner.topicReader.items.length,165);assert.equal(f.owner.topicReader.state().retainedBodies,120);assert.equal(f.owner.topicReader.items[0].entry.body,'SYNTHETIC_RESTORE_0');assert.equal(f.owner.topicReader.stale,false);
+}));
+
+for(const input of [{type:'wheel'},{type:'touchstart'},{type:'keydown',key:'PageDown'},{type:'keydown',key:'Home'}])test(`D2 trusted ${input.type}/${input.key||'pointer'} interrupts only the pending saved restoration`,()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});f.owner.topicRestoreInput({...input,isTrusted:true});globalThis.scrollY=250;assert.equal(f.owner.topicRestoring(),false);assert.equal(f.owner.topicRestoreInputEpoch,1);f.release();await pending;
+ assert.equal(scrollY,250,'late paint does not restore over explicit reading input');assert.deepEqual(f.scrolls,[]);assert.equal(f.frames.length,0);assert.equal(f.owner.topicReader.items.length,165);
+}));
+
+test('D2 explicit keyboard frontier action releases the saved-window guard and still uses the existing reader owner',()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});const keyAction=f.owner.loadTopicContinuous('next');assert.equal(f.owner.topicRestoring(),false);assert.equal(f.owner.topicRestoreInputEpoch,1);f.release();await Promise.all([pending,keyAction]);assert.equal(f.owner.topicReader.items.length,165);assert.equal(f.owner.topicReader.state().retainedBodies,120);assert.equal(f.owner.topicReader.stale,false);
+}));
+
+for(const input of [{type:'wheel',isTrusted:false},{type:'keydown',isTrusted:true,key:'ArrowDown',isComposing:true},{type:'keydown',isTrusted:true,key:'PageDown',defaultPrevented:true},{type:'keydown',isTrusted:true,key:'ArrowDown',target:{closest:()=>({})}}])test(`D2 unadmitted restore input preserves the guard: ${JSON.stringify(input)}`,()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved});f.owner.topicRestoreInput(input);assert.equal(f.owner.topicRestoring(),true);assert.equal(f.owner.topicRestoreInputEpoch,undefined);f.release();await pending;f.frame();f.frame();assert.equal(f.owner.topicRestoring(),false);
+}));
+
+for(const replacement of ['serial','openIntent','reader'])test(`D2 saved restoration expires on a newer ${replacement} while held`,()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});if(replacement==='reader')f.owner.topicReader=f.owner.createTopicReader();else f.owner[replacement]++;assert.equal(f.owner.topicRestoring(),false);f.release();await pending;assert.deepEqual(f.scrolls,[]);assert.equal(f.frames.length,0);
+}));
+
+test('D2 an obsolete restore frame cannot clear a newer reader restoration',()=>withTopicRestoreFixture(async f=>{
+ f.release();await f.owner.resetTopicReader({saved:f.saved});const first=f.owner.topicRestore;await f.owner.resetTopicReader({saved:f.saved});const latest=f.owner.topicRestore;assert.notEqual(latest,first);f.frame();f.frame();f.frame();assert.equal(f.owner.topicRestore,latest);assert.equal(f.owner.topicRestoring(),true);f.frame();assert.equal(f.owner.topicRestoring(),false);
+},{hold:false}));
+
+test('D2 failed restore hydration releases immediately and keeps the error visible',()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved});f.release();await pending;assert.equal(f.owner.topicRestoring(),false);assert.equal(f.frames.length,0);assert.match(f.owner.topicReader.hydrationError.message,/SYNTHETIC_RESTORE_READ_FAILED/);
+},{failRead:true}));
+
+test('D2 an unexpected restore render error releases its guard and propagates the original error',()=>withTopicRestoreFixture(async f=>{
+ const error=Error('SYNTHETIC_RENDER_FAILURE');f.owner.renderDocument=()=>{throw error;};const pending=f.owner.resetTopicReader({saved:f.saved});f.release();await assert.rejects(pending,actual=>actual===error);assert.equal(f.owner.topicRestoring(),false);assert.equal(f.frames.length,0);
+}));
+
+test('D2 accepted leave clears a held restore without painting or retaining a frame lock',()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});assert.equal(await f.owner.leaveEditors(),true);assert.equal(f.owner.topicRestoring(),false);f.release();await pending;assert.deepEqual(f.paints,[]);assert.deepEqual(f.scrolls,[]);assert.equal(f.frames.length,0);
+}));
+
+test('D2 the actual open completion does not repeat anchor restoration after trusted wheel during hydration',()=>withTopicRestoreFixture(async f=>{
+ const pane=f.owner.originalPane;globalThis.chrome={runtime:{sendMessage:async()=>({ok:true,data:null})}};
+ Object.assign(f.owner,{id:null,aiTopics:new Map(),homePositions:new Map([['restore-topic',{sort:'asc',anchor:f.saved.anchor}]]),timelinePositions:{get:()=>null},aiViewSession:{view:()=> 'original',position:()=>({anchor:f.saved.anchor})},rememberView(){},saveHomePosition(){},leave:async()=>true,clearActionFeedback(){},restoreContent(){},schedulePosition(){},onOpen(){},async refresh(){this.originalPane=pane;this.serial++;const pending=this.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor});this.topicRestoreInput({type:'wheel',isTrusted:true});globalThis.scrollY=250;f.release();await pending;}});
+ assert.equal(await f.owner.open('restore-topic'),4);await Promise.resolve();assert.equal(scrollY,250);assert.deepEqual(f.scrolls,[]);assert.equal(f.owner.topicRestoreInputEpoch,1);
+}));
+
+for(const direction of ['previous','next'])test(`D2 nonterminal restored extent defers automatic ${direction} but resumes its real reader after layout`,()=>withTopicRestoreFixture(async f=>{
+ const observed=[];f.owner.topicContinuousObserver={unobserve:node=>observed.push(['unobserve',node.id]),observe:node=>observed.push(['observe',node.id])};
+ const pending=f.owner.resetTopicReader({saved:f.saved});assert.equal(f.owner.topicReader.terminalPrevious,false);assert.equal(f.owner.topicReader.terminalNext,false);await f.owner.loadTopicContinuous(direction,{explicit:false});assert.equal(f.reads.length,1);assert.equal(f.owner.topicReader.windowStart,45);
+ f.release();await pending;const count=f.reads.length;await f.owner.loadTopicContinuous(direction,{explicit:false});assert.equal(f.reads.length,count);assert.equal(f.owner.topicReader.items.length,165);f.frame();f.frame();
+ assert.deepEqual(observed,[['unobserve','topic-continuous-before'],['observe','topic-continuous-before'],['unobserve','topic-continuous-after'],['observe','topic-continuous-after']]);
+ await f.owner.loadTopicContinuous(direction,{explicit:false});assert.ok(f.reads.some(row=>row.direction===(direction==='previous'?'prev':'next')&&row.cursor?.at===(direction==='previous'?40:205)));assert.deepEqual(f.owner.topicReader.items.map(row=>row.entry.id),Array.from({length:205},(_,i)=>'restore-'+(i+(direction==='previous'?0:40))));assert.ok(f.owner.topicReader.state().retainedBodies<=120);assert.equal(f.owner.topicReader.stale,false);
+},{partial:true}));
+
+for(const direction of ['previous','next'])test(`D2 explicit ${direction} takes priority over a held partial-extent restoration`,()=>withTopicRestoreFixture(async f=>{
+ const pending=f.owner.resetTopicReader({saved:f.saved,restoreAnchor:f.saved.anchor}),action=f.owner.loadTopicContinuous(direction);assert.equal(f.owner.topicRestoring(),false);assert.equal(f.owner.topicRestoreInputEpoch,1);f.release();await Promise.all([pending,action]);assert.equal(f.owner.topicReader.items.length,205);assert.ok(f.owner.topicReader.state().retainedBodies<=120);assert.equal(f.owner.topicReader.stale,false);
+},{partial:true}));
+
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+for(const route of ['thoughts','library','dialog'])test(`D2 existing Archive keyboard owner releases Topic restore only for admitted page reading keys: ${route}`,()=>withTopicRestoreFixture(async f=>{
+ const source=readFileSync(new URL('../ui/archive.js',import.meta.url),'utf8'),start=source.indexOf("document.addEventListener('keydown',event=>{"),end=source.indexOf('\n});',start);assert.ok(start>=0&&end>start);let keyboard;
+ vm.runInNewContext(source.slice(start,end+4),{document:{addEventListener(_type,handler){keyboard=handler;},querySelector:()=>route==='dialog'?{}:null},view:route==='library'?'library':'thoughts',thoughts:f.owner,editor:null,archiveNavigator:{handleKeydown:()=>false},archiveRootOverflow:{contains:()=>false}});
+ const pending=f.owner.resetTopicReader({saved:f.saved});keyboard({type:'keydown',key:'PageDown',isTrusted:true});assert.equal(f.owner.topicRestoring(),route!=='thoughts');f.release();await pending;while(f.frames.length)f.frame();
+}));

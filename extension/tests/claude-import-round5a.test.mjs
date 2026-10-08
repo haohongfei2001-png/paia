@@ -82,6 +82,10 @@ test('history completion UI follows the session-resolved adapter instead of a fi
  const ui=await readFile(new URL('../ui/history-completion.js',import.meta.url),'utf8');
  assert.equal(ui.includes('!controller.adapter'),false);
  assert.ok(ui.includes("sourceName(d.adapterId||d.profileId)"));
- assert.ok(ui.includes('sourceName(r.adapterId)'));
+ const {historyLatestText}=await import('../ui/history-completion.js');
+ for(const [adapterId,provider,other] of [['claude-conversations-v1','Claude','ChatGPT'],['chatgpt-mapping-v1','ChatGPT','Claude']])for(const language of ['zh-CN','en']){
+  const summary=historyLatestText({adapterId,completedAt:'2026-01-01T00:00:00Z',phase:'completed',counts:{added:1,duplicates:0,issues:0}},language);
+  assert.ok(summary.includes(provider),language+' retains the resolved provider');assert.equal(summary.includes(other),false);
+ }
  assert.ok(ui.includes('官方导出'));
 });

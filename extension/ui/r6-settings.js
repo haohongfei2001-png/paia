@@ -1,11 +1,14 @@
+import {withSettingsControlFocus} from './settings-local-state.js';
 import {request,element} from './common.js';
-import {OpenExportWriter} from '../core/open-export.js';
 
 const $=id=>document.getElementById(id);
-const LAST_BACKUP_KEY='paia-r6-last-backup-at';
-let installed=false,lastBackupNode=null,storageNode=null,privacyStatus=null,previewToggle=null;
-
+let installed=false,storageNode=null,privacyStatus=null,previewToggle=null;
+let privacyRead=0,privacyBusy=false,privacyLoaded=false,previewValue=true,privacyRefresh=false,privacyReadFailed=false;
 const english=()=>document.documentElement.lang==='en';
+let storageEpoch=0,storageState={state:'loading',usage:null,quota:null};const storageSubscribers=new Set();
+export function subscribeStorageEstimate(listener){storageSubscribers.add(listener);listener({...storageState});return()=>storageSubscribers.delete(listener);}
+export function storageSummaryText(value={},useEnglish=false){if(value?.state==='loading')return useEnglish?'Reading…':'读取中…';if(value?.state==='error')return useEnglish?'Unavailable':'暂时无法读取';return Number.isFinite(value?.usage)&&value.usage>=0?`${mib(value.usage)} MiB`:(useEnglish?'Unknown':'未知');}
+function presentStorage(){if(storageNode)storageNode.textContent=storageState.state==='loading'?(english()?'Reading storage usage…':'正在读取存储空间…'):storageState.state==='error'?(english()?'Could not read local storage usage. Reopen Storage space to retry.':'暂时无法读取本机空间。重新打开“存储空间”可重试。'):storageEstimateText(storageState,english());for(const listener of storageSubscribers)listener({...storageState});}
 const mib=value=>(value/1024/1024).toFixed(value>=100*1024*1024?0:1);
 export function storageEstimateText(estimate={},useEnglish=false){
  const usage=Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null;
@@ -13,10 +16,9 @@ export function storageEstimateText(estimate={},useEnglish=false){
  if(usage===null)return useEnglish?'Local storage usage is not available from this browser.':'浏览器未报告本机已用空间。';
  if(quota===null)return useEnglish?`About ${mib(usage)} MiB used locally · remaining space cannot be estimated.`:`本机已用约 ${mib(usage)} MiB · 无法估计剩余空间。`;
  const remaining=Math.max(0,quota-usage);
- return useEnglish?`About ${mib(usage)} MiB used locally · about ${mib(remaining)} MiB available to this origin.`:`本机已用约 ${mib(usage)} MiB · 此来源可用空间约 ${mib(remaining)} MiB。`;
+ return useEnglish?`About ${mib(usage)} MiB used locally · about ${mib(remaining)} MiB available.`:`本机已用约 ${mib(usage)} MiB · 可用约 ${mib(remaining)} MiB。`;
 }
 export const previewMaskClass=value=>value===true?'paia-hide-content-previews':'';
-
 function installStyles(){
  if(document.querySelector('link[data-r6-settings]'))return;
  const link=document.createElement('link');link.rel='stylesheet';link.href=chrome.runtime.getURL('ui/r6.css');link.dataset.r6Settings='true';document.head.append(link);
@@ -26,85 +28,58 @@ function text(tag,className,zh,en){const node=element(tag,className,english()?en
 function syncLocale(){
  for(const node of document.querySelectorAll('[data-r6-zh]'))node.textContent=english()?node.dataset.r6En:node.dataset.r6Zh;
  void refreshStorage();
- void refreshLastBackup();
-}
-async function currentPreferences(){
- const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});
- return page?.preferences||{};
 }
 async function syncPrivacy(){
+ if(privacyBusy){privacyRefresh=true;return;}
+ const read=++privacyRead;
  try{
-  const preferences=await currentPreferences(),value=preferences.hideContentPreviews===true;
-  if(previewToggle)previewToggle.checked=value;applyMask(value);
- }catch{applyMask(false);}
+  const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});if(read!==privacyRead)return;
+  previewValue=page?.preferences?.hideContentPreviews===true;privacyLoaded=true;if(privacyReadFailed&&privacyStatus)privacyStatus.textContent='';privacyReadFailed=false;
+  if(previewToggle){previewToggle.checked=previewValue;previewToggle.dataset.loaded='true';previewToggle.disabled=false;}applyMask(previewValue);
+ }catch{
+  // A failed read must never reveal previews that the user previously hid.
+  if(read!==privacyRead)return;
+  privacyReadFailed=true;if(previewToggle){previewToggle.disabled=!privacyLoaded;if(!privacyLoaded)previewToggle.dataset.loaded='error';}
+  if(privacyStatus)privacyStatus.textContent=english()?'Could not refresh this setting.':'无法刷新此设置。';
+ }
 }
 async function setPreviewMask(value){
- if(!previewToggle)return;
- previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
+ if(!previewToggle||privacyBusy||!privacyLoaded)return;
+ privacyBusy=true;privacyRead++;privacyReadFailed=false;previewToggle.disabled=true;privacyStatus.textContent=english()?'Saving…':'正在保存…';
  try{
-  await request('UPDATE_PREFERENCES',{changes:{hideContentPreviews:value}});
-  applyMask(value);privacyStatus.textContent=english()?'Saved locally. This only hides previews; it is not encryption or screenshot protection.':'已保存到本机。这里只隐藏预览，不是加密，也不能阻止系统截图。';
+  const result=await request('UPDATE_PREFERENCES',{changes:{hideContentPreviews:value}});if(result?.ok!==true)throw Error('PREVIEW_WRITE_UNCONFIRMED');
+  previewValue=value;previewToggle.checked=value;applyMask(value);privacyStatus.textContent=english()?'Saved':'已保存';
  }catch{
-  previewToggle.checked=!value;applyMask(!value);privacyStatus.textContent=english()?'Not saved. The previous setting is still active.':'未保存，仍使用之前的设置。';
- }finally{previewToggle.disabled=false;}
+  let confirmed=false;try{const page=await request('GET_PAGE',{page:{view:'settings',limit:1}});if(typeof page?.preferences?.hideContentPreviews!=='boolean')throw Error('PREVIEW_STATE_UNKNOWN');previewValue=page.preferences.hideContentPreviews;confirmed=true;}catch{previewValue=true;}
+  previewToggle.checked=previewValue;applyMask(previewValue);privacyStatus.textContent=confirmed?(english()?'Save was not confirmed. The current setting was checked. Retry if needed.':'保存未获确认，已核对当前设置。需要时请重试。'):(english()?'Save state is unknown. Previews remain hidden until it can be checked.':'保存状态尚不明确，核对前继续隐藏预览。');
+ }finally{privacyBusy=false;previewToggle.disabled=false;if(privacyRefresh){privacyRefresh=false;void syncPrivacy();}}
 }
-async function refreshStorage(){
- if(!storageNode)return;
- try{storageNode.textContent=storageEstimateText(await navigator.storage?.estimate?.()||{},english());}
- catch{storageNode.textContent=storageEstimateText({},english());}
+export async function refreshStorage(){
+ const epoch=++storageEpoch;storageState={state:'loading',usage:null,quota:null};presentStorage();
+ try{const estimate=await navigator.storage?.estimate?.()||{};if(epoch!==storageEpoch)return;storageState={state:'ready',usage:Number.isFinite(estimate.usage)&&estimate.usage>=0?estimate.usage:null,quota:Number.isFinite(estimate.quota)&&estimate.quota>=0?estimate.quota:null};}
+ catch{if(epoch!==storageEpoch)return;storageState={state:'error',usage:null,quota:null};}
+ presentStorage();return {...storageState};
 }
-async function readLastBackup(){
- try{const row=await chrome.storage.local.get(LAST_BACKUP_KEY);return row?.[LAST_BACKUP_KEY]||null;}catch{return null;}
-}
-async function refreshLastBackup(){
- if(!lastBackupNode)return;
- const value=await readLastBackup(),valid=value&&Number.isFinite(Date.parse(value));
- lastBackupNode.textContent=valid?(english()?`Last successful backup in this browser: ${new Date(value).toLocaleString()}`:`此浏览器最近成功创建备份：${new Date(value).toLocaleString()}`):(english()?'No successful backup has been recorded in this browser yet.':'此浏览器尚未记录成功创建的备份。');
-}
-export async function refreshR6Settings(){
- await Promise.all([syncPrivacy(),refreshStorage(),refreshLastBackup()]);
-}
-export async function recordR6BackupSuccess(at=new Date().toISOString()){
- const value=Number.isFinite(Date.parse(at))?new Date(at).toISOString():new Date().toISOString();
- try{await chrome.storage.local.set({[LAST_BACKUP_KEY]:value});}catch{}
- await refreshLastBackup();await refreshStorage();
-}
-function downloadParts(parts,name,type){
- const url=URL.createObjectURL(new Blob(parts,{type})),a=element('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-}
-async function completeExport(format,panel){
- if(panel.isBusy())return;
- panel.lock(true);panel.status(english()?'Preparing a complete local export…':'正在生成完整本地导出…','loading');let sessionId;
- try{
-  const begin=await request('PAIA_BACKUP_BEGIN_EXPORT');sessionId=begin.sessionId;const writer=new OpenExportWriter(format,begin.header),stamp=new Date().toISOString().replace(/[:.]/g,'-');let sequence=0;
-  for(;;){const page=await request('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId,sequence:sequence++}});writer.add(page.items);if(page.done)break;await new Promise(resolve=>setTimeout(resolve,0));}
-  const parts=writer.finish();downloadParts(parts,`PAIA-Complete-Open-Export-${stamp}.${format==='json'?'json':'md'}`,format==='json'?'application/json':'text/markdown');
-  panel.status(english()?'File generated and download started. Confirm that you saved it in a secure location; the complete export file is not encrypted.':'文件已生成并开始下载。请确认保存在安全位置；完整导出文件本身未加密。','saved');
- }catch{panel.status(english()?'Complete export was not created. No automatic retry was made.':'完整导出未生成，也没有自动重试。','failed');}
- finally{if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});panel.lock(false);}
-}
+export async function refreshR6Settings(){await Promise.all([syncPrivacy(),refreshStorage()]);}
 function installPrivacy(){
- const host=$('memory-settings');if(!host||$('r6-hide-content-previews'))return;
- const section=element('section','r6-privacy-preview'),label=element('label','setting'),name=text('span','','隐藏内容预览','Hide content previews'),input=document.createElement('input');
- input.id='r6-hide-content-previews';input.type='checkbox';previewToggle=input;label.append(name,input);
- const note=text('p','muted','打开后，首页/搜索/主题列表等卡片不显示私人摘句；主动进入正文仍可阅读。不会改变搜索或数据，也不提供加密、账户锁或截图保护。','When enabled, private excerpts are hidden on home/search/topic cards; opening the full body still shows it. This does not change search or data and is not encryption, an account lock, or screenshot protection.');
- privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';section.append(label,note,privacyStatus);host.append(section);input.addEventListener('change',()=>void setPreviewMask(input.checked));void syncPrivacy();
+ const host=$('settings-privacy-host');if(!host||$('r6-hide-content-previews'))return;
+ const section=element('section','r6-privacy-preview'),label=element('label','setting ux-preview-setting'),copy=element('span','ux-setting-copy'),control=element('span','ux-preview-control'),pill=element('span','ux-preview-pill'),name=text('span','ux-setting-name','隐藏内容预览','Hide content previews'),input=document.createElement('input');
+ input.id='r6-hide-content-previews';input.type='checkbox';input.setAttribute('role','switch');input.disabled=true;input.checked=true;input.dataset.loaded='false';name.id='r6-preview-name';input.setAttribute('aria-labelledby',name.id);input.setAttribute('aria-describedby','r6-preview-description r6-preview-status');pill.setAttribute('aria-hidden','true');previewToggle=input;control.append(input,pill);label.append(copy,control);
+ const note=text('span','ux-setting-description','隐藏列表和搜索里的摘句，打开正文仍可阅读。不是加密，也不能阻止截图。','Hides excerpts in lists and search; opening the body still shows it. This is not encryption or screenshot protection.');
+ note.id='r6-preview-description';copy.append(name,note);privacyStatus=element('p','muted');privacyStatus.id='r6-preview-status';privacyStatus.setAttribute('role','status');section.append(label,privacyStatus);host.append(section);input.addEventListener('change',()=>{const value=input.checked;input.checked=previewValue;void withSettingsControlFocus(input,()=>setPreviewMask(value));});void syncPrivacy();
 }
-function installData(panel){
- const host=$('backup-settings');if(!host||$('r6-complete-export'))return;
- const backupHeading=text('h3','r6-data-title','备份与恢复','Backup & restore');backupHeading.id='r6-backup-heading';host.prepend(backupHeading);host.setAttribute('aria-labelledby',backupHeading.id);host.classList.add('r6-data-section');
- const section=element('section','r6-data-section r6-data-exit');section.id='r6-complete-export';
- section.append(text('h3','','完整导出','Complete export'),text('p','muted','完整导出覆盖 Source、Input、Thought、人工版本与 AI 整理等明确角色；当前筛选 Source Records 的导出仍只代表当前筛选来源，不能冒充完整导出。PAIA Backup 与完整导出文件本身均未做应用层加密。','Complete export separates Source, Input, Thought, human revision and AI-presentation roles. The filtered Source Records export remains a filtered source export and is not a complete export. PAIA Backup and complete-export files are not application-layer encrypted.'));
- const actions=element('div','r6-export-actions'),json=text('button','','完整导出 JSON','Complete JSON export'),markdown=text('button','','完整导出 Markdown','Complete Markdown export');json.id='r6-export-json';markdown.id='r6-export-markdown';actions.append(json,markdown);section.append(actions);host.after(section);
- const status=element('section','r6-data-section r6-data-status');status.id='r6-data-status';status.append(text('h3','','本机数据状态','Local data status'));
- storageNode=text('p','muted','正在读取本机存储…','Reading local storage…');storageNode.id='r6-storage-estimate';lastBackupNode=element('p','muted');lastBackupNode.id='r6-last-backup';status.append(storageNode,lastBackupNode,text('p','muted','本机空间来自浏览器报告的估算值。卸载扩展会清除扩展本机档案；导出或备份文件离开 PAIA 后由你自行保管。','Local space is an estimate reported by the browser. Uninstalling the extension clears its local archive; export/backup files are yours to store after they leave PAIA.'));section.after(status);
+function installData(){
+ const host=$('backup-settings');if(!host||$('r6-data-status'))return;
+ const heading=text('h3','r6-data-title','从备份恢复','Restore from backup');heading.id='r6-backup-heading';host.prepend(heading);host.setAttribute('aria-labelledby',heading.id);host.classList.add('r6-data-section');
+ const status=element('section','r6-data-section r6-data-status');status.id='r6-data-status';status.append(text('h3','','本机存储','Local storage'));
+ storageNode=text('p','muted','正在读取存储空间…','Reading storage usage…');storageNode.id='r6-storage-estimate';status.append(storageNode,text('p','muted','空间为浏览器估算值。本机数据未做应用层加密；卸载扩展会清除档案。','Storage usage is a browser estimate. Local data is not application-layer encrypted; uninstalling the extension clears the archive.'));host.after(status);
  const settings=$('settings-panel'),sourceButton=[...settings?.querySelectorAll('[data-view="archive"]')||[]].find(el=>!el.closest('#primary-nav'));
- if(sourceButton){const source=element('section','r6-data-section r6-source-records');source.id='r6-source-records';source.append(text('h3','','来源记录','Source Records'),text('p','muted','这里进入的是来源记录及其当前筛选范围导出；它不是完整导出。来源永久删除仍按原规则确认，删除标记优先。','This opens Source Records and its current-scope export; it is not a complete export. Permanent source deletion still uses the existing confirmation and tombstones remain authoritative.'),sourceButton);status.after(source);}
- json.addEventListener('click',()=>void completeExport('json',panel));markdown.addEventListener('click',()=>void completeExport('markdown',panel));void refreshStorage();void refreshLastBackup();
- if(settings)new MutationObserver(()=>{if(!settings.hidden){void refreshStorage();void refreshLastBackup();void syncPrivacy();}}).observe(settings,{attributes:true,attributeFilter:['hidden']});
+ if(sourceButton){const source=element('section','r6-data-section r6-source-records');source.id='r6-source-records';source.append(sourceButton,text('p','muted','永久删除原始来源无法撤销。','Permanently deleting original sources cannot be undone.'));status.after(source);}
+ void refreshStorage();
+ if(settings)new MutationObserver(()=>{if(!settings.hidden)void refreshR6Settings();}).observe(settings,{attributes:true,attributeFilter:['hidden']});
 }
-export function installR6Settings(panel){
- if(installed)return;installed=true;installStyles();installPrivacy();installData(panel);new MutationObserver(syncLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+export function installR6Settings(){
+ if(installed)return;installed=true;applyMask(true);installStyles();installPrivacy();installData();new MutationObserver(syncLocale).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
  chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='UPDATE_PREFERENCES')void syncPrivacy();});
  chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&Object.keys(changes).some(key=>['settings','paia-settings'].includes(key)))void syncPrivacy();});
 }

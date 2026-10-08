@@ -24,7 +24,7 @@ test('native-popup CI keeps exact-head visual evidence and fails the aggregate w
  assert.match(job,/name: bounded-native-popup-\$\{\{ github\.event\.pull_request\.head\.sha \}\}/);
  assert.match(job,/path: \|\n            extension\/work\/bounded-popup\//);
  assert.match(job,/if-no-files-found: error\n          retention-days: 7/);
- assert.match(workflow,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility\]/);
+ assert.match(workflow,/needs: \[unit, contracts, release, direct_edit, shell_cutover, targeted_browser, topic_compatibility, topic05_root, topic_retained, topic_retained_results, native_popup, capture_recovery, audit_boundaries, scale_probe, macos_reload_diagnostic, context_compatibility, organize_candidate_compatibility\]/);
  assert.match(workflow,/NATIVE_POPUP: \$\{\{ needs\.native_popup\.result \}\}/);
  assert.match(workflow,/NATIVE_POPUP_SELECTED: \$\{\{ contains\(github\.event\.pull_request\.body, 'PAIA_BOUNDED_POPUP_BROWSER'\) \|\| contains\(github\.event\.pull_request\.body, 'PAIA_D7_UI_COHERENCE'\) \}\}/);
  assert.match(workflow,/if \[ "\$NATIVE_POPUP_SELECTED" = true \]; then test "\$NATIVE_POPUP" = success;/);
@@ -36,6 +36,10 @@ test('UI coherence requires complete popup and Settings/import owners within the
  assert.match(complete,/node --test --test-concurrency=1 --test-reporter=.\/scripts\/test-report.mjs tests\/uir-04-popup-local-tools-chrome-e2e.test.mjs/);
  assert.doesNotMatch(complete,/test-name-pattern|test-skip-pattern|continue-on-error/);
  for(const expected of ['report.total,2','report.pass,2','report.fail,0','report.skipped,0'])assert.ok(complete.includes(expected));
+ assert.match(complete,/PAIA_NATIVE_BROWSER_FRAME: '1'/);
+ assert.match(job,/fonts-noto-cjk imagemagick/);
+ assert.match(job,/NATIVE_BROWSER_FRAME_SELECTED:.*PAIA_D7_UI_COHERENCE/);
+ for(const expected of ["frame?.status,'captured'",'frame.headSha,evidence.headSha',"frame.kind,'synthetic-hosted-browser-window'",'frame.viewportEmulation,null','png.readUInt32BE(16),frame.display.width','png.readUInt32BE(20),frame.display.height'])assert.ok(job.includes(expected),expected);
  const targeted=workflow.slice(workflow.indexOf('  targeted_browser:'),workflow.indexOf('\n  capture_recovery:'));
  assert.match(targeted.split('    steps:')[0],/PAIA_D7_UI_COHERENCE/);assert.match(targeted,/timeout-minutes: 12/);
  const step=targeted.slice(targeted.indexOf('      - name: D7 UI coherence through'),targeted.indexOf('      - name: Retain D7 UI coherence'));

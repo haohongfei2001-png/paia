@@ -193,6 +193,10 @@ For a UI round:
 
 "Looks cleaner" is not an acceptance criterion.
 
+## Product version and integration identity
+
+Apply [DEVELOPMENT_WORKFLOW.md’s version/build policy](../../DEVELOPMENT_WORKFLOW.md#product-version-and-build-identity) at each coherent integration. The main SHA is source identity; artifact-changing fixes/new capabilities receive the corresponding synchronized product version increment. Reconcile against fresh main and bind receipts to exact tested/main SHAs. Documentation-only adoption does not imply build-SHA display, deployment or installation.
+
 ## 7. Verification progression
 
 Verification is progressive. Do the cheapest truthful evidence first and reserve expensive environment-level certification for the boundary that actually owns it.

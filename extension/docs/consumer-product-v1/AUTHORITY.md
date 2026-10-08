@@ -1,99 +1,68 @@
 # Authority and Source Policy
 
-## 1. Product authority
+## Latest execution authorization — seven coordinated lanes
 
-The authority order for PAIA Consumer Product v1 is:
+The owner explicitly selected TOPIC, CTX4, SET2, SYNC, AI-COST, approved Prompt
+Surface/Stage 3A dependencies and IAH-1.1 for continued development. This later
+decision supersedes the earlier documentation-only Archive authorization and
+execution exclusion below, while preserving its exact selected/rejected design.
+[Current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md) records bounded assignments.
+Ordinary engineering and compliant integration are authorized; paid models,
+cloud accounts/credentials, expanded permissions, real-user uploads, formal
+deployment and irreversible deletion are not inferred from this authorization.
 
-1. Google Drive: PAIA设计想法.docx — highest product-intent source.
-2. Explicit later product-owner decisions.
-3. PRODUCT_INTENT_CONTRACT.md — public executable derivation of the highest source.
-4. UX_CONTRACT.md — implementation-level UX translation.
-5. TECHNICAL_PLAN.md and MASTER_PLAN.md — implementation strategy and sequencing.
-6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and active historical package contracts, only where they do not contradict higher product intent.
-7. Current implementation — evidence of what exists, never proof of what the product should be.
 
-The current codebase must not redefine the product merely because a capability is difficult to implement or was previously frozen for validation.
+Current scoped adoption: **IAH-1.1, 2026-10-08 — PAIA Archive Existing UI / Minimal Optimization**. This corrects IAH-1.0 visual/click requirements in place; it does not adopt the whole B prototype. Existing **AIU-1.0 / AIOS-1.0 / AIU-QWEN-1.0**, BNS, Settings, Personal Topic, Thought and Context adoptions remain unchanged outside the exact Archive scope below.
 
-## 2. Private-source rule
+## 1. Current authority order
 
-The repository is public.
+1. Latest explicit owner decisions within their stated scope, including IAH-1.1's selected/rejected ledger and the previously adopted AI usage/styles/Qwen, Browser-Native Sync, Settings Consumer v2, Personal Topic, Thought presentation and Context Cards decisions.
+2. Connected Google Drive PAIA设计想法 only where not superseded by a later explicit owner decision.
+3. PRODUCT_INTENT_CONTRACT.md and the normative domain contracts mapped here; a scoped contract controls its domain, not unrelated spaces.
+4. UX_CONTRACT.md and explicitly adopted visual/interaction references, subordinate to product/data/privacy semantics and the latest scoped written decisions.
+5. TECHNICAL_PLAN.md, MASTER_PLAN.md and scoped development plans. **STATUS.md alone selects execution and the current coordinated programme.** Historical single-next-task pointers are not restored by Archive adoption.
+6. Existing PRODUCT.md / ARCHITECTURE.md / ROADMAP.md and retained earlier contracts where nonconflicting.
+7. Implementation is evidence of what exists, not proof of intended behavior, quality or acceptance. For unchanged Archive visuals, IAH-1.1 explicitly selects the actual current PAIA UI as the baseline.
 
-Do not copy the full Drive design document, the full Pro audit artifact, private archive content, private screenshots, personal examples, or source paragraph dumps into this repository.
+The entire preceding authority policy is retained exactly in [AUTHORITY_PRE_ARCHIVE_HOME_2026-10-08.md](AUTHORITY_PRE_ARCHIVE_HOME_2026-10-08.md), Git blob `b9c0745a65267173834634dbf2943a4626dc120f`. Its complete nonconflicting requirements, domain decisions, gates, source/evidence policy and incorporation of earlier records remain normative. Read that baseline for their full wording. This current overlay changes only the stated Archive contract and its routing in the authority map; it neither silently deletes earlier obligations nor starts another queue. Historical current/next pointers in snapshots never override current STATUS.
 
-The executable public contract should contain only the minimum product decisions required to build PAIA. If a future executor needs to resolve ambiguity, it must read the authorized Drive source directly and record only the resulting decision, not mirror the private source text.
+## 2. Input Archive — current scoped adoption
 
-Planning source checkpoints:
+[INPUT_ARCHIVE_HOME_ADOPTION.md](INPUT_ARCHIVE_HOME_ADOPTION.md) records the selective owner approval, KEEP decisions, exclusions and exact supersession. [INPUT_ARCHIVE_INTERACTION_CONTRACT.md](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) is the **sole current Archive interaction authority**. [UX](INPUT_ARCHIVE_HOME_UX.md) supplies the selected presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) supplies minimal gaps/dependencies/acceptance; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds sources/private assets and evidence limits. The same five paths now carry IAH-1.1; PRE_MINIMAL copies are history, not another active authority.
 
-- Design-intent source referenced by the 2026-09-23 audit: PAIA设计想法.docx.
-- The audit records the design-source SHA-256 as `d61b141afdeb794b74ffe627e12b0a2530acca53aa94e9f28b6d8c2f13c08824`.
-- Planning GitHub baseline: `fa1a6c6452153bb99ec24cdd8662b5d8c6a9371a`.
+**Fresh Archive Entry is not Resume Previous Reader. Back restores context; primary navigation opens neutral Archive.** Every ordinary Archive open/primary-nav Archive action targets ARCHIVE_HOME: all scope, empty query, no selected Source/Project/Conversation/Input and no old Reader body, after existing save/IME guards. Explicit Back/Forward and explicit-route reload restore their recorded contexts instead of guessing by session age. The existing Main remains blank, with no new Home title/search/welcome/hint, Recently viewed, suggestions, feed or dashboard.
 
-These checkpoints identify evidence; they do not make the audit artifact repository authority.
+The four logical states remain ARCHIVE_HOME, SEARCH_RESULTS, BROWSE_SCOPE and CONVERSATION_READER. Project name/arrow remain one whole-row disclosure action; expansion is local tree state, not implicit scope selection or a new Main Browse page. A distinct explicit supported scope operation changes search scope. Conversation/Input activation alone selects Reader. Archive Search remains at the middle-column top; current-Conversation Find remains in Reader. Their visible scope hints are 搜索全部档案 and 在此对话中查找 where applicable. No duplicate global field is added to Main and no exact-one-field rule deletes a different-scope control.
 
-## 3. Product fixed, implementation negotiable
+Search results foreground exact current Input text with quiet actual time/provenance and land at the actual Input. Ordinary local Find includes otherwise eligible smart-filtered Inputs; navigation permits a narrow temporary view exception, not Keep, restore or another permission. Removed/purged/otherwise ineligible material remains excluded. Existing normal-flow Back uses 返回搜索结果 / 返回项目浏览 / 返回档案 with actual state restoration; sticky return is not adopted. Verified original-site opening stays a separate secondary action. Generic extension open never infers Reader intent from the host tab. Local lexical/full-text search remains zero remote AI and creates no AI job.
 
-Product intent may not be deleted because of:
+IAH-1.1 supersedes only the conflicting IAH-1.0 Main-only/Home/split-click/Browse-page/reference rules and their lower-order transcriptions, as enumerated in ADOPTION section 4. It preserves actual brand/navigation/geometry/Reader typography/time/spacing and existing safe owners. Do not import B's sticky return, M6 copy, P1/P3, C or unapproved permanent scope widgets. Existing supported explicit entries remain safe; new host-context/public-route rollout is not implied. Current main's intentional blank root and Project disclosure are correct foundations, not invented auto-open defects.
 
-- current architecture inconvenience;
-- current UI limitations;
-- engineering complexity;
-- low current usage;
-- current test gaps;
-- a desire to make the product look simpler;
-- an earlier roadmap freeze whose purpose was sequencing or validation.
+## 3. Preserved domain authorities
 
-Implementation may be changed aggressively when required, including:
+| Domain | Controlling source and unchanged boundary |
+|---|---|
+| AI usage / quality / Free–Pro | AI_USAGE_ARCHITECTURE.md is the sole job/entitlement/quota/budget authority; AI_USAGE_ADOPTION/PLAN/COST_MODEL/REFERENCES retain their full scope. No duplication or change of allowances here. |
+| Qwen-primary candidate qualification | AIU-QWEN-1.0 in the AI usage set remains the scoped candidate/ratebook/FX refinement, not a running model service or permission to spend. |
+| AI Organize style | AI_ORGANIZE_STYLE_CONTRACT.md; all three styles, derivative-only transformation, evidence and lazy invalidation unchanged. |
+| Browser-Native Sync | BROWSER_NATIVE_SYNC_ADOPTION/CONTRACT/UX/PLAN/REFERENCES; one Core and qualified adapters, no PAIA account/content backend. Archive routes, queries, result sessions and temporary reveals are not portable canonical state. |
+| Settings Consumer v2 | SETTINGS_CONSUMER_V2_ADOPTION/PLAN/REFERENCES with BNS/AIOS amendments; six groups, 22 primary rows plus existing secondary reset unchanged. No new resume/search/account setting. |
+| Personal Topic semantics | TOPIC_ARCHITECTURE.md / PLAN / ADOPTION; one Library, stable identity, human authority, hidden candidates, finite depth and taxonomy independence unchanged. A Source Project is not a Topic. |
+| Thought presentation | THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md / REFERENCES; Root grid and same-Library continuous Section reader unchanged. Archive Results is not a new Thought result directory. |
+| AI Context Cards v2 | AI_CONTEXT_CARDS_V2_ADOPTION/PLAN/REFERENCES; independent Items and restrictive Topic access unchanged. Archive Find does not create external Archive fallback. |
+| Prompt Reuse / Smart Orb | PROMPT_REUSE_SURFACE.md and PROMPT_REUSE_STAGE_3A.md; local families, manual intent, fill-only and default-off ephemeral reply scope unchanged. |
+| Source / Working Input / human work / recovery | Full predecessor Product/Technical/UX contracts and current safety owners; bodies, identity, provenance, time, revisions, edits, tombstones and recovery unchanged. |
 
-- provider adapters;
-- capture lifecycle;
-- UI architecture;
-- routing and state ownership;
-- search/retrieval technology;
-- storage implementation details;
-- Backup execution;
-- updater/distribution path;
-- component system;
-- deployment/service boundaries.
+Existing shared visual roles, brand, typography and explicit saved reading preferences remain. Neither the rejected poster nor the entire B prototype overrides the selected/rejected ledger. Private mock/prototype controls and samples are not production requirements or copied user records.
 
-Any migration must preserve the protected data/authorization invariants in TECHNICAL_PLAN.md.
+## 4. Gates and activation distinctions
 
-## 4. Conflict handling
+The complete prior gate policy is incorporated from the exact baseline. B-01/B-02 are not resolved by Archive navigation. BNS retains only its scoped B-03 resolution. Stage 3A and AIU's separate remote Assist consent/capability boundaries, B-04/B-05, provider/region/retention/payment and actual installation/release gates are unchanged. A Source URL or internal route is not an authorization grant.
 
-Do not silently choose between incompatible product meanings.
+This adoption authorizes documentation and plan alignment only: no runtime, UI, schema, tests/workflows, version, model, account, provider key, cloud resource, billing, real-data migration, deployment or release change. Ordinary local content remains usable under its own existing eligibility, not an AI-service or quota gate. Selected Archive design is ready, but its existing coordinated-execution exclusion remains. ARCHIVE-HOME identifiers are traceability, not a new global pointer or active writer.
 
-The currently known owner-decision gates are:
+## 5. Privacy, evidence and conflict handling
 
-- B-01: whether an existing/old Thought may be directly edited, versus corrections being appended as new Thought material.
-- B-02: permanent Source deletion boundary for user-rewritten derivative material.
-- B-03: long-term default data residency and cloud relationship.
-- B-04-3A: **resolved by owner decision 2026-10-05** for Prompt Reuse Stage 3A only. After an explicit, default-off enablement, PAIA may locally and ephemerally analyze only the newly completed latest assistant reply in the current supported conversation. The reply is not durably retained, not added to Archive/Thought/Context/Source/Backup/logs, and is not sent to an external model. Disable/revoke stops reading and clears transient candidates without disabling Stage 1/2.
-- B-04-3B: remains an owner gate for any broader reply scope, durable reply retention/evidence, external/model processing, model-generated next prompts or use of reply access outside the approved Stage 3A purpose.
-- B-05: regions, service burden and commercial commitments.
+The repository is public. Private instruction bodies, reviews, screenshots, archives, user examples and identifying fixtures stay private. REFERENCES records hashes and necessary source facts, not the private originals. Public acceptance fixtures are synthetic/sanitized. No new analytics or query/body audit collector is authorized.
 
-These gates block only the rounds that need them. They do not block unrelated work.
-
-Ordinary UX/engineering questions are not owner gates. The manager decides them against the higher contracts.
-
-## 5. Historical package relationship
-
-Existing ANS, UIS, UIR, UX-R, PRD and CPR work remains valid evidence and useful implementation. Once this package activates:
-
-- completed historical packages must not be resumed as competing queues;
-- unfinished correct work is absorbed into the relevant slice;
-- historical PASS does not automatically satisfy a Consumer Product v1 slice;
-- historical FAIL remains evidence and must not be erased;
-- previous freezes remain safety/evidence constraints only where they still serve higher product intent.
-
-## 6. No false completion
-
-A round or slice cannot be marked complete merely because:
-
-- tests are green;
-- a fallback is correct;
-- a component exists;
-- a screenshot looks cleaner;
-- a synthetic DOM path passes;
-- the user can recover only through developer tools;
-- a future target was removed from scope.
-
-Completion is governed by VERIFICATION.md.
+Preserve all historical successes and failures with their original scope. Mark conflicts preserved/superseded/historical rather than silently choosing an old clause. Design adoption, source review, production implementation, mechanical tests, real-provider/device verification, performance/accessibility, visual approval and release are separate evidence classes. This task supplies selective visual adoption/canonical correction/plan alignment, not those future runtime claims.

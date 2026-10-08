@@ -1,4 +1,5 @@
 import {element} from './common.js';
+import {setIconLabel} from './icons.js';
 
 const c=(zh,en)=>document.documentElement.lang.startsWith('en')?en:zh;
 const pages=[['task','01 目的','01 Purpose'],['select','02 材料','02 Materials'],['retrieve','03 补充','03 Additions'],['review','04 核对','04 Review'],['ready','05 准备完成','05 Ready']];
@@ -7,7 +8,7 @@ const states=Object.keys(titles),stepFor=id=>['edit','stale','budget','blocked']
 const unavailable=()=>c('设计预览：功能尚未开放，不会执行操作。','Design preview: this feature is not available and no action will run.');
 const text=value=>typeof value==='string'?value:'';
 const array=value=>Array.isArray(value)?value:[];
-function action(zh,en,name,primary=false){const button=element('button',primary?'primary':'',c(zh,en));button.type='button';button.disabled=true;button.title=unavailable();button.dataset.previewAction=name;return button;}
+function action(zh,en,name,primary=false,icon=null){const button=element('button',primary?'primary':'',c(zh,en));if(icon)setIconLabel(button,icon,c(zh,en),{side:'end'});button.type='button';button.disabled=true;button.title=unavailable();button.dataset.previewAction=name;return button;}
 function search(zh,en){const label=element('label','context-presentation-search'),input=element('input');input.type='search';input.placeholder=c(zh,en);input.setAttribute('aria-label',input.placeholder);input.disabled=true;label.append(input);return label;}
 function materials(items,{supplements=false}={}){
  const list=element('div','material-list');
@@ -55,11 +56,11 @@ export function mountContextWorkspacePreview({host,headerHost,stage='task',model
  for(const id of states){const panel=element('section','context-presentation-panel');panel.dataset.contextPanel=id;panels.set(id,panel);workspace.append(panel);}
  const task=panels.get('task'),purpose=element('textarea','context-purpose');purpose.value=text(model.purpose);purpose.readOnly=true;purpose.setAttribute('aria-label',c('本次目的（只读界面预览）','Task purpose (read-only interface preview)'));purpose.placeholder=c('在这里描述这次想让 AI 帮忙的事。\n目前仅展示界面，不会生成或保存任务。','Describe what you would like AI to help with.\nInterface preview only; no task will be generated or saved.');
  task.append(purpose,element('p','context-presentation-help',c('也可以：继续一个项目，或回顾某个长期问题。','You could also continue a project or revisit a long-running question.')));
- const taskActions=element('div','context-task-actions');taskActions.append(action('选择材料 →','Choose materials →','choose',true));task.append(taskActions);footer(task,[],{plain:true});
+ const taskActions=element('div','context-task-actions');taskActions.append(action('选择材料','Choose materials','choose',true,'forward'));task.append(taskActions);footer(task,[],{plain:true});
  for(const id of ['select','retrieve']){
   const panel=panels.get(id),retrieving=id==='retrieve';panel.append(search(retrieving?'在允许的资料中查找…':'搜索可选择的主题、会话或输入…',retrieving?'Search allowed materials…':'Search Topics, conversations or inputs…'));
   const label=element('div','context-material-heading');label.append(element('strong','',retrieving?c('补充材料 · 展示快照','Additional materials · Supplied snapshot'):c('你选择的材料 · 展示快照','Selected materials · Supplied snapshot')),element('small','',retrieving?c('未执行检索 · 不自动加入','No search performed · Nothing added'):c('明确选择不会被排序替换','Explicit selections are not replaced by ranking')));panel.append(label,materials(retrieving?model.suggestions:model.materials,{supplements:retrieving}));
-  footer(panel,[action('返回','Back','back'),action('核对内容 →','Review content →','review',true)]);
+  footer(panel,[action('返回','Back','back'),action('核对内容','Review content','review',true,'forward')]);
  }
  for(const id of ['review','edit','stale','ready','copied','blocked']){
   const panel=panels.get(id);

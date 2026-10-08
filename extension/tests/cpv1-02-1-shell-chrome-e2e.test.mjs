@@ -18,7 +18,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await eventually(async()=>!(await page.locator('#enable-consent').isDisabled()),'consent action is ready');
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent persists');
-  await page.locator('#onboarding-skip').click();
+  assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   await harness.open({id:'cpv1-021-shell',title:'CPV1 shell conversation · 很长的 Project 归属和窗口标题 with a deliberately long ending',base:1609459200,messages:[{id:'cpv1-021-input',text:'CPV1_SHELL_SEARCH unique saved idea'}]});
   await eventually(async()=>(await harness.state()).records.some(row=>row.originalText.includes('CPV1_SHELL_SEARCH')),'synthetic capture persists');
   await page.bringToFront();
@@ -45,21 +45,10 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   assert.equal(await page.locator('#sync-history').isVisible(),false);
   await page.locator('#archive-root-overflow summary').click();
   assert.equal(await page.locator('#archive-root-history').isVisible(),true,'Archive overflow exposes the verified import action');
-  // Retain exact export-read generations if this guarded download refuses.
-  await page.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__shellExportTrace=[];chrome.runtime.sendMessage=async message=>{const r=await send(message);if(message.type==='GET_PAGE')globalThis.__shellExportTrace.push({view:message.page?.view,providerKey:message.page?.providerKey,expectedGeneration:message.page?.expectedGeneration,ok:r.ok,error:r.error,generation:r.data?.dataGeneration,documents:r.data?.documents?.length,records:r.data?.records?.length});return r;};});
-  let download;
-  try{[download]=await Promise.all([
-   page.waitForEvent('download'),
-   page.locator('#archive-root-export-json').click()
-  ]);}catch(error){
-   await mkdir('work/qa-dvn-shell',{recursive:true});
-   await writeFile('work/qa-dvn-shell/export-failure.json',JSON.stringify(await page.evaluate(()=>({trace:globalThis.__shellExportTrace,notice:document.querySelector('#notice')?.textContent,scope:document.querySelector('#archive-source-scope')?.value,searchDisabled:document.querySelector('#scope-search')?.disabled,route:history.state?.paiaReader})),null,2));
-   await page.screenshot({path:'work/qa-dvn-shell/export-failure.png',fullPage:true});throw error;
-  }
-  await mkdir('work/qa-dvn-shell',{recursive:true});
-  await writeFile('work/qa-dvn-shell/export-observation.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,trace:await page.evaluate(()=>globalThis.__shellExportTrace),download:download.suggestedFilename()},null,2));
-  assert.match(download.suggestedFilename(),/^archive-export-.*\.json$/);
-  await page.locator('#archive-root-overflow summary').click();
+  const beforeExport=await harness.state();let downloads=0;page.on('download',()=>downloads++);
+  assert.equal(await page.locator('#archive-root-export-json,#archive-root-export-markdown').count(),0,'retired exports have no controls');
+  for(const type of ['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE']){const response=await page.evaluate(type=>chrome.runtime.sendMessage({type}),type);assert.equal(response.error,'FEATURE_UNAVAILABLE');}
+  assert.deepEqual(await harness.state(),beforeExport,'stale exports do not modify Source or user data');assert.equal(downloads,0);
   await page.locator('#archive-root-history').click();
   await eventually(()=>page.locator('#history-dialog').isVisible(),'root import opens existing verified import flow');
   await page.locator('#history-close').click();
@@ -78,7 +67,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   const documentId=await page.evaluate(()=>history.state?.paiaReader?.documentId);
   assert.ok(documentId,'Reader route contains a Conversation');
   await page.evaluate(()=>history.back());
-  await eventually(()=>page.locator('#collection-panel').isVisible(),'Back restores the Archive container');
+  await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.documentId===null)&&await page.locator('#document-body').textContent()==='','Back restores the blank reader beside its directory');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
   assert.equal(await page.locator('#archive-source-scope').inputValue(),'chatgpt');
   await eventually(()=>rootWindow.isVisible(),'Back restores the same Conversation in the Archive tree');
@@ -88,7 +77,7 @@ test('CPV1-02.1 shell keeps one container and route through search, Reader and b
   await page.evaluate(()=>history.back());
   // The same row also exists in Reader's Navigator, so row visibility alone
   // cannot establish that the asynchronous Back navigation has completed.
-  await eventually(()=>page.locator('#collection-panel').isVisible(),'second Back restores the Archive container before responsive checks');
+  await eventually(async()=>await page.evaluate(()=>history.state?.paiaReader?.documentId===null)&&await page.locator('#document-body').textContent()==='','second Back clears the reader before responsive checks');
   assert.equal(await page.evaluate(()=>history.state?.paiaReader?.documentId),null);
   await eventually(()=>rootWindow.isVisible(),'a second Back keeps the Conversation reachable');
   await page.setViewportSize({width:320,height:700});

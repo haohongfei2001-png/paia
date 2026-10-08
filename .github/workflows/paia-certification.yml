@@ -107,6 +107,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Use signed Ubuntu archive over HTTPS before adapter dependencies
+        run: |
+          # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - name: Install Chromium for adapter contracts
         run: npx playwright install --with-deps chromium
       - name: Adapter contract
@@ -117,7 +131,7 @@ jobs:
   current_browser:
     needs: mode
     if: needs.mode.outputs.full == 'true'
-    name: Current Browser ${{ matrix.index }}/6
+    name: Current Browser ${{ matrix.index }}/7
     runs-on: ubuntu-latest
     timeout-minutes: 18
     strategy:
@@ -125,17 +139,19 @@ jobs:
       matrix:
         include:
           - index: 1
-            shard: '1/6'
+            shard: '1/7'
           - index: 2
-            shard: '2/6'
+            shard: '2/7'
           - index: 3
-            shard: '3/6'
+            shard: '3/7'
           - index: 4
-            shard: '4/6'
+            shard: '4/7'
           - index: 5
-            shard: '5/6'
+            shard: '5/7'
           - index: 6
-            shard: '6/6'
+            shard: '6/7'
+          - index: 7
+            shard: '7/7'
     defaults:
       run:
         working-directory: extension
@@ -157,11 +173,43 @@ jobs:
           echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
+      - name: Use signed Ubuntu archive over HTTPS before browser font dependencies
+        run: |
+          # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+          # Change only that mirror URI; preserve suites, packages and signing keys.
+          sudo python3 - <<'PYAPT'
+          from pathlib import Path
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          for path in paths:
+              if path.is_file():
+                  text = path.read_text()
+                  updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')
+                  if updated != text:
+                      path.write_text(updated)
+          PYAPT
       - name: Provide Chinese glyph coverage for actual visual evidence
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei
+          sudo apt-get install -y --no-install-recommends fonts-wqy-zenhei fonts-noto-cjk
           fc-list :lang=zh | grep -q .
+          mkdir -p work
+          for family in 'Noto Serif CJK SC' 'Noto Sans CJK SC' 'WenQuanYi Zen Hei'; do
+            fc-match --format '%{family}: %{file}\n' "$family"
+          done | tee work/current-browser-fonts.txt
+      - name: Pin verified full Chrome for Settings native evidence
+        if: matrix.index == 6
+        run: |
+          set -euo pipefail
+          PAIA_DIAGNOSTIC_ZIP="$RUNNER_TEMP/settings-chrome-155.0.8059.39.zip"
+          PAIA_DIAGNOSTIC_CHROME="$RUNNER_TEMP/settings-chrome-155.0.8059.39"
+          curl --fail --location --proto '=https' --tlsv1.2 --max-time 120 --output "$PAIA_DIAGNOSTIC_ZIP" 'https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/linux64/chrome-linux64.zip'
+          echo "55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea  $PAIA_DIAGNOSTIC_ZIP" | sha256sum --check --status
+          unzip -q "$PAIA_DIAGNOSTIC_ZIP" -d "$PAIA_DIAGNOSTIC_CHROME"
+          test "$("$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" --version | awk '{print $NF}')" = '155.0.8059.39'
+          echo "PAIA_CHROME=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo "CHROME_PATH=$PAIA_DIAGNOSTIC_CHROME/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          echo 'PAIA_DIAGNOSTIC_BROWSER_VERSION=155.0.8059.39' >> "$GITHUB_ENV"
+          echo "PAIA_DIAGNOSTIC_BROWSER_SHA256=$(sha256sum "$PAIA_DIAGNOSTIC_ZIP" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
       - name: Verify the installed Chrome actually launches
         run: xvfb-run -a node scripts/check-hosted-chrome.mjs
       - name: Verify current browser coverage contract
@@ -179,6 +227,32 @@ jobs:
           name: current-browser-evidence-${{ github.sha }}-${{ matrix.index }}
           path: extension/work
           if-no-files-found: warn
+          retention-days: 14
+      - name: Upload focused synthetic text-size evidence
+        if: always() && matrix.index == 5
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-text-size-evidence-${{ github.sha }}
+          path: |
+            extension/work/qa-dvn-topic-content/d7/source.json
+            extension/work/qa-dvn-topic-content/d7/release.json
+            extension/work/qa-dvn-topic-content/d7/*-header-*.png
+            extension/work/qa-dvn-topic-content/d7/*-1440-light-top-production.png
+            extension/work/qa-dvn-topic-content/d7/*-768-light-top-production.png
+            extension/work/qa-dvn-topic-content/d7/*-320-light-top-production.png
+            extension/work/qa-dvn-topic-content/*-return-diagnostic.json
+            extension/work/qa-dvn-topic-content/*-return-paths.json
+            extension/work/qa-dvn-topic-content/*-return-failure.png
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload focused Context source and release evidence
+        if: always() && matrix.index == 6
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-cards-evidence-${{ github.sha }}
+          path: extension/work/ctx4-01/
+          if-no-files-found: error
           retention-days: 14
 
   full_suite:

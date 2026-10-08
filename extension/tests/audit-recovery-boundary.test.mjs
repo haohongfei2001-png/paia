@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {recoveryDraftPrefix} from '../core/recovery-draft.js';
+import {BackupService} from './harness/historical-backup.mjs';
+import {exported} from './harness/backup-v081.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {admitPreGatePurgeFixture} from './harness/pre-gate-purge-fixture.mjs';
 
@@ -80,8 +82,8 @@ test('audit recovery uses the production worker: purge, stale replay, both race 
  });
  await t.test('replace invalidates persisted and late old-snapshot drafts even when restored identities/revisions match',async()=>{
   const live=await make('restore-boundary'),old=structuredClone(live.draft);await save(old);
-  const begin=await rpc('PAIA_BACKUP_BEGIN_EXPORT'),items=[begin.header];let sequence=0;
-  for(;;){const page=await rpc('PAIA_BACKUP_EXPORT_PAGE',{options:{sessionId:begin.sessionId,sequence:sequence++}});items.push(...page.items);if(page.done)break;}
+  assert.equal((await send({type:'PAIA_BACKUP_BEGIN_EXPORT'})).error,'FEATURE_UNAVAILABLE');
+  const fixtureStore=new OrganizerStore(area,{indexedDB:globalThis.indexedDB});const items=await exported(new BackupService(fixtureStore));
   const stage=await rpc('PAIA_BACKUP_BEGIN_RESTORE');for(let at=0;at<items.length;at+=30)await rpc('PAIA_BACKUP_STAGE',{options:{sessionId:stage.sessionId,items:items.slice(at,at+30)}});
   const preview=await rpc('PAIA_BACKUP_PREVIEW',{options:{sessionId:stage.sessionId,mode:'replace'}});assert.equal(preview.canRestore,true,preview.reason);
   await rpc('PAIA_BACKUP_RESTORE',{options:{sessionId:stage.sessionId,confirmation:preview.integrity,mode:'replace',targetGeneration:preview.targetGeneration,confirmReplace:true}});

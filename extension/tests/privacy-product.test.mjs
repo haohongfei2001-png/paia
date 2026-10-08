@@ -6,16 +6,16 @@ test('privacy: manifest keeps an exact reviewed required and optional permission
  const m=JSON.parse(await readFile(new URL('manifest.json',root),'utf8'));
  assert.deepEqual(m.permissions,['storage','scripting']);
  assert.deepEqual(m.optional_permissions,['nativeMessaging']);
- assert.deepEqual(m.host_permissions,['https://api.deepseek.com/*','https://chatgpt.com/*']);
+ assert.deepEqual(m.host_permissions,['https://chatgpt.com/*']);
  for(const key of ['optional_host_permissions','externally_connectable'])assert.equal(m[key],undefined);
  assert.deepEqual(m.web_accessible_resources,[{resources:['ui/prompt-surface.html'],matches:['https://chatgpt.com/*']}]);
  for(const s of m.content_scripts){assert.deepEqual(s.matches,['https://chatgpt.com/*']);assert.equal(s.all_frames,false);assert.ok(s.js.every(p=>!/^tests|^work/.test(p)));}
- assert.match(m.content_security_policy.extension_pages,/connect-src https:\/\/api\.deepseek\.com/);
+ assert.match(m.content_security_policy.extension_pages,/connect-src 'none'/);assert.doesNotMatch(m.content_security_policy.extension_pages,/deepseek/);
 });
 test('privacy: runtime ships no fake environment hooks, analytics or credential/history APIs',async()=>{
  for(const folder of ['adapter','content','core','background','ui'])for(const name of await readdir(new URL(folder+'/',root)))if(name.endsWith('.js')) {
   let source=await readFile(new URL(folder+'/'+name,root),'utf8');
-  if(folder==='ui'&&['context-workspace.js'].includes(name)){const explicit='navigator.clipboard.writeText(result.text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_MEMORY_CONTEXT_COPY(result.text)');}
+  if(folder==='ui'&&name==='context-workspace.js')assert.doesNotMatch(source,/navigator\.clipboard|PAIA_CONTEXT_MANUAL/);
   if(folder==='ui'&&name==='reading-actions.js'){const explicit='navigator.clipboard.writeText(text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_USER_TEXT_COPY(text)');}
   if(folder==='core'&&name==='prompt-clipboard.js'){const explicit='globalThis.navigator.clipboard';assert.equal(source.split(explicit).length-1,1);assert.equal(source.split('clipboard.writeText(text)').length-1,1);assert.doesNotMatch(source,/clipboard\.(?!writeText\b)[A-Za-z_$]|clipboard\s*\[/);source=source.replace(explicit,'EXPLICIT_PROMPT_WRITE_ONLY_CLIPBOARD');}
   if(folder==='core'&&name==='macos-native-secure-store.js'){const explicit='runtime.sendNativeMessage(HOST_NAME,request,response=>';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'APPROVED_MACOS_SECURE_STORE_MESSAGE(HOST_NAME,request,response=>');}

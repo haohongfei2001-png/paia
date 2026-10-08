@@ -2,7 +2,6 @@ import {request,element} from './common.js';
 import {historicalComparison} from '../core/historical-comparison.js';
 import {historicalInstant} from '../core/historical-time.js';
 import {materialKey} from '../core/manual-materials.js';
-import {getContextController} from './context-workspace.js';
 const c=(zh,en)=>document.documentElement.lang.startsWith('en')?en:zh;
 const button=(zh,en,fn,cls='')=>{const b=element('button',cls,c(zh,en));b.type='button';b.addEventListener('click',()=>void fn());return b;};
 export function installUniversalSearch(){
@@ -19,11 +18,9 @@ export function installUniversalSearch(){
  const removed=element('input');removed.type='checkbox';const remLabel=element('label','',c('包含已移除','Include removed'));remLabel.prepend(removed);filters.append(remLabel);
  const filtered=element('input');filtered.type='checkbox';const filteredLabel=element('label','',c('包含智能过滤内容','Include Smart Filter content'));filteredLabel.prepend(filtered);filters.append(filteredLabel);
  const modes=element('nav','universal-modes'),all=button('全部结果','All results',()=>setMode('current')),past=button('按时间看 · 以前的我','Read by time · Past me',()=>setMode('history'));modes.append(all,past);
- const status=element('p','universal-status');status.setAttribute('role','status');const selection=element('nav','universal-selection'),selected=new Map(),compared=new Map();
- const selectPage=button('全选本页','Select this page',()=>{for(const item of items)selected.set(materialKey(item.ref),item.ref);render();}),selectAll=button('全选全部结果','Select all results',()=>enumerate());
- const add=button('加入本次材料','Add selected materials',async()=>{if(!selected.size)return;await getContextController()?.add([...selected.values()]);render();});selection.append(selectPage,selectAll,add);
+ const status=element('p','universal-status');status.setAttribute('role','status');const compared=new Map();
  const results=element('div','universal-results'),paging=element('nav','universal-pagination'),previous=button('上一页','Previous',()=>{cursor=pages.pop()??null;void run(false);}),next=button('下一页','Next',()=>{pages.push(cursor);cursor=nextCursor;void run(false);});paging.append(previous,next);
- root.append(header,box,modes,filters,status,selection,results,paging);let items=[],cursor=null,nextCursor=null,pages=[],mode='current',intent=0,timer,composing=false,loading=false,origin=null,lastScroll=0,readerReturn=false,historyItems=[],lastResult=null,comparisonOpen=false;
+ root.append(header,box,modes,filters,status,results,paging);let items=[],cursor=null,nextCursor=null,pages=[],mode='current',intent=0,timer,composing=false,loading=false,origin=null,lastScroll=0,readerReturn=false,historyItems=[],lastResult=null,comparisonOpen=false;
  function options(at=cursor){return {universal:true,paged:true,query:input.value.trim(),mode,documentId:scope.value==='document'?origin?.documentId||null:null,topicId:topic.value||null,source:source.value,dateFrom:dates[0].value,to:dates[1].value,types:[...types].filter(([,v])=>v.checked).map(([k])=>k),includeRemoved:removed.checked,includeFiltered:filtered.checked,cursor:at,limit:40};}
  function sourceTimeLabel(value){const stamp=historicalInstant(value);if(stamp===null)return c('发送时间未知','Sent time unknown');return new Intl.DateTimeFormat(document.documentElement.lang.startsWith('en')?'en':'zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(stamp));}
  async function show(detail={}){const state=await request('GET_STATUS').catch(()=>null);if(!state?.consented)return;origin=history.state?.paiaReader||{};if(detail.types)for(const [kind,check]of types)check.checked=detail.types.includes(kind);if(detail.documentId){origin={...origin,documentId:detail.documentId};scope.value='document';}root.hidden=false;document.body.classList.add('uir-search-active');workspace.classList.add('search-task');if(!history.state?.paiaSearch)history.pushState({...history.state,paiaSearch:true},'',location.href);input.focus();window.scrollTo(0,lastScroll);if(!items.length||detail.types||detail.documentId||root.dataset.query!==input.value.trim())void run(true);if(topic.options.length===1){let at=null;do{const page=await request('LIBRARY_INDEX_PAGE',{options:{cursor:at,limit:40}}).catch(()=>null);if(!page)break;for(const item of page.items){const o=element('option','',item.name);o.value=item.id;topic.append(o);}at=page.nextCursor;}while(at&&topic.options.length<=300);}}
@@ -31,13 +28,13 @@ export function installUniversalSearch(){
  function close(){if(history.state?.paiaSearch){history.back();return;}hide();}
  function setMode(nextMode){mode=nextMode;cursor=null;pages=[];historyItems=[];void run(true);}
  function resetComparison(){compared.clear();comparisonOpen=false;results.querySelector('.historical-comparison')?.remove();}
- function setBusy(value){selection.inert=value;paging.inert=value;results.inert=value;if(value)results.setAttribute('aria-busy','true');else results.removeAttribute('aria-busy');}
+ function setBusy(value){paging.inert=value;results.inert=value;if(value)results.setAttribute('aria-busy','true');else results.removeAttribute('aria-busy');}
  function clearResults(){items=[];historyItems=[];lastResult=null;cursor=null;nextCursor=null;pages=[];resetComparison();delete root.dataset.query;render();}
  function changed(){clearResults();clearTimeout(timer);intent++;setBusy(true);if(composing)return;timer=setTimeout(()=>void run(true),200);}
  input.addEventListener('compositionstart',()=>{composing=true;changed();});input.addEventListener('compositionend',()=>{composing=false;changed();});input.addEventListener('input',changed);input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!composing){clearTimeout(timer);void run(true);}if(e.key==='ArrowDown')results.querySelector('button')?.focus();});filters.addEventListener('change',()=>void run(true));
  root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}if(['ArrowDown','ArrowUp'].includes(e.key)&&e.target.closest('.universal-results')){const buttons=[...results.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);if(index>=0){e.preventDefault();buttons[Math.max(0,Math.min(buttons.length-1,index+(e.key==='ArrowDown'?1:-1)))]?.focus();}}});
- const localize=()=>{title.textContent=c('找回以前的表达','Find an earlier expression');root.setAttribute('aria-label',c('全局搜索','Global search'));input.placeholder=c('搜索档案、思想与已有 AI 整理','Search Archive, Thoughts and saved AI output');input.setAttribute('aria-label',c('全局搜索','Global search'));root.querySelector('.universal-close').textContent=c('返回','Back');filters.querySelector('summary').textContent=c('范围与筛选','Scope and filters');scope.options[0].textContent=c('全部档案与思想','All Archive and Thoughts');scope.options[1].textContent=c('在本篇中','In this document');scope.setAttribute('aria-label',c('搜索范围','Search scope'));source.options[0].textContent=c('全部来源','All sources');source.options[4].textContent=c('AI 整理','AI-generated');source.setAttribute('aria-label',c('来源','Source'));topic.setAttribute('aria-label',c('主题','Topic'));topic.options[0].textContent=c('所有主题','All topics');dates[0].parentElement.firstChild.textContent=c('从日期','From date');dates[1].parentElement.firstChild.textContent=c('到日期','To date');remLabel.lastChild.textContent=c('包含已移除','Include removed');filteredLabel.lastChild.textContent=c('包含智能过滤内容','Include Smart Filter content');all.textContent=c('全部结果','All results');past.textContent=c('按时间看 · 以前的我','Read by time · Past me');selectPage.textContent=c('全选本页','Select this page');selectAll.textContent=c('全选全部结果','Select all results');previous.textContent=c('上一页','Previous');if(!composing){render();if(lastResult&&!loading)renderStatus(lastResult);}};new MutationObserver(localize).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
- document.addEventListener('paia:search-close',()=>hide());document.addEventListener('paia:search-open',e=>void show(e.detail||{}));document.addEventListener('paia:materials-changed',()=>render());
+ const localize=()=>{title.textContent=c('找回以前的表达','Find an earlier expression');root.setAttribute('aria-label',c('全局搜索','Global search'));input.placeholder=c('搜索档案、思想与已有 AI 整理','Search Archive, Thoughts and saved AI output');input.setAttribute('aria-label',c('全局搜索','Global search'));root.querySelector('.universal-close').textContent=c('返回','Back');filters.querySelector('summary').textContent=c('范围与筛选','Scope and filters');scope.options[0].textContent=c('全部档案与思想','All Archive and Thoughts');scope.options[1].textContent=c('在本篇中','In this document');scope.setAttribute('aria-label',c('搜索范围','Search scope'));source.options[0].textContent=c('全部来源','All sources');source.options[4].textContent=c('AI 整理','AI-generated');source.setAttribute('aria-label',c('来源','Source'));topic.setAttribute('aria-label',c('主题','Topic'));topic.options[0].textContent=c('所有主题','All topics');dates[0].parentElement.firstChild.textContent=c('从日期','From date');dates[1].parentElement.firstChild.textContent=c('到日期','To date');remLabel.lastChild.textContent=c('包含已移除','Include removed');filteredLabel.lastChild.textContent=c('包含智能过滤内容','Include Smart Filter content');all.textContent=c('全部结果','All results');past.textContent=c('按时间看 · 以前的我','Read by time · Past me');previous.textContent=c('上一页','Previous');if(!composing){render();if(lastResult&&!loading)renderStatus(lastResult);}};new MutationObserver(localize).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+ document.addEventListener('paia:search-close',()=>hide());document.addEventListener('paia:search-open',e=>void show(e.detail||{}));
  chrome.runtime.onMessage.addListener(m=>{
   if(m.type!=='ARCHIVE_CHANGED'||['UPDATE_PREFERENCES','RECORD_TOPIC_READ','SET_ONBOARDING'].includes(m.cause))return;
   const scopeChanged=/PURGE|REMOVE|DELETE|RESTORE|EXCLUDE|FILTER/.test(m.cause||''),
@@ -66,12 +63,12 @@ export function installUniversalSearch(){
   }catch(e){
    if(seq!==intent)return;
    clearResults();
-   status.textContent=e.code==='MEMORY_STALE'?c('范围刚有变化，请重新查询；材料盘保留。','The scope changed. Search again; your tray is retained.'):c('当前范围未能查完，请重试。','This scope could not be searched completely. Retry.');
+   status.textContent=e.code==='MEMORY_STALE'?c('范围刚有变化，请重新查询。','The scope changed. Search again.'):c('当前范围未能查完，请重试。','This scope could not be searched completely. Retry.');
   }finally{if(seq===intent){loading=false;setBusy(false);}}
  }
 
  function renderStatus(data){status.textContent=(mode==='history'?c('这是找到的相关记录，不一定包含全部历史。当前范围为可核对的 Input 来源；独立思想与 AI 稿不作为历史原话。','These are matching records, not necessarily your complete history. This scope contains verifiable Input sources; independent Thoughts and AI output are excluded.'):c('全部档案与思想。','All Archive and Thoughts.'))+' '+c('仅当前已加载 ','Currently loaded ')+(mode==='history'?historyItems.length:items.length)+c(' 项',' items')+(data.complete&&!data.changed?'':c('；当前范围仍有内容未查完。','; this scope has more content to search.'));if(!items.length&&data.complete)status.textContent+=c(' 当前范围没有匹配内容；可扩大范围或清除筛选。',' No matches in this scope. Expand the scope or clear filters.');}
- function render(){if(!results)return;results.replaceChildren();all.setAttribute('aria-pressed',String(mode==='current'));past.setAttribute('aria-pressed',String(mode==='history'));add.textContent=c('加入本次材料','Add selected materials')+(selected.size?' ('+selected.size+')':'');previous.hidden=!pages.length;previous.disabled=!pages.length;next.hidden=!nextCursor;next.textContent=mode==='history'?c('继续按时间读取','Load more history'):items.length?c('下一页','Next'):c('继续查找','Continue searching');
+ function render(){if(!results)return;results.replaceChildren();all.setAttribute('aria-pressed',String(mode==='current'));past.setAttribute('aria-pressed',String(mode==='history'));previous.hidden=!pages.length;previous.disabled=!pages.length;next.hidden=!nextCursor;next.textContent=mode==='history'?c('继续按时间读取','Load more history'):items.length?c('下一页','Next'):c('继续查找','Continue searching');
   if(mode==='history'){const pair=historicalComparison([...compared.values()]),compare=button('并置所选两条','Compare two records',()=>{comparisonOpen=true;render();results.querySelector('.historical-comparison')?.focus();},'historical-compare-open');compare.disabled=!pair;results.append(compare);
    if(comparisonOpen&&pair){const panel=element('section','historical-comparison');panel.tabIndex=-1;panel.setAttribute('role','region');panel.setAttribute('aria-label',c('历史表达对照','Historical expression comparison'));
     panel.append(element('h2','',c('两条原话的对照','Compare two original expressions')),element('p','muted',c('日期是原话的表达时间；并置不代表观点变化或后一条替代前一条。','Dates identify original expressions. Comparison does not imply a belief change or that one replaces the other.')),button('关闭对照','Close comparison',()=>{comparisonOpen=false;render();results.querySelector('.historical-compare-open')?.focus();}));
@@ -85,30 +82,8 @@ export function installUniversalSearch(){
   let date=null;for(const item of mode==='history'?historyItems:items){if(mode==='history'){const currentDate=item.sourceSentAt?item.sourceSentAt.slice(0,10):c('发送时间未知','Sent time unknown');if(date!==currentDate){date=currentDate;results.append(element('h3','',date));}}
    const row=element('article','universal-hit');row.dataset.materialKey=materialKey(item.ref);const primary=button(item.title,item.title,()=>openResult(item),'universal-open');primary.append(element('p','',item.snippet),element('small','',item.kind==='ai'?c('AI 整理','AI-generated'):sourceTimeLabel(item.sourceSentAt)));row.append(primary);if(item.filtered)row.append(element('small','filter-search-label',c('智能过滤内容','Smart Filter content')));
    if(mode==='history'){const body=element('pre','historical-body',item.body);row.append(body);const key=materialKey(item.ref),pair=button(compared.has(key)?'取消并置':'选择并置',compared.has(key)?'Remove comparison':'Select for comparison',()=>{comparisonOpen=false;if(compared.has(key))compared.delete(key);else if(compared.size<2)compared.set(key,item);render();});pair.setAttribute('aria-pressed',String(compared.has(key)));pair.disabled=!compared.has(key)&&compared.size===2;row.append(pair);}
-   const check=element('input');check.type='checkbox';check.checked=selected.has(materialKey(item.ref));check.setAttribute('aria-label',c('选择 ','Select ')+item.title);check.addEventListener('change',()=>{if(check.checked)selected.set(materialKey(item.ref),item.ref);else selected.delete(materialKey(item.ref));render();});row.append(check);
-   const present=getContextController()?.data?.items.some(i=>materialKey(i.ref)===materialKey(item.ref)),reuse=button(present?'已在本次材料中':'加入本次材料',present?'Already selected':'Add to selection',async()=>{await getContextController()?.add([item.ref]);render();},'universal-context');row.append(reuse);results.append(row);
+   results.append(row);
   }
- }
- async function enumerate(){
-  if(loading)return;
-  const seq=++intent,base=options(null),found=new Map();loading=true;setBusy(true);
-  try{
-   let at=null,generation;
-   do{
-    status.textContent=c('正在枚举全部结果…','Enumerating all results…');
-    const page=await request('SEARCH_INPUTS',{options:{...base,cursor:at}});if(seq!==intent)return;
-    if(page.changed||generation!==undefined&&generation!==page.generation)throw Error('changed');
-    generation=page.generation;
-    for(const item of page.items)found.set(materialKey(item.ref),item.ref);
-    if(found.size>200){status.textContent=c('超过本次 200 项保护上限，请缩小范围。没有隐式全选。','More than 200 items. Narrow the scope; nothing was implicitly selected.');return;}
-    at=page.nextCursor;
-   }while(at);
-   if(seq===intent&&window.confirm(c('确认选择当前完整枚举的 '+found.size+' 项？不包括未来新增。','Select all '+found.size+' enumerated items? Future additions are excluded.'))){for(const [k,v]of found)selected.set(k,v);render();}
-  }catch{
-   if(seq!==intent)return;
-   clearResults();
-   status.textContent=c('枚举未完成或范围变化，请重试。','Enumeration failed or the scope changed. Retry.');
-  }finally{if(seq===intent){loading=false;setBusy(false);}}
  }
 
  async function openResult(item){hide({keepReturn:true});if(item.kind==='input'){document.dispatchEvent(new CustomEvent('paia:navigate',{detail:{view:'library',documentId:item.documentId,contextInputId:item.id,returnTo:'library',searchQuery:input.value}}));}else document.dispatchEvent(new CustomEvent('paia:open-thought',{detail:{topicId:item.topicId||item.paths?.[0]?.topicId,entryId:item.entryId,aiField:item.aiField}}));}

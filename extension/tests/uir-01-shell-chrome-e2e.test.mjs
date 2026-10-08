@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
@@ -8,15 +10,15 @@ import {compareD7Archive,seedD7Archive} from './harness/d7-archive-reference.mjs
 
 const execFileAsync=promisify(execFile);
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-01 local-save consent is actionable');await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-01 consent is durable');await eventually(async()=>await page.locator('#onboarding-skip').isVisible(),'optional history onboarding appears');await page.locator('#onboarding-skip').click();await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding can be skipped');}
+async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'UIR-01 local-save consent is actionable');await page.locator('#consent-check').check();await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-01 consent is durable');const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history');assert.equal(onboarding.historyState,'not_started');assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'neutral Archive hides the old card without completing optional history');await page.locator('#archive-root-overflow > summary').click();await page.locator('#archive-root-history').click();await eventually(()=>page.locator('#history-dialog').evaluate(el=>el.open),'Archive menu opens the existing history owner');await page.locator('#history-close').click();assert.deepEqual(await rpc(page,'GET_ONBOARDING'),onboarding,'opening and closing the chooser does not skip or complete onboarding');}
 async function prepareArchive(h,label='UIR01_CAPTURE'){const p=h.archive;await consent(p);await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});const text=`${label} 用于验证 UI Refresh Shell 与 Archive 框架的合成输入。`;await h.open({id:label.toLowerCase(),title:'UIR-01 最近收录',base:1609459200,messages:[{id:label+'-message',text}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===text),'synthetic capture reaches immutable Source');await p.bringToFront();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Archive root is visible');return {p,text};}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 async function assertShell(p){
- assert.equal(await p.locator('#primary-nav > button').count(),3,'three root destinations remain the only primary nav');
+ assert.equal(await p.locator('#primary-nav > button').count(),3,'Archive, Thought Library and approved local Context have real destinations');
  assert.equal(await p.locator('#primary-nav > button .ux-nav-icon').count(),3,'each root destination has one restrained icon');
  assert.equal(await p.locator('.sidebar-bottom > [data-view="settings"] .ux-nav-icon').count(),1,'Settings has its shell icon');
  assert.equal((await p.locator('#workspace-heading').textContent()).trim(),'档案');
- assert.equal(await p.locator('h1:visible').count(),1,'Archive has one visible page-level heading');
+ assert.equal(await p.locator('h1:visible').count(),0,'Archive directory has no duplicate page title');assert.equal(await p.locator('#archive-root-heading').isVisible(),false);
  assert.equal(await p.locator('#universal-search-open').isVisible(),false,'normal Archive shell has no visible global search launcher');assert.equal(await p.locator('#universal-search-open').count(),0,'obsolete launcher is removed from the DOM, not merely hidden');assert.equal(await p.locator('#scope-search').isVisible(),true,'Archive root owns the visible search box');
  assert.equal(await p.locator('#uir-revisit-row,#core-loop-home,#core-loop-return').count(),0,'legacy Revisit row and Archive home are retired');assert.equal(await p.locator('#revisit-open').isVisible(),false,'retained Revisit compatibility owner stays hidden');assert.equal(await p.locator('#archive-root-recent,#archive-root-continue').count(),0,'Archive has no recent or continue shortcut');
  assert.equal(await p.locator('#archive-root-main').count(),1);assert.equal(await p.locator('#uir-archive-assist,#uir-archive-frame').count(),0,'Archive root has no default side dashboard');assert.equal(await p.evaluate(()=>location.hash+location.search),'','UI refresh must not invent URL routes');
@@ -46,9 +48,9 @@ test('UIR-01 shell and Archive frame stay semantic across source and current-rel
   await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#archive-navigator').isVisible(),'Settings Back restores Archive root');assert.equal(await p.locator('#universal-search-open').isVisible(),false,'global Search launcher stays absent after Settings return');await p.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,bubbles:true,cancelable:true})));await eventually(async()=>await p.locator('#scope-search').evaluate(el=>document.activeElement===el),'Archive shortcut focuses the current-surface search');assert.equal(await p.locator('#universal-search-dialog').isVisible(),false,'shortcut does not open the internal search shell');assert.equal(await p.evaluate(()=>location.hash+location.search),'');await assertNoNetwork(h);
  }finally{await h?.close();}
 
- await execFileAsync('python3',['scripts/build_current_release.py'],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+ const releasePath=await mkdtemp(join(tmpdir(),'paia-uir01-release-'));await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
  let release;
  try{
-  release=await FakeChatGPT.start({extensionPath:'work/current-release',onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD7Archive(release,'release',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(release,'release',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(release,{readerOnly:true})});await assertNoNetwork(release);
- }finally{await release?.close();}
+  release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});const {p}=await prepareArchive(release,'UIR01_RELEASE');await assertShell(p);await p.setViewportSize({width:1440,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await eventually(async()=>await p.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light');await p.screenshot({path:'work/ux-r1/uir-01-current-release-archive-1440x900-light.png',fullPage:true});await compareD7Archive(release,'release',{matrix:'archive',directory:'work/d7-archive-reader-compat'});await compareD7Archive(release,'release',{matrix:'reader-compat',directory:'work/d7-archive-reader-compat',seed:await seedD7Archive(release,{readerOnly:true})});await assertNoNetwork(release);
+ }finally{await release?.close();await rm(releasePath,{recursive:true,force:true});}
 });

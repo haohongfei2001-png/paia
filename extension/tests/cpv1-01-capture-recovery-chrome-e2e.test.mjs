@@ -10,6 +10,8 @@ import {FakeChatGPT,conversation,eventually,pause} from './harness/fake-chatgpt.
 const root=fileURLToPath(new URL('..',import.meta.url));
 const evidence=join(root,'work/capture-recovery');
 const baseline='81478c9';
+const currentVersion=JSON.parse(await readFile(join(root,'manifest.json'),'utf8')).version;
+const nextVersion=currentVersion.split('.').map((part,index,parts)=>index===parts.length-1?String(Number(part)+1):part).join('.');
 async function rpc(h,message){const result=await h.archive.evaluate(m=>chrome.runtime.sendMessage(m),message);assert.equal(result.ok,true,JSON.stringify(result));return result.data;}
 async function allow(h){await rpc(h,{type:'CONSENT',accepted:true});await rpc(h,{type:'FILTER_MODE',mode:'off'});}
 async function devMode(h){
@@ -74,7 +76,7 @@ for(const old of [false,true])test(`capture recovery: ${old?'unmodified old main
    // Build new bytes into the exact same unpacked path; never uninstall or reset data.
    execFileSync('python3',['scripts/build_current_release.py',release],{cwd:root,stdio:'pipe'});
   }
-  await reload(h,'0.12.0');
+  await reload(h,currentVersion);
   await eventually(async()=>await world.evaluate('globalThis.PAIACaptureLifecycle?.active === true && globalThis.PAIACaptureLifecycle?.ready === true'),'new pipeline acknowledges fresh status in the same document',20000);
   assert.equal(await page.evaluate(()=>window.documentIdentity),'same-document');
   assert.equal(await page.locator('textarea').inputValue(),'UNSENT_RECOVERY_CANARY');
@@ -87,8 +89,8 @@ for(const old of [false,true])test(`capture recovery: ${old?'unmodified old main
   // Repeated same-version reload must replace the instance and preserve source IDs.
   const first=await world.evaluate('globalThis.PAIACaptureLifecycle.instance');
   const manifestPath=join(release,'manifest.json'),updated=JSON.parse(await readFile(manifestPath,'utf8'));
-  updated.version='0.12.1';await writeFile(manifestPath,JSON.stringify(updated,null,2));
-  await reload(h,'0.12.1');
+  updated.version=nextVersion;await writeFile(manifestPath,JSON.stringify(updated,null,2));
+  await reload(h,nextVersion);
   await eventually(async()=>{const current=await world.evaluate('globalThis.PAIACaptureLifecycle?.ready && globalThis.PAIACaptureLifecycle.instance');return current&&current!==first;});
   await h.send(page,{id:'recovered-new-message-005',text:'Synthetic sent text after repeated reconnect'});
   await eventually(async()=>(await h.state()).records.length===5);
@@ -104,11 +106,11 @@ test('capture recovery: no consent and pause remain fail-closed across real relo
  const f=await setup(),{h}=f;
  try{
   const page=await h.open(conversation('recover-consent-chat'),{arrival:'dom-first'});await h.draft(page,'UNSENT_NO_CONSENT');
-  await reload(h,'0.12.0');await pause(2500);assert.equal((await h.state()).records.length,0);
+  await reload(h,currentVersion);await pause(2500);assert.equal((await h.state()).records.length,0);
   await allow(h);await eventually(async()=>(await h.state()).records.length===3);
   await rpc(h,{type:'SET_ENABLED',enabled:false});
   await h.send(page,{id:'paused-sent-message-004',text:'Synthetic sent while paused'});
-  await reload(h,'0.12.0');await pause(2500);assert.equal((await h.state()).records.length,3);
+  await reload(h,currentVersion);await pause(2500);assert.equal((await h.state()).records.length,3);
   assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,false);
   assert.equal(await page.locator('#paia-reconnect-notice').count(),0);
   await saveEvidence(h,page,'consent-pause',{unconsentedRecords:0,pausedRecords:3});
@@ -141,7 +143,7 @@ test('capture recovery: permanent deletion wins over visible replay and late met
   const before=(await h.state()).records,deleted=before[0],world=await isolated(h,page);
   await world.evaluate('globalThis.PAIACaptureLifecycle.dispose(); true');
   await rpc(h,{type:'PURGE_SOURCE',id:deleted.id,confirm:true});
-  await reload(h,'0.12.0');await h.ready(page);await h.respond(page,c);await pause(2600);
+  await reload(h,currentVersion);await h.ready(page);await h.respond(page,c);await pause(2600);
   const state=await h.state();assert.equal(state.records.length,2);
   assert.equal(state.records.some(r=>r.sourceKey===deleted.sourceKey),false);
   assert.ok(state.tombstones.some(t=>t.sourceIdentityHash===deleted.sourceKey&&t.status==='permanently_ignored'));

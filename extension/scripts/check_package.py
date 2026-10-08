@@ -69,8 +69,8 @@ def audit_manifest():
             "Required permissions must remain storage plus reviewed capture recovery scripting")
     require(manifest.get("optional_permissions") == ["nativeMessaging"],
             "nativeMessaging must be the sole reviewed optional permission")
-    require(manifest.get("host_permissions") == ["https://api.deepseek.com/*", "https://chatgpt.com/*"],
-            "Only the exact approved DeepSeek and ChatGPT origins are permitted")
+    require(manifest.get("host_permissions") == ["https://chatgpt.com/*"],
+            "Only the existing ChatGPT capture origin is permitted")
     for key in ("optional_host_permissions", "externally_connectable", "sandbox",
                 "update_url", "devtools_page", "chrome_url_overrides"):
         require(not manifest.get(key), f"Unexpected manifest capability: {key}")
@@ -116,12 +116,12 @@ def audit_manifest():
             "CSP default-src must be self or none")
     for name, expected in {
         "script-src": ["'self'"],
-        "connect-src": ["https://api.deepseek.com"], "object-src": ["'none'"],
+        "connect-src": ["'none'"], "object-src": ["'none'"],
         "base-uri": ["'none'"], "form-action": ["'none'"],
     }.items():
         require(directives.get(name) == expected, f"CSP must declare {name} {' '.join(expected)}")
     for name, values in directives.items():
-        require(all(value in {"'self'", "'none'", "data:", "blob:", "https://api.deepseek.com"} for value in values),
+        require(all(value in {"'self'", "'none'", "data:", "blob:"} for value in values),
                 f"CSP {name}: unsafe or remote source")
 
 
@@ -155,7 +155,7 @@ def audit_js(path, text):
             scanned = scanned.replace("chrome.scripting.executeScript(", "APPROVED_CAPTURE_SCRIPTING(")
         if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
-        if label == "website storage or nonlocal extension storage" and path in {ROOT / "core/organizer/deepseek.js", ROOT / "background/service-worker.js"}:
+        if label == "website storage or nonlocal extension storage" and path in {ROOT / "background/service-worker.js"}:
             scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
         if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
             scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
@@ -173,6 +173,29 @@ def audit_js(path, text):
             scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
         if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
+        if label == "keyboard listener" and path == ROOT / "ui/context-cards.js":
+            # Local Context textbox/menu only; no document/content-script capture.
+            for reviewed in ("this.menu.addEventListener('keydown',", "this.field.addEventListener('keydown',"):
+                require(text.count(reviewed) == 1, "Context keyboard handlers stay scoped to one menu/textbox")
+                scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_EDITOR_KEYS(")
+            require("this.composing||e.isComposing||e.keyCode===229" in text,
+                    "Context shortcuts must defer to native IME composition")
+            require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
+                    "Context must not install global keyboard capture")
+        if label == "keyboard listener" and path == ROOT / "ui/settings-details.js":
+            # Exact local modal Tab loop: no text collection or global listener.
+            exact = " dialog.addEventListener('keydown',event=>{\n  if(event.key!=='Tab'||event.altKey||event.ctrlKey||event.metaKey)return;\n  const visible=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);\n  const stops=visible.filter(node=>node.type!=='radio'||!node.name||node===(visible.find(other=>other.type==='radio'&&other.name===node.name&&other.checked)||visible.find(other=>other.type==='radio'&&other.name===node.name)));\n  const first=stops[0],last=stops.at(-1),active=document.activeElement;\n  if(!first)return;\n  if(event.shiftKey?(active===first||!dialog.contains(active)):(active===last||!dialog.contains(active))){event.preventDefault();(event.shiftKey?last:first).focus();}\n });"
+            require(text.count(exact) == 1, "settings details retains reviewed modal Tab-only focus loop")
+            scanned = scanned.replace(exact, "SCOPED_SETTINGS_DIALOG_TAB_LOOP")
+        if label == "keyboard listener" and path == ROOT / "ui/context-topics.js":
+            reviewed = "this.field.addEventListener('keydown',"
+            exact = "this.field.addEventListener('keydown',event=>this.move(event));"
+            boundary = "this.field=element('div','topic-field');this.field.setAttribute('role','group');"
+            require(text.count(reviewed) == 1 and exact in text and boundary in text,
+                    "Context Topic keys stay on one reviewed capsule group")
+            require("event.isComposing||event.keyCode===229" in text,
+                    "Context Topic navigation must defer to native composition")
+            scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_TOPIC_NAVIGATION(", 1)
         if label == "keyboard listener" and path == ROOT / "ui/ai-presentation.js":
             scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
         if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":
@@ -224,9 +247,23 @@ def audit_js(path, text):
                 "macOS secure-store adapter must use one-shot native messages, not a long-lived port")
         require("SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED" in text and "requestMacOSNativeSecureStorePermission" in text,
                 "macOS secure-store adapter must fail closed before optional permission and expose only explicit request")
-    for match in re.finditer(r"['\"`](https?://[^'\"`\s]+)", text):
+    remote_literals = list(re.finditer(r"['\"`](https?://[^'\"`\s]+)", text))
+    about_links = path == ROOT / "ui/settings-about.js"
+    if about_links:
+        # Reviewed SET2-04 public document links only. This does not admit a
+        # network API, remote resource, permission, or automatic navigation.
+        require(text.count("const SITE='https://inputarchive.com';") == 1 and
+                len(remote_literals) == 1 and
+                text.count("document.createElement('a')") == 1 and
+                "link.href=item.href;" in text and
+                "link.target='_blank';link.rel='noopener noreferrer';" in text,
+                "About must retain its single verified native-anchor origin")
+        require(not re.search(r"\b(?:location|window|chrome|globalThis)\s*(?:\.|\[)|\bopen\s*\(|\.\s*(?:click|submit)\s*\(|\.\s*(?:src|srcset|action)\s*=|setAttribute\s*\(\s*['\"](?:src|srcset|action)['\"]", text),
+                "About links must not navigate, load resources, or invoke privileged actions automatically")
+    for match in remote_literals:
         parsed = urlsplit(match.group(1))
-        require(parsed.scheme == "https" and parsed.netloc in {"chatgpt.com", "api.deepseek.com"} and (parsed.netloc != "api.deepseek.com" or path == ROOT / "core/organizer/deepseek.js"),
+        approved_document_origin = about_links and match.group(1) == "https://inputarchive.com"
+        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin),
                 f"{path.relative_to(ROOT)}: unexpected remote URL literal")
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",
@@ -252,7 +289,7 @@ class PackageHTML(HTMLParser):
                     f"{self.path.relative_to(ROOT)}: inline event handler {name}")
             require(not (value or "").strip().lower().startswith("javascript:"),
                     f"{self.path.relative_to(ROOT)}: javascript URL")
-        require(not (tag == "input" and ((attrs.get("type", "").lower() == "password" and not (self.path == ROOT / "ui/archive.html" and attrs.get("id") == "deepseek-api-key" and attrs.get("autocomplete") == "off")) or (attrs.get("type", "").lower() == "file" and not (self.path == ROOT / "ui/archive.html" and ((attrs.get("id") == "history-file" and attrs.get("accept") == ".zip,.json,application/zip,application/json") or (attrs.get("id") == "backup-file" and attrs.get("accept") == ".paia-backup,.jsonl,application/x-ndjson")))))),
+        require(not (tag == "input" and (attrs.get("type", "").lower() == "password" or (attrs.get("type", "").lower() == "file" and not (self.path == ROOT / "ui/archive.html" and ((attrs.get("id") == "history-file" and attrs.get("accept") == ".zip,.json,application/zip,application/json") or (attrs.get("id") == "backup-file" and attrs.get("accept") == ".paia-backup,.jsonl,application/x-ndjson")))))),
                 f"{self.path.relative_to(ROOT)}: file/password input forbidden")
         require(tag not in {"iframe", "object", "embed"},
                 f"{self.path.relative_to(ROOT)}: embedded browsing context forbidden")

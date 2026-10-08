@@ -1,3 +1,6 @@
+import {chooseConsumerGroup} from './harness/settings-consumer-presentation.mjs';
+import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
+import {BackupSegmentWriter} from './harness/historical-backup-segments.mjs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -7,10 +10,8 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 async function openBackup(page){
  await page.locator('.sidebar [data-view=settings]').click();
- const select=page.locator('#ux-settings-group-switch');
- if(await select.isVisible())await select.selectOption('data');
- else await page.locator('[data-settings-group="data"]').click();
- await page.locator('#backup-create-segmented').waitFor({state:'visible'});
+ await chooseConsumerGroup(page,'data');await page.locator('details').filter({has:page.locator('#backup-settings')}).locator(':scope > summary').click();
+ await page.locator('#backup-file').waitFor({state:'attached'});assert.equal(await page.locator('#backup-create-segmented').count(),0);
 }
 
 async function enableConsent(page){
@@ -33,29 +34,7 @@ async function enableConsent(page){
  assert.equal(await consented(),true);
 }
 
-async function portableItems(page){
- for(let attempt=0;attempt<5;attempt++){
-  const result=await page.evaluate(async()=>{
-   const call=async(type,options)=>{
-    const response=await chrome.runtime.sendMessage({type,...(options?{options}:{})});
-    if(!response?.ok)throw new Error(response?.error||'BACKUP_EXPORT_FAILED');
-    return response.data;
-   };
-   const begin=await call('PAIA_BACKUP_BEGIN_EXPORT'),items=[];
-   try{
-    for(let sequence=0;;sequence++){
-     const page=await call('PAIA_BACKUP_EXPORT_PAGE',{sessionId:begin.sessionId,sequence});
-     items.push(...page.items.filter(row=>row.type==='item'));
-     if(page.done)return {items};
-    }
-   }catch(error){return {error:error.message};}
-   finally{await call('PAIA_BACKUP_CANCEL',{sessionId:begin.sessionId}).catch(()=>{});}
-  });
-  if(!result.error)return result.items;
-  if(result.error!=='BACKUP_CHANGED')throw new Error(result.error);
- }
- throw new Error('BACKUP_CHANGED after bounded export retries');
-}
+async function portableItems(page){return (await historicalBackupItems(page)).filter(row=>row.type==='item');}
 
 async function domainDigest(harness){
  const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
@@ -78,7 +57,7 @@ async function domainDigest(harness){
  });
 }
 
-test('CPV1-03 segmented downloads authenticate before staged restore in an isolated browser',
+test('CPV1-03 historical segmented files authenticate before current staged restore; retired export stays absent',
  {timeout:240000},async()=>{
  const root=new URL('../',import.meta.url).pathname;
  const dir=await mkdtemp(join(tmpdir(),'paia-cpv1-033-'));
@@ -101,33 +80,13 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   assert.equal(before.records.count,119);
   assert.equal(before.thoughts.count,90);
   await openBackup(page);
-  const baselineDownload=page.waitForEvent('download',{timeout:90000});
-  await page.locator('#backup-create').click();
-  const baselineFile=await baselineDownload;
-  const baselinePath=join(dir,'baseline.paia-backup');
-  await baselineFile.saveAs(baselinePath);
-  const baselineItems=(await readFile(baselinePath,'utf8')).trimEnd().split('\n')
-   .map(JSON.parse).filter(row=>row.type==='item');
+  const baseline=await historicalBackupItems(page),baselineItems=baseline.filter(row=>row.type==='item');
   assert.ok(baselineItems.length>200);
-  await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
-   'backup controls unlock after baseline export',30000);
-  const downloads=[];
-  page.on('download',download=>downloads.push(download));
-  await page.locator('#backup-create-segmented').click();
-  await eventually(async()=>downloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
-    &&downloads.some(item=>item.suggestedFilename().includes('.part-')),
-   'segmented files and completion manifest',90000);
-  assert.match(await page.locator('#backup-status').textContent(),/已开始下载/);
-  const paths=[];
-  for(const item of downloads){
-   const path=join(dir,item.suggestedFilename());
-   await item.saveAs(path);paths.push(path);
-  }
-  assert.equal(paths.filter(path=>path.endsWith('.manifest.paia-backup')).length,1);
-  const downloaded=[];
-  for(const path of paths.filter(path=>path.includes('.part-')).sort())
-   downloaded.push(...(await readFile(path,'utf8')).trimEnd().split('\n').map(JSON.parse).filter(row=>row.type==='item'));
-  assert.deepEqual(downloaded,baselineItems);
+  const paths=[],writer=new BackupSegmentWriter({name:'synthetic-historical',maxBytes:8192,onSegment:async({name,blob})=>{const path=join(dir,name);await writeFile(path,new Uint8Array(await blob.arrayBuffer()));paths.push(path);}});
+  for(const row of baseline)await writer.add(row);
+  const manifest=await writer.finish(),manifestPath=join(dir,'synthetic-historical.manifest.paia-backup');
+  await writeFile(manifestPath,JSON.stringify(manifest));paths.push(manifestPath);
+  assert.ok(paths.length>2);assert.equal(manifest.complete,true);
   await page.locator('#backup-file').setInputFiles(paths);
   await eventually(async()=>await page.locator('#backup-preview').isVisible(),
    'non-empty library restore preview',60000);
@@ -173,40 +132,7 @@ test('CPV1-03 segmented downloads authenticate before staged restore in an isola
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'segmented recovery',60000);
-  await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
-   'backup controls unlock after restore',30000);
-  const afterDownloads=[];
-  page.on('download',download=>afterDownloads.push(download));
-  let restoredExportComplete=false;
-  for(let attempt=0;attempt<5&&!restoredExportComplete;attempt++){
-   afterDownloads.length=0;
-   await eventually(async()=>await page.locator('#backup-create-segmented').isEnabled(),
-    'backup controls unlock for restored export',30000);
-   await page.locator('#backup-create-segmented').click();
-   await eventually(async()=>{
-    const status=await page.locator('#backup-status').textContent();
-    return afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'))
-      ||/备份期间内容发生变化/.test(status);
-   },'restored export completes or detects concurrent index rebuild',30000);
-   restoredExportComplete=afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup'));
-   if(!restoredExportComplete){
-    assert.equal(afterDownloads.some(item=>item.suggestedFilename().endsWith('.manifest.paia-backup')),false,
-     'a changed library must not publish a completion manifest');
-   }
-  }
-  assert.equal(restoredExportComplete,true,
-   `restored export never reached a stable generation: ${await page.locator('#backup-status').textContent()}`);
-  assert.ok(afterDownloads.some(item=>item.suggestedFilename().includes('.part-')));
-  const afterDir=join(dir,'after');
-  await mkdir(afterDir);
-  const afterPaths=[];
-  for(const item of afterDownloads){
-   const path=join(afterDir,item.suggestedFilename());
-   await item.saveAs(path);afterPaths.push(path);
-  }
-  const afterItems=[];
-  for(const path of afterPaths.filter(path=>path.includes('.part-')).sort())
-   afterItems.push(...(await readFile(path,'utf8')).trimEnd().split('\n').map(JSON.parse).filter(row=>row.type==='item'));
+  const afterItems=await portableItems(page);
   assert.deepEqual(afterItems,baselineItems);
   assert.equal(harness.externalRequests,0);
   assert.deepEqual(harness.errors,[]);
