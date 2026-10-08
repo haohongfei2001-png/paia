@@ -89,7 +89,7 @@ export class ContextCardsService {
    const result=applyContextChange(row,c,staged?()=>staged.at:()=>this.s.clock());
    if(!result.ok)return result;
    await t.put('meta',row);
-   if(staged)await this.syncJournal.commit(t,staged.prepared);
+   if(staged&&staged.prepared!==null)await this.syncJournal.commit(t,staged.prepared);
    // Receipt contains no second body. Only a committed transaction can return it.
    await t.put('operationReceipts',{id:'context:'+c.operationId,namespace:'context-cards',schemaVersion:1,ownerId:c.itemId||c.key,createdAt:this.s.clock(),digest,epoch:c.epoch,result});
    return result;

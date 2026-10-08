@@ -17,7 +17,7 @@ for(const variant of ['source','release'])test('BNS manual Context native owner 
   evidence.productionHashes={...extension.hashes};
   for(const path of ['core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
   device=await startNative(extension.path);
-  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,27);
+  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,40);
   const before=await device.call('durable-create');assert.equal(before.row.items[0].lifecycle,'removed');assert.deepEqual(before.row.items.map(x=>[x.card,x.lifecycle]),[['info','removed'],['rules','removed'],['now','removed']]);
   evidence.restart=await device.restart();
   assert.deepEqual(await device.call('durable-read'),before,'canonical item, protocol state and local receipt survive actual worker replacement');

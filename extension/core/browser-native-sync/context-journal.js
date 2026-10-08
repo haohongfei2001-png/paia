@@ -73,6 +73,16 @@ function materializer(core,types){
 
 // Separate exports retain the original Info-only admission contract.
 export class ContextInfoSyncJournal extends ContextSyncJournal{constructor(core){super(core,infoTypes);}}
-export class ContextManualSyncJournal extends ContextSyncJournal{constructor(core){super(core,manualTypes);}}
+export class ContextManualSyncJournal extends ContextSyncJournal{
+ constructor(core){super(core,manualTypes);}
+ async prepare(beforeRow,afterRow,command){
+  // Explicit local-only paths, not synchronized access or automatic lineage.
+  // The Context owner still commits its canonical change and receipt atomically.
+  if(command.kind==='access')return null;
+  const before=beforeRow.items.find(item=>item.id===command.itemId),after=afterRow.items.find(item=>item.id===command.itemId);
+  if(before?.origin==='automatic'&&after?.origin==='automatic')return null;
+  return super.prepare(beforeRow,afterRow,command);
+ }
+}
 export const contextInfoMaterializer=core=>materializer(core,infoTypes);
 export const contextManualMaterializer=core=>materializer(core,manualTypes);
