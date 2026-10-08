@@ -135,3 +135,29 @@ hunks against the existing contract. The complete migrated case passed locally
 in11.9s; the complete owning file was still running at this checkpoint. No
 production, assertion, timeout or other case was changed. Final hosted combined
 acceptance remains required for the next coherent head.
+
+## Settings0.20 merged engineering batch
+
+The complete changed Thought owner file passed26/26 locally in274.7s, zero
+skips/cancellations, including100k Inputs. Its406-file byte manifest matched the
+committed source; it began before commit and is not described as pristine-head CI.
+
+Exact head0f750af passed Full37704406932: all four unit jobs, adapter/privacy,
+release, both macOS jobs, browser1–7, Full Suite and final Integration aggregate.
+Prompt37704406755 also passed its complete native, serial unit and remaining
+contract/package steps. Current draft-only Candidate was skipped, not passed.
+
+PR198 merged at f1740bc47ff8495bdf3457b5db195075a7404c87. Main tree
+801227d1b4945082226eb0ea745c589601a97df6 equals tested head0f750af's tree. The
+merge message preserves PAIA_FULL_CERTIFICATION. Exact-main
+[Full37706096966](https://github.com/haohongfei2001-png/paia/actions/runs/37706096966)
+and [Prompt37706097001](https://github.com/haohongfei2001-png/paia/actions/runs/37706097001)
+both succeeded on that main SHA, including Full Suite and final Integration
+aggregate in the Full run. Earlier failures/cancellations remain valid historical
+evidence, never converted into passes by this new successful run.
+
+After updating the extension, this batch presents six Settings groups, the local
+three-style organization preference, Storage/Supported Websites details and
+Prompt position reset. No paid model or cloud connection is enabled by these
+controls. Whole SET2 acceptance, installed/current-live/device qualification and
+final owner visual acceptance retain their separate gates.
