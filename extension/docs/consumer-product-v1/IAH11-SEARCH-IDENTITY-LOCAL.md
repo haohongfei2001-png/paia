@@ -59,3 +59,11 @@ d596f2728e1231e16da0758761672c861612ae08100793e567291ae849c0dd9d  ui/smart-filte
 ```
 
 The earlier native/hash block is retained as pre-scope evidence and is superseded by this final block for current runtime claims.
+
+## Main reconciliation
+
+Merged main `c168b13170d762b4774740ce218613a45e31cde4` without conflicts as `0e0bd2720d395d05d9681bc12c0882861797b742`. The inherited changes add the partial BNS modules/tests/workflows and an optional `syncJournal` seam in PromptReuseService. The production worker still constructs `new PromptReuseService(store)`, leaving that seam null. IAH UI/search/IDB/worker, native fixture and release builder bytes did not change. The previous native run remains evidence of those IAH bytes, not an exact merged-head CI receipt.
+
+- `/tmp/iah-mainc168-merge-unit.log`: 25/25 qualified-search and affected CI guard tests PASS.
+- `/tmp/iah-mainc168-prompt-seam-unit.log`: complete Prompt service/security files, 25/25 PASS.
+- No unchanged IAH browser suite was repeated. Formal combined candidate/main gates remain pending.
