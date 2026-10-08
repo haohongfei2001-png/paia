@@ -53,15 +53,16 @@ function dependencyReader(s){return {
 // existing source sanitizer with current Input/filter eligibility before using
 // each unprotected label. These are finite read-work limits, not organization
 // thresholds; ambiguous/oversized provenance is unavailable, never truncated.
-async function organizationMetadata(s,t,kind,row){
- const field=kind==='topic'?'name':'title';
- if(typeof row[field]!=='string')unavailable();
+async function organizationMetadata(s,t,kind,row,fields=[kind==='topic'?'name':'title']){
+ if(fields.some(field=>typeof row[field]!=='string'))unavailable();
  // Initial human/legacy Topic creation historically protects title rather
  // than name. Preserve that existing authored fact in this read projection;
  // do not persist a new protection map or relabel it as an AI-owned field.
- if(labelProtected(row,field))return safeOrganization(s,t,kind,{...row,protections:{...row.protections,[field]:{...row.protections?.[field],locked:true}}});
- if(!row[field].trim())return safeOrganization(s,t,kind,row);
- if(!Array.isArray(row.sourceRecordIds)||!row.sourceRecordIds.length)return {...row,[field]:'',sourceUnavailable:true};
+ const protectedRow={...row,protections:{...row.protections}};
+ for(const field of fields)if(labelProtected(row,field))protectedRow.protections[field]={...row.protections?.[field],locked:true};
+ const generated=fields.filter(field=>!labelProtected(row,field)&&row[field].trim());
+ if(!generated.length)return safeOrganization(s,t,kind,protectedRow);
+ if(!Array.isArray(row.sourceRecordIds)||!row.sourceRecordIds.length)return {...protectedRow,...Object.fromEntries(generated.map(field=>[field,''])),sourceUnavailable:true};
  const qualified={sourcePresent:async(tx,ids)=>{
   if(ids.length>20||!await s.sourcePresent(tx,ids))return false;
   const filter=await tx.get('meta','smart-filter');
@@ -72,7 +73,7 @@ async function organizationMetadata(s,t,kind,row){
   }
   return true;
  }};
- return safeOrganization(qualified,t,kind,row);
+ return safeOrganization(qualified,t,kind,protectedRow);
 }
 
 async function topicMetadata(s,t,row){
@@ -94,6 +95,25 @@ async function sectionMetadata(s,t,topic,row){
   titleProtected:protection(row.protections?.title),orderProtected:protection(row.protections?.order),sourceUnavailable:safe.sourceUnavailable===true};
 }
 
+async function placementMetadata(s,t,topic,p,sectionId=null){
+ if(p.lifecycle!=='active'||p.excludedByUser===true)return null;
+ if(p.topicId!==topic.id||p.layoutGeneration!==topic.activeLayoutGeneration||sectionId!==null&&p.sectionId!==sectionId||!idOK(p.entryId)||p.id!==JSON.stringify([topic.id,p.layoutGeneration,p.entryId])||!revision(p.revision)||!rank(p.rank)||!rank(p.sectionRank))unavailable();
+ const section=await sectionMetadata(s,t,topic,await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,p.sectionId])));if(!section)return null;
+ if(p.sectionRank!==section.rank)unavailable();
+ const stored=await t.get('thoughts',p.entryId);
+ if(!stored||stored.storageSchema!==2||stored.lifecycle!=='active'||stored.quarantineSealed)return null;
+ const entry=await s.readableEntry(t,p.entryId);
+ if(entry.lifecycle!=='active'||dependencyLifecycle(entry,await readDependencyInputs(s,t,entry))!=='active')return null;
+ if(entry.id!==p.entryId||!revision(entry.revision)||!revision(entry.contentRevision)||!revision(entry.fieldRevisions?.body))unavailable();
+ const bodyRef=entry.bodyBinding==='input'?{kind:'input',id:entry.workingInputId,contentRevision:entry.bindingRevision}:{kind:'thought',id:entry.id,contentRevision:entry.contentRevision,fieldRevision:entry.fieldRevisions.body};
+ if(!idOK(bodyRef.id)||!revision(bodyRef.contentRevision))unavailable();
+ return {entryRef:{id:entry.id,revision:entry.revision,contentRevision:entry.contentRevision},section,
+  placement:{id:p.id,topicId:topic.id,sectionId:p.sectionId,layoutGeneration:p.layoutGeneration,revision:p.revision,rank:p.rank,sectionRank:p.sectionRank,membershipAuthorship:['user','ai','legacy_unknown'].includes(p.membershipAuthorship)?p.membershipAuthorship:'unknown',sectionProtected:typeof p.sectionProtection==='boolean'?p.sectionProtection:null,orderProtected:typeof p.orderProtection==='boolean'?p.orderProtection:null},
+  bodyRef,expressionTime:await expressionTime(s,t,entry),source:sourceMetadata(entry),provenanceRef:{kind:'entry',id:entry.id}};
+}
+
+export {bounded as boundedThoughtRead,topicMetadata as thoughtReadTopic,sectionMetadata as thoughtReadSection,placementMetadata as thoughtReadPlacement};
+
 export class ThoughtLibraryReadModel{
  constructor(store){this.s=store;this.cursors=new Map();}
  ready(){const s=this.s;return s.loaded===true&&s.foundationLoaded===true&&s.bindingsLoaded===true&&s.documentsLoaded===true&&!!s.repository?.db;}
@@ -107,7 +127,7 @@ export class ThoughtLibraryReadModel{
   for(let i=0;i<peers.length-128;i++)this.cursors.delete(peers[i][0]);
   return token;
  }
- async read(scope,cursor,work,resolve=value=>value){
+ async read(scope,cursor,work,resolve=value=>value,qualifyCurrent=()=>true){
   if(!cursorOK(cursor))invalid();
   if(!this.ready())return empty(scope.kind,{unavailable:true,reason:'foundation_not_ready'});
   await this.consent();
@@ -126,10 +146,28 @@ export class ThoughtLibraryReadModel{
    // resolution and publication. Consent is also asynchronous, so it must finish
    // before this last authority read; no awaited work follows the comparison.
    await this.consent();
-   const current=await this.s.repository.transaction(false,t=>rootReadAuthority(t,{search:scope.kind==='search'}));
-   if(current!==result.authority||!this.ready())return empty(scope.kind,{cursorInvalid:true});
+   const current=await this.s.repository.transaction(false,async raw=>{
+    const t=bounded(raw),authority=await rootReadAuthority(t,{search:scope.kind==='search'});
+    return {authority,qualified:await qualifyCurrent(t)};
+   });
+   if(current.authority!==result.authority||!current.qualified||!this.ready())return empty(scope.kind,{cursorInvalid:true});
   }
   return result;
+ }
+ topicReadingMetadata(options={}){
+  if(!exact(options,['id'])||!idOK(options.id))invalid();
+  return this.read({kind:'topic_reading_metadata',topicId:options.id},null,async t=>{
+   const row=await t.get('topics',options.id),topic=await topicMetadata(this.s,t,row);
+   if(!topic)return empty('topic_reading_metadata',{unavailable:true,reason:'topic_unavailable'});
+   if(typeof row.summary!=='string'||new TextEncoder().encode(row.summary).length>16384)unavailable();
+   // Name and summary have independent authorship. A human Topic name never
+   // grants readability to an unprotected generated summary.
+   const safe=await organizationMetadata(this.s,t,'topic',row,['name','summary']);
+   const recoveryEpoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
+   if(typeof recoveryEpoch!=='string'||recoveryEpoch.length>200)unavailable();
+   return {id:row.id,name:safe.name,summary:safe.summary,revision:row.revision,recoveryEpoch,
+    defaultSectionId:row.defaultSectionId,organizationRevision:row.organizationRevision,activeLayoutGeneration:row.activeLayoutGeneration};
+  });
  }
  // The bounded lexical owner creates snippets and owns index maintenance. This
  // read-only qualification never tokenizes or copies a canonical body. It binds
@@ -222,20 +260,7 @@ export class ThoughtLibraryReadModel{
    const scope=sectionId===null?[topicId,raw.activeLayoutGeneration,0]:[topicId,raw.activeLayoutGeneration,sectionId,0];
    const page=await t.rangePage('placements',sectionId===null?'byTopicOrder':'bySectionOrder',prefix(scope),key,limit),items=[];
    for(const {value:p}of page.rows){
-    if(p.lifecycle!=='active'||p.excludedByUser===true)continue;
-    if(p.topicId!==topicId||p.layoutGeneration!==raw.activeLayoutGeneration||sectionId!==null&&p.sectionId!==sectionId||!idOK(p.entryId)||p.id!==JSON.stringify([topicId,p.layoutGeneration,p.entryId])||!revision(p.revision)||!rank(p.rank)||!rank(p.sectionRank))unavailable();
-    const section=await sectionMetadata(this.s,t,raw,await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,p.sectionId])));if(!section)continue;
-    if(p.sectionRank!==section.rank)unavailable();
-    const stored=await t.get('thoughts',p.entryId);
-    if(!stored||stored.storageSchema!==2||stored.lifecycle!=='active'||stored.quarantineSealed)continue;
-    const entry=await this.s.readableEntry(t,p.entryId);
-    if(entry.lifecycle!=='active'||dependencyLifecycle(entry,await readDependencyInputs(this.s,t,entry))!=='active')continue;
-    if(entry.id!==p.entryId||!revision(entry.revision)||!revision(entry.contentRevision)||!revision(entry.fieldRevisions?.body))unavailable();
-    const bodyRef=entry.bodyBinding==='input'?{kind:'input',id:entry.workingInputId,contentRevision:entry.bindingRevision}:{kind:'thought',id:entry.id,contentRevision:entry.contentRevision,fieldRevision:entry.fieldRevisions.body};
-    if(!idOK(bodyRef.id)||!revision(bodyRef.contentRevision))unavailable();
-    items.push({entryRef:{id:entry.id,revision:entry.revision,contentRevision:entry.contentRevision},section,
-     placement:{id:p.id,topicId,sectionId:p.sectionId,layoutGeneration:p.layoutGeneration,revision:p.revision,rank:p.rank,sectionRank:p.sectionRank,membershipAuthorship:['user','ai','legacy_unknown'].includes(p.membershipAuthorship)?p.membershipAuthorship:'unknown',sectionProtected:typeof p.sectionProtection==='boolean'?p.sectionProtection:null,orderProtected:typeof p.orderProtection==='boolean'?p.orderProtection:null},
-     bodyRef,expressionTime:await expressionTime(this.s,t,entry),source:sourceMetadata(entry),provenanceRef:{kind:'entry',id:entry.id}});
+    const item=await placementMetadata(this.s,t,raw,p,sectionId);if(item)items.push(item);
    }
    const nextCursor=page.next?this.issue({kind:'entries',topicId,sectionId},page.next,authority):null;
    return {version:1,kind:'entries',topic,items,nextCursor,complete:!nextCursor,coverage:{complete:!nextCursor},readingStructure:derived()};
