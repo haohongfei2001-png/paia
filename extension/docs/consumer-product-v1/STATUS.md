@@ -1,5 +1,13 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Latest coordinated candidate checkpoint — 2026-10-09 CST
+
+Current remote main is3d69b95f (website-only PR213 over extension0.24). PR210 exact579b7b58 is the0.26 delivery candidate; Full37809039416 is still running/queued and Prompt37809039368 passed. Independent Topic and Data fixes are approved. No new main integration, installation or deployment is claimed.
+
+The reviewed0.27 local foundations and subsequent bounded work are now one coherent **0.28 follow-up**, to avoid duplicate full certification for an intermediate release. [COHERENT-028-CANDIDATE](implementation/verification/COHERENT-028-CANDIDATE.md) records frozen5e995c25:89 complete native cases,80 affected unit/contract cases, strict exact-checkpoint Sync receipt verification and independent integration approval. This is ready local evidence, not final hosted certification. No remote PR has yet been opened for0.28. The separate Prompt Next availability race is under repair and is not part of these frozen bytes.
+
+The [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) distinguishes remaining local work from external gates. Earlier main/head/quota paragraphs below are historical checkpoints; they do not override this latest block or current remote facts.
+
 ## Current repair checkpoint — 2026-10-09 CST
 
 Remote main is `3d69b95f643800407720605dd1b4094d00ba2b54`; PR213 changes only the website and is preserved in this candidate. Extension runtime on main remains0.24. PR210 is not merged: intermediate25eaa Full37805632506 failed one Data browser case, while Browser2–7, four unit shards, contracts/build and native Sync passed; both macOS jobs were cancelled. Prompt37805632430 passed. These are not full certification.
