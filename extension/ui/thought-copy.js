@@ -1,5 +1,6 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '已保存的 AI 整理':'Saved AI organization','主题速览':'Topic overview','当前理解':'Current understanding','已有信息':'Saved information','已有决定':'Saved decisions','已有偏好':'Saved preferences','已有判断':'Saved judgments','已有问题':'Saved questions','已保存的思考线索':'Saved lines of thought',
  '移动到章节':'Move to Section',
  '移动整条内容':'Move entire Entry',
  '整条内容的目标章节（不是所选文字）':'Destination for the entire Entry (not selected text)',

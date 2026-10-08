@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateBackupHeader,BACKUP_VERSION,BACKUP_SCHEMA,BACKUP_SECTIONS} from '../core/backup-format.js';
 
-test('v0.11 backup envelope accepts prior and current v0.25 producers but rejects future v0.26 with its exact error',()=>{
+test('v0.11 backup envelope accepts prior and current v0.26 producers but rejects future v0.27 with its exact error',()=>{
  const row={type:'header',format:'PAIA Backup',formatVersion:BACKUP_VERSION,schemaVersion:BACKUP_SCHEMA,appVersion:'0.11.0',createdAt:'2026-09-01T00:00:00Z',contentSections:Object.keys(BACKUP_SECTIONS)};
  assert.equal(validateBackupHeader(row),row);
  assert.doesNotThrow(()=>validateBackupHeader({...row,appVersion:'0.10.1'}));
@@ -18,5 +18,6 @@ test('v0.11 backup envelope accepts prior and current v0.25 producers but reject
  assert.doesNotThrow(()=>validateBackupHeader({...row,appVersion:'0.23.0'}));
  assert.doesNotThrow(()=>validateBackupHeader({...row,appVersion:'0.24.0'}));
  assert.doesNotThrow(()=>validateBackupHeader({...row,appVersion:'0.25.0'}));
- assert.throws(()=>validateBackupHeader({...row,appVersion:'0.26.0'}),{code:'BACKUP_VERSION_UNSUPPORTED'});
+ assert.doesNotThrow(()=>validateBackupHeader({...row,appVersion:'0.26.0'}));
+ assert.throws(()=>validateBackupHeader({...row,appVersion:'0.27.0'}),{code:'BACKUP_VERSION_UNSUPPORTED'});
 });

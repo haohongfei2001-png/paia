@@ -87,7 +87,9 @@
   "currentAdditions": {
     "uir-03-ai-presentation-chrome-e2e.test.mjs": [
       "TOPIC-05.7 saved revision waits for Unicode selection and composition (release)",
-      "TOPIC-05.7 saved revision waits for Unicode selection and composition (source)"
+      "TOPIC-05.7 saved revision waits for Unicode selection and composition (source)",
+      "TOPIC-05.7 cached A never conceals new durable B (release)",
+      "TOPIC-05.7 cached A never conceals new durable B (source)"
     ]
   }
 }
