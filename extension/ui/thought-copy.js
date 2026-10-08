@@ -1,5 +1,18 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '移动到章节':'Move to Section',
+ '移动整条内容':'Move entire Entry',
+ '整条内容的目标章节（不是所选文字）':'Destination for the entire Entry (not selected text)',
+ '默认正文':'Default Section',
+ '已有八条内容的移动结果待核对，请先重试原移动。':'Eight Entry moves need confirmation. Retry an earlier move first.',
+ '移动结果尚未确认。再次选择移动到章节会核对原请求。':'The move is unconfirmed. Choose Move to Section again to check the original request.',
+ '内容位置已变化或移动未保存，请重新打开操作。':'The location changed or the move was not saved. Reopen the action.',
+
+ '创建章节':'Create Section',
+ '已有八个主题的章节创建待处理。请先核对原请求或取消未保存的名称。':'Eight Topics have unfinished Section creation. Resolve an earlier request or cancel an unsaved name first.',
+ '章节创建结果尚未确认。再次选择新建章节会先核对原请求。':'Section creation is unconfirmed. Choose New Section again to check the original request.',
+ '章节未保存，名称仍保留。再次选择新建章节可重试。':'Section was not saved. Its name is retained; choose New Section again to retry.',
+ '新建章节':'New Section','管理主题结构':'Manage Topic structure','内容按章节与手动顺序连续阅读。':'Read continuously in Section and manual order.',
  '章节操作':'Section actions','重命名':'Rename','向上移动':'Move up','向下移动':'Move down','章节名称':'Section name',
  '已经是第一个章节。':'Already the first Section.','已经是最后一个章节。':'Already the last Section.',
  '加入结果尚未确认，请重试核对先前选择。':'The earlier add result is not confirmed. Retry to check the same selection.',
@@ -133,7 +146,7 @@ export function watchThoughtCopy(){
  const reverse=new Map(Object.entries(english).map(([zh,en])=>[en,zh]));
  const apply=()=>{
   // These roots contain product controls only, never topic names or body text.
-  for(const root of document.querySelectorAll('#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection,.topic-section-actions')){
+  for(const root of document.querySelectorAll('#topic-create-section,#thought-home-tools,#thought-root-source,#thought-empty,#create-entry,#library-unplaced,.reader-selection,.topic-section-actions,.topic-entry-move')){
    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
    while(node=walker.nextNode()){const key=reverse.get(node.data)||node.data;if(Object.hasOwn(english,key))node.data=thoughtCopy(key);}
    for(const element of root.querySelectorAll('[aria-label],[placeholder]'))for(const attribute of ['aria-label','placeholder']){const label=element.getAttribute(attribute),key=reverse.get(label)||label;if(Object.hasOwn(english,key))element.setAttribute(attribute,thoughtCopy(key));}
