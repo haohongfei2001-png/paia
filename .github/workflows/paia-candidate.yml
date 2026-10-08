@@ -1496,7 +1496,7 @@ jobs:
       - name: Verify whole owning Node files and fixture preflight
         run: |
           set -o pipefail
-          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
       - name: Prove source and release native IndexedDB and worker durability
         env:
           CI: '1'
@@ -1505,7 +1505,7 @@ jobs:
         run: |
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.event.pull_request.head.sha }}
@@ -1515,6 +1515,8 @@ jobs:
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import {assertReceipt,assertInputWorkingReceipt} from './tests/native-sync/receipt.mjs';
+          import {createHash} from 'node:crypto';
+          import {assertInputWorkingReceiveReceipt,INPUT_WORKING_RECEIVE_PATHS} from './tests/native-sync/input-working-receive-receipt.mjs';
           import {assertWorkerLifecycle,assertNetworkLedger} from './tests/native-sync/proof-oracles.mjs';
           const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant,requiredFilterIntent:true}));
           const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
@@ -1562,6 +1564,10 @@ jobs:
           assert.equal(contexts[0].browserVersion,contexts[1].browserVersion);
           const working=['source','release'].map(variant=>assertInputWorkingReceipt(JSON.parse(readFileSync(`work/qa-bns-input-working/${variant}.json`)),{head:process.env.PAIA_TESTED_HEAD,tree,variant}));
           assert.deepEqual(working[0].cases,working[1].cases);assert.deepEqual(working[0].hashes,working[1].hashes);assert.equal(working[0].browserVersion,working[1].browserVersion);
+          const received=['source','release'].map(variant=>assertInputWorkingReceiveReceipt(JSON.parse(readFileSync(`work/qa-bns-input-working-receive/${variant}.json`)),{head:process.env.PAIA_TESTED_HEAD,tree,variant}));
+          assert.deepEqual(received[0].cases,received[1].cases);assert.deepEqual(received[0].hashes,received[1].hashes);assert.equal(received[0].browserVersion,received[1].browserVersion);
+          const receiveHashes=Object.fromEntries(INPUT_WORKING_RECEIVE_PATHS.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+          for(const receipt of received)assert.deepEqual(receipt.hashes,receiveHashes);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -1575,6 +1581,7 @@ jobs:
             extension/work/qa-bns-retirement/
             extension/work/qa-bns-context-info/
             extension/work/qa-bns-input-working/
+            extension/work/qa-bns-input-working-receive/
           if-no-files-found: error
           retention-days: 7
 
