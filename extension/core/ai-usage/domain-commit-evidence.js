@@ -1,4 +1,4 @@
-import {organizeCoverageId} from './organize-style-binding.js';
+import {qualifiedCoverageId} from './assist-intent-binding.js';
 import {canonical,digest,equal,fail,opaque,unitKey,validateCoverage,CHILD_LIMITS} from './contracts.js';
 
 // A read-only bridge to the existing domain owner, not a financial verifier.
@@ -29,7 +29,7 @@ export async function readDomainCommitEvidence(foundation,jobId){
   if(new Set(attempts.map(c=>c.parentReservationId)).size>1||new Set(attempts.map(c=>c.operationReceiptId)).size!==attempts.length)return answer('INCOMPLETE');
   const acknowledgements=[];
   for(const unit of coverage){
-   const row=await t.get('organizerWorkItems',organizeCoverageId(unit,job)),item=job.items.find(i=>i.key===unit.key),index=job.childCoverage.findIndex(c=>c.some(u=>unitKey(u)===unitKey(unit)));
+   const row=await t.get('organizerWorkItems',qualifiedCoverageId(unit,job)),item=job.items.find(i=>i.key===unit.key),index=job.childCoverage.findIndex(c=>c.some(u=>unitKey(u)===unitKey(unit)));
    if(!row||row.kind!=='ai_usage_v1'||row.jobId!==jobId||row.state!=='ACKNOWLEDGED'||row.sequence!==index||!equal(row.unit,unit)||!item||row.signature!==item.signature)return answer('INCOMPLETE');
    if(!['COMMITTED','NO_CHANGE'].includes(row.outcome))return answer('UNSUPPORTED');
    acknowledgements.push({unit,signature:row.signature,outcome:row.outcome});

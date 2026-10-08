@@ -78,7 +78,7 @@ test('AI-COST-01 DEFER records retry condition without re-dispatching unchanged 
 });
 test('AI-COST-01 child bounds are typed and duplicate evidence never creates independent lineage',async()=>{
  const f=await fixture(),items=(await f.ai.collect()).items;assert.equal(new Set(items.flatMap(i=>i.descriptor.lineage)).size,1);await assert.rejects(plan(f,{items:[items[0],items[0]]}));await assert.rejects(plan(f,{children:[[unit(items[0])],[unit(items[0],'context','cards')],[unit(items[0],'context','extra')]]}));
- for(const [type,facet]of [['AI_ORGANIZE','organize'],['AI_ASSIST','assist']]){const g=await fixture(),selected=(await g.ai.collect()).items,p=await plan(g,{type,items:selected,coverage:[unit(selected[0],facet,'synthetic-scope')],intent:'explicit'});assert.equal(p.type,type);assert.equal(p.childIds.length,1);}
+ for(const [type,facet]of [['AI_ORGANIZE','organize'],['AI_ASSIST','assist']]){const g=await fixture(),selected=(await g.ai.collect()).items;const assistIntent={version:1,sessionId:'synthetic',leaseId:'synthetic',replyId:'synthetic',replyGeneration:1,consentEpoch:'synthetic',permissionEpoch:'synthetic'};g.ai.resolveAssistIntent=async(_t,r)=>({allowed:true,remoteProcessing:true,binding:assistIntent,scope:r.scope});const p=await plan(g,{type,items:selected,coverage:[unit(selected[0],facet,'synthetic-scope')],intent:'explicit',...(type==='AI_ASSIST'?{assistIntent}:{})});assert.equal(p.type,type);assert.equal(p.childIds.length,1);}
 });
 
 test('AI-COST-01 edits supersede a reserved but undispatched job and release only its unused reservation',async()=>{
