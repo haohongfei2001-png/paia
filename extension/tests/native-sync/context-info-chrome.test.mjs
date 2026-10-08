@@ -15,10 +15,10 @@ for(const variant of ['source','release'])test('BNS manual Context native owner 
   extension=await instrumentedExtension(variant==='source'?root:join(output,'release'));
   await cp(new URL('./context-info-worker-fixture.mjs',import.meta.url),join(extension.path,'background/bns-native-storage-fixture.mjs'));
   evidence.productionHashes={...extension.hashes};
-  for(const path of ['core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
+  for(const path of ['core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
   device=await startNative(extension.path);
-  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,40);
-  const before=await device.call('durable-create');assert.equal(before.row.items[0].lifecycle,'removed');assert.deepEqual(before.row.items.map(x=>[x.card,x.lifecycle]),[['info','removed'],['rules','removed'],['now','removed']]);
+  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,47);
+  const before=await device.call('durable-create');assert.equal(before.prompts.overrides.length,1);assert.equal(before.prompts.overrides[0].text,'SYNTHETIC durable mixed Prompt');assert.equal(before.row.items[0].lifecycle,'removed');assert.deepEqual(before.row.items.map(x=>[x.card,x.lifecycle]),[['info','removed'],['rules','removed'],['now','removed']]);
   evidence.restart=await device.restart();
   assert.deepEqual(await device.call('durable-read'),before,'canonical item, protocol state and local receipt survive actual worker replacement');
   evidence.isolation=await device.isolation();evidence.result='PASS';
