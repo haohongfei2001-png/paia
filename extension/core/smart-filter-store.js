@@ -5,7 +5,7 @@ import {buildInputSearchCache,lookupInputSearchCache,matchesSourceDate,validSear
 import {IAStore} from './ia-store.js';
 import {ArchiveError} from './constants.js';
 import {validProvider} from './read-projection-keys.js';
-import {conversationMetaId,projectRef as canonicalProjectRef} from './source-structure-model.js';
+import {conversationMetaId,projectMetaId,projectRef as canonicalProjectRef} from './source-structure-model.js';
 import {queryPage} from './archive-query.js';
 import {identifySource,hashText} from './dedupe.js';
 import {decideLight,normalizePresence,validFilterDecision,FILTER_VERSIONS,FILTER_REASONS,UNCERTAIN_REASONS} from './smart-filter.js';
@@ -170,7 +170,41 @@ export class SmartFilterStore extends IAStore {
   }
   return {...result,items:result.items.filter(item=>allowed.has(item.documentId))};
  }
- searchInputs(options={}){if(options.qualified===true)return qualifiedInputSearch(this,options,()=>this.searchInputsLegacy(options));if(options.qualified!==undefined&&options.qualified!==false||options.searchSnapshot!==undefined&&options.searchSnapshot!==null)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.searchInputsLegacy(options);}
+ async searchSourcePaths(result){
+  const paths=new Map(),ids=[...new Set(result.items.map(item=>item.documentId))];
+  // Search pages stay in their original order. Each metadata batch is bounded;
+  // SourceStructure's provider-qualified keys are hashed outside IDB lifetimes.
+  for(let offset=0;offset<ids.length;offset+=50){
+   const batch=ids.slice(offset,offset+50);
+   const documents=await this.repository.transaction(false,t=>Promise.all(batch.map(id=>t.get('documents',id))),['documents']);
+   const prepared=await Promise.all(documents.map(async row=>{
+    const doc=row?.value,providerKey=validProvider(doc?.platform)?doc.platform:null;
+    const ref=providerKey&&doc?.sourceConversationId?{platform:providerKey,sourceConversationId:doc.sourceConversationId}:null;
+    return {providerKey,conversationId:ref?await conversationMetaId(ref):null};
+   }));
+   await this.repository.transaction(false,async t=>{for(const item of prepared)if(item.conversationId)item.conversation=await t.get('meta',item.conversationId);},['meta']);
+   for(const item of prepared){
+    const ref=item.conversation?.membership?.state==='project'?item.conversation.membership.projectRef:null;
+    item.projectRef=ref&&ref.providerKey===item.providerKey?canonicalProjectRef(ref):null;
+    item.projectId=item.projectRef?await projectMetaId(item.projectRef):null;
+   }
+   const projects=await this.repository.transaction(false,t=>Promise.all(prepared.map(item=>item.projectId?t.get('meta',item.projectId):null)),['meta']);
+   prepared.forEach((item,index)=>{
+    const c=item.conversation,p=projects[index],last=c?.lastKnownSourceProject;
+    paths.set(batch[index],{providerKey:item.providerKey,sourceStatus:c?.sourceStatus||'unknown',
+     membership:c?.membership?.state||'unknown',
+     project:item.projectRef?{ref:item.projectRef,name:p?.currentName??null,sourceStatus:p?.sourceStatus||'unknown'}:null,
+     lastKnownProject:last?.projectRef?.providerKey===item.providerKey?{ref:canonicalProjectRef(last.projectRef),name:last.name}:null});
+   });
+  }
+  return {...result,items:result.items.map(item=>({...item,sourcePath:paths.get(item.documentId)}))};
+ }
+ searchInputs(options={}){
+  const search=async()=>this.searchSourcePaths(await this.searchInputsLegacy(options));
+  if(options.qualified===true)return qualifiedInputSearch(this,options,search);
+  if(options.qualified!==undefined&&options.qualified!==false||options.searchSnapshot!==undefined&&options.searchSnapshot!==null)return Promise.reject(new ArchiveError('INVALID_REQUEST'));
+  return search();
+ }
  searchInputsLegacy({query='',cursor=null,limit=50,ranked=false,providerKey=null,projectRef:requestedProject=null,includeFiltered=true,dateFrom='',dateTo=''}={}){let selectedProject;try{selectedProject=requestedProject===null?null:canonicalProjectRef(requestedProject);}catch{return Promise.reject(new ArchiveError('INVALID_REQUEST'));}if(!validSearchDate(dateFrom)||!validSearchDate(dateTo)||dateFrom&&dateTo&&dateFrom>dateTo||typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||providerKey!==null&&!validProvider(providerKey)||typeof includeFiltered!=='boolean'||cursor!==null&&(ranked?(![0,1,2].includes(cursor.phase)||cursor.offset!==null&&(!Number.isSafeInteger(cursor.offset)||cursor.offset<0)):(!Number.isSafeInteger(cursor)||cursor<0)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(async()=>{
   const needle=query.normalize('NFKC').trim().toLocaleLowerCase();
   if(ranked&&needle){
