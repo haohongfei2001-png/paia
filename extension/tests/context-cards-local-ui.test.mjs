@@ -50,8 +50,8 @@ async function fixture(run,{seed=true}={}){
  const c=new ContextCardsService(s),recovery=new RecoveryDraftStore(localStorage()),calls=[],navigations=[],pages=[];
  const items=seed?cards.map(card=>put(card)):[];
  for(const item of items)await c.change(item);
- const body=new Node('body');
- globalThis.document={body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ const body=new Node('body'),documentListeners=new Map();
+ globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const dispatch=async message=>{
   switch(message.type){
    case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot();
@@ -622,3 +622,15 @@ test('CTX4-02 Context history rejects wrong views, unknown cards and body-shaped
  }
  assert.equal(new RouteHistory().decode({...encoded,anchor:{inputId:'SYNTHETIC input',offset:0,body:'SYNTHETIC forbidden nested body'}}),null);
 });
+
+for(const card of cards)test(`CTX4 locale refresh preserves the composing ${card} editor and draft`,()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open(card);const editor=[...page.editors.values()][0],field=editor.field;
+ field.textContent='SYNTHETIC unsaved 中文 draft';field.listeners.get('compositionstart')({});editor.local=field.textContent;
+ const saved=structuredClone(editor.saved),local=editor.local;
+ document.documentElement.lang='zh-CN';document.dispatchEvent({type:'paia:preferences-applied'});
+ assert.equal(page.host.querySelector('h1').textContent,{info:'我的信息',rules:'我的规则',now:'我的现在'}[card],'preference event translates before another data read');await page.refresh();
+ assert.equal(page.host.querySelector('h1').textContent,{info:'我的信息',rules:'我的规则',now:'我的现在'}[card]);
+ assert.equal(page.host.querySelector('.maintenance').textContent,'人工修改始终保留；自动补充目前不可用。');
+ assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.field,field);assert.equal(editor.local,local);assert.equal(field.textContent,local);assert.equal(editor.composing,true);assert.deepEqual(editor.saved,saved);
+ assert.equal(field.getAttribute('aria-label'),{info:'我的信息',rules:'我的规则',now:'我的现在'}[card]);
+}));
