@@ -55,3 +55,12 @@ Root and root_finish approved the final candidate. Independent four whole files:
 ## Native first attempt and fixture correction
 
 Exact `aa33e0cc` source/release both failed before domain execution at the original 30 s consent visibility precondition (`/tmp/group-checkpoint-native-committed.log`). Generated-module `node --check` identified duplicate `const canonical`: the shared assertion bridge and owning test's canonical-row snapshot helper collided. No recovery case had run. Only the new compiler's owner-local helper name is isolated as `groupCanonicalRows`; actual case names, all assertions, runtime imports, consent and 240 s budgets are retained. A first broad identifier replacement also changed a test-title string and was rejected by the existing exact-name guard; it was narrowed to the declaration and await-call syntax. Actual generated-module syntax plus full compiler guard now pass 1/1 (`/tmp/group-checkpoint-compiler-fixed-final.log`). Production modules unchanged. Final exact-commit native remains pending.
+
+## Exact committed native result
+
+Tested HEAD `e16086cb73dc6c0331085532ef08912c4f1212bd`, tree `9f584242c380ca024df27cceba140313d25a3189`: complete headless source/release **2/2 PASS**, 21.585159584 s, `/tmp/group-checkpoint-native-fixture-fixed.log`. Each variant completed the exact same 20 cases and 29 production-file hashes, two actual worker restarts, strict complete paused/lifetime network ledger, zero network attempts and HTTP requests. Generation module repair was independently approved by Root before this run. The original failed run remains evidence of the fixture defect, not a passed restore run.
+
+Real IndexedDB 128-operation activation: source 150.4 ms, release 155.4 ms, each 2646 reads / 1160 writes. This synthetic local measurement is not a device-independent latency guarantee. Transport objects are held by the synthetic host and re-provided after restart; no offline metadata-body restoration or production worker registration is claimed. Source/release code was identical; no cloud/account/provider was enabled.
+
+- `extension/work/qa-bns-group-checkpoint/source.json` SHA256 `02e98d75823324e89d5271cfc04cabe1344613f70378250338bb27e6860aabdc`
+- `extension/work/qa-bns-group-checkpoint/release.json` SHA256 `52f3cb9c31f3ae7af0495936c9bbc92c127adc23614cec376bee0874da4accfc`
