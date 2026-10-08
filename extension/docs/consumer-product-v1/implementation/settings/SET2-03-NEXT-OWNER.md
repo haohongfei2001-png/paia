@@ -36,3 +36,10 @@ The coordinator admits the complete two-case Settings native file into the83-fil
 ### Hosted legacy shell fixture failure retained
 
 ff448f02 Candidate37769073442 failed settings-reader-return before exercising its Back assertions: the older synthetic DOM omitted settings-prompt-status, which production archive.html already contains. The fixture now includes that real host and exact read-only Next status and Prompt position status responses. Its exact request list expands to these two real reads; no arbitrary request fallback or mutation is admitted. Every existing Reader parent/origin/anchor/refused-Back/history assertion remains unchanged. The complete fixture independently passes1/1, and four related complete Settings owner files pass30/30. Production code and timeouts are unchanged by this fixture correction. The failed run is preserved, and new-head hosted acceptance remains required.
+
+
+### Whole-file unit partition before unchanged native gate
+
+The failed Foundation37769073539 consumed14m57 of its original15-minute job: its complete unit step took9m36 after all native flows had passed. Fixing that fixture alone would leave no budget for the still-required adapter/privacy/build steps. The same workflow now runs the entire unit corpus in four whole-file jobs at concurrency1 and the unchanged15-minute limit. Its original foundation job requires the complete unit matrix result to be success, so failure/cancellation/skipping does not release native acceptance. Original native, adapter, privacy and build commands remain unchanged.
+
+Independent comparison retained all346 exact parent unit files and added only the owning partition guard:347 unique files across87/87/87/86, no omitted/repeated file. The guard, twelve complete existing CI checks, YAML parse and current-browser coverage contract pass. This is partition evidence, not a pass for a new hosted run; the original failed Foundation remains failed.

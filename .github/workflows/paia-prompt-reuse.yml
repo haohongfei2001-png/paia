@@ -21,8 +21,35 @@ concurrency:
   group: prompt-reuse-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  foundation:
+  unit:
     if: github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-')
+    name: Prompt unit ${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['1/4','2/4','3/4','4/4']
+    env:
+      CI: '1'
+      PAIA_TEST_CONCURRENCY: '1'
+      PAIA_TEST_SHARD: ${{ matrix.shard }}
+    defaults:
+      run:
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:unit
+  foundation:
+    needs: unit
+    if: needs.unit.result == 'success' && (github.event_name == 'push' || !startsWith(github.head_ref, 'feat/prompt-reuse-vs09-'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -72,10 +99,6 @@ jobs:
         run: xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
       - name: Settings Next session owner source and release
         run: node --test --test-concurrency=1 tests/settings-next-chrome-e2e.test.mjs
-      - run: npm run test:unit
-        env:
-          # Keep the complete unit corpus; isolate resource-heavy fake-IDB cases.
-          PAIA_TEST_CONCURRENCY: '1'
       - run: node scripts/test.mjs 'adapter contract'
       - run: node scripts/test.mjs 'privacy/security'
       - run: npm run check && npm run build:release
