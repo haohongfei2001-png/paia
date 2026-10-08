@@ -61,7 +61,7 @@ export class ContextTopicInputs {
     cursor=page.nextCursor;
     if(cursor!==null){const key=JSON.stringify(cursor);if(!page.items.length||cursors.has(key)||cursors.size>=41)throw Error('TOPICS_INCOMPLETE');cursors.add(key);}
    }while(cursor!==null);
-   this.epoch=epoch;this.authority=authority;this.selectedCount=selectedCount;this.receive(rows,this.focusIntent?.topicId);this.status.replaceChildren();return true;
+   this.epoch=epoch;this.authority=authority;this.selectedCount=selectedCount;this.receive(rows,this.focusIntent?.topicId);if(this.choiceRefusal)this.notify(explain(this.choiceRefusal));else this.status.replaceChildren();return true;
   }catch{
    if(!this.active||generation!==this.generation)return false;
    this.failedRead=true;this.notify(copy('暂时无法读取主题，已有选择未被更改。','Topics could not be read. Existing choices are unchanged.'),{text:copy('重试','Retry'),run:()=>void this.refresh()});return false;
@@ -97,7 +97,7 @@ export class ContextTopicInputs {
   return this.save(change);
  }
  async save(change){
-  if(!this.active||this.busy)return false;this.rememberFocus(change.topicId);this.busy=true;++this.generation;this.lastAttempt=change;this.paint();this.onStateChange();this.notify(copy('正在保存选择…','Saving choice…'));
+  if(!this.active||this.busy)return false;this.choiceRefusal=null;this.rememberFocus(change.topicId);this.busy=true;++this.generation;this.lastAttempt=change;this.paint();this.onStateChange();this.notify(copy('正在保存选择…','Saving choice…'));
   let acknowledgment=null,error=null;
   try{acknowledgment=await this.commit.save(change);}catch(reason){error=reason;}
   finally{this.busy=false;if(this.active){this.paint();this.onStateChange();}}
@@ -106,7 +106,7 @@ export class ContextTopicInputs {
    if(error.code==='CONTEXT_INVALIDATED'){this.lastAttempt=null;const refreshed=await this.refresh();if(refreshed)this.notify(copy('内容已更新，请重新核对主题选择。','The data changed. Review the current Topic choices.'));return false;}
    this.unconfirmed();this.restoreFocus(true);return false;
   }
-  this.lastAttempt=null;
+  this.lastAttempt=null;this.choiceRefusal=acknowledgment.result.ok?null:acknowledgment.result.reason;
   const refreshed=await this.refresh();
   if(acknowledgment.result.ok){if(refreshed){this.notify(copy('选择已保存。外部读取目前不可用。','Choice saved. External reading is unavailable.'));}return true;}
   if(refreshed)this.notify(explain(acknowledgment.result.reason));return false;

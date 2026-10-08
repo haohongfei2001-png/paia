@@ -371,3 +371,11 @@ for(const key of ['inputs','global'])for(const phase of ['acknowledgment','snaps
   assert.equal(await page.leave(),true,'normal navigation succeeds after the same access owner settles');assert.equal(page.page.inert,true);
  }finally{held.resolve();await saving;}
 }));
+
+test('CTX4-03 a refused choice stays explained across automatic directory refresh until a new explicit choice',()=>fixture(async({makeInputs,access})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0];
+ assert.equal((await access.change(choice(inputs.rows.get(id),inputs.epoch))).ok,true);
+ assert.equal(await inputs.toggle(id),false,'stale revision is refused rather than silently retried');
+ const notice=inputs.status.textContent;assert.match(notice,/not saved/);await inputs.refresh();assert.equal(inputs.status.textContent,notice,'background reread cannot erase the refused-action explanation');
+ assert.equal(await inputs.toggle(id),true,'a later explicit choice uses the freshly read identity');assert.match(inputs.status.textContent,/Choice saved/);await inputs.refresh();assert.equal(inputs.status.textContent,'','success does not leave a stale refusal');
+}));

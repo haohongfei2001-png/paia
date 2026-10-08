@@ -1,3 +1,4 @@
+import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {rootReadAuthority,invalidRootRead,validateRootRead,compactTopic,compactSearchResult} from './root-read.js';
 import {thoughtTopicGenerationMatches} from '../thought-read-index.js';
 import {validateRemovalEdit} from '../archive-removal.js';
@@ -27,7 +28,7 @@ import {reject} from './contracts.js';
 import {planDelta,dualViewStatus,previewAIDelta,setOriginalAutoUpdate} from '../dual-view.js';
 import {enqueueOriginalWork,planOriginalWork,originalBootstrapStatus} from './original.js';
 export class OrganizerStore extends LibraryDocumentsStore {
- constructor(local,options={}){super(local,options);this.organizerBudget=options.organizerBudget||new BudgetPolicy();this.organizerLedger=new BudgetLedger(this,this.organizerBudget);this.libraryCommit=new LibraryCommitService(this);}
+ constructor(local,options={}){super(local,options);this.organizerBudget=options.organizerBudget||new BudgetPolicy();this.organizerLedger=new BudgetLedger(this,this.organizerBudget);this.libraryCommit=new LibraryCommitService(this);this.aiUsageFoundation=new AIUsageFoundation(this);}
  safeOrganization(t,kind,row){return safeOrganization(this,t,kind,row);}
  clearDerivedMetadata(t,marker){return clearDerivedMetadata(this,t,marker);}
  async canonicalTopic(t,id){return safeOrganization(this,t,'topic',await super.canonicalTopic(t,id));}

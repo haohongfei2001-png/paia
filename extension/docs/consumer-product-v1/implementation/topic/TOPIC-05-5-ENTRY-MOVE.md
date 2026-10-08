@@ -97,3 +97,28 @@ itself is excluded from this nonrecursive manifest. No screenshot is committed.
 - `work-entry-move-final-package.log`: `9c0aff359c4742f49e6464e38aff261f6421a74d1897d1ba95411578653f2f5c`
 - `extension/work/qa-entry-move/source/move-320-dark-en.png`: `a3742482cdaea48fda2df531cb04e98287b5102ecbdc4345c2073dcb86bae18c`
 - `extension/work/qa-entry-move/release/move-320-dark-en.png`: `a3742482cdaea48fda2df531cb04e98287b5102ecbdc4345c2073dcb86bae18c`
+
+## Combination with reviewed Topic / AI / Context head
+
+The five-file Entry move commit is `b9c102a6`. A nonconflicting merge with
+`91169a7ad6e43fdb12a14b6994ea2f50cdb43bbc` preserves its Topic reader/runtime
+and 0.22 version, incorporates existing AI foundation and the Context refusal
+explanation fix, and retains Section creation plus the move slice.
+
+The merged working-tree exact bytes passed six complete related unit files:
+EntryMove, SectionActions, SectionCreate, CTX4 Topic UI/access and AI01 foundation,
+237/237 PASS, zero fail/skip/cancel, 3752.563083 ms. One serial headless batch
+then ran the three full native files SectionReader, SectionActions (including
+creation), and EntryMove for source/release: 8/8 PASS, zero fail/skip/cancel,
+39835.300708 ms. The 0.22 inherited manifest/package were not edited.
+
+`work-entry-move-combination-bytes.json` records 339 runtime/test/harness file
+hashes, all rechecked unchanged after the run. These are local merged-tree
+evidence, not a claim that the prior pristine parent passed these new tests.
+The following are SHA256 bindings of the uncommitted local evidence artifacts:
+
+- `work-entry-move-combination-unit.log`: `a659f071b5c004738a0831663ba3c8be7b7a9a9d293a250606e557c77d58180f`
+- `work-entry-move-combination-native.log`: `9e6f8f88ccab98269429f822cab1da642c2b7656d0f04db939687d6d97cce4b6`
+- `work-entry-move-combination-bytes.json`: `58a630e34b02bc7ab4da77755e24f30411295ff2d5593a2557e93e41db7b41fc`
+
+CI whole-file admission and new-head hosted gates remain with the coordinator.
