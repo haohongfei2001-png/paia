@@ -27,7 +27,7 @@ class Node extends PresentationNode {
 async function withDOM(run){
  const keys=['document','chrome','scrollY','scrollBy','scrollTo','requestAnimationFrame'],prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)])),nodes=new Map(),body=new Node('body');
  const get=id=>{if(!nodes.has(id)){const node=new Node();node.id=id;nodes.set(id,node);body.append(node);}return nodes.get(id);};
- globalThis.document={body,activeElement:body,documentElement:{lang:'en'},createElement:tag=>new Node(tag),getElementById:get,querySelector:selector=>body.querySelector(selector)};globalThis.scrollY=0;globalThis.scrollBy=()=>{};
+ globalThis.document={body,activeElement:body,documentElement:{lang:'en'},createElement:tag=>new Node(tag),getElementById:get,querySelector:selector=>body.querySelector(selector)};globalThis.requestAnimationFrame=callback=>callback();globalThis.scrollY=0;globalThis.scrollBy=()=>{};
  const entryNode=({entry})=>{const node=new Node();node.className='library-entry';node.dataset.entryId=entry.id;const prose=new Node();prose.dataset.entryField='body';prose.className='entry-prose';prose.textContent=entry.body;node.append(prose);return node;};
  try{return await run({body:get('original-reading-body'),get,entryNode});}finally{for(const [key,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
 }

@@ -204,7 +204,7 @@ export class TopicController {
   this.observeTopicWindowSpacers();this.updateTopicContinuous();return true;
  }
  async resetTopicReader({anchorId=null,sectionId=null,timeEdge=null,restoreAnchor=null,saved=null,expectedSerial=this.serial}={}){
-  this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;this.topicReader=reader;reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
+  this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;this.topicReader=reader;reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
   // A held page may finish after Root invalidation or navigation. The worker
   // qualified that read before replying; the UI must also keep its own intent
   // fence through the entire asynchronous reader reset, not only before focus.

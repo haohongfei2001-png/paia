@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {resolve,join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
@@ -25,6 +26,7 @@ async function assertSectionTarget(p,topicId,sectionId,title){
  assert.equal(await heading.evaluate(el=>document.activeElement===el),true,'the canonical Section heading owns focus');
 }
 async function multipleHitSearch(p,topic){
+
  const needle='SYNTHETIC_MULTI_ROOT_NEEDLE',current=await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id});
  await rpc(p,'EDIT_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:current.revision,changes:{name:needle+' Topic'},operationId:crypto.randomUUID()}});
  const sections=(await rpc(p,'GET_LIBRARY_TOPIC_SECTIONS',{options:{topicId:topic.id,limit:100}})).items,targets=[topic.sections[0],topic.sections.at(-1)],entries=[];
@@ -91,8 +93,9 @@ async function traceSelection(target){
  });
 }
 for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders real durable Section overview and stable144 Topic slots '+variant,{timeout:180000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-root-section-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});
  try{
   await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const topics=await p.evaluate(async()=>{
@@ -143,5 +146,5 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__rootRestore=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=(message,...args)=>message.type==='GET_LIBRARY_ROOT_PROJECTION'?Promise.resolve({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'}):send(message,...args);});await thoughtPrimary(p,'thoughts');await eventually(()=>p.locator('#library-read-retry').isVisible(),'outage exposes retry');assert.equal(await p.locator('.personal-topic-block').count(),144,'ordinary read failure retains current blocks');await p.evaluate(()=>__rootRestore());await p.locator('#library-read-retry').click();await rootReady(p,144);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await writeFile(output+'/result.json',JSON.stringify({status:'PASS',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,actualCounts:[30,50,100,144],renameStable:true,deleteBlank:true,newIdentityReusesHole:true,responsiveReturn:true,deleteRestore:true,deepHistory,multipleMatches,activeSearchSameColumnResize:true,nativeSection:true,newTabRefresh:true,backFocus:true,selection:true,sameColumnResize:true,outageRetry:true}));
- }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();}
+ }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });

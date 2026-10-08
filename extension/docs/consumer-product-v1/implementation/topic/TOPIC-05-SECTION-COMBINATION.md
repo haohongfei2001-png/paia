@@ -275,3 +275,40 @@ review and the complete five-case guard pass. No runtime changes in this repair.
 On83d28ba, the complete Section source/release native file also passes4/4 in
 24.62s, including late purge refusal.1307 non-document tracked files matched the
 pre/post byte manifest. These results do not turn the failed aggregate into PASS.
+
+## Explicit Section/Entry arrival restoration — local reviewed repair
+
+Base `b2fe6cb169fb3005ff6ce788aaf7eeb296db88f9`; Full run37707292560
+retained Root05.2 exact-heading-focus and UX-R3 nearby-text-position failures in
+both source/release. The latter's existing diagnostic showed target range275.5
+at the initial scroll limit23, then range510.9 after previous entries loaded,
+while scroll remained23 despite a new limit258. No alignment/focus assertion,
+data fixture, timeout or test was removed.
+
+`resetTopicReader` now uses the existing restoration lifecycle for an explicit
+anchorId/sectionId as well as a saved window. Initial hydration and target arrival
+cannot race automatic adjacent paging or window shifting. Existing generation,
+reader/serial/intent qualification, two-animation-frame completion and deliberate
+reading-input cancellation stay intact. Three deterministic actual-owner tests
+cover the held initial target, queued layout release and PageDown cancellation.
+Two existing DOM fixtures supply the browser rAF interface; all old assertions
+remain. The Root browser file builds the audited release into an exclusive
+temporary directory, retaining the original source/release journey and budget.
+The coordinator independently reviewed this bounded repair.
+
+Local dirty-candidate evidence: complete related unit files113/113PASS; complete
+Root05.2 source/release2/2PASS125.44s; complete UX-R3 file26/26PASS311.39s including
+F-LARGE100kInputs/1000documents/300Topics/5000Thoughts. No skipped/cancelled cases.
+The runtime tested also includes the separately reviewed compact-title visibility
+repair; that repair remains a separate checkpoint, not part of this commit.
+Preserve coordination logs `work/section-root-uxr3-local-before.log`,
+`work/section-root-restore-guard.log`, `work/section-uxr3-arrival-final.log`,
+`work/section-restore-guard-unit-final.log` and the exact candidate byte manifest
+`work/section-arrival-candidate-bytes.json`. Diagnostic-only runs do not replace
+complete-file evidence; temporary Root instrumentation was removed.
+
+Content's combined run remains3PASS/1FAIL: release390/light body was outside the
+viewport before header interactions. This unresolved boundary is not called
+flaky, skipped or covered by Root/UX-R3 successes. Overall combination, refreshed
+full certification, integration and user availability remain pending. No CI,
+shared data, version, provider or permission change is included here.
