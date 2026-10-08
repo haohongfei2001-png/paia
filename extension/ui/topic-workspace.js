@@ -187,13 +187,16 @@ export class TopicController {
   if(page.indexing){if(this.originalPane)this.originalPane.hidden=true;this.updateTopicContinuous();return false;}
   if(page.kind==='section_reading'){
    const metadata=this.topicMetadata(),qualification=metadata?.beginQualifiedRead();
-   const row=await request('GET_LIBRARY_TOPIC_READING_METADATA',{id:page.topic.id});if(!current())return false;
+   // A newer metadata read owns its token even when the reader/window is unchanged.
+   // Retired reads must stop before validating or applying their old response.
+   const ownsQualification=()=>!metadata||this.topicMetadata()===metadata&&!metadata.disposed&&metadata.qualifiedReadToken===qualification;
+   const row=await request('GET_LIBRARY_TOPIC_READING_METADATA',{id:page.topic.id});if(!current()||!ownsQualification())return false;
    if(!coherentTopicEditorRow(page,row))throw Error('TOPIC_METADATA_CHANGED');
    // Metadata uses its existing owner. Recheck the read generation after that
    // asynchronous boundary so a concurrent move, purge or restore cannot paint
    // a previously valid body/Section snapshot under a newly fetched heading.
    const checked=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:reader.topicId,query:reader.query,sort:reader.sort,providerKey:'providerKey'in reader?reader.providerKey:this.topicProviderKey,limit:1,expectedReadGeneration:page.coverage?.activeGeneration}});
-   if(!current())return false;
+   if(!current()||!ownsQualification())return false;
    if(checked.cursorInvalid||checked.unavailable||checked.coverage?.activeGeneration!==page.coverage?.activeGeneration||checked.recoveryEpoch!==page.recoveryEpoch){reader.invalidate(checked);await this.checkAllTracked(serial);throw Error('TOPIC_READING_CHANGED');}
    if(metadata&&this.topicMetadata()!==metadata)return false;
    if(metadata&&!metadata.receiveQualified(row,qualification))throw Error('TOPIC_METADATA_CHANGED');

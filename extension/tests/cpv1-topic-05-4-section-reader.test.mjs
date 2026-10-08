@@ -408,3 +408,14 @@ for(const hold of ['root qualification','initial reading','metadata','authority 
  assert.equal(env.body.querySelector('h2'),null);assert.equal(env.body.querySelector('[data-entry-id]'),null);assert.equal(document.activeElement,focused);
  if(cause==='purge'&&hold!=='root qualification'){assert.equal(f.owner.topicReader.stale,true);assert.equal(f.owner.topicReader.sections.size,0);assert.equal(f.owner.topicReader.pageMeta,null);assert.equal(f.owner.topicReader.items.some(row=>typeof row.entry?.body==='string'),false);}
 }));
+
+for(const boundary of ['metadata','generation'])test('TOPIC-05.4 superseded metadata qualification at '+boundary+' cannot paint or raise a current-read failure',()=>withDOM(async({body})=>{
+ const f=readerFixture({count:1});await f.reader.initial();f.reader.pageMeta.topic={id:'topic',name:'Topic',revision:2,defaultSectionId:'default'};
+ const metadata={kind:'topic',qualifiedReadToken:null,beginQualifiedRead(){return this.qualifiedReadToken={};},receiveQualified(row,token){return token===this.qualifiedReadToken;}},paints=[];
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',serial:1,topicProviderKey:null,topicReader:f.reader,editor:{entry:{protectedIds:()=>new Set()},metadata:[metadata]},originalPane:body,renderDocument:value=>paints.push(value),updateTopicContinuous(){},observeTopicWindowSpacers(){}});
+ globalThis.chrome={runtime:{sendMessage:async message=>{
+  if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA'){if(boundary==='metadata')metadata.beginQualifiedRead();return {ok:true,data:{id:'topic',name:'Topic',revision:2,summary:'SYNTHETIC SAVED SUMMARY',recoveryEpoch:'initial'}};}
+  assert.equal(message.type,'GET_LIBRARY_SECTION_READING');if(boundary==='generation')metadata.beginQualifiedRead();return {ok:true,data:{coverage:{activeGeneration:'g1'},recoveryEpoch:'initial'}};
+ }}};
+ assert.equal(await owner.renderTopicReader(),false);assert.deepEqual(paints,[]);assert.equal(f.reader.stale,false,'superseded UI read does not invalidate the current durable reader');
+}));

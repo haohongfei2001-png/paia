@@ -9,7 +9,7 @@ import {openArchiveWindow} from './harness/archive-navigator.mjs';
 import {thoughtPrimary,thoughtHistoryAction} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const op=()=>crypto.randomUUID();
-async function ready(h){const p=h.archive;await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});return p;}
+async function ready(h){const p=h.archive;p.on('pageerror',error=>console.error('UXR3_PAGE_ERROR '+error.stack));await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});return p;}
 const offline=h=>{assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);};
 async function shot(p,name){await mkdir('work/ux-r3',{recursive:true});await p.screenshot({path:`work/ux-r3/${name}.png`});}
 const nav=thoughtPrimary;
