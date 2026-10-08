@@ -30,8 +30,14 @@ export class AIReadingEditor {
   for(const [field,label]of Object.entries(labels)){if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);}
   if(legacy.children.length>1)root.append(legacy);
   root.addEventListener('keydown',e=>{if(e.target.closest('[data-entry-field]'))return;if((e.metaKey||e.ctrlKey)&&!e.altKey&&['z','y'].includes(e.key.toLowerCase())){e.preventDefault();void this.history(e.shiftKey||e.key.toLowerCase()==='y');}},{signal:this.controller.signal});
+  const resume=()=>this.resumeDeferredReading();
+  document.addEventListener('selectionchange',resume,{signal:this.controller.signal});
+  root.addEventListener('compositionend',()=>queueMicrotask(resume),{signal:this.controller.signal});
   this.ready=this.refreshEvidence();this.recoveryReady=this.restoreRecovery();
  }
+ readingReflowBlocked(){const selection=this.root.ownerDocument?.getSelection?.()||document.getSelection?.();return this.composing||!!(selection&&!selection.isCollapsed&&selection.rangeCount&&(this.root.contains(selection.anchorNode)||this.root.contains(selection.focusNode)));}
+ deferReadingRefresh(refresh){this.deferredReadingRefresh=refresh;}
+ resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked()||!this.deferredReadingRefresh)return;const refresh=this.deferredReadingRefresh;this.deferredReadingRefresh=null;void refresh();}
  fieldNode(field,text,host,label,className){
   const prose=element('div',className,text||'');prose.contentEditable='plaintext-only';prose.setAttribute('aria-label',label);prose.dataset.aiField=field;
   const options={signal:this.controller.signal};
@@ -116,5 +122,5 @@ export class AIReadingEditor {
  get composing(){return !!this.ownComposing||this.excerptEditors.some(e=>e.surface?.composing);}
  set composing(value){this.ownComposing=value;}
  get saving(){return !!this.pending||this.excerptEditors.some(e=>e.saving);}
- dispose(){this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
+ dispose(){this.deferredReadingRefresh=null;this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
 }

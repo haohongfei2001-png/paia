@@ -831,6 +831,11 @@ export class TopicController {
    if(this.editor&&!await this.checkAllTracked(serial))return false;
    const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=!!cached;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('create-entry').hidden=true;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
    if(this.aiEditor){await this.aiEditor.refreshEvidence?.();if(serial!==this.serial)return false;}
+   if(this.aiEditor&&cached&&this.aiEditor.readingReflowBlocked()){
+    const active=this.aiEditor,topicId=this.id,intent=this.openIntent;
+    active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});
+    return true;
+   }
    if(this.aiEditor&&cached&&(this.aiEditor.dirty()||this.aiEditor.saving||this.aiEditor.row.revision>=cached.revision)){this.filterAIReading();return true;}
    const signature=JSON.stringify(cached||this.aiTopics.get(this.id)?.userDraft||null);if(!cached&&this.aiSignature===signature){this.filterAIReading();return true;}
    this.aiEditor?.dispose();this.aiEditor=null;this.aiSignature=signature;this.aiPane.replaceChildren();
