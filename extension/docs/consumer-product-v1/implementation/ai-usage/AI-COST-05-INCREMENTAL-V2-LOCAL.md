@@ -1,6 +1,6 @@
 # AI-COST-05 incremental V2: single-child local owner
 
-Implementation candidate; independent final review is APPROVED, original native source/release verification is pending. This is an internal explicit LocalOrganizeSession configuration. The worker and UnavailableProvider remain unchanged. No production Qwen/profile/financial authorization, network call, installed release, whole AI-COST-05 completion, or multi-child implementation is claimed.
+Implementation candidate; independent final review is APPROVED and original native source/release verification passed on runtime commit 491cd774. Integration/main/installed gates remain separate. This is an internal explicit LocalOrganizeSession configuration. The worker and UnavailableProvider remain unchanged. No production Qwen/profile/financial authorization, network call, installed release, whole AI-COST-05 completion, or multi-child implementation is claimed.
 
 ## Implemented boundary
 
@@ -44,3 +44,13 @@ root_finish final APPROVED: independent whole new owner 23/23 PASS, 3163.59475 m
 - `core/organizer/metadata.js` SHA-256 `54f4e212364c4486d0d489017cdc9eec78d69d6cd30588834ec450f3a3838624`
 - `tests/ai-organize-incremental-v2.test.mjs` SHA-256 `2dcb9fee78777d0886e023abce4a5ef224a3ed986cd73a745d3c811d7467af16`
 - `tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs` SHA-256 `f716682d236d37bf1557703709e19690f7114b4b75438f7a647f93630bfeccf3`
+
+## Final native result
+
+- Runtime/test checkpoint: `491cd774`, based on design/audit checkpoint `a5a3bab8`; no production or test bytes changed during verification.
+- Original complete AI native file source/release: **2/2 PASS**, 27028.979208 ms, `/tmp/ai-v2-native-final.log`. Source 12129.99225 ms; release 14754.449625 ms. The original 120-second budgets, prior Foundation/maintenance/cache scenarios and zero-network oracles remain.
+- Each variant's V2 actual IndexedDB execution records payload sizes `[20,20,20,20,20,20,20,20,20,20,5]` and `[20,20,7,3]`; 11 and 4 fixture calls respectively, with no extra call for the real ACK-write-abort retry. Original accepted blocks/protection, canonical Source/Input/Entry/Topic/Section/placement snapshots and existing history all retain exact assertions. Final counts are 205 and 50 and qualified delta planning returns unprivileged NO_DELTA.
+- All ten SHA-256 entries above match after the native run. The test used its own temporary release directory/profile; only the local dependency symlink was unlinked afterward, preserving the shared target. No native failure or rerun occurred for these frozen bytes.
+- Original Foundation whole file: **50/50 PASS**, 1221.045125 ms, `/tmp/ai-v2-foundation-regression-final.log`. A preceding command used a nonexistent filename (`/tmp/ai-v2-foundation-regression.log`); that was a command-path error, not a test execution or PASS.
+
+This first slice demonstrates the real local single-child incremental path. It does not implement initial automatic splitting or two-to-four-child atomic assembly, semantic model quality, current production Qwen dispatch, paid authority, legacy-row conversion, or incremental rewriting around manual fields. Later work must preserve these explicit limits rather than count this receipt as whole AI-COST-05 completion.
