@@ -285,3 +285,11 @@ independent300-route admission guard is unchanged. Complete Root and admission
 files pass3/3 with zero skips/cancellations; independent review passed. No runtime,
 workflow, timeout, assertion threshold or prior mapping was changed. New-head
 hosted acceptance remains pending; the earlier failure is not rewritten.
+
+### Isolated native release fixture correction
+
+Full run [37748298390](https://github.com/haohongfei2001-png/paia/actions/runs/37748298390) preserved a real release-fixture failure: AI-COST-01 source passed, but release failed with `ENOENT ... extension/work/current-release/manifest.json`. The native file had depended on another file producing a shared release directory. Failure log: coordinator `work/ai194-full-shard4-failed.log`.
+
+The native file now builds its own temporary release through the existing release builder with explicit output and source cwd. The encompassing try/finally closes the browser and removes that temporary directory even after build/start failure. Production, CI, timeouts and all atomicity/unknown-attempt/privacy assertions are unchanged. Independent coordinator review passed before commit.
+
+Local corrected evidence: `/tmp/ai194-isolated-release-native.log`, complete source/release **2/2 PASS**, source 1.95 s, release 2.13 s, total 4.25 s; no skips/cancellations. `/tmp/ai194-isolated-release-guard.log`: current-browser admission **1/1 PASS**, retaining all 304 main routes. This is local fixture repair evidence; the failed remote Full run is not relabeled successful and the next exact-candidate gate remains required. No paid model or external service was called.

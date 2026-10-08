@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
 import {FakeChatGPT} from './harness/fake-chatgpt.mjs';
 const source=fileURLToPath(new URL('..',import.meta.url));
-const release=fileURLToPath(new URL('../work/current-release',import.meta.url));
 async function attach(page){return page.evaluate(async()=>{
  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
  const {AIUsageFoundation}=await import(chrome.runtime.getURL('core/ai-usage/foundation.js'));
@@ -13,9 +16,11 @@ async function attach(page){return page.evaluate(async()=>{
  globalThis.__aiu={s,ai:new AIUsageFoundation(s,options),options};
  return {defaultDenied:s.aiUsageFoundation.resolveAuthority===null};
 });}
-for(const [label,extensionPath]of [['source',source],['release',release]])test(`AI-COST-01 ${label} native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence`,{timeout:120000},async()=>{
- const h=await FakeChatGPT.start({extensionPath,onboarding:true}),p=h.archive;
+for(const label of ['source','release'])test(`AI-COST-01 ${label} native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence`,{timeout:120000},async()=>{
+ let release=null,h;
  try{
+  if(label==='release'){release=mkdtempSync(join(tmpdir(),'paia-ai-cost-foundation-'));execFileSync('python3',['scripts/build_current_release.py',release],{cwd:source,stdio:'pipe'});}
+  h=await FakeChatGPT.start({extensionPath:release||source,onboarding:true});const p=h.archive;
   assert.deepEqual(await attach(p),{defaultDenied:true});
   const initial=await p.evaluate(async()=>{
    const {s,ai}=__aiu;await s.consent(true);const epoch=(await s.status()).epoch;
@@ -44,5 +49,5 @@ for(const [label,extensionPath]of [['source',source],['release',release]])test(`
   });
   assert.deepEqual(after,{sameId:true,outcome:'OUTCOME_UNKNOWN',calls:0,rolledBack:true,revisionUnchanged:true,attempts:2});
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });
