@@ -63,6 +63,13 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>await page.locator('.search-input').count()===2,'one Archive search includes matching Project and unassigned Inputs');
   assert.equal(await page.locator('#search-project-scope').isVisible(),false,'retired Project search chip is not visible');
   await page.locator('#scope-search').fill('');
+  // Back restores the pre-Reader tree; the newly observed Project was not
+  // expanded in that origin. Open its real disclosure before choosing its child.
+  const restoredProject=page.locator('.archive-navigator-group-toggle').filter({hasText:'Synthetic Alpha'});
+  await eventually(()=>restoredProject.isVisible(),'clearing Archive search restores the Project tree');
+  assert.equal(await restoredProject.getAttribute('aria-expanded'),'false','Back does not inherit a Project expansion introduced inside Reader');
+  await restoredProject.click();
+  await eventually(async()=>await restoredProject.getAttribute('aria-expanded')==='true','explicit Project disclosure completes before reopening its Conversation');
   await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).click();
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'Reader reopens the same Conversation after scoped search');
 

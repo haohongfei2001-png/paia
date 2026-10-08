@@ -1,3 +1,4 @@
+import {validInputSearchCursor} from './input-search.js';
 import {ViewSessions} from './view-session.js';
 import {validProvider} from '../core/read-projection-keys.js';
 export const routeViews=new Set(['library','archive','excluded','legacy','thoughts','memory','settings','revisit']);
@@ -10,12 +11,12 @@ const settingsPositionValid=value=>value==null||!!value&&typeof value==='object'
 const returnOwner=value=>(!value.documentId||['library','archive','excluded'].includes(value.view))&&(!value.topicId||value.view==='thoughts')&&(!value.contextInputId||['library','archive','excluded'].includes(value.view))&&(!value.anchor||['library','archive','excluded'].includes(value.view)&&!!value.documentId&&(!value.anchor.documentId||value.anchor.documentId===value.documentId));
 const settingsReturnValid=value=>value==null||!!value&&typeof value==='object'&&!Array.isArray(value)&&value.view!=='settings'&&!['settingsGroup','settingsPosition','settingsReturn'].some(key=>Object.hasOwn(value,key))&&returnOwner(value)&&validRoute(value);
 const settingsValid=r=>(r.settingsGroup==null||r.view==='settings'&&settingsGroups.has(r.settingsGroup))&&(r.settingsPosition==null||r.view==='settings'&&settingsPositionValid(r.settingsPosition))&&(r.settingsReturn==null||r.view==='settings'&&settingsReturnValid(r.settingsReturn));
-const legacyKeys=['view','documentId','contextInputId','topicId','contextCard','returnTo','sourceKey','projectRef','searchQuery','sort','anchor','navigator','settingsGroup','settingsPosition','settingsReturn'];
-export function validRoute(r){return !!r&&typeof r==='object'&&!Array.isArray(r)&&Object.keys(r).every(k=>legacyKeys.includes(k))&&routeViews.has(r.view)&&settingsValid(r)&&(r.contextCard==null||r.view==='memory'&&['info','rules','now','inputs','connections'].includes(r.contextCard))&&[r.documentId,r.contextInputId,r.topicId,r.sourceKey].every(ref)&&(r.returnTo==null||routeViews.has(r.returnTo))&&projectValid(r.projectRef)&&navValid(r.navigator)&&(r.searchQuery===undefined||typeof r.searchQuery==='string'&&r.searchQuery.length<=1000)&&(r.sort==null||['asc','desc'].includes(r.sort))&&anchorValid(r.anchor);}
-const persistedKeys=['view','documentId','contextInputId','topicId','contextCard','returnTo','sourceKey','projectRef','sort','anchor','settingsGroup','settingsReturn'];
+const legacyKeys=['originKey','view','documentId','contextInputId','topicId','contextCard','returnTo','sourceKey','projectRef','searchQuery','sort','anchor','navigator','settingsGroup','settingsPosition','settingsReturn'];
+export function validRoute(r){return !!r&&typeof r==='object'&&!Array.isArray(r)&&Object.keys(r).every(k=>legacyKeys.includes(k))&&routeViews.has(r.view)&&(r.originKey==null||typeof r.originKey==='string'&&/^[a-f0-9-]{36}$/.test(r.originKey))&&settingsValid(r)&&(r.contextCard==null||r.view==='memory'&&['info','rules','now','inputs','connections'].includes(r.contextCard))&&[r.documentId,r.contextInputId,r.topicId,r.sourceKey].every(ref)&&(r.returnTo==null||routeViews.has(r.returnTo))&&projectValid(r.projectRef)&&navValid(r.navigator)&&(r.searchQuery===undefined||typeof r.searchQuery==='string'&&r.searchQuery.length<=1000)&&(r.sort==null||['asc','desc'].includes(r.sort))&&anchorValid(r.anchor);}
+const persistedKeys=['originKey','view','documentId','contextInputId','topicId','contextCard','returnTo','sourceKey','projectRef','sort','anchor','settingsGroup','settingsReturn'];
 const cleanAnchor=a=>a?Object.fromEntries(Object.entries(a).filter(([key])=>['documentId','inputId','revision','offset','sort','expanded','nearby'].includes(key))):null;
-const returnProjection=route=>Object.fromEntries(persistedKeys.filter(key=>!['settingsGroup','settingsReturn'].includes(key)&&(key!=='contextCard'||route.contextCard)).map(key=>[key,key==='anchor'?cleanAnchor(route.anchor):route[key]??null]));
-const projection=route=>Object.fromEntries(persistedKeys.filter(key=>key==='settingsGroup'?route.settingsGroup:key==='settingsReturn'?route.settingsReturn:key!=='contextCard'||route.contextCard).map(key=>[key,key==='anchor'?cleanAnchor(route.anchor):key==='settingsReturn'?returnProjection(route.settingsReturn):route[key]??null]));
+const returnProjection=route=>Object.fromEntries(persistedKeys.filter(key=>(key!=='originKey'||route.originKey)&&!['settingsGroup','settingsReturn'].includes(key)&&(key!=='contextCard'||route.contextCard)).map(key=>[key,key==='anchor'?cleanAnchor(route.anchor):route[key]??null]));
+const projection=route=>Object.fromEntries(persistedKeys.filter(key=>key==='originKey'?route.originKey:key==='settingsGroup'?route.settingsGroup:key==='settingsReturn'?route.settingsReturn:key!=='contextCard'||route.contextCard).map(key=>[key,key==='anchor'?cleanAnchor(route.anchor):key==='settingsReturn'?returnProjection(route.settingsReturn):route[key]??null]));
 // Query and Navigator extent are tab-local metadata. History holds only safe
 // refs/anchors and an opaque key. Losing a session never creates or grants data.
 export class RouteHistory {
@@ -39,4 +40,15 @@ export class RouteHistory {
   if(snapshot&&JSON.stringify(projection(snapshot))===JSON.stringify(refs))return snapshot;
   return {...refs,searchQuery:'',navigator:{expanded:[],loaded:[],scrollTop:0,narrowCollapsed:false,sourceScope:refs.sourceKey}};
  }
+}
+
+// Strict, body-free metadata for an existing same-tab Archive origin. It is
+// stored only in ViewSessions; history carries its opaque key, never this object.
+export function validArchiveOrigin(value){
+ const keys=['originKind','readerDocumentId','view','query','cursor','pages','scroll','searchProject','sourceScope','navigator','dateStart','dateEnd','includeFiltered','focus'];
+ const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
+ const offset=x=>x===null||Number.isSafeInteger(x)&&x>=0;
+ const cursor=x=>validInputSearchCursor(x)||offset(x)||!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).every(k=>['phase','offset'].includes(k))&&[0,1,2].includes(x.phase)&&offset(x.offset);
+ const project=value?.searchProject,focus=value?.focus;
+ return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&Object.keys(value).every(k=>keys.includes(k))&&['search-results','project-browse','archive'].includes(value.originKind)&&['library','archive'].includes(value.view)&&(value.readerDocumentId===null||id(value.readerDocumentId))&&typeof value.query==='string'&&value.query.length<=1000&&cursor(value.cursor)&&Array.isArray(value.pages)&&value.pages.length<=100&&value.pages.every(cursor)&&Number.isFinite(value.scroll)&&value.scroll>=0&&value.scroll<=10000000&&(value.sourceScope===null||validProvider(value.sourceScope))&&navValid(value.navigator)&&(project===null||!!project&&Object.keys(project).length===2&&Object.keys(project).every(k=>['ref','title'].includes(k))&&projectValid(project.ref)&&typeof project.title==='string'&&project.title.length<=1000)&&[value.dateStart,value.dateEnd].every(x=>typeof x==='string'&&(x===''||/^\d{4}-\d{2}-\d{2}$/.test(x)))&&typeof value.includeFiltered==='boolean'&&(focus===null||!!focus&&Object.keys(focus).length===3&&Object.keys(focus).every(k=>['kind','id','top'].includes(k))&&['input','document','tree'].includes(focus.kind)&&id(focus.id)&&Number.isFinite(focus.top)&&Math.abs(focus.top)<=10000000);
 }
