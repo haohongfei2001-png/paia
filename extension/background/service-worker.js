@@ -3,6 +3,7 @@ import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
 import {isAIStyleOnlyRequest} from '../core/ai-organize-style-preference.js';
 import {ContextCardsService} from '../core/context-cards.js';
 import {ThoughtLibraryReadModel} from '../core/thought-library-read-model.js';
+import {ThoughtSectionReading} from '../core/thought-section-reading.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {ContextTopicAccessService} from '../core/context-topic-access.js';
 import {PromptSurfaceCommands} from './prompt-surface.js';
@@ -41,6 +42,7 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const store = new IndexedArchiveStore(chrome.storage.local);
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
+const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
 const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome);
 const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
@@ -358,6 +360,17 @@ async function handle(request, sender) {
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
     case 'GET_LIBRARY_ROOT_PROJECTION': return thoughtLibraryRead.rootPage(request.options);
     case 'GET_LIBRARY_SECTION_PROJECTION': return thoughtLibraryRead.sectionPage(request.options);
+    case 'GET_LIBRARY_TOPIC_READING_METADATA': {
+      if(Object.keys(request).some(key=>!['type','id'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return thoughtLibraryRead.topicReadingMetadata({id:request.id});
+    }
+    case 'GET_LIBRARY_SECTION_READING': {
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      const page=await thoughtSectionReading.page(request.options);
+      // Preserve the epoch captured with these bodies; never retag an old read
+      // with a separately fetched post-restore epoch. Decoration is synchronous.
+      return typeof page.recoveryEpoch==='string'?recoveryDocumentPage(page,page.recoveryEpoch):page;
+    }
     case 'GET_LIBRARY_ROOT_SEARCH': {
       const options=request.options;if(!options||typeof options.query!=='string'||!options.query.trim()||Object.keys(options).some(key=>!['query','cursor','authority','limit'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       const page=await store.libraryIndexPage({mode:'stable',...options});return thoughtLibraryRead.qualifySearchPage(page,options.query);
@@ -450,7 +463,7 @@ const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
-const localToolRequest=type=>['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_SECTION_PROJECTION'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.

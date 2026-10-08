@@ -247,3 +247,33 @@ work/prompt-retired-export-unit.log and work/prompt-retired-export-privacy.log.
 The unit files/runtime bytes did not change with the native oracle edit.
 No repeated local macOS native attempt was made. Independent review and the
 next exact-head hosted full source/release result remain pending.
+
+
+## Main03a integration candidate (new-head certification pending)
+
+Exact pre-merge head03f31d2748693bdceb345462d85911273975e8df has completed
+hosted SUCCESS for Candidate37713579255 and Prompt Foundation37713579340;
+Prompt Visual Evidence37713579273 also succeeded. Other skipped workflows are
+not passes. These are pre-merge evidence only, not certification of this merge.
+
+The candidate merges exact main03a57b5357d71cca3cfdfbdfce915d5ced5a5e77.
+It retains all Prompt runtime/harness/native corrections. Main adds Section
+reading/model/UI and Context fixes, version0.21, strict backup0.21 compatibility,
+and the shared service-worker's Section read APIs. No Prompt workflow delta was
+introduced relative to03f31d2; main's Candidate unit concurrency1 is retained.
+Four route/guard conflicts and the dependent Stage3A admission guard are owned
+by the coordinator, with separate independent review required before commit.
+
+On the combined working tree,16 complete relevant Prompt, position-reset,
+backup/privacy and Section-worker unit files passed238/238, zero fail/skip/cancel
+in9211.643083ms. Exact command is recorded by the execution transcript; log:
+work/prompt-main03a-owning.log. The files are cpv1-12-next-{detector,lifecycle,
+security}, prompt-next-reopen-boundary, cpv1-09-prompt-{surface,family,security,
+service}, settings-prompt-position-{presenter,reset,state}, backup-current-version,
+privacy-product, ux-r6-backup-export, cpv1-01-5-backup and
+cpv1-topic-05-4-section-worker. Post-run merged runtime/test hashes are recorded
+in work/prompt-main03a-bytes.json; that snapshot is not a pristine HEAD claim.
+No repeated macOS native run was attempted. The coordinator's route tests and
+independent merge review are separate gates. New exact-head hosted combined
+source/release/Foundation/Candidate evidence remains PENDING; no pre-merge
+SUCCESS is promoted to a post-merge pass.
