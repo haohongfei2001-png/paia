@@ -1,6 +1,6 @@
 # AI-COST-05 local multi-child atomic closure
 
-Author implementation checkpoint; independent final review APPROVED; original native source/release results pending. Base 97c87938; design checkpoint 57ce0e8a. No worker/provider/financial/Source/Sync/UI/CI/version activation.
+Author implementation checkpoint; independent final review APPROVED; original native source/release both passed on runtime commit dd92c140. Base 97c87938; design checkpoint 57ce0e8a. No worker/provider/financial/Source/Sync/UI/CI/version activation.
 
 ## Actual behavior and boundaries
 
@@ -18,8 +18,9 @@ The new discriminator is included in bounded semantic invalidation with legacy j
 - Independent early review identified final-authority disposal and concurrent ninth handle publication. Actual negative evidence is retained in `/tmp/ai-multichild-private-fences-before.log`; corrected cases require full rollback and exactly eight handles. Later ACK-await disposal negative is `/tmp/ai-multichild-final-put-before.log`; final test uses a held real ACK put with IDB keepalive, external dispose and release.
 - Earlier implementation errors (overbroad dispatch guard, missing extracted settlement local variable) remain recorded in initial Foundation logs. A backup fixture initially used the empty-target mode on a populated target; it now uses actual explicit replace preview, target generation and confirmation. No restore constraint was relaxed.
 - Original v1 LocalSession DEFER regression was caught by its unchanged whole suite and repaired, not deleted. The older V2 unsupported-multi assertion now checks explicit multi-plan support while preserving single-child over-limit refusal. Semantic test records two exact kind-prefix scans; unrelated mutation still requires zero scans.
+- Earlier eight-file result was 177/177 before the additive financial bridge rejection test; it is retained in `/tmp/ai-multichild-eight-related-final.log` and is not the final count.
 - Final eight whole owning files: `/tmp/ai-multichild-final-units.log` 178/178 PASS, 6353.510416 ms. Package guard: 13370 checks / 400 runtime resources, `/tmp/ai-multichild-package.log`.
-- Original native file retains two cases, 120-second budgets, all earlier scenarios and zero-network assertions. Additive 60/80 scenarios use actual Chrome IndexedDB middle-ACK abort, unchanged canonical tables, same-operation adoption and one attempt per child. Not yet run at this checkpoint.
+- Original native file retains two cases, 120-second budgets, all earlier scenarios and zero-network assertions. Additive 60/80 scenarios use actual Chrome IndexedDB middle-ACK abort, unchanged canonical tables, same-operation adoption and one attempt per child. Both variants passed on dd92c140: 2/2, zero failed/skipped/cancelled, 27808.650417 ms; `/tmp/ai-multichild-native-final.log`. Each reports payload sizes [20,20,20] and [20,20,20,20], unique refs 60/80, real middle-ACK STORAGE_FAILED with complete rollback, one attempt per child, exact retry/adoption, all canonical tables unchanged and cacheExact false. All nine runtime/test SHA256 values below were checked again after the run and are unchanged. Independent temporary release/profile outputs were used; the temporary dependency symlink was unlinked without removing its target. No paid/provider network was activated.
 
 Independent final review: root_finish ran the complete new owner file, 21/21 PASS, 5138.770 ms, `/tmp/ai-multichild-independent-final.log`, no skip/cancellation. Runtime, native additions and fail-closed boundaries approved. The following owner-file change after review only corrects its stale introductory comment.
 
