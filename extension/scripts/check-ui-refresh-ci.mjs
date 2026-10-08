@@ -1,3 +1,5 @@
+const settingsNext='settings-next-chrome-e2e.test.mjs';
+const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const iah='iah11-result-presentation-chrome-e2e.test.mjs',selected='iah11-selected-acceptance-chrome-e2e.test.mjs';
 import {readdir,readFile} from 'node:fs/promises';
@@ -55,7 +57,7 @@ for(const name of archived){
 }
 const current=[...names].filter(name=>group(name)==='browser E2E').sort();
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-if(current.length!==81||!current.includes(ai))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
+if(current.length!==83||!current.includes(ai))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
 for(const count of [4,5,6,7])if(testShard(ai,current.indexOf(ai),count,'browser E2E')!==4)throw Error('AI_WHOLE_FILE_ROUTING');
 const sectionActions='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 if(!current.includes(sectionActions))throw Error('SECTION_ACTIONS_NATIVE_MISSING');
@@ -100,7 +102,7 @@ for(const [count,expected]of [[4,1],[5,1],[6,6]])if(testShard(context,current.in
 const root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
 if(!current.includes(root))throw Error('TOPIC05_ROOT_BROWSER_MISSING');
 for(const count of [4,5,6])if(testShard(root,current.indexOf(root),count,'browser E2E')!==3)throw Error('TOPIC05_ROOT_BROWSER_ROUTING');
-const beforeQ4=current.filter(name=>![entryMove,iah,selected,ai,sectionActions,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
+const beforeQ4=current.filter(name=>![settingsNext,next,entryMove,iah,selected,ai,sectionActions,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
 for(const [position,name]of beforeQ4.entries()){
  const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
  if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
@@ -117,7 +119,7 @@ const frozen=JSON.parse(await readFile('docs/consumer-product-v1/implementation/
 const prior=[...frozen.rows,...promptReuseFiles.map(file=>({file,before:3,after:3})),
  {file:consumer,before:1,after:1},{file:context,before:1,after:6}];
 if(frozen.files!==68||prior.length!==73||new Set(prior.map(row=>row.file)).size!==73
- ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==maintenance&&name!==root&&name!==section&&name!==sectionActions&&name!==ai&&name!==entryMove&&name!==iah&&name!==selected).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
+ ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==maintenance&&name!==root&&name!==section&&name!==sectionActions&&name!==ai&&name!==entryMove&&name!==settingsNext&&name!==next&&name!==iah&&name!==selected).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
 for(const row of prior)for(const count of [4,5,6]){
  const expected=count===6?(row.file==='uir-04-settings-chrome-e2e.test.mjs'?6:row.after):
   count===4&&row.file==='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs'?3:row.before;
@@ -128,9 +130,13 @@ for(const row of prior)for(const count of [4,5,6]){
 const thought='ux-r3-thought-chrome-e2e.test.mjs',retainedRoot='cpv1-02-dvn-topic-root-chrome-e2e.test.mjs';
 const seven=Array.from({length:7},(_,slot)=>current.filter((name,position)=>testShard(name,position,7,'browser E2E')===slot+1));
 if(seven.some(part=>!part.length)||seven.flat().sort().join('|')!==current.join('|')||new Set(seven.flat()).size!==current.length||seven[6].join('|')!==[retainedRoot,section,thought].join('|'))throw Error('D5_SEVEN_BROWSER_SHARD_PARTITION_INVALID');
-for(const [position,name]of current.entries())if(testShard(name,position,7,'browser E2E')!==([thought,retainedRoot,section].includes(name)?7:name==='cpv1-07-historical-comparison-chrome-e2e.test.mjs'?4:testShard(name,position,6,'browser E2E')))throw Error('D5_SEVEN_SHIFTED_UNREVIEWED_ROUTING:'+name);
+for(const [position,name]of current.entries())if(testShard(name,position,7,'browser E2E')!==([thought,retainedRoot,section].includes(name)?7:name==='cpv1-07-historical-comparison-chrome-e2e.test.mjs'?4:name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:testShard(name,position,6,'browser E2E')))throw Error('D5_SEVEN_SHIFTED_UNREVIEWED_ROUTING:'+name);
 console.log(`CURRENT_BROWSER_COVERAGE_CONTRACT_PASS core=${formerCore.length} uir=${uir.length} ans=${ans.length} cpr=${cpr.length}`);
 
 for(const file of [iah,selected]){if(!current.includes(file))throw Error('IAH_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(file,current.indexOf(file),count,'browser E2E')!==4)throw Error('IAH_NATIVE_ROUTING');}
 
 if(!current.includes(entryMove))throw Error('ENTRY_MOVE_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(entryMove,current.indexOf(entryMove),count,'browser E2E')!==4)throw Error('ENTRY_MOVE_NATIVE_ROUTING');
+
+if(!current.includes(next))throw Error('NEXT_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(next,current.indexOf(next),count,'browser E2E')!==3)throw Error('NEXT_NATIVE_ROUTING');
+
+if(!current.includes(settingsNext))throw Error('SETTINGS_NEXT_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(settingsNext,current.indexOf(settingsNext),count,'browser E2E')!==2)throw Error('SETTINGS_NEXT_NATIVE_ROUTING');

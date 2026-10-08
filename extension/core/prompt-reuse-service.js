@@ -1,3 +1,4 @@
+import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError} from './constants.js';
 import {inputProjection} from './thought-evidence.js';
 import {materialRead} from './manual-materials.js';
@@ -8,7 +9,8 @@ const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
 export class PromptReuseService{
- constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ #nextFamilyView;
+ constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async snapshot(){
   await this.s.finishFoundation();
   let after,base,preferences;const inputs=[];
@@ -46,9 +48,11 @@ export class PromptReuseService{
   return x.inputs.filter(i=>family.members.includes(i.id)).map(i=>({id:i.id,text:i.text}));
  }
  async query({includeHidden=false}={}){
-  if(typeof includeHidden!=='boolean')fail();const x=await this.snapshot();
+  if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
+  this.#nextFamilyView.publish(serial,x);
   return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
  }
+ async nextFamilyView(){return this.#nextFamilyView.read(expected=>this.assertCurrent(expected));}
  async resolve({id,text}={}){
   if(typeof id!=='string'||!validPromptText(text))fail();const x=await this.snapshot();
   const f=x.families.find(f=>f.id===id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
@@ -94,8 +98,8 @@ export class PromptReuseService{
   return this.s.run(()=>this.s.repository.transaction(true,async t=>{
    // A late acknowledgement cannot recreate an override deleted since selection.
    if(await generation(t)!==x.generation)changed();
-   const p=await readPromptPreferences(t);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
-   o.reuseCount=Math.min(1000000,o.reuseCount+1);p.revision++;if(!validPromptPreferences(p))fail();await t.put('meta',p);
+   const p=await readPromptPreferences(t),before=structuredClone(p);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
+   o.reuseCount=Math.min(1000000,o.reuseCount+1);p.revision++;if(!validPromptPreferences(p))fail();await t.put('meta',p);if(this.syncJournal?.noteVerifiedReuse)await this.syncJournal.noteVerifiedReuse(t,before,p);
   }));
  }
 }

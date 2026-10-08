@@ -88,14 +88,14 @@
    const r=this.document.createRange();r.setStart(p.node,p.offset);r.collapse(true);
    const selection=this.document.getSelection();selection.removeAllRanges();selection.addRange(r);return true;
   }
-  async insert({text,operationId,url}){
+  async insert({text,operationId,url,guard}){
    if(typeof operationId!=='string'||!/^[a-f0-9-]{36}$/.test(operationId)||typeof text!=='string'||!text.trim()||text.length>LIMIT||text.includes('\r'))return {status:'failed',reason:'invalid_request'};
    if(this.attempts.has(operationId))return {...await this.attempts.get(operationId),replayed:true};
    // Cache the pending attempt as well as its result; never evict and replay.
    if(this.attempts.size>=500)return {status:'failed',reason:'reload_required'};
-   const pending=this.once(text,url);this.attempts.set(operationId,pending);return pending;
+   const pending=this.once(text,url,guard);this.attempts.set(operationId,pending);return pending;
   }
-  async once(text,url){
+  async once(text,url,guard){
    if(this.busy)return {status:'failed',reason:'busy'};
    const node=this.find();if(!node||url!==this.location.href)return {status:'failed',reason:'composer_unavailable'};
    if(this.composing.has(node))return {status:'failed',reason:'composition_active'};
@@ -111,7 +111,8 @@
    node.addEventListener('input',input,true);
    try{
     node.focus({preventScroll:true});
-    if(this.find()!==node||this.composing.has(node)||this.model(node)?.text!==before.text||!this.place(node,before,offset))return {status:'failed',reason:'draft_changed'};
+    if(this.location.href!==url||guard&&!guard()||this.find()!==node||this.composing.has(node)||this.model(node)?.text!==before.text||!this.place(node,before,offset))return {status:'failed',reason:'draft_changed'};
+    if(this.location.href!==url||guard&&!guard())return {status:'failed',reason:'draft_changed'};
     attempted=true;
     // Chromium's native editing transaction supplies trusted input and lets
     // ProseMirror's DOM observer reconcile its own editor state. Never set HTML.

@@ -33,3 +33,15 @@ test('actual placement owner replays lost acknowledgement once and retains body 
 });
 test('move remains busy through exact Section focus and rejects a rapid second operation',()=>fixture(async({w,writes,source})=>{let release,entered;const started=new Promise(r=>entered=r);w.focusSection=async()=>{entered();await new Promise(r=>release=r);};const pending=w.entryActions('entry',source,'section');await started;assert.equal(w.entryMovePending,true);assert.equal(w.sectionActionPending,true);await w.entryActions('entry',source,'section');assert.equal(writes.length,1);release();await pending;assert.equal(w.entryMovePending,false);assert.equal(w.sectionActionPending,false);}));
 test('eight unknown moves are retained, block new entries but allow their exact retry',()=>fixture(async({w,writes,source})=>{w.entryMoveAttempts=new Map(Array.from({length:8},(_,i)=>[JSON.stringify(['topic','held-'+i]),{operationId:'held-'+i}]));await w.entryActions('entry',source,'section');assert.equal(writes.length,0);assert.equal(w.entryMoveAttempts.size,8);const request={entryId:'entry',topicId:'topic',sectionId:'target',expectedEntryRevision:3,expectedTopicRevision:5,expectedPlacementRevision:2,operationId:'original-unknown'};w.entryMoveAttempts.delete(JSON.stringify(['topic','held-0']));w.entryMoveAttempts.set(JSON.stringify(['topic','entry']),request);await w.entryActions('entry',source,'section');assert.deepEqual(writes[0].placement,request);assert.equal(w.entryMoveAttempts.size,7);}));
+
+for(const code of ['STORAGE_FULL','STORAGE_FAILED'])test('definitive '+code+' releases the move attempt and allows a fresh choice',()=>fixture(async({w,source})=>{
+ let choices=0;const attempts=[];w.form=async()=>{choices++;return {id:'target'};};
+ w.checked=async(type,data)=>{attempts.push(structuredClone(data.placement));if(attempts.length===1)throw Object.assign(Error(code),{code});return {id:'entry',placementRevision:3};};
+ await w.entryActions('entry',source,'section');assert.equal(w.entryMoveAttempts.size,0);assert.equal(w.entryMovePending,false);
+ await w.entryActions('entry',source,'section');assert.equal(choices,2);assert.equal(attempts.length,2);assert.notEqual(attempts[0].operationId,attempts[1].operationId);assert.equal(w.entryMoveAttempts.size,0);
+}));
+for(const code of ['MESSAGE_CHANNEL_INTERRUPTED','MESSAGE_RESPONSE_TIMEOUT','OUTCOME_UNKNOWN','UNAVAILABLE','ENTRY_MOVE_UNCONFIRMED'])test('uncertain '+code+' retains exact operation and destination',()=>fixture(async({w,source})=>{
+ const attempts=[];w.checked=async(type,data)=>{attempts.push(structuredClone(data.placement));if(attempts.length===1)throw Object.assign(Error(code),{code});return {id:'entry',placementRevision:3};};
+ await w.entryActions('entry',source,'section');assert.equal(w.entryMoveAttempts.size,1);w.form=async()=>{throw Error('must reconcile original request');};
+ await w.entryActions('entry',source,'section');assert.deepEqual(attempts[1],attempts[0]);assert.equal(w.entryMoveAttempts.size,0);
+}));

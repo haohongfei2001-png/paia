@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Personal AI Input Archive",
-  "version": "0.23.0",
-  "version_name": "v0.23.0 Archive Navigation",
+  "version": "0.24.0",
+  "version_name": "v0.24.0 Prompt Next Actions",
   "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和编辑。",
   "minimum_chrome_version": "114",
   "permissions": [
@@ -57,7 +57,10 @@
         "adapter/chatgpt-composer.js",
         "content/prompt-reuse.js",
         "core/prompt-surface-layout.js",
-        "content/prompt-surface.js"
+        "content/prompt-surface.js",
+        "adapter/chatgpt-current-reply.js",
+        "core/prompt-next-layout.js",
+        "content/prompt-next.js"
       ],
       "run_at": "document_start",
       "all_frames": false,

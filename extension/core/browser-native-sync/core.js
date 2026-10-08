@@ -105,6 +105,28 @@ export class BrowserNativeSyncCore {
   while(queue.length){const id=queue.pop();if(seen.has(id))continue;seen.add(id);if(seen.size>CORE_LIMITS.ancestryReads)fail('BNS_ANCESTRY_LIMIT');const row=await this.get(t,'revision',id);if(!row)return false;for(const parent of row.operation.parents){if(parent===ancestor)return true;if(!seen.has(parent))queue.push(parent);}}
   return false;
  }
+ // Exact last materialized owner, scoped to this Core's bound namespace.
+ async materializedOwner(t,type,entityId){
+  const proof=await this.get(t,'materializedOwner',type,entityId);if(!proof)return null;
+  if(proof.version!==1||!hash(proof.revisionId)||!count(proof.ownerRevision)||Object.keys(proof).some(k=>!['id','version','revisionId','ownerRevision'].includes(k)))fail('BNS_OWNER_PROOF_INVALID');
+  const row=await this.get(t,'revision',proof.revisionId);
+  if(!row||row.redacted||row.operation.type!==type||row.operation.entityId!==entityId)fail('BNS_OWNER_PROOF_INVALID');
+  return {...proof,operation:row.operation};
+ }
+ async recordMaterializedOwner(t,operation,ownerRevision){
+  if(!count(ownerRevision))fail('BNS_OWNER_PROOF_INVALID');
+  await this.put(t,'materializedOwner',[operation.type,operation.entityId],{version:1,revisionId:operation.revisionId,ownerRevision});
+ }
+ async ownerAncestor(t,operation,heads){
+  const queue=[...heads],seen=new Set();
+  while(queue.length){const id=queue.pop();if(seen.has(id))continue;if(seen.size>=128)fail('BNS_OWNER_ANCESTRY_LIMIT');seen.add(id);
+   const row=await this.get(t,'revision',id);
+   if(!row||row.redacted||row.operation.type!==operation.type||row.operation.entityId!==operation.entityId)fail('BNS_OWNER_PROOF_INVALID');
+   if(id===operation.revisionId)return true;
+   for(const parent of row.operation.parents)if(!seen.has(parent))queue.push(parent);
+  }
+  return false;
+ }
  async applyInTransaction(t,operation,{origin='remote',materialize=true}={}){
   if(operation.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');
   const quarantined=await this.get(t,'quarantine',operation.operationId);if(quarantined){if(quarantined.digest!==operation.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'quarantined',reason:quarantined.reason};}
@@ -125,6 +147,11 @@ export class BrowserNativeSyncCore {
    return {state:'pending',missingParents:missing.length};
   }
   if(CODECS[operation.type].immutable&&current&&!current.purged&&operation.kind!=='purge')for(const rev of current.revisions){const prior=await this.get(t,'revision',rev);if(!equal(prior?.operation.value,operation.value))fail('BNS_IMMUTABLE_SOURCE_MISMATCH');}
+  // Capture canonical predecessor versions before purge redaction or head
+  // replacement. Trusted materializers can reject unmanaged/local owner edits
+  // within this same transaction, rolling back all protocol acknowledgements.
+  const previousVersions=[];
+  if(materialize&&this.materialize&&current&&!current.purged)for(const revision of current.revisions){const prior=await this.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_REVISION_MISSING');previousVersions.push(prior.operation);}
   const purged=current?.purged||operation.kind==='purge';
   await this.put(t,'revision',[operation.revisionId],{operation:purged?{...operation,value:null}:operation,redacted:purged});
   let revisions=[...(current?.revisions||[])];
@@ -149,7 +176,7 @@ export class BrowserNativeSyncCore {
   await this.advanceGeneration(t);
   if(materialize&&this.materialize&&(purged||revisions.length===1)){
    const winner=purged?{...operation,value:null}:(await this.get(t,'revision',revisions[0])).operation;
-   await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin});
+   await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin,previousHead:current||null,previousVersions,core:this,previousCore:this});
   }
   return {state:purged?'purged':revisions.length>1?'conflict':'applied',revisions};
  }

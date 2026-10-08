@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {detectNextAction as detect,NEXT_ACTION_VERSION} from '../core/next-action-detector.js';
+import {supported,rejected} from './fixtures/next-action.mjs';
+const snap=text=>({text,completed:true,blocks:1,excluded:false});
+for(const [text,type,choices,condition] of supported)test('next-action positive '+text,()=>{const r=detect(snap(text));assert.equal(r.type,type);assert.deepEqual(r.choices,choices);assert.equal(r.condition,condition);assert.equal(r.confidence,'HIGH');assert.equal(r.version,NEXT_ACTION_VERSION);assert.ok(text.slice(r.evidence.start,r.evidence.end).trim());});
+for(const text of rejected)test('next-action safe DEFER '+text.slice(0,65),()=>assert.equal(detect(snap(text)).type,'DEFER'));
+test('fixed evaluation reports denominator, exact extraction and nonzero coverage',()=>{const shown=supported.filter(([text])=>detect(snap(text)).type!=='DEFER').length;const falsePositive=rejected.filter(text=>detect(snap(text)).type!=='DEFER').length;assert.equal(shown,supported.length);assert.equal(falsePositive,0);assert.ok(shown/(shown+falsePositive)>=.98);assert.ok(shown>0);console.log(JSON.stringify({evaluation:NEXT_ACTION_VERSION,fixtures:supported.length+rejected.length,displayed:shown,correct:shown,falsePositive,precision:1,supportedCoverage:1}));});
+test('completion and resource/structure gates precede extraction',()=>{for(const patch of [{completed:false},{excluded:true},{blocks:257},{text:'x'.repeat(32769)},{text:'🙂'.repeat(32769)}])assert.equal(detect({...snap('回复“继续”'),...patch}).type,'DEFER');});
+test('original Unicode offsets are never normalized offsets',()=>{const text='  \n回复“保留原文”';const r=detect(snap(text));assert.equal(r.type,'DIRECT_REPLY');assert.equal(text.slice(r.evidence.start,r.evidence.end),'回复“保留原文”');assert.deepEqual(r.choices,['保留原文']);});

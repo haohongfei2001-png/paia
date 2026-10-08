@@ -230,6 +230,11 @@ def audit_js(path, text):
                     "Prompt movement keys must be orb scoped")
         if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
             scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
+        if label == "keyboard listener" and path == ROOT / "ui/prompt-next.js":
+            reviewed = "capsule.addEventListener('keydown',"
+            require(text.count(reviewed) == 1 and "e.key==='Escape'" in text,
+                    "Suggestion keys remain private-capsule Escape only")
+            scanned = scanned.replace(reviewed, "SCOPED_NEXT_PROMPT_ESCAPE(")
         match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
         line = text.count("\n", 0, match.start()) + 1 if match else 0
         require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")

@@ -1,0 +1,12 @@
+html{height:auto;min-height:0;font-size:14px;background:transparent;color-scheme:light}
+body.next-body{display:block;margin:0;padding:0;min-height:0;height:auto;overflow:auto;background:transparent;font:1rem/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#253148}
+.next-capsule{position:relative;box-sizing:border-box;width:100%;padding:10px 50px 10px 12px;border:1px solid #d3ddeb;border-radius:18px;background:linear-gradient(136deg,#fffffff5,#edf3ffed);box-shadow:0 5px 16px #25314818;overflow-wrap:anywhere}
+.next-condition{margin:0 0 6px;color:#4b5a72;font-size:.93rem}
+.next-choices{display:flex;flex-wrap:wrap;gap:6px}
+.next-capsule button{box-sizing:border-box;min-width:44px;min-height:44px;margin:0;padding:8px 12px;border:1px solid #becce066;border-radius:12px;background:#ffffff70;color:inherit;font:inherit;text-align:left;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.next-choices button{flex:1 1 auto;max-width:100%}
+.next-capsule button:hover{background:#dde9ff8c}.next-capsule button:focus-visible{outline:2px solid #477ac3;outline-offset:-2px}.next-capsule button:disabled{opacity:.55;cursor:default}
+.next-capsule .next-dismiss{position:absolute;top:6px;right:4px;padding:8px;border:0;background:transparent;text-align:center}
+.next-status{margin:6px 0 0;font-size:.93rem}.next-status:empty{display:none}
+html[data-theme=dark]{color-scheme:dark}html[data-theme=dark] body.next-body{color:#e9edf5}html[data-theme=dark] .next-capsule{background:linear-gradient(136deg,#313a48f5,#232c3aed);border-color:#7787a066}html[data-theme=dark] .next-condition{color:#c1ccdf}html[data-theme=dark] .next-capsule button{background:#a7bed512;border-color:#afc2df44}html[data-theme=dark] .next-capsule button:hover{background:#a7bed52e}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
