@@ -22,7 +22,7 @@ async function sources(t,key){
 }
 
 export class FilterIntentSyncJournal{
- constructor(core){this.core=core;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();}
+ constructor(core){this.core=core;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.working=new WeakSet();}
  assertStore(store){if(store.repository!==this.core.repository)fail('BNS_BINDING_CHANGED');}
  async qualify(keys){
   keys=[...new Set(keys)];if(!keys.length||keys.length>LIMIT)fail('BNS_FILTER_SOURCE_UNQUALIFIED');
@@ -51,17 +51,25 @@ export class FilterIntentSyncJournal{
   }
   const prepared=await this.fence.prepare(()=>this.core.prepare(changes));this.prepared.set(prepared,{before,id,at,binding});return prepared;
  }
+ async prepareWorking(store,b,at){
+  this.assertStore(store);const keys=await this.core.transaction(false,t=>Promise.all(b.provenance.map(async p=>(await t.get('recordIndex',p.sourceRecordId))?.sourceKey)));
+  const before=await this.qualify(keys),changes=[];
+  for(let i=0;i<before.keys.length;i++){const key=before.keys[i],head=await this.core.read('head','filterIntent',key),old=before.local[i];if(head?.purged||head?.revisions.length>1)fail('BNS_OWNER_CHANGED');if(head){const row=await this.core.read('revision',head.revisions[0]);if(!equal(row?.operation.value,old))fail('BNS_OWNER_CHANGED');}else if(old)fail('BNS_BOOTSTRAP_REQUIRED');changes.push({type:'filterIntent',value:{id:key,keep:true,reason:'user_edit',at},expectedParents:head?.revisions||[]});}
+  const capability=Object.freeze({});this.prepared.set(capability,{before,id:b.id,at,binding:{keys,provenance:clone(b.provenance)},changes});return capability;
+ }
+ workingChanges(capability){const value=this.prepared.get(capability);if(!value?.changes)fail('BNS_PREPARATION_REQUIRED');return clone(value.changes);}
+ bindWorking(capability,prepared){const value=this.prepared.get(capability);if(!value?.changes||!equal(prepared.operations.filter(x=>x.type==='filterIntent').map(x=>x.value),value.changes.map(x=>x.value)))fail('BNS_PREPARATION_REQUIRED');this.prepared.set(prepared,value);this.working.add(prepared);this.prepared.delete(capability);}
  async authorize(t,prepared,b,reason,userEdited){
-  const saved=this.prepared.get(prepared);if(!saved||saved.id!==b.id||reason!=='restored_from_filter'||userEdited)fail('BNS_FILTER_WRITER_UNSUPPORTED');
+  const saved=this.prepared.get(prepared),working=this.working.has(prepared);if(!saved||saved.id!==b.id||(working?reason!=='user_edit'||userEdited!==true:reason!=='restored_from_filter'||userEdited))fail('BNS_FILTER_WRITER_UNSUPPORTED');
   const keys=await Promise.all(b.provenance.map(async p=>(await t.get('recordIndex',p.sourceRecordId))?.sourceKey));
   if(!equal(b.provenance,saved.binding.provenance)||!equal(keys,saved.binding.keys))fail('BNS_OWNER_CHANGED');
-  await this.current(t,saved.before);await this.fence.commit(t,prepared);return saved.at;
+  await this.current(t,saved.before);if(!working)await this.fence.commit(t,prepared);return saved.at;
  }
  release(prepared){this.prepared.delete(prepared);}
  async commit(t,prepared){if(!this.prepared.has(prepared))fail('BNS_PREPARATION_REQUIRED');return this.core.commitPrepared(t,prepared,{materialize:false});}
  async receive(input){
   const operation=clone(await validateOperation(input));if(operation.datasetId!==this.core.datasetId)fail('BNS_DATASET_MISMATCH');
-  if(operation.type!=='filterIntent'||operation.kind!=='put')fail('BNS_FILTER_WRITER_UNSUPPORTED');validateEntity('filterIntent',operation.value);
+  if(operation.type!=='filterIntent'||operation.kind!=='put'||operation.value?.reason!=='restored_from_filter')fail('BNS_FILTER_WRITER_UNSUPPORTED');validateEntity('filterIntent',operation.value);
   const before=await this.qualify([operation.entityId]);
   // This bounded owner does not admit unresolved dependency queues or full restore.
   return this.core.transaction(true,async t=>{

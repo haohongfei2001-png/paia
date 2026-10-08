@@ -117,6 +117,7 @@ export class SmartFilterStore extends IAStore {
   });
  }
  async protect(t,b,reason,userEdited=false,prepared=null){
+  prepared??=this.inputWorkingJournal?.protectionFor(t,b,reason,userEdited)??null;
   const portableAt=this.filterIntentJournal?await this.filterIntentJournal.authorize(t,prepared,b,reason,userEdited):null;
   const meta=await t.get('inputStates',b.id);const row=await t.get('filterInputs',b.id)||this.initialFilter(b,meta,true);
   row.filterOverride='keep';row.userEdited||=userEdited;row.overrideReason=reason;row.overrideAt=this.clock();row.evaluationRevision++;row.failed=false;row.pendingKey=1;row.decision='keep';row.reasonCode='user_protected';delete row.filteredKey;await t.put('filterInputs',row);

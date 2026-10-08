@@ -74,9 +74,16 @@ const sourceCodec=spec('source',value=>{
  return value;
 },{store:'records',immutable:true});
 const filterIntentCodec=spec('filterIntent',value=>{
- if(!exact(value,['id','keep','reason','at'])||Object.keys(value).length!==4||!hash(value.id)||value.keep!==true||value.reason!=='restored_from_filter'||typeof value.at!=='string'||!Number.isFinite(Date.parse(value.at))||new Date(value.at).toISOString()!==value.at)fail('BNS_CODEC_UNSUPPORTED');return value;
+ if(!exact(value,['id','keep','reason','at'])||Object.keys(value).length!==4||!hash(value.id)||value.keep!==true||!['restored_from_filter','user_edit'].includes(value.reason)||typeof value.at!=='string'||!Number.isFinite(Date.parse(value.at))||new Date(value.at).toISOString()!==value.at)fail('BNS_CODEC_UNSUPPORTED');return value;
 },{store:'filterIntents'});
-export const CODECS=Object.freeze({source:sourceCodec,filterIntent:filterIntentCodec,...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
+// The first Working publication slice admits only existing active Input history.
+// Generic backup revision envelopes are too broad for an independently admitted wire entity.
+const iso=value=>typeof value==='string'&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString()===value;
+const inputSnapshot=value=>exact(value,['libraryText','note','excluded','originalTextReference','provenanceSignature'])&&Object.keys(value).length===5&&(value.libraryText===null||typeof value.libraryText==='string')&&typeof value.note==='string'&&value.excluded===false&&identifier(value.originalTextReference)&&typeof value.provenanceSignature==='string';
+const workingRevisionCodec=spec('revision',value=>{
+ if(!exact(value,['id','kind','entityId','documentId','before','after','reason','important','sourceRecordIds','entityKey','sequence','windowStartedAt','at','listKey','documentList'])||Object.keys(value).length!==15||!identifier(value.id)||value.kind!=='input'||!identifier(value.entityId)||!identifier(value.documentId)||!inputSnapshot(value.before)||!inputSnapshot(value.after)||!['baseline','edit','major_edit'].includes(value.reason)||value.important!==(value.reason!=='edit')||!Array.isArray(value.sourceRecordIds)||!value.sourceRecordIds.length||value.sourceRecordIds.length>16||value.sourceRecordIds.some(id=>!identifier(id))||new Set(value.sourceRecordIds).size!==value.sourceRecordIds.length||value.entityKey!=='input:'+value.entityId||!count(value.sequence)||value.sequence<1||!iso(value.windowStartedAt)||!iso(value.at)||JSON.stringify(value.listKey)!==JSON.stringify([value.entityKey,value.sequence])||JSON.stringify(value.documentList)!==JSON.stringify([value.documentId,value.sequence]))fail('BNS_CODEC_UNSUPPORTED');return value;
+},{store:'revisions'});
+export const CODECS=Object.freeze({source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
 export function validateEntity(type,value,version=1){
  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
  canonical(value);
