@@ -4,13 +4,14 @@ from urllib.request import Request, urlopen
 from playwright.sync_api import sync_playwright
 import hashlib, json, os
 from core_checks import verify_core
+from origin_checks import verify_hero, verify_origin, verify_typography
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT/'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
 paths = [p for p in (ROOT/'website/generated-paths.txt').read_text().splitlines() if Path(p).name != '404.html']
-paths += ['assets/website/home-core-v1.css', 'assets/website/home-core-v2.js', 'assets/website/home-origin-v7.css', 'assets/website/product-consistency.css', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/product-experience.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -38,11 +39,17 @@ try:
                 assert response and response.ok
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
+                def live_check(value, label):
+                    checks.append({'path':relative,'viewport':width,'interaction':label,'pass':bool(value)})
+                    if not value: raise AssertionError(label)
+                verify_typography(page, live_check, relative)
+                if relative in ('index.html', 'zh/index.html'):
+                    verify_hero(page, live_check, en=not relative.startswith('zh/'), motion=width == 1440)
+                    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+                    page.screenshot(path=str(OUT / f'live-{relative.replace("/", "-")}-{width}-hero.png'), animations='disabled')
                 if relative in ('index.html','zh/index.html','demo.html','zh/demo.html'):
-                    def live_check(value, label):
-                        checks.append({'path':relative,'viewport':width,'interaction':label,'pass':bool(value)})
-                        if not value: raise AssertionError(label)
                     verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
+                    verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors, errors
                 page.emulate_media(reduced_motion='reduce')
