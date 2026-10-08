@@ -16,3 +16,13 @@ All author changes were independently reviewed. Original0.28 failures are not er
 ## Routing reconciliation after local verification
 
 The reviewed0.28 capacity correction baec9af2 is merged without runtime or native-test changes. The0.29 frozen76db routing oracle explicitly admits only ReaderRevisit width7,1→6;335 old routes and all four new Placement routes remain unchanged. Three historical merge conflicts preserve0.29 corpus85 and Placement offset. Independent18 whole guard tests and actual CI coverage script passed; `/tmp/029-route-merge-independent.log`. This routing-only reconciliation does not rename the e22 local test head or require repeating unchanged native paths.
+
+## Final local UI/AI follow-up
+
+Runtime `a2098c07` includes independently reviewed AI child metadata scope fcce9dbf (integrated94562f62) and four existing removed-entry bilingual attributes df95fb63 (integrateda2098c07). The AI request now carries only exact pending child evidence; whole-job qualification is unchanged. No real model/provider is connected. The initial compact English screenshot exposed untranslated existing secondary labels; the repaired markup uses the existing copy owner without RPC changes.
+
+Four whole files (AI foundation, Placement, UIR04 Data, UXR1 shell) passed8/8 in48.256590667s with no skipped/cancelled, `/tmp/029-final-ui-ai-combination.log`. The Placement test had the reviewed uncommitted visual assertions at this runtime checkpoint, so this is explicitly a runtime-plus-test-bytes proof, not a clean-HEAD claim. Both source/release populated320-width English and desktop Chinese full-page screenshots are under `work/qa-settings-removed-placement/{source,release}`. Root inspected both final compact captures: labels are English, distinct rows/actions remain visible, no horizontal overflow. Original same-operation lost-ACK retry, Source/Context equality and90s budgets remain.
+
+Root-finish independently reviewed the test increment without another browser run. The earlier wrong-cwd append made no file edit; `/tmp/029-placement-visual.log` is an unchanged old test run, not screenshot evidence. First actual screenshot run2/2 passed layout but revealed the untranslated labels; it is not claimed as final language acceptance.
+
+Final Placement test SHA256: `4a01b1113212ab61d280f90cd8e53f36f3729be15e15248e36c950e6ddacb67c`.
