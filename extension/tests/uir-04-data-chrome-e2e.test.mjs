@@ -172,7 +172,11 @@ async function sourceAndBackup(marker){
   const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
   await h.open({id:'uir04-data-source',title:'UIR-04 数据恢复',base:1609459200,messages:[{id:'uir04-data-message',text:marker}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===marker));await page.bringToFront();
   await page.setViewportSize({width:1440,height:900});await openData(page);await assertDataOwners(page);await eventually(async()=>!(await page.locator('#r6-storage-estimate').textContent()).includes('正在读取'));
-  await removedInputSafety(h);await pendingInputDialogSafety(h);await readOnlyDetails(page,'source');const before=await h.state();backupBytes=Buffer.from((await historicalBackupItems(page)).map(row=>JSON.stringify(row)).join('\n')+'\n');assert.deepEqual(await h.state(),before,'historical fixture encoding is read-only');
+  await removedInputSafety(h);await pendingInputDialogSafety(h);await readOnlyDetails(page,'source');
+  // Capture has been exercised above. Close its real producers and restart the
+  // worker before the read-only fixture boundary, retaining the full-state oracle.
+  for(const producer of h.context.pages())if(producer.url().startsWith('https://chatgpt.com/'))await producer.close();
+  await h.restartWorker();const before=await h.state();backupBytes=Buffer.from((await historicalBackupItems(page)).map(row=>JSON.stringify(row)).join('\n')+'\n');assert.deepEqual(await h.state(),before,'historical fixture encoding is read-only');
   await shot(page,'uir-04-data-1440x900-light');await page.setViewportSize({width:390,height:844});await assertDataOwners(page);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-data-390x844-light');await removedListSafety(page);await assertNoNetwork(h);
  }finally{await h.close();}
  return backupBytes;
