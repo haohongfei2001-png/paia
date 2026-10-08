@@ -1,0 +1,9 @@
+# Source bootstrap exact-checkout admission
+
+This integration adds the entire Source bootstrap native file to both existing Full and opt-in Candidate native jobs. All six prior files, strict receipts, aggregate dependencies and12-minute budgets remain. No provider, permission, full-device recovery or production activation is certified by this local job.
+
+The new receipt validator freezes all23 current case names/order and13 runtime paths. It requires the exact tested head/tree/variant, false productionActivation/fullRecovery, actual worker restart with no open transaction, and the complete zero-network lifetime ledger including its unique paused-before-stop observation. Source and release must agree; the actual inline CI verifier recomputes every hash from its checkout before emitting PASS. Native PASS now also calls this same validator after the actual restart. The previous19-case diagnostic fails this current gate under its own original identity (`/tmp/031-bootstrap-old-receipt-negative.log`); it is not relabeled as complete.
+
+Coordinator targeted integration: five whole files20/20PASS170.908791ms, `/tmp/031-integration-guards.log`. Independent settings_finish review APPROVED with the same five whole files20/20PASS146.145ms, `/tmp/source031-integration-independent.log`, plus both YAML ASTs/embedded JS/native syntax and actual final47f receipts validated against current23-case/13-path evidence. Author Source receipts preserve their own47f head/tree; the new native validator call and this integrated candidate still require fresh combination evidence.
+
+Version0.31.0 / Local Source Continuity changes no data or Backup schema. Existing-file producer versions7–30 remain admitted,31 is added,32/future major/malformed/schema/section headers remain refused. Real existing-file restore and retired-export protection pass in the four version-owner cases. No install or deployment follows.

@@ -13,6 +13,7 @@ export async function validateOperation(operation){
  if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==1||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+ if(['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
  if(operation.type==='source'&&operation.kind!=='purge'&&operation.actor==='user')fail('BNS_SOURCE_AUTHORITY');
  if(operation.actor==='source'&&operation.type!=='source'&&operation.type!=='timeEvidence'&&operation.type!=='sourceStructure')fail('BNS_ACTOR_AUTHORITY');
  if(operation.actor==='bootstrap'&&operation.parents.length)fail('BNS_BOOTSTRAP_AUTHORITY');
@@ -36,6 +37,8 @@ export function acceptSequence(current,sequence){
 // an explicit meta namespace. No schema upgrade, arbitrary-store export, network
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
+ #bootstrapTransactions=new WeakMap();
+ #bootstrapPrepared=new WeakSet();
  #workingTransactions=new WeakMap();
  #workingPrepared=new WeakSet();
  constructor(repository,{datasetId,deviceId,materialize=null,checkpoint=async()=>{},namespace=null,conflictOwners=null}={}){
@@ -59,7 +62,7 @@ export class BrowserNativeSyncCore {
  async put(t,kind,ids,data){return t.put('meta',{...data,id:await this.idIn(t,kind,...ids)});}
  async namespace(){return this.transaction(false,t=>this.bind(t),['meta']);}
  async read(kind,...ids){return this.transaction(false,t=>this.get(t,kind,...ids),['meta']);}
- async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null}={}){
+ async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
   changes=clone(changes);operationIds=operationIds?clone(operationIds):null;
   const snapshot=await this.transaction(false,async t=>({
@@ -82,6 +85,11 @@ export class BrowserNativeSyncCore {
    if(!exact(logicalCommit,['id','inputId','documentId','sourceRefs'])||operations.length>=CORE_LIMITS.batch||operations.some(op=>op.type!=='inputWorkingMember'||op.value.logicalCommitId!==logicalCommit.id||op.value.datasetId!==this.datasetId||op.value.deviceId!==this.deviceId))fail('BNS_WORKING_COMMIT_INVALID');
    const value={...clone(logicalCommit),version:1,datasetId:this.datasetId,deviceId:this.deviceId,members:operations.map(op=>({type:op.type,entityId:op.entityId,revisionId:op.revisionId}))};
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'inputWorkingCommit',entityId:value.id,codecVersion:1,kind:'put',actor:'user',parents:[],value}));
+  }
+  if(sourceBootstrap){
+   if(!exact(sourceBootstrap,['id','sourceId','sourceKey','documentId','inputId','baselineId'])||operations.length!==6||operations.some(op=>op.type!=='sourceBootstrapMember'||op.actor!=='bootstrap'||op.parents.length||op.value.logicalCommitId!==sourceBootstrap.id||op.value.datasetId!==this.datasetId||op.value.deviceId!==this.deviceId))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+   const value={...clone(sourceBootstrap),version:1,datasetId:this.datasetId,deviceId:this.deviceId,members:operations.map(op=>({type:op.type,entityId:op.entityId,revisionId:op.revisionId}))};
+   operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'sourceBootstrapCommit',entityId:value.id,codecVersion:1,kind:'put',actor:'bootstrap',parents:[],value}));
   }
   if(operations.reduce((sum,operation)=>sum+bytes(operation).length,0)>CORE_LIMITS.batchBytes)fail('BNS_BATCH_BYTES');
   return {datasetId:this.datasetId,deviceId:this.deviceId,baseSequence:snapshot.sequence,baseGeneration:snapshot.generation,baseNamespace:snapshot.namespace,operations};
@@ -136,7 +144,8 @@ export class BrowserNativeSyncCore {
   }
   return false;
  }
- async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null}={}){
+ async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null}={}){
+  if(origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
   if(origin==='remote'&&['inputWorkingMember','inputWorkingCommit'].includes(operation.type)&&(workingCapability===null||this.#workingTransactions.get(t)!==workingCapability))fail('BNS_WORKING_COMMIT_REQUIRED');
   if(operation.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');
   const quarantined=await this.get(t,'quarantine',operation.operationId);if(quarantined){if(quarantined.digest!==operation.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'quarantined',reason:quarantined.reason};}
@@ -215,6 +224,19 @@ export class BrowserNativeSyncCore {
   const capability=Object.freeze({});this.#workingTransactions.set(t,capability);
   try{for(const operation of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,operation,{origin:'remote',materialize:false,workingCapability:capability});const head=await this.get(t,'head',operation.type,operation.entityId);if(result.state!=='applied'||head?.purged||!equal(head?.revisions,[operation.revisionId]))fail('BNS_WORKING_ANCESTRY_REQUIRED');}await writeOwner();return {state:'applied'};}
   finally{this.#workingTransactions.delete(t);}
+ }
+ async prepareSourceBootstrapReceive(input){
+  if(!Array.isArray(input)||input.length!==7||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_BOOTSTRAP_INVALID');operations.push(op);}
+  const descriptors=operations.filter(op=>op.type==='sourceBootstrapCommit');if(descriptors.length!==1)fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
+  if(v.datasetId!==this.datasetId||v.deviceId!==descriptor.deviceId||new Set(operations.map(op=>op.operationId)).size!==7||new Set(operations.map(op=>op.sequence)).size!==7)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
+  for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(hits.length!==1)fail('BNS_SOURCE_BOOTSTRAP_INCOMPLETE');const op=hits[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_SOURCE_BOOTSTRAP_INVALID');}
+  const prepared={descriptor,members};const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};freeze(prepared);this.#bootstrapPrepared.add(prepared);return prepared;
+ }
+ async commitSourceBootstrapReceive(t,prepared,writeOwner){
+  if(!this.#bootstrapPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const previous=await this.get(t,'receipt',prepared.descriptor.operationId);if(previous){if(previous.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}
+  const cap=Object.freeze({});this.#bootstrapTransactions.set(t,cap);
+  try{for(const op of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,bootstrapCapability:cap});const head=await this.get(t,'head',op.type,op.entityId);if(result.state!=='applied'||head?.purged||!equal(head?.revisions,[op.revisionId]))fail('BNS_SOURCE_BOOTSTRAP_INVALID');}await writeOwner();return {state:'applied'};}finally{this.#bootstrapTransactions.delete(t);}
  }
  async receive(operation){
   return (await this.receiveBatch([operation]))[0];

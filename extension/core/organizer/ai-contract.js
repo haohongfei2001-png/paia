@@ -43,3 +43,19 @@ export function isStoredAIPresentation(row,allowed){
  return AI_LIST_FIELDS.every(f=>Array.isArray(row[f])&&row[f].length<=20&&row[f].every(x=>record(x)&&typeof x.text==='string'&&x.text.length<=2000&&Array.isArray(x.evidenceEntryIds)&&x.evidenceEntryIds.length>0&&x.evidenceEntryIds.every(id=>allowed.has(id))));
 }
 export const presentationContent=row=>Object.fromEntries(['topicId',...AI_FIELDS,'evidenceEntryIds'].map(k=>[k,structuredClone(row[k])]));
+
+// Internal local-result envelope only; schema-1 persisted fields stay unchanged.
+export function validateLocalOrganizeResponse(response,request){
+ if(!record(response)||Object.keys(response).some(k=>!['presentation','sourceSpans'].includes(k))||!Array.isArray(response.sourceSpans)||response.sourceSpans.length>122)reject('INVALID_OUTPUT');
+ const result=validateAIPresentation(response.presentation,{inputs:request.inputs,context:[],topicCandidates:[{id:request.topicId}]}),seen=new Set();
+ const boundary=(text,n)=>Number.isSafeInteger(n)&&n>=0&&n<=text.length&&(n===text.length||[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text)].some(segment=>segment.index===n));
+ for(const span of response.sourceSpans){
+  if(!record(span)||Object.keys(span).length!==6||!['field','index','entryId','revision','start','end'].every(k=>Object.hasOwn(span,k))||!AI_FIELDS.includes(span.field))reject('INVALID_OUTPUT');
+  const list=AI_LIST_FIELDS.includes(span.field);if(list?!Number.isSafeInteger(span.index)||span.index<0:span.index!==null)reject('INVALID_OUTPUT');
+  const value=list?result[span.field][span.index]?.text:result[span.field],entry=request.inputs.find(x=>x.ref===span.entryId),key=JSON.stringify([span.field,span.index]);
+  const evidence=list?result[span.field][span.index]?.evidenceEntryIds:result.fieldEvidenceEntryIds[span.field];
+  if(seen.has(key)||!value||!entry||entry.revision!==span.revision||!evidence?.includes(entry.ref)||!boundary(entry.text,span.start)||!boundary(entry.text,span.end)||span.end<=span.start||entry.text.slice(span.start,span.end)!==value)reject('INVALID_OUTPUT');seen.add(key);
+ }
+ if(request.style.value==='original')for(const field of AI_FIELDS){const values=AI_LIST_FIELDS.includes(field)?result[field].map((v,index)=>[v.text,index]):[[result[field],null]];for(const [value,index]of values)if(value&&!seen.has(JSON.stringify([field,index])))reject('INVALID_OUTPUT');}
+ return result;
+}

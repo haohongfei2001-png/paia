@@ -1,0 +1,21 @@
+import {assertSourceBootstrapReceipt} from './source-bootstrap-receipt.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {createHash} from 'node:crypto';import {join} from 'node:path';import {tmpdir} from 'node:os';
+import {instrumentedExtension,root,startNative} from './storage-harness.mjs';import {nativeSourceBootstrapFixture} from './source-bootstrap-fixture.mjs';import {assertWorkerLifecycle,assertNetworkLedger} from './proof-oracles.mjs';
+const head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:root,encoding:'utf8'}).trim();
+const files=['core/indexed-store.js','core/ia-store.js','core/source-initial.js','core/browser-native-sync/core.js','core/browser-native-sync/codecs.js','core/browser-native-sync/source-bootstrap-codec.js','core/browser-native-sync/source-bootstrap-plan.js','core/browser-native-sync/source-bootstrap-journal.js','core/browser-native-sync/source-bootstrap-receive.js','core/browser-native-sync/input-working-journal.js','core/browser-native-sync/input-working-commit.js','core/browser-native-sync/filter-intent-journal.js','core/smart-filter-store.js'];let sourceProof;
+for(const variant of ['source','release'])test('BNS optional initial Source bootstrap native '+variant,{timeout:180000},async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'paia-source-bootstrap-')),output=join(root,'work/qa-bns-source-bootstrap'),receipt={schema:1,head,tree,variant,scope:'optional-local-initial-ChatGPT-Source-bootstrap',result:'IN_PROGRESS',productionActivation:false,remoteMaterializer:true,fullRecovery:false};let extension,browser;await mkdir(output,{recursive:true});
+ try{
+  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(directory,'release')],{cwd:root,stdio:'pipe'});
+  extension=await instrumentedExtension(variant==='source'?root:join(directory,'release'));
+  await writeFile(join(extension.path,'background/bns-source-bootstrap-fixture.mjs'),nativeSourceBootstrapFixture(await readFile(join(root,'tests/browser-native-sync-source-bootstrap.test.mjs'),'utf8')));
+  const worker=join(extension.path,'background/service-worker.js'),text=await readFile(worker,'utf8');assert.ok(text.includes("import './bns-native-storage-fixture.mjs';"));await writeFile(worker,text.replace("import './bns-native-storage-fixture.mjs';","import './bns-native-storage-fixture.mjs';\nimport './bns-source-bootstrap-fixture.mjs';"));
+  receipt.hashes=Object.fromEntries(await Promise.all(files.map(async file=>[file,createHash('sha256').update(await readFile(join(extension.path,file))).digest('hex')])));
+  browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('source-bootstrap-matrix');assert.equal(receipt.cases.length,23);assert.equal(new Set(receipt.cases).size,23);
+  const before=await browser.call('source-bootstrap-durable-create');receipt.restart=await browser.restart();const replay=await browser.call('source-bootstrap-durable-read',before);assert.deepEqual(replay,{duplicate:true,noEcho:true,baselineId:before.before.revisions[0].id});
+  receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);assertWorkerLifecycle(receipt.restart);assertNetworkLedger(receipt.isolation.networkLedger,[receipt.restart]);const paused=receipt.isolation.networkLedger.observations.filter(row=>row.point==='paused-before-stop'&&row.lifetime===receipt.restart.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(receipt.restart.pausedNetwork,paused[0]);
+  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assertSourceBootstrapReceipt(receipt,{head,tree,variant});
+ }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
+ finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
+});

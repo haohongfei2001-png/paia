@@ -1,5 +1,11 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Latest integration checkpoint — 2026-10-08 21:45 UTC
+
+PR217/0.30 merged normally at main `1b06ffc2ad0ed91475fefc99772c3a4351649004`, tree `1ddd70214e3dbbb4b02acfbf0a0882e902999a7a`. Runtime candidate290ae884 passed Full37845700194. Final8f13294d changed only two evidence documents; independent review verified unchanged code, dependencies, tests, CI and package identity, and light integration37848219297 passed. Skipped full jobs on that document-only amendment are not full passes. One exact-main Full/Prompt verification is pending. Prior0.29 exact-main Full37845431936 and Prompt37845430575 both passed.
+
+The next0.31 combines optional initial Source bootstrap and a real internal single-child Organize lifecycle. Exact localc6492298 has4334/4334unit and50/50whole-file native passes, strict seven-family receipt verification and independent integration review. See COHERENT-031-CANDIDATE for boundaries. It is not yet merged, installed, a real account connection or production Qwen activation. Source append and cache-producing full adoption are separate future0.32 work. Continue executable independent tasks while hosted gates run.
+
 ## Latest coordinated checkpoint — 2026-10-08 21:15 UTC
 
 PR216/0.29 merged normally at main `fa251c3d64d977f55cbec61962b3004dc3df2698`; tested merge71270895 and final head97418efb share exact tree6728b3df085d2187cd73e29ed73aae20e689acdf. Candidate Full37843556298 (all nine current browser groups and final aggregate) and Prompt37843556217 passed. Exact-main Full37845431936/Prompt37845430575 are running; not yet claimed complete. Prior96fb failures and all earlier cancellations remain failures.
