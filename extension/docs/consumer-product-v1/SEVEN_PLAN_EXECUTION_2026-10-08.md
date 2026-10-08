@@ -2,18 +2,23 @@
 
 The latest owner instruction selects all seven rows below. This supersedes the
 prior Archive execution exclusion, not IAH-1.1's confirmed minimal design. Remote
-main checked at `5e58f05974b032294af4252fb3e6aec98c110a77`; its runtime is unchanged
-from Root merge `daf180762e2fe7718dfcddcf345c6a11749aad8e`.
+main checked at `f1740bc47ff8495bdf3457b5db195075a7404c87`, integrating Settings
+0.20 via PR198 after exact candidate full and Prompt certification. Main's own
+[Full37706096966](https://github.com/haohongfei2001-png/paia/actions/runs/37706096966)
+and [Prompt37706097001](https://github.com/haohongfei2001-png/paia/actions/runs/37706097001)
+have both succeeded on that exact main SHA; its tree matches candidate0f750af.
+These results certify the Settings batch, not completion of all seven lanes.
 
 | Lane / stage position | Verified boundary | Next executable batch / dependency | Owner |
 |---|---|---|---|
-| TOPIC-01–06, 05.1–05.8 | Root 0.19 merged via PR185; Section reader combination remains unmerged with failed regression evidence | Complete Section native/legacy compatibility and exact generation/return checks; then reviewed chapter actions | Topic executor; coordinator owns shared navigation |
-| CTX4-01–07 | Local 01–03 merged; 04/05 deny unavailable verifier; external connection/overall closure incomplete | Close missing eligible local visual states; preserve explicit external gates | Coordinator |
-| SET2-01–05 | Recovered style/details/reset code; prior candidate browser evidence is version-bounded | Independently deliver Settings after Root merge review and fresh source/release/affected checks; preserve Section combination branch | Coordinator; independent reviewer |
-| SYNC-01–06 | PR192 partial local Core/Prompt evidence; full sync/restore/cloud/device coverage incomplete | Review publication/retirement and certify native partial boundary on integrated main; actual cloud remains gated | Sync executor; coordinator alone writes shared data |
-| AI-COST-01–07 | Local 01 foundation and reviewed pure 02 policy; no paid dispatch | Complete exact browser/routing evidence and integrate bounded foundation; no service/atomic-ledger completion claim | AI executor; coordinator owns runtime admission |
-| Prompt Surface / Stage 3A / AI-COST-06 dependency | Position-reset/native fixture work preserved; this is not whole Prompt delivery | Integrate recovered reset with Settings, then remaining explicitly approved dependency work | Coordinator |
-| IAH-1.1 / outcomes 01–06 | Minimal design approved; runtime now selected, acceptance pending | Existing search scope + Input-first results/state; then exact arrival/normal-flow return; then combined acceptance | Results executor owns smart-filter only; coordinator owns shared Archive/navigation |
+| TOPIC-01–06, 05.1–05.8 | Root0.19 merged; Section0.21 PR190 headb2fe6cb1 reconciles current Settings/main with reviewed arrival/continuation fixes | Complete exact-current Section native, candidate and combined full checks; then preserved chapter actions | Coordinator; Section verifier |
+| CTX4-01–07 | Local01–03 merged;04/05 unavailable verifiers still deny; external connection/overall closure incomplete | Complete eligible behavioral/visual gaps; actual reference package and real connection evidence remain separate | Coordinator |
+| SET2-01–05 | Settings0.20 PR198 merged; Full37704406932 and Prompt37704406755 passed | Exact-main Full37706096966 and Prompt37706097001 passed; remaining whole-SET2/user/device acceptance stays scoped | Coordinator; independent reviewer |
+| SYNC-01–06 | Partial Core/publication/retirement proofs; 0a8d0fd7 combines current main with156 owning checks and matched-dependency native36/36 passed | Exact-head native/CI proof then bounded integration; complete production restore/cloud/device coverage remains open | Coordinator owns shared data; independent verifier |
+| AI-COST-01–07 |01 local foundation;02 pure policy plus c24128a fixture atomic reservation/unknown holds;74 related checks pass, independent13 pass | Current candidate/reconciliation; trusted production ledger/entitlement/settlement and paid dispatch remain unqualified | AI executor owns isolated module; coordinator owns runtime admission |
+| Prompt Surface / Stage3A / AI-COST-06 | Position reset merged with Settings; Stage3A1c9e8580 reconciles current owners with165 checks and300 prior routes preserved | One bounded Linux hosted comparison for unresolved local native pointer failure; reset/draft case not yet reached | Prompt verifier; coordinator owns runtime |
+| IAH-1.1 / outcomes01–06 | PR199 ef20ca3: truthful scope/Input-first, Unicode-safe Range, narrow filtered reveal, fresh primary, deep/current-match arrival; native2/2 and related2/2 passed | Reconcile current main; remaining revision/generation metadata and complete origin-aware Back; selected visual/accessibility/combined acceptance | Results verifier; coordinator owns Archive/navigation/data |
+
 
 Assignments describe current responsibility, not completion percentages. Independent
 work uses separate branches and nonoverlapping file ownership. Shared data,

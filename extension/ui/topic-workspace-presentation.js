@@ -11,11 +11,29 @@ export function topicPresentationFacts(overview,sort='desc'){
  return {caption:range.length?(range[0]===range.at(-1)?String(range[0]):`${range[0]}—${range.at(-1)}`)+' · 已收录的表达':'表达时间未知',coverage:`按时间完整浏览，不按“重要性”删表达。${known}条有时间${unknown?`，另${unknown}条时间未知`:''}。`,years:[...years.map(String),...(unknown?['unknown']:[])]};
 }
 
+// Chromium's native caret scrolling does not account for the compact sticky
+// navigation rail. Keep only the active Topic title's selection below it;
+// neither editable nodes nor the native Selection are replaced.
+export function revealCompactTopicTitleSelection(root){
+ const title=root?.querySelector('#topic-heading h1');
+ if(!title||document.activeElement!==title||!title.isConnected||innerWidth>=768)return;
+ const selection=getSelection();if(!selection?.rangeCount)return;
+ const range=selection.getRangeAt(0);if(!title.contains(range.commonAncestorContainer))return;
+ const rail=document.querySelector('.sidebar');if(!rail)return;
+ const style=getComputedStyle(rail);if(!['sticky','fixed'].includes(style.position))return;
+ const barrier=rail.getBoundingClientRect(),rect=range.getBoundingClientRect();
+ if(barrier.top>0||barrier.bottom<=0||!rect.height)return;
+ const top=barrier.bottom+4;
+ if(rect.top<top)window.scrollBy(0,rect.top-top);
+ else if(rect.bottom>innerHeight-4)window.scrollBy(0,rect.bottom-innerHeight+4);
+}
+
 export class TopicWorkspacePresentation {
  constructor(owner){
   this.owner=owner;this.topicId=owner.id;this.view=owner.view;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
   const previous=readingOptions.get(owner),active=document.activeElement;readingOptions.delete(owner);
   const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
+  this.selectionFrame=null;this.onTitleSelection=()=>{if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);this.selectionFrame=requestAnimationFrame(()=>{this.selectionFrame=null;if(!this.disposed)revealCompactTopicTitleSelection(this.root);});};document.addEventListener('selectionchange',this.onTitleSelection);
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
   move(toolbar.querySelector('.library-history-tools'),menu);
   this.caption=make('p','dvn-topic-caption');title.after(this.caption);
@@ -23,21 +41,25 @@ export class TopicWorkspacePresentation {
   this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
   this.options.open=previous?.topicId===this.topicId&&previous?.view===this.view&&previous.open===true;
   this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
-  this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent='写下想法';this.sync();
+  this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent=document.documentElement.lang==='en'?'Add Thought':'写下想法';this.sync();
   // A dialog may close before its read finishes, returning focus to a control
   // that this same-view remount must move again. Preserve only that move loss.
   if(previous?.topicId===this.topicId&&previous?.view===this.view&&active?.isConnected&&document.activeElement===document.body&&this.moves.some(({node})=>node===active||node.contains(active)))active.focus({preventScroll:true});
  }
  sync(){
-  const owner=this.owner,page=owner.document,facts=topicPresentationFacts(owner.originalMode==='years'?owner.topicTimeline?.overview:page?.overview,owner.readingSort);this.caption.textContent=facts.caption;this.coverage.textContent=facts.coverage;
+  const owner=this.owner;
   if(this.topicId!==owner.id||this.view!==owner.view){this.options.open=false;this.topicId=owner.id;this.view=owner.view;}
-  const content=owner.view==='original'&&owner.originalMode!=='years';this.line.hidden=!owner.id;this.coverage.hidden=!content;this.years.hidden=!content;this.caption.hidden=!owner.id;
-  const signature=JSON.stringify([facts.years,[...owner.originalPane?.querySelectorAll('[data-expression-year]')||[]].map(node=>node.dataset.expressionYear)]);
-  if(this.signature!==signature){this.signature=signature;this.years.replaceChildren();for(const year of facts.years){const button=element('button','',year==='unknown'?'时间未知':year);button.type='button';const target=()=>[...owner.originalPane?.children||[]].find(node=>node.dataset.expressionYear===year);button.disabled=!target();if(button.disabled)button.title='该年份尚未载入当前阅读窗口';button.addEventListener('click',()=>{const node=target();node?.scrollIntoView({block:'start',behavior:'instant'});node?.querySelector('h2')?.focus({preventScroll:true});});this.years.append(button);}}
+  const content=owner.view==='original';this.line.hidden=!owner.id;this.coverage.hidden=true;this.years.hidden=true;this.caption.hidden=true;
+  // Date ranges, count summaries and a year index belong to evidence/history,
+  // not the normal durable Section reader. Keep only the existing controls.
+  this.coverage.textContent='';this.caption.textContent='';this.years.replaceChildren();
+  const tabs=document.getElementById('topic-original-tabs');if(tabs)tabs.hidden=true;
+  const order=document.getElementById('topic-time-order');if(order)order.hidden=true;
+  if(content){const outline=document.getElementById('topic-outline');if(outline)outline.hidden=true;}
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
-  if(this.disposed)return;this.disposed=true;
+  if(this.disposed)return;this.disposed=true;document.removeEventListener('selectionchange',this.onTitleSelection);if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);
   readingOptions.set(this.owner,{topicId:this.topicId,view:this.view,open:this.options.open});
   const active=document.activeElement,moved=this.moves.some(({node})=>node===active||node.contains(active));
   this.root.classList.remove('dvn-topic-composition');this.write.textContent=this.writeLabel;for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();
