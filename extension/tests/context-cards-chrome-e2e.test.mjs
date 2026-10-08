@@ -49,7 +49,9 @@ for(const variant of ['source','release'])test('CTX4 real four-card durable edit
  // CTX4-07 state 05: a real protected edit before dispatch, not a saved ACK.
  const editingBefore=(await read(p)).items[0],editingText='SYNTHETIC 第二次修改，保留稳定身份。';
  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__ctx405={node:document.querySelector('#memory-panel .item-text'),dispatches:0,acks:0,restore:()=>{chrome.runtime.sendMessage=send;}};chrome.runtime.sendMessage=async(message,...args)=>{const put=message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&message.change?.kind==='put';if(put)__ctx405.dispatches++;const reply=await send(message,...args);if(put)__ctx405.acks++;return reply;};});
- await p.clock.pauseAt(new Date());
+ // The earlier erase fixture already advanced this installed browser clock.
+ // Anchor in that same clock, then pause in its future before changing the draft.
+ const editingClockAt=await p.evaluate(()=>Date.now());await p.clock.pauseAt(editingClockAt+1000);
  try{
   await field(p).fill(editingText);await eventually(async()=>(await rpc(p,'PAIA_CONTEXT_CARDS_DRAFTS')).some(d=>d.ownerId===id&&d.operation.change.body===editingText),'state 05 real draft is protected before save');
   assert.deepEqual((await read(p)).items[0],editingBefore);assert.equal(await field(p).evaluate(el=>el===__ctx405.node&&el===document.activeElement),true);assert.equal(await field(p).innerText(),editingText);

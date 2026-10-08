@@ -36,3 +36,9 @@ Full 22-state comparison, installed/physical devices/IME, automatic maintenance 
 - `work/ctx4-01/release/05-inline-unsaved-editing.json` SHA256 `ca880f9a05a3f261d44238756619006f4ead890f42587bd7e0017f903e67f49d`
 - `work/ctx4-01/release/ctx4-03/17-new-topic-off.png` SHA256 `29746d863363cf292554440b3545a6fac71d66453504f484b4ef50e75a57a155`
 - `work/ctx4-01/release/ctx4-03/17-new-topic-off.json` SHA256 `b5764d37492ea75fe3f6367a0b1f00fe3188814c2c38595d27efd5b1ebeeb5d6`
+
+## 0.30 combined clock qualification
+
+Combination base `76764fe7`. The preceding 0.29 erase fixture installs and advances the page's UI clock. State 05 must therefore not pause it at a separately sampled Node `new Date()`, which can be behind that installed clock. It now samples one fixed origin from the actual browser clock and pauses at origin + 1000 ms **before** editing. No runtime, autosave interval, worker clock, assertion or test budget changes. Original media readiness, state 05 protected draft/same node/zero dispatch/zero ACK/unchanged saved row, state 17, failure, IME and all six journeys are retained.
+
+Exact combined original file source/release: **6/6 PASS**, zero fail/skipped/cancelled, 72.71485525 s; `/tmp/context-030-clock-final.log`. This supersedes neither historical hashes above nor broader visual/external acceptance limits. Current test SHA256: `66522f995c3330a3e00c52adad1644a532eed6541ab5419b3ecf2d897cfbf5cc`. Syntax and diff checks pass. Synthetic PNG/JSON artifacts stay local and are not committed.
