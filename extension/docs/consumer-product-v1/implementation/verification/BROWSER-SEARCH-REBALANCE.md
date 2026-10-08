@@ -1,0 +1,7 @@
+# Measured whole-file browser rebalance
+
+Full runs 37775540355 (Prompt 8a38c864) and 37777034587 (AI 4a0eb634) were cancelled when Browser 3 exceeded the unchanged 18-minute job budget. The former recorded 155 passing browser cases but its cancelled job is not PASS; the latter was interrupted during UX-R4 F-LARGE and that file is unverified. Other six browser groups passed. This is a measured capacity failure, not permission to weaken tests or extend timeouts.
+
+Move only the complete `ux-r4-search-reuse-chrome-e2e.test.mjs` file from shard 3 to shard 6 at width 7. Its first run's serial log interval was approximately 257.59 seconds, including setup/teardown; shard 6's observed total jobs were 461 and 500 seconds. These are observed intervals, not a runtime SLO guarantee. Widths 4/5/6, all test cases, concurrency, workflow budgets, artifacts and aggregate requirements remain unchanged.
+
+An independent reconstruction from exact parent `8a38c8644605be6919c114f0b6866ada36a2552d` verified all 83 files and 332 placements. Exactly one placement changes; the other 331 remain identical. Frozen previous baselines are retained, with the measured exception asserted explicitly. Root ran 19 owning guards and the coverage contract; independent review ran 17 complete guards and regenerated the frozen fixture. Both passed. New exact-head full certification is required; cancelled runs are preserved. Local raw logs and annotation JSON are indexed by `work/full-browser3-budget-review.md` in the coordination workspace.
