@@ -29,7 +29,10 @@ for(const variant of ['source','release'])test('BNS manual Context native owner 
   assertWorkerLifecycle(evidence.restart);
   const restored=await device.call('durable-restore');evidence.restoreRestart=await device.restart();assertWorkerLifecycle(evidence.restoreRestart);
   const rejected=await device.call('durable-reject');assert.equal(rejected.code,'BNS_RESTORE_EPOCH_CHANGED');assert.deepEqual(rejected.before,restored);assert.deepEqual(rejected.after,restored);
-  evidence.isolation=await device.isolation();assert.equal(evidence.isolation.nativeFactory,true);assert.equal(evidence.isolation.networkAttempts,0);assert.equal(evidence.isolation.httpRequests,0);assertNetworkLedger(evidence.isolation.networkLedger,[evidence.restart,evidence.restoreRestart]);evidence.result='PASS';
+  const continuation=await device.call('continuation-create');assert.deepEqual(continuation.revisions,[['info',129],['rules',129],['now',129]]);
+  evidence.continuationRestart=await device.restart();assertWorkerLifecycle(evidence.continuationRestart);
+  const resumed=await device.call('continuation-resume');assert.deepEqual(resumed.revisions,[['info',130],['rules',130],['now',130]]);evidence.continuation={before:continuation.revisions,after:resumed.revisions};
+  evidence.isolation=await device.isolation();assert.equal(evidence.isolation.nativeFactory,true);assert.equal(evidence.isolation.networkAttempts,0);assert.equal(evidence.isolation.httpRequests,0);assertNetworkLedger(evidence.isolation.networkLedger,[evidence.restart,evidence.restoreRestart,evidence.continuationRestart]);evidence.result='PASS';
  }catch(error){evidence.error=error.stack;throw error;}
  finally{await device?.close();await extension?.cleanup();await rm(output,{recursive:true,force:true});await mkdir(join(root,'work/qa-bns-context-info'),{recursive:true});await writeFile(join(root,'work/qa-bns-context-info',variant+'.json'),JSON.stringify(evidence,null,2));}
 });
