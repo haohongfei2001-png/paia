@@ -2,6 +2,12 @@
 
 The owner's latest scope includes all seven lanes and IAH-1.1's confirmed minimal design. Work continues while any approved independent task is executable; the20-minute heartbeat is a recovery/check-in mechanism, not a turn deadline. Preserve each failure and exact code/dependency evidence. This record is an engineering checkpoint, not whole-product completion or installation acceptance.
 
+## Current integration checkpoint — 2026-10-08 21:15 UTC
+
+0.29 is merged as mainfa251c3d after all candidate Full37843556298/Prompt37843556217 gates passed. Exact-main Full37845431936/Prompt37845430575 remain pending. This delivers SET2 single-Placement recovery/copy fixes and CTX coarse targets, plus local SYNC existing-Input receive and exact AI child metadata. It does not activate providers or certify full numbered lanes.
+
+0.30 fresh-main candidate follows with bounded Working inbox, internal saved-AI cache qualification and precise Context05/17 evidence. Future Sourcebootstrap is independently reviewed and excluded from0.30. AI-COST05 next local feature lifecycle is separately bounded to one child/legacy eight fields, no worker/provider activation; multi-child incremental200+5/versioned manifests remain unfinished. Other lane positions and external gates in the following table remain applicable where not superseded by these exact integration facts.
+
 ## Current seven-lane checkpoint — 2026-10-08 20:38 UTC
 
 Main53217db6 /0.28 is merged and exact-main certified: Full37839080097 and Prompt37839080116 PASS, matching reviewed candidate tree. The local package is built and verified, not installed. PR216/0.29 has a known historical routing-inventory failure with independently reviewed correction awaiting one coherent push after current results. Future0.30 remains local. Older checkpoint blocks below preserve history and do not supersede these facts.
