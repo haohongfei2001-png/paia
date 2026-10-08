@@ -244,16 +244,17 @@ export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
 }
 
 // Internal local feature lifecycle. No worker route exposes these transaction APIs.
-export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null,incrementalVersion=1){
+export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null,incrementalVersion=1,physicalChildren=1){
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0};
  if(!gate?.enabled||await t.get('meta','backup-recovery-settings'))reject('UNAVAILABLE');
  const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch,{expectedProfile}),style=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
  if(!style.available||topic.userDraft||topic.candidate||topic.unavailable.length||topic.excluded.length)reject('STALE_BASE');
  const incremental=incrementalVersion===2?planIncrementalV2(topic,style,expectedProfile,JSON.stringify([gate.epoch,restore?.value??'initial',style,await sourcePolicy(t)])):null,selected=incremental?incremental.selected:topic.entries;
- if(!topic.entries.length||selected.length>100||selected.length>s.organizerBudget.limits.maxInputs||bytes(selected.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes)reject('BUDGET_EXCEEDED');
+ if(!Number.isInteger(physicalChildren)||physicalChildren<1||physicalChildren>4||physicalChildren>1&&incrementalVersion!==2)reject('INVALID_REQUEST');
+ if(!topic.entries.length||selected.length>100||selected.length>s.organizerBudget.limits.maxInputs*physicalChildren||bytes(selected.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes*physicalChildren)reject('BUDGET_EXCEEDED');
  const inputs=selected.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic);
  if(!cache.complete||!cache.evidenceVersion)reject('STALE_BASE');
- return {topic,incremental,incrementalVersion,profile:expectedProfile,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion,incrementalVersion,incrementalVersion===2?topic.incrementalVersions:null])};
+ return {topic,incremental,incrementalVersion,physicalChildren,profile:expectedProfile,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion,incrementalVersion,incrementalVersion===2?topic.incrementalVersions:null])};
 }
 // IDB evidence/restore/policy share the surrounding readonly transaction. Local
 // preferences use this store's serialized control snapshot; recheck it after
@@ -263,7 +264,7 @@ export async function assertLocalOrganizeCacheControls(s,t,prepared){
  for(const value of [controls,current]){const style=readAIStyle(value?.preferences,prepared.style.expectedEpoch);if(value?.settings?.enabled!==true||value.settings.epoch!==prepared.gateEpoch||!style.available||style.value!==prepared.style.value||style.revision!==prepared.style.expectedRevision||style.epoch!==prepared.style.expectedEpoch)reject('STALE_BASE');}
 }
 export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null}){
- const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion);if(current.proof!==prepared.proof)reject('STALE_BASE');
+ const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren);if(current.proof!==prepared.proof)reject('STALE_BASE');
  const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion===2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,t,topic,topic,current.gateEpoch,prepared.incrementalVersion===2),candidateId,manifestDigest});
  if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};await t.put('meta',{...base,candidate,needsUpdate:false,stale:false});await candidateFence(t,topic.id,candidate);}
  if(prepared.incrementalVersion!==2)await t.put('meta',{...cp,version:3,topicVersions:{...cp.topicVersions,[topic.id]:topic.versions},inputVersions:await acknowledgedInputs(s,t,cp,topic,topic.versions),updatedAt:s.clock()});

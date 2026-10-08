@@ -2,6 +2,9 @@ import {assertAssistIntent,validateAssistIntent,qualifiedCoverageId} from './ass
 import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX,HUMAN_FENCE,deltaDescription,deltaSignature} from './delta.js';
 import {JOB_TYPES,CHILD_LIMITS,fail,opaque,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor} from './contracts.js';
+const ATOMIC='ai_organize_atomic_v1';
+const atomicJob=j=>j?.kind===ATOMIC&&j.version===1&&j.commitMode==='organize-atomic-v1'&&j.type==='AI_ORGANIZE'&&j.childIds?.length>=2&&j.childIds.length<=4;
+const knownJob=j=>j?.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j);
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1';
 const terminal=new Set(['COMMITTED','CANCELLED_BEFORE_DISPATCH','REJECTED','EXPIRED_UNCOMMITTED']);
 const coverId=(key,facet,scope)=>'aiu:coverage:'+canonical([key,facet,scope]);
@@ -14,7 +17,7 @@ async function count(t,key){const row=await t.get('meta',COUNTERS)||{id:COUNTERS
 // Only constructor-injected domain owners can commit. There is no production
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
- constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,committers={}}={}){this.s=store;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,committers={},organizeClosure=null}={}){this.s=store;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope){
@@ -79,8 +82,9 @@ export class AIUsageFoundation {
  async plan(request){
   // Capture caller-owned evidence before any authority or storage await.
   request=structuredClone(request);
-  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent'],['type','items','coverage','contractVersion','routeVersion','intent']);
+  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent','commitMode'],['type','items','coverage','contractVersion','routeVersion','intent']);
   const {type,items,contractVersion,routeVersion,intent}=request;
+  const atomic=Object.hasOwn(request,'commitMode');if(atomic&&(request.commitMode!=='organize-atomic-v1'||type!=='AI_ORGANIZE'||typeof this.organizeClosure!=='function'))fail();
   const assisted=Object.hasOwn(request,'assistIntent'),assistIntent=assisted?validateAssistIntent(type,request.assistIntent):null;
   if(type==='AI_ASSIST'&&(!assisted||typeof this.resolveAssistIntent!=='function'))fail('UNAVAILABLE');
   const styled=Object.hasOwn(request,'organizeStyle'),organizeStyle=styled?validateOrganizeStyle(type,request.organizeStyle):null;
@@ -89,19 +93,20 @@ export class AIUsageFoundation {
   const coverage=validateCoverage(request.coverage,type);if(coverage.some(u=>!seen.has(u.key))||items.some(i=>!coverage.some(u=>u.key===i.key))||type==='AI_MAINTENANCE'&&coverage.every(u=>u.facet==='filter'))fail();
   const children=(request.children||[coverage]).map(c=>validateCoverage(c,type)).sort((a,b)=>canonical(a).localeCompare(canonical(b)));
   if(!children.length||children.length>CHILD_LIMITS[type]||!equal(children.flat().map(unitKey).sort(),coverage.map(unitKey).sort()))fail();
+  if(atomic&&(children.length<2||coverage.some(u=>u.facet!=='organize')))fail();
   const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...(assisted?{assistIntent}:{})});return {authority};});
   const scope=items.map(i=>({key:i.key,signature:i.signature})).sort((a,b)=>a.key.localeCompare(b.key));
-  const identity={...(assisted?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
+  const identity={...(atomic?{commitMode:request.commitMode}:{}),...(assisted?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
   const organizeSemanticKey=styled?await digest({...identity,style:styleSemantics(organizeStyle)}):null;
   const id='aiu:job:'+await digest(styled?{...identity,organizeStyle}:identity);
   const childIds=await Promise.all(children.map((c,index)=>digest([id,index,c]).then(hash=>'aiu:child:'+hash)));
   const targetScopes=[...new Set(coverage.map(c=>c.scope))].sort();
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':targetScopes]);
-  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:KIND,type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
+  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:atomic?ATOMIC:KIND,...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   return this.write(async t=>{
    await this.current(t,proposed);
-   const prior=await t.get('organizerJobs',id);if(prior){if(prior.kind!==KIND)fail();
+   const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();
     if(!equal(prior.authority,proposed.authority)&&prior.cancelEpoch===0&&['PLANNED','RESERVED'].includes(prior.state)){
      for(const childId of prior.childIds){const r=await t.get('organizerUsage',receiptId(childId));if(await t.get('meta',dispatchFenceId(childId))||r&&(r.attemptCount!==0||r.state!=='RESERVED'&&!(r.executionKind==='local'&&['PLANNED','COMMITTED'].includes(r.state))))fail('OUTCOME_UNKNOWN');}
      // Rebind a never-dispatched plan to current local fences without changing
@@ -111,7 +116,7 @@ export class AIUsageFoundation {
     }
     return safeJob(prior);
    }
-   const active=await t.get('meta',flightId);if(active){const job=await t.get('organizerJobs',active.jobId);if(!job&&active.dispatched)fail('OUTCOME_UNKNOWN');if(job&&!terminal.has(job.state)){
+   const active=await t.get('meta',flightId);if(active){const job=await t.get('organizerJobs',active.jobId);if(!job&&active.dispatched)fail('OUTCOME_UNKNOWN');if(job&&!knownJob(job))fail();if(job&&!terminal.has(job.state)){
     let stale=false;try{await this.current(t,job);}catch(error){if(!['CANCELLED','STALE_BASE'].includes(error.code))throw error;stale=true;}
     if(!stale||!['PLANNED','RESERVED'].includes(job.state))fail('REQUEST_ALREADY_IN_FLIGHT');
     for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.attemptCount)fail('OUTCOME_UNKNOWN');if(receipt){receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';await t.put('organizerUsage',receipt);}}
@@ -121,10 +126,11 @@ export class AIUsageFoundation {
    if(allCovered.length===coverage.length){await count(t,'skippedNoDelta');return {id:null,type,state:'NO_DELTA',childIds:[],committedCoverage:allCovered,cancelEpoch:0};}
    // No coarse checkpoint is advanced: exact incomplete facet/scope units stay.
    if(type==='AI_MAINTENANCE')for(const item of items){let dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(dirty&&dirty.signature!==item.signature)fail('STALE_BASE');if(!dirty)dirty={...(await t.get('meta',KNOWN_PREFIX+item.key)),id:DIRTY_PREFIX+item.key,requirements:[],pendingFacets:[]};const needed=coverage.filter(c=>c.key===item.key&&!allCovered.includes(unitKey(c)));dirty.requirements=[...new Set([...(dirty.requirements||[]),...coverage.filter(c=>c.key===item.key).map(unitKey)])].sort();dirty.pendingFacets=[...new Set([...(dirty.pendingFacets||['topic','context']),...needed.map(c=>c.facet)])].sort();await t.put('meta',dirty);}
+   if(atomic&&allCovered.length)fail('STALE_BASE');
    proposed.committedCoverage=allCovered;await t.put('organizerJobs',proposed);await t.put('meta',{id:flightId,jobId:id});return safeJob(proposed);
   });
  }
- async job(t,id){const job=await t.get('organizerJobs',id);if(!job||job.kind!==KIND)fail();return job;}
+ async job(t,id){const job=await t.get('organizerJobs',id);if(!knownJob(job))fail();return job;}
  async status(id){if(!opaque(id))fail();return this.read(async t=>{const job=await this.job(t,id),attempts=[];for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt)attempts.push(receipt);}return {...safeJob(job),attempts};});}
  async reserve(id,{reservationId,executionKind='fixture'}={}){
   if(!opaque(id)||!opaque(reservationId)||!['fixture','local'].includes(executionKind))fail('UNAVAILABLE');
@@ -132,6 +138,13 @@ export class AIUsageFoundation {
    for(let index=0;index<job.childIds.length;index++){const childId=job.childIds[index],existing=await t.get('organizerUsage',receiptId(childId)),covered=job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));if(covered&&existing?.state==='COMMITTED')continue;if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');if(existing&&(existing.attemptCount!==0||existing.state!=='PLANNED'||existing.executionKind!=='local'))fail('OUTCOME_UNKNOWN');await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:reservationId,executionKind,sequence:index,state:covered?'COMMITTED':'RESERVED',stateKey:covered?1:0,windowIds:[],attemptCount:0,spendState:covered?'NO_PROVIDER_COST':'RESERVED_UNPRICED',effectiveResultCount:0});}
    job.state='RESERVED';await t.put('organizerJobs',job);return safeJob(job);
   });
+ }
+ childRequest(job,index){
+   const id=job.id,childId=job.childIds[index];if(!childId)fail();
+   const coverage=job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),items=new Map();
+   for(const item of job.items){if(items.has(item.key))fail();items.set(item.key,item);}
+   const evidence=[...new Set(coverage.map(u=>u.key))].map(key=>{const item=items.get(key);if(!item)fail();return {key:item.key,signature:item.signature,lineage:item.descriptor.lineage};});
+   return {...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0};
  }
  async dispatch(id,childId,provider){
   const descriptor=localProviderDescriptor(provider);
@@ -144,15 +157,13 @@ export class AIUsageFoundation {
    if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');
    // Qualification above still covers the entire job. Only the outgoing child
    // metadata is narrowed, with an exact, unambiguous key closure before writes.
-   const coverage=job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),items=new Map();
-   for(const item of job.items){if(items.has(item.key))fail();items.set(item.key,item);}
-   const evidence=[...new Set(coverage.map(u=>u.key))].map(key=>{const item=items.get(key);if(!item)fail();return {key:item.key,signature:item.signature,lineage:item.descriptor.lineage};});
+   const request=this.childRequest(job,index);
    // Minimal nonportable anti-replay fence survives supported library replace,
    // which intentionally clears old transient job/usage rows. It is not a
    // second financial ledger and never grants admission.
    await t.put('meta',{id:dispatchFenceId(childId),version:1,jobId:id,childId});await t.put('meta',{id:job.flightId,jobId:id,dispatched:true});
    receipt.state='DISPATCHED';receipt.attemptCount=1;receipt.provider=descriptor;receipt.spendState='POSSIBLY_BILLABLE';await t.put('organizerUsage',receipt);job.state='DISPATCHED';await t.put('organizerJobs',job);await count(t,'physicalAttempt');
-   return {request:{...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0}};
+   return {request};
   });
   if(prepared.reused)return prepared;
   // Only the provider-neutral metadata boundary is exercised in this slice.
@@ -207,7 +218,7 @@ export class AIUsageFoundation {
   units=structuredClone(units);
   // Validate and commit one local subset atomically. An unresolved sibling (or
   // the remainder of this same child) is still PLANNED and can be reserved once.
-  return this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);const validated=validateCoverage(units,job.type),index=job.childCoverage.findIndex(c=>validated.every(u=>u.facet===facet&&c.some(v=>unitKey(u)===unitKey(v))));if(index<0)fail();
+  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job))fail();await this.current(t,job);const validated=validateCoverage(units,job.type),index=job.childCoverage.findIndex(c=>validated.every(u=>u.facet===facet&&c.some(v=>unitKey(u)===unitKey(v))));if(index<0)fail();
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);if(terminal.has(job.state))fail('CANCELLED');
    const childId=job.childIds[index],prior=await t.get('organizerUsage',receiptId(childId));if(prior&&(prior.executionKind!=='local'||prior.attemptCount!==0||prior.state!=='PLANNED'))fail();
    if(!prior)await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:'local-no-cost',executionKind:'local',sequence:index,state:'PLANNED',stateKey:0,windowIds:[],attemptCount:0,spendState:'NO_PROVIDER_COST',effectiveResultCount:0});
@@ -217,12 +228,30 @@ export class AIUsageFoundation {
  async commitFacet(id,childId,{facet,units,outcome='COMMITTED',retryCondition=null}={}){
   units=structuredClone(units);
   if(!['COMMITTED','NO_CHANGE','DEFER'].includes(outcome)||retryCondition!==null&&!opaque(retryCondition))fail();
-  return this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
+  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job))fail();await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
    if(index<0||!receipt||receipt.jobId!==id||!['RESPONSE_RECORDED','VALIDATED','COMMITTED'].includes(receipt.state))fail();
    return this.applyFacet(t,job,index,{facet,units,outcome,retryCondition});
   });
  }
+ async commitOrganizeClosure(id,{children}={}){
+  children=structuredClone(children);
+  return this.write(async t=>{
+   const job=await this.job(t,id);if(!atomicJob(job)||!Array.isArray(children)||children.length!==job.childIds.length)fail();
+   const seen=new Set();for(const child of children){exact(child,['childId','units']);const index=job.childIds.indexOf(child.childId);if(index<0||seen.has(child.childId)||!equal(validateCoverage(child.units,job.type),job.childCoverage[index]))fail();seen.add(child.childId);}
+   if(job.state==='COMMITTED'&&equal([...job.committedCoverage].sort(),job.coverage.map(unitKey).sort()))return safeJob(job);
+   await this.current(t,job);if(job.committedCoverage.length||typeof this.organizeClosure!=='function')fail('STALE_BASE');
+   for(const childId of job.childIds){const r=await t.get('organizerUsage',receiptId(childId));if(r?.kind!==KIND||r.jobId!==id||r.childId!==childId||r.state!=='RESPONSE_RECORDED'||!r.operationReceiptId)fail('OUTCOME_UNKNOWN');}
+   const result=await this.organizeClosure(t,Object.freeze({logicalJobId:id,childIds:[...job.childIds],units:structuredClone(job.coverage),children:structuredClone(job.childCoverage)}));
+   if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),job.coverage.map(unitKey).sort()))fail('STALE_BASE');
+   await this.current(t,job);
+   if(typeof result.isCurrent!=='function'||result.isCurrent()!==true)fail('STALE_BASE');
+   for(let i=0;i<job.childIds.length;i++)await this.settleFacet(t,job,i,job.childCoverage[i],{outcome:'COMMITTED'});
+   if(result.isCurrent()!==true)fail('STALE_BASE');
+   return safeJob(job);
+  });
+ }
  async applyFacet(t,job,index,{facet,units,outcome,retryCondition=null,local=false}){
+   if(atomicJob(job))fail('INVALID_REQUEST');
    const receipt=await t.get('organizerUsage',receiptId(job.childIds[index])),childId=job.childIds[index],id=job.id;
    const validated=validateCoverage(units,job.type),permitted=new Set(job.childCoverage[index].map(unitKey));if(validated.some(u=>u.facet!==facet||!permitted.has(unitKey(u))))fail();
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);
@@ -231,6 +260,11 @@ export class AIUsageFoundation {
    const result=await commit(t,Object.freeze({...(job.organizeStyle?{organizeStyle:structuredClone(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,units:structuredClone(remaining),outcome}));
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),remaining.map(unitKey).sort()))fail('STALE_BASE');
    if(job.organizeStyle||job.assistIntent)await this.current(t,job);
+   return this.settleFacet(t,job,index,remaining,{outcome,local});
+ }
+ async settleFacet(t,job,index,remaining,{outcome,local=false}){
+   const id=job.id;
+   const receipt=await t.get('organizerUsage',receiptId(job.childIds[index]));
    // Domain mutation, exact coverage and receipt are one IndexedDB transaction.
    for(const unit of remaining){const item=job.items.find(i=>i.key===unit.key);await t.put('organizerWorkItems',{id:qualifiedCoverageId(unit,job),kind:KIND,jobId:id,state:'ACKNOWLEDGED',stateKey:1,sequence:index,unit,signature:item.signature,outcome,inputIds:item.descriptor.inputIds,sourceRecordIds:item.descriptor.sourceRecordIds});job.committedCoverage.push(unitKey(unit));}
    if(job.type==='AI_MAINTENANCE')for(const item of job.items){const dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(!dirty||dirty.signature!==item.signature)continue;const pending=[];for(const facet of dirty.pendingFacets||['topic','context']){const requirements=dirty.requirements.map(encoded=>JSON.parse(encoded)).filter(([,f])=>f===facet);let complete=requirements.length>0;for(const [key,f,scope]of requirements){const ack=await t.get('organizerWorkItems',coverId(key,f,scope));if(ack?.signature!==item.signature){complete=false;break;}}if(!complete)pending.push(facet);}if(!pending.length)await t.delete('meta',DIRTY_PREFIX+item.key);else await t.put('meta',{...dirty,pendingFacets:pending});}

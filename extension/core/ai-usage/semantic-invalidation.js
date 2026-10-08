@@ -6,13 +6,17 @@ const integer=x=>Number.isSafeInteger(x)&&x>=0;
 // Overflow is deliberately all-or-nothing; existing current() remains mandatory.
 export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
  if(!stores.every(name=>t.tx.objectStoreNames.contains(name)))return {status:'UNSUPPORTED',checked:0,cancelled:0};
- const page=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_usage_v1',0]),null,LIMIT);
+ const legacy=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_usage_v1',0]),null,LIMIT);
+ if(legacy.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ const atomic=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_organize_atomic_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length));
+ const page={rows:[...legacy.rows,...atomic.rows],next:atomic.next};
+ if(page.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
  if(page.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
  if(!page.rows.length)return {status:'CHECKED',checked:0,cancelled:0,unsupported:0};
  const restore=await t.get('meta','recovery-restore-epoch'),gate=await t.get('meta','gate');
  let cancelled=0,unsupported=0;
  for(const {value:job}of page.rows){
-  if(job.kind!=='ai_usage_v1'||job.version!==1||job.cancelEpoch!==0||!Array.isArray(job.items)||!job.items.length||job.items.length>100||!Array.isArray(job.childIds)||!job.childIds.length||job.childIds.length>4||!job.authority){unsupported++;continue;}
+  if(!(job.kind==='ai_usage_v1'&&!Object.hasOwn(job,'commitMode')||job.kind==='ai_organize_atomic_v1'&&job.commitMode==='organize-atomic-v1'&&job.type==='AI_ORGANIZE'&&job.childIds?.length>=2)||job.version!==1||job.cancelEpoch!==0||!Array.isArray(job.items)||!job.items.length||job.items.length>100||!Array.isArray(job.childIds)||!job.childIds.length||job.childIds.length>4||!job.authority){unsupported++;continue;}
   const a=job.authority;
   // A human fence alone remains rebindable through the existing plan owner.
   // It is not evidence that this job's semantic inputs changed.
