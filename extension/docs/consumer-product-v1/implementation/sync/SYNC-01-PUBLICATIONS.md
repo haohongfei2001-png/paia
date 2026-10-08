@@ -223,3 +223,23 @@ Current main f1740bc is subsequently reconciled without runtime changes. Logs:
 work/sync-2b6ac34-native-matched-deps.log and its byte manifest. A later commit
 still needs its own hosted head receipts; these byte-equivalent local results
 are not a claim of cloud transport, complete restore or live cross-device sync.
+
+## Current Section-main combination
+
+Formal main03a57b5357d71cca3cfdfbdfce915d5ced5a5e77 was merged without
+conflicts as7682398fb5d19f13152a59d4776ee1d7ca52d7f4. The Sync core,
+Prompt owner and all nested native suites are byte-identical to0a8d0fd7; shared
+Section worker/read-model, Context and strict backup0.21 changes were reconciled.
+Nine complete related unit files passed94/94. All three full native files
+(storage/publication/retirement), serial source/release, passed36/36 in39.84s
+with explicit Playwright1.63.0, isolated headless profiles and synthetic data.
+No skipped/cancelled case is counted. Native receipts bind head/tree/module
+hashes and real IndexedDB/worker lifecycle. Logs:work/sync-main03a-owning.log
+and work/sync-main03a-native.log in the coordinator worktree.
+Independent merge review confirmed no new manifest permission, no lost worker
+bridge, and unchanged Full gate requirements for all three native files and
+their exact-head/zero-network receipts. This permits requesting formal current
+combination certification; it does not mean that gate has passed.
+All partial-Core/Prompt and synthetic-retirement limitations remain. Production
+Prompt purge/restore, complete canonical restore and real account/device/provider
+sync are not claimed. No cloud transport or scheduler is enabled.
