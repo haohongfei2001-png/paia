@@ -208,3 +208,18 @@ worktree evidence before commit, not exact-head hosted native certification.
 The prior0.19 native results do not certify this0.20 combined candidate. Full
 production preference journaling, canonical restore and real account/device
 qualification remain open; constructor seams are not deployed synchronization.
+
+## Native verification of the Settings combination
+
+At2b6ac34, all three complete native owning files pass36/36 across source and
+release, zero failed/skipped/cancelled, in34.652s. Playwright1.63.0 was explicitly
+selected to match package.json.1321 non-document tracked file hashes remain
+identical across the run; all six native receipts report PASS and that exact
+head. The original automatic fallback used1.62.1 and is retained only as a
+dependency-mismatched diagnostic, not current acceptance. No browser assertion,
+source code, CI rule or timeout was changed to obtain the matched result.
+
+Current main f1740bc is subsequently reconciled without runtime changes. Logs:
+work/sync-2b6ac34-native-matched-deps.log and its byte manifest. A later commit
+still needs its own hosted head receipts; these byte-equivalent local results
+are not a claim of cloud transport, complete restore or live cross-device sync.
