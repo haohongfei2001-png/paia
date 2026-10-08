@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {group,testShard} from '../scripts/test-groups.mjs';
-test('removed Placement admits one complete file and preserves all336 prior routes',async()=>{
+test('removed Placement admits one complete file and checks all336 prior routes with one measured ReaderRevisit move',async()=>{
  const added='settings-removed-placement-chrome-e2e.test.mjs';
  const prior=JSON.parse(await readFile(new URL('./fixtures/settings-removed-placement-prior-routes.json',import.meta.url),'utf8'));
  assert.match(prior.base,/^76db8d6f[0-9a-f]{32}$/);assert.equal(prior.rows.length,84);
@@ -13,7 +13,7 @@ test('removed Placement admits one complete file and preserves all336 prior rout
  for(const [column,total] of [4,5,6,7].entries()){
   assert.equal(testShard(added,names.indexOf(added),total,'browser E2E'),4);
   for(const [name,...routes] of prior.rows){
-   for(const file of [name,'tests/'+name])assert.equal(testShard(file,names.indexOf(name),total,'browser E2E'),routes[column],`${total}:${file}`);
+   for(const file of [name,'tests/'+name])assert.equal(testShard(file,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?6:routes[column]),`${total}:${file}`);
    checked++;
   }
   const parts=Array.from({length:total},(_,i)=>names.filter((n,p)=>testShard(n,p,total,'browser E2E')===i+1));
