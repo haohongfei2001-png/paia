@@ -1,3 +1,4 @@
+import {assertGroupCheckpointReceipt} from './group-checkpoint-receipt.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {createHash} from 'node:crypto';import {join} from 'node:path';import {tmpdir} from 'node:os';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';import {nativeGroupCheckpointFixture} from './group-checkpoint-fixture.mjs';import {assertWorkerLifecycle,assertNetworkLedger} from './proof-oracles.mjs';
@@ -15,7 +16,7 @@ for(const variant of ['source','release'])test('BNS bounded grouped checkpoint a
   receipt.capacity=await browser.call('group-checkpoint-profile');assert.equal(receipt.capacity.length,1);assert.equal(receipt.capacity[0].operations,128);assert.ok(receipt.capacity[0].reads>0);assert.ok(receipt.capacity[0].writes>0);assert.ok(receipt.capacity[0].activationMs>=0);
   const staged=await browser.call('group-checkpoint-stage');receipt.restarts=[await browser.restart()];const activated=await browser.call('group-checkpoint-activate',staged);receipt.restarts.push(await browser.restart());receipt.outcome=await browser.call('group-checkpoint-ack',activated);assert.deepEqual(receipt.outcome,{atomic:true,duplicate:true,noEcho:true,active:activated.active});
   receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);for(const restart of receipt.restarts){assertWorkerLifecycle(restart);const paused=receipt.isolation.networkLedger.observations.filter(row=>row.point==='paused-before-stop'&&row.lifetime===restart.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(restart.pausedNetwork,paused[0]);}assertNetworkLedger(receipt.isolation.networkLedger,receipt.restarts);
-  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';
+  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assertGroupCheckpointReceipt(receipt,{head,tree,variant});
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
 });
