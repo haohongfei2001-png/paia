@@ -55,8 +55,22 @@ for(const variant of ['source','release'])test(`TOPIC-05.7 saved revision waits 
   await eventually(async()=>await p.locator('[data-ai-field="currentView"]').textContent()===value,'current owner rereads saved revision after protected interaction ends');
   assert.equal((await savedRow(p,topic.id)).revision,row.revision+1,'reading never writes an extra saved revision');
  }
+ const entry=await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entries[0].id}),nextBody='SYNTHETIC current excerpt 👩‍💻 é';
+ await p.evaluate(id=>{
+  const node=document.querySelector('#ai-reading-body [data-entry-id="'+id+'"] [data-entry-field="body"]');if(!node)throw Error('saved evidence excerpt absent');node.focus();
+  const text=node.firstChild,range=document.createRange();range.selectNodeContents(node);getSelection().removeAllRanges();getSelection().addRange(range);
+  const original=chrome.runtime.sendMessage.bind(chrome.runtime);window.__aiExcerpt={node,text,body:node.textContent,selected:getSelection().toString(),original,reads:0};
+  chrome.runtime.sendMessage=async function(message,...args){const result=await original(message,...args);if(message.type==='GET_LIBRARY_ENTRY'&&message.id===id&&result?.data?.revision>1)window.__aiExcerpt.reads++;return result;};
+ },entry.id);
+ await rpc(p,'EDIT_LIBRARY_BATCH',{edit:{operationId:crypto.randomUUID(),entries:[{id:entry.id,expectedRevision:entry.revision,expectedFieldRevisions:entry.fieldRevisions,expectedInputRevision:entry.currentInputRevision,changes:{body:nextBody}}]}});
+ await eventually(()=>p.evaluate(()=>window.__aiExcerpt.reads>0),'new evidence revision is actually read');
+ await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+ assert.deepEqual(await p.evaluate(()=>{const s=window.__aiExcerpt;return {same:s.node.isConnected&&s.node.firstChild===s.text,body:s.node.textContent===s.body,selection:getSelection().toString()===s.selected};}),{same:true,body:true,selection:true});
+ await p.evaluate(()=>{chrome.runtime.sendMessage=window.__aiExcerpt.original;getSelection().removeAllRanges();});
+ await eventually(async()=>p.locator('#ai-reading-body [data-entry-id="'+entry.id+'"] [data-entry-field="body"]').first().textContent().then(x=>x===nextBody),'excerpt rereads current body after selection ends');
+ assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id})).revision,entry.revision+1);
  await quiet(f.h);
- }finally{await f.p.evaluate(()=>{if(window.__aiReflow){chrome.runtime.sendMessage=window.__aiReflow.original;window.__aiReflow.release();}}).catch(()=>{});await f.h.close();}
+ }finally{await f.p.evaluate(()=>{if(window.__aiExcerpt)chrome.runtime.sendMessage=window.__aiExcerpt.original;else if(window.__aiReflow){chrome.runtime.sendMessage=window.__aiReflow.original;window.__aiReflow.release();}}).catch(()=>{});await f.h.close();}
 });
 
 for(const variant of ['source','release'])test(`TOPIC-05.7 cached A never conceals new durable B (${variant})`,{timeout:180000},async()=>{
