@@ -60,3 +60,10 @@ package.json:
 72e1ce7c6c6208601c8ed94d0a6f7f8acd1c575714acc56174e30c5a4d9d6001.
 The browser test increment passed root_finish independent read-only review of the actual assertions and2/2 log; prior129 unit evidence is
 reused only because all runtime and unit-test bytes remain unchanged.
+
+
+## Coherent integration candidate0.24.1
+
+The coordinator merged native-verified6b33e7b9 with Prompt/Settings8a38c864 without conflicts (merge8fb4e911). Product manifests/package now identify0.24.1 AI Job Safety, planned after0.24.0 Prompt; the existing strict0.24 backup admission already covers this patch and still rejects0.25. No backup/schema rule changed. The preceding bounded maintenance adapter from PR207 remains unused in production; this batch's actual runtime change is the existing semantic-write invalidation hook.
+
+On the combined tree, complete AI owner/CI plus backup files pass133/133 (1408.11ms), package guard12220 across369 resources passes, and the unchanged complete source/release native file passes2/2 in4648.00ms. Native assertions include actual IndexedDB unknown-spend retention, completed local child receipt identity, rollback and101-job overflow refusal. No model, entitlement authority, reservation or new dispatch path is enabled. Full high-risk current-head CI and exact-main integration remain pending; previous scoped evidence is not full-seven-lane completion.
