@@ -87,7 +87,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
 
   assert.match(initialSource.url(),/\/c\/iah11-results$/);await initialSource.close(); // End this completed synthetic capture before the later independent working-edit proof.
   const filteredChat={id:'iah11-filter-context',title:'SYNTHETIC_FILTER_CONTEXT',base:1609459300,messages:[{id:'iah11-normal',text:'SYNTHETIC_NORMAL_CONTEXT'},{id:'iah11-filter-before',text:'继续'},{id:'iah11-filter-target',text:'请继续'},{id:'iah11-filter-after',text:'开始吧'}]};
-  await h.open(filteredChat);await eventually(async()=>(await h.state()).records.length===5);
+  const filteredSource=await h.open(filteredChat);await eventually(async()=>(await h.state()).records.length===5);
   await eventually(async()=>{const r=await p.evaluate(()=>chrome.runtime.sendMessage({type:'FILTER_RECENT'}));return r.ok&&r.data.items.length===3;},'three actual captured Inputs are filtered');
   const capture=(await h.state()).records,targetRecord=capture.find(r=>r.originalText==='请继续'),normalRecord=capture.find(r=>r.originalText==='SYNTHETIC_NORMAL_CONTEXT');
   assert.ok(targetRecord&&normalRecord);const targetId='block:'+targetRecord.id,normalId='block:'+normalRecord.id;
@@ -112,6 +112,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());await ordinary.click();await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]),'unrelated ordinary reopen discards Reader Find temporary reveal');
 
   writeFileSync(out+variant+'-filter-context.json',JSON.stringify({targetId,normalId,visibleIds:await visibleIds(),unchanged:true},null,2));
+  await filteredSource.close(); // Later navigation reads the verified captured owner, not this completed host.
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));await p.locator('.search-input').press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
   const sibling=p.locator('.archive-navigator-window').filter({hasText:'SYNTHETIC_FILTER_CONTEXT'});await eventually(()=>sibling.isVisible());await sibling.click();await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]));
@@ -120,7 +121,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await sibling.click();await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]));
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE','tree activation from visible Search preserves its actual prior query');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));assert.equal(await sibling.evaluate(n=>n===document.activeElement),true);
   const deepText='SYNTHETIC_DEEP_START '+('Long original paragraph. 中文🙂\n'.repeat(700))+' SYNTHETIC_DEEP_MATCH';
-  await h.open({id:'iah11-deep',title:'SYNTHETIC_DEEP_DOCUMENT',base:1609459400,messages:Array.from({length:161},(_,i)=>({id:'iah11-deep-'+i,text:i===160?deepText:'SYNTHETIC_DEEP_NORMAL '+i}))});
+  const deepSource=await h.open({id:'iah11-deep',title:'SYNTHETIC_DEEP_DOCUMENT',base:1609459400,messages:Array.from({length:161},(_,i)=>({id:'iah11-deep-'+i,text:i===160?deepText:'SYNTHETIC_DEEP_NORMAL '+i}))});
   await eventually(async()=>(await h.state()).records.length===166,'complete deep synthetic capture');
   await p.locator('#scope-search').fill('SYNTHETIC_DEEP_NORMAL');await eventually(()=>p.locator('.search-input').count().then(n=>n===50));
   const firstPage=await p.locator('.search-input').evaluateAll(rows=>rows.map(n=>n.dataset.inputId));
@@ -135,6 +136,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await eventually(()=>p.locator('[data-edit-id="'+deepId+'"]').isVisible(),'deep final Input opens outside initial window');
   const deepRange=()=>p.evaluate(id=>{const node=document.querySelector('[data-edit-id="'+id+'"]'),range=[...(CSS.highlights.get('paia-search')||[])].find(r=>node?.contains(r.startContainer)&&r.toString()==='SYNTHETIC_DEEP_MATCH'),rect=range?.getBoundingClientRect();return {text:node?.textContent,range:range?.toString(),visible:!!rect&&rect.height>0&&rect.top>=0&&rect.bottom<=innerHeight};},deepId);
   await eventually(async()=>(await deepRange()).visible,'actual occurrence at end of long Input arrives in viewport');assert.equal((await deepRange()).text,deepText);assert.ok(await p.locator('#document-body [data-edit-id]').count()<=120,'deep arrival stays bounded');writeFileSync(out+variant+'-deep-arrival.json',JSON.stringify(await deepRange()));
+  await deepSource.close(); // Stop idle capture polling before independent Archive mutation proofs.
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input[data-input-id="'+inputId+'"]').count().then(n=>n===1));
   const owner=await h.context.newPage();await owner.goto(p.url());
   // Delay only real background-search delivery; keep the original visible row
