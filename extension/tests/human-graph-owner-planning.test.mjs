@@ -30,3 +30,24 @@ test('actual move composes both placement intentions atomically and stale target
  const result=await s.moveMembership(req);assert.equal(result.revision,put.revision+2);const after=await snap(),e=after.thoughts.find(x=>x.id===entry.id);assert.deepEqual(e.organizationIntents.included,[b.id]);assert.deepEqual(e.organizationIntents.excluded,[a.id]);assert.equal(after.placements.find(x=>x.topicId===a.id).lifecycle,'removed');assert.equal(after.placements.find(x=>x.topicId===b.id).lifecycle,'active');assert.equal(after.history.filter(x=>x.operationId===req.operationId&&x.kind==='placement').length,2);
  assert.deepEqual(await s.moveMembership(req),result);assert.deepEqual(await snap(),after);
 });
+import {prepareHumanAllocation,beginHumanAllocation,humanClock,humanUuid,finishHumanAllocation,releaseHumanAllocation} from '../core/browser-native-sync/human-library-allocation.js';
+test('request-local allocation preserves ordered distinct slots and refuses missing, reordered or foreign consumption',()=>{
+ let n=0;const store={clock:()=>new Date(1000*(++n)).toISOString(),uuid:()=> 'synthetic-'+(++n)},p=prepareHumanAllocation(store);const id=p.uuid(),a=p.clock(),b=p.clock(),cap=p.seal(),t={};assert.notEqual(a,b);beginHumanAllocation(t,cap);assert.throws(()=>humanClock(store,t),{code:'BNS_HUMAN_ALLOCATION_CHANGED'});assert.equal(humanUuid(store,t),id);assert.equal(humanClock(store,t),a);assert.throws(()=>finishHumanAllocation(t,cap),{code:'BNS_HUMAN_ALLOCATION_CHANGED'});assert.throws(()=>humanClock({...store},t),{code:'BNS_HUMAN_ALLOCATION_CHANGED'});assert.equal(humanClock(store,t),b);finishHumanAllocation(t,cap);assert.throws(()=>p.uuid(),{code:'BNS_HUMAN_ALLOCATION_SEALED'});
+ const other={};beginHumanAllocation(other,cap);releaseHumanAllocation(other);assert.notEqual(humanUuid(store,other),id);
+});
+import {invalidateThoughtTopicIndex,THOUGHT_TOPIC_INDEX_VERSION} from '../core/thought-read-index.js';
+test('actual Topic touch consumes index generation only for an existing active index, including repeated touches',async()=>{
+ const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();
+ const created=await s.createTopic({name:'SYNTHETIC allocation index',operationId:crypto.randomUUID()}),metaId='thought-read-index:v1:topic:'+created.id;
+ for(const mode of ['missing','inactive','current','repeated']){
+  const a=prepareHumanAllocation(s),times=[],ids=[];if(mode!=='current')for(let n=0;n<(mode==='repeated'?2:1);n++){times.push(a.clock());if(mode==='repeated')ids.push(a.uuid());}const cap=a.seal();
+  await s.foundationWrite(async t=>{
+   const row=await t.get('topics',created.id);row.lifecycle=mode==='inactive'?'removed':'active';await t.put('topics',row);
+   if(mode==='missing')await t.delete('meta',metaId);else{const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=JSON.stringify([row.activeLayoutGeneration,row.organizationRevision||0,row.countVersion||0,epoch,0]);await t.put('meta',{id:metaId,version:THOUGHT_TOPIC_INDEX_VERSION,activeKey:key,buildingKey:key,timeRevision:0});}
+   const before=row.countVersion;beginHumanAllocation(t,cap);
+   if(mode==='current'){const {humanPreparedGeneration}=await import('../core/browser-native-sync/human-library-allocation.js');assert.equal(await invalidateThoughtTopicIndex(s,t,row.id,{preparedGeneration:humanPreparedGeneration(s,t)}),true);}
+   else for(let n=0;n<times.length;n++){await s.touchTopic(t,row);assert.equal(row.updatedAt,times[n]);assert.equal(row.countVersion,before+n+1);if(mode==='repeated')assert.equal((await t.get('meta',metaId)).buildingGeneration,ids[n].replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,80));}
+   finishHumanAllocation(t,cap);
+  });
+ }
+});

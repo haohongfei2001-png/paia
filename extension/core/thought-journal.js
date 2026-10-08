@@ -1,3 +1,4 @@
+import {humanClock,humanUuid} from './browser-native-sync/human-library-allocation.js';
 import {prefix,same,fail} from './thought-model.js';
 
 export async function nextSequence(t,id='thought-sequence') {
@@ -15,13 +16,13 @@ export function planJournalRevision(data,previous,at) {
 export async function journal(store,t,data) {
  // Before-images of generated labels retain their purge fence after human rename/merge.
  if(['topic','section'].includes(data.kind))data={...data,sourceRecordIds:[...new Set([...(data.sourceRecordIds||[]),...(data.before?.sourceRecordIds||[]),...(data.after?.sourceRecordIds||[])])]};
- const at=store.clock(),entityKey=data.kind+':'+data.entityId;
+ const at=humanClock(store,t),entityKey=data.kind+':'+data.entityId;
  const previous=data.important?null:await t.edge('revisions','byList',prefix([entityKey]),'prev');
  const plan=planJournalRevision(data,previous,at);
  if(plan.coalesced){await t.put('revisions',plan.row);return plan.row.id;}
  // Preserve the existing sequence-write -> UUID order, and allocate neither
  // when a coalesced revision keeps its original physical row identity.
- const sequence=await nextSequence(t,'revision-sequence'),id=store.uuid();
+ const sequence=await nextSequence(t,'revision-sequence'),id=humanUuid(store,t);
  await t.put('revisions',{...plan.row,id,sequence,listKey:[entityKey,sequence],documentList:[plan.row.documentId,sequence]});await store.pruneEntity(t,entityKey);return id;
 }
 export async function receipt(t,request,digest) {
@@ -29,5 +30,5 @@ export async function receipt(t,request,digest) {
  if(prior.digest!==digest)fail();return prior.result;
 }
 export async function saveReceipt(store,t,request,digest,result) {
- await t.put('operationReceipts',{id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:result.id||request.id||'library',operationSequence:await nextSequence(t),createdAt:store.clock(),digest,result});
+ await t.put('operationReceipts',{id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:result.id||request.id||'library',operationSequence:await nextSequence(t),createdAt:humanClock(store,t),digest,result});
 }

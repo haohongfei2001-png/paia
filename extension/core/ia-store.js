@@ -1,3 +1,4 @@
+import {humanPruneTime} from './browser-native-sync/human-library-allocation.js';
 import {sourceAppendPlan} from './browser-native-sync/source-append-plan.js';
 import {initialSourcePlan} from './browser-native-sync/source-bootstrap-plan.js';
 import {IndexedArchiveStore} from './indexed-store.js';
@@ -13,6 +14,7 @@ const refIds=b=>b.provenance.map(p=>p.sourceRecordId);
 const prefix=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
 const entity=(kind,id)=>kind+':'+id;
 export const REVISION_POLICY=Object.freeze({days:90,importantMinimum:20,coalesceMs:60000});
+export const revisionShouldPrune=(row,cutoff,important)=>Date.parse(row.at)<cutoff&&(!row.important||important>REVISION_POLICY.importantMinimum);
 const blockSnapshot=b=>({libraryText:b.libraryText,note:b.note,excluded:b.excluded,originalTextReference:b.originalTextReference,provenanceSignature:b.provenanceSignature});
 const thoughtSnapshot=t=>({title:t.title,thoughtText:t.thoughtText,note:t.note,topics:t.topics,types:t.types});
 const major=(a,b)=>{const x=a??'',y=b??'';let start=0,end=0;while(start<Math.min(x.length,y.length)&&x[start]===y[start])start++;while(end<Math.min(x.length,y.length)-start&&x[x.length-end-1]===y[y.length-end-1])end++;return Math.max(x.length,y.length)-start-end>=200||(x.length>=40&&x.length-start-end>x.length/2);};
@@ -78,10 +80,11 @@ export class IAStore extends IndexedArchiveStore {
  }
  async pruneEntity(t,key){
   // Per-entity traversal, newest first; preserve ALL younger entries OR latest 20 important.
-  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(this.inputWorkingJournal?.pruneTime(t)??this.clock())-REVISION_POLICY.days*86400000;let important=0;
-  await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(Date.parse(row.at)<cutoff&&(!row.important||important>REVISION_POLICY.importantMinimum))c.delete();c.continue();};});
+  const workingTime=this.inputWorkingJournal?.pruneTime(t)??null,humanTime=this.humanLibraryJournal?.pruneTime(t)??humanPruneTime(this,t);if(workingTime!==null&&humanTime!==null)throw new ArchiveError('BNS_HISTORY_OWNER_CONFLICT');
+  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(humanTime??workingTime??this.clock())-REVISION_POLICY.days*86400000;let important=0;
+  await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(revisionShouldPrune(row,cutoff,important))c.delete();c.continue();};});
  }
- pruneRevisions(){if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
+ pruneRevisions(){if(this.humanLibraryJournal)return Promise.reject(new ArchiveError('BNS_HUMAN_HISTORY_RETIREMENT_UNAVAILABLE'));if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
  // Trusted optional remote Working owner; all values/closure are checked by
  // InputWorkingCommitReceiver before this same repository transaction writes.
  async applyRemoteWorking(t,{before,block,inputState,history,keeps,operationId}){

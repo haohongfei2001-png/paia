@@ -21,7 +21,7 @@ const snapshot=meta=>({
  complete:!!meta.activeGeneration,
  building:!!meta.buildingGeneration
 });
-function generation(store){return String(store.uuid()).replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,80)||String(Date.now());}
+function generation(store,preparedGeneration){return String(preparedGeneration===undefined?store.uuid():preparedGeneration()).replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,80)||String(Date.now());}
 async function readMeta(t){return t.get('meta',META_ID);}
 async function initialize(store,t){
  let meta=await readMeta(t);
@@ -164,8 +164,8 @@ const liveTopicKey=(topic,epoch,timeRevision=0)=>JSON.stringify([
  epoch||0,
  timeRevision||0
 ]);
-function startTopicBuild(store,meta,key){
- meta.buildingGeneration=generation(store);
+function startTopicBuild(store,meta,key,preparedGeneration){
+ meta.buildingGeneration=generation(store,preparedGeneration);
  meta.buildingKey=key;
  meta.sourceCursor=null;
  meta.scanned=0;
@@ -184,14 +184,14 @@ async function topicMeta(store,t,topic){
  await t.put('meta',meta);
  return {meta,key,epoch};
 }
-export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=false}={}){
+export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=false,preparedGeneration}={}){
  const id=topicMetaId(topicId),meta=await t.get('meta',id);
  if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION)return false;
  const topic=await t.get('topics',topicId);
  if(!activeTopic(topic))return false;
  if(sourceTime)meta.timeRevision=(meta.timeRevision||0)+1;
  const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=liveTopicKey(topic,epoch,meta.timeRevision||0);
- if(meta.activeKey!==key||meta.buildingKey!==key)startTopicBuild(store,meta,key);
+ if(meta.activeKey!==key||meta.buildingKey!==key)startTopicBuild(store,meta,key,preparedGeneration);
  await t.put('meta',meta);
  return true;
 }

@@ -1,3 +1,4 @@
+import {humanClock,humanPreparedGeneration} from './browser-native-sync/human-library-allocation.js';
 import {removedPlacements,restoreRemovedPlacement} from './removed-placements.js';
 import {prepareTopicRename,recordTopicRename} from './topic-identity.js';
 import {topicPosition} from './topic-reading-state.js';
@@ -7,7 +8,7 @@ import {compareReadingTopics,recordRead} from './topic-reading-order.js';
 import {libraryRevisions,restoreLibraryRevision} from './library-revisions.js';
 import {countBatch} from './library-counts.js';
 import {editLibraryBatch} from './library-edit.js';
-import {LibraryFoundationStore} from './thought-store.js';
+import {LibraryFoundationStore,planHumanTopicTouch} from './thought-store.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,entryDTO,rankBetween} from './thought-model.js';
 import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibility.js';
 import {journal,nextSequence} from './thought-journal.js';
@@ -56,7 +57,7 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   const sectionId=result.sectionId||request.sectionId;if(sectionId){const topic=await t.get('topics',request.topicId||result.id);if(topic){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]));if(row)await queueSearch(t,'section',row);}}
   return result;
  });}
- async touchTopic(t,row){row.updatedAt=this.clock();row.negativeUpdatedSequence=-(await nextSequence(t));row.countVersion=(row.countVersion||0)+1;await t.put('topics',row);await syncThoughtRootTopic(this,t,row);await invalidateThoughtTopicIndex(this,t,row.id);}
+ async touchTopic(t,row){Object.assign(row,planHumanTopicTouch(row,{at:humanClock(this,t),sequence:await nextSequence(t)}));await t.put('topics',row);await syncThoughtRootTopic(this,t,row);await invalidateThoughtTopicIndex(this,t,row.id,{preparedGeneration:humanPreparedGeneration(this,t)});}
  async createTopic(r){const result=await super.createTopic(r);await this.foundationWrite(async t=>{const topic=await t.get('topics',result.id);if(!topic.defaultSectionId){topic.defaultSectionId=result.sectionId;await t.put('topics',topic);const section=await t.get('sections',JSON.stringify([topic.id,1,result.sectionId]));section.isDefault=true;await t.put('sections',section);await queueSearch(t,'section',section);}});return result;}
  async topic(id){if(!idOK(id))fail();await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>{const row=await this.canonicalTopic(t,id);return {...row,requestedId:id};}));}
  async editTopic(r){keys(r,['id','expectedRevision','changes','operationId','restoreRevisionId'],['id','expectedRevision','changes','operationId']);keys(r.changes,['name','summary','pinned']);if(!idOK(r.id)||!revisionOK(r.expectedRevision)||!Object.keys(r.changes).length)fail();const c=r.changes;if(c.name!==undefined&&(typeof c.name!=='string'||!c.name.trim()||c.name.length>300)||c.summary!==undefined&&(typeof c.summary!=='string'||bytes(c.summary)>16384)||c.pinned!==undefined&&typeof c.pinned!=='boolean')fail();const rename=c.name!==undefined?await prepareTopicRename(this,r.id,c.name):null;return this.operation(r,async t=>{if(r.restoreRevisionId){const rev=await t.get('revisions',r.restoreRevisionId);if(!rev||rev.entityId!==r.id||!await this.sourcePresent(t,rev.sourceRecordIds))fail();}const row=await t.get('topics',r.id);if(!row||row.redirectTo)fail();if(row.revision!==r.expectedRevision||row.layoutJobId)return {conflict:true};const before=structuredClone(row),fields=[];for(const [key,value]of Object.entries(c)){const k=key==='pinned'?'pinKey':key,v=key==='pinned'?(value?0:1):value;if(row[k]===v)continue;if(key==='name')await recordTopicRename(t,row,rename,r.operationId,this.clock());row[k]=v;markHuman(row,key,r.operationId,this.clock());fields.push(key);}if(!fields.length)return {id:row.id,revision:row.revision};row.nameKey=row.name.toLocaleLowerCase();row.revision++;await t.put('topics',row);await journal(this,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:fields,actor:'user',reason:r.restoreRevisionId?'restore':fields.includes('name')?'rename':'edit',important:true,operationId:r.operationId,baseRevision:before.revision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.id,revision:row.revision};});}
