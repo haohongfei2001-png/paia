@@ -26,6 +26,24 @@ Settings write entry points, navigation and CI have one integrating writer.
 Settings and Thought deliverable batches retain priority; other independent work
 continues without forcing overlapping patches or long-lived combined branches.
 
+## Active handoff — 2026-10-09 CST
+
+Current remote main remains90b2a9e7 (runtime0.24). PR210 head25eaa2bd contains the bounded metadata read-supersession repair; local123 related tests and wholeUX-R3 native26 pass. Prior a503 Full37799315598 remains FAIL (Browser7 metadata exception; Browser4/macOS cancelled), while its Prompt and Browser1/2/3/5/6/nativeSync passed. New Full37805632506 / Prompt37805632430 are running. Independent review is assigned to root_finish; no merge permission is inferred from local green tests.
+
+| Lane | Current deliverable and exact dependency | Next executable work / owner |
+|---|---|---|
+| TOPIC01–06,05.1–05.8 | Section writing/reading and focus repairs in PR210; latest supersession fix25eaa awaits independent review and full CI. | root_finish independently reviews25eaa; coordinator resolves CI and guarded integration. No extension of the approved UI. |
+| CTX401–07 | Manual/internal foundations retained;0.27 optional four-card desired journals qualify local restrictions without portable global grants. | Coordinator keeps Context/SYNC scope separation; actual remote consent/device qualification remains open. |
+| SET201–05 | PR210 recovery/locale candidate;0.27 includes independent-reviewed3d2faf53 route-qualified direct-action/dialog/restore acknowledgement guards. | Coordinator integrates the stable0.27 after0.26; combined Data/native evidence exists, final candidate gates remain. |
+| SYNC01–06 |0.27 optional desired/Keep owners passed combined native qualification. Future9439e751 adds only bounded local Input Working publication, with289 units, source/release12-case native matrices and original41-case native regressions. | settings_finish independently reviews9439; no remote materializer, complete recovery or account transport claim. Shared data remains one writer. |
+| AI-COST01–07 |0.27 reviewed style binding and dormant trusted Assist intent are in the49-case combined native proof. No provider/service activation. | settings_review audits the next bounded03/04 fixture-backed gap before file ownership is assigned. Qwen/service/billing live gates remain external. |
+| Prompt Surface / Stage3A / AI-COST06 | Existing0.24 default-off/local path retained;0.27 Assist binding is optional with no reply-only body owner or production resolver. | Preserve current behavior while AI dependency owners advance; no remoteStage3B activation. |
+| IAH1.1 | Selected minimal navigation already integrated through0.23 and retained in0.24. | Maintain affected regressions in delivery batches; no old1.0 Home rewrite. |
+
+Stable0.27 local checkpoint e05290ab (receipt53f2e2e) passed seven complete native files49/49 in197.313s, strict current Sync receipt validation and12514 package guards. It has not incorporated25eaa, has no remote PR and is not delivered. InputWorking9439 is separate and excluded. No failure is relabelled; version/code/test/merge/install remain distinct.
+
+The earlier review-agent quota errors were not reliable current account state: direct app readback now allows ordinary usage (8 percent used). One evidence-based recovery resumed the review agents without model or paid-plan changes. Persistent unchanged-limit retry is still forbidden.
+
 ## Evidence and resource boundary
 
 Historical failure records below preserve their original scope; their old scheduling actions do not reopen completed work.
