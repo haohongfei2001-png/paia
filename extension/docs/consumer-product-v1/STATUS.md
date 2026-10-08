@@ -1,5 +1,13 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Single delivery candidate — 2026-10-09 CST
+
+PR210 is being updated to the completed **0.28** combination, superseding separate0.26/0.27 delivery scheduling. All component and integration reviews have passed; no version migration requires an intermediate installation. Current remote main remains3d69b95f over delivered0.24. No0.28 main merge, installation or deployment is claimed.
+
+The reviewed native visibility fixture ee9c6901 passed cloud Mac2/2 in37818338970 after genuinely viewing/capturing before background discard; it preserves original assertions and budgets. The cold-background initialization failures remain recorded, not claimed repaired. Fulla9efb167 failed Mac and the separately corrected strict routing inventory; its other six browser groups passed. The final0.28 combination must pass its own complete candidate and exact-main gates. New incomplete SYNC InputWorking receive work remains isolated and excluded.
+
+Exact local final runtime is c0f5cfe2. Its lifecycle2/2 and unchanged7b UI combination17/17 plus49 units/release guards remain precisely scoped in the coherent receipt. Older checkpoint sections below remain historical and must not supersede this delivery decision.
+
 ## Latest coordinated candidate checkpoint — 2026-10-09 CST
 
 Fresh main remains3d69b95f (website PR213 over delivered extension0.24). PR210 exacta9efb167 is the0.26 candidate. Full37816144963 has failed Mac initial record capture and Browser1's separate strict routing inventory; other jobs may still be running. Previousb109 Full37811945027 failed Mac and cancelled Browser4 after18m21s. These are not passes. Standard Intel Mac capacity is working and Secure Store passed. The reviewed whole-file4→1 move preserves all84 files and budgets; its second strict inventory correction1e67af0b passes the actual CI script locally and awaits the next coherent candidate.

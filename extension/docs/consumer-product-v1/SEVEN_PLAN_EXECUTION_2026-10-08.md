@@ -2,6 +2,16 @@
 
 The owner's latest scope includes all seven lanes and IAH-1.1's confirmed minimal design. Work continues while any approved independent task is executable; the20-minute heartbeat is a recovery/check-in mechanism, not a turn deadline. Preserve each failure and exact code/dependency evidence. This record is an engineering checkpoint, not whole-product completion or installation acceptance.
 
+## Final batch scheduling — 2026-10-09 CST
+
+The completed0.26 and0.28 work now form one PR210 **0.28** delivery candidate;
+there will be no intermediate0.26/0.27 release. Independent review found no
+migration/protocol dependency on those installations. All exact candidate/main
+gates remain required, original failures remain preserved, and current main still
+delivers0.24. Native visibility lifecycle now has targeted cloud2/2 evidence;
+final0.28 certification is pending. The new InputWorking receive authoring tree is
+not in this candidate. This supersedes historical split-batch scheduling below.
+
 ## Latest handoff — 2026-10-09 CST
 
 Read the latest STATUS and coherent0.28 receipt first. Main3d69b95f still delivers extension0.24. PR210a9efb167 awaits repair of its formal Mac initial-capture failure and the corrected strict routing inventory; PR215 is a bounded diagnostic, not runtime repair. No cancelled job is a pass.

@@ -1,6 +1,6 @@
 # Coherent 0.28 local continuity candidate
 
-This is a locally verified follow-up, not a merged, installed or deployed version. PR210 remains the independent0.26 priority. The reviewed0.27 boundaries are included here for one subsequent delivery batch; they need not incur a separate release or duplicate full CI. All seven plans retain their actual external and unfinished local gates.
+This is a locally verified follow-up, not a merged, installed or deployed version. PR210 now carries the single0.28 delivery candidate, combining the completed0.26 and0.27 boundaries without intermediate releases or duplicate full/main CI. All seven plans retain their actual external and unfinished local gates.
 
 ## Included boundaries
 
@@ -44,3 +44,19 @@ Earlier5e's89 native and80 unit cases remain at their original checkpoint and ca
 only be reused for unchanged code/dependencies within their stated scope. The
 formal candidate must regenerate its strict exact-head native receipts. No new
 model/provider, account, deployment or user-installed claim is made.
+
+## Single PR210 delivery and native lifecycle qualification
+
+Independent scheduling review confirms no migration or protocol requires an
+intermediate0.26 installation. The accepted producer list retains7–26 and adds
+27/28 without changing backup schema/format;29 and unknown versions remain
+rejected. This does not promise importing a0.28 backup into the old0.24 reader.
+The independent, unfinished InputWorking receive implementation is excluded.
+
+Final pre-documentation runtime checkpoint `c0f5cfe2b64e855145ccde4b16598e3ee4096f36`
+adds the reviewed native-visibility discard fixture and exact reporter alignment.
+Its complete local headless lifecycle file2/2 passes using the formal reporter;
+`/tmp/local028-native-discard-final.log`. Prior targeted cloud head ee9c6901 run
+37818338970 Macjob113452639547 also passed2/2 at0.26, retained only as that
+component's evidence. The final0.28 head still requires new full and exact-main
+gates. Earlier never-activated background capture failures are not claimed fixed.
