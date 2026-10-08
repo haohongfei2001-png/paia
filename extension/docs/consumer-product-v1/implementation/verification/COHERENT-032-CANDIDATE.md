@@ -17,3 +17,7 @@ AI full first adoption can obtain a qualified cacheBinding only from the actual 
 All original source/canonical/namespace/control/capacity negatives remain in owning receipts. Backup schema is unchanged; producers7–32 remain supported and future33 refuses exactly. Grouped checkpoint recovery and Settings keyboard-focus repair are separate future work, excluded here. Real accounts, complete recovery, paid model financial/fidelity evidence and physical/installed/visual-reference gates remain distinct.
 
 Current main0.30 `1b06ffc2` now has Full37848783654 and Prompt37848783642 SUCCESS. Its406-file package is byte-verified and not installed.0.31 PR218 at905fb9c9 is undergoing Full37849428072; no031 merge is claimed.
+
+## Fresh0.31 main reconciliation
+
+PR218 Full37849428072 SUCCESS permitted normal merge to e2a5acd61f8c919bf8a4b7692f682e068b4fd078; its tree equals reviewed905fb9c9. The current candidate merges that actual main with no additional runtime change. Relative to testedcfef, only coordination/receipt documents differ.0.31 exact-main verification and package remain pending;0.32 still needs its own hosted and exact-main gates.
