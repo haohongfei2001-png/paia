@@ -28,3 +28,20 @@ Candidate SHA-256:
 The first owner-test attempt failed to parse because of an extra closing parenthesis; `work/prompt-family-owning.log` preserves it. Corrected evidence is separate. An intermediate patch used an incorrect working directory and did not apply; `work/prompt-family-related.log` is prior-candidate evidence and is not the final result above. No assertions or budgets were reduced to address these authoring failures.
 
 This bounded synthetic suite and independent review do **not** satisfy the canonical independent 80-case Family corpus or 95% relevance goal. Broader grammar/quality, bounded projection ownership, Family resolve/assert-current lifecycle, live insertion and browser integration remain pending. No remote model, Stage 3B, real provider, paid call or private corpus was used. No native browser run was needed or claimed for this unused pure core. Main integration, CI certification and installed availability remain pending.
+
+
+## Disposable warm view adapter checkpoint
+
+Follow-up base `3e21a75dff592b4031f9deefa5af0a017471c9e3`. `PromptReuseService.query()` now publishes a compact eligible Family view from its existing successful real snapshot. Its public query result is unchanged. No additional snapshot is taken to warm the view. New `nextFamilyView()` returns a clone only after checking the actual backup-data generation via the existing `assertCurrent`; cold reads perform no repository IO, warm qualification reads one meta key and no archive scan.
+
+`NextFamilyView` is private to each service instance and disposable. It holds only Family id/text/eligibility flags/generation, never reply bodies or source member arrays. The limits remain 64 items, 2,048 Unicode characters each and 65,536 total UTF-8 text bytes; an oversized eligible result is wholly unavailable, not silently truncated. TTL is 30 seconds, including a second expiry check after asynchronous qualification. Clock rollback, unavailable storage, stale generation, replacement during qualification and restart refuse the view. Beginning a newer query invalidates the old cache; sequence checks prevent an older query completion from rewarming it even after the newer query fails. Hidden items are excluded even when the explicit list query requests hidden rows. Returned objects cannot mutate the cached projection.
+
+Five complete owner/regression files (`cpv1-12-next-family-view`, `cpv1-12-next-family-match`, `cpv1-09-prompt-service`, `cpv1-09-prompt-family`, `cpv1-09-prompt-security`, all `.test.mjs`) passed **108/108**, zero failed/skipped/cancelled, 692.872791 ms: coordinator `work/prompt-family-view-unit-final.log`. The earlier 106-test successful log is retained separately; two further regression cases were then added. Actual service fixtures cover independent-owner edit/hide, canonical memory exclusion, actual permanent deletion, generation failure, reverse query completion, bounds and clone isolation. `check_package.py` passed **11,873 guardrails / 356 resources** (`work/prompt-family-view-package.log`); only tests changed after that package check.
+
+Independent reviewer executed the complete new owner file **14/14 PASS**, `/tmp/prompt-family-view-independent.log`, and reviewed serial/TTL/generation/identity/clone/bounds handling with no blocking finding. This does not prove a live Stage 3A lifecycle: no worker/content integration or authorization change was made. A future integration must preserve Stage 3A consent/document/reply fences and final `resolve/assertCurrent`; this DTO is not permission or a lease on current state. Current Family truth and generation remain the existing service's authority. No new persistent index, schema, dispatch, Settings or CI mutation occurred. Prior quality and browser integration gates remain pending.
+
+Final candidate SHA-256:
+
+- `core/next-family-view.js`: `23aa613c7323433433ebe5b6750bc4fc371c0e6a022d8aab90d9ae332e7d158d`
+- `core/prompt-reuse-service.js`: `cb188f380ab1f7950cd736a2cd3cc5f95633a55c8394901470eed4530df45451`
+- `tests/cpv1-12-next-family-view.test.mjs`: `6741b8a7f1285b2015314576a82738556ff53e6557d804fb1ffd857befa91423`
