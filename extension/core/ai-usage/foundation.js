@@ -142,12 +142,17 @@ export class AIUsageFoundation {
    if(receipt.state!=='RESERVED')return {reused:true,state:receipt.state,childId};
    if(receipt.executionKind!==descriptor.executionKind)fail('UNAVAILABLE');
    if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');
+   // Qualification above still covers the entire job. Only the outgoing child
+   // metadata is narrowed, with an exact, unambiguous key closure before writes.
+   const coverage=job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),items=new Map();
+   for(const item of job.items){if(items.has(item.key))fail();items.set(item.key,item);}
+   const evidence=[...new Set(coverage.map(u=>u.key))].map(key=>{const item=items.get(key);if(!item)fail();return {key:item.key,signature:item.signature,lineage:item.descriptor.lineage};});
    // Minimal nonportable anti-replay fence survives supported library replace,
    // which intentionally clears old transient job/usage rows. It is not a
    // second financial ledger and never grants admission.
    await t.put('meta',{id:dispatchFenceId(childId),version:1,jobId:id,childId});await t.put('meta',{id:job.flightId,jobId:id,dispatched:true});
    receipt.state='DISPATCHED';receipt.attemptCount=1;receipt.provider=descriptor;receipt.spendState='POSSIBLY_BILLABLE';await t.put('organizerUsage',receipt);job.state='DISPATCHED';await t.put('organizerJobs',job);await count(t,'physicalAttempt');
-   return {request:{...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage:job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),evidence:job.items.map(i=>({key:i.key,signature:i.signature,lineage:i.descriptor.lineage})),automaticRetries:0}};
+   return {request:{...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0}};
   });
   if(prepared.reused)return prepared;
   // Only the provider-neutral metadata boundary is exercised in this slice.
