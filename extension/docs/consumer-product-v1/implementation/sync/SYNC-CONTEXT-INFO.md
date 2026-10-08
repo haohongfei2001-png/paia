@@ -30,3 +30,11 @@ Native transport is synthetic in-memory, no external cloud. Fixture calls real o
 - `tests/browser-native-sync-context-info.test.mjs`: `443e9dd3afe57e3e6f435db6745a63058b91bd38686772813950aec9d25bb900`
 - `tests/native-sync/context-info-worker-fixture.mjs`: `1927ae97ac6d04bc8bb14e4b538682a5b61aa3762e1ef08c3c53d58f0c73e9dc`
 - `tests/native-sync/context-info-chrome.test.mjs`: `0536aaebd3b089c943babb68b24d17d8a6425811fa8a9fbc1a68ca32057ed8fe`
+
+## Readiness and current Sync combination
+
+Integrated existing readiness commit `a972ea84` and Sync candidate `2e899bad` without conflicts; tested merge head `c903ca99`. The readiness parent also carries its already-existing AI domain-evidence ancestor. No new worker registration, registry relaxation, version or CI edits were made by this batch. Current inherited candidate version remains 0.23; final release sequencing belongs to the coordinator.
+
+At this exact combination: all 700 selected Context/BNS/readiness non-Chrome unit cases pass (0 skipped/cancelled), `/tmp/sync-context-combined-unit.log`; complete source/release native file passes 2/2 (9.34s), `/tmp/sync-context-combined-native.log`. Each variant still contains 13 real owner scenarios plus restart, not all canonical restoration. The Context writer/journal and shared Core/checkpoint bytes are unchanged from `31a0e645`; native package/harness evidence was nevertheless rerun against the combined candidate.
+
+Readiness remains conservative: Context item inventory includes domains beyond manual Info, no product worker binds this optional journal, and complete per-item canonical/head coverage is not registered. ContextDesired/access and unrepresented Source/other domains are not declared restored. This integration does not change `fullCanonicalReady` into a blanket success.
