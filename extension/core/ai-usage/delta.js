@@ -62,7 +62,7 @@ function observe(t,old,next){
 }
 export async function flushSemanticWrites(t){
  if(!t.semanticChanges?.size&&!t.aiUsageBoundaryChanged)return;
- let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false;
+ let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false;const changedEvidence=new Map();
  for(const {before,after}of (t.semanticChanges||new Map()).values()){
   const key=after.key;if(same(before,after))continue;
   if(after.journalId&&!after.fenceOnly){
@@ -79,7 +79,7 @@ export async function flushSemanticWrites(t){
   changed=true;human||=after.human;
   const previous=await t.get('meta',DIRTY_PREFIX+key);
   const row={id:KNOWN_PREFIX+key,version:1,descriptor:after,signature,sequence:++sequence};
-  await t.put('meta',row);
+  await t.put('meta',row);changedEvidence.set(key,row);
   // Removed evidence never waits for paid cleanup. The known tombstone/fence
   // invalidates outstanding handles even if create/delete coalesces to no work.
   if(after.removed||after.fenceOnly){await t.delete('meta',DIRTY_PREFIX+key);continue;}
@@ -87,5 +87,5 @@ export async function flushSemanticWrites(t){
  }
  if(changed)await t.put('meta',{id:DELTA_COUNTER,value:sequence});
  if(human)await t.put('meta',{id:HUMAN_FENCE,value:integer((await t.get('meta',HUMAN_FENCE))?.value)+1});
- if(changed||t.aiUsageBoundaryChanged)t.aiUsageInvalidation=await invalidateSemanticJobs(t);
+ if(changed||t.aiUsageBoundaryChanged)t.aiUsageInvalidation=await invalidateSemanticJobs(t,changedEvidence);
 }

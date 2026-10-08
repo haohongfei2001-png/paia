@@ -71,6 +71,21 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {unknownState:unknown.state,unknownSpend:unknown.attempts[0].spendState,unknownAttempts:unknown.attempts[0].attemptCount,completedExists:!!completed,completedUnchanged:JSON.stringify(cancelled.attempts.find(r=>r.id===completed?.id))===JSON.stringify(completed),cancelledState:cancelled.state,localAttempts:(await local.ai.counters()).physicalAttempt,rolledBack:refused&&unchanged,overflowUnchanged:allUnchanged,bound,staleCode};
   });
   assert.deepEqual(invalidation,{unknownState:'OUTCOME_UNKNOWN',unknownSpend:'RESERVATION_RETAINED',unknownAttempts:1,completedExists:true,completedUnchanged:true,cancelledState:'CANCELLED_BEFORE_DISPATCH',localAttempts:0,rolledBack:true,overflowUnchanged:true,bound:{status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0},staleCode:'STALE_BASE'});
+  const boundedCost=await p.evaluate(async()=>{
+ const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js');
+ const local={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},s=new OrganizerStore(local,{name:'ai-invalidation-cost-synthetic'});await s.consent(true);const epoch=(await s.status()).epoch;
+ const capture=(i)=>s.capture({epoch,adapterVersion:'0.3.0',chat:{id:'synthetic-cost',url:'https://chatgpt.com/c/synthetic-cost',title:'Synthetic'},messages:[{sourceMessageId:'synthetic-cost-'+i,pageOrder:i+1,originalText:'SYNTHETIC performance evidence '+i}]});
+ for(let i=0;i<100;i++)await capture(i);
+ const ai=new AIUsageFoundation(s,{resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ORGANIZE'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})}),{items}=await ai.collect({limit:100});
+ const measure=async(name,action)=>{const before={...s.repository.metrics},start=performance.now();await action();return {name,ms:performance.now()-start,reads:s.repository.metrics.reads-before.reads,writes:s.repository.metrics.writes-before.writes,scans:s.repository.metrics.scans-before.scans};};
+ const zero=await measure('capture-zero-jobs',()=>capture(100));
+ for(let i=0;i<100;i++)await ai.plan({type:'AI_ORGANIZE',intent:'explicit',items,coverage:items.map(item=>({key:item.key,facet:'organize',scope:'synthetic-topic-'+i})),contractVersion:'synthetic',routeVersion:'synthetic'});
+ const cardinality=await s.repository.transaction(false,async t=>{const jobs=(await t.all('organizerJobs')).filter(j=>j.kind==='ai_usage_v1');return {jobs:jobs.length,items:jobs.reduce((n,j)=>n+j.items.length,0),attempts:(await t.all('organizerUsage')).length};});
+ const captureCost=await measure('capture-100-jobs-times-100-items',()=>capture(101));
+ const edit=await measure('edit-100-jobs-times-100-items',async()=>{const input=await s.input(items[0].descriptor.entityId);await s.editDocument({operationId:crypto.randomUUID(),documentId:input.documentId,blocks:[{id:input.id,expectedRevision:input.revision,libraryText:'SYNTHETIC meaningful changed body',note:input.note,excluded:input.excluded}]});});
+ return {cardinality,zero,captureCost,edit,cancelled:await s.repository.transaction(false,async t=>(await t.all('organizerJobs')).filter(j=>j.state==='CANCELLED_BEFORE_DISPATCH').length),defaultAuthorityMissing:s.aiUsageFoundation.resolveAuthority===null};
+  });
+  assert.deepEqual(boundedCost.cardinality,{jobs:100,items:10000,attempts:0});assert.equal(boundedCost.defaultAuthorityMissing,true);assert.ok(boundedCost.captureCost.reads<500,'bounded capture avoids per-job unchanged-evidence reads');assert.ok(boundedCost.edit.reads<1000,'one changed key cancels all affected scopes without rereading the corpus');assert.equal(boundedCost.cancelled,100);console.log('AI_NATIVE_BOUNDED_COST',label,JSON.stringify(boundedCost));
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });
