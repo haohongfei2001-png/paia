@@ -32,3 +32,14 @@ test('IAH11 continuation is not an empty answer; unknown metadata remains unknow
  render([],'needle',{phase:2,offset:50});assert.equal(nodes.get('empty-list').hidden,false);assert.equal(nodes.get('empty-list').textContent,'Continuing to search local Inputs…');render([],'needle');assert.match(nodes.get('empty-list').textContent,/No matches/);
  render([{...hit,title:'',providerKey:null,sourceSentAt:null}]);const row=nodes.get('document-list').firstElementChild;assert.equal(row.children[1].textContent,'Location unknown');assert.equal(row.children[2].textContent,'Send time unknown');
 }));
+test('IAH source path shows provider-qualified facts and keeps unknown distinct from unassigned and deleted',()=>fixture(({nodes,render})=>{
+ const sourcePath={providerKey:'chatgpt',membership:'unknown',sourceStatus:'unknown',project:null,lastKnownProject:null};
+ const text=path=>{render([{...hit,sourcePath:path}]);return nodes.get('document-list').firstElementChild.children[1].textContent;};
+ assert.equal(text(sourcePath),'ChatGPT · Project unknown · Synthetic location');
+ assert.equal(text({...sourcePath,membership:'unassigned'}),'ChatGPT · Not assigned to a Project · Synthetic location');
+ assert.equal(text({...sourcePath,sourceStatus:'confirmed_deleted',lastKnownProject:{ref:{providerKey:'chatgpt',namespace:'a',projectId:'p'},name:'Former'}}),'ChatGPT · Deleted at source · Project unknown · Last known Project: Former · Synthetic location');
+ assert.equal(text({...sourcePath,membership:'project',project:{ref:{providerKey:'chatgpt',namespace:'a',projectId:'p'},name:'Current',sourceStatus:'confirmed_deleted'}}),'ChatGPT · Current · Deleted at source · Synthetic location');
+ assert.equal(text({...sourcePath,membership:'project',project:{ref:{providerKey:'chatgpt',namespace:'a',projectId:'p'},name:null,sourceStatus:'unknown'},lastKnownProject:{ref:{providerKey:'chatgpt',namespace:'a',projectId:'p'},name:'Observed before'}}),'ChatGPT · Unnamed Project · Last known Project: Observed before · Synthetic location');
+ document.documentElement.lang='zh-CN';assert.equal(text({...sourcePath,membership:'unassigned'}),'ChatGPT · 未归属 Project · Synthetic location');
+ assert.equal(nodes.get('document-list').firstElementChild.firstElementChild.textContent,hit.text);
+}));

@@ -36,7 +36,15 @@ export class SmartFilterUI {
    // Only facts already supplied by the search owner become attribution. In
    // particular a missing Project path is not inferred from the current tree.
    const title=element('small','search-result-path');
-   highlightText(title,hit.title||copy('位置未知','Location unknown'),query);button.append(title);
+   const path=hit.sourcePath,parts=[];
+   if(path){
+    parts.push(path.providerKey==='chatgpt'?'ChatGPT':path.providerKey==='claude'?'Claude':path.providerKey||copy('来源未知','Source unknown'));
+    if(path.sourceStatus==='confirmed_deleted')parts.push(copy('来源已删除','Deleted at source'));
+    if(path.project){parts.push(path.project.name||copy('未命名 Project','Unnamed Project'));if(path.project.sourceStatus==='confirmed_deleted')parts.push(copy('来源已删除','Deleted at source'));}
+    else parts.push(path.membership==='unassigned'?copy('未归属 Project','Not assigned to a Project'):copy('归属未知','Project unknown'));
+    if(path.lastKnownProject&&(!path.project||!path.project.name||JSON.stringify(path.lastKnownProject.ref)!==JSON.stringify(path.project.ref)))parts.push(copy('最后已知 Project：','Last known Project: ')+(path.lastKnownProject.name||copy('未命名 Project','Unnamed Project')));
+   }
+   parts.push(hit.title||copy('位置未知','Location unknown'));highlightText(title,parts.join(' · '),query);button.append(title);
    button.append(element('small','',hit.sourceSentAt&&!Number.isNaN(Date.parse(hit.sourceSentAt))?dateLabel(hit.sourceSentAt):copy('发送时间未知','Send time unknown')));
    const needle=normalizeSearch(query);
    if(needle&&normalizeSearch(hit.title).includes(needle)&&!normalizeSearch(hit.text).includes(needle))button.append(element('small','search-title-match',copy('匹配对话标题','Conversation title match')));

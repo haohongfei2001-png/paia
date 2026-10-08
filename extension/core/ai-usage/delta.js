@@ -1,3 +1,4 @@
+import {invalidateSemanticJobs} from './semantic-invalidation.js';
 // AIU-1.0 local, rebuildable scheduling metadata. Canonical rows remain the
 // only content owners. Neither capture nor these hooks can dispatch a provider.
 export const DIRTY_PREFIX='aiu:delta:pending:';
@@ -24,6 +25,7 @@ export function deltaDescription(store,row){
 }
 export const deltaSignature=descriptor=>{if(!descriptor||descriptor.fenceOnly)return JSON.stringify(descriptor);const {journalId,...semantic}=descriptor;return JSON.stringify(semantic);};
 export async function trackSemanticWrite(t,store,id,value){
+ if(t.semanticEnabled&&store==='meta'&&['gate','recovery-restore-epoch'].includes(id)){const before=await t.get(store,id);if(!same(before,value))t.aiUsageBoundaryChanged=true;}
  const context=store==='meta'&&id==='context-cards:v1',constraint=store==='meta'&&id?.startsWith('topicKeepSeparate:');
  if(store!=='inputStates'&&store!=='revisions'&&!context&&!constraint)return;
  // Older physical databases have no AI job stores. Do not create a parallel
@@ -59,9 +61,9 @@ function observe(t,old,next){
  changes.set(slot,{before:prior?prior.before:old,after:subject});
 }
 export async function flushSemanticWrites(t){
- if(!t.semanticChanges?.size)return;
- let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false;
- for(const {before,after}of t.semanticChanges.values()){
+ if(!t.semanticChanges?.size&&!t.aiUsageBoundaryChanged)return;
+ let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false;
+ for(const {before,after}of (t.semanticChanges||new Map()).values()){
   const key=after.key;if(same(before,after))continue;
   if(after.journalId&&!after.fenceOnly){
    const table={library_entry:'thoughts',topic:'topics',section:'sections',placement:'placements'}[after.kind];
@@ -74,7 +76,7 @@ export async function flushSemanticWrites(t){
   // Journal replay cannot replace the newest known human revision. Transport
   // delivery order is not semantic novelty, and history deletion is not intent.
   if(after.journalId&&known?.descriptor.journalId&&after.recordId===known.descriptor.recordId&&after.revision<known.descriptor.revision)continue;
-  human||=after.human;
+  changed=true;human||=after.human;
   const previous=await t.get('meta',DIRTY_PREFIX+key);
   const row={id:KNOWN_PREFIX+key,version:1,descriptor:after,signature,sequence:++sequence};
   await t.put('meta',row);
@@ -83,6 +85,7 @@ export async function flushSemanticWrites(t){
   if(after.removed||after.fenceOnly){await t.delete('meta',DIRTY_PREFIX+key);continue;}
   await t.put('meta',{...row,id:DIRTY_PREFIX+key,requirements:[],pendingFacets:['topic','context'],...(previous?.signature===signature?{requirements:previous.requirements||[],pendingFacets:previous.pendingFacets||['topic','context']}:{})});
  }
- await t.put('meta',{id:DELTA_COUNTER,value:sequence});
+ if(changed)await t.put('meta',{id:DELTA_COUNTER,value:sequence});
  if(human)await t.put('meta',{id:HUMAN_FENCE,value:integer((await t.get('meta',HUMAN_FENCE))?.value)+1});
+ if(changed||t.aiUsageBoundaryChanged)t.aiUsageInvalidation=await invalidateSemanticJobs(t);
 }

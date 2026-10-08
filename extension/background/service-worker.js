@@ -1,3 +1,4 @@
+import {NextPromptCommands} from './prompt-next.js';
 import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
 import {isAIStyleOnlyRequest} from '../core/ai-organize-style-preference.js';
 import {ContextCardsService} from '../core/context-cards.js';
@@ -44,6 +45,11 @@ const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
 const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome);
+const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
+promptSurface.next=promptNext;
+chrome.tabs?.onRemoved?.addListener(id=>promptNext.removeTab(id));
+chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading')promptNext.removeTab(id);});
+chrome.runtime.onInstalled?.addListener(()=>{void promptNext.configure(false).catch(()=>{});});
 const legacyUsage = new LegacyUsageRecords(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);
@@ -146,6 +152,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_SURFACE_'))return promptSurface.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_'))return promptReuse.handle(request,sender);
   if(request.type.startsWith('IMPORT_'))return imports.handle(request,sender);
@@ -318,7 +325,7 @@ async function handle(request, sender) {
     case 'PAIA_BACKUP_BEGIN_RESTORE': return backups.beginRestore();
     case 'PAIA_BACKUP_STAGE': return backups.stageRestore(request.options);
     case 'PAIA_BACKUP_PREVIEW': return backups.previewRestore(request.options);
-    case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
+    case 'PAIA_BACKUP_RESTORE': return withRecoveryFence(async()=>{await promptNext.configure(false);const result=await backups.restore(request.options);if(request.options?.mode!=='merge')await recoveryDraftStore().clearAll().catch(()=>{});return result;});
     case 'PAIA_BACKUP_CANCEL': return backups.cancel(request.options);
     case 'GET_BOUNDED_ORGANIZER': return boundedOrganizer.status();
     case 'STOP_BOUNDED_ORGANIZER': return boundedOrganizer.stop();

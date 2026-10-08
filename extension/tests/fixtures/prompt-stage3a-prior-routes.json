@@ -1,0 +1,681 @@
+{
+  "base": "0f750af29987df37f6782c3bc730dcc449194bdb",
+  "files": 75,
+  "rows": [
+    {
+      "file": "activation-return-round410-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "ans-02-source-foundation-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "ans-03-source-observation-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "ans-04-navigation-query-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "ans-04-navigation-release-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "ans-06-source-order-settings-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "ans-07-library-root-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "ans-09-integration-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "capture-foundation-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "consumer-cleanup-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "context-cards-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        6,
+        6
+      ]
+    },
+    {
+      "file": "cpr-00-project-discovery-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpr-01-project-recognition-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-01-3-update-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-01-5-backup-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-01-recovery-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-02-1-shell-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-02-4-reader-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        5,
+        5
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        7
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        5,
+        5
+      ]
+    },
+    {
+      "file": "cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-04-conflict-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "desktop-vnext-context-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "release-certification-round48-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "release-certification-round49-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "uir-01-shell-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "uir-03-ai-candidate-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "uir-03-ai-presentation-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "uir-03-preview-mask-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "uir-03-thought-original-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "uir-04-context-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "uir-04-data-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "uir-04-popup-local-tools-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "uir-04-settings-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        6,
+        6
+      ]
+    },
+    {
+      "file": "uis-01-archive-actions-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "uis-02-page-scoped-search-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "uis-04-cleanup-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "ux-r1-shell-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "ux-r3-history-preemption-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "ux-r3-thought-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        6,
+        7
+      ]
+    },
+    {
+      "file": "ux-r4-search-reuse-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "file": "ux-r5-ai-organize-chrome-e2e.test.mjs",
+      "routes": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "file": "ux-r5-ai-update-chrome-e2e.test.mjs",
+      "routes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "file": "ux-r5-certification-chrome-e2e.test.mjs",
+      "routes": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "file": "ux-r6-release-chrome-e2e.test.mjs",
+      "routes": [
+        3,
+        3,
+        3,
+        3
+      ]
+    }
+  ]
+}
