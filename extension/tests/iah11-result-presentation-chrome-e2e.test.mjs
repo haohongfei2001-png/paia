@@ -23,6 +23,24 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await p.bringToFront();const box=await row.locator('.search-excerpt').boundingBox();await p.mouse.move(box.x+5,box.y+8);await p.mouse.down();await p.mouse.move(box.x+180,box.y+8,{steps:12});await p.mouse.up();
   assert.ok(await p.evaluate(()=>document.getSelection().toString().length>0),'real pointer drag selects excerpt');assert.equal(await p.locator('#document-panel').isVisible(),false,'selection does not open Reader');
   await row.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());assert.match(await p.locator('#document-body').textContent(),/Do not publish unless approved/);assert.equal(await p.locator('#reader-scope-search').getAttribute('placeholder'),'在此对话中查找');assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE','opening Reader retains the separate Archive query');
+  const originKey=await p.evaluate(()=>history.state.paiaReader.originKey);assert.match(originKey,/^[a-f0-9-]{36}$/);
+  await p.evaluate(()=>{window.__iahHistoryWrites=[];const original=history.replaceState;history.replaceState=function(...args){window.__iahHistoryWrites.push({route:args[0]?.paiaReader,stack:new Error().stack});return original.apply(this,args);};});
+  const composingField=p.locator('#document-body [data-edit-id]').first();await composingField.evaluate(node=>node.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
+  const guardedRoute=await p.evaluate(()=>{window.__iahComposingNode=document.querySelector('#document-body [data-edit-id]');return {route:structuredClone(history.state.paiaReader),length:history.length,text:window.__iahComposingNode.textContent,query:document.querySelector('#scope-search').value,tree:[...document.querySelectorAll('.archive-navigator-window')].map(n=>[n.dataset.documentId,n.getAttribute('aria-current')])};});await p.locator('#back').click();await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  writeFileSync(out+variant+'-ime-history.json',JSON.stringify(await p.evaluate(()=>window.__iahHistoryWrites),null,2));
+  assert.equal(await p.locator('#document-panel').isVisible(),true,'native composing Reader refuses origin return');const afterGuard=await p.evaluate(()=>({route:structuredClone(history.state.paiaReader),length:history.length,text:document.querySelector('#document-body [data-edit-id]').textContent,query:document.querySelector('#scope-search').value,tree:[...document.querySelectorAll('.archive-navigator-window')].map(n=>[n.dataset.documentId,n.getAttribute('aria-current')]),sameNode:window.__iahComposingNode===document.querySelector('#document-body [data-edit-id]')}));assert.equal(afterGuard.sameNode,true,'composition keeps the exact editor node');delete afterGuard.sameNode;for(const captured of [guardedRoute,afterGuard]){assert.ok(Number.isSafeInteger(captured.route.anchor.offset)&&captured.route.anchor.offset>=0);delete captured.route.anchor.offset;}assert.deepEqual(afterGuard,guardedRoute,'refused composition keeps route identity, origin, history length, body, query and tree; live caret offset may update');
+  await composingField.evaluate(node=>node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));
+
+  await p.locator('#reader-scope-search').fill('approved');
+  await p.locator('.sidebar [data-view="settings"]').click();await eventually(()=>p.locator('#settings-panel').isVisible());
+  await p.locator('#ux-settings-back').click();await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#reader-scope-search').inputValue(),'approved','Settings retains Reader Find independently');assert.equal(await p.evaluate(()=>history.state.paiaReader.originKey),originKey);
+  const beforeReturn=await p.evaluate(()=>history.length);
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  assert.equal(await p.evaluate(()=>history.length),beforeReturn,'explicit origin return replaces Reader, avoiding another Reader/result cycle');
+  assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE');assert.equal(await row.evaluate(n=>n===document.activeElement),true,'same Input identity receives origin focus');
+  await row.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+  await p.evaluate(()=>history.back());await eventually(()=>p.locator('#collection-panel').isVisible());assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE');
+  await p.evaluate(()=>history.forward());await eventually(()=>p.locator('#document-panel').isVisible());assert.equal(await p.locator('#reader-scope-search').inputValue(),'approved');
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());await p.locator('#scope-search').fill('SYNTHETIC_TITLE_ONLY');await eventually(()=>p.locator('.search-title-match').count().then(n=>n===1));assert.equal(await row.locator('.search-excerpt mark').count(),0);
   for(const {name,width,dark} of [{name:'wide',width:1440,dark:false},{name:'narrow',width:320,dark:false},{name:'narrow-dark',width:320,dark:true}]){
    await p.setViewportSize({width,height:900});await p.evaluate(dark=>document.documentElement.dataset.paiaTheme=dark?'dark':'light',dark);await row.scrollIntoViewIfNeeded();assert.equal(await row.evaluate(el=>getComputedStyle(el).borderRadius),'0px');assert.equal(await row.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'result reflows without horizontal overflow');await p.screenshot({path:out+variant+'-'+name+'.png'});
@@ -78,9 +96,23 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   assert.deepEqual(await filterState(),filterBefore,'ordinary return does not persist temporary visibility');
   writeFileSync(out+variant+'-filter-context.json',JSON.stringify({targetId,normalId,visibleIds:await visibleIds(),unchanged:true},null,2));
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));await p.locator('.search-input').press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+  const sibling=p.locator('.archive-navigator-window').filter({hasText:'SYNTHETIC_FILTER_CONTEXT'});await eventually(()=>sibling.isVisible());await sibling.click();await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]));
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#scope-search').inputValue(),'','tree sibling establishes a tree origin rather than inheriting search');assert.equal(await sibling.evaluate(n=>n===document.activeElement),true,'tree origin restores exact Conversation focus');
+  await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));
+  await sibling.click();await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]));
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_NEEDLE','tree activation from visible Search preserves its actual prior query');await eventually(()=>p.locator('.search-input').count().then(n=>n===1));assert.equal(await sibling.evaluate(n=>n===document.activeElement),true);
   const deepText='SYNTHETIC_DEEP_START '+('Long original paragraph. 中文🙂\n'.repeat(700))+' SYNTHETIC_DEEP_MATCH';
   await h.open({id:'iah11-deep',title:'SYNTHETIC_DEEP_DOCUMENT',base:1609459400,messages:Array.from({length:161},(_,i)=>({id:'iah11-deep-'+i,text:i===160?deepText:'SYNTHETIC_DEEP_NORMAL '+i}))});
   await eventually(async()=>(await h.state()).records.length===166,'complete deep synthetic capture');
+  await p.locator('#scope-search').fill('SYNTHETIC_DEEP_NORMAL');await eventually(()=>p.locator('.search-input').count().then(n=>n===50));
+  const firstPage=await p.locator('.search-input').evaluateAll(rows=>rows.map(n=>n.dataset.inputId));
+  await p.locator('.pagination').getByRole('button',{name:'下一部分',exact:true}).click();await eventually(()=>p.locator('.search-input').first().getAttribute('data-input-id').then(id=>id!==firstPage[0]));
+  const secondPage=await p.locator('.search-input').evaluateAll(rows=>rows.map(n=>n.dataset.inputId)),selectedOrigin=p.locator('.search-input').nth(3),selectedId=await selectedOrigin.getAttribute('data-input-id');
+  await selectedOrigin.focus();const originTop=await selectedOrigin.evaluate(n=>n.getBoundingClientRect().top);await selectedOrigin.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  assert.deepEqual(await p.locator('.search-input').evaluateAll(rows=>rows.map(n=>n.dataset.inputId)),secondPage,'origin restores the exact second result page after canonical reread');
+  const returnedOrigin=p.locator('.search-input[data-input-id="'+selectedId+'"]');assert.equal(await returnedOrigin.evaluate(n=>n===document.activeElement),true);assert.ok(Math.abs(await returnedOrigin.evaluate(n=>n.getBoundingClientRect().top)-originTop)<=2,'identity-relative result position is restored');
   const deepRecord=(await h.state()).records.find(r=>r.originalText===deepText);assert.ok(deepRecord);const deepId='block:'+deepRecord.id;
   await p.locator('#scope-search').fill('SYNTHETIC_DEEP_MATCH');const deepRow=p.locator('.search-input[data-input-id="'+deepId+'"]');await eventually(()=>deepRow.count().then(n=>n===1));await deepRow.focus();await p.keyboard.press('Enter');
   await eventually(()=>p.locator('[data-edit-id="'+deepId+'"]').isVisible(),'deep final Input opens outside initial window');
@@ -103,6 +135,8 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
    assert.deepEqual(await readInput(),committed,'arrival does not introduce another Input revision');assert.deepEqual(await filterState(),persistedBeforeArrival,'arrival does not persist a match notice or rewrite filter intent');
    assert.match(await p.locator('#notice').textContent(),/匹配.*(?:变化|改变|不再)|(?:match|phrase).*(?:changed|no longer)/i,'surviving Input whose prior body match vanished explains the changed match');
   }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await owner.close();}
+  await p.reload();await eventually(()=>p.locator('#document-panel').isVisible());await eventually(()=>p.locator('#scope-search').isEnabled());
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#scope-search').inputValue(),'','lost same-tab origin safely returns to neutral Archive');assert.match(await p.locator('#notice').textContent(),/原搜索状态已不可用|original search state is unavailable/i,'lost recorded origin explains the neutral fallback');
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });
