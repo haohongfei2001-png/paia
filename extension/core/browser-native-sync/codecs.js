@@ -73,7 +73,10 @@ const sourceCodec=spec('source',value=>{
  if(!exact(value,sourceFields)||!['chatgpt'].includes(value.platform)||!identifier(value.chatId)||!identifier(value.sourceMessageId)||typeof value.originalText!=='string'||!validPortableSourceRecord(value)||!hash(value.contentHash)||!hash(value.sourceKey)||!hash(value.dedupeKey)||(value.previousVersionId!==null&&!identifier(value.previousVersionId)))fail('BNS_CODEC_INVALID');
  return value;
 },{store:'records',immutable:true});
-export const CODECS=Object.freeze({source:sourceCodec,...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
+const filterIntentCodec=spec('filterIntent',value=>{
+ if(!exact(value,['id','keep','reason','at'])||Object.keys(value).length!==4||!hash(value.id)||value.keep!==true||value.reason!=='restored_from_filter'||typeof value.at!=='string'||!Number.isFinite(Date.parse(value.at))||new Date(value.at).toISOString()!==value.at)fail('BNS_CODEC_UNSUPPORTED');return value;
+},{store:'filterIntents'});
+export const CODECS=Object.freeze({source:sourceCodec,filterIntent:filterIntentCodec,...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
 export function validateEntity(type,value,version=1){
  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
  canonical(value);
