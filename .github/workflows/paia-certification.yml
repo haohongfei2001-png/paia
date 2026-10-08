@@ -497,7 +497,7 @@ jobs:
       - name: Verify whole owning Node files and fixture preflight
         run: |
           set -o pipefail
-          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/source-bootstrap-fixture.test.mjs tests/native-sync/source-bootstrap-receipt.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
       - name: Prove source and release native IndexedDB and worker durability
         env:
           CI: '1'
@@ -506,7 +506,7 @@ jobs:
         run: |
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs tests/native-sync/source-bootstrap-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.sha }}
@@ -518,6 +518,7 @@ jobs:
           import {assertReceipt,assertInputWorkingReceipt} from './tests/native-sync/receipt.mjs';
           import {createHash} from 'node:crypto';
           import {assertInputWorkingReceiveReceipt,INPUT_WORKING_RECEIVE_PATHS,INPUT_WORKING_INBOX_PATHS} from './tests/native-sync/input-working-receive-receipt.mjs';
+          import {assertSourceBootstrapReceipt,SOURCE_BOOTSTRAP_PATHS} from './tests/native-sync/source-bootstrap-receipt.mjs';
           import {assertWorkerLifecycle,assertNetworkLedger} from './tests/native-sync/proof-oracles.mjs';
           const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant,requiredFilterIntent:true}));
           const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
@@ -572,6 +573,10 @@ jobs:
           assert.deepEqual(received[0].inboxCases,received[1].inboxCases);assert.deepEqual(received[0].inboxHashes,received[1].inboxHashes);
           const inboxHashes=Object.fromEntries(INPUT_WORKING_INBOX_PATHS.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
           for(const receipt of received)assert.deepEqual(receipt.inboxHashes,inboxHashes);
+          const bootstrap=['source','release'].map(variant=>assertSourceBootstrapReceipt(JSON.parse(readFileSync(`work/qa-bns-source-bootstrap/${variant}.json`)),{head:process.env.PAIA_TESTED_HEAD,tree,variant}));
+          assert.deepEqual(bootstrap[0].cases,bootstrap[1].cases);assert.deepEqual(bootstrap[0].hashes,bootstrap[1].hashes);assert.equal(bootstrap[0].browserVersion,bootstrap[1].browserVersion);
+          const bootstrapHashes=Object.fromEntries(SOURCE_BOOTSTRAP_PATHS.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+          for(const receipt of bootstrap)assert.deepEqual(receipt.hashes,bootstrapHashes);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -586,6 +591,7 @@ jobs:
             extension/work/qa-bns-context-info/
             extension/work/qa-bns-input-working/
             extension/work/qa-bns-input-working-receive/
+            extension/work/qa-bns-source-bootstrap/
           if-no-files-found: error
           retention-days: 7
 

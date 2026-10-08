@@ -1,3 +1,4 @@
+import {assertSourceBootstrapReceipt} from './source-bootstrap-receipt.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {createHash} from 'node:crypto';import {join} from 'node:path';import {tmpdir} from 'node:os';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';import {nativeSourceBootstrapFixture} from './source-bootstrap-fixture.mjs';import {assertWorkerLifecycle,assertNetworkLedger} from './proof-oracles.mjs';
@@ -14,7 +15,7 @@ for(const variant of ['source','release'])test('BNS optional initial Source boot
   browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('source-bootstrap-matrix');assert.equal(receipt.cases.length,23);assert.equal(new Set(receipt.cases).size,23);
   const before=await browser.call('source-bootstrap-durable-create');receipt.restart=await browser.restart();const replay=await browser.call('source-bootstrap-durable-read',before);assert.deepEqual(replay,{duplicate:true,noEcho:true,baselineId:before.before.revisions[0].id});
   receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);assertWorkerLifecycle(receipt.restart);assertNetworkLedger(receipt.isolation.networkLedger,[receipt.restart]);const paused=receipt.isolation.networkLedger.observations.filter(row=>row.point==='paused-before-stop'&&row.lifetime===receipt.restart.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(receipt.restart.pausedNetwork,paused[0]);
-  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';
+  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assertSourceBootstrapReceipt(receipt,{head,tree,variant});
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
 });
