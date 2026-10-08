@@ -27,13 +27,14 @@ for(const variant of ['source','release'])test('BNS complete optional Working re
   browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;receipt.cases=await browser.call('working-receive-matrix');assert.equal(receipt.cases.length,17);assert.equal(new Set(receipt.cases).size,17);
   const before=await browser.call('working-receive-durable-create');assert.equal(before.filterIntents.length,1);assert.ok(before.blocks.some(row=>row.value.note==='SYNTHETIC atomic remote human note'));receipt.restart=await browser.restart();assert.deepEqual(await browser.call('working-receive-durable-read'),before);
   receipt.isolation=structuredClone(await browser.isolation());assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);
-  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';assert.equal(receipt.isolation.httpRequests,0);assertInputWorkingReceiveReceipt(receipt,{head,tree,variant});
+  const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);assert.equal(receipt.isolation.httpRequests,0);
   receipt.inboxCases=await browser.call('working-inbox-matrix');assert.equal(receipt.inboxCases.length,20);assert.equal(new Set(receipt.inboxCases).size,20);
   const pending=await browser.call('working-inbox-durable-create');receipt.inboxRestart=await browser.restart();assert.deepEqual(await browser.call('working-inbox-durable-resume',pending),{resumed:true,pending:0,noEcho:true});receipt.inboxIsolation=await browser.isolation();assert.equal(receipt.inboxIsolation.httpRequests,0);assert.equal(receipt.inboxIsolation.networkAttempts,0);
   receipt.inboxHashes={...receipt.hashes,'core/browser-native-sync/input-working-inbox.js':createHash('sha256').update(await readFile(join(extension.path,'core/browser-native-sync/input-working-inbox.js'))).digest('hex')};
   assertWorkerLifecycle(receipt.inboxRestart);assertNetworkLedger(receipt.inboxIsolation.networkLedger,[receipt.restart,receipt.inboxRestart]);
   for(const event of [receipt.restart,receipt.inboxRestart]){const paused=receipt.inboxIsolation.networkLedger.observations.filter(row=>row.point==='paused-before-stop'&&row.lifetime===event.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(event.pausedNetwork,paused[0]);}
   const inboxProof={cases:receipt.inboxCases,hashes:receipt.inboxHashes};if(variant==='source')sourceInboxProof=inboxProof;else assert.deepEqual(inboxProof,sourceInboxProof);
+  receipt.result='PASS';assertInputWorkingReceiveReceipt(receipt,{head,tree,variant});
  }catch(error){receipt.result='FAIL';receipt.error=error.message;throw error;}
  finally{await writeFile(join(output,variant+'.json'),JSON.stringify(receipt,null,2));await browser?.close();await extension?.cleanup();await rm(directory,{recursive:true,force:true});}
 });

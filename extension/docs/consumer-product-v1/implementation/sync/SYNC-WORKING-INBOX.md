@@ -34,3 +34,12 @@ Actual inbox cases cover delayed same-value restore, namespace changes, consent 
 
 - `work/qa-bns-input-working-receive/source.json` SHA256 `d68653945051d9b11f23d5e80513ed5894a038c69e3dcd554e07a0f44477e985`. Runtime head/tree fields identify base; the above source hashes bind uncommitted implementation.
 - `work/qa-bns-input-working-receive/release.json` SHA256 `e1df11a8270beef6b39aebd05058349e01b89034c8f0730ae28d12d30188ca91`. Runtime head/tree fields identify base; the above source hashes bind uncommitted implementation.
+
+
+## Coordinated 0.30 strict admission
+
+This is SYNC-01 local foundation work, not canonical SYNC-03 production hardening or a Chrome account connection. The preceding design document remains the historical proposal; implemented behavior and exact scoped proof are recorded here.
+
+Current integration adds no job or timeout: both existing Full/Candidate native jobs now require the original17 exact receive cases and7 original hashes, plus20 exact inbox cases and8 exact hashes. They recompute all8 current checkout hashes and compare source/release. The second restart must follow the first lifetime, preserve the entire prior zero-network ledger prefix and both paused observations, with no open native transaction. Final PASS and strict validation occur only after all inbox evidence exists.
+
+Three added receipt negative tests first failed against the earlier permissive validator (`/tmp/030-inbox-receipt-negative.log`); final strict guards23/23 and combined Sync/receipt/compiler/version owners332/332 passed3447.55ms (`/tmp/030-combined-unit.log`). Independent review validated both actual author artifacts with the new validator and all8 current production hashes. Independent review exposed an omitted0.30 Backup producer whitelist update; old24/26 failure is retained, then exact version boundary was extended through30 with31 still rejected. Final independent26/26 plus the correct historical version owner1/1 passed. No backup schema or format change. The matching0.30 package builds405 files. Candidate/exact-main hosted gates remain required; no delivery, provider or physical-device claim follows from local evidence.
