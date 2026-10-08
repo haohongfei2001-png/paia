@@ -11,3 +11,7 @@ Harness failures remain separate: initial wrong working-directory edit failed be
 ## Later actual coarse-input evidence
 
 The same complete source/release file now also verifies actual768px coarse media, both recovery controls at least44×44px, and CDP touch input producing a trusted touch pointer event followed by the real committed recovery. The original ACK-loss retry, keyboard and focus-ownership journeys continue afterwards.2/2PASS,11426.7785ms, `/tmp/settings-recovery-coarse.log`; independent root_finish review approved the incremental test. Existing targets already met the requirement: no CSS or runtime change was needed. This supersedes only the earlier no-coarse-evidence statement above and remains simulated browser input, not physical-device acceptance.
+
+## Existing keyboard request-failure behavior verified
+
+An additional actual keyboard journey throws before forwarding the first RESTORE request, then checks the still-focused enabled retry button and uses Enter again without refocusing. Both exact requests including operation identity match. Existing behavior already passed; no runtime change was needed. This is a pre-dispatch request failure, not a claimed failed storage transaction. The complete two-variant file passes2/2,11743.5015ms, `/tmp/settings-recovery-failure-focus-before.log`; the filename does not imply a failure. Independent review approved the three-line test addition. All coarse, committed-ACK-loss, focus/route, original data/privacy and time-budget assertions remain.
