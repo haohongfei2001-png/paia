@@ -57,3 +57,21 @@ test('actual content insert handshake checks Family after STATUS yields, before 
  handle({type:'PAIA_PROMPT_NEXT_INSERT',sourceType:'PROMPT_FAMILY',id:'candidate',text:'Explain sorting',operationId:'synthetic',authorization:'auth',binding:{url}},null,done.resolve);
  await started.promise;eligible=false;held.resolve();const result=await done.promise;assert.equal(edits,0);assert.equal(result.status,'failed');
 });
+for(const action of ['edit','hide','purge'])test('stale Family '+action+' still permits bound dismissal without copy or insertion authority',async()=>{
+ const f=await fixture(),q=await f.warm();await f.offer();const view=await f.rpc({type:'get'});
+ if(action==='purge')for(const row of await rows(f.s,'records'))await f.s.permanentDelete(row.id);else await f.service.change({action,id:q.items[0].id,revision:q.revision,...(action==='edit'?{text:'Explain graphs'}:{})});
+ await f.rpc({type:'hide'});assert.equal(f.sends.filter(x=>x.type==='PAIA_PROMPT_NEXT_HIDE').length,1);
+ for(const command of [{type:'get'},{type:'copy',id:view.choices[0].id},{type:'insert',id:view.choices[0].id,operationId:crypto.randomUUID()}])await assert.rejects(()=>f.rpc(command));
+ assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_INSERT'),false);
+});
+for(const boundary of ['nonce','frame','document','authorization','reply','extra'])test('dismissal retains exact '+boundary+' binding',async()=>{
+ const f=await fixture();await f.warm();await f.offer();
+ const sender={id:'extension',url:f.api.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce,tab:{id:1},frameId:3},request={type:'PAIA_PROMPT_NEXT_RPC',nonce,command:{type:'hide'}};
+ if(boundary==='nonce'){request.nonce=crypto.randomUUID();sender.url=f.api.runtime.getURL('ui/prompt-surface.html')+'#next-'+request.nonce;}
+ if(boundary==='frame')sender.frameId=0;
+ if(boundary==='document')f.api.tabs.get=async()=>({id:1,url:url+'-different'});
+ if(boundary==='authorization')await f.commands.configure(false);
+ if(boundary==='reply')f.replaceReply();
+ if(boundary==='extra')request.command.extra=true;
+ await assert.rejects(()=>f.commands.handle(request,sender));assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_HIDE'),false);
+});

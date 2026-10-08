@@ -38,13 +38,13 @@ export class NextPromptCommands{
   const tab=await this.api.tabs.get(sender.tab.id);if(tab.incognito||!supported(tab.url))fail();return tab;
  }
  async probe(tab,documentId){return this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_PROBE'},{documentId});}
- async assertCurrent(group){
+ async assertCurrent(group,{requireFamily=true}={}){
   const auth=await this.authorization();if(!auth.enabled||auth.generation!==group.authorization||this.groups.get(group.tabId)!==group)fail();
   const tab=await this.api.tabs.get(group.tabId);if(tab.incognito||tab.url!==group.binding.url)fail();
   const live=await this.probe(tab,group.documentId);
   if(live?.authorization!==auth.generation||!same(live.binding,group.binding))fail();
   const final=await this.authorization();if(!final.enabled||final.generation!==auth.generation||this.groups.get(group.tabId)!==group)fail();
-  if(group.family)await this.service.assertCurrent(group.family.generation);
+  if(requireFamily&&group.family)await this.service.assertCurrent(group.family.generation);
   if(this.changing||this.groups.get(group.tabId)!==group||!group.authorization.endsWith(':'+this.instance+':'+this.serial))fail();
   return {tab,live};
  }
@@ -93,9 +93,12 @@ export class NextPromptCommands{
   }
   // Extension frame only: same resource, distinct nonce and independently bound host.
   if(r.type!=='PAIA_PROMPT_NEXT_RPC'||!own(r,['type','nonce','command'])||!uuid(r.nonce)||sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito||!Number.isInteger(sender.frameId)||sender.frameId<=0||sender.url!==api.runtime.getURL('ui/prompt-surface.html')+'#next-'+r.nonce)fail();
-  const g=this.groups.get(sender.tab.id);if(!g)fail();const {tab,live}=await this.assertCurrent(g);
+  const g=this.groups.get(sender.tab.id);if(!g)fail();const c=r.command;
+  // Dismissal removes only the bound capsule; a stale Family must not trap it.
+  // Authorization, current reply, document and nonce checks remain mandatory.
+  const dismiss=c?.type==='hide'&&own(c,['type']);
+  const {tab,live}=await this.assertCurrent(g,{requireFamily:!dismiss});
   if(live.nonce!==r.nonce)fail();
-  const c=r.command;
   if(c?.type==='get'&&own(c,['type'])){await this.resolveFamily(g);return {id:g.id,type:g.type,sourceType:g.sourceType,condition:g.condition,choices:g.choices.map(x=>({...x,attempted:g.attempted.has(x.id)})),dark:live.dark};}
   if(c?.type==='hide'&&own(c,['type'])){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_HIDE',nonce:r.nonce},{documentId:g.documentId});return {};}
   if(c?.type==='resize'&&own(c,['type','height'])&&Number.isFinite(c.height)&&c.height>=44&&c.height<=400){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_RESIZE',nonce:r.nonce,height:c.height},{documentId:g.documentId});return {};}
