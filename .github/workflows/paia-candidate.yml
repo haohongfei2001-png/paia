@@ -180,7 +180,7 @@ jobs:
           # Change only that mirror URI; preserve suites, packages and signing keys.
           sudo python3 - <<'PYAPT'
           from pathlib import Path
-          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
           for path in paths:
               if path.is_file():
                   text = path.read_text()
@@ -445,7 +445,7 @@ jobs:
           # Change only that mirror URI; preserve suites, packages and signing keys.
           sudo python3 - <<'PYAPT'
           from pathlib import Path
-          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
+          paths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')]
           for path in paths:
               if path.is_file():
                   text = path.read_text()

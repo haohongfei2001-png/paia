@@ -63,7 +63,7 @@ export class ArchiveNavigator{
   window.addEventListener('resize',()=>this.layout(),{passive:true});
  }
  navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed,sourceScope:this.sourceScope};}
- restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();}
+ restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();this.host.scrollTop=this.state.scrollTop;}
  isMobile(){return this.media.matches;}
  isNarrow(){return false;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
