@@ -1,4 +1,5 @@
 import {ArchiveError} from '../core/constants.js';
+import {topicRootTarget} from '../core/topic-root-target.js';
 import {own} from '../core/prompt-reuse-preferences.js';
 import {matchNextFamily} from '../core/next-family-matcher.js';
 import {detectNextAction} from '../core/next-action-detector.js';
@@ -54,13 +55,15 @@ export class NextPromptCommands{
  }
  async handle(r,sender){
   const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
+  const archiveURL=api.runtime.getURL('ui/archive.html');
+  const settings=sender.id===api.runtime.id&&(sender.url===archiveURL||typeof sender.url==='string'&&sender.url.startsWith(archiveURL+'#')&&topicRootTarget(sender.url)!==null)&&!sender.tab?.incognito&&(sender.frameId===undefined||sender.frameId===0)&&(!sender.documentLifecycle||sender.documentLifecycle==='active');
   if(r.type==='PAIA_PROMPT_NEXT_CONFIGURE'){
-   if(!popup||!own(r,['type','enabled'])||typeof r.enabled!=='boolean')fail();
+   if(!popup&&!settings||!own(r,['type','enabled'])||typeof r.enabled!=='boolean')fail();
    if(r.enabled&&!(await this.service.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
    return this.configure(r.enabled);
   }
   if(r.type==='PAIA_PROMPT_NEXT_STATUS'){
-   if(!own(r,['type']))fail();if(!popup)await this.top(sender);return this.authorization();
+   if(!own(r,['type']))fail();if(!popup&&!settings)await this.top(sender);return this.authorization();
   }
   if(r.type==='PAIA_PROMPT_NEXT_INVALIDATE'){
    if(!own(r,['type','id'])||!uuid(r.id))fail();await this.top(sender);const g=this.groups.get(sender.tab.id);if(g?.documentId===sender.documentId&&g.id===r.id){this.groups.delete(sender.tab.id);void api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});}return {};
