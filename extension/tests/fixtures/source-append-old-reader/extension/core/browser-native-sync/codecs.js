@@ -1,4 +1,3 @@
-import {validateSourceAppendMember,validateSourceAppendCommit} from './source-append-codec.js';
 import {validateSourceBootstrapMember,validateSourceBootstrapCommit} from './source-bootstrap-codec.js';
 import {BACKUP_SECTIONS,projectBackupEntity,validateBackupItem} from '../backup-format.js';
 import {validContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
@@ -95,7 +94,7 @@ const commitCodec=spec('inputWorkingCommit',value=>{
  if(!Array.isArray(value.sourceRefs)||!value.sourceRefs.length||value.sourceRefs.length>16||value.sourceRefs.some(x=>!exact(x,['id','sourceKey','dedupeKey','contentHash'])||Object.keys(x).length!==4||!identifier(x.id)||![x.sourceKey,x.dedupeKey,x.contentHash].every(hash))||new Set(value.sourceRefs.map(x=>x.id)).size!==value.sourceRefs.length)fail('BNS_CODEC_INVALID');
  const seen=new Set();for(const ref of value.members){if(!exact(ref,['type','entityId','revisionId'])||Object.keys(ref).length!==3||ref.type!=='inputWorkingMember'||!identifier(ref.entityId)||!hash(ref.revisionId)||seen.has(ref.entityId))fail('BNS_CODEC_INVALID');seen.add(ref.entityId);}return value;
 },{store:'meta'});
-export const CODECS=Object.freeze({sourceAppendMember:spec('sourceAppendMember',validateSourceAppendMember),sourceAppendCommit:spec('sourceAppendCommit',validateSourceAppendCommit),sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
+export const CODECS=Object.freeze({sourceBootstrapMember:spec('sourceBootstrapMember',validateSourceBootstrapMember),sourceBootstrapCommit:spec('sourceBootstrapCommit',validateSourceBootstrapCommit),inputWorkingMember:memberCodec,inputWorkingCommit:commitCodec,source:sourceCodec,filterIntent:filterIntentCodec,revision:workingRevisionCodec,...Object.fromEntries(entries.filter(([type])=>['input','inputState'].includes(type))),...Object.fromEntries(entries.filter(([type])=>['contextItem','contextRulesItem','contextNowItem','contextDesired','promptPreferences'].includes(type)))});
 export function validateEntity(type,value,version=1){
  const codec=Object.hasOwn(CODECS,type)?CODECS[type]:null;if(!codec||version!==codec.version)fail('BNS_CODEC_UNSUPPORTED');
  canonical(value);

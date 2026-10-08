@@ -1,3 +1,4 @@
+import {sourceAppendPlan,verifySourceAppendWrite,verifyAppendDocumentPreserved} from './browser-native-sync/source-append-plan.js';
 import {initialSourceRecord,initialSourceObjects} from './source-initial.js';
 import {initialSourcePlan,verifyInitialSourceWrite} from './browser-native-sync/source-bootstrap-plan.js';
 import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-removal.js';
@@ -62,6 +63,14 @@ export class IndexedArchiveStore {
   await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));
   const state=await this.applyInitialBaseline(t,capability);await t.put('filterInputs',this.initialFilter(b,state));
   await this.refreshDoc(t,doc.id);await t.put('meta',sequence);await verifyInitialSourceWrite(t,capability);return {sourceId:r.id,inputId:b.id,documentId:b.documentId};
+ }
+ async applySourceAppend(t,capability){
+  const e=sourceAppendPlan(capability),r=e.source,b=e.input,c=await this.control(t);protectedConsent(c,c.settings.epoch);
+  if(await t.count('documents','byChat',chatOf(r))!==1)error('BNS_SOURCE_APPEND_UNAVAILABLE');const docs=await t.all('documents','byChat',chatOf(r));
+  if(docs.length!==1||docs[0].id!==b.documentId||!await t.get('libraryDocuments',b.documentId)||await t.get('records',r.id)||await t.get('blocks',b.id)||await t.count('recordIndex','bySource',r.sourceKey)||await t.count('recordIndex','byDedupe',r.dedupeKey)||await t.get('times',r.sourceKey)||await t.get('tombstones','source:'+r.sourceKey)||await t.get('tombstones','snapshot:'+r.dedupeKey)||await t.get('inputRemovals',r.sourceKey)||await captureIsExcluded(t,r.chatId))error('BNS_SOURCE_APPEND_UNAVAILABLE');
+  if(typeof this.applyAppendBaseline!=='function'||typeof this.initialFilter!=='function')error('BNS_SOURCE_APPEND_UNSUPPORTED');
+  const beforeDocument={documents:structuredClone(docs[0].value),libraryDocuments:structuredClone((await t.get('libraryDocuments',b.documentId)).value)},sequence=await t.get('meta','sequence');await this.saveRecord(t,r,{sequence:sequence.records++});if(e.timeEvidence.value!==null)await t.put('times',e.timeEvidence);
+  await t.put('blocks',{id:b.id,value:b});await t.put('blockIndex',blockIndex(b,sequence.blocks++,[r]));const state=await this.applyAppendBaseline(t,capability);await t.put('filterInputs',this.initialFilter(b,state));await this.refreshDoc(t,b.documentId);await t.put('meta',sequence);await verifySourceAppendWrite(t,capability);await verifyAppendDocumentPreserved(t,b.documentId,beforeDocument);return {sourceId:r.id,inputId:b.id,documentId:b.documentId};
  }
  async trackBlock(t,b){for(const p of b.provenance){const r=await t.get('recordIndex',p.sourceRecordId);if(r)this.changedSources.add(r.sourceKey||'legacy:'+r.id);}}
  async refreshDoc(t,id){
