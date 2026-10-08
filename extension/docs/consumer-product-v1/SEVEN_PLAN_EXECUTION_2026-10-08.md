@@ -1,5 +1,11 @@
 # Seven-lane coordinated execution
 
+## Latest integration checkpoint — 2026-10-08 22:51 UTC
+
+PR219/0.32 merged normally at `57ba551cf3ab7bb3adb08bac9e98aaecbdc7166f`, tree `2d1d8ba6a089fc163d7583eda38b54ec5842f39b`, after corrected candidate Full37854230896 and Prompt37854230860 SUCCESS. Its exact-main Full37855910790 / Prompt37855910855 are pending. Earlier writing failure37851777635 remains failed; the corrected native wheel prerequisite passed without weakening the oracle. Main0.31 exact Full37851440123 / Prompt37851440041 passed. A byte-verified416-file0.32 package exists; no automatic installation.
+
+The local0.33 batch includes reviewed Settings recovery focus, bounded complete-admitted-group checkpoint restore and strict single-child AI v2 incremental assembly. Complete4433unit and52native cases across eleven whole files pass; actual nine-family exact-head/current-checkout receipt validation and420-file build pass. See [COHERENT-033-CANDIDATE](implementation/verification/COHERENT-033-CANDIDATE.md) for exact identities, preserved failures and scope. Fresh0.32 main is reconciled without any file change after the native checkpoint. Hosted certification remains pending. Human Library graph Sync and2–4 child AI closure are subsequent independent work, not delivered by0.33. Physical/current-live/model/account/installed gates remain distinct.
+
 ## Latest integration checkpoint — 2026-10-08 22:10 UTC
 
 PR218/0.31 merged normally as main `e2a5acd61f8c919bf8a4b7692f682e068b4fd078`, tree `d6f710b661181d701d3a6befe56a02dd7b3e2ae4`, identical to reviewed head905fb9c9 after Full37849428072 SUCCESS. Its exact-main Full/Prompt checks and package are pending.0.30 main1b06 has Full37848783654 and Prompt37848783642 SUCCESS and a byte-verified406-file package; no automatic installation.
