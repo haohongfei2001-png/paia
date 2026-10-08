@@ -62,7 +62,7 @@ export class ContextItemEditor {
 }
 
 export class ContextCardsPage {
- constructor({host,onNavigate}){this.host=host;this.onNavigate=onNavigate;this.card=null;this.snapshot=null;this.inputs=null;this.editors=new Map();this.journal=new UndoJournal();this.accessCommit=new ContextCommitSession();this.deleteCommit=new ContextCommitSession();this.busy=false;this.active=false;this.readGeneration=0;this.openGeneration=0;}
+ constructor({host,onNavigate}){this.host=host;this.onNavigate=onNavigate;this.card=null;this.snapshot=null;this.inputs=null;this.editors=new Map();this.journal=new UndoJournal();this.accessCommit=new ContextCommitSession();this.deleteCommit=new ContextCommitSession();this.busy=false;this.active=false;this.readGeneration=0;this.openGeneration=0;document.addEventListener('paia:preferences-applied',()=>{if(this.active&&editable(this.card)&&this.page){this.localizeEditable();this.paintAccess();}});}
  async open(card=null){
   card=routes[card]?card:null;const generation=++this.openGeneration,rebuild=!this.active||!this.page||this.renderedCard!==card;this.active=true;this.card=card;
   await this.refresh({rebuild});if(generation!==this.openGeneration||!this.active||this.card!==card)return;
@@ -74,7 +74,7 @@ export class ContextCardsPage {
   const generation=++this.readGeneration;
   try{const snapshot=await request('PAIA_CONTEXT_CARDS_SNAPSHOT');if(generation!==this.readGeneration||!this.active)return;this.snapshot=snapshot;
    if(rebuild||!this.page||this.renderedCard!==this.card){this.render();if(this.inputs)await this.inputs.refresh();return;}
-   this.paintAccess();
+   this.localizeEditable();this.paintAccess();
    if(!this.card){for(const [k,count]of Object.entries(snapshot.counts)){const node=this.host.querySelector(`[data-count="${k}"]`);if(node)node.textContent=k==='inputs'?this.inputCount():`${count} ${copy('项','items')}`;}const summary=this.host.querySelector('.input-summary');if(summary)this.paintInputSummary(summary);}
    else if(editable(this.card)){
     for(const [id,editor]of this.editors){const item=snapshot.items.find(x=>x.id===id);editor.receive(item,snapshot.epoch);if(!item&&!editor.fresh&&!editor.dirty()&&!editor.composing&&!editor.saving){editor.dispose();editor.root.remove();this.editors.delete(id);}}
@@ -129,6 +129,24 @@ export class ContextCardsPage {
   let group=[...this.content.querySelectorAll('.context-section')].find(x=>x.dataset.section===item.section);
   if(!group){group=element('section','context-section');group.dataset.section=item.section;group.append(element('h2','',item.section));const following=[...this.content.querySelectorAll('.context-section')].find(section=>Math.min(...[...section.querySelectorAll('.context-item')].map(node=>order(node.dataset.item)))>targetOrder);this.content.insertBefore(group,following||this.add);}
   const editor=new ContextItemEditor(this,item,options),following=[...group.querySelectorAll('.context-item')].find(node=>order(node.dataset.item)>targetOrder);this.editors.set(item.id,editor);group.insertBefore(editor.root,following||null);return editor;
+ }
+ // Update only presentation labels. Never replace an editable body or its
+ // saved/user-authored section, selection, composition or recovery session.
+ localizeEditable(){
+  if(!editable(this.card)||!this.page)return;
+  const set=(node,text)=>{if(node&&node.textContent!==text)node.textContent=text;};
+  set(this.page.querySelector('h1'),label(this.card));
+  set(this.page.querySelector('.context-back')?.querySelector('span'),copy('AI 上下文','AI Context'));
+  set(this.page.querySelector('.maintenance'),copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.'));
+  set(this.empty,copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));set(this.add,copy(...itemCopy[this.card].add));
+  for(const editor of this.editors.values()){
+   const card=editor.saved.card||this.card;
+   editor.field.setAttribute('aria-label',label(card));editor.field.dataset.placeholder=copy(...itemCopy[card].placeholder);
+   editor.menu.querySelector('summary')?.setAttribute('aria-label',copy('此条内容的更多操作','More item actions'));
+   const actions=editor.menu.querySelectorAll('button');
+   for(const [index,pair]of [['查看依据','View basis'],['撤销上次修改','Undo last edit'],['删除','Delete']].entries())set(actions[index],copy(...pair));
+   set(editor.root.querySelector('.item-evidence'),copy('由你添加，人工修改始终保留。','Added by you. Your edits are protected.'));
+  }
  }
  paintEmpty(){if(this.empty)this.empty.hidden=this.editors.size>0;for(const group of this.content?.querySelectorAll('.context-section')||[])if(!group.querySelector('.context-item'))group.remove();}
  notice(text,undo=false){this.message?.replaceChildren(element('span','',text));if(undo)this.message.append(button(copy('撤销','Undo'),()=>void this.undoDelete()));}

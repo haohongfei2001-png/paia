@@ -51,7 +51,7 @@ async function fixture(run,{seed=true}={}){
  const items=seed?cards.map(card=>put(card)):[];
  for(const item of items)await c.change(item);
  const body=new Node('body');
- globalThis.document={body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ globalThis.document={addEventListener(){},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const dispatch=async message=>{
   switch(message.type){
    case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot();
