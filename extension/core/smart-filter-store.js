@@ -119,9 +119,12 @@ export class SmartFilterStore extends IAStore {
  async protect(t,b,reason,userEdited=false,prepared=null){
   prepared??=this.inputWorkingJournal?.protectionFor(t,b,reason,userEdited)??null;
   const portableAt=this.filterIntentJournal?await this.filterIntentJournal.authorize(t,prepared,b,reason,userEdited):null;
+  await this.updateProtectedFilterRow(t,b,reason,userEdited);
+  for(const key of await sourceKeys(t,b))await t.put('filterIntents',{id:key,keep:true,reason,at:portableAt??this.clock()});
+ }
+ async updateProtectedFilterRow(t,b,reason,userEdited){
   const meta=await t.get('inputStates',b.id);const row=await t.get('filterInputs',b.id)||this.initialFilter(b,meta,true);
   row.filterOverride='keep';row.userEdited||=userEdited;row.overrideReason=reason;row.overrideAt=this.clock();row.evaluationRevision++;row.failed=false;row.pendingKey=1;row.decision='keep';row.reasonCode='user_protected';delete row.filteredKey;await t.put('filterInputs',row);
-  for(const key of await sourceKeys(t,b))await t.put('filterIntents',{id:key,keep:true,reason,at:portableAt??this.clock()});
  }
  async keepInput(id){if(!idOK(id))throw new ArchiveError('INVALID_REQUEST');const journal=this.filterIntentJournal,prepared=journal?await journal.prepareKeep(this,id):null;try{return await this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b||b.excluded||b.branchStatus)invalid();await this.protect(t,b,'restored_from_filter',false,prepared);if(journal)await journal.commit(t,prepared);return {ok:true};});}finally{journal?.release(prepared);}}
  protectUserInput(id){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b)invalid();await this.protect(t,b,'user_edit',true);return {ok:true};});}

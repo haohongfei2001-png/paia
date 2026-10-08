@@ -73,6 +73,18 @@ export class IAStore extends IndexedArchiveStore {
   await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(Date.parse(row.at)<cutoff&&(!row.important||important>REVISION_POLICY.importantMinimum))c.delete();c.continue();};});
  }
  pruneRevisions(){if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
+ // Trusted optional remote Working owner; all values/closure are checked by
+ // InputWorkingCommitReceiver before this same repository transaction writes.
+ async applyRemoteWorking(t,{before,block,inputState,history,keeps,operationId}){
+  const current=(await t.get('blocks',block.id))?.value;if(!same(current,before))fail();
+  const after={...current,...structuredClone(block)},deltaSequence=await nextSequence(t,'input-delta-sequence');
+  await t.put('blocks',{id:after.id,value:after});await t.put('inputStates',{...structuredClone(inputState),deltaSequence});
+  const mapped=[];for(const item of history){const sequence=item.localSequence??await nextSequence(t,'revision-sequence'),row={...structuredClone(item.value),sequence,listKey:[item.value.entityKey,sequence],documentList:[item.value.documentId,sequence]};await t.put('revisions',row);mapped.push({id:row.id,sequence});}
+  for(const keep of keeps)await t.put('filterIntents',structuredClone(keep));
+  await this.updateProtectedFilterRow(t,after,'user_edit',true);
+  await this.invalidate(t,after.id,'source_updated',inputState.contentRevision,{operationId});
+  return {history:mapped,deltaSequence};
+ }
  async afterInputEdit(t,before,after,oldDoc,newDoc,request){
   for(let i=0;i<after.length;i++){
    const a=before[i],b=after[i];await this.initializeInput(t,a);const meta=await t.get('inputStates',b.id);
