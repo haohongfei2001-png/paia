@@ -1,4 +1,6 @@
+const AI_COST_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 const CURRENT_BROWSER=new Set([
+ AI_COST_BROWSER,
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
  'context-cards-chrome-e2e.test.mjs',
@@ -56,6 +58,11 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ const name=file.split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(name===AI_COST_BROWSER)return 4;if(name>AI_COST_BROWSER)position--;}
+ return priorAiShard(file,position,total,category);
+}
+function priorAiShard(file,position,total,category){
  const name=file.split('/').at(-1),section='cpv1-topic-05-4-section-chrome-e2e.test.mjs';
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){
   if(name===section)return total===7?7:4;

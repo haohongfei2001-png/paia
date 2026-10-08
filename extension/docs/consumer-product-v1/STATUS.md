@@ -1,5 +1,11 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Current integration checkpoint — 2026-10-08
+
+Remote main `c168b131` is certified for its scoped Settings/Section/partial Sync foundations. The updated [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) records actual delivered boundaries, open candidates, independent owners and remaining external gates. The latest owner instruction requires continuous execution while independent work remains, with heartbeat continuation only when waiting is unavoidable.
+
+PR203/194/199/204 and Prompt PR164 remain unmerged at this checkpoint. Prior CI failures and macOS capacity cancellations are not passes. A code/test/local candidate is not a completed lane or user-installed build. Continue ordinary fixes and integration under the existing protocol; paid/cloud/permission/deployment gates remain unchanged.
+
 ## Owner-directed coordinated execution — 2026-10-08
 
 The owner's latest instruction authorizes one coordinator to advance CTX4-01–07,
