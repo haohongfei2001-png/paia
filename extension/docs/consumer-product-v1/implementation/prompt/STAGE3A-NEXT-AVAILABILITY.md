@@ -34,3 +34,19 @@ The corrected case invokes the existing real reply cycle(). Actual detector/OFFE
 Production code and original assertions/budgets are unchanged. Syntax and two complete UI/background owner files pass 12/12 in /tmp/prompt-availability-sender-fix-unit.log; diff-check passes. Full corrected native validation remains pending the next coordinated Linux run; the known local iframe-hit failure was not repeatedly retried. Updated native SHA-256: 24e48081e8e6d42953b7130fe4e055c402ed445f7ffe74ca06163b3b868e47e7. Earlier native hashes and failures remain historical evidence.
 
 Coordinator independent review approved the corrected real-worker broadcast precondition and unchanged trusted-sender guard. The response is held only after the actual worker answered; no available result is fabricated. The sender finding is explicitly limited to this fixture popup page. Approval is to commit these two files and validate one new head through the existing Linux workflow, not to relabel the failed 2b8ba5f1 run.
+
+### Hosted Linux qualification after real sender correction
+
+Exact head `4904a473cab18bd9a3919de3cc6155d75ea53a40`, workflow run
+[37812957639](https://github.com/haohongfei2001-png/paia/actions/runs/37812957639):
+all four Prompt unit shards and the complete foundation job SUCCESS. The actual
+Stage 3A source/release direct loop passed 26/26 tests, including held stale
+availability; Settings Next session source/release passed 2/2. Foundation also
+retained source/release composer and Prompt surface regressions and contracts.
+No skips/cancellations are used as acceptance. The previous local Mac click and
+hosted `2b8ba5f1` fixture failures above remain recorded.
+
+This qualifies the unchanged Prompt runtime component, not installation, a paid
+model, whole seven-lane completion or final certification of the combined 0.28
+candidate. Integrated locally with reviewed 0.28 at `fb9adfeb190d22bf5b159e1e185e77ba0aec86e3`;
+its formal candidate and exact-main gates remain pending.
