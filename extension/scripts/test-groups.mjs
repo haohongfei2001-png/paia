@@ -63,9 +63,10 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
- // Full37811945027: shard4 exceeded18m while shard1 used12m08s. Move
- // only the complete ~4m Reader/Revisit file; preserve all cases and deadlines.
- if(category==='browser E2E'&&total===7&&file.replaceAll('\\','/').split('/').at(-1)==='ux-r2-reader-revisit-chrome-e2e.test.mjs')return 1;
+ // Full37830791787: shard1 cancelled at18m with two tail files unreported.
+ // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.
+ // Move only this whole file to6; preserve every case and the18m limit.
+ if(category==='browser E2E'&&total===7&&file.replaceAll('\\','/').split('/').at(-1)==='ux-r2-reader-revisit-chrome-e2e.test.mjs')return 6;
  // Full37775540355/37777034587 exhausted3; complete search file costs258s while6 is~8m.
  if(category==='browser E2E'&&total===7&&file.replaceAll('\\','/').split('/').at(-1)==='ux-r4-search-reuse-chrome-e2e.test.mjs')return 6;
  const newName=file.replaceAll('\\','/').split('/').at(-1);

@@ -22,8 +22,8 @@ test('Section actions admits its whole native owner while retaining all304 actua
  for(const [column,total] of [4,5,6,7].entries()){
   assert.equal(testShard(added,names.indexOf(added),total,'browser E2E'),4);
   for(const [name,...routes] of frozen.rows){
-   assert.equal(testShard(name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?1:total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]),`${total}:${name}`);
-   assert.equal(testShard('tests/'+name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?1:total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]));checked++;
+   assert.equal(testShard(name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?6:total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]),`${total}:${name}`);
+   assert.equal(testShard('tests/'+name,names.indexOf(name),total,'browser E2E'),(total===7&&name==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?6:total===7&&name==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]));checked++;
   }
   const shards=Array.from({length:total},(_,slot)=>names.filter((n,i)=>testShard(n,i,total,'browser E2E')===slot+1));
   assert.ok(shards.every(s=>s.length));assert.deepEqual(shards.flat().sort(),names);assert.equal(new Set(shards.flat()).size,84);
