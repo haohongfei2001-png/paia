@@ -33,3 +33,9 @@ Staged restore revalidates complete bounded ancestry in its own namespace, never
 - `tests/browser-native-sync-context-desired.test.mjs`: `bc958a9a21b7870e26058c5349e0f933699d0cbe5a5596de3e951d2db0f5ba9c`
 - `tests/native-sync/context-info-chrome.test.mjs`: `e555deed40be0eb95ebbc7f6f5feed080dd397013cead01e095c575ce38452f1`
 - `tests/native-sync/context-info-worker-fixture.mjs`: `6568d1b61c0f96891b2827183c122f88036ddbbbb0eb5751ed735a4a7b4ef85c`
+
+## Coordinator combined validation
+
+At combined local checkpoint `df92fea5fedeff866ab3bd839322e016e60ed4b5`, all four complete native Sync files passed **38/38**, zero skipped/cancelled, 68.260 seconds (`/tmp/local-foundations-sync-combined.log`). Both Context variants retain 94 cases, 12 hashes and three real restarts. The actual updated CI receipt verifier ran via module stdin in the extension working directory and reported `BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS df92fea5fedeff866ab3bd839322e016e60ed4b5`. This is local checkpoint evidence, not a future head or cloud pass.
+
+Both candidate and full workflows now require the exact four-card desired scope, 94 cases, desiredRestartProof and the twelfth production hash. Independent settings_finish review caught the first draft's stale scope before integration; it was corrected with a guard. Five complete CI contract tests and YAML validation passed independently. Original 12-minute budget, all three lifecycle proofs, 129-to-130 continuation, network ledger and exact head/tree checks remain.

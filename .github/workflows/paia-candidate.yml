@@ -1544,13 +1544,13 @@ jobs:
           const contexts = ['source','release'].map(variant => {
             const receipt=JSON.parse(readFileSync(`work/qa-bns-context-info/${variant}.json`));
             assert.equal(receipt.schema,1);assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.tree,tree);assert.equal(receipt.variant,variant);assert.equal(receipt.result,'PASS');
-            assert.equal(receipt.scope,'manual Info/Rules/Now optional owners only');assert.equal(receipt.provider,false);assert.equal(receipt.fullCanonicalRestore,false);
-            assert.equal(receipt.ownerCases.length,68);assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);
+            assert.equal(receipt.scope,'manual Info/Rules/Now and four-card desired optional owners only');assert.equal(receipt.provider,false);assert.equal(receipt.fullCanonicalRestore,false);
+            assert.equal(receipt.ownerCases.length,94);assert.equal(receipt.desiredRestartProof,true);assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);
             const restarts=[receipt.restart,receipt.restoreRestart,receipt.continuationRestart];
             assert.deepEqual(receipt.continuation,{before:[['info',129],['rules',129],['now',129]],after:[['info',130],['rules',130],['now',130]]});
             for(const event of restarts)assertWorkerLifecycle(event);
             assertNetworkLedger(receipt.isolation.networkLedger,restarts);
-            const paths=['core/idb-repository.js','core/prompt-reuse-service.js','core/browser-native-sync/core.js','core/browser-native-sync/prompt-journal.js','core/browser-native-sync/checkpoints.js','core/browser-native-sync/segments.js','core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'];
+            const paths=['core/idb-repository.js','core/prompt-reuse-service.js','core/browser-native-sync/core.js','core/browser-native-sync/prompt-journal.js','core/browser-native-sync/checkpoints.js','core/browser-native-sync/segments.js','core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/context-desired-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'];
             assert.deepEqual(Object.keys(receipt.productionHashes).sort(),paths.sort());
             for(const value of Object.values(receipt.productionHashes))assert.match(value,/^[a-f0-9]{64}$/);
             return receipt;
