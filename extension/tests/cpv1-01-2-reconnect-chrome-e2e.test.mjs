@@ -85,6 +85,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     // Chrome's Linux headless discard path can crash the browser process.
     // CI has an isolated Xvfb display; exercise the same real tabs API there.
     h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI, launchThroughPort: true });
+    console.log('DISCARD_BROWSER_ENV',JSON.stringify({browserVersion:h.context.browser().version(),chromePath:process.env.CHROME_PATH||'platform-default',ci:process.env.CI||null,headless:process.env.PAIA_HEADLESS==='1'}));
     stage = 'enable consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
     await h.archive.locator('#enable-consent').click();
@@ -103,8 +104,12 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     });
     const tab = await opened;
     tab.on('pageerror', error => h.errors.push(error.message));
+    stage = 'navigate background conversation';
     await tab.goto(`https://chatgpt.com/c/${restoredConversation.id}`);
+    console.log('DISCARD_CAPTURE_INITIAL',JSON.stringify(await tab.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length}))));
+    stage = 'wait for background capture bridge';
     await h.ready(tab);
+    stage = 'confirm background initial three records';
     await eventually(async () => (await h.state()).records.length === 3);
 
     stage = 'close unrelated tabs';
@@ -181,6 +186,36 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
     let browserState = 'unavailable';
+    let diagnosticTimer;
+    try {
+      const page=h?.context?.pages().find(p=>p.url().includes('/c/cpv1-discarded-tab'));
+      const snapshot={errors:h.errors};
+      const diagnostic=Promise.allSettled([
+        (page? page.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length})):Promise.resolve(null)).then(state=>snapshot.state=state),
+        h.archive.evaluate(async()=>{
+          const status=await chrome.runtime.sendMessage({type:'GET_STATUS'}),value=status?.ok===true?status.data:null;
+          return {statusOK:status?.ok===true,enabled:value?.enabled===true,consented:value?.consented===true,
+            adapterVersion:typeof value?.adapterVersion==='string'?value.adapterVersion:null,
+            runtimeVersion:chrome.runtime.getManifest().version,runtimeVersionSource:'extension-manifest',
+            statusReadiness:status?.ok===true?'responded':'rejected',epoch:Number.isSafeInteger(value?.epoch)?value.epoch:null};
+        }).then(status=>snapshot.status=status),
+        h.archive.evaluate(async()=>{const result=await chrome.runtime.sendMessage({type:'GET_STATE'}),d=result?.data?.diagnostics;return {records:Array.isArray(result?.data?.records)?result.data.records.length:null,diagnostics:d?{status:d.status,scanned:d.scanned,lastScanAt:d.lastScanAt,lastErrorCode:d.lastError?.code,structure:d.structure}:null};}).then(state=>snapshot.archive=state),
+        h.archive.evaluate(async()=>{
+          const tabs=await chrome.tabs.query({url:'https://chatgpt.com/c/cpv1-discarded-tab'});
+          if(tabs.length!==1)return {targetCount:tabs.length};
+          const tab=tabs[0],rows=await chrome.scripting.executeScript({target:{tabId:tab.id},world:'ISOLATED',func:()=>{
+            const lifecycle=globalThis.PAIACaptureLifecycle,controller=globalThis.PAIACaptureController;
+            const result={lifecyclePresent:!!lifecycle,lifecycleActive:lifecycle?.active===true,lifecycleReady:lifecycle?.ready===true,controllerPresent:!!controller,adapterPresent:typeof globalThis.ChatGPTAdapter==='function',contentVersion:lifecycle?.version||null,firstIndependentScan:true};
+            if(result.adapterPresent){const adapter=new globalThis.ChatGPTAdapter();try{const scan=adapter.collect();result.scan={code:scan.code,scanned:scan.scanned,messageCount:scan.messages?.length||0,structure:globalThis.ArchiveDiagnostics?.sanitizeStructure(scan.structure)||null};}finally{adapter.stopWatching();}}
+            return result;
+          }});
+          return {active:tab.active,discarded:tab.discarded,status:tab.status,isolated:rows.filter(row=>row.frameId===0).map(row=>row.result)};
+        }).then(isolated=>snapshot.capture=isolated),
+      ]).then(results=>({...snapshot,diagnosticRejected:results.some(x=>x.status==='rejected')}));
+      const result=await Promise.race([diagnostic,new Promise(resolve=>{diagnosticTimer=setTimeout(()=>resolve({...snapshot,diagnosticTimedOut:true}),2500);})]);
+      console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify(result));
+    }catch{console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify({diagnosticUnavailable:true}));}
+    finally{clearTimeout(diagnosticTimer);}
     try {
       browserState = JSON.stringify({
         connected: h?.context?.browser()?.isConnected() ?? false,
