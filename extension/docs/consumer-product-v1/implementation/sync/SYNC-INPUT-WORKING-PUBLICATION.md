@@ -42,3 +42,9 @@ Final changed runtime SHA-256:
 - core/browser-native-sync/input-working-journal.js: f65e8de4955151cde1496e05a9423f6423a632b38f266ac4adb9fc48b99ec2c8
 - core/ia-store.js: ba938aa7bb46712b7188cd5ded5f94b22e4127f27540e3eb3855ec3e5a6db7e1
 Other runtime hashes from9439 remain unchanged. Independent review covers this final correction; historical pending notes above are not current approval status.
+
+## Full native CI admission — reviewed follow-up
+
+The candidate and full-certification Sync jobs now include the complete Input Working source/release native file, retaining all four prior files and the original 12-minute job budget. Its artifact is retained even on failure. The shared strict validator requires the actual fourteen ordered owner cases, six named production hashes, exact head/tree/variant, browser version, real restart-boundary with no native transaction, paused-worker network evidence and the complete cross-lifetime zero-network ledger. Activation, remote materializer and full recovery remain explicitly false. Source/release case/hash/browser identity must agree.
+
+Independent settings_finish review approved the final delta after executing the real owner registrations to verify all fourteen names (including the three dynamic unsupported cases). The two complete CI/contract files passed13/13 in564.381ms (`/tmp/input-working-ci-independent-final.log`); both workflow YAML and embedded receipt JavaScript parsed, and diff check passed. Root also passed13/13. Negative contract cases reject stale/undefined identity, changed case inventories, false activation, invalid restart phases and erased/denied network observations. The stricter native receipts and coherent combined runtime still require a new run; prior native evidence is not relabelled as this gate.

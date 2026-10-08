@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 import {IDBFactory, IDBKeyRange, IDBTransaction} from '../vendor/fake-indexeddb/build/esm/index.js';
 import {ImmutableObjects} from './immutable-objects.mjs';
 import {instrumentedExtension, root} from './storage-harness.mjs';
-import {assertReceipt, CASES} from './receipt.mjs';
+import {assertReceipt, CASES, assertInputWorkingReceipt, INPUT_WORKING_PATHS, INPUT_WORKING_CASES} from './receipt.mjs';
 import {assertPromptCrashOutcome, portablePrompt, LifetimeNetworkLedger, assertNetworkLedger, assertWorkerLifecycle} from './proof-oracles.mjs';
 
 function promptTransition(text = 'Synthetic distinct new text') {
@@ -186,4 +186,15 @@ test('copied fixture calls actual owners and preserves abort, quota, restore and
     await copy.cleanup();
   }
   assert.equal(await readFile(join(root, 'background/service-worker.js'), 'utf8'), original);
+});
+
+
+test('Working receipt refuses stale, partial, network-erased and false activation evidence',()=>{
+ const before=networkIdentity('working-before'),after=networkIdentity('working-after'),ledger=new LifetimeNetworkLedger();
+ ledger.observe(before,'opened');ledger.observe(before,'before-stop');const pausedNetwork=ledger.observe(before,'paused-before-stop');ledger.restarted(before,after);ledger.finish(after);
+ const restart={beforeLifetime:before.lifetime,afterLifetime:after.lifetime,phase:{name:'restart-boundary',lifetime:before.lifetime,hasNativeTransaction:false},stopped:true,restarted:true,interruptedCall:'returned',completedNoopValue:true,pausedNetwork};
+ const receipt={schema:1,head:'a'.repeat(40),tree:'b'.repeat(40),variant:'source',result:'PASS',scope:'optional-local-Input-Working-publication',productionActivation:false,remoteMaterializer:false,fullRecovery:false,cases:[...INPUT_WORKING_CASES],hashes:Object.fromEntries(INPUT_WORKING_PATHS.map(p=>[p,'c'.repeat(64)])),browserVersion:'1.0 synthetic contract fixture',restart,isolation:{nativeFactory:true,networkAttempts:0,httpRequests:0,networkLedger:ledger.evidence}};
+ const validate=r=>assertInputWorkingReceipt(r,{head:receipt.head,tree:receipt.tree,variant:'source'});validate(receipt);assert.throws(()=>assertInputWorkingReceipt({...receipt,head:undefined,tree:undefined},{variant:'source'}));
+ for(const change of [{head:'d'.repeat(40)},{tree:'d'.repeat(40)},{result:'IN_PROGRESS'},{variant:'release'},{scope:'full-sync'},{cases:receipt.cases.slice(1)},{cases:Array(14).fill('duplicate')},{cases:receipt.cases.map((x,i)=>i===0?'other case':x)},{hashes:{}},{productionActivation:true},{remoteMaterializer:true},{fullRecovery:true},{browserVersion:''}])assert.throws(()=>validate({...receipt,...change}));
+ for(const mutate of [r=>r.restart.phase.name='other-phase',r=>r.restart.phase.hasNativeTransaction=true,r=>r.restart.stopped=false,r=>r.restart.afterLifetime=r.restart.beforeLifetime,r=>r.restart.pausedNetwork={},r=>r.isolation.httpRequests=1,r=>r.isolation.networkLedger.observations[1].networkAttempts.push('https://synthetic.invalid/denied'),r=>r.isolation.networkLedger.observations.splice(2,1)]){const copy=structuredClone(receipt);mutate(copy);assert.throws(()=>validate(copy));}
 });
