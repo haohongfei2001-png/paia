@@ -2,13 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {resolve} from 'node:path';
-import {mkdir} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
 for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Section rename/order and protected prose '+variant,{timeout:120000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='release'?'work/current-release':'.')}),p=h.archive;
+ const release=variant==='release'?await mkdtemp(resolve(tmpdir(),'paia-section-actions-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive;
  try{
   await p.setViewportSize({width:1280,height:900});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const f=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();const t=await s.createTopic({name:'SYNTHETIC Section actions',operationId:op()}),ids=[];for(const title of ['SYNTHETIC A','SYNTHETIC Empty B'])ids.push((await s.createSection({topicId:t.id,expectedTopicRevision:(await s.topic(t.id)).organizationRevision,title,operationId:op()})).sectionId);const e=await s.continueThinking({topicId:t.id,body:'SYNTHETIC protected prose\n\n中文 paragraph',operationId:op()});return {topic:t.id,defaultId:t.defaultSectionId,ids,entry:e.id};});
@@ -34,5 +36,21 @@ for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Sec
   await prose.evaluate((n,body)=>{n.textContent=body;n.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));n.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));},bodyBefore);
   await p.reload();await heading(f.ids[1]).waitFor({state:'visible'});assert.equal(await heading(f.ids[1]).textContent(),'SYNTHETIC concurrent B');assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body,bodyBefore);assert.equal(await host(f.defaultId).locator('h2,.topic-section-actions').count(),0);
   const dir='work/qa-topic05-section-actions/'+variant;await mkdir(dir,{recursive:true});await p.screenshot({path:dir+'/section-actions.png',fullPage:true});
- }finally{await h.close();}
+  const cdp=await h.context.newCDPSession(p),checks=[];await menu(f.ids[1]).evaluate(n=>globalThis.__retainedSectionMenu=n);
+  try{for(const language of ['en','zh-CN']){
+   await rpc(p,'UPDATE_PREFERENCES',{changes:{language,appearance:'dark'}});await eventually(()=>p.evaluate(lang=>document.documentElement.lang===lang,language==='en'?'en':'zh-CN'));
+   await p.setViewportSize({width:320,height:900});await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+   const currentMenu=menu(f.ids[1]),trigger=currentMenu.locator('summary');assert.equal(await currentMenu.evaluate(n=>n===__retainedSectionMenu),true,'language changes retain the actual menu node');await trigger.scrollIntoViewIfNeeded();
+   assert.equal(await trigger.getAttribute('aria-label'),language==='en'?'Section actions':'章节操作');
+   const target=await trigger.boundingBox();await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x+target.width/2,y:target.y+target.height/2}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});assert.equal(await currentMenu.evaluate(n=>n.open),true);
+   assert.deepEqual(await currentMenu.locator('button').allTextContents(),language==='en'?['Rename','Move up','Move down']:['重命名','向上移动','向下移动']);
+   await currentMenu.evaluate(n=>{globalThis.__sectionActionScale=[...n.querySelectorAll('summary,button')].map(el=>({el,style:el.getAttribute('style')}));for(const {el}of __sectionActionScale)el.style.fontSize=parseFloat(getComputedStyle(el).fontSize)*2+'px';});
+   const geometry=await currentMenu.evaluate(n=>({coarse:matchMedia('(pointer:coarse)').matches,overflow:document.documentElement.scrollWidth-innerWidth,controls:[...n.querySelectorAll('summary,button')].map(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {text:el.textContent,opacity:getComputedStyle(el).opacity,color:getComputedStyle(el).color,width:r.width,height:r.height,left:r.left,right:r.right,hit:hit===el||el.contains(hit),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};})}));
+   checks.push({language,...geometry});assert.equal(geometry.coarse,true);assert.ok(geometry.overflow<=2);for(const control of geometry.controls){assert.ok(control.width>=44&&control.height>=44,JSON.stringify(control));assert.ok(control.left>=0&&control.right<=322&&control.hit,JSON.stringify(control));assert.ok(control.scrollWidth<=control.clientWidth,JSON.stringify(control));if(control.text)assert.equal(control.opacity,'1','Section action labels must not inherit faint heading buttons');}
+   await p.screenshot({path:dir+'/section-actions-'+language+'-320-dark-text200-touch.png',fullPage:true});
+   await p.keyboard.press('Escape');assert.equal(await trigger.evaluate(n=>document.activeElement===n),true);
+   await p.evaluate(()=>{for(const {el,style}of __sectionActionScale)if(style===null)el.removeAttribute('style');else el.setAttribute('style',style);delete globalThis.__sectionActionScale;});
+  }}finally{await cdp.detach();await writeFile(dir+'/presentation.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,checks,syntheticTextScaling:true},null,2));}
+
+ }finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });

@@ -63,3 +63,65 @@ Whole05.5 acceptance, hosted CI, combined/full certification and integration
 remain pending. The new native file is not yet admitted to the full browser
 routing corpus; the coordinator owns its later unified admission. Remaining
 05.5 operations and promotion readiness are not implied by this checkpoint.
+
+## Section candidate integration and bounded presentation follow-up
+
+The original `65e3a53` batch is preserved. Exact Section candidate
+`b2fe6cb169fb3005ff6ce788aaf7eeb296db88f9` was merged without conflicts as
+`c6e30bf1f9bc58d5804f345c01e53a7d579c6975`. The evidence below covers that
+merge plus the unchanged runtime/test bytes committed with this receipt;
+it does not describe the pristine merge commit as already containing the fixes.
+
+The existing Section menu and rename form use the existing thought-copy owner.
+The scoped menu root participates in live language changes without translating
+user headings or prose. Narrow/coarse-pointer menu targets have a 44px minimum,
+and menu button text retains full opacity and theme text color. No Entry move,
+promotion, storage, worker, CI, timeout or version changes were added. Existing
+rename/reorder, conflict, IME/draft, reload, focus and unchanged-Entry assertions
+remain. The native release variant uses the supported builder with an isolated
+temporary output directory and retains its guards.
+
+Final local evidence (headless, synthetic data; no external account):
+
+- The same seven complete owning/domain files listed above: 196/196 passed,
+  zero fail/skip/cancel, 2634.384917ms.
+- Complete `cpv1-topic-05-4-section-chrome-e2e.test.mjs` and
+  `cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs`, serial file execution:
+  source/release 6/6 passed, zero fail/skip/cancel, 39393.320458ms.
+- Native presentation checks exercise actual CDP touch events at 320x900,
+  dark theme, English and Chinese, and synthetic 200% menu text scaling.
+  They verify retained menu identity during language change, exact localized
+  labels, in-viewport/hittable 44px targets, no horizontal overflow, full button
+  opacity and Escape focus return. This is text scaling, not browser zoom.
+- Package static audit: 11,416 guardrails across 339 runtime resources passed.
+
+Final SHA-256:
+
+- `ui/topic-workspace.js`: `a116b1423063d9d6d30f17d4749a7d0cd02853654c24a98749965a615615e278`
+- `ui/thought-copy.js`: `9c69fdde08dd0ed93523947a0a3455bf086554114a15e7c3529e51d6abe80f69`
+- `ui/topic-workspace-presentation.css`: `bc11ace23456b3d9e64f875c683aab4fbe74db1e3e29942242587f1c5c0ab69f`
+- `tests/cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs`: `0c795f77122b8549b89cdeb36c5686a8e4bde5d14aa3ca9f40f2a3dc95fa8550`
+
+Coordinator-workspace logs are `work/section-actions-final-owning.log` and
+`work/section-actions-final-native.log`; `work/section-actions-final-bytes.json`
+records all tracked non-doc-directory extension bytes before testing. A post-run
+comparison found no changed bytes. These local artifacts are not tracked.
+Screenshots remain under this worktree's
+`extension/work/qa-topic05-section-actions/{source,release}/`.
+The final release English and source Chinese
+`section-actions-{en,zh-CN}-320-dark-text200-touch.png` were actually inspected:
+menu text is legible and targets remain within the viewport. No private design
+reference was available. Unrelated English-page Chinese labels are outside this
+menu batch; neither whole-page localization nor design-reference acceptance is
+claimed.
+
+Preserved earlier diagnostics include `section-actions-presentation-before.log`
+(missing test writeFile import), `section-actions-presentation-layout-before.log`
+(real stale locale and shared generated-output read timeout),
+`section-actions-layout-before.log` (tap fixture lacked hasTouch), and
+`section-actions-touch-before.log` (actual 34px target below 44px).
+The intermediate combined native 6/6 result predates the opacity correction and
+is not the final-byte evidence. No failure was counted as passing; no assertion
+or timeout was relaxed. Final full-file runs above supersede only their local
+verification scope. Independent review of this follow-up, hosted admission and
+certification, integration and whole TOPIC-05.5 acceptance remain pending.

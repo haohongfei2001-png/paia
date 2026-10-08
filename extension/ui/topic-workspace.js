@@ -568,7 +568,7 @@ export class TopicController {
   // does not steal focus or leave handlers bound to an older Section revision.
   header.sectionActionRow={...section};
   if(header.querySelector('.topic-section-actions'))return;
-  const menu=actionMenu('章节操作',[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[label,()=>this.sectionContextAction(header.sectionActionRow,action)]));
+  const menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
   menu.classList.add('topic-section-actions');header.append(menu);
  }
  async sectionContextAction(section,action){
@@ -583,8 +583,8 @@ export class TopicController {
   try{
    if(!await this.flushEditors()||!current())return;
    await read();let name=null;
-   if(action==='rename'){name=await this.form('章节名称',[{key:'title',label:'章节名称',value:section.title}]);if(!name||!current())return;}
-   if(action!=='rename'){const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();if(!adjacent.id){announce(action==='up'?'已经是第一个章节。':'已经是最后一个章节。');return;}}
+   if(action==='rename'){name=await this.form(tc('章节名称'),[{key:'title',label:tc('章节名称'),value:section.title}]);if(!name||!current())return;}
+   if(action!=='rename'){const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();if(!adjacent.id){announce(tc(action==='up'?'已经是第一个章节。':'已经是最后一个章节。'));return;}}
    await this.mutate(async()=>{
     guard();await read();
     if(action==='rename'){await this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}});return;}
@@ -616,7 +616,7 @@ export class TopicController {
  async removedTopics(){const result=await request('GET_LIBRARY_REMOVED_TOPICS'),list=$('library-management-list');list.replaceChildren(element('p','muted','删除主题只移除组织容器，内容仍保留。'));for(const topic of result.items){const row=element('p','',topic.name);row.append(button('恢复主题',async()=>{await this.checked('RESTORE_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:topic.revision,operationId:op()}});await this.removedTopics();await this.refresh();}),button('版本历史',()=>this.revisions('topic',topic.id,topic.id)));list.append(row);}if(!result.items.length)list.append(element('p','muted','没有已删除的主题。'));}
  async mergeTopic(){const topics=(await this.topics()).filter(t=>t.id!==this.id);if(!topics.length){this.onStatus('先创建另一个主题，再选择保留的主题。');return;}const value=await this.form('合并主题 · 选择保留的主题',[{key:'survivorId',label:'保留主题',options:topics.map(t=>[t.id,t.name])}]);if(!value)return;await this.mutate(async()=>{const source=await request('GET_LIBRARY_TOPIC',{id:this.id}),target=await request('GET_LIBRARY_TOPIC',{id:value.survivorId});const r=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'topic_merge',topicId:source.id,survivorId:target.id,expectedTopicRevision:source.organizationRevision,expectedSurvivorRevision:target.organizationRevision,operationId:op()}});await this.waitLayout(r.jobId);this.id=target.id;});}
  async waitLayout(id){for(;;){const r=await request('GET_LIBRARY_LAYOUT',{id});if(r.state==='complete')return;if(r.state==='paused'){this.onStatus('组织准备已暂停，当前文档保留，可重试。','error');throw new Error('LAYOUT_PAUSED');}this.onStatus('正在整理文档顺序…');await new Promise(resolve=>setTimeout(resolve,200));}}
- async sectionActions(section,action=null){const options=[['rename','重命名'],['merge','合并到另一章节'],['up','向上移动'],['down','向下移动'],['revisions','版本历史']];const value=action?{action}:await this.form('章节操作',[{key:'action',label:'操作',options}]);if(!value)return;if(value.action==='revisions')return this.revisions('section',section.sectionId,this.id);if(value.action==='rename'){const name=await this.form('章节名称',[{key:'title',label:'章节名称',value:section.title}]);if(name)await this.mutate(()=>this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId:this.id,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}}));return;}
+ async sectionActions(section,action=null){const options=[['rename','重命名'],['merge','合并到另一章节'],['up','向上移动'],['down','向下移动'],['revisions','版本历史']];const value=action?{action}:await this.form('章节操作',[{key:'action',label:'操作',options}]);if(!value)return;if(value.action==='revisions')return this.revisions('section',section.sectionId,this.id);if(value.action==='rename'){const name=await this.form(tc('章节名称'),[{key:'title',label:tc('章节名称'),value:section.title}]);if(name)await this.mutate(()=>this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId:this.id,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}}));return;}
   const sections=await this.topicSectionRows();let other;if(value.action==='merge'){const v=await this.form('合并章节',[{key:'targetSectionId',label:'保留章节',options:sections.filter(s=>s.sectionId!==section.sectionId).map(s=>[s.sectionId,s.title||'正文'])}]);if(!v)return;other=v.targetSectionId;}else{const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId:this.id,kind:'section',id:section.sectionId,direction:value.action==='up'?'up':'down'}});other=adjacent.id;if(!other){announce(value.action==='up'?'已经是第一个章节。':'已经是最后一个章节。');return;}}
   await this.mutate(async()=>{const t=await request('GET_LIBRARY_TOPIC',{id:this.id});const r=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:value.action==='merge'?'section_merge':'section_order',topicId:this.id,sectionId:section.sectionId,targetSectionId:other,expectedTopicRevision:t.organizationRevision,operationId:op()}});await this.waitLayout(r.jobId);});
  }
