@@ -1,0 +1,11 @@
+# macOS discard capture diagnostic
+
+Base `b109041c`. Test-only diagnostic, no runtime/CI changes or repaired cloud-root-cause claim.
+
+Hosted log `work/macos-discard-b109-failure.log` records the update case passing and discard case failing at the former broad stage `open conversation in archive window`, with the browser and archive still open. That stage encompassed navigation, capture-bridge readiness and three-record capture; the available hosted error does not disambiguate these awaits. The original failure remains unresolved evidence.
+
+The same complete file now labels navigation, background capture bridge and initial three-record qualification separately. Initial and failure diagnostics report only synthetic lifecycle metadata: visibility/readiness, bridge boolean, message count, stored record count and fixture page errors. No Source or user body is recorded. Original two cases, 120-second budgets, real Chrome tabs.discard/reactivation, same-window/index and unique new-record assertions are unchanged.
+
+One local full-file headless execution: **2/2 PASS**, zero fail/skip/cancel, 25.761862417 seconds, `/tmp/macos-discard-capture-diagnostic.log`. Initial discard fixture observed `visibility=visible`, `ready=complete`, `bridge=true`, `messages=0`; all original capture/discard/restoration checks then passed. This does not establish the hosted Mac visibility state or cure its failure. No same-configuration retry was used as a fix, and no activation behavior was changed.
+
+Next evidence needed: the precise failed hosted await and its lifecycle metadata. The fake metadata-first page renders only after the actual capture bridge enables history and the synthetic history fetch completes; its existing 300ms render timer is not changed. No production capture/authority relaxation is proposed.

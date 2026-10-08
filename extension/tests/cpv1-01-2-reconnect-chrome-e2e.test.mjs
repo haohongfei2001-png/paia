@@ -103,8 +103,12 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     });
     const tab = await opened;
     tab.on('pageerror', error => h.errors.push(error.message));
+    stage = 'navigate background conversation';
     await tab.goto(`https://chatgpt.com/c/${restoredConversation.id}`);
+    console.log('DISCARD_CAPTURE_INITIAL',JSON.stringify(await tab.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length}))));
+    stage = 'wait for background capture bridge';
     await h.ready(tab);
+    stage = 'confirm background initial three records';
     await eventually(async () => (await h.state()).records.length === 3);
 
     stage = 'close unrelated tabs';
@@ -181,6 +185,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => (await h.state()).records.length === 4, 'restored tab captures new content once');
   } catch (error) {
     let browserState = 'unavailable';
+    try{const page=h?.context?.pages().find(p=>p.url().includes('/c/cpv1-discarded-tab'));console.error('DISCARD_CAPTURE_FAILURE',JSON.stringify({state:page?await page.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length})):null,records:(await h.state()).records.length,errors:h.errors}));}catch{}
     try {
       browserState = JSON.stringify({
         connected: h?.context?.browser()?.isConnected() ?? false,
