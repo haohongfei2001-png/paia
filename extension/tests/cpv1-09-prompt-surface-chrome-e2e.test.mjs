@@ -151,16 +151,21 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
    const tab=await worker.evaluate(async url=>(await chrome.tabs.query({url:'https://chatgpt.com/*'})).find(t=>t.url===url).id,page.url());
    const before=await page.evaluate(()=>({width:innerWidth,dpr:devicePixelRatio}));
+   const zoomWorld=await isolated(page,h.extensionId);
+   // DPR changes before the content owner's scheduled layout necessarily runs.
+   // Observe completion of that real callback; do not invoke layout or change its scheduling.
+   await zoomWorld.run(`(()=>{const original=requestAnimationFrame,state={width:null,dpr:null};globalThis.__zoomLayout=state;globalThis.requestAnimationFrame=callback=>original.call(globalThis,time=>{callback(time);if(callback.name==='layout'){state.width=innerWidth;state.dpr=devicePixelRatio;}});__zoomLayout.restore=()=>{globalThis.requestAnimationFrame=original;delete globalThis.__zoomLayout;};})()`);
    try{
     await worker.evaluate(id=>chrome.tabs.setZoom(id,2),tab);assert.equal(await worker.evaluate(id=>chrome.tabs.getZoom(id),tab),2);
-    await eventually(()=>page.evaluate(()=>devicePixelRatio).then(value=>value===before.dpr*2));
+    await eventually(()=>zoomWorld.run('({dpr:devicePixelRatio,width:__zoomLayout.width,layoutDpr:__zoomLayout.dpr})').then(value=>value.dpr===before.dpr*2&&value.layoutDpr===before.dpr*2&&value.width===before.width/2),'native zoom and actual Prompt layout completion');
     assert.equal(await page.evaluate(()=>innerWidth),before.width/2);
     const bounds=await page.evaluate(()=>{const form=document.querySelector('form').getBoundingClientRect(),orb=document.querySelector('[data-paia-prompt-surface]').getBoundingClientRect();return {form:{x:form.x,y:form.y,right:form.right,bottom:form.bottom},orb:{x:orb.x,y:orb.y,right:orb.right,bottom:orb.bottom},width:innerWidth,height:innerHeight};});
     const frame=await card().frameElement(),box=await frame.boundingBox();
-    for(const rect of [{x:box.x,y:box.y,right:box.x+box.width,bottom:box.y+box.height},bounds.orb]){assert.ok(rect.x>=0&&rect.y>=0&&rect.right<=bounds.width&&rect.bottom<=bounds.height);assert.ok(rect.bottom<=bounds.form.y||rect.y>=bounds.form.bottom||rect.right<=bounds.form.x||rect.x>=bounds.form.right);}
+    const zoomTrace={variant,bounds,box,at:Date.now(),current:await frame.evaluate(node=>{const rect=n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};return {width:innerWidth,height:innerHeight,dpr:devicePixelRatio,card:rect(node),style:node.getAttribute('style'),orb:rect(document.querySelector('[data-paia-prompt-surface]')),form:rect(document.querySelector('form'))};})};await writeFile(join(receiptDir,variant+'-zoom-diagnostic.json'),JSON.stringify(zoomTrace,null,2));
+    for(const rect of [{x:box.x,y:box.y,right:box.x+box.width,bottom:box.y+box.height},bounds.orb]){assert.ok(rect.x>=0&&rect.y>=0&&rect.right<=bounds.width&&rect.bottom<=bounds.height,JSON.stringify(zoomTrace));assert.ok(rect.bottom<=bounds.form.y||rect.y>=bounds.form.bottom||rect.right<=bounds.form.x||rect.x>=bounds.form.right);}
     assert.ok(await card().evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await card().locator('#new').click();await card().getByRole('textbox',{name:'复用文本'}).fill('zoom draft');await card().getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>card().locator('#refresh').isEnabled());
     const path=join(receiptDir,variant+'-browser-zoom200.png');await page.screenshot({path});screens.push(path.split('/').at(-1));
-   }finally{await worker.evaluate(id=>chrome.tabs.setZoom(id,1),tab);await eventually(()=>page.evaluate(()=>devicePixelRatio).then(value=>value===before.dpr));}
+   }finally{try{await zoomWorld.run('__zoomLayout.restore()');}finally{await zoomWorld.cdp.detach();await worker.evaluate(id=>chrome.tabs.setZoom(id,1),tab);await eventually(()=>page.evaluate(()=>devicePixelRatio).then(value=>value===before.dpr));}}
   });
   await check('system and host theme transitions keep frame contrast without refresh, reordering or losing an edit',async()=>{
    await page.emulateMedia({colorScheme:'light'});await card().locator('#refresh').click();await eventually(()=>card().locator('#refresh').isEnabled());

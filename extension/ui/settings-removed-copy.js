@@ -1,5 +1,6 @@
 // Product labels only. Entry bodies and Topic names never enter this translator.
 const LABELS={
+ '恢复主题关系':'Restore Topic relationship','没有可恢复的主题关系。':'No recoverable Topic relationships.','更多已移除关系':'More removed relationships',
  '删除主题只移除组织容器，内容仍保留。':'Removing a Topic removes its container; its content is retained.',
  '空内容':'Empty content','恢复主题':'Restore Topic','恢复内容':'Restore content',
  '版本历史':'Version history','版本':'Versions',

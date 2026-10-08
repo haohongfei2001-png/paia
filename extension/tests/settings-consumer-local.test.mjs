@@ -64,3 +64,18 @@ test('Settings latest-import owner contains malformed summary failures and keeps
  try{const owner=initHistoryCompletion();await assert.doesNotReject(owner.latest());assert.match(node('history-latest').textContent,/could not be loaded/);document.documentElement.lang='zh-CN';listeners.get('paia:preferences-applied')();assert.match(node('history-latest').textContent,/未能载入/);assert.equal(requests,1);}
  finally{for(const [key,value]of prior)if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
 });
+
+test('Settings locale and reopen leave History labels with their existing owner',async()=>{
+ const {readFile}=await import('node:fs/promises'),{runInNewContext}=await import('node:vm'),{refreshHistoryCopy}=await import('../ui/history-copy.js');
+ const source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),start=source.indexOf('function syncSettingsLocale(){'),end=source.indexOf('\nexport function installSettingsPreferences',start);assert.ok(start>=0&&end>start);
+ const previous=globalThis.document;let writes=0,rpcs=0;
+ const read={dataset:{historyCopy:'阅读 Input Archive'},value:'',get textContent(){return this.value;},set textContent(value){writes++;this.value=value;}},editor={value:'SYNTHETIC é 👩🏽‍💻 draft'};
+ const host={querySelectorAll:selector=>selector==='[data-history-copy]'?[read]:[]},doc={documentElement:{lang:'zh-CN'},activeElement:editor,querySelector:()=>null};globalThis.document=doc;
+ try{for(const language of ['zh-CN','en','zh-CN']){doc.documentElement.lang=language;refreshHistoryCopy(host);const expected=language==='zh-CN'?'阅读 Input Archive':'Read Input Archive';assert.equal(read.textContent,expected);const before=writes;
+  const context={document:doc,syncSettingsCopy(){},style:null,promptPosition:null,promptNext:null,about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
+  // Group changes/reopen invoke this actual production function without always
+  // dispatching another History preferences event. History alone owns its copy.
+  runInNewContext(source.slice(start,end)+';syncSettingsLocale();syncSettingsLocale();',context);
+  assert.equal(read.textContent,expected);assert.equal(writes,before,'Settings cannot overwrite History-owned nodes');assert.equal(doc.activeElement,editor);assert.equal(editor.value,'SYNTHETIC é 👩🏽‍💻 draft');assert.equal(rpcs,0);
+ }}finally{globalThis.document=previous;}
+});

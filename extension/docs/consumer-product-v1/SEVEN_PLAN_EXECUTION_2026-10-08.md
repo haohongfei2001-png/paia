@@ -2,6 +2,24 @@
 
 The owner's latest scope includes all seven lanes and IAH-1.1's confirmed minimal design. Work continues while any approved independent task is executable; the20-minute heartbeat is a recovery/check-in mechanism, not a turn deadline. Preserve each failure and exact code/dependency evidence. This record is an engineering checkpoint, not whole-product completion or installation acceptance.
 
+## Current execution checkpoint — 2026-10-09 CST, 19:32Z
+
+This block supersedes the older scheduling statements below; their evidence remains historical. Remote main is `3d69b95f` (runtime0.24). PR210 exact `baec9af2` is the frozen0.28 candidate. Prior76db Prompt37830791928 and Visual37830791633 passed; Full37830791787 was cancelled by Browser1 capacity. Reviewed whole-file1→6 rebalance preserves all coverage and budgets; fresh Full37833847645/Prompt37833847508 are running. The previous f1db full failure is retained. No0.28 merge or installation is claimed.
+
+Future0.29 exact local `5cba4470` combines reviewed removed-Placement recovery, bounded optional Input Working receive, Root typography evidence and strict receipt/whole-file CI admission.362 related units and99 CI tests pass. Nine-file headless combination ended45/47 pass: both receive variants fail before consent because the fixture generator leaked Node-only imports into the browser worker. The reviewed precise generator repair6469700c closes this fixture defect without timeout or consent weakening. Final e22ffbf1 combination48/48 passed, exact inline CI receipts passed and release guards passed; the earlier failed combination remains failed. Final hosted certification is pending.
+
+| Lane / phase | Current boundary and next executable work | Owner |
+|---|---|---|
+| TOPIC01–06 /05.6–05.8 |0.28 writing, reading and exact-repeat candidate awaits exact gates.0.29 Root font evidence is Mac/Chrome bounded; whole presentation/device acceptance remains distinct. | Coordinator integration; independent reviewer |
+| CTX401–07 | Internal/local and optional desired journals retained; populated/off/compact continuation covered in0.28. Real external connection and reference/device evidence remain open. | Coordinator shared-boundary owner |
+| SET201–05 | Six groups, reading preferences, style, Context/Prompt destinations, reset, details and update states have actual owners. Input restoration already exists; do not reimplement it.0.28 removed-Topic pagination and0.29 single removed-Placement recovery have targeted evidence. Duplicate History label owner is repaired and independently reviewed (e2e901c1); final e22ffbf1 local combination passed. Data Sync row has no activated provider; do not fabricate availability. | Settings executor for isolated copy; coordinator integration |
+| SYNC01–06 | Local Core and optional publication/complete existing-Input receive are prerequisites, not completed SYNC03 Chrome or SYNC04 Edge phases. Receive fixture is repaired and exact local receipts pass. Persistent incomplete delivery/restart, production wiring, complete recovery and actual Chrome/Edge/Safari account transports remain open. | Sync executor; one data writer |
+| AI-COST01–07 | Local foundation, style-bound coverage, bounded maintenance and dormant Assist intent retained. No paid model/trusted financial service enabled; actual Qwen quality/cost and provider qualification remain external. | Coordinator |
+| Prompt Surface / Stage3A / AI-COST06 |0.24 default-off Next/Family path retained with0.28 stale-availability repair. Local corpus and native evidence do not establish current-live acceptance; remoteStage3B remains unauthorized. | Coordinator; shared Settings owner |
+| IAH1.1 | Selected minimal navigation integrated in0.23 and retained. Maintain regressions; do not reopen old1.0 Home design. Installation/physical acceptance is separate. | Coordinator |
+
+SET2 recovery claims are specific: Input restore exists, Topic recovery pagination is in0.28, and Placement recovery is in local0.29. None proves whole-device recovery. Physical IME/screen-reader, actual distribution installation, connected providers and final visual acceptance are not inferred from synthetic tests.
+
 ## Final batch scheduling — 2026-10-09 CST
 
 The completed0.26 and0.28 work now form one PR210 **0.28** delivery candidate;

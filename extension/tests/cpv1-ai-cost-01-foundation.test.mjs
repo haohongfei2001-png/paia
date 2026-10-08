@@ -265,3 +265,33 @@ test('AI-COST-01 outcome reconciliation snapshots verified result before asynchr
  await f.ai.reconcileOutcome(job.id,job.childIds[0],{});
  const saved=await f.ai.status(job.id);assert.equal(saved.state,'REJECTED');assert.equal(saved.attempts[0].operationReceiptId,'synthetic-verified-rejection');assert.equal(saved.attempts[0].spendState,'RELEASED_VERIFIED_NOT_ACCEPTED');assert.doesNotMatch(JSON.stringify(saved),/PRIVATE_MUTATED_VERIFIER_BODY/);
 });
+
+test('each of two real maintenance children receives only its exact pending evidence keys',async()=>{
+ const f=await fixture();for(let n=1;n<37;n++)await f.s.capture(capture((await f.s.status()).epoch,'child-scope-'+n,'SYNTHETIC child scope '+n));
+ const {readMaintenanceBatch}=await import('../core/ai-usage/maintenance-batch.js'),batch=await readMaintenanceBatch(f.ai,{scope:'library',contractVersion:'synthetic',routeVersion:'synthetic'}),job=await f.ai.plan(batch.request);await f.ai.reserve(job.id,{reservationId:'synthetic-scope'});
+ assert.equal(job.childIds.length,2);const requests=[];
+ for(const child of job.childIds)await f.ai.dispatch(job.id,child,fixtureProvider(async r=>{requests.push(r);return {accepted:true,operationReceiptId:'synthetic:'+child};}));
+ for(const request of requests)assert.deepEqual(request.evidence.map(e=>e.key).sort(),[...new Set(request.coverage.map(u=>u.key))].sort());
+ assert.deepEqual(requests.map(r=>r.evidence.length).sort((a,b)=>a-b),[12,25]);assert.equal((await f.ai.counters()).physicalAttempt,2);
+});
+
+test('partially local-completed Input is absent from remaining child request, without reducing full-job qualification',async()=>{
+ const f=await fixture();await f.s.capture(capture((await f.s.status()).epoch,'child-local','SYNTHETIC sibling'));
+ const items=(await f.ai.collect()).items,coverage=items.flatMap(i=>[unit(i),unit(i,'context')]),job=await plan(f,{items,coverage});
+ for(const facet of ['topic','context'])await f.ai.resolveLocal(job.id,{facet,units:coverage.filter(u=>u.key===items[0].key&&u.facet===facet)});
+ await f.ai.reserve(job.id,{reservationId:'synthetic-partial'});let request;
+ await f.ai.dispatch(job.id,job.childIds[0],fixtureProvider(async r=>{request=r;return {accepted:true,operationReceiptId:'synthetic-partial'};}));
+ assert.deepEqual(request.evidence.map(e=>e.key),[items[1].key]);assert.ok(request.coverage.every(u=>u.key===items[1].key));
+});
+
+test('missing or ambiguous persisted child evidence refuses before an attempt or receipt change',async()=>{
+ for(const corrupt of ['missing','duplicate']){const f=await fixture(),job=await plan(f);await f.ai.reserve(job.id,{reservationId:'synthetic-corrupt'});await f.s.foundationWrite(async t=>{const row=await t.get('organizerJobs',job.id);row.items=corrupt==='missing'?[]:[...row.items,row.items[0]];await t.put('organizerJobs',row);});
+ const snapshot=()=>f.s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(['meta','organizerJobs','organizerUsage'].map(async n=>[n,await t.all(n)])))),before=await snapshot();let calls=0;
+ await assert.rejects(f.ai.dispatch(job.id,job.childIds[0],fixtureProvider(async()=>{calls++;return {accepted:true,operationReceiptId:'synthetic-invalid'};})));assert.equal(calls,0);assert.deepEqual(await snapshot(),before);}
+});
+
+test('narrow child metadata never narrows authority or current checks for sibling evidence',async()=>{
+ const f=await fixture();await f.s.capture(capture((await f.s.status()).epoch,'child-fence','SYNTHETIC sibling fence'));const items=(await f.ai.collect()).items,coverage=items.map(i=>unit(i)),job=await plan(f,{items,coverage,children:coverage.map(u=>[u])});await f.ai.reserve(job.id,{reservationId:'synthetic-full-fence'});
+ const saved=await read(f.s,'organizerJobs',job.id),selected=saved.childCoverage[0][0].key,sibling=items.find(i=>i.key!==selected);await inputEdit(f.s,sibling.descriptor.entityId,{excluded:true});let calls=0;
+ await assert.rejects(f.ai.dispatch(job.id,job.childIds[0],fixtureProvider(async()=>{calls++;})),e=>['CANCELLED','STALE_BASE'].includes(e.code));assert.equal(calls,0);assert.equal((await f.ai.counters()).physicalAttempt,0);
+});

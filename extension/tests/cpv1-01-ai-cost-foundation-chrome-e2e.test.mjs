@@ -143,6 +143,20 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,singleJob:new Set(ids).size===1,a:a.state,b:b.state,c:c.state,distinct:new Set([a.id,b.id,c.id]).size,ackDelta:ackB.length-ackA.length,oldAckPreserved:ackA.every(row=>JSON.stringify(ackB.find(r=>r.id===row.id))===JSON.stringify(row)),stale,failure,rollback:before===JSON.stringify(await Promise.all(['organizerJobs','organizerUsage','organizerWorkItems'].map(rows))),domainAbsent:!(await rows('meta')).some(r=>r.id==='synthetic-assist-rollback')};
   });
   assert.deepEqual(assist,{nativeFactory:true,singleJob:true,a:'PLANNED',b:'PLANNED',c:'PLANNED',distinct:3,ackDelta:1,oldAckPreserved:true,stale:'STALE_BASE',failure:'UNAVAILABLE',rollback:true,domainAbsent:true});console.log('AI_NATIVE_ASSIST_INTENT',label,JSON.stringify(assist));
+  const childScope=await p.evaluate(async()=>{
+   const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{readMaintenanceBatch}=await import('../core/ai-usage/maintenance-batch.js');const results=[];
+   for(const partial of [false,true]){
+    const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-child-scope-'+partial}),ai=new AIUsageFoundation(s,__aiu.options);await s.consent(true);
+    for(let n=0;n<(partial?2:37);n++)await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'child-'+n,url:'https://chatgpt.com/c/child-'+n,title:'Synthetic'},messages:[{sourceMessageId:'child-'+n,pageOrder:1,originalText:'SYNTHETIC child evidence '+n}]});
+    const batch=await readMaintenanceBatch(ai,{scope:'library',contractVersion:'synthetic',routeVersion:'synthetic'}),job=await ai.plan(batch.request),completedKey=partial?batch.request.items[0].key:null;
+    if(partial)for(const facet of ['topic','context'])await ai.resolveLocal(job.id,{facet,units:batch.request.coverage.filter(u=>u.key===completedKey&&u.facet===facet)});
+    await ai.reserve(job.id,{reservationId:'synthetic-child-scope'});const requests=[];
+    for(const child of job.childIds)await ai.dispatch(job.id,child,{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async r=>{const keys=[...new Set(r.coverage.map(u=>u.key))].sort();requests.push({keys,evidence:r.evidence.map(e=>e.key).sort(),completedAbsent:!r.evidence.some(e=>e.key===completedKey)});return {accepted:true,operationReceiptId:'synthetic:'+child};}});
+    results.push({partial,requests,attempts:(await ai.counters()).physicalAttempt});
+   }
+   return {nativeFactory:indexedDB instanceof IDBFactory,results};
+  });
+  assert.equal(childScope.nativeFactory,true);for(const result of childScope.results){for(const r of result.requests){assert.deepEqual(r.evidence,r.keys);assert.equal(r.completedAbsent,true);}assert.equal(result.attempts,result.partial?1:2);assert.deepEqual(result.requests.map(r=>r.evidence.length).sort((a,b)=>a-b),result.partial?[1]:[12,25]);}console.log('AI_NATIVE_CHILD_SCOPE',label,JSON.stringify(childScope));
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });

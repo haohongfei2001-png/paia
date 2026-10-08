@@ -1,5 +1,7 @@
+const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
 // Full37830791787/37833847645 measured whole-file capacity; historical widths stay unchanged.
 const CURRENT_NINE=new Map([
+ [removedPlacement,4],
  ["activation-return-round410-chrome-e2e.test.mjs",9],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",9],
  ["ans-02-source-foundation-chrome-e2e.test.mjs",6],
@@ -91,7 +93,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
+const CURRENT_BROWSER=new Set([removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -158,6 +160,7 @@ export function testShard(file,position,total,category){
  // Full37775540355/37777034587 exhausted3; complete search file costs258s while6 is~8m.
  if(category==='browser E2E'&&total===7&&file.replaceAll('\\','/').split('/').at(-1)==='ux-r4-search-reuse-chrome-e2e.test.mjs')return 6;
  const newName=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===removedPlacement)return 4;if(newName>removedPlacement)position--;}
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===writing)return 2;if(newName>writing)position--;}
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===settingsNext)return 2;if(newName>settingsNext)position--;}
  return priorSettingsNextShard(file,position,total,category);
