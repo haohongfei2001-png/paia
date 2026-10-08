@@ -99,6 +99,15 @@ test('native receipt contract cannot turn missing cases or model evidence into n
   };
   const validate = value => assertReceipt(value, {head: receipt.head, variant: 'source'});
   validate(receipt);
+  assert.throws(()=>assertReceipt(receipt,{head:receipt.head,variant:'source',requiredFilterIntent:true}));
+  const extendedNetwork=new LifetimeNetworkLedger();extendedNetwork.observe(networkIdentity('life-0'),'opened');
+  const extendedLife=[...lifecycle,{phase:{name:'restart-boundary',lifetime:'life-6',hasNativeTransaction:false},beforeLifetime:'life-6',afterLifetime:'life-7',stopped:true,restarted:true,interruptedCall:'terminated'}].map(event=>{
+   const before=networkIdentity(event.beforeLifetime),after=networkIdentity(event.afterLifetime);extendedNetwork.observe(before,'before-stop');const pausedNetwork=extendedNetwork.observe(before,'paused-before-stop');extendedNetwork.restarted(before,after);return {...event,pausedNetwork};
+  });extendedNetwork.finish(networkIdentity('life-7'));
+  const extended={...receipt,destinationNetwork:extendedNetwork.evidence,filterIntentRestart:extendedLife[6],filterIntentCases:Array.from({length:23},(_,i)=>'synthetic Keep case '+i),filterIntentHashes:Object.fromEntries(['core/browser-native-sync/codecs.js','core/browser-native-sync/filter-intent-journal.js','core/smart-filter-store.js'].map(p=>[p,'f'.repeat(64)]))};
+  const validateKeep=r=>assertReceipt(r,{head:receipt.head,variant:'source',requiredFilterIntent:true});validateKeep(extended);
+  for(const field of ['filterIntentRestart','filterIntentCases','filterIntentHashes']){const missing=structuredClone(extended);delete missing[field];assert.throws(()=>validateKeep(missing));}
+  for(const value of [false,null,undefined])assert.throws(()=>validateKeep({...extended,filterIntentRestart:value}));
   const completedRestart = structuredClone(receipt); completedRestart.committedRestart.interruptedCall = 'returned'; completedRestart.committedRestart.completedNoopValue = true; validate(completedRestart);
   for (const change of [{stopped: false}, {afterLifetime: completedRestart.committedRestart.beforeLifetime}, {completedNoopValue: false}]) { const invalid = structuredClone(completedRestart); Object.assign(invalid.committedRestart, change); assert.throws(() => validate(invalid)); }
   for (const index of [0, 1, 2, 3]) { const invalid = structuredClone(receipt); Object.assign(invalid.terminations[index], {interruptedCall: 'returned', completedNoopValue: true}); assert.throws(() => validate(invalid)); }

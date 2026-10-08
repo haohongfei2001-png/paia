@@ -3,9 +3,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir, writeFile, mkdtemp, rm} from 'node:fs/promises';
+import {mkdir, writeFile, mkdtemp, rm, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {nativeFilterIntentFixture} from './filter-intent-fixture.mjs';
 import {instrumentedExtension, root, startNative} from './storage-harness.mjs';
 import {assertReceipt, CASES} from './receipt.mjs';
 import {assertPromptCrashOutcome, portablePrompt as portable} from './proof-oracles.mjs';
@@ -22,6 +24,7 @@ function atomic(snapshot, text) {
   assert.deepEqual(snapshot.state[0]?.versions[0].value, portable(snapshot.preferences));
 }
 
+let filterSourceEvidence;
 for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB partial Core ' + variant, {timeout: 240000}, async t => {
   await mkdir(output, {recursive: true});
   const releaseOutput = await mkdtemp(join(tmpdir(), 'paia-bns-storage-release-'));
@@ -37,6 +40,12 @@ for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB
     if (variant === 'release') execFileSync('python3', ['scripts/build_current_release.py', join(releaseOutput, 'release')], {cwd: root, stdio: 'pipe'});
     extension = await instrumentedExtension(variant === 'source' ? root : join(releaseOutput, 'release'));
     receipt.productionHashes = extension.hashes;
+    const fixture=nativeFilterIntentFixture(await readFile(join(root,'tests/browser-native-sync-filter-intent.test.mjs'),'utf8'));
+    await writeFile(join(extension.path,'background/bns-filter-intent-fixture.mjs'),fixture);
+    const worker=join(extension.path,'background/service-worker.js');await writeFile(worker,"import './bns-filter-intent-fixture.mjs';\n"+(await readFile(worker,'utf8')));
+    // The existing storage fixture must initialize before its additive wrapper.
+    const workerText=await readFile(worker,'utf8');await writeFile(worker,workerText.replace("import './bns-filter-intent-fixture.mjs';\nimport './bns-native-storage-fixture.mjs';","import './bns-native-storage-fixture.mjs';\nimport './bns-filter-intent-fixture.mjs';"));
+    receipt.filterIntentHashes={};for(const file of ['core/smart-filter-store.js','core/browser-native-sync/filter-intent-journal.js','core/browser-native-sync/codecs.js'])receipt.filterIntentHashes[file]=createHash('sha256').update(await readFile(join(extension.path,file))).digest('hex');
     a = await startNative(extension.path); b = await startNative(extension.path);
     receipt.sourceNetwork = a.networkLedger; receipt.destinationNetwork = b.networkLedger;
     receipt.browserVersion = b.browserVersion; assert.equal(a.browserVersion, b.browserVersion);
@@ -146,8 +155,10 @@ for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB
       assert.equal(result.preferences.overrides[0].text, 'Synthetic intermediate revision'); assert.deepEqual(result.outbox, []);
     });
     receipt.conflictOwnerCases=await b.call('prompt-conflict-matrix');assert.equal(receipt.conflictOwnerCases.length,12);
+    receipt.filterIntentCases=await b.call('filter-intent-matrix');assert.equal(receipt.filterIntentCases.length,23);if(variant==='source')filterSourceEvidence={cases:receipt.filterIntentCases,hashes:receipt.filterIntentHashes};else assert.deepEqual({cases:receipt.filterIntentCases,hashes:receipt.filterIntentHashes},filterSourceEvidence);
+    const keepBefore=await b.call('filter-intent-durable-create');assert.equal(keepBefore.filterIntents.length,1);receipt.filterIntentRestart=await b.restart();assert.deepEqual(await b.call('filter-intent-durable-read'),keepBefore);
     const isolation = await b.isolation(); receipt.nativeFactory = isolation.nativeFactory; receipt.networkAttempts = isolation.networkAttempts; receipt.destinationIsolation = isolation;
-    receipt.result = 'PASS'; assertReceipt(receipt, {head, variant}); await save();
+    receipt.result = 'PASS'; assertReceipt(receipt, {head, variant, requiredFilterIntent:true}); await save();
   } catch (error) { receipt.result = 'FAIL'; receipt.failure = error.message; await save(); throw error; }
   finally { try { await a?.close(); } finally { try { await b?.close(); } finally { try { await extension?.cleanup(); } finally { await rm(releaseOutput, {recursive:true, force:true}); } } } }
 });

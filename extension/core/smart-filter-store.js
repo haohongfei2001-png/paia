@@ -17,7 +17,7 @@ const sourceKeys=async(t,b)=>{const keys=[];for(const p of b.provenance){const r
 const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.contentRevision>0||b.provenance.length!==1||b.mergedSourceIds?.length>1;
 
 export class SmartFilterStore extends IAStore {
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;}
+ constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;}
  write(fn,onCommitted=null){this.filterMutation++;return super.write(fn,onCommitted).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -81,8 +81,9 @@ export class SmartFilterStore extends IAStore {
   // Each read transaction is bounded; capture can run between pages. Never return IDs or body fields.
   for(let attempt=0;attempt<3;attempt++){
    await this.run(()=>Promise.resolve());const generation=this.filterMutation;
-   const totals={active:0,checked:0,pending:0,keep:0,filter:0,uncertain:0,userProtected:0,failed:0};const reasonCounts=Object.fromEntries(Object.keys(FILTER_REASONS).map(k=>[k,0])),uncertainReasonCounts=Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,0]));let cursor=null,state;
+   const totals={active:0,checked:0,pending:0,keep:0,filter:0,uncertain:0,userProtected:0,failed:0};const reasonCounts=Object.fromEntries(Object.keys(FILTER_REASONS).map(k=>[k,0])),uncertainReasonCounts=Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,0]));let cursor=null,state,canonicalGeneration=null,canonicalChanged=false;
    do{cursor=await this.run(()=>this.repository.transaction(false,async t=>{
+    const currentGeneration=(await t.get('meta','backup-data-generation'))?.value||0;if(canonicalGeneration===null)canonicalGeneration=currentGeneration;else if(canonicalGeneration!==currentGeneration){canonicalChanged=true;return null;}
     state=await t.get('meta','smart-filter');const page=await t.page('blockIndex',{index:'bySequence',after:cursor??undefined,limit:100});
     for(const {value:ix}of page.rows){if(ix.excluded)continue;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.branchStatus)continue;totals.active++;
      const row=await t.get('filterInputs',ix.id),meta=await t.get('inputStates',ix.id);let protectedInput=!!(row?.userEdited||row?.filterOverride==='keep');
@@ -93,7 +94,7 @@ export class SmartFilterStore extends IAStore {
      const reason=Object.hasOwn(FILTER_REASONS,row.reasonCode)?row.reasonCode:'other';reasonCounts[reason]++;if(row.decision==='uncertain')uncertainReasonCounts[UNCERTAIN_REASONS.includes(reason)?reason:'other']++;totals.checked++;if(await this.isFiltered(t,b,{mode:'light'}))totals.filter++;else if(row.decision==='keep')totals.keep++;else totals.uncertain++;
     }return page.next;
    }));}while(cursor!==null&&generation===this.filterMutation);
-   if(generation===this.filterMutation)return {...totals,previousReasonState:state.previousReasonState==='available'?'available':'not_captured',previousReasonPolicyVersion:Number.isSafeInteger(state.previousReasonPolicyVersion)?state.previousReasonPolicyVersion:0,previousUncertainReasonCounts:Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,Number.isSafeInteger(state.previousUncertainReasons?.[k])&&state.previousUncertainReasons[k]>=0?state.previousUncertainReasons[k]:0])),reasonCounts,uncertainReasonCounts,reasonTaxonomyVersion:2,mode:state.mode==='off'?'off':'light',filterRatio:totals.active?totals.filter/totals.active:0,filterVersion:FILTER_VERSIONS.filterVersion,policyVersion:FILTER_VERSIONS.policyVersion,classifierVersion:FILTER_VERSIONS.classifierVersion,lastCheckedAt:Number.isFinite(state.lastCheckedAt)?state.lastCheckedAt:0,taskState:state.mode==='off'?'paused':['idle','running','failed'].includes(state.taskState)?state.taskState:'idle'};
+   if(!canonicalChanged&&generation===this.filterMutation)return {...totals,previousReasonState:state.previousReasonState==='available'?'available':'not_captured',previousReasonPolicyVersion:Number.isSafeInteger(state.previousReasonPolicyVersion)?state.previousReasonPolicyVersion:0,previousUncertainReasonCounts:Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,Number.isSafeInteger(state.previousUncertainReasons?.[k])&&state.previousUncertainReasons[k]>=0?state.previousUncertainReasons[k]:0])),reasonCounts,uncertainReasonCounts,reasonTaxonomyVersion:2,mode:state.mode==='off'?'off':'light',filterRatio:totals.active?totals.filter/totals.active:0,filterVersion:FILTER_VERSIONS.filterVersion,policyVersion:FILTER_VERSIONS.policyVersion,classifierVersion:FILTER_VERSIONS.classifierVersion,lastCheckedAt:Number.isFinite(state.lastCheckedAt)?state.lastCheckedAt:0,taskState:state.mode==='off'?'paused':['idle','running','failed'].includes(state.taskState)?state.taskState:'idle'};
   }throw new ArchiveError('STORAGE_FAILED');
  }
  async evaluateFilters({limit=50}={}){
@@ -115,19 +116,22 @@ export class SmartFilterStore extends IAStore {
    await t.put('meta',state);return {processed};
   });
  }
- async protect(t,b,reason,userEdited=false){
+ async protect(t,b,reason,userEdited=false,prepared=null){
+  const portableAt=this.filterIntentJournal?await this.filterIntentJournal.authorize(t,prepared,b,reason,userEdited):null;
   const meta=await t.get('inputStates',b.id);const row=await t.get('filterInputs',b.id)||this.initialFilter(b,meta,true);
   row.filterOverride='keep';row.userEdited||=userEdited;row.overrideReason=reason;row.overrideAt=this.clock();row.evaluationRevision++;row.failed=false;row.pendingKey=1;row.decision='keep';row.reasonCode='user_protected';delete row.filteredKey;await t.put('filterInputs',row);
-  for(const key of await sourceKeys(t,b))await t.put('filterIntents',{id:key,keep:true,reason,at:this.clock()});
+  for(const key of await sourceKeys(t,b))await t.put('filterIntents',{id:key,keep:true,reason,at:portableAt??this.clock()});
  }
- keepInput(id){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b||b.excluded||b.branchStatus)invalid();await this.protect(t,b,'restored_from_filter');return {ok:true};});}
+ async keepInput(id){if(!idOK(id))throw new ArchiveError('INVALID_REQUEST');const journal=this.filterIntentJournal,prepared=journal?await journal.prepareKeep(this,id):null;try{return await this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b||b.excluded||b.branchStatus)invalid();await this.protect(t,b,'restored_from_filter',false,prepared);if(journal)await journal.commit(t,prepared);return {ok:true};});}finally{journal?.release(prepared);}}
  protectUserInput(id){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b)invalid();await this.protect(t,b,'user_edit',true);return {ok:true};});}
  async afterInputEdit(t,before,after,oldDoc,newDoc,request){
   await super.afterInputEdit(t,before,after,oldDoc,newDoc,request);
   for(let i=0;i<after.length;i++){const a=before[i],b=after[i],edited=a.libraryText!==b.libraryText||a.note!==b.note;if(edited||a.excluded&&!b.excluded||request.revisionReason==='restore')await this.protect(t,b,edited?'user_edit':'revision_restore',edited);}
  }
- async saveRecord(t,r,index){await super.saveRecord(t,r,index);if(r.sourceKey){const old=await t.get('filterIntents','legacy:'+r.id);if(old){await t.put('filterIntents',{...old,id:r.sourceKey});await t.delete('filterIntents',old.id);}}}
+ async saveRecord(t,r,index){await super.saveRecord(t,r,index);if(r.sourceKey){const old=await t.get('filterIntents','legacy:'+r.id);if(old){if(this.filterIntentJournal)throw new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED');await t.put('filterIntents',{...old,id:r.sourceKey});await t.delete('filterIntents',old.id);}}}
+ purge(id,permanent=false){if(this.filterIntentJournal)return Promise.reject(new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED'));return super.purge(id,permanent);}
  async beforeSourcePurge(t,records,blocks){
+  if(this.filterIntentJournal)throw new ArchiveError('BNS_FILTER_WRITER_UNSUPPORTED');
   await super.beforeSourcePurge(t,records,blocks);
   for(const [id]of blocks)await t.delete('filterInputs',id);for(const r of records)await t.delete('filterIntents',r.sourceKey||'legacy:'+r.id);
  }

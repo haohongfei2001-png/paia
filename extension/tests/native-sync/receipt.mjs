@@ -11,7 +11,7 @@ export const CASES = Object.freeze([
   'device-counter-during-remote-validation'
 ]);
 
-export function assertReceipt(receipt, {head, variant}) {
+export function assertReceipt(receipt, {head, variant, requiredFilterIntent=false}) {
   assert.equal(receipt.schema, 1); assert.equal(receipt.result, 'PASS');
   assert.equal(receipt.head, head); assert.match(head, /^[a-f0-9]{40}$/);
   assert.match(receipt.tree, /^[a-f0-9]{40}$/); assert.match(receipt.browserVersion, /^\d+\./);
@@ -44,6 +44,13 @@ export function assertReceipt(receipt, {head, variant}) {
   assert.notEqual(receipt.terminations[0].promptProof.text, receipt.terminations[1].promptProof.text);
   assertNetworkLedger(receipt.sourceNetwork, []);
   const lifecycle = [receipt.committedRestart, ...receipt.terminations.slice(0, 2), receipt.activationAbortRestart, ...receipt.terminations.slice(2)];
+  if(requiredFilterIntent)assert.ok(receipt.filterIntentRestart,'current Keep receipt requires its real restart');
+  if(receipt.filterIntentRestart){
+    assertWorkerLifecycle(receipt.filterIntentRestart);lifecycle.push(receipt.filterIntentRestart);
+    assert.equal(receipt.filterIntentCases.length,23);assert.equal(new Set(receipt.filterIntentCases).size,23);
+    assert.deepEqual(Object.keys(receipt.filterIntentHashes).sort(),['core/browser-native-sync/codecs.js','core/browser-native-sync/filter-intent-journal.js','core/smart-filter-store.js']);
+    assert.ok(Object.values(receipt.filterIntentHashes).every(value=>/^[a-f0-9]{64}$/.test(value)));
+  }
   assertNetworkLedger(receipt.destinationNetwork, lifecycle);
   for (const event of lifecycle) {
     const paused = receipt.destinationNetwork.observations.filter(value => value.point === 'paused-before-stop' && value.lifetime === event.beforeLifetime);
