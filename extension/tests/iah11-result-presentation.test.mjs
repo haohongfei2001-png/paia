@@ -14,11 +14,11 @@ test('IAH11 production renderer is Input-first with real secondary provenance an
  const rows=nodes.get('document-list').children;assert.deepEqual(rows.map(row=>row.dataset.inputId),['input-synthetic','second']);
  assert.equal(rows[0].firstElementChild.className,'search-excerpt');assert.equal(rows[0].firstElementChild.textContent,hit.text);
  assert.equal(rows[0].children[1].tagName,'SMALL');assert.equal(rows[0].children[1].textContent,'Synthetic location');assert.equal(rows[0].children[2].textContent.includes('2021'),true);
- rows[0].listeners.get('click')({detail:0});assert.deepEqual(activated,[[hit.documentId,hit.id]]);assert.equal(nodes.get('result-count').textContent,'This page: 2 matching Inputs');
+ rows[0].listeners.get('click')({detail:0});assert.deepEqual(activated,[[hit.documentId,hit.id,{query:'approved',bodyMatched:true}]]);assert.equal(nodes.get('result-count').textContent,'This page: 2 matching Inputs');
 }));
-test('IAH11 title-only match does not invent body emphasis, project attribution or send time',()=>fixture(({nodes,render})=>{
+test('IAH11 title-only match does not invent body emphasis, project attribution or send time',()=>fixture(({nodes,render,activated})=>{
  render([{...hit,providerKey:null,title:'needle title',sourceSentAt:'invalid',text:'Exact unrelated Input',filtered:true}],'needle');const row=nodes.get('document-list').firstElementChild;
- assert.equal(row.firstElementChild.textContent,'Exact unrelated Input');assert.equal(row.firstElementChild.children.length,0);assert.equal(row.children[1].textContent,'needle title');assert.equal(row.children[2].textContent,'Send time unknown');assert.equal(row.children[3].textContent,'Conversation title match');assert.equal(row.children[4].textContent,'Smart-filtered content');
+ assert.equal(row.firstElementChild.textContent,'Exact unrelated Input');assert.equal(row.firstElementChild.children.length,0);assert.equal(row.children[1].textContent,'needle title');assert.equal(row.children[2].textContent,'Send time unknown');assert.equal(row.children[3].textContent,'Conversation title match');assert.equal(row.children[4].textContent,'Smart-filtered content');row.listeners.get('click')({detail:0});assert.deepEqual(activated,[[hit.documentId,hit.id,{query:'needle',bodyMatched:false}]]);
 }));
 test('IAH11 long Unicode excerpt preserves literal input and honest truncation',()=>fixture(({nodes,render})=>{
  const text='中文 👩‍💻 é '.repeat(100)+'Do not send NEEDLE unless approved. '+ '尾部'.repeat(150);render([{...hit,text}],'NEEDLE');const excerpt=nodes.get('document-list').firstElementChild.firstElementChild.textContent;

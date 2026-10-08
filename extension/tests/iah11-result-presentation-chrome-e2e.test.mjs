@@ -31,6 +31,10 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   const inputId=await row.getAttribute('data-input-id');
   const readInput=()=>p.evaluate(async id=>{const r=await chrome.runtime.sendMessage({type:'GET_INPUT',id});if(!r.ok)throw Error(JSON.stringify(r));return r.data;},inputId);
   const before=await readInput(),unicode=[];
+  await row.focus();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible(),'title-only hit opens current Input');
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.doesNotMatch(await p.locator('#notice').textContent(),/匹配.*(?:变化|改变|不再)|(?:match|phrase).*(?:changed|no longer)/i,'original title-only hit is not a vanished body match');assert.deepEqual(await readInput(),before);
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   for(const [query,original] of [['x','x'],['qz','ＱＺ'],['é','é']]){
    await p.locator('#scope-search').fill(query);
    await eventually(async()=>await row.locator('.search-excerpt mark').allTextContents().then(values=>values.includes(original)),'Unicode result marks the original glyphs');
@@ -73,6 +77,32 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   await eventually(async()=>JSON.stringify(await visibleIds())===JSON.stringify([normalId]),'ordinary Reader again hides every filtered Input');
   assert.deepEqual(await filterState(),filterBefore,'ordinary return does not persist temporary visibility');
   writeFileSync(out+variant+'-filter-context.json',JSON.stringify({targetId,normalId,visibleIds:await visibleIds(),unchanged:true},null,2));
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  const deepText='SYNTHETIC_DEEP_START '+('Long original paragraph. 中文🙂\n'.repeat(700))+' SYNTHETIC_DEEP_MATCH';
+  await h.open({id:'iah11-deep',title:'SYNTHETIC_DEEP_DOCUMENT',base:1609459400,messages:Array.from({length:161},(_,i)=>({id:'iah11-deep-'+i,text:i===160?deepText:'SYNTHETIC_DEEP_NORMAL '+i}))});
+  await eventually(async()=>(await h.state()).records.length===166,'complete deep synthetic capture');
+  const deepRecord=(await h.state()).records.find(r=>r.originalText===deepText);assert.ok(deepRecord);const deepId='block:'+deepRecord.id;
+  await p.locator('#scope-search').fill('SYNTHETIC_DEEP_MATCH');const deepRow=p.locator('.search-input[data-input-id="'+deepId+'"]');await eventually(()=>deepRow.count().then(n=>n===1));await deepRow.focus();await p.keyboard.press('Enter');
+  await eventually(()=>p.locator('[data-edit-id="'+deepId+'"]').isVisible(),'deep final Input opens outside initial window');
+  const deepRange=()=>p.evaluate(id=>{const node=document.querySelector('[data-edit-id="'+id+'"]'),range=[...(CSS.highlights.get('paia-search')||[])].find(r=>node?.contains(r.startContainer)&&r.toString()==='SYNTHETIC_DEEP_MATCH'),rect=range?.getBoundingClientRect();return {text:node?.textContent,range:range?.toString(),visible:!!rect&&rect.height>0&&rect.top>=0&&rect.bottom<=innerHeight};},deepId);
+  await eventually(async()=>(await deepRange()).visible,'actual occurrence at end of long Input arrives in viewport');assert.equal((await deepRange()).text,deepText);assert.ok(await p.locator('#document-body [data-edit-id]').count()<=120,'deep arrival stays bounded');writeFileSync(out+variant+'-deep-arrival.json',JSON.stringify(await deepRange()));
+  await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());await p.locator('#scope-search').fill('SYNTHETIC_NEEDLE');await eventually(()=>p.locator('.search-input[data-input-id="'+inputId+'"]').count().then(n=>n===1));
+  const owner=await h.context.newPage();await owner.goto(p.url());
+  // Delay only real background-search delivery; keep the original visible row
+  // while a second trusted owner writes. Reader/current-body reads are untouched.
+  await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__iahOriginalSend=send;window.__iahHeldSearch=[];chrome.runtime.sendMessage=async(...args)=>{const result=await send(...args);if(args[0]?.type==='SEARCH_INPUTS')await new Promise(resolve=>window.__iahHeldSearch.push(resolve));return result;};});
+  const currentText='SYNTHETIC_CURRENT_CHANGED_BODY';
+  try{
+   const result=await owner.evaluate(async({id,currentText})=>chrome.runtime.sendMessage({type:'UPDATE_LIBRARY',id,changes:{libraryText:currentText}}),{id:inputId,currentText});assert.equal(result.ok,true,JSON.stringify(result));
+   const committed=await readInput(),persistedBeforeArrival=await filterState();
+   const staleRow=p.locator('.search-input[data-input-id="'+inputId+'"]');assert.match(await staleRow.textContent(),/SYNTHETIC_NEEDLE/);await staleRow.focus();await p.keyboard.press('Enter');
+   await eventually(()=>p.locator('[data-edit-id="'+inputId+'"]').textContent().then(t=>t===currentText),'activation loads current working bytes');
+   const staleRanges=await p.evaluate(()=>[...(CSS.highlights.get('paia-search')||[])].map(r=>r.toString()));assert.ok(!staleRanges.some(t=>t.includes('SYNTHETIC_NEEDLE')),'old phrase is never replayed');
+   const changed=await readInput();assert.ok(changed.revision>before.revision);assert.equal(changed.libraryText,currentText);
+   await eventually(async()=>/匹配.*(?:变化|改变|不再)|(?:match|phrase).*(?:changed|no longer)/i.test(await p.locator('#notice').textContent()),'current activation explains the changed body match');
+   assert.deepEqual(await readInput(),committed,'arrival does not introduce another Input revision');assert.deepEqual(await filterState(),persistedBeforeArrival,'arrival does not persist a match notice or rewrite filter intent');
+   assert.match(await p.locator('#notice').textContent(),/匹配.*(?:变化|改变|不再)|(?:match|phrase).*(?:changed|no longer)/i,'surviving Input whose prior body match vanished explains the changed match');
+  }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await owner.close();}
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

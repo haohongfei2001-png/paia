@@ -64,21 +64,22 @@ export function firstLexicalRange(root,query){
 let revealToken=0;
 // Search opens a bounded page around the matched Input. Position the exact
 // lexical hit after the Reader swaps pages; title-only hits retain Input fallback.
-export function revealSearchResult(itemId,query,{attempts=40}={}){
+export function revealSearchResult(itemId,query,{attempts=40,isCurrent=()=>true,onMissingMatch=()=>{}}={}){
  const token=++revealToken,id=String(itemId||''),needle=String(query||'');let remaining=attempts;
  const attempt=()=>{
-  if(token!==revealToken||!id)return;
+  if(token!==revealToken||!id||!isCurrent())return;
   const panel=document.getElementById('document-panel'),root=document.getElementById('document-body');
   const target=root&&[...root.querySelectorAll('[data-item-id]')].find(node=>node.dataset.itemId===id);
   if(panel&&!panel.hidden&&target){
    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    if(token!==revealToken||!target.isConnected)return;
+    if(token!==revealToken||!isCurrent()||!target.isConnected||!root.contains(target))return;
     highlightReading(root,needle);
     const section=target.closest('section');
     if(section)section.dataset.searchOrigin='true';
     const match=firstLexicalRange(target,needle),rect=match?.getBoundingClientRect();
     if(rect?.height)window.scrollTo({top:Math.max(0,window.scrollY+rect.top-innerHeight*0.45),behavior:'instant'});
     else target.scrollIntoView({block:'center',behavior:'instant'});
+    if(!match&&isCurrent())onMissingMatch();
     // Exact-result navigation has one explicit jump, without competing smooth
     // scrolls or decorative animation over an editable Input.
    }));
@@ -89,12 +90,12 @@ export function revealSearchResult(itemId,query,{attempts=40}={}){
  setTimeout(attempt,0);
 }
 
-export function wireSearchKeyboard(input,results,{listenInput=true,onScrollIntent=()=>{},selector='button:not(:disabled)'}={}){if(listenInput)input.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!e.isComposing&&e.keyCode!==229&&e.key==='ArrowDown'){const first=results.querySelector(selector);if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll(selector)].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
+export function wireSearchKeyboard(input,results,{listenInput=true,revealOnClick=true,onScrollIntent=()=>{},selector='button:not(:disabled)'}={}){if(listenInput)input.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!e.isComposing&&e.keyCode!==229&&e.key==='ArrowDown'){const first=results.querySelector(selector);if(first){e.preventDefault();first.focus();}}});results.addEventListener('keydown',e=>{if(!e.isComposing&&e.keyCode!==229&&['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key))onScrollIntent();if(!['ArrowUp','ArrowDown','Escape'].includes(e.key))return;const all=[...results.querySelectorAll(selector)].filter(x=>x.getClientRects().length),at=all.indexOf(document.activeElement);if(at<0)return;e.preventDefault();if(e.key==='Escape'||e.key==='ArrowUp'&&at===0)input.focus();else all[Math.max(0,Math.min(all.length-1,at+(e.key==='ArrowDown'?1:-1)))]?.focus();});if(revealOnClick)results.addEventListener('click',e=>{const hit=e.target.closest?.('button.search-input[data-input-id]');if(hit&&results.contains(hit))revealSearchResult(hit.dataset.inputId,input.value);});}
 // A single input listener chooses only the admitted, visible page. Result
 // lists keep their reviewed keyboard behavior without duplicate input owners.
 export function wireScopeSearchKeyboard(input,pages){
  input.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229||e.key!=='ArrowDown')return;const page=pages.find(p=>p.active());const first=page?.results.querySelector('button:not(:disabled)');if(first?.getClientRects().length){e.preventDefault();first.focus();}});
- for(const page of pages)wireSearchKeyboard(input,page.results,{listenInput:false});
+ for(const page of pages)wireSearchKeyboard(input,page.results,{listenInput:false,revealOnClick:page.revealOnClick!==false});
 }
 export async function findLibraryPage(read,{query,cursor=null,isCurrent=()=>true,onProgress=()=>{}}){let next=cursor;for(;;){if(!isCurrent())return null;const page=await read({query,cursor:next,ranked:true});if(!isCurrent())return null;if(page.items.length||!page.nextCursor)return page;if(JSON.stringify(next)===JSON.stringify(page.nextCursor))throw Error('Search did not advance');next=page.nextCursor;onProgress();await new Promise(r=>setTimeout(r,0));}}
 

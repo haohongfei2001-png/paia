@@ -40,7 +40,7 @@ export class SmartFilterUI {
    button.addEventListener('click',event=>{
     const selection=document.getSelection();
     if(event.detail>0&&selection&&!selection.isCollapsed&&selection.rangeCount&&selection.getRangeAt(0).intersectsNode(button))return;
-    void this.onContext(hit.documentId,hit.id);
+    void this.onContext(hit.documentId,hit.id,{query,bodyMatched:!!needle&&normalizeSearch(hit.text).includes(needle)});
    });list.append(button);
   }
   $('empty-list').textContent=result.nextCursor?copy('正在继续搜索本机输入…','Continuing to search local Inputs…'):copy('没有找到匹配内容。试试聊天标题或另一种表达。','No matches. Try a conversation title or another phrase.');
