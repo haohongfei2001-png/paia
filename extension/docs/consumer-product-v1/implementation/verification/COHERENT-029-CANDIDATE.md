@@ -26,3 +26,10 @@ Four whole files (AI foundation, Placement, UIR04 Data, UXR1 shell) passed8/8 in
 Root-finish independently reviewed the test increment without another browser run. The earlier wrong-cwd append made no file edit; `/tmp/029-placement-visual.log` is an unchanged old test run, not screenshot evidence. First actual screenshot run2/2 passed layout but revealed the untranslated labels; it is not claimed as final language acceptance.
 
 Final Placement test SHA256: `4a01b1113212ab61d280f90cd8e53f36f3729be15e15248e36c950e6ddacb67c`.
+
+
+## Nine-way CI and Context integration
+
+Reviewed98af nine-way capacity correction is merged as fa4df937. Independent actual-parent comparison retained all340 existing0.29 routes across widths4–7 and all84 current0.28 nine-way positions; the only additional file is removed Placement, width9 group4. Frozen84-file capacity measurements remain unchanged. Root85/85 whole CI/admission/partition tests and independent2/2 passed; this routing change alters no runtime or native budget.
+
+CTX4 coarse target correction ae24a05c is integrated as e5684b95. The existing global capsule's36px specificity defect is corrected within the existing coarse query. Original complete Context source/release file6/6 passed71.527s; independent code, artifact/hash and actual tablet screenshot review approved. The owning CTX4-07-TABLET-TOUCH receipt preserves failures, deterministic before-first-commit fixture timing, exact bytes and emulation limits. Targeted integrated Context units100/100 passed792.9ms; final404-file0.29 build passed. Hosted current candidate and exact-main gates remain pending; this does not certify physical touch hardware or real external connections.
