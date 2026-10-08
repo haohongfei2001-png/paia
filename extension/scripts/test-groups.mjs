@@ -1,9 +1,10 @@
+const writing='topic-section-writing-chrome-e2e.test.mjs';
 const settingsNext='settings-next-chrome-e2e.test.mjs';
 const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
+const CURRENT_BROWSER=new Set([writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -63,6 +64,7 @@ export function group(file) {
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
  const newName=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===writing)return 2;if(newName>writing)position--;}
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(newName===settingsNext)return 2;if(newName>settingsNext)position--;}
  return priorSettingsNextShard(file,position,total,category);
 }

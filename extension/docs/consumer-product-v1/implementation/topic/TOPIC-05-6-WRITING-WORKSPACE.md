@@ -51,3 +51,9 @@ The 200% test uses CSSOM on the same actual nodes, asserts every measured font i
 - `tests/thought-writing-workspace.test.mjs`: `cf40a1aab3c86df0a94987e4f05dcf337e4e6a85af0fec3234bd7f6b4923330b`
 - `tests/writing-history-refusal.test.mjs`: `95381d3755f06e5a3c6dc7a6052e5b9270d703fd9a2cbb73dd780deb50d10dec`
 - `tests/topic-section-writing-chrome-e2e.test.mjs`: `dbbc3d15836e3ee1161daf1f538e40e1bf6d1a9a1cd829c15164c37cde700e35`
+
+### Root coherent integration and CI admission
+
+The reviewed writing implementation `8f67f56c` was merged with Prompt/Settings `8a38c864` and optimized AI `f45df111` without changing Writing-owned runtime. The planned delivery identity is 0.25.0; strict existing-file admission adds only minor 25 and rejects future minor 26, preserving schema and prior supported versions.
+
+The current browser corpus adds the entire writing native file on shard 2, retaining all 332 routes generated independently from the exact 83-file `8a38c8644605be6919c114f0b6866ada36a2552d` parent at shard counts 4/5/6/7. No old test, assertion or budget is removed. Independent CI/version review passed 23 complete cases; root passed 63 affected runtime/backup cases, package audit 12220/369 and the complete original source/release native file 2/2 in 13.254953958s. Logs are local `work/topic-writing-combined-units.log` and `work/topic-writing-combined-native.log`. Root inspected the release 1440px light and 320px dark actual-200%-text screenshots; original visual assertions passed for both variants. These are pre-final-checkpoint local evidence, not a later exact-head full CI or installed-release claim. Pending Sync conflict changes require final coherent validation.
