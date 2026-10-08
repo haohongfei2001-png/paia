@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
@@ -52,7 +54,12 @@ async function popupJourney(h){
 }
 
 test('UIR-04 popup keeps compact capture, accessible help and honest failure feedback with retired tools absent in source/release',{timeout:300000},async()=>{
- for(const extensionPath of ['.','work/current-release']){const h=await FakeChatGPT.start({extensionPath,onboarding:true,headless:true});try{await popupJourney(h);}finally{await h.close();}}
+ const releaseRoot=await mkdtemp(join(tmpdir(),'paia-popup-release-'));
+ try{
+  const releasePath=join(releaseRoot,'release');
+  await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
+  for(const extensionPath of ['.',releasePath]){const h=await FakeChatGPT.start({extensionPath,onboarding:true,headless:true});try{await popupJourney(h);}finally{await h.close();}}
+ }finally{await rm(releaseRoot,{recursive:true,force:true});}
 });
 
 // Native action popup, not popup.html in a resized ordinary tab. Chrome 127+
