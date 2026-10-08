@@ -1,12 +1,43 @@
 import {PROMPT_REUSE_ROW,readPromptPreferences} from '../prompt-reuse-preferences.js';
 import {projectEntity,validateEntity} from './codecs.js';
-import {clone,equal,fail} from './value.js';
+import {clone,equal,fail,opaque} from './value.js';
+
+// Shared persistent fence for the admitted local journals, not sync identity.
+// An old namespace after local backup replacement requires explicit reconciliation.
+export class JournalRestoreFence {
+ constructor(core){this.core=core;this.prepared=new WeakMap();}
+ async snapshot(t){
+  const row=await t.get('meta','recovery-restore-epoch');
+  if(row!==undefined&&row!==null&&(!row||Object.keys(row).some(k=>!['id','value'].includes(k))||!opaque(row.value)))fail('BNS_RESTORE_EPOCH_INVALID');
+  const epoch=row?.value??null,namespace=await this.core.bind(t),marker=await this.core.get(t,'ownerRecoveryEpoch');
+  if(marker){
+   if(marker.version!==1||Object.keys(marker).some(k=>!['id','version','epoch'].includes(k))||marker.epoch!==null&&!opaque(marker.epoch))fail('BNS_RESTORE_EPOCH_INVALID');
+   if(marker.epoch!==epoch)fail('BNS_RESTORE_EPOCH_CHANGED');
+  }else if(epoch!==null){
+   const heads=await t.primaryRangePage('meta',{prefix:await this.core.idIn(t,'head'),limit:1});
+   if(heads.rows.length)fail('BNS_RESTORE_EPOCH_UNBOUND');
+  }
+  return {epoch,namespace,marker:!!marker};
+ }
+ async prepare(make){
+  const before=await this.core.transaction(false,t=>this.snapshot(t),['meta']);
+  const prepared=await make();this.prepared.set(prepared,before);return prepared;
+ }
+ async commit(t,prepared){
+  const before=this.prepared.get(prepared);if(!before)fail('BNS_PREPARATION_REQUIRED');
+  const now=await this.snapshot(t);
+  if(now.namespace!==before.namespace)fail('BNS_PREPARATION_STALE');
+  if(now.epoch!==before.epoch)fail('BNS_RESTORE_EPOCH_CHANGED');
+  if(!now.marker)await this.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:now.epoch});
+ }
+}
 
 // Explicit dependency injection only. The service worker does not construct this
 // journal, so this proof cannot enable cloud access or change ordinary saves.
 export class PromptSyncJournal {
- constructor(core){this.core=core;}
- async prepare(before,after){
+ constructor(core){this.core=core;this.restoreFence=new JournalRestoreFence(core);}
+ async prepare(before,after){return this.restoreFence.prepare(()=>this.prepareCurrent(before,after));}
+ async prepareCurrent(before,after){
   const old=projectEntity('promptPreferences',before),next=projectEntity('promptPreferences',after);
   const head=await this.core.read('head','promptPreferences',PROMPT_REUSE_ROW);
   if(head?.purged)fail('BNS_ENTITY_PURGED');
@@ -15,12 +46,12 @@ export class PromptSyncJournal {
   else if(old.pins.length||old.overrides.length||old.splits.length)fail('BNS_BOOTSTRAP_REQUIRED');
   return this.core.prepare([{type:'promptPreferences',value:next}]);
  }
- async commit(t,prepared){return this.core.commitPrepared(t,prepared,{materialize:false});}
+ async commit(t,prepared){await this.restoreFence.commit(t,prepared);return this.core.commitPrepared(t,prepared,{materialize:false});}
  async bootstrap(){
   const before=await this.core.repository.transaction(false,t=>readPromptPreferences(t),['meta']);
   if(await this.core.read('head','promptPreferences',PROMPT_REUSE_ROW))fail('BNS_BOOTSTRAP_EXISTS');
-  const prepared=await this.core.prepare([{type:'promptPreferences',value:projectEntity('promptPreferences',before)}],{actor:'bootstrap'});
-  return this.core.commit(prepared,async t=>{if(!equal(await readPromptPreferences(t),before))fail('BNS_OWNER_CHANGED');});
+  const prepared=await this.restoreFence.prepare(()=>this.core.prepare([{type:'promptPreferences',value:projectEntity('promptPreferences',before)}],{actor:'bootstrap'}));
+  return this.core.commit(prepared,async t=>{await this.restoreFence.commit(t,prepared);if(!equal(await readPromptPreferences(t),before))fail('BNS_OWNER_CHANGED');});
  }
 }
 export async function materializePrompt(t,context){

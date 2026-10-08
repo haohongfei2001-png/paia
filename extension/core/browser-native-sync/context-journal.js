@@ -1,6 +1,7 @@
 import {CONTEXT_CARDS_ROW,readContextCards,validContextCards} from '../context-cards.js';
 import {validateEntity} from './codecs.js';
 import {clone,equal,fail} from './value.js';
+import {JournalRestoreFence} from './prompt-journal.js';
 const infoTypes=Object.freeze({info:'contextItem'});
 const manualTypes=Object.freeze({...infoTypes,rules:'contextRulesItem',now:'contextNowItem'});
 const itemType=(types,item)=>{const type=types[item?.card];if(!type)fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');return type;};
@@ -30,8 +31,9 @@ async function chain(t,core,operation){
 }
 // Explicit dependency injection only; ordinary Context writes use no journal.
 class ContextSyncJournal{
- constructor(core,types){this.core=core;this.types=types;}
- async prepare(beforeRow,afterRow,command){
+ constructor(core,types){this.core=core;this.types=types;this.restoreFence=new JournalRestoreFence(core);}
+ async prepare(beforeRow,afterRow,command){return this.restoreFence.prepare(()=>this.prepareCurrent(beforeRow,afterRow,command));}
+ async prepareCurrent(beforeRow,afterRow,command){
   if(command.kind==='access')fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');
   const before=beforeRow.items.find(x=>x.id===command.itemId),after=afterRow.items.find(x=>x.id===command.itemId);
   const type=itemType(this.types,after);
@@ -43,14 +45,14 @@ class ContextSyncJournal{
   else if(before)fail('BNS_BOOTSTRAP_REQUIRED');
   return this.core.prepare([{type,value:after,expectedParents:head?.revisions||[]}],{operationIds:[command.operationId]});
  }
- async commit(t,prepared){return this.core.commitPrepared(t,prepared,{materialize:false});}
+ async commit(t,prepared){await this.restoreFence.commit(t,prepared);return this.core.commitPrepared(t,prepared,{materialize:false});}
  async bootstrap(itemId){
   const item=await this.core.repository.transaction(false,async t=>(await readContextCards(t)).items.find(x=>x.id===itemId),['meta']);
   const type=itemType(this.types,item);
   validateEntity(type,item);
   if(await this.core.read('head',type,itemId))fail('BNS_BOOTSTRAP_EXISTS');
-  const prepared=await this.core.prepare([{type,value:item,expectedParents:[]}],{actor:'bootstrap'});
-  return this.core.transaction(true,async t=>{if(!equal((await readContextCards(t)).items.find(x=>x.id===itemId),item))fail('BNS_OWNER_CHANGED');return this.core.commitPrepared(t,prepared,{materialize:false});});
+  const prepared=await this.restoreFence.prepare(()=>this.core.prepare([{type,value:item,expectedParents:[]}],{actor:'bootstrap'}));
+  return this.core.transaction(true,async t=>{await this.restoreFence.commit(t,prepared);if(!equal((await readContextCards(t)).items.find(x=>x.id===itemId),item))fail('BNS_OWNER_CHANGED');return this.core.commitPrepared(t,prepared,{materialize:false});});
  }
 }
 // Bind to live Core for receive; bind to restore.stage for staged activation.
