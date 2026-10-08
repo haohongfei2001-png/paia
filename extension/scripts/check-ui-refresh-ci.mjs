@@ -52,9 +52,11 @@ for(const name of archived){
  if(!names.has(name)||group(name)!=='experimental')throw Error(`SEMANTIC_ARCHIVE_COVERAGE_MISSING:${name}`);
 }
 const current=[...names].filter(name=>group(name)==='browser E2E').sort();
+const selected='iah11-selected-acceptance-chrome-e2e.test.mjs';
 const iah='iah11-result-presentation-chrome-e2e.test.mjs';
-if(current.length!==77||!current.includes(iah))throw Error('IAH11_CURRENT_BROWSER_CORPUS_INVALID');
+if(current.length!==78||!current.includes(iah)||!current.includes(selected))throw Error('IAH11_CURRENT_BROWSER_CORPUS_INVALID');
 for(const count of [4,5,6,7])if(testShard(iah,current.indexOf(iah),count,'browser E2E')!==4)throw Error('IAH11_WHOLE_FILE_ROUTING');
+for(const count of [4,5,6,7])if(testShard(selected,current.indexOf(selected),count,'browser E2E')!==4)throw Error('IAH11_SELECTED_WHOLE_FILE_ROUTING');
 const section='cpv1-topic-05-4-section-chrome-e2e.test.mjs';
 if(!current.includes(section))throw Error('SECTION_NATIVE_MISSING');
 for(const count of [4,5,6,7])if(testShard(section,current.indexOf(section),count,'browser E2E')!==(count===7?7:4))throw Error('SECTION_NATIVE_ROUTING');
@@ -95,7 +97,7 @@ for(const [count,expected]of [[4,1],[5,1],[6,6]])if(testShard(context,current.in
 const root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
 if(!current.includes(root))throw Error('TOPIC05_ROOT_BROWSER_MISSING');
 for(const count of [4,5,6])if(testShard(root,current.indexOf(root),count,'browser E2E')!==3)throw Error('TOPIC05_ROOT_BROWSER_ROUTING');
-const beforeQ4=current.filter(name=>![iah,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
+const beforeQ4=current.filter(name=>![selected,iah,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
 for(const [position,name]of beforeQ4.entries()){
  const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
  if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
@@ -112,7 +114,7 @@ const frozen=JSON.parse(await readFile('docs/consumer-product-v1/implementation/
 const prior=[...frozen.rows,...promptReuseFiles.map(file=>({file,before:3,after:3})),
  {file:consumer,before:1,after:1},{file:context,before:1,after:6}];
 if(frozen.files!==68||prior.length!==73||new Set(prior.map(row=>row.file)).size!==73
- ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==maintenance&&name!==root&&name!==section&&name!==iah).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
+ ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==maintenance&&name!==root&&name!==section&&name!==iah&&name!==selected).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
 for(const row of prior)for(const count of [4,5,6]){
  const expected=count===6?(row.file==='uir-04-settings-chrome-e2e.test.mjs'?6:row.after):
   count===4&&row.file==='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs'?3:row.before;
