@@ -142,6 +142,7 @@ for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB
       assert.equal(result.preferences.overrides[0].reuseCount, 1);
       assert.equal(result.preferences.overrides[0].text, 'Synthetic intermediate revision'); assert.deepEqual(result.outbox, []);
     });
+    receipt.conflictOwnerCases=await b.call('prompt-conflict-matrix');assert.equal(receipt.conflictOwnerCases.length,12);
     const isolation = await b.isolation(); receipt.nativeFactory = isolation.nativeFactory; receipt.networkAttempts = isolation.networkAttempts; receipt.destinationIsolation = isolation;
     receipt.result = 'PASS'; assertReceipt(receipt, {head, variant}); await save();
   } catch (error) { receipt.result = 'FAIL'; receipt.failure = error.message; await save(); throw error; }
