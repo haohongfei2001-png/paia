@@ -1,6 +1,6 @@
 # SYNC01 bounded InputWorking inbox — local owner evidence
 
-Base e22ffbf1; evidence is the exact working-tree bytes below, not pristine base certification. No production worker registration, provider, permission, schema, or remote account activation. The original complete receiver remains restricted to existing eligible unreferenced Inputs; this adds explicit injected local segment staging and resume, not full restore.
+Historical author checkpoint: base e22ffbf1 plus the exact working-tree bytes recorded below, subsequently committed as dc4cb757 (author58df9660). This is not pristine-base or latest-integration certification. No production worker registration, provider, permission, schema, or remote account activation. The original complete receiver remains restricted to existing eligible unreferenced Inputs; this adds explicit injected local segment staging and resume, not full restore.
 
 ## Contract
 
@@ -22,7 +22,7 @@ Actual inbox cases cover delayed same-value restore, namespace changes, consent 
 
 /tmp/working-inbox-before.log preserves missing-method negatives. /tmp/working-inbox-first.log exposed repository max-page 100 versus requested 513; final bounded scan uses legal pages and proves overflow refusal. /tmp/working-inbox-ten.log contains an invalid consent(false) test setup, corrected to existing setEnabled(false); that failure is not a product defect. Earlier measured arbitrary group/body caps were withdrawn in favor of exact refs-only accounting. No old failures are relabeled pass. Hosted CI admission for the new inbox fields is future coordinator work, not claimed here. No paid calls, user data or full recovery are involved.
 
-## Exact source bytes
+## Historical author source bytes — before strict CI integration
 
 - `core/browser-native-sync/input-working-commit.js`: `cfd7f982152c9e4bd0fb2475b95743cc3d8395f21e7810e57d649b9353419714`
 - `core/browser-native-sync/input-working-inbox.js`: `93de1d353fae87d02fa5e3b03f4586d165008c2708102a636826502ee51107d0`
@@ -37,6 +37,8 @@ Actual inbox cases cover delayed same-value restore, namespace changes, consent 
 
 
 ## Coordinated 0.30 strict admission
+
+The earlier native-test hash966a994b belongs to the author checkpoint above and is preserved with its original artifacts. Strict integration at2d7c5cc9 changed that test to validate final inbox evidence; its SHA-256 is `09d6796d6c35faa298f336bf4da3c88322b487212bab73c56c6c168beabe9cfa`, unchanged through hosted head290ae884. The author hash is not asserted to describe this later test. Runtime hashes above remain unchanged; each following receipt retains its own tested head/tree.
 
 This is SYNC-01 local foundation work, not canonical SYNC-03 production hardening or a Chrome account connection. The preceding design document remains the historical proposal; implemented behavior and exact scoped proof are recorded here.
 

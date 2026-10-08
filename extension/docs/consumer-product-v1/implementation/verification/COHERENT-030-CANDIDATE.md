@@ -27,3 +27,9 @@ PR216 corrected97418efb is undergoing Full37843556298 and Prompt37843556217; thi
 ## Fresh main reconciliation
 
 PR216 merged atfa251c3d after candidate Full37843556298/Prompt37843556217 PASS. Its tested merge71270895 and actualmain share exacttree6728b3df085d2187cd73e29ed73aae20e689acdf. Clean mergea459ddf6 brings that main into this030 candidate without additional runtime or test changes. Exact-main029 gates37845431936/37845430575 are pending. The following030 hosted candidate must pass its own full gate before ordinary integration; no prior-head result is relabeled.
+
+## Documentation-only evidence clarification after full candidate PASS
+
+Exact runtime candidate290ae8845f8da362fa83b3778f56a095d9cac029 passed Full37845700194, including all nine current browser groups, native Sync, units, macOS and final aggregate. Review PRRT_kwDOUS19zM6qjs5g correctly requested explicit attribution of the old966a994b native-test hash: actual git blobs confirm it belongs todc4cb757, while strict integration2d7c5cc9 and290ae884 use09d6796d. The owning receipt now labels both stages without overwriting old artifacts or claiming their hashes changed.
+
+Only these two documentation files change after290ae884; all source, tests, dependencies, workflows, version and emitted release files remain byte-identical. Reuse of that precisely identified full-runtime evidence follows the owner’s unchanged-code/dependency rule. This documentation amendment uses the existing light integration gate; its nonselected full jobs are not claimed PASS. Merge remains a full-certification boundary and the merge commit must select one full exact-main gate.
