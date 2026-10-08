@@ -1,5 +1,6 @@
 import {ArchiveError} from '../core/constants.js';
 import {own} from '../core/prompt-reuse-preferences.js';
+import {matchNextFamily} from '../core/next-family-matcher.js';
 import {detectNextAction} from '../core/next-action-detector.js';
 export const NEXT_AUTH_KEY='promptNextAuthorizationV1';
 const uuid=x=>typeof x==='string'&&/^[a-f0-9-]{36}$/.test(x);
@@ -43,7 +44,13 @@ export class NextPromptCommands{
   const live=await this.probe(tab,group.documentId);
   if(live?.authorization!==auth.generation||!same(live.binding,group.binding))fail();
   const final=await this.authorization();if(!final.enabled||final.generation!==auth.generation||this.groups.get(group.tabId)!==group)fail();
+  if(group.family)await this.service.assertCurrent(group.family.generation);
+  if(this.changing||this.groups.get(group.tabId)!==group||!group.authorization.endsWith(':'+this.instance+':'+this.serial))fail();
   return {tab,live};
+ }
+ async resolveFamily(group){
+  if(group.family){const selected=await this.service.resolve({id:group.family.id,text:group.family.text});if(selected.generation!==group.family.generation)fail();}
+  return this.assertCurrent(group);
  }
  async handle(r,sender){
   const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
@@ -65,13 +72,14 @@ export class NextPromptCommands{
    if(!auth.enabled||auth.generation!==r.authorization||tab.url!==r.binding.url)fail();
    const live=await this.probe(tab,sender.documentId);
    if(live?.authorization!==auth.generation||!same(live.binding,r.binding))fail();
-   const result=detectNextAction(r.snapshot); // snapshot is never assigned to a retained field.
+   let result=detectNextAction(r.snapshot); // snapshot is never assigned to a retained field.
+   if(result.type==='DEFER'&&result.reason==='NO_EXPLICIT_NEXT_ACTION')result=matchNextFamily(r.snapshot,await this.service.nextFamilyView?.());
    const final=await this.authorization();if(!final.enabled||final.generation!==auth.generation||this.offers.get(tab.id)!==attempt)fail();
    const latest=await this.probe(tab,sender.documentId);if(!same(latest?.binding,r.binding)||latest?.authorization!==auth.generation||this.offers.get(tab.id)!==attempt)fail();
    this.groups.delete(tab.id);
    if(result.type==='DEFER')return {available:false,reason:result.reason};
    if(this.groups.size>=100)return {available:false,reason:'RESOURCE_LIMIT'};
-   const group={id:crypto.randomUUID(),tabId:tab.id,documentId:sender.documentId,binding:r.binding,authorization:auth.generation,type:result.type,condition:result.condition,evidence:result.evidence,choices:result.choices.map((text,i)=>({id:crypto.randomUUID(),text,label:result.labels?.[i]||text})),attempted:new Set(),outcomes:new Map()};
+   const group={id:crypto.randomUUID(),tabId:tab.id,documentId:sender.documentId,binding:r.binding,authorization:auth.generation,type:result.type,sourceType:result.sourceType,...(result.family?{family:result.family}:{}),condition:result.condition,evidence:result.evidence,choices:result.choices.map((text,i)=>({id:crypto.randomUUID(),text,label:result.labels?.[i]||text})),attempted:new Set(),outcomes:new Map()};
    this.groups.set(tab.id,group);
    try{await this.assertCurrent(group);}catch(error){if(this.groups.get(tab.id)===group)this.groups.delete(tab.id);throw error;}
    void api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});
@@ -79,24 +87,26 @@ export class NextPromptCommands{
   }
   if(r.type==='PAIA_PROMPT_NEXT_PRESENT'){
    if(!own(r,['type','id']))fail();const tab=await this.top(sender),g=this.groups.get(tab.id);if(g?.id!==r.id||g.documentId!==sender.documentId)fail();
-   const {live}=await this.assertCurrent(g);return {safe:live.idle===true&&await this.surface.isIdle(tab.id)};
+   const {live}=await this.assertCurrent(g),safe=live.idle===true&&await this.surface.isIdle(tab.id);
+   // The idle probe yields; do not qualify a replaced/revoked Family or reply.
+   await this.assertCurrent(g);return {safe,sourceType:g.sourceType};
   }
   // Extension frame only: same resource, distinct nonce and independently bound host.
   if(r.type!=='PAIA_PROMPT_NEXT_RPC'||!own(r,['type','nonce','command'])||!uuid(r.nonce)||sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito||!Number.isInteger(sender.frameId)||sender.frameId<=0||sender.url!==api.runtime.getURL('ui/prompt-surface.html')+'#next-'+r.nonce)fail();
   const g=this.groups.get(sender.tab.id);if(!g)fail();const {tab,live}=await this.assertCurrent(g);
   if(live.nonce!==r.nonce)fail();
   const c=r.command;
-  if(c?.type==='get'&&own(c,['type']))return {id:g.id,type:g.type,condition:g.condition,choices:g.choices.map(x=>({...x,attempted:g.attempted.has(x.id)})),dark:live.dark};
+  if(c?.type==='get'&&own(c,['type'])){await this.resolveFamily(g);return {id:g.id,type:g.type,sourceType:g.sourceType,condition:g.condition,choices:g.choices.map(x=>({...x,attempted:g.attempted.has(x.id)})),dark:live.dark};}
   if(c?.type==='hide'&&own(c,['type'])){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_HIDE',nonce:r.nonce},{documentId:g.documentId});return {};}
   if(c?.type==='resize'&&own(c,['type','height'])&&Number.isFinite(c.height)&&c.height>=44&&c.height<=400){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_RESIZE',nonce:r.nonce,height:c.height},{documentId:g.documentId});return {};}
-  if(c?.type==='copy'&&own(c,['type','id'])){const choice=g.choices.find(x=>x.id===c.id);if(!choice||!['failed','uncertain'].includes(g.outcomes.get(choice.id)))fail();return {text:choice.text};}
+  if(c?.type==='copy'&&own(c,['type','id'])){const choice=g.choices.find(x=>x.id===c.id);if(!choice||!['failed','uncertain'].includes(g.outcomes.get(choice.id)))fail();await this.resolveFamily(g);return {text:choice.text};}
   if(c?.type!=='insert'||!own(c,['type','id','operationId'])||!uuid(c.operationId))fail();
   const choice=g.choices.find(x=>x.id===c.id);if(!choice||g.attempted.has(choice.id))fail();
   g.attempted.add(choice.id);
   let timer,result;
   try{
-   await this.assertCurrent(g);
-   result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,operationId:c.operationId,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
+   await this.resolveFamily(g);
+   result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:c.operationId,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
   }catch{result={status:'uncertain'};}finally{clearTimeout(timer);}
   const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);return {status,verified:status==='inserted'};
  }
@@ -108,7 +118,7 @@ export class NextPromptCommands{
    const g=this.groups.get(tab.id);if(!g)fail();await this.assertCurrent(g);
    if(!await this.surface.isIdle(tab.id))fail();
    // The idle probe yields: authorization or the current reply may change.
-   await this.assertCurrent(g);
+   await this.resolveFamily(g);
    return this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_REOPEN',id:g.id},{documentId:g.documentId});
   }
   fail();

@@ -49,6 +49,19 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    await cycle('A. 概要\nB. 详细说明\nC. 比较\n请回复 A / B / C。');const f=await shown();assert.deepEqual(await f.locator('.next-choices button').allTextContents(),['A · 概要','B · 详细说明','C · 比较']);assert.equal(await f.locator('.next-choices button:focus').count(),0);assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录E');await f.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
    await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await card().getByRole('button',{name:'本轮建议'}).waitFor({state:'visible'});await card().getByRole('button',{name:'本轮建议'}).click();await shown();await capsule().getByRole('button',{name:'B · 详细说明',exact:true}).click();await eventually(()=>capsule()?.locator('.next-status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.text()),'ABCD已登录BE');await eventually(()=>!capsule());await card().locator('#close').click();await eventually(()=>!card());
   });
+  await check('actual saved Family match inserts original text and rejects changed eligibility',async()=>{
+   const q=await rpc(popup,'PAIA_PROMPT_QUERY',{includeHidden:true});
+   const saved=await rpc(popup,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text:'Explain sorting'}});
+   await rpc(popup,'PAIA_PROMPT_QUERY',{includeHidden:true});await page.evaluate(()=>fixture.set('FAMILY_DRAFT',12,12));
+   await cycle('Next, ask me to explain sorting.');const f=await shown();
+   assert.equal(await f.locator('.next-capsule').getAttribute('aria-label'),'来自常用 Prompt 的本轮建议');assert.equal(await(await f.frameElement()).getAttribute('title'),'来自常用 Prompt 的本轮建议');
+   await f.getByRole('button',{name:'Explain sorting',exact:true}).click();await eventually(()=>f.locator('.next-status').textContent().then(x=>x==='已插入，未发送。'));
+   assert.equal(await page.evaluate(()=>fixture.text()),'FAMILY_DRAFTExplain sorting');assert.equal(await page.evaluate(()=>fixture.send),0);await eventually(()=>!capsule());
+   await rpc(popup,'PAIA_PROMPT_QUERY',{includeHidden:true});await cycle('Next, ask me to explain sorting.');const stale=await shown(),before=await page.evaluate(()=>fixture.text());
+   const current=await rpc(popup,'PAIA_PROMPT_QUERY',{includeHidden:true});await rpc(popup,'PAIA_PROMPT_CHANGE',{change:{action:'hide',id:saved.id,revision:current.revision}});
+   await stale.getByRole('button',{name:'Explain sorting',exact:true}).click();await eventually(()=>stale.locator('.next-status').textContent().then(x=>x.includes('未确认')||x.includes('无法安全插入')));
+   assert.equal(await page.evaluate(()=>fixture.text()),before);assert.equal(await page.evaluate(()=>fixture.send),0);await stale.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+  });
   await check('actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation',async()=>{
    const settings=h.archive;await settings.bringToFront();await eventually(()=>settings.evaluate(()=>!document.hidden),'Settings tab is visible before its native controls are used');await settings.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(settings,'ai');const reset=settings.locator('#settings-prompt-position-reset');await eventually(()=>reset.isEnabled());
    await page.bringToFront();await cycle();const nextFrame=await shown();

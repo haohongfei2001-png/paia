@@ -24,7 +24,7 @@
   const ticket=epoch,id=candidate;
   try{const result=await rpc('PRESENT',{id});if(ticket!==epoch||host||!result.safe||!idle())return {shown:false};
    nonce=crypto.randomUUID();host=document.createElement('div');host.dataset.paiaNextPrompt='';const shadow=host.attachShadow({mode:'closed'});
-   frame=document.createElement('iframe');frame.title='来自本条回复的可选回复';frame.allow='clipboard-write';frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce;frame.style.cssText='border:0;width:100%;height:100%;color-scheme:inherit;background:transparent;';shadow.append(frame);document.documentElement.append(host);
+   frame=document.createElement('iframe');frame.title=result.sourceType==='PROMPT_FAMILY'?'来自常用 Prompt 的本轮建议':'来自本条回复的可选回复';frame.allow='clipboard-write';frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce;frame.style.cssText='border:0;width:100%;height:100%;color-scheme:inherit;background:transparent;';shadow.append(frame);document.documentElement.append(host);
    if(!layout())return {shown:false};return {shown:true};
   }catch{return {shown:false};}
  }
@@ -83,7 +83,7 @@
   if(r.type==='PAIA_PROMPT_NEXT_INSERT'){
    const ticket=epoch;
    // Recheck with the worker immediately before the synchronous native edit.
-   rpc('STATUS').then(state=>{
+   (async()=>{const state=await rpc('STATUS');if(r.sourceType==='PROMPT_FAMILY'){const qualified=await rpc('PRESENT',{id:r.id});if(!qualified.safe)throw Error('stale_family');}return state;})().then(state=>{
     scan();
     if(ticket!==epoch||!state.enabled||state.generation!==authorization||r.authorization!==authorization||r.id!==candidate||!same(r.binding,binding))return {status:'failed',reason:'stale_candidate'};
     inserting=true;return composer.insert({text:r.text,operationId:r.operationId,url:r.binding.url,guard:()=>{const pending=observer.takeRecords();scan(replyMutation(pending));return ticket===epoch&&r.authorization===authorization&&r.id===candidate&&same(r.binding,binding);}}).finally(()=>{inserting=false;});

@@ -31,7 +31,7 @@ async function insert(choice,button){
  resize();
 }
 try{
- group=await rpc({type:'get'});document.documentElement.dataset.theme=group.dark?'dark':'light';
+ group=await rpc({type:'get'});capsule.setAttribute('aria-label',group.sourceType==='PROMPT_FAMILY'?'来自常用 Prompt 的本轮建议':'来自本条回复的可选回复');document.documentElement.dataset.theme=group.dark?'dark':'light';
  condition.textContent=group.condition;condition.hidden=!group.condition;
  for(const choice of group.choices){const button=document.createElement('button');button.type='button';button.dataset.id=choice.id;button.textContent=choice.label;button.disabled=choice.attempted;button.addEventListener('click',e=>{if(e.isTrusted)void insert(choice,button);});choices.append(button);}
  resize();timing();new ResizeObserver(resize).observe(capsule);

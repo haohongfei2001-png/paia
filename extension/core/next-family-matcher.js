@@ -10,17 +10,17 @@ const actions=new Map([['explain','explain'],['解释','explain'],['simplify','s
 const deictic=/(?:\b(?:this|that|these|those|it|them|my|your|our|his|her|their|above|previous|second|other|account|private)\b|这个|那个|这些|那些|上述|前面|第二|我的|你的|账户|帐号|账号|私有)/iu;
 function intent(text,reply){
  const trimmed=text.trim();let value=trimmed;
- if(reply){const prefix=/^(?:Next, ask me to |下一步，请让我)/u.exec(value);if(!prefix)return null;value=value.slice(prefix[0].length);}
- else value=value.replace(/^(?:Please |请)/u,'');
+ if(reply){const prefix=/^(?:Next, ask me to |下一步，请让我)/iu.exec(value);if(!prefix)return null;value=value.slice(prefix[0].length);}
+ else value=value.replace(/^(?:Please |请)/iu,'');
  value=value.replace(/[。.]$/u,'');
  let quantity=null,language=null;
  const amount=/(?: in ([1-9]|1[0-2]) bullet points|，列出([1-9]|1[0-2])点)$/u.exec(value);
  if(amount){quantity=Number(amount[1]||amount[2]);value=value.slice(0,amount.index);}
  const lang=/(?: in (English|Chinese)|，用(英文|中文))$/u.exec(value);
  if(lang){language=['English','英文'].includes(lang[1]||lang[2])?'en':'zh';value=value.slice(0,lang.index);}
- const parsed=/^(explain|simplify|summarize|summarise|compare|check the logic of|check the edge cases of|list actionable steps for) ([\s\S]+)$|^(解释|简化|总结|比较|检查逻辑：|检查边界：|列出步骤：)([\s\S]+)$/u.exec(value);
+ const parsed=/^(explain|simplify|summarize|summarise|compare|check the logic of|check the edge cases of|list actionable steps for) ([\s\S]+)$|^(解释|简化|总结|比较|检查逻辑：|检查边界：|列出步骤：)([\s\S]+)$/iu.exec(value);
  if(!parsed)return null;
- const object=parsed[2]||parsed[4],action=actions.get(parsed[1]||parsed[3]),literal=normalized(object);
+ const object=parsed[2]||parsed[4],action=actions.get((parsed[1]||parsed[3]).toLowerCase()),literal=normalized(object);
  // Only literal, bounded object labels. Clauses, references and hidden tails
  // are unsupported; lexical equivalence never erases arguments or negation.
  if(!object||Array.from(object).length>80||deictic.test(literal)||! /^[\p{L}\p{N} ]+$/u.test(object)||/\b(?:and|or|then|not|without|unless|after|before|if|when|once|until|while|provided|only|must|please|explain|summarize|simplify|compare|send|share|post|write|execute)\b|(?:不要|不含|然后|之后|之前|如果|仅|必须|以及|并且|发送|分享|执行|完成后|登录后|准备好后)/iu.test(literal))return null;
