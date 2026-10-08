@@ -24,3 +24,10 @@ Boundaries: the dedicated browser journey does not reproduce a live ChatGPT repl
 - `tests/settings-next-owner.test.mjs`: `48c53a7465d30504cef26753103632216c9cd1156cd7e69921943515da1b8bc5`
 - `tests/settings-next-state.test.mjs`: `0adc89d60213b312f983d0e33f3778b46507d2f08b0078be2bd2c66d87628aff`
 - `tests/settings-next-chrome-e2e.test.mjs`: `564bbb340210af45841856f7abb58148e3dbad1f1d926b09150424bc1a4ea401`
+
+
+## Prompt0.24 coherent combination
+
+Settings372ee515 was independently reviewed after its source/release2/2 and exact recorded hashes were checked. It is now combined with the reviewed stale-Family dismissal repair1fa1749c, which intentionally changes background/prompt-next.js beyond the earlier manifest. Six complete related owner files passed69/69 after combination. The new native Stage3A case holds the actual content INSERT request at its final STATUS read, revokes through the real Settings control, and checks that releasing the late request leaves the composer unchanged with zero Send. This case requires the new exact-head Linux run; it is not yet a native pass.
+
+The coordinator admits the complete two-case Settings native file into the83-file current browser set on shard2 at all supported widths, preserving every preceding82-file route. Both original historical baselines stay intact. The existing Prompt Foundation also runs this complete Settings file with its original deadlines, in addition to the full Stage3A journey. No new workflow, skipped case, increased timeout or paid/live provider test is introduced.
