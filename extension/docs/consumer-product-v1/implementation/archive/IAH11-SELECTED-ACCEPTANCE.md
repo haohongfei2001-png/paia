@@ -85,3 +85,5 @@ no measured contrast-ratio claim or universal accessibility certification is mad
 Independent review, new-file CI admission, exact-current-main integration and
 installed user availability remain pending. This slice does not close all P6
 resource, external or programme-level gates.
+
+Current-head Candidate37755457312 failed the older IAH admission guard at78 !=77; production and selected browser evidence were not invalidated by this count mismatch. The owning guard now includes both explicit whole files and exact78 coverage, retains the entire76-file/304-route baseline, and passes independent review plus19 complete CI checks. Failure is retained; new-head hosted validation remains pending.
