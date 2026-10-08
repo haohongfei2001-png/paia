@@ -1,3 +1,4 @@
+import {clearExactRepeats,revealExactRepeat,localizeExactRepeats} from './topic-exact-repeat-reading.js';
 import {SettingsRemovedList} from './settings-removed-list.js';
 import {mountReverseEditOptOut} from './thought-reverse-edit-optout.js';
 import {TopicWorkspacePresentation} from './topic-workspace-presentation.js';
@@ -124,7 +125,7 @@ export class TopicController {
  $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
  $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
  watchThoughtCopy();
- document.addEventListener('paia:preferences-applied',()=>{this.syncReadingControls();if(this.topicReader)this.updateTopicContinuous();if(this.thoughtRootVisible()&&this.homePage)this.paintHome(this.homePage.page,this.homePage.query,false);if(this.id&&this.originalMode==='content')for(const node of this.originalPane?.querySelectorAll('[data-entry-id]')||[]){const item=this.document?.items?.find(x=>x.entry.id===node.dataset.entryId),caption=node.querySelector('.entry-sent-time');if(item&&caption)caption.textContent=expressionCaption(item.entry,document.documentElement.lang);}});
+ document.addEventListener('paia:preferences-applied',()=>{if(this.originalPane)localizeExactRepeats(this.originalPane);this.syncReadingControls();if(this.topicReader)this.updateTopicContinuous();if(this.thoughtRootVisible()&&this.homePage)this.paintHome(this.homePage.page,this.homePage.query,false);if(this.id&&this.originalMode==='content')for(const node of this.originalPane?.querySelectorAll('[data-entry-id]')||[]){const item=this.document?.items?.find(x=>x.entry.id===node.dataset.entryId),caption=node.querySelector('.entry-sent-time');if(item&&caption)caption.textContent=expressionCaption(item.entry,document.documentElement.lang);}});
  this.homePositions=new Map();this.topicLastScrollY=scrollY||0;this.topicScrollDirection=null;window.addEventListener('scroll',()=>{const y=scrollY||0;if(this.homeRestoring||this.topicRestoring()||!this.id&&this.homeFocusScrolling){this.topicLastScrollY=y;this.topicScrollDirection=null;return;}if(y!==this.topicLastScrollY)this.topicScrollDirection=y<this.topicLastScrollY?'previous':'next';this.topicLastScrollY=y;if(!this.id&&this.thoughtRootVisible())this.rememberHomeAnchor();if(!this.id&&y<=4&&this.homeCollection?.windowStart>0)void this.shiftHomeWindow('previous');if(y<=4&&this.topicContinuousVisible()&&this.topicReader?.windowStart>0)void this.shiftTopicWindow('previous');this.schedulePosition();},{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.layout='list';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
  $('library-dialog-close').addEventListener('click',productAction(()=>this.requestCloseDialog()));$('library-dialog').addEventListener('cancel',e=>{e.preventDefault();void this.requestCloseDialog();});
   this.aiViewSession=new TopicAIViewSession();this.viewPreferenceChosen=true;this.ensureAITopicStatus();this.originalMode='content';this.timelinePositions=new TopicTimelinePositions();this.contentPositions=new TopicTimelinePositions();this.installOriginalTabs();this.timelineLocale=document.documentElement.lang;document.addEventListener('paia:preferences-applied',()=>{const locale=document.documentElement.lang;if(locale===this.timelineLocale)return;this.timelineLocale=locale;this.syncOriginalTabs();if(this.id&&this.view==='original'&&this.originalMode==='years')void this.refresh();});
@@ -209,7 +210,7 @@ export class TopicController {
   // Continuation reads may outlive scrolling or reflow. Capture the current
   // DOM immediately before paint; never fall back to an already removed anchor.
   const readingAnchor=preserveLiveAnchor?this.topicAnchor():anchor||reader.sectionRestoreAnchor;
-  this.topic=page.topic;this.document=page;this.renderDocument(page);reader.measure(this.originalPane);
+  this.topic=page.topic;this.document=page;this.renderDocument(page);if(readingAnchor)revealExactRepeat(this.originalPane,readingAnchor.id);reader.measure(this.originalPane);
   this.originalPane.dataset.retainedBodies=String(reader.items.filter(item=>!item.unloaded).length);this.originalPane.dataset.loadedExtent=String(reader.items.length);
   if(readingAnchor&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(preserveLiveAnchor||anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor);
   // A successful paint consumes this one return attempt, including a return
@@ -429,12 +430,14 @@ export class TopicController {
   const heading=$('topic-heading'),body=this.originalPane,metadata=this.editor?.metadata||[],pins=this.editor?.entry.protectedIds?.()||new Set();
   if(!this.editor){heading.replaceChildren(...this.topicHeading(page.topic));metadata.push(new MetadataEditor(heading,page.topic,'topic',this.onStatus));}
   if(page.kind==='section_reading'){
-  renderTopicSectionProse({body,page,pins,sectionActions:(header,section)=>this.renderSectionActions(header,section),entryNode:item=>this.entryNode(item),updateEntry:(node,{entry,placement})=>{
+  const cached=this.aiTopics?.get(this.id)?.presentation,repeatReader=this.topicReader,repeatIntent=this.openIntent;
+  renderTopicSectionProse({body,page,pins,repeats:{enabled:this.view==='ai',presentation:cached,revealId:this.topicNavigationAnchor?.entryId||this.resumeAnchor?.entryId,isCurrent:()=>this.view==='ai'&&this.id===page.topic.id&&this.topicReader===repeatReader&&this.openIntent===repeatIntent&&this.aiTopics?.get(this.id)?.presentation===cached,onChange:()=>{repeatReader?.measure(body);this.updateTopicContinuous();}},sectionActions:(header,section)=>this.renderSectionActions(header,section),entryNode:item=>this.entryNode(item),updateEntry:(node,{entry,placement})=>{
    node.entryMovePlacement=placement?{...placement}:null;
    const sent=node.querySelector('.entry-sent-time');if(sent)sent.textContent=expressionCaption(entry,document.documentElement.lang);
    const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.actions.compare(entry.id);}
   }});
   }else{
+  clearExactRepeats(body);
   const existing=new Map([...body.querySelectorAll('[data-entry-id]')].map(node=>[node.dataset.entryId,node])),sections=new Map((page.sections||[]).map(section=>[section.sectionId,section]));
   // Retain only an existing, source-qualified Root target; never manufacture
   // or repaint this heading from the weaker legacy reader Section labels.
