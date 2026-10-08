@@ -38,7 +38,7 @@ function expectedSummary(value,names,remainder,total=names.length+remainder){
 }
 async function assertReadOnly(f,run){const before=await snapshot(f.s);await run();assert.deepEqual(await snapshot(f.s),before,'summary reads must not write any canonical data, preference, cache or receipt');}
 const description=async cards=>{
- const previous=Object.getOwnPropertyDescriptor(globalThis,'document');globalThis.document={documentElement:{lang:'en'},createElement:tag=>new PresentationNode(tag)};
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'document');globalThis.document={addEventListener(){},documentElement:{lang:'en'},createElement:tag=>new PresentationNode(tag)};
  try{const page=new ContextCardsPage({host:null,onNavigate:()=>{}}),node=new PresentationNode('p');page.snapshot=await cards.snapshot();page.paintInputSummary(node);return {summary:node.textContent,count:page.inputCount(),snapshot:page.snapshot};}
  finally{if(previous)Object.defineProperty(globalThis,'document',previous);else delete globalThis.document;}
 };
