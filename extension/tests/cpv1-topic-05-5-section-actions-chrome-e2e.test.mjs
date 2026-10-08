@@ -19,6 +19,15 @@ for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Sec
   await thoughtPrimary(p,'thoughts');await p.locator(`.personal-topic-block[data-topic-id="${f.topic}"] .personal-topic-link`).click();
   const host=id=>p.locator(`#original-reading-body .topic-section[data-section-id="${id}"]`),menu=id=>host(id).locator('.topic-section-actions'),heading=id=>host(id).locator('h2');
   await heading(f.ids[1]).waitFor({state:'visible'});assert.equal(await host(f.ids[1]).locator('[data-entry-id]').count(),0);assert.equal(await host(f.defaultId).locator('h2,.topic-section-actions').count(),0);
+  // The actual Topic menu creates a named, empty durable Section without changing body ownership.
+  const createSection=async(label='新建章节')=>{await p.locator('#topic-menu summary').focus();await p.keyboard.press('Enter');await p.locator('#topic-menu').getByRole('button',{name:label,exact:true}).focus();await p.keyboard.press('Enter');};
+  const initialSections=await sections();await createSection();await p.locator('#library-form input[name="title"]').fill('SYNTHETIC cancelled Section');await p.keyboard.press('Escape');assert.deepEqual(await sections(),initialSections,'cancel never mutates the Section projection');
+  await createSection();await p.locator('#library-form input[name="title"]').fill('SYNTHETIC keyboard-created Section');await p.keyboard.press('Enter');
+  let created;await eventually(async()=>{created=(await sections()).find(row=>row.title==='SYNTHETIC keyboard-created Section');return !!created;},'new named Section is durably acknowledged');
+  await eventually(async()=>await heading(created.id).isVisible()&&await heading(created.id).evaluate(n=>document.activeElement===n),'keyboard create returns focus to exact new Section');
+  await eventually(async()=>await menu(created.id).getAttribute('aria-busy')==='false'&&await menu(created.id).locator('summary').evaluate(n=>!n.inert),'created Section controls unlock after exact arrival');
+  assert.equal(await host(created.id).locator('[data-entry-id]').count(),0);assert.equal((await sections()).length,initialSections.length+1);assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body,bodyBefore);
+  await p.reload();await heading(created.id).waitFor({state:'visible'});assert.equal(await heading(created.id).textContent(),'SYNTHETIC keyboard-created Section');assert.equal((await sections()).filter(row=>row.id===created.id).length,1);
   // Exercise the actual busy presenter on real native controls; domain pending
   // lifetime is separately covered by the held controller regression.
   const busyMenu=menu(f.ids[1]),busyTrigger=busyMenu.locator('summary');await busyTrigger.focus();
@@ -43,9 +52,19 @@ for(const variant of ['source','release'])test('TOPIC-05.5 native contextual Sec
   await prose.evaluate((n,body)=>{n.textContent=body;n.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));n.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText'}));},bodyBefore);
   await p.reload();await heading(f.ids[1]).waitFor({state:'visible'});assert.equal(await heading(f.ids[1]).textContent(),'SYNTHETIC concurrent B');assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body,bodyBefore);assert.equal(await host(f.defaultId).locator('h2,.topic-section-actions').count(),0);
   const dir='work/qa-topic05-section-actions/'+variant;await mkdir(dir,{recursive:true});await p.screenshot({path:dir+'/section-actions.png',fullPage:true});
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>p.locator('#topic-create-section').textContent().then(text=>text==='New Section'));
+  {
+    const beforeEnglish=await sections();await createSection('New Section');
+    assert.equal(await p.locator('#library-dialog-title').textContent(),'New Section');assert.equal(await p.locator('#library-form input').getAttribute('aria-label'),'Section name');assert.equal(await p.locator('#library-form button[type="submit"]').textContent(),'Create Section');assert.equal(await p.locator('#library-dialog-close').textContent(),'Close');
+    await p.locator('#library-form input').fill('SYNTHETIC 中文 Section name');await p.locator('#library-dialog-close').click();assert.equal(await p.locator('#library-dialog').evaluate(n=>n.open),false);assert.deepEqual(await sections(),beforeEnglish,'English Close cancels without creating');
+    await createSection('New Section');await p.locator('#library-form input').fill('SYNTHETIC 中文 Section name');await p.getByRole('button',{name:'Create Section',exact:true}).click();let englishCreated;await eventually(async()=>{englishCreated=(await sections()).find(s=>s.title==='SYNTHETIC 中文 Section name');return !!englishCreated;},'English create persists exact user name');await eventually(async()=>await heading(englishCreated.id).evaluate(n=>document.activeElement===n),'English created heading gets focus');assert.equal(await heading(englishCreated.id).textContent(),'SYNTHETIC 中文 Section name');assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entry})).body,bodyBefore);
+   }
+  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(()=>p.locator('#topic-create-section').textContent().then(text=>text==='新建章节'));
   const cdp=await h.context.newCDPSession(p),checks=[];await menu(f.ids[1]).evaluate(n=>globalThis.__retainedSectionMenu=n);
   try{for(const language of ['en','zh-CN']){
    await rpc(p,'UPDATE_PREFERENCES',{changes:{language,appearance:'dark'}});await eventually(()=>p.evaluate(lang=>document.documentElement.lang===lang,language==='en'?'en':'zh-CN'));
+   assert.equal(await p.locator('#topic-create-section').textContent(),language==='en'?'New Section':'新建章节','live language updates the existing creation control');
+
    await p.setViewportSize({width:320,height:900});await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
    const currentMenu=menu(f.ids[1]),trigger=currentMenu.locator('summary');assert.equal(await currentMenu.evaluate(n=>n===__retainedSectionMenu),true,'language changes retain the actual menu node');await trigger.scrollIntoViewIfNeeded();
    assert.equal(await trigger.getAttribute('aria-label'),language==='en'?'Section actions':'章节操作');

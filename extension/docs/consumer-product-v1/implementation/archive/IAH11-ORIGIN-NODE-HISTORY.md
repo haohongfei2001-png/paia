@@ -34,3 +34,12 @@ Runtime and native test SHA-256 follow. No current-main or full-CI claim follows
 a5ddac893f016c0f56490386f77b5dfe40eb80fc8165c68bb753b64dae91c676  tests/uir-02-archive-search-reader-chrome-e2e.test.mjs
 456e37c5f84f68be68a39014aceea867dad18096f86506e5707e67043f107b50  tests/iah11-result-presentation-chrome-e2e.test.mjs
 ```
+
+
+### Final coherent Archive delivery candidate
+
+The coordinator merges stable Section creation/whole-Entry movement4ff675d6 (including main15091f1a) without runtime conflicts. IAH navigation runtime remains byte-identical to the repaired91b163e1; Topic runtime remains byte-identical to4ff675d6. Final combined selected baseline/source/release and Entry movement native files pass5/5 in29.52s, zero skipped/cancelled (work-iah-final-selected-entry.log). This supplements, rather than replaces, the complete UIR02/IAH presentation3/3 proof above.
+
+Independent actual-router comparison preserves all320 placements from91b163e1 and316 from4ff675d6. Union81 complete browser files is covered once, all five admitted additions fixed4, historical76/304 unchanged. Seventeen complete routing-owner tests and coverage checker pass. No workflow or timeout changes.
+
+For the distinct Archive UI integration after Section Actions0.22, manifest/package/version_name now identify0.23.0 Archive Navigation under DEVELOPMENT_WORKFLOW. Strict backup admission adds only minor23, rejects future24 and malformed23, retains schema5 and retired production export. Four complete version/restore tests and11816 package guards/376 release-product files pass; independent review inspected the actual0.23 generated manifest. Earlier browser results identify their exact0.22 packaging and unchanged runtime; the final0.23 candidate still requires its own hosted certification/build before delivery. No installed build, real-device or complete seven-lane acceptance is claimed.
