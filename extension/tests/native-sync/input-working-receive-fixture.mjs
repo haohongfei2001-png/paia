@@ -1,7 +1,10 @@
 import {nativeFilterIntentFixture} from './filter-intent-fixture.mjs';
 export function nativeWorkingReceiveFixture(source){
+ const nodeImport="import {mkdtemp,rm,readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';";
+ if(source.split(nodeImport).length!==2)throw Error('OLD_READER_IMPORT_CHANGED');
+ source=source.replace(nodeImport,'');
  const lines=source.split('\n'),old=lines.filter(line=>line.startsWith("test('actual maxOperations=1"));if(old.length!==1)throw Error('OLD_READER_CASE_CHANGED');
- source=lines.filter(line=>!line.startsWith("test('actual maxOperations=1")&&!line.startsWith('import {mkdtemp,rm}')).join('\n');
+ source=lines.filter(line=>!line.startsWith("test('actual maxOperations=1")).join('\n');
  source=source.replace("import {setup,inputEdit} from './harness/thought-m1.mjs';","import {setup} from './harness/thought-m1.mjs';\nimport {inputEdit,capture} from './harness/thought-m1.mjs';");
  const fixture=nativeFilterIntentFixture(source).replace("command==='filter-intent-matrix'","command==='working-receive-matrix'");
  return fixture+`
