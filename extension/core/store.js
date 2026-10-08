@@ -1,4 +1,5 @@
-import {syncWorkspace,applyDocumentEdit,validatePreferences} from './workspace.js';
+import {syncWorkspace,applyDocumentEdit,applyPreferenceChanges} from './workspace.js';
+import {AI_STYLE_KEY,readAIStyle} from './ai-organize-style-preference.js';
 import {emptyLibrary, syncLibrary, detachSources, validateLibraryChanges, memoryContext} from './library.js';
 import {
   ADAPTER_VERSION, CONSENT_VERSION, STORAGE_KEY, QUOTA_BYTES,
@@ -345,7 +346,8 @@ export class ArchiveStore {
     return this.run(async()=>{const next=structuredClone(this.state);const doc=next.conversations.find(d=>d.id===id);if(!doc)throw new ArchiveError('INVALID_REQUEST');Object.assign(doc,validateLibraryChanges(changes,true));doc.titleRevision++;await this.commit(next);return {id};});
   }
   editDocument(request) {return this.run(async()=>{const next=structuredClone(this.state);const result=applyDocumentEdit(next,request,this.clock());if(result.ok)await this.commit(next);return result;});}
-  updatePreferences(changes) {return this.run(async()=>{const next=structuredClone(this.state);Object.assign(next.preferences,validatePreferences(changes));await this.commit(next);return {ok:true};});}
+  updatePreferences(changes) {return this.run(async()=>{const next=structuredClone(this.state),result=applyPreferenceChanges(next.preferences,changes);if(result.ok&&result.changed!==false)try{await this.commit(next);}catch(error){if(Object.hasOwn(changes,AI_STYLE_KEY))this.state=null;throw error;}return result;});}
+  aiStylePreference() {return this.run(()=>readAIStyle(this.state.preferences));}
   resolveLegacy(id, include) {return this.run(async()=>{if(typeof include!=='boolean')throw new ArchiveError('INVALID_REQUEST');const next=structuredClone(this.state),r=next.records.find(r=>r.id===id);if(!r||!r.hidden&&!r.deletedAt)throw new ArchiveError('INVALID_REQUEST');r.hidden=false;r.deletedAt=null;for(const b of next.library.blocks.filter(b=>b.sourceRecordId===id)){b.excluded=!include;b.status=include?'active':'excluded_by_user';b.revision++;}await this.commit(next);return {ok:true};});}
   memoryContext() { return this.run(() => memoryContext(this.state)); }
 

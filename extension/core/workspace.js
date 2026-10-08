@@ -1,5 +1,6 @@
 import {ArchiveError} from './constants.js';
 import {documentBlocks} from './library.js';
+import {AI_STYLE_KEY,validateAIStyleChange,applyAIStyleChange} from './ai-organize-style-preference.js';
 export const defaults=()=>({settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,timeDisplay:'date_and_time',timeEmphasis:'subtle',aiEnabled:false,aiExecutionMode:'suggest_only',appearance:'system',language:'system',fontSize:'standard',readingWidth:'standard',sidebarCollapsed:false,hideContentPreviews:false});
 export function syncWorkspace(state){
  state.preferences={...defaults(),...state.preferences,settingsVersion:2,autoSave:true,permanentSourceIgnore:true,libraryDeleteAlsoDeletesOriginal:false,aiEnabled:false,aiExecutionMode:'suggest_only'};
@@ -10,11 +11,17 @@ export function syncWorkspace(state){
 export function validatePreferences(changes){
  const allowed={timeDisplay:['date_only','date_and_time','date_and_seconds'],timeEmphasis:['subtle','standard'],appearance:['system','light','dark'],language:['system','zh-CN','en'],fontSize:['small','standard','large','xlarge'],readingWidth:['narrow','standard','wide']};
  if(!changes||typeof changes!=='object'||Array.isArray(changes)||!Object.keys(changes).length)throw new ArchiveError('INVALID_REQUEST');
+ if(Object.hasOwn(changes,AI_STYLE_KEY)){if(Object.keys(changes).length!==1)throw new ArchiveError('INVALID_REQUEST');validateAIStyleChange(changes[AI_STYLE_KEY]);return changes;}
  for(const [key,value] of Object.entries(changes)){
   if(['sidebarCollapsed','hideContentPreviews'].includes(key)){if(typeof value!=='boolean')throw new ArchiveError('INVALID_REQUEST');continue;}
   if(!allowed[key]?.includes(value))throw new ArchiveError('INVALID_REQUEST');
  }
  return changes;
+}
+export function applyPreferenceChanges(preferences,changes,epoch='initial'){
+ validatePreferences(changes);
+ if(Object.hasOwn(changes,AI_STYLE_KEY))return applyAIStyleChange(preferences,changes[AI_STYLE_KEY],epoch);
+ Object.assign(preferences,changes);return {ok:true};
 }
 export function sourceCompare(a,b){return Number(!a.sourceSentAt)-Number(!b.sourceSentAt)||(a.sourceSentAt&&b.sourceSentAt?Date.parse(a.sourceSentAt)-Date.parse(b.sourceSentAt):0)||(a.conversationOrder??Infinity)-(b.conversationOrder??Infinity)||a.id.localeCompare(b.id);}
 export function archiveRows(state,documentId){const d=state.conversations.find(c=>c.id===documentId);return d?state.records.filter(r=>r.platform===d.platform&&r.chatId===d.sourceConversationId&&!r.hidden&&!r.deletedAt).sort(sourceCompare):[];}
