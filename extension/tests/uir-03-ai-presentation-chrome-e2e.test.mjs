@@ -55,8 +55,24 @@ for(const variant of ['source','release'])test(`TOPIC-05.7 saved revision waits 
   await eventually(async()=>await p.locator('[data-ai-field="currentView"]').textContent()===value,'current owner rereads saved revision after protected interaction ends');
   assert.equal((await savedRow(p,topic.id)).revision,row.revision+1,'reading never writes an extra saved revision');
  }
+ await p.evaluate(async row=>{const {AIReadingEditor}=await import('./ai-presentation.js');const host=document.createElement('div');host.id='legacy-evidence-fixture';document.querySelector('#topic-body').append(host);window.__legacyEvidence=new AIReadingEditor(host,row,()=>{},()=>{});await window.__legacyEvidence.ready;},await savedRow(p,topic.id));
+ const entry=await rpc(p,'GET_LIBRARY_ENTRY',{id:f.entries[0].id}),nextBody='SYNTHETIC current excerpt 👩‍💻 é';
+ await p.evaluate(id=>{
+  const node=document.querySelector('#legacy-evidence-fixture [data-entry-id="'+id+'"] [data-entry-field="body"]');if(!node)throw Error('saved evidence excerpt absent');node.focus();
+  const text=node.firstChild,range=document.createRange();range.selectNodeContents(node);getSelection().removeAllRanges();getSelection().addRange(range);
+  const original=chrome.runtime.sendMessage.bind(chrome.runtime);window.__aiExcerpt={node,text,body:node.textContent,selected:getSelection().toString(),original,reads:0};
+  chrome.runtime.sendMessage=async function(message,...args){const result=await original(message,...args);if(message.type==='GET_LIBRARY_ENTRY'&&message.id===id&&result?.data?.revision>1)window.__aiExcerpt.reads++;return result;};
+ },entry.id);
+ await rpc(p,'EDIT_LIBRARY_BATCH',{edit:{operationId:crypto.randomUUID(),entries:[{id:entry.id,expectedRevision:entry.revision,expectedFieldRevisions:entry.fieldRevisions,expectedInputRevision:entry.currentInputRevision,changes:{body:nextBody}}]}});
+ await p.evaluate(()=>window.__legacyEvidence.refreshEvidence());
+ await eventually(()=>p.evaluate(()=>window.__aiExcerpt.reads>0),'new evidence revision is actually read');
+ await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+ assert.deepEqual(await p.evaluate(()=>{const s=window.__aiExcerpt;return {same:s.node.isConnected&&s.node.firstChild===s.text,body:s.node.textContent===s.body,selection:getSelection().toString()===s.selected};}),{same:true,body:true,selection:true});
+ await p.evaluate(()=>{chrome.runtime.sendMessage=window.__aiExcerpt.original;getSelection().removeAllRanges();});
+ await eventually(async()=>p.locator('#legacy-evidence-fixture [data-entry-id="'+entry.id+'"] [data-entry-field="body"]').first().textContent().then(x=>x===nextBody),'excerpt rereads current body after selection ends');
+ assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id})).revision,entry.revision+1);
  await quiet(f.h);
- }finally{await f.p.evaluate(()=>{if(window.__aiReflow){chrome.runtime.sendMessage=window.__aiReflow.original;window.__aiReflow.release();}}).catch(()=>{});await f.h.close();}
+ }finally{await f.p.evaluate(()=>{window.__legacyEvidence?.dispose();document.getElementById('legacy-evidence-fixture')?.remove();if(window.__aiExcerpt)chrome.runtime.sendMessage=window.__aiExcerpt.original;else if(window.__aiReflow){chrome.runtime.sendMessage=window.__aiReflow.original;window.__aiReflow.release();}}).catch(()=>{});await f.h.close();}
 });
 
 for(const variant of ['source','release'])test(`TOPIC-05.7 cached A never conceals new durable B (${variant})`,{timeout:180000},async()=>{
@@ -79,6 +95,12 @@ for(const variant of ['source','release'])test(`TOPIC-05.7 cached A never concea
  await eventually(()=>p.evaluate(()=>!document.documentElement.classList.contains('paia-recomposing')),'completed native view transition before visual capture');
  assert.equal(await p.locator('#topic-heading').count(),1);await screenshotMatrix(p,'durable-ai-sections',variant);
  await p.setViewportSize({width:320,height:900});await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`work/consumer-cleanup/${variant}-durable-ai-viewport-top.png`});
- await body.scrollIntoViewIfNeeded();await p.screenshot({path:`work/consumer-cleanup/${variant}-durable-ai-viewport-body.png`});await quiet(f.h);
+ await body.scrollIntoViewIfNeeded();await p.screenshot({path:`work/consumer-cleanup/${variant}-durable-ai-viewport-body.png`});
+ const summary=p.locator('[data-ai-saved-fields] > summary'),details=p.locator('[data-ai-saved-fields]');assert.ok((await summary.boundingBox()).height>=44,'narrow native disclosure target');
+ await summary.focus();await p.keyboard.press('Enter');assert.equal(await details.evaluate(n=>n.open),true);await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),false);assert.equal(await summary.evaluate(n=>n===document.activeElement),true);await p.keyboard.press('Enter');
+ await p.evaluate(()=>{const n=document.querySelector('[data-ai-field="currentView"]');window.__localeField={node:n,text:n.textContent,first:n.firstChild};n.focus();n.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'中'}));});
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await summary.textContent()==='Saved AI organization');assert.equal(await p.locator('[data-ai-field="currentView"]').getAttribute('aria-label'),'Current understanding');
+ assert.deepEqual(await p.evaluate(()=>{const s=window.__localeField;return {same:s.node===document.querySelector('[data-ai-field="currentView"]'),first:s.first===s.node.firstChild,text:s.text===s.node.textContent};}),{same:true,first:true,text:true});
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await summary.textContent()==='已保存的 AI 整理');await p.evaluate(()=>window.__localeField.node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:''})));assert.deepEqual(await savedRow(p,topic.id),saved);await quiet(f.h);
  }finally{await f.h.close();}
 });
