@@ -1,6 +1,6 @@
 # SYNC-01 optional existing-conversation Source append
 
-Base: `c6492298` (031 candidate, not installed-version evidence). Design: `67ad80fb`. Implementation checkpoint follows independent review; native acceptance pending. Default journal null; no provider, worker registration, checkpoint activation, schema, permission, CI or version change. Not full recovery.
+Base: `c6492298` (031 candidate, not installed-version evidence). Design: `67ad80fb`. Implementation checkpoint: `ba2bcaee26c51450b465326f8ebb24a400f7ac26`, tree `d01c48a068e8d0696c1bb4ad4c8da7a182837687`; immutable runtime/test bytes tested below. Default journal null; no provider, worker registration, checkpoint activation, schema, permission, CI or version change. Not full recovery.
 
 ## Implemented local boundary
 
@@ -19,11 +19,11 @@ Distinct new Source keys append independently. Conflicting same identity, missin
 - Current whole owning file:19/19; independent owner+compiler20/20 PASS2.5082s, `/tmp/source-append-independent-final.log`.
 - Complete related whole files:396/396 PASS, 0fail/skip/cancel, `/tmp/source-append-related-final.log`,5.282532083s. Command: `node --test extension/tests/browser-native-sync-*.test.mjs extension/tests/capture-foundation.test.mjs extension/tests/ia-foundation.test.mjs extension/tests/enrichment.test.mjs extension/tests/native-sync/source-append-fixture.test.mjs`.
 - Package:13187 guardrails/396 runtime resources PASS, `/tmp/source-append-package-final.log`.
-- Native: NOT_RUN; planned one complete source/release file after independent review and immutable implementation commit,18 actual-owner cases (the frozen-reader filesystem case stays Node) plus durable receiver restart replay. No native PASS inferred from units.
+- Native exact implementation HEAD:2/2 PASS,20.03544475s, `/tmp/source-append-native-committed.log`. Source7.593631833s/release7.4262025s; each18 actual-owner cases (the frozen-reader filesystem case stays Node) plus actual durable receiver worker restart and exact operation replay. Command under explicit PW1.63/headless: `node --test tests/native-sync/source-append-chrome.test.mjs`.
 
 ## Independent review
 
-root_finish independently APPROVED the final code and actually ran whole owner+compiler20/20; `diff --check` passed. Review found a real earliest-dispatch race: `/tmp/source-append-dispatch-before.log` recorded Missing expected rejection after the first read returned and a controlled valid namespace was swapped. The first transaction now captures authority and dispatch count together; the child uses the original authority, never a freshly rebound baseline. The negative now rejects with exact all-store preservation, and original bootstrap regression remains intact. The valid alternate namespace in this adversarial fixture is deliberately prepared protocol metadata; it is not proof of supported checkpoint activation.
+root_finish independently APPROVED the final code and actually ran whole owner+compiler20/20; Runtime/test diff whitespace check passed. The scoped staged check later noted existing trailing blank lines in the frozen reader’s source-structure-backup.js and source-structure-model.js; these remain byte-exact to their original Git blobs rather than being reformatted. No claim of an entirely warning-free frozen-fixture diff is made. Review found a real earliest-dispatch race: `/tmp/source-append-dispatch-before.log` recorded Missing expected rejection after the first read returned and a controlled valid namespace was swapped. The first transaction now captures authority and dispatch count together; the child uses the original authority, never a freshly rebound baseline. The negative now rejects with exact all-store preservation, and original bootstrap regression remains intact. The valid alternate namespace in this adversarial fixture is deliberately prepared protocol metadata; it is not proof of supported checkpoint activation.
 
 ## Actual old-reader evidence
 
@@ -54,5 +54,19 @@ root_finish independently APPROVED the final code and actually ran whole owner+c
   "tests/native-sync/source-append-fixture.mjs": "69c5d78d9968d282c7af85af07022b5735ffad10d4d846f4122933b8d85f56a0",
   "tests/native-sync/source-append-fixture.test.mjs": "8bc4eba663a582178916929891258ae280c324882c3665832399d2e4e2531407",
   "tests/native-sync/source-append-chrome.test.mjs": "f1b1a203d0caca325d1b50fd7756a11768959f5731b94dd5630c635c4dc9fbc0"
+}
+```
+
+## Exact native artifacts and limits
+
+Both receipts record the implementation HEAD/tree above, scope `optional-local-existing-ChatGPT-conversation-Source-append`, productionActivation=false, remoteMaterializer=true, fullRecovery=false. Each has the same18 names and17 runtime dependency hashes, all checked against this checkout. Every current dependency also matches the pre-native SHA block above. The receiver’s real service-worker lifetime changes, full network ledger includes the paused boundary and both lifetimes, and records zero attempts/HTTP requests.
+
+The harness imports the explicit local receiver into a synthetic worker; no product worker registration is changed. The Node test controller keeps synthetic published operations and supplies them again after receiver restart; this is not offline/cloud transport recovery or a promise of public capture-request ACK reconstruction. Initial bootstrap and all existing native files remain unchanged; this run is the new complete append file, not the full product gate. Root owns later coherent integration/admission.
+
+Artifact hashes:
+```json
+{
+  "extension/work/qa-bns-source-append/source.json": "352fb8b2d021fca64477afdb49afc14c3c69b75c441244d6cc1ecea26a256cc2",
+  "extension/work/qa-bns-source-append/release.json": "e72d0885c2b3aa1e69e79f4564552260d040f80f95a4009d94c9315420f9d5c1"
 }
 ```
