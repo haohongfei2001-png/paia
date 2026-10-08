@@ -80,3 +80,7 @@ Exact final candidate bytes:
 8d31e91876df5158d592e9fde98bd0ecdba7e03552aad8bc2f58c7b7cace16a7  tests/native-sync/context-info-chrome.test.mjs
 0dbd8eac7789dbbd90ddf0aedc72b3606dcc7010f69d55e975ca3379dd578913  tests/native-sync/context-info-worker-fixture.mjs
 ```
+
+### Coherent native CI admission
+
+Root combines manual owners with restore-epoch fencing and the existing Prompt/AI batch under planned 0.24.2. Both existing Sync jobs now run all four complete nested native files, retaining storage/publication/retirement and the unchanged 12-minute budget and aggregate. The Context receipt requires 60 cases per variant, two actual worker restarts, complete zero-network lifetime proof, exact head/tree, and identical source/release hashes for the eleven specified production files. Scope remains optional manual Info/Rules/Now owners; provider and full canonical restore are explicitly false. Independent review passed 5 owning guards, both YAML parses, all Sync job Bash syntax and diff checks. Final runtime combination awaits the independently reviewed Prompt conflict repair; this admission is not live-provider certification.
