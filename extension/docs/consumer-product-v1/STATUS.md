@@ -1,5 +1,9 @@
 # PAIA Consumer Product v1 — Current Status
 
+## PR221 corrective checkpoint — 2026-10-08
+
+The first0.34 hosted Full37859313249 failed only its primary Browser4 Root source journey (65passes/onefail); other primary jobs passed and aggregate/gate correctly failed. The original Back timeout remains recorded. Independent actual-render reproduction exposed transient Back hiding that loses keyboard focus. The final-visibility single assignment preserves all route meanings; four whole related native files now pass7/7 and related state/partition files4/4. See [TOPIC-BACK-FOCUS-PR221](implementation/topic/TOPIC-BACK-FOCUS-PR221.md) for exact negative, fixed identities and the limit that the historical cloud's unique cause was not proven. Corrected final-head Full is still required; no timeout or assertion was weakened.
+
 ## Latest integration checkpoint — 2026-10-08 23:23 UTC
 
 PR220/0.33 merged normally at `eece4e42bafb4e0be19531bb487f06d7bfd46fe9`, tree `51436b14b46861b42ae72307e6516a08a69e01c1`, after Full37856573572 and Prompt37856573450 SUCCESS. Exact-main Full37858439480 / Prompt37858439430 are pending. Its byte-verified420-file package includes Settings recovery-focus continuity; no automatic installation. 0.32 exact-main Full37855910790 / Prompt37855910855 also passed.

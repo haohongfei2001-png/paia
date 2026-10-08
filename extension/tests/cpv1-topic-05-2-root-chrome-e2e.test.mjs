@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,rm,cp,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -110,6 +110,26 @@ async function traceSelection(target){
   for(const type of ['pointerdown','mousedown','selectstart','dragstart','mousemove','mouseup','click','selectionchange'])document.addEventListener(type,sample,{signal:controller.signal});sample({type:'before-drag',target:node});
  });
 }
+// Expose only the existing renderer from an isolated test copy. Calling the
+// actual render owner reproduces a late unchanged-route render between focus
+// and Enter; production files and the original Root journeys are untouched.
+for(const variant of ['source','release'])test('TOPIC-05.2 unchanged Topic rendering retains keyboard Back focus '+variant,{timeout:60000},async()=>{
+ const source=resolve('.'),dir=await mkdtemp(join(tmpdir(),'paia-root-back-focus-'));let h;
+ try{
+  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',dir],{stdio:'pipe'});
+  else await cp(source,dir,{recursive:true,filter:p=>!['node_modules','work','.git'].includes(p.slice(source.length+1).split('/')[0])});
+  const module=join(dir,'ui/archive.js');await writeFile(module,(await readFile(module,'utf8'))+'\nexport {render as testActualRender};\n');
+  h=await FakeChatGPT.start({extensionPath:dir});const p=h.archive;
+  await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  const topic=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js');return new OrganizerStore(chrome.storage.local).createTopic({name:'SYNTHETIC keyboard Back',operationId:crypto.randomUUID()});});
+  await thoughtPrimary(p,'thoughts');await p.locator('.personal-topic-link').first().click();
+  await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert,topic.id);
+  const focus=await p.evaluate(async()=>{const {testActualRender}=await import('./archive.js'),back=document.getElementById('back');back.focus({preventScroll:true});const before=document.activeElement===back;testActualRender();return {before,after:document.activeElement===back,hidden:back.hidden};});
+  assert.deepEqual(focus,{before:true,after:true,hidden:false},'same-route render cannot transiently hide the focused Back button');
+  await p.keyboard.press('Enter');await eventually(()=>p.evaluate(()=>!history.state?.paiaReader?.topicId),'one actual keyboard activation returns to Root');
+  assert.equal(await p.locator('#back').isHidden(),true,'Root still has no Topic Back action');
+ }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
+});
 for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders real durable Section overview and stable144 Topic slots '+variant,{timeout:180000},async()=>{
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-root-section-')):null;
  if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
