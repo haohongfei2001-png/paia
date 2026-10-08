@@ -2,9 +2,9 @@
 
 ## Current integration checkpoint — 2026-10-08
 
-Remote main `c168b131` is certified for its scoped Settings/Section/partial Sync foundations. The updated [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) records actual delivered boundaries, open candidates, independent owners and remaining external gates. The latest owner instruction requires continuous execution while independent work remains, with heartbeat continuation only when waiting is unavoidable.
+Remote runtime main `1d50b2c4f2523902406deaf7085d85fb8bc7f313` integrates Topic0.22 PR203, AI foundation PR194 and bounded domain-evidence PR206 in addition to the earlier Settings/Section/partial Sync foundations. Topic candidate Full37763829818 passed; exact-main Full37765744689 failed at Original protection refresh and Prompt37765744729 cancelled during font download. Reviewed fixes are in the current Archive/Sync/Prompt candidates; main is not reclassified as certified by their local passes.
 
-PR203/194/199/204 and Prompt PR164 remain unmerged at this checkpoint. Prior CI failures and macOS capacity cancellations are not passes. A code/test/local candidate is not a completed lane or user-installed build. Continue ordinary fixes and integration under the existing protocol; paid/cloud/permission/deployment gates remain unchanged.
+The [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) identifies current PR199/204/164 heads, scoped local successors and remaining gates. PR207 is an unused local maintenance adapter candidate. None of these open candidates is delivered. Continue development while independent work remains; heartbeat continuation is only for unavoidable waiting. Paid/cloud/permission/deployment boundaries are unchanged.
 
 ## Owner-directed coordinated execution — 2026-10-08
 
