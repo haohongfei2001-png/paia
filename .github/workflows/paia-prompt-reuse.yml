@@ -69,7 +69,7 @@ jobs:
           node --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs
           xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs
       - name: Stage 3A-1 source and release direct loop
-        run: node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
+        run: xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
       - run: npm run test:unit
         env:
           # Keep the complete unit corpus; isolate resource-heavy fake-IDB cases.
