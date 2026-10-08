@@ -1,0 +1,1067 @@
+{
+  "schema": 1,
+  "environment": "Node production publication/segment functions; fake IndexedDB; no native memory/latency claim",
+  "limits": {
+    "core": {
+      "batch": 128,
+      "batchBytes": 4194304,
+      "parents": 128,
+      "heads": 128,
+      "gapRanges": 4096,
+      "ancestryReads": 100000,
+      "pendingDependents": 512
+    },
+    "publication": {
+      "operations": 512,
+      "bytes": 4194304,
+      "objects": 512,
+      "journalBytes": 262144,
+      "page": 100
+    },
+    "segment": {
+      "id": "bns1-candidate-256",
+      "encoded": 1048576,
+      "decoded": 4194304,
+      "operations": 512,
+      "chunk": 65536,
+      "target": 262144,
+      "dependencies": 4096,
+      "decodedConcurrency": 1,
+      "operationBytes": 4194304,
+      "decodedOperations": 4194304
+    }
+  },
+  "runs": [
+    {
+      "name": "short-single",
+      "characters": 1024,
+      "edits": 1,
+      "target": 65536,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 13990,
+      "allOperationBytes": 13990,
+      "publishedDescriptors": 1,
+      "objects": 2,
+      "objectBytes": 15005,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 13990,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 15005
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 228,
+      "indexedDescriptorRowsBytes": 296,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1690,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 15.543583999999996
+    },
+    {
+      "name": "max-cjk-note",
+      "characters": 200000,
+      "edits": 1,
+      "target": 65536,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 1,
+      "objects": 9,
+      "objectBytes": 366272,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 1207846,
+          "getRequests": 22,
+          "downloadedEncodedBytes": 1218240
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 230,
+      "indexedDescriptorRowsBytes": 298,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1692,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 139.344375
+    },
+    {
+      "name": "noncoalesced-history-32",
+      "characters": 1024,
+      "edits": 32,
+      "target": 65536,
+      "maxOperations": 512,
+      "operations": 688,
+      "logicalGroups": 32,
+      "maxGroupOperations": 37,
+      "maxGroupBytes": 260827,
+      "allOperationBytes": 4401282,
+      "publishedDescriptors": 78,
+      "objects": 156,
+      "objectBytes": 4487960,
+      "segments": [
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60088,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61174
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54492,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55498
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 53542,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 54628
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 53607,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 54799
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 55678,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 56809
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 54679,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55869
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 58120,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59308
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 59681,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60910
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 56140,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57187
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 54240,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55426
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59551,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60739
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 55658,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 56705
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54491,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55497
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 60922,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 62041
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 54445,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55635
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 58739,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59772
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 54026,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55106
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 60891,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 62040
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59748,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60834
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60375,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61461
+        },
+        {
+          "operations": 11,
+          "decodedOperationBytes": 55387,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 56557
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59758,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60846
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 57291,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58420
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60673,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61863
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 53962,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55191
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54427,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55431
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 59207,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60252
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 57020,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58104
+        },
+        {
+          "operations": 12,
+          "decodedOperationBytes": 59945,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61148
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 56328,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57477
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 53440,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 54632
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60295,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61487
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59755,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60841
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 59081,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60106
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 58334,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59467
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 59213,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60260
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 57219,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58348
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 56671,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57857
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 57094,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58178
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 56138,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57183
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 59498,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60729
+        },
+        {
+          "operations": 11,
+          "decodedOperationBytes": 55870,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57042
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59755,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60843
+        },
+        {
+          "operations": 11,
+          "decodedOperationBytes": 55320,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 56588
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 61052,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 62179
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 56076,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57121
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60448,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61534
+        },
+        {
+          "operations": 14,
+          "decodedOperationBytes": 58644,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59935
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 58519,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59670
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54490,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55494
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54498,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55504
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 56144,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57189
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60085,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61173
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54494,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55500
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 53471,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 54551
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54495,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55501
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 60027,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61111
+        },
+        {
+          "operations": 2,
+          "decodedOperationBytes": 15502,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 16303
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54493,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55499
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 59607,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60691
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 58730,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59773
+        },
+        {
+          "operations": 11,
+          "decodedOperationBytes": 60144,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61416
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 60567,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61694
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 60910,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 62039
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 56890,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57972
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 53742,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 54881
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 58792,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59837
+        },
+        {
+          "operations": 12,
+          "decodedOperationBytes": 60316,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 61527
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 57783,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58971
+        },
+        {
+          "operations": 7,
+          "decodedOperationBytes": 54358,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55362
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 59027,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60148
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 58856,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 60005
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 58055,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 59188
+        },
+        {
+          "operations": 10,
+          "decodedOperationBytes": 56778,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 58001
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 55368,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 56554
+        },
+        {
+          "operations": 9,
+          "decodedOperationBytes": 55870,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 57062
+        },
+        {
+          "operations": 8,
+          "decodedOperationBytes": 54602,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 55749
+        },
+        {
+          "operations": 4,
+          "decodedOperationBytes": 27655,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 28538
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 17707,
+      "indexedDescriptorRowsBytes": 42979,
+      "peakWaitingGroups": 32,
+      "upperMetadataRepeatedAllDescriptorsBytes": 723489,
+      "maxGroupArrivalSpan": 688,
+      "wallMs": 6189.457958
+    },
+    {
+      "name": "short-single",
+      "characters": 1024,
+      "edits": 1,
+      "target": 262144,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 13990,
+      "allOperationBytes": 13990,
+      "publishedDescriptors": 1,
+      "objects": 2,
+      "objectBytes": 15005,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 13990,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 15005
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 228,
+      "indexedDescriptorRowsBytes": 296,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1690,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 7.830249999999978
+    },
+    {
+      "name": "max-cjk-note",
+      "characters": 200000,
+      "edits": 1,
+      "target": 262144,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 1,
+      "objects": 9,
+      "objectBytes": 366272,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 1207846,
+          "getRequests": 22,
+          "downloadedEncodedBytes": 1218240
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 230,
+      "indexedDescriptorRowsBytes": 298,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1692,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 136.1165000000001
+    },
+    {
+      "name": "noncoalesced-history-32",
+      "characters": 1024,
+      "edits": 32,
+      "target": 262144,
+      "maxOperations": 512,
+      "operations": 688,
+      "logicalGroups": 32,
+      "maxGroupOperations": 37,
+      "maxGroupBytes": 260827,
+      "allOperationBytes": 4401282,
+      "publishedDescriptors": 18,
+      "objects": 36,
+      "objectBytes": 4443604,
+      "segments": [
+        {
+          "operations": 40,
+          "decodedOperationBytes": 255112,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 257551
+        },
+        {
+          "operations": 39,
+          "decodedOperationBytes": 250565,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 252971
+        },
+        {
+          "operations": 41,
+          "decodedOperationBytes": 252626,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 255082
+        },
+        {
+          "operations": 40,
+          "decodedOperationBytes": 256675,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 259114
+        },
+        {
+          "operations": 40,
+          "decodedOperationBytes": 251574,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 254005
+        },
+        {
+          "operations": 42,
+          "decodedOperationBytes": 250615,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 253024
+        },
+        {
+          "operations": 39,
+          "decodedOperationBytes": 253369,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 255759
+        },
+        {
+          "operations": 38,
+          "decodedOperationBytes": 254853,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 257232
+        },
+        {
+          "operations": 39,
+          "decodedOperationBytes": 256026,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 258428
+        },
+        {
+          "operations": 37,
+          "decodedOperationBytes": 252968,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 255282
+        },
+        {
+          "operations": 41,
+          "decodedOperationBytes": 251447,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 253913
+        },
+        {
+          "operations": 41,
+          "decodedOperationBytes": 253706,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 256078
+        },
+        {
+          "operations": 35,
+          "decodedOperationBytes": 216346,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 218492
+        },
+        {
+          "operations": 41,
+          "decodedOperationBytes": 256573,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 259059
+        },
+        {
+          "operations": 40,
+          "decodedOperationBytes": 255443,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 257890
+        },
+        {
+          "operations": 38,
+          "decodedOperationBytes": 255550,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 257931
+        },
+        {
+          "operations": 37,
+          "decodedOperationBytes": 254445,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 256779
+        },
+        {
+          "operations": 20,
+          "decodedOperationBytes": 123389,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 125014
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 4087,
+      "indexedDescriptorRowsBytes": 19897,
+      "peakWaitingGroups": 32,
+      "upperMetadataRepeatedAllDescriptorsBytes": 287649,
+      "maxGroupArrivalSpan": 685,
+      "wallMs": 2238.2660000000014
+    },
+    {
+      "name": "short-single",
+      "characters": 1024,
+      "edits": 1,
+      "target": 1048576,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 13990,
+      "allOperationBytes": 13990,
+      "publishedDescriptors": 1,
+      "objects": 2,
+      "objectBytes": 15005,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 13990,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 15005
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 228,
+      "indexedDescriptorRowsBytes": 296,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1690,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 8.111958000001323
+    },
+    {
+      "name": "max-cjk-note",
+      "characters": 200000,
+      "edits": 1,
+      "target": 1048576,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 2,
+      "objects": 4,
+      "objectBytes": 1209596,
+      "segments": [
+        {
+          "operations": 5,
+          "decodedOperationBytes": 606682,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 607674
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 601164,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 601922
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 455,
+      "indexedDescriptorRowsBytes": 591,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1917,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 147.39125000000058
+    },
+    {
+      "name": "noncoalesced-history-32",
+      "characters": 1024,
+      "edits": 32,
+      "target": 1048576,
+      "maxOperations": 512,
+      "operations": 688,
+      "logicalGroups": 32,
+      "maxGroupOperations": 37,
+      "maxGroupBytes": 260827,
+      "allOperationBytes": 4401282,
+      "publishedDescriptors": 6,
+      "objects": 12,
+      "objectBytes": 4432862,
+      "segments": [
+        {
+          "operations": 156,
+          "decodedOperationBytes": 1035890,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1042727
+        },
+        {
+          "operations": 165,
+          "decodedOperationBytes": 1039430,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1046662
+        },
+        {
+          "operations": 163,
+          "decodedOperationBytes": 1036628,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1043764
+        },
+        {
+          "operations": 28,
+          "decodedOperationBytes": 169053,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 171004
+        },
+        {
+          "operations": 162,
+          "decodedOperationBytes": 1032060,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1039195
+        },
+        {
+          "operations": 14,
+          "decodedOperationBytes": 88221,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 89510
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 1363,
+      "indexedDescriptorRowsBytes": 7738,
+      "peakWaitingGroups": 32,
+      "upperMetadataRepeatedAllDescriptorsBytes": 200481,
+      "maxGroupArrivalSpan": 680,
+      "wallMs": 1559.7911670000012
+    },
+    {
+      "name": "one-operation-cuts",
+      "characters": 1024,
+      "edits": 1,
+      "target": 65536,
+      "maxOperations": 1,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 13990,
+      "allOperationBytes": 13990,
+      "publishedDescriptors": 6,
+      "objects": 12,
+      "objectBytes": 18514,
+      "segments": [
+        {
+          "operations": 1,
+          "decodedOperationBytes": 4647,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 5401
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 1826,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 2580
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 888,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1642
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 1580,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 2334
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 4236,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 4990
+        },
+        {
+          "operations": 1,
+          "decodedOperationBytes": 813,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 1567
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 1363,
+      "indexedDescriptorRowsBytes": 1771,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 2825,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 14.059333000001061
+    },
+    {
+      "name": "max-varied-cjk-note",
+      "characters": 200000,
+      "varied": true,
+      "edits": 1,
+      "target": 65536,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 1,
+      "objects": 22,
+      "objectBytes": 1218240,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 1207846,
+          "getRequests": 22,
+          "downloadedEncodedBytes": 1218240
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 230,
+      "indexedDescriptorRowsBytes": 298,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1692,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 141.316541
+    },
+    {
+      "name": "max-varied-cjk-note",
+      "characters": 200000,
+      "varied": true,
+      "edits": 1,
+      "target": 262144,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 1,
+      "objects": 22,
+      "objectBytes": 1218240,
+      "segments": [
+        {
+          "operations": 6,
+          "decodedOperationBytes": 1207846,
+          "getRequests": 22,
+          "downloadedEncodedBytes": 1218240
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 230,
+      "indexedDescriptorRowsBytes": 298,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1692,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 132.191333
+    },
+    {
+      "name": "max-varied-cjk-note",
+      "characters": 200000,
+      "varied": true,
+      "edits": 1,
+      "target": 1048576,
+      "maxOperations": 512,
+      "operations": 6,
+      "logicalGroups": 1,
+      "maxGroupOperations": 6,
+      "maxGroupBytes": 1207846,
+      "allOperationBytes": 1207846,
+      "publishedDescriptors": 2,
+      "objects": 4,
+      "objectBytes": 1209596,
+      "segments": [
+        {
+          "operations": 4,
+          "decodedOperationBytes": 604691,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 605652
+        },
+        {
+          "operations": 2,
+          "decodedOperationBytes": 603155,
+          "getRequests": 2,
+          "downloadedEncodedBytes": 603944
+        }
+      ],
+      "bodyFreeDescriptorRefBytes": 455,
+      "indexedDescriptorRowsBytes": 591,
+      "peakWaitingGroups": 1,
+      "upperMetadataRepeatedAllDescriptorsBytes": 1917,
+      "maxGroupArrivalSpan": 6,
+      "wallMs": 139.71512500000006
+    }
+  ],
+  "head": "e22ffbf17c362bb611cd5ba389fb1e9ddf22fa77",
+  "evidenceBatches": [
+    "/tmp/input-working-inbox-study-final.json",
+    "/tmp/input-working-inbox-study-varied.json"
+  ],
+  "experimentSha256": "3db56dc711b463bdd7f68a7e42e020fbaf76dbb849b07d48f3fea63941f4eb1e",
+  "runtimeSha256": {
+    "core/browser-native-sync/core.js": "13f5e819d3845501d265b30dc149521b59f6e3d03efda50116f63323e1239fc4",
+    "core/browser-native-sync/publications.js": "b77aa1985f3313f3a8b4e9a8c458bfcb94dd6a2d39a9942930f981f4d9963b49",
+    "core/browser-native-sync/segments.js": "a0795c4d974f3a8526b3a5271c198743d02cd5cb317ba44f37defda1b5cf8369",
+    "core/browser-native-sync/input-working-journal.js": "10f01b48f1a1258aac14f71fa7fa033b765829949849908bdc88e3623196c562",
+    "core/browser-native-sync/input-working-commit.js": "075f1de0913c400c203ed3a6a3650fbf26d7cbf688bff01d98ca016254fdc12a",
+    "core/browser-native-sync/filter-intent-journal.js": "9815a25b606780421719b94afa464f9eb81d3ed163ba85c424d4f8f38ce2fea1",
+    "core/browser-native-sync/codecs.js": "c5cfb0b55afc8009efa43a1c9f7768db85a08f16db2c345255cc157214723f5c"
+  }
+}
