@@ -277,3 +277,27 @@ No repeated macOS native run was attempted. The coordinator's route tests and
 independent merge review are separate gates. New exact-head hosted combined
 source/release/Foundation/Candidate evidence remains PENDING; no pre-merge
 SUCCESS is promoted to a post-merge pass.
+
+## Main Sync combination — 2026-10-08
+
+Combined Prompt88b470ac with exact mainc168b13170d762b4774740ce218613a45e31cde4
+without conflicts. Stage3A runtime/content, native owning test, shared browser
+harness and Prompt workflow are byte-identical to88b470ac. Main introduces the
+Browser-Native Sync Core and optional PromptReuseService syncJournal: preparation
+occurs before the existing CAS transaction and the optional outbox commit shares
+that transaction. Default-null behavior remains; no real account is connected.
+Candidate/Full workflows acquire main's Sync gates through the normal merge;
+no manual CI resolution or version edit was performed in this combination.
+
+Complete owner files passed317/317, zero fail/skip/cancel,3352.71125ms:
+cpv1-09-prompt-{family,service,security,surface}, cpv1-12-next-{lifecycle,security,
+detector}, prompt-next-reopen-boundary, prompt-stage3a-route-admission,
+settings-prompt-position-{reset,state,presenter}, all browser-native-sync-*.test.mjs
+and native-sync/harness-contract.test.mjs. Command: node --test
+--test-concurrency=1 with exactly those complete files. Log:
+work/prompt-c168-combination-units.log; combined working-tree hashes:
+work/prompt-c168-combination-bytes.json. Existing native evidence remains attached
+to its original head and unchanged individual files only, not the changed shared
+service or this complete combined candidate. No native rerun, provider/model call,
+account/credential use or push occurred. New exact-head hosted combination gates
+remain pending;0.22 is not included in this main0.21 combination.
