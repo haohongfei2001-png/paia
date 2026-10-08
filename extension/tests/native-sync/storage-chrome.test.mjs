@@ -3,8 +3,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, writeFile, mkdtemp, rm} from 'node:fs/promises';
 import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {instrumentedExtension, root, startNative} from './storage-harness.mjs';
 import {assertReceipt, CASES} from './receipt.mjs';
 import {assertPromptCrashOutcome, portablePrompt as portable} from './proof-oracles.mjs';
@@ -23,17 +24,19 @@ function atomic(snapshot, text) {
 
 for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB partial Core ' + variant, {timeout: 240000}, async t => {
   await mkdir(output, {recursive: true});
-  if (variant === 'release') execFileSync('python3', ['scripts/build_current_release.py'], {cwd: root, stdio: 'pipe'});
-  const extension = await instrumentedExtension(variant === 'source' ? root : join(root, 'work/current-release'));
-  let a, b;
+  const releaseOutput = await mkdtemp(join(tmpdir(), 'paia-bns-storage-release-'));
+  let extension, a, b;
   const receipt = {
     schema: 1, result: 'IN_PROGRESS', head, tree, variant, evidence: 'SYNTHETIC_NATIVE_INDEXEDDB_PARTIAL_CORE',
-    productionHashes: extension.hashes, cases: [], terminations: [], profileHashes: [],
+    productionHashes: {}, cases: [], terminations: [], profileHashes: [],
     ownerCoverage: 'promptPreferences-only', quotaEvidence: 'injected-DOMException-not-physical-exhaustion',
     productionActivation: false, uiQualification: false, providerQualification: false, installedUserBuild: false, fullCanonicalCoverage: false
   };
   const save = () => writeFile(join(output, variant + '.json'), JSON.stringify(receipt, null, 2) + '\n');
   try {
+    if (variant === 'release') execFileSync('python3', ['scripts/build_current_release.py', join(releaseOutput, 'release')], {cwd: root, stdio: 'pipe'});
+    extension = await instrumentedExtension(variant === 'source' ? root : join(releaseOutput, 'release'));
+    receipt.productionHashes = extension.hashes;
     a = await startNative(extension.path); b = await startNative(extension.path);
     receipt.sourceNetwork = a.networkLedger; receipt.destinationNetwork = b.networkLedger;
     receipt.browserVersion = b.browserVersion; assert.equal(a.browserVersion, b.browserVersion);
@@ -146,5 +149,5 @@ for (const variant of ['source', 'release']) test('BNS isolated native IndexedDB
     const isolation = await b.isolation(); receipt.nativeFactory = isolation.nativeFactory; receipt.networkAttempts = isolation.networkAttempts; receipt.destinationIsolation = isolation;
     receipt.result = 'PASS'; assertReceipt(receipt, {head, variant}); await save();
   } catch (error) { receipt.result = 'FAIL'; receipt.failure = error.message; await save(); throw error; }
-  finally { await a?.close(); await b?.close(); await extension.cleanup(); }
+  finally { try { await a?.close(); } finally { try { await b?.close(); } finally { try { await extension?.cleanup(); } finally { await rm(releaseOutput, {recursive:true, force:true}); } } } }
 });
