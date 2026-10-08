@@ -16,8 +16,9 @@ def verify_origin(page, check, en=True):
     test(pin.get_attribute('aria-pressed')=='true', 'keyboard pin has explicit selected state')
     test(page.locator('[data-prompt-list]>div').first.get_attribute('data-prompt-row')=='2','pin moves above unpinned prompts')
     test(page.locator('[data-prompt-row="2"] [data-move="1"]').is_disabled(),'ordering cannot silently unpin')
+    prior_draft=page.locator('#pc-composer').input_value()
     page.locator('[data-prompt-row="2"] [data-insert]').click()
-    test(page.locator('#pc-composer').input_value()==page.locator('#pc-prompt-2').input_value(),'pinned prompt inserts without sending')
+    test(page.locator('#pc-composer').input_value()==prior_draft+'\n\n'+page.locator('#pc-prompt-2').input_value(),'pinned prompt preserves draft without sending')
     pin.click()
     test(pin.get_attribute('aria-pressed')=='false','unpin is reversible')
     topic=page.locator('.pc-topic-list details').first
@@ -25,10 +26,11 @@ def verify_origin(page, check, en=True):
     test(topic.evaluate('e=>e.open'), 'topic list expands by keyboard')
     test(page.locator('.pc-topic-source').count()==4,'topic keeps cross-conversation provenance')
     test(page.locator('.pc-thought time').all_text_contents()==['12 AUG 09:42','26 AUG 11:18','10 SEP 18:03','24 SEP 10:26'],'topic preserves long-term chronological trail')
-    test(page.locator('[data-pending-fact] details').count()==1,'extracted candidate exposes its source')
-    test(('Never used' if en else '尚未使用') in page.locator('.pc-current-use').inner_text(),'real use is not fabricated from example permission')
-    test(('0 items read' if en else '实际读取 0 条') in page.locator('.pc-current-use').inner_text(),'current real usage remains zero')
-    test(page.locator('.pc-prompts .pc-local-tag').first.inner_text().endswith('PLANNED' if en else '规划示意'),'entire prompt library is labelled planned')
+    test(page.locator('[data-context-card]').count()==4,'approved four-card presentation')
+    test(page.locator('[data-context-overview] textarea').count()==0,'overview protects content detail')
+    test(('not available yet' if en else '尚未开放') in page.locator('.pc-access-boundary').inner_text(),'real connection availability is honest')
+    test(page.locator('.pc-prompts .pc-local-tag').first.inner_text().endswith('EXAMPLE' if en else '示例'),'personal prompts remain a fictional example')
+
 
 
 def verify_assets(root, check):
