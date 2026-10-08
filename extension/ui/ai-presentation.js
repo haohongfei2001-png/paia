@@ -37,7 +37,7 @@ export class AIReadingEditor {
  }
  readingReflowBlocked(){const selection=this.root.ownerDocument?.getSelection?.()||document.getSelection?.();return this.composing||!!(selection&&!selection.isCollapsed&&selection.rangeCount&&(this.root.contains(selection.anchorNode)||this.root.contains(selection.focusNode)));}
  deferReadingRefresh(refresh){this.deferredReadingRefresh=refresh;}
- resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked()||!this.deferredReadingRefresh)return;const refresh=this.deferredReadingRefresh;this.deferredReadingRefresh=null;void refresh();}
+ resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked())return;const refresh=this.deferredReadingRefresh,evidence=this.deferredEvidenceRefresh;this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;if(evidence)void Promise.resolve(evidence()).then(()=>{if(!this.disposed)refresh?.();});else if(refresh)void refresh();}
  fieldNode(field,text,host,label,className){
   const prose=element('div',className,text||'');prose.contentEditable='plaintext-only';prose.setAttribute('aria-label',label);prose.dataset.aiField=field;
   const options={signal:this.controller.signal};
@@ -61,7 +61,12 @@ export class AIReadingEditor {
     // Failed reads cannot establish freshness. Retain drafts but disable unsafe excerpts.
     for(const id of editor.entries.keys()){const node=editor.field(id,'body')?.closest('.evolution-excerpt');if(node)node.inert=unavailable.includes(id);}
     await editor.checkTracked(rows.map(row=>({...row,purged:row.staleReasons?.includes('source_purged')})));
-    editor.receive(rows);
+    if(this.disposed||epoch!==this.evidenceEpoch)return;
+    // Eligibility/removal/purge above is never delayed by a selection. Only
+    // ordinary readable-body replacement waits, then rereads current evidence.
+    if(this.readingReflowBlocked()){
+     this.deferredEvidenceRefresh=async()=>{if(!this.disposed&&epoch===this.evidenceEpoch)await this.refreshEvidence();};
+    }else editor.receive(rows);
    }
    this.evidenceRows=new Map(rows.filter(usableEvolutionEntry).map(e=>[e.id,e]));return;
   }
@@ -122,5 +127,5 @@ export class AIReadingEditor {
  get composing(){return !!this.ownComposing||this.excerptEditors.some(e=>e.surface?.composing);}
  set composing(value){this.ownComposing=value;}
  get saving(){return !!this.pending||this.excerptEditors.some(e=>e.saving);}
- dispose(){this.deferredReadingRefresh=null;this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
+ dispose(){this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;this.evidenceEpoch++;this.observer?.disconnect();this.excerptEditors.forEach(e=>e.dispose());this.excerptEditors=[];this.autosave.dispose();this.controller.abort();this.journal.clear();this.disposed=true;for(const nodes of this.nodes.values())for(const node of nodes)node.remove();}
 }
