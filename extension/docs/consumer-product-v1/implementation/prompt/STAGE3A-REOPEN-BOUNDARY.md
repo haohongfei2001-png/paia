@@ -112,3 +112,7 @@ CPV1-12 detector/lifecycle/security and CPV1-09 surface. Retain coordination log
 repaired bytes remains pending; the earlier hosted failure is not reused as a
 pass. This is not overall Stage3A acceptance, merge, installed availability or
 real ChatGPT/provider qualification. No duplicate local browser retry was run.
+
+### Hosted dependency transport follow-up
+
+At aacf53a, Prompt run37708597552 remained in CJK font setup for over ten minutes before any native lifecycle/Stage3A result. The live job-log endpoint returned404, so this is observed setup delay, not an invented runtime failure diagnosis. The Prompt workflow now reuses the exact signed Ubuntu HTTPS archive URI normalization already present in current certification after its prior Azure mirror stalls. Independent review verified YAML/Bash/Python, synthetic URI conversion, and that removing the added step reproduces the previous workflow byte-for-byte. Packages, suites, signing keys, all cases and the15-minute job budget are unchanged. A superseded/cancelled old run is not PASS; the new exact-head run remains required.
