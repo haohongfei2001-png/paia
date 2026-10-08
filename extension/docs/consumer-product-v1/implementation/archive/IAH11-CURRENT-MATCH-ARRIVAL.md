@@ -45,3 +45,10 @@ ANS04 retains1001 windows, maxBatch100 and zero body reads/full scans/snapshots.
 search DTO revision/generation propagation and combined release remain open.
 No new schema, permission, provider/model/network call, restore/protect action or
 user-data upload was added. This is not an installed-user availability claim.
+
+
+## Settings main combination — 2026-10-08
+
+Reconciled Settings main f1740bc in 59230914, followed by documentation-only main a733ae5. Independent merge review caught a lost `revealOnClick:false` in the Archive keyboard descriptor; it was restored before final verification and covered by an additional exact owner regression. The first merged routing test failed because main moved historical comparison from shard1 to4 at width7; all300 routes were then independently compared with the actual main module, preserving its exact mapping and all76 files. No deadlines or assertions were weakened.
+
+Exact59230914: nine complete related unit files65/65 PASS; complete IAH source/release plus UIR-02 owning source/release regression3/3 PASS (68.7s). All1865 tracked non-document files matched before/after. Logs: work/iah-settings-final-unit.log, work/iah-settings-final-native.log, work/iah-settings-final-bytes.json. Initial sandbox browser launch failed; the earlier in-flight pre-final merge test is diagnostic only. These are scoped combination checks, not full IAH acceptance or exact-current hosted certification. Version remains the Settings baseline until the next deliverable candidate is selected.
