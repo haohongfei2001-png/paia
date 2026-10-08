@@ -89,7 +89,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  }
  removeTopic(r){return changeTopicContainer(this,r);}
  restoreTopicContainer(r){return changeTopicContainer(this,r,true);}
- removedTopics(){return removedTopics(this);}
+ removedTopics(options={}){return removedTopics(this,options);}
  topicRenameSuggestions(){return topicRenameSuggestions(this);}
  async topicMergeSuggestions(){return topicMergeSuggestions(this);}
  async keepTopicsSeparate(options){if(!options||!idOK(options.sourceId)||!idOK(options.targetId))reject('INVALID_OUTPUT');return keepTopicsSeparate(this,options);}
