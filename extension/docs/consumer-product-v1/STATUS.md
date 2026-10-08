@@ -2,11 +2,13 @@
 
 ## Latest coordinated candidate checkpoint — 2026-10-09 CST
 
-Current remote main is3d69b95f (website-only PR213 over extension0.24). PR210 exact579b7b58 is the0.26 delivery candidate; Full37809039416 is still running/queued and Prompt37809039368 passed. Independent Topic and Data fixes are approved. No new main integration, installation or deployment is claimed.
+Fresh main remains3d69b95f (website PR213 over delivered extension0.24). PR210 exacta9efb167 is the0.26 candidate. Full37816144963 has failed Mac initial record capture and Browser1's separate strict routing inventory; other jobs may still be running. Previousb109 Full37811945027 failed Mac and cancelled Browser4 after18m21s. These are not passes. Standard Intel Mac capacity is working and Secure Store passed. The reviewed whole-file4→1 move preserves all84 files and budgets; its second strict inventory correction1e67af0b passes the actual CI script locally and awaits the next coherent candidate.
 
-The reviewed0.27 local foundations and subsequent bounded work are now one coherent **0.28 follow-up**, to avoid duplicate full certification for an intermediate release. [COHERENT-028-CANDIDATE](implementation/verification/COHERENT-028-CANDIDATE.md) records frozen5e995c25:89 complete native cases,80 affected unit/contract cases, strict exact-checkpoint Sync receipt verification and independent integration approval. This is ready local evidence, not final hosted certification. No remote PR has yet been opened for0.28. The separate Prompt Next availability race is under repair and is not part of these frozen bytes.
+Targeted diagnosticPR214 was incorporated into the PR210 branch, not main. Its c8b Mac2/2 pass did not explain intermittent records0. Formal custom reporting suppressed console diagnostics, so PR215 at340a7d0f now preserves the same bounded sanitized data in the error and uses the exact formal reporter command. Its targeted run37817071536 is pending. No production capture change or root-cause repair is claimed.
 
-The [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) distinguishes remaining local work from external gates. Earlier main/head/quota paragraphs below are historical checkpoints; they do not override this latest block or current remote facts.
+The0.27 and reviewed subsequent work form one **0.28 follow-up**, with no intermediate0.27 release. Exact local checkpoint7b638b81 now includes independently completed Prompt stale-response repair, Topic reversible exact repeats, removed-Topic pagination, locale and Context usability evidence. Three complete UI browser files17/17 PASS82.833s,49 affected units PASS, full routing contract and release guard12606/378 resources/402files PASS. Independent integration review confirms owner blobs unchanged. The earlier5e995c25 native89/80-unit/strictSync receipt proofs remain accurately scoped historical/component evidence; they are not whole-final-head certification. No0.28 PR, merge, installation or deployment is claimed yet.
+
+The [coherent receipt](implementation/verification/COHERENT-028-CANDIDATE.md) and [seven-lane ledger](SEVEN_PLAN_EXECUTION_2026-10-08.md) preserve exact boundaries. Paid/cloud/device/full-restore gates remain distinct. Earlier head/quota paragraphs below are historical and do not override this block or fresh remote facts.
 
 ## Current repair checkpoint — 2026-10-09 CST
 
