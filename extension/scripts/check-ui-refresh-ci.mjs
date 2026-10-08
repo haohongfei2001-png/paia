@@ -143,3 +143,7 @@ if(!current.includes(next))throw Error('NEXT_NATIVE_MISSING');for(const count of
 if(!current.includes(settingsNext))throw Error('SETTINGS_NEXT_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(settingsNext,current.indexOf(settingsNext),count,'browser E2E')!==2)throw Error('SETTINGS_NEXT_NATIVE_ROUTING');
 
 if(!current.includes(writing))throw Error('TOPIC_WRITING_NATIVE_MISSING');for(const count of [4,5,6,7])if(testShard(writing,current.indexOf(writing),count,'browser E2E')!==2)throw Error('TOPIC_WRITING_NATIVE_ROUTING');
+
+const nine=Array.from({length:9},(_,slot)=>current.filter((name,position)=>testShard(name,position,9,'browser E2E')===slot+1));
+if(nine.some(part=>!part.length)||nine.flat().sort().join('|')!==current.join('|')||new Set(nine.flat()).size!==current.length)throw Error('CURRENT_NINE_INCOMPLETE');
+for(const [file,shard]of [['uir-04-settings-chrome-e2e.test.mjs',6],['context-cards-chrome-e2e.test.mjs',6],['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs',5]])if(testShard(file,current.indexOf(file),9,'browser E2E')!==shard)throw Error('CURRENT_NINE_ARTIFACT_OWNER:'+file);

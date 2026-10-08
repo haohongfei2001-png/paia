@@ -105,5 +105,5 @@ test('IAH11 admits two whole files on4 and preserves all304 exact main routes',a
   const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,84);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(iah));assert.ok(parts[3].includes(selected));
  }assert.equal(checked,304);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
- assert.deepEqual([...job.matchAll(/shard: '(\d\/7)'/g)].map(row=>row[1]),['1/7','2/7','3/7','4/7','5/7','6/7','7/7']);assert.match(job,/timeout-minutes: 18/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
+ assert.deepEqual([...job.matchAll(/shard: '(\d\/9)'/g)].map(row=>row[1]),['1/9','2/9','3/9','4/9','5/9','6/9','7/9','8/9','9/9']);assert.match(job,/timeout-minutes: 18/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
 });

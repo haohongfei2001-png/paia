@@ -1,0 +1,3424 @@
+{
+  "schema": 1,
+  "scope": "0.28 exact84 whole browser files; no routing mutation",
+  "runs": [
+    37830791787,
+    37833847645
+  ],
+  "method": "Sequential reporter completion deltas from browser-step start; maximum observed per file across two runs. Not a pure test duration, process startup overlaps file attribution. Cancelled jobs retain cancellation and only observed case completion facts. Setup/artifact reserve 60s per proposed job; conservative interval uses +10% per-file jitter and2s per-file restart. No timing is a guaranteed SLA.",
+  "jobBudgetSeconds": 1080,
+  "fixedArtifactRoutes": {
+    "ux-r3-thought-chrome-e2e.test.mjs": 7,
+    "uir-04-settings-chrome-e2e.test.mjs": 6,
+    "context-cards-chrome-e2e.test.mjs": 6,
+    "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs": 5
+  },
+  "files": [
+    {
+      "file": "activation-return-round410-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 11.86
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 11.988
+        }
+      ],
+      "weightSeconds": 11.988,
+      "observedRangeSeconds": [
+        11.86,
+        11.988
+      ],
+      "conservativeUpperSeconds": 15.187
+    },
+    {
+      "file": "ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 34.647
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 30.136
+        }
+      ],
+      "weightSeconds": 34.647,
+      "observedRangeSeconds": [
+        30.136,
+        34.647
+      ],
+      "conservativeUpperSeconds": 40.112
+    },
+    {
+      "file": "ans-02-source-foundation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 8.169
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 9.357
+        }
+      ],
+      "weightSeconds": 9.357,
+      "observedRangeSeconds": [
+        8.169,
+        9.357
+      ],
+      "conservativeUpperSeconds": 12.293
+    },
+    {
+      "file": "ans-03-source-observation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 15.012
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 16.232
+        }
+      ],
+      "weightSeconds": 16.232,
+      "observedRangeSeconds": [
+        15.012,
+        16.232
+      ],
+      "conservativeUpperSeconds": 19.855
+    },
+    {
+      "file": "ans-04-navigation-query-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 14.608
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 14.99
+        }
+      ],
+      "weightSeconds": 14.99,
+      "observedRangeSeconds": [
+        14.608,
+        14.99
+      ],
+      "conservativeUpperSeconds": 18.489
+    },
+    {
+      "file": "ans-04-navigation-release-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 8.989
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.31
+        }
+      ],
+      "weightSeconds": 8.989,
+      "observedRangeSeconds": [
+        7.31,
+        8.989
+      ],
+      "conservativeUpperSeconds": 11.888
+    },
+    {
+      "file": "ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 16.259
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 18.155
+        }
+      ],
+      "weightSeconds": 18.155,
+      "observedRangeSeconds": [
+        16.259,
+        18.155
+      ],
+      "conservativeUpperSeconds": 21.971
+    },
+    {
+      "file": "ans-06-source-order-settings-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 6.587
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.404
+        }
+      ],
+      "weightSeconds": 7.404,
+      "observedRangeSeconds": [
+        6.587,
+        7.404
+      ],
+      "conservativeUpperSeconds": 10.144
+    },
+    {
+      "file": "ans-07-library-root-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 88.714
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 88.404
+        }
+      ],
+      "weightSeconds": 88.714,
+      "observedRangeSeconds": [
+        88.404,
+        88.714
+      ],
+      "conservativeUpperSeconds": 99.585
+    },
+    {
+      "file": "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 27.582
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 18.999
+        }
+      ],
+      "weightSeconds": 27.582,
+      "observedRangeSeconds": [
+        18.999,
+        27.582
+      ],
+      "conservativeUpperSeconds": 32.34
+    },
+    {
+      "file": "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 13.139
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 18.172
+        }
+      ],
+      "weightSeconds": 18.172,
+      "observedRangeSeconds": [
+        13.139,
+        18.172
+      ],
+      "conservativeUpperSeconds": 21.989
+    },
+    {
+      "file": "ans-09-integration-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 31.048
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 34.077
+        }
+      ],
+      "weightSeconds": 34.077,
+      "observedRangeSeconds": [
+        31.048,
+        34.077
+      ],
+      "conservativeUpperSeconds": 39.485
+    },
+    {
+      "file": "capture-foundation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 76.215
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 77.248
+        }
+      ],
+      "weightSeconds": 77.248,
+      "observedRangeSeconds": [
+        76.215,
+        77.248
+      ],
+      "conservativeUpperSeconds": 86.973
+    },
+    {
+      "file": "consumer-cleanup-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 179.098
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 178.023
+        }
+      ],
+      "weightSeconds": 179.098,
+      "observedRangeSeconds": [
+        178.023,
+        179.098
+      ],
+      "conservativeUpperSeconds": 199.008
+    },
+    {
+      "file": "context-cards-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326140,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326140.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 245.995
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842761,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113505842761.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 275.55
+        }
+      ],
+      "weightSeconds": 275.55,
+      "observedRangeSeconds": [
+        245.995,
+        275.55
+      ],
+      "conservativeUpperSeconds": 305.105
+    },
+    {
+      "file": "cpr-00-project-discovery-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 10,
+          "estimatedCompletionSpanSeconds": 2.047
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 10,
+          "estimatedCompletionSpanSeconds": 1.407
+        }
+      ],
+      "weightSeconds": 2.047,
+      "observedRangeSeconds": [
+        1.407,
+        2.047
+      ],
+      "conservativeUpperSeconds": 4.252
+    },
+    {
+      "file": "cpr-01-project-recognition-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 1.775
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 2.309
+        }
+      ],
+      "weightSeconds": 2.309,
+      "observedRangeSeconds": [
+        1.775,
+        2.309
+      ],
+      "conservativeUpperSeconds": 4.54
+    },
+    {
+      "file": "cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 0.9
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 1.08
+        }
+      ],
+      "weightSeconds": 1.08,
+      "observedRangeSeconds": [
+        0.9,
+        1.08
+      ],
+      "conservativeUpperSeconds": 3.188
+    },
+    {
+      "file": "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 25.483
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 25.395
+        }
+      ],
+      "weightSeconds": 25.483,
+      "observedRangeSeconds": [
+        25.395,
+        25.483
+      ],
+      "conservativeUpperSeconds": 30.031
+    },
+    {
+      "file": "cpv1-01-3-update-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 1.897
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 1.294
+        }
+      ],
+      "weightSeconds": 1.897,
+      "observedRangeSeconds": [
+        1.294,
+        1.897
+      ],
+      "conservativeUpperSeconds": 4.087
+    },
+    {
+      "file": "cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 2.593
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 3.556
+        }
+      ],
+      "weightSeconds": 3.556,
+      "observedRangeSeconds": [
+        2.593,
+        3.556
+      ],
+      "conservativeUpperSeconds": 5.912
+    },
+    {
+      "file": "cpv1-01-5-backup-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 13.63
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 16.085
+        }
+      ],
+      "weightSeconds": 16.085,
+      "observedRangeSeconds": [
+        13.63,
+        16.085
+      ],
+      "conservativeUpperSeconds": 19.694
+    },
+    {
+      "file": "cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 19.673
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 19.78
+        }
+      ],
+      "weightSeconds": 19.78,
+      "observedRangeSeconds": [
+        19.673,
+        19.78
+      ],
+      "conservativeUpperSeconds": 23.758
+    },
+    {
+      "file": "cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 35.623
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 38.601
+        }
+      ],
+      "weightSeconds": 38.601,
+      "observedRangeSeconds": [
+        35.623,
+        38.601
+      ],
+      "conservativeUpperSeconds": 44.461
+    },
+    {
+      "file": "cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 31.536
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 27.974
+        }
+      ],
+      "weightSeconds": 31.536,
+      "observedRangeSeconds": [
+        27.974,
+        31.536
+      ],
+      "conservativeUpperSeconds": 36.69
+    },
+    {
+      "file": "cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 70.407
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 80.385
+        }
+      ],
+      "weightSeconds": 80.385,
+      "observedRangeSeconds": [
+        70.407,
+        80.385
+      ],
+      "conservativeUpperSeconds": 90.424
+    },
+    {
+      "file": "cpv1-01-recovery-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 17.048
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 17.708
+        }
+      ],
+      "weightSeconds": 17.708,
+      "observedRangeSeconds": [
+        17.048,
+        17.708
+      ],
+      "conservativeUpperSeconds": 21.479
+    },
+    {
+      "file": "cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 40.364
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 40.072
+        }
+      ],
+      "weightSeconds": 40.364,
+      "observedRangeSeconds": [
+        40.072,
+        40.364
+      ],
+      "conservativeUpperSeconds": 46.4
+    },
+    {
+      "file": "cpv1-02-1-shell-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 12.274
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 11.658
+        }
+      ],
+      "weightSeconds": 12.274,
+      "observedRangeSeconds": [
+        11.658,
+        12.274
+      ],
+      "conservativeUpperSeconds": 15.501
+    },
+    {
+      "file": "cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 15.616
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 17.951
+        }
+      ],
+      "weightSeconds": 17.951,
+      "observedRangeSeconds": [
+        15.616,
+        17.951
+      ],
+      "conservativeUpperSeconds": 21.746
+    },
+    {
+      "file": "cpv1-02-4-reader-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 70.762
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 75.59
+        }
+      ],
+      "weightSeconds": 75.59,
+      "observedRangeSeconds": [
+        70.762,
+        75.59
+      ],
+      "conservativeUpperSeconds": 85.149
+    },
+    {
+      "file": "cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.29
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.239
+        }
+      ],
+      "weightSeconds": 7.29,
+      "observedRangeSeconds": [
+        7.239,
+        7.29
+      ],
+      "conservativeUpperSeconds": 10.019
+    },
+    {
+      "file": "cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326338,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326338.log",
+          "actualCaseCompletions": 20,
+          "estimatedCompletionSpanSeconds": 353.378
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842634,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842634.log",
+          "actualCaseCompletions": 20,
+          "estimatedCompletionSpanSeconds": 366.274
+        }
+      ],
+      "weightSeconds": 366.274,
+      "observedRangeSeconds": [
+        353.378,
+        366.274
+      ],
+      "conservativeUpperSeconds": 404.901
+    },
+    {
+      "file": "cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 139.824
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 133.854
+        }
+      ],
+      "weightSeconds": 139.824,
+      "observedRangeSeconds": [
+        133.854,
+        139.824
+      ],
+      "conservativeUpperSeconds": 155.806
+    },
+    {
+      "file": "cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 129.578
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 122.434
+        }
+      ],
+      "weightSeconds": 129.578,
+      "observedRangeSeconds": [
+        122.434,
+        129.578
+      ],
+      "conservativeUpperSeconds": 144.536
+    },
+    {
+      "file": "cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 195.746
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 184.184
+        }
+      ],
+      "weightSeconds": 195.746,
+      "observedRangeSeconds": [
+        184.184,
+        195.746
+      ],
+      "conservativeUpperSeconds": 217.321
+    },
+    {
+      "file": "cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 58.989
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 61.37
+        }
+      ],
+      "weightSeconds": 61.37,
+      "observedRangeSeconds": [
+        58.989,
+        61.37
+      ],
+      "conservativeUpperSeconds": 69.507
+    },
+    {
+      "file": "cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 54.781
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 52.904
+        }
+      ],
+      "weightSeconds": 54.781,
+      "observedRangeSeconds": [
+        52.904,
+        54.781
+      ],
+      "conservativeUpperSeconds": 62.259
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326338,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326338.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 307.921
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842634,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842634.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 339.91
+        }
+      ],
+      "weightSeconds": 339.91,
+      "observedRangeSeconds": [
+        307.921,
+        339.91
+      ],
+      "conservativeUpperSeconds": 375.901
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326157,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326157.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 198.352
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842727,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842727.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 192.912
+        }
+      ],
+      "weightSeconds": 198.352,
+      "observedRangeSeconds": [
+        192.912,
+        198.352
+      ],
+      "conservativeUpperSeconds": 220.187
+    },
+    {
+      "file": "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326338,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326338.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 232.76
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842634,
+          "shard": "Current Browser 5/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842634.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 247.598
+        }
+      ],
+      "weightSeconds": 247.598,
+      "observedRangeSeconds": [
+        232.76,
+        247.598
+      ],
+      "conservativeUpperSeconds": 274.358
+    },
+    {
+      "file": "cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 184.728
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 8,
+          "estimatedCompletionSpanSeconds": 184.964
+        }
+      ],
+      "weightSeconds": 184.964,
+      "observedRangeSeconds": [
+        184.728,
+        184.964
+      ],
+      "conservativeUpperSeconds": 205.46
+    },
+    {
+      "file": "cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 26.865
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 26.841
+        }
+      ],
+      "weightSeconds": 26.865,
+      "observedRangeSeconds": [
+        26.841,
+        26.865
+      ],
+      "conservativeUpperSeconds": 31.552
+    },
+    {
+      "file": "cpv1-04-conflict-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 11.448
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 10.564
+        }
+      ],
+      "weightSeconds": 11.448,
+      "observedRangeSeconds": [
+        10.564,
+        11.448
+      ],
+      "conservativeUpperSeconds": 14.593
+    },
+    {
+      "file": "cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 10.899
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 11.02
+        }
+      ],
+      "weightSeconds": 11.02,
+      "observedRangeSeconds": [
+        10.899,
+        11.02
+      ],
+      "conservativeUpperSeconds": 14.122
+    },
+    {
+      "file": "cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 17,
+          "estimatedCompletionSpanSeconds": 264.179
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 17,
+          "estimatedCompletionSpanSeconds": 268.886
+        }
+      ],
+      "weightSeconds": 268.886,
+      "observedRangeSeconds": [
+        264.179,
+        268.886
+      ],
+      "conservativeUpperSeconds": 297.775
+    },
+    {
+      "file": "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 6.918
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 9.629
+        }
+      ],
+      "weightSeconds": 9.629,
+      "observedRangeSeconds": [
+        6.918,
+        9.629
+      ],
+      "conservativeUpperSeconds": 12.592
+    },
+    {
+      "file": "cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 20.876
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 25.553
+        }
+      ],
+      "weightSeconds": 25.553,
+      "observedRangeSeconds": [
+        20.876,
+        25.553
+      ],
+      "conservativeUpperSeconds": 30.108
+    },
+    {
+      "file": "cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 91.461
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 101.749
+        }
+      ],
+      "weightSeconds": 101.749,
+      "observedRangeSeconds": [
+        91.461,
+        101.749
+      ],
+      "conservativeUpperSeconds": 113.924
+    },
+    {
+      "file": "cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 122.387
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 128.523
+        }
+      ],
+      "weightSeconds": 128.523,
+      "observedRangeSeconds": [
+        122.387,
+        128.523
+      ],
+      "conservativeUpperSeconds": 143.375
+    },
+    {
+      "file": "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 21.597
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 24.251
+        }
+      ],
+      "weightSeconds": 24.251,
+      "observedRangeSeconds": [
+        21.597,
+        24.251
+      ],
+      "conservativeUpperSeconds": 28.676
+    },
+    {
+      "file": "cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 163.469
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 268.788
+        }
+      ],
+      "weightSeconds": 268.788,
+      "observedRangeSeconds": [
+        163.469,
+        268.788
+      ],
+      "conservativeUpperSeconds": 297.667
+    },
+    {
+      "file": "cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326157,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326157.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 46.943
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842727,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842727.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 41.635
+        }
+      ],
+      "weightSeconds": 46.943,
+      "observedRangeSeconds": [
+        41.635,
+        46.943
+      ],
+      "conservativeUpperSeconds": 53.637
+    },
+    {
+      "file": "cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 13.33
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 15.17
+        }
+      ],
+      "weightSeconds": 15.17,
+      "observedRangeSeconds": [
+        13.33,
+        15.17
+      ],
+      "conservativeUpperSeconds": 18.687
+    },
+    {
+      "file": "desktop-vnext-context-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 15.718
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 19.134
+        }
+      ],
+      "weightSeconds": 19.134,
+      "observedRangeSeconds": [
+        15.718,
+        19.134
+      ],
+      "conservativeUpperSeconds": 23.047
+    },
+    {
+      "file": "iah11-result-presentation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 116.093
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 120.385
+        }
+      ],
+      "weightSeconds": 120.385,
+      "observedRangeSeconds": [
+        116.093,
+        120.385
+      ],
+      "conservativeUpperSeconds": 134.424
+    },
+    {
+      "file": "iah11-selected-acceptance-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 40.74
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 42.043
+        }
+      ],
+      "weightSeconds": 42.043,
+      "observedRangeSeconds": [
+        40.74,
+        42.043
+      ],
+      "conservativeUpperSeconds": 48.247
+    },
+    {
+      "file": "release-certification-round48-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 24.867
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 25.37
+        }
+      ],
+      "weightSeconds": 25.37,
+      "observedRangeSeconds": [
+        24.867,
+        25.37
+      ],
+      "conservativeUpperSeconds": 29.907
+    },
+    {
+      "file": "release-certification-round49-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 14.855
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 15.083
+        }
+      ],
+      "weightSeconds": 15.083,
+      "observedRangeSeconds": [
+        14.855,
+        15.083
+      ],
+      "conservativeUpperSeconds": 18.591
+    },
+    {
+      "file": "settings-next-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 12.885
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 9.419
+        }
+      ],
+      "weightSeconds": 12.885,
+      "observedRangeSeconds": [
+        9.419,
+        12.885
+      ],
+      "conservativeUpperSeconds": 16.174
+    },
+    {
+      "file": "topic-entry-section-move-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 8.41
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 9.717
+        }
+      ],
+      "weightSeconds": 9.717,
+      "observedRangeSeconds": [
+        8.41,
+        9.717
+      ],
+      "conservativeUpperSeconds": 12.689
+    },
+    {
+      "file": "topic-section-writing-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 21.81
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 17.256
+        }
+      ],
+      "weightSeconds": 21.81,
+      "observedRangeSeconds": [
+        17.256,
+        21.81
+      ],
+      "conservativeUpperSeconds": 25.991
+    },
+    {
+      "file": "uir-01-shell-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 200.278
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 194.371
+        }
+      ],
+      "weightSeconds": 200.278,
+      "observedRangeSeconds": [
+        194.371,
+        200.278
+      ],
+      "conservativeUpperSeconds": 222.306
+    },
+    {
+      "file": "uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 21.013
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 24.189
+        }
+      ],
+      "weightSeconds": 24.189,
+      "observedRangeSeconds": [
+        21.013,
+        24.189
+      ],
+      "conservativeUpperSeconds": 28.608
+    },
+    {
+      "file": "uir-03-ai-candidate-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 24.738
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 5,
+          "estimatedCompletionSpanSeconds": 28.248
+        }
+      ],
+      "weightSeconds": 28.248,
+      "observedRangeSeconds": [
+        24.738,
+        28.248
+      ],
+      "conservativeUpperSeconds": 33.073
+    },
+    {
+      "file": "uir-03-ai-presentation-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 10,
+          "estimatedCompletionSpanSeconds": 77.223
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 10,
+          "estimatedCompletionSpanSeconds": 76.078
+        }
+      ],
+      "weightSeconds": 77.223,
+      "observedRangeSeconds": [
+        76.078,
+        77.223
+      ],
+      "conservativeUpperSeconds": 86.945
+    },
+    {
+      "file": "uir-03-preview-mask-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 8.239
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 6.461
+        }
+      ],
+      "weightSeconds": 8.239,
+      "observedRangeSeconds": [
+        6.461,
+        8.239
+      ],
+      "conservativeUpperSeconds": 11.063
+    },
+    {
+      "file": "uir-03-thought-original-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 22.489
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 32.375
+        }
+      ],
+      "weightSeconds": 32.375,
+      "observedRangeSeconds": [
+        22.489,
+        32.375
+      ],
+      "conservativeUpperSeconds": 37.613
+    },
+    {
+      "file": "uir-04-context-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 16.791
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 17.848
+        }
+      ],
+      "weightSeconds": 17.848,
+      "observedRangeSeconds": [
+        16.791,
+        17.848
+      ],
+      "conservativeUpperSeconds": 21.633
+    },
+    {
+      "file": "uir-04-data-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 58.596
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 56.776
+        }
+      ],
+      "weightSeconds": 58.596,
+      "observedRangeSeconds": [
+        56.776,
+        58.596
+      ],
+      "conservativeUpperSeconds": 66.456
+    },
+    {
+      "file": "uir-04-popup-local-tools-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 9.134
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 7.11
+        }
+      ],
+      "weightSeconds": 9.134,
+      "observedRangeSeconds": [
+        7.11,
+        9.134
+      ],
+      "conservativeUpperSeconds": 12.047
+    },
+    {
+      "file": "uir-04-settings-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326140,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326140.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 167.323
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842761,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113505842761.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 185.501
+        }
+      ],
+      "weightSeconds": 185.501,
+      "observedRangeSeconds": [
+        167.323,
+        185.501
+      ],
+      "conservativeUpperSeconds": 206.051
+    },
+    {
+      "file": "uis-01-archive-actions-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.558
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 7.938
+        }
+      ],
+      "weightSeconds": 7.938,
+      "observedRangeSeconds": [
+        7.558,
+        7.938
+      ],
+      "conservativeUpperSeconds": 10.732
+    },
+    {
+      "file": "uis-02-page-scoped-search-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 9.457
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 9.419
+        }
+      ],
+      "weightSeconds": 9.457,
+      "observedRangeSeconds": [
+        9.419,
+        9.457
+      ],
+      "conservativeUpperSeconds": 12.403
+    },
+    {
+      "file": "uis-04-cleanup-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 8.871
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 8.365
+        }
+      ],
+      "weightSeconds": 8.871,
+      "observedRangeSeconds": [
+        8.365,
+        8.871
+      ],
+      "conservativeUpperSeconds": 11.758
+    },
+    {
+      "file": "ux-r1-shell-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 11.418
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 13.683
+        }
+      ],
+      "weightSeconds": 13.683,
+      "observedRangeSeconds": [
+        11.418,
+        13.683
+      ],
+      "conservativeUpperSeconds": 17.051
+    },
+    {
+      "file": "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326261,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113495326261.log",
+          "actualCaseCompletions": 9,
+          "estimatedCompletionSpanSeconds": 257.345
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842761,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113505842761.log",
+          "actualCaseCompletions": 9,
+          "estimatedCompletionSpanSeconds": 264.077
+        }
+      ],
+      "weightSeconds": 264.077,
+      "observedRangeSeconds": [
+        257.345,
+        264.077
+      ],
+      "conservativeUpperSeconds": 292.485
+    },
+    {
+      "file": "ux-r3-history-preemption-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 2,
+          "estimatedCompletionSpanSeconds": 13.26
+        }
+      ],
+      "weightSeconds": 13.26,
+      "observedRangeSeconds": [
+        13.26,
+        13.26
+      ],
+      "conservativeUpperSeconds": 16.586
+    },
+    {
+      "file": "ux-r3-thought-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326157,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326157.log",
+          "actualCaseCompletions": 26,
+          "estimatedCompletionSpanSeconds": 694.374
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842727,
+          "shard": "Current Browser 7/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842727.log",
+          "actualCaseCompletions": 26,
+          "estimatedCompletionSpanSeconds": 672.046
+        }
+      ],
+      "weightSeconds": 694.374,
+      "observedRangeSeconds": [
+        672.046,
+        694.374
+      ],
+      "conservativeUpperSeconds": 765.811
+    },
+    {
+      "file": "ux-r4-search-reuse-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326140,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326140.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 222.928
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842761,
+          "shard": "Current Browser 6/7",
+          "jobConclusion": "cancelled",
+          "logPath": "/tmp/paia-capacity-113505842761.log",
+          "actualCaseCompletions": 6,
+          "estimatedCompletionSpanSeconds": 299.326
+        }
+      ],
+      "weightSeconds": 299.326,
+      "observedRangeSeconds": [
+        222.928,
+        299.326
+      ],
+      "conservativeUpperSeconds": 331.259
+    },
+    {
+      "file": "ux-r5-ai-organize-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326165,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326165.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 23.493
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842830,
+          "shard": "Current Browser 4/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842830.log",
+          "actualCaseCompletions": 4,
+          "estimatedCompletionSpanSeconds": 25.446
+        }
+      ],
+      "weightSeconds": 25.446,
+      "observedRangeSeconds": [
+        23.493,
+        25.446
+      ],
+      "conservativeUpperSeconds": 29.991
+    },
+    {
+      "file": "ux-r5-ai-update-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37833847645,
+          "jobId": 113505842789,
+          "shard": "Current Browser 1/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842789.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 2.819
+        }
+      ],
+      "weightSeconds": 2.819,
+      "observedRangeSeconds": [
+        2.819,
+        2.819
+      ],
+      "conservativeUpperSeconds": 5.101
+    },
+    {
+      "file": "ux-r5-certification-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326132,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326132.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 8.261
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842757,
+          "shard": "Current Browser 2/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842757.log",
+          "actualCaseCompletions": 3,
+          "estimatedCompletionSpanSeconds": 6.305
+        }
+      ],
+      "weightSeconds": 8.261,
+      "observedRangeSeconds": [
+        6.305,
+        8.261
+      ],
+      "conservativeUpperSeconds": 11.087
+    },
+    {
+      "file": "ux-r6-release-chrome-e2e.test.mjs",
+      "evidenceKind": "actual case-completion log timestamps; estimated whole-file duration, including inter-file startup",
+      "observations": [
+        {
+          "runId": 37830791787,
+          "jobId": 113495326303,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113495326303.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 11.193
+        },
+        {
+          "runId": 37833847645,
+          "jobId": 113505842700,
+          "shard": "Current Browser 3/7",
+          "jobConclusion": "success",
+          "logPath": "/tmp/paia-capacity-113505842700.log",
+          "actualCaseCompletions": 1,
+          "estimatedCompletionSpanSeconds": 12.756
+        }
+      ],
+      "weightSeconds": 12.756,
+      "observedRangeSeconds": [
+        11.193,
+        12.756
+      ],
+      "conservativeUpperSeconds": 16.032
+    }
+  ],
+  "jobEvidence": [
+    {
+      "runId": 37830791787,
+      "jobId": 113495326132,
+      "name": "Current Browser 2/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 949,
+      "estimatedSetupSeconds": 24.252,
+      "estimatedPostTestSeconds": 4.919
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326140,
+      "name": "Current Browser 6/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 685,
+      "estimatedSetupSeconds": 40.706,
+      "estimatedPostTestSeconds": 8.048
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326157,
+      "name": "Current Browser 7/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 987,
+      "estimatedSetupSeconds": 41.259,
+      "estimatedPostTestSeconds": 6.071
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326165,
+      "name": "Current Browser 4/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 803,
+      "estimatedSetupSeconds": 44.897,
+      "estimatedPostTestSeconds": 5.698
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326261,
+      "name": "Current Browser 1/7",
+      "conclusion": "cancelled",
+      "actualJobWallSeconds": 1158,
+      "estimatedSetupSeconds": 35.456,
+      "estimatedPostTestSeconds": 19.271
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326303,
+      "name": "Current Browser 3/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 712,
+      "estimatedSetupSeconds": 31.562,
+      "estimatedPostTestSeconds": 6.549
+    },
+    {
+      "runId": 37830791787,
+      "jobId": 113495326338,
+      "name": "Current Browser 5/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 930,
+      "estimatedSetupSeconds": 27.974,
+      "estimatedPostTestSeconds": 7.967
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842634,
+      "name": "Current Browser 5/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 1067,
+      "estimatedSetupSeconds": 34.051,
+      "estimatedPostTestSeconds": 79.166
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842700,
+      "name": "Current Browser 3/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 880,
+      "estimatedSetupSeconds": 26.298,
+      "estimatedPostTestSeconds": 6.067
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842727,
+      "name": "Current Browser 7/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 960,
+      "estimatedSetupSeconds": 45.264,
+      "estimatedPostTestSeconds": 8.142
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842757,
+      "name": "Current Browser 2/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 887,
+      "estimatedSetupSeconds": 29.632,
+      "estimatedPostTestSeconds": 5.365
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842761,
+      "name": "Current Browser 6/7",
+      "conclusion": "cancelled",
+      "actualJobWallSeconds": 1099,
+      "estimatedSetupSeconds": 29.177,
+      "estimatedPostTestSeconds": 45.369
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842789,
+      "name": "Current Browser 1/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 914,
+      "estimatedSetupSeconds": 46.332,
+      "estimatedPostTestSeconds": 8.27
+    },
+    {
+      "runId": 37833847645,
+      "jobId": 113505842830,
+      "name": "Current Browser 4/7",
+      "conclusion": "success",
+      "actualJobWallSeconds": 851,
+      "estimatedSetupSeconds": 36.104,
+      "estimatedPostTestSeconds": 22.817
+    }
+  ],
+  "proposedNineBins": [
+    {
+      "shard": 1,
+      "files": [
+        "cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+        "cpv1-02-4-reader-chrome-e2e.test.mjs",
+        "cpv1-01-save-recovery-chrome-e2e.test.mjs",
+        "cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+        "release-certification-round48-chrome-e2e.test.mjs",
+        "release-certification-round49-chrome-e2e.test.mjs",
+        "ux-r6-release-chrome-e2e.test.mjs",
+        "uis-04-cleanup-chrome-e2e.test.mjs",
+        "cpv1-01-4-degraded-chrome-e2e.test.mjs",
+        "cpr-02-project-lifecycle-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 704.075,
+      "conservativeTestSeconds": 796.482,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 764.075,
+      "conservativeJobSeconds": 856.482,
+      "estimatedHeadroomFraction": 0.2925
+    },
+    {
+      "shard": 2,
+      "files": [
+        "ux-r4-search-reuse-chrome-e2e.test.mjs",
+        "consumer-cleanup-chrome-e2e.test.mjs",
+        "capture-foundation-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-search-chrome-e2e.test.mjs",
+        "ans-08-topic-continuous-chrome-e2e.test.mjs",
+        "desktop-vnext-context-chrome-e2e.test.mjs",
+        "cpv1-02-3-navigator-chrome-e2e.test.mjs",
+        "ux-r1-shell-chrome-e2e.test.mjs",
+        "cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+        "cpr-01-project-recognition-chrome-e2e.test.mjs",
+        "cpr-00-project-discovery-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 704.179,
+      "conservativeTestSeconds": 796.597,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 764.179,
+      "conservativeJobSeconds": 856.597,
+      "estimatedHeadroomFraction": 0.2924
+    },
+    {
+      "shard": 3,
+      "files": [
+        "cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+        "iah11-result-presentation-chrome-e2e.test.mjs",
+        "cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+        "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+        "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+        "ans-05-navigator-workspace-chrome-e2e.test.mjs",
+        "ans-04-navigation-query-chrome-e2e.test.mjs",
+        "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+        "uis-01-archive-actions-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 707.203,
+      "conservativeTestSeconds": 797.924,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 767.203,
+      "conservativeJobSeconds": 857.924,
+      "estimatedHeadroomFraction": 0.2896
+    },
+    {
+      "shard": 4,
+      "files": [
+        "cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+        "cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+        "cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+        "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+        "ans-03-source-observation-chrome-e2e.test.mjs",
+        "cpv1-04-conflict-chrome-e2e.test.mjs",
+        "uis-02-page-scoped-search-chrome-e2e.test.mjs",
+        "uir-03-preview-mask-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 707.452,
+      "conservativeTestSeconds": 798.199,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 767.452,
+      "conservativeJobSeconds": 858.199,
+      "estimatedHeadroomFraction": 0.2894
+    },
+    {
+      "shard": 5,
+      "files": [
+        "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-original-chrome-e2e.test.mjs",
+        "uir-03-ai-presentation-chrome-e2e.test.mjs",
+        "cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+        "ans-09-integration-chrome-e2e.test.mjs",
+        "topic-section-writing-chrome-e2e.test.mjs",
+        "cpv1-01-recovery-chrome-e2e.test.mjs",
+        "settings-next-chrome-e2e.test.mjs",
+        "ans-04-navigation-release-chrome-e2e.test.mjs",
+        "cpv1-02-6-accessibility-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 706.659,
+      "conservativeTestSeconds": 797.325,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 766.659,
+      "conservativeJobSeconds": 857.325,
+      "estimatedHeadroomFraction": 0.2901
+    },
+    {
+      "shard": 6,
+      "files": [
+        "context-cards-chrome-e2e.test.mjs",
+        "uir-04-settings-chrome-e2e.test.mjs",
+        "cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+        "iah11-selected-acceptance-chrome-e2e.test.mjs",
+        "uir-03-thought-original-chrome-e2e.test.mjs",
+        "ux-r5-ai-organize-chrome-e2e.test.mjs",
+        "cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+        "cpv1-02-1-shell-chrome-e2e.test.mjs",
+        "ans-02-source-foundation-chrome-e2e.test.mjs",
+        "ux-r5-ai-update-chrome-e2e.test.mjs",
+        "cpv1-01-3-update-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 704.181,
+      "conservativeTestSeconds": 796.6,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 764.181,
+      "conservativeJobSeconds": 856.6,
+      "estimatedHeadroomFraction": 0.2924
+    },
+    {
+      "shard": 7,
+      "files": [
+        "ux-r3-thought-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 694.374,
+      "conservativeTestSeconds": 765.811,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 754.374,
+      "conservativeJobSeconds": 825.811,
+      "estimatedHeadroomFraction": 0.3015
+    },
+    {
+      "shard": 8,
+      "files": [
+        "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+        "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+        "ans-07-library-root-chrome-e2e.test.mjs",
+        "uir-04-data-chrome-e2e.test.mjs",
+        "uir-03-ai-candidate-chrome-e2e.test.mjs",
+        "cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+        "uir-04-context-chrome-e2e.test.mjs",
+        "ux-r3-history-preemption-chrome-e2e.test.mjs",
+        "topic-entry-section-move-chrome-e2e.test.mjs",
+        "ux-r5-certification-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 706.853,
+      "conservativeTestSeconds": 797.539,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 766.853,
+      "conservativeJobSeconds": 857.539,
+      "estimatedHeadroomFraction": 0.29
+    },
+    {
+      "shard": 9,
+      "files": [
+        "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+        "uir-01-shell-chrome-e2e.test.mjs",
+        "cpv1-12-next-prompt-chrome-e2e.test.mjs",
+        "ans-01-reader-surfaces-chrome-e2e.test.mjs",
+        "cpv1-03-backup-segments-chrome-e2e.test.mjs",
+        "uir-02-archive-search-reader-chrome-e2e.test.mjs",
+        "cpv1-01-5-backup-chrome-e2e.test.mjs",
+        "activation-return-round410-chrome-e2e.test.mjs",
+        "uir-04-popup-local-tools-chrome-e2e.test.mjs",
+        "ans-06-source-order-settings-chrome-e2e.test.mjs"
+      ],
+      "estimatedTestSeconds": 706.711,
+      "conservativeTestSeconds": 797.383,
+      "reservedSetupArtifactSeconds": 60,
+      "estimatedJobSeconds": 766.711,
+      "conservativeJobSeconds": 857.383,
+      "estimatedHeadroomFraction": 0.2901
+    }
+  ],
+  "legacyBase": "144f87b4c6f214aeab0130bbca763d7c5a83bd28",
+  "legacyRoutes": [
+    [
+      "activation-return-round410-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "ans-01-reader-surfaces-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "ans-02-source-foundation-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "ans-03-source-observation-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "ans-04-navigation-query-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "ans-04-navigation-release-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "ans-05-navigator-workspace-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "ans-06-source-order-settings-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "ans-07-library-root-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "ans-09-integration-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "capture-foundation-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "consumer-cleanup-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "context-cards-chrome-e2e.test.mjs",
+      1,
+      1,
+      6,
+      6
+    ],
+    [
+      "cpr-00-project-discovery-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpr-01-project-recognition-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpr-02-project-lifecycle-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-01-2-reconnect-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-01-3-update-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-01-4-degraded-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-01-5-backup-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-01-6-lifecycle-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-01-audit-boundaries-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-01-capture-recovery-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-01-recovery-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-01-save-recovery-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-02-1-shell-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-02-3-navigator-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-02-4-reader-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-02-6-accessibility-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs",
+      3,
+      5,
+      5,
+      5
+    ],
+    [
+      "cpv1-02-dvn-original-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-02-dvn-purge-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-02-dvn-removal-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-02-dvn-save-outcome-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-02-dvn-search-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      4,
+      4,
+      5,
+      5
+    ],
+    [
+      "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      7
+    ],
+    [
+      "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      4,
+      4,
+      5,
+      5
+    ],
+    [
+      "cpv1-02-dvn-working-revision-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-03-backup-segments-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-04-conflict-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "cpv1-05-dvn-organize-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "cpv1-07-historical-comparison-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      4
+    ],
+    [
+      "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-09-prompt-insertion-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-09-prompt-surface-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "cpv1-topic-05-2-root-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "cpv1-topic-05-4-section-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      7
+    ],
+    [
+      "cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "desktop-vnext-context-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "iah11-result-presentation-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "iah11-selected-acceptance-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "release-certification-round48-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "release-certification-round49-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "settings-next-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "topic-entry-section-move-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "topic-section-writing-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "uir-01-shell-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "uir-02-archive-search-reader-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "uir-03-ai-candidate-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "uir-03-ai-presentation-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "uir-03-preview-mask-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "uir-03-thought-original-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "uir-04-context-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "uir-04-data-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "uir-04-popup-local-tools-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "uir-04-settings-chrome-e2e.test.mjs",
+      3,
+      3,
+      6,
+      6
+    ],
+    [
+      "uis-01-archive-actions-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "uis-02-page-scoped-search-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "uis-04-cleanup-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "ux-r1-shell-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ],
+    [
+      "ux-r2-reader-revisit-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      6
+    ],
+    [
+      "ux-r3-history-preemption-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "ux-r3-thought-chrome-e2e.test.mjs",
+      2,
+      2,
+      6,
+      7
+    ],
+    [
+      "ux-r4-search-reuse-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      6
+    ],
+    [
+      "ux-r5-ai-organize-chrome-e2e.test.mjs",
+      4,
+      4,
+      4,
+      4
+    ],
+    [
+      "ux-r5-ai-update-chrome-e2e.test.mjs",
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      "ux-r5-certification-chrome-e2e.test.mjs",
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      "ux-r6-release-chrome-e2e.test.mjs",
+      3,
+      3,
+      3,
+      3
+    ]
+  ]
+}

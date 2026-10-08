@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 test('full browser gate verifies installed Chrome with the exact shard set and unchanged budgets',async()=>{
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  const job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
- assert.match(job,/timeout-minutes: 18/);assert.deepEqual([...job.matchAll(/shard: '(\d\/7)'/g)].map(match=>match[1]),['1/7','2/7','3/7','4/7','5/7','6/7','7/7']);
+ assert.match(job,/timeout-minutes: 18/);assert.deepEqual([...job.matchAll(/shard: '(\d\/9)'/g)].map(match=>match[1]),['1/9','2/9','3/9','4/9','5/9','6/9','7/9','8/9','9/9']);
  assert.match(job,/CHROME_PATH=\$CHROME_BIN/);assert.match(job,/xvfb-run -a node scripts\/check-hosted-chrome.mjs/);
  assert.match(job,/apt-get install -y --no-install-recommends fonts-wqy-zenhei/);assert.match(job,/fc-list :lang=zh/);
  assert.match(job,/xvfb-run -a npm run test:browser/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);
