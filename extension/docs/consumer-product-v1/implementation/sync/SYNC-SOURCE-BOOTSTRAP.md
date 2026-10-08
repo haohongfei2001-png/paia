@@ -31,7 +31,9 @@ Unsupported enrich/multi-message/existing-conversation/mixed initial scope refus
 - Independent reviewer found a real initial-order gap: resealed Source conversationOrder could differ from pageOrder while all shared initial document/Input formation remained identical. `/tmp/source-bootstrap-order-before.log` preserves Missing rejection; the required initial codec now enforces positive pageOrder and exact conversationOrder equality. The existing closure case contains that negative, without changing the final 23 native names. `/tmp/source-bootstrap-order-after.log` contains 24/24 owning PASS.
 - Independent reviewer also found producer-shape gaps. `/tmp/source-bootstrap-capture-shape-before.log` records five complete, rehashed and resealed impossible captures accepted (empty/oversize body, oversize title/order, invalid message ID). The new codec now calls the existing validateCapture purely for shape/limits, preserving the actual canonical URL/title, including a positive actual `/g/.../c/...` capture; it grants no authority. Every negative now refuses with all stores unchanged.
 - Final independent review **APPROVED** by root_finish: actual complete owner+compiler 25/25 PASS, 1508.902375ms, `/tmp/source-bootstrap-independent-closure.log`; diff check PASS. This closes the actual order and capture-shape gaps without changing the final 23 native case names or 13 dependency paths.
-- Final committed-runtime native is pending this checkpoint. One source/release wholefile run will bind receipts to the immutable runtime HEAD/tree; the diagnostic 19-case result remains historical and is not final acceptance.
+- Final committed-runtime wholefile: **2/2 PASS**, 14.681941708s, `/tmp/source-bootstrap-native-committed.log`, exact runtime/test HEAD `47f46c0de8f0e8eca24526afe9759649730c89f2`, tree `b58f7a1ff175b8f7882c94648afd3f9bd8eedfef`. Both variants ran all 23 cases plus true worker stop/restart; all 13 dependency SHA values match that checkout and one another. Complete lifetime network ledger, including paused-before-stop, records zero HTTP/attempted requests. The tree was clean for this run.
+- Root's independent new strict Source receipt validator was applied to these actual final receipts with the **47f** head/tree and accepted both 23-case/13-path artifacts. The same validator rejects both old 19-case diagnostic receipts even when supplied their own old head/tree; no old PASS is substituted. Root's subsequent integration-native validator call/version/CI changes require their own combination evidence; this receipt does not claim them covered by the 47f run.
+- This follow-up commit changes only this evidence document; the tested runtime/test commit identity remains 47f above. No duplicate browser rerun was performed for the document update.
 
 ## Exact current source bytes
 
@@ -54,3 +56,10 @@ Unsupported enrich/multi-message/existing-conversation/mixed initial scope refus
 | `tests/native-sync/source-bootstrap-fixture.mjs` | `e7f91862e42b70cfbe517bf99048870e8d7bd5ac53637f0e0ec4969e3df3ab38` |
 | `tests/native-sync/source-bootstrap-fixture.test.mjs` | `e4890dcc940dfb1ec8c2a21ea6a227817ba3ea5634e2a55f8923831836ff8d87` |
 | `tests/native-sync/source-bootstrap-chrome.test.mjs` | `40637bd15d7dfccbfb4bd546760c3ec91f2817038994290a60998a7902117942` |
+
+## Final immutable local artifacts
+
+| Artifact | SHA-256 |
+|---|---|
+| `extension/work/qa-bns-source-bootstrap/source.json` | `fb4526739f51780665f6ba9d4d31c6c7ce1ec40449fdbc517836585956d7ac44` |
+| `extension/work/qa-bns-source-bootstrap/release.json` | `8feafa74e2e7185f43d52e92d833d02b66035153b5fea2dc91c2a2103c8dd1c7` |
