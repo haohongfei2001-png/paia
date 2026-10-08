@@ -13,19 +13,21 @@ if(process.env.PAIA_TESTED_HEAD)assert.equal(head,process.env.PAIA_TESTED_HEAD);
 let sourceCases,sourceHashes;
 for(const variant of ['source','release'])test('BNS manual Context native owner '+variant,{timeout:120000},async()=>{
  const output=await mkdtemp(join(tmpdir(),'paia-context-release-'));let extension,device;
- const evidence={schema:1,head,tree,variant,result:'IN_PROGRESS',scope:'manual Info/Rules/Now optional owners only',provider:false,fullCanonicalRestore:false};
+ const evidence={schema:1,head,tree,variant,result:'IN_PROGRESS',scope:'manual Info/Rules/Now and four-card desired optional owners only',provider:false,fullCanonicalRestore:false};
  try{
   if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(output,'release')],{cwd:root,stdio:'pipe'});
   extension=await instrumentedExtension(variant==='source'?root:join(output,'release'));
   await cp(new URL('./context-info-worker-fixture.mjs',import.meta.url),join(extension.path,'background/bns-native-storage-fixture.mjs'));
   evidence.productionHashes={...extension.hashes};
-  for(const path of ['core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
+  for(const path of ['core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/context-desired-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'])evidence.productionHashes[path]=createHash('sha256').update(await readFile(join(extension.path,path))).digest('hex');
   device=await startNative(extension.path);evidence.browserVersion=device.browserVersion;
-  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,68);
+  evidence.ownerCases=await device.call('matrix');assert.equal(evidence.ownerCases.length,94);
   if(variant==='source'){sourceCases=evidence.ownerCases;sourceHashes=evidence.productionHashes;}else{assert.deepEqual(evidence.ownerCases,sourceCases);assert.deepEqual(evidence.productionHashes,sourceHashes);}
   const before=await device.call('durable-create');assert.equal(before.prompts.overrides.length,1);assert.equal(before.prompts.overrides[0].text,'SYNTHETIC durable mixed Prompt');assert.equal(before.row.items[0].lifecycle,'removed');assert.deepEqual(before.row.items.map(x=>[x.card,x.lifecycle]),[['info','removed'],['rules','removed'],['now','removed']]);
+  const desiredBefore=await device.call('desired-create');assert.equal(desiredBefore.row.access.global.enabled,false);for(const key of ['info','rules','now','inputs'])assert.deepEqual(desiredBefore.row.access[key],{enabled:true,revision:1});
   evidence.restart=await device.restart();
   assert.deepEqual(await device.call('durable-read'),before,'canonical item, protocol state and local receipt survive actual worker replacement');
+  assert.deepEqual(await device.call('desired-read'),desiredBefore,'four desired states, exact proofs and receipts survive actual worker replacement with global access off');evidence.desiredRestartProof=true;
   assertWorkerLifecycle(evidence.restart);
   const restored=await device.call('durable-restore');evidence.restoreRestart=await device.restart();assertWorkerLifecycle(evidence.restoreRestart);
   const rejected=await device.call('durable-reject');assert.equal(rejected.code,'BNS_RESTORE_EPOCH_CHANGED');assert.deepEqual(rejected.before,restored);assert.deepEqual(rejected.after,restored);

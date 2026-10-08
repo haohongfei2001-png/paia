@@ -36,8 +36,10 @@ export function acceptSequence(current,sequence){
 // an explicit meta namespace. No schema upgrade, arbitrary-store export, network
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
- constructor(repository,{datasetId,deviceId,materialize=null,checkpoint=async()=>{},namespace=null}={}){
+ constructor(repository,{datasetId,deviceId,materialize=null,checkpoint=async()=>{},namespace=null,conflictOwners=null}={}){
   if(!opaque(datasetId)||!opaque(deviceId))fail('BNS_IDENTITY_INVALID');
+  if(conflictOwners!==null&&(!exact(conflictOwners,['contextDesired'])||Object.values(conflictOwners).some(owner=>typeof owner!=='function')))fail('BNS_CONFLICT_OWNER_INVALID');
+  this.conflictOwners=Object.freeze({...conflictOwners});
   this.repository=repository;this.datasetId=datasetId;this.deviceId=deviceId;
   if(namespace!==null&&!opaque(namespace))fail('BNS_NAMESPACE_INVALID');
   this.prefix=`bns:v1:${datasetId}:`;this.fixedNamespace=namespace;this.boundTransactions=new WeakMap();this.materialize=materialize;this.checkpoint=checkpoint;
@@ -151,7 +153,7 @@ export class BrowserNativeSyncCore {
   // replacement. Trusted materializers can reject unmanaged/local owner edits
   // within this same transaction, rolling back all protocol acknowledgements.
   const previousVersions=[];
-  if(materialize&&this.materialize&&current&&!current.purged)for(const revision of current.revisions){const prior=await this.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_REVISION_MISSING');previousVersions.push(prior.operation);}
+  if(materialize&&(this.materialize||this.conflictOwners[operation.type])&&current&&!current.purged)for(const revision of current.revisions){const prior=await this.get(t,'revision',revision);if(!prior||prior.redacted)fail('BNS_REVISION_MISSING');previousVersions.push(prior.operation);}
   const purged=current?.purged||operation.kind==='purge';
   await this.put(t,'revision',[operation.revisionId],{operation:purged?{...operation,value:null}:operation,redacted:purged});
   let revisions=[...(current?.revisions||[])];
@@ -178,6 +180,7 @@ export class BrowserNativeSyncCore {
    const winner=purged?{...operation,value:null}:(await this.get(t,'revision',revisions[0])).operation;
    await this.materialize(t,{operation:winner,head:{revisions,purged:!!purged},origin,previousHead:current||null,previousVersions,core:this,previousCore:this});
   }
+  if(materialize&&!purged&&revisions.length>1&&this.conflictOwners[operation.type])await this.conflictOwners[operation.type](t,{operation,head:{revisions,purged:false},origin,previousHead:current||null,previousVersions,core:this,previousCore:this});
   return {state:purged?'purged':revisions.length>1?'conflict':'applied',revisions};
  }
  async recordReceipt(t,operation){
