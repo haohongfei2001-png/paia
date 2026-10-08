@@ -721,7 +721,7 @@ export class TopicController {
     try{const result=await this.checked('PLACE_LIBRARY_ENTRY',{placement:attempt});
      if(result?.id!==id||!Number.isInteger(result.placementRevision))throw Error('ENTRY_MOVE_UNCONFIRMED');
      attempts.delete(key);
-    }catch(error){if(['CONFLICT','INVALID_REQUEST','SOURCE_UNAVAILABLE','STALE_BASE'].includes(error?.code||error?.message))attempts.delete(key);throw error;}
+    }catch(error){if(['CONFLICT','INVALID_REQUEST','SOURCE_UNAVAILABLE','STALE_BASE','STORAGE_FULL','STORAGE_FAILED'].includes(error?.code||error?.message))attempts.delete(key);throw error;}
    });
    if(current()){if(saved)await this.focusSection(attempt.sectionId,{isCurrent:current});else this.onStatus(tc(attempts.has(key)?'移动结果尚未确认。再次选择移动到章节会核对原请求。':'内容位置已变化或移动未保存，请重新打开操作。'));}
   }finally{this.entryMovePending=false;this.sectionActionPending=false;this.syncSectionActionControls();}
