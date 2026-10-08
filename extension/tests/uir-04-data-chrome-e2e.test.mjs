@@ -56,6 +56,18 @@ async function rejectAndReselectBackup(page,backupBytes){
  await choose({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});await page.locator('#backup-preview').waitFor({state:'visible'});
  assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true,'backup return restores the history destination');
  assert.equal(await page.evaluate(()=>globalThis.__s05Picker===document.getElementById('backup-choose')&&globalThis.__s05File===document.getElementById('backup-file')),true,'failed and valid inspections keep the same picker and file owners');
+
+ // Hold an actual CANCEL response: stale preview and programmatic file events
+ // must not send a restore or start a second session while cancellation owns it.
+ await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime),state={calls:[],held:false,release:null};globalThis.__backupCancelRace=state;state.original=original;chrome.runtime.sendMessage=async message=>{if(message.type.startsWith('PAIA_BACKUP_'))state.calls.push(message.type);const result=await original(message);if(message.type==='PAIA_BACKUP_CANCEL'&&!state.held){state.held=true;await new Promise(resolve=>state.release=resolve);}return result;};});
+ try{
+  await page.locator('#backup-cancel').click();await eventually(()=>page.evaluate(()=>globalThis.__backupCancelRace.held));
+  assert.equal(await page.locator('#backup-choose').isDisabled(),true);assert.equal(await page.locator('#backup-restore').isDisabled(),true);
+  await page.evaluate(()=>{document.getElementById('backup-restore').dispatchEvent(new MouseEvent('click'));document.getElementById('backup-file').dispatchEvent(new Event('change'));document.getElementById('backup-file').dispatchEvent(new Event('change'));document.getElementById('backup-cancel').dispatchEvent(new MouseEvent('click'));});
+  assert.deepEqual(await page.evaluate(()=>globalThis.__backupCancelRace.calls),['PAIA_BACKUP_CANCEL']);
+  await page.evaluate(()=>globalThis.__backupCancelRace.release());await eventually(()=>page.locator('#backup-choose').isEnabled());assert.equal(await page.locator('#backup-preview').isVisible(),false);
+ }finally{await page.evaluate(()=>{globalThis.__backupCancelRace.release?.();chrome.runtime.sendMessage=globalThis.__backupCancelRace.original;delete globalThis.__backupCancelRace;});}
+ await choose({name:'UIR-04-data.paia-backup',mimeType:'application/x-ndjson',buffer:backupBytes});await page.locator('#backup-preview').waitFor({state:'visible'});await eventually(()=>page.locator('#backup-choose').isEnabled());
  await page.evaluate(()=>{delete globalThis.__s05Picker;delete globalThis.__s05File;});
 }
 
