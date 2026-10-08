@@ -8,10 +8,17 @@ let releaseReady=false;
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 import {setAIView} from './ai-reviewed-browser.mjs';
 export {setAIView};
+// Explicit user disclosure, only for journeys that read or edit saved fields.
+// setAIView intentionally retains the production default-collapsed behavior.
+export async function openSavedAI(p){
+ const details=p.locator('[data-ai-saved-fields]');await details.waitFor();
+ if(!await details.evaluate(node=>node.open))await details.locator(':scope > summary').click();
+ assert.equal(await details.evaluate(node=>node.open),true);
+}
 export const rpc=async(p,type,fields={})=>{const r=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-export async function fixture(variant='source',{saved=true,candidate=false,count=2}={}){
- if(variant==='release'&&!releaseReady){execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});releaseReady=true;}
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':'work/current-release'),headless:true}),p=h.archive;
+export async function fixture(variant='source',{saved=true,candidate=false,count=2,releasePath=null}={}){
+ if(variant==='release'&&!releasePath&&!releaseReady){execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});releaseReady=true;}
+ const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':releasePath||'work/current-release'),headless:true}),p=h.archive;
  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC 已有主题 '+variant,operationId:crypto.randomUUID()}}),entries=[];
@@ -44,7 +51,7 @@ export async function refusedAI(p,topicId){
 export async function quiet(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);}
 export async function noApproval(p){assert.equal(await p.locator('[data-ai-candidate] input,[data-ai-candidate] select,[data-candidate-decision],#ai-library-update,[data-ai-first-generation],#start-thought-library').count(),0,'retired generation and approval handlers are absent');}
 export async function editSaved({p,topic},text='SYNTHETIC 人工改写保留\n第二行'){
- await setAIView(p,true);const field=p.locator('[data-ai-field="blockSummary"]').first();await field.waitFor();const before=await savedRow(p,topic.id);await field.fill(text);await field.press('Tab');await eventually(async()=>(await savedRow(p,topic.id)).blockSummary===text,'saved AI remains locally editable');
+ await setAIView(p,true);await openSavedAI(p);const field=p.locator('[data-ai-field="blockSummary"]').first();await field.waitFor();const before=await savedRow(p,topic.id);await field.fill(text);await field.press('Tab');await eventually(async()=>(await savedRow(p,topic.id)).blockSummary===text,'saved AI remains locally editable');
  const after=await savedRow(p,topic.id);assert.equal(after.revision,before.revision+1);assert.equal(after.protections.blockSummary,true);
  const stale=await p.evaluate(edit=>chrome.runtime.sendMessage({type:'EDIT_AI_PRESENTATION',edit}),{topicId:topic.id,field:'blockSummary',value:'SYNTHETIC stale overwrite',expectedRevision:before.revision,operationId:crypto.randomUUID()});assert.equal(stale.error,'STALE_BASE');assert.deepEqual(await savedRow(p,topic.id),after,'stale field edit cannot overwrite human work');return after;
 }

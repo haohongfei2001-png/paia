@@ -76,6 +76,22 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    }finally{await world.run('releaseSettingsStatus?.();chrome.runtime.sendMessage=settingsOriginalSend;chrome.runtime.onMessage.removeListener(settingsInsertTrace);');}
    await enable();assert.equal(capsule(),undefined,'reenabling does not revive the revoked candidate');
   });
+  await check('late availability response cannot resurrect the invalidated current-reply entry',async()=>{
+   await cycle();const suggestion=await shown();await suggestion.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());const frame=card();await eventually(()=>frame.locator('#next-reopen').isVisible());
+   const composerBefore=await page.evaluate(()=>fixture.text());
+   await frame.evaluate(()=>{const original=chrome.runtime.sendMessage;globalThis.__availabilityRace={original,held:false,later:false,finished:false,release:null};chrome.runtime.sendMessage=async function(message,...args){const response=await original.call(this,message,...args);if(message.type==='PAIA_PROMPT_SURFACE_RPC'&&message.command?.type==='next_available'){if(!__availabilityRace.held&&response?.data?.available===true){__availabilityRace.held=true;await new Promise(resolve=>__availabilityRace.release=resolve);__availabilityRace.finished=true;}else if(__availabilityRace.held&&response?.data?.available===false)__availabilityRace.later=true;}return response;};});
+   try{
+    // A real completed reply makes the worker broadcast the trusted change.
+    // This fixture's extension popup page has sender.tab and fails the UI guard.
+    await cycle();await eventually(()=>frame.evaluate(()=>__availabilityRace.held),'new real candidate availability is held');
+    await page.evaluate(()=>fixture.latest.querySelector('p').textContent='Synthetic changed completed reply');
+    await eventually(()=>frame.evaluate(()=>__availabilityRace.later),'real newer unavailable response arrives');await eventually(()=>frame.locator('#next-reopen').isHidden());
+    await frame.evaluate(async()=>{__availabilityRace.release();await new Promise(resolve=>setTimeout(resolve,0));if(!__availabilityRace.finished)throw Error('Held response was not delivered');});
+    assert.equal(await frame.locator('#next-reopen').isHidden(),true,'older actual available reply cannot resurrect invalidated entry');assert.equal(card(),frame);assert.equal(await page.evaluate(()=>fixture.text()),composerBefore);assert.equal(await page.evaluate(()=>fixture.send),0);
+   }finally{await frame.evaluate(()=>{__availabilityRace.release?.();chrome.runtime.sendMessage=__availabilityRace.original;});}
+   await frame.locator('#close').click();await eventually(()=>!card());
+  });
   await check('actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation',async()=>{
    const settings=h.archive;await settings.bringToFront();await eventually(()=>settings.evaluate(()=>!document.hidden),'Settings tab is visible before its native controls are used');await settings.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(settings,'ai');const reset=settings.locator('#settings-prompt-position-reset');await eventually(()=>reset.isEnabled());
    await page.bringToFront();await cycle();const nextFrame=await shown();

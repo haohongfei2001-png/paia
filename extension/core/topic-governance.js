@@ -10,4 +10,15 @@ export async function changeTopicContainer(s,r,restore=false){keys(r,['id','expe
    await journal(s,t,{kind:'placement',entityId:p.id,documentId:topic.id,before:old,after:p,fieldMask:['membership'],actor:'user',reason,important:true,operationId:r.operationId,sourceRecordIds:e?.sourceRecordIds||[]});
   }
   setTopicLifecycle(topic,restore?'active':'removed',{actor:'user',operationId:r.operationId,at:s.clock()});topic.revision++;topic.organizationRevision++;if(!restore){topic.removalOperationId=r.operationId;topic.removedAt=s.clock();}markHuman(topic,'organization',r.operationId,s.clock(),reason);await t.put('topics',topic);await queueSearch(t,'topic',topic);await journal(s,t,{kind:'topic',entityId:topic.id,before,after:topic,fieldMask:['lifecycle','organization'],actor:'user',reason,important:true,operationId:r.operationId,baseRevision:before.revision,afterRevision:topic.revision,sourceRecordIds:[]});return {id:topic.id,revision:topic.revision,removed:!restore,restored:restore};});}
-export async function removedTopics(s){await s.finishFoundation();return s.run(()=>s.repository.transaction(false,async t=>{const items=[];for(const row of await t.all('topics'))if(row.lifecycle==='removed')items.push(await s.safeOrganization(t,'topic',row));return {items};}));}
+export async function removedTopics(s,options={}){
+ keys(options,['cursor','limit']);const {cursor=null,limit=40}=options;
+ if(!Number.isInteger(limit)||limit<1||limit>100)fail();
+ if(cursor!==null){keys(cursor,['version','key','generation','recoveryEpoch'],['version','key','generation','recoveryEpoch']);const k=cursor.key;if(cursor.version!==1||!Array.isArray(k)||k.length!==5||k[0]!==1||![0,1].includes(k[1])||typeof k[2]!=='string'||!/^\d{12}$/.test(k[2])||!Number.isSafeInteger(k[3])||k[3]>0||!idOK(k[4])||!revisionOK(cursor.generation)||!idOK(cursor.recoveryEpoch))fail();}
+ await s.finishFoundation();return s.run(()=>s.repository.transaction(false,async t=>{
+  const generation=(await t.get('meta','backup-data-generation'))?.value??0,recoveryEpoch=(await t.get('meta','recovery-restore-epoch'))?.value??'initial';if(!revisionOK(generation)||!idOK(recoveryEpoch))fail();
+  if(cursor&&(cursor.generation!==generation||cursor.recoveryEpoch!==recoveryEpoch))return {items:[],nextCursor:null,cursorInvalid:true};
+  const page=await t.rangePage('topics','byIndex',prefix([1]),cursor?.key??null,limit),items=[];
+  for(const {value:row}of page.rows)if(row.lifecycle==='removed'&&!row.redirectTo)items.push(await s.safeOrganization(t,'topic',row));
+  return {items,nextCursor:page.next?{version:1,key:page.next,generation,recoveryEpoch}:null};
+ }));
+}

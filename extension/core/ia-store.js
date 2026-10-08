@@ -15,6 +15,15 @@ const blockSnapshot=b=>({libraryText:b.libraryText,note:b.note,excluded:b.exclud
 const thoughtSnapshot=t=>({title:t.title,thoughtText:t.thoughtText,note:t.note,topics:t.topics,types:t.types});
 const major=(a,b)=>{const x=a??'',y=b??'';let start=0,end=0;while(start<Math.min(x.length,y.length)&&x[start]===y[start])start++;while(end<Math.min(x.length,y.length)-start&&x[x.length-end-1]===y[y.length-end-1])end++;return Math.max(x.length,y.length)-start-end>=200||(x.length>=40&&x.length-start-end>x.length/2);};
 
+// One revision planner for ordinary and optional journaled Input writes.
+export function inputEditJournalData(a,b,request){const removed=a.excluded!==b.excluded||!!request.removeScope,reason=removed?(b.excluded?'remove':'restore'):request.revisionReason==='restore'?'restore':major(a.libraryText,b.libraryText)?'major_edit':'edit';return {kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(a),after:blockSnapshot(b),reason,important:reason!=='edit',sourceRecordIds:refIds(b)};}
+export async function planInputRevision(t,data,{now,uuid}){
+ const entityKey=entity(data.kind,data.entityId),range=prefix([entityKey]),prior=data.important?null:await t.edge('revisions','byList',range,'prev');
+ if(!data.important&&prior&&!prior.important&&prior.reason===data.reason&&Date.parse(now)-Date.parse(prior.windowStartedAt||prior.at)<REVISION_POLICY.coalesceMs&&same(prior.after,data.before))return {row:{...prior,after:data.after,at:now},sequence:null,prune:false};
+ const sequence=structuredClone((await t.get('meta','revision-sequence'))||{id:'revision-sequence',value:0});sequence.value++;
+ return {row:{...data,id:uuid(),entityKey,sequence:sequence.value,windowStartedAt:now,at:now,listKey:[entityKey,sequence.value],documentList:[data.documentId,sequence.value]},sequence,prune:!['baseline','migration'].includes(data.reason)};
+}
+
 // The old blocks/documents are the physical Input stores. No legacy authored
 // fields are renamed or synthesized into Thoughts. Only this background store writes.
 export class IAStore extends IndexedArchiveStore {
@@ -55,19 +64,15 @@ export class IAStore extends IndexedArchiveStore {
   for(const id of refIds(b)){const ix=await t.get('recordIndex',id);if(!ix)continue;const key=ix.sourceKey||'legacy:'+id;if(removed)await t.put('inputRemovals',{id:key,blockId:b.id,at:this.clock(),reason:'user_removed'});else await t.delete('inputRemovals',key);}
  }
  async journal(t,data){
-  const now=this.clock(),entityKey=entity(data.kind,data.entityId),range=prefix([entityKey]);
-  const prior=data.important?null:await t.edge('revisions','byList',range,'prev');
-  if(!data.important&&prior&&!prior.important&&prior.reason===data.reason&&Date.parse(now)-Date.parse(prior.windowStartedAt||prior.at)<REVISION_POLICY.coalesceMs&&same(prior.after,data.before)){
-   await t.put('revisions',{...prior,after:data.after,at:now});return prior.id;
-  }
-  const seq=(await t.get('meta','revision-sequence'))||{id:'revision-sequence',value:0};seq.value++;await t.put('meta',seq);const id=this.uuid();await t.put('revisions',{...data,id,entityKey,sequence:seq.value,windowStartedAt:now,at:now,listKey:[entityKey,seq.value],documentList:[data.documentId,seq.value]});if(!['baseline','migration'].includes(data.reason))await this.pruneEntity(t,entityKey);return id;
+  const plan=this.inputWorkingJournal?.revisionPlan(t,data)??await planInputRevision(t,data,{now:this.clock(),uuid:()=>this.uuid()});
+  if(plan.sequence)await t.put('meta',plan.sequence);await t.put('revisions',plan.row);if(plan.prune)await this.pruneEntity(t,plan.row.entityKey);return plan.row.id;
  }
  async pruneEntity(t,key){
   // Per-entity traversal, newest first; preserve ALL younger entries OR latest 20 important.
-  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(this.clock())-REVISION_POLICY.days*86400000;let important=0;
+  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(this.inputWorkingJournal?.pruneTime(t)??this.clock())-REVISION_POLICY.days*86400000;let important=0;
   await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(Date.parse(row.at)<cutoff&&(!row.important||important>REVISION_POLICY.importantMinimum))c.delete();c.continue();};});
  }
- pruneRevisions(){return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
+ pruneRevisions(){if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
  async afterInputEdit(t,before,after,oldDoc,newDoc,request){
   for(let i=0;i<after.length;i++){
    const a=before[i],b=after[i];await this.initializeInput(t,a);const meta=await t.get('inputStates',b.id);
@@ -77,8 +82,7 @@ export class IAStore extends IndexedArchiveStore {
    if(textChanged||removed)meta.deltaSequence=await nextSequence(t,'input-delta-sequence');
    await t.put('inputStates',meta);
    if((textChanged||removed)&&this.repository.thoughtLibrary)await propagateInputWorkingChange(this,t,a,b,meta,request);
-   const reason=removed?(b.excluded?'remove':'restore'):request.revisionReason==='restore'?'restore':major(a.libraryText,b.libraryText)?'major_edit':'edit';
-   await this.journal(t,{kind:'input',entityId:b.id,documentId:b.documentId,before:blockSnapshot(a),after:blockSnapshot(b),reason,important:reason!=='edit',sourceRecordIds:refIds(b)});
+   await this.journal(t,inputEditJournalData(a,b,request));
    if(textChanged||removed)await this.invalidate(t,b.id,b.excluded?'input_removed':'source_updated',meta.contentRevision,{operationId:request.operationId,revisionReason:request.revisionReason});
   }
   if(request.title!==undefined){await this.journal(t,{kind:'title',entityId:newDoc.id,documentId:newDoc.id,before:{title:oldDoc.userTitle},after:{title:newDoc.userTitle},reason:request.revisionReason==='restore'?'restore':'title_edit',important:true,sourceRecordIds:[]});}

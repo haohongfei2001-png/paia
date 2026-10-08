@@ -1,3 +1,5 @@
+import {assertAssistIntent,validateAssistIntent,qualifiedCoverageId} from './assist-intent-binding.js';
+import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX,HUMAN_FENCE,deltaDescription,deltaSignature} from './delta.js';
 import {JOB_TYPES,CHILD_LIMITS,fail,opaque,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor} from './contracts.js';
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1';
@@ -12,7 +14,7 @@ async function count(t,key){const row=await t.get('meta',COUNTERS)||{id:COUNTERS
 // Only constructor-injected domain owners can commit. There is no production
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
- constructor(store,{resolveAuthority=null,verifyOutcome=null,committers={}}={}){this.s=store;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,committers={}}={}){this.s=store;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope){
@@ -21,7 +23,7 @@ export class AIUsageFoundation {
   if(!equal(resolved?.scope,{evidenceKeys:request.evidenceKeys,coverage:request.coverage}))fail('UNAVAILABLE');
   const {scope:approvedScope,...answer}=resolved,authority=validateAuthority(answer,type),gate=await t.get('meta','gate');
   if(gate?.enabled!==true||(await t.get('meta','thought-library'))?.sealed)fail('UNAVAILABLE');
-  return {...authority,gateEpoch:gate.epoch,restoreEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',humanFence:(await t.get('meta',HUMAN_FENCE))?.value??0};
+  return {...authority,gateEpoch:gate.epoch,restoreEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',humanFence:type==='AI_ASSIST'&&scope.assistIntent?null:(await t.get('meta',HUMAN_FENCE))?.value??0};
  }
  async collect({cursor=null,limit=25,facets=['topic','context','filter']}={}){
   if(!Array.isArray(facets)||!facets.length||facets.some(f=>!['topic','context','filter'].includes(f))||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith(DIRTY_PREFIX)))fail();
@@ -32,9 +34,38 @@ export class AIUsageFoundation {
   if(!Array.isArray(keys)||!keys.length||keys.length>100||keys.some(key=>typeof key!=='string'||key.length>450)||new Set(keys).size!==keys.length)fail();
   return this.read(async t=>{const items=[];for(const key of keys){const row=await t.get('meta',KNOWN_PREFIX+key);if(!row||row.descriptor.removed||row.descriptor.fenceOnly)fail('STALE_BASE');items.push({key,signature:row.signature,descriptor:row.descriptor});}return {items};});
  }
+ // Bounded scheduling-index maintenance, not job/receipt deletion or a retry.
+ // Preserve every original DEFER field under a non-scheduling history key.
+ async archiveObsoleteDeferred({cursor=null,limit=100}={}){
+  if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith('aiu:defer:')||cursor.length>2000))fail();
+  return this.write(async t=>{
+   const page=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',after:cursor,limit});let archived=0;
+   for(const {value:row}of page.rows){
+    let job;
+    try{
+     exact(row,['id','kind','jobId','state','stateKey','sequence','unit','retryCondition','signature']);
+     job=await t.get('organizerJobs',row.jobId);
+     if(row.kind!==KIND||row.state!=='DEFERRED'||row.stateKey!==0||!integer(row.sequence)||!opaque(row.retryCondition)||typeof row.signature!=='string'||!job||job.kind!==KIND)fail();
+     validateCoverage([row.unit],job.type);
+     if(row.id!=='aiu:defer:'+canonical([row.jobId,unitKey(row.unit)])||!job.childCoverage?.[row.sequence]?.some(u=>equal(u,row.unit))||!job.items?.some(i=>i.key===row.unit.key&&i.signature===row.signature))fail();
+    }catch(error){if(error.code==='INVALID_REQUEST')fail('DEFER_RECORD_INVALID');throw error;}
+    const known=await t.get('meta',KNOWN_PREFIX+row.unit.key),ack=await t.get('organizerWorkItems',qualifiedCoverageId(row.unit,job));
+    const changed=known?.descriptor?.key===row.unit.key&&typeof known.signature==='string'&&(known.signature!==row.signature||known.descriptor.removed===true);
+    const acknowledged=ack?.kind===KIND&&ack.state==='ACKNOWLEDGED'&&ack.signature===row.signature&&equal(ack.unit,row.unit);
+    if(!changed&&!acknowledged)continue;
+    const history={...row,id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
+    if(!prior)await t.put('organizerWorkItems',history);
+    await t.delete('organizerWorkItems',row.id);archived++;
+   }
+   return {scanned:page.rows.length,archived,nextCursor:page.next};
+  });
+ }
  async counters(){return this.read(async t=>await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0});}
  async cacheIntent(){await this.write(t=>count(t,'cacheIntent'));}
  async current(t,job,{allowCancelled=false}={}){
+  await assertAssistIntent(this,t,job);
+  await assertOrganizeStyle(this.s,t,job);
   if(!equal(await this.authority(t,job.type,job),job.authority)||!allowCancelled&&job.cancelEpoch!==0)fail('CANCELLED');
   for(const item of job.items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||known.descriptor.removed)fail('STALE_BASE');
    if(!await this.s.sourcePresent(t,item.descriptor.sourceRecordIds))fail('STALE_BASE');
@@ -42,25 +73,32 @@ export class AIUsageFoundation {
    else if(item.descriptor.kind==='context_item'){const row=await t.get('meta','context-cards:v1'),live=row?.items?.find(x=>x.id===item.descriptor.entityId);if(!live||live.lifecycle!=='active'||live.revision!==item.descriptor.revision)fail('STALE_BASE');}
    else {const table={library_entry:'thoughts',topic:'topics',section:'sections',placement:'placements'}[item.descriptor.kind],live=table&&await t.get(table,item.descriptor.recordId||item.descriptor.entityId);if(!live||['removed','invalidated','quarantined'].includes(live.lifecycle))fail('STALE_BASE');}
   }
+  await assertAssistIntent(this,t,job);
+  await assertOrganizeStyle(this.s,t,job);
  }
  async plan(request){
   // Capture caller-owned evidence before any authority or storage await.
   request=structuredClone(request);
-  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent'],['type','items','coverage','contractVersion','routeVersion','intent']);
+  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent'],['type','items','coverage','contractVersion','routeVersion','intent']);
   const {type,items,contractVersion,routeVersion,intent}=request;
+  const assisted=Object.hasOwn(request,'assistIntent'),assistIntent=assisted?validateAssistIntent(type,request.assistIntent):null;
+  if(type==='AI_ASSIST'&&(!assisted||typeof this.resolveAssistIntent!=='function'))fail('UNAVAILABLE');
+  const styled=Object.hasOwn(request,'organizeStyle'),organizeStyle=styled?validateOrganizeStyle(type,request.organizeStyle):null;
   if(!JOB_TYPES.includes(type)||!['explicit','maintenance'].includes(intent)||type!=='AI_MAINTENANCE'&&intent!=='explicit'||!opaque(contractVersion)||!opaque(routeVersion)||!Array.isArray(items)||!items.length||items.length>100)fail();
   const seen=new Set();for(const item of items){exact(item,['key','signature','descriptor']);if(typeof item.key!=='string'||item.key.length>450||typeof item.signature!=='string'||item.signature.length>16000||seen.has(item.key))fail();seen.add(item.key);}
   const coverage=validateCoverage(request.coverage,type);if(coverage.some(u=>!seen.has(u.key))||items.some(i=>!coverage.some(u=>u.key===i.key))||type==='AI_MAINTENANCE'&&coverage.every(u=>u.facet==='filter'))fail();
   const children=(request.children||[coverage]).map(c=>validateCoverage(c,type)).sort((a,b)=>canonical(a).localeCompare(canonical(b)));
   if(!children.length||children.length>CHILD_LIMITS[type]||!equal(children.flat().map(unitKey).sort(),coverage.map(unitKey).sort()))fail();
-  const snapshot=await this.read(async t=>{const authority=await this.authority(t,type,{items,coverage});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}return {authority};});
+  const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...(assisted?{assistIntent}:{})});return {authority};});
   const scope=items.map(i=>({key:i.key,signature:i.signature})).sort((a,b)=>a.key.localeCompare(b.key));
-  const id='aiu:job:'+await digest({type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch});
+  const identity={...(assisted?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
+  const organizeSemanticKey=styled?await digest({...identity,style:styleSemantics(organizeStyle)}):null;
+  const id='aiu:job:'+await digest(styled?{...identity,organizeStyle}:identity);
   const childIds=await Promise.all(children.map((c,index)=>digest([id,index,c]).then(hash=>'aiu:child:'+hash)));
   const targetScopes=[...new Set(coverage.map(c=>c.scope))].sort();
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':targetScopes]);
-  const proposed={id,kind:KIND,type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
+  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:KIND,type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   return this.write(async t=>{
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(prior.kind!==KIND)fail();
@@ -79,7 +117,7 @@ export class AIUsageFoundation {
     for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.attemptCount)fail('OUTCOME_UNKNOWN');if(receipt){receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';await t.put('organizerUsage',receipt);}}
     job.cancelEpoch++;job.state='CANCELLED_BEFORE_DISPATCH';job.stateKey=1;await t.put('organizerJobs',job);
    }}
-   const allCovered=[];for(const unit of coverage){const saved=await t.get('organizerWorkItems',coverId(unit.key,unit.facet,unit.scope)),item=items.find(i=>i.key===unit.key);if(saved?.signature===item.signature)allCovered.push(unitKey(unit));}
+   const allCovered=[];for(const unit of coverage){const saved=await t.get('organizerWorkItems',qualifiedCoverageId(unit,proposed)),item=items.find(i=>i.key===unit.key);if(saved?.signature===item.signature)allCovered.push(unitKey(unit));}
    if(allCovered.length===coverage.length){await count(t,'skippedNoDelta');return {id:null,type,state:'NO_DELTA',childIds:[],committedCoverage:allCovered,cancelEpoch:0};}
    // No coarse checkpoint is advanced: exact incomplete facet/scope units stay.
    if(type==='AI_MAINTENANCE')for(const item of items){let dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(dirty&&dirty.signature!==item.signature)fail('STALE_BASE');if(!dirty)dirty={...(await t.get('meta',KNOWN_PREFIX+item.key)),id:DIRTY_PREFIX+item.key,requirements:[],pendingFacets:[]};const needed=coverage.filter(c=>c.key===item.key&&!allCovered.includes(unitKey(c)));dirty.requirements=[...new Set([...(dirty.requirements||[]),...coverage.filter(c=>c.key===item.key).map(unitKey)])].sort();dirty.pendingFacets=[...new Set([...(dirty.pendingFacets||['topic','context']),...needed.map(c=>c.facet)])].sort();await t.put('meta',dirty);}
@@ -109,7 +147,7 @@ export class AIUsageFoundation {
    // second financial ledger and never grants admission.
    await t.put('meta',{id:dispatchFenceId(childId),version:1,jobId:id,childId});await t.put('meta',{id:job.flightId,jobId:id,dispatched:true});
    receipt.state='DISPATCHED';receipt.attemptCount=1;receipt.provider=descriptor;receipt.spendState='POSSIBLY_BILLABLE';await t.put('organizerUsage',receipt);job.state='DISPATCHED';await t.put('organizerJobs',job);await count(t,'physicalAttempt');
-   return {request:{logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage:job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),evidence:job.items.map(i=>({key:i.key,signature:i.signature,lineage:i.descriptor.lineage})),automaticRetries:0}};
+   return {request:{...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage:job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),evidence:job.items.map(i=>({key:i.key,signature:i.signature,lineage:i.descriptor.lineage})),automaticRetries:0}};
   });
   if(prepared.reused)return prepared;
   // Only the provider-neutral metadata boundary is exercised in this slice.
@@ -185,10 +223,11 @@ export class AIUsageFoundation {
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);
    if(outcome==='DEFER'){if(!retryCondition)fail();for(const unit of remaining)await t.put('organizerWorkItems',{id:'aiu:defer:'+canonical([id,unitKey(unit)]),kind:KIND,jobId:id,state:'DEFERRED',stateKey:0,sequence:index,unit,retryCondition,signature:job.items.find(i=>i.key===unit.key).signature});return {...safeJob(job),deferred:true};}
    const commit=this.committers[facet];if(typeof commit!=='function')fail('UNAVAILABLE');
-   const result=await commit(t,Object.freeze({logicalJobId:id,childOperationId:childId,units:structuredClone(remaining),outcome}));
+   const result=await commit(t,Object.freeze({...(job.organizeStyle?{organizeStyle:structuredClone(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,units:structuredClone(remaining),outcome}));
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),remaining.map(unitKey).sort()))fail('STALE_BASE');
+   if(job.organizeStyle||job.assistIntent)await this.current(t,job);
    // Domain mutation, exact coverage and receipt are one IndexedDB transaction.
-   for(const unit of remaining){const item=job.items.find(i=>i.key===unit.key);await t.put('organizerWorkItems',{id:coverId(unit.key,unit.facet,unit.scope),kind:KIND,jobId:id,state:'ACKNOWLEDGED',stateKey:1,sequence:index,unit,signature:item.signature,outcome,inputIds:item.descriptor.inputIds,sourceRecordIds:item.descriptor.sourceRecordIds});job.committedCoverage.push(unitKey(unit));}
+   for(const unit of remaining){const item=job.items.find(i=>i.key===unit.key);await t.put('organizerWorkItems',{id:qualifiedCoverageId(unit,job),kind:KIND,jobId:id,state:'ACKNOWLEDGED',stateKey:1,sequence:index,unit,signature:item.signature,outcome,inputIds:item.descriptor.inputIds,sourceRecordIds:item.descriptor.sourceRecordIds});job.committedCoverage.push(unitKey(unit));}
    if(job.type==='AI_MAINTENANCE')for(const item of job.items){const dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(!dirty||dirty.signature!==item.signature)continue;const pending=[];for(const facet of dirty.pendingFacets||['topic','context']){const requirements=dirty.requirements.map(encoded=>JSON.parse(encoded)).filter(([,f])=>f===facet);let complete=requirements.length>0;for(const [key,f,scope]of requirements){const ack=await t.get('organizerWorkItems',coverId(key,f,scope));if(ack?.signature!==item.signature){complete=false;break;}}if(!complete)pending.push(facet);}if(!pending.length)await t.delete('meta',DIRTY_PREFIX+item.key);else await t.put('meta',{...dirty,pendingFacets:pending});}
    const childComplete=job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));receipt.state=childComplete?'COMMITTED':local?'PLANNED':'VALIDATED';receipt.stateKey=childComplete?1:0;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
    job.state=job.coverage.every(u=>job.committedCoverage.includes(unitKey(u)))?'COMMITTED':'VALIDATED';await this.aggregate(t,job);job.stateKey=job.state==='COMMITTED'?1:0;await t.put('organizerJobs',job);if(outcome==='NO_CHANGE')await count(t,'localResolved');return safeJob(job);

@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 import {IDBFactory, IDBKeyRange, IDBTransaction} from '../vendor/fake-indexeddb/build/esm/index.js';
 import {ImmutableObjects} from './immutable-objects.mjs';
 import {instrumentedExtension, root} from './storage-harness.mjs';
-import {assertReceipt, CASES} from './receipt.mjs';
+import {assertReceipt, CASES, assertInputWorkingReceipt, INPUT_WORKING_PATHS, INPUT_WORKING_CASES} from './receipt.mjs';
 import {assertPromptCrashOutcome, portablePrompt, LifetimeNetworkLedger, assertNetworkLedger, assertWorkerLifecycle} from './proof-oracles.mjs';
 
 function promptTransition(text = 'Synthetic distinct new text') {
@@ -99,6 +99,15 @@ test('native receipt contract cannot turn missing cases or model evidence into n
   };
   const validate = value => assertReceipt(value, {head: receipt.head, variant: 'source'});
   validate(receipt);
+  assert.throws(()=>assertReceipt(receipt,{head:receipt.head,variant:'source',requiredFilterIntent:true}));
+  const extendedNetwork=new LifetimeNetworkLedger();extendedNetwork.observe(networkIdentity('life-0'),'opened');
+  const extendedLife=[...lifecycle,{phase:{name:'restart-boundary',lifetime:'life-6',hasNativeTransaction:false},beforeLifetime:'life-6',afterLifetime:'life-7',stopped:true,restarted:true,interruptedCall:'terminated'}].map(event=>{
+   const before=networkIdentity(event.beforeLifetime),after=networkIdentity(event.afterLifetime);extendedNetwork.observe(before,'before-stop');const pausedNetwork=extendedNetwork.observe(before,'paused-before-stop');extendedNetwork.restarted(before,after);return {...event,pausedNetwork};
+  });extendedNetwork.finish(networkIdentity('life-7'));
+  const extended={...receipt,destinationNetwork:extendedNetwork.evidence,filterIntentRestart:extendedLife[6],filterIntentCases:Array.from({length:23},(_,i)=>'synthetic Keep case '+i),filterIntentHashes:Object.fromEntries(['core/browser-native-sync/codecs.js','core/browser-native-sync/filter-intent-journal.js','core/smart-filter-store.js'].map(p=>[p,'f'.repeat(64)]))};
+  const validateKeep=r=>assertReceipt(r,{head:receipt.head,variant:'source',requiredFilterIntent:true});validateKeep(extended);
+  for(const field of ['filterIntentRestart','filterIntentCases','filterIntentHashes']){const missing=structuredClone(extended);delete missing[field];assert.throws(()=>validateKeep(missing));}
+  for(const value of [false,null,undefined])assert.throws(()=>validateKeep({...extended,filterIntentRestart:value}));
   const completedRestart = structuredClone(receipt); completedRestart.committedRestart.interruptedCall = 'returned'; completedRestart.committedRestart.completedNoopValue = true; validate(completedRestart);
   for (const change of [{stopped: false}, {afterLifetime: completedRestart.committedRestart.beforeLifetime}, {completedNoopValue: false}]) { const invalid = structuredClone(completedRestart); Object.assign(invalid.committedRestart, change); assert.throws(() => validate(invalid)); }
   for (const index of [0, 1, 2, 3]) { const invalid = structuredClone(receipt); Object.assign(invalid.terminations[index], {interruptedCall: 'returned', completedNoopValue: true}); assert.throws(() => validate(invalid)); }
@@ -177,4 +186,15 @@ test('copied fixture calls actual owners and preserves abort, quota, restore and
     await copy.cleanup();
   }
   assert.equal(await readFile(join(root, 'background/service-worker.js'), 'utf8'), original);
+});
+
+
+test('Working receipt refuses stale, partial, network-erased and false activation evidence',()=>{
+ const before=networkIdentity('working-before'),after=networkIdentity('working-after'),ledger=new LifetimeNetworkLedger();
+ ledger.observe(before,'opened');ledger.observe(before,'before-stop');const pausedNetwork=ledger.observe(before,'paused-before-stop');ledger.restarted(before,after);ledger.finish(after);
+ const restart={beforeLifetime:before.lifetime,afterLifetime:after.lifetime,phase:{name:'restart-boundary',lifetime:before.lifetime,hasNativeTransaction:false},stopped:true,restarted:true,interruptedCall:'returned',completedNoopValue:true,pausedNetwork};
+ const receipt={schema:1,head:'a'.repeat(40),tree:'b'.repeat(40),variant:'source',result:'PASS',scope:'optional-local-Input-Working-publication',productionActivation:false,remoteMaterializer:false,fullRecovery:false,cases:[...INPUT_WORKING_CASES],hashes:Object.fromEntries(INPUT_WORKING_PATHS.map(p=>[p,'c'.repeat(64)])),browserVersion:'1.0 synthetic contract fixture',restart,isolation:{nativeFactory:true,networkAttempts:0,httpRequests:0,networkLedger:ledger.evidence}};
+ const validate=r=>assertInputWorkingReceipt(r,{head:receipt.head,tree:receipt.tree,variant:'source'});validate(receipt);assert.throws(()=>assertInputWorkingReceipt({...receipt,head:undefined,tree:undefined},{variant:'source'}));
+ for(const change of [{head:'d'.repeat(40)},{tree:'d'.repeat(40)},{result:'IN_PROGRESS'},{variant:'release'},{scope:'full-sync'},{cases:receipt.cases.slice(1)},{cases:Array(14).fill('duplicate')},{cases:receipt.cases.map((x,i)=>i===0?'other case':x)},{hashes:{}},{productionActivation:true},{remoteMaterializer:true},{fullRecovery:true},{browserVersion:''}])assert.throws(()=>validate({...receipt,...change}));
+ for(const mutate of [r=>r.restart.phase.name='other-phase',r=>r.restart.phase.hasNativeTransaction=true,r=>r.restart.stopped=false,r=>r.restart.afterLifetime=r.restart.beforeLifetime,r=>r.restart.pausedNetwork={},r=>r.isolation.httpRequests=1,r=>r.isolation.networkLedger.observations[1].networkAttempts.push('https://synthetic.invalid/denied'),r=>r.isolation.networkLedger.observations.splice(2,1)]){const copy=structuredClone(receipt);mutate(copy);assert.throws(()=>validate(copy));}
 });

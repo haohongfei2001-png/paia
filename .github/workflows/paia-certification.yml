@@ -131,7 +131,7 @@ jobs:
   current_browser:
     needs: mode
     if: needs.mode.outputs.full == 'true'
-    name: Current Browser ${{ matrix.index }}/7
+    name: Current Browser ${{ matrix.index }}/9
     runs-on: ubuntu-latest
     timeout-minutes: 18
     strategy:
@@ -139,19 +139,23 @@ jobs:
       matrix:
         include:
           - index: 1
-            shard: '1/7'
+            shard: '1/9'
           - index: 2
-            shard: '2/7'
+            shard: '2/9'
           - index: 3
-            shard: '3/7'
+            shard: '3/9'
           - index: 4
-            shard: '4/7'
+            shard: '4/9'
           - index: 5
-            shard: '5/7'
+            shard: '5/9'
           - index: 6
-            shard: '6/7'
+            shard: '6/9'
           - index: 7
-            shard: '7/7'
+            shard: '7/9'
+          - index: 8
+            shard: '8/9'
+          - index: 9
+            shard: '9/9'
     defaults:
       run:
         working-directory: extension
@@ -298,7 +302,7 @@ jobs:
     needs: mode
     if: needs.mode.outputs.full == 'true'
     name: macOS Secure Store Certification
-    runs-on: macos-latest
+    runs-on: macos-26-intel
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -346,7 +350,7 @@ jobs:
     needs: mode
     if: needs.mode.outputs.full == 'true'
     name: macOS Chrome tab discard lifecycle
-    runs-on: macos-latest
+    runs-on: macos-26-intel
     timeout-minutes: 15
     defaults:
       run:
@@ -502,7 +506,7 @@ jobs:
         run: |
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.sha }}
@@ -511,12 +515,14 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
-          import {assertReceipt} from './tests/native-sync/receipt.mjs';
+          import {assertReceipt,assertInputWorkingReceipt} from './tests/native-sync/receipt.mjs';
           import {assertWorkerLifecycle,assertNetworkLedger} from './tests/native-sync/proof-oracles.mjs';
-          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant}));
+          const receipts = ['source','release'].map(variant => assertReceipt(JSON.parse(readFileSync(`work/qa-bns-native-storage/${variant}.json`)), {head:process.env.PAIA_TESTED_HEAD,variant,requiredFilterIntent:true}));
           const tree = execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim();
           for (const receipt of receipts) assert.equal(receipt.tree,tree);
           assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes);
+          assert.deepEqual(receipts[0].filterIntentCases,receipts[1].filterIntentCases);
+          assert.deepEqual(receipts[0].filterIntentHashes,receipts[1].filterIntentHashes);
           assert.equal(receipts[0].browserVersion,receipts[1].browserVersion);
           const publications = ['source','release'].map(variant => {
             const receipt=JSON.parse(readFileSync(`work/qa-bns-publication/${variant}.json`));
@@ -538,6 +544,25 @@ jobs:
             for(const event of receipt.restarts){assertWorkerLifecycle(event);const paused=receipt.isolation.networkLedger.observations.filter(value=>value.point==='paused-before-stop'&&value.lifetime===event.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(event.pausedNetwork,paused[0]);}
             assert.deepEqual(receipt.productionHashes,publications.find(value=>value.variant===variant).productionHashes);
           }
+          const contexts = ['source','release'].map(variant => {
+            const receipt=JSON.parse(readFileSync(`work/qa-bns-context-info/${variant}.json`));
+            assert.equal(receipt.schema,1);assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.tree,tree);assert.equal(receipt.variant,variant);assert.equal(receipt.result,'PASS');
+            assert.equal(receipt.scope,'manual Info/Rules/Now and four-card desired optional owners only');assert.equal(receipt.provider,false);assert.equal(receipt.fullCanonicalRestore,false);
+            assert.equal(receipt.ownerCases.length,94);assert.equal(receipt.desiredRestartProof,true);assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);assert.equal(receipt.isolation.httpRequests,0);
+            const restarts=[receipt.restart,receipt.restoreRestart,receipt.continuationRestart];
+            assert.deepEqual(receipt.continuation,{before:[['info',129],['rules',129],['now',129]],after:[['info',130],['rules',130],['now',130]]});
+            for(const event of restarts)assertWorkerLifecycle(event);
+            assertNetworkLedger(receipt.isolation.networkLedger,restarts);
+            const paths=['core/idb-repository.js','core/prompt-reuse-service.js','core/browser-native-sync/core.js','core/browser-native-sync/prompt-journal.js','core/browser-native-sync/checkpoints.js','core/browser-native-sync/segments.js','core/browser-native-sync/manual-owners.js','core/context-cards.js','core/browser-native-sync/context-journal.js','core/browser-native-sync/context-desired-journal.js','core/browser-native-sync/codecs.js','core/browser-native-sync/canonical-readiness.js'];
+            assert.deepEqual(Object.keys(receipt.productionHashes).sort(),paths.sort());
+            for(const value of Object.values(receipt.productionHashes))assert.match(value,/^[a-f0-9]{64}$/);
+            return receipt;
+          });
+          assert.deepEqual(contexts[0].ownerCases,contexts[1].ownerCases);
+          assert.deepEqual(contexts[0].productionHashes,contexts[1].productionHashes);
+          assert.equal(contexts[0].browserVersion,contexts[1].browserVersion);
+          const working=['source','release'].map(variant=>assertInputWorkingReceipt(JSON.parse(readFileSync(`work/qa-bns-input-working/${variant}.json`)),{head:process.env.PAIA_TESTED_HEAD,tree,variant}));
+          assert.deepEqual(working[0].cases,working[1].cases);assert.deepEqual(working[0].hashes,working[1].hashes);assert.equal(working[0].browserVersion,working[1].browserVersion);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -549,6 +574,8 @@ jobs:
             extension/work/qa-bns-native-storage/
             extension/work/qa-bns-publication/
             extension/work/qa-bns-retirement/
+            extension/work/qa-bns-context-info/
+            extension/work/qa-bns-input-working/
           if-no-files-found: error
           retention-days: 7
 

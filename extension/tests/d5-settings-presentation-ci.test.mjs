@@ -42,11 +42,11 @@ test('Settings pinned-browser receipt cannot impose fields on the independent Or
 });
 
 
-test('full Settings owner shard uses the same verified headed Chrome without adding jobs or budget',()=>{
+test('full Settings owner shard retains the verified Chrome and original per-job budget',()=>{
  const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  const browser=full.slice(full.indexOf('  current_browser:'),full.indexOf('  historical_browser:'));
  const pin=browser.slice(browser.indexOf('      - name: Pin verified full Chrome for Settings native evidence'),browser.indexOf('      - name: Verify the installed Chrome actually launches'));
  assert.match(pin,/if: matrix.index == 6/);assert.match(pin,/155\.0\.8059\.39/);assert.match(pin,/55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea/);
  assert.match(pin,/sha256sum --check --status/);assert.match(pin,/PAIA_CHROME=/);assert.match(pin,/CHROME_PATH=/);assert.match(pin,/PAIA_DIAGNOSTIC_BROWSER_SHA256=/);
- assert.match(browser,/timeout-minutes: 18/);assert.equal([...browser.matchAll(/index: \d/g)].length,7);
+ assert.match(browser,/timeout-minutes: 18/);assert.equal([...browser.matchAll(/index: \d/g)].length,9);
 });

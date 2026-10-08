@@ -17,10 +17,10 @@ test('Sync native proof stays an exact-head opt-in draft job with complete owner
  assert.match(job,/node --test tests\/browser-native-sync-\*.test.mjs tests\/cpv1-09-prompt-service.test.mjs tests\/cpv1-09-prompt-family.test.mjs tests\/cpv1-09-prompt-security.test.mjs tests\/native-sync\/harness-contract.test.mjs/);
  assert.match(job,/xvfb-run -a node --test --test-concurrency=1 tests\/native-sync\/storage-chrome.test.mjs tests\/native-sync\/publication-chrome.test.mjs tests\/native-sync\/retirement-chrome.test.mjs/);
  assert.match(job,/test "\$\(git rev-parse HEAD\)" = "\$PAIA_TESTED_HEAD"/);
- for(const text of ["['source','release'].map",'assertReceipt(JSON.parse','head:process.env.PAIA_TESTED_HEAD,variant',"['rev-parse','HEAD^{tree}']",'assert.equal(receipt.tree,tree)','assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes)','assert.equal(receipts[0].browserVersion,receipts[1].browserVersion)'])assert.ok(job.includes(text),text);
+ for(const text of ["['source','release'].map",'assertReceipt(JSON.parse','head:process.env.PAIA_TESTED_HEAD,variant',"['rev-parse','HEAD^{tree}']",'assert.equal(receipt.tree,tree)','assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes)','requiredFilterIntent:true','assert.deepEqual(receipts[0].filterIntentCases,receipts[1].filterIntentCases)','assert.deepEqual(receipts[0].filterIntentHashes,receipts[1].filterIntentHashes)','assert.equal(receipts[0].browserVersion,receipts[1].browserVersion)'])assert.ok(job.includes(text),text);
  assert.match(job,/if: always\(\)\n        uses: actions\/upload-artifact@v4/);
  assert.match(job,/name: bns-native-storage-\$\{\{ github.event.pull_request.head.sha \}\}/);
- assert.match(job,/path: \|\n            extension\/work\/qa-bns-native-storage\/\n            extension\/work\/qa-bns-publication\/\n            extension\/work\/qa-bns-retirement\/\n          if-no-files-found: error\n          retention-days: 7/);
+ assert.match(job,/path: \|\n            extension\/work\/qa-bns-native-storage\/\n            extension\/work\/qa-bns-publication\/\n            extension\/work\/qa-bns-retirement\/\n            extension\/work\/qa-bns-context-info\/\n            extension\/work\/qa-bns-input-working\/\n          if-no-files-found: error\n          retention-days: 7/);
 });
 
 test('Sync native aggregate retains every prior dependency and rejects non-success when selected',()=>{
@@ -61,5 +61,25 @@ test('full certification explicitly runs all nested native Sync files on tested 
  for(const state of ['success','failure','cancelled','skipped','']){
   const result=spawnSync('bash',['-e','-c',script],{env:{...process.env,FULL:'true',UNIT:'success',CONTRACTS:'success',RELEASE:'success',CURRENT_BROWSER:'success',FULL_SUITE:'success',MACOS_SECURE_STORE:'success',MACOS_DISCARD:'success',SYNC_NATIVE_STORAGE:state}});
   assert.equal(result.status===0,state==='success',state);
+ }
+});
+
+
+test('manual Context native owners retain whole files, exact evidence and original budget',()=>{
+ for(const name of ['paia-candidate.yml','paia-certification.yml']){
+  const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
+  const native=text.split('  sync_native_storage:')[1].split(/\n  (?:candidate|certified):/)[0];
+  assert.ok(native.includes('tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs 2>&1'));
+  assert.match(native,/timeout-minutes: 12/);
+  for(const proof of ["work/qa-bns-context-info/${variant}.json","assert.equal(receipt.scope,'manual Info/Rules/Now and four-card desired optional owners only')","assert.equal(receipt.ownerCases.length,94)","assert.equal(receipt.desiredRestartProof,true)","core/browser-native-sync/context-desired-journal.js","assert.equal(receipt.provider,false)","assert.equal(receipt.fullCanonicalRestore,false)","[receipt.restart,receipt.restoreRestart,receipt.continuationRestart]","assert.deepEqual(receipt.continuation,{before:[['info',129],['rules',129],['now',129]],after:[['info',130],['rules',130],['now',130]]})","assertWorkerLifecycle(event)","assertNetworkLedger(receipt.isolation.networkLedger,restarts)","assert.deepEqual(Object.keys(receipt.productionHashes).sort(),paths.sort())","assert.deepEqual(contexts[0].ownerCases,contexts[1].ownerCases)","assert.deepEqual(contexts[0].productionHashes,contexts[1].productionHashes)","assert.equal(contexts[0].browserVersion,contexts[1].browserVersion)"])assert.ok(native.includes(proof),proof);
+ }
+});
+
+
+test('optional Input Working proof is selected in full in both native jobs',()=>{
+ for(const name of ['paia-candidate.yml','paia-certification.yml']){
+  const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
+  const native=text.split('  sync_native_storage:')[1].split(/\n  (?:candidate|certified):/)[0];
+  for(const required of ['tests/native-sync/input-working-chrome.test.mjs 2>&1','assertInputWorkingReceipt(JSON.parse','work/qa-bns-input-working/${variant}.json','head:process.env.PAIA_TESTED_HEAD,tree,variant','assert.deepEqual(working[0].cases,working[1].cases)','assert.deepEqual(working[0].hashes,working[1].hashes)','assert.equal(working[0].browserVersion,working[1].browserVersion)','extension/work/qa-bns-input-working/'])assert.ok(native.includes(required),required);
  }
 });

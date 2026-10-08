@@ -4,7 +4,7 @@ import {bindingSource,applyBinding,bindingRead} from './thought-binding.js';
 import {journal,nextSequence} from './thought-journal.js';
 const validSpan=(body,span)=>{if(!span||!Number.isSafeInteger(span.start)||!Number.isSafeInteger(span.end)||span.start<0||span.end>body.length||span.end<=span.start)return false;const bounds=new Set([0,body.length,...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(body)].map(x=>typeof x==='number'?x:x.index));return bounds.has(span.start)&&bounds.has(span.end);};
 async function topicsFor(s,t,ids){const topics=[];for(const id of ids){const row=await s.canonicalTopic(t,id);if(row.id!==id||row.lifecycle!=='active'||row.layoutJobId)fail();topics.push(row);}return topics;}
-async function place(s,t,row,topics,operationId){for(const topic of topics){const old=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,row.id]));if(old?.lifecycle==='active')continue;const r=await s.placeEntryInTransaction(t,{entryId:row.id,topicId:topic.id,expectedEntryRevision:row.revision,expectedTopicRevision:topic.organizationRevision,...(old?{expectedPlacementRevision:old.revision}:{}),operationId});if(r.conflict)fail();Object.assign(row,await t.get('thoughts',row.id));await s.touchTopic(t,await t.get('topics',topic.id));}return {id:row.id,revision:row.revision};}
+async function place(s,t,row,topics,operationId,sectionId){for(const topic of topics){const old=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,row.id]));if(old?.lifecycle==='active')continue;const r=await s.placeEntryInTransaction(t,{entryId:row.id,topicId:topic.id,...(sectionId?{sectionId}:{}),expectedEntryRevision:row.revision,expectedTopicRevision:topic.organizationRevision,...(old?{expectedPlacementRevision:old.revision}:{}),operationId});if(r.conflict)fail();Object.assign(row,await t.get('thoughts',row.id));await s.touchTopic(t,await t.get('topics',topic.id));}return {id:row.id,revision:row.revision};}
 export async function addToTopics(s,r){
  keys(r,['operationId','kind','id','expectedRevision','span','topicIds'],['operationId','kind','id','expectedRevision','topicIds']);if(!['input','thought'].includes(r.kind)||!idOK(r.id)||!Array.isArray(r.topicIds)||!r.topicIds.length||r.topicIds.length>20||new Set(r.topicIds).size!==r.topicIds.length||r.topicIds.some(x=>!idOK(x)))fail();
  const previous=await s.priorOperation(r);if(previous)return previous;
@@ -35,7 +35,8 @@ export async function continueThinking(s,r){
  // Own-property rejection precedes receipts, crypto, Source reads and storage.
  // Even an undefined or non-enumerable legacy field cannot create a relationship.
  if(r&&typeof r==='object'&&Object.hasOwn(r,'relation'))fail();
- keys(r,['operationId','body','topicId','inputId'],['operationId','body']);
+ keys(r,['operationId','body','topicId','inputId','sectionId'],['operationId','body']);
+ if(r.sectionId!==undefined&&(!idOK(r.sectionId)||!r.topicId))fail();
  if(typeof r.body!=='string'||!r.body.trim())fail();
  if(r.topicId!==undefined&&!idOK(r.topicId)||r.inputId!==undefined&&!idOK(r.inputId))fail();
  const prior=await s.priorOperation(r);if(prior)return prior;
@@ -43,8 +44,8 @@ export async function continueThinking(s,r){
  if(r.inputId){try{evidence=await s.evidenceFor([{inputId:r.inputId,role:'context_only',selectedFields:['body']}],{independentContext:true});}catch{}}
  return s.createEntry({operationId:r.operationId,actor:'user',body:r.body,type:'idea',formation:'explicit',evidence},{
   receiptRequest:r,independentContext:true,independentExpression:true,
-  before:async t=>{if(r.topicId)await topicsFor(s,t,[r.topicId]);},
-  after:async(t,row)=>{if(r.topicId)await place(s,t,row,await topicsFor(s,t,[r.topicId]),r.operationId);}
+  before:async t=>{if(r.topicId){const [topic]=await topicsFor(s,t,[r.topicId]);if(r.sectionId){const section=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,r.sectionId]));if(!section||section.lifecycle!=='active'||section.redirectTo)fail();}}},
+  after:async(t,row)=>{if(r.topicId)await place(s,t,row,await topicsFor(s,t,[r.topicId]),r.operationId,r.sectionId);}
  });
 }
 export async function compareThought(s,id){

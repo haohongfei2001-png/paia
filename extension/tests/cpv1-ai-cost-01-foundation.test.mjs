@@ -27,7 +27,7 @@ test('AI-COST-01 duplicate capture, Sync delivery, reads and reopen do not creat
 });
 test('AI-COST-01 rapid edits coalesce latest revision; create/delete before dispatch removes pending work',async()=>{
  const f=await fixture(),id=(await read(f.s,'inputStates'))[0].id;for(let i=0;i<8;i++)await inputEdit(f.s,id,{libraryText:'Synthetic changed body '+i});assert.equal((await f.ai.collect()).items.length,1);assert.equal((await f.ai.collect()).items[0].descriptor.revision,8);
- const job=await plan(f);await inputEdit(f.s,id,{excluded:true});assert.equal((await f.ai.collect()).items.length,0);await assert.rejects(f.ai.reserve(job.id,{reservationId:'synthetic'}),e=>e.code==='STALE_BASE');assert.equal((await f.ai.counters()).physicalAttempt,0);
+ const job=await plan(f);await inputEdit(f.s,id,{excluded:true});assert.equal((await f.ai.collect()).items.length,0);assert.equal((await f.ai.status(job.id)).state,'CANCELLED_BEFORE_DISPATCH');await assert.rejects(f.ai.reserve(job.id,{reservationId:'synthetic'}),e=>e.code==='CANCELLED');await assert.rejects(f.ai.dispatch(job.id,job.childIds[0],fixtureProvider()),e=>e.code==='CANCELLED');assert.equal((await f.ai.counters()).physicalAttempt,0);
 });
 test('AI-COST-01 canonical mutation and dirty marker roll back together on flush failure',async()=>{
  const f=await fixture(),before=await read(f.s,'inputStates'),known=await read(f.s,'meta',KNOWN_PREFIX+(await f.ai.collect()).items[0].key);
@@ -78,7 +78,7 @@ test('AI-COST-01 DEFER records retry condition without re-dispatching unchanged 
 });
 test('AI-COST-01 child bounds are typed and duplicate evidence never creates independent lineage',async()=>{
  const f=await fixture(),items=(await f.ai.collect()).items;assert.equal(new Set(items.flatMap(i=>i.descriptor.lineage)).size,1);await assert.rejects(plan(f,{items:[items[0],items[0]]}));await assert.rejects(plan(f,{children:[[unit(items[0])],[unit(items[0],'context','cards')],[unit(items[0],'context','extra')]]}));
- for(const [type,facet]of [['AI_ORGANIZE','organize'],['AI_ASSIST','assist']]){const g=await fixture(),selected=(await g.ai.collect()).items,p=await plan(g,{type,items:selected,coverage:[unit(selected[0],facet,'synthetic-scope')],intent:'explicit'});assert.equal(p.type,type);assert.equal(p.childIds.length,1);}
+ for(const [type,facet]of [['AI_ORGANIZE','organize'],['AI_ASSIST','assist']]){const g=await fixture(),selected=(await g.ai.collect()).items;const assistIntent={version:1,sessionId:'synthetic',leaseId:'synthetic',replyId:'synthetic',replyGeneration:1,consentEpoch:'synthetic',permissionEpoch:'synthetic'};g.ai.resolveAssistIntent=async(_t,r)=>({allowed:true,remoteProcessing:true,binding:assistIntent,scope:r.scope});const p=await plan(g,{type,items:selected,coverage:[unit(selected[0],facet,'synthetic-scope')],intent:'explicit',...(type==='AI_ASSIST'?{assistIntent}:{})});assert.equal(p.type,type);assert.equal(p.childIds.length,1);}
 });
 
 test('AI-COST-01 edits supersede a reserved but undispatched job and release only its unused reservation',async()=>{

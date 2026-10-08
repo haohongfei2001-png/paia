@@ -1,0 +1,23 @@
+# 0.28 measured browser balance correction
+
+Exact candidate `76db8d6f` Full37830791787 is not a pass. Six browser jobs and all unit/privacy/build/native/Mac jobs passed; Browser1 was cancelled at its unchanged18-minute budget. Prompt37830791928 and Visual37830791633 passed independently. Raw failure: `work/028-browser1-budget-cancel.log`.
+
+Browser1 reported49 PASS and no FAIL before cancellation, including all nine Reader/Revisit cases. Two tail files (`ux-r3-history-preemption`, `ux-r5-ai-update`) were not reported and are not certified by this job. Reader/Revisit consumed257.3 seconds after approximately846.1 seconds in earlier files. The prior4→1 placement relied on an older12m08 sample and is insufficient for the current workload; preserve that failed scheduling decision.
+
+Move only the complete Reader/Revisit file from1 to6 at width7. Current group6 native time636.4s plus257.3s is approximately893.7s; its measured whole job11m25 yields an estimated15m42 after the move, leaving about2m18 of the existing18m limit. This is a scheduling estimate, not a passing result. Group3 was a measured slower alternative (native674s). All84 files, all case assertions, widths4/5/6, historical fixture snapshots, seven workers, per-job concurrency and budgets remain unchanged. Update both live routing owners and all six historical compatibility oracles explicitly for this one route; do not alter their frozen history.
+
+The final candidate must pass new full certification. No runtime, version, deployment or installation change is made.
+
+Independent review compares all336 actual width4/5/6/7 routes against76db: exactly one changed (ReaderRevisit width7,1→6);335 remain identical. Six complete historical guard files17/17 PASS135.116ms and the actual CI coverage script PASS, `/tmp/028-balance-independent.log`. Frozen fixtures, runtime and workflow budgets are unchanged. The two tail files have no completion result; the log does not prove whether their processes had started.
+
+The next baec candidate Full37833847645 exposed a missed seventh historical oracle: `ai-cost-current-browser-admission.test.mjs` still expected ReaderRevisit on1. This was an incomplete guard update by the coordinator, not a runtime defect. Raw `work/028-baec-unit4-failure.log` is retained. Only its two explicit current expected values are corrected to6; frozen76-row baseline remains byte-identical. Complete CI/admission/partition sweep82/82 PASS356.74225ms (`/tmp/028-all-ci-final.log`), independent owning1/1 PASS53.051ms (`/tmp/028-ai-admission-independent.log`). Await all remaining baec browser results before one coherent corrected push.
+
+## Capacity correction: independent nine-file-group certification
+
+The baec run also cancelled Browser6 at the18-minute limit after the1→6 move; Browser5 passed in17m47. Seven groups therefore do not provide adequate observed headroom. Those jobs remain cancelled/failed; moving the same file again is not the selected repair.
+
+Use a new width9 mapping of the same84 complete files, derived from the maximum observed completion spans in runs37830791787 and37833847645. `tests/fixtures/current-browser-capacity-nine.json` retains all84 measurements, actual job outcomes, the explicit estimation method, fixed artifact/browser owners and nine proposed bins. Completion deltas include process startup and are not precise case timing. Each proposed bin reserves60s for setup/artifacts; nominal estimates754–767s imply about29–30 percent headroom, while the stated10-percent-plus-per-file conservative estimate is below900s. These are planning estimates, not guaranteed performance or runtime PASS.
+
+The old4/5/6/7 mappings are unchanged against actual144f87b4: all336 combinations independently matched. All84 files occur exactly once in width9; unknown future files fail closed. Settings and Context remain6 for the verified Chrome and strict artifact; Topic content remains5 for text-size artifacts; the largest Thought file is alone on7. Full workflow runs9 jobs with original18-minute budgets, serial per-job test execution, fail-fast false and required aggregate. No assertion, test case or test file was removed. Full receipts now honestly report SHARDED_UNIT_4_BROWSER_9.
+
+Complete CI/admission/partition sweep83/83 passes. Independent three-file review21/21 passes (`/tmp/028-nine-independent.log`) and compares the live old Git module, not only a newly generated fixture. Final complete unit command `PAIA_TEST_CONCURRENCY=4 node scripts/test.mjs unit` passes4220/4220, zero failures/skips, with12670 package guards and privacy/network audit PASS (`/tmp/028-nine-all-unit.log`). No production runtime/version change. A fresh hosted candidate and exact-main certification are still required.

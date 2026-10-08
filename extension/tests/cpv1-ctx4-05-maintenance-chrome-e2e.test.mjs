@@ -9,7 +9,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const root=fileURLToPath(new URL('..',import.meta.url));
 const cases=[
- 'default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
+ 'deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
  ...['maintain','snapshot','shallow','recovery'].map(path=>path+'-hash-race'),
  ...['item','receipt','post-callback'].flatMap(phase=>['cancel','revoke'].map(kind=>phase+'-'+kind)),
  'post-callback-expiry','closed-database-before-write','denied-input-before-hash'
@@ -21,11 +21,12 @@ const cases=[
 async function install(page){
  await page.evaluate(async()=>{
   const [{OrganizerStore},{ContextMaintenanceService},{ContextCardsService,CONTEXT_CARDS_ROW},
-   {ContextReadService},{readContextTopicScope},{inputProjection},{hashText},{DATABASE_NAME}]=await Promise.all([
+   {ContextReadService},{ContextTopicAccessService},{readContextTopicScope},{inputProjection},{hashText},{DATABASE_NAME}]=await Promise.all([
    import(chrome.runtime.getURL('core/organizer/store.js')),
    import(chrome.runtime.getURL('core/context-maintenance.js')),
    import(chrome.runtime.getURL('core/context-cards.js')),
    import(chrome.runtime.getURL('core/context-read.js')),
+   import(chrome.runtime.getURL('core/context-topic-access.js')),
    import(chrome.runtime.getURL('core/context-topic-scope.js')),
    import(chrome.runtime.getURL('core/thought-evidence.js')),
    import(chrome.runtime.getURL('core/dedupe.js')),
@@ -118,7 +119,7 @@ async function install(page){
    const open=async()=>{for(const key of ['global','info','rules','now'])await cards.change({kind:'access',operationId:op(),epoch:'initial',key,
     enabled:true,expectedRevision:(await row())?.access[key].revision||0});};
    const close=async()=>{observer.close();await s.repository.close();if(!worker)await nativeRequest(indexedDB.deleteDatabase(name));};
-   return {s,name,cards,caller,revocation,state,verifier,service,reader,readerCaller,edit,snapshot,request,outcome,row,put,manual,draft,open,close};
+   return {s,name,input,topic,cards,caller,revocation,state,verifier,service,reader,readerCaller,edit,snapshot,request,outcome,row,put,manual,draft,open,close};
   }
   function probe(f,events){
    const active=new Set(),ids=new WeakMap(),terminal=new Map(),native={
@@ -163,7 +164,43 @@ async function install(page){
    const events=[],f=await fixture();let p=null,result={name,passed:false,events};
    try{
     const c=await f.request();
-    if(name==='default-denied'){
+    if(name==='deep-read-pagination-and-revocation'){
+     const access=new ContextTopicAccessService(f.s),expected=new Map();
+     const text='SYNTHETIC 多字节🙂e\u0301 '+('尾部🙂 '.repeat(9))+' EXACT_TAIL';
+     await f.edit({libraryText:text,note:'SYNTHETIC_NOTE_尾🙂'});
+     // Bind the final Working revision, not the earlier maintenance fixture's stale placement.
+     f.topic=await f.s.createTopic({operationId:op(),name:'SYNTHETIC deep read Topic'});
+     const updated=await f.s.input(f.input.id);check(!(await f.s.addToTopics({operationId:op(),kind:'input',id:f.input.id,expectedRevision:updated.revision,topicIds:[f.topic.id]})).conflict,'Final Working revision bound');
+     await f.s.continueThinking({operationId:op(),body:'SYNTHETIC independent Thought excluded from Input reading',topicId:f.topic.id});expected.set(f.input.id,{body:text,note:'SYNTHETIC_NOTE_尾🙂'});
+     for(let i=0;i<2;i++){
+      const content='SYNTHETIC additional '+i+'🙂 EXACT_TAIL';
+      await f.s.capture({epoch:(await f.s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'native-deep-'+i,url:'https://chatgpt.com/c/native-deep-'+i,title:'SYNTHETIC'},messages:[{sourceMessageId:'native-deep-'+i,pageOrder:1,originalText:content}]});
+      const input=(await f.s.snapshot()).library.blocks.find(x=>!expected.has(x.id));check(input,'Additional actual Input exists');
+      const current=await f.s.input(input.id);check(!(await f.s.addToTopics({operationId:op(),kind:'input',id:input.id,expectedRevision:current.revision,topicIds:[f.topic.id]})).conflict,'Additional whole Input placed');expected.set(input.id,{body:content,note:''});
+     }
+     await f.s.finishFoundation();
+     const toggle=async(key,enabled)=>{const row=await f.row();check((await f.cards.change({kind:'access',operationId:op(),epoch:'initial',key,enabled,expectedRevision:row?.access[key].revision||0})).ok,'Real access owner acknowledged');};
+     const topicToggle=async enabled=>{const scope=await readContextTopicScope(f.s,{topicId:f.topic.id}),row=await f.s.repository.transaction(false,t=>access.row(t)),choice=row.choices.find(x=>x.topicId===f.topic.id);const answer=await access.change({operationId:op(),topicId:f.topic.id,epoch:scope.binding.epoch,enabled,expectedBinding:scope.binding,expectedRevision:choice?.revision||0});check(answer.ok,'Real Topic access owner acknowledged: '+answer.reason);};
+     await toggle('global',true);await toggle('inputs',true);await topicToggle(true);
+     const opts={topicId:f.topic.id,limit:2,chunkSize:7},baseline=await f.snapshot(),segments=new Map();let cursor=null,pages=0;
+     do{const page=await f.reader.readTopic(f.readerCaller,{...opts,cursor});check(page.available,'Deep read available');equal(page.complete,page.nextCursor===null,'True end matches cursor');check(page.items.length<=2,'Bounded read page');
+      for(const part of page.items){check(expected.has(part.inputId),'Only permitted whole Inputs');equal(part.authority,'data','Input content is data');const key=part.inputId+':'+part.field,prior=segments.get(key)||'';equal(part.offset,prior.length,'Exact contiguous original offsets');check(!/^[\uDC00-\uDFFF]|[\uD800-\uDBFF]$/u.test(part.text),'Unicode pair stays intact');segments.set(key,prior+part.text);equal(part.fieldComplete,part.end===part.totalLength,'Honest field terminal');}
+      cursor=page.nextCursor;check(++pages<100,'Bounded traversal reaches end');
+     }while(cursor);check(pages>1,'Actually traversed multiple pages');
+     for(const [id,fields]of expected)for(const field of ['body','note'])equal(segments.get(id+':'+field),fields[field],'Complete exact original field reconstructed');equal(segments.size,6,'No independent Thought prose returned');
+     const hits=[];cursor=null;do{const page=await f.reader.searchTopic(f.readerCaller,{topicId:f.topic.id,query:'EXACT_TAIL',limit:1,cursor});check(page.available,'Tail search available');hits.push(...page.items);cursor=page.nextCursor;equal(page.complete,cursor===null,'Search true end');}while(cursor);
+     equal([...new Set(hits.map(x=>x.inputId))].sort(),[...expected.keys()].sort(),'Search finds all exact tail identities');check(hits.every(x=>x.snippet.includes('EXACT_TAIL')),'Tail snippets contain real match');
+     const refused=r=>{check(!r.available,'Unauthorized/stale read unavailable');check(!r.items?.length,'Refusal leaks no rows');};
+     refused(await f.reader.readTopic(f.readerCaller,{...opts,inputId:f.input.id}));refused(await f.reader.readTopic(f.readerCaller,{...opts,archive:true}));equal(await f.snapshot(),baseline,'Read and search never mutate durable owners');
+     const first=await f.reader.readTopic(f.readerCaller,opts);check(first.nextCursor,'Cursor exists before revocation');await topicToggle(false);refused(await f.reader.readTopic(f.readerCaller,{...opts,cursor:first.nextCursor}));refused(await f.reader.readTopic(f.readerCaller,opts));await topicToggle(true);
+     const second=await f.reader.readTopic(f.readerCaller,opts);await toggle('global',false);refused(await f.reader.readTopic(f.readerCaller,{...opts,cursor:second.nextCursor}));await toggle('global',true);
+     const fourth=await f.reader.readTopic(f.readerCaller,opts),nativeNow=Date.now;check(fourth.available&&fourth.nextCursor,'Live cursor exists before controlled TTL expiry');
+     try{const future=nativeNow()+300001;Date.now=()=>future;const expired=await f.reader.readTopic(f.readerCaller,{...opts,cursor:fourth.nextCursor});refused(expired);equal(expired.reason,'stale_cursor','Expired cursor is specifically refused');}finally{Date.now=nativeNow;}
+     // Clock injection covers local cursor TTL, not real host/session expiry.
+     check((await f.reader.readTopic(f.readerCaller,opts)).available,'Fresh qualified read works after expired cursor');
+     const third=await f.reader.readTopic(f.readerCaller,opts);await f.edit({libraryText:text+' changed'});refused(await f.reader.readTopic(f.readerCaller,{...opts,cursor:third.nextCursor}));
+
+    }else if(name==='default-denied'){
      const before=await f.snapshot();p=probe(f,events);
      const denied=await settled(new ContextMaintenanceService(f.s).maintain({processing:true},c));
      check(!denied.fulfilled,'Default verifier must deny maintenance');

@@ -1,9 +1,10 @@
+import {updateExactRepeats} from './topic-exact-repeat-reading.js';
 import {element} from './common.js';
 import {placeChildren} from './retained-dom.js';
 
 // Presentation only: rows and placement/Section refs come from the reader. A
 // continuous page never joins bodies or turns a reading heading into an entity.
-export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,updateEntry=()=>{},sectionActions=()=>{}}){
+export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,updateEntry=()=>{},sectionActions=()=>{},repeats=null}){
  const existing=new Map([...body.querySelectorAll('[data-entry-id]')].map(node=>[node.dataset.entryId,node]));
  const oldSections=new Map([...body.children].filter(node=>node.classList.contains('topic-section')).map(node=>[node.dataset.sectionId,node]));
  const sections=new Map((page.sections||[]).map(section=>[section.sectionId,section])),groups=new Map();
@@ -37,6 +38,7 @@ export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,upda
  const ordered=[...groups.values()].sort((a,b)=>a.rank.localeCompare(b.rank)||String(a.id).localeCompare(String(b.id)));
  for(const group of ordered)placeChildren(group.node,group.children);
  placeChildren(body,ordered.map(group=>group.node));
+ if(repeats)updateExactRepeats(body,page,{...repeats,pins});
  return ordered.map(group=>group.node);
 }
 

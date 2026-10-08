@@ -408,3 +408,35 @@ for(const hold of ['root qualification','initial reading','metadata','authority 
  assert.equal(env.body.querySelector('h2'),null);assert.equal(env.body.querySelector('[data-entry-id]'),null);assert.equal(document.activeElement,focused);
  if(cause==='purge'&&hold!=='root qualification'){assert.equal(f.owner.topicReader.stale,true);assert.equal(f.owner.topicReader.sections.size,0);assert.equal(f.owner.topicReader.pageMeta,null);assert.equal(f.owner.topicReader.items.some(row=>typeof row.entry?.body==='string'),false);}
 }));
+
+for(const boundary of ['metadata','generation'])test('TOPIC-05.4 superseded metadata qualification at '+boundary+' cannot paint or raise a current-read failure',()=>withDOM(async({body})=>{
+ const f=readerFixture({count:1});await f.reader.initial();f.reader.pageMeta.topic={id:'topic',name:'Topic',revision:2,defaultSectionId:'default'};
+ const metadata={kind:'topic',qualifiedReadToken:null,beginQualifiedRead(){return this.qualifiedReadToken={};},receiveQualified(row,token){return token===this.qualifiedReadToken;}},paints=[];
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',serial:1,topicProviderKey:null,topicReader:f.reader,editor:{entry:{protectedIds:()=>new Set()},metadata:[metadata]},originalPane:body,renderDocument:value=>paints.push(value),updateTopicContinuous(){},observeTopicWindowSpacers(){}});
+ globalThis.chrome={runtime:{sendMessage:async message=>{
+  if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA'){if(boundary==='metadata')metadata.beginQualifiedRead();return {ok:true,data:{id:'topic',name:'Topic',revision:2,summary:'SYNTHETIC SAVED SUMMARY',recoveryEpoch:'initial'}};}
+  assert.equal(message.type,'GET_LIBRARY_SECTION_READING');if(boundary==='generation')metadata.beginQualifiedRead();return {ok:true,data:{coverage:{activeGeneration:'g1'},recoveryEpoch:'initial'}};
+ }}};
+ assert.equal(await owner.renderTopicReader(),false);assert.deepEqual(paints,[]);assert.equal(f.reader.stale,false,'superseded UI read does not invalidate the current durable reader');
+}));
+
+for(const cause of ['purge','restore'])test('superseded metadata cannot suppress current Section '+cause+' rejection',async()=>{
+ const metadata={kind:'topic',qualifiedReadToken:null,beginQualifiedRead(){return this.qualifiedReadToken={};},receiveQualified(){throw Error('retired metadata must not receive');}},events=[];
+ const page={kind:'section_reading',topic:{id:'topic',name:'Topic',revision:2},coverage:{activeGeneration:'g1'},recoveryEpoch:'initial'};
+ const reader={topicId:'topic',windowRevision:1,query:'',sort:'asc',hydrateWindow:async()=>true,invalidate(value){this.stale=true;events.push(['invalidate',value]);}};
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',serial:1,view:'original',topicReader:reader,editor:{metadata:[metadata]},topicPageFromReader:()=>page,renderDocument(){events.push(['paint']);},checkAllTracked:async()=>{events.push(['tracked']);}});
+ globalThis.chrome={runtime:{sendMessage:async message=>{
+  if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA')return {ok:true,data:{id:'topic',name:'Topic',revision:2,summary:'SYNTHETIC SUMMARY',recoveryEpoch:'initial'}};
+  assert.equal(message.type,'GET_LIBRARY_SECTION_READING');metadata.beginQualifiedRead();return {ok:true,data:cause==='purge'?{cursorInvalid:true}:{coverage:{activeGeneration:'g1'},recoveryEpoch:'restored'}};
+ }}};
+ await assert.rejects(owner.renderTopicReader(),/TOPIC_READING_CHANGED/);
+ assert.equal(reader.stale,true);assert.deepEqual(events.map(x=>x[0]),['invalidate','tracked']);
+});
+
+for(const cause of ['metadata unavailable','metadata cursorInvalid','metadata restore'])test('superseded metadata preserves explicit '+cause+' refusal',async()=>{
+ const metadata={kind:'topic',qualifiedReadToken:null,beginQualifiedRead(){return this.qualifiedReadToken={};}},events=[];
+ const page={kind:'section_reading',topic:{id:'topic',name:'Topic',revision:2},coverage:{activeGeneration:'g1'},recoveryEpoch:'initial'},reader={topicId:'topic',windowRevision:1,query:'',sort:'asc',hydrateWindow:async()=>true,invalidate(){this.stale=true;events.push('invalidate');}};
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',serial:1,view:'original',topicReader:reader,editor:{metadata:[metadata]},topicPageFromReader:()=>page,renderDocument(){events.push('paint');},checkAllTracked:async()=>events.push('tracked')});
+ globalThis.chrome={runtime:{sendMessage:async message=>{assert.equal(message.type,'GET_LIBRARY_TOPIC_READING_METADATA');metadata.beginQualifiedRead();return {ok:true,data:cause==='metadata unavailable'?{unavailable:true,reason:'topic_unavailable'}:cause==='metadata cursorInvalid'?{cursorInvalid:true}:{id:'topic',name:'Topic',revision:2,summary:'SYNTHETIC',recoveryEpoch:'restored'}};}}};
+ await assert.rejects(owner.renderTopicReader(),/TOPIC_READING_CHANGED/);assert.equal(reader.stale,true);assert.deepEqual(events,['invalidate','tracked']);
+});

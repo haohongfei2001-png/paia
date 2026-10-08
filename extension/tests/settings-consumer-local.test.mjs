@@ -57,7 +57,7 @@ test('Settings history summary follows the resolved locale for empty, completed,
 test('Settings latest-import owner contains malformed summary failures and keeps locale changes local',async()=>{
  const {initHistoryCompletion}=await import('../ui/history-completion.js');
  const prior=new Map(['document','window','chrome'].map(key=>[key,globalThis[key]])),nodes=new Map(),listeners=new Map();let requests=0;
- const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',addEventListener(){}});return nodes.get(id);};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',addEventListener(){},querySelectorAll:()=>[]});return nodes.get(id);};
  globalThis.document={documentElement:{lang:'en'},getElementById:node,addEventListener:(name,fn)=>listeners.set(name,fn)};
  globalThis.window={addEventListener(){}};
  globalThis.chrome={runtime:{sendMessage:async()=>{requests++;return {ok:true,data:{lastImport:{adapterId:'claude-conversations-v1',completedAt:'2026-01-01',counts:null}}};}}};

@@ -3,20 +3,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,mkdtemp,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';
 import {assertWorkerLifecycle,assertNetworkLedger} from './proof-oracles.mjs';
 const head=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:root,encoding:'utf8'}).trim();
 if(process.env.PAIA_TESTED_HEAD)assert.equal(head,process.env.PAIA_TESTED_HEAD);
 for(const variant of ['source','release'])test('BNS obsolete retirement pure Core native '+variant,{timeout:120000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
- const extension=await instrumentedExtension(variant==='source'?root:join(root,'work/current-release'));
- extension.hashes['core/browser-native-sync/publications.js']=createHash('sha256').update(await readFile(join(extension.path,'core/browser-native-sync/publications.js'))).digest('hex');
- const receipt={schema:1,head,tree,variant,result:'IN_PROGRESS',productionHashes:extension.hashes,scope:'pure-Core-synthetic-restore-owner',productionPromptPurgeRestore:false,providerQualification:false,performedDeletion:false,restarts:[]};let device;
+ const releaseOutput=await mkdtemp(join(tmpdir(),'paia-bns-retirement-release-'));let extension,device;
+ const receipt={schema:1,head,tree,variant,result:'IN_PROGRESS',productionHashes:{},scope:'pure-Core-synthetic-restore-owner',productionPromptPurgeRestore:false,providerQualification:false,performedDeletion:false,restarts:[]};
  try{
+  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(releaseOutput,'release')],{cwd:root,stdio:'pipe'});
+  extension=await instrumentedExtension(variant==='source'?root:join(releaseOutput,'release'));
+  extension.hashes['core/browser-native-sync/publications.js']=createHash('sha256').update(await readFile(join(extension.path,'core/browser-native-sync/publications.js'))).digest('hex');
+  receipt.productionHashes=extension.hashes;
   device=await startNative(extension.path);const name='retirement_native',call=(command,args={})=>device.call('retirement-'+command,{name,...args});
   const setup=await call('setup');assert.equal(setup.code,undefined);const publicationId=setup.result.publicationId;
   const before=await call('state');assert.equal(before.pending.items[0].state,'obsolete');assert.deepEqual(before.retained.items,[]);assert.equal(before.outbox.length,1);assert.equal(before.outbox[0].kind,'purge');
@@ -33,5 +36,5 @@ for(const variant of ['source','release'])test('BNS obsolete retirement pure Cor
   assert.equal(receipt.restarts.length,3);for(const event of receipt.restarts)assertWorkerLifecycle(event);assertNetworkLedger(receipt.isolation.networkLedger,receipt.restarts);
   receipt.result='PASS';
  }catch(error){receipt.result='FAIL';receipt.failure=error.message;throw error;}
- finally{await mkdir(join(root,'work/qa-bns-retirement'),{recursive:true});await writeFile(join(root,'work/qa-bns-retirement',variant+'.json'),JSON.stringify(receipt,null,2)+'\n');await device?.close();await extension.cleanup();}
+ finally{try{await mkdir(join(root,'work/qa-bns-retirement'),{recursive:true});await writeFile(join(root,'work/qa-bns-retirement',variant+'.json'),JSON.stringify(receipt,null,2)+'\n');}finally{try{await device?.close();}finally{try{await extension?.cleanup();}finally{await rm(releaseOutput,{recursive:true,force:true});}}}}
 });

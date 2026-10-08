@@ -310,7 +310,7 @@ async function handle(request, sender) {
     case 'PAIA_PASSPORT_CLEAR_AUDITS': if(request.confirm!==true)throw new ArchiveError('INVALID_REQUEST');return passport.clearAudits();
     case 'REMOVE_LIBRARY_TOPIC': return store.removeTopic(request.edit);
     case 'RESTORE_LIBRARY_TOPIC': return store.restoreTopicContainer(request.edit);
-    case 'GET_LIBRARY_REMOVED_TOPICS': return store.removedTopics();
+    case 'GET_LIBRARY_REMOVED_TOPICS': return store.removedTopics(request.options);
     case 'GET_LIBRARY_RENAME_SUGGESTIONS': return store.topicRenameSuggestions();
     case 'GET_LIBRARY_MERGE_SUGGESTIONS': return store.topicMergeSuggestions();
     case 'KEEP_LIBRARY_TOPICS_SEPARATE': return store.keepTopicsSeparate(request.options);

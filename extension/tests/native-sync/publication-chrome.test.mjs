@@ -2,8 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {assertNetworkLedger,assertWorkerLifecycle} from './proof-oracles.mjs';
 import {instrumentedExtension,root,startNative} from './storage-harness.mjs';
@@ -13,11 +14,13 @@ const tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:root,encoding:'ut
 if(process.env.PAIA_TESTED_HEAD)assert.equal(head,process.env.PAIA_TESTED_HEAD);
 
 for(const variant of ['source','release'])test('BNS publication native IndexedDB '+variant,{timeout:120000},async()=>{
- if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
- const extension=await instrumentedExtension(variant==='source'?root:join(root,'work/current-release'));
- extension.hashes['core/browser-native-sync/publications.js']=createHash('sha256').update(await readFile(join(extension.path,'core/browser-native-sync/publications.js'))).digest('hex');
- let device;const evidence={schema:1,head,tree,variant,result:'IN_PROGRESS',productionHashes:extension.hashes,transport:'synthetic-in-memory',providerQualification:false,fullCanonicalRestore:false,restarts:[]};
+ const releaseOutput=await mkdtemp(join(tmpdir(),'paia-bns-publication-release-'));let extension,device;
+ const evidence={schema:1,head,tree,variant,result:'IN_PROGRESS',productionHashes:{},transport:'synthetic-in-memory',providerQualification:false,fullCanonicalRestore:false,restarts:[]};
  try{
+  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',join(releaseOutput,'release')],{cwd:root,stdio:'pipe'});
+  extension=await instrumentedExtension(variant==='source'?root:join(releaseOutput,'release'));
+  extension.hashes['core/browser-native-sync/publications.js']=createHash('sha256').update(await readFile(join(extension.path,'core/browser-native-sync/publications.js'))).digest('hex');
+  evidence.productionHashes=extension.hashes;
   device=await startNative(extension.path);
   const name='publication_native',call=(command,args={})=>device.call('publication-'+command,{name,...args});
   assert.equal((await device.call('change',{name,text:'Synthetic durable publication 中文'})).ok,true);
@@ -50,5 +53,5 @@ for(const variant of ['source','release'])test('BNS publication native IndexedDB
   for(const event of evidence.restarts){const paused=evidence.isolation.networkLedger.observations.filter(value=>value.point==='paused-before-stop'&&value.lifetime===event.beforeLifetime);assert.equal(paused.length,1);assert.deepEqual(event.pausedNetwork,paused[0]);}
   assert.equal(evidence.isolation.httpRequests,0);evidence.result='PASS';
  }catch(error){evidence.result='FAIL';evidence.failure=error.message;throw error;}
- finally{await mkdir(join(root,'work/qa-bns-publication'),{recursive:true});await writeFile(join(root,'work/qa-bns-publication',variant+'.json'),JSON.stringify(evidence,null,2)+'\n');await device?.close();await extension.cleanup();}
+ finally{try{await mkdir(join(root,'work/qa-bns-publication'),{recursive:true});await writeFile(join(root,'work/qa-bns-publication',variant+'.json'),JSON.stringify(evidence,null,2)+'\n');}finally{try{await device?.close();}finally{try{await extension?.cleanup();}finally{await rm(releaseOutput,{recursive:true,force:true});}}}}
 });
