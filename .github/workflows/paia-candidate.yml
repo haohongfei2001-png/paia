@@ -695,7 +695,7 @@ jobs:
           cp work/test-summary.json work/qa-dvn-organize-notices/test-summary.json
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-          const read=path=>JSON.parse(readFileSync(path)),report=read('work/qa-dvn-organize-notices/test-summary.json');assert.equal(report.total,12);assert.equal(report.pass,12);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-03-ai-presentation-chrome-e2e.test.mjs','ux-r5-ai-organize-chrome-e2e.test.mjs']);
+          const read=path=>JSON.parse(readFileSync(path)),report=read('work/qa-dvn-organize-notices/test-summary.json');assert.equal(report.total,14);assert.equal(report.pass,14);assert.equal(report.fail,0);assert.equal(report.skipped,0);assert.deepEqual(Object.keys(report.files).sort(),['uir-03-ai-presentation-chrome-e2e.test.mjs','ux-r5-ai-organize-chrome-e2e.test.mjs']);
           for(const variant of ['source','release']){const receipt=read(`work/qa-dvn-organize-notices/${variant}.json`);assert.equal(receipt.result,'PASS');assert.equal(receipt.head,process.env.PAIA_TESTED_HEAD);assert.equal(receipt.rows.length,20);assert.equal(receipt.targets.length,3);assert.deepEqual(receipt.interactions.map(row=>row.mode),['keyboard-stop','touch-stop','stale-retained-refusal']);}
           JS
       - name: Retain D5 running and stale notice evidence

@@ -89,7 +89,9 @@
       "TOPIC-05.7 saved revision waits for Unicode selection and composition (release)",
       "TOPIC-05.7 saved revision waits for Unicode selection and composition (source)",
       "TOPIC-05.7 cached A never conceals new durable B (release)",
-      "TOPIC-05.7 cached A never conceals new durable B (source)"
+      "TOPIC-05.7 cached A never conceals new durable B (source)",
+      "TOPIC-05.7 exact repeats reveal original owners without writes (release)",
+      "TOPIC-05.7 exact repeats reveal original owners without writes (source)"
     ]
   }
 }
