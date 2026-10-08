@@ -62,6 +62,20 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    await stale.getByRole('button',{name:'Explain sorting',exact:true}).click();await eventually(()=>stale.locator('.next-status').textContent().then(x=>x.includes('未确认')||x.includes('无法安全插入')));
    assert.equal(await page.evaluate(()=>fixture.text()),before);assert.equal(await page.evaluate(()=>fixture.send),0);await stale.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
   });
+  await check('actual Settings revocation hides the candidate and rejects a held native insertion',async()=>{
+   const settings=h.archive;await settings.bringToFront();await settings.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(settings,'ai');
+   const toggle=settings.locator('#settings-next-enabled');await eventually(async()=>await toggle.isChecked()&&!await toggle.isDisabled(),'Settings reads the existing enabled session');
+   await page.bringToFront();await page.evaluate(()=>fixture.set('SETTINGS_REVOKE_DRAFT',21,21));await cycle();const f=await shown(),before=await page.evaluate(()=>fixture.text());
+   await world.run(`globalThis.settingsHeldStatus=false;globalThis.settingsInsertSeen=false;globalThis.settingsInsertTrace=r=>{if(r.type==='PAIA_PROMPT_NEXT_INSERT')settingsInsertSeen=true;};chrome.runtime.onMessage.addListener(settingsInsertTrace);globalThis.settingsInsertCompleted=false;globalThis.settingsOriginalSend=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async request=>{if(request.type==='PAIA_PROMPT_NEXT_STATUS'&&!settingsHeldStatus){settingsHeldStatus=true;await new Promise(resolve=>globalThis.releaseSettingsStatus=resolve);try{return await settingsOriginalSend(request);}finally{settingsInsertCompleted=true;}}return settingsOriginalSend(request);};`);
+   try{
+    await f.getByRole('button',{name:'继续',exact:true}).click();await eventually(()=>world.run('settingsHeldStatus&&settingsInsertSeen'),'native insertion reaches its final authorization read');
+    await settings.bringToFront();await toggle.click();await eventually(async()=>!await toggle.isChecked()&&!await toggle.isDisabled(),'actual Settings owner confirms revocation');
+    assert.equal((await rpc(settings,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);await eventually(()=>!capsule(),'revocation and hidden source remove the transient frame');
+    await world.run('releaseSettingsStatus()');await eventually(()=>world.run('settingsInsertCompleted'),'held authorization read completes after revocation');
+    await page.bringToFront();assert.equal(await page.evaluate(()=>fixture.text()),before);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(capsule(),undefined);
+   }finally{await world.run('releaseSettingsStatus?.();chrome.runtime.sendMessage=settingsOriginalSend;chrome.runtime.onMessage.removeListener(settingsInsertTrace);');}
+   await enable();assert.equal(capsule(),undefined,'reenabling does not revive the revoked candidate');
+  });
   await check('actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation',async()=>{
    const settings=h.archive;await settings.bringToFront();await eventually(()=>settings.evaluate(()=>!document.hidden),'Settings tab is visible before its native controls are used');await settings.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(settings,'ai');const reset=settings.locator('#settings-prompt-position-reset');await eventually(()=>reset.isEnabled());
    await page.bringToFront();await cycle();const nextFrame=await shown();
