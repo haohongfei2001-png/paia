@@ -31,7 +31,21 @@ test('fully local resolved work yields no candidate or attempt',async()=>{const 
 test('missing authority rejects and stale candidate is rechecked by actual plan',async()=>{const f=await fixture();await assert.rejects(readMaintenanceBatch(f.s.aiUsageFoundation,options),e=>e.code==='UNAVAILABLE');const r=await read(f);await inputEdit(f.s,r.request.items[0].descriptor.entityId,{libraryText:'Synthetic replacement'});await assert.rejects(f.ai.plan(r.request),e=>e.code==='STALE_BASE');});
 test('caller cannot select another job type, timestamp, quota or unsafe size',async()=>{const f=await fixture();for(const extra of [{type:'AI_ASSIST'},{now:99},{windowId:'fake'},{limit:51},{cursor:'other'}])await assert.rejects(readMaintenanceBatch(f.ai,{...options,...extra}),e=>e.code==='INVALID_REQUEST');});
 test('filter-only pending work cannot create its own maintenance call',async()=>{const f=await fixture();await f.s.foundationWrite(async t=>{for(const row of await t.all('meta'))if(row.id.startsWith(DIRTY_PREFIX))await t.put('meta',{...row,pendingFacets:['filter']});});const r=await read(f);assert.equal(r.status,'DEFERRED');assert.equal(r.reason,'FILTER_REQUIRES_MAINTENANCE');});
-test('total facet bound refuses rather than silently dropping work',async()=>{const f=await fixture(37);await f.s.foundationWrite(async t=>{for(const row of await t.all('meta'))if(row.id.startsWith(DIRTY_PREFIX))await t.put('meta',{...row,pendingFacets:['topic','context','filter']});});assert.equal((await read(f)).reason,'COVERAGE_BOUND');});
+async function threeFacetFixture(count){
+ const f=await fixture(count),{items}=await f.ai.collect({limit:100});
+ for(const item of items){const coverage=['topic','context','filter'].map(facet=>({key:item.key,facet,scope:options.scope}));const job=await f.ai.plan({type:'AI_MAINTENANCE',intent:'maintenance',items:[item],coverage,children:[coverage],contractVersion:options.contractVersion,routeVersion:options.routeVersion});await f.ai.cancel(job.id);}
+ return f;
+}
+test('37 actual three-facet Inputs retain complete units across the capacity cursor',async()=>{
+ const f=await threeFacetFixture(37),before=await snapshot(f.s),a=await read(f);
+ assert.equal(a.status,'CANDIDATE_ONLY');assert.equal(a.request.items.length,33);assert.equal(a.request.coverage.length,99);assert.equal(a.request.children.length,2);assert.equal(a.complete,false);
+ assert.equal(a.nextCursor,DIRTY_PREFIX+a.request.items.at(-1).key);
+ const b=await readMaintenanceBatch(f.ai,{...options,cursor:a.nextCursor});assert.equal(b.complete,true);assert.equal(b.nextCursor,null);assert.equal(b.request.items.length,4);
+ const keys=[...a.request.items,...b.request.items].map(i=>i.key);assert.equal(new Set(keys).size,37);
+ for(const page of [a,b])for(const item of page.request.items)assert.deepEqual(page.request.coverage.filter(u=>u.key===item.key).map(u=>u.facet).sort(),['context','filter','topic']);
+ assert.deepEqual(await snapshot(f.s),before);
+ for(const page of [a,b]){const job=await f.ai.plan(page.request);assert.equal((await f.ai.status(job.id)).attempts.length,0);await f.ai.cancel(job.id);}
+});
 test('too many existing DEFER records fails closed without guessing absence',async()=>{const f=await fixture();await f.s.foundationWrite(async t=>{for(let i=0;i<101;i++)await t.put('organizerWorkItems',{id:'aiu:defer:synthetic-'+i,kind:'ai_usage_v1',state:'DEFERRED'});});const before=await snapshot(f.s);assert.equal((await read(f)).reason,'DEFER_SCAN_BOUND');assert.deepEqual(await snapshot(f.s),before);});
 test('legal DEFER history from changed Input signatures cannot permanently block current maintenance',async()=>{
  const f=await fixture();let last;
@@ -74,4 +88,35 @@ test('one overflowing read archives at most one hundred and reports remaining bo
  const r=await read(f);assert.equal(r.status,'UNAVAILABLE');assert.equal(r.reason,'DEFER_SCAN_BOUND');assert.equal(r.cleanup.scanned,100);assert.equal(r.cleanup.archived,100);
  const snapshotAfter=await snapshot(f.s);assert.equal(snapshotAfter.organizerWorkItems.filter(r=>r.id.startsWith('aiu:defer:')).length,104);assert.equal(snapshotAfter.organizerWorkItems.filter(r=>r.id.startsWith('aiu:defer-history:')).length,100);
  const next=await read(f);assert.equal(next.status,'CANDIDATE_ONLY');assert.equal(next.cleanup.archived,100);
+});
+async function pendingJob(f,item,contractVersion='synthetic-mixed'){
+ const coverage=['topic','context','filter'].map(facet=>({key:item.key,facet,scope:options.scope}));
+ return f.ai.plan({type:'AI_MAINTENANCE',intent:'maintenance',items:[item],coverage,children:[coverage],contractVersion,routeVersion:options.routeVersion});
+}
+test('actual ACK and DEFER pack exactly 100 units without consuming the overflow Input',async()=>{
+ const f=await threeFacetFixture(38),{items}=await f.ai.collect({limit:50});
+ const ack=await pendingJob(f,items[0]);await f.ai.resolveLocal(ack.id,{facet:'topic',units:[{key:items[0].key,facet:'topic',scope:options.scope}]});await f.ai.cancel(ack.id);
+ const deferred=await pendingJob(f,items[1]);await dispatchFixture(f,deferred);await f.ai.commitFacet(deferred.id,deferred.childIds[0],{facet:'context',units:[{key:items[1].key,facet:'context',scope:options.scope}],outcome:'DEFER',retryCondition:'synthetic-still-needs-context'});await f.ai.cancel(deferred.id);
+ const before=await snapshot(f.s),a=await read(f);assert.equal(a.request.coverage.length,100);assert.equal(a.request.items.length,34);assert.equal(a.blockedUnits,1);assert.equal(a.nextCursor,DIRTY_PREFIX+items[33].key);assert.equal(a.complete,false);
+ assert.equal(a.request.coverage.some(u=>u.key===items[0].key&&u.facet==='topic'),false);assert.equal(a.request.coverage.some(u=>u.key===items[1].key&&u.facet==='context'),false);
+ const b=await readMaintenanceBatch(f.ai,{...options,cursor:a.nextCursor});assert.equal(b.request.items.length,4);assert.equal(b.complete,true);assert.deepEqual([...a.request.items,...b.request.items].map(i=>i.key),items.map(i=>i.key));assert.deepEqual(await snapshot(f.s),before);
+ const job=await f.ai.plan(a.request);assert.equal(job.childIds.length,2);assert.equal((await f.ai.status(job.id)).attempts.length,0);
+});
+test('capacity continuation also respects smaller and maximum scan limits',async()=>{
+ for(const limit of [7,50]){
+  const f=await threeFacetFixture(51),all=(await f.ai.collect({limit:100})).items.map(i=>i.key),seen=[];let cursor=null;
+  do{const page=await readMaintenanceBatch(f.ai,{...options,limit,cursor});assert.equal(page.status,'CANDIDATE_ONLY');assert.ok(page.request.items.length<=limit);assert.ok(page.request.coverage.length<=100);assert.ok(page.request.children.length<=2);seen.push(...page.request.items.map(i=>i.key));if(page.nextCursor!==null)assert.equal(page.nextCursor,DIRTY_PREFIX+seen.at(-1));cursor=page.nextCursor;assert.equal(page.complete,cursor===null);}while(cursor!==null);
+  assert.deepEqual(seen,all);assert.equal(new Set(seen).size,51);
+ }
+});
+test('actual resolved Topic and Context leave filter-only work deferred without a request',async()=>{
+ const f=await threeFacetFixture(1),item=(await f.ai.collect()).items[0],job=await pendingJob(f,item);
+ for(const facet of ['topic','context'])await f.ai.resolveLocal(job.id,{facet,units:[{key:item.key,facet,scope:options.scope}]});await f.ai.cancel(job.id);
+ const before=await snapshot(f.s),page=await read(f);assert.equal(page.status,'DEFERRED');assert.equal(page.reason,'FILTER_REQUIRES_MAINTENANCE');assert.equal(page.request,undefined);assert.equal(page.nextCursor,null);assert.deepEqual(await snapshot(f.s),before);
+});
+test('corrupt repeated pending facets reject before capacity can report an empty completed page',async()=>{
+ for(const count of [2,101]){
+  const f=await fixture();await f.s.foundationWrite(async t=>{const page=await t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,limit:1});await t.put('meta',{...page.rows[0].value,pendingFacets:Array(count).fill('topic')});});
+  const before=await snapshot(f.s);await assert.rejects(read(f),e=>e.code==='INVALID_REQUEST');assert.deepEqual(await snapshot(f.s),before);
+ }
 });

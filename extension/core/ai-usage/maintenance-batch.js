@@ -16,26 +16,30 @@ export async function readMaintenanceBatch(foundation,options){
   // Never silently overlook one or guess that its opaque reason has cleared.
   const deferred=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',limit:LIMIT});
   if(deferred.next!==null)return result('UNAVAILABLE',{reason:'DEFER_SCAN_BOUND'});
-  const items=[],coverage=[];let blocked=0,acknowledged=0;
-  for(const {value:row}of page.rows){
+  const items=[],coverage=[];let blocked=0,acknowledged=0,consumed=cursor,nextCursor=page.next;
+  for(const {key:rowKey,value:row}of page.rows){
    const item={key:row.descriptor.key,signature:row.signature,descriptor:row.descriptor};
-   if(item.descriptor.removed||item.descriptor.fenceOnly)continue;
-   const units=[];
+   if(item.descriptor.removed||item.descriptor.fenceOnly){consumed=rowKey;continue;}
+   const units=[];let rowBlocked=0,rowAcknowledged=0;
    for(const facet of row.pendingFacets||['topic','context']){
     if(!['topic','context','filter'].includes(facet))fail();
     const unit={key:item.key,facet,scope},key=unitKey(unit);
     const ack=await t.get('organizerWorkItems','aiu:coverage:'+canonical([unit.key,unit.facet,unit.scope]));
-    if(ack?.kind==='ai_usage_v1'&&ack.state==='ACKNOWLEDGED'&&ack.signature===item.signature&&equal(ack.unit,unit)){acknowledged++;continue;}
-    if(deferred.rows.some(({value:d})=>d.kind==='ai_usage_v1'&&d.state==='DEFERRED'&&d.signature===item.signature&&equal(d.unit,unit))){blocked++;continue;}
+    if(ack?.kind==='ai_usage_v1'&&ack.state==='ACKNOWLEDGED'&&ack.signature===item.signature&&equal(ack.unit,unit)){rowAcknowledged++;continue;}
+    if(deferred.rows.some(({value:d})=>d.kind==='ai_usage_v1'&&d.state==='DEFERRED'&&d.signature===item.signature&&equal(d.unit,unit))){rowBlocked++;continue;}
     units.push(unit);
    }
+   // Validate before the capacity break: malformed rows are never empty work.
+   if(units.length)validateCoverage(units,TYPE);
+   // Keep every remaining facet of an Input together. The exclusive cursor
+   // stays before the first unconsumed row, including when this is the last page.
+   if(coverage.length+units.length>LIMIT){nextCursor=consumed;break;}
+   consumed=rowKey;blocked+=rowBlocked;acknowledged+=rowAcknowledged;
    if(units.length){items.push(item);coverage.push(...units);}
   }
-  const boundary={nextCursor:page.next,complete:page.next===null,blockedUnits:blocked,acknowledgedUnits:acknowledged};
+  const boundary={nextCursor,complete:nextCursor===null,blockedUnits:blocked,acknowledgedUnits:acknowledged};
   if(!coverage.length)return result(blocked?'DEFERRED':'NO_DELTA',boundary);
   if(coverage.every(u=>u.facet==='filter'))return result('DEFERRED',{...boundary,reason:'FILTER_REQUIRES_MAINTENANCE'});
-  // The foundation has a 100-unit total bound. Do not silently truncate facets.
-  if(coverage.length>LIMIT)return result('UNAVAILABLE',{...boundary,reason:'COVERAGE_BOUND'});
   const sorted=validateCoverage(coverage,TYPE),children=[];
   for(let offset=0;offset<sorted.length;offset+=50)children.push(sorted.slice(offset,offset+50));
   if(children.length>CHILD_LIMITS[TYPE])fail();
