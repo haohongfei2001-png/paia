@@ -38,3 +38,10 @@ test('actual refused Archive search keeps Reader content and restores the previo
 test('ordinary Back still restores the prior Archive query and page',async()=>{
  const {context,seen}=navigationFixture();await context.navigate('library');assert.deepEqual(seen,[{query:'ARCHIVE_A',cursor:'ARCHIVE_A_PAGE_2',history:[null]}]);
 });
+test('actual Reader Find activation uses exact-target arrival and a single navigation-owned reveal',async()=>{
+ const calls=[],context={documentId:'synthetic-doc',normalizeSearch:value=>String(value||'').normalize('NFKC').toLowerCase().trim(),readerScopeSearch:{input:{}},documentSearchState:()=>({}),renderDocumentSearch(){},revealSearchResult(){throw Error('unqualified duplicate reveal');},navigate:async(...args)=>{calls.push(args);return true;}};
+ vm.createContext(context);vm.runInContext(actual('async function openDocumentSearchItem(', '\nfunction renderDocumentSearch('),context);
+ await context.openDocumentSearchItem({query:'needle'},{id:'target',documentId:'synthetic-doc',snippet:'current needle',bodyMatched:true,ref:{kind:'input',revision:7}});
+ assert.equal(calls[0][3]?.searchArrival?.bodyMatched,true);assert.equal(calls[0][3]?.searchArrival?.knownRevision,7);assert.equal(calls[0][3]?.searchArrival?.query,'needle');assert.equal(calls[0][2],'target');assert.equal(Object.hasOwn(calls[0][3].searchArrival,'searchSnapshot'),false,'Reader scope does not invent Archive Project metadata');
+ for(const patch of [{documentId:'another-doc'},{ref:{kind:'source',revision:7}},{ref:{kind:'input',revision:-1}}])await context.openDocumentSearchItem({query:'needle'},{id:'target',documentId:'synthetic-doc',bodyMatched:true,ref:{kind:'input',revision:7},...patch});assert.equal(calls.length,1,'invalid refs cannot activate a result');
+});

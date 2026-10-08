@@ -106,9 +106,9 @@ const positions=new Map(),queries=new Map();
 const documentSearchStates=new DocumentSearchSessions();let documentSearchIntent=0,documentSearchTimer=null;
 function documentSearchState(id=documentId){return documentSearchStates.get(id);}
 async function openDocumentSearchItem(current,item){
- const id=documentId,searchQuery=current.query,inputId=item?.id;if(!id||!inputId)return;
- current.activeInputId=inputId;const opened=await navigate('library',id,inputId);
- if(opened&&documentId===id){const restored=documentSearchState(id);restored.query=searchQuery;readerScopeSearch.input.value=searchQuery;renderDocumentSearch();revealSearchResult(inputId,searchQuery);}
+ const id=documentId,searchQuery=current.query,inputId=item?.id;if(!id||!inputId||item.documentId!==id||item.ref?.kind!=='input'||!Number.isSafeInteger(item.ref.revision)||item.ref.revision<0)return;
+ current.activeInputId=inputId;const searchArrival={query:searchQuery,bodyMatched:item.bodyMatched===true,knownRevision:item.ref.revision};const opened=await navigate('library',id,inputId,{searchArrival});
+ if(opened&&documentId===id){const restored=documentSearchState(id);restored.query=searchQuery;readerScopeSearch.input.value=searchQuery;renderDocumentSearch();}
 }
 function renderDocumentSearch(){
  const tools=$('document-search-tools'),input=readerScopeSearch.input,close=$('document-search-close'),results=$('document-search-results'),statusNode=$('document-search-status'),retrySearch=$('document-search-retry'),paging=$('document-search-pagination'),steps=$('document-search-steps'),previousMatch=$('document-search-match-previous'),nextMatch=$('document-search-match-next'),previousSearch=$('document-search-previous'),nextSearch=$('document-search-next'),active=view==='library'&&!!documentId;

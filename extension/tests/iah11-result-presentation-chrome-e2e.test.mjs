@@ -12,6 +12,8 @@ const out=new URL('../work/iah11-results/',import.meta.url).pathname;mkdirSync(o
 for(const variant of ['source','release'])test(`IAH11 actual Input-first results preserve selection, native activation and flat narrow/dark presentation (${variant})`,{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({headless:true,...(variant==='release'?{extensionPath:release}:{})}),p=h.archive;
  try{
+  // Controlled receiver delivery race only: the worker and IDB remain real.
+  await p.addInitScript(()=>{const add=chrome.runtime.onMessage.addListener.bind(chrome.runtime.onMessage);window.__iahHeldNotices=[];window.__iahNoticeTrace=[];window.__iahHoldCause=null;chrome.runtime.onMessage.addListener=listener=>add((...args)=>{const message=args[0];if(message?.type==='ARCHIVE_CHANGED'&&window.__iahHoldCause===message.cause){window.__iahHeldNotices.push(()=>{window.__iahNoticeTrace.push({phase:'delivered',cause:message.cause});return listener(...args);});window.__iahNoticeTrace.push({phase:'held',cause:message.cause});return;}return listener(...args);});});await p.reload();
   await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
   const title='SYNTHETIC_TITLE_ONLY '+ 'LongSyntheticLocation'.repeat(16);
   const text='SYNTHETIC_NEEDLE Do not publish unless approved. 中文 👩‍💻 é. İx ＱＺ';
@@ -166,6 +168,28 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
     assert.equal(await p.evaluate(()=>[...(CSS.highlights.get('paia-search')||[])].filter(range=>range.startContainer.isConnected).length),0,'unavailable hit has no current target highlight');
    }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await writer.close();}
    await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('.search-input[data-input-id="'+target+'"]').count(),0,'removed/purged hit stays absent after canonical search reread');
+  }
+  for(const [action,index]of [['edit',150],['changed',151],['remove',152],['purge',153]]){
+   const phrase='SYNTHETIC_DEEP_NORMAL '+index,record=(await h.state()).records.find(row=>row.originalText===phrase),target='block:'+record.id;
+   await p.locator('#scope-search').fill(phrase);const globalHit=p.locator('.search-input[data-input-id="'+target+'"]');await eventually(()=>globalHit.count().then(n=>n===1));await globalHit.click();await eventually(()=>p.locator('[data-edit-id="'+target+'"]').isVisible());
+   await p.locator('#reader-scope-search').fill(phrase);const hit=p.locator('.document-search-hit[data-input-id="'+target+'"]');await eventually(()=>hit.count().then(n=>n===1));
+   const writer=await h.context.newPage();await writer.goto(p.url());
+   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__iahOriginalSend=send;window.__iahHeldSearch=[];chrome.runtime.sendMessage=async(...args)=>{const result=await send(...args);if(args[0]?.type==='SEARCH_INPUTS')await new Promise(resolve=>window.__iahHeldSearch.push(resolve));return result;};});
+   await p.evaluate(cause=>{window.__iahHoldCause=cause;window.__iahNoticeTrace=[];},action==='remove'?'EXCLUDE_LIBRARY':action==='purge'?'PURGE_SOURCE':'UPDATE_LIBRARY');
+   try{
+    if(action==='purge'){const preflight=await writer.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id}),record.id);assert.equal(preflight.ok,true);assert.equal(preflight.data.state,'unambiguous');}
+    const currentText=action==='edit'?phrase+' CURRENT REVISION':'SYNTHETIC_READER_CHANGED_CURRENT';
+    const mutation=await writer.evaluate(({action,target,sourceId,currentText})=>chrome.runtime.sendMessage(action==='remove'?{type:'EXCLUDE_LIBRARY',id:target,excluded:true}:action==='purge'?{type:'PURGE_SOURCE',id:sourceId,confirm:true}:{type:'UPDATE_LIBRARY',id:target,changes:{libraryText:currentText}}),{action,target,sourceId:record.id,currentText});assert.equal(mutation.ok,true,JSON.stringify(mutation));
+    await eventually(()=>p.evaluate(()=>window.__iahHeldNotices.length>0),'target mutation notification is queued');assert.match(await hit.textContent(),/SYNTHETIC_DEEP_NORMAL/);await hit.click();
+    if(action==='remove'||action==='purge'){
+     await eventually(async()=>/原搜索结果已不可用|original search result is unavailable/i.test(await p.locator('#notice').textContent()),'held Reader Find '+action+' explains unavailable');assert.equal(await p.locator('#document-body [data-edit-id]').count(),0,'Reader Find never substitutes a neighbor');
+    }else{
+     await eventually(()=>p.locator('[data-edit-id="'+target+'"]').textContent().then(value=>value===currentText),'Reader Find opens current working revision');
+     if(action==='changed')await eventually(async()=>/匹配.*变化|match has changed/i.test(await p.locator('#notice').textContent()),'Reader Find explains vanished body match');
+     else await eventually(()=>p.evaluate(({target,phrase})=>[...(CSS.highlights.get('paia-search')||[])].some(range=>document.querySelector('[data-edit-id="'+target+'"]')?.contains(range.startContainer)&&range.toString()===phrase),{target,phrase}),'Reader Find highlights current matching text');
+    }
+   }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;window.__iahHoldCause=null;const pending=window.__iahHeldNotices.splice(0);for(const deliver of pending)deliver();});const trace=await p.evaluate(()=>window.__iahNoticeTrace);assert.ok(trace.length>0);assert.deepEqual(trace.filter(x=>x.phase==='delivered').map(x=>x.cause),trace.filter(x=>x.phase==='held').map(x=>x.cause),'all delayed callbacks delivered in original order');assert.equal(await p.evaluate(()=>window.__iahHeldNotices.length),0);writeFileSync(out+variant+'-reader-find-'+action+'-delivery.json',JSON.stringify(trace,null,2));await writer.close();}
+   await p.locator('#primary-nav [data-view="library"]').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   }
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}

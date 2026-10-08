@@ -67,3 +67,28 @@ Merged main `c168b13170d762b4774740ce218613a45e31cde4` without conflicts as `0e0
 - `/tmp/iah-mainc168-merge-unit.log`: 25/25 qualified-search and affected CI guard tests PASS.
 - `/tmp/iah-mainc168-prompt-seam-unit.log`: complete Prompt service/security files, 25/25 PASS.
 - No unchanged IAH browser suite was repeated. Formal combined candidate/main gates remain pending.
+
+## Reader Find review correction
+
+Independent review identified that `openDocumentSearchItem` still used ordinary nearby arrival. It now supplies the same navigation-owned exact-target qualification, scoped to its current document, with a checked Input ref kind/revision/document. No Archive Project snapshot is fabricated. The former unqualified duplicate reveal was removed.
+
+The first body-match inference used the bounded snippet. A real owner negative proved a 250-character query can be present in canonical text but absent from its 240-character excerpt. `searchMaterialPage` now adds only an Input `bodyMatched` Boolean computed from the complete canonical body through existing normalization. It neither increases excerpt size nor adds text persistence. Tests cover long queries, Unicode normalization, title-only matches and separated terms; existing universal search consumers remain covered.
+
+Evidence:
+
+- `/tmp/iah-find-arrival-before.log`: actual production activation owner fails before exact-arrival wiring.
+- `/tmp/iah-find-full-body-before.log`: actual store query fails before full-body DTO Boolean (undefined rather than true for the long query).
+- `/tmp/iah-readerfind-native.log`: 0/2 PASS, both failed because the correctly delivered mutation notification had already cleared the old Find row. This is preserved evidence that ordinary invalidation clears stale results; holding search RPC responses alone cannot create the intended arrival race.
+- `/tmp/iah-readerfind-final-native.log`: preparation used an incorrect cwd; run stopped/cancelled and is not accepted evidence.
+- `/tmp/iah-readerfind-final-unit.log`: 15 complete relevant files, **108/108 PASS**, no skips/cancellations.
+- `/tmp/iah-readerfind-delivery-native.log`: complete existing IAH native file, **source 31.06 s PASS + release 31.84 s PASS**, total 63.75 s, 0 failures/skips/cancellations. The new tests explicitly model controlled receiver notification delivery: only the target mutation's ARCHIVE_CHANGED cause is queued, real worker/IDB/query qualification remains active, every queued original callback is delivered in original order in finally, and the queue is proven empty. Per-variant/action `reader-find-*-delivery.json` artifacts record held/delivered causes. This is not claimed as measured natural network latency.
+
+The four Find arrival cases verify revised matching text, disappeared-match notice, removed target rejection and purged target rejection. All original Archive/Find/Unicode/filter/origin/IME/privacy assertions remain. Runtime and native bytes were unchanged throughout the final successful run. Current correction hashes:
+
+```text
+b6ceb92890d5b086e11db0c626eeb2ae95baea796bdf69bf535986e33e2f0058  extension/core/search-material-page.js
+27dd5f62b1bd314a8584aeffc4b443b6f51d879e0100417c9bb9c56ff4348337  extension/ui/archive.js
+456e37c5f84f68be68a39014aceea867dad18096f86506e5707e67043f107b50  extension/tests/iah11-result-presentation-chrome-e2e.test.mjs
+```
+
+This correction supersedes earlier runtime hashes for these three files. Formal candidate/main gates remain pending.

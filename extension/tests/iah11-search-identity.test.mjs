@@ -97,3 +97,12 @@ test('IAH activation applies current filter policy and rejects scope or revision
  for(const patch of [{providerKey:'claude'},{dateFrom:'2026-01-01'},{includeFiltered:true},{projectRef:project}])await assert.rejects(()=>page({...context,scope:{...context.scope,...patch}}),e=>e.code==='INVALID_REQUEST');
  for(const patch of [{knownRevision:-1},{body:'secret'},{searchSnapshot:{...context.searchSnapshot,body:'secret'}}])await assert.rejects(()=>page({...context,...patch}),e=>e.code==='INVALID_REQUEST');
 });
+
+test('Reader Find body-match fact uses full canonical text rather than its bounded excerpt',async()=>{
+ const query='a'.repeat(250),{s}=await completeFixture({texts:['prefix '+query+' suffix','İx fullwidth ＱＺ','alpha separated beta']});await s.finishFoundation();const documentId=(await s.snapshot()).library.blocks[0].documentId;
+ const find=query=>s.searchInputs({universal:true,paged:true,query,mode:'current',documentId,topicId:null,source:'',dateFrom:'',to:'',types:['input'],includeRemoved:false,includeFiltered:true,cursor:null,limit:40});
+ const long=await find(query);assert.equal(long.items.length,1);assert.ok([...long.items[0].snippet].length<=240);assert.equal(long.items[0].snippet.includes(query),false);assert.equal(long.items[0].bodyMatched,true);
+ for(const query of ['x','qz']){const page=await find(query);assert.ok(page.items.some(item=>item.bodyMatched===true));}
+ const title=await find('虚构验收');assert.equal(title.items.every(item=>item.bodyMatched===false),true,'title hit never invents a body match');
+ const apart=await find('alpha beta');assert.equal(apart.items.length,0,'separated terms cannot manufacture a contiguous phrase');
+});
