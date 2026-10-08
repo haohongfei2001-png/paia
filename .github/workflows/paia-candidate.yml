@@ -1238,7 +1238,7 @@ jobs:
       - name: Diagnose old-tab refresh after extension reload
         env:
           PAIA_HEADLESS: '1'
-        run: node --test tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
+        run: node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
 
   direct_edit:
     if: github.event.pull_request.draft == true && contains(github.event.pull_request.body, 'PAIA_DVN_DIRECT_EDIT_BROWSER')
