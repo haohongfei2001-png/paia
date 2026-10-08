@@ -493,7 +493,7 @@ jobs:
       - name: Verify whole owning Node files and fixture preflight
         run: |
           set -o pipefail
-          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
       - name: Prove source and release native IndexedDB and worker durability
         env:
           CI: '1'
