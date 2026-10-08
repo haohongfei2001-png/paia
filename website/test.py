@@ -152,23 +152,70 @@ def load(page, relative, scripts=True):
         for source in sources:
             page.add_script_tag(content=(ROOT / source.split('?')[0].lstrip('/')).read_text())
 
+def settle_capture_top(page):
+    # Local screenshots may have moved the viewport or left a focused control.
+    # Restore the real page origin before capturing a sticky header and hero.
+    page.evaluate('document.activeElement?.blur?.()')
+    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+    page.wait_for_function('scrollY===0')
+    page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+
+
+def capture_stage_viewport(page, selector, filename):
+    # Capture the real viewport with the sticky navigation still present.
+    page.evaluate('document.activeElement?.blur?.()')
+    page.locator(selector).evaluate("el=>scrollTo({top:Math.max(0,scrollY+el.getBoundingClientRect().top-124),behavior:'instant'})")
+    page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+    page.screenshot(path=str(OUT / filename), animations='disabled')
+
+
+def check_reflow(page, label, name, width, state):
+    """Keep the strict gate; preserve the actual failing layout before raising."""
+    fits = page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
+    if not fits:
+        prefix = f'{name.replace("/", "-")}-{width}-{state}-failure'
+        try:
+            evidence = page.evaluate("""()=>{
+                const cssKeys=['display','position','width','minWidth','maxWidth','gridTemplateColumns','gridTemplateRows','gap','fontSize','lineHeight','whiteSpace','overflowWrap','overflowX','paddingLeft','paddingRight','transform'];
+                const identify=e=>{if(e.id)return '#'+CSS.escape(e.id);let name=e.localName+[...e.classList].slice(0,3).map(c=>'.'+CSS.escape(c)).join('');const data=[...e.attributes].find(a=>a.name.startsWith('data-'));if(data)name+='['+data.name+'='+JSON.stringify(data.value)+']';return name;};
+                const describe=e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {selector:identify(e),parent:e.parentElement?identify(e.parentElement):null,rect:{x:r.x,y:r.y,width:r.width,height:r.height,left:r.left,right:r.right,top:r.top,bottom:r.bottom},scrollWidth:e.scrollWidth,clientWidth:e.clientWidth,css:Object.fromEntries(cssKeys.map(k=>[k,s[k]])),text:e.textContent.trim().slice(0,140)};};
+                const elements=[...document.querySelectorAll('body *')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');
+                return {viewport:{width:innerWidth,height:innerHeight,scrollX,scrollY,rootFontSize:getComputedStyle(document.documentElement).fontSize},document:{scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth},body:{scrollWidth:document.body.scrollWidth,clientWidth:document.body.clientWidth},outsideViewport:elements.filter(e=>{const r=e.getBoundingClientRect();return r.right>innerWidth+1||r.left< -1;}).slice(0,100).map(describe),internalOverflow:elements.filter(e=>e.clientWidth>0&&e.scrollWidth>e.clientWidth+1).slice(0,100).map(describe),layoutContainers:[...document.querySelectorAll('.header-inner,.pc-nav,.pc-editor,.pc-reader-tools,.pc-topic-grid,.pc-prompt-row,.pc-prompt-management,.pc-context-stage,.pc-context-grid,.pc-sync,.pc-sync-mapping')].filter(e=>e.getClientRects().length).map(describe)};
+            }""")
+        except Exception as error:
+            evidence = {'diagnostic_error': str(error)}
+        evidence.update({'route': name, 'width': width, 'state': state, 'failed_check': label, 'screenshots': []})
+        for suffix, full_page in [('viewport', False), ('full', True)]:
+            filename = f'{prefix}-{suffix}.png'
+            try:
+                page.screenshot(path=str(OUT / filename), full_page=full_page)
+                evidence['screenshots'].append(filename)
+            except Exception as error:
+                evidence.setdefault('screenshot_errors', []).append(str(error))
+        (OUT / f'{prefix}.json').write_text(json.dumps(evidence, ensure_ascii=False, indent=2))
+    check(fits, label)
+
+
 def capture_scenes(page, name, width):
     """Review ordinary and disclosed states with readable, nonmoving surfaces."""
     prefix = f'{name.replace("/", "-")}-{width}'
     page.emulate_media(reduced_motion='reduce')
     page.evaluate('document.fonts.ready')
-    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+    settle_capture_top(page)
     if name in ('index.html', 'zh/index.html'):
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
         for key in ('archive', 'thought', 'context'):
             page.locator(f'[data-preview-tab="{key}"]').click()
             page.locator('[data-hero-product]').screenshot(path=str(OUT / f'{prefix}-hero-{key}.png'), animations='disabled')
         page.locator('[data-preview-tab="archive"]').click()
+    settle_capture_top(page)
     page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
     if name not in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
         return
     for label, selector in [('archive', '.pc-editor-stage'), ('prompt', '.pc-prompt-scene'), ('topic-root', '[data-topic-stage]'), ('context-overview', '.pc-context-stage')]:
         page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{label}.png'), animations='disabled')
+    for label, selector in [('topic-overview', '[data-topic-stage]'), ('context-overview', '.pc-context-stage')]:
+        capture_stage_viewport(page, selector, f'{prefix}-{label}-viewport.png')
     page.locator('[data-prompt-manage="0"]').focus()
     page.keyboard.press('Enter')
     page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{prefix}-prompt-management.png'), animations='disabled')
@@ -205,7 +252,7 @@ try:
                 load(page, name)
                 page.evaluate('document.fonts.ready')
                 check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
-                check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: {width}px reflow')
+                check_reflow(page, f'{name}: {width}px reflow', name, width, 'layout')
                 verify_typography(page, check, f'{name}: {width}px')
                 if path.name in ('index.html', 'demo.html'):
                     check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
@@ -234,7 +281,7 @@ try:
                     page.add_style_tag(content='html{font-size:200%!important}')
                     page.evaluate('dispatchEvent(new Event("resize"))')
                     page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
-                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: 320px with 200% text')
+                    check_reflow(page, f'{name}: 320px with 200% text', name, width, 'text-200')
                     if name in ('index.html', 'zh/index.html'):
                         page.evaluate("scrollTo({top:0,behavior:'instant'})")
                         page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-text-200.png'), animations='disabled')
@@ -263,6 +310,33 @@ try:
             check(menu.locator('summary').evaluate('el=>el===document.activeElement'), f'{locale}: menu restores focus')
             page.emulate_media(reduced_motion='reduce')
             check(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), f'{locale}: reduced motion')
+            # Narrow regression for the repaired high-contrast title and Orb.
+            page.emulate_media(forced_colors='active', reduced_motion='reduce')
+            load(page, locale + 'index.html')
+            page.evaluate('document.fonts.ready')
+            contrast_locale = 'en' if en else 'zh'
+            check(page.evaluate("matchMedia('(forced-colors: active)').matches"), f'{locale}: browser forced colors is active')
+            title = page.locator('.hero-heading h1 > span')
+            check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
+            settle_capture_top(page)
+            page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
+            orb = page.locator('[data-prompt-toggle]')
+            check(orb.locator('.paia-orb').evaluate("e=>getComputedStyle(e).display==='none'"), f'{locale}: high-contrast mode hides only the decorative Orb')
+            check(orb.is_visible() and orb.evaluate("e=>{const s=getComputedStyle(e);return parseFloat(s.borderTopWidth)>=1&&s.borderTopStyle!=='none'&&s.borderTopColor===s.color&&s.color!==s.backgroundColor;}"), f'{locale}: Orb control retains a contrasting visible button boundary')
+            check(orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('−')"), f'{locale}: expanded prompt control has a visible collapse symbol')
+            orb.focus()
+            page.keyboard.press('Enter')
+            check(orb.get_attribute('aria-expanded') == 'false' and not page.locator('#pc-prompt-card').is_visible() and orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('+')"), f'{locale}: keyboard collapses the card and displays an expand symbol')
+            page.keyboard.press('Enter')
+            check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
+            page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
+            allowed = page.locator('[data-card-allow="rules"]')
+            closed = page.locator('[data-card-allow="info"]')
+            allowed.focus()
+            page.keyboard.press('Enter')
+            page.locator('[data-card-open="info"]').focus()
+            check(allowed.get_attribute('aria-pressed') == 'true' and closed.get_attribute('aria-pressed') == 'false' and allowed.inner_text() != closed.inner_text(), f'{locale}: Context permission states remain distinct in text and semantics')
+            check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
             page.close()
             page = browser.new_page(viewport={'width': 1280, 'height': 900})
             errors = []

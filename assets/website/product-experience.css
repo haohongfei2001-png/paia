@@ -353,3 +353,7 @@ html[data-motion=off] *,html[data-motion=off] *::before,html[data-motion=off] *:
 @media(pointer:coarse){.pc-row-menu{opacity:1;min-height:44px;width:44px}.pc-prompt-row{grid-template-columns:minmax(0,1fr) 44px}}
 
 @media(forced-colors:active){.pc-orb-button{border:1px solid ButtonText;background:ButtonFace;color:ButtonText}.pc-orb-button:after{content:'+';font:22px/1 system-ui;position:absolute}.pc-orb-button[aria-expanded=true]:after{content:'−'}}
+
+/* Narrow screens retain readable section names, including enlarged text. */
+.pc-nav a{min-width:0;overflow-wrap:anywhere}
+@media(max-width:360px){.pc-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}}
