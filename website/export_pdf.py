@@ -8,7 +8,7 @@ Run from a checked out source tree:
 All rendering uses a temporary local HTTP server, fixed fictional sample data and
 read-only interactions. No form submission, provider call or archive access.
 Screen media preserves the art direction. Reduced-motion produces the completed
-hero for full-site PDFs; a separate keyframe PDF/GIF records normal scroll motion.
+product preview for full-site PDFs; a separate keyframe PDF/GIF records native optical motion.
 """
 from pathlib import Path
 from functools import partial
@@ -22,7 +22,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
-parser.add_argument('--output',default=os.environ.get('WEBSITE_PDF_OUTPUT','/tmp/website-v4-proof'))
+parser.add_argument('--output',default=os.environ.get('WEBSITE_PDF_OUTPUT','/tmp/paia-product-website-proof'))
 args=parser.parse_args()
 OUT=Path(args.output);OUT.mkdir(parents=True,exist_ok=True)
 SHOTS=OUT/'screens';SHOTS.mkdir(exist_ok=True)
@@ -35,7 +35,7 @@ origin=f'http://127.0.0.1:{server.server_port}'
 manifest={'evidence':'ACTUAL_WEBSITE_LOCAL_HTTP','base':'inputarchive.com','forms_submitted':False,'private_data':False,'files':{},'routes':[]}
 try:manifest['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
 except Exception:manifest['source_commit']=None
-manifest['website_bytes_sha256']=hashlib.sha256(b''.join((ROOT/p).read_bytes() for p in (ROOT/'website/generated-paths.txt').read_text().splitlines())+(ROOT/'assets/website/site.css').read_bytes()+(ROOT/'assets/website/site.js').read_bytes()).hexdigest()
+manifest['website_bytes_sha256']=hashlib.sha256(b''.join((ROOT/p).read_bytes() for p in (ROOT/'website/generated-paths.txt').read_text().splitlines())+b''.join((ROOT/asset).read_bytes() for asset in ['assets/website/site.css','assets/website/site.js','assets/website/product-experience.css','assets/website/home-core-v2.js'])).hexdigest()
 
 def ready(page):
     page.evaluate("document.querySelectorAll('img[loading=lazy]').forEach(i=>i.loading='eager')")
@@ -101,8 +101,9 @@ with sync_playwright() as pw:
     page=b.new_page(viewport={'width':1440,'height':900},device_scale_factor=1,reduced_motion='no-preference')
     page.goto(origin+'/',wait_until='networkidle');ready(page)
     keydoc=fitz.open();frames=[]
+    distance=page.locator('[data-product-hero]').evaluate('e=>e.offsetHeight*.45')
     for i in range(31):
-        y=660*i/30
+        y=distance*i/30
         page.evaluate("y=>scrollTo({top:y,behavior:'instant'})",y);page.wait_for_timeout(40)
         data=page.screenshot()
         import io
@@ -110,8 +111,8 @@ with sync_playwright() as pw:
         if i in [0,10,20,30]:
             p=keydoc.new_page(width=1080,height=675);p.insert_image(p.rect,stream=data)
             (SHOTS/f'motion-{i:02d}.png').write_bytes(data)
-    keydoc.set_toc([[1,title,n+1] for n,title in enumerate(['Text-only first frame','Inputs emerge','Sources gather','Collected inputs'])])
-    keydoc.set_metadata({'title':'PAIA — Scroll sequence — actual website','subject':'Static keyframes sampled from the real implemented homepage.'})
+    keydoc.set_toc([[1,title,n+1] for n,title in enumerate(['Product-led opening','Optical depth on native scroll','Three-space product preview','A stable, readable product surface'])])
+    keydoc.set_metadata({'title':'PAIA — Product presentation in motion — actual website','subject':'Static keyframes sampled from the real implemented homepage.'})
     keydoc.save(OUT/'PAIA-Motion-Keyframes.pdf',garbage=4,deflate=True)
     keydoc.close()
     durations=[100]*len(frames);durations[0]=1000;durations[-1]=1800

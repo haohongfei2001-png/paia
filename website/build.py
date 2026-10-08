@@ -33,8 +33,7 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        core_css='<link rel="stylesheet" href="/assets/website/home-core-v1.css?v=7">\n<script src="/assets/website/home-core-v2.js?v=20261008" defer></script>\n' if page in ('index.html','demo.html') else ''
-        home_css=core_css+('<link rel="stylesheet" href="/assets/website/home-origin-v7.css?v=71">\n' if page in ('index.html','demo.html') else '')
+        product_css='<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261008b">\n<script src="/assets/website/home-core-v2.js?v=20261008b" defer></script>\n' if page in ('index.html','demo.html') else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -42,7 +41,7 @@ def build(lang):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)}</title>
 <meta name="description" content="{escape(desc,quote=True)}">
-<meta name="theme-color" content="#fdfdfc">
+<meta name="theme-color" content="#fafbfd">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 {'<meta name="robots" content="noindex,follow">' if noindex else ''}
 <link rel="canonical" href="{url}">
@@ -65,9 +64,9 @@ def build(lang):
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/brand/paia-icon-v1.png" type="image/png">
 <link rel="apple-touch-icon" href="/assets/website/brand/paia-icon-v1.png">
-<link rel="stylesheet" href="/assets/website/site.css?v=5">
-{home_css}<link rel="stylesheet" href="/assets/website/product-consistency.css?v=20261008">
-<script src="/assets/website/site.js?v=4" defer></script>
+<link rel="stylesheet" href="/assets/website/site.css?v=20261008b">
+{product_css}
+<script src="/assets/website/site.js?v=20261008b" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''

@@ -11,7 +11,7 @@ from functools import partial
 from threading import Thread
 import json, os, re, sys, struct, hashlib
 from core_checks import verify_core
-from origin_checks import verify_origin, verify_assets
+from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -84,41 +84,39 @@ for relative in ('index.html','beta.html','demo.html','principles.html','status.
     check(next(a['href'] for a in root_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English root canonical')
     check(next(a['href'] for a in zh_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/zh/'+('' if relative=='index.html' else relative), f'{relative}: Chinese canonical')
     check(next(a['href'] for a in root_doc.all('link') if a.get('hreflang')=='x-default') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English default metadata')
-for relative in ('index.html','zh/index.html'):
-    text=(ROOT/relative).read_text()
-    check(len(Document(text).all('img')) == 6, f'{relative}: three source marks and three purposeful image layers retained')
-    check('Watch the film' not in text and 'A PAIA user' not in text, f'{relative}: no invented film or testimonial')
-    check(text.count('class="planned"') == 2, f'{relative}: future sources explicitly marked planned')
-    check('data-hero-sequence' in text and 'data-scroll-collection' in text, f'{relative}: typography-to-collection sequence exists')
-    check(text.count('class="art-icon"') == 2, f'{relative}: two purposeful interface icons, not repeated brand artwork')
-
-
-# Shared capture dependencies remain byte-frozen. Owner-authorized homepage copy
-# refinements may change hero wording only; retain the exact-literal check below.
-check(hashlib.sha256((ROOT/'assets/website/site.css').read_bytes()).hexdigest()=='1da775ca6b8f914e0d4e8e66b1fb43e4f4c4189d2ead954afa1e7522a73e26dc', 'frozen byte identity: assets/website/site.css')
-check(hashlib.sha256((ROOT/'assets/website/site.js').read_bytes()).hexdigest()=='8f85a04becb98881a8db309e7dbfb53de65b393d56871e072cf0474619481ff2', 'frozen byte identity: assets/website/site.js')
-check(hashlib.sha256((ROOT/'assets/website/demo.js').read_bytes()).hexdigest()=='447610004d6f476e4a15edc298526817a8fef6537fea9b6447fd9dab8a6b5c65', 'frozen byte identity: assets/website/demo.js')
-home_source=(ROOT/'website/home.py').read_text()
-hero_literal=home_source[home_source.index("    hero=f'''"):home_source.index('    from core import render')]
-check(hashlib.sha256(hero_literal.encode()).hexdigest()=='c96dad3a9069f1eca9bf381b519bb039106fcfd286f325c5ec45503260bea03a', 'approved hero with 2026-10-08 product copy; all source cards retained')
+# The current Owner direction is product-led. Preserve the brand identity and
+# claims, not the old photograph count, typography-only frame or frozen CSS.
+for relative in ('index.html', 'zh/index.html'):
+    source = (ROOT / relative).read_text()
+    doc = Document(source)
+    check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
+    check(sum('data-product-hero' in attrs for _, attrs in doc.tags) == 1, f'{relative}: current product-led opening exists')
+    check([attrs['data-preview-tab'] for _, attrs in doc.tags if 'data-preview-tab' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
+    check('data-hero-sequence' not in source and 'data-scroll-collection' not in source, f'{relative}: retired opening is not a second visual owner')
+    check(sum('/brand/paia-logo-v1.webp' in attrs.get('src', '') for attrs in doc.all('img')) == 1, f'{relative}: original artwork remains confined to its closing use')
+for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
+    source = (ROOT / relative).read_text()
+    doc = Document(source)
+    styles = [urlparse(attrs['href']).path for attrs in doc.all('link') if attrs.get('rel') == 'stylesheet']
+    check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
+    check(not any(name in source for name in ('home-core-v1.css', 'home-origin-v7.css', 'product-consistency.css', '/assets/website/demo.js')), f'{relative}: no retired stylesheet or demo cascade')
 
 verify_assets(ROOT, check)
 
-# V7 permits copy/color refinement, but the approved hero DOM and geometry stay.
-hero_html=(ROOT/'index.html').read_text()
-hero_html=hero_html[hero_html.index('<section class="hero-sequence"'):hero_html.index('<div class="paia-core"')]
-hero_structure=[(tag,[(k,v) for k,v in attrs.items() if k not in ('stroke','fill','aria-label')]) for tag,attrs in Document(hero_html).tags if tag != 'br']
-check(hashlib.sha256(json.dumps(hero_structure).encode()).hexdigest()=='f8998c1cc8043033db19f0ce8afc7fc489868cb10aca95861c5ce40717276a51', 'approved hero structure, card hierarchy and media geometry retained')
-
-
-# Stable color token checks, not a claim of a full accessibility audit.
+# Selected D6 text/surface pairs. Visual review also inspects the composited
+# translucent layers; token contrast alone is not a full accessibility audit.
 def luminance(color):
-    v = [int(color[i:i+2], 16) / 255 for i in (0, 2, 4)]
-    v = [x / 12.92 if x <= .04045 else ((x + .055) / 1.055) ** 2.4 for x in v]
-    return .2126*v[0] + .7152*v[1] + .0722*v[2]
-for fg, bg, minimum in [('626960','fdfdfc',4.5),('ffffff','2d3730',4.5),('343e34','ffffff',4.5),('596452','eff2eb',4.5),('30493b','ffffff',4.5),('6b6e73','fbfbfa',4.5),('ffffff','343638',4.5),('66696f','f6f6f5',4.5)]:
+    values = [int(color[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    values = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in values]
+    return .2126 * values[0] + .7152 * values[1] + .0722 * values[2]
+for fg, bg in [('17233c', 'ffffff'), ('63728a', 'fafbfd'), ('ffffff', '235dd3'), ('235dd3', 'eaf1ff'), ('25354f', 'ffffff')]:
     low, high = sorted([luminance(fg), luminance(bg)])
-    check((high+.05)/(low+.05) >= minimum, f'contrast: {fg}/{bg} >= {minimum}')
+    check((high + .05) / (low + .05) >= 4.5, f'D6 text contrast: {fg}/{bg} >= 4.5')
+
+if '--static-only' in sys.argv:
+    (OUT / 'report.json').write_text(json.dumps({'evidence': 'STATIC_ONLY', 'browser': 'not run', 'private_data': False, 'beta_form_submitted': False, 'tests': results}, ensure_ascii=False, indent=2))
+    print(json.dumps({'checks': len(results), 'failed': [], 'evidence': 'STATIC_ONLY', 'browser': 'not run'}))
+    raise SystemExit(0)
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
@@ -154,117 +152,140 @@ def load(page, relative, scripts=True):
         for source in sources:
             page.add_script_tag(content=(ROOT / source.split('?')[0].lstrip('/')).read_text())
 
+def capture_scenes(page, name, width):
+    """Review ordinary and disclosed states with readable, nonmoving surfaces."""
+    prefix = f'{name.replace("/", "-")}-{width}'
+    page.emulate_media(reduced_motion='reduce')
+    page.evaluate('document.fonts.ready')
+    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+    if name in ('index.html', 'zh/index.html'):
+        page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
+        for key in ('archive', 'thought', 'context'):
+            page.locator(f'[data-preview-tab="{key}"]').click()
+            page.locator('[data-hero-product]').screenshot(path=str(OUT / f'{prefix}-hero-{key}.png'), animations='disabled')
+        page.locator('[data-preview-tab="archive"]').click()
+    page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
+    if name not in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
+        return
+    for label, selector in [('archive', '.pc-editor-stage'), ('prompt', '.pc-prompt-scene'), ('topic-root', '[data-topic-stage]'), ('context-overview', '.pc-context-stage')]:
+        page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{label}.png'), animations='disabled')
+    page.locator('[data-prompt-manage="0"]').focus()
+    page.keyboard.press('Enter')
+    page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{prefix}-prompt-management.png'), animations='disabled')
+    page.locator('#pc-prompt-0').press('Escape')
+    page.locator('[data-topic-block="product"] h3 a').click()
+    page.locator('[data-topic-stage]').screenshot(path=str(OUT / f'{prefix}-topic-reader.png'), animations='disabled')
+    page.locator('[data-topic-reader="product"] [data-topic-back]').click()
+    stage = page.locator('.pc-context-stage')
+    page.locator('[data-card-open="rules"]').click()
+    stage.screenshot(path=str(OUT / f'{prefix}-context-detail.png'), animations='disabled')
+    page.locator('[data-card-detail="rules"] [data-context-back]').click()
+    page.locator('[data-context-global]').click()
+    page.locator('[data-card-allow="inputs"]').click()
+    page.locator('[data-card-open="inputs"]').click()
+    page.locator('[data-topic-allow="product"]').click()
+    stage.screenshot(path=str(OUT / f'{prefix}-context-topic-scope.png'), animations='disabled')
+
+
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE'), headless=True, args=['--no-sandbox'])
         version = browser.version
-        # Full page matrix, including 320 CSS px and 200% text.
+        # All 48 routes retain the complete four-width reflow and safety matrix.
+        review_pages = ('index.html', 'zh/index.html', 'beta.html', 'zh/beta.html', 'demo.html', 'zh/demo.html', 'how-it-works.html', 'zh/how-it-works.html', 'principles.html', 'zh/principles.html')
         for width in [1440, 768, 390, 320]:
             for path in PAGES:
                 name = path.relative_to(ROOT).as_posix()
-                if os.environ.get('WEBSITE_TEST_PROGRESS'):print(width,name,flush=True)
-                page = browser.new_page(viewport={'width':width,'height':900})
+                if os.environ.get('WEBSITE_TEST_PROGRESS'):
+                    print(width, name, flush=True)
+                page = browser.new_page(viewport={'width': width, 'height': 900})
                 errors, external = [], []
                 page.on('pageerror', lambda error: errors.append(str(error)))
-                page.on('request', lambda request: external.append(request.url) if request.url.startswith('http') and not request.url.startswith(origin+'/') else None)
+                page.on('request', lambda request: external.append(request.url) if request.url.startswith('http') and not request.url.startswith(origin + '/') else None)
                 load(page, name)
                 page.evaluate('document.fonts.ready')
                 check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
-                check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: {width}px reflow')
-                check(not errors, f'{name}: {width}px no JS errors')
-                check(not external, f'{name}: {width}px no unsolicited external requests')
-                if path.name in ('index.html','demo.html'):
-                    check(page.locator('[data-pin]').evaluate_all('els=>els.every(e=>{const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length===1})'), f'{name}: {width}px prompt pin labels stay on one line')
-                    check(page.locator('[data-thought-text]').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px topic body remains readable')
+                check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: {width}px reflow')
+                verify_typography(page, check, f'{name}: {width}px')
+                if path.name in ('index.html', 'demo.html'):
+                    check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
                     check(page.locator('.pc-thought').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e.querySelector(".pc-topic-source")).fontSize)<=parseFloat(getComputedStyle(e.querySelector("[data-thought-text]")).fontSize))'), f'{name}: {width}px provenance stays subordinate to the words')
-                    check(page.locator('.pc-access').evaluate('e=>getComputedStyle(e).backgroundColor.match(/\\d+/g).slice(0,3).every(c=>Number(c)>=240)'), f'{name}: {width}px access panel retains the light visual direction')
-                    if width <= 600:
-                        check(page.locator('.pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px topics use one readable column')
-                if width == 320 and name in ('index.html','zh/index.html'):
-                    page.screenshot(path=str(OUT / f'{name.replace("/","-")}-320-header.png'))
-                    check(page.locator('.mobile-menu summary').bounding_box()['y'] < 60, f'{name}: 320px menu stays in the header row')
+                    check(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, f'{name}: {width}px default Topic overview is stable')
+                    check(page.locator('.pc-prompt-management:visible').count() == 0, f'{name}: {width}px prompt management stays contextual')
+                    page.locator('[data-prompt-manage="0"]').focus()
+                    page.keyboard.press('Enter')
+                    check(page.locator('[data-pin]:visible').evaluate_all('els=>els.length===1 && els.every(e=>{const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length===1})'), f'{name}: {width}px disclosed Pin label stays on one line')
+                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: {width}px prompt management does not overflow')
+                    page.locator('#pc-prompt-0').press('Escape')
+                    if width <= 480:
+                        check(page.locator('.pc-topic-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic overview uses one readable column')
+                        check(page.locator('.pc-context-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Context cards stack for reading')
+                    check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
+                if path.name == 'index.html':
+                    check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
+                    check(page.locator('[data-preview-tab][aria-selected=true]').get_attribute('data-preview-tab') == 'archive', f'{name}: {width}px Archive is the initial preview')
+                if width == 320 and name in ('index.html', 'zh/index.html'):
+                    page.evaluate("scrollTo({top:0,behavior:'instant'})")
+                    page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-header.png'), animations='disabled')
+                    check(page.evaluate("""()=>{const selectors=['.brand-lockup','.header-actions','.mobile-menu summary'];const r=selectors.map(s=>document.querySelector(s).getBoundingClientRect());const centers=r.map(e=>e.y+e.height/2);return Math.max(...centers)-Math.min(...centers)<5 && r.every(e=>e.left>=0&&e.right<=innerWidth+1) && r[0].right<=r[1].left+1 && r[1].right<=r[2].left+1;}"""), f'{name}: 320px brand, CTA and menu share a clear header row')
+                if name in review_pages and width in (1440, 390):
+                    capture_scenes(page, name, width)
                 if width == 320:
                     page.add_style_tag(content='html{font-size:200%!important}')
-                    check(page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), f'{name}: 320px with 200% text')
-                if name in ('index.html','zh/index.html','beta.html','zh/beta.html','demo.html','zh/demo.html') and width in (1440,390):
-                    # Review captures should show the complete designed page rather than
-                    # preserve below-the-fold reveal opacity. Production motion is unchanged.
-                    if name in ('index.html','zh/index.html'):
-                        page.emulate_media(reduced_motion='reduce')
-                        page.evaluate('document.fonts.ready')
-                    page.screenshot(path=str(OUT / f'{name.replace("/","-")}-{width}.png'), full_page=True)
-                    if name in ('index.html','zh/index.html'):
-                        capture = name.replace('/', '-')
-                        stage = page.locator('.pc-context-stage')
-                        stage.screenshot(path=str(OUT / f'{capture}-{width}-context-overview.png'))
-                        page.locator('[data-card-open="rules"]').click()
-                        stage.screenshot(path=str(OUT / f'{capture}-{width}-context-detail.png'))
-                        page.locator('[data-card-detail="rules"] [data-context-back]').click()
-                        page.locator('[data-context-global]').click()
-                        page.locator('[data-card-allow="inputs"]').click()
-                        page.locator('[data-card-open="inputs"]').click()
-                        page.locator('[data-topic-allow="product"]').click()
-                        stage.screenshot(path=str(OUT / f'{capture}-{width}-context-topic-scope.png'))
+                    page.evaluate('dispatchEvent(new Event("resize"))')
+                    page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: 320px with 200% text')
+                    if name in ('index.html', 'zh/index.html'):
+                        page.evaluate("scrollTo({top:0,behavior:'instant'})")
+                        page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-text-200.png'), animations='disabled')
+                check(not errors, f'{name}: {width}px no JS errors')
+                check(not external, f'{name}: {width}px no unsolicited external requests')
                 page.close()
-        # Motion is a reversible scroll progression, never an autoplay gate.
-        page = browser.new_page(viewport={'width':1440,'height':900}, reduced_motion='no-preference')
-        load(page,'index.html')
-        page.evaluate('document.fonts.ready')
-        page.evaluate("scrollTo({top:0,behavior:'instant'})")
-        page.wait_for_timeout(80)
-        check(page.locator('.collection').get_attribute('aria-hidden') == 'true', 'initial artwork excluded from accessibility tree')
-        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '0', 'initial hero is typography only')
-        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '0', 'synthesis is not shown before inputs')
-        page.evaluate("scrollTo({top:260,behavior:'instant'})")
-        page.wait_for_timeout(80)
-        check(float(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity')) > .5, 'source cards emerge on scroll')
-        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '0', 'synthesis emerges after source cards')
-        page.evaluate("scrollTo({top:660,behavior:'instant'})")
-        page.wait_for_timeout(80)
-        check(page.locator('.synthesis-card').evaluate('e=>getComputedStyle(e).opacity') == '1', 'completed collection includes PAIA')
-        check(page.locator('.collection').get_attribute('inert') is None, 'visible artwork link becomes operable')
-        # Brand marks must not be hidden under another card.
-        check(page.evaluate("""Array.from(document.querySelectorAll('.input-card .provider-mark')).every(e=>{const r=e.getBoundingClientRect(), hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit && (hit===e||e.contains(hit))})"""), 'all source marks remain unobscured')
-        page.evaluate("scrollTo({top:0,behavior:'instant'})")
-        page.wait_for_timeout(80)
-        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '0', 'upward scroll restores first frame')
-        page.emulate_media(reduced_motion='reduce')
-        check(page.locator('.card-gpt').evaluate('e=>getComputedStyle(e).opacity') == '1', 'reduced motion shows complete collection immediately')
-        page.close()
+
         for locale in ['', 'zh/']:
             en = locale != 'zh/'
-            page = browser.new_page(viewport={'width':390,'height':844})
-            load(page, locale+'index.html')
+            # Actual native geometry, keyboard tabs, manual pause and system motion.
+            page = browser.new_page(viewport={'width': 1440, 'height': 900}, reduced_motion='no-preference')
+            load(page, locale + 'index.html')
+            page.evaluate('document.fonts.ready')
+            verify_hero(page, check, en=en, motion=True)
+            page.close()
+            page = browser.new_page(viewport={'width': 390, 'height': 844})
+            load(page, locale + 'index.html')
+            verify_hero(page, check, en=en)
             verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
             verify_origin(page, check, en=en)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
-            check(menu.evaluate('el => el.open'), f'{locale}: mobile menu opens')
+            check(menu.evaluate('el=>el.open'), f'{locale}: mobile menu opens')
             page.keyboard.press('Escape')
             check(not menu.evaluate('el=>el.open'), f'{locale}: Escape closes menu')
             check(menu.locator('summary').evaluate('el=>el===document.activeElement'), f'{locale}: menu restores focus')
             page.emulate_media(reduced_motion='reduce')
-            check(page.evaluate('getComputedStyle(document.documentElement).scrollBehavior') == 'auto', f'{locale}: reduced motion')
+            check(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), f'{locale}: reduced motion')
             page.close()
-            page = browser.new_page(viewport={'width':1280,'height':900})
+            page = browser.new_page(viewport={'width': 1280, 'height': 900})
             errors = []
             page.on('pageerror', lambda error: errors.append(str(error)))
-            load(page, locale+'demo.html')
+            load(page, locale + 'demo.html')
             verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+            verify_origin(page, check, en=en)
             page.locator('[data-card-open="info"]').focus()
             page.keyboard.press('Enter')
             check(page.locator('[data-card-detail="info"]').is_visible(), f'{locale}: keyboard opens the correct card')
             page.locator('[data-card-detail="info"] [data-context-back]').click()
             page.locator('[data-card-allow="info"]').focus()
             page.keyboard.press('Enter')
-            check(page.locator('[data-card-allow="info"]').get_attribute('aria-pressed')=='true', f'{locale}: keyboard toggles explicit card state')
+            check(page.locator('[data-card-allow="info"]').get_attribute('aria-pressed') == 'true', f'{locale}: keyboard toggles explicit card state')
             check(page.locator('[data-context-overview]').is_visible(), f'{locale}: capsule does not navigate into card')
-            check(not page.evaluate('localStorage.length || sessionStorage.length'), f'{locale}: example does not persist personal edits')
+            if not OFFLINE:
+                check(not page.evaluate('localStorage.length || sessionStorage.length'), f'{locale}: example does not persist personal edits')
             check(not errors, f'{locale}: interactive demo no JS errors')
             page.close()
             page = browser.new_page()
-            load(page, locale+'beta.html')
+            load(page, locale + 'beta.html')
             check(page.locator('form').get_attribute('action') == 'https://formsubmit.co/haohongfei2001@gmail.com', f'{locale}: existing beta destination retained')
+            check(not page.locator('[name=contact_consent]').is_checked(), f'{locale}: forwarding consent starts unchecked')
             check(not page.locator('form').evaluate('el=>el.checkValidity()'), f'{locale}: empty form blocked')
             page.locator('#beta-email').fill('not-an-email')
             check(not page.locator('form').evaluate('el=>el.checkValidity()'), f'{locale}: invalid email blocked')
@@ -273,19 +294,24 @@ try:
             page.locator('[name=contact_consent]').check()
             check(page.locator('form').evaluate('el=>el.checkValidity()'), f'{locale}: valid consented form; NOT submitted')
             page.close()
-            # JS-off readability and native form capability, without any transmission.
-            context = browser.new_context(java_script_enabled=False, viewport={'width':390,'height':844})
+            # All essential text and native Topic links remain readable without JS.
+            context = browser.new_context(java_script_enabled=False, viewport={'width': 390, 'height': 844})
             page = context.new_page()
-            load(page, locale+'index.html', scripts=False)
+            load(page, locale + 'index.html', scripts=False)
             check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
-            page.close(); context.close()
+            check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
+            check(page.locator('[data-topic-reader="product"]').is_visible(), f'{locale}: native Topic anchors still reach readable content without JavaScript')
+            page.close()
+            context.close()
         browser.close()
 except Exception as error:
-    results.append({'check':'suite execution', 'pass':False, 'error':str(error)})
+    results.append({'check': 'suite execution', 'pass': False, 'error': str(error)})
 finally:
-    if server: server.shutdown()
-    report = {'evidence':'SYNTHETIC_BROWSER','transport':'offline exact-source DOM render' if OFFLINE else 'local HTTP', 'browser':locals().get('version','unavailable'), 'private_data':False, 'beta_form_submitted':False, 'tests':results}
-    (OUT/'report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+    if server:
+        server.shutdown()
+    report = {'evidence': 'SYNTHETIC_BROWSER', 'transport': 'offline exact-source DOM render' if OFFLINE else 'local HTTP', 'browser': locals().get('version', 'unavailable'), 'private_data': False, 'beta_form_submitted': False, 'tests': results}
+    (OUT / 'report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2))
     failed = [item for item in results if not item['pass']]
-    print(json.dumps({'checks':len(results),'failed':failed,'transport':report['transport']},ensure_ascii=False))
-    if failed: raise SystemExit(1)
+    print(json.dumps({'checks': len(results), 'failed': failed, 'transport': report['transport']}, ensure_ascii=False))
+    if failed:
+        raise SystemExit(1)
