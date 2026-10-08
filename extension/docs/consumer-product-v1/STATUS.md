@@ -1,5 +1,14 @@
 # PAIA Consumer Product v1 — Current Status
 
+## 0.28 hosted failure closure — 2026-10-09 CST
+
+PR210 f1db321e full37827671006 failed Unit4 and Browser1/2/3. Browser4–7, Unit1–3, both Mac jobs, native Sync, privacy and release passed; Prompt37827671120 failed the same Unit4 contract and Visual37827671087 passed. None of these partial results certifies the batch.
+
+Reviewed corrections are test-only:01b464e7 admits the two already-added exact-repeat native cases to the retained notice inventory and raises that job's exact total12→14;66 complete CI contract tests pass. c711879f closes completed synthetic capture producers and truly restarts the worker before comparing the entire backup-encoding state, preserving every field; it also updates the exact current history-import action copy while retaining the imported Reader journey. Both complete files4/4 pass48.450s. The writing repair separately proves real post-save Section response/paint ordering with a held genuine worker response: original final DOM assertion fails deterministically in both variants, and both complete repaired cases pass12.996s. Transaction rollback, same operation retry, Section identity, Source integrity and original budgets remain.
+
+All fixes have independent approval. The writing receipt records the missing cloud stack and does not overclaim uniquely identifying that original assertion. One new coherent candidate must pass its full hosted and exact-main gates before delivery. Main remains3d69b95f/runtime0.24; no merge/install/deployment is claimed. Completed future Placement recovery, optional full-bundle InputWorking receive and Root font evidence remain outside this0.28 candidate.
+
+
 ## Single delivery candidate — 2026-10-09 CST
 
 PR210 is being updated to the completed **0.28** combination, superseding separate0.26/0.27 delivery scheduling. All component and integration reviews have passed; no version migration requires an intermediate installation. Current remote main remains3d69b95f over delivered0.24. No0.28 main merge, installation or deployment is claimed.
