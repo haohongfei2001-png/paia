@@ -57,6 +57,18 @@ async function rejectAndReselectBackup(page,backupBytes){
  assert.equal(await page.locator('#backup-settings[data-inspection-failure]').count(),0);assert.equal(await page.locator('#backup-failure-page-title').isVisible(),false);assert.equal((await page.locator('#history-settings:visible,#onboarding-history-step:visible').count())===1,true,'backup return restores the history destination');
  assert.equal(await page.evaluate(()=>globalThis.__s05Picker===document.getElementById('backup-choose')&&globalThis.__s05File===document.getElementById('backup-file')),true,'failed and valid inspections keep the same picker and file owners');
 
+ // Locale-only rendering must not change recovery authority or selected files.
+ await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__backupLocale={original,calls:[],file:document.getElementById('backup-file').files[0],nodes:[...document.getElementById('backup-preview-content').children]};chrome.runtime.sendMessage=async m=>{globalThis.__backupLocale.calls.push(m.type);return original(m);};document.getElementById('backup-cancel').focus();document.documentElement.lang='en';});
+ try{
+  await eventually(()=>page.locator('#backup-status').textContent().then(t=>t==='Check the backup details and confirm the selected restore mode.'));
+  assert.equal(await page.locator('#backup-mode option[value=replace]').textContent(),'Replace the current library');
+  assert.match(await page.locator('#backup-confirm-replace-label').textContent(),/replacement will clear the current library/);
+  assert.equal(await page.evaluate(()=>document.getElementById('backup-file').files[0]===globalThis.__backupLocale.file),true);
+  assert.equal(await page.evaluate(()=>globalThis.__backupLocale.nodes.every((n,i)=>n===document.getElementById('backup-preview-content').children[i])),true);
+  assert.equal(await page.evaluate(()=>document.activeElement?.id),'backup-cancel');
+  await page.evaluate(()=>{document.documentElement.lang='zh-CN';});await eventually(()=>page.locator('#backup-status').textContent().then(t=>t==='请核对备份信息并确认所选恢复方式。'));
+  assert.deepEqual(await page.evaluate(()=>globalThis.__backupLocale.calls),[]);
+ }finally{await page.evaluate(()=>{chrome.runtime.sendMessage=globalThis.__backupLocale.original;document.documentElement.lang='zh-CN';delete globalThis.__backupLocale;});}
  // Hold an actual CANCEL response: stale preview and programmatic file events
  // must not send a restore or start a second session while cancellation owns it.
  await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime),state={calls:[],held:false,release:null};globalThis.__backupCancelRace=state;state.original=original;chrome.runtime.sendMessage=async message=>{if(message.type.startsWith('PAIA_BACKUP_'))state.calls.push(message.type);const result=await original(message);if(message.type==='PAIA_BACKUP_CANCEL'&&!state.held){state.held=true;await new Promise(resolve=>state.release=resolve);}return result;};});

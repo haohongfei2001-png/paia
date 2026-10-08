@@ -1,3 +1,4 @@
+import {setBackupCopy,refreshBackupCopy} from './backup-copy.js';
 import {setProductState} from './product-state.js';
 import {verifyBackupSegments} from '../core/backup-segments.js';
 import {request,element} from './common.js';
@@ -25,7 +26,8 @@ export async function* backupSegmentRows(files){
  for(const file of ordered)yield* backupFileRows(file);
 }
 export class BackupPanel {
- constructor(){this.busy=false;this.sessionId=null;this.mode='empty';$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>void this.cancel());$('backup-mode').addEventListener('change',()=>void this.selectMode());$('backup-confirm-replace').addEventListener('change',()=>this.renderPreview());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});this.installInspectionPresentation();}
+ constructor(){this.busy=false;this.sessionId=null;this.mode='empty';$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>void this.cancel());$('backup-mode').addEventListener('change',()=>void this.selectMode());$('backup-confirm-replace').addEventListener('change',()=>this.renderPreview());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});this.installInspectionPresentation();this.syncLocale();new MutationObserver(()=>this.syncLocale()).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});}
+ syncLocale(){refreshBackupCopy($('backup-settings'));this.presentInspectionFailure($('backup-settings').dataset.inspectionFailure==='true');}
  installInspectionPresentation(){
   const host=$('backup-settings'),heading=[];
   this.pickerDescription=$('backup-choose').getAttribute('aria-describedby');
@@ -46,7 +48,7 @@ export class BackupPanel {
   if(failed)choose.setAttribute('aria-describedby',[this.pickerDescription,'ux-backup-failure-title','backup-status'].filter(Boolean).join(' '));
   else if(this.pickerDescription)choose.setAttribute('aria-describedby',this.pickerDescription);else choose.removeAttribute('aria-describedby');
  }
- status(text,state){$('backup-status').textContent=text;this.currentState=state||(text.startsWith('正在')?'loading':text.includes('已完成')||text.includes('已生成')?'saved':text?'ready':'idle');setProductState($('backup-settings'),this.currentState);}
+ status(text,state){setBackupCopy($('backup-status'),text);this.currentState=state||(text.startsWith('正在')?'loading':text.includes('已完成')||text.includes('已生成')?'saved':text?'ready':'idle');setProductState($('backup-settings'),this.currentState);}
  lock(value){if(value)this.presentInspectionFailure(false);this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-choose','backup-failure-return','backup-restore','backup-mode','backup-confirm-replace'])if($(id))$(id).disabled=value;}
  async cancel(){if(this.busy)return;const returnFocus=document.activeElement===$('backup-failure-return')&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false;this.lock(true);try{await this.clearSession();}finally{this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked;if(returnFocus&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false)$('backup-choose').focus();}}
  async clearSession(){this.presentInspectionFailure(false);const sessionId=this.sessionId;if(sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId}}).catch(()=>{});if(this.sessionId!==sessionId)return;this.sessionId=null;this.preview=null;$('backup-restore').disabled=true;this.mode='empty';$('backup-mode').value='empty';$('backup-confirm-replace').checked=false;$('backup-preview').hidden=true;$('backup-file').value='';this.status('');}
@@ -57,12 +59,12 @@ export class BackupPanel {
   const p=this.preview;if(!p){$('backup-restore').disabled=true;return;}
   const replacing=this.mode==='replace',merging=this.mode==='merge';
   $('backup-confirm-replace-label').hidden=!replacing;
-  $('backup-restore').textContent=replacing?'确认替换当前库':merging?'确认合并到当前库':'确认恢复到空库';
+  setBackupCopy($('backup-restore'),replacing?'确认替换当前库':merging?'确认合并到当前库':'确认恢复到空库');
   $('backup-preview-content').replaceChildren(
-   element('p','',`备份日期：${new Date(p.createdAt).toLocaleString()}`),
-   element('p','',`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),
-   element('p','',`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),
-   element('p','muted',p.canRestore
+   setBackupCopy(element('p',''),`备份日期：${new Date(p.createdAt).toLocaleString()}`),
+   setBackupCopy(element('p',''),`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),
+   setBackupCopy(element('p',''),`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),
+   setBackupCopy(element('p','muted'),p.canRestore
     ?replacing?'完整性校验通过。替换会清除当前库内容；本机永久删除标记和捕获授权保留。请勾选确认。'
      :merging?'完整性校验通过。只合并无冲突的数据，当前设置与现有内容保留。'
       :'完整性校验通过。确认后将在本机恢复，捕获授权保持当前设置。'
