@@ -47,7 +47,8 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
  async libraryStatus(){const base=await super.libraryStatus();return {...base,compatibility:await this.libraryCompatibilityStatus()};}
  async librarySafetyChange(t,row,priorFields){if(row.storageSchema!==2||row.lifecycle==='quarantined')return;if(priorFields){let contentChanged=false;for(const [field,before]of Object.entries(priorFields)){if(before!==row[field==='body'?'thoughtText':field]){row.fieldRevisions[field]++;if(field==='body')row.meaningfulContentAt=this.clock();if(field!=='note')contentChanged=true;}}if(contentChanged)row.contentRevision++;}row.searchSafetyVersion=(row.searchSafetyVersion||0)+1;await queueSearch(t,'entry',row);}
  async libraryMaintenanceWrite(fn){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,fn));}
- async operation(request,fn){return super.operation(request,async t=>{
+ async operation(request,fn){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn));}
+ async libraryOperationInTransaction(t,request,fn){
   // Layout jobs lock organization only; Entry fields remain editable.
   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}
   const result=await fn(t);if(result.conflict)return result;
@@ -56,7 +57,7 @@ export class LibraryDocumentsStore extends LibraryFoundationStore {
   if(request.topicId){const topic=await t.get('topics',request.topicId);if(topic)await this.touchTopic(t,topic);}
   const sectionId=result.sectionId||request.sectionId;if(sectionId){const topic=await t.get('topics',request.topicId||result.id);if(topic){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]));if(row)await queueSearch(t,'section',row);}}
   return result;
- });}
+ }
  async touchTopic(t,row){Object.assign(row,planHumanTopicTouch(row,{at:humanClock(this,t),sequence:await nextSequence(t)}));await t.put('topics',row);await syncThoughtRootTopic(this,t,row);await invalidateThoughtTopicIndex(this,t,row.id,{preparedGeneration:humanPreparedGeneration(this,t)});}
  async createTopic(r){const result=await super.createTopic(r);await this.foundationWrite(async t=>{const topic=await t.get('topics',result.id);if(!topic.defaultSectionId){topic.defaultSectionId=result.sectionId;await t.put('topics',topic);const section=await t.get('sections',JSON.stringify([topic.id,1,result.sectionId]));section.isDefault=true;await t.put('sections',section);await queueSearch(t,'section',section);}});return result;}
  async topic(id){if(!idOK(id))fail();await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>{const row=await this.canonicalTopic(t,id);return {...row,requestedId:id};}));}

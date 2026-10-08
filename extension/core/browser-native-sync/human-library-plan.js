@@ -1,4 +1,4 @@
-import {planHumanFixedMembership} from '../topic-intent.js';
+import {planHumanFixedMembership,moveMembershipInTransaction} from '../topic-intent.js';
 import {changeTopicContainer,planHumanTopicMembership,planHumanTopicMembershipEntry,planHumanTopicContainer} from '../topic-governance.js';
 import {assertMemoryTopicTransitionAllowed} from '../memory/organization-guard.js';
 import {assertMemoryPlacementChangeAllowed} from '../memory/organization-guard.js';
@@ -218,3 +218,7 @@ export async function prepareHumanKeepPlan(store,core,request,entry){
 }
 export function humanKeepPlan(cap){const p=plans.get(cap);if(p?.kind!=='keep')fail('BNS_HUMAN_PLAN_REQUIRED');return {pair:clone(p.pair),result:clone(p.result),events:clone(p.events)};}
 export async function requireHumanKeepPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='keep'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||!equal(await keepReadSet(t,p.request),p.before.read))fail('BNS_HUMAN_CHANGED');return p.allocation;}
+
+// Private-plan-only same-transaction route for the original named owners.
+// No caller-supplied reducer, nested foundationWrite or store override.
+export async function executeHumanPlanInTransaction(t,cap){const p=plans.get(cap);if(!p||!['placement','move'].includes(p.kind))fail('BNS_HUMAN_PLAN_REQUIRED');if(t?.tx?.db!==p.store.repository.db||t.tx.mode!=='readwrite')fail('BNS_HUMAN_TRANSACTION');if(completedPlans.has(cap))fail('BNS_HUMAN_CHANGED');const request=clone(p.request);executions.set(request,{cap,p,allocation:null});try{return await p.store.operationInTransaction(t,request,p.operationReceipt.digest,tx=>p.store.libraryOperationInTransaction(tx,request,inner=>p.kind==='placement'?p.store.placeEntryInTransaction(inner,request):moveMembershipInTransaction(p.store,inner,request)));}finally{executions.delete(request);}}

@@ -84,7 +84,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async operation(request,fn) {
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();
   const digest=await hashText(JSON.stringify(request));
-  return this.foundationWrite(async t=>{try{await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}});
+  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
+ }
+ async operationInTransaction(t,request,digest,fn){try{await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
  }
  async priorOperation(request) {
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();const digest=await hashText(JSON.stringify(request));
