@@ -144,3 +144,16 @@ Existing storage-native harness preflight: **6/6 PASS** (`/tmp/sync-prompt-nativ
 Generated storage receipts retain production byte hashes and report all three new owner outcomes. SHA-256: source `bd6156be8679cfae3fb44c3f2218fd683039db9d8316bd2d7b771ab8c38260e6`; release `7f8fc7e445ae2610b0f4d1b304d96398c764e43a9fc2fd7ccd30899055ed4f9b`. Their HEAD/tree identify the base checkout; `productionHashes` identify the tested, uncommitted candidate bytes.
 
 This is local candidate evidence awaiting independent review and required integration gates. It does not close full Prompt purge/restore, dataset retirement, all-codec restoration, production Sync activation or real cloud recovery. The prior pure-Core retirement fixture still has a deliberate no-op owner and cannot stand in for Prompt purge materialization.
+
+
+## AI foundation main integration checkpoint
+
+Local merge `475870a2dad2833ac0b32ababc65909fb35b145c` combines Prompt owner checkpoint `c27ad659` with exact main `208787bc19294f8f3315f15e589ad8d2974499bf`. The merge was conflict-free. CI changes are inherited unchanged from main; no routing, assertion or timeout was edited. Sync Core and Prompt journal bytes remain identical to c27ad659.
+
+Review of the integrated transaction path found that AI semantic hooks do not track Prompt preferences or Sync protocol meta. AI delta flush remains inside the same repository IDB transaction after the operation callback. A Sync owner refusal aborts the transaction before flush, preserving whole-meta rollback; no out-of-transaction accounting side effect was introduced. This compatibility statement concerns the currently implemented Prompt owner, not hypothetical future Sync materializers for other entities.
+
+On exact merge HEAD, fourteen complete Sync/Core/Prompt/AI owner test files passed **236/236**, zero failed/skipped/cancelled (`work/sync-ai-main-combined-unit.log`, 2003.459375 ms in the coordinator workspace). The existing complete native storage source/release suite passed **32/32**, zero failed/skipped/cancelled (`work/sync-ai-main-combined-native.log`, 14720.05275 ms). The latter retains the actual Prompt owner rejection/full-meta equality cases, worker restart and zero-network assertions. No browser retry or budget change was needed.
+
+Generated source and release receipts identify the exact merge HEAD and agree on all six production hashes. Receipt SHA-256: source `9a0751846c5f68aecc642d7e6c23c6782aadea6668b485a8c7318ae6261ccecd`; release `de6d3eb337f5efc56c46554f4e40d8990cb2f83f8d012704735dc6c151da94ff`. Integrated repository SHA-256 is `48c1ce41777821288db4d6c0ce5a99853346b206f1eb6ef6474e9d14b2ce1916`; Core `12d74ef9c641084a2b454e2dc7020840b0d49b03013bb74d9cd57a88976573ca`; Prompt journal `4ac0b312140b29126a9d37f00c5b115d726dde32d615218ddf88afcdd6dc1cf3`.
+
+The subsequent receipt-only commit does not change tested bytes. This is local integration evidence, not full CI, current-main availability, real cloud transport, full Prompt purge/restore or all-codec recovery qualification. All prior failures and limitations above remain retained.
