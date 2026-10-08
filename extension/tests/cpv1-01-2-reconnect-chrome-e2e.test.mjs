@@ -84,7 +84,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
   try {
     // Chrome's Linux headless discard path can crash the browser process.
     // CI has an isolated Xvfb display; exercise the same real tabs API there.
-    h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI, launchThroughPort: true });
+    h = await FakeChatGPT.start({ extensionPath: release, headless: !process.env.CI, launchThroughPort: true, nativeTabVisibility: true });
     console.log('DISCARD_BROWSER_ENV',JSON.stringify({browserVersion:h.context.browser().version(),chromePath:process.env.CHROME_PATH||'platform-default',ci:process.env.CI||null,headless:process.env.PAIA_HEADLESS==='1'}));
     stage = 'enable consent';
     await eventually(async () => !await h.archive.locator('#enable-consent').isDisabled());
@@ -104,12 +104,17 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     });
     const tab = await opened;
     tab.on('pageerror', error => h.errors.push(error.message));
-    stage = 'navigate background conversation';
+    // Establish a genuinely viewed conversation before testing background discard.
+    // CDP focus emulation is disabled; Chrome activation owns visibility.
+    stage = 'activate initial conversation';
+    assert.equal((await h.archive.evaluate(id => chrome.tabs.update(id, { active: true }), created.targetId)).active, true);
+    stage = 'navigate active conversation';
     await tab.goto(`https://chatgpt.com/c/${restoredConversation.id}`);
     console.log('DISCARD_CAPTURE_INITIAL',JSON.stringify(await tab.evaluate(()=>({visibility:document.visibilityState,ready:document.readyState,bridge:window.historyGateActive===true,messages:document.querySelectorAll('#messages [data-message-id]').length}))));
-    stage = 'wait for background capture bridge';
+    await eventually(async () => await tab.evaluate(() => document.visibilityState === 'visible'), 'initial conversation is natively visible');
+    stage = 'wait for active capture bridge';
     await h.ready(tab);
-    stage = 'confirm background initial three records';
+    stage = 'confirm viewed initial three records';
     await eventually(async () => (await h.state()).records.length === 3);
 
     stage = 'close unrelated tabs';
@@ -142,6 +147,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
       const target = await chrome.tabs.get(id);
       return (await chrome.tabs.get(current.id)).active === true && target.active === false;
     }, targetId), 'archive tab is active before conversation discard');
+    await eventually(async () => await tab.evaluate(() => document.visibilityState === 'hidden'), 'inactive discard target is natively hidden');
     assert.equal(new URL(tab.url()).pathname, '/c/cpv1-discarded-tab');
     stage = 'read target slot';
     const targetSlot = await h.archive.evaluate(async id => {
@@ -178,6 +184,7 @@ test('CPV1-01.2: a discarded and restored ChatGPT tab resumes capture without du
     await eventually(async () => h.context.pages().some((page) => page.url().includes('/c/cpv1-discarded-tab')));
     const resumedTab = h.context.pages().find((page) => page.url().includes('/c/cpv1-discarded-tab'));
     await resumedTab.waitForLoadState('load');
+    await eventually(async () => await resumedTab.evaluate(() => document.visibilityState === 'visible'), 'restored active conversation is natively visible');
     await h.ready(resumedTab);
     await eventually(async () => (await h.state()).records.length === 3);
     assert.equal(await resumedTab.locator('#paia-reconnect-notice').count(), 0);
