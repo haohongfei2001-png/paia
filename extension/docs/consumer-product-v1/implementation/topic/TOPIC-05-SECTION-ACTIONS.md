@@ -177,3 +177,14 @@ packaging checks across335 release runtime resources and RELEASE_PRODUCT_GUARD
 unchanged during that build. Hosted current-head and exact-main gates remain
 pending; earlier native evidence is scoped to unchanged UI behavior, not a new
 claim that the0.22 package itself was previously browser-certified.
+
+## Current-corpus Root guard correction
+
+Full37714325949 at06df6a4c failed Unit2/4: the older Root-routing test
+asserted76 current files after actions added the77th. The actual new-file routing
+and304-parent-placement tests passed. The Root test now retains its exact74-file
+historical oracle, checks all77 current files exactly once, and explicitly checks
+the actions whole file on4 at widths4/5/6; its separate7-way guard is unchanged.
+Three complete routing test files passed15/15. Independent review found no removed
+assertion or changed timeout. Production runtime, dependencies and browser cases
+are unchanged. The failed06df run is retained, not certification success.
