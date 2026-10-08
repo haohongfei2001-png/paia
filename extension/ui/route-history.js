@@ -1,3 +1,4 @@
+import {validInputSearchCursor} from './input-search.js';
 import {ViewSessions} from './view-session.js';
 import {validProvider} from '../core/read-projection-keys.js';
 export const routeViews=new Set(['library','archive','excluded','legacy','thoughts','memory','settings','revisit']);
@@ -47,7 +48,7 @@ export function validArchiveOrigin(value){
  const keys=['originKind','readerDocumentId','view','query','cursor','pages','scroll','searchProject','sourceScope','navigator','dateStart','dateEnd','includeFiltered','focus'];
  const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
  const offset=x=>x===null||Number.isSafeInteger(x)&&x>=0;
- const cursor=x=>offset(x)||!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).every(k=>['phase','offset'].includes(k))&&[0,1,2].includes(x.phase)&&offset(x.offset);
+ const cursor=x=>validInputSearchCursor(x)||offset(x)||!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.keys(x).every(k=>['phase','offset'].includes(k))&&[0,1,2].includes(x.phase)&&offset(x.offset);
  const project=value?.searchProject,focus=value?.focus;
  return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&Object.keys(value).every(k=>keys.includes(k))&&['search-results','project-browse','archive'].includes(value.originKind)&&['library','archive'].includes(value.view)&&(value.readerDocumentId===null||id(value.readerDocumentId))&&typeof value.query==='string'&&value.query.length<=1000&&cursor(value.cursor)&&Array.isArray(value.pages)&&value.pages.length<=100&&value.pages.every(cursor)&&Number.isFinite(value.scroll)&&value.scroll>=0&&value.scroll<=10000000&&(value.sourceScope===null||validProvider(value.sourceScope))&&navValid(value.navigator)&&(project===null||!!project&&Object.keys(project).length===2&&Object.keys(project).every(k=>['ref','title'].includes(k))&&projectValid(project.ref)&&typeof project.title==='string'&&project.title.length<=1000)&&[value.dateStart,value.dateEnd].every(x=>typeof x==='string'&&(x===''||/^\d{4}-\d{2}-\d{2}$/.test(x)))&&typeof value.includeFiltered==='boolean'&&(focus===null||!!focus&&Object.keys(focus).length===3&&Object.keys(focus).every(k=>['kind','id','top'].includes(k))&&['input','document','tree'].includes(focus.kind)&&id(focus.id)&&Number.isFinite(focus.top)&&Math.abs(focus.top)<=10000000);
 }

@@ -152,6 +152,21 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
   }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await owner.close();}
   await p.reload();await eventually(()=>p.locator('#document-panel').isVisible());await eventually(()=>p.locator('#scope-search').isEnabled());
   assert.equal(await p.locator('#back .archive-back-label').textContent(),'返回档案','cold origin does not claim exact search return');await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#scope-search').inputValue(),'','lost same-tab origin safely returns to neutral Archive');assert.match(await p.locator('#notice').textContent(),/原搜索状态已不可用|original search state is unavailable/i,'lost recorded origin explains the neutral fallback');
+  for(const [action,index]of [['remove',0],['purge',1]]){
+   const phrase='SYNTHETIC_DEEP_NORMAL '+index,record=(await h.state()).records.find(row=>row.originalText===phrase),target='block:'+record.id;
+   await p.locator('#scope-search').fill(phrase);const stale=p.locator('.search-input[data-input-id="'+target+'"]');await eventually(()=>stale.count().then(n=>n===1));
+   const writer=await h.context.newPage();await writer.goto(p.url());
+   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__iahOriginalSend=send;window.__iahHeldSearch=[];chrome.runtime.sendMessage=async(...args)=>{const result=await send(...args);if(args[0]?.type==='SEARCH_INPUTS')await new Promise(resolve=>window.__iahHeldSearch.push(resolve));return result;};});
+   try{
+    if(action==='purge'){const preflight=await writer.evaluate(id=>chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id}),record.id);assert.equal(preflight.ok,true,JSON.stringify(preflight));assert.equal(preflight.data.state,'unambiguous');}
+    const response=await writer.evaluate(({action,target,sourceId})=>chrome.runtime.sendMessage(action==='remove'?{type:'EXCLUDE_LIBRARY',id:target,excluded:true}:{type:'PURGE_SOURCE',id:sourceId,confirm:true}),{action,target,sourceId:record.id});assert.equal(response.ok,true,JSON.stringify(response));
+    assert.match(await stale.textContent(),/SYNTHETIC_DEEP_NORMAL/);await stale.focus();await p.keyboard.press('Enter');
+    await eventually(async()=>/原搜索结果已不可用|original search result is unavailable/i.test(await p.locator('#notice').textContent()),'held '+action+' hit reports unavailable');
+    assert.equal(await p.locator('#document-body [data-edit-id]').count(),0,'unavailable '+action+' hit does not substitute neighboring Inputs');
+    assert.equal(await p.evaluate(()=>[...(CSS.highlights.get('paia-search')||[])].filter(range=>range.startContainer.isConnected).length),0,'unavailable hit has no current target highlight');
+   }finally{await p.evaluate(()=>{chrome.runtime.sendMessage=window.__iahOriginalSend;for(const resolve of window.__iahHeldSearch)resolve();delete window.__iahOriginalSend;delete window.__iahHeldSearch;});await writer.close();}
+   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());assert.equal(await p.locator('.search-input[data-input-id="'+target+'"]').count(),0,'removed/purged hit stays absent after canonical search reread');
+  }
   assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
 });

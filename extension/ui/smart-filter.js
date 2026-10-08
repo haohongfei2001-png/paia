@@ -44,10 +44,10 @@ export class SmartFilterUI {
    button.addEventListener('click',event=>{
     const selection=document.getSelection();
     if(event.detail>0&&selection&&!selection.isCollapsed&&selection.rangeCount&&selection.getRangeAt(0).intersectsNode(button))return;
-    void this.onContext(hit.documentId,hit.id,{query,bodyMatched:!!needle&&normalizeSearch(hit.text).includes(needle)});
+    void this.onContext(hit.documentId,hit.id,{query,bodyMatched:!!needle&&normalizeSearch(hit.text).includes(needle),...(Number.isSafeInteger(hit.contentRevision)?{knownRevision:hit.contentRevision}:{}),...(result.searchSnapshot?{searchSnapshot:{...result.searchSnapshot},scope:structuredClone(result.searchScope)}:{})});
    });list.append(button);
   }
-  $('empty-list').textContent=result.nextCursor?copy('正在继续搜索本机输入…','Continuing to search local Inputs…'):copy('没有找到匹配内容。试试聊天标题或另一种表达。','No matches. Try a conversation title or another phrase.');
+  $('empty-list').textContent=result.restartRequired?copy('档案仍在变化，请重新搜索。','Archive is still changing. Please search again.'):result.nextCursor?copy('正在继续搜索本机输入…','Continuing to search local Inputs…'):copy('没有找到匹配内容。试试聊天标题或另一种表达。','No matches. Try a conversation title or another phrase.');
   $('empty-list').hidden=result.items.length>0;$('empty-sync').hidden=true;
  }
  async recent(more=false){const serial=++this.serial;try{

@@ -15,3 +15,8 @@ test('route history carries only opaque origin identity and preserves Settings r
  const settings=history.encode({view:'settings',settingsReturn:route});assert.equal(settings.settingsReturn.originKey,key);assert.equal(history.decode(settings).settingsReturn.originKey,key);
  assert.equal(validRoute({...route,originKey:'forged'}),false);assert.equal(history.decode({...encoded,originKey:'forged'}),null);
 });
+test('same-tab origins retain qualified search cursors without accepting bodies or unbounded snapshots',()=>{
+ const searchSnapshot={version:1,generation:8,signature:'a'.repeat(64)},cursor={cursor:{phase:2,offset:200},searchSnapshot},value={...snapshot(),cursor,pages:[null,{cursor:null,searchSnapshot}]};
+ assert.equal(validArchiveOrigin(value),true);const sessions=new ViewSessions();sessions.set('origin',value);cursor.searchSnapshot.generation=9;assert.equal(sessions.get('origin').cursor.searchSnapshot.generation,8);
+ for(const invalid of [{...searchSnapshot,body:'secret'},{...searchSnapshot,signature:'a'.repeat(65)},{...searchSnapshot,generation:-1}])assert.equal(validArchiveOrigin({...value,cursor:{cursor:null,searchSnapshot:invalid}}),false);
+});
