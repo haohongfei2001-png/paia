@@ -26,13 +26,24 @@ export class SettingsRemovedList {
    this.more?.remove();this.more=null;
    for(const item of result.items){if(this.ids.has(item.id))continue;this.ids.add(item.id);const body=kind==='placement'?(item.label||'')+' — '+item.topicName+(item.sectionName?' · '+item.sectionName:''):kind==='topic'?item.name:item.body.slice(0,80),row=element('p','',body);if(kind==='entry'&&!body)row.append(removedCopy(element('span'),'空内容'));let operationId=null,busy=false;
     const recover=this.action(kind==='placement'?'恢复主题关系':kind==='topic'?'恢复主题':'恢复内容',async()=>{
-     if(busy||!this.current(generation,kind))return;busy=true;recover.disabled=true;operationId??=crypto.randomUUID();
+     if(busy||!this.current(generation,kind))return;
+     const ownedFocus=document.activeElement===recover;let focusMoved=false;
+     const trackFocus=event=>{if(event.target!==recover)focusMoved=true;};
+     if(ownedFocus)document.addEventListener('focusin',trackFocus);
+     const index=Array.from(this.host.querySelectorAll?.('button[data-recovery-action]')||[]).indexOf(recover);
+     try{busy=true;recover.disabled=true;operationId??=crypto.randomUUID();
      try{await this.restore(kind==='placement'?'RESTORE_LIBRARY_PLACEMENT':kind==='topic'?'RESTORE_LIBRARY_TOPIC':'RESTORE_LIBRARY_ENTRY',{edit:{id:item.id,expectedRevision:item.revision,operationId,...(kind==='placement'?{historyId:item.historyId,recoveryEpoch:item.recoveryEpoch,expectedEntryRevision:item.entryRevision,expectedTopicRevision:item.topicRevision}:{})}},()=>this.current(generation,kind));}
      catch(error){if(this.current(generation,kind))throw error;return;}
      finally{busy=false;recover.disabled=false;}
      if(!this.current(generation,kind))return;const reloadGeneration=this.generation+1;await this.show(kind);if(this.current(reloadGeneration,kind))await this.refresh();
+     if(ownedFocus&&!focusMoved&&this.current(reloadGeneration,kind)){
+      const actions=Array.from(this.host.querySelectorAll('button[data-recovery-action]'));
+      const target=actions[Math.min(Math.max(index,0),actions.length-1)]||document.getElementById(kind==='placement'?'library-removed-placements':kind==='topic'?'library-removed-topics':'library-removed');
+      target?.focus({preventScroll:true});
+     }
+     }finally{if(ownedFocus)document.removeEventListener?.('focusin',trackFocus);}
     });
-    row.append(recover);if(kind!=='placement')row.append(this.action(kind==='topic'?'版本历史':'版本',()=>{if(this.current(generation,kind))return this.history(kind==='topic'?'topic':'library_entry',item.id,item.id);}));this.host.append(row);
+    recover.setAttribute('data-recovery-action','');row.append(recover);if(kind!=='placement')row.append(this.action(kind==='topic'?'版本历史':'版本',()=>{if(this.current(generation,kind))return this.history(kind==='topic'?'topic':'library_entry',item.id,item.id);}));this.host.append(row);
    }
    if(!this.ids.size&&!result.nextCursor)this.host.append(removedCopy(element('p','muted'),kind==='placement'?'没有可恢复的主题关系。':kind==='topic'?'没有已删除的主题。':'没有已删除的内容。'));
    this.next=result.nextCursor??null;

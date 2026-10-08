@@ -1,3 +1,4 @@
+import {buildGroupedCheckpoint,GroupedCheckpointRestore} from './group-checkpoint.js';
 import {BrowserNativeSyncCore,CORE_LIMITS,validateOperation} from './core.js';
 import {CODECS,validateCoverage} from './codecs.js';
 import {protocolObject,readObject,SEGMENT_PROFILE} from './segments.js';
@@ -12,7 +13,8 @@ async function requireMarker(core,expected){if(!equal(await marker(core),expecte
 
 // Complete immutable checkpoint, including all retained live/conflict ancestry
 // and body-free purge receipts. Bounded index pages avoid a giant global manifest.
-export async function buildCheckpoint(core,transport,{profile=SEGMENT_PROFILE,parents=[]}={}){
+export async function buildCheckpoint(core,transport,{profile=SEGMENT_PROFILE,parents=[],grouped=null}={}){
+ if(grouped!==null)return buildGroupedCheckpoint(core,transport,{...grouped,profile,parents});
  if(!Array.isArray(parents)||parents.length>FANOUT||parents.some(x=>!hash(x)))fail('BNS_CHECKPOINT_PARENTS');
  const cut=await marker(core);for await(const _ of core.rows('pending'))fail('BNS_CHECKPOINT_CAUSAL_GAP');
  let entries=[],entrySize=0,itemCount=0,chain='',leafRefs=[];const coverage=new Map();
@@ -79,11 +81,13 @@ function validateRedacted(operation){
 }
 
 export class StagedSyncRestore {
- constructor(core,{restoreId=crypto.randomUUID(),profile=SEGMENT_PROFILE,owners={},checkpoint=async()=>{}}={}){
+ constructor(core,{restoreId=crypto.randomUUID(),profile=SEGMENT_PROFILE,owners={},checkpoint=async()=>{},grouped=null}={}){
   if(!opaque(restoreId))fail('BNS_RESTORE_INVALID');this.live=core;this.restoreId=restoreId;this.profile=profile;this.owners=owners;this.checkpoint=checkpoint;
+  this.grouped=grouped===null?null:new GroupedCheckpointRestore(core,{...grouped,restoreId,profile,checkpoint});
   this.stage=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:restoreId});
  }
  async begin(ref,get,{supported}={}){
+  if(this.grouped)return this.grouped.begin(ref,get,{supported});
   ref=clone(ref);
   const manifest=await readManifest(ref,get,{datasetId:this.live.datasetId,profile:this.profile,supported});
   const existing=await this.stage.read('restore');
@@ -92,6 +96,7 @@ export class StagedSyncRestore {
   const state={manifestId:ref.id,manifestRef:ref,manifest,phase:'staging',base,received:0};await this.stage.transaction(true,t=>this.stage.put(t,'restore',[],state),['meta']);return state;
  }
  async stageCheckpoint(ref,get,options={}){
+  if(this.grouped)return this.grouped.stageCheckpoint(ref,get,options);
   const state=await this.begin(ref,get,options);if(state.phase==='activated'||state.phase==='validated')return state;
   let index=0;
   for await(const item of checkpointItems(state.manifest,get,{profile:this.profile})){
@@ -141,7 +146,8 @@ export class StagedSyncRestore {
   for await(const expected of this.stage.rows('expectedFrontier'))if(!await this.stage.read('frontier',expected.deviceId))fail('BNS_CHECKPOINT_FRONTIER');
   return true;
  }
- async reconcileTail(operations){
+ async reconcileTail(operations,options){
+  if(this.grouped)return this.grouped.reconcileTail(operations,options);
   const restore=await this.stage.read('restore');if(restore?.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
   const results=await this.stage.receiveBatch(operations);await this.stage.resumePending();
   for await(const _ of this.stage.rows('pending'))fail('BNS_CHECKPOINT_CAUSAL_GAP');
@@ -150,7 +156,9 @@ export class StagedSyncRestore {
   await this.stage.transaction(true,async t=>{if(((await this.stage.get(t,'generation'))?.value||0)!==cut.generation)fail('BNS_SNAPSHOT_CHANGED');const row=await this.stage.get(t,'restore');await this.stage.put(t,'restore',[],{...withoutId(row),activeCoverage:[...families.values()].sort((a,b)=>a.type.localeCompare(b.type)),validatedGeneration:cut.generation});},['meta']);
   return results;
  }
+ async cleanup(options){if(!this.grouped)fail('BNS_GROUP_CLEANUP_INVALID');return this.grouped.cleanup(options);}
  async activate(){
+  if(this.grouped)return this.grouped.activate();
   const restore=await this.stage.read('restore');if(restore?.phase==='activated')return {state:'activated',namespace:this.restoreId};if(restore?.phase!=='validated')fail('BNS_RESTORE_NOT_READY');
   // Materializers are trusted existing domain owners. A populated unsupported
   // family prevents activation, even if its transport codec is understood.

@@ -1,0 +1,25 @@
+{
+  "commit": "a5a3bab8f8b2631923eeaae567770b49f8df0b43",
+  "files": [
+    {
+      "path": "core/organizer/ai-candidate.js",
+      "sha256": "99e8d7c37c9f1974b3775c62880b7cb14fa49bf83ac268feddb0ff2b4ca40043",
+      "gitBlob": "9f9e66f0aab8d71f9016e2db90d6e624a0ece5ad"
+    },
+    {
+      "path": "core/organizer/ai-contract.js",
+      "sha256": "480cbabdc557720320ec17038b7f9a8d834c82d518416f6862d35b0507beb79e",
+      "gitBlob": "22123d07b760ada395464e3c85ad913ac8128dc5"
+    },
+    {
+      "path": "core/organizer/contracts.js",
+      "sha256": "a5e09170480a1c7a35c7ce9300192fc8cb61085de80abf0a6c16b8c71d835c54",
+      "gitBlob": "00b21259b9ac0d852d0f2b3df3ab567ffe129f4d"
+    },
+    {
+      "path": "core/constants.js",
+      "sha256": "57cd5b3e207b652b55369715ce42b20e4b5167195b63f51e994732ee6748b92b",
+      "gitBlob": "ca46e55e5002b08e0efae635e21b7738366aba0f"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import {isIncrementalV2,validIncrementalV2} from './ai-incremental-v2.js';
 import {reject} from './contracts.js';
 
 // The single provider/persistence contract. Runtime metadata never belongs here.
@@ -37,12 +38,14 @@ export function validateAIPresentation(output,request){
  return {...result,evidenceEntryIds:[...new Set([...roots,...Object.values(fieldEvidenceEntryIds).flat()])],fieldEvidenceEntryIds};
 }
 
-export function isStoredAIPresentation(row,allowed){
+export function isStoredAIPresentation(row,allowed){return isIncrementalV2(row)?validIncrementalV2(row,allowed):isStoredLegacyAIPresentation(row,allowed);}
+// Original stored projection decoder remains independently callable and unchanged.
+export function isStoredLegacyAIPresentation(row,allowed){
  if(!record(row)||typeof row.topicId!=='string'||!Number.isSafeInteger(row.revision)||!Array.isArray(row.evidenceEntryIds)||row.evidenceEntryIds.some(id=>!allowed.has(id)))return false;
  if(['blockSummary','currentView'].some(f=>typeof row[f]!=='string'||row[f].length>AI_TEXT_LIMITS[f]||row[f].trim()&&!row.evidenceEntryIds.length))return false;
  return AI_LIST_FIELDS.every(f=>Array.isArray(row[f])&&row[f].length<=20&&row[f].every(x=>record(x)&&typeof x.text==='string'&&x.text.length<=2000&&Array.isArray(x.evidenceEntryIds)&&x.evidenceEntryIds.length>0&&x.evidenceEntryIds.every(id=>allowed.has(id))));
 }
-export const presentationContent=row=>Object.fromEntries(['topicId',...AI_FIELDS,'evidenceEntryIds'].map(k=>[k,structuredClone(row[k])]));
+export const presentationContent=row=>isIncrementalV2(row)?structuredClone(record(row.projection)?row.projection:{}):Object.fromEntries(['topicId',...AI_FIELDS,'evidenceEntryIds'].map(k=>[k,structuredClone(row[k])]));
 
 // Internal local-result envelope only; schema-1 persisted fields stay unchanged.
 export function validateLocalOrganizeResponse(response,request){

@@ -1,3 +1,4 @@
+import {isIncrementalV2} from './ai-incremental-v2.js';
 import {AI_SCHEMA_VERSION} from './ai-contract.js';
 import {isBaseNoneEnvelope} from './ai-candidate.js';
 import {prefix} from '../thought-model.js';
@@ -7,6 +8,7 @@ const MARKER='aiProductizationMigration',ROW='aiPresentation:',FENCE='ai-present
 const sameIds=(a,b)=>Array.isArray(a)&&a.length===b.length&&a.every((id,index)=>id===b[index]);
 
 async function migratePresentationRow(t,topic,row){
+ if(isIncrementalV2(row))return; // Its independent reader validates the whole envelope; never rewrite it as legacy.
  if(isBaseNoneEnvelope(row))return; // Already-versioned staged proposal; never fabricate Current fields.
  if(row.schemaVersion!==AI_SCHEMA_VERSION)await t.put('meta',{...row,schemaVersion:0,needsUpdate:true});
  const sourceRecordIds=[];
