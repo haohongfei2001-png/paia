@@ -19,7 +19,7 @@ for(const variant of ['source','release'])test('BNS publication-only Working ato
   await writeFile(join(extension.path,'background/bns-input-working-fixture.mjs'),fixture);
   const worker=join(extension.path,'background/service-worker.js'),text=await readFile(worker,'utf8');assert.ok(text.includes("import './bns-native-storage-fixture.mjs';"));await writeFile(worker,text.replace("import './bns-native-storage-fixture.mjs';","import './bns-native-storage-fixture.mjs';\nimport './bns-input-working-fixture.mjs';"));
   receipt.hashes=Object.fromEntries(await Promise.all(files.map(async file=>[file,createHash('sha256').update(await readFile(join(extension.path,file))).digest('hex')])));
-  browser=await startNative(extension.path);receipt.cases=await browser.call('input-working-matrix');assert.equal(receipt.cases.length,12);assert.equal(new Set(receipt.cases).size,12);
+  browser=await startNative(extension.path);receipt.cases=await browser.call('input-working-matrix');assert.equal(receipt.cases.length,14);assert.equal(new Set(receipt.cases).size,14);
   const before=await browser.call('working-durable-create');assert.equal(before.filterIntents.length,1);assert.ok(before.blocks.some(row=>row.value.note==='Synthetic durable Working note'));receipt.restart=await browser.restart();assert.deepEqual(await browser.call('working-durable-read'),before);
   receipt.isolation=await browser.isolation();assert.equal(receipt.isolation.nativeFactory,true);assert.equal(receipt.isolation.networkAttempts,0);
   const proof={cases:receipt.cases,hashes:receipt.hashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);receipt.result='PASS';

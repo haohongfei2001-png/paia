@@ -69,10 +69,10 @@ export class IAStore extends IndexedArchiveStore {
  }
  async pruneEntity(t,key){
   // Per-entity traversal, newest first; preserve ALL younger entries OR latest 20 important.
-  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(this.clock())-REVISION_POLICY.days*86400000;let important=0;
+  const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(this.inputWorkingJournal?.pruneTime(t)??this.clock())-REVISION_POLICY.days*86400000;let important=0;
   await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(Date.parse(row.at)<cutoff&&(!row.important||important>REVISION_POLICY.importantMinimum))c.delete();c.continue();};});
  }
- pruneRevisions(){return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
+ pruneRevisions(){if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}
  async afterInputEdit(t,before,after,oldDoc,newDoc,request){
   for(let i=0;i<after.length;i++){
    const a=before[i],b=after[i];await this.initializeInput(t,a);const meta=await t.get('inputStates',b.id);

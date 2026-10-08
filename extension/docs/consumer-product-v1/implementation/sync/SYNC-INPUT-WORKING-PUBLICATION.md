@@ -28,3 +28,17 @@ Final SHA-256:
 - core/ia-store.js: ceb65468d03cd311a2ff832ea873ea22e199177ffaa1ed9cd3a7ccade657d46f
 - core/indexed-store.js: 36981d233223bf026ead4fb67c5e9d1148eae0d3d0c11032b2b87b34316a29d0
 - core/browser-native-sync/codecs.js: 62ad6415561ec312b9b65e236c6568f9be0f91c0a9b159f2bafd8a845c5e9482
+
+
+## Independent retention-boundary repair and final verification
+
+settings_finish independently reproduced a blocking clock boundary: a prepared major edit committed after the retention horizon advanced, and the ordinary prune owner removed one historical edit although the publication batch had no retirement operation. `/tmp/input-working-independent-clock.log` preserves the actual failure (before2, after2, lost1). Bound transactions now give that same existing prune algorithm their private prepared timestamp through WeakMap-backed pruneTime(t); unbound transactions still use the original clock. Explicit pruneRevisions also refuses while this incomplete owner is bound. No second pruning algorithm or deletion authorization is added.
+
+The original independent negative now reports before2, after3, lost[] (`/tmp/input-working-independent-clock-fixed.log`). Two new owning cases cover implicit horizon crossing and explicit pruning refusal. Final independent review accepted the runtime and ran complete related units291/291 PASS2.840s (`/tmp/input-working-independent-final.log`); no remaining confirmed blocker.
+
+Final frozen runtime native verification: `/tmp/input-working-retention-native-final.log`, four complete files43/43 PASS112.369228958s, zero skipped/cancelled. It includes source/release14-case Working matrices with real worker restarts and unchanged original native storage, History and Data recovery files. Earlier12-case/41-case proofs above remain historical. Package and diff checks were repeated on the final runtime. Still no remote materializer, full recovery, account connection, hosted CI or user delivery claim.
+
+Final changed runtime SHA-256:
+- core/browser-native-sync/input-working-journal.js: f65e8de4955151cde1496e05a9423f6423a632b38f266ac4adb9fc48b99ec2c8
+- core/ia-store.js: ba938aa7bb46712b7188cd5ded5f94b22e4127f27540e3eb3855ec3e5a6db7e1
+Other runtime hashes from9439 remain unchanged. Independent review covers this final correction; historical pending notes above are not current approval status.

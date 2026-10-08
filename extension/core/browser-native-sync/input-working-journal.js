@@ -57,6 +57,7 @@ export class InputWorkingSyncJournal{
   if(!sameSnapshot(await this.snapshot(t,p.before.b.id,request.documentId,p.at),p.before))fail('BNS_OWNER_CHANGED');
   this.transactions.set(t,p);
  }
+ pruneTime(t){return this.transactions.get(t)?.at??null;}
  editTime(t){const p=this.transactions.get(t);if(!p)fail('BNS_PREPARATION_REQUIRED');return p.at;}
  revisionPlan(t,data){const p=this.transactions.get(t);if(!p)return null;if(!equal(data,p.data)||p.revisionUsed)fail('BNS_WORKING_REVISION_CHANGED');p.revisionUsed=true;return clone(p.revision);}
  protectionFor(t,b,reason,userEdited){const p=this.transactions.get(t);if(!p||b.id!==p.after.id||reason!=='user_edit'||userEdited!==true)fail('BNS_WORKING_SCOPE_UNAVAILABLE');return p.prepared;}
