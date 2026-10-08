@@ -190,3 +190,31 @@ fail/skip/cancel (the previous five plus settings-touch-device-options), log
 work/prompt-native-visibility-unit.log. These plus the short actual harness probe
 are bounded evidence only. Complete Stage3A source/release on the next exact
 hosted head remains PENDING; this does not retroactively pass either failed run.
+
+
+## 1c1e073 hosted foreground-control fixture follow-up
+
+Run37711740379 retained passing dependencies, Stage1/2 and the first three
+Stage3A subcases per variant, then failed before its hidden-tab check: the first
+Settings sidebar click timed out waiting for a background tab's native element
+to become visible/stable (line53). Removing focus emulation exposed a prior
+fixture assumption. The fixture now actually brings Settings to the foreground
+and verifies visible state before the unchanged sidebar/control clicks. Existing
+popup enable/disable already foreground their tab; no runtime, assertion or
+budget is changed. Original failure: work/prompt-1c1-failed.log. Syntax checks
+and related unit results do not stand in for the still-required complete next
+exact-head hosted source/release run.
+
+
+A single complete local source/release attempt with the new nativeTabVisibility
+opt-in was run before committing the foreground fix. It FAILED before reaching
+Settings: both variants stopped in direct native insertion (subcase2). The
+source diagnostic shows Chrome154.0.8037.98 macOS headless, no frame click events,
+empty Next status, and trusted pointer/click events received by the top-level
+DIV instead. This reproduces the previously recorded local OOPIF mouse delivery
+limitation even with native visibility enabled. No further local attempt or
+mouse substitute was used. Log: work/prompt-native-visibility-full-local.log;
+retained JSON diagnostics: work/native-visibility-local-failure/. Neither this
+attempt nor the earlier hosted run validates the new Settings foreground fix.
+The complete hosted native owner remains required; no timeout/assertion change
+or local visible browser was introduced to bypass the failure.
