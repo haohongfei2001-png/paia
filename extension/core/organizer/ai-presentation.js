@@ -1,3 +1,5 @@
+import {canonical as manifestCanonical,digest as manifestDigestOf} from '../ai-usage/contracts.js';
+import {isIncrementalV2,planIncrementalV2,editIncrementalField} from './ai-incremental-v2.js';
 import {readAIStyle} from '../ai-organize-style-preference.js';
 import {qualifyOrganizeCache,organizeCacheEvidenceVersion,validOrganizeCacheProfile} from './organize-cache-qualification.js';
 import {entryTime} from './topic-chronology.js';
@@ -29,18 +31,24 @@ const safe=e=>SAFE_ERRORS.has(e?.code)?e.code:'INTERNAL_RUNTIME_ERROR';
 async function topicSnapshot(s,t,topic,{limit=null,summaryOnly=false,entryIds=null}={}){
  if(!validTopicGeneration(topic.activeLayoutGeneration))reject('STALE_BASE');
  const scanned=await t.all('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),limit===null?undefined:limit+1),placements=limit===null?scanned:scanned.slice(0,limit);
- const entries=[],versions={},scopeVersions={},inputVersions={},unavailable=[],excluded=[],seen=new Set(),filter=await t.get('meta','smart-filter');
+ const entries=[],versions={},scopeVersions={},incrementalVersions={},inputVersions={},unavailable=[],excluded=[],seen=new Set(),filter=await t.get('meta','smart-filter');
  for(const placement of placements){if(seen.has(placement.entryId)||entryIds&&!entryIds.has(placement.entryId))continue;seen.add(placement.entryId);let row;try{row=await s.readableEntry(t,placement.entryId);}catch{unavailable.push(placement.entryId);continue;}if(!row||row.lifecycle!=='active'){unavailable.push(placement.entryId);continue;}
   const deps=await t.all('dependencies','byTarget',prefix(['entry',row.id])),provenance=await t.all('provenance','byOwner',prefix(['entry',row.id]));if(!provenance.length&&row.provenanceType!=='user_created'){unavailable.push(row.id);continue;}const refs=[...new Map([...deps,...provenance].map(d=>[d.inputId,d])).values()];let allowed=true;const tokens=[],inputs={};
   for(const dep of refs){const input=await inputProjection(s,t,dep.inputId),state=await t.get('inputStates',dep.inputId);if(!input||await s.isFiltered(t,input.block,filter)){allowed=false;break;}tokens.push([dep.inputId,state.contentRevision,state.lastRemovalSequence||0]);inputs[dep.inputId]={contentRevision:state.contentRevision,removalState:state.removalState,sourcePurged:!!state.sourcePurged,eligible:true};}
   if(!allowed){excluded.push(row.id);continue;}Object.assign(inputVersions,inputs);versions[row.id]=JSON.stringify([row.revision,row.dependencyRevision||0,tokens]);
   const time=await expressionTime(s,t,row);scopeVersions[row.id]=JSON.stringify([versions[row.id],time,placement.revision,placement.membershipAuthorship||null]);
+  incrementalVersions[row.id]=JSON.stringify([scopeVersions[row.id],placement.sectionId,placement.order,placement.rank,provenance,deps]);
   entries.push(summaryOnly?{id:row.id}:{...await entryTime(t,row.id),expressionTime:time,id:row.id,body:row.thoughtText,type:row.type,userEdited:row.userEdited,protections:row.protections,createdAt:row.createdAt,updatedAt:row.updatedAt});
  }
- return {entries,versions,scopeVersions,inputVersions,unavailable,excluded,intendedCount:seen.size,truncated:limit!==null&&scanned.length>limit,scanned:placements.length};
+ return {entries,versions,scopeVersions,incrementalVersions,inputVersions,unavailable,excluded,intendedCount:seen.size,truncated:limit!==null&&scanned.length>limit,scanned:placements.length};
 }
 const sourceBinding=(topic,epoch,policy)=>({organizationRevision:topic.organizationRevision,generation:topic.generation??topic.activeLayoutGeneration,epoch:String(epoch??''),coverage:JSON.stringify([topic.intendedCount,topic.excluded||[],topic.unavailable||[]]),policy});
 async function sourcePolicy(t){const filter=await t.get('meta','smart-filter'),config=await t.get('meta','memory:config');return JSON.stringify({filterMode:filter?.mode??'off',externalAccess:config?.externalAccess===true,localOnly:config?.localOnly===true});}
+async function candidateBinding(s,t,topic,current,epoch,v2=false){
+ const policy=await sourcePolicy(t);if(!v2)return sourceBinding({...topic,...current},epoch,policy);
+ const restore=(await t.get('meta','recovery-restore-epoch'))?.value??'initial',style=readAIStyle((await s.control(t)).preferences,restore);
+ return sourceBinding({...topic,...current},epoch,JSON.stringify([policy,restore,style]));
+}
 async function cacheSnapshot(s,t,topic,current){
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),recovering=await t.get('meta','backup-recovery-settings');
  const sections=await t.all('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]));
@@ -56,7 +64,7 @@ export async function readOrganizeCacheSnapshotInTransaction(s,t,topicId){
 }
 async function topicState(s,t,topic,cp,epoch,{summaryOnly=false,expectedProfile=null}={}){
  const current=await topicSnapshot(s,t,topic,{summaryOnly}),rawPrior=cp.topicVersions?.[topic.id]||{},stored=await t.get('meta',ROW+topic.id),allowed=new Set(current.entries.map(x=>x.id));
- const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),none=isBaseNoneEnvelope(stored),binding=sourceBinding({...topic,...current},epoch,await sourcePolicy(t)),candidate=readable||none?publicAIPresentationCandidate(stored,allowed,stored.candidate?.schemaVersion===1?current.versions:current.scopeVersions,binding):null;
+ const readable=stored&&stored.topicId===topic.id&&isStoredAIPresentation(stored,allowed),none=isBaseNoneEnvelope(stored),binding=await candidateBinding(s,t,topic,current,epoch,stored?.candidate?.schemaVersion===3),candidate=readable||none?publicAIPresentationCandidate(stored,allowed,stored.candidate?.schemaVersion===3?current.incrementalVersions:stored.candidate?.schemaVersion===1?current.versions:current.scopeVersions,binding):null;
  const resetCandidate=!!stored?.candidate&&(!candidate||candidate.stale),baseline=stored?.basedOnCheckpoint?.entryVersions,prior=resetCandidate?(baseline&&typeof baseline==='object'&&!Array.isArray(baseline)?baseline:{}):readable||none||!current.entries.length?rawPrior:{};
  const changed=current.entries.filter(e=>prior[e.id]!==current.versions[e.id]),removed=Object.keys(prior).filter(id=>!allowed.has(id));
  const cacheQualification=qualifyOrganizeCache({stored,readable,ownerPending:changed.length>0||removed.length>0,snapshot:readable&&stored?.cacheBinding?await cacheSnapshot(s,t,topic,current):null,expectedProfile});
@@ -143,12 +151,12 @@ async function candidateFence(t,topicId,candidate){const id='ai-presentation-can
 async function aiJournal(s,t,before,after,actor,operationId){
  const evidenceEntryIds=[...new Set([...(before?.evidenceEntryIds||[]),...(after?.evidenceEntryIds||[])])],sourceRecordIds=await sourceIdsForEntries(t,evidenceEntryIds);
  await t.put('libraryMigrationItems',{id:'ai-presentation-fence:'+after.topicId,entityKind:'organizer_metadata',ownerKind:'ai_presentation',ownerId:after.topicId,statusKey:1,sourceRecordIds});
- return journal(s,t,{kind:'ai_presentation',entityId:after.topicId,documentId:after.topicId,before:before?presentationContent(before):null,after:presentationContent(after),fieldMask:AI_FIELDS,actor,reason:actor==='ai'?'ai_update':'edit',important:true,operationId,baseRevision:before?.revision||0,afterRevision:after.revision,sourceRecordIds,evidenceEntryIds});
+ return journal(s,t,{kind:'ai_presentation',entityId:after.topicId,documentId:after.topicId,before:before?(isIncrementalV2(before)?{presentationVersion:2,projection:before.projection,manifest:before.manifest}:presentationContent(before)):null,after:isIncrementalV2(after)?{presentationVersion:2,projection:after.projection,manifest:after.manifest}:presentationContent(after),fieldMask:AI_FIELDS,actor,reason:actor==='ai'?'ai_update':'edit',important:true,operationId,baseRevision:before?.revision||0,afterRevision:after.revision,sourceRecordIds,evidenceEntryIds});
 }
 export async function aiPresentationRevisions(s,{topicId}={}){
  if(!idOK(topicId))reject('INVALID_OUTPUT');await migrateAIPresentations(s);
  return s.run(()=>s.repository.transaction(false,async t=>{const topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id)),items=[];
- for(const row of await t.all('revisions','byEntitySequence',prefix(['ai_presentation:'+topicId]))){if(!await s.sourcePresent(t,row.sourceRecordIds)||row.evidenceEntryIds.some(id=>!allowed.has(id)))continue;items.push({id:row.id,actor:row.actor,at:row.at,reason:row.reason,before:row.before,after:row.after,revision:row.afterRevision});}return {items:items.slice(-50)};
+ for(const row of await t.all('revisions','byEntitySequence',prefix(['ai_presentation:'+topicId]))){if(!await s.sourcePresent(t,row.sourceRecordIds)||row.evidenceEntryIds.some(id=>!allowed.has(id)))continue;items.push({id:row.id,actor:row.actor,at:row.at,reason:row.reason,before:isIncrementalV2(row.before)?structuredClone(row.before.projection):row.before,after:isIncrementalV2(row.after)?structuredClone(row.after.projection):row.after,revision:row.afterRevision});}return {items:items.slice(-50)};
  }));
 }
 export async function editAIPresentation(s,edit={}){
@@ -156,14 +164,18 @@ export async function editAIPresentation(s,edit={}){
  if(candidateDecisions!==undefined){
   if(!idOK(topicId)||!Number.isSafeInteger(expectedRevision)||expectedRevision<0||!candidateDecisions||typeof candidateDecisions!=='object'||Array.isArray(candidateDecisions)||!idOK(operationId)||operationId.length<8)reject('INVALID_OUTPUT');
   await migrateAIPresentations(s);const request={id:topicId,expectedRevision,expectedCandidateKey,candidateDecisions:structuredClone(candidateDecisions),operationId,kind:'ai-candidate-save'},digest=await hashText(JSON.stringify(request));
-  const result=await s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),sourceBinding({...topic,...current},gate?.epoch,await sourcePolicy(t))),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};await bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint});await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);return result;});
+  // Verify cryptographic proposal binding outside IDB; the write transaction
+  // compares these exact bytes again after its existing idempotent receipt check.
+  const captured=await s.run(()=>s.repository.transaction(false,t=>t.get('meta',ROW+topicId))),v2=captured?.candidate?.schemaVersion===3,proposalBytes=v2?manifestCanonical(captured.candidate.proposal):null,proposalVerified=v2?await manifestDigestOf(captured.candidate.proposal)===captured.candidate.manifestDigest:false;
+  const result=await s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(row?.candidate?.schemaVersion===3&&(!v2||!proposalVerified||manifestCanonical(row.candidate.proposal)!==proposalBytes||row.candidate.manifestDigest!==captured.candidate.manifestDigest))reject('STALE_BASE');if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,row.candidate?.schemaVersion===3?current.incrementalVersions:row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),await candidateBinding(s,t,topic,current,gate?.epoch,row.candidate?.schemaVersion===3)),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};if(row.candidate.schemaVersion===3){if(!resolved.kept.length)await t.put('meta',{id:CHECKPOINT,version:3,...checkpoint,topicVersions:{...checkpoint?.topicVersions,[topicId]:current.versions},inputVersions:await acknowledgedInputs(s,t,checkpoint||{inputVersions:{},topicVersions:{}},{...topic,...current,prior:checkpoint?.topicVersions?.[topicId]||{}},current.versions)});}else await bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint});await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);return result;});
   for(const [token,proof]of localCacheProofs)if(proof.store===s&&proof.key===expectedCandidateKey)localCacheProofs.delete(token);return result;
  }
  if(!idOK(topicId)||!AI_FIELDS.includes(field)||operationId!==null&&(!idOK(operationId)||operationId.length<8))reject('INVALID_OUTPUT');await migrateAIPresentations(s);const request={id:topicId,field,value,expectedRevision,operationId,kind:'ai-field-edit'},digest=operationId?await hashText(JSON.stringify(request)):null;
  return s.foundationWrite(async t=>{if(operationId){const prior=await receipt(t,request,digest);if(prior)return prior;}const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if(!row||row.revision!==expectedRevision||!isStoredAIPresentation(row,allowed))reject('STALE_BASE');
- if(AI_LIST_FIELDS.includes(field)){if(!Array.isArray(value)||value.length!==row[field].length||value.some((x,i)=>typeof x?.text!=='string'||x.text.length>2000||!equal(x.evidenceEntryIds,row[field][i].evidenceEntryIds)))reject('INVALID_OUTPUT');}else if(typeof value!=='string'||value.length>(field==='blockSummary'?300:4000))reject('INVALID_OUTPUT');
+ const projected=presentationContent(row);
+ if(AI_LIST_FIELDS.includes(field)){if(!Array.isArray(value)||value.length!==projected[field].length||value.some((x,i)=>typeof x?.text!=='string'||x.text.length>2000||!equal(x.evidenceEntryIds,projected[field][i].evidenceEntryIds)))reject('INVALID_OUTPUT');}else if(typeof value!=='string'||value.length>(field==='blockSummary'?300:4000))reject('INVALID_OUTPUT');
  const normalizedValue=AI_LIST_FIELDS.includes(field)?value.map(x=>({text:x.text,evidenceEntryIds:[...x.evidenceEntryIds]})):value;
- if(equal(row[field],normalizedValue))return {revision:row.revision};const next={...row,[field]:normalizedValue,revision:row.revision+1,protections:{...row.protections,[field]:true},userEditedAt:s.clock(),needsUpdate:row.candidate?true:row.needsUpdate};await t.put('meta',next);await aiJournal(s,t,row,next,'user',operationId||s.uuid());const result={revision:next.revision};if(operationId)await saveReceipt(s,t,request,digest,result);return result;
+ if(equal(projected[field],normalizedValue))return {revision:row.revision};const next={...row,...(isIncrementalV2(row)?editIncrementalField(row,field,normalizedValue):{[field]:normalizedValue}),revision:row.revision+1,protections:{...row.protections,[field]:true},userEditedAt:s.clock(),needsUpdate:row.candidate?true:row.needsUpdate};await t.put('meta',next);await aiJournal(s,t,row,next,'user',operationId||s.uuid());const result={revision:next.revision};if(operationId)await saveReceipt(s,t,request,digest,result);return result;
  });
 }
 
@@ -224,7 +236,7 @@ export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
    const stored=await t.get('meta',ROW+raw.id);if(!stored)continue;
    const topic=await s.canonicalTopic(t,raw.id),current=await topicSnapshot(s,t,topic,{summaryOnly:true});
    if(stored.topicId!==topic.id||!isStoredAIPresentation(stored,new Set(current.entries.map(e=>e.id))))continue;
-   const field=AI_FIELDS.find(field=>{const value=stored[field],text=Array.isArray(value)?value.map(x=>x.text).join(' '):value;return typeof text==='string'&&text.normalize('NFKC').toLocaleLowerCase().includes(needle);});
+   const field=AI_FIELDS.find(field=>{const value=presentationContent(stored)[field],text=Array.isArray(value)?value.map(x=>x.text).join(' '):value;return typeof text==='string'&&text.normalize('NFKC').toLocaleLowerCase().includes(needle);});
    if(field)items.push({kind:'ai',topicId:topic.id,topicName:topic.name,aiField:field,sectionTitle:'AI整理'});
   }
   return {items,nextCursor:page.next?{mode:'compact_root_search',query:needle,phase:'ai',key:page.next}:null,complete:!page.next};
@@ -232,15 +244,16 @@ export async function searchSavedAI(s,{query,cursor=null,limit=40}={}){
 }
 
 // Internal local feature lifecycle. No worker route exposes these transaction APIs.
-export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null){
+export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedProfile=null,incrementalVersion=1){
  const gate=await t.get('meta','gate'),restore=await t.get('meta','recovery-restore-epoch'),cp=await t.get('meta',CHECKPOINT)||{id:CHECKPOINT,view:'ai',version:3,inputVersions:{},topicVersions:{},lastSequence:0};
  if(!gate?.enabled||await t.get('meta','backup-recovery-settings'))reject('UNAVAILABLE');
  const topic=await topicState(s,t,await s.canonicalTopic(t,topicId),cp,gate.epoch,{expectedProfile}),style=readAIStyle((await s.control(t)).preferences,restore?.value??'initial');
  if(!style.available||topic.userDraft||topic.candidate||topic.unavailable.length||topic.excluded.length)reject('STALE_BASE');
- if(!topic.entries.length||topic.entries.length>100||topic.entries.length>s.organizerBudget.limits.maxInputs||bytes(topic.entries.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes)reject('BUDGET_EXCEEDED');
- const inputs=topic.entries.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic);
+ const incremental=incrementalVersion===2?planIncrementalV2(topic,style,expectedProfile,JSON.stringify([gate.epoch,restore?.value??'initial',style,await sourcePolicy(t)])):null,selected=incremental?incremental.selected:topic.entries;
+ if(!topic.entries.length||selected.length>100||selected.length>s.organizerBudget.limits.maxInputs||bytes(selected.map(e=>e.body))>s.organizerBudget.limits.maxContentBytes)reject('BUDGET_EXCEEDED');
+ const inputs=selected.map(e=>({ref:e.id,revision:topic.versions[e.id],text:e.body})),cache=await cacheSnapshot(s,t,await s.canonicalTopic(t,topicId),topic);
  if(!cache.complete||!cache.evidenceVersion)reject('STALE_BASE');
- return {topic,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion])};
+ return {topic,incremental,incrementalVersion,profile:expectedProfile,gateEpoch:gate.epoch,cachePresentation:topic.cacheQualification.reusable?publicTopic(topic):null,checkpoint:cp,inputs,evidenceVersion:cache.evidenceVersion,style:{version:1,value:style.value,policyVersion:'AIOS-1.0',expectedRevision:style.revision,expectedEpoch:style.epoch},proof:JSON.stringify([topic.id,topic.name,topic.binding,topic.scopeVersions,topic.stored,cp,gate,restore?.value??'initial',style,cache.evidenceVersion,incrementalVersion,incrementalVersion===2?topic.incrementalVersions:null])};
 }
 // IDB evidence/restore/policy share the surrounding readonly transaction. Local
 // preferences use this store's serialized control snapshot; recheck it after
@@ -249,13 +262,13 @@ export async function assertLocalOrganizeCacheControls(s,t,prepared){
  const controls=await s.control(t),current=s.pendingControl||s.controlCache;
  for(const value of [controls,current]){const style=readAIStyle(value?.preferences,prepared.style.expectedEpoch);if(value?.settings?.enabled!==true||value.settings.epoch!==prepared.gateEpoch||!style.available||style.value!==prepared.style.value||style.revision!==prepared.style.expectedRevision||style.epoch!==prepared.style.expectedEpoch)reject('STALE_BASE');}
 }
-export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null}){
- const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id);if(current.proof!==prepared.proof)reject('STALE_BASE');
- const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:topic.scopeVersions,sourceBinding:topic.binding,candidateId});
+export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null}){
+ const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion);if(current.proof!==prepared.proof)reject('STALE_BASE');
+ const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion===2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,t,topic,topic,current.gateEpoch,prepared.incrementalVersion===2),candidateId,manifestDigest});
  if(candidate){const base=topic.presentation?old:{id:ROW+topic.id,topicId:topic.id,envelopeVersion:1,currentState:'none',revision:0,recoveryGeneration:isBaseNoneEnvelope(old)?old.recoveryGeneration:candidateId,...(isBaseNoneEnvelope(old)&&old.recoveryPurgeRevision!==undefined?{recoveryPurgeRevision:old.recoveryPurgeRevision}:{}),basedOnCheckpoint:old?.basedOnCheckpoint||{entryVersions:{}}};await t.put('meta',{...base,candidate,needsUpdate:false,stale:false});await candidateFence(t,topic.id,candidate);}
- await t.put('meta',{...cp,version:3,topicVersions:{...cp.topicVersions,[topic.id]:topic.versions},inputVersions:await acknowledgedInputs(s,t,cp,topic,topic.versions),updatedAt:s.clock()});
+ if(prepared.incrementalVersion!==2)await t.put('meta',{...cp,version:3,topicVersions:{...cp.topicVersions,[topic.id]:topic.versions},inputVersions:await acknowledgedInputs(s,t,cp,topic,topic.versions),updatedAt:s.clock()});
  let cacheProof=null;
- if(candidate?.baseKind==='none'&&qualification?.childId===candidateId&&validOrganizeCacheProfile(qualification.profile)){
+ if(candidate?.schemaVersion!==3&&candidate?.baseKind==='none'&&qualification?.childId===candidateId&&validOrganizeCacheProfile(qualification.profile)){
   cacheProof=Object.freeze({});if(localCacheProofs.size>=32)localCacheProofs.delete(localCacheProofs.keys().next().value);
   localCacheProofs.set(cacheProof,{store:s,jobId:qualification.jobId,childId:candidateId,key:aiCandidateKey(candidate),topicId:topic.id,coverage:structuredClone(qualification.coverage),profile:structuredClone(qualification.profile),style:structuredClone(prepared.style),evidenceVersion:prepared.evidenceVersion,confirmed:false});
  }
