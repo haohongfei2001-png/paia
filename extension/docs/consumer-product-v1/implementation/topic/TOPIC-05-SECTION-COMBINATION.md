@@ -263,3 +263,15 @@ strict rejection of22/malformed versions. Independent review passed; four
 complete version checks and11416 package checks pass. Previously recorded
 Section/Content/Years evidence stays component evidence; current-head candidate
 and final combined acceptance remain required before integration.
+
+Candidate37706458872 at83d28ba passed its entire affected-browser job and all
+contracts/privacy/release checks; its unit suite failed only the old header
+source oracle expecting verifyHeaderInteractions() with no argument. The real
+Content journey deliberately passes seed.records[1].id to validate its exact
+search target. The follow-up requires that precise argument and unchanged call
+order, budgets, isolated visual owner and non-forced pointer checks. Independent
+review and the complete five-case guard pass. No runtime changes in this repair.
+
+On83d28ba, the complete Section source/release native file also passes4/4 in
+24.62s, including late purge refusal.1307 non-document tracked files matched the
+pre/post byte manifest. These results do not turn the failed aggregate into PASS.
