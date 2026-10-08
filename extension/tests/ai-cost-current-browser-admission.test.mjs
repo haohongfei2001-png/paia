@@ -1,3 +1,4 @@
+// Reconciled with actual main a733ae5: historical comparison moves1→4 only at width7.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readdir,readFile} from 'node:fs/promises';
@@ -319,7 +320,7 @@ const baseline=[
   1,
   1,
   1,
-  1
+  4
  ],
  [
   "cpv1-09-prompt-compatibility-chrome-e2e.test.mjs",

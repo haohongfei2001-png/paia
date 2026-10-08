@@ -22,6 +22,7 @@ async function consent(page){
   await eventually(async()=>!(await action.isDisabled()),'UIR-02 consent action is available');
   await action.click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIR-02 consent is durable');
+  const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history','hiding the old card does not complete onboarding');assert.equal(onboarding.historyState,'not_started','hiding the old card does not silently skip history import');
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank after consent');
   await eventually(async()=>!(await page.locator('#onboarding-history-step').isVisible()),'optional history onboarding is dismissed before Archive evidence');
 }

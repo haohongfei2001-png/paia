@@ -22,6 +22,26 @@ applied together. Current coordination and exact evidence boundaries are recorde
 in [COORDINATED_EXECUTION_2026-10-08](COORDINATED_EXECUTION_2026-10-08.md), with later
 merged source and the owning receipts controlling subsequent implementation facts.
 
+## Settings0.20 delivery and continuing batches — 2026-10-08
+
+PR198 merged at main `f1740bc47ff8495bdf3457b5db195075a7404c87` after exact
+candidate Full37704406932 (all seven browser jobs plus final aggregate) and
+Prompt37704406755 passed. Its tree equals certified head0f750af's tree. Current
+exact-main [Full37706096966](https://github.com/haohongfei2001-png/paia/actions/runs/37706096966)
+and [Prompt37706097001](https://github.com/haohongfei2001-png/paia/actions/runs/37706097001)
+have both succeeded, including Full Suite and final Integration aggregate.
+The [Settings receipt](implementation/settings/SET2-INDEPENDENT-DELIVERY.md)
+records the delivered six groups, local organization-style preference, details
+and Prompt position reset. This is a merged engineering batch, not whole SET2,
+installed build, real model/account qualification or final user visual acceptance.
+
+Section0.21 PR190 headb2fe6cb1 is the next candidate on this main. IAH PR199
+ef20ca3 and AI-COST PR194 c24128a contain independently reviewed bounded
+increments. Sync0a8d0fd7 and Stage3A1c9e8580 are local Settings combinations with
+separate pending native/integration proof. Stage3A native pointer-activation
+failure is under diagnosis; no failure is waived. Updated seven-lane positions
+below remain subject to fresh remote checks and each owning receipt.
+
 ## Archive selected visual adoption and canonical correction — 2026-10-08
 
 **IAH-1.1: SELECTED_VISUAL_SCOPE_ADOPTED / CANONICAL_CORRECTED / PLAN_ALIGNED.**

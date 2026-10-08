@@ -182,6 +182,11 @@ def audit_js(path, text):
                     "Context shortcuts must defer to native IME composition")
             require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
                     "Context must not install global keyboard capture")
+        if label == "keyboard listener" and path == ROOT / "ui/settings-details.js":
+            # Exact local modal Tab loop: no text collection or global listener.
+            exact = " dialog.addEventListener('keydown',event=>{\n  if(event.key!=='Tab'||event.altKey||event.ctrlKey||event.metaKey)return;\n  const visible=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);\n  const stops=visible.filter(node=>node.type!=='radio'||!node.name||node===(visible.find(other=>other.type==='radio'&&other.name===node.name&&other.checked)||visible.find(other=>other.type==='radio'&&other.name===node.name)));\n  const first=stops[0],last=stops.at(-1),active=document.activeElement;\n  if(!first)return;\n  if(event.shiftKey?(active===first||!dialog.contains(active)):(active===last||!dialog.contains(active))){event.preventDefault();(event.shiftKey?last:first).focus();}\n });"
+            require(text.count(exact) == 1, "settings details retains reviewed modal Tab-only focus loop")
+            scanned = scanned.replace(exact, "SCOPED_SETTINGS_DIALOG_TAB_LOOP")
         if label == "keyboard listener" and path == ROOT / "ui/context-topics.js":
             reviewed = "this.field.addEventListener('keydown',"
             exact = "this.field.addEventListener('keydown',event=>this.move(event));"
@@ -237,9 +242,23 @@ def audit_js(path, text):
                 "macOS secure-store adapter must use one-shot native messages, not a long-lived port")
         require("SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED" in text and "requestMacOSNativeSecureStorePermission" in text,
                 "macOS secure-store adapter must fail closed before optional permission and expose only explicit request")
-    for match in re.finditer(r"['\"`](https?://[^'\"`\s]+)", text):
+    remote_literals = list(re.finditer(r"['\"`](https?://[^'\"`\s]+)", text))
+    about_links = path == ROOT / "ui/settings-about.js"
+    if about_links:
+        # Reviewed SET2-04 public document links only. This does not admit a
+        # network API, remote resource, permission, or automatic navigation.
+        require(text.count("const SITE='https://inputarchive.com';") == 1 and
+                len(remote_literals) == 1 and
+                text.count("document.createElement('a')") == 1 and
+                "link.href=item.href;" in text and
+                "link.target='_blank';link.rel='noopener noreferrer';" in text,
+                "About must retain its single verified native-anchor origin")
+        require(not re.search(r"\b(?:location|window|chrome|globalThis)\s*(?:\.|\[)|\bopen\s*\(|\.\s*(?:click|submit)\s*\(|\.\s*(?:src|srcset|action)\s*=|setAttribute\s*\(\s*['\"](?:src|srcset|action)['\"]", text),
+                "About links must not navigate, load resources, or invoke privileged actions automatically")
+    for match in remote_literals:
         parsed = urlsplit(match.group(1))
-        require(parsed.scheme == "https" and parsed.netloc == "chatgpt.com",
+        approved_document_origin = about_links and match.group(1) == "https://inputarchive.com"
+        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin),
                 f"{path.relative_to(ROOT)}: unexpected remote URL literal")
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",

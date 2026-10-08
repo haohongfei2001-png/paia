@@ -21,8 +21,8 @@ test('UIS-04 keeps real bootstrap owners and reusable search/read capabilities',
   assert.match(await read('ui/topic-workspace.js'),/RECORD_TOPIC_READ/,'read metadata remains recorded');
 });
 
-test('Settings AI group contains only the unavailable membership service',async()=>{
- const shell=await read('ui/settings-preferences.js');assert.ok(shell.includes("move('membership-ai-service','ai')"));
+test('Settings AI group follows SETTINGS-CV2 with one Context entry and truthful Prompt status',async()=>{
+ const shell=await read('ui/settings-preferences.js');assert.ok(shell.includes("move('settings-ai-context','ai')"));assert.ok(shell.includes("move('settings-prompt-status','ai')"));assert.doesNotMatch(shell,/move\('membership-ai-service'/);
  assert.doesNotMatch(shell,/deepseek-settings|organizer-reading-actions|library-updates-drawer/);
 });
 test('Settings no longer polls organizer usage while bounded Topic reading remains',async()=>{
