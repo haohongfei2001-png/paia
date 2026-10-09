@@ -164,16 +164,15 @@ const liveTopicKey=(topic,epoch,timeRevision=0)=>JSON.stringify([
  epoch||0,
  timeRevision||0
 ]);
-// Original-owner complete pure metadata transition. The allocation remains
-// lazy at its existing caller; no domain semantics or projection query changes.
-export function planThoughtTopicBuild(meta,key,generationId){
- return {...meta,buildingGeneration:generationId,buildingKey:key,sourceCursor:null,scanned:0,indexed:0,buildingEarliest:null,buildingLatest:null,buildingUnknown:{asc:null,desc:null},buildingUnknownCount:0,buildingExpressionCounts:{all:{known:{},unknown:0,total:0},providers:{}}};
-}
-function startTopicBuild(store,meta,key,preparedGeneration){Object.assign(meta,planThoughtTopicBuild(meta,key,generation(store,preparedGeneration)));}
-export function planThoughtTopicInvalidation(meta,topic,epoch,{sourceTime=false,allocateGeneration}={}){
- if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION||!activeTopic(topic))return {changed:false,meta};
- let next={...meta};if(sourceTime)next.timeRevision=(next.timeRevision||0)+1;const key=liveTopicKey(topic,epoch,next.timeRevision||0);
- if(next.activeKey!==key||next.buildingKey!==key)next=planThoughtTopicBuild(next,key,allocateGeneration());return {changed:true,meta:next};
+function startTopicBuild(store,meta,key,preparedGeneration){
+ meta.buildingGeneration=generation(store,preparedGeneration);
+ meta.buildingKey=key;
+ meta.sourceCursor=null;
+ meta.scanned=0;
+ meta.indexed=0;
+ meta.buildingEarliest=null;meta.buildingLatest=null;
+ meta.buildingUnknown={asc:null,desc:null};meta.buildingUnknownCount=0;
+ meta.buildingExpressionCounts={all:{known:{},unknown:0,total:0},providers:{}};
 }
 async function topicMeta(store,t,topic){
  let meta=await t.get('meta',topicMetaId(topic.id));
@@ -190,8 +189,10 @@ export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=fa
  if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION)return false;
  const topic=await t.get('topics',topicId);
  if(!activeTopic(topic))return false;
- const epoch=(await t.get('meta','thought-epoch'))?.value||0,planned=planThoughtTopicInvalidation(meta,topic,epoch,{sourceTime,allocateGeneration:()=>generation(store,preparedGeneration)});
- await t.put('meta',planned.meta);
+ if(sourceTime)meta.timeRevision=(meta.timeRevision||0)+1;
+ const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=liveTopicKey(topic,epoch,meta.timeRevision||0);
+ if(meta.activeKey!==key||meta.buildingKey!==key)startTopicBuild(store,meta,key,preparedGeneration);
+ await t.put('meta',meta);
  return true;
 }
 async function writeTopicDescriptor(t,generationId,descriptor){

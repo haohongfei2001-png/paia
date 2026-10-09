@@ -3,7 +3,7 @@ import {planHumanFixedMembership,moveMembershipInTransaction,fixMembershipSetInT
 import {changeTopicContainer,changeTopicContainerInTransaction,planHumanTopicMembership,planHumanTopicMembershipEntry,planHumanTopicContainer} from '../topic-governance.js';
 import {assertMemoryTopicTransitionAllowed} from '../memory/organization-guard.js';
 import {assertMemoryPlacementChangeAllowed} from '../memory/organization-guard.js';
-import {THOUGHT_TOPIC_INDEX_VERSION} from '../thought-read-index.js';
+import {THOUGHT_TOPIC_INDEX_VERSION,planThoughtTopicInvalidation} from '../thought-read-index.js';
 import {revisionShouldPrune,REVISION_POLICY} from '../ia-store.js';
 import {ownerVersion} from '../library-search.js';
 import {planHumanTopicCreation,planHumanPlacement,planHumanPlacementRow,humanPlacementRank,humanSectionRank,planHumanSectionCreation,planHumanEntryCreation,planHumanEntryRemoval,planHumanEntryRestoration,planHumanTopicTouch,planHumanEntryFields,finishHumanEntryFields} from '../thought-store.js';
@@ -117,11 +117,8 @@ export function humanEntryLifecyclePlan(cap){const p=plans.get(cap);if(!['entry-
 export async function requireHumanEntryLifecyclePlan(t,cap,store,core){const p=plans.get(cap);if(!['entry-remove','entry-restore'].includes(p?.kind)||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry)||!equal(await lifecycleReadSet(t,p.row.id),p.before.read)||await t.get('operationReceipts',p.request.operationId))fail('BNS_HUMAN_CHANGED');for(const s of p.suppressions)if(!p.before.read.suppressions.some(x=>x.id===s.id)&&await t.get('thoughtSuppressions',s.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(!p.before.read.history.some(x=>x.id===h.id)&&await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');return p.allocation;}
 
 function reserveTouch(topic,index,epoch,allocation,sequence){
- const row=planHumanTopicTouch(topic,{at:allocation.clock(),sequence}),next=clone(index);
- // Predict only whether the existing index owner consumes a UUID. It alone
- // writes/reset its index; the exact source metadata is in the read-set.
- if(next?.version===THOUGHT_TOPIC_INDEX_VERSION&&row.lifecycle==='active'&&!row.redirectTo){const key=JSON.stringify([row.activeLayoutGeneration,row.organizationRevision||0,row.countVersion||0,epoch||0,next.timeRevision||0]);if(next.activeKey!==key||next.buildingKey!==key){allocation.uuid();next.buildingKey=key;}}
- return {row,index:next};
+ const row=planHumanTopicTouch(topic,{at:allocation.clock(),sequence}),planned=planThoughtTopicInvalidation(index,row,epoch,{allocateGeneration:()=>String(allocation.uuid()).replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,80)||String(Date.now())});
+ return {row,index:planned.meta};
 }
 async function sectionReadSet(t,topicId){const topic=await t.get('topics',topicId)??null;return {topic,defaultSection:topic?.defaultSectionId?await t.get('sections',JSON.stringify([topicId,topic.activeLayoutGeneration,topic.defaultSectionId]))??null:null,index:await t.get('meta','thought-read-index:v1:topic:'+topicId)??null,epoch:(await t.get('meta','thought-epoch'))?.value||0,last:topic?await t.edge('sections','byTopicOrder',prefix([topicId,topic.activeLayoutGeneration,0]),'prev')??null:null};}
 export async function prepareHumanSectionPlan(store,core,request,entry){
