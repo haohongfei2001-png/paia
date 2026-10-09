@@ -1,3 +1,5 @@
+Current PR242 CI repair: exactaba all15 whole native files/30top/60Node PASS with zero fail/cancel/skip,149280.772458ms; unchanged strict30receipt aggregate PASS; wholeCIwiring13/13 and clean443build PASS. Independent finite review7d551971 approves concurrency2 under unchanged12min/180s/assertions. Fresh changed-head formal Full is PENDING; first37996437712 remains CANCELLED/aggregateFAIL. Product/runtime/proof unchanged08ed/934; allseven remain unfinished.
+
 # Main 0.43.6 merged; 0.43.7 current Human MV3 under acceptance
 
 PR241347a82799eb836ece50def56598b631c92e2b076 passed all21 required full jobs in37991827021 and normally merged to main b75c880523d0037f84ca4a4fd4f469b5ebb76182/tree786fb78462e45659aa85a05c2b0aecbabdd6a8e4. Exact-main full37993741616 passed all21 required jobs; Prompt37993741562 passed all5 required jobs. The442-file package passed CRC/all-byte/254core checks, SHA965f8c1f2f74c4574ad5213652e9a0a14f246ab8166cfc6210b5b3be5cb7fa17. No installed/deployed claim. Original first/second failed CI remain preserved.

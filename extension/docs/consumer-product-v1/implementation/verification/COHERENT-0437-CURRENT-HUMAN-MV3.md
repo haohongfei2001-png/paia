@@ -1,3 +1,7 @@
+## Scheduling repair — exact local aggregate approved
+
+Frozen aba39a88f7ecde8212fd1fe2669ff8c8e6e4464e/tree42a2f9e6c753229b4b8eb75f34edc23e215e1f7e runs all15 complete native files at concurrency2:30source/release top cases,60Node tests PASS, zero failed/cancelled/skipped/todo,149280.772458ms. The unchanged original strict30-receipt workflow block also passes at exactaba. CI wiring wholefile13/13 and initial clean443-file build pass. Independent finite CODE/EVIDENCE review7d55197151db68c19d75eef4ff28506048fd955d2d9491c3e61c4fea9ed63aea verified36 packet hashes and292 actual source/proof bindings; reversing only the scheduling value restores both original whole workflows and owning CI test byte-exactly. This documentation follows the frozenaba run without changing runtime/proof/CI dependencies. One changed-head formal Full remains PENDING; local timing is not an Ubuntu guarantee. The first cancelled Full below stays NOT_PASS.
+
 ## Preserved first formal timeout and bounded scheduling repair
 
 PR242 exact08ed trigger Full37996437712 tested synthetic mergecd5af6acbd60e620ba72cb17ac164eec4356d3cb. Nineteen required jobs succeeded; native114043640245 was cancelled by the unchanged12-minute job limit and aggregate failed. Preflight584 passed; all30 native top cases completed, but the strict receipt step was skipped and there was no complete native gate. This run is NOT a pass. Logs, timings, annotations and its actual artifact are retained.
