@@ -497,7 +497,7 @@ jobs:
       - name: Verify whole owning Node files and fixture preflight
         run: |
           set -o pipefail
-          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/source-bootstrap-fixture.test.mjs tests/native-sync/source-bootstrap-receipt.test.mjs tests/native-sync/source-append-fixture.test.mjs tests/native-sync/source-append-receipt.test.mjs tests/native-sync/group-checkpoint-receipt.test.mjs tests/native-sync/group-checkpoint-fixture.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs tests/native-sync/human-library-receipt.test.mjs tests/human-branch-semantic-witness.test.mjs tests/native-sync/human-branch-witness-fixture.test.mjs tests/native-sync/human-branch-witness-receipt.test.mjs tests/human-retention-nonnative-refusal.test.mjs tests/native-sync/retention-assert-contract.test.mjs tests/native-sync/retention-fixture-contract.test.mjs tests/native-sync/retention-receipt-contract.test.mjs tests/native-sync/retention-dispatch-contract.test.mjs tests/native-sync/retention-observer-contract.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
+          node --test tests/browser-native-sync-*.test.mjs tests/cpv1-09-prompt-service.test.mjs tests/cpv1-09-prompt-family.test.mjs tests/cpv1-09-prompt-security.test.mjs tests/native-sync/harness-contract.test.mjs tests/native-sync/input-working-receive-receipt.test.mjs tests/native-sync/source-bootstrap-fixture.test.mjs tests/native-sync/source-bootstrap-receipt.test.mjs tests/native-sync/source-append-fixture.test.mjs tests/native-sync/source-append-receipt.test.mjs tests/native-sync/group-checkpoint-receipt.test.mjs tests/native-sync/group-checkpoint-fixture.test.mjs tests/native-sync/input-working-receive-fixture.test.mjs tests/native-sync/human-library-receipt.test.mjs tests/human-branch-semantic-witness.test.mjs tests/native-sync/human-branch-witness-fixture.test.mjs tests/native-sync/human-branch-witness-receipt.test.mjs tests/human-retention-nonnative-refusal.test.mjs tests/native-sync/retention-assert-contract.test.mjs tests/native-sync/retention-fixture-contract.test.mjs tests/native-sync/retention-receipt-contract.test.mjs tests/native-sync/retention-dispatch-contract.test.mjs tests/native-sync/retention-observer-contract.test.mjs tests/library-documents-owner.test.mjs 2>&1 | tee work/qa-bns-native-storage/node.log
       - name: Prove source and release native IndexedDB and worker durability
         env:
           CI: '1'
@@ -507,7 +507,7 @@ jobs:
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
           python3 scripts/build_current_release.py
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs tests/native-sync/source-bootstrap-chrome.test.mjs tests/native-sync/source-append-chrome.test.mjs tests/native-sync/group-checkpoint-chrome.test.mjs tests/native-sync/human-library-chrome.test.mjs tests/native-sync/human-branch-witness-chrome.test.mjs tests/native-sync/human-retention-native.test.mjs tests/native-sync/human-current-scope-checkpoint-native.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs tests/native-sync/source-bootstrap-chrome.test.mjs tests/native-sync/source-append-chrome.test.mjs tests/native-sync/group-checkpoint-chrome.test.mjs tests/native-sync/human-library-chrome.test.mjs tests/native-sync/human-branch-witness-chrome.test.mjs tests/native-sync/human-retention-native.test.mjs tests/native-sync/human-current-scope-checkpoint-native.test.mjs tests/native-sync/human-current-checkpoint-recovery-native.test.mjs tests/native-sync/human-current-worker-native.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.sha }}
@@ -621,6 +621,25 @@ jobs:
             return r;
           });
           assert.deepEqual(currentScope[0].sourceHashes,currentScope[1].sourceHashes);assert.deepEqual(currentScope[0].servedHashes,currentScope[1].servedHashes);assert.deepEqual(currentScope[0].cases.map(c=>[c.name,c.result,c.assertions]),currentScope[1].cases.map(c=>[c.name,c.result,c.assertions]));assert.equal(currentScope[0].browserVersion,currentScope[1].browserVersion);
+          const currentRecovery=['source','release'].map(variant=>{
+            const r=JSON.parse(readFileSync(`work/qa-current-human-recovery-native/${variant}.json`));
+            assert.equal(r.result,'PASS');assert.equal(r.status,'SYNTHETIC_NATIVE_CURRENT_HUMAN_RECOVERY_PASS_NOT_COMPLETE_SYNC');assert.equal(r.head,process.env.PAIA_TESTED_HEAD);assert.equal(r.tree,tree);assert.equal(r.variant,variant);assert.equal(r.externalNetworkAttempts,0);assert.equal(r.localNativeRecovery,true);
+            assert.equal(r.cases.length,4);assert.equal(r.cases.reduce((n,c)=>n+c.assertions,0),176);assert.ok(r.cases.every(c=>c.result==='PASS'&&c.assertions>0));assert.equal(r.providerActivated,false);assert.deepEqual(r.memory.sampleFailures,[]);
+            for(const [path,expected]of Object.entries(r.sourceHashes))assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'),expected,path);
+            for(const [path,expected]of Object.entries(r.servedHashes))assert.equal(r.sourceHashes[path],expected,path);return r;
+          });
+          assert.deepEqual(currentRecovery[0].sourceHashes,currentRecovery[1].sourceHashes);assert.deepEqual(currentRecovery[0].servedHashes,currentRecovery[1].servedHashes);assert.deepEqual(currentRecovery[0].cases.map(c=>[c.name,c.result,c.assertions]),currentRecovery[1].cases.map(c=>[c.name,c.result,c.assertions]));
+          const currentWorker=['source','release'].map(variant=>{
+            const r=JSON.parse(readFileSync(`work/qa-current-human-worker/${variant}.json`));
+            assert.equal(r.result,'PASS');assert.equal(r.head,process.env.PAIA_TESTED_HEAD);assert.equal(r.tree,tree);assert.equal(r.variant,variant);assert.equal(r.scope,'SYNTHETIC_CURRENT_HUMAN_MV3_SCOPE_AND_PORTABLE_RECOVERY_ONLY');assert.equal(r.archivePageClosed,true);assert.equal(r.providerActivated,false);assert.equal(r.productionActivation,false);assert.equal(r.lostDeviceQualified,false);
+            assert.equal(r.scopeCases.status,'SYNTHETIC_NATIVE_READONLY_SCOPE_EXPORT_CASES_PASS_NOT_COMPLETE_SYNC');assert.equal(r.scopeCases.cases.length,30);assert.equal(r.scopeCases.assertions,113);assert.equal(r.scopeCases.localReadonlyScope,true);assert.equal(r.scopeCases.restoreActivated,false);assert.equal(r.scopeCases.providerActivated,false);
+            assert.equal(r.recoveryCases.status,'SYNTHETIC_NATIVE_CURRENT_HUMAN_RECOVERY_PASS_NOT_COMPLETE_SYNC');assert.equal(r.recoveryCases.cases.length,4);assert.equal(r.recoveryCases.cases.reduce((n,c)=>n+c.assertions,0),176);assert.equal(r.recoveryCases.localNativeRecovery,true);
+            for(const c of [...r.scopeCases.cases,...r.recoveryCases.cases]){assert.equal(c.result,'PASS');assert.ok(c.assertions>0);}
+            assert.equal(r.isolation.nativeFactory,true);assert.equal(r.isolation.networkAttempts,0);assert.equal(r.isolation.httpRequests,0);
+            for(const [path,expected]of Object.entries(r.hashes))assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'),expected,path);
+            for(const [path,expected]of Object.entries(r.runtimeHashes))assert.equal(r.hashes[path],expected,path);return r;
+          });
+          assert.deepEqual(currentWorker[0].hashes,currentWorker[1].hashes);assert.deepEqual(currentWorker[0].runtimeHashes,currentWorker[1].runtimeHashes);assert.deepEqual(currentWorker[0].generatedHashes,currentWorker[1].generatedHashes);assert.deepEqual(currentWorker[0].scopeCases.cases.map(c=>[c.name,c.result,c.assertions]),currentWorker[1].scopeCases.cases.map(c=>[c.name,c.result,c.assertions]));assert.deepEqual(currentWorker[0].recoveryCases.cases.map(c=>[c.name,c.result,c.assertions]),currentWorker[1].recoveryCases.cases.map(c=>[c.name,c.result,c.assertions]));assert.equal(currentWorker[0].browserVersion,currentWorker[1].browserVersion);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -642,6 +661,8 @@ jobs:
             extension/work/qa-bns-human-branch-witness/
             extension/work/qa-retention-native/
             extension/work/qa-current-scope-native/
+            extension/work/qa-current-human-recovery-native/
+            extension/work/qa-current-human-worker/
           if-no-files-found: error
           retention-days: 7
 

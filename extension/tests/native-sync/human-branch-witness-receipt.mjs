@@ -96,6 +96,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/indexed-store.js',
   'core/input-search-cache.js',
   'core/library-counts.js',
+  'core/library-documents-owner.js',
   'core/library-documents-store.js',
   'core/library-edit.js',
   'core/library-layout.js',
