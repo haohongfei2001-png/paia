@@ -1199,7 +1199,11 @@ async function captureCurrentProjection(store,core,group){
    // Borrowed source bodies gain a new lifetime while this cap is retained.
    // Pay their actual trees, private Human expectation and bounded key/task
    // vectors on the same original ticket before opening native requests.
-   r.owned+=projectionTreeCharge(projectionMeasure(group.scope,'native'))+projectionTreeCharge(projectionMeasure(group.plan,'native'))+projectionTreeCharge(human.measureHumanScopeProjectionExpectation(group.scope,store))+4096*16+128*1024;
+   r.owned+=projectionTreeCharge(projectionMeasure(group.scope,'native'))+projectionTreeCharge(projectionMeasure(group.plan,'native'))+projectionTreeCharge(human.measureHumanScopeProjectionExpectation(group.scope,store));
+   // Opening task/selector/Map frames unwind before the retained cap. Keep
+   // their original reserve on this work ticket through finally/drain; only
+   // actual retained trees transfer to the unchanged4MiB retained allowance.
+   r.fixedScratch=4096*16+128*1024;
    projectionReserve(r);r.group={...group,databaseId:store.databaseId,emptyStores:owner.currentHumanGroupEmptyStores,stores:owner.currentHumanGroupStores};
   }
   const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
