@@ -75,8 +75,7 @@ export async function assertTopicMergeAllowed(t,sourceId,targetId){if(await topi
 export function planHumanKeepSeparate(sourceId,targetId,at){return {id:topicPairKey(sourceId,targetId),sourceId,targetId,at,actor:'user',revision:1,scope:'identity'};}
 export async function keepTopicIdentitiesSeparate(store,request){
  const {sourceId,targetId}=request;const {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError}=await import('./browser-native-sync/human-library-plan.js');
- return store.foundationWrite(async t=>{try{await beginHumanOperation(store,t,request);const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);let result;if(a.id===b.id)result={kept:false};else{if(a.layoutJobId||b.layoutJobId)fail();
-  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',planHumanKeepSeparate(a.id,b.id,humanClock(store,t)));result={kept:true};}await finishHumanOperation(store,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}});
+ return store.foundationWrite(async t=>{try{await beginHumanOperation(store,t,request);const result=await keepTopicIdentitiesSeparateInTransaction(store,t,{sourceId,targetId});await finishHumanOperation(store,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}});
 }
 // Explicit, resumable metadata compatibility operation. It is not invoked at
 // startup and does not change existing IDs, content, permissions or revisions.
@@ -92,3 +91,6 @@ export async function mapTopicIdentityBatch(store,{limit=100}={}){
   current.cursor=snapshot.page.next;current.complete=!snapshot.page.next;await t.put('meta',current);return current;
  });
 }
+
+export async function keepTopicIdentitiesSeparateInTransaction(store,t,{sourceId,targetId}){const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);let result;if(a.id===b.id)result={kept:false};else{if(a.layoutJobId||b.layoutJobId)fail();
+  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',planHumanKeepSeparate(a.id,b.id,humanClock(store,t)));result={kept:true};}return result;}

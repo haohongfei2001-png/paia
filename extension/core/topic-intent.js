@@ -28,11 +28,12 @@ export async function automaticMembershipAllowed(t,entry,topicId,placement=null)
 }
 export async function fixMembershipSet(store,r){
  keys(r,['entryId','expectedRevision','operationId'],['entryId','expectedRevision','operationId']);if(!idOK(r.entryId)||!revisionOK(r.expectedRevision))fail();
- return store.operation(r,async t=>{const entry=await store.readableEntry(t,r.entryId);if(entry.lifecycle!=='active')fail();if(entry.revision!==r.expectedRevision)return {conflict:true};
+ return store.operation(r,t=>fixMembershipSetInTransaction(store,t,r));
+}
+export async function fixMembershipSetInTransaction(store,t,r){const entry=await store.readableEntry(t,r.entryId);if(entry.lifecycle!=='active')fail();if(entry.revision!==r.expectedRevision)return {conflict:true};
   const ids=[];for(const {topicId,layoutGeneration,lifecycle}of await t.all('placements','byEntry',prefix([entry.id]))){const topic=await t.get('topics',topicId);if(topic?.lifecycle==='active'&&!topic.redirectTo&&topic.activeLayoutGeneration===layoutGeneration&&lifecycle==='active')ids.push(topicId);}
   const before=structuredClone(entry.organizationIntents),planned=planHumanFixedMembership(entry,r,ids,{intentAt:humanClock(store,t),protectionAt:humanClock(store,t)});Object.assign(entry,planned);const intents=entry.organizationIntents;await t.put('thoughts',entry);
   await journal(store,t,{kind:'membership_intent',entityId:entry.id,before,after:intents,fieldMask:['fixed'],actor:'user',reason:'fixed_membership',important:true,operationId:r.operationId,sourceRecordIds:[]});return {id:entry.id,revision:entry.revision};
- });
 }
 export async function moveMembership(store,r){
  keys(r,['entryId','sourceTopicId','targetTopicId','expectedEntryRevision','expectedSourceRevision','expectedTargetRevision','operationId'],['entryId','sourceTopicId','targetTopicId','expectedEntryRevision','expectedSourceRevision','expectedTargetRevision','operationId']);
