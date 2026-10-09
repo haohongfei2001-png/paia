@@ -126,7 +126,7 @@ test('duplicate authority remains standalone body-only even for a previously acc
 });
 
 test('active retention cannot widen origin, materialization, exact member or capability authority',async()=>{
- for(const changed of ['materialize','origin','member','capability']){
+ for(const changed of ['materialize','origin','member','capability','marker-fields']){
   const f=await scenario(),before=await snapshot(f.b.s);let calls=0,injected=false;
   f.b.core.materialize=async t=>{calls++;await t.put('meta',{id:'synthetic-forbidden-retention-materialize',value:true});};
   const apply=f.b.core.applyInTransaction.bind(f.b.core);
@@ -136,11 +136,31 @@ test('active retention cannot widen origin, materialization, exact member or cap
     if(changed==='materialize')return apply(t,operation,{...options,materialize:true});
     if(changed==='origin')return apply(t,operation,{...options,origin:'local'});
     if(changed==='member')return apply(t,clone(operation),options);
+    if(changed==='marker-fields'){const marker=options.humanRetentionCapability;assert.equal(Object.isFrozen(marker),true);assert.equal(Object.isFrozen(marker.operations),true);assert.equal(Reflect.set(marker,'core',{}),false);assert.equal(Reflect.set(marker.operations,marker.operations.length,clone(operation)),false);return apply(t,operation,{...options,origin:'local',materialize:true});}
     return apply(t,operation,{...options,humanRetentionCapability:{}});
    }
    return apply(t,operation,options);
   };
   await assert.rejects(f.b.s.humanLibraryJournal.retainSibling(f.b.s,f.incoming),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
   assert.equal(injected,true,changed);assert.equal(calls,0,changed);assert.deepEqual(await snapshot(f.b.s),before,changed);
+ }
+});
+
+test('active physical retention scope rejects alias, Proxy and foreign Core before materialization',async()=>{
+ for(const kind of ['alias','proxy','foreign-core']){
+  const f=await scenario(),before=await snapshot(f.b.s);let calls=0,injected=false;
+  f.b.core.materialize=async t=>{calls++;await t.put('meta',{id:'synthetic-forbidden-physical-scope',value:true});};
+  const apply=f.b.core.applyInTransaction.bind(f.b.core);
+  f.b.core.applyInTransaction=(t,operation,options)=>{
+   if(!injected&&operation.type==='humanLibraryCommit'){
+    injected=true;const alias=kind==='alias'?Object.create(t):kind==='proxy'?new Proxy(t,{}):t;if(kind!=='foreign-core')assert.notEqual(alias,t);assert.equal(alias.tx,t.tx);
+    const receiver=kind==='foreign-core'?new BrowserNativeSyncCore(f.b.s.repository,{datasetId:f.b.core.datasetId,deviceId:f.b.core.deviceId,materialize:f.b.core.materialize}):null;
+    return receiver?receiver.applyInTransaction(alias,operation,{...options,origin:'local',materialize:true}):apply(alias,operation,{...options,origin:'local',materialize:true});
+   }
+   return apply(t,operation,options);
+  };
+  await assert.rejects(f.b.s.humanLibraryJournal.retainSibling(f.b.s,f.incoming),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
+  assert.equal(injected,true);assert.equal(calls,0);assert.deepEqual(await snapshot(f.b.s),before);
+  f.b.core.applyInTransaction=apply;assert.deepEqual(await f.b.s.humanLibraryJournal.retainSibling(f.b.s,f.incoming),{state:'retained-conflict'});
  }
 });

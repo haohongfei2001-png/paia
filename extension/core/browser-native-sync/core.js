@@ -49,7 +49,8 @@ export function acceptSequence(current,sequence){
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
  #humanTransactions=new WeakMap();
- #humanRetentionTransactions=new WeakMap();
+ static #humanRetentionTransactions=new WeakMap();
+ static #humanRetentionPhysicalTransactions=new WeakMap();
  #retentionRepositoryTransaction;
  #humanPrepared=new WeakSet();
  #appendTransactions=new WeakMap();
@@ -173,8 +174,8 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
-  const activeRetention=this.#humanRetentionTransactions.get(t);if(activeRetention&&(activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.has(operation)))fail('BNS_HUMAN_RETENTION_REQUIRED');
-  if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability)){const retention=this.#humanRetentionTransactions.get(t);if(!retention||retention!==humanRetentionCapability||retention.phase!=='apply'||!retention.operations?.has(operation))fail('BNS_HUMAN_COMMIT_REQUIRED');}
+  const activeRetention=BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.get(t?.tx)||BrowserNativeSyncCore.#humanRetentionTransactions.get(t);if(activeRetention&&(activeRetention.wrapper!==t||activeRetention.transaction!==t.tx||BrowserNativeSyncCore.#humanRetentionTransactions.get(t)!==activeRetention||BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.get(activeRetention.transaction)!==activeRetention||activeRetention.core!==this||activeRetention.repository!==this.repository||activeRetention.database!==this.repository.db||this.boundTransactions.get(t)!==activeRetention.namespace||t.tx.db!==activeRetention.database||t.tx.mode!=='readwrite'||activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.includes(operation)))fail('BNS_HUMAN_RETENTION_REQUIRED');
+  if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability)){const retention=BrowserNativeSyncCore.#humanRetentionTransactions.get(t);if(!retention||retention!==humanRetentionCapability||retention.phase!=='apply'||!retention.operations?.includes(operation))fail('BNS_HUMAN_COMMIT_REQUIRED');}
   if(origin==='remote'&&['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(appendCapability===null||this.#appendTransactions.get(t)!==appendCapability))fail('BNS_SOURCE_APPEND_REQUIRED');
   if(origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
   if(origin==='remote'&&['inputWorkingMember','inputWorkingCommit'].includes(operation.type)&&(workingCapability===null||this.#workingTransactions.get(t)!==workingCapability))fail('BNS_WORKING_COMMIT_REQUIRED');
@@ -286,22 +287,22 @@ export class BrowserNativeSyncCore {
   if(!this.#retentionRepositoryTransaction)fail('BNS_HUMAN_BINDING_REQUIRED');let semanticError;try{return await this.#retentionRepositoryTransaction(true,async t=>{try{return await fn(t);}catch(error){if(error instanceof SyncError)semanticError=error;throw error;}});}catch(error){throw semanticError||error;}
  }
  requireHumanRetentionTransaction(t,retention,group){
-  const proof=this.#humanRetentionTransactions.get(t);if(!proof||proof.core!==this||proof.retention!==retention||proof.group!==group||proof.repository!==this.repository||proof.database!==this.repository.db||proof.transaction!==t.tx||this.boundTransactions.get(t)!==proof.namespace||t.tx.db!==proof.database||t.tx.mode!=='readwrite'||proof.phase!=='validate')fail('BNS_HUMAN_RETENTION_REQUIRED');
+  const proof=BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.get(t?.tx)||BrowserNativeSyncCore.#humanRetentionTransactions.get(t);if(!proof||proof.wrapper!==t||BrowserNativeSyncCore.#humanRetentionTransactions.get(t)!==proof||BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.get(proof.transaction)!==proof||proof.core!==this||proof.retention!==retention||proof.group!==group||proof.repository!==this.repository||proof.database!==this.repository.db||proof.transaction!==t.tx||this.boundTransactions.get(t)!==proof.namespace||t.tx.db!==proof.database||t.tx.mode!=='readwrite'||proof.phase!=='validate')fail('BNS_HUMAN_RETENTION_REQUIRED');
  }
  async retainHumanBranch(retention){
   const claim=claimHumanBranchRetention(this,retention);
   try{
    const result=await this.#retentionTransaction(async t=>{
     assertHumanBranchRetentionCurrent(this,retention);if(this.repository!==claim.repository||this.repository.db!==claim.database||t.tx.db!==claim.database||t.tx.mode!=='readwrite'||await this.bind(t)!==claim.namespace)fail('BNS_HUMAN_CHANGED');assertHumanBranchRetentionCurrent(this,retention);
-    const proof={core:this,retention,group:claim.group,repository:claim.repository,database:claim.database,transaction:t.tx,namespace:claim.namespace,phase:'validate'};this.#humanRetentionTransactions.set(t,proof);
+    let proof=Object.freeze({core:this,wrapper:t,retention,group:claim.group,repository:claim.repository,database:claim.database,transaction:t.tx,namespace:claim.namespace,phase:'validate'});BrowserNativeSyncCore.#humanRetentionTransactions.set(proof.wrapper,proof);BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.set(proof.transaction,proof);
     try{
      const checked=await requireHumanBranchRetentionInTransaction(t,this,retention);assertHumanBranchRetentionCurrent(this,retention);
      if(checked.duplicate)return {state:'duplicate',materialization:'not-reapplied'};
-     proof.operations=new Set(checked.protocol.operations);proof.phase='apply';
+     proof=Object.freeze({...proof,phase:'apply',operations:Object.freeze([...checked.protocol.operations])});BrowserNativeSyncCore.#humanRetentionTransactions.set(proof.wrapper,proof);BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.set(proof.transaction,proof);
      for(const op of [...checked.protocol.members,checked.protocol.descriptor]){const value=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,humanRetentionCapability:proof});if(!['applied','conflict'].includes(value.state))fail('BNS_HUMAN_CHANGED');}
      for(const expected of checked.expected){const head=await this.get(t,'head',expected.type,expected.entityId);if(head?.purged||!equal(head?.revisions,expected.revisions))fail('BNS_HUMAN_CHANGED');}
      assertHumanBranchRetentionCurrent(this,retention);return {state:'retained-conflict'};
-    }finally{this.#humanRetentionTransactions.delete(t);}
+    }finally{BrowserNativeSyncCore.#humanRetentionTransactions.delete(proof.wrapper);BrowserNativeSyncCore.#humanRetentionPhysicalTransactions.delete(proof.transaction);}
    });
    assertHumanBranchRetentionCurrent(this,retention);return result;
   }finally{finishHumanBranchRetention(this,retention,claim);}
