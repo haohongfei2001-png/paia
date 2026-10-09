@@ -1,0 +1,17 @@
+{
+  "commit": "eaa5b2d742fd39a6bf6c1b2770bf2ed258ad61fe",
+  "files": {
+    "thought-read-index.js": {
+      "sha256": "8b0342163cc9feebc2bc571046f21028821aa0b85cb59d59cee156237cdde52b",
+      "gitBlob": "2f1a1d363f54c69a9cc57a35f784b007fde09358"
+    },
+    "thought-model.js": {
+      "sha256": "a681211abf082dce6d05381841583247778ca4462963ffe458b4503629fd4fe6",
+      "gitBlob": "991b58cb9e9ebd79a03938a937ad3bde1d4ce7f6"
+    },
+    "constants.js": {
+      "sha256": "57cd5b3e207b652b55369715ce42b20e4b5167195b63f51e994732ee6748b92b",
+      "gitBlob": "ca46e55e5002b08e0efae635e21b7738366aba0f"
+    }
+  }
+}
