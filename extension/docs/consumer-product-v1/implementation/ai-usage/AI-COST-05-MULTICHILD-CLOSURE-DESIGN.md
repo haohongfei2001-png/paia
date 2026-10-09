@@ -1,0 +1,61 @@
+# AI-COST-05 bounded multi-child atomic closure — proposed future 0.34
+
+Status: design and executable gap audit approved by Root and independent reviewer; runtime implementation authorized as a subsequent scoped batch, not yet verified. Baseline 97c87938 includes the reviewed V2 single-child implementation. This follows the second batch in AI-COST-05-INCREMENTAL-V2-DESIGN.md. No production provider, worker route, financial authority, schema/store, UI or permission change is proposed.
+
+## Actual gap evidence
+
+`tests/audits/ai-organize-multichild-gap.mjs` ran three complete tests successfully (`/tmp/ai-multichild-gap-audit.log`, 653.905375 ms). These passes establish missing functionality, not completed multi-child support:
+
+- Actual 60 manual Entries and placements: LocalOrganizeSession V2 refuses three children; the default single-child request exceeds its existing assembly bound. There are zero attempts.
+- Actual Foundation plan/reserve/dispatch produces three children with 20 metadata evidence/coverage units each. Committing the first child and aborting the second transaction preserves the first 20 ACKs. Child states become COMMITTED / RESPONSE_RECORDED / RESPONSE_RECORDED. The synthetic domain marker demonstrates the transaction boundary only; it is not an actual presentation candidate.
+- Actual 80 Entries: four children of 20 are accepted; five children of 16 reject before job/attempt writes.
+
+Foundation already provides exact partition validation, stable child identities, whole-job authority/current checks, child-scoped dispatch metadata and durable dispatch fences. Its per-child `commitFacet` is the missing atomic publication boundary. Financial `AtomicReservationService.settle` is separate and remains unchanged: local logical completion must not be described as trusted financial settlement.
+
+## Proposed narrow Foundation contract (requires review before implementation)
+
+A distinct persisted job discriminator `kind: ai_organize_atomic_v1`, `version: 1`, with internal explicit `commitMode: organize-atomic-v1` is admitted only for AI_ORGANIZE jobs with two through four children and organize-only coverage. Include the optional marker in identity only when present; all legacy request/job/child identities and default behavior remain byte-compatible. New jobs must never use `kind: ai_usage_v1`; legacy jobs retain their exact kind and identity. The new discriminator uses existing organizerJobs metadata, not a new store or ledger. Existing `commitFacet` and `resolveLocal` reject this mode before writing, so accidental per-child calls cannot publish a partial result.
+
+A proposed `commitOrganizeClosure(jobId, {children})` accepts exact child IDs and their complete coverage, not public response bodies or a public committer callback. A constructor-injected trusted Organize closure committer resolves private validated outputs bound to the same store, job, child, session generation and prepared evidence. This is no worker RPC and no caller-provided authorization.
+
+Within one existing Foundation write transaction:
+
+1. Validate the stored mode, complete exact child set and exact disjoint coverage partition. Fully committed exact replay returns existing completion; mixed precommitted state rejects. Existing prior ACKs are not evidence of privately validated outputs: for this first multi-child slice, any partial precovered scope conservatively defers before dispatch; all-covered NO_DELTA remains non-authorizing.
+2. Recheck full job/current authority, style, cancel/restore epoch and all source/Entry qualifications. Every child must have its own matching RESPONSE_RECORDED receipt and opaque accepted provider receipt. UNKNOWN, dispatched, cancelled, rejected, missing or rebound receipts refuse the entire closure.
+3. Invoke the single trusted domain committer once. It requires all privately retained validated child outputs and the exact prepared scope, then writes one complete V2 candidate. It returns exactly the complete committed coverage, never a subset.
+4. Recheck current authority/control after the committer's awaits. Use the existing rollback boundary for all domain writes. Factor the existing ACK/receipt aggregation logic out of applyFacet rather than copying or relaxing it; write all qualified coverage ACKs, child COMMITTED states and aggregate job completion in this same transaction.
+
+Any exception, authority change or failed ACK put rolls back the candidate and every ACK/receipt transition. RESPONSE_RECORDED receipts from earlier dispatch transactions remain truthful. A lost commit ACK retries the same job/children and reads committed state; it must not execute providers again. Disposal/restart losing private responses cannot reconstruct validation from durable receipt metadata and cannot redispatch possibly billed attempts. Existing opaque outcome reconciliation remains unchanged and is insufficient by itself to reconstruct the private domain output.
+
+The persisted discriminator, not private-handle availability, is the downgrade fence. Frozen baseline 97c87938 Foundation `job`, `commitFacet` and `resolveLocal` all reject the proposed new-kind record with INVALID_REQUEST and preserve a snapshot of every object store. The controlled fixture first creates a real two-child job and records both responses, then changes only the proposed discriminator/mode; this proves old-reader refusal, not existence of the new producer. Four complete audit cases pass in `/tmp/ai-multichild-discriminator-audit.log` (677.012125 ms). The verbatim frozen Foundation SHA256 is `acd5749fc6ea893a3d4c35308b66e49d30a46ee40462f1049f1d6b8c29063f46`; only its import URLs are resolved to unchanged baseline dependencies for execution.
+
+Consumer audit and required compatibility work:
+
+- Foundation job lookup, plan prior identity/inflight reuse, cancellation, dispatch and reconciliation must admit exactly the two known job shapes with mode/type validation; unknown combinations refuse. No blanket kind substitution. Atomic jobs never produce DEFER rows through per-child applyFacet; legacy DEFER archival retains its strict legacy-job check and bounded malformed-row refusal.
+- Receipt/ACK rows retain their current `ai_usage_v1` shape and exact job/child binding, but the existing domain-evidence reader also checks the job kind and deliberately returns UNSUPPORTED for this new kind. This batch preserves that financial fail-closed boundary and tests it; no domain financial evidence format is expanded. Organize ACKs remain in the existing style-qualified namespace and cannot acknowledge Maintenance units.
+- `semantic-invalidation.js` is one necessary additional runtime owner: scan both job-kind prefixes within one combined 100-job budget, detect overflow before any cancellation writes, then apply existing invalidation semantics. Never scan 100 of each and call 200 complete. Test mixed kinds at 100/101, overflow zero writes, gate/edit/restore cancellation, and preservation of committed receipts/possibly billed reservations.
+- `ai-presentation.js` currently requires legacy job kind and exactly one child to mint adoption cache proof. Leave that predicate restrictive for this batch: multi-child adoption remains readable but receives no exact-cache qualification. Do not mechanically widen kind/child count.
+- Backup replacement clears transient jobs/workitems/usage and changes restore epoch; completedLayouts admission is not permission to export AI jobs. Source purge uses bySource keys without a job-kind filter. No owner change is proposed; actual new-job backup replacement and purge must prove closure refuses and attempts cannot redispatch. New jobs retain complete sourceRecordIds.
+- Maintenance DEFER/ACK consumers retain current legacy validation, including unknown job refusal. Add mixed new-job/legacy DEFER and Organize-versus-Maintenance ACK tests; no claim that the new format makes arbitrary historical DEFER acceptable.
+
+## Feature-owned assembly and validation
+
+LocalOrganizeSession remains the only feature caller. Internal V2 preparation groups selected Entry dependency closures into at most four physical requests, preserving each request's existing 20 physical-input, coverage and byte limits, and the whole Foundation job's 100 unique evidence/coverage limit. No global threshold is inferred from the illustrative 200+5 scenario.
+
+Shared underlying Input dependencies cannot be assigned conflicting ACK ownership or silently duplicated as processed coverage. Partition by connected evidence closure; a component exceeding a physical limit defers. Necessary retained neighbors may be supplied only with their existing declared support/reason and byte accounting; they do not receive new ACKs merely because they were sent. Current independent append blocks need no invented neighbors.
+
+Foundation canonicalizes child order. Map assembly and responses by exact child ID plus coverage, not the feature's original array index. `assemble(handle, childId)` returns only that child's bounded payload; existing single-child callers retain their API behavior. Dispatch remains fixture/local only. A fifth child or aggregate overflow rejects before any attempt.
+
+Refactor V2 validation into an internal child-patch validator and one final merger. Each child retains the old response limits and validates its exact planned block IDs, refs, style and revision-qualified Unicode spans. The final merger retains old accepted blocks once, rejects overlaps/duplicates/omissions, and validates the full independent V2 envelope (1000 unique Entry refs, 256 KiB, existing projection limits). It never validates a >100 aggregate through the legacy decoder. Accepted bytes remain immutable; old spans never read newer bodies. Protected whole fields, partial adoption and the original adoption/history/status owners remain unchanged.
+
+Private response retention must be bounded by the existing session/handle limits plus aggregate byte preflight, cleared on dispose/stale ownership, and rechecked after awaits. A closure capability cannot cross stores, sessions, jobs or children. This multi-child batch never mints exact-cache proof, including after complete COMMITTED closure. The existing single-child proof path remains unchanged.
+
+## Proposed file ownership and tests
+
+Runtime scope, after explicit implementation authorization: `core/ai-usage/foundation.js` (mode validation and common settlement refactor), `core/ai-usage/semantic-invalidation.js` (two known kinds with one combined budget), `core/organizer/local-organize-session.js`, `ai-incremental-v2.js`, and only a necessary narrow `ai-presentation.js` candidate/proof bridge. Keep existing contracts/legacy identity tests unchanged; any further interface requirement returns for review. No Source, Sync, worker, Settings, UI, CI or financial module edits.
+
+Actual owner tests must cover 60/three and 80/four children through real prepare, assembly, recorded responses, one candidate and adoption/history/status; fifth-child refusal; child reordering; shared dependency closure; partial prior ACK refusal; missing/duplicate/mixed child outputs; permission/style/restore/purge changes at the final boundary; preserved human protection; and default legacy single-child identities and behavior. Inject failures at candidate write, intermediate ACK, final ACK and aggregate receipt write, proving whole-store rollback. Test exact commit retry after lost ACK, one attempt per child, unknown response and disposal with no redispatch, and private output cross-store/candidate rebinding refusals.
+
+After independent unit/code review, extend the existing original AI foundation native file within its unchanged source/release cases and 120-second budgets. Verify actual IndexedDB three/four-child closure, rollback and exact replay with the existing zero-network ledger. Do not claim native, multi-child implementation, production Qwen quality, financial completion or the full AI-COST-05 stage from this design/audit.
+
+Independent design review: four complete audit cases passed in `/tmp/ai-multichild-discriminator-independent.log` (664.205 ms); frozen Foundation matched baseline Git bytes and dependencies were unchanged. These prove the design gap and old-owner refusal, not new runtime behavior.

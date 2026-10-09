@@ -49,7 +49,7 @@ export function planIncrementalV2(topic,style,profile,control){
  // the owner; a provider cannot request arbitrary unchanged text as context.
  const selected=topic.entries.filter(e=>affected.has(e.id));return {version:2,control,replace,retained,selected,complete:true,baseRevision:saved?.revision||0};
 }
-export function validateIncrementalResponse(response,request,prepared){
+export function validateIncrementalChild(response,request,prepared){
  if(!exact(response,['version','blocks'])||response.version!==2||!Array.isArray(response.blocks)||!response.blocks.length||response.blocks.length>1024)reject('INVALID_OUTPUT');
  const allowed=new Map(request.inputs.map(i=>[i.ref,i])),seen=new Set(),represented=new Set(),newBlocks=[],bounds=text=>new Set([0,text.length,...[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text)].map(s=>s.index)]);
  for(const [index,b]of response.blocks.entries()){
@@ -62,9 +62,13 @@ export function validateIncrementalResponse(response,request,prepared){
  }
  if(request.inputs.some(i=>!represented.has(i.ref)))reject('INVALID_OUTPUT');
  if(request.style.value==='original')for(const i of request.inputs){const ranges=response.blocks.flatMap(b=>b.sourceSpans.filter(s=>s.entryId===i.ref)).sort((a,b)=>a.start-b.start);let end=0;for(const r of ranges){if(r.start>end)reject('INVALID_OUTPUT');end=Math.max(end,r.end);}if(end!==i.text.length)reject('INVALID_OUTPUT');}
+ return newBlocks;
+}
+export function mergeIncrementalChildren(newBlocks,request,prepared){
  const order=new Map(prepared.topic.entries.map((e,i)=>[e.id,i])),blocks=[...prepared.incremental.retained,...newBlocks];blocks.sort((a,b)=>{if(a.field===b.field&&prepared.topic.stored?.protections?.[a.field]){const old=new Set(prepared.incremental.retained.map(x=>x.id));if(old.has(a.id)!==old.has(b.id))return old.has(a.id)?-1:1;}return Math.min(...a.support.map(r=>order.get(r.id))) - Math.min(...b.support.map(r=>order.get(r.id)));});
  return build(request.topicId,blocks,request.style.value,request.profile,prepared.incremental.control,prepared.topic.stored?.protections||{});
 }
+export function validateIncrementalResponse(response,request,prepared){return mergeIncrementalChildren(validateIncrementalChild(response,request,prepared),request,prepared);}
 export function adoptIncrementalFields(row,proposal,adopted,kept){
  const prior=isIncrementalV2(row)?row:null,protections={...row.protections,...Object.fromEntries([...adopted,...kept].map(f=>[f,!!prior]))};
  const blocks=[...(prior?.manifest.blocks||[]).filter(b=>!adopted.includes(b.field)).map(b=>({...clone(b),text:incrementalBlockText(prior,b)})),...proposal.manifest.blocks.filter(b=>adopted.includes(b.field)).map(b=>({...clone(b),text:incrementalBlockText(proposal,b)}))];
