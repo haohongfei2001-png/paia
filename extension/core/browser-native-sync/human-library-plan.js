@@ -1,3 +1,8 @@
+import {requireOriginalLibraryDocumentsStore} from '../library-documents-owner.js';
+import * as currentGroupOwner from './group-checkpoint-scope.js';
+import * as currentHumanOwner from './human-library-scope.js';
+import * as currentSegmentOwner from './segments.js';
+import * as currentCheckpointOwner from './checkpoints.js';
 import {inspectHumanUnindexedSearch} from './human-library-search-proof.js';
 import {planSearchQueueLocator} from '../library-search.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
@@ -1183,15 +1188,14 @@ async function captureCurrentProjection(store,core,group){
  let r,cap,ticket,primary,failed=false;
  try{
   if('value'in Object.prototype)projectionRequired();nativeRetentionAvailable();if(typeof projectionCompare!=='function'||!projectionFactory)projectionRequired();
-  // Resolve the fixed original owner after ESM initialization. A static
-  // backedge here would initialize the derived Store before its base class.
-  const storeAssert=(await import('../library-documents-store.js')).requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=branchReady(store,core);
+  // Fixed original owner is worker-safe; retain an asynchronous cancellation boundary.
+  await Promise.resolve();const storeAssert=requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=branchReady(store,core);
   if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
   if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
   r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],group:null};
   if(group){
-   const owner=await import('./group-checkpoint-scope.js');owner.requireOriginalCurrentGroupScope(core,group.scope,group.plan);
-   const human=await import('./human-library-scope.js');
+   await Promise.resolve();const owner=currentGroupOwner;owner.requireOriginalCurrentGroupScope(core,group.scope,group.plan);
+   await Promise.resolve();const human=currentHumanOwner;
    // Borrowed source bodies gain a new lifetime while this cap is retained.
    // Pay their actual trees, private Human expectation and bounded key/task
    // vectors on the same original ticket before opening native requests.
@@ -1203,7 +1207,7 @@ async function captureCurrentProjection(store,core,group){
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
   if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);projectionReserve(r);
   if(r.group){
-   const owner=await import('./group-checkpoint-scope.js'),human=await import('./human-library-scope.js');
+   await Promise.resolve();const owner=currentGroupOwner;await Promise.resolve();const human=currentHumanOwner;
    let rowPeak=0;for(const row of r.raw.groupMeta)rowPeak=Math.max(rowPeak,2*projectionCanonicalCharge(projectionMeasure(row,'native')));
    // Original normalizers compare one table at a time; the protocol owner
    // borrows a metered Map and compares one row at a time. No whole meta or
@@ -1252,7 +1256,7 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,closed:false,revoked:false};p.frames++;
  try{
   if('value'in Object.prototype)projectionRequired();projectionFence(r);
-  const {SEGMENT_PROFILE}=await import('./segments.js'),owner=await import('./checkpoints.js');
+  await Promise.resolve();const {SEGMENT_PROFILE}=currentSegmentOwner;await Promise.resolve();const owner=currentCheckpointOwner;
   if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if(options.profile!==SEGMENT_PROFILE)fail('BNS_GROUP_RESOURCE_LIMIT');
   const m=projectionMeasure(p.raw.groupMeta,'native'),items=plan.operationCount+plan.heads.length+plan.operationCount;
   const wire=m.B+128*items+2*p.binding.datasetId.length+4096,refs=items+Math.ceil(wire/SEGMENT_PROFILE.chunk)+6;
@@ -1280,7 +1284,7 @@ export async function publishHumanCurrentGroupCheckpoint(cap,scope,plan,checkpoi
  if(!p||p.revoked||p.released||!p.group||p.group.scope!==scope||p.group.plan!==plan||p.encoderResult!==checkpoint||p.publishing||p.published)projectionRequired();
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,closed:false,revoked:false};p.frames++;p.publishing=true;
  try{
-  const owner=await import('./segments.js');if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if(options.profile!==owner.SEGMENT_PROFILE)fail('BNS_GROUP_RESOURCE_LIMIT');
+  await Promise.resolve();const owner=currentSegmentOwner;if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if(options.profile!==owner.SEGMENT_PROFILE)fail('BNS_GROUP_RESOURCE_LIMIT');
   const m=projectionMeasure([checkpoint.manifest,scope.ownerScope],'native');
   r.fixedScratch=3*projectionTreeCharge(m)+16*m.E+12*(m.B+512)+32*1024;projectionReserve(r);projectionFence(r);
   const manifest={...checkpoint.manifest,ownerScope:scope.ownerScope},object=await owner.protocolObject('checkpoint-manifest',bytes(manifest),{profile:owner.SEGMENT_PROFILE});
@@ -1298,9 +1302,9 @@ export async function bindHumanCurrentUnindexedProjectionScope(cap,scope){
  if(arguments.length!==2)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked||p.released||p.scopeBinding)projectionRequired();
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,closed:false,revoked:false};p.frames++;
  try{
-  if('value'in Object.prototype)projectionRequired();projectionFence(r);const owner=await import('./human-library-scope.js');if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if('value'in Object.prototype)projectionRequired();
+  if('value'in Object.prototype)projectionRequired();projectionFence(r);await Promise.resolve();const owner=currentHumanOwner;if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if('value'in Object.prototype)projectionRequired();
   if(p.group){
-   if(p.group.scope!==scope)projectionRequired();const groupOwner=await import('./group-checkpoint-scope.js');if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();groupOwner.requireOriginalCurrentGroupScope(p.core,scope,p.group.plan);projectionFence(r);
+   if(p.group.scope!==scope)projectionRequired();await Promise.resolve();const groupOwner=currentGroupOwner;if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();groupOwner.requireOriginalCurrentGroupScope(p.core,scope,p.group.plan);projectionFence(r);
    const ids=Object.freeze(p.raw.prefixes['thought-read-index:'].map(row=>row.id));p.scopeBinding=true;return ids;
   }
   const m=owner.measureHumanScopeProjectionExpectation(scope,p.store),n=projectionMeasure(p.raw,'native');

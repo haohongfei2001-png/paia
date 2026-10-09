@@ -87,6 +87,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/integrity-checker.js",
   "core/legacy-usage-records.js",
   "core/library-counts.js",
+  "core/library-documents-owner.js",
   "core/library-documents-store.js",
   "core/library-edit.js",
   "core/library-layout.js",

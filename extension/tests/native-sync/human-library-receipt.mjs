@@ -8,6 +8,7 @@ export const HUMAN_LIBRARY_PATHS=Object.freeze([
   "core/thought-model.js",
   "core/thought-journal.js",
   "core/library-documents-store.js",
+  "core/library-documents-owner.js",
   "core/thought-organization.js",
   "core/topic-governance.js",
   "core/topic-identity.js",
