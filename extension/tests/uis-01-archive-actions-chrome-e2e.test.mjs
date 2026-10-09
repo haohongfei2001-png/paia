@@ -25,10 +25,10 @@ test('UIS-01 quiets Archive root and keeps history reachable while retired expor
     h=await FakeChatGPT.start({onboarding:true});
     const page=h.archive;
     await consent(page);
-    await h.open({id:'uis01_source_a_20260917',title:'UIS-01 合成档案 A',base:1609459200,messages:[
+    const sourceA=await h.open({id:'uis01_source_a_20260917',title:'UIS-01 合成档案 A',base:1609459200,messages:[
       {id:'UIS01-A-MESSAGE',text:'UIS01_EXPORT_FILTER_A 只用于档案动作测试。'}
     ]});
-    await h.open({id:'uis01_source_b_20260917',title:'UIS-01 合成档案 B',base:1609462800,messages:[
+    const sourceB=await h.open({id:'uis01_source_b_20260917',title:'UIS-01 合成档案 B',base:1609462800,messages:[
       {id:'UIS01-B-MESSAGE',text:'UIS01_EXPORT_FILTER_B 第二条合成输入。'}
     ]});
     await eventually(async()=>(await h.state()).records.length===2,'synthetic Archive records captured');
@@ -96,7 +96,15 @@ test('UIS-01 quiets Archive root and keeps history reachable while retired expor
     await eventually(()=>page.locator('#collection-panel').isVisible(),'Source Records root opens');
     await page.locator('#scope-search').fill('UIS01_EXPORT_FILTER_A');
     await eventually(async()=>await page.locator('.conversation-document').count()===1,'Source Records filter narrows the current scope');
+    assert.deepEqual((await h.state()).records.map(record=>record.chatId).sort(),['uis01_source_a_20260917','uis01_source_b_20260917'],'both exact Source fixtures are captured before closing their producers');
+    await sourceA.close();await sourceB.close();
+    assert.equal(sourceA.isClosed(),true);assert.equal(sourceB.isClosed(),true);
+    assert.deepEqual(h.context.pages().filter(source=>source.url().startsWith('https://chatgpt.com/')),[],'privacy baseline has no competing fixture producer');
+    // GET_STATE uses the original Store queue; drain already-enqueued capture
+    // work after closing the fixture documents, without pausing capture itself.
+    await h.state();
     const before=await h.state();let downloads=0;page.on('download',()=>downloads++);for(const type of ['PAIA_BACKUP_BEGIN_EXPORT','PAIA_BACKUP_EXPORT_PAGE','PAIA_MEMORY_SHARE']){const result=await page.evaluate(type=>chrome.runtime.sendMessage({type}),type);assert.equal(result.error,'FEATURE_UNAVAILABLE');}assert.deepEqual(await h.state(),before,'retired export requests preserve all archive data');assert.equal(downloads,0);
+    assert.equal(sourceA.isClosed(),true);assert.equal(sourceB.isClosed(),true);
 
     assert.equal(h.deepSeekRequests.length,0,'UIS-01 navigation/import/export entry changes invoke no Provider');
     assert.equal(h.extensionNetworkRequests,0,'UIS-01 makes no extension external request');
