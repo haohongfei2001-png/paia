@@ -1,5 +1,15 @@
 # Seven-lane coordinated execution
 
+## Current 0.42.1 reliability batch — shared qualification resource ownership
+
+Verified base/main source is `62970f0044b11c1f3e5236610d9846a2f0950df3`, tree `61b963eaef1fbfb1798c289dab6b33c956d458e5`, normal PR232 merge. Candidate Full37919468914 passed; exact-main Full37920880606 and Prompt37920880562 both passed. All nine current browser shards, four unit shards, native, macOS, contracts/build and aggregate gates passed; historical skipped audit is not counted. The437-file main0.42.0 ZIP is byte-verified (SHA256 `c5440a012950b857fd5ff2ba287a0d2bfc439d9626dcb7e4ff2767db95674e24`). No daily installation or whole-seven-lane completion is inferred.
+
+The next bounded batch integrates the pure Graph qualifier with one shared numeric resource owner. It preserves the original parsing/caps/structural-only contract, releases failed publication ownership, and prevents one Graph instance from evicting another owner's handles. Compatible reliability identity0.42.1 changes no schema, permissions or backup-admission policy. At5608bbb5, three complete owning/version files pass48/48; source guards and438-file release pass. [Batch receipt](implementation/verification/COHERENT-0421-SHARED-QUALIFICATION.md) distinguishes local code, review, candidate/main certification and packaging.
+
+All seven lane assignments below remain. The current isolated retention implementation and seven observed authority failures remain outside main; accepted minimum repairs do not close whole positive-effect/native-clone/complete-recovery gates. CTX4/SET2 precise visual originals remain missing, without a substitute or repeated path request. NIB v4 runtime remains unselected. No cloud account, real provider, paid operation, permission expansion or deployment is added.
+
+## Preserved previous checkpoint
+
 ## Current safe 0.42 batch — pure graph qualification; retention remains excluded
 
 Fresh remote main is `1e86cfacc9fd1dc3ebefaeef1a098b8aa8e6f926`, tree `9f8c43c847e62f4b9f2578bdea8c3e51f29aaca3`. PR229 added NIB v4 design documents only; its runtime remains unselected. Existing seven-lane authority and the accepted0.41 extension remain in force. These new documents and all website changes are preserved.
