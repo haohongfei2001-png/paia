@@ -1,6 +1,6 @@
 # AI-COST-05 multi-child exact cache — local implementation receipt
 
-Current code frozen `00a3943322b5a610ec9e44852f3e0859f88eb9f4`; final local unit verification complete, independent re-review pending. Initial code `badd104173523415d042e0f932e4170d4ec591b6` required the two independent corrections recorded below. No complete-stage, native, model quality or delivery claim. Base039 `1fa44e4e52680f5245e34f6933c129e659d0675d`, design35de copied as9b61488a. Root and integration_review approved the bounded design before implementation.
+Current code frozen `00a3943322b5a610ec9e44852f3e0859f88eb9f4`; final local unit verification and independent re-review complete; coordinator integration acceptance pending. Initial code `badd104173523415d042e0f932e4170d4ec591b6` required the two independent corrections recorded below. No complete-stage, native, model quality or delivery claim. Base039 `1fa44e4e52680f5245e34f6933c129e659d0675d`, design35de copied as9b61488a. Root and integration_review approved the bounded design before implementation.
 
 ## Preserved before evidence and necessary readability interface
 
@@ -96,4 +96,13 @@ Independent before and final author log hashes:
 - `/tmp/ai-multichild-cache-two-fixes-related-final.log`: `39dcac67ff5efb3c0605ad1f361bb61365dbe2f1e0edc3c7f2dcf98966278851`.
 - `/tmp/ai-multichild-cache-two-fixes-package.log`: `09b30d836cac9c552a31e28dcc81da67debd16394a081160a89fd06135d2733a`.
 
-Independent reviewer is re-running only the two actual-owner counterexamples against the new frozen code and reviewing the small final diff; approval is pending. The original local-only/Qwen-quality/native/remote/main/installed boundaries remain unchanged.
+Independent reviewer re-ran only the two actual-owner counterexamples against the new frozen code and reviewed the small final diff; limited approval is recorded below. The original local-only/Qwen-quality/native/remote/main/installed boundaries remain unchanged.
+
+## Independent final re-review
+
+integration_review independently approved code00a39433 / receipt1a9731c1 within the existing local fixture scope. Both actual-owner after probes exited0, recording the real observed HEAD1a9731c1 and matching current runtime hashes:
+
+- `/tmp/ai-multichild-cache-independent-malformed-coverage-after.log`, SHA-256 `c3b72c434578c8b3945e5335734a44b8aa78b8a30511db55f7de6eabdf35d6c5`: missing/null/object completion metadata all allow ordinary adoption without cacheBinding; canonical sources/jobs stay unchanged; exact adoption retry is all-store zero-write; provider calls stay2. Independent after-script SHA-256 `4223671318f72fafb796d268913bba004fd033722b240ee5fe8260a53efee217`.
+- `/tmp/ai-multichild-cache-independent-final-transaction-dispose-after.log`, SHA-256 `c369c53c961b1cd1133c27dedd5918ad52fdd5e2dd77bc71fe1645bde474144e`: actual post-transaction disposal makes the first cached call reject UNAVAILABLE, no cached result is delivered, every store remains unchanged and new provider calls0. Independent after-script SHA-256 `3c9336ead6ca32719a6a909ae1fe638c0b6a395086df7543528cd5425b245d75`.
+
+The independent reviewer also verified the four final byte hashes and199-test log, without rerunning199 tests, the original14 cases or native/browser tests. Original before probes/logs were not rewritten. This is limited code/fixture approval, not paid/model quality, native, remote/main or installed delivery acceptance. Coordinator's final integration review remains separate.
