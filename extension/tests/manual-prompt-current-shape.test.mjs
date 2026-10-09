@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assertManualPromptCurrentPhysicalShape as shape} from '../core/browser-native-sync/manual-prompt-current-shape.js';
+import {emptyPromptPreferences,validPromptPreferences} from '../core/prompt-reuse-preferences.js';
+import {projectEntity} from '../core/browser-native-sync/codecs.js';
+const id='manual:00000000-0000-0000-0000-000000000001',row=(text='SYNTHETIC exact manual 中文')=>({...emptyPromptPreferences(),revision:5,pins:[id],overrides:[{id,text,hidden:false,reuseCount:2}]});
+const refuses=value=>assert.throws(()=>shape(value),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+test('owned manual physical fields retain original text and portable counter policy',()=>{
+ const value=row();assert.equal(shape(value),true);assert.equal(validPromptPreferences(value),true);const wire=projectEntity('promptPreferences',value);
+ assert.deepEqual(wire,{id:value.id,version:1,pins:[id],overrides:[{id,text:value.overrides[0].text,hidden:false}],splits:[]});assert.equal(value.revision,5);assert.equal(value.overrides[0].reuseCount,2);
+});
+test('selected shape alone does not replace original domain validation',()=>{const value=row(' ');assert.equal(shape(value),true);assert.equal(validPromptPreferences(value),false);assert.throws(()=>projectEntity('promptPreferences',value),{code:'BNS_CODEC_INVALID'});});
+test('missing selected text and inherited optional getter refuse without reading',()=>{let reads=0;const value=row();delete value.overrides[0].text;refuses(value);Object.setPrototypeOf(value.overrides[0],{get text(){reads++;return 'unpaid';}});refuses(value);assert.equal(reads,0);});
+test('own text and dense-array accessors refuse without reading',()=>{let reads=0;for(const kind of ['text','pins']){const value=row();const owner=kind==='text'?value.overrides[0]:value.pins,key=kind==='text'?'text':'0';Object.defineProperty(owner,key,{enumerable:true,get(){reads++;return 'unpaid';}});refuses(value);}assert.equal(reads,0);});
+test('descriptor value pollution refuses selected accessors before original validation',()=>{let reads=0;const value=row();Object.defineProperty(value.overrides[0],'text',{enumerable:true,get(){reads++;return 'unpaid';}});Object.defineProperty(Object.prototype,'value',{configurable:true,value:'unpaid'});try{refuses(value);assert.equal(reads,0);}finally{delete Object.prototype.value;}});
+test('hidden caller methods on each selected array refuse without execution',()=>{let calls=0;for(const field of ['pins','overrides','splits'])for(const method of ['toJSON','map','filter']){const value=row();Object.defineProperty(value[field],method,{value(){calls++;throw Error('unpaid');}});refuses(value);}assert.equal(calls,0);});
+test('custom array prototypes, holes and symbols refuse',()=>{for(const field of ['pins','overrides','splits']){const value=row();Object.setPrototypeOf(value[field],Object.create(Array.prototype));refuses(value);}const hole=row();delete hole.pins[0];refuses(hole);const symbol=row();symbol.overrides[Symbol.iterator]=()=>{throw Error('unpaid');};refuses(symbol);});
+test('hidden root and item behavior and inherited serialization refuse without execution',()=>{let calls=0;for(const item of ['root','override']){const value=row();Object.defineProperty(item==='root'?value:value.overrides[0],'toJSON',{value(){calls++;throw Error('unpaid');}});refuses(value);}Object.defineProperty(Object.prototype,'toJSON',{configurable:true,get(){calls++;throw Error('unpaid');}});try{refuses(row());}finally{delete Object.prototype.toJSON;}assert.equal(calls,0);});
+test('inherited representative refuses without getter access',()=>{let calls=0;Object.defineProperty(Object.prototype,'representative',{configurable:true,get(){calls++;throw Error('unpaid');}});try{refuses(row());}finally{delete Object.prototype.representative;}assert.equal(calls,0);});
+test('source-family identities and splits remain outside selected manual shape',()=>{const family=row();family.pins=['pf:'+'0'.repeat(64)];refuses(family);const split=row();split.splits=[{inputId:'SYNTHETIC',group:id.slice(7)}];refuses(split);});
