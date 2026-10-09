@@ -1,3 +1,5 @@
+Current bounded batch update: PR242 second Full37999750213 remainsFAIL despite native strict30SUCCESS. SET2 directory focus repairdfe independently passes CODE,17 whole-file regressions and finite actual source/release browser2/2; original complete UI local failures are preserved and fresh changed-head formal Full/main acceptance remains required. Root owns the Settings boundary; no seven-lane scope or final visual authority changes.
+
 Current frontier (2026-10-10): PR241 full21/21 normally integrated0.43.6 mainb75c8805; its exact-main full37993741616 passed21 required jobs. Existing SYNC01 next0.43.7 fixed original currentHuman MV3 owner and finite portable recovery has393 preflight584/584/native12/12/add10 pervariant, with final934 worker2/2/composition451327ce approved; formal fullCI/main acceptance pending. No product scope expansion; allseven remain open and their external/visual/quality/provider gates distinct. STATUS and [current receipt](implementation/verification/COHERENT-0437-CURRENT-HUMAN-MV3.md) own exact claims.
 
 # PAIA Consumer Product v1 — Canonical Master Plan
