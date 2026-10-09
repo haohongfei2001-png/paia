@@ -14,6 +14,9 @@ on:
       - 'extension/tests/cpv1-12-next-*'
       - 'extension/adapter/chatgpt-current-reply.js'
       - 'extension/core/next-action-detector.js'
+      - 'extension/background/assist-reply-lease.js'
+      - 'extension/content/assist-result.js'
+      - 'extension/core/ai-usage/local-assist-session.js'
       - '.github/workflows/paia-prompt-reuse.yml'
 permissions:
   contents: read
