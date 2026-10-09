@@ -333,3 +333,10 @@ export function advanceHumanGraphReadSet(cap,plan){
  if(p.thoughtSequence!==undefined)g.state.base.sequence={id:'thought-sequence',value:p.thoughtSequence};if(p.revisionSequence!==undefined)g.state.base.revision={id:'revision-sequence',value:p.revisionSequence};g.state.base.generation+=p.futureDescriptor.members.length+1;g.used.add(plan);
 }
 export function humanGraphReadSetProjection(cap){const g=futureGraphs.get(cap);if(!g)fail('BNS_HUMAN_PLAN_REQUIRED');return clone(g.state);}
+
+// Exact original plan phases for the finite private search qualifier. This
+// accessor exposes no write authority and cannot brand a caller DTO.
+export function humanSearchPlanWitness(cap,store,core){
+ const p=plans.get(cap);if(!p||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');
+ return humanPlanJournalRows(cap);
+}
