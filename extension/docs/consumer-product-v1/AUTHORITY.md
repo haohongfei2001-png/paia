@@ -1,5 +1,14 @@
 # Authority and Source Policy
 
+## Narrow Input Board v4 scoped adoption — 2026-10-09
+
+**NIB-V4-1.0 / DESIGN_SCOPE_OWNER_APPROVED / DOCUMENTATION_ONLY.**
+[NARROW_INPUT_BOARD_V4_SPEC.md](NARROW_INPUT_BOARD_V4_SPEC.md) is the current scoped browser-board design authority: existing336px width rule, default44px single-line rows, content-sized height within the top-controls/composer safe band, stable user-controlled modes, editable Free frequency and independently admitted Pro historical candidates. Same-width Archive search/check/use replaces wide search and native Side Panel/dual-carrier proposals. [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) gives the finite supersession ledger; [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md) define the executable future scope.
+
+The retained Prompt Reuse documents below continue to own Family/manual intent and Stage3A privacy except for the exact v4 presentation/lifecycle/entry supersessions. AI_USAGE remains the sole quota/job/financial authority; v4 does not remove unrelated Free AI allowances or activate a service. Source/capture/retention, other primary spaces and existing editor/permission owners are unchanged. The explicit board-to-Archive query/Input handoff is the only added Archive entry scope; generic opening never infers host content. Proposed focus-only toolbar reuse requires final owner confirmation before S4 cutover and cannot discard an existing editor.
+
+This owner instruction authorizes design/plan documents and a Draft PR only, **not NIB runtime work, merger, provider spending, Popup removal or installation**. STATUS alone selects future execution within the existing Prompt lane and Root/file-owner coordination. Already-authorized unrelated work in the seven-lane programme continues unchanged; this is not an eighth scheduler or a cancellation of in-flight tasks. Draft documentation is not main integration or production acceptance. The existing authority order and all nonconflicting policies below remain in force.
+
 ## Latest execution authorization — seven coordinated lanes
 
 The owner explicitly selected TOPIC, CTX4, SET2, SYNC, AI-COST, approved Prompt
