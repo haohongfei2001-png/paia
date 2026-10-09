@@ -25,6 +25,16 @@ const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;
 
 // Only this owner can mint scope identity. Public wrapper promises and tx-like
 // objects are not evidence of either native identity or transaction settlement.
+// Capture original platform accessors once. Calling them requires native IDB
+// internal slots; public factory fields, names and tags cannot establish them.
+const NativeIDBTransaction=globalThis.IDBTransaction;
+const nativeTransactionDb=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'db')?.get;
+const nativeTransactionMode=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'mode')?.get;
+const nativeTransactionEvidence=transaction=>{
+ try{if(!NativeIDBTransaction||!nativeTransactionDb||!nativeTransactionMode||!(transaction instanceof NativeIDBTransaction))return null;
+  return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
+ }catch{return null;}
+};
 const repositoryScopes=new WeakMap();
 const scopeRecord=(repository,scope)=>{const r=repositoryScopes.get(scope);if(!r||r.repository!==repository)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');return r;};
 export function requireRepositoryTransactionScope(repository,scope){
@@ -36,7 +46,7 @@ export function requireRepositoryTransactionCommitted(repository,scope){
  const r=scopeRecord(repository,scope);
  // Settlement also includes abort. Only the original successful transaction
  // path, after every finalizer and actual native completion, proves commit.
- if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ if(r.trustedNativeOutcome!=='completed'||r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
 }
 export async function awaitRepositoryTransactionSettled(repository,scope){
  // Waiting on an authentic closed scope is valid; never follow its mutable tx.
@@ -148,13 +158,23 @@ export class ArchiveRepository {
  async transaction(write,fn,stores=this.stores){
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
-  let release;const record={repository:this,transaction:tx,nativeSettled:false,nativeOutcome:'pending',originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:tx.db,mode:tx.mode}),settled:new Promise(resolve=>{release=resolve;})};
+  const native=nativeTransactionEvidence(tx);
+  let release;const record={repository:this,transaction:tx,nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
   repositoryScopes.set(scope,record);
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
-   // Private observers cannot be replaced through tx.oncomplete/onabort.
-   tx.addEventListener('complete',()=>{record.nativeOutcome='completed';record.nativeSettled=true;maybeRelease();resolve();},{once:true});
-   tx.addEventListener('abort',()=>{record.nativeOutcome='aborted';record.nativeSettled=true;maybeRelease();reject(fail(tx.error));},{once:true});
+   // False native events do not consume either listener or settle any state.
+   // Non-native test stores retain ordinary cleanup, never native authority.
+   const terminal=(event,outcome)=>{
+    if(native&&(event.isTrusted!==true||event.target!==tx||event.currentTarget!==tx))return;
+    if(record.nativeSettled)return;
+    tx.removeEventListener('complete',complete);tx.removeEventListener('abort',abort);
+    record.nativeOutcome=outcome;record.nativeSettled=true;
+    if(native)record.trustedNativeOutcome=outcome;
+    maybeRelease();if(outcome==='completed')resolve();else reject(fail(tx.error));
+   };
+   const complete=event=>terminal(event,'completed'),abort=event=>terminal(event,'aborted');
+   tx.addEventListener('complete',complete);tx.addEventListener('abort',abort);
    tx.onerror=()=>{};
   });
   // The rejection is observed immediately even when the operation also rejects.

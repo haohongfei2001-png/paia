@@ -298,6 +298,7 @@ export class BrowserNativeSyncCore {
   const current=()=>{
    if(!gate.open||!observed||BrowserNativeSyncCore.#humanRetentionTransactions.get(observed.identity.token)!==proof)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
    const identity=requireRepositoryTransactionScope(claim.repository,observed.wrapper);
+   if(!identity.nativeTransaction)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
    if(identity!==observed.identity||this.repository!==claim.repository||this.repository.db!==claim.database||identity.database!==claim.database||identity.mode!=='readwrite')fail('BNS_HUMAN_CHANGED');
    assertHumanBranchRetentionCurrent(this,retention);
   };
