@@ -7,7 +7,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
-const root=fileURLToPath(new URL('../..',import.meta.url)),repo=resolve(root,'..'),req=createRequire(import.meta.url);
+const root=resolve(fileURLToPath(new URL('../..',import.meta.url))),repo=resolve(root,'..'),req=createRequire(import.meta.url);
 const digest=data=>createHash('sha256').update(data).digest('hex');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();
 const fixture=join(root,'tests/native-sync/current-projection-native-fixture.mjs');

@@ -38,6 +38,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/browser-native-sync/human-library-request.js",
   "core/browser-native-sync/human-library-scope.js",
   "core/browser-native-sync/human-library-search-proof.js",
+  "core/browser-native-sync/human-qualification-budget.js",
   "core/browser-native-sync/input-working-commit.js",
   "core/browser-native-sync/input-working-inbox.js",
   "core/browser-native-sync/input-working-journal.js",

@@ -1,4 +1,3 @@
-import {requireOriginalLibraryDocumentsStore} from '../library-documents-store.js';
 import {inspectHumanUnindexedSearch} from './human-library-search-proof.js';
 import {planSearchQueueLocator} from '../library-search.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
@@ -926,7 +925,7 @@ function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
 function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
 function projectionReserve(r,scratch=0){const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+scratch;if(charge>8*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');resizeHumanQualificationLease(r.work,charge);}
 function projectionDeepFreeze(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key))projectionDeepFreeze(value[key]);projectionFreeze(value);}
-function projectionCurrent(r){requireOriginalLibraryDocumentsStore(r.store);if(r.revoked||r.closed||!r.work)projectionRequired();branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
+function projectionCurrent(r){r.storeAssert(r.store);if(r.revoked||r.closed||!r.work)projectionRequired();branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
 function projectionKeep(r,value,transfer=false){
  const m=projectionMeasure(value,'native'),charge=projectionTreeCharge(m);
  r.owned+=charge;if(transfer)r.transient-=charge;try{projectionReserve(r);}catch(error){r.owned-=charge;if(transfer)r.transient+=charge;throw error;}
@@ -1133,10 +1132,12 @@ export async function captureHumanCurrentUnindexedProjection(store,core){
  let r,cap,ticket,primary,failed=false;
  try{
   if('value'in Object.prototype)projectionRequired();nativeRetentionAvailable();if(typeof projectionCompare!=='function'||!projectionFactory)projectionRequired();
-  requireOriginalLibraryDocumentsStore(store);const binding=branchReady(store,core);
+  // Resolve the fixed original owner after ESM initialization. A static
+  // backedge here would initialize the derived Store before its base class.
+  const storeAssert=(await import('../library-documents-store.js')).requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=branchReady(store,core);
   if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
   if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
-  r={work,owned:0,store,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[]};
+  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[]};
   const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
   await r.tail;projectionFence(r);r.raw=projectionRaw();currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
@@ -1145,7 +1146,7 @@ export async function captureHumanCurrentUnindexedProjection(store,core){
   // used at require. Meter and prepay both real canonical operands first.
   if(!projectionEqual(r,r.raw,r.raw))projectionRequired();projectionFence(r);
   if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
-  cap=Object.freeze({});const p={store,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false};
+  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
  }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
  finally{
