@@ -98,3 +98,5 @@ export async function mapTopicIdentityBatch(store,{limit=100}={}){
 
 export async function keepTopicIdentitiesSeparateInTransaction(store,t,{sourceId,targetId}){const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);let result;if(a.id===b.id)result={kept:false};else{if(a.layoutJobId||b.layoutJobId)fail();
   const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',planHumanKeepSeparate(a.id,b.id,humanClock(store,t)));result={kept:true};}return result;}
+
+export function planHumanTopicField(row,key,value,operationId,at){const result=structuredClone(row),field=key==='pinned'?'pinKey':key;result[field]=key==='pinned'?(value?0:1):value;markHuman(result,key,operationId,at);return result;}

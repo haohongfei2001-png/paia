@@ -1,7 +1,7 @@
 import {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError} from './browser-native-sync/human-library-plan.js';
 import {humanClock,humanUuid} from './browser-native-sync/human-library-allocation.js';
 import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js';
-import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
+import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,planHumanTopicField,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
 import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembership} from './topic-intent.js';
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
 import {IndexedArchiveStore} from './indexed-store.js';
@@ -245,7 +245,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const rename=await prepareTopicRename(this,request.id,request.name);
   return this.operation(request,t=>this.renameTopicInTransaction(t,request,rename));
  }
- async renameTopicInTransaction(t,request,rename){await checkRestore(this,t,request.restoreRevisionId,'topic',request.id);const row=await this.canonicalTopic(t,request.id);if(row.id!==request.id)fail();if(row.revision!==request.expectedRevision)return {conflict:true};const before=structuredClone(row);await recordTopicRename(t,row,rename,request.operationId,humanClock(this,t));row.name=request.name;row.nameKey=request.name.toLocaleLowerCase();row.revision++;markHuman(row,'name',request.operationId,humanClock(this,t));await t.put('topics',row);await journal(this,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['name'],actor:'user',reason:request.restoreRevisionId?'restore':'rename',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.id,revision:row.revision};
+ async renameTopicInTransaction(t,request,rename){await checkRestore(this,t,request.restoreRevisionId,'topic',request.id);const row=await this.canonicalTopic(t,request.id);if(row.id!==request.id)fail();if(row.revision!==request.expectedRevision)return {conflict:true};const before=structuredClone(row);await recordTopicRename(t,row,rename,request.operationId,humanClock(this,t));row.name=request.name;row.nameKey=request.name.toLocaleLowerCase();row.revision++;Object.assign(row,planHumanTopicField(row,'name',request.name,request.operationId,humanClock(this,t)));await t.put('topics',row);await journal(this,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['name'],actor:'user',reason:request.restoreRevisionId?'restore':'rename',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.id,revision:row.revision};
  }
  async createSection(request) {
   keys(request,['topicId','expectedTopicRevision','title','rank','operationId'],['topicId','expectedTopicRevision','title','operationId']);
