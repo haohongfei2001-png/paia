@@ -1,15 +1,15 @@
 # Private Human retention: native assertion migration gate
 
-Design only; the full native bridge is NOT implemented or executed in this change. Root must independently approve this exact inventory, closure and count before assigning implementation. Runtime is not ready for integration on the strength of the limited event probe. Existing Node-positive184-case and original5-case results remain historical evidence only.
+Current state: the complete native bridge and evidence at `ac3ecf60` have received independent finite acceptance (source28/release28,528 assertions each). The original raw fixtures are now physically routed to native-only source locations by `b736bcca`; this migration has finite contracts and compiled-byte identity evidence, but **no new native execution on its own HEAD**. Earlier design/NOT_RUN and failure sections below are historical checkpoints, not current acceptance claims. Existing Node-positive184-case and original5-case results remain historical only.
 
 ## Frozen originals and complete coverage
 
 Neither original file has been edited, reduced, skipped or relabelled as passing. Freeze the complete source bytes, including helpers, imports, callbacks, hooks, every assertion and all nested scenario loops:
 
-- `tests/human-sibling-retention.test.mjs`: `178acc01ccf8ef2c4cf86a9e1a2692859a3b83419dddaafedfd07d52de32fa42`.
-- `tests/human-retention-repository-owner.test.mjs`: `801c2ac3efdb7deee7c8da55605d281a3efc2efb6f0fa518ceed99c0062f6224`.
+- Physical `tests/native-sync/fixtures/retention-original/human-sibling-retention.source.mjs`; virtual import origin `tests/human-sibling-retention.test.mjs`: `178acc01ccf8ef2c4cf86a9e1a2692859a3b83419dddaafedfd07d52de32fa42`.
+- Physical `tests/native-sync/fixtures/retention-original/human-retention-repository-owner.source.mjs`; virtual import origin `tests/human-retention-repository-owner.test.mjs`: `801c2ac3efdb7deee7c8da55605d281a3efc2efb6f0fa518ceed99c0062f6224`.
 
-The first file registers14 cases, the second13 (including the3-case mode loop). Combined exact inventory is27. The table indexes are per original file; no case is selected out. Each fixture compilation must verify the full input SHA and actual registration sequence against this inventory before any browser run.
+The first file registers14 cases, the second13 (including the3-case mode loop). Combined exact inventory is27. The table retains the virtual original filenames; indexes are per original file and no case is selected out. Each fixture compilation must verify the full input SHA and actual registration sequence against this inventory before any browser run.
 
 | Frozen source | Index | Original registered name |
 |---|---:|---|

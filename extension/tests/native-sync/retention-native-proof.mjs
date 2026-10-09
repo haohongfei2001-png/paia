@@ -17,10 +17,19 @@ export function relativeImports(text){
  return [...new Set(result)];
 }
 const resolvePath=(path,dependency)=>{const result=posix.normalize(posix.join(posix.dirname(path),dependency));assert.ok(!result.startsWith('../')&&!posix.isAbsolute(result));return result;};
+export async function originalImports(base){
+ // Physical fixtures preserve every original byte. Their imports still refer
+ // to the original tests/ location, never to the new fixture directory.
+ return Promise.all(Object.values(RETENTION_SPECS).map(async spec=>{
+  assert.match(spec.origin,/^tests\/human-(?:sibling-retention|retention-repository-owner)\.test\.mjs$/);
+  const path='tests/'+spec.file,text=await readFile(join(base,path),'utf8');
+  return {path,origin:spec.origin,dependencies:relativeImports(text).map(dependency=>resolvePath(spec.origin,dependency))};
+ }));
+}
 export async function collectInventories(base){
  const runtime=new Set(),proof=new Set(['manifest.json','package.json','background/service-worker.js',...originalPaths]);
  const runtimeQueue=['core/library-documents-store.js','core/browser-native-sync/core.js','core/browser-native-sync/human-library-journal.js','core/browser-native-sync/human-library-plan.js'];
- for(const path of originalPaths){const text=await readFile(join(base,path),'utf8');for(const dependency of relativeImports(text)){const next=resolvePath(path,dependency);if(next.startsWith('core/'))runtimeQueue.push(next);}}
+ for(const original of await originalImports(base))for(const next of original.dependencies)if(next.startsWith('core/'))runtimeQueue.push(next);
  // The copied storage worker imports production owners from its installed
  // background location, not from its repository test-source directory.
  const worker='tests/native-sync/storage-worker-fixture.mjs';

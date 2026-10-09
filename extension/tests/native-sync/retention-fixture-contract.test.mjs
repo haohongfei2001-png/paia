@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile,stat} from 'node:fs/promises';
 import {retentionNativeFixture,RETENTION_SPECS,NATIVE_OWNER_EXTRA} from './retention-native-fixture.mjs';
 test('native retention bridge preserves both complete original fixtures and all 27 names',async()=>{
  let count=0;
@@ -12,6 +12,23 @@ test('native retention bridge preserves both complete original fixtures and all 
   assert.throws(()=>retentionNativeFixture(source+'\n',kind),/RETENTION_ORIGINAL_HASH_CHANGED/);
  }
  assert.equal(count,27);assert.ok(NATIVE_OWNER_EXTRA.includes('listener interception'));
+});
+
+test('original fixture physical paths are excluded from Node discovery while imports retain original origins',async()=>{
+ const {originalImports}=await import('./retention-native-proof.mjs');const {fileURLToPath}=await import('node:url');
+ const base=fileURLToPath(new URL('../..',import.meta.url)),originals=await originalImports(base);
+ assert.equal(originals.length,2);
+ for(const original of originals){
+  assert.match(original.path,/^tests\/native-sync\/fixtures\/retention-original\/human-[a-z-]+\.source\.mjs$/);
+  assert.doesNotMatch(original.path,/\.test\.mjs$/);assert.notEqual(original.path,original.origin);
+  await assert.rejects(stat(new URL('../../'+original.origin,import.meta.url)),{code:'ENOENT'});
+  assert.ok(original.dependencies.includes('core/library-documents-store.js'));
+  assert.ok(original.dependencies.includes('core/browser-native-sync/core.js'));
+  assert.ok(original.dependencies.includes('core/idb-repository.js')||original.origin==='tests/human-sibling-retention.test.mjs');
+  assert.ok(original.dependencies.includes('tests/harness/thought-m1.mjs'));
+  assert.ok(original.dependencies.includes('tests/vendor/fake-indexeddb/build/esm/index.js'));
+  for(const path of original.dependencies)assert.doesNotMatch(path,/retention-original/);
+ }
 });
 
 test('runtime and proof inventories are the current complete static/literal imported closures',async()=>{
