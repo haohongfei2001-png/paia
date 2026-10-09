@@ -36,31 +36,85 @@
     const output = $(`[data-thought-text="${field.dataset.working}"]`);
     output.textContent = field.value;
     text('[data-edit-status]', t('本页工作版本已更新 · 原始来源保留', 'Page working text updated · Original preserved'));
-    filterInputs();
+    updateFind();
     renderReading();
     renderContext();
     findTopics();
   }
-  function filterInputs() {
-    const query = $('[data-archive-search]').value.trim().toLocaleLowerCase();
-    let count = 0;
+  // Reader Find locates words inside this conversation. It never filters the
+  // continuous document or changes its text, unlike the separate archive search.
+  const readerFind = $('[data-archive-search]');
+  let findQuery = '';
+  let findMatches = [];
+  let findCurrent = null;
+  let findOrigin = null;
+  let findRestoreFrame = null;
+  function updateFind() {
+    const query = readerFind.value.trim().toLocaleLowerCase();
+    if (query && !findQuery) findOrigin = scrollY;
+    if (query !== findQuery) findCurrent = null;
+    findQuery = query;
+    findMatches = [...$('[data-records]').children].filter(record =>
+      query && record.querySelector('textarea').value.toLocaleLowerCase().includes(query));
+    if (!findMatches.includes(findCurrent)) findCurrent = null;
     records.forEach(record => {
-      const field = record.querySelector('textarea');
-      record.hidden = document.activeElement !== field && !field.value.toLocaleLowerCase().includes(query);
-      if (!record.hidden) count++;
+      record.hidden = false;
+      if (findMatches.includes(record)) record.dataset.findMatch = 'true';
+      else record.removeAttribute('data-find-match');
+      if (record === findCurrent) record.dataset.findCurrent = 'true';
+      else record.removeAttribute('data-find-current');
     });
-    $('[data-archive-empty]').hidden = count !== 0;
+    $('[data-find-controls]').hidden = !query;
+    $('[data-archive-empty]').hidden = !query || findMatches.length !== 0;
+    const position = findCurrent ? findMatches.indexOf(findCurrent) + 1 : 0;
+    text('[data-find-count]', t(`${position} / ${findMatches.length} 条输入`, `${position} / ${findMatches.length} inputs`));
+    $('[data-find-prev]').disabled = !findMatches.length;
+    $('[data-find-next]').disabled = !findMatches.length;
+    if (!query) {
+      const origin = findOrigin;
+      findOrigin = null;
+      if (origin !== null) {
+        scrollTo({top: origin, behavior: 'instant'});
+        // Settle the closed toolbar and restored focus before the browser's
+        // next scroll-anchoring pass. This is a single frame, never an idle loop.
+        if (findRestoreFrame !== null) cancelAnimationFrame(findRestoreFrame);
+        findRestoreFrame = requestAnimationFrame(() => {
+          if (!findQuery) scrollTo({top: origin, behavior: 'instant'});
+          findRestoreFrame = null;
+        });
+      }
+    }
+  }
+  function stepFind(direction) {
+    if (!findMatches.length) return;
+    const index = findMatches.indexOf(findCurrent);
+    const next = index < 0 ? (direction < 0 ? findMatches.length - 1 : 0) :
+      (index + direction + findMatches.length) % findMatches.length;
+    findCurrent = findMatches[next];
+    updateFind();
+    findCurrent.scrollIntoView({block: 'center', behavior: mayMove() ? 'smooth' : 'instant'});
   }
   all('[data-working]').forEach(field => {
     field.addEventListener('input', () => updateWorking(field));
-    field.addEventListener('blur', filterInputs);
   });
-  $('[data-archive-search]').addEventListener('input', filterInputs);
+  readerFind.addEventListener('input', updateFind);
+  readerFind.closest('.pc-reader').addEventListener('keydown', event => {
+    if (event.key === 'Enter' && event.target === readerFind) { event.preventDefault(); stepFind(event.shiftKey ? -1 : 1); }
+    if (event.key === 'Escape' && findQuery) {
+      event.preventDefault();
+      readerFind.value = '';
+      updateFind();
+      readerFind.focus({preventScroll: true});
+    }
+  });
+  $('[data-find-prev]').addEventListener('click', () => stepFind(-1));
+  $('[data-find-next]').addEventListener('click', () => stepFind(1));
   let reversed = false;
   $('[data-sort]').addEventListener('click', () => {
     reversed = !reversed;
     (reversed ? [...records].reverse() : records).forEach(record => $('[data-records]').append(record));
-    $('[data-sort]').setAttribute('aria-label', t(reversed ? '当前为倒序，切换正序' : '当前为正序，切换倒序', reversed ? 'Newest first; switch to oldest first' : 'Oldest first; switch to newest first'));
+    updateFind();
+    $('[data-sort]').setAttribute('aria-label', t(reversed ? '时间顺序 — 当前为倒序，切换正序' : '时间顺序 — 当前为正序，切换倒序', reversed ? 'Time order — newest first; switch to oldest first' : 'Time order — oldest first; switch to newest first'));
   });
   $('[data-reset-inputs]').addEventListener('click', () => {
     $('[data-archive-search]').value = '';
@@ -74,10 +128,26 @@
   // Personal prompt wording/order are editable. Selecting only fills a composer.
   const promptList = $('[data-prompt-list]');
   const composer = $('#pc-composer');
+  let insertionPoint = null;
+  function rememberInsertionPoint() {
+    insertionPoint = {position: composer.selectionEnd, draft: composer.value};
+  }
+  ['focus', 'input', 'select', 'keyup', 'pointerup', 'blur'].forEach(type =>
+    composer.addEventListener(type, rememberInsertionPoint));
   function insertPrompt(value) {
     if (!value.trim()) return;
-    composer.value = composer.value.length ? composer.value + '\n\n' + value : value;
+    const draft = composer.value;
+    const position = insertionPoint && insertionPoint.draft === draft ?
+      Math.min(insertionPoint.position, draft.length) : draft.length;
+    // Insert after the selection, preserving both the selected text and the
+    // rest of the draft. An unknown/stale position falls back to the end.
+    const before = draft.slice(0, position);
+    const after = draft.slice(position);
+    const inserted = before + (before ? '\n\n' : '') + value;
+    composer.value = inserted + (after ? '\n\n' : '') + after;
     fit(composer); composer.focus({preventScroll: true});
+    composer.setSelectionRange(inserted.length, inserted.length);
+    rememberInsertionPoint();
     if (mayMove()) composer.closest('.pc-composer').animate([{boxShadow: '0 0 0 3px #a4c5f2'}, {boxShadow: '0 0 0 0px #a4c5f200'}], {duration: 650, easing: 'ease-out'});
     text('[data-prompt-status]', t('已填入本页输入框 · 没有发送', 'Inserted in this page’s composer · Not sent'));
   }
@@ -311,6 +381,9 @@
       stateLabel.textContent = isOn(control)
         ? (parentsOpen ? t('AI 可读', 'AI readable') : t('已开放', 'Open'))
         : t('仅自己', 'Only me');
+      const key = control.dataset.cardAllow;
+      const label = key ? (cardLabels[key] || t('我的输入', 'My Inputs')) : control.querySelector('.pc-topic-name').textContent;
+      control.setAttribute('aria-label', `${stateLabel.textContent} — ${label} ${t('（示例）', '(example)')}`);
     });
     Object.keys(cardLabels).forEach(key => {
       const removed = removedItems.has(key);
