@@ -133,7 +133,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const secret=await this.run(()=>this.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key')).value,['meta']));
   const exactSignature=await keyedHash(secret,['body',request.type,request.body]);
   await this.repository.checkpoint('thought-evidence-validated');
-  return this.operation(hooks.receiptRequest||request,async t=>{
+  return this.operation(hooks.receiptRequest||request,t=>this.createEntryInTransaction(t,request,{evidence,nonContext,generator,exactSignature,hooks}));
+ }
+ async createEntryInTransaction(t,request,{evidence,nonContext,generator,exactSignature,hooks}){
    if((await t.get('meta','thought-library')).sealed)fail();await checkEvidenceInTransaction(this,t,evidence);const reused=await hooks.before?.(t,evidence);if(reused)return reused;
    if(request.actor==='ai') {
     const suppressed=new Map();for(const e of nonContext)for(const s of await t.all('thoughtSuppressions','byScope',e.scopeToken))if(s.status==='active')suppressed.set(s.id,s);
@@ -149,7 +151,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
    await hooks.after?.(t,row,evidence);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:id,before:entrySnapshot(row),after:entrySnapshot(row),fieldMask:ENTRY_FIELDS,actor:request.actor,reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:row.sourceRecordIds});
    return {id,revision:row.revision,...(hooks.independentExpression===true&&human&&request.body.trim()?{independentExpression:{version:1,kind:'committed_human_expression',at}}:{})};
-  });
+
  }
  async editEntry(request) {
   keys(request,['id','operationId','expectedRevision','changes','actor','revisionReason','restoreRevisionId','expectedFieldRevisions','expectedInputRevision'],['id','operationId','expectedRevision','changes']);
@@ -158,7 +160,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const prior=await this.priorOperation(request);if(prior)return prior;
   const signature=await this.run(()=>this.repository.transaction(false,async t=>({row:await t.get('thoughts',request.id),secret:(await t.get('meta','thought-suppression-key')).value})));if(!signature.row)fail();
   const exactSignature=await keyedHash(signature.secret,['body',request.changes.type??signature.row.type,request.changes.body??signature.row.thoughtText]);
-  return this.operation(request,async t=>{
+  return this.operation(request,t=>this.editEntryInTransaction(t,request,{signature,exactSignature}));
+ }
+ async editEntryInTransaction(t,request,{signature,exactSignature}){
    if(request.restoreRevisionId){const saved=await t.get('revisions',request.restoreRevisionId);if(!saved||saved.entityId!==request.id||!await this.sourcePresent(t,saved.sourceRecordIds))fail();}
    let row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='active'||!await this.sourcePresent(t,row.sourceRecordIds))fail();
    if(request.expectedFieldRevisions?Object.keys(request.changes).some(f=>row.fieldRevisions[f]!==request.expectedFieldRevisions[f]):row.revision!==request.expectedRevision)return {conflict:true};
@@ -169,26 +173,30 @@ export class LibraryFoundationStore extends SmartFilterStore {
    if(!fields.length)return {id:row.id,revision:row.revision};
    row=finishHumanEntryFields(row,fields,{at,sequence:await nextSequence(t),exactSignature});await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:row.id,before,after:entrySnapshot(row),fieldMask:fields,actor:'user',reason:request.revisionReason==='restore'?'restore':'edit',important:request.revisionReason==='restore',operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds});return {id:row.id,revision:row.revision};
-  });
+
  }
  async removeEntry(request) {
   keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
-  return this.operation(request,async t=>{
+  return this.operation(request,t=>this.removeEntryInTransaction(t,request));
+ }
+ async removeEntryInTransaction(t,request){
    const row=await this.readableEntry(t,request.id);if(row.revision!==request.expectedRevision)return {conflict:true};if(row.lifecycle!=='active')fail();
    const before=entrySnapshot(row),evidence=await t.all('provenance','byOwner',prefix(['entry',row.id]));
    const planned=planHumanEntryRemoval(row,request,evidence,{suppressionId:humanUuid(this,t),removedAt:humanClock(this,t)});await t.put('thoughtSuppressions',planned.suppression);
    Object.assign(row,planned.entry);await t.put('thoughts',row);
    await journal(this,t,{kind:'library_entry',entityId:row.id,before,after:entrySnapshot(row),fieldMask:['lifecycle'],actor:'user',reason:'remove',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds});return {id:row.id,revision:row.revision};
-  });
+
  }
  async restoreEntry(request) {
   keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
-  return this.operation(request,async t=>{
+  return this.operation(request,t=>this.restoreEntryInTransaction(t,request));
+ }
+ async restoreEntryInTransaction(t,request){
    const row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='removed'||!await this.sourcePresent(t,row.sourceRecordIds))fail();if(row.revision!==request.expectedRevision)return {conflict:true};
    const before=entrySnapshot(row),planned=planHumanEntryRestoration(row,request,ENTRY_FIELDS.map(()=>humanClock(this,t)));Object.assign(row,planned);await t.put('thoughts',row);
    for(const suppression of await t.all('thoughtSuppressions','byEntry',row.id)){suppression.status='restored';await t.put('thoughtSuppressions',suppression);}
    await journal(this,t,{kind:'library_entry',entityId:row.id,before,after:entrySnapshot(row),fieldMask:['lifecycle'],actor:'user',reason:'restore',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds});return {id:row.id,revision:row.revision};
-  });
+
  }
  async revisions(options={}) {
   const {kind=null}=options,newKinds=['library_entry','topic','section','placement'];
@@ -222,12 +230,14 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async createTopic(request) {
   keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const nameIdentity=await prepareTopicName(this,request.name);
-  return this.operation(request,async t=>{
+  return this.operation(request,t=>this.createTopicInTransaction(t,request,nameIdentity));
+ }
+ async createTopicInTransaction(t,request,nameIdentity){
    await assertTopicIdentityBase(t,nameIdentity);const id=humanUuid(this,t),sectionId=humanUuid(this,t),at=humanClock(this,t),{topic:row,section}=planHumanTopicCreation(request,{id,sectionId,at});
    await registerTopicName(t,row,nameIdentity.token);await t.put('topics',row);await t.put('sections',section);
    await journal(this,t,{kind:'topic',entityId:id,before:null,after:row,fieldMask:['name'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});
    await journal(this,t,{kind:'section',entityId:sectionId,documentId:id,before:null,after:section,fieldMask:['title','rank'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});return {id,sectionId,revision:0};
-  });
+
  }
  async renameTopic(request) {
   keys(request,['id','name','expectedRevision','operationId','restoreRevisionId'],['id','name','expectedRevision','operationId']);
@@ -238,7 +248,9 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async createSection(request) {
   keys(request,['topicId','expectedTopicRevision','title','rank','operationId'],['topicId','expectedTopicRevision','title','operationId']);
   if(!idOK(request.topicId)||!revisionOK(request.expectedTopicRevision)||typeof request.title!=='string'||request.title.length>300)fail();const requestedRank=request.rank===undefined?null:normalizeRank(request.rank);
-  return this.operation(request,async t=>{const topic=await this.canonicalTopic(t,request.topicId);if(topic.id!==request.topicId)fail();if(topic.organizationRevision!==request.expectedTopicRevision)return {conflict:true};const last=this.libraryDocumentMode?await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),'prev'):null,rank=humanSectionRank(last,requestedRank);const sectionId=humanUuid(this,t),row=planHumanSectionCreation(request,topic,{sectionId,rank,at:humanClock(this,t)});await t.put('sections',row);topic.organizationRevision++;await t.put('topics',topic);await journal(this,t,{kind:'section',entityId:sectionId,documentId:topic.id,before:null,after:row,fieldMask:['title','rank'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});return {id:row.id,sectionId,revision:0,topicRevision:topic.organizationRevision};});
+  return this.operation(request,t=>this.createSectionInTransaction(t,request,requestedRank));
+ }
+ async createSectionInTransaction(t,request,requestedRank){const topic=await this.canonicalTopic(t,request.topicId);if(topic.id!==request.topicId)fail();if(topic.organizationRevision!==request.expectedTopicRevision)return {conflict:true};const last=this.libraryDocumentMode?await t.edge('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),'prev'):null,rank=humanSectionRank(last,requestedRank);const sectionId=humanUuid(this,t),row=planHumanSectionCreation(request,topic,{sectionId,rank,at:humanClock(this,t)});await t.put('sections',row);topic.organizationRevision++;await t.put('topics',topic);await journal(this,t,{kind:'section',entityId:sectionId,documentId:topic.id,before:null,after:row,fieldMask:['title','rank'],actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]});return {id:row.id,sectionId,revision:0,topicRevision:topic.organizationRevision};
  }
  async canonicalTopic(t,id) {return resolveTopicIdentity(t,id);}
  mapTopicIdentityBatch(options){return mapTopicIdentityBatch(this,options);}
