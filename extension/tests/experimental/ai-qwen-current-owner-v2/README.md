@@ -1,3 +1,9 @@
+# Exact current-owner readback checkpoint
+
+The isolated branch now has an explicitly frozen0.43.1-main contract. Entire actual acceptance ran once at1e50:9 named short Topic/style replays and2 controls within3 passing Node cases, with zero network attempts. See RECEIPT.md for exact source/manifest/log identities and limits. Quality and financial/provider effects remain NOT_RUN. Earlier pending-state reader tests below are historical preparation, not the current frozen acceptance file; do not count them again after freezing. A different origin/main must refuse until another reviewed contract is selected.
+
+## Preserved prospective preparation
+
 # Current-owner v2 prospective offline qualification
 
 PROSPECTIVE_NOT_FROZEN. Root assigned only this new directory on prospective0.43.1 basee7490f1d. No accepted current-owner contract, nine-run replay evidence or compatibility claim yet. Freeze is deferred until0.43 and SplitB are accepted on main; pending manifest always refuses before constructing a store or session. Capture does not write/update any manifest. Root must review/freeze a new exact accepted-main identity, parsed full module closure and actual-owner obligations. Hash equality alone is not compatibility evidence.

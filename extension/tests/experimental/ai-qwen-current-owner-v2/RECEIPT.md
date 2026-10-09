@@ -1,3 +1,15 @@
+# Current-owner named offline readback — actual 0.43.1
+
+Main45b230ffe892556d57c6e5e51b875c81e51bb03b/tree2d7a6e1834dd0d088151b132623487c45e7b378c passed ordinary37938958153 (8 required jobs) and Prompt37938958188 (5 required jobs). The separately prepared/frozen experiment executed at1e50e313cad12c41fc1b6ecf0a4d2c279b8da9d9/tree82fac0ac15683611fffe5f4ab802d3d997e52463. Manifest SHA2568e2415359023b3fd3890c0d99eec15f6e6971263e486b396b87355a3b9f63ebf binds175 actual imported files (172 accepted-main and3 new execution roots); exact admission passed with log SHA7aa16f8d9ec57b77c06214de1d39501a6718723d5a49ce182e1b8311b7d7e6b1. Root and independent draft reviews16db4cd8/6641c655 approved only those exact bindings.
+
+One entire acceptance file ran with Node22.23.3 and --experimental-vm-modules: **3 Node cases PASS,0fail/skip/cancel**,35776.341166ms. Its first case executes3 literal short Topics ×3 styles=**9 named mechanical replays**; the next2 cases check protected human edits and OUTCOME_UNKNOWN without redispatch/publish. Log SHA25698a1faffa623f676edf5affce30ea99e30968a636e1d0757a2367a727c76df01. Those are9 controlled executions and2 controls, not independent statistical/model-quality samples. Before/after experiment HEAD and tracked tree were clean and identical; the fixed manifest did not refresh. The entire file's zero attempted network assertion passed. All data are the approved synthetic literal calibration; heldout remains unread.
+
+The test uses actual current typed stores/Organizer/LocalOrganize owners and directly reads saved canonical entries, projections, receipts, children, attempts and ACKs through the retained approved algorithm. It does not prove every native/multichild/retention path. Quality remains NOT_RUN, financialAuthority=false and dispatchAllowed=false. There was no Qwen/provider call, payment, real account/data or installation/deployment. AI-COST07 whole acceptance remains open. Final independent evidence review remains separate.
+
+This receipt records source execution1e50; subsequent receipt/README changes are documentation only. The fixed main identity deliberately refuses a different future origin/main; future metadata/owner changes require fresh explicit qualification rather than automatic hash substitution. Preserve the original failed admission/counterexamples and earlier preparatory receipts below.
+
+## Historical preparation
+
 # Current-owner v2 — prospective preparation receipt
 
 Code freeze787c0b571b379360e504a4acb2060ad812c3fc28/tree774be1bbd157318eabd0a166b9b6c80463f4b2bc; prospective parent e7490f1d2a4371fe5c755442623b82c2ed806e2f. Branchcodex/ai-qwen-current-owner-v2-20261009, isolated work/ai-qwen-current-owner-v2. Only this new experimental directory changed. Root selected limited preparation; independent review pending. This documentation commit does not relabel the code test evidence.
