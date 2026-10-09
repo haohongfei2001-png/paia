@@ -1,4 +1,4 @@
-import {requireRepositoryTransactionScope,awaitRepositoryTransactionSettled} from '../idb-repository.js';
+import {requireRepositoryTransactionScope,awaitRepositoryTransactionSettled,requireRepositoryTransactionCommitted} from '../idb-repository.js';
 import {ArchiveError} from '../constants.js';
 import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,assertHumanBranchRetentionCurrent,finishHumanBranchRetention} from './human-library-plan.js';
 import {CODECS,validateEntityAsync} from './codecs.js';
@@ -322,6 +322,7 @@ export class BrowserNativeSyncCore {
    gate.open=false;
    if(!observed||!gate.finished||!outcome)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
    await awaitRepositoryTransactionSettled(claim.repository,observed.wrapper);
+   requireRepositoryTransactionCommitted(claim.repository,observed.wrapper);
    assertHumanBranchRetentionCurrent(this,retention);return outcome;
   }finally{
    gate.open=false;closing();

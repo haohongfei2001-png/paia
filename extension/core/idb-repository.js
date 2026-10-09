@@ -32,6 +32,12 @@ export function requireRepositoryTransactionScope(repository,scope){
  if(r.nativeSettled||r.unwound||!property||property.value!==r.transaction)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
  return r.identity;
 }
+export function requireRepositoryTransactionCommitted(repository,scope){
+ const r=scopeRecord(repository,scope);
+ // Settlement also includes abort. Only the original successful transaction
+ // path, after every finalizer and actual native completion, proves commit.
+ if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+}
 export async function awaitRepositoryTransactionSettled(repository,scope){
  // Waiting on an authentic closed scope is valid; never follow its mutable tx.
  const r=scopeRecord(repository,scope);await r.settled;
@@ -142,18 +148,18 @@ export class ArchiveRepository {
  async transaction(write,fn,stores=this.stores){
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
-  let release;const record={repository:this,transaction:tx,nativeSettled:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:tx.db,mode:tx.mode}),settled:new Promise(resolve=>{release=resolve;})};
+  let release;const record={repository:this,transaction:tx,nativeSettled:false,nativeOutcome:'pending',originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:tx.db,mode:tx.mode}),settled:new Promise(resolve=>{release=resolve;})};
   repositoryScopes.set(scope,record);
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
    // Private observers cannot be replaced through tx.oncomplete/onabort.
-   tx.addEventListener('complete',()=>{record.nativeSettled=true;maybeRelease();resolve();},{once:true});
-   tx.addEventListener('abort',()=>{record.nativeSettled=true;maybeRelease();reject(fail(tx.error));},{once:true});
+   tx.addEventListener('complete',()=>{record.nativeOutcome='completed';record.nativeSettled=true;maybeRelease();resolve();},{once:true});
+   tx.addEventListener('abort',()=>{record.nativeOutcome='aborted';record.nativeSettled=true;maybeRelease();reject(fail(tx.error));},{once:true});
    tx.onerror=()=>{};
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
