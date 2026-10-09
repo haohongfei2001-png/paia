@@ -5,7 +5,7 @@ import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {localProviderDescriptor,canonical,digest,fail} from '../ai-usage/contracts.js';
 import {KNOWN_PREFIX} from '../ai-usage/delta.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
-import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,assertLocalOrganizeCacheControls} from './ai-presentation.js';
+import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,assertLocalOrganizeCacheControls,localOrganizeCacheControlsCurrent} from './ai-presentation.js';
 import {bytes} from './contracts.js';
 import {validateLocalOrganizeResponse} from './ai-contract.js';
 // No production worker creates this explicitly configured local owner. Handles
@@ -17,7 +17,7 @@ export class LocalOrganizeSession {
   this.#store=store;this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,organizeClosure:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.multi||!state.validated||canonical(r.childIds)!==canonical(state.job.childIds)||canonical(r.units)!==canonical(state.coverage)||state.outputs.size!==r.childIds.length)fail('STALE_BASE');
-   await this.#assertProvenance(t,state);await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration});
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const validated=state.validated,committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{variant:'atomic-v3',jobId:r.logicalJobId,childIds:r.childIds,childCoverage:r.children,coverage:r.units,items:state.items,children:r.childIds.map(id=>state.provenance.get(id)),profile:this.#profile,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.validated===validated&&state.outputs.size===r.childIds.length}});state.cacheProof=committed.cacheProof;
    if(this.#jobs.get(r.logicalJobId)!==state)fail('UNAVAILABLE');return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.outputs.size===r.childIds.length};
   },committers:{organize:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.validated||state.job.childIds[0]!==r.childOperationId||canonical(r.units)!==canonical(state.coverage))fail('STALE_BASE');
@@ -36,18 +36,18 @@ export class LocalOrganizeSession {
   await this.#store.aiPresentationStatus({topicId}); // Existing migration/readability owner.
   const data=await this.#foundation.read(async t=>{
    const prepared=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile,this.#incrementalVersion,children,refreshStyle),items=[];
-   const keys=new Set((prepared.incremental?prepared.inputs.flatMap(i=>JSON.parse(prepared.topic.versions[i.ref])[2].map(x=>x[0])):Object.keys(prepared.topic.inputVersions)).map(id=>JSON.stringify(['input',id])));
-   for(const input of prepared.inputs){const key=JSON.stringify(['library_entry',input.ref]),known=await t.get('meta',KNOWN_PREFIX+key);if(known)keys.add(key);else if(!JSON.parse(prepared.topic.versions[input.ref])[2]?.length)fail('STALE_BASE');}
+   const keys=new Set((prepared.cachePresentation?Object.keys(prepared.topic.inputVersions):prepared.incremental?prepared.inputs.flatMap(i=>JSON.parse(prepared.topic.versions[i.ref])[2].map(x=>x[0])):Object.keys(prepared.topic.inputVersions)).map(id=>JSON.stringify(['input',id])));
+   for(const input of prepared.cachePresentation?prepared.topic.entries.map(e=>({ref:e.id})):prepared.inputs){const key=JSON.stringify(['library_entry',input.ref]),known=await t.get('meta',KNOWN_PREFIX+key);if(known)keys.add(key);else if(!JSON.parse(prepared.topic.versions[input.ref])[2]?.length)fail('STALE_BASE');}
    if(!keys.size&&prepared.incremental)return {prepared,items,coverage:[],cacheAuthority:null};if(!keys.size||keys.size>100)fail('BUDGET_EXCEEDED');
    for(const key of keys){const known=await t.get('meta',KNOWN_PREFIX+key);if(!known||known.descriptor.removed||known.descriptor.fenceOnly)fail('STALE_BASE');items.push({key:known.descriptor.key,signature:known.signature,descriptor:known.descriptor});}
    const coverage=items.map(i=>({key:i.key,facet:'organize',scope:topicId})).sort((a,b)=>canonical([a.key,a.facet,a.scope]).localeCompare(canonical([b.key,b.facet,b.scope])));
    let cacheAuthority=null;
-   if(prepared.cachePresentation){cacheAuthority=await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage});await this.#foundation.current(t,{type:'AI_ORGANIZE',items,coverage,organizeStyle:prepared.style,authority:cacheAuthority,cancelEpoch:0});const current=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile,this.#incrementalVersion);if(current.proof!==prepared.proof||!current.cachePresentation)fail('STALE_BASE');if(canonical(await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage}))!==canonical(cacheAuthority))fail('CANCELLED');await assertLocalOrganizeCacheControls(this.#store,t,prepared);}
+   if(prepared.cachePresentation){cacheAuthority=await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage});await this.#foundation.current(t,{type:'AI_ORGANIZE',items,coverage,organizeStyle:prepared.style,authority:cacheAuthority,cancelEpoch:0});const current=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile,this.#incrementalVersion,prepared.physicalChildren,prepared.refreshStyle);if(current.proof!==prepared.proof||!current.cachePresentation)fail('STALE_BASE');if(canonical(await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage}))!==canonical(cacheAuthority))fail('CANCELLED');await assertLocalOrganizeCacheControls(this.#store,t,prepared);}
    return {prepared,items,cacheAuthority,coverage};
   });
   if(this.#generation!==generation)fail('UNAVAILABLE');
   const coverage=data.coverage;if(data.prepared.incremental&&!coverage.length)return Object.freeze({state:'NO_DELTA',jobId:null});
-  if(data.cacheAuthority){if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');const prior=this.#cached.get(topicId);if(prior)this.#handles.delete(prior.handle);const handle=Object.freeze({state:'CACHED',jobId:null}),state={...data,handle,cached:true,running:false};this.#handles.set(handle,state);this.#cached.set(topicId,state);return handle;}
+  if(data.cacheAuthority){if(!localOrganizeCacheControlsCurrent(this.#store,data.prepared))fail('STALE_BASE');if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');const prior=this.#cached.get(topicId);if(prior)this.#handles.delete(prior.handle);const handle=Object.freeze({state:'CACHED',jobId:null}),state={...data,handle,cached:true,running:false};this.#handles.set(handle,state);this.#cached.set(topicId,state);return handle;}
   let partitions=null;
   if(children>1){
    const groups=data.prepared.inputs.map(input=>{const keys=JSON.parse(data.prepared.topic.versions[input.ref])[2].map(x=>JSON.stringify(['input',x[0]]));const entry=JSON.stringify(['library_entry',input.ref]);if(data.items.some(i=>i.key===entry))keys.push(entry);return {inputs:[input],keys:new Set(keys)};});
@@ -81,10 +81,11 @@ export class LocalOrganizeSession {
   return this.#foundation.read(async t=>{
    const {items,coverage,cacheAuthority,prepared}=state;
    await this.#foundation.current(t,{type:'AI_ORGANIZE',items,coverage,organizeStyle:prepared.style,authority:cacheAuthority,cancelEpoch:0});
-   const current=await readLocalOrganizeScopeInTransaction(this.#store,t,prepared.topic.id,this.#profile);
+   const current=await readLocalOrganizeScopeInTransaction(this.#store,t,prepared.topic.id,this.#profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle);
    if(current.proof!==prepared.proof||!current.cachePresentation)fail('STALE_BASE');
    if(canonical(await this.#foundation.authority(t,'AI_ORGANIZE',{items,coverage}))!==canonical(cacheAuthority))fail('CANCELLED');
    await assertLocalOrganizeCacheControls(this.#store,t,prepared);
+   if(!localOrganizeCacheControlsCurrent(this.#store,prepared))fail('STALE_BASE');
    if(this.#handles.get(state.handle)!==state||this.#cached.get(prepared.topic.id)!==state)fail('UNAVAILABLE');
    return {state:'CACHED',jobId:null,presentation:structuredClone(current.cachePresentation)};
   });
@@ -92,7 +93,14 @@ export class LocalOrganizeSession {
  async run(handle,provider){
   const state=this.#state(handle);if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
   try{
-   if(state.cached)return await this.#readCached(state);
+   if(state.cached){
+    const result=await this.#readCached(state);
+    // The transaction/read promise may settle after disposal or a local control
+    // update. Fence the actual public return, not only its IDB callback.
+    if(this.#handles.get(state.handle)!==state||this.#cached.get(state.prepared.topic.id)!==state)fail('UNAVAILABLE');
+    if(!localOrganizeCacheControlsCurrent(this.#store,state.prepared))fail('STALE_BASE');
+    return result;
+   }
    if(state.multi)return await this.#runMulti(state,provider);
    const status=await this.#foundation.status(state.job.id);if(status.state==='COMMITTED')return this.#completed(state,status);
    if(status.state==='RESPONSE_RECORDED'&&state.validated)return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
@@ -113,7 +121,7 @@ export class LocalOrganizeSession {
  async #runMulti(state,provider){
   const status=await this.#foundation.status(state.job.id);
   const children=state.job.childIds.map((childId,i)=>({childId,units:state.partitions[i].coverage}));
-  if(status.state==='COMMITTED')return this.#foundation.commitOrganizeClosure(state.job.id,{children});
+  if(status.state==='COMMITTED')return this.#completed(state,await this.#foundation.commitOrganizeClosure(state.job.id,{children}));
   if(status.attempts.some(r=>r.attemptCount>0&&!state.outputs.has(r.childId)))fail('OUTCOME_UNKNOWN');
   const descriptor=localProviderDescriptor(provider);
   // Preflight every physical payload before the first dispatch; execute still
@@ -135,7 +143,7 @@ export class LocalOrganizeSession {
   if(!state.validated&&this.#incrementalVersion===3)await this.#finishV3(state);
   if(!state.validated){state.validated=mergeIncrementalChildren(state.job.childIds.flatMap(id=>state.outputs.get(id)),{topicId:state.prepared.topic.id,style:state.prepared.style,profile:this.#profile},state.prepared);state.manifestDigest=await digest(state.validated);}
   if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
-  return this.#foundation.commitOrganizeClosure(state.job.id,{children});
+  return this.#completed(state,await this.#foundation.commitOrganizeClosure(state.job.id,{children}));
  }
  async #finishV3(state){
   if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');

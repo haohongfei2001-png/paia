@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "sourceCommit": "1d8ebba5d99a4512db1625ecd3099cd665db68ab",
+  "scope": "Exact original library-search Git bytes and complete static runtime imports",
+  "files": [
+    {
+      "path": "core/library-search.js",
+      "sha256": "44918b0615a63f1ea12dc05ff42b351906376799774fef76d89e9b3b1a45f737",
+      "gitBlob": "02189c81c6b737f3fdf8e6e08e50022cd4779ccf",
+      "bytes": 7798
+    },
+    {
+      "path": "core/search-service.js",
+      "sha256": "cd08ffe96ec002af9012fcf235a324a612d48d41ba8770eb090cef492060af70",
+      "gitBlob": "97b379366d6fb486945d4da353a277834b5c5d81",
+      "bytes": 4205
+    },
+    {
+      "path": "core/thought-model.js",
+      "sha256": "a681211abf082dce6d05381841583247778ca4462963ffe458b4503629fd4fe6",
+      "gitBlob": "991b58cb9e9ebd79a03938a937ad3bde1d4ce7f6",
+      "bytes": 4132
+    },
+    {
+      "path": "core/constants.js",
+      "sha256": "57cd5b3e207b652b55369715ce42b20e4b5167195b63f51e994732ee6748b92b",
+      "gitBlob": "ca46e55e5002b08e0efae635e21b7738366aba0f",
+      "bytes": 2714
+    }
+  ]
+}

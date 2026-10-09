@@ -3,7 +3,7 @@ import {bytes,reject} from './contracts.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
 const obj=x=>!!x&&typeof x==='object'&&!Array.isArray(x),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),clone=structuredClone;
 const exact=(x,keys)=>obj(x)&&Object.keys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
-const ROW_KEYS=new Set(['id','topicId','presentationVersion','revision','evidenceEntryIds','projection','manifest','protections','recoveryGeneration','recoveryPurgeRevision','basedOnCheckpoint','candidate','needsUpdate','stale','updatedAt','userEditedAt']);
+const ROW_KEYS=new Set(['id','topicId','presentationVersion','revision','evidenceEntryIds','projection','manifest','protections','recoveryGeneration','recoveryPurgeRevision','basedOnCheckpoint','cacheBinding','candidate','needsUpdate','stale','updatedAt','userEditedAt']);
 const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
 export const isIncrementalV2=row=>row?.presentationVersion===2;
 const value=(projection,b)=>AI_LIST_FIELDS.includes(b.field)?projection[b.field]?.[b.index]?.text:projection[b.field];

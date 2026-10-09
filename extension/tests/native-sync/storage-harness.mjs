@@ -69,7 +69,8 @@ class WorkerProtocol extends EventEmitter {
   }
 }
 
-export async function startNative(extensionPath) {
+export async function startNative(extensionPath, {closeArchivePage = false} = {}) {
+  if (typeof closeArchivePage !== 'boolean') throw new TypeError('closeArchivePage must be boolean');
   // Importing this harness for static contracts never imports or launches Chrome.
   const {FakeChatGPT} = await import('../harness/fake-chatgpt.mjs');
   const h = await FakeChatGPT.start({extensionPath, headless: true, launchThroughPort: true});
@@ -82,6 +83,13 @@ export async function startNative(extensionPath) {
   }
   const call = async (command, args = {}) => (await worker()).evaluate(({command, args}) => globalThis.__bnsNative.run(command, args), {command, args});
   await h.state();
+  // A test-only isolated worker mode: stop future Archive page refreshes without
+  // changing production startup or ignoring any already queued IDB activity.
+  // This mode does not support the page-dependent restart/stopAtPhase helpers.
+  if (closeArchivePage) {
+    await h.archive.close();
+    assert.equal(h.archive.isClosed(), true, 'Native Archive page must be closed');
+  }
   const identity = await call('identity'); assert.equal(identity.nativeFactory, true);
   const network = new LifetimeNetworkLedger(); network.observe(identity, 'opened');
   const profileHash = hash(h.externalChrome.profile);

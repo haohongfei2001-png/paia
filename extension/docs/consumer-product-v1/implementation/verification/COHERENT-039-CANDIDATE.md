@@ -1,0 +1,38 @@
+# Coherent 0.39 private Human search qualification candidate
+
+Evidence snapshot: clean code/version/native HEAD `1fa44e4e52680f5245e34f6933c129e659d0675d`, tree `bbc6153a2e3a0ebea5859d981d9455bca97f7000`. Parent local038 is not yet accepted main; remote delivered main is036 `e21b5543eaa9db9bf8e4b19dddfdfd0ee6b26ec2`. This local candidate must reconcile accepted038 before publication. No039 PR, main integration, installation or user-available update is claimed.
+
+## Concrete change and boundaries
+
+The original Library search constructors are mechanically reusable. Incoming Human codec rejects sender-local indexedSearchVersion even in nested history/identity leaves. An opaque, exact-physical-DB completed-search proof validates original current owners, full postings/tasks/history and final raw transaction fences. The private Human journal uses separate sender/receiver proof to omit only that local completion field from its exact original portable plan. Receiver-local search state stays local; unindexed original paths avoid new search reads. Tagged partial/old/coalesced/unproved history, unavailable rebuild, stale postings and foreign authority remain refused. This is not generic metadata stripping, arbitrary derived recovery, public registration or full Sync.
+
+Root and independent reviewers approved each finite constructor, incoming-tag refusal, same-DB capability and journal interface with actual whole-store refusal/rollback evidence. Preserved before failures include resealed nested-tag acceptance, original indexed journal refusal, the actual same-repository/new-physical-DB capability bug and fixture mistakes. The physical DB binding repair and exact incoming codec checks do not erase those original failures. Source-receipt details remain in the four owning sync receipts.
+
+Compatible version is0.39.0; original producer minors7–39 are admitted and future40 remains refused. No schema/store/permission/transport/account/paid activation changes. Future040 pure Entry computation and multi-child AI cache are outside this frozen candidate; changing its Human plan owner invalidates these current28-hash native identities.
+
+## Exact local validation
+
+- One final isolated complete unit run at1fa44e4e: **4677/4677 PASS**,0 failed/skipped; `/tmp/039-final-complete-unit.log`, SHA-256 `aca3ca87768ddec5b9b04a42d4d4655f22e2d31ac4166ac938de724fdeeaa95a`. Original concurrency4/assertions/budgets retained. Source audit13932 guardrails/416 resources and development privacy/permission/network audit PASS. This unit command is not the full browser/product suite.
+- Original whole Human native source/release file: **2/2 PASS**,22984.785708ms, `/tmp/039-human-native-source-release.log`. Each variant completes the original24 ordered owning cases,28 fresh current runtime hashes, two actual worker restarts and zero network. Original durable history, canonical state, full-store duplicate/no-echo and old-reader/pre-role refusal remain. Strict receipt verification against actual current1fa HEAD/tree/fresh28 hashes and source/release equivalence passes; independent read-only checkpoint `work/039_NATIVE_CHECKPOINT_20261009.md` preserves full receipt/log hashes.
+- Three additional **whole** native files (original grouped checkpoint,01.5 Backup and03 segmented Backup): **4/4 PASS**,29296.075625ms, `/tmp/039-final-group-backup-native.log`, SHA-256 `5e3ba6dd4de861d3eca9342025e0f1c54d8c8594f52d041a99008c23a766f612`. Distinct runs together cover six unique cases across four complete files; they are not reported as one six-case run. Existing failures from earlier batches remain in their original receipts.
+- Standard final release build at1fa: **436 files /0.39.0**, `/tmp/039-final-release.log`;13868 emitted-package guardrails/412 resources and RELEASE_PRODUCT_GUARD_PASS. No039 ZIP or installation. Native drivers use their own isolated source/release outputs; this is the first standard current-release build for this exact candidate.
+
+The two actual restart transitions occur at cooperative no-op boundaries with no in-flight native transaction. They prove durable restart/replay at those boundaries, not arbitrary transaction crash recovery. The exact28 owners are the original Human receipt scope, not every transitive dependency. Native fixture transport does not certify Chrome/Edge/Safari cloud accounts or physical devices. AI-COST07 frozen experimental54-owner evidence remains historical037 and is incompatible with later changed owners.
+
+## Integration gates still open
+
+Independent coherent receipt review; accepted038 fresh-parent reconciliation without overlapping restore; one stable final-head hosted Full including original Human strict receipt gate; normal guarded merge; exact-main Full/Prompt; verified exact-main package. Only individually unchanged code and dependency evidence may be reused across later parent/doc updates with their original snapshot identities. No cancelled/skipped job becomes PASS. No model-quality, financial, external account or overall seven-lane completion follows from this candidate.
+
+
+## Independent current parent reconciliation — 2026-10-09
+
+Local parent0382db9fd0e is now merged as `d48fbc4ebb9242b2b9dd3219487d836889738cb4`, tree `e125b890def69cfb4bf868cba9662da0076bc07d`; no conflict or override. Independent parent039_review APPROVE after reading every nonoverlapping blob: relative to tested1fa44e4e only9 Markdown and4 imported Archive repair/test paths differ, all4 exactly equal reviewed038parent. Entire core/background/version/dependency/script/CI/native-sync/fixture and backup-owning files are unchanged. Actual stored Human source/release28/28 and group source/release29/29 fresh current hashes match. Original unit4677/native/build436 keep exact1fa identity; Archive browser environment and current head were not re-certified locally. No duplicate local full/native required; one final stable hosted39 Full owns new combination and exact receipts after accepted38main.
+
+Parent PR226 exact2db9fd0e is currently under Full37889914312/Prompt37889914281; it is not yet merged/accepted main.39 publication remains held. Private40 code is outside this39 branch and separately tested; no provider/account/fullSync/installed acceptance is inferred.
+
+
+## Reviewed Section correction and merged038 main reconciliation
+
+PR226 final `f0ce00fe5bc814fc4a0aaec750829b1eccbb7787` Full37893068954 SUCCESS all nine primary browser groups, four units, native/contracts/build/aggregate; official Prompt37893068804 SUCCESS. Historical skipped audit is not PASS. Original Full37889914312 remains failed. Normal guarded merge main `ca11a1e4cd794e95f2ad515f5d197da9bef4d833`, tree `38281ea6617edf3f90856b17c7fb0d57575d880e`, retains exact final candidate bytes. MainFull37894363930/Prompt37894364076 are pending at this checkpoint;39 publication still awaits exact parent acceptance.
+
+Local39 merged reviewed Section correction at834759c7, then the normally merged main with zero file differences. Root fresh Git blob audit compares current Core/background/version/dependencies/scripts/CI/native+fixtures to actual original1fa: all byte-identical. The four Section UI/test paths equal reviewed f0ce exactly; earlier037 Archive changes remain exactly imported. Fresh original Human28 hash receipts match current source/release; this rechecks evidence identity without a native rerun. Original4677 complete units/native6/build436 remain their exact1fa observations; no current complete-browser or build claim. The changed shared UI needs stable hosted39 combination, normal merge and exact-main/package proof after parent acceptance. Future40/41 remain outside this39 runtime.

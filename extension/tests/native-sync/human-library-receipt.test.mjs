@@ -15,8 +15,8 @@ function fixture(){
  return {schema:1,head:expected.head,tree:expected.tree,variant:'source',scope:'private-local-human-named-owners-and-bounded-partial-grouped-recovery',result:'PASS',productionActivation:false,fullRecovery:false,groupCheckpointImplemented:true,derivedProjectionRecovery:false,browserVersion:'154.0.8037.99',cases:[...cases],hashes:{...expectedHashes},restart:restart(before,middle,pausedFirst),groupRestart:restart(middle,after,pausedSecond),durable:{duplicate:true,noEcho:true,history:2},groupDurable:{duplicate:true,noEcho:true,allStoresPreserved:true,sections:2,coalescedEdits:1,history:12,active:'synthetic-active-namespace',entryRevision:3},isolation:{nativeFactory:true,networkAttempts:0,httpRequests:0,databases:['paia-archive','bns-human-durable','bns-human-group-durable'],networkLedger:ledger.evidence}};
 }
 function rejected(mutations){for(const mutation of mutations){const r=fixture();mutation(r);assert.throws(()=>validate(r,expected));}}
-test('Human receipt requires actual independently read27 checkout hashes and exact private source/release scope',()=>{
- assert.equal(paths.length,27);assert.equal(cases.length,19);for(const variant of ['source','release']){const r={...fixture(),variant};assert.equal(validate(r,{...expected,variant}),r);}
+test('Human receipt requires actual independently read28 checkout hashes and exact private source/release scope',()=>{
+ assert.equal(paths.length,28);assert.equal(cases.length,24);for(const variant of ['source','release']){const r={...fixture(),variant};assert.equal(validate(r,{...expected,variant}),r);}
  for(const expectedHashes of [undefined,{},Object.fromEntries(paths.map(path=>[path,true])),Object.fromEntries(paths.map(path=>[path,'c'.repeat(64)]))])assert.throws(()=>validate(fixture(),{...expected,expectedHashes}));
 });
 test('Human receipt rejects stale, incomplete or expanded identity, partial flags, case inventory and exact byte manifests',()=>{
