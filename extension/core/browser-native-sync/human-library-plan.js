@@ -1,5 +1,11 @@
-import {requireRepositoryTransactionScope,beginRepositoryHumanRetentionRead,awaitRepositoryHumanRetentionRead,requireRepositoryHumanRetentionReadDrained} from '../idb-repository.js';
-import {validateHumanCommitGroup,CORE_LIMITS,requireHumanRetentionOwnerPhase,requireHumanRetentionEffectPreparation,requireHumanRetentionEffectFinalization,requireHumanRetentionClosingPhase,calculateHumanRetentionHeadVectors,acceptSequence} from './core.js';
+import {inspectHumanUnindexedSearch} from './human-library-search-proof.js';
+import {planSearchQueueLocator} from '../library-search.js';
+import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
+import {planIndependentExpressionTime,unknownExpressionTime} from '../organizer/expression-time.js';
+import {planThoughtRootProjection,liveTopicKey,planThoughtTopicBuild,planThoughtTopicDescriptorRows,accumulateThoughtTopicDescriptor,completeThoughtTopicProjection} from '../thought-read-index.js';
+import {beginHumanQualificationWork,resizeHumanQualificationLease,retainHumanQualificationLease,releaseHumanQualificationLease} from './human-qualification-budget.js';
+import {requireRepositoryTransactionScope,beginRepositoryHumanRetentionRead,awaitRepositoryHumanRetentionRead,requireRepositoryHumanRetentionReadDrained,awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {validateHumanCommitGroup,CORE_LIMITS,requireHumanRetentionOwnerPhase,requireHumanRetentionEffectPreparation,requireHumanRetentionEffectFinalization,requireHumanRetentionClosingPhase,calculateHumanRetentionHeadVectors,acceptSequence,requireHumanProjectionReadPhase,requireHumanProjectionNativeDrainPhase,openHumanProjectionNativeRead} from './core.js';
 import {physical,normalizePhysical} from './human-library-journal.js';
 import {editSection,editSectionInTransaction,planHumanSectionEdit} from '../thought-organization.js';
 import {planHumanFixedMembership,moveMembershipInTransaction,fixMembershipSetInTransaction} from '../topic-intent.js';
@@ -899,4 +905,272 @@ export async function verifyHumanRetentionNativeCommitted(core,scope,retention){
   try{await r.drain;}catch(error){if(failed){r.cleanupErrors??=[];r.cleanupErrors.push(error);}else{primary=error;failed=true;}}
   if(failed){primary=nativeRetentionFailure(primary,r.cleanupErrors);r.primaryFailure={value:primary};throw primary;}r.phase='verified';
  }finally{r.frames--;}
+}
+// Fixed original-owner current projection capture. No selected rows, callback,
+// reader, budget override or portable body can be supplied by a caller.
+const currentProjectionWorks=new WeakMap(),currentProjectionCaps=new WeakMap(),projectionQuarantine=new Map();
+const PROJECTION_FRAME=384*1024,PROJECTION_SEMANTIC=512*1024;
+const projectionFreeze=Object.freeze,projectionOwn=Object.hasOwn;
+const projectionGeneratorNext=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})())).next;
+const projectionCompare=globalThis.IDBFactory?.prototype.cmp,projectionFactory=globalThis.indexedDB;
+const projectionTables=Object.freeze([...humanTables,'libraryMigrationItems','librarySearchTerms','provenance','dependencies']);
+const projectionPrefixes=Object.freeze(['personalTopicName:','topicKeepSeparate:','thought-read-index:','memory:topic:','memory:section:']);
+const projectionPoints=Object.freeze(['gate','recovery-restore-epoch','thought-suppression-key','revision-sequence','thought-sequence','thought-library','thought-epoch','library-search-rebuild']);
+const projectionRequired=()=>fail('BNS_HUMAN_PROJECTION_REQUIRED');
+function projectionMeasure(value,frozen=false){const stats={};const B=branchRawMeasure(value,BRANCH_RAW_BYTES,stats,frozen);return {B,T:stats.units,V:stats.nodes,E:stats.slots};}
+// The original clone/tree and canonical slots are used for these exact trees.
+// Fixed frames pay finite selector, listener, meter-stack, 128/768 vectors/maps
+// and one descriptor/builder/key-generator frame, not initial native cloning.
+function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
+function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
+function projectionReserve(r,scratch=0){const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+scratch;if(charge>8*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');resizeHumanQualificationLease(r.work,charge);}
+function projectionDeepFreeze(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key))projectionDeepFreeze(value[key]);projectionFreeze(value);}
+function projectionCurrent(r){r.storeAssert(r.store);if(r.revoked||r.closed||!r.work)projectionRequired();branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
+function projectionKeep(r,value,transfer=false){
+ const m=projectionMeasure(value,'native'),charge=projectionTreeCharge(m);
+ r.owned+=charge;if(transfer)r.transient-=charge;try{projectionReserve(r);}catch(error){r.owned-=charge;if(transfer)r.transient+=charge;throw error;}
+ projectionDeepFreeze(value);return value;
+}
+function projectionEqual(r,a,b,scratch=0){const am=projectionMeasure(a),bm=projectionMeasure(b);projectionReserve(r,scratch+projectionCanonicalCharge(am)+projectionCanonicalCharge(bm));try{return equal(a,b);}finally{projectionReserve(r,scratch);}}
+function projectionFence(r){projectionCurrent(r);const actual=projectionMeasure(r.control,'native'),expected=projectionMeasure(r.controlValues,true);if(actual.B>expected.B||actual.T>expected.T||actual.V>expected.V||actual.E>expected.E||!projectionEqual(r,r.control,r.controlValues))fail('BNS_HUMAN_CHANGED');}
+function projectionSource(tx,task){
+ const n=retentionNative,store=n.store.call(tx,task.store);
+ if(n.storeTransaction.call(store)!==tx||n.storeName.call(store)!==task.store||n.storeKeyPath.call(store)!=='id')projectionRequired();
+ if(!task.index)return store;
+ const index=n.index.call(store,task.index),path=n.indexKeyPath.call(index),expected=LIBRARY_INDEXES[task.store][task.index];
+ if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||!Array.isArray(path)||path.length!==expected.length||path.some((x,i)=>x!==expected[i]))projectionRequired();
+ return index;
+}
+function projectionRange(task){
+ if(task.prefix){const p=task.prefix;return retentionNative.bound(p,p.slice(0,-1)+String.fromCharCode(p.charCodeAt(p.length-1)+1),false,true);}
+ if(task.parts)return retentionNative.bound(task.parts,[...task.parts,[]],false,true);
+ return null;
+}
+function projectionTasks(r){
+ const tasks=[];
+ for(const name of projectionTables){const limit=name==='libraryMigrationItems'?768:name==='librarySearchTerms'||name==='provenance'||name==='dependencies'?0:128;
+  tasks.push({kind:'count',store:name,limit,target:r.raw.rows[name],zero:limit===0});
+  tasks.push({kind:'cursor',store:name,limit,target:r.raw.rows[name]});
+ }
+ for(const p of projectionPrefixes){const target=r.raw.prefixes[p],limit=p.startsWith('memory:')?0:p==='thought-read-index:'?129:128;
+  tasks.push({kind:'count',store:'meta',prefix:p,limit,target});tasks.push({kind:'cursor',store:'meta',prefix:p,limit,target});
+ }
+ for(const key of projectionPoints)tasks.push({kind:'point',store:'meta',key});
+ tasks.push({kind:'point',store:'meta',key:r.binding.prefix+'active',active:true});
+ return tasks;
+}
+function projectionOrderedTasks(r,tasks){
+ const raw=r.raw;
+ for(const row of raw.rows.thoughts){if(typeof row.id!=='string'||row.id.length>512)projectionRequired();const view={ownerId:row.id,keys:[]};raw.receiptOrder.push(view);tasks.push({kind:'count',store:'operationReceipts',index:'byOwner',parts:['thought-library',row.id],limit:128,target:view.keys,borrow:true});tasks.push({kind:'cursor',store:'operationReceipts',index:'byOwner',parts:['thought-library',row.id],limit:128,target:view.keys,borrow:true});}
+ for(const topic of raw.rows.topics){if(typeof topic.id!=='string'||topic.id.length>512||!Number.isSafeInteger(topic.activeLayoutGeneration)||topic.activeLayoutGeneration<0)projectionRequired();const view={topicId:topic.id,keys:[]};raw.placementOrder.push(view);tasks.push({kind:'count',store:'placements',index:'byTopicOrder',parts:[topic.id,topic.activeLayoutGeneration,0],limit:128,target:view.keys,borrow:true});tasks.push({kind:'cursor',store:'placements',index:'byTopicOrder',parts:[topic.id,topic.activeLayoutGeneration,0],limit:128,target:view.keys,borrow:true});}
+}
+function projectionExpectedKey(row,path){return Array.isArray(path)?path.map(key=>row[key]):row[path];}
+function projectionPump(r,t){
+ const n=retentionNative,tx=t.tx,identity=requireRepositoryTransactionScope(r.binding.repository,t);
+ if(!identity.nativeTransaction||identity.database!==r.binding.database||n.db.call(tx)!==r.binding.database||!['readonly','readwrite'].includes(n.mode.call(tx))||n.mode.call(tx)!==identity.mode)projectionRequired();
+ requireRepositoryTransactionDataMethods(r.binding.repository,t);r.scope=t;r.identity=identity;
+ const tasks=projectionTasks(r),counts=new Map();
+ return new Promise((resolve,reject)=>{
+  let position=0,ended=false,request=null,success=null,error=null,ordered=false;
+  const clear=()=>{const failures=[];if(request)for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){failures.push(e);}if(failures.length){r.listenersCleared=false;r.failedRequest={request,success,error};throw new AggregateError(failures,'Projection request listener cleanup failed');}request=null;success=null;error=null;r.failedRequest=null;r.listenersCleared=true;};
+  const failed=e=>{if(ended)return;ended=true;try{clear();}catch(cleanup){r.cleanupErrors.push(cleanup);}reject(e);};
+  const next=()=>{
+   try{
+    projectionCurrent(r);
+    if(position===tasks.length){if(!ordered){ordered=true;projectionOrderedTasks(r,tasks);}if(position===tasks.length){ended=true;clear();resolve();return;}}
+    const task=tasks[position++],source=projectionSource(tx,task),range=projectionRange(task);let count=0,lastKey=null,lastPrimary=null,lastCharge=0;
+    r.listenersCleared=false;request=task.kind==='point'?n.storeGet.call(source,task.key):task.kind==='count'?(task.index?n.indexCount:n.storeCount).call(source,range):(task.index?n.indexCursor:n.storeCursor).call(source,range);
+    const valid=event=>event.isTrusted===true&&n.eventTarget.call(event)===request&&n.eventCurrent.call(event)===request;
+    const checked=()=>{projectionCurrent(r);if(n.ready.call(request)!=='done'||n.source.call(request)!==source||n.requestTransaction.call(request)!==tx)projectionRequired();};
+    error=event=>{try{if(!valid(event))return;checked();failed(n.error.call(request)||new Error('Native projection request failed'));}catch(e){failed(e);}};
+    success=event=>{
+     let value=null,cursor=null,more=false,finished=false;
+     try{
+      if(!valid(event))return;checked();value=n.result.call(request);
+      if(task.kind==='count'){if(!Number.isSafeInteger(value)||value<0||value>task.limit)fail('BNS_HUMAN_GRAPH_LIMIT');counts.set(task.target,value);finished=true;}
+      else if(task.kind==='point'){
+       value=value??null;r.transient=projectionTreeCharge(projectionMeasure(value,'native'));projectionReserve(r);if(value!==null&&value.id!==task.key)projectionRequired();r.raw.points[task.key]=projectionKeep(r,value,true);
+       if(task.active){const namespace=r.binding.fixedNamespace||value?.namespace||'initial';if(typeof namespace!=='string'||namespace!=='initial'&&!/^[A-Za-z0-9_-]{8,128}$/.test(namespace))projectionRequired();r.raw.namespace=namespace;tasks.push({kind:'point',store:'meta',key:protocolPhysicalId(r.binding.prefix,namespace,'generation',[])});}
+       finished=true;
+      }else{
+       cursor=value;
+       if(!cursor){if(count!==counts.get(task.target))fail('BNS_HUMAN_CHANGED');finished=true;}
+       else{
+        if(count>=task.limit||n.cursorRequest.call(cursor)!==request||n.cursorSource.call(cursor)!==source)projectionRequired();
+        const key=n.cursorKey.call(cursor),primary=n.cursorPrimaryKey.call(cursor),keyCharge=projectionTreeCharge(projectionMeasure(key,'native'))+projectionTreeCharge(projectionMeasure(primary,'native'));
+        r.transient=lastCharge+keyCharge;projectionReserve(r);
+        if(typeof primary!=='string'||primary.length>2048||task.prefix&&!primary.startsWith(task.prefix))projectionRequired();
+        if(lastKey!==null){const order=projectionCompare.call(projectionFactory,lastKey,key);if(order>0||order===0&&projectionCompare.call(projectionFactory,lastPrimary,primary)>=0)projectionRequired();}
+        value=n.cursorValue.call(cursor);r.transient+=projectionTreeCharge(projectionMeasure(value,'native'));projectionReserve(r);if(!value||value.id!==primary)projectionRequired();
+        const expected=projectionExpectedKey(value,task.index?LIBRARY_INDEXES[task.store][task.index]:'id');
+        // Native keyPath and cursor identity are both checked, not row claims.
+        if(!projectionEqual(r,key,expected))projectionRequired();
+        if(task.borrow){const whole=r.raw.rows[task.store].find(row=>row.id===primary);if(!whole||!projectionEqual(r,value,whole))fail('BNS_HUMAN_CHANGED');task.target.push(projectionKeep(r,{key,primary}));}
+        else{task.target.push(projectionKeep(r,value,true));}
+        // One transient native key pair survives to check strict source order.
+        lastKey=key;lastPrimary=primary;lastCharge=keyCharge;count++;more=true;
+       }
+      }
+     }catch(e){failed(e);}finally{value=null;r.transient=lastCharge;}
+     if(ended)return;
+     try{if(more)n.cursorContinue.call(cursor);else if(finished){lastKey=null;lastPrimary=null;lastCharge=0;r.transient=0;clear();next();}}catch(e){failed(e);}finally{cursor=null;}
+    };
+    n.add.call(request,'success',success);n.add.call(request,'error',error);
+   }catch(e){failed(e);}
+  };
+  next();
+ });
+}
+export function finishHumanProjectionNativeDrain(core,t,nonce){const r=currentProjectionWorks.get(nonce);if(!r||r.core!==core)projectionRequired();requireHumanProjectionNativeDrainPhase(core,t,nonce);r.nativeDrained=true;}
+export function requireHumanProjectionNativePreparation(core,nonce){const r=currentProjectionWorks.get(nonce);if(!r||r.core!==core||r.phase!=='opening')projectionRequired();projectionCurrent(r);}
+export async function collectHumanCurrentUnindexedProjectionNative(core,t,nonce){
+ const r=currentProjectionWorks.get(nonce);if(!r||r.core!==core||r.phase!=='opening')projectionRequired();requireHumanProjectionReadPhase(core,t,nonce);r.phase='reading';r.nativeOpened=true;r.scope=t;await projectionPump(r,t);r.phase='observed';
+}
+function projectionRaw(){const rows=Object.create(null),prefixes=Object.create(null);for(const name of projectionTables)rows[name]=[];for(const name of projectionPrefixes)prefixes[name]=[];return {rows,prefixes,points:Object.create(null),namespace:null,receiptOrder:[],placementOrder:[]};}
+function projectionSourceFree(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key)){const item=value[key];if((key==='sourceRecordIds'||key==='inputRefs')&&(!Array.isArray(item)||item.length))fail('BNS_HUMAN_UNSUPPORTED');projectionSourceFree(item);}}
+function projectionScalarString(value,max=512){if(typeof value!=='string'||value.length>max)projectionRequired();}
+function projectionNativeOrder(r,store,view,parts){
+ const path=LIBRARY_INDEXES[store][store==='placements'?'byTopicOrder':'byOwner'];
+ const expected=r.raw.rows[store].filter(row=>parts.every((part,i)=>row[path[i]]===part));
+ for(const row of expected){const key=projectionExpectedKey(row,path);projectionCompare.call(projectionFactory,key,key);}
+ expected.sort((a,b)=>projectionCompare.call(projectionFactory,projectionExpectedKey(a,path),projectionExpectedKey(b,path))||projectionCompare.call(projectionFactory,a.id,b.id));
+ if(expected.length!==view.keys.length)fail('BNS_HUMAN_CHANGED');
+ for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),r.semantic))fail('BNS_HUMAN_CHANGED');
+ return expected;
+}
+function projectionPendingOwner(row,kind){
+ projectionScalarString(row.id);
+ if(!row.id.length||!['active','removed'].includes(row.lifecycle)||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ const required=kind==='entry'?['revision','contentRevision']:kind==='topic'?['revision','activeLayoutGeneration']:['revision','layoutGeneration'];
+ for(const field of required)if(!Number.isSafeInteger(row[field])||row[field]<0)projectionRequired();
+ for(const field of ['layoutGeneration','searchSafetyVersion'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();
+ if(kind==='entry'&&row.fieldRevisions?.type!==undefined&&(!Number.isSafeInteger(row.fieldRevisions.type)||row.fieldRevisions.type<0))projectionRequired();
+ projectionScalarString(row.searchVersion,128);
+}
+function projectionSemanticCharge(r){
+ let charge=PROJECTION_SEMANTIC;
+ if(r.raw.rows.thoughts.length+r.raw.rows.topics.length+r.raw.rows.sections.length>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ // Prepaid fixed frame holds these two/three-element borrowed scalar arrays
+ // and one empty original constructor header. B bounds the exact JSON string
+ // units without allocating that string; no normalizer expansion is assumed.
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
+  projectionPendingOwner(row,kind);
+  const ownerKey=projectionMeasure([kind,row.id]).B,queueKey=projectionMeasure(['search',kind,row.id]).B;
+  const header=projectionMeasure(planSearchQueueLocator(kind,{id:'',sourceRecordIds:[]},'0'));
+  charge+=4*ownerKey+projectionTreeCharge(header)+2*(queueKey+row.id.length+128);
+ }
+ return charge;
+}
+function projectionQualify(r){
+ const raw=r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
+ r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);
+ if(rows.provenance.length||rows.dependencies.length||rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
+ if(!settings?.enabled||settings.consentVersion!==CONSENT_VERSION||points.gate&&(points.gate.epoch!==settings.epoch||points.gate.enabled!==settings.enabled))fail('BNS_HUMAN_PERMISSION');
+ if(points['thought-library']?.sealed)fail('BNS_HUMAN_UNSUPPORTED');
+ const epoch=points['thought-epoch']?.value||0;if(!Number.isSafeInteger(epoch)||epoch<0)projectionRequired();
+ projectionSourceFree(raw);
+ const migration=new Map(),metadata=new Map();let descriptors=0;
+ for(const row of rows.libraryMigrationItems){projectionScalarString(row.id,2048);if(migration.has(row.id))projectionRequired();migration.set(row.id,row);}
+ for(const row of raw.prefixes['thought-read-index:']){projectionScalarString(row.id,2048);if(metadata.has(row.id))projectionRequired();metadata.set(row.id,row);}
+ const match=row=>{if(!row)return;if(!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');migration.delete(row.id);};
+ const queue=[];
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
+ // Every physical migration row will also be matched below; this subset is
+ // used only after its exact original queue locator has been observed.
+ const search={rows:{thoughts:rows.thoughts,topics:rows.topics,sections:rows.sections,revisions:rows.revisions,libraryMigrationItems:queue,librarySearchTerms:rows.librarySearchTerms},rebuild:points['library-search-rebuild']};
+ projectionDeepFreeze(search);inspectHumanUnindexedSearch(search);
+ const root=metadata.get('thought-read-index:v1:root');
+ if(root){
+  projectionScalarString(root.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(root.activeGeneration)||typeof root.completedAt!=='string'||!Number.isFinite(Date.parse(root.completedAt)))projectionRequired();
+  let indexed=0;for(const topic of rows.topics){if(topic.createdAt!==null&&topic.createdAt!==undefined)projectionScalarString(topic.createdAt,128);const planned=planThoughtRootProjection(topic,root.activeGeneration);if(planned.row){match(planned.row);indexed++;}}
+  const expected={id:'thought-read-index:v1:root',version:1,activeGeneration:root.activeGeneration,buildingGeneration:null,sourceCursor:null,scanned:rows.topics.length,indexed,activeCount:indexed,completedAt:root.completedAt};
+  if(!projectionEqual(r,root,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(root.id);
+ }
+ for(const topic of rows.topics){
+  const view=raw.placementOrder.find(item=>item.topicId===topic.id);if(!view)projectionRequired();
+  const placements=projectionNativeOrder(r,'placements',view,[topic.id,topic.activeLayoutGeneration,0]);
+  const id='thought-read-index:v1:topic:'+topic.id,actual=metadata.get(id);if(!actual)continue;
+  if(topic.lifecycle!=='active'||topic.redirectTo||actual.version!==THOUGHT_TOPIC_INDEX_VERSION||!Number.isSafeInteger(actual.timeRevision)||actual.timeRevision<0)projectionRequired();
+  projectionScalarString(actual.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(actual.activeGeneration)||typeof actual.completedAt!=='string'||!Number.isFinite(Date.parse(actual.completedAt)))projectionRequired();
+  for(const field of ['organizationRevision','countVersion'])if(topic[field]!==undefined&&topic[field]!==null&&(!Number.isSafeInteger(topic[field])||topic[field]<0))projectionRequired();
+  const key=liveTopicKey(topic,epoch,actual.timeRevision);
+  const seed={id,version:THOUGHT_TOPIC_INDEX_VERSION,timeRevision:actual.timeRevision,activeGeneration:null,activeKey:null,buildingGeneration:null,buildingKey:null,sourceCursor:null,scanned:0,indexed:0};
+  const expected=planThoughtTopicBuild(seed,key,actual.activeGeneration);
+  for(const p of placements){
+   expected.scanned++;if(p.lifecycle!=='active')continue;
+   const row=rows.thoughts.find(entry=>entry.id===p.entryId);if(!row||row.storageSchema!==2||row.lifecycle!=='active')continue;
+   if(row.provenanceType!=='user_created'||row.origin!=='user'||!Array.isArray(row.sourceRecordIds)||row.sourceRecordIds.length||!Array.isArray(row.inputRefs)||row.inputRefs.length)fail('BNS_HUMAN_UNSUPPORTED');
+   for(const field of ['entryId','sectionId','sectionRank','rank'])projectionScalarString(p[field]);
+   if(row.createdAt!==null&&row.createdAt!==undefined)projectionScalarString(row.createdAt,128);
+   const receipts=raw.receiptOrder.find(item=>item.ownerId===row.id);if(!receipts)projectionRequired();
+   const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id]);
+   const receipt=receiptRows[0]??null,evidenceAt=receipt?.result?.independentExpression?.at;if(evidenceAt!==undefined&&evidenceAt!==null)projectionScalarString(evidenceAt,128);
+   if(!Number.isSafeInteger(p.revision)||p.revision<0)projectionRequired();
+   const expression=row.staleReasons?.includes('source_purged')?unknownExpressionTime():planIndependentExpressionTime(row,receipt);
+   const time={sourceSentAt:null,capturedAt:null},rawTime=row.createdAt||null,effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
+   const iterator=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
+   projectionGeneratorNext.call(iterator);projectionGeneratorNext.call(iterator,expression);const descriptor=projectionGeneratorNext.call(iterator,[]).value;
+   if(++descriptors>128)fail('BNS_HUMAN_GRAPH_LIMIT');expected.indexed++;
+   const rowIterator=planThoughtTopicDescriptorRows(descriptor,actual.activeGeneration);
+   for(let item=projectionGeneratorNext.call(rowIterator);!item.done;item=projectionGeneratorNext.call(rowIterator))match(item.value);
+   accumulateThoughtTopicDescriptor(expected,descriptor);
+  }
+  const done=completeThoughtTopicProjection(expected);projectionGeneratorNext.call(done);projectionGeneratorNext.call(done,actual.completedAt);
+  if(!projectionEqual(r,actual,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(id);
+ }
+ // Receipt order is authenticated even for an Entry outside a current Topic.
+ for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id]);}
+ if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
+ migration.clear();metadata.clear();
+}
+function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
+function projectionDrop(r){r.failedRequest=null;r.raw=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
+export async function captureHumanCurrentUnindexedProjection(store,core){
+ if(arguments.length!==2)projectionRequired();
+ const work=beginHumanQualificationWork('projection',PROJECTION_FRAME);
+ let r,cap,ticket,primary,failed=false;
+ try{
+  if('value'in Object.prototype)projectionRequired();nativeRetentionAvailable();if(typeof projectionCompare!=='function'||!projectionFactory)projectionRequired();
+  // Resolve the fixed original owner after ESM initialization. A static
+  // backedge here would initialize the derived Store before its base class.
+  const storeAssert=(await import('../library-documents-store.js')).requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=branchReady(store,core);
+  if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
+  if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
+  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[]};
+  const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
+  await r.tail;projectionFence(r);r.raw=projectionRaw();currentProjectionWorks.set(r.nonce,r);
+  await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
+  if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);projectionReserve(r);
+  // Admission must also be readable by the exact original whole-cut equality
+  // used at require. Meter and prepay both real canonical operands first.
+  if(!projectionEqual(r,r.raw,r.raw))projectionRequired();projectionFence(r);
+  if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
+  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false};
+  currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
+ }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
+ finally{
+  // The fixed Core entry returned only after native terminal, original unwind,
+  // dispatch-end and listener cleanup. No active native frame is refunded here.
+  if(r&&r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){r.revoked=true;projectionQuarantine.set(r.nonce,r);}else if(r)projectionDrop(r);else releaseHumanQualificationLease(work);
+  if(failed&&ticket){releaseHumanQualificationLease(ticket);if(cap)currentProjectionCaps.delete(cap);}
+ }
+}
+export async function requireHumanCurrentUnindexedProjection(t,cap){
+ if(arguments.length!==2)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked||p.released)projectionRequired();
+ const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'verifying',closed:false,revoked:false,cleanupErrors:[]};p.frames++;
+ try{
+  if('value'in Object.prototype)projectionRequired();projectionFence(r);r.raw=projectionRaw();await projectionPump(r,t);
+  if(p.revoked)projectionRequired();requireRepositoryTransactionScope(p.binding.repository,t);projectionFence(r);
+  if(!projectionEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');
+ }catch(error){throw projectionFailure(error,r.cleanupErrors);}
+ finally{
+  // require resolves at the checked point in the original transaction. Its
+  // work and revoked retained cut survive until that scope really drains.
+  const drain=async()=>{try{if(r.scope)await awaitRepositoryTransactionSettled(p.binding.repository,r.scope);}catch(error){p.revoked=true;p.cleanupFailure=error;r.revoked=true;projectionQuarantine.set(r.nonce,r);throw error;}if(r.listenersCleared===false){p.revoked=true;p.cleanupFailure=r.cleanupErrors[0]??new Error('Projection request cleanup incomplete');r.revoked=true;projectionQuarantine.set(r.nonce,r);return;}projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);};
+  if(r.scope){const cleanup=drain();cleanup.catch(()=>{});}else{projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);}
+ }
+}
+export function releaseHumanCurrentUnindexedProjection(cap){
+ if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked||p.released)projectionRequired();currentProjectionCaps.delete(cap);projectionRevoke(p);
 }

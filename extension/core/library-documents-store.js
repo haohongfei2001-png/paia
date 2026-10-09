@@ -15,10 +15,13 @@ import {journal,nextSequence} from './thought-journal.js';
 import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-search.js';
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
 import {syncThoughtRootTopic,thoughtRootIndexPage,invalidateThoughtTopicIndex} from './thought-read-index.js';
+const originalLibraryDocumentsStores=new WeakSet();
+// Constructor identity only, not consent, native source or snapshot authority.
+export function requireOriginalLibraryDocumentsStore(store){if(!originalLibraryDocumentsStores.has(store))fail();}
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
 const bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 export class LibraryDocumentsStore extends LibraryFoundationStore {
- constructor(local,options={}){super(local,options);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
+ constructor(local,options={}){super(local,options);originalLibraryDocumentsStores.add(this);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
  async finishFoundation(){
   await super.finishFoundation();if(this.documentsLoaded)return;
   for(;;){

@@ -31,6 +31,11 @@ export async function expressionTime(s,t,row){
  }
  if(row.provenanceType!=='user_created'||row.origin!=='user')return unknownExpressionTime();
  const receipt=await t.edge('operationReceipts','byOwner',prefix(['thought-library',row.id]));
+ return planIndependentExpressionTime(row,receipt);
+}
+// Original receipt computation only; eligibility and the real byOwner read
+// remain with expressionTime. A caller DTO cannot prove expression ownership.
+export function planIndependentExpressionTime(row,receipt){
  const evidence=receipt?.result?.independentExpression,at=instant(evidence?.at);
  if(receipt?.namespace!=='thought-library'||receipt.ownerId!==row.id||receipt.result?.id!==row.id||evidence?.version!==1||evidence?.kind!=='committed_human_expression'||!at||at!==instant(row.createdAt))return unknownExpressionTime();
  return {at,year:Number(at.slice(0,4)),basis:'independent_creation'};

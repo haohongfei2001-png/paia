@@ -1,5 +1,5 @@
 import {ownerVersion,planSearchQueueLocator,planSearchPostings,planSearchPostingRow} from '../library-search.js';
-import {humanSearchPlanWitness} from './human-library-plan.js';
+import {humanSearchPlanWitness,branchRawMeasure} from './human-library-plan.js';
 import {bytes,clone,equal,fail} from './value.js';
 const proofs=new WeakMap();
 const kinds={entry:'thoughts',topic:'topics',section:'sections'};
@@ -42,6 +42,50 @@ function qualify(raw){
   }else if(actual.length)fail('BNS_HUMAN_SEARCH_UNPROVEN');
  }
  return {owners,completed};
+}
+const pendingDescriptor=Object.getOwnPropertyDescriptor,pendingOwn=Object.hasOwn;
+function pendingDataField(value,key,required=false,code='BNS_HUMAN_SEARCH_UNPROVEN'){
+ const d=pendingDescriptor(value,key);
+ if(!d){if(required||key in value)fail(code);return;}
+ if(!pendingOwn(d,'value')||!d.enumerable)fail(code);
+}
+// Unused computation for the restricted pending-search family. Its caller
+// must first qualify every excluded physical migration row independently.
+// Supplied rows/counts never authenticate a cut, budget, scope or permission.
+export function inspectHumanUnindexedSearch(raw){
+ if(arguments.length!==1||!raw||typeof raw!=='object'||'value'in Object.prototype)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ // Shape only: an original parent still owes native origin, cut and budget.
+ // Ordinary immutable data is the supported input, not a Proxy guarantee.
+ pendingDataField(raw,'rows',true);pendingDataField(raw,'rebuild',true);
+ if(!raw.rows||typeof raw.rows!=='object')fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ for(const name of Object.keys(limits))pendingDataField(raw.rows,name,true,'BNS_HUMAN_GRAPH_LIMIT');
+ let total=0;
+ for(const [name,limit]of Object.entries(limits)){
+  const rows=raw?.rows?.[name];
+  if(!Array.isArray(rows)||rows.length>limit)fail('BNS_HUMAN_GRAPH_LIMIT');
+  if(Object.getPrototypeOf(rows)!==Array.prototype||Object.getOwnPropertySymbols(rows).length||Object.getOwnPropertyNames(rows).length!==rows.length+1)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ }
+ for(const name of Object.values(kinds)){
+  for(let i=0;i<raw.rows[name].length;i++){
+   pendingDataField(raw.rows[name],String(i),true);const row=pendingDescriptor(raw.rows[name],String(i)).value;
+   if(!row||typeof row!=='object'||Object.getOwnPropertySymbols(row).length||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+   for(const key of ['id','storageSchema','provenanceType','origin','createdBy','lifecycle','sourceRecordIds','searchVersion','contentRevision','fieldRevisions','searchSafetyVersion','revision','layoutGeneration'])pendingDataField(row,key);
+   for(const key of ['id','storageSchema','provenanceType','origin','createdBy','lifecycle','searchVersion','contentRevision','searchSafetyVersion','revision','layoutGeneration'])if(row[key]!==null&&typeof row[key]==='object'||typeof row[key]==='function'||typeof row[key]==='symbol')fail('BNS_HUMAN_SEARCH_UNPROVEN');
+   if(row.fieldRevisions!==undefined&&row.fieldRevisions!==null){if(typeof row.fieldRevisions!=='object')fail('BNS_HUMAN_SEARCH_UNPROVEN');pendingDataField(row.fieldRevisions,'type');if(row.fieldRevisions.type!==null&&typeof row.fieldRevisions.type==='object'||typeof row.fieldRevisions.type==='function'||typeof row.fieldRevisions.type==='symbol')fail('BNS_HUMAN_SEARCH_UNPROVEN');}
+  }
+  total+=raw.rows[name].length;
+ }
+ // One exact task per owner follows from original uniqueness/locator checks
+ // plus equal total cardinality. Never send an indexed owner into tokens.
+ if(total>128||raw.rows.libraryMigrationItems.length!==total||raw.rows.librarySearchTerms.length)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ for(let i=0;i<raw.rows.libraryMigrationItems.length;i++){pendingDataField(raw.rows.libraryMigrationItems,String(i),true);const task=pendingDescriptor(raw.rows.libraryMigrationItems,String(i)).value;if(!task||typeof task!=='object')fail('BNS_HUMAN_SEARCH_UNPROVEN');pendingDataField(task,'ownerKind',true);pendingDataField(task,'ownerId',true);}
+ branchRawMeasure(raw,4*1024*1024,null,true);
+ branchRawMeasure(raw,4*1024*1024,null,'native');
+ const verified=qualify(raw);
+ const owners=verified.owners.size,completed=verified.completed.size;
+ verified.owners.clear();verified.completed.clear();
+ if(owners!==total||completed)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ return Object.freeze({version:1,state:'NOT_ADMITTED',unindexedOwners:owners,exactQueueTasks:total,postings:0,executionProfileQualified:false,budgetAuthority:false,nativeQualified:false});
 }
 // Private readonly prerequisite only; no production caller registers it.
 export async function captureHumanCompletedSearch(store,core){

@@ -1,3 +1,7 @@
+## Coordinated frontier — 2026-10-10
+
+Accepted0.43.4 remote main6b4f961. Current0.43.5 is a coherent SYNC01 native current-generation pending-search prerequisite under final review/full CI, not seven-plan completion. Exact04449613 whole files165PASS and current19/original retention28 real headless cases per source/release variant pass; all previous failures remain. STATUS and [batch receipt](implementation/verification/COHERENT-0435-CURRENT-PROJECTION-NATIVE.md) bind outcomes and remaining Scope/canonical-recovery/indexed-generation gates. Existing CTX/SET approved-image absence, Qwen quality/paid/account/device and installed/live acceptance remain distinct; no broader scope is selected.
+
 # Accepted 0.43.3; current 0.43.4 whole-owner source preflight
 
 Remote main24fc0f6eebd264c68c7c23c7075e5544608c5b18/tree871cce704595c9a64a978d03433455681d1c5730 normally mergesPR237. Exact-main ordinary37949520040 passed8/8; Prompt37949520104 attempt1 pre-app CDP startupFAIL is preserved with actual native cause unknown; one same-source retry attempt2 passed all5 required jobs (GitHub also reran4 upstream units). No failures, skips or cancellations are counted PASS. The441-file0.43.3 ZIP is byte/CRC verified and delivered, SHA3c324e71b3a804395766717b294f63e35eba25b17d9604910270793cbe009ec7; installation/deployment false.

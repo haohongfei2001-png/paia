@@ -1,7 +1,7 @@
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryTransactionCommitted,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 import {ArchiveError} from '../constants.js';
-import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,assertHumanBranchRetentionCurrent,finishHumanBranchRetention,prepareHumanRetentionNativeEffects,verifyHumanRetentionNativeCommitted,finalizeHumanRetentionNativeEffects,requireHumanRetentionDeliveredValue} from './human-library-plan.js';
+import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,assertHumanBranchRetentionCurrent,finishHumanBranchRetention,prepareHumanRetentionNativeEffects,verifyHumanRetentionNativeCommitted,finalizeHumanRetentionNativeEffects,requireHumanRetentionDeliveredValue,collectHumanCurrentUnindexedProjectionNative,requireHumanProjectionNativePreparation,finishHumanProjectionNativeDrain} from './human-library-plan.js';
 import {CODECS,validateEntityAsync} from './codecs.js';
 import {canonical,clone,count,digest,equal,exact,fail,hash,identifier,opaque,SyncError,bytes} from './value.js';
 
@@ -10,6 +10,15 @@ export const CORE_LIMITS=Object.freeze({batch:128,batchBytes:4*1024*1024,parents
 // assertion below rather than trusting a replaceable public instance method.
 const humanRetentionTransactions=new WeakMap();
 const humanRetentionPreparations=new WeakMap();
+const humanProjectionReads=new WeakMap();
+export function requireHumanProjectionNativeDrainPhase(core,t,nonce){const r=humanProjectionReads.get(nonce);if(!r||r.core!==core||r.wrapper!==t||r.phase!=='drained'||!r.dispatchEnded)fail('BNS_HUMAN_PROJECTION_REQUIRED');}
+
+export function requireHumanProjectionReadPhase(core,t,nonce){
+ const r=humanProjectionReads.get(nonce),identity=requireRepositoryTransactionScope(core.repository,t);
+ if(!r||r.core!==core||r.wrapper!==t||r.identity!==identity||r.phase!=='read'||!identity.nativeTransaction||identity.mode!=='readonly'||identity.database!==r.database||core.repository!==r.repository||core.repository.db!==r.database)fail('BNS_HUMAN_PROJECTION_REQUIRED');
+ return identity;
+}
+
 export function requireHumanRetentionEffectPreparation(core,retention,group){
  const p=humanRetentionPreparations.get(retention);if(!p||p.core!==core||p.retention!==retention||p.claim.group!==group||p.phase!=='prepare'||p.prepareEntered)fail('BNS_HUMAN_RETENTION_REQUIRED');p.prepareEntered=true;
 }
@@ -331,6 +340,24 @@ export class BrowserNativeSyncCore {
   for(const op of prepared.members){const head=await this.get(t,'head',op.type,op.entityId);if(head?.purged||!equal(head?.revisions||[],op.parents))fail('BNS_HUMAN_OWNER_CHANGED');}
   const capability=Object.freeze({});this.#humanTransactions.set(t,capability);try{await writeOwner();for(const op of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,humanCapability:capability});if(result.state!=='applied')fail('BNS_HUMAN_ANCESTRY_REQUIRED');}return {state:'applied'};}finally{this.#humanTransactions.delete(t);}
  }
+ async captureHumanCurrentProjectionNative(nonce){
+  if(arguments.length!==1||!this.#retentionRepositoryTransaction)fail('BNS_HUMAN_PROJECTION_REQUIRED');
+  requireHumanProjectionNativePreparation(this,nonce);
+  if(humanProjectionReads.has(nonce))fail('BNS_HUMAN_PROJECTION_REQUIRED');
+  let scope,primary,failed=false;const repository=this.repository,database=repository.db;
+  const r={core:this,repository,database,wrapper:null,identity:null,phase:'opening'};
+  humanProjectionReads.set(nonce,r);
+  try{
+   try{await this.#retentionRepositoryTransaction(false,async t=>{
+    scope=t;const identity=requireRepositoryTransactionScope(repository,t);
+    if(r.phase!=='opening'||!identity.nativeTransaction||identity.mode!=='readonly'||identity.database!==database||this.repository!==repository||repository.db!==database)fail('BNS_HUMAN_PROJECTION_REQUIRED');
+    r.wrapper=t;r.identity=identity;r.phase='read';
+    try{await collectHumanCurrentUnindexedProjectionNative(this,t,nonce);}catch(error){primary=error;failed=true;throw error;}
+   });}catch(error){if(!failed){primary=error;failed=true;}}
+   if(scope){try{await awaitRepositoryTransactionSettled(repository,scope);r.dispatchEnded=true;r.phase='drained';finishHumanProjectionNativeDrain(this,scope,nonce);if(!failed){const identity=requireRepositoryCommittedIdentity(repository,scope);if(identity!==r.identity||identity.database!==database||identity.mode!=='readonly'||this.repository!==repository||repository.db!==database)fail('BNS_HUMAN_CHANGED');}}catch(error){if(!failed){primary=error;failed=true;}else if(error!==primary)primary=new AggregateError([primary,error],'Projection primary and drain failures',{cause:primary});}}
+   if(failed)throw primary;
+  }finally{r.phase='closed';humanProjectionReads.delete(nonce);}
+ }
  async #retentionTransaction(fn){
   if(!this.#retentionRepositoryTransaction)fail('BNS_HUMAN_BINDING_REQUIRED');let semanticError;try{return await this.#retentionRepositoryTransaction(true,async t=>{try{return await fn(t);}catch(error){if(error instanceof SyncError)semanticError=error;throw error;}});}catch(error){throw semanticError||error;}
  }
@@ -491,3 +518,7 @@ function requireOriginalHumanRetentionCoreDataMethods(core){
  }
 }
 // END original retention Core data methods.
+
+// Fixed original entry, never an instance-supplied transaction/reader callback.
+const originalProjectionRead=BrowserNativeSyncCore.prototype.captureHumanCurrentProjectionNative;
+export function openHumanProjectionNativeRead(core,nonce){return originalProjectionRead.call(core,nonce);}
