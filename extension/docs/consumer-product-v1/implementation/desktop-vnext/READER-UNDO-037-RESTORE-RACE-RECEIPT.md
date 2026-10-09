@@ -50,4 +50,10 @@ Four complete unit files (`d7-navigator-context`, `ans-05-navigator-state`, `iah
 
 Static package check: **13569 guardrails / 407 runtime resources PASS**, `/tmp/reader-undo-race-package.log` SHA-256 `9de7f256247d18199c36d7d7a4be1e2603bc5c61ae99f4e730c161c3f06bd2df`; `git diff --check` passed. No additional native/full-suite rerun, model, remote CI or deployment was initiated by this batch. Documentation commits do not retag these exact code/test bytes.
 
-Independent Root and second-agent review are pending. Preserve both prior cloud failures and run at most the coordinator's one stable corrected-head Full after previous jobs finish. Local passes do not certify the remote candidate/main or user's installed version.
+## Independent review
+
+Root independently read the original complete runtime diff, three additive owner cases, exact final hashes, the actual held-snapshot before-failure/after-pass and the original whole10 native/39 related logs: **APPROVED**, limited to this demonstrated first-paint repair. The historical cloud failure's unique cause is not separately proved.
+
+Independent reviewer human_group_review read the runtime and actual first-paint evidence and ran the complete d7 owner file: **14/14 PASS**, 54.984458 ms, `/tmp/reader-undo-race-navigator-independent.log`; **APPROVED**, limited to this repair. The unchanged Reader SHA/actions/oracles/budgets were independently checked; no repeat native run was performed by that reviewer.
+
+Full `37880915206` has now completed **FAIL**, with Browser1 the only primary failure and the other eight browser jobs SUCCESS; no cancellation is treated as passing. Preserve both prior cloud failures and the diagnostic expected-failure reporter proof as failures, and run at most the coordinator's one stable corrected-head Full. Local passes/reviews do not certify the remote candidate/main or user's installed version.
