@@ -1092,6 +1092,7 @@ function projectionQualify(r){
   const id='thought-read-index:v1:topic:'+topic.id,actual=metadata.get(id);if(!actual)continue;
   if(topic.lifecycle!=='active'||topic.redirectTo||actual.version!==THOUGHT_TOPIC_INDEX_VERSION||!Number.isSafeInteger(actual.timeRevision)||actual.timeRevision<0)projectionRequired();
   projectionScalarString(actual.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(actual.activeGeneration)||typeof actual.completedAt!=='string'||!Number.isFinite(Date.parse(actual.completedAt)))projectionRequired();
+  for(const field of ['organizationRevision','countVersion'])if(topic[field]!==undefined&&topic[field]!==null&&(!Number.isSafeInteger(topic[field])||topic[field]<0))projectionRequired();
   const key=liveTopicKey(topic,epoch,actual.timeRevision);
   const seed={id,version:THOUGHT_TOPIC_INDEX_VERSION,timeRevision:actual.timeRevision,activeGeneration:null,activeKey:null,buildingGeneration:null,buildingKey:null,sourceCursor:null,scanned:0,indexed:0};
   const expected=planThoughtTopicBuild(seed,key,actual.activeGeneration);
@@ -1103,7 +1104,9 @@ function projectionQualify(r){
    if(row.createdAt!==null&&row.createdAt!==undefined)projectionScalarString(row.createdAt,128);
    const receipts=raw.receiptOrder.find(item=>item.ownerId===row.id);if(!receipts)projectionRequired();
    const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id]);
-   const expression=row.staleReasons?.includes('source_purged')?unknownExpressionTime():planIndependentExpressionTime(row,receiptRows[0]??null);
+   const receipt=receiptRows[0]??null,evidenceAt=receipt?.result?.independentExpression?.at;if(evidenceAt!==undefined&&evidenceAt!==null)projectionScalarString(evidenceAt,128);
+   if(!Number.isSafeInteger(p.revision)||p.revision<0)projectionRequired();
+   const expression=row.staleReasons?.includes('source_purged')?unknownExpressionTime():planIndependentExpressionTime(row,receipt);
    const time={sourceSentAt:null,capturedAt:null},rawTime=row.createdAt||null,effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
    const iterator=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
    projectionGeneratorNext.call(iterator);projectionGeneratorNext.call(iterator,expression);const descriptor=projectionGeneratorNext.call(iterator,[]).value;
