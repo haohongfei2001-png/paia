@@ -1,3 +1,9 @@
+# Actual0.43.3 fixture readback checkpoint
+
+The original whole3case file executed once at exactc979 with nine namedliteral/style replays plus protectededit/UNKNOWN controls; allPASS. Exact175owner/manifest/before-after and independent limited evidence review are in RECEIPT. QualityNOT_RUN and financial/dispatchfalse remain. Old45/54 evidence below stays historical, not a substitute. Laterdocs do not change execution identity; newaccepted-owner drift must refuse. Do not repeat unchanged cases or auto-refresh.
+
+## Preserved previous preparation
+
 # New0.43.3 accepted-owner preparation (not qualified)
 
 This new branch starts from actual normally merged24fc0f6eebd264c68c7c23c7075e5544608c5b18/tree871cce704595c9a64a978d03433455681d1c5730. Its exact-main CI and a separately reviewed new current-owner manifest are still pending. The copied45b230 contract must refuse this origin/main; it is historical, not current authorization. Do not run actual replay until explicit fresh owner review/freeze. Code/old evidence below stays unchanged, without auto-refresh or substituting a later inventory as past execution.
