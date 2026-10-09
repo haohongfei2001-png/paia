@@ -214,28 +214,56 @@ test('VS-04 current-document search saves a live edit before indexing it',{timeo
 
 test('VS-04 undo survives navigation back to the same Reader only while revisions match',{timeout:75000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});
+ let stage='setup',inputId=null;
  try{
   const p=h.archive;await p.setViewportSize({width:1280,height:800});await consent(p);assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const c=conversation('vs04-undo-after-navigation');c.messages=[{id:'vs04-undo-input',text:'Source before edit'}];
-  await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
+  stage='capture';await h.open(c);await eventually(async()=>(await h.state()).records.length===1);
   await p.bringToFront();const group=p.locator('.archive-navigator-group-toggle').first();
+  stage='initial-group';
   await eventually(()=>group.isVisible());if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  stage='initial-window';
   const window=p.locator('.archive-navigator-window').first();await window.click();
+  stage='initial-prose';
   const prose=p.locator('.library-prose').first();await eventually(()=>prose.isVisible());
   const id=await prose.getAttribute('data-edit-id'),edited='Edited 🧭 const next = 42;';
+  inputId=id;
   const originalLibrary=(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText;
   await prose.fill(edited);
-  await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===edited,'edit saves before leaving');
-  await p.locator('#back').click();await eventually(()=>group.isVisible());
+  stage='edit-save';await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===edited,'edit saves before leaving');
+  stage='back-group';await p.locator('#back').click();await eventually(()=>group.isVisible());
   if(await group.getAttribute('aria-expanded')!=='true')await group.click();
+  stage='returned-window';
   await eventually(()=>window.isVisible());await window.click();
+  stage='returned-prose';
   const returned=p.locator('[data-edit-id="'+id+'"]');await eventually(()=>returned.isVisible());
+  stage='undo-menu';
   await p.locator('[data-block-id="'+id+'"] .reader-more').click();
   await p.getByRole('menuitem',{name:/撤销|Undo/}).click();
+  stage='undo-save';
   await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===id)?.libraryText===originalLibrary,'undo after navigation saves');
   assert.equal(await returned.textContent(),'Source before edit');
   assert.equal((await h.state()).records[0].originalText,'Source before edit');
   assert.deepEqual(h.errors,[]);
+ }catch(error){
+  // Test-only bounded, body-free failure detail survives the custom reporter's
+  // error.stack path. It does not change navigation, waits or undo assertions.
+  const observation=await h.archive.evaluate(id=>({
+   language:document.documentElement.lang,focused:document.hasFocus(),
+   activeTag:document.activeElement?.tagName||null,
+   navigatorVisible:!!document.getElementById('archive-navigator')?.getClientRects().length,
+   groupCount:document.querySelectorAll('.archive-navigator-group-toggle').length,
+   groups:[...document.querySelectorAll('.archive-navigator-group-toggle')].slice(0,8).map(el=>({visible:!!el.getClientRects().length,expanded:el.getAttribute('aria-expanded'),unassigned:/未归属 Project|Not assigned to a Project/.test(el.textContent),unknown:/归属未知|Project unknown/.test(el.textContent)})),
+   windowCount:document.querySelectorAll('.archive-navigator-window').length,
+   visibleWindowCount:[...document.querySelectorAll('.archive-navigator-window')].filter(el=>el.getClientRects().length).length,
+   proseCount:document.querySelectorAll('.library-prose').length,
+   selectedInputPresent:!!id&&[...document.querySelectorAll('[data-edit-id]')].some(el=>el.dataset.editId===id),
+   menuOpen:!!document.getElementById('context-menu')&&!document.getElementById('context-menu').hidden
+  }),inputId).catch(()=>({observation:'unavailable'}));
+  const details={stage,...observation};
+  try{await mkdir(new URL('../work/reader-undo-037/',import.meta.url),{recursive:true});await writeFile(new URL('../work/reader-undo-037/failure-state.json',import.meta.url),JSON.stringify(details));}catch{}
+  const originalStack=error.stack||String(error),suffix='\nReader undo failure state: '+JSON.stringify(details);
+  error.message+=suffix;error.stack=originalStack+suffix;throw error;
  }finally{await h.close();}
 });
 
