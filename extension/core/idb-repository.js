@@ -23,6 +23,20 @@ export const sortOf=r=>[r.sourceSentAt?0:1,r.sourceSentAt||'',r.conversationOrde
 export const tombstoneId=t=>typeof t==='string'?'snapshot:'+t:'source:'+t.sourceIdentityHash;
 const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;};
 
+// Only this owner can mint scope identity. Public wrapper promises and tx-like
+// objects are not evidence of either native identity or transaction settlement.
+const repositoryScopes=new WeakMap();
+const scopeRecord=(repository,scope)=>{const r=repositoryScopes.get(scope);if(!r||r.repository!==repository)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');return r;};
+export function requireRepositoryTransactionScope(repository,scope){
+ const r=scopeRecord(repository,scope),property=Object.getOwnPropertyDescriptor(scope,'tx');
+ if(r.nativeSettled||r.unwound||!property||property.value!==r.transaction)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ return r.identity;
+}
+export async function awaitRepositoryTransactionSettled(repository,scope){
+ // Waiting on an authentic closed scope is valid; never follow its mutable tx.
+ const r=scopeRecord(repository,scope);await r.settled;
+}
+
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);
 class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
@@ -127,10 +141,19 @@ export class ArchiveRepository {
  }
  async transaction(write,fn,stores=this.stores){
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
-  const done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(fail(tx.error));tx.onerror=()=>{};});
+  const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
+  let release;const record={repository:this,transaction:tx,nativeSettled:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:tx.db,mode:tx.mode}),settled:new Promise(resolve=>{release=resolve;})};
+  repositoryScopes.set(scope,record);
+  const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
+  const done=new Promise((resolve,reject)=>{
+   // Private observers cannot be replaced through tx.oncomplete/onabort.
+   tx.addEventListener('complete',()=>{record.nativeSettled=true;maybeRelease();resolve();},{once:true});
+   tx.addEventListener('abort',()=>{record.nativeSettled=true;maybeRelease();reject(fail(tx.error));},{once:true});
+   tx.onerror=()=>{};
+  });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const scope=new Transaction(tx,this.metrics,this.thoughtLibrary),result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}
+  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
