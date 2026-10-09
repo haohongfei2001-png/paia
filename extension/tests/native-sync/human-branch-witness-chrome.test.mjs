@@ -12,7 +12,7 @@ for(const variant of ['source','release'])test('private readonly Human branch wi
   await writeFile(join(extension.path,'background/bns-human-witness-fixture.mjs'),nativeHumanBranchWitnessFixture(await readFile(join(root,'tests/human-branch-semantic-witness.test.mjs'),'utf8')));
   const worker=join(extension.path,'background/service-worker.js'),text=await readFile(worker,'utf8');assert.equal(text.split("import './bns-native-storage-fixture.mjs';").length,2);await writeFile(worker,text.replace("import './bns-native-storage-fixture.mjs';","import './bns-native-storage-fixture.mjs';\nimport './bns-human-witness-fixture.mjs';"));
   receipt.hashes=await hashes(extension.path,HUMAN_WITNESS_PATHS);receipt.proofHashes=await hashes(root,HUMAN_WITNESS_PROOF_PATHS);
-  browser=await startNative(extension.path);receipt.browserVersion=browser.browserVersion;
+  browser=await startNative(extension.path,{closeArchivePage:true});receipt.browserVersion=browser.browserVersion;
   for(let index=0;index<HUMAN_WITNESS_CASES.length;index++){const result=await browser.call('human-branch-witness-case',{index});assert.equal(result.name,HUMAN_WITNESS_CASES[index]);receipt.cases.push(result);}
   receipt.isolation=await browser.isolation();receipt.result='PASS';const expectedHashes=await hashes(root,HUMAN_WITNESS_PATHS),expectedProofHashes=await hashes(root,HUMAN_WITNESS_PROOF_PATHS);assertHumanBranchWitnessReceipt(receipt,{head,tree,variant,expectedHashes,expectedProofHashes});
   const proof={names:receipt.cases.map(c=>c.name),hashes:receipt.hashes,proofHashes:receipt.proofHashes};if(variant==='source')sourceProof=proof;else assert.deepEqual(proof,sourceProof);

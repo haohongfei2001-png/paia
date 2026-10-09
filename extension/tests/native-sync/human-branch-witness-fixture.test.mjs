@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {posix} from 'node:path';
-import {nativeHumanBranchWitnessFixture} from './human-branch-witness-fixture.mjs';import {HUMAN_WITNESS_ORIGINAL_CASES,HUMAN_WITNESS_CASES,HUMAN_WITNESS_PATHS,HUMAN_WITNESS_PROOF_PATHS} from './human-branch-witness-receipt.mjs';
+import {nativeHumanBranchWitnessFixture,nativeWitnessFailureDiagnostic} from './human-branch-witness-fixture.mjs';import {HUMAN_WITNESS_ORIGINAL_CASES,HUMAN_WITNESS_CASES,HUMAN_WITNESS_PATHS,HUMAN_WITNESS_PROOF_PATHS} from './human-branch-witness-receipt.mjs';
 const source=await readFile(new URL('../human-branch-semantic-witness.test.mjs',import.meta.url),'utf8');
 test('native witness compiler preserves all fourteen original case bytes and replaces only Node and physical constructor seams',()=>{
  const result=nativeHumanBranchWitnessFixture(source);execFileSync(process.execPath,['--input-type=module','--check'],{input:result,stdio:['pipe','pipe','pipe']});
@@ -32,4 +32,11 @@ test('native proof inventory includes the actual harness dynamic imports and cop
  const harness=await readFile(new URL('./storage-harness.mjs',import.meta.url),'utf8'),chrome=await readFile(new URL('./human-branch-witness-chrome.test.mjs',import.meta.url),'utf8');
  assert.ok(harness.includes("join(here, 'storage-worker-fixture.mjs')"));assert.ok(harness.includes("join(here, 'immutable-objects.mjs')"));assert.ok(chrome.includes("join(root,'tests/human-branch-semantic-witness.test.mjs')"));
  assert.equal(seen.size,10);assert.deepEqual([...seen].sort(),[...HUMAN_WITNESS_PROOF_PATHS].sort());
+});
+
+test('native failed-case diagnostics retain bounded error and native counters without request body or DB references',()=>{
+ const error=Object.assign(new Error('Witness wrote, initialized or changed native DB: foreignTransactions'),{code:'TEST_CODE'}),database={private:'do not serialize'},body='SYNTHETIC secret input text';
+ const result=nativeWitnessFailureDiagnostic(error,8,'complete causal union',[{caseIndex:8,kind:'capture',result:'rejected',code:'BNS_HUMAN_GRAPH_LIMIT',foreignTransactions:1,database,body,request:{body}}]);
+ assert.deepEqual(result.error,{name:'Error',code:'TEST_CODE',message:error.message});assert.equal(result.observations[0].foreignTransactions,1);assert.equal(result.observations[0].code,'BNS_HUMAN_GRAPH_LIMIT');assert.ok(!JSON.stringify(result).includes('secret'));assert.ok(!JSON.stringify(result).includes('database'));assert.equal(nativeWitnessFailureDiagnostic(new Error(body),8,'bounded').error.message,'[synthetic content redacted]');
+ const compiled=nativeHumanBranchWitnessFixture(source);assert.ok(compiled.includes("command==='human-branch-witness-failure'"));assert.ok(compiled.includes('NATIVE_WITNESS_FAILURE'));assert.ok(compiled.includes('wrapped.nativeWitnessCause=cause'));
 });
