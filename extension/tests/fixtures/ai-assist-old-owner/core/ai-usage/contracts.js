@@ -29,8 +29,3 @@ export function localProviderDescriptor(provider){
  const d=structuredClone(provider?.describe?.());exact(d,['providerId','version','executionKind']);
  if(!opaque(d.providerId)||!opaque(d.version)||!['fixture','local'].includes(d.executionKind))fail('UNAVAILABLE');return d;
 }
-
-// Reply-result obligation is not a canonical Source or facet coverage unit.
-export const ASSIST_RESULT_KIND='ai_assist_result_v1';
-export function validateReplyObligation(value){exact(value,['version','evaluationKey']);if(value.version!==1||!token(value.evaluationKey))fail();return value;}
-export function isAssistResultJob(job){return job?.kind===ASSIST_RESULT_KIND&&job.version===1&&job.type==='AI_ASSIST'&&job.childIds?.length===1&&job.replyObligation?.version===1&&token(job.replyObligation.evaluationKey);}

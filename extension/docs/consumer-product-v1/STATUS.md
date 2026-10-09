@@ -1,5 +1,11 @@
 # PAIA Consumer Product v1 — Current Status
 
+## Local 0.36 private Assist candidate — 2026-10-09
+
+The constructor-owned AI-COST-06 local reply/result/composer implementation is independently reviewed and integrated locally. Tested checkpoint7b521ae passed4512/4512 complete units; four complete native files cover six unique cases through precisely recorded original failures and targeted supplements; the425-file0.36 release build passes. Later parent reconciliation2f3dc865 changes only documentation and the saved-summary test diagnostics, with runtime/dependencies unchanged. See [COHERENT-036-CANDIDATE](implementation/verification/COHERENT-036-CANDIDATE.md) for exact versions, failure retention and reuse boundaries. No worker/visible production Assist, paid model, credential, permission or financial activation is introduced.
+
+Parent0.35 corrected head8ef79424 Full37871132571/Prompt37871132561 are in progress; original Full37868395189 and Prompt37868395184 remain FAILED. Fresh accepted parent main is required before publishing0.36; final candidate Full/Prompt are required before merge. Human graph grouped recovery continues separately under its approved typed-read-set and allocation portability interfaces; receiver/index milestones are not whole Sync delivery.
+
 ## PR223 stable corrected candidate — 2026-10-09
 
 Initial head381a72e8 Full37868395189 and Prompt37868395184 both remain FAILED. Full's sole primary failure was Browser5 release saved-summary Space after trusted touch, while source and other primary groups passed; precise native historical cause remains UNKNOWN. Settings cleanup has a separately reviewed test-only correction. Summary's actual40-round native micro and original10/10 whole file pass locally; bounded body-free failure metadata now reaches the existing reporter without changing any action, opened/focus/trusted-touch oracle, wait or budget. See [TOPIC-SAVED-SUMMARY-PR223](implementation/topic/TOPIC-SAVED-SUMMARY-PR223.md) and [SET2-NEXT-PROFILE-PR223](implementation/settings/SET2-NEXT-PROFILE-PR223.md). This is one new coherent diagnostic observation with a necessary cleanup correction, not a proven summary runtime repair. All V3 runtime/dependencies remain unchanged from07f50e8f. Final corrected-head Full/Prompt and exact-main gates are still required before delivery.

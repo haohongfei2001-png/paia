@@ -1,0 +1,55 @@
+{
+  "base": "3f6c9d2a",
+  "files": [
+    {
+      "path": "core/ai-organize-style-preference.js",
+      "sha256": "2979548f62cebb3c5d663213a1461ca497beb03b6489a9bf8fd0a4cce049eaf5",
+      "gitBlob": "6afeb2d1e2220abdf40185426b51cf37aaa2d350"
+    },
+    {
+      "path": "core/ai-usage/assist-intent-binding.js",
+      "sha256": "47d90f69837e0c5f98dc60c3ce9f436638418a62d66acdb930ea0bdc7c52b139",
+      "gitBlob": "ac15cf6e7d5047d2dac61557649eb7218ca06ce4"
+    },
+    {
+      "path": "core/ai-usage/contracts.js",
+      "sha256": "99fa79f3b6eec33e918932620cefa822d9b02ac1fdcae685b135c819fefb561f",
+      "gitBlob": "65714e9ef5ff2ca988dd0696e673da8e69ccc83c"
+    },
+    {
+      "path": "core/ai-usage/delta.js",
+      "sha256": "1ea2c9a4aebcabb9c2bd538a042c8bfd9b8bfa102ab36b7b3de107a83e5d8f21",
+      "gitBlob": "bb76574229f216cb98fe10edf9e361d85c23f653"
+    },
+    {
+      "path": "core/ai-usage/foundation.js",
+      "sha256": "0a1896e078dcbcf55334bb76af7277b24415728733eee147b8f642563da3b65c",
+      "gitBlob": "08bb4309e9ef4052b19ae04fbbd5c31b14deb62d"
+    },
+    {
+      "path": "core/ai-usage/organize-style-binding.js",
+      "sha256": "c5bb70a8884a804623764ef532a6d015aba42ebf2636112815cc6c41ce9b179b",
+      "gitBlob": "529c9614c180d258425b7dba78a8c717b06172e4"
+    },
+    {
+      "path": "core/ai-usage/semantic-invalidation.js",
+      "sha256": "afdec16704d838b99d1af7f238d24f6b9295acb791fb089a7bef938032c730e8",
+      "gitBlob": "cfabbe5cfdd62e8beef266093b3f2c9e824cb37e"
+    },
+    {
+      "path": "core/constants.js",
+      "sha256": "57cd5b3e207b652b55369715ce42b20e4b5167195b63f51e994732ee6748b92b",
+      "gitBlob": "ca46e55e5002b08e0efae635e21b7738366aba0f"
+    },
+    {
+      "path": "core/dedupe.js",
+      "sha256": "bb760d1ad26736c22a3d422d9e96358e5cfe4e1e500cf9754ad05906b1fb1507",
+      "gitBlob": "87d792337ea03639bf2e88fc02c7bdfab8597339"
+    },
+    {
+      "path": "core/thought-model.js",
+      "sha256": "a681211abf082dce6d05381841583247778ca4462963ffe458b4503629fd4fe6",
+      "gitBlob": "991b58cb9e9ebd79a03938a937ad3bde1d4ce7f6"
+    }
+  ]
+}
