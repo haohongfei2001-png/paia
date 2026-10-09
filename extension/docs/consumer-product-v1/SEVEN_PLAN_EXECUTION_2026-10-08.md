@@ -1,3 +1,13 @@
+# Accepted 0.43.0; current 0.43.1 reading-reliability batch
+
+Remote main `f1963370461f5c5899eddee0bee8cef40712c822`, tree `50fb101bd4f02c1d4e4d6c94ad1de55739e1145b`, contains PR234. Candidate Full37931284100 and exact-main Full37932927128 passed all21 required jobs; exact-main Prompt37932927171 passed. Historical skipped audit is not counted as a pass. The439-file0.43.0 ZIP was byte/CRC verified (SHA256 `94d06f8c70a9c761fe7ae20ae171fa0b9c9e28acd4552f988e6cc5bf3772a13c`); installation and deployment remain false. The original failed native run and draft PR231 stay preserved.
+
+The current compatible0.43.1 candidate combines the independently reviewed original Root/Topic projection-constructor extraction with an actual reading-position repair. Current-route tests found generic navigation resetting a restored Topic scroll and an acknowledged edit changing header height on reopen. A bounded body-free in-tab text anchor preserves the current Entry/revision/offset while existing save, IME, route and stale-read guards remain. The first candidate failed CI and is preserved. Bounded repairs pass29 complete related files312/312, including the expanded-entry and current retained-verifier cases, plus a refreshed four-file browser combination7/7 with no skips. Independent repair review57caeccd approves the exact bounded changes; refreshed candidate integration gates remain; this candidate is not merged or delivered. No complete projection restore or whole-TOPIC/SYNC acceptance is inferred.
+
+AI-COST07 current-owner-v2 is an isolated new experimental directory, still PROSPECTIVE. Independent review reproduced accepted-base drift and an uncaptured commented dynamic import; both are being repaired before any nine-case controlled replay. Historical fixtures/owners and actual model/quality/financial gates are unchanged. Missing approved Context/Settings originals remain isolated precise-visual gates; do not ask again or substitute another design. The seven existing lanes remain selected; no NIB runtime, account/model, credential, permission or deployment scope is added.
+
+## Preserved preceding checkpoint
+
 # Current 0.43 native retention candidate — full certification pending
 
 Accepted main remains `613e81fa6097426c20605d093fcf50d2453e884f` / 0.42.1. This local0.43.0 candidate preserves main's shared Graph/UI corrections and adds the original-owner Human conflict-retention repair. It is not merged, installed, deployed, or a complete Sync implementation.

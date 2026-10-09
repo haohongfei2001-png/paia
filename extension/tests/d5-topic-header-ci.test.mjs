@@ -14,7 +14,12 @@ test('D5 Topic header validates actual exact-head d7 receipts and the single nam
  const guard=read('../scripts/verify-topic-retained.mjs'),manifest=JSON.parse(read('./harness/topic-retained-candidate.json'));
  assert.deepEqual([manifest.total,manifest.pass,manifest.fail,manifest.skipped],[17,16,0,1]);assert.equal(manifest.cases.length,17);
  assert.deepEqual(manifest.cases.filter(row=>row.outcome==='skipped'),[{file:'ans-08-topic-continuous-chrome-e2e.test.mjs',name:'ANS-08 Topic return position (deferred pending Thought Library redesign)',outcome:'skipped',skipReason:'Owner deferred this single return-position check'}]);
- assert.match(read('./ans-08-topic-continuous-chrome-e2e.test.mjs'),/skip:'Owner deferred this single return-position check'/);
+ const current=JSON.parse(read('./harness/topic-retained-candidate-v2.json'));assert.deepEqual([current.total,current.pass,current.fail,current.skipped],[17,17,0,0]);assert.deepEqual(current.parts,manifest.parts);
+ const currentReturn=read('./ans-08-topic-continuous-chrome-e2e.test.mjs');
+ assert.doesNotMatch(currentReturn,/skip:'Owner deferred this single return-position check'/);
+ assert.match(currentReturn,/t\.test\('ANS-08 current durable-Section Topic return position',async/);
+ assert.ok(currentReturn.includes("beforeBack.id"));
+ assert.ok(currentReturn.includes("'topic return anchor',30000"));
  for(const value of ['d7/','receipt.headers.length,12','row.contentFocus.length,2',"'coarse-controls'","'saved-ai-history-early-dismissal'","'back-original-return'"])assert.ok(guard.includes(value),value);
  assert.match(workflow,/TOPIC_RETAINED_SELECTED:.*PAIA_DVN_TOPIC_BROWSER/);assert.match(workflow,/test \"\$TOPIC_RETAINED\" = success; test \"\$TOPIC_RETAINED_RESULTS\" = success/);
 });
