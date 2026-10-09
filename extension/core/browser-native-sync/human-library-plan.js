@@ -24,26 +24,37 @@ export async function humanPlanEntry(store,core){
 }
 // First named planner: actual Topic/default Section/both baseline histories and
 // the existing Library touch/operation receipt. No callback or virtual store.
-export async function prepareHumanTopicPlan(store,core,request,entry){
- keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300||!idOK(request.operationId)||request.operationId.length<8)fail('BNS_HUMAN_REQUEST');
- if(!store.libraryDocumentMode||!entry)fail('BNS_HUMAN_UNSUPPORTED');
- const nameIdentity=await prepareTopicName(store,request.name),before=await store.run(()=>core.transaction(false,async t=>{await assertTopicIdentityBase(t,nameIdentity);return {...await base(store,core,t),registry:await t.get('meta','personalTopicName:'+nameIdentity.token)??null,receipt:await t.get('operationReceipts',request.operationId)??null};}));
- const {registry,receipt,...cut}=before;if(!equal(cut,entry)||cut.library?.sealed)fail('BNS_HUMAN_CHANGED');
- const requestDigest=await hashText(JSON.stringify(request));if(receipt){if(receipt.digest!==requestDigest)fail('BNS_HUMAN_OPERATION_COLLISION');return {duplicate:true,result:clone(receipt.result)};}
- const allocation=prepareHumanAllocation(store,entry),id=allocation.uuid(),sectionId=allocation.uuid(),at=allocation.clock(),{topic,section}=planHumanTopicCreation(request,{id,sectionId,at});topic.identity.nameToken=nameIdentity.token;
+function computeHumanTopicState(request,before,nameIdentity,requestDigest,allocation){
+ const id=allocation.uuid(),sectionId=allocation.uuid(),at=allocation.clock(),{topic,section}=planHumanTopicCreation(request,{id,sectionId,at});topic.identity.nameToken=nameIdentity.token;
  let revisionSequence=before.revision?.value||0,thoughtSequence=before.sequence?.value||0;
  const history=[];for(const data of [{kind:'topic',entityId:id,before:null,after:clone(topic),fieldMask:['name']},{kind:'section',entityId:sectionId,documentId:id,before:null,after:clone(section),fieldMask:['title','rank']}]){
   const p=planJournalRevision({...data,actor:'user',reason:'baseline',important:true,operationId:request.operationId,sourceRecordIds:[]},null,allocation.clock()),sequence=++revisionSequence,historyId=allocation.uuid();history.push({...p.row,id:historyId,sequence,listKey:[p.entityKey,sequence],documentList:[p.row.documentId,sequence]});allocation.clock(); // existing prune invocation, even an empty new entity history
  }
  topic.searchVersion=ownerVersion('topic',topic);Object.assign(topic,planHumanTopicTouch(topic,{at:allocation.clock(),sequence:++thoughtSequence}));section.searchVersion=ownerVersion('section',section);
  const result={id,sectionId,revision:0},operationReceipt={id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:id,operationSequence:++thoughtSequence,createdAt:allocation.clock(),digest:requestDigest,result};
- const collision=await store.run(()=>core.transaction(false,async t=>({index:await t.get('meta','thought-read-index:v1:topic:'+id),topic:await t.get('topics',id),section:await t.get('sections',section.id),history:await Promise.all(history.map(r=>t.get('revisions',r.id)))})));
+ return {topic,section,history,result,operationReceipt,revisionSequence,thoughtSequence};
+}
+export async function prepareHumanTopicPlan(store,core,request,entry){
+ keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300||!idOK(request.operationId)||request.operationId.length<8)fail('BNS_HUMAN_REQUEST');
+ if(!store.libraryDocumentMode||!entry)fail('BNS_HUMAN_UNSUPPORTED');
+ const nameIdentity=await prepareTopicName(store,request.name),before=await store.run(()=>core.transaction(false,async t=>{await assertTopicIdentityBase(t,nameIdentity);return {...await base(store,core,t),registry:await t.get('meta','personalTopicName:'+nameIdentity.token)??null,receipt:await t.get('operationReceipts',request.operationId)??null};}));
+ const {registry,receipt,...cut}=before;if(!equal(cut,entry)||cut.library?.sealed)fail('BNS_HUMAN_CHANGED');
+ const requestDigest=await hashText(JSON.stringify(request));if(receipt){if(receipt.digest!==requestDigest)fail('BNS_HUMAN_OPERATION_COLLISION');return {duplicate:true,result:clone(receipt.result)};}
+ const allocation=prepareHumanAllocation(store,entry),computed=computeHumanTopicState(request,before,nameIdentity,requestDigest,allocation),{topic,section,history,result,operationReceipt,revisionSequence,thoughtSequence}=computed;
+ const collision=await store.run(()=>core.transaction(false,async t=>({index:await t.get('meta','thought-read-index:v1:topic:'+topic.id),topic:await t.get('topics',topic.id),section:await t.get('sections',section.id),history:await Promise.all(history.map(r=>t.get('revisions',r.id)))})));
  if(collision.index||collision.topic||collision.section||collision.history.some(Boolean))fail('BNS_HUMAN_ID_COLLISION');
  const cap=Object.freeze({});plans.set(cap,{kind:'topic',store,core,entry:clone(entry),before,request:clone(request),nameIdentity,allocation:allocation.seal(),events:allocation.events(),topic,section,history,result,operationReceipt,revisionSequence,thoughtSequence});return cap;
 }
 export function humanTopicPlan(cap){const p=plans.get(cap);if(p?.kind!=='topic')fail('BNS_HUMAN_PLAN_REQUIRED');return {topic:clone(p.topic),section:clone(p.section),history:clone(p.history),result:clone(p.result),operationReceipt:clone(p.operationReceipt),events:clone(p.events)};}
 export async function requireHumanTopicPlan(t,cap,store,core){const p=plans.get(cap);if(p?.kind!=='topic'||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');if(!equal(await base(store,core,t),p.entry))fail('BNS_HUMAN_CHANGED');await assertTopicIdentityBase(t,p.nameIdentity);if(!equal(await t.get('meta','personalTopicName:'+p.nameIdentity.token)??null,p.before.registry)||await t.get('operationReceipts',p.request.operationId)||await t.get('topics',p.topic.id)||await t.get('meta','thought-read-index:v1:topic:'+p.topic.id)||await t.get('sections',p.section.id))fail('BNS_HUMAN_CHANGED');for(const h of p.history)if(await t.get('revisions',h.id))fail('BNS_HUMAN_CHANGED');return p.allocation;}
 
+function computeHumanEntryState(request,before,requestDigest,exactSignature,allocation){
+ const id=allocation.uuid(),at=allocation.clock();let thoughtSequence=before.sequence?.value||0,revisionSequence=before.revision?.value||0;
+ const row=planHumanEntryCreation(request,{id,at,sequence:++thoughtSequence,exactSignature,evidence:[],nonContext:[]});allocation.uuid(); // actual generation ID is allocated even with no provenance rows
+ const snap=entrySnapshot(row),p=planJournalRevision({kind:'library_entry',entityId:id,before:snap,after:snap,fieldMask:ENTRY_FIELDS,actor:'user',reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:[]},null,allocation.clock()),sequence=++revisionSequence,historyId=allocation.uuid(),history=[{...p.row,id:historyId,sequence,listKey:[p.entityKey,sequence],documentList:[p.row.documentId,sequence]}];allocation.clock();
+ row.searchVersion=ownerVersion('entry',row);const result={id,revision:row.revision},operationReceipt={id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:id,operationSequence:++thoughtSequence,createdAt:allocation.clock(),digest:requestDigest,result};
+ return {row,history,result,operationReceipt,revisionSequence,thoughtSequence};
+}
 export async function prepareHumanEntryPlan(store,core,request,entry){
  keys(request,['operationId','actor','title','body','note','type','formation','evidence'],['operationId','actor','body','type','formation','evidence']);
  validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
@@ -51,10 +62,7 @@ export async function prepareHumanEntryPlan(store,core,request,entry){
  if(request.actor!=='user'||request.formation!=='explicit'||!Array.isArray(request.evidence)||request.evidence.length||!store.libraryDocumentMode||!entry)fail('BNS_HUMAN_UNSUPPORTED');
  const before=await store.run(()=>core.transaction(false,async t=>({...await base(store,core,t),receipt:await t.get('operationReceipts',request.operationId)??null}))),{receipt,...cut}=before;
  if(!equal(cut,entry)||cut.library?.sealed)fail('BNS_HUMAN_CHANGED');const requestDigest=await hashText(JSON.stringify(request));if(receipt){if(receipt.digest!==requestDigest)fail('BNS_HUMAN_OPERATION_COLLISION');return {duplicate:true,result:clone(receipt.result)};}
- const exactSignature=await keyedHash(before.secret,['body',request.type,request.body]),allocation=prepareHumanAllocation(store,entry),id=allocation.uuid(),at=allocation.clock();let thoughtSequence=before.sequence?.value||0,revisionSequence=before.revision?.value||0;
- const row=planHumanEntryCreation(request,{id,at,sequence:++thoughtSequence,exactSignature,evidence:[],nonContext:[]});allocation.uuid(); // actual generation ID is allocated even with no provenance rows
- const snap=entrySnapshot(row),p=planJournalRevision({kind:'library_entry',entityId:id,before:snap,after:snap,fieldMask:ENTRY_FIELDS,actor:'user',reason:'baseline',important:true,operationId:request.operationId,baseRevision:0,afterRevision:0,sourceRecordIds:[]},null,allocation.clock()),sequence=++revisionSequence,historyId=allocation.uuid(),history=[{...p.row,id:historyId,sequence,listKey:[p.entityKey,sequence],documentList:[p.row.documentId,sequence]}];allocation.clock();
- row.searchVersion=ownerVersion('entry',row);const result={id,revision:row.revision},operationReceipt={id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:id,operationSequence:++thoughtSequence,createdAt:allocation.clock(),digest:requestDigest,result};
+ const exactSignature=await keyedHash(before.secret,['body',request.type,request.body]),allocation=prepareHumanAllocation(store,entry),{row,history,result,operationReceipt,revisionSequence,thoughtSequence}=computeHumanEntryState(request,before,requestDigest,exactSignature,allocation);
  const cap=Object.freeze({});plans.set(cap,{kind:'entry',store,core,entry:clone(entry),before,request:clone(request),allocation:allocation.seal(),events:allocation.events(),row,history,result,operationReceipt,revisionSequence,thoughtSequence});return cap;
 }
 export function humanEntryPlan(cap){const p=plans.get(cap);if(p?.kind!=='entry')fail('BNS_HUMAN_PLAN_REQUIRED');return {entry:clone(p.row),history:clone(p.history),result:clone(p.result),operationReceipt:clone(p.operationReceipt),events:clone(p.events)};}
