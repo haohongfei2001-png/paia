@@ -1,5 +1,13 @@
 # Seven-lane coordinated execution
 
+## Current 0.37 failure and local 0.38 Human candidate — 2026-10-09
+
+Remote main remains delivered0.36 `e21b5543eaa9db9bf8e4b19dddfdfd0ee6b26ec2`. PR225 head `2cec9fea102e46a37222e470907e1ac92ebd0e36` Full37878399910 is FAILED: its sole primary failure is Current Browser1/9, original whole Reader file `VS-04 undo survives navigation back to the same Reader only while revisions match`. Other eight primary browser groups, four unit shards, native Sync, contracts and build passed; the aggregate correctly failed. Historical unique cause remains UNKNOWN pending original-owner investigation. No skipped/cancelled job is counted as passing;0.37 is not merged or delivered.
+
+Local0.38 combines the independently reviewed private Human original named-owner/grouped recovery seam, strict source/release receipts and tenth native-family CI coverage. Actual83d6143b has one clean four-whole-file native6/6 observation,435-file release build and18/18 final CI/receipt tests. Earlier ecab88b1 full4656/4656 units remain precisely scoped, not relabeled as a final-head full rerun. See [COHERENT-038-CANDIDATE](implementation/verification/COHERENT-038-CANDIDATE.md). Optional Human journal arguments default to null and no production registration/account/cloud is activated. Accepted fresh0.37 main, final candidate and exact-main gates/package remain required before0.38 delivery.
+
+Root retains shared-data/Settings-write/CI/version integration. An isolated Reader investigator owns only the failed Reader boundary. Future039 exact original search constructors passed independent6/6 and author19/19 but are outside frozen038; completed-current derived qualification remains under design, with partial/old index, historical tags, projections and siblings refused. Separate AI07 manual review bookkeeping is experimental synthetic-only preparation, with zero real human or model-quality qualification. Continue these independent tasks without repeating unchanged CI or waiting for the heartbeat interval.
+
 ## Current delivered 0.36 and local 0.37 foundations — 2026-10-09
 
 Remote signed main `e21b5543eaa9db9bf8e4b19dddfdfd0ee6b26ec2` delivers the private Assist0.36 batch through normal PR224 merge. Corrected candidate Full37875268783/Prompt37875268690 and exact-main Full37876418188/Prompt37876418200 all SUCCESS. Its425-file ZIP was rebuilt from exact clean main and verified CRC/every file byte; no automatic installation, new visible Assist entry, provider, processing/financial authority or paid activation. Original missing Prompt trigger, Mac headless failure and earlier CI failures remain precisely scoped in their receipts.
