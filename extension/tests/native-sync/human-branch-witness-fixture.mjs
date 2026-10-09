@@ -1,4 +1,11 @@
 import {HUMAN_WITNESS_ORIGINAL_CASES} from './human-branch-witness-receipt.mjs';
+// Bounded failure metadata only; no request, row, database, body or stack object.
+export function nativeWitnessFailureDiagnostic(error,caseIndex,caseName,observations=[]){
+ const text=(value,max)=>String(value??'').replace(/SYNTHETIC[\s\S]*/g,'[synthetic content redacted]').replace(/NATIVE_PRIVATE_BODY[^\s]*/g,'[synthetic content redacted]').slice(0,max);
+ const cause=error?.nativeWitnessCause||error;
+ const keys=['caseIndex','kind','result','code','transactions','nonNativeTransactions','readwriteTransactions','foreignTransactions','writes','factoryOpens','initializations','controlWrites','storeNative','factoryNative','databaseNative','repositoryMatches','journalMatches'];
+ return {caseIndex,caseName:text(caseName,180),error:{name:text(cause?.name,80),code:text(cause?.code,80),message:text(cause?.message,300)},observations:observations.slice(0,32).map(row=>Object.fromEntries(keys.filter(key=>Object.hasOwn(row,key)&&['number','boolean','string'].includes(typeof row[key])).map(key=>[key,typeof row[key]==='string'?text(row[key],100):row[key]])))};
+}
 // Compile the unchanged owning assertions into a temporary test-only MV3 worker.
 // No production worker or runtime module is modified.
 export function nativeHumanBranchWitnessFixture(original){
@@ -18,12 +25,12 @@ export function nativeHumanBranchWitnessFixture(original){
  if(!device.includes('new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:'))throw Error('WITNESS_FIXTURE_NATIVE_CONSTRUCTOR_CHANGED');
  source=source.slice(0,begin)+`async function device(id){let tick=0;const s=nativeStore(()=>new Date(Date.UTC(2026,9,9)+tick++).toISOString());await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic-historical-body',deviceId:id});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);return {s,core};}`+source.slice(end);
  if(/fake-indexeddb|new IDBFactory|from ['"]node:/.test(source))throw Error('WITNESS_FIXTURE_FAKE_NATIVE');
- return prelude+'\n'+source+'\n'+nativeCases;
+ return 'const nativeWitnessFailureDiagnostic='+nativeWitnessFailureDiagnostic.toString()+';\n'+prelude+'\n'+source+'\n'+nativeCases;
 }
 const prelude=String.raw`
 const cases=[],test=(name,fn)=>cases.push({name,fn}),stores=[],invocations=[];let sequence=0,currentCase=-1;
 const normalize=v=>Array.isArray(v)?v.map(normalize):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,normalize(v[k])])):v;
-const check=(error,expected)=>{if(expected&&!(typeof expected==='function'?expected(error):Object.entries(expected).every(([k,v])=>error[k]===v)))throw Error('Wrong native rejection: '+error.code);};
+const check=(error,expected)=>{if(expected&&!(typeof expected==='function'?expected(error):Object.entries(expected).every(([k,v])=>error[k]===v))){const cause=nativeWitnessFailureDiagnostic(error,currentCase,cases[currentCase]?.name).error,wrapped=Error('Wrong native rejection: '+JSON.stringify(cause));wrapped.nativeWitnessCause=cause;throw wrapped;}};
 const assert={equal(a,b,label){if(!Object.is(a,b))throw Error(label||'native equality');},notEqual(a,b,label){if(Object.is(a,b))throw Error(label||'native inequality');},deepEqual(a,b,label){if(JSON.stringify(normalize(a))!==JSON.stringify(normalize(b)))throw Error(label||'native exact snapshot');},ok(v,label){if(!v)throw Error(label||'native truthy');},throws(fn,expected){try{fn();}catch(e){check(e,expected);return;}throw Error('Expected native throw');},async rejects(value,expected){try{await value;}catch(e){check(e,expected);return;}throw Error('Expected native rejection');}};
 const active=new Set(),caseDatabases=new Set(),restorers=[];
 function observe(target,key,call){const old=target[key];target[key]=function(...args){return call.call(this,old,args);};restorers.push(()=>target[key]=old);}
@@ -63,9 +70,11 @@ test('native revalidation refuses every readiness or failure flag without openin
 });
 const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,args={}){
+ if(command==='human-branch-witness-failure')return globalThis.__bnsWitnessFailure??null;
  if(command==='human-branch-witness-case'){
   if(!Number.isInteger(args.index)||args.index<0||args.index>=cases.length)throw Error('Native witness case range');currentCase=args.index;const start=invocations.length;installObservers();
   try{await cases[currentCase].fn();const observations=invocations.slice(start);assert.ok(observations.length>0);return {name:cases[currentCase].name,observations};}
+  catch(error){const failure=nativeWitnessFailureDiagnostic(error,currentCase,cases[currentCase]?.name,invocations.slice(start));globalThis.__bnsWitnessFailure=failure;error.message+='\nNATIVE_WITNESS_FAILURE '+JSON.stringify(failure);error.stack=(error.stack||String(error))+'\nNATIVE_WITNESS_FAILURE '+JSON.stringify(failure);throw error;}
   finally{active.clear();while(restorers.length)restorers.pop()();for(const db of caseDatabases)db.close();caseDatabases.clear();for(const s of stores)s.repository.db?.close();stores.length=0;currentCase=-1;}
  }
  return previous.run(command,args);

@@ -86,3 +86,36 @@ All prior9-test passes remain earlier prepared-code evidence. No native source/r
 | `/tmp/human-witness-native-proof-closure-final.log` | `b00dd17ab50ecc3e2003c0c7d10842421eb5f038d4568f4851964536057a75bb` |
 | `/tmp/human-witness-native-proof-closure-corrected.log` | `26dc631bd6c896c89816d5a7e79014b3efcccb420361fd7c8a3773a571414b09` |
 | `/tmp/human-witness-native-proof-closure-complete.log` | `25809185ff34a4a60f33150298ca86666fd1c4ffb46b2d8f8919b6232eb0b9dc` |
+
+## First actual whole native run: failed, diagnostic-only follow-up
+
+Root's stable integrated `9993c8d` executed the entire native source/release file and obtained **0/2 PASS, 2 FAIL**, zero skipped/cancelled,39896.19ms. Source17575.230417ms and release17300.276709ms each completed the first eight cases, then failed in the original index8 causal-union case while expecting BNS_HUMAN_GRAPH_LIMIT for extraEdits30. The original assertion bridge reduced the observed exception to `Wrong native rejection: undefined`; the unique cause is still unknown. These failed runs are not replaced by prior contract passes. Raw log `/tmp/041-witness-native-final.log` SHA256 `2e2cd85c96077aaf8a98284fa22e37f1b37ab0e8d6c3e80b7fb9fcf8861c06bf` remains preserved by Root.
+
+This follow-up changes only the new test fixture's failure reporting and its owning contract: keep the exact rejection assertion, attach bounded error name/code/message, preserve reached native invocation counters in the failure, and expose that bounded failure through a test-only command. It never serializes request/row/DB objects; known synthetic body markers are redacted. Original14 case bodies,16-case/121-call expectations, runtime, transaction wrappers and180-second budgets remain unchanged. No whole native rerun was performed. One source/index8 diagnostic may follow independent review; even if successful it cannot certify the complete source/release file.
+
+The two entire contract files pass **11/11**, zero skipped/cancelled,78.941583ms, including actual pure failure-payload verification and generated module syntax. Actual native failure diagnosis and any runtime/test repair remain pending.
+
+| Diagnostic evidence | SHA-256 |
+| --- | --- |
+| `extension/tests/native-sync/human-branch-witness-fixture.mjs` | `2228c52f3349dc405b23bf8954f45169fea5b7c8959fb9673f7f96be132fbd37` |
+| `extension/tests/native-sync/human-branch-witness-fixture.test.mjs` | `330255f313272de0f053f5565c90e530284193f07351f0dd85ce58392fff73dd` |
+| `/tmp/041-witness-native-diagnostic-contract.log` | `93c9f32b15f571be8d72f9dbb36ba5fda8534617b99b1dfd8e4128bd57ed00a7` |
+
+
+## Bounded diagnostics and Archive-page isolation correction
+
+Two explicitly approved source-only diagnostic runs against Root `9993c8d56a2dd5e2ed08195ea31af941db422d84` with all96 runtime hashes freshly matched did not reproduce the first whole failure. The isolated original index8 returned its expected GRAPH_LIMIT rejection; its JSON SHA256 is `e209d930a5496b345ce24e28c28496af17c373d255a84aae265a62c77c620bf5`. A single worker lifetime executing only original cases0–8 also returned all9 cases, with no counter filtering. Its JSON SHA256 is `a0ad362bd757492f4d839a981740687e024e253a9235431fba92775706b4579f`. These bounded diagnostics are not a whole source/release PASS and do not replace the original0/2FAIL.
+
+The second diagnostic observed12 actual `paia-archive` transactions during case8 (7readonly,5readwrite), all outside the measured witness invocation intervals. Source inspection identifies a concrete independent transaction source: the shared native launcher keeps the real Archive page open; that page refreshes every15seconds, sends GET_PAGE, and the production worker schedules maintenance after that request. This supplies a plausible timing explanation, not proof of the exception cause in the original logs. No production timer, maintenance logic, counter, error assertion or timeout is changed.
+
+The shared test-only `startNative` now accepts an optional strict boolean `closeArchivePage`, defaultfalse. Only this new witness family passes true. The launcher preserves normal real-page startup and awaits `h.state()`, then closes the actual Archive page, verifies `page.isClosed()`, and obtains the existing real worker identity before recording the opened network observation. Other ten native families keep their existing call sites and default behavior. The original production worker and any already queued startup/maintenance work remain active and subject to all existing counters. This mode prevents future page refreshes; it does not claim all queued work has settled, nor page-dependent restart support.
+
+Three additive Node-only contracts execute the actual launcher function body with only the browser dynamic import substituted, proving default/false/undefined behavior, awaited state→page-close→isClosed→worker-identity ordering, strict option rejection, and failure propagation at state,close andisClosed boundaries. These test doubles establish launcher control flow only; the real page closure and live worker identity will be asserted by the next independently approved native run. First attempt18PASS/3FAIL was a test-only VM substitution temporal-dead-zone error, corrected by binding a separate browserFixture object. The failure log is preserved. Final three whole contract files: **21/21PASS**, no fail/skipped/cancelled,447.473958ms. The complete10-file proof inventory already contains the shared storage harness and recomputes its fresh hash in each native run. No native browser was run for this correction; source/release whole qualification, exact combined-head integration and all wider gates remain open.
+
+| Isolation correction evidence | SHA-256 |
+| --- | --- |
+| `tests/native-sync/storage-harness.mjs` | `64e8b63ab7f982d12533042b5365ee307e97e7f2f20372cada9de1eda564fb0f` |
+| `tests/native-sync/harness-contract.test.mjs` | `32b3754fd0cc9d5fb7db30e5dd48960ed2e3718de4b75414ba58d2c35a5fa874` |
+| `tests/native-sync/human-branch-witness-chrome.test.mjs` | `c53d773190300f7c1c746f569d61d7911d6666391eaf430b1b559874d2f496c1` |
+| `/tmp/041-witness-page-isolation-contract.log` | `9a6395ac7ec9723ad756f6f1648bbb9ddd44be29cc59def85e96c9f1fb2fc181` |
+| `/tmp/041-witness-page-isolation-contract-final.log` | `1c890c2c124f75daf3a1626e7936482f4ce08eed99ee7a0d951d84140ae77a3d` |
