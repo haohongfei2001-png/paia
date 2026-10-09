@@ -105,3 +105,22 @@ decisionSequence/filterMutation/diagnostics/reading-snapshot oracles and new
 Filter policy qualification. AI KEEP must never become a human Keep intent.
 No whole AI-COST-04 or seven-plan completion, paid credential, user upload,
 permission expansion, deployment or irreversible action is implied.
+
+## Independent review update — frozen code unchanged
+
+This later update supersedes the earlier independent-review-pending checkpoint
+without changing or relabeling its original evidence. Coordinator independently
+read the complete helper, contract, owning tests and author receipt, then ran the
+original complete owning file on the frozen a1fb571d source/test bytes:
+**17/17 PASS**, no failed/skipped/cancelled,1022.961458ms,
+`/tmp/ai-filter-preflight-root-independent.log`.
+
+**APPROVED within the new unused private readonly seam only.** Review confirmed
+original inputProjection/Light/current visibility and bounded positional span,
+warm owner single readonly transaction, exact purpose/permission fixtures,
+all-store/no-readwrite oracle, opaque handles, finite TTL, revocation and
+concurrent capacity. No new blocker was found. CURRENT remains a readonly
+snapshot; it grants no dispatch, financial, canonical decision or ACK authority.
+The previous production/native/live-quality/real-permission and later committer
+limitations remain in force. This receipt-only commit changes no frozen code,
+test, contract, dependency or production call graph.
