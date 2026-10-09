@@ -35,10 +35,28 @@ function build(topicId,blocks,style,profile,control,protections={}){
  const row={topicId,presentationVersion:2,revision:0,evidenceEntryIds:clone(p.evidenceEntryIds),projection:p,manifest:{version:2,style,profile:clone(profile),control,blocks:manifest},protections:clone(protections)};
  if(!validIncrementalV2(row,new Set(p.evidenceEntryIds)))reject('INVALID_OUTPUT');return row;
 }
+// Retained accepted bytes depend on transformation semantics, while current
+// request/candidate owners still bind the full live preference revision.
+function retainedControl(value){
+ try{
+  if(typeof value!=='string'||!value.length||value.length>5000)return null;
+  const tuple=JSON.parse(value);if(!Array.isArray(tuple)||tuple.length!==4)return null;
+  const [gate,restore,style,policyText]=tuple,epoch=x=>typeof x==='string'&&/^[a-zA-Z0-9:-]{1,128}$/.test(x);
+  if(!Number.isSafeInteger(gate)||gate<0||!epoch(restore)||!exact(style,['available','value','revision','explicit','epoch'])||style.available!==true||!['original','balanced','concise'].includes(style.value)||!Number.isSafeInteger(style.revision)||style.revision<0||typeof style.explicit!=='boolean'||style.epoch!==restore)return null;
+  if(style.explicit?style.revision===0:style.revision!==0||style.value!=='balanced')return null;
+  if(typeof policyText!=='string')return null;const policy=JSON.parse(policyText);
+  if(!exact(policy,['filterMode','externalAccess','localOnly'])||!['off','light'].includes(policy.filterMode)||typeof policy.externalAccess!=='boolean'||typeof policy.localOnly!=='boolean')return null;
+  return {gate,restore,style,policyText};
+ }catch{return null;}
+}
+function sameRetainedControl(saved,current,style){
+ const prior=retainedControl(saved.manifest.control),next=retainedControl(current);
+ return !!prior&&!!next&&saved.manifest.style===prior.style.value&&same(next.style,style)&&prior.style.value===next.style.value&&prior.gate===next.gate&&prior.restore===next.restore&&prior.policyText===next.policyText;
+}
 export function planIncrementalV2(topic,style,profile,control){
  const saved=topic.stored,isV2=isIncrementalV2(saved),entries=new Map(topic.entries.map(e=>[e.id,e]));
  if(saved&&!isV2)reject('STALE_BASE');if(entries.size>1000||isV2&&!validIncrementalV2(saved,new Set(entries.keys())))reject('STALE_BASE');
- if(isV2&&(saved.manifest.control!==control||saved.manifest.style!==style.value||!same(saved.manifest.profile,profile)))reject('STALE_BASE');
+ if(isV2&&(!sameRetainedControl(saved,control,style)||saved.manifest.style!==style.value||!same(saved.manifest.profile,profile)))reject('STALE_BASE');
  // An actual human field edit is indivisible. This first local slice does not
  // generate around it or reinterpret it as unprotected incremental fragments.
  if(saved?.manifest.blocks.some(b=>b.manual))reject('STALE_BASE');

@@ -1,5 +1,15 @@
 # PAIA Consumer Product v1 — Current Status
 
+## PR222 diagnostic checkpoint — 2026-10-09 08:38 CST
+
+Full37863441186 at e1671133 failed Browser5 source saved-summary accessibility (32pass/onefail); the corresponding release case and other primary jobs passed. Artifact progression places the failure after durable-B/Section/anchor checks, but the precise historical native assertion remains unknown. The original complete source/release file passes10/10 locally. The candidate now only names the existing keyboard/focus assertions and emits body-free failure state, preserving every assertion, action and timeout. See [TOPIC-SAVED-SUMMARY-PR222](implementation/topic/TOPIC-SAVED-SUMMARY-PR222.md). This is one independently reviewed diagnostic observation, not a claimed proven product fix. A new exact-head Full is required before merge; failed37863441186 remains failed. Parent0.34 exact-main Full37863108500 / Prompt37863108474 both passed.
+
+## Latest integration checkpoint — 2026-10-09 08:10 CST
+
+PR221/0.34 merged normally at `8b3343c1e7d74b4018fb5d3ae9f70155eb9525d0`, tree `dd9485e4f1a7b2116e530e488b55b69486860eb3`, after corrected head a1119faf passed Full37861555382. Exact-main Full37863108500 / Prompt37863108474 are pending. The original Full37859313249 remains failed; its observed timeout and independent focus-loss repair are retained below. A byte-verified420-file package exists; no automatic installation. Prior0.33 exact-main Full37858439480 / Prompt37858439430 both passed.
+
+The next0.34.1 compatible patch repairs semantic style return for retained V2 AI results: a fresh session after returning to the same actual style produces NO_DELTA without writes, then processes only genuinely added Entries. In-flight stale sessions, permissions, restore, policy, profile and human protections retain their fences. After fresh main reconciliation the original source/release native file passes2/2;157 unchanged related tests and independent reviews remain precisely versioned in [COHERENT-0341-CANDIDATE](implementation/verification/COHERENT-0341-CANDIDATE.md). Hosted candidate and exact-main certification are still required. Human Library graph Sync and V3 explicit style refresh remain separate unfinished batches. No real provider, account, physical-device or full-seven-lane completion is claimed.
+
 ## PR221 corrective checkpoint — 2026-10-08
 
 The first0.34 hosted Full37859313249 failed only its primary Browser4 Root source journey (65passes/onefail); other primary jobs passed and aggregate/gate correctly failed. The original Back timeout remains recorded. Independent actual-render reproduction exposed transient Back hiding that loses keyboard focus. The final-visibility single assignment preserves all route meanings; four whole related native files now pass7/7 and related state/partition files4/4. See [TOPIC-BACK-FOCUS-PR221](implementation/topic/TOPIC-BACK-FOCUS-PR221.md) for exact negative, fixed identities and the limit that the historical cloud's unique cause was not proven. Corrected final-head Full is still required; no timeout or assertion was weakened.
