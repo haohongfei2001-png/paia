@@ -28,7 +28,8 @@ export const HUMAN_LIBRARY_PATHS=Object.freeze([
   "core/browser-native-sync/segments.js",
   "core/browser-native-sync/group-checkpoint-plan.js",
   "core/browser-native-sync/group-checkpoint-scope.js",
-  "core/browser-native-sync/group-checkpoint.js"
+  "core/browser-native-sync/group-checkpoint.js",
+  "core/browser-native-sync/human-library-search-proof.js"
 ]);
 export const HUMAN_LIBRARY_CASE_NAMES=Object.freeze([
   "real bound create/edit/lifecycle owners publish required members through original segments and duplicate ACK adds nothing",
@@ -49,7 +50,12 @@ export const HUMAN_LIBRARY_CASE_NAMES=Object.freeze([
   "actual owner, Core, physical mapping and pointer activation faults leave the entire staged receiver installation unchanged",
   "actual mixed Human, Source and Working checkpoint preserves both owners and counters; a later Source fault rolls earlier Human writes back",
   "real canonical wire restores both legal Topic edit key orders and Entry field-revision order without changing original receipt digests",
-  "a cryptographically resealed order mutation cannot change original meaning, history or owner receipt; every store remains unchanged"
+  "a cryptographically resealed order mutation cannot change original meaning, history or owner receipt; every store remains unchanged",
+  "original indexed sender edit receives without transmitting completion; receiver indexed=false",
+  "original indexed sender edit receives without transmitting completion; receiver indexed=true",
+  "actual search-only race after prepare refuses the whole journal transaction without canonical/outbox changes",
+  "incoming Topic history cannot carry sender-local indexed completion, including nested identity leaves",
+  "resealed remote completion tag refuses before original receive and leaves every store unchanged"
 ]);
 const shape=(value,required,optional=[])=>{assert.ok(value&&typeof value==='object'&&!Array.isArray(value));assert.deepEqual(Object.keys(value).filter(key=>!optional.includes(key)).sort(),[...required].sort());};
 const hashMap=value=>{shape(value,HUMAN_LIBRARY_PATHS);for(const hash of Object.values(value))assert.match(hash,/^[a-f0-9]{64}$/);};
@@ -59,7 +65,7 @@ export function assertHumanLibraryReceipt(r,{head,tree,variant,expectedHashes}){
  shape(r,['schema','head','tree','variant','scope','result','productionActivation','fullRecovery','groupCheckpointImplemented','derivedProjectionRecovery','browserVersion','cases','hashes','restart','durable','groupRestart','groupDurable','isolation']);
  assert.equal(r.schema,1);assert.equal(r.head,head);assert.equal(r.tree,tree);assert.equal(r.variant,variant);assert.equal(r.result,'PASS');
  assert.equal(r.scope,'private-local-human-named-owners-and-bounded-partial-grouped-recovery');assert.equal(r.productionActivation,false);assert.equal(r.fullRecovery,false);assert.equal(r.groupCheckpointImplemented,true);assert.equal(r.derivedProjectionRecovery,false);
- assert.deepEqual(r.cases,HUMAN_LIBRARY_CASE_NAMES);assert.equal(new Set(r.cases).size,19);hashMap(r.hashes);assert.deepEqual(r.hashes,expectedHashes,'receipt bytes must match independently read current checkout');assert.match(r.browserVersion,/^\d+\.\d+\.\d+\.\d+$/);
+ assert.deepEqual(r.cases,HUMAN_LIBRARY_CASE_NAMES);assert.equal(new Set(r.cases).size,24);hashMap(r.hashes);assert.deepEqual(r.hashes,expectedHashes,'receipt bytes must match independently read current checkout');assert.match(r.browserVersion,/^\d+\.\d+\.\d+\.\d+$/);
  const restarts=[r.restart,r.groupRestart];assert.equal(r.restart.afterLifetime,r.groupRestart.beforeLifetime);
  for(const event of restarts){
   shape(event,['phase','pausedNetwork','beforeLifetime','afterLifetime','stopped','restarted','interruptedCall','completedNoopValue']);shape(event.phase,['name','lifetime','hasNativeTransaction','preparedOperation']);

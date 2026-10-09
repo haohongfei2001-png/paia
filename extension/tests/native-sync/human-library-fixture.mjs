@@ -1,7 +1,7 @@
 // Execute the owning current-family assertions with actual MV3 IndexedDB.
 // Node-only immutable fixture hash checks run in the outer harness; here the
 // same frozen actual readers still reject every operation/publication cut.
-export function nativeHumanLibraryFixture(source,roleSource,groupSource,orderSource){
+export function nativeHumanLibraryFixture(source,roleSource,groupSource,orderSource,indexedSource,derivedSource){
  for(const item of ["import {readFile} from 'node:fs/promises';","import {createHash} from 'node:crypto';","import test from 'node:test';","import assert from 'node:assert/strict';","import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';","import {local} from './harness/thought-m1.mjs';","globalThis.IDBKeyRange=IDBKeyRange;"]){if(source.split(item).length!==2)throw Error('HUMAN_FIXTURE_IMPORT_CHANGED');source=source.replace(item,'');}
  for(const [names,module]of [['changeTopicContainer','topic-governance'],['keepTopicIdentitiesSeparate','topic-identity'],['buildCheckpoint','browser-native-sync/checkpoints']]){const text="const {"+names+"}=await import('../core/"+module+".js')";if(source.split(text).length!==2)throw Error('HUMAN_DYNAMIC_IMPORT_CHANGED');source=source.replace(text,names==='buildCheckpoint'?"const unusedBuildCheckpointBridge=0":"const unused"+names+"Bridge=0");source="import {"+names+"} from '../core/"+module+".js';\n"+source;}
  const a=source.indexOf('async function fixture(){'),b=source.indexOf('\nasync function snapshot',a);if(a<0||b<0)throw Error('HUMAN_FIXTURE_CONSTRUCTOR_CHANGED');source=source.slice(0,a)+`async function fixture(){let tick=0;const s=nativeStore('bns-human-'+(++sequence),()=>new Date(Date.UTC(2026,9,9)+tick++).toISOString());await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic-human-journal',deviceId:'synthetic-human-device'});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);return {s,core};}`+source.slice(b);
@@ -12,13 +12,15 @@ import * as oldSegments from './bns-human-frozen/extension/core/browser-native-s
 const cases=[],test=(name,fn)=>cases.push({name,fn});
 const normalize=x=>Array.isArray(x)?x.map(normalize):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,normalize(x[k])])):x;
 const check=(e,p)=>{if(p&&!(typeof p==='function'?p(e):Object.entries(p).every(([k,v])=>e[k]===v)))throw Error('wrong rejection '+e.code+': '+e.message);};
-const assert={equal(a,b,label){if(a!==b)throw Error((label||'equal')+': '+JSON.stringify([a,b]));},notEqual(a,b,label){if(a===b)throw Error(label||'notEqual');},deepEqual(a,b,label){if(JSON.stringify(normalize(a))!==JSON.stringify(normalize(b)))throw Error((label||'deepEqual')+' mismatch');},ok(x,label){if(!x)throw Error(label||'truthy');},async rejects(p,expected){try{await p;}catch(e){check(e,expected);return;}throw Error('expected rejection');}};
+const assert={throws(fn,expected){try{fn();}catch(e){check(e,expected);return;}throw Error('expected exception');},equal(a,b,label){if(a!==b)throw Error((label||'equal')+': '+JSON.stringify([a,b]));},notEqual(a,b,label){if(a===b)throw Error(label||'notEqual');},deepEqual(a,b,label){if(JSON.stringify(normalize(a))!==JSON.stringify(normalize(b)))throw Error((label||'deepEqual')+' mismatch');},ok(x,label){if(!x)throw Error(label||'truthy');},async rejects(p,expected){try{await p;}catch(e){check(e,expected);return;}throw Error('expected rejection');}};
 let sequence=0;
 function nativeStore(name,clock,uuid){const prefix=name+':',storage={async get(k){const all=await chrome.storage.local.get(null);if(k===null)return Object.fromEntries(Object.entries(all).filter(([key])=>key.startsWith(prefix)).map(([key,v])=>[key.slice(prefix.length),v]));return {[k]:all[prefix+k]};},async set(v){await chrome.storage.local.set(Object.fromEntries(Object.entries(v).map(([k,x])=>[prefix+k,x])));}};return new LibraryDocumentsStore(storage,{indexedDB,name,...(clock?{clock}:{}),...(uuid?{uuid}:{})});}
 ${source}
 ${nativeHumanRoleFixture(roleSource)}
 ${nativeHumanGroupFixture(groupSource)}
 ${nativeHumanOrderFixture(orderSource)}
+${nativeHumanIndexedFixture(indexedSource)}
+${nativeHumanDerivedFixture(derivedSource)}
 const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,args={}){
  if(command==='human-library-matrix'){const names=[];for(const item of cases){try{await item.fn();}catch(e){throw Error(item.name+': '+e.stack);}names.push(item.name);}return names;}
@@ -72,4 +74,21 @@ async function inputEdit(s,id,changes){const b=await s.input(id);return s.editDo
 function nativeHumanOrderFixture(source){
  const imports=["import test from 'node:test';","import assert from 'node:assert/strict';","import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';","import {LibraryDocumentsStore} from '../core/library-documents-store.js';","import {local} from './harness/thought-m1.mjs';","import {BrowserNativeSyncCore,sealOperation} from '../core/browser-native-sync/core.js';","import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';","import {portableHumanEntity} from '../core/browser-native-sync/human-library-codec.js';","import {normalizePhysical} from '../core/browser-native-sync/human-library-journal.js';","import {humanWireRequestDigest,restoreHumanRequest} from '../core/browser-native-sync/human-library-request.js';","import {bytes,decodeJSON} from '../core/browser-native-sync/value.js';","import {hashText} from '../core/dedupe.js';"];
  return `import {portableHumanEntity} from '../core/browser-native-sync/human-library-codec.js';\nimport {normalizePhysical} from '../core/browser-native-sync/human-library-journal.js';\nimport {humanWireRequestDigest,restoreHumanRequest} from '../core/browser-native-sync/human-library-request.js';\nimport {bytes,decodeJSON} from '../core/browser-native-sync/value.js';\nimport {hashText} from '../core/dedupe.js';\n`+nativeHumanAdditionalFixture(source,{imports,dataset:"'synthetic-order-wire'",prefix:'bns-human-order-'});
+}
+
+function nativeHumanSearchFixture(source,{imports,prefix}){
+ if(typeof source!=='string')throw Error('HUMAN_SEARCH_FIXTURE_REQUIRED');
+ const actual=[...source.matchAll(/import [^;]+;/g)].map(row=>row[0]);if(actual.length!==imports.length||actual.some((row,index)=>row!==imports[index]))throw Error('HUMAN_SEARCH_IMPORT_CHANGED');
+ source=source.replace(/import [^;]+;/g,'').replace('globalThis.IDBKeyRange=IDBKeyRange;','');
+ const a=source.indexOf('async function fixture(deviceId){'),b=source.indexOf('\nasync function snapshot',a);if(a<0||b<0)throw Error('HUMAN_SEARCH_CONSTRUCTOR_CHANGED');
+ source=source.slice(0,a)+`async function fixture(deviceId){let tick=0;const s=nativeStore('${prefix}'+(++sequence),()=>new Date(Date.UTC(2026,9,9)+tick++).toISOString());await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic-indexed-journal',deviceId});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);return {s,core};}`+source.slice(b);
+ return `{\n${source}\n}`;
+}
+function nativeHumanIndexedFixture(source){
+ const imports=["import test from 'node:test';","import assert from 'node:assert/strict';","import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';","import {LibraryDocumentsStore} from '../core/library-documents-store.js';","import {local} from './harness/thought-m1.mjs';","import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';","import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';","import {searchBatch} from '../core/library-search.js';"];
+ return `import {searchBatch} from '../core/library-search.js';\n`+nativeHumanSearchFixture(source,{imports,prefix:'bns-human-search-'});
+}
+function nativeHumanDerivedFixture(source){
+ const imports=["import test from 'node:test';","import assert from 'node:assert/strict';","import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';","import {LibraryDocumentsStore} from '../core/library-documents-store.js';","import {local} from './harness/thought-m1.mjs';","import {BrowserNativeSyncCore,validateOperation} from '../core/browser-native-sync/core.js';","import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';","import {validateHumanLibraryEntity} from '../core/browser-native-sync/human-library-codec.js';","import {digest} from '../core/browser-native-sync/value.js';"];
+ return `import {validateOperation} from '../core/browser-native-sync/core.js';\nimport {validateHumanLibraryEntity} from '../core/browser-native-sync/human-library-codec.js';\n`+nativeHumanSearchFixture(source,{imports,prefix:'bns-human-derived-'});
 }
