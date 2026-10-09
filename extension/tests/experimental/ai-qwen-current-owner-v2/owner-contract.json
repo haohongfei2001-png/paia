@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "kind": "CURRENT_OWNER_LITERAL_FIXTURE_QUALIFICATION",
+  "state": "PROSPECTIVE_NOT_FROZEN",
+  "prospectiveBase": "e7490f1d2a4371fe5c755442623b82c2ed806e2f",
+  "acceptedHead": null,
+  "acceptedTree": null,
+  "roots": ["tests/experimental/ai-qwen-current-owner-v2/artifacts.mjs", "tests/experimental/ai-qwen-current-owner-v2/replay.mjs", "tests/experimental/ai-qwen-current-owner-v2/replay-acceptance.test.mjs"],
+  "files": {},
+  "quality": "NOT_RUN",
+  "financialAuthority": false,
+  "dispatchAllowed": false
+}
