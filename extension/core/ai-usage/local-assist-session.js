@@ -50,7 +50,10 @@ export class LocalAssistSession {
   const payload=assembleAssistPayload(snapshot,selected.context.context),key=await this.#lease.evaluationKey(lease,{items:selected.context.items.map(x=>({key:x.key,signature:x.signature})),permissions:selected.context.permissions},this.contractVersion,this.routeVersion);
   if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
   const old=this.#states.get(key);if(old){await old.ready;if(!this.#valid(old))fail('STALE_BASE');return old.handle;}
-  await this.#retireInvalid();if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');if(this.#states.size>=8)fail('RESOURCE_LIMIT');
+  await this.#retireInvalid();if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
+  // A same-key preparation may have published while retirement awaited IDB.
+  const concurrent=this.#states.get(key);if(concurrent){await concurrent.ready;if(!this.#valid(concurrent))fail('STALE_BASE');return concurrent.handle;}
+  if(this.#states.size>=8)fail('RESOURCE_LIMIT');
   const handle=Object.freeze({}),items=selected.context.items,obligation={version:1,evaluationKey:key},coverage=items.map(i=>({key:i.key,facet:'assist',scope:key}));
   const s={key,handle,lease,binding:meta.binding,replyBinding:meta.replyBinding,generation,created:this.#now(),contextIds:selected.ids,context:selected.context,items,coverage,obligation,payload,snapshot,planning:true,job:null,validated:null,published:null,running:null};
   this.#states.set(key,s);this.#handles.set(handle,s);
