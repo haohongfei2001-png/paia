@@ -6,10 +6,19 @@ import {BrowserNativeSyncCore,sealOperation,CORE_LIMITS} from '../core/browser-n
 import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
 import {FilterIntentSyncJournal} from '../core/browser-native-sync/filter-intent-journal.js';
 import {InputWorkingSyncJournal} from '../core/browser-native-sync/input-working-journal.js';
-import {prepareGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+import {prepareGroupCheckpointPlan,requireOriginalGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 async function setup(){const s=new LibraryFoundationStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic_group_dataset',deviceId:'synthetic_group_device'});s.sourceBootstrapJournal=new SourceBootstrapJournal(core);await s.capture(capture((await s.status()).epoch));return {s,core};}
 async function ops(core){const out=[];for await(const row of core.rows('revision'))out.push(row.operation);return out;}
+test('native compilation identity rejects a clone, foreign Core and changed binding without altering portable plan bytes',async()=>{
+ const {s,core}=await setup(),rows=await ops(core),plan=await prepareGroupCheckpointPlan(core,rows),copy=structuredClone(plan),original=bytes(plan);
+ requireOriginalGroupCheckpointPlan(core,plan);assert.deepEqual(bytes(copy),original);
+ assert.throws(()=>requireOriginalGroupCheckpointPlan(core,copy),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+ const other=new BrowserNativeSyncCore(s.repository,{datasetId:core.datasetId,deviceId:core.deviceId});
+ assert.throws(()=>requireOriginalGroupCheckpointPlan(other,plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+ const dataset=core.datasetId;try{core.datasetId='synthetic_changed_dataset';assert.throws(()=>requireOriginalGroupCheckpointPlan(core,plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});}finally{core.datasetId=dataset;}
+ requireOriginalGroupCheckpointPlan(core,plan);assert.deepEqual(bytes(plan),original);
+});
 test('actual Source append and sequential Working groups form a complete causal plan regardless of arrival order',async()=>{const {s,core}=await setup(),q=capture((await s.status()).epoch);q.messages[0].sourceMessageId='second-message';q.messages[0].originalText='synthetic second';q.messages[0].pageOrder=2;await s.capture(q);s.filterIntentJournal=new FilterIntentSyncJournal(core);s.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:s.filterIntentJournal,logicalCommits:true});const id=(await s.snapshot()).library.blocks[0].id;await inputEdit(s,id,{note:'first'});await inputEdit(s,id,{note:'second'});const rows=await ops(core),a=await prepareGroupCheckpointPlan(core,rows),b=await prepareGroupCheckpointPlan(core,[...rows].reverse());assert.equal(a.digest,b.digest);assert.equal(a.operationCount,rows.length);assert.equal(a.groups.length,4);assert.equal(a.groups[0].type,'sourceBootstrapCommit');const seen=new Set();for(const group of a.groups){assert.ok(group.dependencies.every(id=>seen.has(id)));seen.add(group.id);}assert.ok(Object.isFrozen(a.groups));});
 test('missing member, descriptor and required bootstrap ancestor cannot be treated as a partial plan',async()=>{const {core}=await setup(),rows=await ops(core);for(let i=0;i<rows.length;i++)await assert.rejects(prepareGroupCheckpointPlan(core,rows.filter((_,n)=>n!==i)),{code:'BNS_GROUP_INCOMPLETE'});await assert.rejects(prepareGroupCheckpointPlan(core,[...rows,rows[0]]),{code:'BNS_GROUP_DUPLICATE'});});
 test('operation budget counts all ancestry rather than current heads',async()=>{const {core}=await setup(),rows=await ops(core);await assert.rejects(prepareGroupCheckpointPlan(core,Array.from({length:CORE_LIMITS.batch+1},()=>rows[0])),{code:'BNS_GROUP_RESOURCE_LIMIT'});});

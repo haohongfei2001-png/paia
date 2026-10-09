@@ -4,9 +4,77 @@ import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences} from '../prompt-reuse-preferences.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {projectEntity} from './codecs.js';
-import {clone,digest,equal,fail,count} from './value.js';
-import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope} from './human-library-scope.js';
-import {normalizePhysical} from './human-library-journal.js';
+import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
+import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
+import {normalizePhysical,physical} from './human-library-journal.js';
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {acceptSequence} from './core.js';
+import {protocolPhysicalId} from './physical-key.js';
+import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
+import {emptyContextCards as emptyContext} from '../context-cards.js';
+import {REVISION_POLICY} from '../ia-store.js';
+import {FILTER_VERSIONS} from '../smart-filter.js';
+const originalScopes=new WeakMap(),ScopeWeakRef=globalThis.WeakRef,scopeDeref=ScopeWeakRef.prototype.deref;
+const freezeScope=value=>{if(value&&typeof value==='object'){for(const item of Object.values(value))freezeScope(item);Object.freeze(value);}return value;};
+export function requireGroupHumanCompilationInput(scope,wire){
+ const p=originalScopes.get(scope);if(p&&(p.phase!=='preparing'||p.humanWire!==wire))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+export function requireOriginalCurrentGroupScope(core,scope,plan){
+ const p=originalScopes.get(scope);requireOriginalGroupCheckpointPlan(core,plan);
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.length||plan.groups.some(g=>g.type!=='humanLibraryCommit'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+export const currentHumanGroupEmptyStores=Object.freeze(['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','tombstones','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources','filterInputs','filterIntents','inputStates','inputRemovals','categories','dependencies','invalidations','provenance','organizerJobs','organizerWorkItems','organizerSuggestions','entryRelations','librarySearchTerms','organizerUsage']);
+export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','libraryMigrationItems',...currentHumanGroupEmptyStores]);
+// Called only by the fixed original native capture after metering all source
+// trees and operands. No public Core or wrapper read is a source of truth.
+export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,control,databaseId){
+ requireOriginalCurrentGroupScope(core,scope,plan);
+ if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const rows=new Map(raw.groupMeta.map(row=>[row.id,row])),take=(id,expected)=>{const row=rows.get(id);if(!row||!equal(row,{...expected,id}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);};
+ const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts),frontiers=new Map(),operations=plan.groups.flatMap(g=>g.operations),latest=new Map();
+ const generation=rows.get(key('generation'));if(!generation||!count(generation.value)||generation.value<1)fail('BNS_GROUP_COMMIT_UNPROVEN');take(key('generation'),{value:generation.value});
+ const epoch=raw.points['recovery-restore-epoch']?.value??null,restore=rows.get(key('ownerRecoveryEpoch'));
+ if(restore)take(key('ownerRecoveryEpoch'),{version:1,epoch});else if(epoch!==null)fail('BNS_RESTORE_EPOCH_UNBOUND');
+ const active=raw.points[core.prefix+'active'];if(active&&(!exact(active,['id','namespace','manifestId','graphDigest'])||typeof active.namespace!=='string'||active.manifestId!==undefined&&!hash(active.manifestId)||active.graphDigest!==undefined&&!hash(active.graphDigest)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const op of operations){
+  take(key('revision',op.revisionId),{operation:op,redacted:false});take(key('receipt',op.operationId),{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});
+  take(key('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),{operationId:op.operationId,digest:op.revisionId});take(key('entityRevision',op.type,op.entityId,op.revisionId),{revisionId:op.revisionId});
+  frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
+  const out=key('outbox',op.operationId);if(rows.has(out))take(out,{operationId:op.operationId,revisionId:op.revisionId,state:'queued'});
+ }
+ for(const head of plan.heads){take(key('head',head.type,head.entityId),head);const op=operations.find(op=>op.revisionId===head.revisions[0]);if(head.type==='humanLibraryMember')latest.set(head.entityId,op);}
+ for(const [deviceId,state]of frontiers)take(key('frontier',deviceId),{...state,deviceId});
+ const local=operations.filter(op=>op.deviceId===core.deviceId);if(local.length)take(key('device',core.deviceId),{sequence:Math.max(...local.map(op=>op.sequence))});
+ const tables={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',history:'revisions'};
+ for(const [id,op]of latest){const {entityType:type,after}=op.value,name=tables[type],actual=name?raw.rows[name].find(row=>row.id===after.id):raw.prefixes['topicKeepSeparate:'].find(row=>row.id===after.id);if(!actual)fail('BNS_GROUP_COMMIT_UNPROVEN');take(key('humanMapping',id),{type,local:physical(type,actual),wire:physical(type,after),revisionId:op.revisionId});}
+ // Exact attested Human key inventory, never a prefix exemption. The active
+ // namespace and generation points are already authenticated by native R.
+ for(const row of Object.values(raw.points))if(row)rows.delete(row.id);
+ for(const list of Object.values(raw.prefixes))for(const row of list)rows.delete(row.id);
+ for(const [id,row]of rows){
+  if(id===CONTEXT_CARDS_ROW){if(!equal(row,emptyContext()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id===PROMPT_REUSE_ROW){if(!equal(row,emptyPromptPreferences()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='sequence'){if(!equal(row,{id,records:0,blocks:0,documents:0}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='migration'){if(!exact(row,['id','phase','databaseId','cursor','digest','verified','recoveryVerified','recordCount','blockCount'])||row.phase!=='active'||row.databaseId!==databaseId||!opaque(databaseId)||!hash(row.digest)||row.cursor!==0||row.verified!==true||row.recoveryVerified!==true||row.recordCount!==0||row.blockCount!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='thought-ddl'){if(!equal(row,{id,fromVersion:row.fromVersion,toVersion:5})||!count(row.fromVersion)||row.fromVersion>5)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='ia-migration'){if(!exact(row,['id','phase','cursor','count','version','startedAt','verified','completedAt','policy'])||row.phase!=='active'||row.cursor!==null||row.count!==0||row.version!==1||row.verified!==true||!equal(row.policy,REVISION_POLICY)||!Number.isFinite(Date.parse(row.startedAt))||!Number.isFinite(Date.parse(row.completedAt)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='smart-filter'){if(!exact(row,['id','phase','migrationVersion','cursor','mapped','legacyCount','mode','noticePending','decisionSequence','policyEpoch',...Object.keys(FILTER_VERSIONS),'verified','diagnosticsVersion','taskState','completedAt'])||row.phase!=='active'||row.migrationVersion!==1||row.cursor!==null||row.mapped!==0||row.legacyCount!==0||row.mode!=='light'||row.noticePending!==false||row.decisionSequence!==0||row.policyEpoch!==0||row.verified!==true||row.diagnosticsVersion!==1||!Object.entries(FILTER_VERSIONS).every(([k,v])=>row[k]===v)||row.taskState!=='idle'||!Number.isFinite(Date.parse(row.completedAt)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='thought-binding:v1'){if(!equal(row,{id,version:1,cursor:null,complete:true,input:0,thought:row.thought})||!count(row.thought))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='thought-reverse-edit:v1'){if(!equal(row,{id,version:1,enabled:false}))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id==='library-documents-compat-v2'){const fields=['activeTopics','repairedTopics','repairedIndexTopics','repairedGenerationTopics','repairedDefaultSections','unresolvedLayouts','indexedActiveTopics','indexGap'];if(!exact(row,['id','cursor','complete',...fields,'completedAt'])||row.cursor!==null||row.complete!==true||!fields.every(k=>count(row[k]))||row.unresolvedLayouts!==0||row.indexGap!==0||!Number.isFinite(Date.parse(row.completedAt)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id===HUMAN_FENCE||id===DELTA_COUNTER||id==='backup-data-generation'||id==='input-delta-sequence'){if(!equal(row,{id,value:row.value})||!count(row.value))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(id.startsWith(KNOWN_PREFIX)||id.startsWith(DIRTY_PREFIX)){
+   const known=raw.groupMeta.find(x=>x.id===KNOWN_PREFIX+row.descriptor?.key),journal=raw.rows.revisions.find(x=>x.id===row.descriptor?.journalId),descriptor=journal&&deltaDescription('revisions',journal);
+   if(!descriptor||!equal(row.descriptor,descriptor)||row.signature!==deltaSignature(descriptor)||row.version!==1||!count(row.sequence)||row.sequence<1||!known)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+   const base={id,version:1,descriptor,signature:row.signature,sequence:row.sequence};
+   if(id.startsWith(DIRTY_PREFIX)){if(id!==DIRTY_PREFIX+descriptor.key||!equal(row,{...base,requirements:[],pendingFacets:['topic','context']})||!equal({...known,id},base))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+   else if(id!==KNOWN_PREFIX+descriptor.key||!equal(row,base))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;
+  }
+  fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ }
+ const revision=raw.points['revision-sequence'];if((revision?.value||0)!==Math.max(0,...raw.rows.revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ return true;
+}
 const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
 const ephemeralStores=new Set(['recordIndex','blockIndex','sourceCounts','filterInputs','invalidations','librarySearchTerms','migrationBackup','operationReceipts']);
 const represented=new Set(['records','times','documents','libraryDocuments','blocks','inputStates','revisions','filterIntents','meta']);
@@ -31,7 +99,8 @@ export async function prepareGroupScope(plan,{store}={}){
  if(human)expected.humanLibrary=human;
  const normalized=clone(expected);for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
- const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};if(human)await prepareHumanScopeProof(store,scope,human);return scope;
+ const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}},p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human};originalScopes.set(scope,p);
+ try{if(human)await prepareHumanScopeProof(store,scope,human);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;}catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){
  const c=await store.control(t);
@@ -55,4 +124,22 @@ export async function requireGroupScope(store,t,scope){
  const expected=clone(scope.expected);if(human){const ids=new Set(human.history.map(row=>row.id));actual.revisions=actual.revisions.map(row=>ids.has(row.id)?normalizePhysical('history',row):row);expected.revisions=sort([...expected.revisions.filter(row=>!ids.has(row.id)),...human.history]);delete expected.humanLibrary;const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  if(!equal(actual,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
+}
+
+
+// Local readonly export lifecycle; restore compilation calls neither function.
+export async function prepareGroupCurrentProjection(store,core,scope,plan){
+ requireOriginalCurrentGroupScope(core,scope,plan);await prepareHumanCurrentGroupScopeProjection(store,core,scope,plan);
+}
+export async function requireGroupCurrentProjection(store,core,t,scope,plan){
+ requireOriginalCurrentGroupScope(core,scope,plan);await requireHumanCurrentGroupScope(store,t,scope,plan);return true;
+}
+export async function encodeGroupCurrentProjection(core,scope,plan,transport,options){
+ requireOriginalCurrentGroupScope(core,scope,plan);return encodeHumanCurrentGroupScope(scope,plan,transport,options);
+}
+export async function publishGroupCurrentProjection(core,scope,plan,checkpoint,transport,options){
+ requireOriginalCurrentGroupScope(core,scope,plan);return publishHumanCurrentGroupScope(scope,plan,checkpoint,transport,options);
+}
+export function releaseGroupCurrentProjection(scope){
+ if(hasHumanScope(scope))releaseHumanCurrentScopeProjection(scope);
 }

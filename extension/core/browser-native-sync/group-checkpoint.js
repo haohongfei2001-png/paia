@@ -7,13 +7,14 @@ import {BrowserNativeSyncCore,acceptSequence,CORE_LIMITS} from './core.js';
 import {buildCheckpoint,checkpointItems} from './checkpoints.js';
 import {protocolObject,readObject,SEGMENT_PROFILE} from './segments.js';
 import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
-import {prepareGroupScope,requireGroupScope} from './group-checkpoint-scope.js';
+import {prepareGroupScope,requireGroupScope,prepareGroupCurrentProjection,requireGroupCurrentProjection,encodeGroupCurrentProjection,publishGroupCurrentProjection,releaseGroupCurrentProjection} from './group-checkpoint-scope.js';
 import {prepareBootstrapApplication,applyBootstrapApplication} from './source-bootstrap-receive.js';
 import {prepareAppendApplication,applyAppendApplication} from './source-append-receive.js';
 import {JournalRestoreFence,readRestoreEpoch} from './prompt-journal.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
 import {validateCoverage} from './codecs.js';
+import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 const profileName='bounded-admitted-local-owners',own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
@@ -28,18 +29,30 @@ async function requireCommittedPlan(core,t,plan){
  heads.sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  if(!equal(heads,plan.heads))fail('BNS_GROUP_COMMIT_UNPROVEN');
 }
-export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[]}={}){
- if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
+export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false}={}){
+ if(typeof currentHumanProjection!=='boolean')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
- await store.run(()=>core.transaction(false,async t=>{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}));
- const checkpoint=await buildCheckpoint(core,transport,{profile,parents});
- const manifest={...checkpoint.manifest,ownerScope:scope.ownerScope},object=await protocolObject('checkpoint-manifest',bytes(manifest),{profile});
- await store.run(()=>core.transaction(false,async t=>{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}));
- await transport.putImmutable(object.ref,object.bytes);await readObject(object.ref,ref=>transport.get(ref),{profile});
+ const verifyCut=async()=>{let originalScope,calls=0;const check=()=>core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}});
+  // The native certificate pins the settled Store tail. Direct readonly Core
+  // inspection leaves that tail intact; a genuine Store operation invalidates
+  // it. Never rebind the tail to accommodate an intervening queued operation.
+  if(currentHumanProjection){await check();if(calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');await awaitRepositoryTransactionSettled(core.repository,originalScope);requireRepositoryCommittedIdentity(core.repository,originalScope);}else await store.run(check);
+ };
+ let currentPrepared=false;try{if(currentHumanProjection){await prepareGroupCurrentProjection(store,core,scope,plan);currentPrepared=true;}
+ await verifyCut();
+ const checkpoint=currentHumanProjection?await encodeGroupCurrentProjection(core,scope,plan,transport,{profile,parents}):await buildCheckpoint(core,transport,{profile,parents});
+ let manifest,ref;
+ if(currentHumanProjection){
+  await verifyCut();const published=await publishGroupCurrentProjection(core,scope,plan,checkpoint,transport,{profile});manifest=published.manifest;ref=published.ref;
+ }else{
+  manifest={...checkpoint.manifest,ownerScope:scope.ownerScope};const object=await protocolObject('checkpoint-manifest',bytes(manifest),{profile});
+  await verifyCut();await transport.putImmutable(object.ref,object.bytes);await readObject(object.ref,ref=>transport.get(ref),{profile});ref=object.ref;
+ }
  // A transport await may overlap a local edit; never advertise a stale cut as a
  // completed current checkpoint even though its immutable object may exist.
- await store.run(()=>core.transaction(false,async t=>{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}));
- return {ref:object.ref,manifest,cut};
+ await verifyCut();
+ return {ref,manifest,cut:currentHumanProjection?checkpoint.cut:cut};
+ }catch(error){if(currentHumanProjection&&error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}finally{if(currentPrepared)releaseGroupCurrentProjection(scope);}
 }
 async function manifest(ref,get,core,profile,supported){
  if(ref?.kind!=='checkpoint-manifest')fail('BNS_CHECKPOINT_INVALID');

@@ -1,3 +1,13 @@
+# Accepted 0.43.5; 0.43.6 finite native Group checkpoint under acceptance
+
+Remote main `d516c43b01d4f2f7f3dda93f037ce2145bee5109`, tree `ab716ed3b40be5d3e48312bc79ab3994520981e1`, normally merged PR239. Candidate37975220005 and exact-main37977355706 each passed all21 required full-certification jobs. The442-file0.43.5 package was byte/CRC verified, SHA256 `bb225f943c6bfceb617cff6167d2855714248d4545d3538558a85fe90cae4193`. Installation/formal deployment remain false. First full37973565986 native preflight failed580/581; its omitted witness dependencies and all older failures remain preserved.
+
+The coherent0.43.6 local SYNC batch adds an explicit default-false native Group checkpoint profile for complete Human-only pending-search/current Root/Topic content. Its original compiler/Scope identities, complete actual meta/protocol and37-store schema, three settled readonly cuts and original encoder share the same bounded owner. Frozen782 passes13 complete owning files115/115, six source/release native groups (current19, Scope30/113 assertions, retention28), and fresh additive10 safety cases per variant. Independent finite code/resource review approves the private before-copy transport repair; original failures remain. Independent final packet composition review approves the exact782 evidence; full high-risk CI, merge and exact-main acceptance remain PENDING. See [batch receipt](implementation/verification/COHERENT-0436-NATIVE-GROUP-CHECKPOINT.md).
+
+All seven selected plans remain unfinished. This profile does not activate a UI/provider/account, admit indexed-search owners, replace canonical-only destination restore or qualify whole canonical recovery. Unknown/non-Human/oversized state is refused without deleting data or widening quotas. Chrome/Edge/Safari account/device, installed/live and Qwen quality/billing gates remain separate. Approved CTX/SET final visual originals remain missing after bounded recovery; no repeat request/substitution. Prompt Surface/default-off Stage3A and IAH1.1 minimal behavior remain selected; Stage3B/NIB-v4 runtime and old IAH1.0 Home remain unselected.
+
+## Preserved preceding checkpoint
+
 # Accepted 0.43.4; 0.43.5 native current-generation prerequisite under acceptance
 
 Remote main `6b4f96199e4f2de4040b1ed505a3610186b6815e`, tree `ca7e04d1c73f3592ef7589fe390b5d67c96a4f03`, normally merged PR238. Candidate37960162363 and exact-main37961074645 passed all8 required ordinary jobs; exact-main Prompt37961074599 passed all5. The442-file0.43.4 package was byte/CRC verified, SHA256 `9cb82dda266a0fba3dd2c450f6ae78f68bd55c80e506625b95eb55ec4a30faba`. Installation/formal deployment remain false. Initial failed37958971167 is preserved; its old VM export-loader issue was repaired without changing assertions.
