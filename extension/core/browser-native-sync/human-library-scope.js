@@ -1,4 +1,5 @@
 import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
+import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
 import {keyedHash} from '../thought-model.js';
 import {ownerVersion} from '../library-search.js';
@@ -13,7 +14,7 @@ export function compileHumanScope(plan){
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
 export async function prepareHumanScopeProof(store,scope,wire){
- (await import('./group-checkpoint-scope.js')).requireGroupHumanCompilationInput(scope,wire);
+ requireGroupHumanCompilationInput(scope,wire);
  if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const secret=await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');
  const rows=clone(wire.rows);for(const row of rows.entry)row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);for(const row of rows.topic)row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;
  for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side])row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;

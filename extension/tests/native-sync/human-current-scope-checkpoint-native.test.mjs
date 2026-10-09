@@ -5,9 +5,8 @@ import {readFile,stat,readdir,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,extname,join,isAbsolute} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
-const root=resolve(fileURLToPath(new URL('../..',import.meta.url))),repo=resolve(root,'..'),req=createRequire(import.meta.url);
+const root=resolve(fileURLToPath(new URL('../..',import.meta.url))),repo=resolve(root,'..');
 const digest=data=>createHash('sha256').update(data).digest('hex');
 const git=(...args)=>execFileSync('git',args,{cwd:repo,encoding:'utf8'}).trim();
 const fixture=join(root,'tests/native-sync/current-scope-checkpoint-native-fixture.mjs');
@@ -22,7 +21,7 @@ for(const variant of ['source','release'])test('current Human readonly Scope che
  try{
   server=createServer(async(request,response)=>{try{const path=decodeURIComponent(new URL(request.url,'http://localhost').pathname);if(path==='/'){response.writeHead(200,{'content-type':'text/html'});response.end('<!doctype html><title>Synthetic native prerequisite</title>');return;}const file=path==='/tests/native-sync/current-scope-checkpoint-native-fixture.mjs'?fixture:resolve(runtime,'.'+path);if(file!==fixture&&!file.startsWith(runtime+'/'))throw Error('invalid path');const data=await readFile(file);served.set(path.slice(1),digest(data));response.writeHead(200,{'content-type':['.js','.mjs'].includes(extname(file))?'text/javascript':'text/plain'});response.end(data);}catch{response.writeHead(404);response.end();}});
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  const pwModule=process.env.PLAYWRIGHT_MODULE||'playwright';const {chromium}=await import(pathToFileURL(isAbsolute(pwModule)?pwModule:req.resolve(pwModule)).href);
+  const pwModule=process.env.PLAYWRIGHT_MODULE||'playwright';const {chromium}=await import(isAbsolute(pwModule)?pathToFileURL(pwModule).href:pwModule);
   browser=await chromium.launch({headless:true});const context=await browser.newContext();await context.route('**/*',route=>{if(new URL(route.request().url()).hostname!=='127.0.0.1'){external++;return route.abort();}return route.continue();});
   const page=await context.newPage();await page.goto('http://127.0.0.1:'+server.address().port);session=await context.newCDPSession(page);rootSession=await browser.newBrowserCDPSession();
   const sample=async()=>{if(sampling)return;sampling=true;try{const heap=await session.send('Runtime.getHeapUsage'),pids=(await rootSession.send('SystemInfo.getProcessInfo')).processInfo.map(p=>p.id);const rss=execFileSync('ps',['-o','rss=','-p',pids.join(',')],{encoding:'utf8'}).trim().split(/\s+/).filter(Boolean).map(Number).reduce((a,b)=>a+b,0)*1024;samples.push({jsUsed:heap.usedSize,jsTotal:heap.totalSize,embedderUsed:heap.embedderHeapUsedSize??null,processRss:rss});}finally{sampling=false;}};
