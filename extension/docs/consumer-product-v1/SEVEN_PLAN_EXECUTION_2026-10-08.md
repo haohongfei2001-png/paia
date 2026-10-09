@@ -1,5 +1,13 @@
 # Seven-lane coordinated execution
 
+## PR225 failed original head and bounded Reader diagnostic — 2026-10-09
+
+Remote main remains delivered0.36 `e21b5543eaa9db9bf8e4b19dddfdfd0ee6b26ec2`. Original PR225 head2cec9fea Full37878399910 FAILED only primary Current Browser1/9 Reader undo-after-navigation; the other eight browser groups, four unit shards, native Sync, contracts and build passed, and aggregate/gate correctly failed. Historical unique cause is UNKNOWN. The actual release artifact matches original Reader runtime; no failed/cancelled/skipped job is relabeled as PASS.
+
+The isolated correction adds only bounded body-free failure-stage diagnostics to the original owning test, retaining all actions/assertions/14000ms waits/75000ms case budget. Final exact diagnostic code62dee520 original whole file8/8 PASS; the actual original reporter's intentionally failing assertion preserves its error and now emits the finite state. This is diagnostic preparation, not a demonstrated product fix. See [Reader receipt](implementation/desktop-vnext/READER-UNDO-037-DIAGNOSTIC-RECEIPT.md). Root reviewed every diff and original error retention; final independent code/receipt/canonical/PR-body review is APPROVED; one stable corrected-head hosted Full remains required. No repeat unchanged-head dispatch or formal deployment.
+
+Dormant Qwen/readonly Filter/synthetic replay mechanics retain their exact local037 evidence below. Current0.37 is not merged/user-available. Private Human038 actual local native6/6/build435/strict18 remains a separate candidate awaiting fresh accepted037 main; original search constructors and incoming nested local-tag refusal are isolated039 work. No paid/provider/account/full-seven-lane acceptance is inferred. Continue independent development while the necessary candidate gate runs.
+
 ## Current delivered 0.36 and local 0.37 foundations — 2026-10-09
 
 Remote signed main `e21b5543eaa9db9bf8e4b19dddfdfd0ee6b26ec2` delivers the private Assist0.36 batch through normal PR224 merge. Corrected candidate Full37875268783/Prompt37875268690 and exact-main Full37876418188/Prompt37876418200 all SUCCESS. Its425-file ZIP was rebuilt from exact clean main and verified CRC/every file byte; no automatic installation, new visible Assist entry, provider, processing/financial authority or paid activation. Original missing Prompt trigger, Mac headless failure and earlier CI failures remain precisely scoped in their receipts.
