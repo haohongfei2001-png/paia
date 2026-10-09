@@ -1,3 +1,23 @@
+# Accepted 0.43.2; current 0.43.3 Search inventory prerequisites
+
+Main a71bc1fe8f90fab19201eb38dcfb55d6c0021c05/tree849e45a3b47aa229d80f9d4bec46b3abedbbacff normally mergesPR236. Candidate ordinary37943230252 and exact-main37945388136 each passed8/8 required jobs; candidatePrompt37943230239 and exact-main37945387903 each passed5/5. Skipped jobs are not passes. The440-file0.43.2 ZIP was byte/CRC verified and delivered, SHA25615db03df5cdef3b630522c01102c1c4907f2f4741e6143e4426e6738863c3cf9. It preserves0.43.1 reading fixes and adds local metadata/Prompt checks; no new UI/cloud activation. Installation and formal deployment remain false.
+
+Current0.43.3 combines the exact original eager Search field expression and one unused source-only scalar inventory. Original tokenizer/results/queue/posting behavior remains byte-equivalent; the scanner never calls normalize/case/regex/hash/DB, never grants a profile/budget/scope/restore, and reports fixed body-free NOT_ADMITTED facts. Complete source counts retain Han/ASCII asymmetry; unsupported/over-work-bound counts are null, and completed over-posting-ceiling facts explicitly remain unqualified. Two exact component scopes have independent approval. Integrated b95 passes7 complete relevant files95/95,0fail/skip/cancel,441-file package guards and exact source/emitted bytes. Candidate/main integration and delivery are pending. See [combined receipt](implementation/verification/COHERENT-0433-SEARCH-INVENTORY-PREREQUISITES.md).
+
+| Lane | Current stage / next remaining task | Responsible owner |
+| --- | --- | --- |
+| CPV1-TOPIC01–06 incl05.1–05.8 | Existing Root/Section/read/write/saved-AI surfaces and0.43.1 return/reopen/reload repair are integrated. Final overall/installed/live/reference acceptance remains; no UI redesign is reopened. | Root |
+| CTX4-01–07 | Existing manual/local cards and restrictive Topic access retained. Precise approved visual originals remain missing after bounded recovery; real consumer/connection and applicable live identity evidence remain. No substitute or repeated request. | Root; affected external evidence remains distinct |
+| SET2-01–05 | Existing six groups/style/details/reset and recovery/focus corrections retained. Exact approved visual originals and final installed/system acceptance remain; no duplicate write entry. | Root sole Settings writer |
+| SYNC01–06 | Local original owners/Core/Prompt/Context/Source/Working/group/conflict evidence retained,0.43.2 prerequisites delivered. This batch prepares source inventory only; native tokenizer resources/default-locale execution profile, complete current-generation projection and complete recovery stay open. No Chrome/Edge/Safari account/transport/device activation. | Root sole shared-data writer; independent finite peer review |
+| AI-COST01–07 | Local policy/Organize/Assist/Qwen mechanics retained. Nine literal/style+two controls at1e50 bind exact accepted0.43.1, not later changed main. Human semantic quality/real Qwen/billing/entitlement effects remain unqualified and paid activation unauthorized. | Root; independent experiment remains separate |
+| Prompt Surface / Stage3A / AI06 dependencies | Approved reuse/local default-off Stage3A and dependencies retained. Actual installed/live-host gates separate; NIBv4 runtime and Stage3B unselected. | Root |
+| IAH1.1 minimal existing UI | Selected neutral Archive/scope/search/find/return behavior retained. Final applicable acceptance remains distinct. No oldIAH1.0/Home or expanded design. | Root |
+
+Source/data authority and all original failed CI/native/Prompt cases remain preserved. Fixed Unicode data audit does not qualify native/default-locale execution or full heap. No fee/account/credential/permission/real-user-upload/deployment/irreversible-delete authorization is added. This is continuing seven-lane work, not complete-seven-lane acceptance.
+
+## Preserved preceding checkpoint
+
 # Accepted 0.43.1; current 0.43.2 local Sync prerequisites
 
 Main `45b230ffe892556d57c6e5e51b875c81e51bb03b`, tree `2d7a6e1834dd0d088151b132623487c45e7b378c`, contains normally merged PR235. Candidate ordinary37937574562/main ordinary37938958153 passed all8 required jobs each; candidate Prompt37937574429/main Prompt37938958188 passed all5 each. The439-file0.43.1 ZIP is delivered, byte/CRC verified, SHA256 `be55a92404eca7822ac05c3d3cf448225127d4a7da4e2e17a032d0a684efb83c`. Topic return/reopen/reload reading position and saved-edit/header shift are repaired. Installation and formal deployment remain false. Initial failed candidate37936203672 remains preserved.
