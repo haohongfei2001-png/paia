@@ -1038,13 +1038,23 @@ function projectionNativeOrder(r,store,view,parts){
  for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),r.semantic))fail('BNS_HUMAN_CHANGED');
  return expected;
 }
+function projectionPendingOwner(row,kind){
+ projectionScalarString(row.id);
+ if(!row.id.length||!['active','removed'].includes(row.lifecycle)||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ const required=kind==='entry'?['revision','contentRevision']:kind==='topic'?['revision','activeLayoutGeneration']:['revision','layoutGeneration'];
+ for(const field of required)if(!Number.isSafeInteger(row[field])||row[field]<0)projectionRequired();
+ for(const field of ['layoutGeneration','searchSafetyVersion'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();
+ if(kind==='entry'&&row.fieldRevisions?.type!==undefined&&(!Number.isSafeInteger(row.fieldRevisions.type)||row.fieldRevisions.type<0))projectionRequired();
+ projectionScalarString(row.searchVersion,128);
+}
 function projectionSemanticCharge(r){
  let charge=PROJECTION_SEMANTIC;
+ if(r.raw.rows.thoughts.length+r.raw.rows.topics.length+r.raw.rows.sections.length>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');
  // Prepaid fixed frame holds these two/three-element borrowed scalar arrays
  // and one empty original constructor header. B bounds the exact JSON string
  // units without allocating that string; no normalizer expansion is assumed.
  for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
-  projectionScalarString(row.id);
+  projectionPendingOwner(row,kind);
   const ownerKey=projectionMeasure([kind,row.id]).B,queueKey=projectionMeasure(['search',kind,row.id]).B;
   const header=projectionMeasure(planSearchQueueLocator(kind,{id:'',sourceRecordIds:[]},'0'));
   charge+=4*ownerKey+projectionTreeCharge(header)+2*(queueKey+row.id.length+128);
@@ -1064,7 +1074,7 @@ function projectionQualify(r){
  for(const row of raw.prefixes['thought-read-index:']){projectionScalarString(row.id,2048);if(metadata.has(row.id))projectionRequired();metadata.set(row.id,row);}
  const match=row=>{if(!row)return;if(!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');migration.delete(row.id);};
  const queue=[];
- for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionScalarString(row.id);if(Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');for(const field of kind==='entry'?['revision','contentRevision']:['revision','layoutGeneration'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();if(kind==='entry'&&(row.fieldRevisions?.type!==undefined&&(!Number.isSafeInteger(row.fieldRevisions.type)||row.fieldRevisions.type<0)||row.searchSafetyVersion!==undefined&&(!Number.isSafeInteger(row.searchSafetyVersion)||row.searchSafetyVersion<0)))projectionRequired();const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
  // Every physical migration row will also be matched below; this subset is
  // used only after its exact original queue locator has been observed.
  const search={rows:{thoughts:rows.thoughts,topics:rows.topics,sections:rows.sections,revisions:rows.revisions,libraryMigrationItems:queue,librarySearchTerms:rows.librarySearchTerms},rebuild:points['library-search-rebuild']};
