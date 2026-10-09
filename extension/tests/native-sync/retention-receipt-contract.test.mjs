@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {assertRetentionNativeReceipt} from './retention-native-receipt.mjs';import {RETENTION_SPECS,NATIVE_OWNER_EXTRA} from './retention-native-fixture.mjs';
+const sample=()=>({schema:1,scope:'private-human-retention-native',head:'synthetic-head',variant:'source',result:'PASS',provider:false,productionRegistration:false,runtimeHashes:{source:'synthetic'},fixtureHashes:{fixture:'synthetic'},originalFixtures:RETENTION_SPECS,cases:Object.entries(RETENTION_SPECS).flatMap(([suite,spec])=>[...spec.names,...(suite==='owner'?[NATIVE_OWNER_EXTRA]:[])].map((name,index)=>({suite,name,index,result:'PASS',nativeFactory:true,assertions:1,durationMs:1,...(name===NATIVE_OWNER_EXTRA?{extra:{intercepts:0,removals:0,dtoInvocations:0,falseEvents:1,trustedCompletes:1}}:{})}))),isolation:{nativeFactory:true,networkAttempts:0,httpRequests:0,networkLedger:{complete:true}}});
+const expected={head:'synthetic-head',variant:'source',runtimeHashes:{source:'synthetic'},fixtureHashes:{fixture:'synthetic'}};
+test('retention receipt rejects missing, duplicated, skipped, non-native or body-bearing rows',()=>{
+ assertRetentionNativeReceipt(sample(),expected);
+ for(const mutate of [r=>r.cases.pop(),r=>r.cases[1]=r.cases[0],r=>r.cases[0].result='skipped',r=>r.cases[0].nativeFactory=false,r=>r.cases[0].assertions=0,r=>r.cases[0].body='forbidden',r=>r.isolation.networkAttempts=1,r=>r.cases[27].extra.intercepts=1,r=>r.runtimeHashes.source='changed']){const receipt=sample();mutate(receipt);assert.throws(()=>assertRetentionNativeReceipt(receipt,expected));}
+});

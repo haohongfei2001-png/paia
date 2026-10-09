@@ -1,6 +1,7 @@
 // Node-only fixture preflight. Passing this file is explicitly NOT native IDB,
 // a worker termination result, source/release browser proof, or provider evidence.
 import test from 'node:test';
+import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -197,4 +198,66 @@ test('Working receipt refuses stale, partial, network-erased and false activatio
  const validate=r=>assertInputWorkingReceipt(r,{head:receipt.head,tree:receipt.tree,variant:'source'});validate(receipt);assert.throws(()=>assertInputWorkingReceipt({...receipt,head:undefined,tree:undefined},{variant:'source'}));
  for(const change of [{head:'d'.repeat(40)},{tree:'d'.repeat(40)},{result:'IN_PROGRESS'},{variant:'release'},{scope:'full-sync'},{cases:receipt.cases.slice(1)},{cases:Array(14).fill('duplicate')},{cases:receipt.cases.map((x,i)=>i===0?'other case':x)},{hashes:{}},{productionActivation:true},{remoteMaterializer:true},{fullRecovery:true},{browserVersion:''}])assert.throws(()=>validate({...receipt,...change}));
  for(const mutate of [r=>r.restart.phase.name='other-phase',r=>r.restart.phase.hasNativeTransaction=true,r=>r.restart.stopped=false,r=>r.restart.afterLifetime=r.restart.beforeLifetime,r=>r.restart.pausedNetwork={},r=>r.isolation.httpRequests=1,r=>r.isolation.networkLedger.observations[1].networkAttempts.push('https://synthetic.invalid/denied'),r=>r.isolation.networkLedger.observations.splice(2,1)]){const copy=structuredClone(receipt);mutate(copy);assert.throws(()=>validate(copy));}
+});
+
+
+// Execute the actual startNative body with only its dynamic browser import
+// replaced. These Node doubles prove control flow, not real page/worker/IDB
+// evidence; native runs must pass the real page.isClosed + worker identity gate.
+async function nativeStartupContract(options, faults = {}) {
+  const events = [], identity = networkIdentity('startup-contract');
+  let closed = false;
+  const page = {
+    async close() { events.push('page-close-start'); await Promise.resolve(); if (faults.close) throw Error('page-close-failed'); closed = !faults.notClosed; events.push('page-close-done'); },
+    isClosed() { events.push('page-is-closed'); return closed; }
+  };
+  const worker = {url: () => 'chrome-extension://synthetic/background/service-worker.js', async evaluate() { events.push('worker-identity'); return identity; }};
+  const h = {
+    extensionId: 'synthetic', archive: page, externalChrome: {profile: 'synthetic-profile'},
+    context: {async route() { events.push('route'); }, serviceWorkers: () => [worker], browser: () => ({version: () => 'synthetic-version'})},
+    async state() { events.push('state-start'); await Promise.resolve(); if (faults.state) throw Error('state-failed'); events.push('state-done'); }
+  };
+  const FakeChatGPT = {async start() { events.push('browser-start'); return h; }};
+  const source = await readFile(join(root, 'tests/native-sync/storage-harness.mjs'), 'utf8');
+  const start = source.indexOf('export async function startNative(');
+  assert.ok(start > 0);
+  const browserImport = "await import('../harness/fake-chatgpt.mjs')";
+  const body = source.slice(start).replace('export async function', 'async function');
+  assert.equal(body.split(browserImport).length, 2, 'only the dynamic browser import is substituted');
+  const run = runInNewContext('(' + body.replace(browserImport, 'browserFixture') + ')', {
+    browserFixture: {FakeChatGPT}, assert, hash: value => value,
+    eventually: async check => assert.equal(await check(), true), LifetimeNetworkLedger
+  });
+  try { return {result: await run('synthetic-extension', options), events, closed}; }
+  catch (error) { error.contractEvents = events; throw error; }
+}
+
+test('native startup keeps the existing Archive page by default and for explicit false', async () => {
+  for (const options of [undefined, {}, {closeArchivePage: undefined}, {closeArchivePage: false}]) {
+    const {events, closed} = await nativeStartupContract(options);
+    assert.equal(closed, false);
+    assert.deepEqual(events, ['browser-start', 'route', 'state-start', 'state-done', 'worker-identity']);
+  }
+});
+
+test('native isolated worker startup awaits page closure before observing worker identity', async () => {
+  const {events, closed} = await nativeStartupContract({closeArchivePage: true});
+  assert.equal(closed, true);
+  assert.deepEqual(events, ['browser-start', 'route', 'state-start', 'state-done', 'page-close-start', 'page-close-done', 'page-is-closed', 'worker-identity']);
+});
+
+test('native isolated worker startup rejects bad options and failed lifecycle boundaries', async () => {
+  for (const value of [null, 0, 1, '', 'true', [], {}]) {
+    await assert.rejects(nativeStartupContract({closeArchivePage: value}), error => {
+      assert.match(error.message, /closeArchivePage must be boolean/);
+      assert.deepEqual(error.contractEvents, []); return true;
+    });
+  }
+  for (const [faults, expected, events] of [
+    [{state: true}, /state-failed/, ['browser-start', 'route', 'state-start']],
+    [{close: true}, /page-close-failed/, ['browser-start', 'route', 'state-start', 'state-done', 'page-close-start']],
+    [{notClosed: true}, /Native Archive page must be closed/, ['browser-start', 'route', 'state-start', 'state-done', 'page-close-start', 'page-close-done', 'page-is-closed']]
+  ]) await assert.rejects(nativeStartupContract({closeArchivePage: true}, faults), error => {
+    assert.match(error.message, expected); assert.deepEqual(error.contractEvents, events); return true;
+  });
 });

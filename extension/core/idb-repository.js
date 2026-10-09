@@ -30,8 +30,12 @@ const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;
 const NativeIDBTransaction=globalThis.IDBTransaction;
 const nativeTransactionDb=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'db')?.get;
 const nativeTransactionMode=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'mode')?.get;
+const nativeAddEventListener=globalThis.EventTarget?.prototype.addEventListener;
+const nativeRemoveEventListener=globalThis.EventTarget?.prototype.removeEventListener;
+const nativeEventTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'target')?.get;
+const nativeEventCurrentTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'currentTarget')?.get;
 const nativeTransactionEvidence=transaction=>{
- try{if(!NativeIDBTransaction||!nativeTransactionDb||!nativeTransactionMode||!(transaction instanceof NativeIDBTransaction))return null;
+ try{if(!NativeIDBTransaction||!nativeTransactionDb||!nativeTransactionMode||!nativeAddEventListener||!nativeRemoveEventListener||!nativeEventTarget||!nativeEventCurrentTarget||!(transaction instanceof NativeIDBTransaction))return null;
   return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
  }catch{return null;}
 };
@@ -166,15 +170,17 @@ export class ArchiveRepository {
    // False native events do not consume either listener or settle any state.
    // Non-native test stores retain ordinary cleanup, never native authority.
    const terminal=(event,outcome)=>{
-    if(native&&(event.isTrusted!==true||event.target!==tx||event.currentTarget!==tx))return;
+    if(native){try{if(event.isTrusted!==true||nativeEventTarget.call(event)!==tx||nativeEventCurrentTarget.call(event)!==tx)return;}catch{return;}}
     if(record.nativeSettled)return;
-    tx.removeEventListener('complete',complete);tx.removeEventListener('abort',abort);
+    if(native){nativeRemoveEventListener.call(tx,'complete',complete);nativeRemoveEventListener.call(tx,'abort',abort);}
+    else{tx.removeEventListener('complete',complete);tx.removeEventListener('abort',abort);}
     record.nativeOutcome=outcome;record.nativeSettled=true;
     if(native)record.trustedNativeOutcome=outcome;
     maybeRelease();if(outcome==='completed')resolve();else reject(fail(tx.error));
    };
    const complete=event=>terminal(event,'completed'),abort=event=>terminal(event,'aborted');
-   tx.addEventListener('complete',complete);tx.addEventListener('abort',abort);
+   if(native){nativeAddEventListener.call(tx,'complete',complete);nativeAddEventListener.call(tx,'abort',abort);}
+   else{tx.addEventListener('complete',complete);tx.addEventListener('abort',abort);}
    tx.onerror=()=>{};
   });
   // The rejection is observed immediately even when the operation also rejects.
