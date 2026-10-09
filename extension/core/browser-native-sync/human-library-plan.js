@@ -520,7 +520,7 @@ export async function prepareHumanBranchRetentionRetry(store,core,input){
 }
 export function claimHumanBranchRetention(core,retention){
  const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||p.claimed)fail('BNS_HUMAN_RETENTION_REQUIRED');const state=branchState(p.store);if(!state.handles.includes(retention))fail('BNS_HUMAN_RETENTION_REQUIRED');if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');
- state.busy=true;p.claimed=true;try{branchFence(p.store,core,p.fence);return Object.freeze({repository:p.binding.repository,database:p.binding.database,namespace:p.kind==='retention'?p.raw.semantic.entry.namespace:p.raw.base.namespace,group:p.group});}catch(error){branchForget(state,retention);state.busy=false;throw error;}
+ state.busy=true;p.claimed=true;try{branchFence(p.store,core,p.fence);p.claim=Object.freeze({repository:p.binding.repository,database:p.binding.database,namespace:p.kind==='retention'?p.raw.semantic.entry.namespace:p.raw.base.namespace,group:p.group});return p.claim;}catch(error){branchForget(state,retention);state.busy=false;throw error;}
 }
 export function assertHumanBranchRetentionCurrent(core,retention){const p=branchWitnesses.get(retention);if(!retentionKind(p)||!p.claimed||p.core!==core)fail('BNS_HUMAN_RETENTION_REQUIRED');branchFence(p.store,core,p.fence);}
 export async function requireHumanBranchRetentionInTransaction(t,core,retention){
@@ -529,4 +529,4 @@ export async function requireHumanBranchRetentionInTransaction(t,core,retention)
  await retentionProtocolRead(t,core,p.protocol,raw);if(!equal(raw,p.raw))fail('BNS_HUMAN_CHANGED');branchFence(p.store,core,p.fence);
  return {protocol:p.protocol,expected:p.raw.protocol.expected,duplicate:p.kind==='duplicate'};
 }
-export function finishHumanBranchRetention(core,retention){const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed)return;const state=branchState(p.store);branchForget(state,retention);state.busy=false;}
+export function finishHumanBranchRetention(core,retention,claim){const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed||p.claim!==claim)fail('BNS_HUMAN_RETENTION_REQUIRED');const state=branchState(p.store);branchForget(state,retention);state.busy=false;}

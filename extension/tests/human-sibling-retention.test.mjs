@@ -44,7 +44,7 @@ test('retention consumes semantic handle; clones, ordinary plans and fake transa
  const f=await scenario(),w=await captureWitness(f.b.s,f.b.core,f.incoming),p=await prepareHumanBranchRetention(f.b.s,f.b.core,w);
  await assert.rejects(revalidate(f.b.s,f.b.core,w),{code:'BNS_HUMAN_BRANCH_WITNESS_REQUIRED'});await assert.rejects(prepareHumanBranchRetention(f.b.s,f.b.core,w),{code:'BNS_HUMAN_BRANCH_WITNESS_REQUIRED'});
  const before=await snapshot(f.b.s);for(const fake of [w,clone(p),{}])await assert.rejects(f.b.core.retainHumanBranch(fake),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
- claimHumanBranchRetention(f.b.core,p);await assert.rejects(requireHumanBranchRetentionInTransaction({tx:{db:f.b.s.repository.db,mode:'readwrite'}},f.b.core,p),{code:'BNS_HUMAN_RETENTION_REQUIRED'});finishHumanBranchRetention(f.b.core,p);assert.deepEqual(await snapshot(f.b.s),before);
+ const claim=claimHumanBranchRetention(f.b.core,p);assert.throws(()=>finishHumanBranchRetention(f.b.core,p,{}),{code:'BNS_HUMAN_RETENTION_REQUIRED'});await assert.rejects(captureWitness(f.b.s,f.b.core,f.incoming),{code:'BNS_HUMAN_BRANCH_BUSY'});await assert.rejects(requireHumanBranchRetentionInTransaction({tx:{db:f.b.s.repository.db,mode:'readwrite'}},f.b.core,p),{code:'BNS_HUMAN_RETENTION_REQUIRED'});finishHumanBranchRetention(f.b.core,p,claim);assert.deepEqual(await snapshot(f.b.s),before);
  await assert.rejects(f.b.core.retainHumanBranch(p),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
 });
 
@@ -111,7 +111,7 @@ test('all six original semantic scenarios retain complete groups without allocat
 test('a genuine unrelated transaction has no retention provenance, and overriding public transaction cannot inject a DTO',async()=>{
  const f=await scenario(),w=await captureWitness(f.b.s,f.b.core,f.incoming),p=await prepareHumanBranchRetention(f.b.s,f.b.core,w),claim=claimHumanBranchRetention(f.b.core,p),before=await snapshot(f.b.s);
  await f.b.core.transaction(true,async t=>{assert.throws(()=>f.b.core.requireHumanRetentionTransaction(t,p,claim.group),{code:'BNS_HUMAN_RETENTION_REQUIRED'});await assert.rejects(requireHumanBranchRetentionInTransaction(t,f.b.core,p),{code:'BNS_HUMAN_RETENTION_REQUIRED'});});
- finishHumanBranchRetention(f.b.core,p);assert.deepEqual(await snapshot(f.b.s),before);
+ finishHumanBranchRetention(f.b.core,p,claim);assert.deepEqual(await snapshot(f.b.s),before);
  const w2=await captureWitness(f.b.s,f.b.core,f.incoming),p2=await prepareHumanBranchRetention(f.b.s,f.b.core,w2),original=f.b.core.transaction;let injected=false;
  f.b.core.transaction=async()=>{injected=true;throw Error('fake transaction entry');};
  try{assert.deepEqual(await f.b.core.retainHumanBranch(p2),{state:'retained-conflict'});}finally{f.b.core.transaction=original;}

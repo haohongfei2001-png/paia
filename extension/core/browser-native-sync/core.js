@@ -303,7 +303,7 @@ export class BrowserNativeSyncCore {
     }finally{this.#humanRetentionTransactions.delete(t);}
    });
    assertHumanBranchRetentionCurrent(this,retention);return result;
-  }finally{finishHumanBranchRetention(this,retention);}
+  }finally{finishHumanBranchRetention(this,retention,claim);}
  }
  async prepareWorkingReceive(input){
   if(!Array.isArray(input)||input.length<5||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_WORKING_COMMIT_INVALID');
