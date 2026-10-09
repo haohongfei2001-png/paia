@@ -5,6 +5,17 @@ no account, console credential or paid resource was inspected. Read-only public
 technical references were checked for the proposed usage contract at base707dd125.
 The previous Q01–Q16 audit remains historical evidence, not overwritten.
 
+## Narrow parser follow-up — author candidate
+
+After independent design approval, a pure decoded normal/stream parser and its
+owning tests were implemented locally. This changes no official observation or
+actual account/provider/financial qualification. See
+[AI-COST-02-QWEN-USAGE-PARSER.md](AI-COST-02-QWEN-USAGE-PARSER.md) for exact code,
+failed drafts, author checks and pending independent runtime review. The original
+design-stage NOT_RUN statements below describe that earlier slice. Its unchanged
+corpus-integrity harness emits rawParserImplemented:false because that harness
+implements no parser and measures no parser; it is not current parser acceptance.
+
 | Ref | Official page checked | Observation scope |
 |---|---|---|
 | U01 | [Compatible Chat API](https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-chat-completions), updated Sep28 | Regional workspace paths; request/usage and streaming fields; completion/stop semantics; total-output bound and up-to-ten-token variation |

@@ -11,6 +11,46 @@ Authority: AI_USAGE_PLAN §4 and §12/AI-COST-02; AI_USAGE_ARCHITECTURE §9,
 authorization permits ordinary development, but creates no financial activation.
 This document does not supersede those authorities or historical receipts.
 
+## Narrow implementation follow-up — local author candidate
+
+The coordinator independently approved design commit6d1b4747 and authorized only
+the pure decoded-response parser, owning tests and receipt. The proposed full
+qualification registry/request/financial/cache bridge remains unimplemented.
+`core/ai-usage/qwen-usage-parser.js` now consumes a minimal exact *structural*
+binding: `{version,childId,requestedModel,responseModels,thinkingEnabled,profile,
+limits}`. This validation is not a qualification/signature/consent proof.
+
+`parseQwenUsage` requires exact `{binding,response,transportComplete,httpStatus,
+cancelled}`; `parseQwenStreamUsage` requires exact `{binding,frames,done,
+transportComplete,httpStatus,cancelled}`. There are no transport-boolean or bound
+defaults. Profiles use the fixed enum/schema described below. Limits are exactly
+maxBytes/maxFrames/maxDepth/maxKeys/maxStringBytes/inputTokens/billableOutputCap,
+all positive safe integers bounded by parser hard ceilings (1MiB,4096 frames,
+depth16,16384 keys,256KiB/string,16000 input and6000 output tokens). Callers must
+choose narrower existing job limits where applicable; these ceilings do not
+increase any PAIA job entitlement. Aggregate byte charging includes JSON string
+escaping and conservatively charges scalar/container overhead. Validation bounds
+its own copy/traversal, not memory already allocated by a decoder.
+
+Decoded frames include the exact typed `{kind:'done'}` terminator at its actual
+position, counted in frame limits. It must be unique and final; done and
+transportComplete must also explicitly be true. This accepted representation
+refines the original synthetic corpus's separate terminal flag. Owning tests
+append a marker from that flag for existing examples, then directly exercise
+early/duplicate/post-DONE/missing marker positions. This fixture adapter is not
+an SSE decoder. A future trusted decoder must establish actual wire ordering,
+UTF-8/SSE framing, HTTP completion and duplicate JSON-key handling. Passing these
+flags/markers is not proof of their real source.
+
+Results report transport completeness and finish reason only, with domainValidity
+fixed NOT_EVALUATED, qualification NOT_ESTABLISHED and all financial/dispatch
+authority false. Valid over-cap observed counts are retained unchanged with an
+overCap flag; the parser neither clamps/rebills/refunds nor implements stopping a
+service route. Raw bodies/reasoning and external exception fields are absent from
+results. Nothing imports the parser into production. Author validation and
+remaining independent review are recorded in AI-COST-02-QWEN-USAGE-PARSER.md;
+the earlier future-tense sections below preserve the approved design history.
+
 ## 1. Existing owners and the actual missing boundary
 
 `core/ai-usage/usage-normalization.js` accepts the neutral six-integer DTO;
