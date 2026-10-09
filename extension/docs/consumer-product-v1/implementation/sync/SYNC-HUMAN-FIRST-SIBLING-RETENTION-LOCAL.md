@@ -1,6 +1,6 @@
 # Private first Human sibling retention — local candidate
 
-**Current code is bdb53eac; independent rereview is pending. No production registration, release, public ACK, native retention execution or full recovery claim.** Root approved implementing only the finite design direction in `SYNC_HUMAN_SIBLING_RETENTION_NEXT_20261009.md`, SHA256 `8e5dea2cf3b689f829de7868ba6e62a65f80ff516de9ae09061e58a1693db40e`. This receipt does not expand that authority.
+**Current code is 1c074651; independent rereview is pending. No production registration, release, public ACK, native retention execution or full recovery claim.** Root approved implementing only the finite design direction in `SYNC_HUMAN_SIBLING_RETENTION_NEXT_20261009.md`, SHA256 `8e5dea2cf3b689f829de7868ba6e62a65f80ff516de9ae09061e58a1693db40e`. This receipt does not expand that authority.
 
 Base `9993c8d56a2dd5e2ed08195ea31af941db422d84`; initial code `eb5d5813ce57c4e32f097d28d51b56de0b97590f`, pre-review code `650d9ec24e811cdaef8d9687a29b11a7c22f49ac`, tree `0c7385bea6213b26e03560f8f04a96795f35b90d`. Only existing Core/plan/journal and one NEW owning test changed. Root still owns version/CI/integration. The inherited 0.41 version is not a new version assignment or deliverable from this branch.
 
@@ -56,11 +56,11 @@ First-sibling only: additional siblings, old unproved ancestry, indexed/historic
 Independent code/security/memory/transaction review is the next gate. Root must decide necessary further tests and stable integration. This candidate alone is neither SYNC-01 completion nor full seven-plan delivery.
 
 
-## Independent authority counterexample and current correction
+## First independent authority counterexample and intermediate correction
 
 Root's original `/tmp/retention-materialization-authority-review.test.mjs` hooked the existing `applyInTransaction` only on the descriptor and widened its options to `materialize:true`. Pre-review650d9ec2 unexpectedly resolved; the original negative assertion failed0/1, `/tmp/retention-materialization-authority-before.log`, SHA256 `b3451d7f38c0e185f2d5c50461597d633ebc2e96ea9bfde3f934589ff93574a9`. The initial marker checked exact group/phase but did not enforce all execution options. The older version therefore remains BLOCKED despite its52 passing author tests.
 
-Current code `bdb53eac53ce5a65cba96ebef3ac38da7ac0c02c`, tree `e8ddfd22665793fa3d88693ce7cdf91fb0ef0190`, adds one guard at the actual `applyInTransaction` entry. Whenever this real transaction has any retention marker, the marker must be in application phase, `origin` must equal `remote`, `materialize` must equal `false`, the passed retention capability must be that marker and the operation object must be an exact member of its immutable set. Any widening returns `BNS_HUMAN_RETENTION_REQUIRED` before reads/writes/materialization. Transactions without a retention marker keep their existing rules and behavior.
+Intermediate code `bdb53eac53ce5a65cba96ebef3ac38da7ac0c02c`, tree `e8ddfd22665793fa3d88693ce7cdf91fb0ef0190`, adds one guard at the actual `applyInTransaction` entry. Whenever this real transaction has any retention marker, the marker must be in application phase, `origin` must equal `remote`, `materialize` must equal `false`, the passed retention capability must be that marker and the operation object must be an exact member of its immutable set. Any widening returns `BNS_HUMAN_RETENTION_REQUIRED` before reads/writes/materialization. Transactions without a retention marker keep their existing rules and behavior.
 
 The NEW owning case injects four independent widenings at the descriptor, after earlier members have attempted their real protocol writes: materialization enabled; local origin; a cloned operation instead of the exact authorized member; and a forged capability. Each requires that exact refusal code, a reached injection, zero materializer invocations, and complete before/after store equality. Existing assertions are retained.
 
@@ -71,4 +71,26 @@ The NEW owning case injects four independent widenings at the descriptor, after 
 | `/tmp/human-retention-authority-import.log` | Source and built release module imports PASS;436-file build; emitted13880/412 guard PASS | `82f6339d5a947af5aa08de28c1f21a20d9fea4ebb87bd250adbb66c64391f4a0` |
 | `/tmp/human-retention-authority-package.log` | Source13944/416 guard PASS | `02fbbc05ef8524a97691eaa7a9b830e261d6345347bbafeb43d8a4869e8dc485` |
 
-Current `core.js` SHA256 is `32d3f039020a5208f677d3a5d2ff59bb2a50da8461fa5f65984a6b76fe75ec56`; NEW owning test SHA256 is `0660a808017d84c4772a82f9dfbb3c1ad0fe67e731e06604487da3b56debca4d`. Plan and journal hashes above are unchanged. All three current built runtime files are checked byte-identical to source. No full-unit, native/browser, CI, version, registration, publication or merge work was added for this correction. Root's original failure and earlier author evidence are preserved separately. Current code requires independent rereview; this receipt does not approve itself.
+Current `core.js` SHA256 is `32d3f039020a5208f677d3a5d2ff59bb2a50da8461fa5f65984a6b76fe75ec56`; NEW owning test SHA256 is `0660a808017d84c4772a82f9dfbb3c1ad0fe67e731e06604487da3b56debca4d`. Plan and journal hashes above are unchanged. All three current built runtime files are checked byte-identical to source. No full-unit, native/browser, CI, version, registration, publication or merge work was added for this correction. Root's original failure and earlier author evidence are preserved separately. That intermediate version was subsequently blocked by the physical-scope counterexample below; its passing tests are preserved only for their original coverage. This receipt does not approve itself.
+
+
+## Second independent counterexample: physical transaction aliases
+
+Root's unchanged `/tmp/retention-physical-scope-authority-review.test.mjs` created `alias=Object.create(t)` with the **same actual underlying `alias.tx===t.tx`**, then passed local-origin/materializing options through the alias. The wrapper-keyed map missed it and the intermediate version wrongly entered ordinary local behavior. The original log `/tmp/retention-physical-scope-authority-before.log`, SHA256 `2c44763665488c7580701839348439cb9cd4e6713912448c75b64405fbebf148`, records0/1 FAIL, `materializerCalls:1` and `storesUnchanged:false`. This is an actual integrity failure, not a flaky timeout. Intermediate bdb53eac remains BLOCKED.
+
+Final code `1c074651458bb7f7467f4e0fc4a63eb99cb8ee2b`, tree `ad84e2142a9606f4add6a6057ea6cb64261c37a8`, registers both the exact original wrapper and actual underlying IDB transaction in class-private maps **before** validation. They are shared between Core instances so another Core cannot turn the same active physical transaction into an ordinary local call. Validation/application first locate the physical proof, then require the exact original wrapper, owning Core, namespace, repository, database, phase, options, marker and immutable member. An alias or Proxy cannot qualify merely by pointing at the same IDB transaction.
+
+Validation and application each use a frozen marker. The application member inventory is a frozen array of the exact prevalidated objects, rather than a mutable exposed Set. A public application hook cannot change the marker's Core or add an unauthorized member. Final cleanup deletes both maps through the proof's captured wrapper/transaction, rather than reading a potentially altered `t.tx`.
+
+The owning test now includes alias, Proxy and a different Core using the same physical transaction. Each reached injection must return `BNS_HUMAN_RETENTION_REQUIRED`, invoke no materializer, preserve the complete pre-operation store snapshot and allow a later normal exact retention. The prior widening test also verifies frozen marker/member inventory and rejected `Reflect.set` mutation. Existing assertions are retained; ordinary transactions without an active retention proof follow their prior paths.
+
+| Final exact evidence | Actual result | SHA256 |
+|---|---|---|
+| Original independent alias script unchanged; `/tmp/retention-physical-scope-final-review-after.log` | 1/1 PASS,281.806792ms; injected=true, materializerCalls=0, storesUnchanged=true | `187afe3f68b3796b0fb79bcef84c2cf863d23f509d66d605e62c4c08bd72cd8f` |
+| Eight complete files; `/tmp/human-retention-physical-final-reviewed.log` | 54/54 PASS,13524.684875ms;14 NEW owning cases plus40 original cases; zero skipped/cancelled | `e03fe962368e2dec10c3c712c7210298a4bd6740fd7bbcbbd2cd9c4a4a83c19e` |
+| `/tmp/human-retention-physical-import.log` | Source/built-release imports PASS;436-file build; emitted13880/412 guard PASS | `02f580860e7de0cac1053da950f3267effe1c4d521092650cb8825da0f762501` |
+| `/tmp/human-retention-physical-package.log` | Source13944/416 guard PASS | `02fbbc05ef8524a97691eaa7a9b830e261d6345347bbafeb43d8a4869e8dc485` |
+
+Final Core SHA256 `e1411ae345203812a9d1dedcd6fefe36becf949425c43eda49744231daeca5bc`; final NEW owning test SHA256 `178acc01ccf8ef2c4cf86a9e1a2692859a3b83419dddaafedfd07d52de32fa42`. Plan and journal hashes recorded above remain unchanged. The final three built runtime files were read back byte-identical to source. Earlier mutable-marker/alias-only54-case runs remain separate intermediate evidence and do not replace this final result.
+
+Root requested no further CPU tests while independently checking an unrelated original performance limit. This branch is frozen and performs no further tests until directed. No full/native/CI/version/publication/merge was run. Both independent failures remain preserved; final code still requires independent approval.
