@@ -19,7 +19,7 @@ const PREFS=[
  ['ux-reading-width','readingWidth','阅读宽度','Reading width',[['narrow','紧凑','Compact'],['standard','标准','Standard'],['wide','宽','Wide']]],
  ['time-display','timeDisplay','时间显示','Time display',[['date_and_time','标准','Standard'],['date_and_seconds','详细','Detailed']]]
 ];
-let style=null,promptNext=null,promptPosition=null,about=null,settingsDetails=null,settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false;
+let style=null,promptNext=null,promptPosition=null,about=null,settingsDetails=null,settingsVisible=false,onBack=()=>{},onRouteChange=()=>{},group=null,installed=false,restoring=false,groupFocusSerial=0;
 const groups=new Map(),tabs=new Map(),positions=new Map();
 const archiveOrderSettings=new ArchiveOrderSettings();
 const local=new SettingsLocalState({send:request,changed:()=>applyPreferences()});
@@ -66,11 +66,16 @@ function rememberPosition(){if(!settingsVisible||group===null)return;const focus
 export function captureSettingsView(){return {settingsGroup:group||'index',settingsPosition:positions.get(group)||{scrollTop:0,focus:null}};}
 export function restoreSettingsView(value={}){const key=value.settingsGroup==='index'?'index':SETTINGS_LABELS[value.settingsGroup]?value.settingsGroup:null;if(key===null)return;restoring=true;try{if(value.settingsPosition)positions.set(key,value.settingsPosition);activateGroup(key,{history:false,focus:true});}finally{restoring=false;}}
 function activateGroup(key,{history=true,focus=false}={}){
- if(key!=='index'&&!groups.has(key))return;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
+ if(key!=='index'&&!groups.has(key))return;const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
  for(const [name,section]of groups)section.hidden=index||name!==key;for(const [name,tab]of tabs)tab.setAttribute('aria-current',name===key?'page':'false');
  const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);}
  $('ux-settings-group-back').hidden=index;syncSettingsLocale();if(history&&changed)onRouteChange({replace:false});if(settingsVisible&&key==='about')void about?.refresh();if(settingsVisible&&key==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();}
- if(focus&&settingsVisible){const expected=key;requestAnimationFrame(()=>{if(!settingsVisible||group!==expected)return;const position=positions.get(key),saved=position?.focus?$(position.focus):null,target=saved?.getClientRects().length?saved:index?[...tabs.values()][0]:$(`ux-settings-${key}-title`);target?.focus({preventScroll:true});globalThis.scrollTo?.(0,position?.scrollTop||0);});}
+ if(focus&&settingsVisible){const expected=key,focused=document.activeElement;requestAnimationFrame(()=>{
+  if(!settingsVisible||group!==expected||groupFocusSerial!==serial)return;
+  // A delayed return must not override the user's next visible focus target.
+  const active=document.activeElement;if(active&&active!==focused&&active!==document.body&&active.getClientRects().length)return;
+  const position=positions.get(key),saved=position?.focus?$(position.focus):null,target=saved?.getClientRects().length?saved:index?[...tabs.values()][0]:$(`ux-settings-${key}-title`);target?.focus({preventScroll:true});globalThis.scrollTo?.(0,position?.scrollTop||0);
+ });}
 }
 function setupSettingsShell(){
  const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';
@@ -97,5 +102,5 @@ export function installSettingsPreferences({back=()=>{},routeChanged=()=>{}}={})
  globalThis.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener?.('change',()=>{if(uxPreferences.appearance==='system')applyPreferences();});globalThis.addEventListener?.('languagechange',()=>{if(uxPreferences.language==='system')applyPreferences();});globalThis.matchMedia?.('(max-width:1023px)')?.addEventListener?.('change',()=>{if(!compact()&&group==='index')activateGroup('content',{history:false});});
  const savePosition=()=>{if(settingsVisible&&!restoring){rememberPosition();onRouteChange({replace:true});}};globalThis.addEventListener?.('scroll',savePosition,{passive:true});$('settings-panel')?.addEventListener('focusin',savePosition);
 }
-export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible)rememberPosition();settingsVisible=visible;if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});else if(group==='about')void about?.refresh();else if(group==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();}}}
+export function presentSettingsPreferences({visible=false}={}){const opening=visible&&!settingsVisible;if(!visible&&settingsVisible){rememberPosition();groupFocusSerial++;}settingsVisible=visible;if(opening){syncSettingsLocale();if(group===null)activateGroup(compact()?'index':'content',{history:false});else if(group==='about')void about?.refresh();else if(group==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();}}}
 export {presentSettingsRecovery} from './maintenance-recovery.js';
