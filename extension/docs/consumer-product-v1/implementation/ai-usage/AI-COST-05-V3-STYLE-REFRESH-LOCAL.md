@@ -1,6 +1,6 @@
 # AI-COST-05 explicit style refresh / V3 local implementation
 
-Base fe0c63d0; approved design/audit checkpoint 8ec5e54f. Future slice, not part of frozen 0.34/0.34.1. Runtime independently approved; final native remains pending.
+Base fe0c63d0; approved design/audit checkpoint 8ec5e54f. Future slice, not part of frozen 0.34/0.34.1. Runtime independently approved; final native passed on exact commit 60f44b9b.
 
 ## Actual behavior and limits
 
@@ -21,7 +21,7 @@ Current presentation/candidate/migration delegate explicitly to the new strict c
 - Actual new owner coverage includes mixed/allKeep/full decisions, same text new style, uniform delta, A-B-A, strict provenance negatives, four-child committed receipts, ACK rollback/same response retry, candidate digest/style mutation, actual protected recovery and Source purge.
 - Current BackupService restores V3 accepted bytes and manifests. The actual immutable fe0c63d0 BackupService loaded with all baseline core dependencies from git archive rejects the same new backup during preflight and writes no presentation. This is Node actual-owner evidence; not a browser backup claim.
 - Package guard 13421 across 401 runtime resources PASS. Syntax passed for the additive native file. A first author command used extension/extension by mistake and found no file; it did not edit production or run native.
-- Native additions retain the original two source/release cases, 120 s budget, all original 200+5 / 47+3 / multi-child / privacy and network assertions. New actual IDB mixed-style, ACK rollback, uniform delta and provenance assertions are independently reviewed; final execution pending.
+- Native additions retain the original two source/release cases, 120 s budget, all original 200+5 / 47+3 / multi-child / privacy and network assertions. New actual IDB mixed-style, ACK rollback, uniform delta and provenance assertions are independently reviewed; final execution results below.
 
 No model or paid network was called. Synthetic profiles/responses establish local implementation correctness only; live Qwen semantic quality, financial authority, production consent/provider wiring and broader AI-COST-05 completion are not claimed.
 
@@ -47,3 +47,13 @@ Root_finish independent runtime APPROVED: V3 then19 + original Foundation50 comp
 - `core/organizer/local-organize-session.js`: `238e47eff0de412161a992de065e12d97a1c2d006fb38414858e3fb0bfd8058c`
 - `tests/ai-organize-style-v3.test.mjs`: `1ef85534b0200956e24b0cce7a68f1b346a05e3469204009bc8031e312fd3616`
 - `tests/cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs`: `037b282065421df3b38ead53b662604864abe6ed55ca2f0d5d03f48b921713bc`
+
+## Final native and immutable fixture verification
+
+Exact code/test head `60f44b9b`: original complete source/release file 2/2 PASS, 0 skipped/cancelled, 28809.199208 ms total, `/tmp/ai-style-v3-native-final.log`. Source 14223.350875 ms; release 14439.754792 ms. Both headless, isolated self-owned temporary release/profile, original 120-second budgets and every original assertion retained. The 10 SHA-256 rows above all matched again after execution (`/tmp/ai-style-v3-final-bytes.txt`). Dependency symlink was removed with unlink; no generated release/artifact included in commit.
+
+Both actual native IDB results: same-text style candidate changed eight fields; mixed styles `[original, concise]` remain truthfully recorded and stale; injected actual ACK put abort gives STORAGE_FAILED and exact accepted-row rollback; retry reuses private response. Payload sizes `[2,2,2,1,1]` include the final intentionally rejected disposal operation. Uniform delta retains prior blocks and two committed generation records; preference A-B-A returns NO_DELTA; V3 cacheExact remains false. During actual final ACK put, disposal returns STALE_BASE and rolls candidate/provenance back. Original network/privacy zero-request oracles and previous 200+5, 47+3, atomic multi-child, unknown-attempt and history cases all pass in the same file.
+
+Root_finish separately compared every frozen module with actual fe0c63d04a9bec3e0a7cf06f0851164a2751885f Git content, manifest SHA-256 and Git blob: 37/37 exact, 250448 bytes. This independent frozen-source review did not repeat browser or inflate case counts.
+
+Local slice complete pending coordinator integration/gates. Formal release, installed behavior, live provider quality/paid entitlement and full AI-COST-05 remain separate. No Source/Sync/Settings/worker/UI/CI/version or financial owner was changed. The coordinator owns reconciliation with newer main and any necessary combined verification.
