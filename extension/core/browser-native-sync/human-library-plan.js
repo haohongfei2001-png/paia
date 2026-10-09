@@ -991,7 +991,7 @@ function projectionPump(r,t){
       if(task.kind==='count'){if(!Number.isSafeInteger(value)||value<0||value>task.limit)fail('BNS_HUMAN_GRAPH_LIMIT');counts.set(task.target,value);finished=true;}
       else if(task.kind==='point'){
        value=value??null;r.transient=projectionTreeCharge(projectionMeasure(value,'native'));projectionReserve(r);if(value!==null&&value.id!==task.key)projectionRequired();r.raw.points[task.key]=projectionKeep(r,value,true);
-       if(task.active){const namespace=r.binding.fixedNamespace||value?.namespace||'initial';if(namespace!=='initial'&&!/^[A-Za-z0-9_-]{8,128}$/.test(namespace))projectionRequired();r.raw.namespace=namespace;tasks.push({kind:'point',store:'meta',key:protocolPhysicalId(r.binding.prefix,namespace,'generation',[])});}
+       if(task.active){const namespace=r.binding.fixedNamespace||value?.namespace||'initial';if(typeof namespace!=='string'||namespace!=='initial'&&!/^[A-Za-z0-9_-]{8,128}$/.test(namespace))projectionRequired();r.raw.namespace=namespace;tasks.push({kind:'point',store:'meta',key:protocolPhysicalId(r.binding.prefix,namespace,'generation',[])});}
        finished=true;
       }else{
        cursor=value;
@@ -1122,7 +1122,7 @@ function projectionQualify(r){
  // Receipt order is authenticated even for an Entry outside a current Topic.
  for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id]);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
- migration.clear();metadata.clear();projectionReserve(r);
+ migration.clear();metadata.clear();
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
 function projectionDrop(r){r.failedRequest=null;r.raw=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
@@ -1134,12 +1134,13 @@ export async function captureHumanCurrentUnindexedProjection(store,core){
  try{
   if('value'in Object.prototype)projectionRequired();nativeRetentionAvailable();if(typeof projectionCompare!=='function'||!projectionFactory)projectionRequired();
   requireOriginalLibraryDocumentsStore(store);const binding=branchReady(store,core);
+  if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
   if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
   r={work,owned:0,store,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[]};
   const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
   await r.tail;projectionFence(r);r.raw=projectionRaw();currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
-  if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);
+  if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);projectionReserve(r);
   // Admission must also be readable by the exact original whole-cut equality
   // used at require. Meter and prepay both real canonical operands first.
   if(!projectionEqual(r,r.raw,r.raw))projectionRequired();projectionFence(r);
