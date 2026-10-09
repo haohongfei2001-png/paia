@@ -11,8 +11,9 @@ export const ownerStore=kind=>({entry:'thoughts',topic:'topics',section:'section
 export function planSearchQueueLocator(kind,row,version=ownerVersion(kind,row)){
  return {id:JSON.stringify(['search',kind,row.id]),entityKind:'search',statusKey:0,ownerKind:kind,ownerId:row.id,version,phase:'delete',offset:0,sourceRecordIds:row.sourceRecordIds||[]};
 }
+export function searchOwnerFields(kind,row){return kind==='entry'?{title:row?.title||'',body:row?.thoughtText||'',type:row?.type||''}:kind==='topic'?{name:row?.name||''}:{title:row?.title||''};}
 export function planSearchPostings(kind,row){
- const fields=kind==='entry'?{title:row?.title||'',body:row?.thoughtText||'',type:row?.type||''}:kind==='topic'?{name:row?.name||''}:{title:row?.title||''};
+  const fields=searchOwnerFields(kind,row);
  return row?.lifecycle==='active'?Object.entries(fields).flatMap(([field,text])=>tokens(text).map(tokenHash=>({tokenHash,field}))):[];
 }
 export function planSearchPostingRow(task,posting,live){
