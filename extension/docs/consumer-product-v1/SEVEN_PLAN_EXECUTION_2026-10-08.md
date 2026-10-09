@@ -1,5 +1,30 @@
 # Seven-lane coordinated execution
 
+## Current safe 0.42 batch — pure graph qualification; retention remains excluded
+
+Fresh remote main is `1e86cfacc9fd1dc3ebefaeef1a098b8aa8e6f926`, tree `9f8c43c847e62f4b9f2578bdea8c3e51f29aaca3`. PR229 added NIB v4 design documents only; its runtime remains unselected. Existing seven-lane authority and the accepted0.41 extension remain in force. These new documents and all website changes are preserved.
+
+The current independent delivery candidate contains only the reviewed **pure Human conflict-graph qualifier**, the reviewed UIS-01 fixture-producer boundary correction, and compatible0.42 version admission. No new retention writer, Core/Repository/Journal/Plan behavior, transport, account, model, native12 CI migration, or NIB runtime is included. Existing41 UI remains unchanged. The graph's three exports accept primitive canonical JSON, produce body-free all-head structural evidence and grant no database/read/write/restore authority. See [the safe candidate receipt](implementation/verification/COHERENT-042-GRAPH-QUALIFICATION.md).
+
+At integrated code `adeb1324eb6e8fc949bfbd2ae7ce6b6cd2bb1e5e`, actual CI-major Node22.23.3 ran three whole owning/version files: **28/28 PASS,0fail/skip/cancel**,2389.090792ms. Source guard13971/417 resources and standard437-file release build passed. The graph has independent frozen3558 code/resource approval,24 whole owning plus4 independent counterexample passes. Its41-file dependency closure differs only in the explicit compatible backup42 admission, which the integrated run covers. This is targeted local evidence, not full or main certification. Current-candidate browser, hosted release gates, merge and exact-main package remain pending.
+
+**Retained failed branch:** PR231 atc6 is still OPEN/BLOCKED. Full37907834732 failed UIS-01 full-state equality. The separate actual native data-method suppression counterexample falsely returned retained-conflict with4 receipts absent; its script/log/result SHA256 b924e9ae/87f6f03b/01802b59 and all previous failures remain preserved. Original native successes cannot override it. The UIS fix has independently passed its original whole file at4308, but that does not qualify the failed retention branch. The minimum active data-method guard at6341 is separately frozen for review; it does not claim complete positive durable effects. None of that unqualified writer is in this safe candidate. No42 user version or package has been delivered yet.
+
+| Lane | Current position and next executable boundary | Owner |
+|---|---|---|
+| TOPIC01–06 /05.1–05.8 | Accepted Root/Section/read/write/saved-AI UI and41 cache remain; installed/genuine effect and final broad acceptance stay distinct. | Root; existing UI owners |
+| CTX4-01–07 | Local/manual restrictive Context code retained; precise final visual originals and actual trusted consumer/connection remain open. No replacement visual or fake connection. | Root; original Context owner |
+| SET2-01–05 | Accepted groups/style/details/reset/recovery-focus remain; missing final visual originals and installed supported-system acceptance remain separate. | Root sole Settings writer |
+| SYNC01–06 | Accepted partial Core/Prompt/Context/Source/Working/group recovery retained; pure graph qualifier is current candidate. Retention positive effects, projection/complete unresolved recovery and Chrome/Edge/Safari account/device gates remain unfinished. | Root; one isolated data-owner writer |
+| AI-COST01–07 | Local Foundation/Organize/Assist and dormant Qwen mechanics retained; real provider, billing and human/model quality require their own admission/evidence. | Original AI owners; Root integration |
+| Prompt /Stage3A /AI06 | Approved direct/family reuse and default-OFF Stage3A retained. NIB v4 is design-only follow-up; no runtime or Stage3B selected here. | Existing Prompt owner; Root |
+| IAH-1.1 | Accepted selected minimal navigation/search/Find/Back retained; current UIS test correction protects the full-state privacy assertion. No IAH-1.0 or new Home. | Root |
+
+Continue independent approved work. Exact Context/Settings design ZIP recovery is still missing, with no repeated path question or substitute. No paid API, credential/account use, permission expansion, real-user upload, formal deployment or irreversible deletion is inferred.
+
+## Preserved prior record (read with the current safe-batch distinction above)
+
+
 ## Current stable 0.41 combination and delivered 0.38 — 2026-10-09
 
 Verified remote main is `ca11a1e4cd794e95f2ad515f5d197da9bef4d833`, tree `38281ea6617edf3f90856b17c7fb0d57575d880e`. PR226 corrected candidate Full37893068954 / Prompt37893068804 and exact-main Full37894363930 / Prompt37894364076 all SUCCESS. The original failed Full37889914312 remains failed below. The clean exact-main435-file0.38 ZIP has SHA256 `322191eca1de2d0e133356aaefb34f6018437ff80c152f0d5f041ba3766753a3`; every file byte and CRC was verified. Updating restores qualified Topic/Section destinations after explicit fragment reload. No installation, live account or full-seven-lane completion is claimed.
