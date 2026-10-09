@@ -1,0 +1,53 @@
+import {bindHumanReplayEntry} from './human-library-allocation.js';
+import {humanPruneTime} from './human-library-allocation.js';
+import * as owner from './human-library-plan.js';
+import {portableHumanEntity} from './human-library-codec.js';
+import {prepareHumanRequestOrder,humanWireRequestDigest,restoreHumanRequest} from './human-library-request.js';
+import {clone,equal,fail} from './value.js';
+import {prefix} from '../thought-model.js';
+import {ArchiveError} from '../constants.js';
+const prepares={topic:owner.prepareHumanTopicPlan,'topic-edit':owner.prepareHumanTopicEditPlan,section:owner.prepareHumanSectionPlan,'section-edit':owner.prepareHumanSectionEditPlan,entry:owner.prepareHumanEntryPlan,'entry-edit':owner.prepareHumanEntryEditPlan,'entry-remove':owner.prepareHumanEntryLifecyclePlan,'entry-restore':owner.prepareHumanEntryLifecyclePlan,placement:owner.prepareHumanPlacementPlan,move:owner.prepareHumanMovePlan,fixed:owner.prepareHumanFixedPlan,'topic-lifecycle':owner.prepareHumanTopicLifecyclePlan,keep:owner.prepareHumanKeepPlan};
+// Explicit internal installation only. No worker/UI constructor registers this
+// owner. Unbound stores retain their original path and allocation behavior.
+export class HumanLibrarySyncJournal{
+ constructor(core){this.received=new WeakMap();this.core=core;this.prepared=new WeakMap();this.transactions=new WeakMap();}
+ async prepare(store,kind,request,options={}){
+  if(store.repository!==this.core.repository||store.humanLibraryJournal!==this||!prepares[kind])fail('BNS_HUMAN_BINDING_REQUIRED');request=clone(request);
+  const entry=await owner.humanPlanEntry(store,this.core),cap=await prepares[kind](store,this.core,request,entry,{...options,...(kind==='entry-restore'?{restore:true}:{})});if(cap.duplicate||cap.conflict)return cap;
+  const view=owner.humanPlanJournalRows(cap),identityProof=await this.core.transaction(false,async t=>{const result=[];for(const id of [...new Set(view.rows.filter(x=>x.type==='topic').map(x=>x.after.id))]){const page=await t.rangePage('revisions','byList',prefix(['topic:'+id]),null,129);if(page.next||page.rows.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');result.push({id,rows:page.rows.map(x=>x.value)});}return result;});
+  const histories=new Map(view.history.map(x=>[x.id,x]));for(const proof of identityProof)for(const row of proof.rows){if(!histories.has(row.id))histories.set(row.id,row);if(!view.rows.some(x=>x.type==='history'&&x.after.id===row.id))view.rows.push({type:'history',before:row,after:row});}view.history=[...histories.values()];
+  const optionsWire={restore:view.restore,renameOnly:view.renameOnly},order=await prepareHumanRequestOrder(kind,view.request,optionsWire),domainOperationId=request.operationId??crypto.randomUUID(),logicalCommitId=domainOperationId,requestDigest=await humanWireRequestDigest({request:view.request,...order}),changes=[],mappings=[];
+  for(const row of view.rows){let before=await portableHumanEntity(row.type,row.before,view.history,view.secret);const after=await portableHumanEntity(row.type,row.after,view.history,view.secret),id=row.type+':'+after.id,head=await this.core.read('head','humanLibraryMember',id);if(head?.purged||head?.revisions?.length>1)fail('BNS_HUMAN_OWNER_CHANGED');
+   if(head){const prior=await this.core.read('revision',head.revisions[0]);if(!prior||prior.redacted)fail('BNS_HUMAN_OWNER_CHANGED');const mapping=await this.core.read('humanMapping',id);if(mapping){if(!equal(mapping.local,physical(row.type,before))||!equal(mapping.wire,physical(row.type,prior.operation.value.after))||!equal(normalizePhysical(row.type,prior.operation.value.after),normalizePhysical(row.type,before)))fail('BNS_HUMAN_OWNER_CHANGED');before=clone(prior.operation.value.after);}else if(!equal(prior.operation.value.after,before))fail('BNS_HUMAN_OWNER_CHANGED');}else if(before!==null)fail('BNS_HUMAN_BOOTSTRAP_REQUIRED');
+   mappings.push({id,before:await this.core.read('humanMapping',id)??null,after:{type:row.type,local:physical(row.type,after),wire:physical(row.type,after)}});
+   changes.push({type:'humanLibraryMember',expectedParents:head?.revisions||[],value:{id,entityType:row.type,logicalCommitId,datasetId:this.core.datasetId,deviceId:this.core.deviceId,domainOperationId,requestDigest,before,after}});
+  }
+  const prepared=await this.core.prepare(changes,{humanLibrary:{id:logicalCommitId,domainOperationId,requestDigest,kind,request:view.request,...order,options:optionsWire,events:view.events,allocation:view.allocation}});this.prepared.set(prepared,{cap,store,result:view.result,identityProof,mappings});return prepared;
+ }
+ async commit(t,prepared){const p=this.prepared.get(prepared);if(!p||p.store.humanLibraryJournal!==this)fail('BNS_PREPARATION_REQUIRED');this.transactions.set(t,p);try{for(const proof of p.identityProof){const page=await t.rangePage('revisions','byList',prefix(['topic:'+proof.id]),null,129);if(page.next||!equal(page.rows.map(x=>x.value),proof.rows))fail('BNS_HUMAN_CHANGED');}for(const m of p.mappings)if(!equal(await this.core.get(t,'humanMapping',m.id)??null,m.before))fail('BNS_HUMAN_MAPPING_CHANGED');const result=await owner.executeHumanPlanInTransaction(t,p.cap);await this.core.commitPrepared(t,prepared,{materialize:false});for(const m of p.mappings){const op=prepared.operations.find(op=>op.entityId===m.id);await this.core.put(t,'humanMapping',[m.id],{...m.after,revisionId:op.revisionId});}return result;}catch(error){if(error?.code?.startsWith('BNS_'))throw new ArchiveError(error.code);throw error;}finally{this.transactions.delete(t);}}
+ async prepareReceive(store,input){
+  if(store.repository!==this.core.repository||store.humanLibraryJournal!==this)fail('BNS_HUMAN_BINDING_REQUIRED');const protocol=await this.core.prepareHumanReceive(input);if(protocol.duplicate)return protocol;
+  const d=protocol.descriptor.value,request=await restoreHumanRequest(d);
+  for(const op of protocol.members){if(op.parents.length>1)fail('BNS_HUMAN_OWNER_CHANGED');const prior=op.parents.length?await this.core.read('revision',op.parents[0]):null;if(!equal(prior?.operation.value.after??null,op.value.before))fail('BNS_HUMAN_OWNER_CHANGED');}
+  const entry=bindHumanReplayEntry(await owner.humanPlanEntry(store,this.core),d.events,d.allocation),cap=await prepares[d.kind](store,this.core,request,entry,{...d.options,...(d.kind==='entry-restore'?{restore:true}:{})});if(cap.duplicate||cap.conflict)fail('BNS_HUMAN_OWNER_CHANGED');
+  const view=owner.humanPlanJournalRows(cap),history=new Map(view.history.map(h=>[h.id,h])),identityProof=[];
+  for(const id of [...new Set(view.rows.filter(x=>x.type==='topic').map(x=>x.after.id))]){const rows=await this.core.transaction(false,async t=>{const page=await t.rangePage('revisions','byList',prefix(['topic:'+id]),null,129);if(page.next||page.rows.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');return page.rows.map(x=>x.value);});identityProof.push({id,rows});for(const row of rows){if(!history.has(row.id))history.set(row.id,row);if(!view.rows.some(x=>x.type==='history'&&x.after.id===row.id))view.rows.push({type:'history',before:row,after:row});}}
+  const mappings=[];if(view.rows.length!==protocol.members.length)fail('BNS_HUMAN_PLAN_CHANGED');
+  for(const row of view.rows){const hit=protocol.members.find(op=>op.entityId===row.type+':'+row.after.id);if(!hit||hit.value.entityType!==row.type)fail('BNS_HUMAN_PLAN_CHANGED');const before=await portableHumanEntity(row.type,row.before,[...history.values()],view.secret),after=await portableHumanEntity(row.type,row.after,[...history.values()],view.secret);if(!equal(normalizePhysical(row.type,before),normalizePhysical(row.type,hit.value.before))||!equal(normalizePhysical(row.type,after),normalizePhysical(row.type,hit.value.after)))fail('BNS_HUMAN_PLAN_CHANGED');
+   const mapping=await this.core.read('humanMapping',hit.entityId);if(mapping&&(!equal(mapping.local,physical(row.type,before))||!equal(mapping.wire,physical(row.type,hit.value.before))))fail('BNS_HUMAN_MAPPING_CHANGED');mappings.push({entityId:hit.entityId,before:mapping??null,after:{type:row.type,wire:physical(row.type,hit.value.after),local:physical(row.type,after),revisionId:hit.revisionId}});
+  }
+  const prepared=Object.freeze({});this.received.set(prepared,{store,cap,protocol,mappings,identityProof});return prepared;
+ }
+ async commitReceiveInTransaction(t,prepared){const p=this.received.get(prepared);if(!p||p.store.humanLibraryJournal!==this)fail('BNS_PREPARATION_REQUIRED');
+  for(const proof of p.identityProof){const page=await t.rangePage('revisions','byList',prefix(['topic:'+proof.id]),null,129);if(page.next||!equal(page.rows.map(x=>x.value),proof.rows))fail('BNS_HUMAN_CHANGED');}
+  for(const m of p.mappings)if(!equal(await this.core.get(t,'humanMapping',m.entityId)??null,m.before))fail('BNS_HUMAN_MAPPING_CHANGED');this.transactions.set(t,{store:p.store});try{return await this.core.commitHumanReceive(t,p.protocol,async()=>{await owner.executeHumanPlanInTransaction(t,p.cap);for(const m of p.mappings)await this.core.put(t,'humanMapping',[m.entityId],m.after);});}finally{this.transactions.delete(t);}
+ }
+ async receive(store,input){const prepared=await this.prepareReceive(store,input);return this.core.transaction(true,t=>prepared.duplicate?this.core.commitHumanReceive(t,prepared,()=>fail('BNS_HUMAN_OWNER_CHANGED')):this.commitReceiveInTransaction(t,prepared));}
+ pruneTime(t){const p=this.transactions.get(t);return p?humanPruneTime(p.store,t):null;}
+ async execute(store,kind,request,options){try{const prepared=await this.prepare(store,kind,request,options);if(prepared.duplicate)return clone(prepared.result);if(prepared.conflict)return {conflict:true};return await store.write(t=>this.commit(t,prepared));}catch(error){if(error?.code?.startsWith('BNS_'))throw new ArchiveError(error.code);throw error;}}
+}
+
+// Explicit per-entity physical fields only. No suffix/prefix stripping or
+// semantic field normalization is accepted. Original wire values stay in Core.
+export function physical(type,row){if(row===null)return null;const keys=type==='entry'?['createdSequence','updatedSequence','negativeUpdatedSequence']:type==='topic'?['negativeUpdatedSequence']:type==='history'?['sequence','listKey','documentList']:[];return Object.fromEntries(keys.filter(k=>Object.hasOwn(row,k)).map(k=>[k,clone(row[k])]));}
+export function normalizePhysical(type,row){if(row===null)return null;const out=clone(row);for(const k of Object.keys(physical(type,row)))delete out[k];if(type==='history'&&row.kind==='topic')for(const side of ['before','after'])if(out[side])out[side]=normalizePhysical('topic',out[side]);return out;}

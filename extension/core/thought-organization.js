@@ -1,10 +1,14 @@
+import {humanClock} from './browser-native-sync/human-library-allocation.js';
 import {fail,keys,idOK,revisionOK,markHuman,prefix} from './thought-model.js';
 import {journal} from './thought-journal.js';
 export async function editSection(store,request){
+ if(store.humanLibraryJournal)return store.humanLibraryJournal.execute(store,'section-edit',request);
  keys(request,['topicId','sectionId','expectedRevision','title','operationId','restoreRevisionId'],['topicId','sectionId','expectedRevision','title','operationId']);
  if(!idOK(request.topicId)||!idOK(request.sectionId)||!revisionOK(request.expectedRevision)||typeof request.title!=='string'||request.title.length>300)fail();
- return store.operation(request,async t=>{await checkRestore(store,t,request.restoreRevisionId,'section',request.sectionId);const topic=await store.canonicalTopic(t,request.topicId);if(topic.id!==request.topicId)fail();const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,request.sectionId]));if(!row||row.lifecycle!=='active'||row.redirectTo)fail();if(row.revision!==request.expectedRevision)return {conflict:true};const before=structuredClone(row);row.title=request.title;row.revision++;markHuman(row,'title',request.operationId,store.clock());topic.organizationRevision++;await t.put('sections',row);await t.put('topics',topic);await journal(store,t,{kind:'section',entityId:row.sectionId,documentId:topic.id,before,after:row,fieldMask:['title'],actor:'user',reason:request.restoreRevisionId?'restore':store.libraryDocumentMode?'rename':'edit',important:store.libraryDocumentMode||!!request.restoreRevisionId,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.sectionId,revision:row.revision};});
+ return store.operation(request,t=>editSectionInTransaction(store,t,request));
 }
+export async function editSectionInTransaction(store,t,request){await checkRestore(store,t,request.restoreRevisionId,'section',request.sectionId);const topic=await store.canonicalTopic(t,request.topicId);if(topic.id!==request.topicId)fail();const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,request.sectionId]));if(!row||row.lifecycle!=='active'||row.redirectTo)fail();if(row.revision!==request.expectedRevision)return {conflict:true};const before=structuredClone(row);Object.assign(row,planHumanSectionEdit(row,request,humanClock(store,t)));topic.organizationRevision++;await t.put('sections',row);await t.put('topics',topic);await journal(store,t,{kind:'section',entityId:row.sectionId,documentId:topic.id,before,after:row,fieldMask:['title'],actor:'user',reason:request.restoreRevisionId?'restore':store.libraryDocumentMode?'rename':'edit',important:store.libraryDocumentMode||!!request.restoreRevisionId,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.sectionId,revision:row.revision};}
+
 export async function checkRestore(store,t,id,kind,entityId){if(!id)return;const r=await t.get('revisions',id);if(!r||r.kind!==kind||r.entityId!==entityId||!await store.sourcePresent(t,r.sourceRecordIds))fail();}
 export async function restoreOrganization(store,request,saved){
  const {id,expectedRevision,operationId,side='before'}=request,value=saved[side];
@@ -16,3 +20,5 @@ export async function restoreOrganization(store,request,saved){
  }
  fail();
 }
+
+export function planHumanSectionEdit(row,request,at){const result=structuredClone(row);result.title=request.title;result.revision++;markHuman(result,'title',request.operationId,at);return result;}

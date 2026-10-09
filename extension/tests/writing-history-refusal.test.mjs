@@ -4,11 +4,12 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {readTopicRootSlots,saveTopicRootSlots} from '../ui/topic-root-slots.js';
 import {RouteHistory,validRoute,routeViews} from '../ui/route-history.js';
+import {topicRootTarget,resolveTopicRootTarget} from '../core/topic-root-target.js';
 const source=readFileSync(new URL('../ui/reader-navigation.js',import.meta.url),'utf8');
 function fixture(){
  const listeners={},entries=[null];let refuse=false;let at=0,current={view:'library',documentId:null,searchQuery:''};
  const history={get state(){return entries[at];},replaceState(s){entries[at]=structuredClone(s);},pushState(s){entries.splice(++at);entries[at]=structuredClone(s);},async back(){if(at)await listeners.popstate({state:entries[--at]});},async forward(){if(at+1<entries.length)await listeners.popstate({state:entries[++at]});}};
- const context={RouteHistory,validRoute,views:routeViews,appShellRoute:r=>structuredClone(r),presentAppShell(){},crypto,structuredClone,location:{href:'chrome-extension://synthetic/ui/archive.html'},history,document:{addEventListener(){},querySelectorAll:()=>[]},window:{addEventListener:(name,fn)=>listeners[name]=fn},readTopicRootSlots:()=>readTopicRootSlots(history)};
+ const context={RouteHistory,validRoute,views:routeViews,topicRootTarget,resolveTopicRootTarget,appShellRoute:r=>structuredClone(r),presentAppShell(){},crypto,structuredClone,location:{href:'chrome-extension://synthetic/ui/archive.html'},history,document:{addEventListener(){},querySelectorAll:()=>[]},window:{addEventListener:(name,fn)=>listeners[name]=fn},readTopicRootSlots:()=>readTopicRootSlots(history)};
  vm.createContext(context);vm.runInContext(source.slice(source.indexOf('export function installReaderNavigation')).replace('export function','function')+'\nthis.install=installReaderNavigation;',context);
  const routes=context.install({current:()=>current,navigate:async(view,documentId,_input,options)=>{if(refuse)return false;current={view,documentId,topicId:options.topicId,originKey:options.originKey,searchQuery:options.searchQuery};}});routes.commit({replace:true});
  return {history,routes,forgePrevious:value=>entries[at-1]=structuredClone(value),reject:value=>refuse=value,set:r=>{current=r;},current:()=>current};

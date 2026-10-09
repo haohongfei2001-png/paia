@@ -1,3 +1,4 @@
+import {humanClock} from './browser-native-sync/human-library-allocation.js';
 import {fail,idOK,keyedHash,markHuman} from './thought-model.js';
 
 // Personal identity metadata contains no copied body or label. Names remain in
@@ -18,27 +19,37 @@ export async function assertTopicIdentityBase(t,base){
 }
 export async function prepareTopicName(store,name){
  await store.finishFoundation();const base=await store.run(()=>store.repository.transaction(false,t=>topicIdentityBase(t),['meta']));
- return {...base,token:await keyedHash(base.secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()])};
+ return prepareTopicNameFromBase(base,name);
 }
+export async function prepareTopicNameFromBase(base,name){return {...base,token:await keyedHash(base.secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()])};}
 export async function topicNameToken(store,name){return (await prepareTopicName(store,name)).token;}
 export async function prepareTopicIdentityName(store,id,newName){
  await store.finishFoundation();const snapshot=await store.run(()=>store.repository.transaction(false,async t=>({before:await t.get('topics',id),...await topicIdentityBase(t)}),['topics','meta']));
+ return prepareTopicIdentityFromSnapshot(snapshot,newName);
+}
+export async function prepareTopicIdentityFromSnapshot(snapshot,newName){
  if(!snapshot.before)fail();const normalized=name=>String(name).normalize('NFKC').toLocaleLowerCase().trim();
  return {secret:snapshot.secret,restoreEpoch:snapshot.restoreEpoch,beforeName:snapshot.before.name,beforeRevision:snapshot.before.revision,oldToken:await keyedHash(snapshot.secret,['personal-topic-name-v1',normalized(snapshot.before.name)]),...(newName!==undefined?{newToken:await keyedHash(snapshot.secret,['personal-topic-name-v1',normalized(newName)])}:{})};
 }
+export function planTopicNameRegistration(topic,token,current){
+ if(!/^[a-f0-9]{64}$/.test(token))fail();const next=structuredClone(topic);next.identity=identityMetadata(next);next.identity.nameToken=token;const id=namePrefix+token,row=current?structuredClone(current):{id,version:1,topicIds:[]},changed=!row.topicIds.includes(next.id);if(changed)row.topicIds.push(next.id);return {topic:next,registry:row,changed};
+}
 export async function registerTopicName(t,topic,token){
- if(!/^[a-f0-9]{64}$/.test(token))fail();topic.identity=identityMetadata(topic);topic.identity.nameToken=token;const id=namePrefix+token,row=await t.get('meta',id)||{id,version:1,topicIds:[]};
- if(!row.topicIds.includes(topic.id)){row.topicIds.push(topic.id);await t.put('meta',row);}
+ if(!/^[a-f0-9]{64}$/.test(token))fail();const planned=planTopicNameRegistration(topic,token,await t.get('meta',namePrefix+token));Object.assign(topic,planned.topic);if(planned.changed)await t.put('meta',planned.registry);
 }
 export const prepareTopicRename=prepareTopicIdentityName;
-export async function recordTopicRename(t,row,prepared,operationId,at){
- await assertTopicIdentityBase(t,prepared);if(row.revision!==prepared.beforeRevision||row.name!==prepared.beforeName)fail();
+export function planHumanTopicRename(row,prepared,operationId,at){
+ if(row.revision!==prepared.beforeRevision||row.name!==prepared.beforeName)fail();
  const identity=identityMetadata(row);
  const priorTokens=[...new Set([identity.nameToken,prepared.oldToken].filter(Boolean))];
  // A purge may sanitize the visible name while retaining its original opaque
  // fence. Renaming must retain that token too, without recovering erased text.
  for(const token of priorTokens)if(token!==prepared.newToken&&!identity.aliases.some(x=>x.token===token))identity.aliases.push({token,actor:row.protections?.name?.locked?'user':identity.origin,revision:row.revision,operationId,at});
- identity.revision++;row.identity=identity;for(const token of priorTokens)await registerTopicName(t,row,token);await registerTopicName(t,row,prepared.newToken);
+ identity.revision++;return {identity,priorTokens};
+}
+export async function recordTopicRename(t,row,prepared,operationId,at){
+ await assertTopicIdentityBase(t,prepared);const {identity,priorTokens}=planHumanTopicRename(row,prepared,operationId,at);
+ row.identity=identity;for(const token of priorTokens)await registerTopicName(t,row,token);await registerTopicName(t,row,prepared.newToken);
 }
 export async function resolveTopicIdentity(t,id){
  const seen=new Set();for(let depth=0;depth<32;depth++){
@@ -71,9 +82,10 @@ export async function topicIdentitiesSeparate(t,left,right){
  }while(after);return false;
 }
 export async function assertTopicMergeAllowed(t,sourceId,targetId){if(await topicIdentitiesSeparate(t,sourceId,targetId))fail();}
-export async function keepTopicIdentitiesSeparate(store,{sourceId,targetId}){
- return store.foundationWrite(async t=>{const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);if(a.id===b.id)return {kept:false};if(a.layoutJobId||b.layoutJobId)fail();
-  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',{id,sourceId:a.id,targetId:b.id,at:store.clock(),actor:'user',revision:1,scope:'identity'});return {kept:true};});
+export function planHumanKeepSeparate(sourceId,targetId,at){return {id:topicPairKey(sourceId,targetId),sourceId,targetId,at,actor:'user',revision:1,scope:'identity'};}
+export async function keepTopicIdentitiesSeparate(store,request){
+ const {sourceId,targetId}=request;if(store.humanLibraryJournal)return store.humanLibraryJournal.execute(store,'keep',{sourceId,targetId});const {beginHumanOperation,finishHumanOperation,releaseHumanOperation,humanOperationError}=await import('./browser-native-sync/human-library-plan.js');
+ return store.foundationWrite(async t=>{try{await beginHumanOperation(store,t,request);const result=await keepTopicIdentitiesSeparateInTransaction(store,t,{sourceId,targetId});await finishHumanOperation(store,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}});
 }
 // Explicit, resumable metadata compatibility operation. It is not invoked at
 // startup and does not change existing IDs, content, permissions or revisions.
@@ -89,3 +101,8 @@ export async function mapTopicIdentityBatch(store,{limit=100}={}){
   current.cursor=snapshot.page.next;current.complete=!snapshot.page.next;await t.put('meta',current);return current;
  });
 }
+
+export async function keepTopicIdentitiesSeparateInTransaction(store,t,{sourceId,targetId}){const a=await resolveTopicIdentity(t,sourceId),b=await resolveTopicIdentity(t,targetId);let result;if(a.id===b.id)result={kept:false};else{if(a.layoutJobId||b.layoutJobId)fail();
+  const id=topicPairKey(a.id,b.id),prior=await t.get('meta',id);if(!prior)await t.put('meta',planHumanKeepSeparate(a.id,b.id,humanClock(store,t)));result={kept:true};}return result;}
+
+export function planHumanTopicField(row,key,value,operationId,at){const result=structuredClone(row),field=key==='pinned'?'pinKey':key;result[field]=key==='pinned'?(value?0:1):value;markHuman(result,key,operationId,at);return result;}
