@@ -3,10 +3,10 @@ import {CORE_LIMITS,validateHumanCommitGroup} from './core.js';
 import {restoreHumanRequest} from './human-library-request.js';
 import {ENTRY_FIELDS,keys,revisionOK,validateFields} from '../thought-model.js';
 import {canonical,digest,equal,fail,opaque} from './value.js';
+import {beginHumanQualificationWork,resizeHumanQualificationLease,retainHumanQualificationLease,releaseHumanQualificationLease} from './human-qualification-budget.js';
 
 const MiB=1024*1024,RETAINED=4*MiB,AGGREGATE=8*MiB,MAX_HANDLES=8,SCANNER=128*1024;
 const brands=new WeakMap(),live=new Map();
-let retained=0,busy=false;
 const profile=()=>fail('BNS_HUMAN_GRAPH_PROFILE_UNSUPPORTED');
 const invalid=()=>fail('BNS_VALUE_INVALID');
 const limit=()=>fail('BNS_HUMAN_GRAPH_LIMIT');
@@ -132,8 +132,35 @@ function scanEnvelope(source){
  }
  value(0,'envelope');if(at!==source.length)serializedInvalid();return {datasetId,operationCount,operationBytes,W:footprint(),M};
 }
-function revoke(handle){const record=brands.get(handle);if(!record)return;brands.delete(handle);live.delete(handle);retained-=record.charge;record.operations=null;record.summary=null;}
-function room(charge){while(live.size&&retained+charge>AGGREGATE)revoke(live.keys().next().value);if(retained+charge>AGGREGATE)limit();}
+function drop(record){const ticket=record.ticket;record.operations=null;record.summary=null;record.ticket=null;record.charge=0;if(ticket)releaseHumanQualificationLease(ticket);}
+function revoke(handle){const record=brands.get(handle);if(!record)return;brands.delete(handle);live.delete(handle);drop(record);}
+function budgetError(error){if(error?.code==='BNS_HUMAN_QUALIFICATION_LIMIT')limit();if(error?.code==='BNS_HUMAN_QUALIFICATION_BUSY')fail('BNS_HUMAN_GRAPH_QUALIFICATION_BUSY');throw error;}
+function room(action){
+ const bound=Math.min(live.size,MAX_HANDLES);let evicted=0;
+ for(;;)try{return action();}catch(error){
+  if(error?.code!=='BNS_HUMAN_QUALIFICATION_LIMIT'||evicted>=bound||!live.size)budgetError(error);
+  revoke(live.keys().next().value);evicted++;
+ }
+}
+function discardPending(phase){
+ const pending=phase.pending;if(!pending)return;
+ brands.delete(pending.handle);live.delete(pending.handle);drop(pending.record);phase.pending=null;
+}
+function finish(phase){
+ const errors=[];
+ try{if(phase.failed)discardPending(phase);}catch(error){errors.push(error);}
+ finally{
+  phase.source=null;phase.parsed=null;phase.measured=null;
+  try{releaseHumanQualificationLease(phase.work);}catch(error){errors.push(error);}
+  phase.work=null;
+ }
+ if(errors.length){
+  try{discardPending(phase);}catch(error){errors.push(error);}
+  if(phase.failed)errors.unshift(phase.error);
+  throw new AggregateError(errors,'BNS_HUMAN_GRAPH_CLEANUP_FAILED');
+ }
+ phase.pending=null;
+}
 function freeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const item of Object.values(value))freeze(item);Object.freeze(value);}return value;}
 function entryShape(row){
  if(row===null)return;
@@ -207,29 +234,36 @@ function metadata(groups,datasetId){
  return {version:1,datasetId,inventory,groups:ordered,heads:terminals};
 }
 
-async function qualify(parsed,measured,charge,H){
- const snapshot=parsed.operations,parts=partition(snapshot,parsed.datasetId),groups=[],operations=[];
- for(const part of parts){const group=await validateHumanCommitGroup(part,parsed.datasetId),request=await restoreHumanRequest(group.descriptor.value);scope(group,request);groups.push(group);operations.push(...group.operations);}
- const graph=metadata(groups,parsed.datasetId),graphCharge=inspect(graph).footprint;if(graphCharge>H/4)limit();
+async function qualify(phase,charge,H){
+ let snapshot=phase.parsed.operations,parts=null,groups=[],operations=[],graph=null,summary=null,request=null;
+ try{
+ parts=partition(snapshot,phase.parsed.datasetId);
+ for(const part of parts){const group=await validateHumanCommitGroup(part,phase.parsed.datasetId);request=await restoreHumanRequest(group.descriptor.value);scope(group,request);groups.push(group);operations.push(...group.operations);request=null;}
+ graph=metadata(groups,phase.parsed.datasetId);const graphCharge=inspect(graph).footprint;if(graphCharge>H/4)limit();
  const graphDigest=await digest(graph);
- const summary=freeze({version:1,evidence:'PURE_HUMAN_GRAPH_STRUCTURE_ONLY',datasetId:parsed.datasetId,operationCount:operations.length,operationBytes:measured.operationBytes,graphDigest,groups:graph.groups,heads:graph.heads});
+ summary=freeze({version:1,evidence:'PURE_HUMAN_GRAPH_STRUCTURE_ONLY',datasetId:phase.parsed.datasetId,operationCount:operations.length,operationBytes:phase.measured.operationBytes,graphDigest,groups:graph.groups,heads:graph.heads});
  if(inspect(summary).footprint>H/4)limit();for(const op of operations)freeze(op);
- while(live.size&&(live.size>=MAX_HANDLES||retained+charge>RETAINED))revoke(live.keys().next().value);
- const handle=Object.freeze({}),record={operations,summary,charge};brands.set(handle,record);live.set(handle,record);retained+=charge;return handle;
+ const handle=Object.freeze({}),record={operations,summary,charge,ticket:null};phase.pending={handle,record};
+ record.ticket=room(()=>retainHumanQualificationLease(phase.work,charge));
+ brands.set(handle,record);live.set(handle,record);return handle;
+ }finally{snapshot=null;parts=null;groups=null;operations=null;graph=null;summary=null;request=null;}
 }
 export function prepareHumanConflictGraphQualification(source){
  // Closed old object/options intake: no reflection, coercion or Promise first.
  if(arguments.length!==1||typeof source!=='string')fail('BNS_HUMAN_GRAPH_SERIALIZED_REQUIRED');
- if(busy)fail('BNS_HUMAN_GRAPH_QUALIFICATION_BUSY');if(source.length>CORE_LIMITS.batchBytes+1024)limit();busy=true;
+ let work;try{work=beginHumanQualificationWork('graph',SCANNER);}catch(error){budgetError(error);}
+ const phase={work,source,parsed:null,measured:null,pending:null,failed:false,error:null};source=null;
  try{
-  const S=2*source.length;room(S+SCANNER);const measured=scanEnvelope(source),{W,M,operationCount}=measured,H=4*W+4096*operationCount,charge=W+H;
+  if(phase.source.length>CORE_LIMITS.batchBytes+1024)limit();
+  const S=2*phase.source.length;if(S+SCANNER>AGGREGATE)limit();room(()=>resizeHumanQualificationLease(work,S+SCANNER));
+  const measured=phase.measured=scanEnvelope(phase.source),{W,M,operationCount}=measured,H=4*W+4096*operationCount,charge=W+H;
   // Source-derived reservation precedes private parse and every returned key
   // vector, including index-name/length slots absent from the prior meter.
-  const reservation=S+3*W+12*M+2*H+SCANNER;if(charge>RETAINED||reservation>AGGREGATE)limit();room(reservation);
-  let parsed;try{parsed=JSON.parse(source);}catch{serializedInvalid();}
-  if(inspect(parsed,W).footprint!==W||canonical(parsed)!==source)serializedInvalid();freeze(parsed);
-  return qualify(parsed,measured,charge,H).finally(()=>{busy=false;});
- }catch(error){busy=false;throw error;}
+  const reservation=S+3*W+12*M+2*H+SCANNER;if(charge>RETAINED||reservation>AGGREGATE)limit();room(()=>resizeHumanQualificationLease(work,reservation));
+  try{phase.parsed=JSON.parse(phase.source);}catch{serializedInvalid();}
+  if(inspect(phase.parsed,W).footprint!==W||canonical(phase.parsed)!==phase.source)serializedInvalid();freeze(phase.parsed);
+  return qualify(phase,charge,H).catch(error=>{phase.failed=true;phase.error=error;throw error;}).finally(()=>finish(phase));
+ }catch(error){phase.failed=true;phase.error=error;finish(phase);throw error;}
 }
 export function describeHumanConflictGraphQualification(handle){const record=brands.get(handle);if(!record||!live.has(handle))fail('BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED');return record.summary;}
 export function releaseHumanConflictGraphQualification(handle){if(!brands.has(handle)||!live.has(handle))fail('BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED');revoke(handle);}

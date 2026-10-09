@@ -11,14 +11,18 @@ import {hashText} from '../core/dedupe.js';
 import {humanWireRequestDigest} from '../core/browser-native-sync/human-library-request.js';
 import {canonical,bytes,clone,digest} from '../core/browser-native-sync/value.js';
 import * as qualification from '../core/browser-native-sync/human-conflict-graph.js';
+import * as budget from '../core/browser-native-sync/human-qualification-budget.js';
 const {prepareHumanConflictGraphQualification:actualPrepare,describeHumanConflictGraphQualification:describe,releaseHumanConflictGraphQualification:release}=qualification;
 // Caller-side representation adapter only; direct closed-intake tests bypass it.
 async function prepare(rows,o=options){return actualPrepare(canonical({datasetId:o.datasetId,operations:rows}));}
 globalThis.IDBKeyRange=IDBKeyRange;
 const datasetId='synthetic-conflict-graph',options={datasetId};
-const retained=[];
+const retained=[],ownerReleases=new WeakMap(),numericLeases=[];
+function keepOwner(handle,releaseOwner){ownerReleases.set(handle,releaseOwner);retained.push(handle);return handle;}
 const keep=async(rows,o=options)=>{const handle=await prepare(rows,o);retained.push(handle);return handle;};
-test.afterEach(()=>{while(retained.length){try{release(retained.pop());}catch(error){assert.equal(error.code,'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED');}}});
+test.afterEach(()=>{while(retained.length){const handle=retained.pop();try{(ownerReleases.get(handle)||release)(handle);}catch(error){assert.equal(error.code,'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED');}}});
+test.afterEach(()=>{while(numericLeases.length){try{budget.releaseHumanQualificationLease(numericLeases.pop());}catch(error){assert.equal(error.code,'BNS_HUMAN_QUALIFICATION_LEASE_REQUIRED');}}});
+const numeric=lease=>(numericLeases.push(lease),lease);
 async function device(label,dataset=datasetId){let tick=0;const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:()=>new Date(Date.UTC(2026,9,9)+tick++).toISOString()});await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:dataset,deviceId:'synthetic-graph-'+label});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);return {s,core};}
 async function groups(core){const operations=[];for await(const row of core.rows('revision'))if(!row.redacted)operations.push(row.operation);return operations.filter(op=>op.type==='humanLibraryCommit').sort((a,b)=>a.sequence-b.sequence).map(d=>[...d.value.members.map(ref=>operations.find(op=>op.revisionId===ref.revisionId)),d]);}
 async function fixture({siblings=2,parentEdits=0,noDelta=false,padding='',dataset=datasetId,unrelated=false}={}){
@@ -156,7 +160,7 @@ async function observeIntake(action){
  const counters={reflect:0,returnedRefs:0,keys:0,descriptors:0,prototype:0,parse:0,clone:0,encode:0,hash:0,frames:0,maxFrames:0};let active=false;const originals=[];
  const wrap=(owner,name,kind)=>{const original=owner[name];originals.push([owner,name,original]);owner[name]=function(...args){if(active)counters[kind]++;const result=original.apply(this,args);if(active&&name==='ownKeys')counters.returnedRefs+=result.length;if(active&&owner===Array&&name==='from')counters.maxFrames=Math.max(counters.maxFrames,result.length);return result;};};
  wrap(Reflect,'ownKeys','reflect');for(const name of ['keys','getOwnPropertyNames','getOwnPropertySymbols'])wrap(Object,name,'keys');wrap(Object,'getOwnPropertyDescriptor','descriptors');wrap(Object,'getPrototypeOf','prototype');wrap(JSON,'parse','parse');wrap(globalThis,'structuredClone','clone');wrap(TextEncoder.prototype,'encode','encode');wrap(crypto.subtle,'digest','hash');wrap(Array,'from','frames');
- try{const m=await import('../core/browser-native-sync/human-conflict-graph.js?intake-spies='+crypto.randomUUID());active=true;let error,result;try{result=await action(m,counters);}catch(e){error=e;}active=false;return {error,result,counters};}finally{active=false;for(const [owner,name,original]of originals)owner[name]=original;}
+ try{const m=await import('../core/browser-native-sync/human-conflict-graph.js?intake-spies='+crypto.randomUUID());active=true;let error,result;try{result=await action(m,counters);}catch(e){error=e;}active=false;if(!error){try{m.describeHumanConflictGraphQualification(result);keepOwner(result,m.releaseHumanConflictGraphQualification);}catch{}}return {error,result,counters};}finally{active=false;for(const [owner,name,original]of originals)owner[name]=original;}
 }
 function zeroIntake(c){for(const key of ['reflect','returnedRefs','keys','descriptors','prototype','parse','clone','encode','hash','frames'])assert.equal(c[key],0,key);}
 test('actual ordinary1M/4097 hidden-key counterexamples now refuse before any owned reflected return',async()=>{
@@ -201,4 +205,77 @@ test('private array index-name return vectors are source charged before reserved
 test('near-workspace bad hash may revoke only preselected old proofs and frees all pending state',async()=>{
  const f=await fixture({padding:'汉'.repeat(3000)}),old=await keep(f.rows),bad=clone(f.rows);bad[0].value.after.thoughtText+='invalid';await rejected(bad,'BNS_OPERATION_DIGEST');assert.throws(()=>describe(old),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED'});
  const small=await fixture();assert.equal(describe(await keep(small.rows)).evidence,'PURE_HUMAN_GRAPH_STRUCTURE_ONLY');
+});
+
+test('shared work preserves synchronous graph gate and BUSY-before-source-limit without hashing',async()=>{
+ const f=await fixture(),source=canonical({datasetId,operations:f.rows});
+ const work=numeric(budget.beginHumanQualificationWork('projection',128*1024));
+ let hashes=0;const original=crypto.subtle.digest.bind(crypto.subtle);crypto.subtle.digest=(...args)=>{hashes++;return original(...args);};
+ try{
+  assert.throws(()=>actualPrepare({}),{code:'BNS_HUMAN_GRAPH_SERIALIZED_REQUIRED'});
+  assert.throws(()=>actualPrepare(source,undefined),{code:'BNS_HUMAN_GRAPH_SERIALIZED_REQUIRED'});
+  assert.throws(()=>actualPrepare(source),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_BUSY'});
+  assert.throws(()=>actualPrepare('x'.repeat(CORE_LIMITS.batchBytes+1025)),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_BUSY'});
+  assert.equal(hashes,0);
+ }finally{crypto.subtle.digest=original;budget.releaseHumanQualificationLease(work);}
+ assert.equal(describe(await keep(f.rows)).operationCount,f.rows.length);
+});
+
+test('full projection numeric occupancy refuses graph without releasing another owner ticket',async()=>{
+ const f=await fixture(),work=numeric(budget.beginHumanQualificationWork('projection',4*1024*1024));
+ const occupied=numeric(budget.retainHumanQualificationLease(work,4*1024*1024));budget.releaseHumanQualificationLease(work);
+ await assert.rejects(prepare(f.rows),{code:'BNS_HUMAN_GRAPH_LIMIT'});
+ assert.throws(()=>budget.beginHumanQualificationWork('projection',8*1024*1024),{code:'BNS_HUMAN_QUALIFICATION_LIMIT'});
+ budget.releaseHumanQualificationLease(occupied);
+ const full=numeric(budget.beginHumanQualificationWork('graph',8*1024*1024));budget.releaseHumanQualificationLease(full);
+ assert.equal(describe(await keep(f.rows)).operationCount,f.rows.length);
+});
+
+test('nonce graph owners share eight retained slots but cannot evict each others live handles',async()=>{
+ const a=await import('../core/browser-native-sync/human-conflict-graph.js?owner-a='+crypto.randomUUID());
+ const b=await import('../core/browser-native-sync/human-conflict-graph.js?owner-b='+crypto.randomUUID());
+ // Use the original producer's minimal creation group to isolate slot pressure
+ // from the separately covered earlier byte-pressure eviction of larger graphs.
+ const f=await fixture({siblings:1}),rows=f.parentGroups[0],source=canonical({datasetId,operations:rows}),handles=[];
+ for(let i=0;i<8;i++)handles.push(keepOwner(await a.prepareHumanConflictGraphQualification(source),a.releaseHumanConflictGraphQualification));
+ await assert.rejects(b.prepareHumanConflictGraphQualification(source),{code:'BNS_HUMAN_GRAPH_LIMIT'});
+ for(const handle of handles)assert.equal(a.describeHumanConflictGraphQualification(handle).operationCount,rows.length);
+ a.releaseHumanConflictGraphQualification(handles[0]);
+ const first=keepOwner(await b.prepareHumanConflictGraphQualification(source),b.releaseHumanConflictGraphQualification);
+ const second=keepOwner(await b.prepareHumanConflictGraphQualification(source),b.releaseHumanConflictGraphQualification);
+ assert.throws(()=>b.describeHumanConflictGraphQualification(first),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED'});
+ assert.equal(b.describeHumanConflictGraphQualification(second).operationCount,rows.length);
+ for(const handle of handles.slice(1))assert.equal(a.describeHumanConflictGraphQualification(handle).operationCount,rows.length);
+});
+
+test('pending graph hash holds global work until its returned preparation settles',async()=>{
+ const f=await fixture(),source=canonical({datasetId,operations:f.rows});let unblock,entered;
+ const hold=new Promise(resolve=>unblock=resolve),gate=new Promise(resolve=>entered=resolve),original=crypto.subtle.digest.bind(crypto.subtle);let once=false;
+ crypto.subtle.digest=async(...args)=>{if(!once){once=true;entered();await hold;}return original(...args);};
+ try{
+  const pending=actualPrepare(source);await gate;
+  assert.throws(()=>budget.beginHumanQualificationWork('projection',256),{code:'BNS_HUMAN_QUALIFICATION_BUSY'});
+  assert.throws(()=>actualPrepare(source),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_BUSY'});
+  unblock();const handle=await pending;keepOwner(handle,release);
+  assert.equal(describe(handle).operationCount,f.rows.length);
+  const work=numeric(budget.beginHumanQualificationWork('projection',256));budget.releaseHumanQualificationLease(work);
+ }finally{unblock?.();crypto.subtle.digest=original;}
+});
+
+test('post-retain partial publication and cleanup faults revoke graph and release both tickets',async()=>{
+ const f=await fixture(),source=canonical({datasetId,operations:f.rows});
+ for(const [cleanupFault,nullFailure] of [[false,false],[true,false],[false,true]]){
+  const originalSet=Map.prototype.set,originalDelete=Map.prototype.delete;let attempted=null,published=false,cleanupFailed=false,error;
+  Map.prototype.set=function(key,value){const result=originalSet.call(this,key,value);if(!published&&value&&typeof value==='object'&&Object.hasOwn(value,'operations')&&Object.hasOwn(value,'summary')&&Object.hasOwn(value,'ticket')){published=true;attempted=key;if(nullFailure)throw null;throw Error('synthetic graph publication failure');}return result;};
+  Map.prototype.delete=function(key){if(cleanupFault&&attempted===key&&!cleanupFailed){cleanupFailed=true;throw Error('synthetic graph cleanup failure');}return originalDelete.call(this,key);};
+  try{await actualPrepare(source);}catch(caught){error=caught;}finally{Map.prototype.set=originalSet;Map.prototype.delete=originalDelete;}
+  assert.equal(published,true);assert.ok(attempted);assert.equal(cleanupFailed,cleanupFault);
+  if(cleanupFault){assert.equal(error instanceof AggregateError,true);assert.equal(error.message,'BNS_HUMAN_GRAPH_CLEANUP_FAILED');assert.deepEqual(error.errors.map(item=>item.message),['synthetic graph publication failure','synthetic graph cleanup failure']);}
+  else if(nullFailure)assert.equal(error,null);
+  else assert.equal(error?.message,'synthetic graph publication failure');
+  assert.throws(()=>describe(attempted),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED'});
+  assert.throws(()=>release(attempted),{code:'BNS_HUMAN_GRAPH_QUALIFICATION_REQUIRED'});
+  const full=numeric(budget.beginHumanQualificationWork('graph',8*1024*1024));budget.releaseHumanQualificationLease(full);
+ }
+ assert.equal(describe(await keep(f.rows)).operationCount,f.rows.length);
 });
