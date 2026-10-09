@@ -43,6 +43,29 @@ function qualify(raw){
  }
  return {owners,completed};
 }
+// Unused computation for the restricted pending-search family. Its caller
+// must first qualify every excluded physical migration row independently.
+// Supplied rows/counts never authenticate a cut, budget, scope or permission.
+export function inspectHumanUnindexedSearch(raw){
+ if(arguments.length!==1)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ let total=0;
+ for(const [name,limit]of Object.entries(limits)){
+  const rows=raw?.rows?.[name];
+  if(!Array.isArray(rows)||rows.length>limit)fail('BNS_HUMAN_GRAPH_LIMIT');
+ }
+ for(const name of Object.values(kinds)){
+  for(const row of raw.rows[name])if(!row||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+  total+=raw.rows[name].length;
+ }
+ // One exact task per owner follows from original uniqueness/locator checks
+ // plus equal total cardinality. Never send an indexed owner into tokens.
+ if(total>128||raw.rows.libraryMigrationItems.length!==total||raw.rows.librarySearchTerms.length)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ const verified=qualify(raw);
+ const owners=verified.owners.size,completed=verified.completed.size;
+ verified.owners.clear();verified.completed.clear();
+ if(owners!==total||completed)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ return Object.freeze({version:1,state:'NOT_ADMITTED',unindexedOwners:owners,exactQueueTasks:total,postings:0,executionProfileQualified:false,budgetAuthority:false,nativeQualified:false});
+}
 // Private readonly prerequisite only; no production caller registers it.
 export async function captureHumanCompletedSearch(store,core){
  binding(store,core);const database=store.repository.db,raw=await store.run(()=>core.transaction(false,t=>{if(t.tx.db!==database)fail('BNS_HUMAN_CHANGED');return read(store,core,t);}));if(store.repository.db!==database)fail('BNS_HUMAN_CHANGED');const qualified=qualify(raw),cap=Object.freeze({});
