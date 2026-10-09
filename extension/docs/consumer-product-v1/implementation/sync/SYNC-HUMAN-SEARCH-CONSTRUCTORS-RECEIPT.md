@@ -63,3 +63,11 @@ Initial owning run: 1/6 passed, five `STORAGE_FAILED`, 201.215334 ms. Log `/tmp/
 ## Remaining boundary
 
 Split A still needs exact qualification of nested historical tags, complete current prefixes/old delete suffixes, canonical before/after ancestry and typed transition timing. This extraction alone grants none of those capabilities. Missing history, unknown projection, unrepresented old version, malformed index or foreign data must continue to refuse in the existing Human scope. Split B derived projections, cloud transport, full-group native acceptance, paid models, manual human evaluations and product delivery remain outside this receipt.
+
+## Independent review after freeze
+
+Root independently read the complete runtime diff, owning test and frozen fixtures, then ran the complete new owning file: **6/6 PASS, 0 skipped/cancelled, 1948.23325 ms**, recorded at `/tmp/search-constructors-root-independent.log`. Root confirmed the four original module/import byte snapshots and the actual all-store/ordered-write oracle, and approved the extraction scope.
+
+`integration_review` independently inspected frozen code `8e1e048a` and receipt `a0af5ccb` without rerunning tests. It confirmed exact original Git bytes at base `1d8ebba5`, mechanical preservation of property/order semantics, captured version before the await, source-reference access after the await, and unchanged loops/budget/fences/Source/indexed-tag behavior. Its **APPROVED** decision is limited to reuse of these three original constructors; it supplies no native-browser, Split A qualifier, Human admission or full Sync claim.
+
+This addition changes documentation only; frozen runtime/test/fixture bytes and prior evidence identities remain unchanged. Root schedules this batch for a later coherent 039 candidate rather than the currently verified 038 candidate. Library search writer is released after this documentation commit. Future completed-current indexed-tag qualification requires its separately reviewed design and implementation; this receipt does not authorize that runtime.
