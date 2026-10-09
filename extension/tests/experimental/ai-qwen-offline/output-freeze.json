@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "artifact": "literal-outputs.json",
+  "sha256": "16aeb338e1f3566e47f2aef99ace09c9bf8f87cfe8cfae2d888649c9df60c8b6",
+  "bytes": 271321,
+  "caseCount": 102,
+  "quality": "NOT_RUN"
+}

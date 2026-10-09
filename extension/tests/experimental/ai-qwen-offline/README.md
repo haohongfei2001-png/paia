@@ -1,0 +1,25 @@
+# Offline actual-owner literal replay experiment
+
+This explicitly invoked experiment reuses production typed OrganizerStore creation/Section/placement/edit/removal, the actual style preference owner, LocalOrganizeSession V3 prepare/run, candidate/adoption, manifest generation and attempt/ACK readback. It uses the existing fake-indexeddb test engine and a clearly named `executionKind: fixture` provider with frozen literal outputs. It neither calls nor qualifies Qwen or any model; all three styles deliberately replay the same source wording. Financial authority is a synthetic fixture. Nothing activates production UI/worker or changes production data/CI/version/dependencies.
+
+From extension:
+
+```sh
+node --test tests/experimental/ai-qwen-offline/offline-owner.test.mjs
+node tests/experimental/ai-qwen-offline/run.mjs --topics=SYN-T01,SYN-T02,SYN-T03
+node tests/experimental/ai-qwen-offline/run.mjs
+```
+
+The default runner schedules all 24 frozen calibration Topics across three styles. The original 24/315 Entry calibration and review-contract bytes remain unchanged. 102 frozen output templates cover 34 phases × three styles. Strict loading rejects byte mutation, duplicate JSON keys, invalid UTF-8, unknown/extra fields, unknown/duplicate cases, crossed corpus/style/phase/revision, altered text/spans and invalid owner hashes before execution. The actual codec remains the only response validator/commit pipeline. No artifact may directly write jobs, candidates, generation manifests or provenance into storage.
+
+Each eligible phase gets one fresh explicitly constructed session, disposed only after execution/readback; no live/pending slot is evicted. Multi-child preparation retains existing children≤4, input≤20 per child and scope≤100 rules. The 205 Entry Topic loads ten20 + five through11 actual incremental phases; the60 Entry Topic uses3 physical children in one actual atomic closure. Already committed handles return COMMITTED without redispatch. The owning unknown-output case retains its original job/one attempt across disposal and refuses fresh-session redispatch with no candidate/ACK.
+
+The removed-member Topic12 is actually created, placed and removed through typed owners. The current owner rejects its excluded scope with STALE_BASE before planning, so its three styles are **STALE_REFUSED**, job/attempt/provider delta zero. The complete schedule therefore expects **99 committed logical jobs + three conservative refusals**, not102 successful generations;105 physical fixture executions reflect the60 Entry Topic's extra children. These counts are mechanics observations, not pass rates or independent statistical samples.
+
+Actual stored generation child payload/validated-output digests and operation receipts must match readback attempts; each attempt is one, actual coverage ACK count equals the dispatched input count, all canonical Entries/Source records/Working blocks remain unchanged by generation/adoption, and the resulting literal projection follows exact human Entry order across children. Child invocation order may differ because Foundation orders child identities; compare the same child-scope multiset across styles while independently checking literal output order. Candidate keys are used internally; reports include their digest to avoid copying synthetic output text into metadata.
+
+Source records and Working blocks are zero in this manual Entry experiment. Frozen corpus dates/unknown-time annotations remain reference obligations; the loader does **not** fabricate original Source-time metadata. Original corpus Entry revisions map explicitly to actual canonical owner revisions; revision2 uses a real typed edit from a synthetic old draft. Section membership and removed lifecycle are real owner state.
+
+Readback output records Topic/phase/style, actual job and child identities, attempts/ACKs, candidate/proposal/decisions/projection/manifest digests, source/canonical invariants and refusals. The CLI records planned and completed phase denominators separately and retains unexpected failures. It prints only synthetic identity/digest metadata and performs no network or file upload. `owner-freeze.json` binds54 additional key production owners and all39 fake-indexeddb engine files, in addition to the twelve design owner hashes; it explicitly does not claim all transitive application dependencies. Actual source base is frozen707dd125; later code/dependency reconciliation requires new exact evidence, not changing these receipts in place.
+
+All quality/model/human evidence is **NOT_RUN**. This experiment does not execute the separate Assist Context drift scenarios, original Source-time qualification, in-flight deletion scenario, complete manual override/Keep/styleABA/concurrency matrix, semantic full-evidence reference, model usage/cost reconciliation or human blind judgments. The one actual manual protected-field refusal and one lost-output negative are separately named owning cases, not coverage of that entire matrix. The12 independently authored held-out set remains separate coordinator work. Blind formatter, human receipt validator and statistical reporting are outside this batch.
