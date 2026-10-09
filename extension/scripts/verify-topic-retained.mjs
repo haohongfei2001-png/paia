@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-export const manifest=JSON.parse(await readFile(new URL('../tests/harness/topic-retained-candidate.json',import.meta.url),'utf8'));
+export const manifest=JSON.parse(await readFile(new URL('../tests/harness/topic-retained-candidate-v2.json',import.meta.url),'utf8'));
 const read=async path=>JSON.parse(await readFile(path,'utf8'));
 const ordered=rows=>[...rows].sort((a,b)=>JSON.stringify([a.file,a.name]).localeCompare(JSON.stringify([b.file,b.name])));
 export function validatePart(part,head,events,report){
  assert.ok(Object.hasOwn(manifest.parts,part));assert.match(head,/^[a-f0-9]{40}$/);assert.equal(events.version,1);assert.equal(events.part,part);assert.equal(events.head,head);
  const files=manifest.parts[part],expected=manifest.cases.filter(row=>files.includes(row.file));
- assert.deepEqual(ordered(events.cases),ordered(expected),'every whole-file case and exact historical skip reason');
+ assert.deepEqual(ordered(events.cases),ordered(expected),'every whole-file case and exact current outcome');
  const totals={pass:expected.filter(row=>row.outcome==='pass').length,fail:0,skipped:expected.filter(row=>row.outcome==='skipped').length};
  assert.equal(report.total,expected.length);for(const key of Object.keys(totals))assert.equal(report[key],totals[key]);
  assert.deepEqual(Object.keys(report.files).sort(),[...files].sort());assert.deepEqual(report.groups,{'browser E2E':totals});
@@ -21,7 +21,7 @@ export function validateUnion(head,receipts){
  assert.equal(new Set(files).size,7);assert.deepEqual([...files].sort(),Object.values(manifest.parts).flat().sort());
  assert.ok(receipts.every(row=>row.head===head));assert.deepEqual(ordered(cases),ordered(manifest.cases));
  for(const key of ['total','pass','fail','skipped'])assert.equal(receipts.reduce((n,row)=>n+row[key],0),manifest[key]);
- return {version:1,head,scope:manifest.scope,parts:receipts.map(row=>row.part),files,cases,total:17,pass:16,fail:0,skipped:1};
+ return {version:1,head,scope:manifest.scope,parts:receipts.map(row=>row.part),files,cases,total:manifest.total,pass:manifest.pass,fail:manifest.fail,skipped:manifest.skipped};
 }
 async function evidence(part,base,head){
  if(part==='core')for(const variant of ['source','release']){

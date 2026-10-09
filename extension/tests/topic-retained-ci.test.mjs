@@ -13,13 +13,13 @@ function fixture(part){
  return {events:{version:1,part,head,cases:clone(cases)},report:{total:cases.length,...totals,groups:{'browser E2E':{...totals}},files:Object.fromEntries(manifest.parts[part].map(file=>[file,counts(cases.filter(row=>row.file===file))]))}};
 }
 const receipt=part=>{const f=fixture(part);return validatePart(part,head,f.events,f.report);};
-test('Retained Thought exact whole-file accounting preserves16 active cases and one named owner deferral',()=>{
- const result=validateUnion(head,Object.keys(manifest.parts).map(receipt));assert.deepEqual([result.total,result.pass,result.fail,result.skipped],[17,16,0,1]);assert.equal(result.files.length,7);assert.match(result.scope,/not zero-skip or full TOPIC-05 acceptance/);
+test('Retained Thought exact whole-file accounting requires all17 active cases without a historical deferral',()=>{
+ const result=validateUnion(head,Object.keys(manifest.parts).map(receipt));assert.deepEqual([result.total,result.pass,result.fail,result.skipped],[17,17,0,0]);assert.equal(result.files.length,7);assert.match(result.scope,/not full TOPIC-05 acceptance/);
 });
-for(const fault of ['missing','extra','wrong-name','wrong-file','unexpected-skip','wrong-reason','unskipped-deferral','failed','cancelled','wrong-head','wrong-part','summary-count','summary-file','summary-group'])test('Retained Thought rejects '+fault,()=>{
- const f=fixture('core'),rows=f.events.cases,skip=rows.find(row=>row.outcome==='skipped');
+for(const fault of ['missing','extra','wrong-name','wrong-file','unexpected-skip','wrong-reason','reintroduced-deferral','failed','cancelled','wrong-head','wrong-part','summary-count','summary-file','summary-group'])test('Retained Thought rejects '+fault,()=>{
+ const f=fixture('core'),rows=f.events.cases,skip=rows.find(row=>row.name==='ANS-08 current durable-Section Topic return position');
  if(fault==='missing')rows.pop();if(fault==='extra')rows.push(clone(rows[0]));if(fault==='wrong-name')rows[0].name+=' changed';if(fault==='wrong-file')rows[0].file='other.test.mjs';
- if(fault==='unexpected-skip'){rows[0].outcome='skipped';rows[0].skipReason=skip.skipReason;}if(fault==='wrong-reason')skip.skipReason='new unapproved skip';if(fault==='unskipped-deferral'){skip.outcome='pass';skip.skipReason=null;}
+ if(fault==='unexpected-skip'){rows[0].outcome='skipped';rows[0].skipReason='new unapproved skip';}if(fault==='wrong-reason')skip.skipReason='new unapproved skip';if(fault==='reintroduced-deferral'){skip.name='ANS-08 Topic return position (deferred pending Thought Library redesign)';skip.outcome='skipped';skip.skipReason='Owner deferred this single return-position check';}
  if(['failed','cancelled'].includes(fault))rows[0].outcome=fault;if(fault==='wrong-head')f.events.head='b'.repeat(40);if(fault==='wrong-part')f.events.part='years';if(fault==='summary-count')f.report.pass--;if(fault==='summary-file')delete f.report.files[rows[0].file];if(fault==='summary-group')f.report.groups={};
  assert.throws(()=>validatePart('core',head,f.events,f.report));
 });
@@ -49,4 +49,11 @@ test('Root-only D2-only and combined selectors require every selected native sha
  for(const value of [rootJob,retained]){assert.match(value,/timeout-minutes: 12/);assert.match(value,/ref: \$\{\{ github.event.pull_request.head.sha \}\}/);assert.doesNotMatch(value,/continue-on-error|test-name-pattern|test-skip-pattern/);}
  assert.match(retained,/fail-fast: false/);assert.match(job('topic_retained_results'),/needs: \[topic_retained\]/);assert.match(gate,/topic_retained, topic_retained_results/);
  const rootSteps=rootJob.slice(rootJob.indexOf('      - name: TOPIC05 complete production Root')).trim();assert.equal(createHash('sha256').update(rootSteps).digest('hex'),'74c494437b8de8e62ae534eb15fd254559b0630bf27aa27e347d12bec284df77');
+});
+
+test('current retained manifest preserves every historical case except the explicitly resumed return assertion',async()=>{
+ const old=JSON.parse(await readFile(new URL('./harness/topic-retained-candidate.json',import.meta.url),'utf8'));
+ assert.deepEqual([old.total,old.pass,old.fail,old.skipped],[17,16,0,1]);assert.deepEqual(manifest.parts,old.parts);
+ const expected=clone(old.cases),row=expected.find(r=>r.outcome==='skipped');assert.equal(row.name,'ANS-08 Topic return position (deferred pending Thought Library redesign)');row.name='ANS-08 current durable-Section Topic return position';row.outcome='pass';row.skipReason=null;
+ assert.deepEqual(manifest.cases,expected);assert.equal(manifest.version,2);
 });

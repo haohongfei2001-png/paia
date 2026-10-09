@@ -1,0 +1,127 @@
+{
+  "version": 2,
+  "scope": "Current durable-Section return assertion is active with zero skips; not full TOPIC-05 acceptance.",
+  "parts": {
+    "core": [
+      "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "ans-07-library-root-chrome-e2e.test.mjs",
+      "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "uir-03-thought-original-chrome-e2e.test.mjs"
+    ],
+    "content": [
+      "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs"
+    ],
+    "years": [
+      "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs"
+    ]
+  },
+  "cases": [
+    {
+      "file": "ans-07-library-root-chrome-e2e.test.mjs",
+      "name": "ANS-07 Chrome root is continuous, bounded, restorable and Provider-free",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "name": "ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "ans-08-topic-continuous-chrome-e2e.test.mjs",
+      "name": "ANS-08 current durable-Section Topic return position",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "ans-08-topic-edit-preservation-chrome-e2e.test.mjs",
+      "name": "ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/undo state",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "uir-03-thought-original-chrome-e2e.test.mjs",
+      "name": "UIR-03 Thought home and Topic Original presentation keep existing identity, editing owners and reading width in source and built release Chrome",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 Personal Topic root preserves legacy service receipts, exact search excerpts and worker chronology (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 actual300 metadata-only Topic slots, exact replay and search/Back (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 Topic note preserves the existing recovery owner through conflict, failure and lost acknowledgement (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "name": "D2 Content trusted chronology, bounded bodies and exact return (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "name": "D5 Content paired reading roles, preferences and pointer targets (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "name": "D2 actual years, full-year search, return and mutation fences (source)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 Personal Topic root preserves legacy service receipts, exact search excerpts and worker chronology (release)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 actual300 metadata-only Topic slots, exact replay and search/Back (release)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "name": "D2 Topic note preserves the existing recovery owner through conflict, failure and lost acknowledgement (release)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "name": "D2 Content trusted chronology, bounded bodies and exact return (release)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-content-chrome-e2e.test.mjs",
+      "name": "D5 Content paired reading roles, preferences and pointer targets (release)",
+      "outcome": "pass",
+      "skipReason": null
+    },
+    {
+      "file": "cpv1-02-dvn-topic-years-chrome-e2e.test.mjs",
+      "name": "D2 actual years, full-year search, return and mutation fences (release)",
+      "outcome": "pass",
+      "skipReason": null
+    }
+  ],
+  "total": 17,
+  "pass": 17,
+  "fail": 0,
+  "skipped": 0
+}
