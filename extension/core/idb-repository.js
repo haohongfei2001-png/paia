@@ -23,6 +23,120 @@ export const sortOf=r=>[r.sourceSentAt?0:1,r.sourceSentAt||'',r.conversationOrde
 export const tombstoneId=t=>typeof t==='string'?'snapshot:'+t:'source:'+t.sourceIdentityHash;
 const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;};
 
+// Only this owner can mint scope identity. Public wrapper promises and tx-like
+// objects are not evidence of either native identity or transaction settlement.
+// Capture original platform accessors once. Calling them requires native IDB
+// internal slots; public factory fields, names and tags cannot establish them.
+const NativeIDBTransaction=globalThis.IDBTransaction;
+const nativeTransactionDb=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'db')?.get;
+const nativeTransactionMode=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'mode')?.get;
+const nativeTransactionError=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'error')?.get;
+const nativeAddEventListener=globalThis.EventTarget?.prototype.addEventListener;
+const nativeRemoveEventListener=globalThis.EventTarget?.prototype.removeEventListener;
+const nativeEventTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'target')?.get;
+const nativeEventCurrentTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'currentTarget')?.get;
+const NativeMessageChannel=globalThis.MessageChannel;
+const nativePortStart=globalThis.MessagePort?.prototype.start;
+const nativePortPost=globalThis.MessagePort?.prototype.postMessage;
+const nativePortClose=globalThis.MessagePort?.prototype.close;
+const nativeTransactionEvidence=transaction=>{
+ try{if(!NativeIDBTransaction||!nativeTransactionDb||!nativeTransactionMode||!nativeAddEventListener||!nativeRemoveEventListener||!nativeEventTarget||!nativeEventCurrentTarget||!(transaction instanceof NativeIDBTransaction))return null;
+  return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
+ }catch{return null;}
+};
+const repositoryScopes=new WeakMap();
+const originalOwnDescriptor=Object.getOwnPropertyDescriptor;
+const originalPrototypeOf=Object.getPrototypeOf;
+const scopeRecord=(repository,scope)=>{const r=repositoryScopes.get(scope);if(!r||r.repository!==repository)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');return r;};
+export function requireRepositoryTransactionScope(repository,scope){
+ const r=scopeRecord(repository,scope),property=Object.getOwnPropertyDescriptor(scope,'tx');
+ if(r.nativeSettled||r.unwound||!property||property.value!==r.transaction)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ return r.identity;
+}
+export function requireRepositoryTransactionDataMethods(repository,scope){
+ const r=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
+ if(originalPrototypeOf(scope)!==r.dataPrototype||r.dataPrototype!==originalDataPrototype||originalPrototypeOf(originalDataPrototype)!==originalDataPrototypeParent)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ for(const [name,expected]of originalDataMethods){
+  const descriptor=originalOwnDescriptor(originalDataPrototype,name);
+  if(originalOwnDescriptor(scope,name)||!descriptor||descriptor.value!==expected.value||descriptor.get!==expected.get||descriptor.set!==expected.set||descriptor.writable!==expected.writable||descriptor.enumerable!==expected.enumerable||descriptor.configurable!==expected.configurable)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ }
+}
+export function requireRepositoryTransactionCommitted(repository,scope){
+ const r=scopeRecord(repository,scope);
+ // Settlement also includes abort. Only the original successful transaction
+ // path, after every finalizer and actual native completion, proves commit.
+ if(r.trustedNativeOutcome!=='completed'||r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+}
+function waitNativeDispatchEnd(){
+ return new Promise((resolve,reject)=>{
+  let channel,finished=false;
+  const finish=error=>{
+   if(finished)return;finished=true;
+   try{if(channel)nativeRemoveEventListener.call(channel.port1,'message',received);}catch{error=true;}
+   for(const port of channel?[channel.port1,channel.port2]:[])try{nativePortClose.call(port);}catch{error=true;}
+   if(error)reject(new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED'));else resolve();
+  };
+  const received=event=>{try{if(event.isTrusted!==true||nativeEventTarget.call(event)!==channel.port1||nativeEventCurrentTarget.call(event)!==channel.port1)return;finish();}catch{finish(true);}};
+  try{
+   if(!NativeMessageChannel||!nativePortStart||!nativePortPost||!nativePortClose)throw Error('Native task unavailable');
+   channel=new NativeMessageChannel();nativeAddEventListener.call(channel.port1,'message',received);nativePortStart.call(channel.port1);nativePortPost.call(channel.port2,0);
+  }catch{finish(true);}
+ });
+}
+export async function awaitRepositoryTransactionSettled(repository,scope){
+ // Wait first: scheduling before native terminal + callback unwind could run
+ // too early. All real waiters share one lazy dispatch-end task per record.
+ const r=scopeRecord(repository,scope);await r.settled;
+ if(r.identity.nativeTransaction){if(!r.dispatchEnd)r.dispatchEnd=waitNativeDispatchEnd();await r.dispatchEnd;}
+}
+
+// The closing reader is owned by the same original scope record, once only.
+// It observes lifecycle only: no rows, callback authority or reader escapes.
+const humanRetentionReaders=new WeakMap();
+export function requireRepositoryCommittedIdentity(repository,scope){
+ requireRepositoryTransactionCommitted(repository,scope);const r=scopeRecord(repository,scope),property=originalOwnDescriptor(scope,'tx');
+ if(!r.identity.nativeTransaction||!property||!('value'in property)||property.value!==r.transaction)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ return r.identity;
+}
+export function beginRepositoryHumanRetentionRead(repository,scope,transaction){
+ const identity=requireRepositoryCommittedIdentity(repository,scope),owner=scopeRecord(repository,scope),native=nativeTransactionEvidence(transaction);
+ if(owner.humanRetentionReaderUsed||!native||native.database!==identity.database||native.mode!=='readonly'||transaction===owner.transaction||!nativeTransactionError)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+ owner.humanRetentionReaderUsed=true;
+ const token=Object.freeze({});let resolve,reject;const r={repository,scope,owner,transaction,token,outcome:null,awaiting:false,listenersCleared:false,dispatchEnded:false,done:new Promise((a,b)=>{resolve=a;reject=b;})};
+ r.done.catch(()=>{});humanRetentionReaders.set(token,r);
+ const cleanup=()=>{const errors=[];for(const [type,listener]of [['complete',complete],['abort',abort]])try{nativeRemoveEventListener.call(transaction,type,listener);}catch(error){errors.push(error);}r.listenersCleared=errors.length===0;return errors;};
+ const terminal=(event,outcome)=>{
+  try{if(event.isTrusted!==true||nativeEventTarget.call(event)!==transaction||nativeEventCurrentTarget.call(event)!==transaction)return;}catch{return;}
+  if(r.outcome!==null)return;r.outcome=outcome;let primary,failed=false;
+  if(outcome!=='completed'){try{nativeTransactionError.call(transaction);primary=new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');}catch(error){primary=error;}failed=true;}
+  const errors=cleanup();if(failed)reject(retentionReadFailure(primary,errors));else if(errors.length)reject(retentionReadFailure(errors[0],errors.slice(1)));else resolve();
+ };
+ const complete=event=>terminal(event,'completed'),abort=event=>terminal(event,'aborted');
+ try{nativeAddEventListener.call(transaction,'complete',complete);nativeAddEventListener.call(transaction,'abort',abort);}
+ catch(error){r.outcome='failed';const primary=retentionReadFailure(error,cleanup());reject(primary);humanRetentionReaders.delete(token);throw primary;}
+ return token;
+}
+function retentionReadFailure(primary,secondary){
+ if(!secondary.length)return primary;
+ if(primary!==null&&(typeof primary==='object'||typeof primary==='function'))try{Object.defineProperty(primary,'retentionCleanupErrors',{value:Object.freeze([...secondary]),configurable:true});return primary;}catch(error){secondary.push(error);}
+ return new AggregateError([primary,...secondary],'Retention reader primary and cleanup failures',{cause:primary});
+}
+export async function awaitRepositoryHumanRetentionRead(repository,scope,transaction,observer){
+ const r=humanRetentionReaders.get(observer);
+ if(!r||r.repository!==repository||r.scope!==scope||r.transaction!==transaction||r.awaiting)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');r.awaiting=true;
+ let primary,failed=false;const cleanup=[];
+ try{
+  try{await r.done;}catch(error){primary=error;failed=true;}
+  try{await waitNativeDispatchEnd();r.dispatchEnded=true;}catch(error){if(failed)cleanup.push(error);else{primary=error;failed=true;}}
+  if(!failed){try{if(r.outcome!=='completed')throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');requireRepositoryCommittedIdentity(repository,scope);}catch(error){primary=error;failed=true;}}
+  if(failed)throw retentionReadFailure(primary,cleanup);
+ }finally{r.awaitFinished=true;}
+}
+export function requireRepositoryHumanRetentionReadDrained(repository,scope,transaction,observer){
+ const r=humanRetentionReaders.get(observer),owner=scopeRecord(repository,scope);
+ if(!r||r.owner!==owner||r.repository!==repository||r.scope!==scope||r.transaction!==transaction||r.token!==observer||!r.awaitFinished||!r.listenersCleared||!r.dispatchEnded||!['completed','aborted'].includes(r.outcome))throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
+}
+
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);
 class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
@@ -98,6 +212,12 @@ class Transaction {
  }
 }
 
+// Capture the actual private class before any caller receives a scope. This
+// bounded profile is a refusal check, not proof of native request/data effects.
+const originalDataPrototype=Transaction.prototype;
+const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
+const originalDataMethods=Object.freeze(['get','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
+
 export class ArchiveRepository {
  constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};}
  async open(){
@@ -127,10 +247,31 @@ export class ArchiveRepository {
  }
  async transaction(write,fn,stores=this.stores){
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
-  const done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(fail(tx.error));tx.onerror=()=>{};});
+  const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
+  const native=nativeTransactionEvidence(tx);
+  let release;const record={repository:this,transaction:tx,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
+  repositoryScopes.set(scope,record);
+  const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
+  const done=new Promise((resolve,reject)=>{
+   // False native events do not consume either listener or settle any state.
+   // Non-native test stores retain ordinary cleanup, never native authority.
+   const terminal=(event,outcome)=>{
+    if(native){try{if(event.isTrusted!==true||nativeEventTarget.call(event)!==tx||nativeEventCurrentTarget.call(event)!==tx)return;}catch{return;}}
+    if(record.nativeSettled)return;
+    if(native){nativeRemoveEventListener.call(tx,'complete',complete);nativeRemoveEventListener.call(tx,'abort',abort);}
+    else{tx.removeEventListener('complete',complete);tx.removeEventListener('abort',abort);}
+    record.nativeOutcome=outcome;record.nativeSettled=true;
+    if(native)record.trustedNativeOutcome=outcome;
+    maybeRelease();if(outcome==='completed')resolve();else reject(fail(tx.error));
+   };
+   const complete=event=>terminal(event,'completed'),abort=event=>terminal(event,'aborted');
+   if(native){nativeAddEventListener.call(tx,'complete',complete);nativeAddEventListener.call(tx,'abort',abort);}
+   else{tx.addEventListener('complete',complete);tx.addEventListener('abort',abort);}
+   tx.onerror=()=>{};
+  });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const scope=new Transaction(tx,this.metrics,this.thoughtLibrary),result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}
+  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));

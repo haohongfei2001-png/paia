@@ -1,4 +1,5 @@
-import {validateHumanCommitGroup,CORE_LIMITS} from './core.js';
+import {requireRepositoryTransactionScope,beginRepositoryHumanRetentionRead,awaitRepositoryHumanRetentionRead,requireRepositoryHumanRetentionReadDrained} from '../idb-repository.js';
+import {validateHumanCommitGroup,CORE_LIMITS,requireHumanRetentionOwnerPhase,requireHumanRetentionEffectPreparation,requireHumanRetentionEffectFinalization,requireHumanRetentionClosingPhase,calculateHumanRetentionHeadVectors,acceptSequence} from './core.js';
 import {physical,normalizePhysical} from './human-library-journal.js';
 import {editSection,editSectionInTransaction,planHumanSectionEdit} from '../thought-organization.js';
 import {planHumanFixedMembership,moveMembershipInTransaction,fixMembershipSetInTransaction} from '../topic-intent.js';
@@ -18,7 +19,8 @@ import {prepareHumanAllocation,beginHumanAllocation,finishHumanAllocation,releas
 import {LIBRARY_INDEXES} from '../thought-schema.js';
 import {validateHumanLibraryCommit,portableHumanEntity} from './human-library-codec.js';
 import {restoreHumanRequest} from './human-library-request.js';
-import {clone,equal,fail,bytes} from './value.js';
+import {clone,equal,fail,bytes,digest} from './value.js';
+import {protocolPhysicalId} from './physical-key.js';
 const plans=new WeakMap(),futureEntries=new WeakMap(),futureGraphs=new WeakMap();
 async function base(store,core,t){
  const control=await store.control(t);if(!control.settings.enabled||control.settings.consentVersion!==CONSENT_VERSION)fail('BNS_HUMAN_PERMISSION');
@@ -355,16 +357,35 @@ const BRANCH_BYTES=8*1024*1024,BRANCH_RAW_BYTES=BRANCH_BYTES/2,BRANCH_HANDLES=8;
 const branchBodyOnly=r=>r?.changes&&Object.keys(r.changes).length===1&&Object.hasOwn(r.changes,'body');
 // Budget only: count JSON/UTF-8 incrementally before allocating an encoded
 // duplicate. Original validators/equality still decide every semantic value.
-function branchRawSize(value,limit=BRANCH_RAW_BYTES){
- let size=0,nodes=0;const add=n=>{size+=n;if(size>limit)fail('BNS_HUMAN_GRAPH_LIMIT');};
- const text=value=>{add(2);for(let i=0;i<value.length;i++){const c=value.charCodeAt(i);if(c===34||c===92||[8,9,10,12,13].includes(c))add(2);else if(c<32)add(6);else if(c<128)add(1);else if(c<2048)add(2);else if(c>=0xd800&&c<=0xdbff){const next=value.charCodeAt(++i);if(!(next>=0xdc00&&next<=0xdfff))fail('BNS_TEXT_ENCODING');add(4);}else if(c>=0xdc00&&c<=0xdfff)fail('BNS_TEXT_ENCODING');else add(3);}};
- const visit=(v,depth)=>{if(++nodes>200000||depth>32)fail('BNS_HUMAN_GRAPH_LIMIT');if(v===null){add(4);return;}if(typeof v==='string'){text(v);return;}if(typeof v==='boolean'){add(v?4:5);return;}if(typeof v==='number'){if(!Number.isFinite(v)||Object.is(v,-0))fail('BNS_VALUE_INVALID');add(String(v).length);return;}if(Array.isArray(v)){add(2);for(let i=0;i<v.length;i++){if(i)add(1);visit(v[i],depth+1);}return;}if(!v||typeof v!=='object')fail('BNS_VALUE_INVALID');add(2);let first=true;for(const k of Object.keys(v)){if(!first)add(1);first=false;text(k);add(1);visit(v[k],depth+1);}};
- visit(value,0);return size;
+const branchOwn=Object.hasOwn,branchDescriptor=Object.getOwnPropertyDescriptor;
+function branchRawMeasure(value,limit=BRANCH_RAW_BYTES,stats=null,frozen=false){
+ let size=0,nodes=0,slots=0,units=0;const add=n=>{size+=n;if(size>limit)fail('BNS_HUMAN_GRAPH_LIMIT');};
+ const text=value=>{units+=value.length;add(2);for(let i=0;i<value.length;i++){const c=value.charCodeAt(i);if(c===34||c===92||c===8||c===9||c===10||c===12||c===13)add(2);else if(c<32)add(6);else if(c<128)add(1);else if(c<2048)add(2);else if(c>=0xd800&&c<=0xdbff){const next=value.charCodeAt(++i);if(!(next>=0xdc00&&next<=0xdfff))fail('BNS_TEXT_ENCODING');add(4);}else if(c>=0xdc00&&c<=0xdfff)fail('BNS_TEXT_ENCODING');else add(3);}};
+ const visit=(v,depth)=>{
+  if(++nodes>200000||depth>32)fail('BNS_HUMAN_GRAPH_LIMIT');
+  if(v===null){add(4);return;}if(typeof v==='string'){text(v);return;}if(typeof v==='boolean'){add(v?4:5);return;}
+  if(typeof v==='number'){if(!Number.isFinite(v)||Object.is(v,-0))fail('BNS_VALUE_INVALID');add(String(v).length);return;}
+  if(!v||typeof v!=='object')fail('BNS_VALUE_INVALID');if(frozen===true&&!Object.isFrozen(v))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+  if(frozen==='native'&&!Array.isArray(v)&&![Object.prototype,null].includes(Object.getPrototypeOf(v)))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+  add(2);
+  if(Array.isArray(v)){if(frozen==='native'){if(v.length>200000-nodes)fail('BNS_HUMAN_GRAPH_LIMIT');let own=0;for(const k in v)if(branchOwn(v,k)){if(++own>v.length||own>200000)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}if(own!==v.length)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}for(let i=0;i<v.length;i++){slots++;if(i)add(1);if(frozen){const d=branchDescriptor(v,String(i));if(!d||!('value'in d))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');visit(d.value,depth+1);}else visit(v[i],depth+1);}return;}
+  let first=true;const item=k=>{slots++;if(!first)add(1);first=false;text(k);add(1);if(frozen){const d=branchDescriptor(v,k);if(!d||!('value'in d))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');visit(d.value,depth+1);}else visit(v[k],depth+1);};
+  if(frozen){for(const k in v)if(branchOwn(v,k))item(k);}else{for(const k of Object.keys(v))item(k);}
+ };
+ visit(value,0);if(stats){stats.nodes=nodes;stats.slots=slots;stats.units=units;}return size;
 }
+function branchRawSize(value,limit=BRANCH_RAW_BYTES){return branchRawMeasure(value,limit);}
 
-function branchState(store){let state=branchStores.get(store);if(!state){state={busy:false,handles:[],bytes:0,candidateBytes:0};branchStores.set(store,state);}return state;}
+function branchState(store){let state=branchStores.get(store);if(!state){state={busy:false,handles:[],bytes:0,candidateBytes:0,effectReservation:null};branchStores.set(store,state);}return state;}
 function branchTrim(state,limit,keep=null){while(state.bytes>limit){const cap=state.handles.find(x=>x!==keep);if(!cap)fail('BNS_HUMAN_GRAPH_LIMIT');branchForget(state,cap);}}
-function branchForget(state,cap){const p=branchWitnesses.get(cap);if(p){branchWitnesses.delete(cap);state.bytes-=p.size;}const i=state.handles.indexOf(cap);if(i>=0)state.handles.splice(i,1);}
+function branchForget(state,cap){
+ const p=branchWitnesses.get(cap);if(p){
+  branchWitnesses.delete(cap);const r=state.effectReservation?.owner===p?state.effectReservation:p.effectReservation;
+  if(r&&state.effectReservation===r&&r.accounted){r.deferredCharge=p.size;if(p.effectReservation&&p.effectReservation!==r){p.effectReservation.accounted=false;p.effectReservation.phase='transferred';}p.size=0;r.phase='revoked';p.raw=null;p.protocol=null;p.effectPlan=null;p.nativeEffects=null;}
+  else{state.bytes-=p.size;if(r){r.accounted=false;r.phase='released';}p.effectPlan=null;p.effectReservation=null;p.nativeEffects=null;p.nativeWork=null;}
+ }
+ const i=state.handles.indexOf(cap);if(i>=0)state.handles.splice(i,1);
+}
 function branchReady(store,core,binding=null){
  if(!store?.libraryDocumentMode||!['loaded','iaLoaded','filterLoaded','foundationLoaded','bindingsLoaded','documentsLoaded'].every(k=>store[k]===true)||store.foundationFailure||store.volatileError||!store.repository?.db||!store.controlCache||store.pendingControl||store.repository!==core?.repository||store.humanLibraryJournal?.core!==core)fail(binding?'BNS_HUMAN_CHANGED':'BNS_HUMAN_BRANCH_UNAVAILABLE');
  const now={store,core,repository:store.repository,database:store.repository.db,journal:store.humanLibraryJournal,datasetId:core.datasetId,deviceId:core.deviceId,prefix:core.prefix,fixedNamespace:core.fixedNamespace,databaseId:store.databaseId};
@@ -375,7 +396,10 @@ function branchFence(store,core,fence){branchReady(store,core,fence.binding);if(
 function branchNoIndex(value){if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(key==='indexedSearchVersion')fail('BNS_HUMAN_BRANCH_UNAVAILABLE');branchNoIndex(item);}}
 async function branchRaw(store,core,protocol,fence){
  branchFence(store,core,fence);
- const raw=await core.transaction(false,async t=>{
+ const raw=await core.transaction(false,t=>branchRawInTransaction(store,core,protocol,fence,t));
+ branchFence(store,core,fence);return raw;
+}
+async function branchRawInTransaction(store,core,protocol,fence,t){
   branchFence(store,core,fence);if(t.tx.db!==fence.binding.database)fail('BNS_HUMAN_CHANGED');
   const request=protocol.descriptor.value.request,id=request.id,records=new Map(),budgetRecords=[],budgetGroups=[],budget={input:protocol.operations,controlValues:fence.controlValues,records:budgetRecords,groups:budgetGroups};branchRawSize(budget);
   const get=async(kind,...parts)=>{const key=JSON.stringify([kind,...parts]);if(!records.has(key)){const row=await core.get(t,kind,...parts)??null;budgetRecords.push([key,row]);branchRawSize(budget);records.set(key,row);}return records.get(key);};
@@ -405,33 +429,32 @@ async function branchRaw(store,core,protocol,fence){
   const currentGroup=groups.get(current.operation.value.logicalCommitId);if(!currentGroup||currentGroup.at(-1).value.kind!=='entry-edit')fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
   const currentHistory=[];for(const h of read.history){const hhead=await get('head','humanLibraryMember','history:'+h.id);if(hhead?.purged||hhead?.revisions?.length!==1)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');const hrow=await get('revision',hhead.revisions[0]),hmap=await get('humanMapping','history:'+h.id);if(!hrow||hrow.redacted||!currentGroup.some(m=>m.revisionId===hrow.operation.revisionId)||hmap?.revisionId!==hrow.operation.revisionId||!equal(hmap.local,physical('history',h))||!equal(hmap.wire,physical('history',hrow.operation.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');currentHistory.push(hrow.operation);}
   if(currentGroup.filter(m=>m.value?.entityType==='history').length!==read.history.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
-  const history=[];for(const m of parentGroup.filter(x=>x.value?.entityType==='history')){const h=m.value.after,map=await get('humanMapping','history:'+h.id),actual=await t.get('revisions',h.id);if(!map||!actual||h.kind!=='library_entry'||h.entityId!==id||!equal(map.local,physical('history',actual)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');history.push({...clone(h),...clone(map.local)});}
+  const history=[],parentPhysicalHistory=[];budget.parentPhysicalHistory=parentPhysicalHistory;branchRawSize(budget);for(const m of parentGroup.filter(x=>x.value?.entityType==='history')){const h=m.value.after,map=await get('humanMapping','history:'+h.id),actual=await t.get('revisions',h.id);parentPhysicalHistory.push(actual??null);branchRawSize(budget);if(!map||!actual||h.kind!=='library_entry'||h.entityId!==id||!equal(map.local,physical('history',actual)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');history.push({...clone(h),...clone(map.local)});}
   if(!history.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');history.sort((a,b)=>a.sequence-b.sequence);
   const parentReceipt=await t.get('operationReceipts',parentGroup.at(-1).value.domainOperationId)??null;if(parentReceipt?.namespace!=='thought-library'||parentReceipt.schemaVersion!==1||parentReceipt.id!==parentGroup.at(-1).value.domainOperationId||parentReceipt.ownerId!==id||parentReceipt.digest!==parentGroup.at(-1).value.ownerRequestDigest||parentReceipt.result?.id!==id||parentReceipt.result?.revision!==parent.value.after.revision||!Number.isSafeInteger(parentReceipt.operationSequence)||parentReceipt.operationSequence<2)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
-  const result={input:protocol.operations,controlValues:fence.controlValues,entry,read,receipt,records:[...records].sort(([a],[b])=>a<b?-1:a>b?1:0),parentReceipt,parent:parent.value.after,history,mapping,currentEntry:current.operation,currentHistory,groups:[...groups].sort(([a],[b])=>a<b?-1:a>b?1:0)};
+  const result={input:protocol.operations,controlValues:fence.controlValues,entry,read,receipt,records:[...records].sort(([a],[b])=>a<b?-1:a>b?1:0),parentReceipt,parent:parent.value.after,history,parentPhysicalHistory,mapping,currentEntry:current.operation,currentHistory,groups:[...groups].sort(([a],[b])=>a<b?-1:a>b?1:0)};
   if(branchRawSize(result)>BRANCH_RAW_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');return result;
- });
- branchFence(store,core,fence);return raw;
 }
-async function branchQualify(store,core,protocol,raw,fence){
+async function branchQualifyGroups(core,raw){
  for(const [,group]of raw.groups){await validateHumanCommitGroup(group,core.datasetId);await restoreHumanRequest(group.at(-1).value);}
+}
+async function branchQualifyPortable(raw){
  // The current original typed read must itself match its accepted canonical
  // closure, not merely occupy the same physical slots or revision numbers.
  if(!equal(normalizePhysical('entry',await portableHumanEntity('entry',raw.read.row,raw.read.history,raw.entry.secret)),normalizePhysical('entry',raw.currentEntry.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
  for(const row of raw.read.history){const op=raw.currentHistory.find(m=>m.value.after.id===row.id);if(!op||!equal(normalizePhysical('history',await portableHumanEntity('history',row,raw.read.history,raw.entry.secret)),normalizePhysical('history',op.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');}
- const request=await restoreHumanRequest(protocol.descriptor.value);branchFence(store,core,fence);
- // Existing future-read machinery is branded with CURRENT actual data only.
- // No historical before row, graph registration or caller adapter enters this
- // original guard. Exact typed projection is checked before it is consumed.
+}
+async function branchQualifyCurrent(store,core,raw,request,fence,retention=null){
  const currentEntry=clone(raw.entry),current={store,core,state:{base:clone(raw.entry),thoughts:[clone(raw.read.row)],revisions:clone(raw.read.history),placements:[],topics:[],indices:[],epoch:raw.read.epoch,operationReceipts:raw.receipt?[clone(raw.receipt)]:[]}};
  let guard;futureEntries.set(currentEntry,current);
  try{
   if(!equal(humanFutureRead(currentEntry,store,core,'entry-edit',request),{base:raw.entry,read:raw.read,receipt:raw.receipt}))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
   guard=await prepareHumanEntryEditPlan(store,core,request,currentEntry);
  }finally{futureEntries.delete(currentEntry);if(guard&&guard.conflict!==true)plans.delete(guard);}
- branchFence(store,core,fence);
+ if(retention)nativeRetentionFence(retention);else branchFence(store,core,fence);
  if(guard.duplicate||guard.conflict!==true)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
- const next=fence;
+}
+async function branchQualifyReplay(store,core,protocol,raw,request){
  const row={...clone(raw.parent),...clone(raw.mapping.local)},entry=clone(raw.entry);row.exactSignature=await keyedHash(entry.secret,['body',row.type,row.thoughtText]);
  if(request.expectedRevision!==row.revision||request.expectedFieldRevisions&&request.expectedFieldRevisions.body!==row.fieldRevisions.body)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
  const replay=bindHumanReplayEntry(clone(entry),protocol.descriptor.value.events,protocol.descriptor.value.allocation),allocation=prepareHumanAllocation(store,replay),signature=await keyedHash(entry.secret,['body',row.type,request.changes.body]);
@@ -439,7 +462,12 @@ async function branchQualify(store,core,protocol,raw,fence){
  if(!equal(allocation.events(),protocol.descriptor.value.events)||computed.touchedTopics.length||computed.touchedIndices.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
  const planned=[{type:'entry',before:row,after:computed.row},...computed.history.map(h=>({type:'history',before:raw.history.find(x=>x.id===h.id)??null,after:h}))];if(planned.length!==protocol.members.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
  for(const item of planned){const member=protocol.members.find(m=>m.value.entityType===item.type&&m.value.after.id===item.after.id);if(!member)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');for(const side of ['before','after'])if(!equal(normalizePhysical(item.type,await portableHumanEntity(item.type,item[side],computed.history,entry.secret)),normalizePhysical(item.type,member.value[side])))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');}
- branchFence(store,core,next);return next;
+}
+async function branchQualify(store,core,protocol,raw,fence){
+ await branchQualifyGroups(core,raw);await branchQualifyPortable(raw);
+ const request=await restoreHumanRequest(protocol.descriptor.value);branchFence(store,core,fence);
+ await branchQualifyCurrent(store,core,raw,request,fence);await branchQualifyReplay(store,core,protocol,raw,request);
+ branchFence(store,core,fence);return fence;
 }
 export async function captureHumanBranchSemanticWitness(store,core,completeGroup){
  const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
@@ -451,12 +479,424 @@ export async function captureHumanBranchSemanticWitness(store,core,completeGroup
   // independently captured reread may occupy the other half, even on a race.
   branchTrim(state,BRANCH_RAW_BYTES-size);while(state.handles.length>=BRANCH_HANDLES)branchForget(state,state.handles[0]);
   const finalFence=await branchQualify(store,core,protocol,raw,fence),fresh=await branchRaw(store,core,protocol,finalFence);if(!equal(raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,finalFence);
-  const cap=Object.freeze({});branchWitnesses.set(cap,{store,core,raw,size,binding:finalFence.binding,control:finalFence.control,controlValues:raw.controlValues});state.handles.push(cap);state.bytes+=size;state.candidateBytes=0;return cap;
+  const cap=Object.freeze({});branchWitnesses.set(cap,{kind:'semantic',store,core,raw,size,binding:finalFence.binding,control:finalFence.control,controlValues:raw.controlValues});state.handles.push(cap);state.bytes+=size;state.candidateBytes=0;return cap;
  }finally{state.candidateBytes=0;state.busy=false;}
 }
 export async function revalidateHumanBranchSemanticWitness(store,core,witness){
- const p=branchWitnesses.get(witness);if(!p||p.store!==store||p.core!==core)fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
+ const p=branchWitnesses.get(witness);if(!p||p.kind!=='semantic'||p.store!==store||p.core!==core)fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
   const pendingBytes=branchRawSize([p.raw.input,p.raw.input,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes),witness);
   const fence=await branchBarrier(store,core,p.binding);if(fence.control!==p.control||!equal(fence.controlValues,p.controlValues))fail('BNS_HUMAN_CHANGED');const protocol=await validateHumanCommitGroup(clone(p.raw.input),core.datasetId),fresh=await branchRaw(store,core,protocol,fence);if(!equal(p.raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,fence);
  }catch(error){branchForget(state,witness);throw error;}finally{state.busy=false;}
+}
+
+// Unused first-sibling retention. All three handle kinds share the original
+// store registry, byte budget and in-flight slot; a witness is consumed once.
+const retentionKind=p=>p&&(p.kind==='retention'||p.kind==='duplicate');
+const immutable=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const item of Object.values(value))immutable(item);Object.freeze(value);}return value;};
+function retainedProtocol(input){const descriptor=input.find(op=>op.type==='humanLibraryCommit');return {operations:input,descriptor,members:descriptor.value.members.map(ref=>input.find(op=>op.revisionId===ref.revisionId))};}
+function retentionProtocolShape(protocol,core){
+ const entries=protocol.members.filter(op=>op.value.entityType==='entry'),d=protocol.descriptor.value;
+ if(d.kind!=='entry-edit'||!branchBodyOnly(d.request)||d.allocation.indexGenerationCount!==0||entries.length!==1||protocol.operations.some(op=>op.deviceId===core.deviceId)||protocol.members.some(op=>!['entry','history'].includes(op.value.entityType)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const row of [entries[0].value.before,entries[0].value.after])if(!row||row.lifecycle!=='active'||row.bodyBinding!=='thought'||row.provenanceType!=='user_created'||row.organizationRevision!==0||row.dependencyRevision!==0||row.sourceRecordIds.length||row.inputRefs.length||row.topics.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const op of protocol.members.filter(op=>op.value.entityType==='history'))if(op.value.after.kind!=='library_entry'||op.value.after.entityId!==entries[0].value.after.id)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+}
+function retentionRegister(state,p,previous=null){
+ if(previous)branchForget(state,previous);branchTrim(state,BRANCH_RAW_BYTES-p.size);while(state.handles.length>=BRANCH_HANDLES)branchForget(state,state.handles[0]);
+ const cap=Object.freeze({});branchWitnesses.set(cap,p);state.handles.push(cap);state.bytes+=p.size;return cap;
+}
+async function retentionProtocolRead(t,core,protocol,budget){
+ const records=[],expected=[];budget.protocol={records,expected};branchRawSize(budget);
+ const get=async(kind,...parts)=>{const row=await core.get(t,kind,...parts)??null;records.push([JSON.stringify([kind,...parts]),row]);branchRawSize(budget);return row;};
+ await get('generation');for(const device of new Set(protocol.operations.map(op=>op.deviceId))){await get('frontier',device);await get('device',device);}
+ let present=0;
+ for(const op of protocol.operations){
+  const receipt=await get('receipt',op.operationId),sequence=await get('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),revision=await get('revision',op.revisionId),entityRevision=await get('entityRevision',op.type,op.entityId,op.revisionId),head=await get('head',op.type,op.entityId);
+  const quarantine=await get('quarantine',op.operationId),pending=await get('pending',op.operationId),entityPending=await get('entityPending',op.type,op.entityId,op.operationId);
+  if(quarantine||pending||entityPending||head?.purged)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  if(receipt||sequence||revision||entityRevision){
+   if(receipt?.digest!==op.revisionId||receipt.deviceId!==op.deviceId||receipt.sequence!==op.sequence||sequence?.operationId!==op.operationId||sequence.digest!==op.revisionId||revision?.redacted||!equal(revision?.operation??null,op)||entityRevision?.revisionId!==op.revisionId)fail('BNS_OPERATION_COLLISION');present++;
+  }
+  const heads=[];for(const id of head?.revisions||[]){let replaced=false;for(const parent of op.parents)if(await core.ancestor(t,id,parent)){replaced=true;break;}if(!replaced)heads.push(id);}
+  expected.push({type:op.type,entityId:op.entityId,revisions:[...new Set([...heads,op.revisionId])].sort()});branchRawSize(budget);
+ }
+ if(present!==0&&present!==protocol.operations.length)fail('BNS_OPERATION_COLLISION');return {present,records,expected};
+}
+export async function prepareHumanBranchRetention(store,core,witness){
+ const previous=branchWitnesses.get(witness),state=branchState(store);if(previous?.kind!=='semantic'||previous.store!==store||previous.core!==core||!state.handles.includes(witness))fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');
+ if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;
+ try{
+  branchTrim(state,BRANCH_RAW_BYTES,witness);const fence=await branchBarrier(store,core,previous.binding);if(fence.control!==previous.control||!equal(fence.controlValues,previous.controlValues))fail('BNS_HUMAN_CHANGED');
+  const protocol=retainedProtocol(previous.raw.input);retentionProtocolShape(protocol,core);
+  const raw=await core.transaction(false,async t=>{const semantic=await branchRawInTransaction(store,core,protocol,fence,t);if(!equal(semantic,previous.raw))fail('BNS_HUMAN_CHANGED');const value={semantic};const cut=await retentionProtocolRead(t,core,protocol,value);if(cut.present)fail('BNS_HUMAN_CHANGED');return value;});branchFence(store,core,fence);
+  const size=branchRawSize(raw),entryMember=protocol.members.find(op=>op.value.entityType==='entry'),entryHead=raw.protocol.expected.find(x=>x.type===entryMember.type&&x.entityId===entryMember.entityId);
+  if(entryHead?.revisions.length!==2||raw.protocol.expected.some(head=>head.revisions.length>2))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  immutable(raw);const group=immutable({descriptor:protocol.descriptor.revisionId,members:protocol.members.map(op=>op.revisionId)});
+  return retentionRegister(state,{kind:'retention',store,core,raw,size,binding:fence.binding,control:fence.control,controlValues:fence.controlValues,fence,protocol,group,claimed:false},witness);
+ }catch(error){branchForget(state,witness);throw error;}finally{state.busy=false;}
+}
+export async function prepareHumanBranchRetentionRetry(store,core,input){
+ const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;
+ try{
+  branchReady(store,core);const pendingBytes=branchRawSize([input,input,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes));
+  const fence=await branchBarrier(store,core),protocol=await validateHumanCommitGroup(input,core.datasetId);
+  retentionProtocolShape(protocol,core);
+  const raw=await core.transaction(false,async t=>{branchFence(store,core,fence);const value={input:protocol.operations,controlValues:fence.controlValues,base:await base(store,core,t)};const cut=await retentionProtocolRead(t,core,protocol,value);return {raw:value,present:cut.present};});branchFence(store,core,fence);
+  if(!raw.present)return null;const size=branchRawSize(raw.raw);immutable(raw.raw);const group=immutable({descriptor:protocol.descriptor.revisionId,members:protocol.members.map(op=>op.revisionId)});
+  return retentionRegister(state,{kind:'duplicate',store,core,raw:raw.raw,size,binding:fence.binding,control:fence.control,controlValues:fence.controlValues,fence,protocol,group,claimed:false});
+ }finally{state.busy=false;}
+}
+export function claimHumanBranchRetention(core,retention){
+ const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||p.claimed)fail('BNS_HUMAN_RETENTION_REQUIRED');const state=branchState(p.store);if(!state.handles.includes(retention))fail('BNS_HUMAN_RETENTION_REQUIRED');if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');
+ state.busy=true;p.claimed=true;try{branchFence(p.store,core,p.fence);p.claim=Object.freeze({repository:p.binding.repository,database:p.binding.database,namespace:p.kind==='retention'?p.raw.semantic.entry.namespace:p.raw.base.namespace,group:p.group});return p.claim;}catch(error){branchForget(state,retention);state.busy=false;throw error;}
+}
+export function assertHumanBranchRetentionCurrent(core,retention){const p=branchWitnesses.get(retention);if(!retentionKind(p)||!p.claimed||p.core!==core)fail('BNS_HUMAN_RETENTION_REQUIRED');if(p.nativeWork||p.finalControlCheck)nativeRetentionFence(p);else branchFence(p.store,core,p.fence);}
+export async function requireHumanBranchRetentionInTransaction(t,core,retention){
+ const p=branchWitnesses.get(retention);if(!retentionKind(p)||!p.claimed||p.core!==core)fail('BNS_HUMAN_RETENTION_REQUIRED');requireHumanRetentionOwnerPhase(core,t,retention,p.group);nativeRetentionFence(p);
+ const r=nativeRetentionWorks.get(retention);if(!r||r!==p.nativeWork||r.phase!=='prepared'||p.nativeEffects?.validateEntered)fail('BNS_HUMAN_RETENTION_REQUIRED');p.nativeEffects.validateEntered=true;
+ const scope=requireRepositoryTransactionScope(core.repository,t),property=branchDescriptor(t,'tx');if(!property||!('value'in property)||retentionNative.db.call(property.value)!==scope.database||scope.database!==p.binding.database)fail('BNS_HUMAN_RETENTION_REQUIRED');
+ r.phase='validating';r.frames++;try{await nativeRetentionPump(r,property.value,false);nativeRetentionCurrent(r);
+  if(p.kind==='retention'){const expected=calculateHumanRetentionHeadVectors(p.protocol.operations,r.certificate.heads,r.certificate.revisions);if(!expected.complete||!equal(expected.expected,p.raw.protocol.expected))fail('BNS_HUMAN_CHANGED');}
+  p.nativeEffects.authenticated=true;r.phase='validated';nativeRetentionFence(p);
+  return {protocol:p.protocol,expected:p.raw.protocol.expected,duplicate:p.kind==='duplicate'};
+ }finally{r.frames--;}
+}
+export function finishHumanBranchRetention(core,retention,claim){const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed||p.claim!==claim)fail('BNS_HUMAN_RETENTION_REQUIRED');const state=branchState(p.store);branchForget(state,retention);if(!state.effectReservation)state.busy=false;}
+
+// BEGIN private retention expected effects.
+// Fixed private preparation calls this calculation; it authenticates no native cut.
+const EFFECT_SCAN_BYTES=16384;
+const effectCutFail=()=>fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+function effectCurrent(r){if(r.phase!=='building'||!r.accounted||r.state.effectReservation!==r||r.owner.effectReservation!==r||branchWitnesses.get(r.cap)!==r.owner)fail('BNS_HUMAN_RETENTION_REQUIRED');}
+function effectPreflight(p,r){
+ const raw=p.raw,protocol=p.protocol;if(!raw||!protocol||!Array.isArray(protocol.operations)||!Array.isArray(protocol.members))effectCutFail();
+ const n=protocol.operations.length,d=protocol.descriptor;if(n<2||n>CORE_LIMITS.batch||protocol.members.length!==n-1||!d||!protocol.operations.includes(d)||!Array.isArray(d.value?.members)||d.value.members.length!==n-1)effectCutFail();
+ const dataset=d.datasetId,device=d.deviceId,base=p.kind==='retention'?raw.semantic?.entry:raw.base;
+ if(!base||typeof base.namespace!=='string'||base.namespace.length>128||typeof dataset!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(dataset)||!(base.namespace==='initial'||/^[A-Za-z0-9_-]{8,128}$/.test(base.namespace))||typeof device!=='string'||device===p.binding.deviceId||dataset!==p.binding.datasetId||!Array.isArray(raw.protocol?.records)||raw.protocol.records.length!==8*n+3)effectCutFail();
+ if(!Array.isArray(raw.protocol.expected)||raw.protocol.expected.length!==n)effectCutFail();
+ const stats=r.scanStats;branchRawMeasure(raw,BRANCH_RAW_BYTES,stats,true);
+ let opBytes=0,w=0,v=0,B=0,b=0;
+ const prefixLength=8+dataset.length; // exact 'bns:v1:' + dataset + ':'
+ const addKey=(kind,...parts)=>{let chars=prefixLength+11+base.namespace.length+1+kind.length+1;for(let i=0;i<parts.length;i++){if(typeof parts[i]!=='string'||parts[i].length>512)effectCutFail();chars+=9*parts[i].length+(i?1:0);}B+=chars;b=Math.max(b,chars);};
+ // This bounded preflight uses only existing strings/scalars; no key encoding.
+ for(let i=0;i<n;i++){
+  const op=protocol.operations[i];if(!op||op.datasetId!==dataset||op.deviceId!==device||op.kind!=='put'||op.actor!=='user'||!Number.isSafeInteger(op.sequence)||op.sequence<1||!Object.isFrozen(op))effectCutFail();
+  for(let j=0;j<i;j++){const prior=protocol.operations[j];if(prior.operationId===op.operationId||prior.revisionId===op.revisionId||prior.sequence===op.sequence||prior.type===op.type&&prior.entityId===op.entityId)effectCutFail();}
+  const size=branchRawMeasure(op,CORE_LIMITS.batchBytes,stats,true);opBytes+=size;w=Math.max(w,size);v=Math.max(v,stats.nodes+stats.slots+16);
+  addKey('revision',op.revisionId);addKey('entityRevision',op.type,op.entityId,op.revisionId);addKey('head',op.type,op.entityId);addKey('receipt',op.operationId);addKey('sequence',op.deviceId,String(op.sequence).padStart(16,'0'));
+  addKey('quarantine',op.operationId);addKey('pending',op.operationId);addKey('entityPending',op.type,op.entityId,op.operationId);
+  let head=null;for(const h of raw.protocol.expected)if(h.type===op.type&&h.entityId===op.entityId){if(head)effectCutFail();head=h;}
+  if(!head||!Array.isArray(head.revisions)||p.kind==='retention'&&head.revisions.length>2||!head.revisions.includes(op.revisionId)||head.revisions.some((value,index)=>typeof value!=='string'||!/^[a-f0-9]{64}$/.test(value)||head.revisions.indexOf(value)!==index))effectCutFail();
+  const hs=branchRawMeasure(head,BRANCH_RAW_BYTES,stats,true);w=Math.max(w,hs);v=Math.max(v,stats.nodes+stats.slots+16);
+ }
+ if(opBytes>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
+ for(let i=0;i<protocol.members.length;i++){const op=protocol.members[i],ref=d.value.members[i];if(!protocol.operations.includes(op)||ref.type!==op.type||ref.entityId!==op.entityId||ref.revisionId!==op.revisionId||ref.operationId!==op.operationId)effectCutFail();}
+ addKey('generation');addKey('frontier',device);addKey('device',device);
+ let frontier=null,frontierCount=0;const frontierSelector=JSON.stringify(['frontier',device]);
+ // Selector length is a fixed <=128-character identity plus literals, covered F.
+ for(const record of raw.protocol.records){if(!Array.isArray(record)||record.length!==2||typeof record[0]!=='string')effectCutFail();if(record[0]===frontierSelector){frontier=record[1];frontierCount++;}const size=branchRawMeasure(record[1],BRANCH_RAW_BYTES,stats,true);w=Math.max(w,size);v=Math.max(v,stats.nodes+stats.slots+16);}
+ if(frontierCount!==1)effectCutFail();let f=0,frontierBytes=4;
+ if(frontier!==null){if(!Number.isSafeInteger(frontier.frontier)||frontier.frontier<0||!Array.isArray(frontier.ranges)||frontier.ranges.length>CORE_LIMITS.gapRanges)effectCutFail();f=frontier.ranges.length;for(const pair of frontier.ranges)if(!Array.isArray(pair)||pair.length!==2||pair.some(x=>!Number.isSafeInteger(x)||x<0))effectCutFail();frontierBytes=branchRawMeasure(frontier,BRANCH_RAW_BYTES,stats,true);}
+ const fresh=p.kind==='retention';let T=raw.protocol.records.length+1;
+ if(fresh){const s=raw.semantic;if(!s||!Array.isArray(s.records)||!Array.isArray(s.history)||!Array.isArray(s.parentPhysicalHistory)||s.parentPhysicalHistory.length!==s.history.length||!s.read||!Array.isArray(s.read.history)||!Array.isArray(s.read.placementRows)||s.read.history.length>128)effectCutFail();T=raw.protocol.records.length+s.records.length+s.parentPhysicalHistory.length+10;for(const record of s.records){if(!Array.isArray(record)||record.length!==2||typeof record[0]!=='string')effectCutFail();B+=record[0].length;b=Math.max(b,record[0].length);}}
+ const u=f+n,K=5*n+2;w=Math.max(w+b+256,b+256+40*u);v=Math.max(v,8*u+32);
+ const M=384*K+192*T+8*(K+T)+2*B+32768+(fresh?128*u+256:0);
+ const S=Math.max(EFFECT_SCAN_BYTES,12*b+128,3*w+128*v+4096,4*w+128*v+4096,...(fresh?[3*frontierBytes+768*u+16384]:[]));
+ if(!Number.isSafeInteger(M+S))fail('BNS_HUMAN_GRAPH_LIMIT');
+ return {n,K,T,M,S,prefix:'bns:v1:'+dataset+':',namespace:base.namespace,device,fresh};
+}
+async function effectBuild(p,r,m){
+ let records=new Map(),positive=new Set(),rows=[],unchanged=[],absent=[];
+ try{
+  for(const [key,row]of p.raw.protocol.records){if(records.has(key))effectCutFail();records.set(key,row);}
+  const get=(kind,...parts)=>{const key=JSON.stringify([kind,...parts]);if(!records.has(key))effectCutFail();return records.get(key);};
+  let presence=0;const group=p.protocol,ops=group.operations;
+  for(const op of ops){
+   const receipt=get('receipt',op.operationId),seq=get('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),rev=get('revision',op.revisionId),entity=get('entityRevision',op.type,op.entityId,op.revisionId);if(get('head',op.type,op.entityId)?.purged)effectCutFail();
+   if(get('quarantine',op.operationId)||get('pending',op.operationId)||get('entityPending',op.type,op.entityId,op.operationId))effectCutFail();
+   if(receipt!==null||seq!==null||rev!==null||entity!==null){if(receipt?.digest!==op.revisionId||receipt.deviceId!==op.deviceId||receipt.sequence!==op.sequence||seq?.operationId!==op.operationId||seq.digest!==op.revisionId||rev?.redacted||!equal(rev?.operation??null,op)||entity?.revisionId!==op.revisionId)effectCutFail();presence++;}
+  }
+  if(presence!==(m.fresh?0:m.n))effectCutFail();
+  let generation=get('generation'),frontier=get('frontier',m.device);get('device',m.device);
+  if(m.fresh){let value=generation?.value||0;for(let i=0;i<m.n;i++){value=value+1;if(!Number.isSafeInteger(value)||value<0)effectCutFail();}generation={value};for(let i=0;i<m.n;i++){const op=i===m.n-1?group.descriptor:group.members[i];frontier={...acceptSequence(frontier?{frontier:frontier.frontier,ranges:frontier.ranges}:null,op.sequence),deviceId:m.device};}}
+  const add=async(kind,parts,payload)=>{
+   effectCurrent(r);const selector=JSON.stringify([kind,...parts]),id=protocolPhysicalId(m.prefix,m.namespace,kind,parts);if(positive.has(selector))effectCutFail();positive.add(selector);
+   const row=m.fresh?{...payload,id}:get(kind,...parts);
+   if(!m.fresh&&row!==null&&row.id!==id)effectCutFail();
+   if(m.fresh){if(kind==='frontier'){for(const pair of row.ranges)Object.freeze(pair);Object.freeze(row.ranges);}Object.freeze(row);}
+   const hash=await digest(row);effectCurrent(r);rows.push(Object.freeze({id,kind,row,digest:hash}));
+  };
+  for(let i=0;i<m.n;i++){
+   const op=i===m.n-1?group.descriptor:group.members[i];let head;for(const h of p.raw.protocol.expected)if(h.type===op.type&&h.entityId===op.entityId)head=h;
+   await add('revision',[op.revisionId],{operation:op,redacted:false});await add('entityRevision',[op.type,op.entityId,op.revisionId],{revisionId:op.revisionId});await add('head',[op.type,op.entityId],{type:op.type,entityId:op.entityId,revisions:head.revisions,purged:false,fence:null});
+   await add('receipt',[op.operationId],{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});await add('sequence',[op.deviceId,String(op.sequence).padStart(16,'0')],{operationId:op.operationId,digest:op.revisionId});
+  }
+  await add('frontier',[m.device],frontier);await add('generation',[],generation);
+  const facts=list=>{for(const record of list){if(m.fresh&&positive.has(record[0]))continue;(record[1]===null?absent:unchanged).push(Object.freeze({selector:record[0],record}));}};facts(p.raw.protocol.records);
+  if(m.fresh){
+   const s=p.raw.semantic;facts(s.records);for(const h of s.parentPhysicalHistory)unchanged.push(Object.freeze({selector:'parent-history',value:h}));
+   for(const [selector,value]of [['base-without-generation',s.entry],['entry',s.read.row],['history-range',s.read.history],['placement-range',s.read.placementRows],['provenance-count',s.read.provenance],['dependency-count',s.read.dependencies],['thought-epoch',s.read.epoch],['incoming-domain-receipt',s.receipt],['parent-domain-receipt',s.parentReceipt],['selected-history-closure',s.currentHistory]])unchanged.push(Object.freeze({selector,value,...(selector==='base-without-generation'?{excludeGeneration:true}:{})}));
+  }else unchanged.push(Object.freeze({selector:'base',value:p.raw.base}));
+  if(rows.length!==m.K||unchanged.length+absent.length>m.T)effectCutFail();
+  return Object.freeze({mode:m.fresh?'fresh':'duplicate',rows:Object.freeze(rows),unchanged:Object.freeze(unchanged),absent:Object.freeze(absent),writes:m.fresh?7*m.n:0,retainedCharge:m.M});
+ }finally{records=null;positive=null;rows=null;unchanged=null;absent=null;}
+}
+async function deriveRetentionExpectedEffects(core,cap){
+ const p=branchWitnesses.get(cap);if(!retentionKind(p)||p.core!==core||!p.claimed||!p.claim||p.effectReservation||p.effectPlan)fail('BNS_HUMAN_RETENTION_REQUIRED');
+ const state=branchState(p.store);if(!state.busy||!state.handles.includes(cap)||state.effectReservation)fail('BNS_HUMAN_BRANCH_BUSY');
+ if(state.bytes+state.candidateBytes+EFFECT_SCAN_BYTES>BRANCH_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');p.size+=EFFECT_SCAN_BYTES;state.bytes+=EFFECT_SCAN_BYTES;
+ let r;try{
+  r={owner:p,cap,state,phase:'scan',charged:EFFECT_SCAN_BYTES,retained:0,scratch:EFFECT_SCAN_BYTES,accounted:true,scanStats:{nodes:0,slots:0}};p.effectReservation=r;state.effectReservation=r;
+  const m=effectPreflight(p,r);if(state.bytes+state.candidateBytes+m.M+m.S-EFFECT_SCAN_BYTES>BRANCH_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');
+  const delta=m.M+m.S-EFFECT_SCAN_BYTES;p.size+=delta;state.bytes+=delta;r.charged=m.M+m.S;r.retained=m.M;r.scratch=m.S;r.phase='building';
+  const result=await effectBuild(p,r,m);effectCurrent(r);p.effectPlan=result;p.size-=m.S;state.bytes-=m.S;r.charged=m.M;r.phase='retained';state.effectReservation=null;return result;
+ }finally{
+  if(!r){p.size-=EFFECT_SCAN_BYTES;state.bytes-=EFFECT_SCAN_BYTES;}
+  else if(r.phase==='revoked'){state.bytes-=r.deferredCharge;r.deferredCharge=0;r.accounted=false;r.phase='released';if(state.effectReservation===r)state.effectReservation=null;p.effectReservation=null;state.busy=false;}
+  else if(r.phase!=='retained'){if(r.accounted){p.size-=r.charged;state.bytes-=r.charged;r.accounted=false;}p.effectReservation=null;p.effectPlan=null;if(state.effectReservation===r)state.effectReservation=null;r.phase='released';}
+ }
+}
+// END private retention expected effects.
+
+// Native-retention preparation stays in this original owner; only the original
+// Core call opens its fixed preparation phase. No user entry is added here.
+const NATIVE_RETENTION_FIXED=128*1024,nativeRetentionWorks=new WeakMap();
+function nativeRetentionFailure(primary,secondary=[]){
+ if(!secondary.length)return primary;if(primary!==null&&(typeof primary==='object'||typeof primary==='function'))try{const previous=Array.isArray(primary.retentionCleanupErrors)?primary.retentionCleanupErrors:[];Object.defineProperty(primary,'retentionCleanupErrors',{value:Object.freeze([...previous,...secondary]),configurable:true});return primary;}catch(error){return new AggregateError([primary,...secondary,error],'Retention primary and cleanup failures',{cause:primary});}
+ return new AggregateError([primary,...secondary],'Retention primary and cleanup failures',{cause:primary});
+}
+function nativeRetentionCurrent(r){if(!r.accounted||r.phase==='revoked'||r.state.effectReservation!==r||r.owner.nativeWork!==r||branchWitnesses.get(r.cap)!==r.owner)fail('BNS_HUMAN_RETENTION_REQUIRED');}
+function nativeRetentionMeasure(value){const stats={};const B=branchRawMeasure(value,BRANCH_RAW_BYTES,stats,true);return {B,T:stats.units,V:stats.nodes,E:stats.slots};}
+function nativeRetentionSlot(kind,m){const copy=2*m.T+128*m.V+8*m.E+128,canonical=copy+16*m.E+2*m.B+128;return kind==='clone'?copy:kind==='canonical'?canonical:canonical+m.B+128;}
+function nativeRetentionResize(r,bytes){
+ nativeRetentionCurrent(r);const delta=bytes-r.charged;if(delta>0&&r.state.bytes+r.state.candidateBytes+delta>BRANCH_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');r.owner.size+=delta;r.state.bytes+=delta;r.charged=bytes;r.peak=Math.max(r.peak,bytes);
+}
+function nativeRetentionBegin(p,cap){
+ const state=branchState(p.store);if(p.nativeWork||state.effectReservation||!state.busy||!state.handles.includes(cap))fail('BNS_HUMAN_RETENTION_REQUIRED');
+ if(state.bytes+state.candidateBytes+NATIVE_RETENTION_FIXED>BRANCH_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');
+ p.size+=NATIVE_RETENTION_FIXED;state.bytes+=NATIVE_RETENTION_FIXED;
+ const r={owner:p,cap,state,phase:'preparing',accounted:true,charged:NATIVE_RETENTION_FIXED,retained:0,peak:NATIVE_RETENTION_FIXED,frames:0,certificate:null};p.nativeWork=r;state.effectReservation=r;nativeRetentionWorks.set(cap,r);return r;
+}
+async function nativeRetentionPhase(r,name,slots,run,extra=0){
+ nativeRetentionCurrent(r);let price=extra;for(const [,count,kind,value]of slots)price+=count*nativeRetentionSlot(kind,nativeRetentionMeasure(value));
+ nativeRetentionResize(r,NATIVE_RETENTION_FIXED+r.retained+price);r.frames++;r.currentPhase=name;
+ let primary,failed=false;try{await run();nativeRetentionCurrent(r);}catch(error){primary=error;failed=true;}finally{r.frames--;r.currentPhase=null;}
+ try{if(r.phase!=='revoked')nativeRetentionResize(r,NATIVE_RETENTION_FIXED+r.retained);}catch(error){if(failed){r.cleanupErrors??=[];r.cleanupErrors.push(error);}else{primary=error;failed=true;}}
+ if(failed){primary=nativeRetentionFailure(primary,r.cleanupErrors);r.primaryFailure={value:primary};throw primary;}
+}
+function nativeRetentionKeep(r,bytes){nativeRetentionCurrent(r);if(!Number.isSafeInteger(bytes)||bytes<0||NATIVE_RETENTION_FIXED+r.retained+bytes>r.charged)fail('BNS_HUMAN_GRAPH_LIMIT');r.retained+=bytes;}
+
+function nativeRetentionCausalSlots(p){
+ // No vectors or key decoding before the phase debit. R bounds recorded/pure
+ // maps and seen/required sets; E counts all queued parent occurrences, even
+ // duplicates, so cycles/diamonds do not get an alias discount.
+ const s=p.raw.semantic;let R=s.records.length,G=0,Q=s.groups.length,E=0,H=0;
+ for(const [,group]of s.groups)G+=group.length;
+ for(const [,row]of s.records)if(Array.isArray(row?.operation?.parents))E+=row.operation.parents.length;
+ for(const [,row]of p.raw.protocol.records)if(Array.isArray(row?.revisions))H+=row.revisions.length;
+ const O=p.protocol.operations.length;
+ // Two revision maps + original record map, operations/group maps, required
+ // and per-traversal seen sets, DFS queue capacity, head Set/sort/output slots.
+ return 3*96*R+96*G+96*Q+2*64*R+16*(E+1)+128*O+32*(H+O)+16384+216*R+152*O;
+}
+function nativeRetentionCausalCertificate(p){
+ const s=p.raw.semantic,protocol=p.protocol,records=new Map(),operations=new Map(),groups=new Map();
+ const record=(kind,...parts)=>{const key=JSON.stringify([kind,...parts]);if(!records.has(key))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');return records.get(key);};
+ for(const [key,value]of s.records){if(records.has(key))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');records.set(key,value);}
+ for(const [id,group]of s.groups){const descriptor=group.at(-1);if(descriptor?.value.kind!=='entry'&&!(descriptor?.value.kind==='entry-edit'&&branchBodyOnly(descriptor.value.request)))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');if(groups.has(id)||group.at(-1)?.value.id!==id)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');groups.set(id,group);for(const op of group){if(operations.has(op.revisionId)&&!equal(operations.get(op.revisionId),op))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');operations.set(op.revisionId,op);}}
+ if(operations.size>CORE_LIMITS.batch||s.read.history.length>128)fail('BNS_HUMAN_GRAPH_LIMIT');
+ if(!groups.has(protocol.descriptor.value.id))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ for(const op of protocol.operations)if(!operations.has(op.revisionId)||!equal(operations.get(op.revisionId),op))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ for(const op of operations.values()){
+  if(!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+  if(op.type==='humanLibraryMember'){
+   const group=groups.get(op.value.logicalCommitId);if(!group||!group.some(value=>value.revisionId===op.revisionId))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+   const head=record('head','humanLibraryCommit',op.value.logicalCommitId);
+   if(head?.purged||head?.revisions?.length!==1){if(op.value.logicalCommitId!==protocol.descriptor.value.id)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}
+   else{const row=record('revision',head.revisions[0]);if(!row||row.redacted||row.operation.revisionId!==group.at(-1).revisionId)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}
+  }
+  for(const id of op.parents){const row=record('revision',id);if(!row||row.redacted||!operations.has(id)||!equal(row.operation,operations.get(id))||row.operation.type!==op.type||row.operation.entityId!==op.entityId)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}
+  if(!protocol.operations.some(value=>value.revisionId===op.revisionId)&&record('receipt',op.operationId)?.digest!==op.revisionId)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ }
+ const incoming=protocol.members.filter(op=>op.value.entityType==='entry');if(incoming.length!==1||incoming[0].parents.length!==1)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const id=incoming[0].value.after.id,head=record('head','humanLibraryMember','entry:'+id),current=head?.revisions?.length===1?record('revision',head.revisions[0]):null;
+ if(head?.purged||!current||current.redacted||!equal(current.operation,s.currentEntry)||!equal(current.operation.parents,incoming[0].parents))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const parent=operations.get(incoming[0].parents[0]);if(!parent||parent.entityId!==incoming[0].entityId||!equal(parent.value.after,incoming[0].value.before)||!equal(parent.value.after,current.operation.value.before))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const owner=s.read.row;if(!owner||owner.lifecycle!=='active'||owner.bodyBinding!=='thought'||owner.provenanceType!=='user_created'||owner.organizationRevision!==0||owner.dependencyRevision!==0||owner.sourceRecordIds.length||owner.inputRefs.length||owner.topics.length||s.read.placements||s.read.placementRows.length||s.read.provenance||s.read.dependencies||s.read.topics.length||s.receipt!==null)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');branchNoIndex(s.read);
+ const mapping=record('humanMapping','entry:'+id);if(!mapping||!equal(mapping,s.mapping)||!equal(parent.value.after,s.parent)||mapping.revisionId!==current.operation.revisionId||!equal(mapping.local,physical('entry',s.read.row))||!equal(mapping.wire,physical('entry',current.operation.value.after)))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const currentGroup=groups.get(current.operation.value.logicalCommitId);if(!currentGroup||currentGroup.at(-1).value.kind!=='entry-edit')fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ for(const h of s.read.history){const head=record('head','humanLibraryMember','history:'+h.id),row=head?.revisions?.length===1?record('revision',head.revisions[0]):null,map=record('humanMapping','history:'+h.id);if(head?.purged||!row||row.redacted||!s.currentHistory.some(op=>equal(op,row.operation))||!currentGroup.some(op=>op.revisionId===row.operation.revisionId)||map?.revisionId!==row.operation.revisionId||!equal(map.local,physical('history',h))||!equal(map.wire,physical('history',row.operation.value.after)))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}
+ if(currentGroup.filter(op=>op.value?.entityType==='history').length!==s.read.history.length||s.currentHistory.length!==s.read.history.length)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const parentGroup=groups.get(parent.value.logicalCommitId);if(!parentGroup)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');let parentHistory=0;
+ for(const op of parentGroup){if(op.value?.entityType!=='history')continue;parentHistory++;const h=s.history.find(row=>row.id===op.value.after.id),map=record('humanMapping','history:'+op.value.after.id);if(!h||!map||op.value.after.kind!=='library_entry'||op.value.after.entityId!==id||!equal(h,{...op.value.after,...map.local})||!equal(map.local,physical('history',h)))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');}
+ if(parentHistory===0||parentHistory!==s.history.length)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const receipt=s.parentReceipt;if(receipt?.namespace!=='thought-library'||receipt.schemaVersion!==1||receipt.id!==parentGroup.at(-1).value.domainOperationId||receipt.ownerId!==id||receipt.digest!==parentGroup.at(-1).value.ownerRequestDigest||receipt.result?.id!==id||receipt.result?.revision!==parent.value.after.revision||!Number.isSafeInteger(receipt.operationSequence)||receipt.operationSequence<2)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ const revisions=[];for(const [key,row]of s.records){const parts=JSON.parse(key);if(parts[0]==='revision')revisions.push([parts[1],row]);}
+ const heads=[];for(const op of protocol.operations){const key=JSON.stringify(['head',op.type,op.entityId]),value=p.raw.protocol.records.find(record=>record[0]===key);if(!value)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');heads.push({type:op.type,entityId:op.entityId,head:value[1]});}
+ const result=calculateHumanRetentionHeadVectors(protocol.operations,heads,revisions);if(!result.complete||!equal(result.expected,p.raw.protocol.expected))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+ return {heads,revisions,required:result.required};
+}
+
+export async function prepareHumanRetentionNativeEffects(core,retention){
+ const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed||p.nativeWork)fail('BNS_HUMAN_RETENTION_REQUIRED');requireHumanRetentionEffectPreparation(core,retention,p.group);
+ // The earlier pure helper owns/refunds its own active reservation. It creates
+ // no native authority; native preparation starts only after that frame ends.
+ await deriveRetentionExpectedEffects(core,retention);if(branchWitnesses.get(retention)!==p)fail('BNS_HUMAN_RETENTION_REQUIRED');
+ const r=nativeRetentionBegin(p,retention),raw=p.raw,protocol=p.protocol;
+ try{
+  await nativeRetentionPhase(r,'incoming-group',[['validated group',1,'clone',protocol.operations],['validation canonical/UTF8',2,'digest',protocol.operations]],async()=>{await validateHumanCommitGroup(protocol.operations,p.binding.datasetId);await restoreHumanRequest(protocol.descriptor.value);});
+  if(p.kind==='retention'){
+   const s=raw.semantic;
+   for(const [,group]of s.groups)await nativeRetentionPhase(r,'complete-group',[['validated operations',1,'clone',group],['validator and request serialization',2,'digest',group]],async()=>{await validateHumanCommitGroup(group,p.binding.datasetId);await restoreHumanRequest(group.at(-1).value);});
+   await nativeRetentionPhase(r,'current-portable',[['portable and normalize copies',3,'clone',s.read],['portable HMAC and equal',2,'digest',s.read]],()=>branchQualifyPortable(s));
+   await nativeRetentionPhase(r,'current-guard',[['base/current/future/plan copies',5,'clone',s.entry],['row/field/finish/snapshot copies',6,'clone',s.read.row],['incoming-body copies in non-conflict failure path',6,'clone',protocol.descriptor.value.request.changes.body],['incoming-body normalize/equal in non-conflict failure path',3,'digest',protocol.descriptor.value.request.changes.body],['state/projection/compute histories',3,'clone',s.read.history],['request/plan copies',2,'clone',protocol.descriptor.value.request],['optional receipt copies',2,'clone',s.receipt],['base equality',2,'canonical',s.entry],['read projection equality',2,'canonical',s.read],['request hash',1,'digest',protocol.descriptor.value.request]],async()=>{const request=await restoreHumanRequest(protocol.descriptor.value);await branchQualifyCurrent(p.store,core,s,request,p.fence,p);});
+   await nativeRetentionPhase(r,'parent-replay',[['base/replay entries',2,'clone',s.entry],['parent/field/finish/snapshot copies',6,'clone',s.parent],['incoming-body portions of field/finish/snapshot/portable copies',6,'clone',protocol.descriptor.value.request.changes.body],['incoming-body portable/normalize/equal work',3,'digest',protocol.descriptor.value.request.changes.body],['mapping merge',1,'clone',s.mapping.local],['read projection',1,'clone',s.read],['history input/computation',2,'clone',s.history],['events/replay/allocation copies',4,'clone',protocol.descriptor.value.events],['request restoration',1,'clone',protocol.descriptor.value.request],['row portable/normalize/equal',3,'digest',s.parent],['history portable/normalize/equal',3,'digest',s.history],['request HMAC',1,'digest',protocol.descriptor.value.request]],async()=>{const request=await restoreHumanRequest(protocol.descriptor.value);await branchQualifyReplay(p.store,core,protocol,s,request);});
+   await nativeRetentionPhase(r,'causal-certificate',[['decoded selector/row vectors',2,'clone',s.records],['head/member equality work',2,'canonical',s.groups]],async()=>{const certificate=nativeRetentionCausalCertificate(p);let retained=16384+80*certificate.revisions.length+152*certificate.heads.length+8*certificate.required.length;for(const [id]of certificate.revisions)retained+=2*id.length;nativeRetentionKeep(r,retained);r.certificate=certificate;},nativeRetentionCausalSlots(p));
+  }
+  nativeRetentionAvailable();const nativeBudget=nativeRetentionTaskBudget(p);nativeRetentionResize(r,NATIVE_RETENTION_FIXED+r.retained+nativeBudget.M+nativeBudget.S);nativeRetentionCompileTasks(p,r);nativeRetentionKeep(r,nativeBudget.M+nativeBudget.S);r.nativeBudget=nativeBudget;
+  await nativeRetentionPhase(r,'final-control-fence',[['two control canonical workspaces',2,'canonical',p.controlValues]],async()=>{nativeRetentionFence(p);});r.phase='prepared';p.nativeEffects={work:r,causal:r.certificate,authenticated:false};
+ }finally{r.preparationDone=true;}
+}
+
+export async function finalizeHumanRetentionNativeEffects(core,retention,claim){
+ requireHumanRetentionEffectFinalization(core,retention,claim);
+ const r=nativeRetentionWorks.get(retention),p=branchWitnesses.get(retention);
+ if(r){
+  // These are private drain promises created only by this owner. A failed
+  // proof of drain retains the owner/index/charge; no force-clear path exists.
+  let drainError,drainFailed=false;if(r.unobservedRead)fail('BNS_HUMAN_RETENTION_REQUIRED');if(r.drain){try{await r.drain;}catch(error){drainError=error;drainFailed=true;}requireRepositoryHumanRetentionReadDrained(r.owner.binding.repository,r.readScope,r.readTransaction,r.readObserver);}if(r.frames!==0)fail('BNS_HUMAN_RETENTION_REQUIRED');
+  r.readScope=null;r.readTransaction=null;r.readObserver=null;r.drain=null;
+  r.certificate=null;r.tasks=null;r.stores=null;r.certificateAfter=null;r.currentResult=null;r.owner.nativeEffects=null;
+  if(r.phase==='revoked'){r.state.bytes-=r.deferredCharge;r.deferredCharge=0;r.owner.effectReservation=null;r.owner.nativeWork=null;r.state.busy=false;}
+  else{const finalCharge=16384+2*nativeRetentionSlot('canonical',nativeRetentionMeasure(r.owner.controlValues));r.owner.finalControlCheck=true;r.owner.size-=r.charged-finalCharge;r.state.bytes-=r.charged-finalCharge;r.owner.nativeWork=null;}
+  r.accounted=false;r.charged=0;r.phase='released';if(r.state.effectReservation===r)r.state.effectReservation=null;nativeRetentionWorks.delete(retention);
+  if(drainFailed&&!r.primaryFailure)throw drainError;return branchWitnesses.get(retention)===r.owner;
+ }
+ if(p&&(p.core!==core||p.claim!==claim))fail('BNS_HUMAN_RETENTION_REQUIRED');return !!p;
+}
+
+// Fixed platform reads only. Captured writes are deliberately absent: all
+// original write/finalizer hooks remain observable.
+const retentionNative=(()=>{
+ const method=(name,key)=>globalThis[name]?.prototype?.[key],get=(name,key)=>globalThis[name]&&Object.getOwnPropertyDescriptor(globalThis[name].prototype,key)?.get;
+ return Object.freeze({transaction:method('IDBDatabase','transaction'),store:method('IDBTransaction','objectStore'),abort:method('IDBTransaction','abort'),db:get('IDBTransaction','db'),mode:get('IDBTransaction','mode'),txError:get('IDBTransaction','error'),storeGet:method('IDBObjectStore','get'),storeCount:method('IDBObjectStore','count'),index:method('IDBObjectStore','index'),storeCursor:method('IDBObjectStore','openCursor'),storeTransaction:get('IDBObjectStore','transaction'),storeName:get('IDBObjectStore','name'),storeKeyPath:get('IDBObjectStore','keyPath'),indexCount:method('IDBIndex','count'),indexCursor:method('IDBIndex','openCursor'),indexStore:get('IDBIndex','objectStore'),indexName:get('IDBIndex','name'),indexKeyPath:get('IDBIndex','keyPath'),result:get('IDBRequest','result'),error:get('IDBRequest','error'),ready:get('IDBRequest','readyState'),source:get('IDBRequest','source'),requestTransaction:get('IDBRequest','transaction'),cursorRequest:get('IDBCursor','request'),cursorSource:get('IDBCursor','source'),cursorKey:get('IDBCursor','key'),cursorPrimaryKey:get('IDBCursor','primaryKey'),cursorContinue:method('IDBCursor','continue'),cursorValue:get('IDBCursorWithValue','value'),bound:globalThis.IDBKeyRange?.bound?.bind(globalThis.IDBKeyRange),add:method('EventTarget','addEventListener'),remove:method('EventTarget','removeEventListener'),eventTarget:get('Event','target'),eventCurrent:get('Event','currentTarget')});
+})();
+function nativeRetentionAvailable(){for(const key in retentionNative)if(typeof retentionNative[key]!=='function')fail('BNS_HUMAN_RETENTION_REQUIRED');}
+function nativeRetentionCausalReplaySlots(p){
+ const certificate=p.nativeWork.certificate;let E=0,H=0;const R=certificate.revisions.length,O=certificate.heads.length;
+ for(const [,row]of certificate.revisions)if(row)E+=row.operation.parents.length;
+ for(const head of certificate.heads)H+=head.head?.revisions?.length||0;
+ // Fresh second calculation allocates a NEW revision map, required/seen sets,
+ // duplicate-edge DFS queue, expected/head Set/sort vectors and required array.
+ // Already-retained certificate pairs/strings are not paid from this scratch.
+ return 96*R+2*64*R+16*(E+1)+128*O+32*(H+O)+8*R+2*nativeRetentionSlot('canonical',nativeRetentionMeasure(p.raw.protocol.expected));
+}
+function nativeRetentionTaskBudget(p){
+ const raw=p.raw,s=p.kind==='retention'?raw.semantic:null;let D=raw.protocol.records.length+8,Bkey=0,W=0,V=0,T=0;
+ const value=row=>{const m=nativeRetentionMeasure(row);W=Math.max(W,m.B);V=Math.max(V,m.V+m.E);T=Math.max(T,m.T);};
+ value(s?s.entry:raw.base);value(p.controlValues);
+ for(const record of raw.protocol.records){Bkey+=9*record[0].length+512;value(record[1]);}
+ for(const row of p.effectPlan.rows)value(row.row);
+ if(s){D+=s.records.length+s.parentPhysicalHistory.length+7;for(const record of s.records){Bkey+=9*record[0].length+512;value(record[1]);}for(const row of s.read.history)value(row);for(const row of s.parentPhysicalHistory)value(row);value(s.parentReceipt);value(s.read.row);}
+ // Fixed metadata keys, scalar wrappers and URI expansion are priced before
+ // any concrete task/key/range vector is constructed.
+ Bkey+=D*1024;W+=Math.min(Bkey,8192)+512;V+=64;T+=Math.min(Bkey,8192)+256;
+ return {M:200*D+2*Bkey+32768,S:Math.max(NATIVE_RETENTION_FIXED,12*W+256*V+4*T+8192)+(s?nativeRetentionCausalReplaySlots(p):0),W,V,T};
+}
+function nativeRetentionCompileTasks(p,r){
+ const b=p.kind==='retention'?p.raw.semantic.entry:p.raw.base,prefix='bns:v1:'+p.binding.datasetId+':',namespace=b.namespace,tasks=[],points=new Map(),after=new Map();
+ for(const row of p.effectPlan.rows)after.set(row.id,row.row);
+ const point=(store,key,before,view='row')=>{const identity=store+'\0'+key+'\0'+view;if(points.has(identity)){if(!equal(points.get(identity).before,before))fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');return;}const task={type:'point',store,key,before,after:store==='meta'&&view==='row'&&after.has(key)?after.get(key):before,view};points.set(identity,task);tasks.push(task);};
+ const protocol=list=>{for(const [selector,row]of list){const [kind,...parts]=JSON.parse(selector);point('meta',protocolPhysicalId(prefix,namespace,kind,parts),row);}};
+ protocol(p.raw.protocol.records);
+ if(p.binding.fixedNamespace===null)point('meta',prefix+'active',namespace,'namespace');else if(p.binding.fixedNamespace!==namespace)fail('BNS_HUMAN_CHANGED');
+ point('meta','recovery-restore-epoch',b.epoch,'value-null');point('meta','thought-suppression-key',b.secret,'value');point('meta','gate',b.settings,'gate');point('meta','revision-sequence',b.revision);point('meta','thought-sequence',b.sequence);point('meta','thought-library',b.library);
+ if(p.kind==='retention'){
+  const s=p.raw.semantic,id=p.protocol.descriptor.value.request.id;protocol(s.records);
+  point('thoughts',id,s.read.row);point('meta','thought-epoch',s.read.epoch,'value-zero');point('operationReceipts',p.protocol.descriptor.value.domainOperationId,s.receipt);
+  const parent=p.protocol.members.find(op=>op.value.entityType==='entry').parents[0],parentRow=r.certificate.revisions.find(([key])=>key===parent)?.[1],parentGroup=s.groups.find(([key])=>key===parentRow?.operation.value.logicalCommitId)?.[1];if(!parentGroup)fail('BNS_HUMAN_EFFECT_CUT_REQUIRED');
+  point('operationReceipts',parentGroup.at(-1).value.domainOperationId,s.parentReceipt);
+  for(const row of s.parentPhysicalHistory)point('revisions',row.id,row);
+  tasks.push({type:'range',store:'revisions',index:'byList',indexPath:'listKey',prefix:['library_entry:'+id],rows:s.read.history});
+  for(const [store,index,indexPath,range]of [['placements','byEntry',['entryId','topicId','layoutGeneration'],[id]],['provenance','byOwner',['ownerKind','ownerId','id'],['entry',id]],['dependencies','byTarget',['targetKind','targetId','id'],['entry',id]]])tasks.push({type:'count',store,index,indexPath,prefix:range,count:0});
+ }
+ for(const task of tasks){if(task.prefix)Object.freeze(task.prefix);Object.freeze(task);}r.tasks=Object.freeze(tasks);r.stores=Object.freeze([...new Set(tasks.map(task=>task.store))]);r.certificateAfter=after;
+}
+function nativeRetentionFence(p){
+ const expected=nativeRetentionMeasure(p.controlValues),stats={},B=branchRawMeasure(p.store.controlCache,expected.B,stats,'native');
+ if(B>expected.B||stats.nodes>expected.V||stats.slots>expected.E||stats.units>expected.T)fail('BNS_HUMAN_CHANGED');branchFence(p.store,p.core,p.fence);
+}
+function nativeRetentionDelivered(r,value){
+ const stats={};const B=branchRawMeasure(value,r.nativeBudget.W,stats,'native');if(B>r.nativeBudget.W||stats.nodes+stats.slots>r.nativeBudget.V||stats.units>r.nativeBudget.T)fail('BNS_HUMAN_GRAPH_LIMIT');
+}
+// Existing returned values only; this neither reads storage nor grants a phase.
+export function requireHumanRetentionDeliveredValue(core,retention,value){
+ const p=branchWitnesses.get(retention),r=nativeRetentionWorks.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed||!r||r!==p.nativeWork||r.owner!==p||r.phase!=='validated'||!p.nativeEffects?.authenticated)fail('BNS_HUMAN_RETENTION_REQUIRED');nativeRetentionCurrent(r);nativeRetentionDelivered(r,value??null);
+}
+function nativeRetentionSource(transaction,task){
+ const n=retentionNative,store=n.store.call(transaction,task.store);if(n.storeTransaction.call(store)!==transaction||n.storeName.call(store)!==task.store||n.storeKeyPath.call(store)!=='id')fail('BNS_HUMAN_RETENTION_REQUIRED');
+ if(!task.index)return store;const index=n.index.call(store,task.index);const path=n.indexKeyPath.call(index),expected=task.indexPath;let same;if(Array.isArray(expected)){same=Array.isArray(path)&&path.length===expected.length;if(same)for(let i=0;i<expected.length;i++)if(path[i]!==expected[i]){same=false;break;}}else same=path===expected;if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||!same)fail('BNS_HUMAN_RETENTION_REQUIRED');return index;
+}
+function nativeRetentionPoint(r,task,row,after){
+ const p=r.owner,expected=after?task.after:task.before;let actual=row;
+ if(task.view==='namespace')actual=row?.namespace||'initial';
+ else if(task.view==='value-null')actual=row?.value??null;
+ else if(task.view==='value-zero')actual=row?.value||0;
+ else if(task.view==='value')actual=row?.value;
+ else if(task.view==='gate'){const settings=p.controlValues.settings;actual={...settings,enabled:row&&(row.epoch!==settings.epoch||row.enabled!==settings.enabled)?false:settings.enabled};}
+ if(!equal(actual,expected))fail('BNS_HUMAN_CHANGED');
+}
+function nativeRetentionPump(r,transaction,after){
+ const n=retentionNative;nativeRetentionCurrent(r);if(n.db.call(transaction)!==r.owner.binding.database||n.mode.call(transaction)!==(after?'readonly':'readwrite'))fail('BNS_HUMAN_RETENTION_REQUIRED');
+ return new Promise((resolve,reject)=>{
+  let position=0,ended=false,request=null,success=null,error=null;
+  const clear=()=>{if(request){let first,failed=false;for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){if(!failed){first=e;failed=true;}}request=null;success=null;error=null;if(failed)throw first;}};
+  const failPump=e=>{if(ended)return;ended=true;try{clear();}catch(cleanup){r.cleanupErrors??=[];r.cleanupErrors.push(cleanup);}r.currentResult=null;reject(e);};
+  const next=()=>{
+   if(ended)return;
+   try{
+    nativeRetentionCurrent(r);if(position===r.tasks.length){ended=true;clear();resolve();return;}
+    const task=r.tasks[position++],source=nativeRetentionSource(transaction,task);let count=0;
+    const range=task.prefix?n.bound(task.prefix,[...task.prefix,[]],false,true):null;
+    request=task.type==='point'?n.storeGet.call(source,task.key):task.type==='count'?n.indexCount.call(source,range):n.indexCursor.call(source,range);
+    const valid=event=>event.isTrusted===true&&n.eventTarget.call(event)===request&&n.eventCurrent.call(event)===request;
+    const identity=()=>{if(n.ready.call(request)!=='done'||n.source.call(request)!==source||n.requestTransaction.call(request)!==transaction)fail('BNS_HUMAN_RETENTION_REQUIRED');};
+    error=event=>{try{if(!valid(event))return;identity();const actual=n.error.call(request);failPump(actual||new Error('Native retention request failed'));}catch(e){failPump(e);}};
+    success=event=>{
+     let result=null,cursor=null,more=false,finished=false;
+     try{
+      if(!valid(event))return;nativeRetentionCurrent(r);identity();result=n.result.call(request);
+      if(task.type==='range'){
+       cursor=result;
+       if(!cursor){if(count!==task.rows.length)fail('BNS_HUMAN_CHANGED');finished=true;}
+       else{
+        if(n.cursorRequest.call(cursor)!==request||n.cursorSource.call(cursor)!==source)fail('BNS_HUMAN_RETENTION_REQUIRED');
+        const expected=task.rows[count];if(!expected)fail('BNS_HUMAN_CHANGED');
+        const key=n.cursorKey.call(cursor),primary=n.cursorPrimaryKey.call(cursor);nativeRetentionDelivered(r,key);nativeRetentionDelivered(r,primary);
+        if(!equal(key,expected.listKey)||primary!==expected.id)fail('BNS_HUMAN_CHANGED');
+        result=n.cursorValue.call(cursor);r.currentResult=result;nativeRetentionDelivered(r,result);if(!equal(result,expected))fail('BNS_HUMAN_CHANGED');count++;more=true;
+       }
+      }else if(task.type==='count'){if(result!==task.count)fail('BNS_HUMAN_CHANGED');finished=true;}
+      else{result=result??null;r.currentResult=result;nativeRetentionDelivered(r,result);nativeRetentionPoint(r,task,result,after);finished=true;}
+     }catch(e){failPump(e);}
+     finally{result=null;r.currentResult=null;}
+     if(ended)return;
+     try{if(more)n.cursorContinue.call(cursor);else if(finished){clear();next();}}catch(e){failPump(e);}finally{cursor=null;}
+    };
+    n.add.call(request,'success',success);n.add.call(request,'error',error);
+   }catch(e){failPump(e);}
+  };
+  next();
+ });
+}
+
+export async function verifyHumanRetentionNativeCommitted(core,scope,retention){
+ const p=branchWitnesses.get(retention),r=nativeRetentionWorks.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed||!r||r!==p.nativeWork||!p.nativeEffects?.authenticated||p.nativeEffects.postEntered)fail('BNS_HUMAN_RETENTION_REQUIRED');
+ requireHumanRetentionClosingPhase(core,scope,retention,p.group);nativeRetentionCurrent(r);p.nativeEffects.postEntered=true;r.phase='verifying';
+ const tx=retentionNative.transaction.call(p.binding.database,r.stores,'readonly');
+ r.readTransaction=tx;r.unobservedRead=true;const observer=beginRepositoryHumanRetentionRead(p.binding.repository,scope,tx);r.unobservedRead=false;r.readScope=scope;r.readTransaction=tx;r.readObserver=observer;r.drain=awaitRepositoryHumanRetentionRead(p.binding.repository,scope,tx,observer);r.drain.catch(()=>{});
+ let primary,failed=false;r.frames++;
+ try{try{await nativeRetentionPump(r,tx,true);nativeRetentionCurrent(r);}catch(error){primary=error;failed=true;try{retentionNative.abort.call(tx);}catch(abortError){r.cleanupErrors??=[];r.cleanupErrors.push(abortError);}}
+  try{await r.drain;}catch(error){if(failed){r.cleanupErrors??=[];r.cleanupErrors.push(error);}else{primary=error;failed=true;}}
+  if(failed){primary=nativeRetentionFailure(primary,r.cleanupErrors);r.primaryFailure={value:primary};throw primary;}r.phase='verified';
+ }finally{r.frames--;}
 }

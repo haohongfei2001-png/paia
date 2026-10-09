@@ -1,3 +1,15 @@
+# Current 0.43 native retention candidate — full certification pending
+
+Accepted main remains `613e81fa6097426c20605d093fcf50d2453e884f` / 0.42.1. This local0.43.0 candidate preserves main's shared Graph/UI corrections and adds the original-owner Human conflict-retention repair. It is not merged, installed, deployed, or a complete Sync implementation.
+
+Repaired integration `2d4bfa5de8dfc1ebb87d3b7ac9eae5c687ebc479` passed **38/38 actual native cases in source and 38/38 in release**,650 assertions each, genuine browser IndexedDB, zero network attempts/HTTP requests, exact runtime/proof and clean before/after identities. All original28 cases and10 additive checks ran. Its22 related whole-file checks pass158/158;439-file release build passes. Frozen code/resource reviews approve the bounded changes; candidate full certification, independent final evidence audit, merge, exact-main readback and delivery remain pending.
+
+The original f9eafe80 source31/38 PASS and7/38 FAIL (release not run), earlier seven authority failure rounds and draft PR231 remain preserved. The repair meters/freezes the same duplicate-control snapshot and verifies actual physical history separately from historical replay. It changes no original assertion, timeout, schema, UI, account/provider activation or permission. Unknown initial native clone allocation is not claimed bounded by the logical workspace limit.
+
+All seven lane assignments and missing CTX4/SET2 exact visual originals remain. No NIB runtime, paid model, cloud credentials, real-user upload or deployment is selected. The next isolated SYNC-01 task only extracts the existing Root/Topic projection constructors with byte-equivalence tests; it does not enable unqualified restoration. See [candidate receipt](implementation/verification/COHERENT-043-NATIVE-RETENTION.md).
+
+## Preserved prior checkpoint
+
 # Seven-lane coordinated execution
 
 ## Current 0.42.1 reliability batch — shared qualification resource ownership

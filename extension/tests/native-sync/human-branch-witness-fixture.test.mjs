@@ -40,3 +40,12 @@ test('native failed-case diagnostics retain bounded error and native counters wi
  assert.deepEqual(result.error,{name:'Error',code:'TEST_CODE',message:error.message});assert.equal(result.observations[0].foreignTransactions,1);assert.equal(result.observations[0].code,'BNS_HUMAN_GRAPH_LIMIT');assert.ok(!JSON.stringify(result).includes('secret'));assert.ok(!JSON.stringify(result).includes('database'));assert.equal(nativeWitnessFailureDiagnostic(new Error(body),8,'bounded').error.message,'[synthetic content redacted]');
  const compiled=nativeHumanBranchWitnessFixture(source);assert.ok(compiled.includes("command==='human-branch-witness-failure'"));assert.ok(compiled.includes('NATIVE_WITNESS_FAILURE'));assert.ok(compiled.includes('wrapped.nativeWitnessCause=cause'));
 });
+
+
+test('readonly witness reports the actual separately implemented private retention method without invoking it',()=>{
+ const compiled=nativeHumanBranchWitnessFixture(source);
+ assert.ok(compiled.includes("command==='human-branch-witness-runtime-profile'"));
+ assert.ok(compiled.includes("Object.getOwnPropertyDescriptor(BrowserNativeSyncCore.prototype,'retainHumanBranch')?.value==='function'"));
+ const profile=compiled.match(/if\(command==='human-branch-witness-runtime-profile'\)([^\n]+)/)?.[1];
+ assert.ok(profile);assert.ok(!profile.includes('await'));assert.ok(!profile.includes('retainHumanBranch('));
+});
