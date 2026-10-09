@@ -338,7 +338,7 @@
   justify-content:space-between;
   gap:12px
 }
-.pv-reader-heading h3 {
+.pv-reader-heading h2 {
   font-family:var(--reader-font);
   font-weight:400;
   font-size:1.4rem;
@@ -418,7 +418,7 @@
   min-height:143px;
   background:linear-gradient(135deg,#fff,#f8fafd)
 }
-.pv-context-card h4 {
+.pv-context-card h3 {
   font-size:.875rem;
   font-weight:500;
   letter-spacing:-.01em
@@ -2064,7 +2064,7 @@
   .pv-expression {
     margin-top:30px
   }
-  .pv-reader-heading h3 {
+  .pv-reader-heading h2 {
     font-size:1.55rem
   }
 }
@@ -2114,7 +2114,7 @@
   .pv-context-card {
     padding:15px 12px
   }
-  .pv-reader-heading h3 {
+  .pv-reader-heading h2 {
     font-size:1.25rem
   }
   .pv-expression {
@@ -2240,7 +2240,7 @@
   .pv-space {
     padding:28px
   }
-  .pv-reader-heading h3 {
+  .pv-reader-heading h2 {
     font-size:1.5rem
   }
   .hero-continuity {
@@ -2473,7 +2473,7 @@
   .pv-reader {
     padding:25px 23px 27px
   }
-  .pv-reader-heading h3 {
+  .pv-reader-heading h2 {
     font-size:1.5rem
   }
   .pv-meta {
@@ -2515,7 +2515,7 @@
     padding:18px 14px;
     min-height:140px
   }
-  .pv-context-card h4 {
+  .pv-context-card h3 {
     font-size:.9375rem
   }
   .pv-context-card p {
@@ -3392,7 +3392,7 @@
   .pv-expression p {
     font-size:1rem
   }
-  .pv-reader-heading h3 {
+  .pv-reader-heading h2 {
     font-size:1.5rem
   }
   .pv-tabs button {

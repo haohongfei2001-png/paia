@@ -1,0 +1,23 @@
+{
+  "base": "d516c43b01d4f2f7f3dda93f037ce2145bee5109",
+  "browser": "154.0.8037.99",
+  "route_count": 48,
+  "widths": [
+    1440,
+    768,
+    390,
+    320
+  ],
+  "text_enlargement": "200% at 320 CSS pixels",
+  "regression_checks": 6205,
+  "failed_checks": 0,
+  "axe_scans": 78,
+  "axe_identified_violations": 0,
+  "axe_incomplete_groups": 78,
+  "real_user_study": false,
+  "physical_device_test": false,
+  "real_ai": false,
+  "beta_form_submitted": false,
+  "merged": false,
+  "deployed": false
+}

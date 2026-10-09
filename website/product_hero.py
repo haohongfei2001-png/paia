@@ -1,55 +1,21 @@
-"""D6.2 shell, PT1 topics and Context Cards v2, with fictional public data.
-
-The webpage illustrates the approved product direction. It never connects to
-private archives or pretends that the planned AI services are available.
-"""
+"""A selected fictional Reader, not a replacement for the product's neutral Archive Home."""
+from html import escape
+from story import inputs, title
 
 
 def render_hero(t, a, button, icon):
-    names = [('archive', 'Input Archive', 'collect'), ('thought', 'Thought Library', 'topic'), ('context', 'AI Context', 'shield')]
-    tabs = ''.join(f'''<button type="button" id="pv-tab-{key}" role="tab" aria-controls="pv-panel-{key}" aria-selected="{str(i == 0).lower()}" tabindex="{0 if i == 0 else -1}" data-preview-tab="{key}" disabled>{icon(symbol, 'mini-icon')}<span>{label}</span></button>''' for i, (key, label, symbol) in enumerate(names))
-    archive = f'''<div class="pv-archive">
-<aside class="pv-navigator"><div class="pv-search">{icon('search', 'mini-icon')}<span>{t('搜索全部档案', 'Search all inputs')}</span></div><p class="pv-project">⌄ {t('产品探索', 'Product exploration')}</p>
-<div class="pv-conversation is-selected"><strong>{t('产品的第一步', 'A product’s first step')}</strong><span>2026.09.24</span></div>
-<div class="pv-conversation"><strong>{t('用户研究与判断', 'Research and decisions')}</strong><span>2026.09.10</span></div>
-<div class="pv-conversation"><strong>{t('下一步，从哪里开始', 'Where to begin next')}</strong><span>2026.08.26</span></div>
-<p class="pv-project pv-project-secondary">› {t('写作与学习', 'Writing and learning')}</p></aside>
-<div class="pv-reader"><div class="pv-reader-heading"><h3>{t('产品的第一步', 'A product’s first step')}</h3><span aria-hidden="true">···</span></div><p class="pv-meta">2026.08 — 2026.09 · ChatGPT</p>
-<div class="pv-expression"><time>2026.08.12 · 09:42</time><p>{t('先比较素材找回和内容生成，看看创作者更需要什么。', 'Compare material retrieval with content generation. Find out what creators need most.')}</p></div>
-<div class="pv-expression"><time>2026.08.26 · 11:18</time><p>{t('第一版只解决一个反复发生的问题，不做多人协作。', 'Solve one recurring problem in the first release. Leave collaboration for later.')}</p></div>
-<div class="pv-expression"><time>2026.09.10 · 18:03</time><p>{t('判断标准不是功能多少，而是下一次任务能否接上这次积累。', 'Success is not more features. It is whether the next task can build on this one.')}</p></div>
-<p class="pv-source-note">{t('工作文字可以修改，原始来源仍然保留。', 'Edit your working text. The original source stays intact.')}</p>
-</div></div>'''
-    topic_data = [
-        (t('产品的第一步', 'A product’s first step'), [t('探索方向', 'Exploring a direction'), t('范围与边界', 'Scope and boundaries'), t('判断标准', 'Decision criteria')]),
-        (t('写作习惯', 'Writing practice'), [t('先说清楚', 'Making the point'), t('修改与取舍', 'Editing and choosing')]),
-        (t('学习与理解', 'Learning and understanding'), [t('从问题开始', 'Start with a question'), t('建立自己的解释', 'Find your own explanation')]),
-        (t('持续的想法', 'Ongoing ideas'), [t('值得再看一遍', 'Worth revisiting')]),
-    ]
-    topic_blocks = ''.join(f'<article class="pv-topic"><h4>{title}</h4>{"".join(f"<p>{section}</p>" for section in sections)}</article>' for title, sections in topic_data)
-    thought = f'''<div class="pv-space"><div class="pv-reader-heading"><h3>Thought Library</h3><span class="pv-mini-control">{t('个人主题', 'Personal topics')}</span></div><p class="pv-space-intro">{t('按你的主题，留下可以继续的思考。', 'Your topics. Ideas you can return to.')}</p><div class="pv-topics">{topic_blocks}</div><p class="pv-source-note">{t('个人主题 → 章节 → 连续阅读的内容', 'Personal topics → Sections → Continuous reading')}</p></div>'''
-    context_data = [
-        (t('我的信息', 'My Information'), t('关于我的背景', 'Background about me')),
-        (t('我的规则', 'My Rules'), t('我希望的回应方式', 'How I want AI to respond')),
-        (t('我的现在', 'My Now'), t('当下的事情与条件', 'What matters right now')),
-        (t('我的输入', 'My Inputs'), t('允许深入读取的主题', 'Topics open for reading')),
-    ]
-    context_cards = ''.join(f'<article class="pv-context-card"><h4>{title}</h4><p>{desc}</p><div><span>{t("示例已授权", "Sample permission granted")}</span><span class="pv-access-capsule">{t("AI 可读", "AI readable")}</span></div></article>' for title, desc in context_data)
-    context = f'''<div class="pv-space"><div class="pv-reader-heading"><h3>AI Context</h3><span class="pv-access-capsule">{t('AI 访问：开', 'AI access: on')}</span></div><p class="pv-space-intro">{t('内容归你，允许范围也由你决定。', 'Your material. Your decisions about access.')}</p><div class="pv-context-grid">{context_cards}</div><p class="pv-source-note">{t('示例用户已授权 · 本页没有真实 AI 连接', 'Pre-authorized sample · No real AI connection')}</p></div>'''
-    panels = ''.join(f'<div id="pv-panel-{key}" class="pv-panel" role="tabpanel" aria-labelledby="pv-tab-{key}" data-preview-panel="{key}"{(" hidden" if i else "")}>{content}</div>' for i, (key, content) in enumerate([('archive', archive), ('thought', thought), ('context', context)]))
-    return f'''<section class="vnext-hero" data-product-hero aria-labelledby="hero-title">
-<div class="optical-field" aria-hidden="true"><span class="optical-sheet" data-scroll-art></span><span class="optical-rule"></span><span class="optical-index">PAIA / 01</span></div>
-<div class="hero-grid wrap"><div class="hero-heading"><p class="hero-eyebrow"><span class="status-dot" aria-hidden="true"></span>{t('个人 AI 输入档案', 'PERSONAL AI INPUT ARCHIVE')}</p>
-<h1 id="hero-title">{t('你的表达，<br><span>不止于对话。</span>', 'Your words.<br><span>Beyond the chat.</span>')}</h1>
-<p class="hero-description">{t('保存你对 AI 说过的话。<br>找回、串联、复用，<br>让下一次从这里开始。', 'Keep what you tell AI.<br>Find it. Connect it. Reuse it.<br>Begin with what you already know.')}</p>
-<div class="hero-actions">{button('demo.html', t('体验 PAIA', 'Explore PAIA'))}{a('beta.html', t('申请内测', 'Request access') + ' <span aria-hidden="true">↗</span>', 'hero-secondary')}</div>
-<p class="hero-scope">{t('Chrome · ChatGPT · 邀请制内测', 'Chrome · ChatGPT · Private beta')}</p>
-<a class="hero-explore" href="#input-library"><span class="hero-scroll-mark" aria-hidden="true">↓</span><span>{t('看见你的积累', 'See what stays with you')}</span></a></div>
-<div class="hero-product" data-hero-product><div class="hero-product-label"><span>PAIA / DESKTOP</span><span><i class="example-dot" aria-hidden="true"></i>{t('可切换的产品示意', 'EXPLORE THE THREE SPACES')}</span></div>
-<div class="hero-stack" aria-hidden="true"><i></i><i></i></div>
-<div class="hero-product-glass" data-hero-glass><div class="pv-shell"><div class="pv-rail"><div class="pv-brand"><span class="pv-brand-symbol" aria-hidden="true"></span><span>PAIA</span></div><div class="pv-tabs" role="tablist" aria-label="{t('预览 PAIA 的三个空间', 'Preview PAIA’s three spaces')}" aria-orientation="vertical">{tabs}</div><span class="pv-local">{icon('shield', 'mini-icon')}{t('你的私人空间', 'Your private space')}</span></div><div class="pv-workspace">{panels}</div></div></div>
-<a class="hero-prompt-capsule" href="#prompt-reuse"><i class="paia-orb" aria-hidden="true"></i><span><strong>{t('好的表达，再用一次。', 'Good words. Ready again.')}</strong><span>{t('你的个人提示词', 'YOUR PERSONAL PROMPTS')} <span aria-hidden="true">↗</span></span></span></a>
-<div class="hero-preview-caption"><p>{t('虚构数据 · 不连接你的档案或 AI', 'Fictional data · No personal archive or AI connection')}</p>{a('status.html', t('可用范围', 'Availability'))}</div>
-</div></div>
-<div class="hero-continuity wrap"><span>{t('表达有来源。思考有来处。下一次，有起点。', 'Words with a source. Ideas with a history. A place to begin again.')}</span><span aria-hidden="true">01 — 04</span></div>
-</section>'''
+    data = inputs(t)
+    names = [('archive', t('输入档案','Input Archive'), 'collect'), ('thought', t('思想库','Thought Library'), 'topic'), ('context', 'AI Context', 'shield')]
+    tabs = ''.join(f'<button type="button" id="pv-tab-{key}" role="tab" aria-controls="pv-panel-{key}" aria-selected="{str(i == 0).lower()}" tabindex="{0 if i == 0 else -1}" data-preview-tab="{key}" disabled>{icon(symbol,"mini-icon")}<span>{label}</span></button>' for i,(key,label,symbol) in enumerate(names))
+    def expression(row):
+        return f'<div class="pv-expression"><time>2026 · {row["date"]} · {row["time"]}</time><p>{escape(row["text"])}</p></div>'
+    archive = f'''<div class="pv-archive"><div class="pv-navigator"><div class="pv-search">{icon('search','mini-icon')}<span>{t('搜索全部档案','Search all inputs')}</span></div><p class="pv-project">⌄ {t('生活里的小计划','Personal projects')}</p><div class="pv-conversation is-selected"><strong>{title(t)}</strong><span>2026.08 — 09</span></div><div class="pv-conversation"><strong>{t('第一道菜怎么写','Writing the first recipe')}</strong><span>2026.09.24</span></div><p class="pv-project pv-project-secondary">› {t('写作练习','Writing practice')}</p><p class="pv-nav-note">{t('保存的是我的表达，<br>不是 AI 的回答。','My words.<br>Not AI’s answers.')}</p></div><div class="pv-reader"><div class="pv-reader-heading"><h2>{title(t)}</h2><span aria-hidden="true">···</span></div><p class="pv-meta">{t('已打开的示例对话','Selected example conversation')} · ChatGPT</p>{expression(data[0])}{expression(data[2])}<p class="pv-source-note">{t('工作文字可修改 · 原始来源仍保留','Working text can change. The original stays.')}</p>{a('demo.html',t('试着修改，看看原话还在不在','Try an edit. Check the original.'),'pv-next')}</div></div>'''
+    thought = f'''<div class="pv-space pv-thought-reader"><div class="pv-reader-heading"><h2>{title(t)}</h2><span class="pv-mini-control">{t('思想库','Thought Library')}</span></div><p class="pv-meta">{t('已打开的个人主题 · 2 个对话里的原话','Selected personal topic · Words from two chats')}</p><h3>{t('想留住什么','What I want to keep')}</h3>{expression(data[0])}<h3>{t('开始做这本书','Making the book')}</h3>{expression(data[3])}<p class="pv-source-note">{t('章节由人建立；这里没有 AI 生成的总结。','Human-made sections. No AI-generated summary here.')}</p></div>'''
+    cards = [(t('我的信息','My Information'),t('关于我的背景','Background about me')),(t('我的规则','My Rules'),t('希望怎样回应','How I want responses')),(t('我的现在','My Now'),t('眼下在做的事','What I am working on')),(t('我的输入','My Inputs'),t('允许读取的主题','Topics I allow'))]
+    blocks = ''.join(f'<article class="pv-context-card"><h3>{name}</h3><p>{description}</p><div><span>{t("默认关闭","Off by default")}</span><span class="pv-access-capsule is-closed">{t("仅自己","Only me")}</span></div></article>' for name,description in cards)
+    context = f'''<div class="pv-space"><div class="pv-reader-heading"><h2>AI Context</h2><span class="pv-access-capsule is-closed">{t('AI 访问：关','AI access: off')}</span></div><p class="pv-space-intro">{t('保存下来了，不等于交给 AI 读取。','Saving your words does not give AI permission to read them.')}</p><div class="pv-context-grid">{blocks}</div><p class="pv-source-note">{t('连接尚未开放 · 先由你决定范围','Connections are not available yet. You choose the scope.')}</p></div>'''
+    panels = ''.join(f'<div id="pv-panel-{key}" class="pv-panel" role="tabpanel" aria-labelledby="pv-tab-{key}" data-preview-panel="{key}"'+(' hidden' if i else '')+f'>{content}</div>' for i,(key,content) in enumerate([('archive',archive),('thought',thought),('context',context)]))
+    return f'''<section class="vnext-hero" data-product-hero aria-labelledby="hero-title"><div class="optical-field" aria-hidden="true"><span class="optical-sheet" data-scroll-art></span><span class="optical-rule"></span><span class="optical-index">PAIA / 01</span></div>
+<div class="hero-grid wrap"><div class="hero-heading"><p class="hero-eyebrow"><span class="status-dot" aria-hidden="true"></span>{t('你的 ChatGPT 输入，自己的档案','YOUR CHATGPT INPUTS. YOUR OWN ARCHIVE.')}</p><h1 id="hero-title">{t('对 AI 说过的话，<br><span>下次接着用。</span>','Your words to AI.<br><span>Ready to use again.</span>')}</h1><p class="hero-description">{t('PAIA 是保存你自己表达的 Chrome 扩展。找回原话，按主题积累，把已经想清楚的事带进下一次对话。','PAIA is a Chrome extension for your own words. Find your past inputs, develop them into personal topics, and bring them to your next conversation.')}</p><div class="hero-actions">{button('demo.html',t('试用交互演示','Try the interactive demo'))}{a('beta.html',t('申请内测','Request access')+' <span aria-hidden="true">↗</span>','hero-secondary')}</div><p class="hero-scope">{t('演示无需安装 · 产品为桌面 Chrome / ChatGPT 邀请制测试','No install for the demo · Product: desktop Chrome / ChatGPT private beta')}</p><a class="hero-explore" href="#input-library"><span class="hero-scroll-mark" aria-hidden="true">↓</span><span>{t('看看一句旧话，如何帮上新忙','See an old thought become useful again')}</span></a></div>
+<div class="hero-product" data-hero-product><div class="hero-product-label"><span>{t('产品交互示意','PRODUCT ILLUSTRATION')}</span><span><i class="example-dot" aria-hidden="true"></i>{t('同一份积累，三个空间','ONE BODY OF WORK. THREE SPACES.')}</span></div><div class="hero-stack" aria-hidden="true"><i></i><i></i></div><div class="hero-product-glass" data-hero-glass><div class="pv-shell"><div class="pv-rail"><div class="pv-brand"><span class="pv-brand-symbol" aria-hidden="true"></span><span>PAIA</span></div><div class="pv-tabs" role="tablist" aria-label="{t('预览 PAIA 的三个空间','Preview PAIA’s three spaces')}" aria-orientation="vertical">{tabs}</div><span class="pv-local">{icon('shield','mini-icon')}{t('本地优先','Local first')}</span></div><div class="pv-workspace">{panels}</div></div></div><a class="hero-prompt-capsule" href="#prompt-reuse"><i class="paia-orb" aria-hidden="true"></i><span><strong>{t('保留她原来的说法。','Keep her own words.')}</strong><span>{t('自己的表达，再用一次','YOUR WORDS, READY AGAIN')} <span aria-hidden="true">↗</span></span></span></a><div class="hero-preview-caption"><p>{t('虚构数据 · 不连接你的档案或 AI','Fictional data · No personal archive or AI connection')}</p>{a('status.html',t('可用范围','Availability'))}</div></div></div>
+<div class="hero-continuity wrap"><span>{t('不是再读一遍聊天记录。是把自己的话，真正用起来。','Not another conversation to reread. Your own words, put to use.')}</span><span aria-hidden="true">PAIA</span></div></section>'''

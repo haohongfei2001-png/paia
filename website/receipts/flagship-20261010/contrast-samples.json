@@ -1,0 +1,54 @@
+{
+  "method": "WCAG relative-luminance calculation of explicit CSS colors and conservative light-layer samples; not full rendered-pixel certification",
+  "prior_button_light_stop_ratio": 4.013,
+  "samples": [
+    {
+      "scope": "primary button",
+      "foreground": "ffffff",
+      "background": "396bd5",
+      "ratio": 4.955,
+      "threshold": 4.5,
+      "pass_check": true
+    },
+    {
+      "scope": "muted text conservative light-layer bound",
+      "foreground": "596b83",
+      "background": "e3ebf9",
+      "ratio": 4.543,
+      "threshold": 4.5,
+      "pass_check": true
+    },
+    {
+      "scope": "large hero blue text",
+      "foreground": "6d86aa",
+      "background": "e3ebf9",
+      "ratio": 3.106,
+      "threshold": 3,
+      "pass_check": true
+    },
+    {
+      "scope": "board metadata",
+      "foreground": "536987",
+      "background": "eef4ff",
+      "ratio": 5.088,
+      "threshold": 4.5,
+      "pass_check": true
+    },
+    {
+      "scope": "candidate wording",
+      "foreground": "304d73",
+      "background": "e5eefb",
+      "ratio": 7.374,
+      "threshold": 4.5,
+      "pass_check": true
+    },
+    {
+      "scope": "open-board label",
+      "foreground": "4f6b91",
+      "background": "edf3fc",
+      "ratio": 4.897,
+      "threshold": 4.5,
+      "pass_check": true
+    }
+  ]
+}
