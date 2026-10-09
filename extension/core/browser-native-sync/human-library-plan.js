@@ -358,7 +358,7 @@ const branchBodyOnly=r=>r?.changes&&Object.keys(r.changes).length===1&&Object.ha
 // Budget only: count JSON/UTF-8 incrementally before allocating an encoded
 // duplicate. Original validators/equality still decide every semantic value.
 const branchOwn=Object.hasOwn,branchDescriptor=Object.getOwnPropertyDescriptor;
-function branchRawMeasure(value,limit=BRANCH_RAW_BYTES,stats=null,frozen=false){
+export function branchRawMeasure(value,limit=BRANCH_RAW_BYTES,stats=null,frozen=false){
  let size=0,nodes=0,slots=0,units=0;const add=n=>{size+=n;if(size>limit)fail('BNS_HUMAN_GRAPH_LIMIT');};
  const text=value=>{units+=value.length;add(2);for(let i=0;i<value.length;i++){const c=value.charCodeAt(i);if(c===34||c===92||c===8||c===9||c===10||c===12||c===13)add(2);else if(c<32)add(6);else if(c<128)add(1);else if(c<2048)add(2);else if(c>=0xd800&&c<=0xdbff){const next=value.charCodeAt(++i);if(!(next>=0xdc00&&next<=0xdfff))fail('BNS_TEXT_ENCODING');add(4);}else if(c>=0xdc00&&c<=0xdfff)fail('BNS_TEXT_ENCODING');else add(3);}};
  const visit=(v,depth)=>{
