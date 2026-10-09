@@ -923,7 +923,7 @@ function projectionMeasure(value,frozen=false){const stats={};const B=branchRawM
 // and one descriptor/builder/key-generator frame, not initial native cloning.
 function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
 function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
-function projectionReserve(r,scratch=0){resizeHumanQualificationLease(r.work,PROJECTION_FRAME+r.owned+(r.transient||0)+scratch);}
+function projectionReserve(r,scratch=0){const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+scratch;if(charge>8*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');resizeHumanQualificationLease(r.work,charge);}
 function projectionDeepFreeze(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key))projectionDeepFreeze(value[key]);projectionFreeze(value);}
 function projectionCurrent(r){if(r.revoked||r.closed||!r.work)projectionRequired();branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
 function projectionKeep(r,value,transfer=false){
@@ -972,14 +972,14 @@ function projectionPump(r,t){
  const tasks=projectionTasks(r),counts=new Map();
  return new Promise((resolve,reject)=>{
   let position=0,ended=false,request=null,success=null,error=null,ordered=false;
-  const clear=()=>{const failures=[];if(request)for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){failures.push(e);}request=null;success=null;error=null;if(failures.length)throw new AggregateError(failures,'Projection request listener cleanup failed');};
+  const clear=()=>{const failures=[];if(request)for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){failures.push(e);}if(failures.length){r.listenersCleared=false;r.failedRequest={request,success,error};throw new AggregateError(failures,'Projection request listener cleanup failed');}request=null;success=null;error=null;r.listenersCleared=true;};
   const failed=e=>{if(ended)return;ended=true;try{clear();}catch(cleanup){r.cleanupErrors.push(cleanup);}reject(e);};
   const next=()=>{
    try{
     projectionCurrent(r);
     if(position===tasks.length){if(!ordered){ordered=true;projectionOrderedTasks(r,tasks);}if(position===tasks.length){ended=true;clear();resolve();return;}}
     const task=tasks[position++],source=projectionSource(tx,task),range=projectionRange(task);let count=0,lastKey=null,lastPrimary=null,lastCharge=0;
-    request=task.kind==='point'?n.storeGet.call(source,task.key):task.kind==='count'?(task.index?n.indexCount:n.storeCount).call(source,range):(task.index?n.indexCursor:n.storeCursor).call(source,range);
+    r.listenersCleared=false;request=task.kind==='point'?n.storeGet.call(source,task.key):task.kind==='count'?(task.index?n.indexCount:n.storeCount).call(source,range):(task.index?n.indexCursor:n.storeCursor).call(source,range);
     const valid=event=>event.isTrusted===true&&n.eventTarget.call(event)===request&&n.eventCurrent.call(event)===request;
     const checked=()=>{projectionCurrent(r);if(n.ready.call(request)!=='done'||n.source.call(request)!==source||n.requestTransaction.call(request)!==tx)projectionRequired();};
     error=event=>{try{if(!valid(event))return;checked();failed(n.error.call(request)||new Error('Native projection request failed'));}catch(e){failed(e);}};
@@ -1126,14 +1126,14 @@ export async function captureHumanCurrentUnindexedProjection(store,core){
   await r.tail;projectionFence(r);r.raw=projectionRaw();currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
   if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);projectionFence(r);
-  ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
+  if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
   cap=Object.freeze({});const p={store,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
  }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
  finally{
   // The fixed Core entry returned only after native terminal, original unwind,
   // dispatch-end and listener cleanup. No active native frame is refunded here.
-  if(r&&r.nativeOpened&&!r.nativeDrained){r.revoked=true;projectionQuarantine.set(r.nonce,r);}else if(r)projectionDrop(r);else releaseHumanQualificationLease(work);
+  if(r&&r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){r.revoked=true;projectionQuarantine.set(r.nonce,r);}else if(r)projectionDrop(r);else releaseHumanQualificationLease(work);
   if(failed&&ticket){releaseHumanQualificationLease(ticket);if(cap)currentProjectionCaps.delete(cap);}
  }
 }
@@ -1148,7 +1148,7 @@ export async function requireHumanCurrentUnindexedProjection(t,cap){
  finally{
   // require resolves at the checked point in the original transaction. Its
   // work and revoked retained cut survive until that scope really drains.
-  const drain=async()=>{try{if(r.scope)await awaitRepositoryTransactionSettled(p.binding.repository,r.scope);}catch(error){p.revoked=true;p.cleanupFailure=error;r.revoked=true;projectionQuarantine.set(r.nonce,r);throw error;}projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);};
+  const drain=async()=>{try{if(r.scope)await awaitRepositoryTransactionSettled(p.binding.repository,r.scope);}catch(error){p.revoked=true;p.cleanupFailure=error;r.revoked=true;projectionQuarantine.set(r.nonce,r);throw error;}if(r.listenersCleared===false){p.revoked=true;p.cleanupFailure=r.cleanupErrors[0]??new Error('Projection request cleanup incomplete');r.revoked=true;projectionQuarantine.set(r.nonce,r);return;}projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);};
   if(r.scope){const cleanup=drain();cleanup.catch(()=>{});}else{projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);}
  }
 }
