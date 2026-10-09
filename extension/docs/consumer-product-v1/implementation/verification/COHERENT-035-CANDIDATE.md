@@ -1,5 +1,9 @@
 # Coherent 0.35 explicit style refresh candidate
 
+## PR223 Prompt cleanup correction — 2026-10-09
+
+Initial head381a72e8 Prompt37868395184 is FAILED: source Settings Next reached final cleanup, then ENOTEMPTY removing its isolated restart profile. Corresponding release and complete Stage3A source/release direct loop passed; skipped later steps are not passes. The original Full37868395189 is still running at this checkpoint. The independent test-only correction awaits actual Chrome exit, asserts the child exited, then uses the existing bounded filesystem cleanup. Business assertions and90s test budget are unchanged. Original complete Settings source/release file passes2/2; see [SET2-NEXT-PROFILE-PR223](implementation/settings/SET2-NEXT-PROFILE-PR223.md). The unique historical filesystem/process cause is not proven. Final corrected-head Prompt/Full remain required; no original failure is relabeled PASS. Parent0.34.1 exact-main Full37867793951 and Prompt37867793881 both passed atbb63f8ae.
+
 ## Scope and identity
 
 PR222/0.34.1 merged normally at `bb63f8ae93a7e232c452702c01b1e33e65e14b74`, tree `6bbcc68a6c5885c258382a0c14af1f95dafa15ea`, after final head0795a303 passed Full37866015023. Fresh main is reconciled at `e4e2e887e1f264b6d0bf60dab6e401bb0aa5aac0`, tree `1f96ea030540c7c9c44b178778c4bc01074bb2db`. Exact-parent-main Full37867793951 / Prompt37867793881 are in progress. Original Full37863441186 remains failed; the precise historical summary assertion cause remains unknown. No0.35 hosted certification, main merge, installation or production provider is claimed.
