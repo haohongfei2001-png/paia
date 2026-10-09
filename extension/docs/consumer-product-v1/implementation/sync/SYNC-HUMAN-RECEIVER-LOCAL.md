@@ -60,3 +60,9 @@ Actual final owning test deliberately confirms a fully journaled human graph sti
 | `core/browser-native-sync/group-checkpoint-plan.js` | `526f18e933ff5b7a199041f6122da1695d17277304b0d308bb2b44185b12dc04` |
 | `core/browser-native-sync/group-checkpoint-scope.js` | `c54318660138fb7fd176ff40da8586c40cf5e2a32122cdc3e5da5d605395a5df` |
 | `core/browser-native-sync/group-checkpoint.js` | `aa9d310ed0c57c6cecbb5575ab4dd14845c13c140f97ec9ec18bbd23fec25c51` |
+
+## Following group extraction milestone (not a new native claim)
+
+The original Topic/Entry creation computation blocks were mechanically extracted as private `computeHumanTopicState` / `computeHumanEntryState` and immediately reused by both existing actual preparation methods. This adds no future capture, group activation, virtual store or new write authority. The first run `/tmp/human-group-first-extraction.log` retained **12 PASS / 11 FAIL** because the original Topic collision read still referenced a moved local `id`; correcting that exact read to `topic.id` restores the same identity. Original three whole owning files then **23/23 PASS**, 1,596.775667 ms, `/tmp/human-group-first-extraction-fixed.log`. Independent read-only review APPROVED the mechanical extraction and unchanged guard/credential/read/CAS/capability path without repeating tests.
+
+The preceding exact native HEAD remains `0516523f`, not this later extraction. Final grouped runtime will require its own exact current combined evidence. Next implementation must add the approved typed actual inventory/capture, extract the remaining original computation/validation read interfaces, compose future original outputs, then close the actual empty-install one-transaction grouped scope/activation/cleanup/conflict boundaries. It must not route an empty replay graph through the current-parent-only single receiver.
