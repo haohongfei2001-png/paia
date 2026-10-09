@@ -53,6 +53,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   "core/browser-native-sync/human-library-plan.js",
   "core/browser-native-sync/human-library-request.js",
   "core/browser-native-sync/human-library-search-proof.js",
+  "core/browser-native-sync/physical-key.js",
   "core/browser-native-sync/source-append-codec.js",
   "core/browser-native-sync/source-append-plan.js",
   "core/browser-native-sync/source-bootstrap-codec.js",
@@ -142,7 +143,7 @@ const hashMap=(v,paths,expected)=>{shape(v,paths);for(const h of Object.values(v
 export function assertHumanBranchWitnessReceipt(r,{head,tree,variant,expectedHashes,expectedProofHashes}){
  shape(r,['schema','head','tree','variant','scope','result','productionActivation','retentionImplemented','writeCapability','fullRecovery','providerActivation','browserVersion','cases','hashes','proofHashes','isolation']);
  assert.match(head,/^[a-f0-9]{40}$/);assert.match(tree,/^[a-f0-9]{40}$/);assert.ok(['source','release'].includes(variant));assert.equal(r.schema,1);assert.equal(r.head,head);assert.equal(r.tree,tree);assert.equal(r.variant,variant);assert.equal(r.result,'PASS');assert.equal(r.scope,'private-readonly-human-branch-semantic-witness');
- for(const key of ['productionActivation','retentionImplemented','writeCapability','fullRecovery','providerActivation'])assert.equal(r[key],false);assert.match(r.browserVersion,/^\d+\.\d+\.\d+\.\d+$/);
+ for(const key of ['productionActivation','writeCapability','fullRecovery','providerActivation'])assert.equal(r[key],false);assert.equal(r.retentionImplemented,true);assert.match(r.browserVersion,/^\d+\.\d+\.\d+\.\d+$/);
  hashMap(r.hashes,HUMAN_WITNESS_PATHS,expectedHashes);hashMap(r.proofHashes,HUMAN_WITNESS_PROOF_PATHS,expectedProofHashes);
  assert.ok(Array.isArray(r.cases));assert.deepEqual(r.cases.map(c=>c.name),HUMAN_WITNESS_CASES);let count=0,acceptedCapture=0,acceptedRevalidate=0;
  for(const [index,c]of r.cases.entries()){

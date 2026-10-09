@@ -70,6 +70,7 @@ test('native revalidation refuses every readiness or failure flag without openin
 });
 const previous=globalThis.__bnsNative;
 globalThis.__bnsNative={...previous,async run(command,args={}){
+ if(command==='human-branch-witness-runtime-profile')return {retentionImplemented:typeof Object.getOwnPropertyDescriptor(BrowserNativeSyncCore.prototype,'retainHumanBranch')?.value==='function'};
  if(command==='human-branch-witness-failure')return globalThis.__bnsWitnessFailure??null;
  if(command==='human-branch-witness-case'){
   if(!Number.isInteger(args.index)||args.index<0||args.index>=cases.length)throw Error('Native witness case range');currentCase=args.index;const start=invocations.length;installObservers();

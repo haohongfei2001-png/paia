@@ -48,6 +48,11 @@ export class HumanLibrarySyncJournal{
   for(const m of p.mappings)if(!equal(await this.core.get(t,'humanMapping',m.entityId)??null,m.before))fail('BNS_HUMAN_MAPPING_CHANGED');this.transactions.set(t,{store:p.store});try{return await this.core.commitHumanReceive(t,p.protocol,async()=>{await owner.executeHumanPlanInTransaction(t,p.cap);for(const m of p.mappings)await this.core.put(t,'humanMapping',[m.entityId],m.after);});}finally{this.transactions.delete(t);}
  }
  async receive(store,input){const prepared=await this.prepareReceive(store,input);return this.core.transaction(true,t=>prepared.duplicate?this.core.commitHumanReceive(t,prepared,()=>fail('BNS_HUMAN_OWNER_CHANGED')):this.commitReceiveInTransaction(t,prepared));}
+ async retainSibling(store,input){
+  if(store.repository!==this.core.repository||store.humanLibraryJournal!==this)fail('BNS_HUMAN_BINDING_REQUIRED');
+  const duplicate=await owner.prepareHumanBranchRetentionRetry(store,this.core,input);if(duplicate)return this.core.retainHumanBranch(duplicate);
+  const witness=await owner.captureHumanBranchSemanticWitness(store,this.core,input),retention=await owner.prepareHumanBranchRetention(store,this.core,witness);return this.core.retainHumanBranch(retention);
+ }
  pruneTime(t){const p=this.transactions.get(t);return p?humanPruneTime(p.store,t):null;}
  async execute(store,kind,request,options){try{const prepared=await this.prepare(store,kind,request,options);if(prepared.duplicate)return clone(prepared.result);if(prepared.conflict)return {conflict:true};return await store.write(t=>this.commit(t,prepared));}catch(error){if(error?.code?.startsWith('BNS_'))throw new ArchiveError(error.code);throw error;}}
 }
