@@ -1,7 +1,8 @@
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {defaults} from '../workspace.js';
 import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
-import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences} from '../prompt-reuse-preferences.js';
+import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
+import {assertManualPromptCurrentPhysicalShape} from './manual-prompt-current-shape.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
@@ -21,7 +22,7 @@ export function requireGroupHumanCompilationInput(scope,wire){
 }
 export function requireOriginalCurrentGroupScope(core,scope,plan){
  const p=originalScopes.get(scope);requireOriginalGroupCheckpointPlan(core,plan);
- if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.length||plan.groups.some(g=>g.type!=='humanLibraryCommit'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.some(g=>g.type==='humanLibraryCommit')||plan.groups.some(g=>!['humanLibraryCommit','promptPreferences'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 export const currentHumanGroupEmptyStores=Object.freeze(['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','tombstones','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources','filterInputs','filterIntents','inputStates','inputRemovals','categories','dependencies','invalidations','provenance','organizerJobs','organizerWorkItems','organizerSuggestions','entryRelations','librarySearchTerms','organizerUsage']);
 export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','libraryMigrationItems',...currentHumanGroupEmptyStores]);
@@ -31,7 +32,7 @@ export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,contro
  requireOriginalCurrentGroupScope(core,scope,plan);
  if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const rows=new Map(raw.groupMeta.map(row=>[row.id,row])),take=(id,expected)=>{const row=rows.get(id);if(!row||!equal(row,{...expected,id}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);};
- const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts),frontiers=new Map(),operations=plan.groups.flatMap(g=>g.operations),latest=new Map();
+ const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts),frontiers=new Map(),operations=plan.groups.flatMap(g=>g.operations),latest=new Map();let promptHead=null,promptOperation=null;
  const generation=rows.get(key('generation'));if(!generation||!count(generation.value)||generation.value<1)fail('BNS_GROUP_COMMIT_UNPROVEN');take(key('generation'),{value:generation.value});
  const epoch=raw.points['recovery-restore-epoch']?.value??null,restore=rows.get(key('ownerRecoveryEpoch'));
  if(restore)take(key('ownerRecoveryEpoch'),{version:1,epoch});else if(epoch!==null)fail('BNS_RESTORE_EPOCH_UNBOUND');
@@ -42,11 +43,19 @@ export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,contro
   frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
   const out=key('outbox',op.operationId);if(rows.has(out))take(out,{operationId:op.operationId,revisionId:op.revisionId,state:'queued'});
  }
- for(const head of plan.heads){take(key('head',head.type,head.entityId),head);const op=operations.find(op=>op.revisionId===head.revisions[0]);if(head.type==='humanLibraryMember')latest.set(head.entityId,op);}
+ for(const head of plan.heads){take(key('head',head.type,head.entityId),head);const op=operations.find(op=>op.revisionId===head.revisions[0]);if(head.type==='humanLibraryMember')latest.set(head.entityId,op);else if(head.type==='promptPreferences'){if(promptHead||head.entityId!==PROMPT_REUSE_ROW||head.purged||head.revisions.length!==1||!op||op.type!=='promptPreferences'||op.entityId!==PROMPT_REUSE_ROW)fail('BNS_GROUP_COMMIT_UNPROVEN');promptHead=head;promptOperation=op;}}
  for(const [deviceId,state]of frontiers)take(key('frontier',deviceId),{...state,deviceId});
  const local=operations.filter(op=>op.deviceId===core.deviceId);if(local.length)take(key('device',core.deviceId),{sequence:Math.max(...local.map(op=>op.sequence))});
  const tables={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',history:'revisions'};
  for(const [id,op]of latest){const {entityType:type,after}=op.value,name=tables[type],actual=name?raw.rows[name].find(row=>row.id===after.id):raw.prefixes['topicKeepSeparate:'].find(row=>row.id===after.id);if(!actual)fail('BNS_GROUP_COMMIT_UNPROVEN');take(key('humanMapping',id),{type,local:physical(type,actual),wire:physical(type,after),revisionId:op.revisionId});}
+ // The initial native owner prepays this physical/expected phase. Finish
+ // original validation/projector frames before later metadata comparisons.
+ if(plan.groups.some(group=>group.type==='promptPreferences')){
+  const physicalPrompt=rows.get(PROMPT_REUSE_ROW);if(!promptHead||!physicalPrompt)fail('BNS_GROUP_COMMIT_UNPROVEN');
+  assertManualPromptCurrentPhysicalShape(physicalPrompt);
+  take(key('materializedOwner','promptPreferences',PROMPT_REUSE_ROW),{version:1,revisionId:promptHead.revisions[0],ownerRevision:physicalPrompt.revision});
+  assertManualPromptNativeValue(physicalPrompt,promptOperation.value,scope.expected.prompt);rows.delete(PROMPT_REUSE_ROW);
+ }
  // Exact attested Human key inventory, never a prefix exemption. The active
  // namespace and generation points are already authenticated by native R.
  for(const row of Object.values(raw.points))if(row)rows.delete(row.id);
@@ -74,6 +83,11 @@ export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,contro
  }
  const revision=raw.points['revision-sequence'];if((revision?.value||0)!==Math.max(0,...raw.rows.revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
+}
+function assertManualPromptNativeValue(physical,operation,expected){
+ if(!validPromptPreferences(physical))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const wire=projectEntity('promptPreferences',physical);
+ if(!equal(wire,operation)||!equal(wire,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 }
 const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
 const ephemeralStores=new Set(['recordIndex','blockIndex','sourceCounts','filterInputs','invalidations','librarySearchTerms','migrationBackup','operationReceipts']);

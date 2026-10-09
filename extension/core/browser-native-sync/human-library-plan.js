@@ -1212,7 +1212,16 @@ async function captureCurrentProjection(store,core,group){
    // Original normalizers compare one table at a time; the protocol owner
    // borrows a metered Map and compares one row at a time. No whole meta or
    // whole plan clone exists in those loops. Charge their actual overlap.
-   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak;projectionReserve(r,scratch);
+   let promptScratch=0;
+   if(r.group.plan.groups.some(group=>group.type==='promptPreferences')){
+    const row=r.raw.groupMeta.find(row=>row.id==='prompt-reuse:v1');
+    if(row){const m=projectionMeasure(row,'native'),tree=projectionTreeCharge(m),canonical=projectionCanonicalCharge(m);promptScratch+=4*tree+2*canonical+m.B+16*m.E+4096;}
+    // Pay expected Prompt and historical operations independently. Retained
+    // Scope/Plan trees and a small corrupted actual row cannot pay for them.
+    // The extra4096 is only the fixed ASCII manual-Prompt protocol wrapper.
+    promptScratch+=projectionCanonicalCharge(projectionMeasure(r.group.scope.expected.prompt,'native'))+projectionCanonicalCharge(projectionMeasure(r.group.plan,'native'))+4096;
+   }
+   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch;projectionReserve(r,scratch);
    human.assertHumanScopeProjectionExpectation(r.group.scope,store,r.raw);owner.assertCurrentHumanGroupNativeSnapshot(core,r.group.scope,r.group.plan,r.raw,r.controlValues,r.group.databaseId);
    projectionDeepFreeze(r.group.scope);projectionReserve(r);projectionFence(r);
   }
