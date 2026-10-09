@@ -19,7 +19,7 @@ const retryStart=source.indexOf('export async function prepareHumanBranchRetenti
 const retry=source.slice(retryStart,retryEnd).replace('export ','');
 const freeze=v=>{if(v&&typeof v==='object'&&!Object.isFrozen(v)){for(const value of Object.values(v))freeze(value);Object.freeze(v);}return v;};
 function fixture(model,hash=digest){
- const create=Function('fail','CORE_LIMITS','acceptSequence','equal','digest','protocolPhysicalId',source.slice(start,end)+`\nconst retentionKind=p=>p&&(p.kind==='retention'||p.kind==='duplicate');\n${finish}\n${retry}\n`+source.slice(pureStart,pureEnd)+`
+ const create=Function('fail','CORE_LIMITS','acceptSequence','equal','digest','protocolPhysicalId',source.slice(start,end).replace(/^export (?=function branchRawMeasure\()/m,'')+`\nconst retentionKind=p=>p&&(p.kind==='retention'||p.kind==='duplicate');\n${finish}\n${retry}\n`+source.slice(pureStart,pureEnd)+`
  const store={},core={},cap=Object.freeze({}),p={...arguments[6],core,store,claimed:true,claim:{}};p.size=branchRawSize(p.raw);
  const state=branchState(store);state.handles.push(cap);state.bytes=p.size;state.busy=true;branchWitnesses.set(cap,p);const initial=p.size;
  return {derive:()=>deriveRetentionExpectedEffects(core,cap),finish:()=>finishHumanBranchRetention(core,cap,p.claim),retry:()=>prepareHumanBranchRetentionRetry(store,core,[]),state:()=>({bytes:state.bytes,busy:state.busy,cap:branchWitnesses.has(cap),size:p.size,phase:state.effectReservation?.phase??null,retained:p.effectPlan?.retainedCharge??null}),pad(n){state.candidateBytes=n;},forget:()=>branchForget(state,cap),rawSize:v=>branchRawSize(v),initial};`);

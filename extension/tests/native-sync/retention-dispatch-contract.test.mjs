@@ -68,7 +68,7 @@ test('original Core finally keeps the original error when dispatch cleanup also 
 const valueSource=await readFile(new URL('../../core/browser-native-sync/value.js',import.meta.url),'utf8');
 const synchronousValues=valueSource.match(/^export const plain=.*$/m)[0].replace('export ','')+'\n'+valueSource.slice(valueSource.indexOf('const forbidden='),valueSource.indexOf('export const bytes=')).replaceAll('export ','')+'\n'+valueSource.match(/^export const equal=.*$/m)[0].replace('export ','');
 const planSource=await readFile(new URL('../../core/browser-native-sync/human-library-plan.js',import.meta.url),'utf8');
-const branchStart=planSource.indexOf('const branchWitnesses='),branchEnd=planSource.indexOf('async function branchRaw(',branchStart),branchOwner=planSource.slice(branchStart,branchEnd);
+const branchStart=planSource.indexOf('const branchWitnesses='),branchEnd=planSource.indexOf('async function branchRaw(',branchStart),branchOwner=planSource.slice(branchStart,branchEnd).replace(/^export (?=function branchRawMeasure\()/m,'');
 const finalAssert=planSource.match(/^export function assertHumanBranchRetentionCurrent\(.*$/m)[0].replace('export ',''),originalFinish=planSource.match(/^export function finishHumanBranchRetention\(.*$/m)[0].replace('export ','');
 const fixedOwnerStart=coreSource.indexOf('export function requireHumanRetentionOwnerPhase('),fixedClosingStart=coreSource.indexOf('export function requireHumanRetentionClosingPhase('),fixedClosingEnd=coreSource.indexOf('const opFields=',fixedClosingStart);
 const fixedOwners=coreSource.slice(fixedOwnerStart,fixedClosingEnd).replaceAll('export ','');
