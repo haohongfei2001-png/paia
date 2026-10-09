@@ -1,4 +1,4 @@
-import {canonical,exact,equal,fail} from './contracts.js';
+import {canonical,exact,equal,fail,ASSIST_RESULT_KIND,validateReplyObligation} from './contracts.js';
 import {organizeCoverageId} from './organize-style-binding.js';
 const opaqueId=x=>typeof x==='string'&&/^[a-zA-Z0-9:_-]{1,128}$/.test(x);
 export function validateAssistIntent(type,binding){
@@ -14,7 +14,7 @@ export async function assertAssistIntent(foundation,t,job){
  if(job.type!=='AI_ASSIST'){if(Object.hasOwn(job,'assistIntent'))fail();return;}
  if(!job.assistIntent||typeof foundation.resolveAssistIntent!=='function')fail('UNAVAILABLE');
  const binding=validateAssistIntent(job.type,job.assistIntent);
- const scope={evidenceKeys:job.items.map(i=>i.key).sort(),coverage:job.coverage};
+ const scope={evidenceKeys:job.items.map(i=>i.key).sort(),coverage:job.coverage,...(job.kind===ASSIST_RESULT_KIND?{replyObligation:validateReplyObligation(job.replyObligation)}:{})};
  const resolved=await foundation.resolveAssistIntent(t,structuredClone({binding,scope}));
  exact(resolved,['allowed','remoteProcessing','binding','scope']);
  if(resolved.allowed!==true||resolved.remoteProcessing!==true)fail('UNAVAILABLE');

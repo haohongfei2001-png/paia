@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT} from './harness/fake-chatgpt.mjs';
+import {verifyPrivateAssistNative} from './harness/ai-assist-native.mjs';
 const source=fileURLToPath(new URL('..',import.meta.url));
 async function attach(page){return page.evaluate(async()=>{
  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
@@ -239,6 +240,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,disposed,disposedCode,disposedRollback,identical,changed,mixed:[mixed.manifest.fields.currentView.style,mixed.manifest.fields.blockSummary.style],mixedStale:mixed.needsUpdate,abortCode,rollback,sizes,sameBlocks,refs:delta.evidenceEntryIds.length,generations:gens.length,allCommitted,noDelta:noDelta.state,cacheExact:(await s.aiPresentationStatus({topicId:topic.id})).topics[0].cacheQualification.reusable};
   });
   assert.equal(styleV3.nativeFactory,true);assert.equal(styleV3.identical,true);assert.equal(styleV3.changed,8);assert.deepEqual(styleV3.mixed,['original','concise']);assert.equal(styleV3.mixedStale,true);assert.equal(styleV3.abortCode,'STORAGE_FAILED');assert.equal(styleV3.rollback,true);assert.deepEqual(styleV3.sizes,[2,2,2,1,1]);assert.equal(styleV3.disposed,true);assert.equal(styleV3.disposedCode,'STALE_BASE');assert.equal(styleV3.disposedRollback,true);assert.equal(styleV3.sameBlocks,true);assert.equal(styleV3.refs,3);assert.equal(styleV3.generations,2);assert.equal(styleV3.allCommitted,true);assert.equal(styleV3.noDelta,'NO_DELTA');assert.equal(styleV3.cacheExact,false);console.log('AI_NATIVE_STYLE_V3',label,JSON.stringify(styleV3));
+  await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });
