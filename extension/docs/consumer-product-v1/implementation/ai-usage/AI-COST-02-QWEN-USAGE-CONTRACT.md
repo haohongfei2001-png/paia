@@ -31,6 +31,11 @@ choose narrower existing job limits where applicable; these ceilings do not
 increase any PAIA job entitlement. Aggregate byte charging includes JSON string
 escaping and conservatively charges scalar/container overhead. Validation bounds
 its own copy/traversal, not memory already allocated by a decoder.
+Known key/array size is checked immediately after Reflect.ownKeys and before any
+descriptor sweep; intrinsic array length counts in the key budget. The resulting
+name-list allocation by Reflect.ownKeys itself is unavoidable in this API and is
+not described as an absolute memory bound. Each permitted own descriptor is then
+read individually, not by an eager batch over already known oversized objects.
 
 Decoded frames include the exact typed `{kind:'done'}` terminator at its actual
 position, counted in frame limits. It must be unique and final; done and

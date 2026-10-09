@@ -1,5 +1,40 @@
 # AI-COST-02 — dormant pure Qwen usage parser author receipt
 
+## Current descriptor-bound corrective freeze
+
+Latest runtime/test commit `4b8311f31c4931372a1c03c24b182439ef1e612a`,
+tree `7100e1aa617b4678473aabde0458bf3391f77689`. Independent review identified
+an actual bound defect in initial78c bytes: an object with17000 own keys returned
+TRANSPORT_BOUND only *after*17000 getOwnPropertyDescriptor inspections. Root's
+original probe and failure remain `extension/work/qwen-parser-independent-bounds.mjs`
+and `/tmp/qwen-parser-independent-bounds-actual-before.log`. A prior wrong-cwd
+MODULE_NOT_FOUND run was harness failure, not that actual negative.
+
+Known key/array size checks now precede descriptor reads; array length is included
+in the key budget, and allowed descriptors are read individually. The same
+independent probe rerun by the author passed with0 response-descriptor inspections,
+`/tmp/qwen-parser-independent-bounds-actual-after.log`. The new owning spy covers
+both oversized objects and dense arrays. Whole owning file53/53 PASS, zero
+failed/skipped/cancelled,67.201542ms,
+`/tmp/qwen-usage-parser-bounded-final-owning.log`. Review of this corrective freeze
+is pending; an author rerun is not a second independent review.
+
+Reflect.ownKeys itself necessarily allocates the supplied name list. This fix
+does not claim an absolute memory bound on hostile/already decoded JS input or
+bounded execution of arbitrary Proxy traps. The unchanged decoder/authority
+limitations continue to apply. Initial161 complete related passes and package/
+development audits below were run at78c bytes; they are preserved as historical
+evidence, not relabelled as a161-case rerun at4b8311f3. Root requested the same
+independent probe and complete owning file for this narrow fix; no full/browser
+suite was repeated. All other owners and the corpus remain unchanged.
+
+Current SHA256: runtime
+`9cb271753c702fea883ec74154dd0c403f0fbe519ee355ed6c1e85513635e612`;
+owning test `e36ef7d51fcf0469dc0f2dc29ff3dadb09541b45d821b05d1b8517b15b7844fd`.
+Initial runtime bytes also remain in `/tmp/qwen-usage-parser-descriptor-bound-before.js`.
+
+## Initial author freeze — retained
+
 Design base `6d1b4747b0a6263fd2ecb6a2fbd51990e585732d`, independently approved
 by the coordinator. Code freeze `78c558867946da9ed4bfcb3bcc49c61d5c707156`,
 tree `8f8b059e14a0a8870cc90daef74bd8978187e738`. Local author candidate only;
