@@ -32,14 +32,18 @@ export async function registerTopicName(t,topic,token){
  if(!row.topicIds.includes(topic.id)){row.topicIds.push(topic.id);await t.put('meta',row);}
 }
 export const prepareTopicRename=prepareTopicIdentityName;
-export async function recordTopicRename(t,row,prepared,operationId,at){
- await assertTopicIdentityBase(t,prepared);if(row.revision!==prepared.beforeRevision||row.name!==prepared.beforeName)fail();
+export function planHumanTopicRename(row,prepared,operationId,at){
+ if(row.revision!==prepared.beforeRevision||row.name!==prepared.beforeName)fail();
  const identity=identityMetadata(row);
  const priorTokens=[...new Set([identity.nameToken,prepared.oldToken].filter(Boolean))];
  // A purge may sanitize the visible name while retaining its original opaque
  // fence. Renaming must retain that token too, without recovering erased text.
  for(const token of priorTokens)if(token!==prepared.newToken&&!identity.aliases.some(x=>x.token===token))identity.aliases.push({token,actor:row.protections?.name?.locked?'user':identity.origin,revision:row.revision,operationId,at});
- identity.revision++;row.identity=identity;for(const token of priorTokens)await registerTopicName(t,row,token);await registerTopicName(t,row,prepared.newToken);
+ identity.revision++;return {identity,priorTokens};
+}
+export async function recordTopicRename(t,row,prepared,operationId,at){
+ await assertTopicIdentityBase(t,prepared);const {identity,priorTokens}=planHumanTopicRename(row,prepared,operationId,at);
+ row.identity=identity;for(const token of priorTokens)await registerTopicName(t,row,token);await registerTopicName(t,row,prepared.newToken);
 }
 export async function resolveTopicIdentity(t,id){
  const seen=new Set();for(let depth=0;depth<32;depth++){

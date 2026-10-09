@@ -1,4 +1,4 @@
-import {keyedHash} from '../thought-model.js';
+import {keyedHash,validateFields} from '../thought-model.js';
 import {clone,exact,equal,identifier,count,hash,fail} from './value.js';
 const tokenFor=(secret,name)=>keyedHash(secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()]);
 const stamp=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
@@ -24,4 +24,21 @@ export async function localHumanTopicIdentity(name,portable,secret){
  if(!nameOK(name))fail('BNS_HUMAN_IDENTITY_UNSUPPORTED');const value=validatePortableHumanIdentity(portable),aliases=[],names=[name],tokens=[await tokenFor(secret,name)];
  for(const alias of value.aliases){const {name:prior,...metadata}=alias,token=await tokenFor(secret,prior);if(aliases.some(x=>x.token===token))fail('BNS_HUMAN_IDENTITY_UNPROVEN');aliases.push({...metadata,token});names.push(prior);tokens.push(token);}
  return {identity:{...value,nameToken:tokens[0],aliases},names,tokens};
+}
+
+// Suppression signatures are installation-keyed. Carry the exact original
+// removal's proven body/type, never infer them from a later edited Entry.
+export async function portableHumanSuppression(row,histories,secret){
+ validateHumanSuppression(row);if(!Array.isArray(histories)||histories.length>128)fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
+ const candidates=histories.filter(h=>h.kind==='library_entry'&&h.entityId===row.deletedEntryId&&h.operationId===row.operationId&&h.actor==='user'&&h.reason==='remove'&&h.important===true&&h.after?.lifecycle==='removed'&&Array.isArray(h.sourceRecordIds)&&h.sourceRecordIds.length===0&&typeof h.before?.body==='string'&&typeof h.before?.type==='string');let input=null;
+ for(const h of candidates){const candidate={body:h.before.body,type:h.before.type};if(await keyedHash(secret,['body',candidate.type,candidate.body])!==row.exactSignature)continue;if(input&&!equal(input,candidate))fail('BNS_HUMAN_SUPPRESSION_UNPROVEN');input=candidate;}
+ if(!input)fail('BNS_HUMAN_SUPPRESSION_UNPROVEN');const {exactSignature,...portable}=clone(row);return {...portable,signatureInput:input};
+}
+export async function localHumanSuppression(portable,secret){
+ if(!exact(portable,['id','deletedEntryId','lineageId','removedAt','operationId','status','scopeVersion','scopeTokens','evidenceVersionTokens','noveltyRuleVersion','signatureInput'])||!exact(portable.signatureInput,['body','type'])||Object.keys(portable.signatureInput).length!==2||typeof portable.signatureInput.body!=='string'||typeof portable.signatureInput.type!=='string')fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
+ const {signatureInput,...row}=clone(portable);try{validateFields(signatureInput);}catch{fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');}const mapped={...row,exactSignature:await keyedHash(secret,['body',signatureInput.type,signatureInput.body])};validateHumanSuppression(mapped);return mapped;
+}
+
+function validateHumanSuppression(row){
+ if(!exact(row,['id','deletedEntryId','lineageId','removedAt','operationId','status','scopeVersion','scopeTokens','evidenceVersionTokens','exactSignature','noveltyRuleVersion'])||![row.id,row.deletedEntryId,row.lineageId,row.operationId].every(identifier)||row.lineageId!==row.deletedEntryId||!stamp(row.removedAt)||!['active','restored'].includes(row.status)||row.scopeVersion!==1||row.noveltyRuleVersion!==1||!Array.isArray(row.scopeTokens)||row.scopeTokens.length||!Array.isArray(row.evidenceVersionTokens)||row.evidenceVersionTokens.length||!hash(row.exactSignature))fail('BNS_HUMAN_SUPPRESSION_UNSUPPORTED');
 }
