@@ -1,5 +1,8 @@
 # PAIA Consumer Product v1 — Canonical Master Plan
 
+Current coordinated frontier (2026-10-10): accepted0.43.4 main6b4f961; coherent0.43.5 current native pending-generation prerequisite has targeted/source/release evidence, with full high-risk CI and integration pending. STATUS and its coherent receipt own exact claims. All seven selected plans remain unfinished; native Scope/canonical recovery is the next dependency, and external visual/provider/device gates do not expand scope. No new plan or NIB runtime is selected.
+
+
 ## Narrow Input Board v4 follow-up — 2026-10-09
 
 The owner selected **NIB-V4-1.0** as the new browser-board design baseline and authorized a documentation-only Draft PR. [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md) owns the336px/44px single-line, content-height-only board and lawful Free/Pro boundary; [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) supersedes only the named Popup/Side-Panel/wide-board directions. [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) is the executable S0–S4 breakdown; [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md) preserve actual sources, material and evidence limits.
