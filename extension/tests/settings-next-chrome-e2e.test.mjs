@@ -1,5 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,rm,mkdir} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {fileURLToPath} from 'node:url';import {execFileSync} from 'node:child_process';import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {chooseConsumerGroup} from './harness/settings-consumer-presentation.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,'work/settings-next');
+// Borrowed restart profiles need the same bounded filesystem cleanup as the
+// harness-owned profiles, after the actual spawned browser has exited.
+async function removeStoppedProfile(h,profile){
+ await h?.close();
+ const child=h?.externalChrome?.processHandle;
+ if(child)assert.ok(child.exitCode!==null||child.signalCode!==null,'Chrome must exit before its isolated restart profile is removed');
+ await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+}
 const read=p=>p.evaluate(async()=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_STATUS'});if(!r.ok)throw Error(JSON.stringify(r));return r.data;});
 async function open(p){await p.setViewportSize({width:1440,height:900});await p.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(p,'ai');await eventually(()=>p.locator('#settings-next-enabled').isEnabled());}
 async function compactKeyboard(p,variant){
@@ -25,5 +33,5 @@ for(const variant of ['source','release'])test('SET2-03 '+variant+' consent and 
  await c.click();await p.locator('#settings-next-confirm').click();await eventually(()=>c.isChecked());assert.equal((await read(p)).enabled,true);const peer=await h.context.newPage();await peer.goto(p.url());await open(peer);assert.equal(await peer.locator('#settings-next-enabled').isChecked(),true);await peer.locator('#settings-next-enabled').click();await eventually(async()=>!await c.isChecked());
  await p.bringToFront();await c.click();await p.locator('#settings-next-confirm').click();await eventually(()=>c.isChecked());await p.reload();await open(p);assert.equal(await c.isChecked(),true,'page reload retains browser-session consent');assert.equal(JSON.stringify(await p.evaluate(()=>chrome.storage.local.get(null))).includes('promptNextAuthorizationV1'),false);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);await chooseConsumerGroup(p,'reading');await p.locator('#ux-language').selectOption('en');await eventually(()=>p.locator('html').getAttribute('lang').then(x=>x==='en'));await chooseConsumerGroup(p,'ai');assert.match(await p.locator('#settings-next-explanation').innerText(),/browser session/);await p.setViewportSize({width:320,height:900});await p.screenshot({path:join(out,variant+'-narrow.png'),fullPage:true});assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  await h.close();h=null;await rm(join(profile,'DevToolsActivePort'),{force:true});h=await FakeChatGPT.start({extensionPath:release||root,headless:true,userDataDir:profile,launchThroughPort:true,onboarding:true});await open(h.archive);assert.equal((await read(h.archive)).enabled,false,'actual browser restart clears consent');assert.equal(await h.archive.locator('#settings-next-enabled').isChecked(),false);assert.equal(h.extensionNetworkRequests,0);assert.deepEqual(h.errors,[]);
- }catch(error){console.error('SET2_DIAGNOSTIC',JSON.stringify({errors:h?.errors,body:await h?.archive.locator('body').innerText()}));throw error;}finally{await h?.close();await rm(profile,{recursive:true,force:true});if(release)await rm(release,{recursive:true,force:true});}
+ }catch(error){console.error('SET2_DIAGNOSTIC',JSON.stringify({errors:h?.errors,body:await h?.archive.locator('body').innerText()}));throw error;}finally{await removeStoppedProfile(h,profile);if(release)await rm(release,{recursive:true,force:true});}
 });
