@@ -973,7 +973,7 @@ function projectionPump(r,t){
  const tasks=projectionTasks(r),counts=new Map();
  return new Promise((resolve,reject)=>{
   let position=0,ended=false,request=null,success=null,error=null,ordered=false;
-  const clear=()=>{const failures=[];if(request)for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){failures.push(e);}if(failures.length){r.listenersCleared=false;r.failedRequest={request,success,error};throw new AggregateError(failures,'Projection request listener cleanup failed');}request=null;success=null;error=null;r.listenersCleared=true;};
+  const clear=()=>{const failures=[];if(request)for(const [type,listener]of [['success',success],['error',error]])try{n.remove.call(request,type,listener);}catch(e){failures.push(e);}if(failures.length){r.listenersCleared=false;r.failedRequest={request,success,error};throw new AggregateError(failures,'Projection request listener cleanup failed');}request=null;success=null;error=null;r.failedRequest=null;r.listenersCleared=true;};
   const failed=e=>{if(ended)return;ended=true;try{clear();}catch(cleanup){r.cleanupErrors.push(cleanup);}reject(e);};
   const next=()=>{
    try{
@@ -1125,7 +1125,7 @@ function projectionQualify(r){
  migration.clear();metadata.clear();projectionReserve(r);
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
-function projectionDrop(r){r.raw=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionDrop(r){r.failedRequest=null;r.raw=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
 function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
