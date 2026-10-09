@@ -6,6 +6,8 @@ const sameReference=(old,item)=>JSON.stringify(identity(old))===JSON.stringify(i
 const sectionReference=row=>pick(row,['sectionId','topicId','layoutGeneration','revision','isDefault','named','title','rank','titleProtected','orderProtected','sourceUnavailable','lifecycle','redirectTo']);
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const textAnchor=value=>value&&Number.isSafeInteger(value.revision)&&value.revision>=0&&Number.isSafeInteger(value.offset)&&value.offset>=0&&Number.isFinite(value.top)?{revision:value.revision,offset:value.offset,top:value.top}:null;
+const entryAnchor=value=>value?.id?{id:value.id,top:value.top,...(textAnchor(value.text)?{text:textAnchor(value.text)}:{})}:null;
 const sectionAnchorRef=value=>{
  if(!value||typeof value.sectionId!=='string'||!value.sectionId.length||value.sectionId.length>200||typeof value.topicId!=='string'||!value.topicId.length||value.topicId.length>200||!Number.isSafeInteger(value.revision)||value.revision<0||!Number.isSafeInteger(value.layoutGeneration)||value.layoutGeneration<1||typeof value.rank!=='string'||!/^\d{12}$/.test(value.rank)||typeof value.recoveryEpoch!=='string'||!value.recoveryEpoch.length||value.recoveryEpoch.length>200||!Number.isFinite(value.top)||Math.abs(value.top)>10000000)return null;
  return pick(value,['sectionId','topicId','revision','layoutGeneration','rank','recoveryEpoch','top']);
@@ -34,7 +36,7 @@ export class ContinuousTopicReader{
  };}
  snapshot(anchor=null,sectionAnchor=null){
   const fallback=!anchor?.id&&!this.query?sectionAnchorRef(sectionAnchor):null;
-  return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:anchor?.id?{id:anchor.id,top:anchor.top}:null,
+  return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:entryAnchor(anchor),
    sectionAnchor:fallback&&fallback.topicId===this.topicId&&fallback.recoveryEpoch===this.recoveryEpoch&&sameSection(this.sections.get(fallback.sectionId),fallback)?fallback:null,
    extent:this.items.map(reference),sections:[...this.sections.values()].map(sectionReference),recoveryEpoch:this.recoveryEpoch,frontiers:clone(this.frontiers),windowStart:this.windowStart,nextCursor:clone(this.nextCursor),previousCursor:clone(this.previousCursor),terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,generation:this.coverage?.activeGeneration||null};
  }
@@ -268,14 +270,17 @@ export class ContinuousTopicReader{
   }
   return best;
  }
- restoreAnchor(root,anchor){
+ restoreAnchor(root,anchor,currentEntry){
   let node;
   if(anchor?.id)node=[...(root?.querySelectorAll?.('[data-entry-id]')||[])].find(n=>n.dataset.entryId===anchor.id);
   else{
    const ref=sectionAnchorRef(anchor);if(!ref||ref.topicId!==this.topicId||ref.recoveryEpoch!==this.recoveryEpoch||!sameSection(this.sections.get(ref.sectionId),ref))return false;
    node=[...(root?.querySelectorAll?.('.topic-section')||[])].find(n=>n.dataset.sectionId===ref.sectionId);
   }
-  if(!node)return false;const delta=node.getBoundingClientRect().top-anchor.top;if(Math.abs(delta)>0.5)scrollBy(0,delta);
+  if(!node)return false;let delta=node.getBoundingClientRect().top-anchor.top;
+  const text=textAnchor(anchor?.text);
+  if(anchor.id&&text&&currentEntry?.revision===text.revision){const body=node.querySelector('[data-entry-field="body"]');if(body&&typeof currentEntry.saved?.body==='string'&&body.textContent===currentEntry.saved.body&&text.offset<=body.textContent.length){const walker=document.createTreeWalker(body,NodeFilter.SHOW_TEXT);let part,left=text.offset;while(part=walker.nextNode()){if(left<=part.length){const range=document.createRange();range.setStart(part,left);range.collapse(true);const rect=range.getBoundingClientRect();if(Number.isFinite(rect.top)&&rect.height>0)delta=rect.top-text.top;break;}left-=part.length;}}}
+  if(Math.abs(delta)>0.5)scrollBy(0,delta);
   if(!anchor.id)this.sectionAnchorRestored=true;return true;
  }
  moveWindowAround(id){

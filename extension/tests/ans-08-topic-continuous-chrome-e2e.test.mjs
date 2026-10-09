@@ -73,9 +73,10 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
 
   const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'Topic reopens with readable entries',30000);
-  // Owner scope amendment, 2026-10-06: defer only the old Topic return-position
-  // contract until the Thought Library redesign. All other coverage stays live.
-  await t.test('ANS-08 Topic return position (deferred pending Thought Library redesign)',{skip:'Owner deferred this single return-position check'},async()=>{
+  // The historical 2026-10-06 owner defer is retained in prior receipts. The
+  // current durable-Section route now runs the original return-anchor assertion;
+  // separate current-route tests additionally verify revision/text offset.
+  await t.test('ANS-08 current durable-Section Topic return position',async()=>{
    await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeBack.id+'"]').count()===1,'topic return anchor',30000);
   });
 
@@ -92,7 +93,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
 
 
   await mkdir('work/ans-08',{recursive:true});await page.screenshot({path:'work/ans-08/topic-continuous.png',fullPage:true});
-  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:'DEFERRED_OWNER_SCOPE',readableAfterReturn:true,deferredChecks:['ANS08_TOPIC_RETURN_POSITION'],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:beforeBack.id,readableAfterReturn:true,deferredChecks:[],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{await page.evaluate(()=>window.ans08RestoreSend?.()).catch(()=>{});await h.close();}

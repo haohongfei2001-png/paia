@@ -272,7 +272,7 @@ async function navigate(next,id=null,contextId=null,options={}){if(!options.keep
  notify('');$('context-menu').hidden=true;const loaded=beginLoading(document.querySelector('.workspace'),'正在读取本机内容…');try{const openedThought=view==='thoughts'&&options.topicId!==undefined;if(openedThought)await thoughts.open(options.topicId);if(!openedThought)await refresh();if(view==='revisit')await revisitPage.show();}finally{loaded();}
  if(intent!==navigationIntent)return false;
  if(id&&contextInputId){const field=[...$('document-body').querySelectorAll('[data-edit-id]')].find(el=>el.dataset.editId===contextInputId);if(field){reader.expand(field);field.scrollIntoView({block:'center'});}}
- else window.scrollTo(0,restoringOrigin&&!originSnapshot?0:next==='library'&&!id&&options.freshArchiveEntry===true?0:saved?.scroll||0);
+ else if(!(next==='thoughts'&&options.topicId))window.scrollTo(0,restoringOrigin&&!originSnapshot?0:next==='library'&&!id&&options.freshArchiveEntry===true?0:saved?.scroll||0);
  if(pendingAnchor)await reader.restore(pendingAnchor);if(intent!==navigationIntent)return false;if(options.searchQuery!==undefined)highlightReading($('document-body'),options.searchQuery);reader.schedule();if(restoringOrigin){focusArchiveOrigin(originSnapshot);if(!originSnapshot&&(options.returnOriginKey||options.originKey))notify(readerCopy('原搜索状态已不可用，已返回档案。','The original search state is unavailable. Returned to Archive.'));archiveOriginKey=originSnapshot?(options.returnOriginKey??options.originKey):null;}routes.commit({replace:options.replaceHistory===true});
  if(next==='library'&&id&&contextId&&options.searchArrival){
   const arrival=options.searchArrival,current=()=>intent===navigationIntent&&view==='library'&&documentId===id;

@@ -30,11 +30,13 @@ async function initialize(store,t){
  await t.put('meta',meta);
  return meta;
 }
-async function writeProjection(t,generationId,topic){
+export function planThoughtRootProjection(topic,generationId){
  const id=rowId(generationId,topic);
- if(activeTopic(topic)){
-  await t.put('libraryMigrationItems',{id,statusKey:STATUS_KEY,entityKind:generationKind(generationId),topicId:topic.id,createdAt:topic.createdAt??null,sourceRecordIds:[]});
- }else await t.delete('libraryMigrationItems',id);
+ return {id,row:activeTopic(topic)?{id,statusKey:STATUS_KEY,entityKind:generationKind(generationId),topicId:topic.id,createdAt:topic.createdAt??null,sourceRecordIds:[]}:null};
+}
+async function writeProjection(t,generationId,topic){
+ const {id,row}=planThoughtRootProjection(topic,generationId);
+ if(row)await t.put('libraryMigrationItems',row);else await t.delete('libraryMigrationItems',id);
 }
 export async function ensureThoughtRootIndex(store){
  return store.run(()=>store.repository.transaction(true,async t=>snapshot(await initialize(store,t))));
@@ -194,10 +196,10 @@ export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=fa
  await t.put('meta',planned.meta);
  return true;
 }
-async function writeTopicDescriptor(t,generationId,descriptor){
+export function* planThoughtTopicDescriptorRows(descriptor,generationId){
  for(const sort of ['asc','desc']){
   const id=descriptorId(generationId,sort,descriptor);
-  await t.put('libraryMigrationItems',{
+  yield {
    id,statusKey:THOUGHT_TOPIC_STATUS_KEY,entityKind:topicKind(generationId,sort),
    topicId:descriptor.topicId,layoutGeneration:descriptor.layoutGeneration,
    entryId:descriptor.entryId,sectionId:descriptor.sectionId,
@@ -210,12 +212,15 @@ async function writeTopicDescriptor(t,generationId,descriptor){
    effectiveTime:descriptor.effectiveTime||null,
    timeBasis:descriptor.timeBasis||'unknown',
    sourceRecordIds:[]
-  });
-  await t.put('libraryMigrationItems',{
+  };
+  yield {
    id:expressionDescriptorId(generationId,sort,descriptor),statusKey:THOUGHT_TOPIC_STATUS_KEY,
    entityKind:topicKind(generationId,'expression-'+sort),...descriptor,sourceRecordIds:[]
-  });
+  };
  }
+}
+async function writeTopicDescriptor(t,generationId,descriptor){
+ for(const row of planThoughtTopicDescriptorRows(descriptor,generationId))await t.put('libraryMigrationItems',row);
 }
 export async function advanceThoughtTopicIndex(store,{topicId,describe}){
  return store.run(()=>store.repository.transaction(true,async t=>{

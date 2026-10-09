@@ -64,6 +64,7 @@ const CURRENT_NINE=new Map([
  ["settings-next-chrome-e2e.test.mjs",5],
  ["topic-entry-section-move-chrome-e2e.test.mjs",8],
  ["topic-section-writing-chrome-e2e.test.mjs",5],
+ ["topic-section-return-position-chrome-e2e.test.mjs",2],
  ["uir-01-shell-chrome-e2e.test.mjs",9],
  ["uir-02-archive-search-reader-chrome-e2e.test.mjs",9],
  ["uir-03-ai-candidate-chrome-e2e.test.mjs",8],
@@ -87,13 +88,14 @@ const CURRENT_NINE=new Map([
  ["ux-r5-certification-chrome-e2e.test.mjs",8],
  ["ux-r6-release-chrome-e2e.test.mjs",1],
 ]);
+const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 const writing='topic-section-writing-chrome-e2e.test.mjs';
 const settingsNext='settings-next-chrome-e2e.test.mjs';
 const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
+const CURRENT_BROWSER=new Set([topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -152,6 +154,9 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ const addedName=file.replaceAll('\\','/').split('/').at(-1);
+ // Admit only this new whole file; keep all previously certified positions.
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===topicReturn)return 2;if(addedName>topicReturn)position--;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.

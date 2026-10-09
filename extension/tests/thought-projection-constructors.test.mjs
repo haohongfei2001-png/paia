@@ -1,0 +1,62 @@
+// Frozen source oracle from main613e81fa6097426c20605d093fcf50d2453e884f.
+// Stored verbatim before extraction; no git-history dependency in CI.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {runInNewContext} from 'node:vm';
+const ORIGINAL_SOURCE="export const THOUGHT_ROOT_INDEX_VERSION=1;\nexport const THOUGHT_ROOT_BUILD_BATCH=100;\nexport const THOUGHT_ROOT_COLD_BATCHES=4;\nconst META_ID='thought-read-index:v1:root';\nconst STATUS_KEY=2;\nconst KIND_PREFIX='thought_root_v1:';\n\nconst activeTopic=row=>row?.lifecycle==='active'&&!row.redirectTo;\nconst generationKind=generation=>KIND_PREFIX+generation;\nconst sortPart=topic=>JSON.stringify([String(topic.createdAt??''),String(topic.id)]);\nconst rowId=(generation,topic)=>'thought-root:'+generation+':'+sortPart(topic);\n\nasync function writeProjection(t,generationId,topic){\n const id=rowId(generationId,topic);\n if(activeTopic(topic)){\n  await t.put('libraryMigrationItems',{id,statusKey:STATUS_KEY,entityKind:generationKind(generationId),topicId:topic.id,createdAt:topic.createdAt??null,sourceRecordIds:[]});\n }else await t.delete('libraryMigrationItems',id);\n}\n\nexport const THOUGHT_TOPIC_INDEX_VERSION=6;\nexport const THOUGHT_TOPIC_BUILD_BATCH=100;\nexport const THOUGHT_TOPIC_STATUS_KEY=3;\nexport const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;\nconst TOPIC_META_PREFIX='thought-read-index:v1:topic:';\nconst TOPIC_KIND_PREFIX='thought_topic_v1:';\nconst MAX_TIME=9007199254740991;\n\nconst topicMetaId=id=>TOPIC_META_PREFIX+id;\nconst topicKind=(generationId,sort)=>TOPIC_KIND_PREFIX+generationId+':'+sort;\nconst codeKey=value=>Array.from(String(value),ch=>ch.codePointAt(0).toString(16).padStart(6,'0')).join('');\nconst inverseHex=value=>value.replace(/[0-9a-f]/g,ch=>(15-parseInt(ch,16)).toString(16));\nconst millis=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?Math.max(0,Math.min(MAX_TIME,n)):0;};\nconst timeKey=(value,sort)=>{\n const n=millis(value),v=sort==='desc'?MAX_TIME-n:n;\n return String(v).padStart(16,'0');\n};\nconst entryKey=(id,sort)=>sort==='desc'?inverseHex(codeKey(id)):codeKey(id);\nconst descriptorId=(generationId,sort,d)=>[\n 'thought-topic',generationId,sort,\n Number.isFinite(Date.parse(d.effectiveTime||''))?'0':'1',\n String(d.sectionRank||'').padStart(12,'0'),\n codeKey(d.sectionId),\n timeKey(d.effectiveTime,sort),\n entryKey(d.entryId,sort)\n].join(':');\nconst expressionYearKey=(year,sort)=>Number.isInteger(year)?'0:'+String(sort==='desc'?9999-year:year).padStart(4,'0'):'1:unknown';\nconst expressionPrefix=(generationId,sort,year)=>'thought-expression:'+generationId+':'+sort+':'+expressionYearKey(year,sort)+':';\nconst expressionTimeKey=(at,sort)=>{const time=Date.parse(at||''),shifted=Number.isFinite(time)?time+62167219200000:0;return String(sort==='desc'?315569520000000-shifted:shifted).padStart(15,'0');};\nconst expressionDescriptorId=(generationId,sort,d)=>expressionPrefix(generationId,sort,d.expressionTime?.year)+expressionTimeKey(d.expressionTime?.at,sort)+':'+entryKey(d.entryId,sort);\n\nasync function writeTopicDescriptor(t,generationId,descriptor){\n for(const sort of ['asc','desc']){\n  const id=descriptorId(generationId,sort,descriptor);\n  await t.put('libraryMigrationItems',{\n   id,statusKey:THOUGHT_TOPIC_STATUS_KEY,entityKind:topicKind(generationId,sort),\n   topicId:descriptor.topicId,layoutGeneration:descriptor.layoutGeneration,\n   entryId:descriptor.entryId,sectionId:descriptor.sectionId,\n   sectionRank:descriptor.sectionRank,rank:descriptor.rank,\n   placementRevision:descriptor.placementRevision,\n   entryRevision:descriptor.entryRevision,\n   expressionTime:descriptor.expressionTime,providerKeys:descriptor.providerKeys||[],\n   sourceSentAt:descriptor.sourceSentAt||null,\n   capturedAt:descriptor.capturedAt||null,\n   effectiveTime:descriptor.effectiveTime||null,\n   timeBasis:descriptor.timeBasis||'unknown',\n   sourceRecordIds:[]\n  });\n  await t.put('libraryMigrationItems',{\n   id:expressionDescriptorId(generationId,sort,descriptor),statusKey:THOUGHT_TOPIC_STATUS_KEY,\n   entityKind:topicKind(generationId,'expression-'+sort),...descriptor,sourceRecordIds:[]\n  });\n }\n}\n";
+const ORIGINAL_SHA256="300f6484445e84152a2406bbb8481d6bfb88454b31facef3b31413682b155889";
+const original=runInNewContext(ORIGINAL_SOURCE.replace(/^export /gm,'')+'\n({writeProjection,writeTopicDescriptor})');
+const capture=()=>{const calls=[];return {calls,t:{put:async(store,row)=>{calls.push(['put',store,structuredClone(row)]);},delete:async(store,id)=>{calls.push(['delete',store,id]);}}};};
+const descriptor=()=>({topicId:'synthetic-topic',layoutGeneration:'synthetic-layout',entryId:'synthetic-entry-汉🧠',sectionId:'synthetic-default',sectionRank:'000000001024',rank:'000000001024',placementRevision:2,entryRevision:3,expressionTime:{at:'2026-10-01T00:00:00.000Z',year:2026,basis:'user'},providerKeys:['synthetic-provider'],sourceSentAt:null,capturedAt:'2026-10-01T00:00:00.000Z',effectiveTime:'2026-10-01T00:00:00.000Z',timeBasis:'capture'});
+test('frozen original source and ordered put/delete evidence remain intact',async()=>{
+ assert.equal(createHash('sha256').update(ORIGINAL_SOURCE).digest('hex'),ORIGINAL_SHA256);
+ const root=capture();await original.writeProjection(root.t,'synthetic-generation',{id:'synthetic-topic',lifecycle:'active',createdAt:null});assert.equal(root.calls.length,1);assert.equal(root.calls[0][0],'put');
+ await original.writeProjection(root.t,'synthetic-generation',{id:'synthetic-topic',lifecycle:'removed',createdAt:null});assert.equal(root.calls[1][0],'delete');assert.equal(root.calls[1][2],root.calls[0][2].id);
+ const topic=capture();await original.writeTopicDescriptor(topic.t,'synthetic-generation',descriptor());assert.equal(topic.calls.length,4);assert.deepEqual(topic.calls.map(call=>call[2].entityKind),['thought_topic_v1:synthetic-generation:asc','thought_topic_v1:synthetic-generation:expression-asc','thought_topic_v1:synthetic-generation:desc','thought_topic_v1:synthetic-generation:expression-desc']);
+});
+import {readFile} from 'node:fs/promises';
+import {planThoughtRootProjection,planThoughtTopicDescriptorRows} from '../core/thought-read-index.js';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {local} from './harness/thought-m1.mjs';
+import {descriptorReader} from '../core/organizer/topic-reading.js';
+globalThis.IDBKeyRange=IDBKeyRange;
+const currentSource=await readFile(new URL('../core/thought-read-index.js',import.meta.url),'utf8');
+const current=runInNewContext(currentSource.replace(/^import .*\n/gm,'').replace(/^export /gm,'')+'\n({writeProjection,writeTopicDescriptor})');
+const plain=value=>structuredClone(value);
+async function equalWriter(name,args){const before=capture(),after=capture();await original[name](before.t,...plain(args));await current[name](after.t,...plain(args));assert.deepEqual(after.calls,before.calls);return before.calls;}
+test('Root constructor retains original IDs/defaults and active/removed/redirected put-delete semantics',async()=>{
+ for(const row of [{id:'synthetic汉🧠',lifecycle:'active'},{id:'synthetic',lifecycle:'active',createdAt:'2026-10-01',extra:'not copied'},{id:'synthetic',lifecycle:'removed',createdAt:null},{id:'synthetic',lifecycle:'active',redirectTo:'other',createdAt:''}]){
+  const unchanged=plain(row),calls=await equalWriter('writeProjection',['synthetic_generation',row]),plan=planThoughtRootProjection(row,'synthetic_generation');assert.deepEqual(row,unchanged);assert.equal(plan.id,calls[0][0]==='put'?calls[0][2].id:calls[0][2]);assert.deepEqual(plan.row,calls[0][0]==='put'?calls[0][2]:null);
+ }
+});
+test('Topic constructor retains all four original complete payloads including defaults/Unicode/unknown time and spread precedence',async()=>{
+ for(const row of [descriptor(),{...descriptor(),effectiveTime:null,expressionTime:{at:null,year:null},providerKeys:undefined,sourceSentAt:'',capturedAt:'',timeBasis:''},{...descriptor(),id:'original descriptor id precedence',statusKey:91,entityKind:'original spread precedence',extraOriginalField:'retained expression field',sourceRecordIds:['must become original empty array']}]){
+  const unchanged=plain(row),calls=await equalWriter('writeTopicDescriptor',['synthetic_generation',row]);assert.deepEqual([...planThoughtTopicDescriptorRows(row,'synthetic_generation')],calls.map(call=>call[2]));assert.deepEqual(row,unchanged);
+ }
+});
+test('Topic writer observes mutation during each awaited put at the same original construction step',async()=>{
+ const run=async writer=>{const input=descriptor(),calls=[];await writer({put:async(store,row)=>{calls.push(['put',store,plain(row)]);const n=calls.length;input.entryId='synthetic after '+n;input.effectiveTime=n%2?null:'2025-01-01';input.providerKeys=['after-'+n];input.extraLate='after-'+n;input.expressionTime={year:2025,at:'2025-01-01'};}},'synthetic_generation',input);return {calls,input};};
+ assert.deepEqual(await run(current.writeTopicDescriptor),await run(original.writeTopicDescriptor));
+});
+test('original put failure identity/order stops before constructing or writing any later row',async()=>{
+ for(const stop of [1,2,3,4])for(const primary of [new Error('synthetic exact original failure'),null]){
+  const run=async writer=>{const calls=[],input=descriptor();let thrown=false,caught;try{await writer({put:async(store,row)=>{calls.push(plain(row));if(calls.length===stop)throw primary;}},'synthetic_generation',input);}catch(error){thrown=true;caught=error;}assert.equal(thrown,true);assert.equal(caught,primary);assert.equal(calls.length,stop);return calls;};
+  assert.deepEqual(await run(current.writeTopicDescriptor),await run(original.writeTopicDescriptor));
+ }
+});
+test('original property access and getter error ordering survives lazy constructor extraction',async()=>{
+ const run=async writer=>{const reads=[],input=descriptor(),primary=new Error('synthetic getter failure');Object.defineProperty(input,'effectiveTime',{get(){reads.push('effectiveTime');if(reads.length>2)throw primary;return null;},enumerable:true});const calls=[];let caught;try{await writer({put:async(store,row)=>{calls.push(['put',store]);reads.push('await put '+calls.length);}},'synthetic_generation',input);}catch(error){caught=error;}assert.equal(caught,primary);return {reads,calls};};
+ assert.deepEqual(await run(current.writeTopicDescriptor),await run(original.writeTopicDescriptor));
+});
+test('actual original Topic/default and named Section/Placement descriptors match every frozen projection byte',async()=>{
+ let tick=0;const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:()=>new Date(Date.UTC(2026,9,1)+tick++).toISOString()});await s.consent(true);await s.finishFoundation();
+ try{
+  const op=()=>crypto.randomUUID(),topic=await s.createTopic({name:'SYNTHETIC projection owner',operationId:op()}),named=await s.createSection({topicId:topic.id,expectedTopicRevision:0,title:'SYNTHETIC named Section',operationId:op()});
+  for(const sectionId of [topic.defaultSectionId,named.sectionId]){const entry=await s.createEntry({actor:'user',body:'SYNTHETIC projection body 汉🧠',type:'idea',formation:'explicit',evidence:[],operationId:op()}),currentTopic=await s.topic(topic.id);await s.placeEntry({entryId:entry.id,topicId:topic.id,sectionId,expectedEntryRevision:entry.revision,expectedTopicRevision:currentTopic.organizationRevision,operationId:op()});}
+  const captured=await s.repository.transaction(false,async t=>{const actualTopic=await t.get('topics',topic.id),placements=(await t.all('placements')).filter(row=>row.topicId===topic.id&&row.lifecycle==='active');return {actualTopic,descriptors:await Promise.all(placements.map(row=>descriptorReader(s)(t,actualTopic,row)))};});
+  assert.equal(captured.descriptors.length,2);assert.equal(new Set(captured.descriptors.map(row=>row.sectionId)).size,2);await equalWriter('writeProjection',['synthetic_actual',captured.actualTopic]);
+  for(const row of captured.descriptors){assert.ok(row);const calls=await equalWriter('writeTopicDescriptor',['synthetic_actual',row]);assert.deepEqual([...planThoughtTopicDescriptorRows(row,'synthetic_actual')],calls.map(call=>call[2]));assert.equal(calls.length,4);assert.ok(calls.every(call=>!Object.hasOwn(call[2],'thoughtText')));}
+ }finally{s.repository.close();}
+});
