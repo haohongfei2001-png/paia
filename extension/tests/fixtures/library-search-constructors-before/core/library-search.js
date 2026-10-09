@@ -7,35 +7,24 @@ const hash=s=>{let h=2166136261;for(const c of s){h^=c.codePointAt(0);h=Math.imu
 export function tokens(text){const words=normalize(text).match(/[\p{Script=Han}]|[\p{L}\p{N}_]+/gu)||[];return [...new Set(words.map(hash))].sort();}
 export const ownerVersion=(kind,r)=>kind==='entry'?`${r.contentRevision}:${r.fieldRevisions?.type||0}:${r.lifecycle}:${r.searchSafetyVersion||0}`:`${r.revision}:${r.lifecycle}:${r.layoutGeneration||0}`;
 export const ownerStore=kind=>({entry:'thoughts',topic:'topics',section:'sections'})[kind];
-// Pure original constructors, not admission/permission or a completion proof.
-export function planSearchQueueLocator(kind,row,version=ownerVersion(kind,row)){
- return {id:JSON.stringify(['search',kind,row.id]),entityKind:'search',statusKey:0,ownerKind:kind,ownerId:row.id,version,phase:'delete',offset:0,sourceRecordIds:row.sourceRecordIds||[]};
-}
-export function planSearchPostings(kind,row){
- const fields=kind==='entry'?{title:row?.title||'',body:row?.thoughtText||'',type:row?.type||''}:kind==='topic'?{name:row?.name||''}:{title:row?.title||''};
- return row?.lifecycle==='active'?Object.entries(fields).flatMap(([field,text])=>tokens(text).map(tokenHash=>({tokenHash,field}))):[];
-}
-export function planSearchPostingRow(task,posting,live){
- return {id:JSON.stringify([task.ownerKind,task.ownerId,posting.field,posting.tokenHash]),ownerKind:task.ownerKind,ownerId:task.ownerId,...posting,version:task.version,tokenizerVersion:SEARCH_VERSION,sourceRecordIds:live.sourceRecordIds||[]};
-}
 export async function queueSearch(t,kind,row,{derivedOnly=false}={}){
  // Durable cleanup locator for generated organization labels, including copied layouts.
  if(['topic','section'].includes(kind)&&row.sourceRecordIds?.length)await t.put('libraryMigrationItems',{id:JSON.stringify(['organizer-metadata',kind,row.id]),entityKind:'organizer_metadata',statusKey:1,ownerKind:kind,ownerId:row.id,sourceRecordIds:row.sourceRecordIds});
  const version=ownerVersion(kind,row);if(row.searchVersion===version)return;
  row.searchVersion=version;await (derivedOnly?t.putDerivedSearchRow(ownerStore(kind),row):t.put(ownerStore(kind),row));
- await t.put('libraryMigrationItems',planSearchQueueLocator(kind,row,version));
+ await t.put('libraryMigrationItems',{id:JSON.stringify(['search',kind,row.id]),entityKind:'search',statusKey:0,ownerKind:kind,ownerId:row.id,version,phase:'delete',offset:0,sourceRecordIds:row.sourceRecordIds||[]});
 }
 export async function searchBatch(store){
  await store.finishFoundation();
  const work=await store.run(()=>store.repository.transaction(false,async t=>{const page=await t.rangePage('libraryMigrationItems','byStatus',prefix([0,'search']),null,20),out=[];for(const {value:task}of page.rows)out.push({task,row:await t.get(ownerStore(task.ownerKind),task.ownerId)});return out;}));if(!work.length)return {pending:false};
  // Hash/tokenize outside IDB. A batch has at most 20 owners and 200 posting mutations.
- for(const item of work){const {task,row}=item;item.postings=planSearchPostings(task.ownerKind,row);}
+ for(const item of work){const {task,row}=item,fields=task.ownerKind==='entry'?{title:row?.title||'',body:row?.thoughtText||'',type:row?.type||''}:task.ownerKind==='topic'?{name:row?.name||''}:{title:row?.title||''};item.postings=row?.lifecycle==='active'?Object.entries(fields).flatMap(([field,text])=>tokens(text).map(tokenHash=>({tokenHash,field}))):[];}
  return store.libraryMaintenanceWrite(async t=>{let budget=200;
   for(const {task,postings}of work){if(!budget)break;const current=await t.get('libraryMigrationItems',task.id),live=await t.get(ownerStore(task.ownerKind),task.ownerId);if(!current||current.version!==task.version||current.offset!==task.offset||current.phase!==task.phase)continue;
    if(!live||live.searchVersion!==task.version){await t.delete('libraryMigrationItems',task.id);continue;}
    if(current.phase==='delete'){const page=await t.rangePage('librarySearchTerms','byOwner',prefix([task.ownerKind,task.ownerId]),null,budget);for(const {value:r}of page.rows)await t.delete('librarySearchTerms',r.id);budget-=page.rows.length;if(page.next){await t.put('libraryMigrationItems',current);break;}current.phase='write';}
    const allowed=task.ownerKind!=='entry'||await store.sourcePresent(t,live.sourceRecordIds),chunk=allowed?postings.slice(current.offset,current.offset+budget):[];
-   for(const p of chunk)await t.put('librarySearchTerms',planSearchPostingRow(task,p,live));budget-=chunk.length;current.offset+=chunk.length;
+   for(const p of chunk)await t.put('librarySearchTerms',{id:JSON.stringify([task.ownerKind,task.ownerId,p.field,p.tokenHash]),ownerKind:task.ownerKind,ownerId:task.ownerId,...p,version:task.version,tokenizerVersion:SEARCH_VERSION,sourceRecordIds:live.sourceRecordIds||[]});budget-=chunk.length;current.offset+=chunk.length;
    if(!allowed||current.offset>=postings.length){live.indexedSearchVersion=task.version;await t.putDerivedSearchRow(ownerStore(task.ownerKind),live);await t.delete('libraryMigrationItems',task.id);}else await t.put('libraryMigrationItems',current);
   }return {pending:true};
  });
