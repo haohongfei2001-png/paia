@@ -23,11 +23,20 @@ async function describePlacement(s,t,topic,p){
  }
  const time=await entryTime(t,row.id),rawTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
  const effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
+ const descriptor=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
+ descriptor.next();
+ descriptor.next(await expressionTime(s,t,row));
+ return descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+}
+// Original descriptor construction only. The two suspension points retain
+// property observation across the original expression/provider awaits.
+// Supplied facts are not a native cut, reader, scope or recovery permission.
+export function* planHumanPlacementDescriptor(topic,p,row,time,effectiveTime){
  return {
   topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,
   entryId:p.entryId,sectionId:p.sectionId,sectionRank:p.sectionRank,rank:p.rank,
   placementRevision:p.revision,entryRevision:row.revision,
-  expressionTime:await expressionTime(s,t,row),providerKeys:await entryProviderKeys(s,t,row.id),
+  expressionTime:(yield),providerKeys:(yield),
   ...time,effectiveTime,
   timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
  };
