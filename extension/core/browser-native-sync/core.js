@@ -1,3 +1,4 @@
+import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,assertHumanBranchRetentionCurrent,finishHumanBranchRetention} from './human-library-plan.js';
 import {CODECS,validateEntityAsync} from './codecs.js';
 import {canonical,clone,count,digest,equal,exact,fail,hash,identifier,opaque,SyncError,bytes} from './value.js';
 
@@ -48,6 +49,8 @@ export function acceptSequence(current,sequence){
 // adapter, automatic enablement or second user-facing content store is installed.
 export class BrowserNativeSyncCore {
  #humanTransactions=new WeakMap();
+ #humanRetentionTransactions=new WeakMap();
+ #retentionRepositoryTransaction;
  #humanPrepared=new WeakSet();
  #appendTransactions=new WeakMap();
  #appendPrepared=new WeakSet();
@@ -59,7 +62,7 @@ export class BrowserNativeSyncCore {
   if(!opaque(datasetId)||!opaque(deviceId))fail('BNS_IDENTITY_INVALID');
   if(conflictOwners!==null&&(!exact(conflictOwners,['contextDesired'])||Object.values(conflictOwners).some(owner=>typeof owner!=='function')))fail('BNS_CONFLICT_OWNER_INVALID');
   this.conflictOwners=Object.freeze({...conflictOwners});
-  this.repository=repository;this.datasetId=datasetId;this.deviceId=deviceId;
+  this.repository=repository;this.#retentionRepositoryTransaction=typeof repository?.transaction==='function'?repository.transaction.bind(repository):null;this.datasetId=datasetId;this.deviceId=deviceId;
   if(namespace!==null&&!opaque(namespace))fail('BNS_NAMESPACE_INVALID');
   this.prefix=`bns:v1:${datasetId}:`;this.fixedNamespace=namespace;this.boundTransactions=new WeakMap();this.materialize=materialize;this.checkpoint=checkpoint;
  }
@@ -169,8 +172,8 @@ export class BrowserNativeSyncCore {
   }
   return false;
  }
- async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null}={}){
-  if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability))fail('BNS_HUMAN_COMMIT_REQUIRED');
+ async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability)){const retention=this.#humanRetentionTransactions.get(t);if(!retention||retention!==humanRetentionCapability||retention.phase!=='apply'||!retention.operations?.has(operation))fail('BNS_HUMAN_COMMIT_REQUIRED');}
   if(origin==='remote'&&['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(appendCapability===null||this.#appendTransactions.get(t)!==appendCapability))fail('BNS_SOURCE_APPEND_REQUIRED');
   if(origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
   if(origin==='remote'&&['inputWorkingMember','inputWorkingCommit'].includes(operation.type)&&(workingCapability===null||this.#workingTransactions.get(t)!==workingCapability))fail('BNS_WORKING_COMMIT_REQUIRED');
@@ -277,6 +280,30 @@ export class BrowserNativeSyncCore {
   if(prepared.duplicate||await this.bind(t)!==prepared.namespace||((await this.get(t,'generation'))?.value||0)!==prepared.generation)fail('BNS_PREPARATION_STALE');
   for(const op of prepared.members){const head=await this.get(t,'head',op.type,op.entityId);if(head?.purged||!equal(head?.revisions||[],op.parents))fail('BNS_HUMAN_OWNER_CHANGED');}
   const capability=Object.freeze({});this.#humanTransactions.set(t,capability);try{await writeOwner();for(const op of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,humanCapability:capability});if(result.state!=='applied')fail('BNS_HUMAN_ANCESTRY_REQUIRED');}return {state:'applied'};}finally{this.#humanTransactions.delete(t);}
+ }
+ async #retentionTransaction(fn){
+  if(!this.#retentionRepositoryTransaction)fail('BNS_HUMAN_BINDING_REQUIRED');let semanticError;try{return await this.#retentionRepositoryTransaction(true,async t=>{try{return await fn(t);}catch(error){if(error instanceof SyncError)semanticError=error;throw error;}});}catch(error){throw semanticError||error;}
+ }
+ requireHumanRetentionTransaction(t,retention,group){
+  const proof=this.#humanRetentionTransactions.get(t);if(!proof||proof.core!==this||proof.retention!==retention||proof.group!==group||proof.repository!==this.repository||proof.database!==this.repository.db||proof.transaction!==t.tx||this.boundTransactions.get(t)!==proof.namespace||t.tx.db!==proof.database||t.tx.mode!=='readwrite'||proof.phase!=='validate')fail('BNS_HUMAN_RETENTION_REQUIRED');
+ }
+ async retainHumanBranch(retention){
+  const claim=claimHumanBranchRetention(this,retention);
+  try{
+   const result=await this.#retentionTransaction(async t=>{
+    assertHumanBranchRetentionCurrent(this,retention);if(this.repository!==claim.repository||this.repository.db!==claim.database||t.tx.db!==claim.database||t.tx.mode!=='readwrite'||await this.bind(t)!==claim.namespace)fail('BNS_HUMAN_CHANGED');assertHumanBranchRetentionCurrent(this,retention);
+    const proof={core:this,retention,group:claim.group,repository:claim.repository,database:claim.database,transaction:t.tx,namespace:claim.namespace,phase:'validate'};this.#humanRetentionTransactions.set(t,proof);
+    try{
+     const checked=await requireHumanBranchRetentionInTransaction(t,this,retention);assertHumanBranchRetentionCurrent(this,retention);
+     if(checked.duplicate)return {state:'duplicate',materialization:'not-reapplied'};
+     proof.operations=new Set(checked.protocol.operations);proof.phase='apply';
+     for(const op of [...checked.protocol.members,checked.protocol.descriptor]){const value=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,humanRetentionCapability:proof});if(!['applied','conflict'].includes(value.state))fail('BNS_HUMAN_CHANGED');}
+     for(const expected of checked.expected){const head=await this.get(t,'head',expected.type,expected.entityId);if(head?.purged||!equal(head?.revisions,expected.revisions))fail('BNS_HUMAN_CHANGED');}
+     assertHumanBranchRetentionCurrent(this,retention);return {state:'retained-conflict'};
+    }finally{this.#humanRetentionTransactions.delete(t);}
+   });
+   assertHumanBranchRetentionCurrent(this,retention);return result;
+  }finally{finishHumanBranchRetention(this,retention);}
  }
  async prepareWorkingReceive(input){
   if(!Array.isArray(input)||input.length<5||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_WORKING_COMMIT_INVALID');

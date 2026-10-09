@@ -375,7 +375,10 @@ function branchFence(store,core,fence){branchReady(store,core,fence.binding);if(
 function branchNoIndex(value){if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(key==='indexedSearchVersion')fail('BNS_HUMAN_BRANCH_UNAVAILABLE');branchNoIndex(item);}}
 async function branchRaw(store,core,protocol,fence){
  branchFence(store,core,fence);
- const raw=await core.transaction(false,async t=>{
+ const raw=await core.transaction(false,t=>branchRawInTransaction(store,core,protocol,fence,t));
+ branchFence(store,core,fence);return raw;
+}
+async function branchRawInTransaction(store,core,protocol,fence,t){
   branchFence(store,core,fence);if(t.tx.db!==fence.binding.database)fail('BNS_HUMAN_CHANGED');
   const request=protocol.descriptor.value.request,id=request.id,records=new Map(),budgetRecords=[],budgetGroups=[],budget={input:protocol.operations,controlValues:fence.controlValues,records:budgetRecords,groups:budgetGroups};branchRawSize(budget);
   const get=async(kind,...parts)=>{const key=JSON.stringify([kind,...parts]);if(!records.has(key)){const row=await core.get(t,kind,...parts)??null;budgetRecords.push([key,row]);branchRawSize(budget);records.set(key,row);}return records.get(key);};
@@ -410,8 +413,6 @@ async function branchRaw(store,core,protocol,fence){
   const parentReceipt=await t.get('operationReceipts',parentGroup.at(-1).value.domainOperationId)??null;if(parentReceipt?.namespace!=='thought-library'||parentReceipt.schemaVersion!==1||parentReceipt.id!==parentGroup.at(-1).value.domainOperationId||parentReceipt.ownerId!==id||parentReceipt.digest!==parentGroup.at(-1).value.ownerRequestDigest||parentReceipt.result?.id!==id||parentReceipt.result?.revision!==parent.value.after.revision||!Number.isSafeInteger(parentReceipt.operationSequence)||parentReceipt.operationSequence<2)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
   const result={input:protocol.operations,controlValues:fence.controlValues,entry,read,receipt,records:[...records].sort(([a],[b])=>a<b?-1:a>b?1:0),parentReceipt,parent:parent.value.after,history,mapping,currentEntry:current.operation,currentHistory,groups:[...groups].sort(([a],[b])=>a<b?-1:a>b?1:0)};
   if(branchRawSize(result)>BRANCH_RAW_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');return result;
- });
- branchFence(store,core,fence);return raw;
 }
 async function branchQualify(store,core,protocol,raw,fence){
  for(const [,group]of raw.groups){await validateHumanCommitGroup(group,core.datasetId);await restoreHumanRequest(group.at(-1).value);}
@@ -451,12 +452,81 @@ export async function captureHumanBranchSemanticWitness(store,core,completeGroup
   // independently captured reread may occupy the other half, even on a race.
   branchTrim(state,BRANCH_RAW_BYTES-size);while(state.handles.length>=BRANCH_HANDLES)branchForget(state,state.handles[0]);
   const finalFence=await branchQualify(store,core,protocol,raw,fence),fresh=await branchRaw(store,core,protocol,finalFence);if(!equal(raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,finalFence);
-  const cap=Object.freeze({});branchWitnesses.set(cap,{store,core,raw,size,binding:finalFence.binding,control:finalFence.control,controlValues:raw.controlValues});state.handles.push(cap);state.bytes+=size;state.candidateBytes=0;return cap;
+  const cap=Object.freeze({});branchWitnesses.set(cap,{kind:'semantic',store,core,raw,size,binding:finalFence.binding,control:finalFence.control,controlValues:raw.controlValues});state.handles.push(cap);state.bytes+=size;state.candidateBytes=0;return cap;
  }finally{state.candidateBytes=0;state.busy=false;}
 }
 export async function revalidateHumanBranchSemanticWitness(store,core,witness){
- const p=branchWitnesses.get(witness);if(!p||p.store!==store||p.core!==core)fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
+ const p=branchWitnesses.get(witness);if(!p||p.kind!=='semantic'||p.store!==store||p.core!==core)fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
   const pendingBytes=branchRawSize([p.raw.input,p.raw.input,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes),witness);
   const fence=await branchBarrier(store,core,p.binding);if(fence.control!==p.control||!equal(fence.controlValues,p.controlValues))fail('BNS_HUMAN_CHANGED');const protocol=await validateHumanCommitGroup(clone(p.raw.input),core.datasetId),fresh=await branchRaw(store,core,protocol,fence);if(!equal(p.raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,fence);
  }catch(error){branchForget(state,witness);throw error;}finally{state.busy=false;}
 }
+
+// Unused first-sibling retention. All three handle kinds share the original
+// store registry, byte budget and in-flight slot; a witness is consumed once.
+const retentionKind=p=>p&&(p.kind==='retention'||p.kind==='duplicate');
+const immutable=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const item of Object.values(value))immutable(item);Object.freeze(value);}return value;};
+function retainedProtocol(input){const descriptor=input.find(op=>op.type==='humanLibraryCommit');return {operations:input,descriptor,members:descriptor.value.members.map(ref=>input.find(op=>op.revisionId===ref.revisionId))};}
+function retentionProtocolShape(protocol,core){
+ const entries=protocol.members.filter(op=>op.value.entityType==='entry'),d=protocol.descriptor.value;
+ if(d.kind!=='entry-edit'||!branchBodyOnly(d.request)||d.allocation.indexGenerationCount!==0||entries.length!==1||protocol.operations.some(op=>op.deviceId===core.deviceId)||protocol.members.some(op=>!['entry','history'].includes(op.value.entityType)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const row of [entries[0].value.before,entries[0].value.after])if(!row||row.lifecycle!=='active'||row.bodyBinding!=='thought'||row.provenanceType!=='user_created'||row.organizationRevision!==0||row.dependencyRevision!==0||row.sourceRecordIds.length||row.inputRefs.length||row.topics.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const op of protocol.members.filter(op=>op.value.entityType==='history'))if(op.value.after.kind!=='library_entry'||op.value.after.entityId!==entries[0].value.after.id)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+}
+function retentionRegister(state,p,previous=null){
+ if(previous)branchForget(state,previous);branchTrim(state,BRANCH_RAW_BYTES-p.size);while(state.handles.length>=BRANCH_HANDLES)branchForget(state,state.handles[0]);
+ const cap=Object.freeze({});branchWitnesses.set(cap,p);state.handles.push(cap);state.bytes+=p.size;return cap;
+}
+async function retentionProtocolRead(t,core,protocol,budget){
+ const records=[],expected=[];budget.protocol={records,expected};branchRawSize(budget);
+ const get=async(kind,...parts)=>{const row=await core.get(t,kind,...parts)??null;records.push([JSON.stringify([kind,...parts]),row]);branchRawSize(budget);return row;};
+ await get('generation');for(const device of new Set(protocol.operations.map(op=>op.deviceId))){await get('frontier',device);await get('device',device);}
+ let present=0;
+ for(const op of protocol.operations){
+  const receipt=await get('receipt',op.operationId),sequence=await get('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),revision=await get('revision',op.revisionId),entityRevision=await get('entityRevision',op.type,op.entityId,op.revisionId),head=await get('head',op.type,op.entityId);
+  const quarantine=await get('quarantine',op.operationId),pending=await get('pending',op.operationId),entityPending=await get('entityPending',op.type,op.entityId,op.operationId);
+  if(quarantine||pending||entityPending||head?.purged)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  if(receipt||sequence||revision||entityRevision){
+   if(receipt?.digest!==op.revisionId||receipt.deviceId!==op.deviceId||receipt.sequence!==op.sequence||sequence?.operationId!==op.operationId||sequence.digest!==op.revisionId||revision?.redacted||!equal(revision?.operation??null,op)||entityRevision?.revisionId!==op.revisionId)fail('BNS_OPERATION_COLLISION');present++;
+  }
+  const heads=[];for(const id of head?.revisions||[]){let replaced=false;for(const parent of op.parents)if(await core.ancestor(t,id,parent)){replaced=true;break;}if(!replaced)heads.push(id);}
+  expected.push({type:op.type,entityId:op.entityId,revisions:[...new Set([...heads,op.revisionId])].sort()});branchRawSize(budget);
+ }
+ if(present!==0&&present!==protocol.operations.length)fail('BNS_OPERATION_COLLISION');return {present,records,expected};
+}
+export async function prepareHumanBranchRetention(store,core,witness){
+ const previous=branchWitnesses.get(witness),state=branchState(store);if(previous?.kind!=='semantic'||previous.store!==store||previous.core!==core||!state.handles.includes(witness))fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');
+ if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;
+ try{
+  branchTrim(state,BRANCH_RAW_BYTES,witness);const fence=await branchBarrier(store,core,previous.binding);if(fence.control!==previous.control||!equal(fence.controlValues,previous.controlValues))fail('BNS_HUMAN_CHANGED');
+  const protocol=retainedProtocol(previous.raw.input);retentionProtocolShape(protocol,core);
+  const raw=await core.transaction(false,async t=>{const semantic=await branchRawInTransaction(store,core,protocol,fence,t);if(!equal(semantic,previous.raw))fail('BNS_HUMAN_CHANGED');const value={semantic};const cut=await retentionProtocolRead(t,core,protocol,value);if(cut.present)fail('BNS_HUMAN_CHANGED');return value;});branchFence(store,core,fence);
+  const size=branchRawSize(raw),entryMember=protocol.members.find(op=>op.value.entityType==='entry'),entryHead=raw.protocol.expected.find(x=>x.type===entryMember.type&&x.entityId===entryMember.entityId);
+  if(entryHead?.revisions.length!==2||raw.protocol.expected.some(head=>head.revisions.length>2))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  immutable(raw);const group=immutable({descriptor:protocol.descriptor.revisionId,members:protocol.members.map(op=>op.revisionId)});
+  return retentionRegister(state,{kind:'retention',store,core,raw,size,binding:fence.binding,control:fence.control,controlValues:fence.controlValues,fence,protocol,group,claimed:false},witness);
+ }catch(error){branchForget(state,witness);throw error;}finally{state.busy=false;}
+}
+export async function prepareHumanBranchRetentionRetry(store,core,input){
+ const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;
+ try{
+  branchReady(store,core);const pendingBytes=branchRawSize([input,input,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes));
+  const fence=await branchBarrier(store,core),protocol=await validateHumanCommitGroup(input,core.datasetId);
+  retentionProtocolShape(protocol,core);
+  const raw=await core.transaction(false,async t=>{branchFence(store,core,fence);const value={input:protocol.operations,base:await base(store,core,t)};const cut=await retentionProtocolRead(t,core,protocol,value);return {raw:value,present:cut.present};});branchFence(store,core,fence);
+  if(!raw.present)return null;const size=branchRawSize(raw.raw);immutable(raw.raw);const group=immutable({descriptor:protocol.descriptor.revisionId,members:protocol.members.map(op=>op.revisionId)});
+  return retentionRegister(state,{kind:'duplicate',store,core,raw:raw.raw,size,binding:fence.binding,control:fence.control,controlValues:fence.controlValues,fence,protocol,group,claimed:false});
+ }finally{state.busy=false;}
+}
+export function claimHumanBranchRetention(core,retention){
+ const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||p.claimed)fail('BNS_HUMAN_RETENTION_REQUIRED');const state=branchState(p.store);if(!state.handles.includes(retention))fail('BNS_HUMAN_RETENTION_REQUIRED');if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');
+ state.busy=true;p.claimed=true;try{branchFence(p.store,core,p.fence);return Object.freeze({repository:p.binding.repository,database:p.binding.database,namespace:p.kind==='retention'?p.raw.semantic.entry.namespace:p.raw.base.namespace,group:p.group});}catch(error){branchForget(state,retention);state.busy=false;throw error;}
+}
+export function assertHumanBranchRetentionCurrent(core,retention){const p=branchWitnesses.get(retention);if(!retentionKind(p)||!p.claimed||p.core!==core)fail('BNS_HUMAN_RETENTION_REQUIRED');branchFence(p.store,core,p.fence);}
+export async function requireHumanBranchRetentionInTransaction(t,core,retention){
+ const p=branchWitnesses.get(retention);if(!retentionKind(p)||!p.claimed||p.core!==core)fail('BNS_HUMAN_RETENTION_REQUIRED');core.requireHumanRetentionTransaction(t,retention,p.group);branchFence(p.store,core,p.fence);
+ const raw=p.kind==='retention'?{semantic:await branchRawInTransaction(p.store,core,p.protocol,p.fence,t)}:{input:p.protocol.operations,base:await base(p.store,core,t)};
+ await retentionProtocolRead(t,core,p.protocol,raw);if(!equal(raw,p.raw))fail('BNS_HUMAN_CHANGED');branchFence(p.store,core,p.fence);
+ return {protocol:p.protocol,expected:p.raw.protocol.expected,duplicate:p.kind==='duplicate'};
+}
+export function finishHumanBranchRetention(core,retention){const p=branchWitnesses.get(retention);if(!retentionKind(p)||p.core!==core||!p.claimed)return;const state=branchState(p.store);branchForget(state,retention);state.busy=false;}
