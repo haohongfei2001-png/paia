@@ -34,6 +34,10 @@ const nativeAddEventListener=globalThis.EventTarget?.prototype.addEventListener;
 const nativeRemoveEventListener=globalThis.EventTarget?.prototype.removeEventListener;
 const nativeEventTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'target')?.get;
 const nativeEventCurrentTarget=globalThis.Event&&Object.getOwnPropertyDescriptor(globalThis.Event.prototype,'currentTarget')?.get;
+const NativeMessageChannel=globalThis.MessageChannel;
+const nativePortStart=globalThis.MessagePort?.prototype.start;
+const nativePortPost=globalThis.MessagePort?.prototype.postMessage;
+const nativePortClose=globalThis.MessagePort?.prototype.close;
 const nativeTransactionEvidence=transaction=>{
  try{if(!NativeIDBTransaction||!nativeTransactionDb||!nativeTransactionMode||!nativeAddEventListener||!nativeRemoveEventListener||!nativeEventTarget||!nativeEventCurrentTarget||!(transaction instanceof NativeIDBTransaction))return null;
   return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
@@ -52,9 +56,27 @@ export function requireRepositoryTransactionCommitted(repository,scope){
  // path, after every finalizer and actual native completion, proves commit.
  if(r.trustedNativeOutcome!=='completed'||r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
 }
+function waitNativeDispatchEnd(){
+ return new Promise((resolve,reject)=>{
+  let channel,finished=false;
+  const finish=error=>{
+   if(finished)return;finished=true;
+   try{if(channel)nativeRemoveEventListener.call(channel.port1,'message',received);}catch{error=true;}
+   for(const port of channel?[channel.port1,channel.port2]:[])try{nativePortClose.call(port);}catch{error=true;}
+   if(error)reject(new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED'));else resolve();
+  };
+  const received=event=>{try{if(event.isTrusted!==true||nativeEventTarget.call(event)!==channel.port1||nativeEventCurrentTarget.call(event)!==channel.port1)return;finish();}catch{finish(true);}};
+  try{
+   if(!NativeMessageChannel||!nativePortStart||!nativePortPost||!nativePortClose)throw Error('Native task unavailable');
+   channel=new NativeMessageChannel();nativeAddEventListener.call(channel.port1,'message',received);nativePortStart.call(channel.port1);nativePortPost.call(channel.port2,0);
+  }catch{finish(true);}
+ });
+}
 export async function awaitRepositoryTransactionSettled(repository,scope){
- // Waiting on an authentic closed scope is valid; never follow its mutable tx.
+ // Wait first: scheduling before native terminal + callback unwind could run
+ // too early. All real waiters share one lazy dispatch-end task per record.
  const r=scopeRecord(repository,scope);await r.settled;
+ if(r.identity.nativeTransaction){if(!r.dispatchEnd)r.dispatchEnd=waitNativeDispatchEnd();await r.dispatchEnd;}
 }
 
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);

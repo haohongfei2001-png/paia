@@ -293,7 +293,7 @@ export class BrowserNativeSyncCore {
   if(!proof||proof.wrapper!==t||proof.core!==this||proof.retention!==retention||proof.group!==group||proof.repository!==this.repository||proof.database!==scope.database||scope.database!==this.repository.db||this.boundTransactions.get(t)!==proof.namespace||scope.mode!=='readwrite'||proof.phase!=='validate')fail('BNS_HUMAN_RETENTION_REQUIRED');
  }
  async retainHumanBranch(retention){
-  const claim=claimHumanBranchRetention(this,retention),gate={open:true,entered:false,finished:false};let observed,proof,outcome;
+  const claim=claimHumanBranchRetention(this,retention),gate={open:true,entered:false,finished:false};let observed,proof,outcome,primaryError;
   const closing=()=>{if(proof){proof=Object.freeze({...proof,phase:'closing'});BrowserNativeSyncCore.#humanRetentionTransactions.set(observed.identity.token,proof);}};
   const current=()=>{
    if(!gate.open||!observed||BrowserNativeSyncCore.#humanRetentionTransactions.get(observed.identity.token)!==proof)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
@@ -325,9 +325,10 @@ export class BrowserNativeSyncCore {
    await awaitRepositoryTransactionSettled(claim.repository,observed.wrapper);
    requireRepositoryTransactionCommitted(claim.repository,observed.wrapper);
    assertHumanBranchRetentionCurrent(this,retention);return outcome;
-  }finally{
+  }catch(error){primaryError=error;throw error;}finally{
    gate.open=false;closing();
    try{if(observed)await awaitRepositoryTransactionSettled(claim.repository,observed.wrapper);}
+   catch(error){if(!primaryError)throw error;}
    finally{if(observed)BrowserNativeSyncCore.#humanRetentionTransactions.delete(observed.identity.token);finishHumanBranchRetention(this,retention,claim);}
   }
  }
