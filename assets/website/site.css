@@ -53,6 +53,10 @@
   scroll-behavior:smooth;
   scroll-padding-top:112px
 }
+/* Preserve proportional Latin punctuation when Georgia is unavailable. */
+html[lang='en'] {
+  --reader-font:Georgia,'Times New Roman','Liberation Serif',serif
+}
 *,*::before,*::after {
   box-sizing:border-box
 }

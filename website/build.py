@@ -64,7 +64,7 @@ def build(lang):
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/brand/paia-icon-v1.png" type="image/png">
 <link rel="apple-touch-icon" href="/assets/website/brand/paia-icon-v1.png">
-<link rel="stylesheet" href="/assets/website/site.css?v=20261009a">
+<link rel="stylesheet" href="/assets/website/site.css?v=20261009b">
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <script src="/assets/website/site.js?v=20261009a" defer></script>
