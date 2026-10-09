@@ -7,6 +7,12 @@ import {eventually} from './harness/fake-chatgpt.mjs';
 async function verifySavedSummaryAccess(p,variant){
  const summary=p.locator('[data-ai-saved-fields] > summary'),details=p.locator('[data-ai-saved-fields]'),cdp=await p.context().newCDPSession(p);
  const initial=await summary.evaluate(n=>({font:parseFloat(getComputedStyle(n).fontSize),style:n.getAttribute('style')}));
+ await summary.evaluate(n=>{
+  const state={node:n,details:n.parentNode,events:[],controller:new AbortController()};globalThis.__savedSummaryNative=state;
+  const record=(event,phase)=>{const active=document.activeElement;state.events.push({type:event.type,phase,at:performance.now(),trusted:event.isTrusted,defaultPrevented:event.defaultPrevented,key:[' ','Enter'].includes(event.key)?event.key:undefined,pointerType:event.pointerType,targetTag:event.target?.tagName,activeTag:active?.tagName,summaryFocused:active===n,documentFocused:document.hasFocus(),open:state.details.open,connected:n.isConnected,sameNode:document.querySelector('[data-ai-saved-fields] > summary')===n,recomposing:document.documentElement.classList.contains('paia-recomposing')});if(state.events.length>48)state.events.shift();};
+  for(const type of ['focusin','focusout','pointerdown','pointerup','touchstart','touchend','click','keydown','keyup'])for(const capture of [true,false])document.addEventListener(type,event=>record(event,capture?'capture':'bubble'),{capture,signal:state.controller.signal});
+  state.details.addEventListener('toggle',event=>record(event,'target'),{signal:state.controller.signal});
+ });
  try{
   await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
   assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),true,'real coarse pointer media is active');
@@ -23,7 +29,10 @@ async function verifySavedSummaryAccess(p,variant){
    await summary.focus();await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),opened,'Space restores disclosure after trusted touch');assert.equal(await summary.evaluate(n=>document.activeElement===n),true,'Space keeps summary focus after trusted touch');
    await p.screenshot({path:`work/consumer-cleanup/${variant}-saved-summary-coarse-text200-${language}.png`});
   }
- }finally{await summary.evaluate((n,style)=>{if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);},initial.style);try{await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});}finally{await cdp.detach();}}
+ }catch(error){
+  const state=await p.evaluate(()=>{const s=globalThis.__savedSummaryNative,n=document.querySelector('[data-ai-saved-fields] > summary');return {open:n?.parentNode.open,summaryFocused:document.activeElement===n,documentFocused:document.hasFocus(),sameNode:s?.node===n,connected:s?.node.isConnected,recomposing:document.documentElement.classList.contains('paia-recomposing'),coarse:matchMedia('(pointer:coarse)').matches,events:s?.events};}).catch(()=>null);
+  const detail='SAVED_SUMMARY_NATIVE_DIAGNOSTIC '+variant+' '+JSON.stringify(state);error.message+='\n'+detail;error.stack=(error.stack||String(error))+'\n'+detail;throw error;
+ }finally{await p.evaluate(()=>{globalThis.__savedSummaryNative?.controller.abort();delete globalThis.__savedSummaryNative;}).catch(()=>{});await summary.evaluate((n,style)=>{if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);},initial.style);try{await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});}finally{await cdp.detach();}}
 }
 
 async function setAIView(p,on){await rawSetAIView(p,on);if(on){const details=p.locator('[data-ai-saved-fields]');await details.waitFor();if(!await details.evaluate(n=>n.open))await details.locator('summary').click();}}
