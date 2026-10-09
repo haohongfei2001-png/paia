@@ -1125,7 +1125,10 @@ export async function captureHumanCurrentUnindexedProjection(store,core){
   const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
   await r.tail;projectionFence(r);r.raw=projectionRaw();currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
-  if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);projectionFence(r);
+  if(r.phase!=='observed')projectionRequired();projectionMeasure(r.raw,'native');projectionDeepFreeze(r.raw);projectionQualify(r);
+  // Admission must also be readable by the exact original whole-cut equality
+  // used at require. Meter and prepay both real canonical operands first.
+  if(!projectionEqual(r,r.raw,r.raw))projectionRequired();projectionFence(r);
   if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
   cap=Object.freeze({});const p={store,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
