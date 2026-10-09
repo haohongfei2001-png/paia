@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "corpusId": "PAIA-AIU-QWEN-CALIBRATION-v1",
+  "sourceBase": "707dd125bb48d75aaad2cb89b4b98ddc66837bbb",
+  "freezeStatus": "CALIBRATION_ONLY_HELD_OUT_PENDING",
+  "calibrationTopics": 24,
+  "reservedHeldOutTopics": 12,
+  "actualHeldOutTopics": 0,
+  "files": {
+    "calibration.json": {
+      "sha256": "56891aeb3abcc82e330e542007e849a2efb1c5b819274e11d2234cc2637d8d9b",
+      "bytes": 533147
+    },
+    "review-contract.json": {
+      "sha256": "0cda0babef3e2503e3efd8cb28f1f2fd143e8a953fd28dd38ff999adc1b400d3",
+      "bytes": 6125
+    }
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "id": "PAIA-QWEN-OFFLINE-REVIEW-v1",
+  "status": "DESIGN_ONLY",
+  "modelCallsAllowed": false,
+  "qualityQualification": "NOT_RUN",
+  "corpus": {
+    "id": "PAIA-AIU-QWEN-CALIBRATION-v1",
+    "calibrationTopics": 24,
+    "reservedHeldOutTopics": 12,
+    "heldOutActual": 0,
+    "syntheticAuthorsAreHumans": false
+  },
+  "receiptRequired": [
+    "corpusDigest",
+    "splitDigest",
+    "runtimeSourceCommit",
+    "runtimeOwnerDigests",
+    "styleContractVersion",
+    "modelExactId",
+    "aliasObservedAt",
+    "providerApiProfile",
+    "region",
+    "thinkingProfile",
+    "routeVersion",
+    "promptVersion",
+    "tokenizerProfile",
+    "inputPayloadDigest",
+    "scopeEntryVersions",
+    "logicalJobId",
+    "childAttemptReceipts",
+    "usageNativeCurrency",
+    "ratebookVersion",
+    "fxVersion",
+    "costUsdNormalized",
+    "outcome",
+    "validatedProposalDigest",
+    "candidateKey",
+    "decisionsDigest",
+    "sourceSpansDigest",
+    "fieldProvenanceDigest",
+    "protectedBeforeAfterDigest"
+  ],
+  "outcomes": [
+    "NOT_RUN",
+    "VALID_CANDIDATE",
+    "NO_DELTA",
+    "CACHED",
+    "DEFER",
+    "INVALID_SCHEMA",
+    "BUDGET_EXCEEDED",
+    "STALE_REFUSED",
+    "CANCELLED",
+    "FAILED_KNOWN",
+    "OUTCOME_UNKNOWN",
+    "UNAVAILABLE_SCOPE"
+  ],
+  "metricFields": [
+    "semantic_fidelity",
+    "unsupported_claims",
+    "original_word_retention",
+    "voice",
+    "uncertainty",
+    "chronology",
+    "evidence_coverage",
+    "compression",
+    "ownership",
+    "helpfulness",
+    "overediting",
+    "human_protection"
+  ],
+  "reviewRequired": [
+    "packetId",
+    "topicId",
+    "outputArtifactDigest",
+    "reviewerIdOpaque",
+    "reviewerKind",
+    "consentReceiptId",
+    "scaleVersion",
+    "ratings",
+    "claimAdjudications",
+    "criticalUnresolved",
+    "reviewedAt"
+  ],
+  "reviewerKinds": [
+    "HUMAN_AUTHOR",
+    "INDEPENDENT_HUMAN_SEMANTIC_REVIEWER"
+  ],
+  "automaticAuthorRatingsAllowed": false,
+  "blindPresentation": {
+    "hide": [
+      "mode",
+      "model",
+      "route",
+      "price",
+      "provider"
+    ],
+    "reveal": [
+      "originalSyntheticEvidence",
+      "knownOrUnknownTime",
+      "sourceRevision",
+      "outputText",
+      "unavailableOrExcludedEvidence"
+    ],
+    "privateAssignmentMapRequired": true,
+    "seedCommitmentRequired": true,
+    "labelsHideOnly": "semantic style can remain identifiable from wording; blindness is not guaranteed"
+  },
+  "denominators": {
+    "routing": "all adjudicated eligible held-out routing cases, with DEFER/coverage separately",
+    "unsupported_claim_rate": "unsupported generated assertions / all independently adjudicated generated assertions",
+    "uncertainty": "preserved annotated qualifiers / all applicable annotated qualifiers",
+    "chronology": "correct temporal relationships / all applicable adjudicated relationships",
+    "original_exact": "exact normalized-allowance source spans / all generated Original units; headings separate",
+    "coverage": "intended, eligible, covered, excluded, removed and unavailable source IDs each explicit",
+    "ownership": "human author-Topic ratings4-or5 / all completed authorized author-Topic judgments, separately per mode",
+    "confidenceIndependentUnit": "certified author-Topic or independently sampled opportunity; not characters/refs/fields/mode variants/duplicate runs"
+  },
+  "canonicalTargets": {
+    "routingAccuracy": 0.95,
+    "duplicateFormationMaximum": 0.01,
+    "needlessFormationMaximum": 0.02,
+    "unsupportedContextOrHighRiskFilterMaximum": 0.001,
+    "criticalViolationsObservedMaximum": 0,
+    "authorJudgmentsMinimumPerMode": 30,
+    "ownership4Or5Target": 0.8
+  },
+  "confidence": {
+    "zeroEventUpper95": "1 - 0.05^(1/n) for predeclared genuinely independent opportunities; hypothetical only until verified",
+    "correlatedHandling": "report clusters and paired results; no multiplication of n by3styles",
+    "unknownIndependence": "NO_POPULATION_CLAIM",
+    "tinySample": "PENDING not waived"
+  },
+  "runtimeScopeRequestedLater": [
+    "offline fixture loader using actual existing OrganizerStore/LocalOrganizeSession/candidate owners",
+    "strict artifact reader with no transport",
+    "deterministic blind packet formatter",
+    "manual human review receipt validator",
+    "denominator and confidence reporter"
+  ],
+  "excludedRuntime": [
+    "network/provider runner",
+    "credential/account/resource creation",
+    "automatic LLM grader",
+    "domain/schema migration",
+    "CI/version",
+    "real data upload",
+    "financial authority"
+  ],
+  "ownerFreeze": {
+    "docs/consumer-product-v1/AI_USAGE_PLAN.md": "f8f148f0edf64494b8e6c0be03ba1e83e460f16c566258fdd0032138afce083f",
+    "docs/consumer-product-v1/AI_ORGANIZE_STYLE_CONTRACT.md": "893e79a05bcb782d5761b20f289bd9eb595cf6a45858e329c57289531babcec7",
+    "docs/consumer-product-v1/AI_USAGE_ARCHITECTURE.md": "c37f5c7e35b424d1f316ad635c78cdcf9eac39b6565c16e7479233eee15169d6",
+    "docs/consumer-product-v1/AI_USAGE_REFERENCES.md": "a74ae4c54464c2ae178b90da11d400bedafd3e4bf7a2f9075ccdfcd2b732ab7e",
+    "core/organizer/local-organize-session.js": "238e47eff0de412161a992de065e12d97a1c2d006fb38414858e3fb0bfd8058c",
+    "core/organizer/ai-contract.js": "528e56033653bf97ec1c188ed739b2095a00a918e9ed6c89f38cf6844089214c",
+    "core/organizer/ai-incremental-v2.js": "9f1a7e714f5b8c6bf25201ca77bee790dd060e4c3aa7c5ad109b64c7d01fbbb1",
+    "core/organizer/ai-incremental-v3.js": "4d3e80f1618edd6d17149beb95cc6831d852df7beff0b4fa833a7c19b2f550a6",
+    "core/organizer/ai-candidate.js": "41f0234010625fc7ce9eacadd3744c13ae1735cdf1d76610c8025bb4724e4ec7",
+    "core/ai-usage/local-assist-session.js": "2b7ddc48105e25e0eda6d3b36594cb7f4459150bc765950929d12f5c1d654e70",
+    "scripts/topic-quality-round5-benchmark.mjs": "8fc7e5ae70daf4d78313209b5f96bc8c9e43d38d000b9035cfbacd7fa5893fb2",
+    "tests/fixtures/context-benchmark-v0101.mjs": "b99f95744273565f576c3e7cbf9a212012c3372f8a0f78a53bda8d967e40596f"
+  },
+  "outcomeSemantics": "Normalized evaluation statuses retain exact owner state/code separately; no missing or failed case becomes a successful empty generation."
+}
