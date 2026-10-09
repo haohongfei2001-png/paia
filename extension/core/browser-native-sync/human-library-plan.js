@@ -1035,21 +1035,34 @@ function projectionNativeOrder(r,store,view,parts){
  for(const row of expected){const key=projectionExpectedKey(row,path);projectionCompare.call(projectionFactory,key,key);}
  expected.sort((a,b)=>projectionCompare.call(projectionFactory,projectionExpectedKey(a,path),projectionExpectedKey(b,path))||projectionCompare.call(projectionFactory,a.id,b.id));
  if(expected.length!==view.keys.length)fail('BNS_HUMAN_CHANGED');
- for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),PROJECTION_SEMANTIC))fail('BNS_HUMAN_CHANGED');
+ for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),r.semantic))fail('BNS_HUMAN_CHANGED');
  return expected;
+}
+function projectionSemanticCharge(r){
+ let charge=PROJECTION_SEMANTIC;
+ // Prepaid fixed frame holds these two/three-element borrowed scalar arrays
+ // and one empty original constructor header. B bounds the exact JSON string
+ // units without allocating that string; no normalizer expansion is assumed.
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
+  projectionScalarString(row.id);
+  const ownerKey=projectionMeasure([kind,row.id]).B,queueKey=projectionMeasure(['search',kind,row.id]).B;
+  const header=projectionMeasure(planSearchQueueLocator(kind,{id:'',sourceRecordIds:[]},'0'));
+  charge+=4*ownerKey+projectionTreeCharge(header)+2*(queueKey+row.id.length+128);
+ }
+ return charge;
 }
 function projectionQualify(r){
  const raw=r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
- projectionReserve(r,PROJECTION_SEMANTIC);
+ r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);
  if(rows.provenance.length||rows.dependencies.length||rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
  if(!settings?.enabled||settings.consentVersion!==CONSENT_VERSION||points.gate&&(points.gate.epoch!==settings.epoch||points.gate.enabled!==settings.enabled))fail('BNS_HUMAN_PERMISSION');
  if(points['thought-library']?.sealed)fail('BNS_HUMAN_UNSUPPORTED');
  const epoch=points['thought-epoch']?.value||0;if(!Number.isSafeInteger(epoch)||epoch<0)projectionRequired();
  projectionSourceFree(raw);
- const migration=new Map(),seen=new Set(),metadata=new Map();let descriptors=0;
+ const migration=new Map(),metadata=new Map();let descriptors=0;
  for(const row of rows.libraryMigrationItems){projectionScalarString(row.id,2048);if(migration.has(row.id))projectionRequired();migration.set(row.id,row);}
  for(const row of raw.prefixes['thought-read-index:']){projectionScalarString(row.id,2048);if(metadata.has(row.id))projectionRequired();metadata.set(row.id,row);}
- const match=row=>{if(!row)return;if(seen.has(row.id)||!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,PROJECTION_SEMANTIC))fail('BNS_HUMAN_PROJECTION_UNPROVEN');seen.add(row.id);migration.delete(row.id);};
+ const match=row=>{if(!row)return;if(!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');migration.delete(row.id);};
  const queue=[];
  for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionScalarString(row.id);if(Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');for(const field of kind==='entry'?['revision','contentRevision']:['revision','layoutGeneration'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();if(kind==='entry'&&(row.fieldRevisions?.type!==undefined&&(!Number.isSafeInteger(row.fieldRevisions.type)||row.fieldRevisions.type<0)||row.searchSafetyVersion!==undefined&&(!Number.isSafeInteger(row.searchSafetyVersion)||row.searchSafetyVersion<0)))projectionRequired();const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
  // Every physical migration row will also be matched below; this subset is
@@ -1061,7 +1074,7 @@ function projectionQualify(r){
   projectionScalarString(root.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(root.activeGeneration)||typeof root.completedAt!=='string'||!Number.isFinite(Date.parse(root.completedAt)))projectionRequired();
   let indexed=0;for(const topic of rows.topics){if(topic.createdAt!==null&&topic.createdAt!==undefined)projectionScalarString(topic.createdAt,128);const planned=planThoughtRootProjection(topic,root.activeGeneration);if(planned.row){match(planned.row);indexed++;}}
   const expected={id:'thought-read-index:v1:root',version:1,activeGeneration:root.activeGeneration,buildingGeneration:null,sourceCursor:null,scanned:rows.topics.length,indexed,activeCount:indexed,completedAt:root.completedAt};
-  if(!projectionEqual(r,root,expected,PROJECTION_SEMANTIC))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(root.id);
+  if(!projectionEqual(r,root,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(root.id);
  }
  for(const topic of rows.topics){
   const view=raw.placementOrder.find(item=>item.topicId===topic.id);if(!view)projectionRequired();
@@ -1090,12 +1103,12 @@ function projectionQualify(r){
    accumulateThoughtTopicDescriptor(expected,descriptor);
   }
   const done=completeThoughtTopicProjection(expected);projectionGeneratorNext.call(done);projectionGeneratorNext.call(done,actual.completedAt);
-  if(!projectionEqual(r,actual,expected,PROJECTION_SEMANTIC))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(id);
+  if(!projectionEqual(r,actual,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(id);
  }
  // Receipt order is authenticated even for an Entry outside a current Topic.
  for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id]);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
- migration.clear();seen.clear();metadata.clear();projectionReserve(r);
+ migration.clear();metadata.clear();projectionReserve(r);
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
 function projectionDrop(r){r.raw=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
