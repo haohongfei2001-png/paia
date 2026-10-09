@@ -1,3 +1,5 @@
+import {validateHumanCommitGroup,CORE_LIMITS} from './core.js';
+import {physical,normalizePhysical} from './human-library-journal.js';
 import {editSection,editSectionInTransaction,planHumanSectionEdit} from '../thought-organization.js';
 import {planHumanFixedMembership,moveMembershipInTransaction,fixMembershipSetInTransaction} from '../topic-intent.js';
 import {changeTopicContainer,changeTopicContainerInTransaction,planHumanTopicMembership,planHumanTopicMembershipEntry,planHumanTopicContainer} from '../topic-governance.js';
@@ -14,9 +16,9 @@ import {hashText} from '../dedupe.js';
 import {CONSENT_VERSION,ArchiveError} from '../constants.js';
 import {prepareHumanAllocation,beginHumanAllocation,finishHumanAllocation,releaseHumanAllocation,bindHumanReplayEntry} from './human-library-allocation.js';
 import {LIBRARY_INDEXES} from '../thought-schema.js';
-import {validateHumanLibraryCommit} from './human-library-codec.js';
+import {validateHumanLibraryCommit,portableHumanEntity} from './human-library-codec.js';
 import {restoreHumanRequest} from './human-library-request.js';
-import {clone,equal,fail} from './value.js';
+import {clone,equal,fail,bytes} from './value.js';
 const plans=new WeakMap(),futureEntries=new WeakMap(),futureGraphs=new WeakMap();
 async function base(store,core,t){
  const control=await store.control(t);if(!control.settings.enabled||control.settings.consentVersion!==CONSENT_VERSION)fail('BNS_HUMAN_PERMISSION');
@@ -345,4 +347,116 @@ export function humanGraphReadSetProjection(cap){const g=futureGraphs.get(cap);i
 export function humanSearchPlanWitness(cap,store,core){
  const p=plans.get(cap);if(!p||p.store!==store||p.core!==core)fail('BNS_HUMAN_PLAN_REQUIRED');
  return humanPlanJournalRows(cap);
+}
+
+// Unused, readonly semantic witness. No write/journal entry point accepts it.
+const branchWitnesses=new WeakMap(),branchStores=new WeakMap();
+const BRANCH_BYTES=8*1024*1024,BRANCH_RAW_BYTES=BRANCH_BYTES/2,BRANCH_HANDLES=8;
+const branchBodyOnly=r=>r?.changes&&Object.keys(r.changes).length===1&&Object.hasOwn(r.changes,'body');
+// Budget only: count JSON/UTF-8 incrementally before allocating an encoded
+// duplicate. Original validators/equality still decide every semantic value.
+function branchRawSize(value,limit=BRANCH_RAW_BYTES){
+ let size=0,nodes=0;const add=n=>{size+=n;if(size>limit)fail('BNS_HUMAN_GRAPH_LIMIT');};
+ const text=value=>{add(2);for(let i=0;i<value.length;i++){const c=value.charCodeAt(i);if(c===34||c===92||[8,9,10,12,13].includes(c))add(2);else if(c<32)add(6);else if(c<128)add(1);else if(c<2048)add(2);else if(c>=0xd800&&c<=0xdbff){const next=value.charCodeAt(++i);if(!(next>=0xdc00&&next<=0xdfff))fail('BNS_TEXT_ENCODING');add(4);}else if(c>=0xdc00&&c<=0xdfff)fail('BNS_TEXT_ENCODING');else add(3);}};
+ const visit=(v,depth)=>{if(++nodes>200000||depth>32)fail('BNS_HUMAN_GRAPH_LIMIT');if(v===null){add(4);return;}if(typeof v==='string'){text(v);return;}if(typeof v==='boolean'){add(v?4:5);return;}if(typeof v==='number'){if(!Number.isFinite(v)||Object.is(v,-0))fail('BNS_VALUE_INVALID');add(String(v).length);return;}if(Array.isArray(v)){add(2);for(let i=0;i<v.length;i++){if(i)add(1);visit(v[i],depth+1);}return;}if(!v||typeof v!=='object')fail('BNS_VALUE_INVALID');add(2);let first=true;for(const k of Object.keys(v)){if(!first)add(1);first=false;text(k);add(1);visit(v[k],depth+1);}};
+ visit(value,0);return size;
+}
+
+function branchState(store){let state=branchStores.get(store);if(!state){state={busy:false,handles:[],bytes:0,candidateBytes:0};branchStores.set(store,state);}return state;}
+function branchTrim(state,limit,keep=null){while(state.bytes>limit){const cap=state.handles.find(x=>x!==keep);if(!cap)fail('BNS_HUMAN_GRAPH_LIMIT');branchForget(state,cap);}}
+function branchForget(state,cap){const p=branchWitnesses.get(cap);if(p){branchWitnesses.delete(cap);state.bytes-=p.size;}const i=state.handles.indexOf(cap);if(i>=0)state.handles.splice(i,1);}
+function branchReady(store,core,binding=null){
+ if(!store?.libraryDocumentMode||!['loaded','iaLoaded','filterLoaded','foundationLoaded','bindingsLoaded','documentsLoaded'].every(k=>store[k]===true)||store.foundationFailure||store.volatileError||!store.repository?.db||!store.controlCache||store.pendingControl||store.repository!==core?.repository||store.humanLibraryJournal?.core!==core)fail(binding?'BNS_HUMAN_CHANGED':'BNS_HUMAN_BRANCH_UNAVAILABLE');
+ const now={store,core,repository:store.repository,database:store.repository.db,journal:store.humanLibraryJournal,datasetId:core.datasetId,deviceId:core.deviceId,prefix:core.prefix,fixedNamespace:core.fixedNamespace,databaseId:store.databaseId};
+ if(binding&&Object.keys(now).some(k=>now[k]!==binding[k]))fail('BNS_HUMAN_CHANGED');return now;
+}
+async function branchBarrier(store,core,binding=null){const b=branchReady(store,core,binding),tail=store.tail,control=store.controlCache;branchRawSize(control);const controlValues=clone(control);await tail;branchReady(store,core,b);if(store.tail!==tail||store.controlCache!==control||store.pendingControl||!equal(store.controlCache,controlValues))fail('BNS_HUMAN_CHANGED');return {binding:b,tail,control,controlValues};}
+function branchFence(store,core,fence){branchReady(store,core,fence.binding);if(store.tail!==fence.tail||store.controlCache!==fence.control||store.pendingControl||!equal(store.controlCache,fence.controlValues))fail('BNS_HUMAN_CHANGED');}
+function branchNoIndex(value){if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(key==='indexedSearchVersion')fail('BNS_HUMAN_BRANCH_UNAVAILABLE');branchNoIndex(item);}}
+async function branchRaw(store,core,protocol,fence){
+ branchFence(store,core,fence);
+ const raw=await core.transaction(false,async t=>{
+  branchFence(store,core,fence);if(t.tx.db!==fence.binding.database)fail('BNS_HUMAN_CHANGED');
+  const request=protocol.descriptor.value.request,id=request.id,records=new Map(),budgetRecords=[],budgetGroups=[],budget={input:protocol.operations,controlValues:fence.controlValues,records:budgetRecords,groups:budgetGroups};branchRawSize(budget);
+  const get=async(kind,...parts)=>{const key=JSON.stringify([kind,...parts]);if(!records.has(key)){const row=await core.get(t,kind,...parts)??null;budgetRecords.push([key,row]);branchRawSize(budget);records.set(key,row);}return records.get(key);};
+  const entry=clone(await base(store,core,t));budget.entry=entry;branchRawSize(budget);const read=await editReadSet(t,id);budget.read=read;branchRawSize(budget);const receipt=await t.get('operationReceipts',protocol.descriptor.value.domainOperationId)??null;
+  if(entry.library?.sealed)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const head=await get('head','humanLibraryMember','entry:'+id);if(head?.purged||head?.revisions?.length!==1)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const current=await get('revision',head.revisions[0]);if(!current||current.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');
+  const member=protocol.members.filter(m=>m.value.entityType==='entry');if(member.length!==1||member[0].parents.length!==1||member[0].value.after.id!==id||!equal(current.operation.parents,member[0].parents))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  await core.requireHumanAncestry(t,[...protocol.operations,current.operation]);
+  const operations=new Map(),groups=new Map(),queue=[...protocol.operations,current.operation];let size=0;
+  while(queue.length){const op=queue.pop();if(operations.has(op.revisionId))continue;operations.set(op.revisionId,op);size+=bytes(op).length;if(operations.size>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
+   if(op.type==='humanLibraryMember'){
+    if(!['entry','history'].includes(op.value.entityType))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+    const descriptorHead=await get('head','humanLibraryCommit',op.value.logicalCommitId);if(descriptorHead?.purged||descriptorHead?.revisions?.length!==1){if(op.value.logicalCommitId!==protocol.descriptor.value.id)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}else{const row=await get('revision',descriptorHead.revisions[0]);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');queue.push(row.operation);}
+   }else if(op.type==='humanLibraryCommit'){
+    if(op.value.kind!=='entry'&&!(op.value.kind==='entry-edit'&&branchBodyOnly(op.value.request)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+    const group=[];for(const ref of op.value.members){let m=protocol.operations.find(x=>x.revisionId===ref.revisionId);if(!m){const row=await get('revision',ref.revisionId);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');m=row.operation;}queue.push(m);group.push(m);}const complete=[...group,op];if(!groups.has(op.value.id)){budgetGroups.push([op.value.id,complete]);branchRawSize(budget);}groups.set(op.value.id,complete);
+   }else fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+   for(const parentId of op.parents){const row=await get('revision',parentId);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');queue.push(row.operation);}
+   if(!protocol.operations.some(x=>x.revisionId===op.revisionId)){const r=await get('receipt',op.operationId);if(r?.digest!==op.revisionId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}
+  }
+  for(const op of protocol.operations){if(await get('receipt',op.operationId)||await get('sequence',op.deviceId,String(op.sequence).padStart(16,'0')))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');}
+  const parent=operations.get(member[0].parents[0]);if(parent?.type!=='humanLibraryMember'||parent.entityId!==member[0].entityId||!equal(parent.value.after,member[0].value.before)||!equal(parent.value.after,current.operation.value.before))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const parentGroup=groups.get(parent.value.logicalCommitId);if(!parentGroup)fail('BNS_HUMAN_ANCESTRY_REQUIRED');
+  const row=read.row;if(!row||row.lifecycle!=='active'||row.bodyBinding!=='thought'||row.provenanceType!=='user_created'||row.organizationRevision!==0||row.dependencyRevision!==0||row.sourceRecordIds.length||row.inputRefs.length||row.topics.length||read.placements||read.provenance||read.dependencies)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');branchNoIndex(read);
+  const mapping=await get('humanMapping','entry:'+id);if(!mapping||mapping.revisionId!==current.operation.revisionId||!equal(mapping.local,physical('entry',row))||!equal(mapping.wire,physical('entry',current.operation.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const currentGroup=groups.get(current.operation.value.logicalCommitId);if(!currentGroup||currentGroup.at(-1).value.kind!=='entry-edit')fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const currentHistory=[];for(const h of read.history){const hhead=await get('head','humanLibraryMember','history:'+h.id);if(hhead?.purged||hhead?.revisions?.length!==1)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');const hrow=await get('revision',hhead.revisions[0]),hmap=await get('humanMapping','history:'+h.id);if(!hrow||hrow.redacted||!currentGroup.some(m=>m.revisionId===hrow.operation.revisionId)||hmap?.revisionId!==hrow.operation.revisionId||!equal(hmap.local,physical('history',h))||!equal(hmap.wire,physical('history',hrow.operation.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');currentHistory.push(hrow.operation);}
+  if(currentGroup.filter(m=>m.value?.entityType==='history').length!==read.history.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const history=[];for(const m of parentGroup.filter(x=>x.value?.entityType==='history')){const h=m.value.after,map=await get('humanMapping','history:'+h.id),actual=await t.get('revisions',h.id);if(!map||!actual||h.kind!=='library_entry'||h.entityId!==id||!equal(map.local,physical('history',actual)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');history.push({...clone(h),...clone(map.local)});}
+  if(!history.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');history.sort((a,b)=>a.sequence-b.sequence);
+  const parentReceipt=await t.get('operationReceipts',parentGroup.at(-1).value.domainOperationId)??null;if(parentReceipt?.namespace!=='thought-library'||parentReceipt.schemaVersion!==1||parentReceipt.id!==parentGroup.at(-1).value.domainOperationId||parentReceipt.ownerId!==id||parentReceipt.digest!==parentGroup.at(-1).value.ownerRequestDigest||parentReceipt.result?.id!==id||parentReceipt.result?.revision!==parent.value.after.revision||!Number.isSafeInteger(parentReceipt.operationSequence)||parentReceipt.operationSequence<2)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const result={input:protocol.operations,controlValues:fence.controlValues,entry,read,receipt,records:[...records].sort(([a],[b])=>a<b?-1:a>b?1:0),parentReceipt,parent:parent.value.after,history,mapping,currentEntry:current.operation,currentHistory,groups:[...groups].sort(([a],[b])=>a<b?-1:a>b?1:0)};
+  if(branchRawSize(result)>BRANCH_RAW_BYTES)fail('BNS_HUMAN_GRAPH_LIMIT');return result;
+ });
+ branchFence(store,core,fence);return raw;
+}
+async function branchQualify(store,core,protocol,raw,fence){
+ for(const [,group]of raw.groups){await validateHumanCommitGroup(group,core.datasetId);await restoreHumanRequest(group.at(-1).value);}
+ // The current original typed read must itself match its accepted canonical
+ // closure, not merely occupy the same physical slots or revision numbers.
+ if(!equal(normalizePhysical('entry',await portableHumanEntity('entry',raw.read.row,raw.read.history,raw.entry.secret)),normalizePhysical('entry',raw.currentEntry.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const row of raw.read.history){const op=raw.currentHistory.find(m=>m.value.after.id===row.id);if(!op||!equal(normalizePhysical('history',await portableHumanEntity('history',row,raw.read.history,raw.entry.secret)),normalizePhysical('history',op.value.after)))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');}
+ const request=await restoreHumanRequest(protocol.descriptor.value);branchFence(store,core,fence);
+ // Existing future-read machinery is branded with CURRENT actual data only.
+ // No historical before row, graph registration or caller adapter enters this
+ // original guard. Exact typed projection is checked before it is consumed.
+ const currentEntry=clone(raw.entry),current={store,core,state:{base:clone(raw.entry),thoughts:[clone(raw.read.row)],revisions:clone(raw.read.history),placements:[],topics:[],indices:[],epoch:raw.read.epoch,operationReceipts:raw.receipt?[clone(raw.receipt)]:[]}};
+ let guard;futureEntries.set(currentEntry,current);
+ try{
+  if(!equal(humanFutureRead(currentEntry,store,core,'entry-edit',request),{base:raw.entry,read:raw.read,receipt:raw.receipt}))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  guard=await prepareHumanEntryEditPlan(store,core,request,currentEntry);
+ }finally{futureEntries.delete(currentEntry);if(guard&&guard.conflict!==true)plans.delete(guard);}
+ branchFence(store,core,fence);
+ if(guard.duplicate||guard.conflict!==true)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ const next=fence;
+ const row={...clone(raw.parent),...clone(raw.mapping.local)},entry=clone(raw.entry);row.exactSignature=await keyedHash(entry.secret,['body',row.type,row.thoughtText]);
+ if(request.expectedRevision!==row.revision||request.expectedFieldRevisions&&request.expectedFieldRevisions.body!==row.fieldRevisions.body)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ const replay=bindHumanReplayEntry(clone(entry),protocol.descriptor.value.events,protocol.descriptor.value.allocation),allocation=prepareHumanAllocation(store,replay),signature=await keyedHash(entry.secret,['body',row.type,request.changes.body]);
+ const computed=computeHumanEntryEditState(request,{base:entry,read:{...clone(raw.read),row,history:clone(raw.history)},receipt:null},entry,protocol.descriptor.value.ownerRequestDigest,signature,allocation);allocation.seal();
+ if(!equal(allocation.events(),protocol.descriptor.value.events)||computed.touchedTopics.length||computed.touchedIndices.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ const planned=[{type:'entry',before:row,after:computed.row},...computed.history.map(h=>({type:'history',before:raw.history.find(x=>x.id===h.id)??null,after:h}))];if(planned.length!==protocol.members.length)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+ for(const item of planned){const member=protocol.members.find(m=>m.value.entityType===item.type&&m.value.after.id===item.after.id);if(!member)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');for(const side of ['before','after'])if(!equal(normalizePhysical(item.type,await portableHumanEntity(item.type,item[side],computed.history,entry.secret)),normalizePhysical(item.type,member.value[side])))fail('BNS_HUMAN_BRANCH_UNAVAILABLE');}
+ branchFence(store,core,next);return next;
+}
+export async function captureHumanBranchSemanticWitness(store,core,completeGroup){
+ const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
+  // Reserve one half of the aggregate bound for this capture/read buffer.
+  branchReady(store,core);branchRawSize(completeGroup);const pendingBytes=branchRawSize([completeGroup,completeGroup,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes));
+  let input=clone(completeGroup);const fence=await branchBarrier(store,core),protocol=await validateHumanCommitGroup(input,core.datasetId);input=null;if(protocol.descriptor.value.kind!=='entry-edit'||!branchBodyOnly(protocol.descriptor.value.request)||protocol.descriptor.value.allocation.indexGenerationCount!==0)fail('BNS_HUMAN_BRANCH_UNAVAILABLE');
+  const raw=await branchRaw(store,core,protocol,fence),size=branchRawSize(raw);state.candidateBytes=size;
+  // Candidate plus retained snapshots occupy at most one half; the final
+  // independently captured reread may occupy the other half, even on a race.
+  branchTrim(state,BRANCH_RAW_BYTES-size);while(state.handles.length>=BRANCH_HANDLES)branchForget(state,state.handles[0]);
+  const finalFence=await branchQualify(store,core,protocol,raw,fence),fresh=await branchRaw(store,core,protocol,finalFence);if(!equal(raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,finalFence);
+  const cap=Object.freeze({});branchWitnesses.set(cap,{store,core,raw,size,binding:finalFence.binding,control:finalFence.control,controlValues:raw.controlValues});state.handles.push(cap);state.bytes+=size;state.candidateBytes=0;return cap;
+ }finally{state.candidateBytes=0;state.busy=false;}
+}
+export async function revalidateHumanBranchSemanticWitness(store,core,witness){
+ const p=branchWitnesses.get(witness);if(!p||p.store!==store||p.core!==core)fail('BNS_HUMAN_BRANCH_WITNESS_REQUIRED');const state=branchState(store);if(state.busy)fail('BNS_HUMAN_BRANCH_BUSY');state.busy=true;try{
+  const pendingBytes=branchRawSize([p.raw.input,p.raw.input,store.controlCache],BRANCH_BYTES);branchTrim(state,Math.min(BRANCH_RAW_BYTES,BRANCH_BYTES-pendingBytes),witness);
+  const fence=await branchBarrier(store,core,p.binding);if(fence.control!==p.control||!equal(fence.controlValues,p.controlValues))fail('BNS_HUMAN_CHANGED');const protocol=await validateHumanCommitGroup(clone(p.raw.input),core.datasetId),fresh=await branchRaw(store,core,protocol,fence);if(!equal(p.raw,fresh))fail('BNS_HUMAN_CHANGED');branchFence(store,core,fence);
+ }catch(error){branchForget(state,witness);throw error;}finally{state.busy=false;}
 }
