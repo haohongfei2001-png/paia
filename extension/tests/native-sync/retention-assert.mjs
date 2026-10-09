@@ -6,7 +6,7 @@ const enumerableKeys=value=>Reflect.ownKeys(value).filter(key=>Object.prototype.
 const builtinConstructors=new Set([Object,Array,Date,RegExp,Error,TypeError,RangeError,ArrayBuffer,DataView,Number,String,Boolean,Map,Set,WeakMap,WeakSet,Uint8Array,Uint16Array,Uint32Array,Int8Array,Int16Array,Int32Array,Float32Array,Float64Array]);
 const sameData=(a,b,pairs=new Map())=>{
  if(Object.is(a,b))return true;
- if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+ if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b)||ArrayBuffer.isView(a)!==ArrayBuffer.isView(b))return false;
  // Match Node 26 strict comparison: inherited/builtin constructor identity,
  // with exact prototype fallback for constructor-less or own custom values.
  const constructor=a.constructor;

@@ -13,3 +13,12 @@ test('native retention bridge preserves both complete original fixtures and all 
  }
  assert.equal(count,27);assert.ok(NATIVE_OWNER_EXTRA.includes('listener interception'));
 });
+
+test('runtime and proof inventories are the current complete static/literal imported closures',async()=>{
+ const {collectInventories,GENERATED_PATHS,generatedBytes}=await import('./retention-native-proof.mjs');
+ const {RETENTION_RUNTIME_PATHS,RETENTION_PROOF_PATHS}=await import('./retention-native-paths.mjs');
+ const {fileURLToPath}=await import('node:url');const base=fileURLToPath(new URL('../..',import.meta.url)),current=await collectInventories(base);
+ assert.deepEqual(current.runtimePaths,RETENTION_RUNTIME_PATHS);assert.deepEqual(current.proofPaths,RETENTION_PROOF_PATHS);assert.ok(current.runtimePaths.length>96);
+ for(const required of ['tests/harness/fake-chatgpt.mjs','tests/harness/synthetic-device-options.mjs','tests/native-sync/storage-harness.mjs','tests/native-sync/storage-worker-fixture.mjs','tests/native-sync/immutable-objects.mjs','tests/native-sync/proof-oracles.mjs','tests/native-sync/retention-native-fixture.mjs','tests/native-sync/retention-native-proof.mjs','tests/native-sync/retention-native-receipt.mjs','tests/native-sync/human-retention-native.test.mjs','scripts/build_current_release.py','scripts/package_assets.py'])assert.ok(current.proofPaths.includes(required),required);
+ assert.deepEqual(Object.keys(await generatedBytes(base)).sort(),GENERATED_PATHS);
+});

@@ -1,6 +1,7 @@
 import test from 'node:test';import nodeAssert from 'node:assert/strict';import nativeAssert from './retention-assert.mjs';
 const vectors=[
  ['equal',NaN,NaN],['equal',0,-0],['notEqual',0,-0],['notEqual',NaN,NaN],
+ ['deepEqual',[],Object.create(Array.prototype)],['deepEqual',Object.create(Array.prototype),[]],['notDeepEqual',[],Object.create(Array.prototype)],
  ['deepEqual',{a:undefined},{}],['deepEqual',{a:undefined},{a:undefined}],['deepEqual',{b:2,a:1},{a:1,b:2}],
  ['deepEqual',Object.create(null),{}],['deepEqual',Object.assign(Object.create(null),{a:1}),Object.assign(Object.create(null),{a:1})],
  ['deepEqual',[,1],[undefined,1]],['deepEqual',[1,2],[2,1]],['deepEqual',[NaN,-0],[NaN,-0]],['deepEqual',[NaN,-0],[NaN,0]],
