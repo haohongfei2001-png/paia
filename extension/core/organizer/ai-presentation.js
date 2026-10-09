@@ -327,6 +327,9 @@ const atomicCacheProofCurrent=(s,token,p)=>localCacheProofs.get(token)===p&&p.st
 const atomicCacheControlsCurrent=(s,p)=>localOrganizeCacheControlsCurrent(s,p.prepared);
 async function verifyAtomicCacheProof(s,t,token,p,job,row){
  if(!atomicCacheProofCurrent(s,token,p)||job?.kind!=='ai_organize_atomic_v1'||job.version!==1||job.commitMode!=='organize-atomic-v1'||job.type!=='AI_ORGANIZE'||job.state!=='COMMITTED'||job.cancelEpoch!==0||atomicCacheJobBinding(job)!==p.jobBinding||!isBaseNoneEnvelope(row)||row.needsUpdate===true||row.stale===true||row.candidate?.schemaVersion!==4||aiCandidateKey(row.candidate)!==p.key||manifestCanonical(row.candidate.proposal)!==p.proposal)return false;
+ // Malformed optional completion metadata cannot block ordinary adoption.
+ // Check before spread/sort, including sparse arrays; actual IDB errors still propagate.
+ if(!Array.isArray(job.committedCoverage)||job.committedCoverage.length!==p.coverage.length||!Array.from(job.committedCoverage).every(key=>typeof key==='string'))return false;
  const same=(a,b)=>manifestCanonical(a)===manifestCanonical(b),unitKeys=p.coverage.map(unitKey),union=job.childCoverage.flat().map(unitKey);
  if(job.childIds.length<2||job.childIds.length>4||new Set(job.childIds).size!==job.childIds.length||!same(job.childIds,p.childIds)||!same(job.childCoverage,p.childCoverage)||!same(job.coverage,p.coverage)||!same(job.items,p.items)||unitKeys.length>100||new Set(unitKeys).size!==unitKeys.length||new Set(union).size!==union.length||!same([...union].sort(),[...unitKeys].sort())||!same([...job.committedCoverage].sort(),[...unitKeys].sort())||new Set(p.children.map(c=>c.operationReceiptId)).size!==job.childIds.length)return false;
  for(const [index,childId]of job.childIds.entries()){

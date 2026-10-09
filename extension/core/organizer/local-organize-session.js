@@ -93,7 +93,14 @@ export class LocalOrganizeSession {
  async run(handle,provider){
   const state=this.#state(handle);if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
   try{
-   if(state.cached)return await this.#readCached(state);
+   if(state.cached){
+    const result=await this.#readCached(state);
+    // The transaction/read promise may settle after disposal or a local control
+    // update. Fence the actual public return, not only its IDB callback.
+    if(this.#handles.get(state.handle)!==state||this.#cached.get(state.prepared.topic.id)!==state)fail('UNAVAILABLE');
+    if(!localOrganizeCacheControlsCurrent(this.#store,state.prepared))fail('STALE_BASE');
+    return result;
+   }
    if(state.multi)return await this.#runMulti(state,provider);
    const status=await this.#foundation.status(state.job.id);if(status.state==='COMMITTED')return this.#completed(state,status);
    if(status.state==='RESPONSE_RECORDED'&&state.validated)return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
