@@ -20,7 +20,7 @@ async function verifySavedSummaryAccess(p,variant){
    const opened=await details.evaluate(n=>n.open);await summary.evaluate(n=>{globalThis.__summaryTouch=[];n.addEventListener('click',e=>__summaryTouch.push({trusted:e.isTrusted,pointerType:e.pointerType}),{once:true});});
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:g.x,y:g.y,id:1}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
    await eventually(async()=>await details.evaluate(n=>n.open)!==opened,'trusted touch toggles the real saved-field disclosure');assert.deepEqual(await p.evaluate(()=>__summaryTouch),[{trusted:true,pointerType:'touch'}]);
-   await summary.focus();await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),opened);assert.equal(await summary.evaluate(n=>document.activeElement===n),true);
+   await summary.focus();await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),opened,'Space restores disclosure after trusted touch');assert.equal(await summary.evaluate(n=>document.activeElement===n),true,'Space keeps summary focus after trusted touch');
    await p.screenshot({path:`work/consumer-cleanup/${variant}-saved-summary-coarse-text200-${language}.png`});
   }
  }finally{await summary.evaluate((n,style)=>{if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);},initial.style);try{await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});}finally{await cdp.detach();}}
@@ -119,12 +119,12 @@ for(const variant of ['source','release'])test(`TOPIC-05.7 cached A never concea
  await p.setViewportSize({width:320,height:900});await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`work/consumer-cleanup/${variant}-durable-ai-viewport-top.png`});
  await body.scrollIntoViewIfNeeded();await p.screenshot({path:`work/consumer-cleanup/${variant}-durable-ai-viewport-body.png`});
  const summary=p.locator('[data-ai-saved-fields] > summary'),details=p.locator('[data-ai-saved-fields]');assert.ok((await summary.boundingBox()).height>=44,'narrow native disclosure target');
- await summary.focus();await p.keyboard.press('Enter');assert.equal(await details.evaluate(n=>n.open),true);await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),false);assert.equal(await summary.evaluate(n=>n===document.activeElement),true);await p.keyboard.press('Enter');
+ await summary.focus();await p.keyboard.press('Enter');assert.equal(await details.evaluate(n=>n.open),true,'Enter opens saved summary');await p.keyboard.press('Space');assert.equal(await details.evaluate(n=>n.open),false,'Space closes saved summary');assert.equal(await summary.evaluate(n=>n===document.activeElement),true,'Space keeps saved summary focus');await p.keyboard.press('Enter');
  await p.evaluate(()=>{const n=document.querySelector('[data-ai-field="currentView"]');window.__localeField={node:n,text:n.textContent,first:n.firstChild};n.focus();n.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:'中'}));});
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(async()=>await summary.textContent()==='Saved AI organization');assert.equal(await p.locator('[data-ai-field="currentView"]').getAttribute('aria-label'),'Current understanding');
  assert.deepEqual(await p.evaluate(()=>{const s=window.__localeField;return {same:s.node===document.querySelector('[data-ai-field="currentView"]'),first:s.first===s.node.firstChild,text:s.text===s.node.textContent};}),{same:true,first:true,text:true});
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(async()=>await summary.textContent()==='已保存的 AI 整理');await p.evaluate(()=>window.__localeField.node.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:''})));assert.deepEqual(await savedRow(p,topic.id),saved);await verifySavedSummaryAccess(p,variant);assert.deepEqual(await authority(p),before);assert.deepEqual(await savedRow(p,topic.id),saved);await quiet(f.h);
- }finally{await f.h.close();}
+ }catch(error){console.log('SAVED_SUMMARY_FAILURE',variant,await f.p.evaluate(()=>({activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,summaryFocused:document.activeElement===document.querySelector('[data-ai-saved-fields] > summary'),open:document.querySelector('[data-ai-saved-fields]')?.open,recomposing:document.documentElement.classList.contains('paia-recomposing'),coarse:matchMedia('(pointer:coarse)').matches})).catch(()=>null));throw error;}finally{await f.h.close();}
 });
 
 for(const variant of ['source','release'])test(`TOPIC-05.7 exact repeats reveal original owners without writes (${variant})`,{timeout:180000},async()=>{
