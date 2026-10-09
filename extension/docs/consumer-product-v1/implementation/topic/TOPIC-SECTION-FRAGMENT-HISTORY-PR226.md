@@ -83,3 +83,12 @@ Browser 5 artifact `11598078192`, downloaded once as `/tmp/038-browser-5-evidenc
 - all eight other primary browser shards, four unit shards and native checks passed, while Full aggregate/gate remained failed.
 
 The missing failed history snapshot prevents a unique-cloud-cause claim. Current independent review, stable PR Full, exact main and delivery gates remain PENDING and owned by the coordinator.
+
+
+## Final independent approval and Root integration
+
+Independent reviewer approved final code67494247 and receiptbc784ecc after reading all final changes, executing the original stale-completion probe1/1 PASS49.662708ms (`/tmp/section226-post-navigate-race-after-independent.log`, SHA `c6cc603232f4220cb821dfd0e80f1088bc7a2c130e404c69d87c488650ae43ad`) and five whole units29/29 PASS183.193791ms (`/tmp/section226-independent-units-after.log`, SHA `5e42ff7d353625f68c0c0901213082acb64624d8633386aaf51a526271934916`). Reviewer read/hash-verified the author's final4/4 native evidence; that run is not called an independent rerun.
+
+Root verified exact three existing base blobs at requested2db and absence of new files, then applied one final net patch, committing `35c8759c153b608b3a95f6bac32edc5c827fab83`, tree `f5938571dce9b60040b3ca81458a7288e686cc6c`. Root independently ran the two original source/release writing journeys2/2 PASS14070.390042ms, zero failure/skip/cancel, `/tmp/038-section-writing-root-integrated.log`, SHA `b8f6e4ab7a87e8560672e1494d36ca322b888e1d98cc0e9b52c2e5cadca220a6`. This selected original-journey run does not include the two additive cases; the author whole4/4 observation remains separate. Root five whole units29/29 PASS247.809333ms, `/tmp/038-section-root-units.log`, SHA `bd75bea14ef0dd9c8b689293fcf0bd09ce0e72994a8df5fa5c4bdbd3d7f53aaa`.
+
+Root complete code/evidence/fixture-prefix review APPROVE. Original Full37889914312 remains COMPLETED FAILED, original Prompt37889914281 SUCCESS; new stable head Full, guarded merge, exact-main gates and package remain pending.
