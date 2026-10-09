@@ -32,8 +32,21 @@ Earlier related107 run106PASS/one obsolete unsupported expectation FAIL, initial
 
 AI07 original12 design hashes remain unchanged, but frozen54 current-owner set now has exactly two changed files:thought-store.js and thought-journal.js from authorized Human original-owner extraction. All other52 remain unchanged. Independent actual strict reader on038 refused immediately before any fixture job (receipt classification `INCOMPATIBLE_WITH_FROZEN_OWNERS`; actual original reader rejection is an ERR_ASSERTION digest mismatch, quality NOT_RUN), `/tmp/038-ai07-frozen-owner-independent-refusal.log`. Default unit does not recursively execute these explicit experiments. This is expected immutable evidence preservation, not a passing current038 AI quality/replay result. Reproduce historical037 at existing work/coordinated-037 exactbc86f411; do not update its frozen hashes or reuse its replay as current038 evidence. Any later current-owner experiment version needs separate qualified freeze/review.
 
+## Preserved earlier delivery checkpoint (historical)
+
+The following PR225 status was recorded before its final repair and normal merge; the current reconciliation is appended below.
+
 ## Remaining delivery and full-Sync obligations
 
 037 PR225 is open; exact Full37878399910 FAILED in its sole primary Browser1/9 Reader undo-after-navigation journey. Other eight browser groups and four unit shards passed; the aggregate correctly failed. Historical unique cause is not yet proven and an isolated original-owner investigation is active. Its final isolated local4582 complete units/203 related/2 backup/explicit5+5 experiments/427 build are distinct evidence. Accepted fresh037 main is required before038 publication. Final candidate Full with tenth-family whole native receipts, normal guarded merge, exact-main Full/Prompt and byte-verified package remain required. No cancelled/skipped/untriggered gate is PASS.
 
 Derived search completion/postings/read projections, qualified sibling conflict preservation/resolution, full arbitrary Source/AI/provenance recovery, permissions/tombstone boundaries outside admitted families, real Chrome/Edge/Safari device/provider/account acceptance, installation/current-live/formal fullSync and all-seven-plan closure remain unfinished. No credentials, paid model, new permission, real-user upload, formal deployment or irreversible action is performed. Search constructors are isolated future039 work and are deliberately not merged into this frozen038 native checkpoint.
+
+
+## Current accepted037 reconciliation and independent review — 2026-10-09
+
+PR225 final5d69af4724ae8e22cac2f509eea318f3d73ee0bb Full37886959204 SUCCESS all9 primary browser/all4 unit/native/contracts/build/aggregate/gate; the historical skipped audit is not a pass. Normal guarded merge maina8807b1d72c430d3231c4255d8b2a7500ac6f90b/tree5502d4890f8b0d00d8956fa525ef88165e50e221. MainFull37888376909/Prompt37888376862 pending at this checkpoint; the three earlier failed Fulls remain preserved.
+
+Fresh parent reconciliation `be8557274cbdac7146313500578b4972a0ee92eb`, tree `8a55d2477705585ad0c36776ba67e61f35fd2b2d`, merges all actual037 Archive runtime/Reader diagnostics/navigation regressions/native touch prerequisites. Only STATUS/SEVEN overlap, both history blocks retained under the accurate current checkpoint. Independent parent038_review read all nonoverlapping blobs and both conflict outcomes: APPROVE. Against original tested83d6143b, every core/background/version/dependency/script/native test+fixture and both workflows is byte-identical. Actual Human source/release27/27 and grouped source/release29/29 receipt hashes match current; original4656/18/6/build435 remain precisely historical, not relabeled current execution.
+
+Archive UI did change, so the entire browser environment is not called unchanged. No additional duplicate local full/native run is justified: one stable038 Full owns exact-head tenth-family native receipts, affected Archive and backup-browser combination. Accepted exact037 main precedes publication; exact038 candidate Full, normal merge and exact-main Full/Prompt/package remain required.039/040 production code is excluded.
