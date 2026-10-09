@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Personal AI Input Archive",
-  "version": "0.39.0",
-  "version_name": "v0.39.0 Private Human Search Qualification",
+  "version": "0.40.0",
+  "version_name": "v0.40.0 Private Multi-child Cache And Human Owner",
   "description": "经主动同意后，仅在本机归档 ChatGPT 已显示的用户文字。以连续文档阅读与整理，支持暂停、检索和编辑。",
   "minimum_chrome_version": "114",
   "permissions": [
