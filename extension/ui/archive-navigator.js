@@ -150,8 +150,19 @@ export class ArchiveNavigator{
   this.updateSourceOptions(root.items);
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
-  // A newly captured window can move from unknown to verified unassigned as
-  // source metadata arrives. Keep the user's open group when unknown vanishes.
+  this.reconcileUnknownExpansion();
+  const groupsToLoad=[];for(const provider of root.items){const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});if(groups.coverage.state!=='complete')continue;for(const group of groups.items)if(this.state.expandedFor(group))groupsToLoad.push(group);}
+  for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
+  if(building){this.setStatus(copy('正在整理来源与窗口…','Preparing source groups and windows…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
+  if(this.mode==='source'){const scopes=[...this.state.scopes.values()],fallback=scopes.some(scope=>scope.unavailableReason&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING'),effective=scopes.some(scope=>scope.effectiveOrdering==='source');this.setStatus(fallback?copy('部分来源顺序不可用 · 使用 PAIA 回退','Some source order unavailable · PAIA fallback'):copy('来源顺序已就绪','Source order ready'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{effective:effective?'source':'paia',fallback}}));}
+  else this.setStatus(root.coverage.archiveComplete===false?copy('档案仍在整理，已显示可确认范围','Archive is still building; showing confirmed scope'):'');
+  this.paint();this.schedule();
+ }
+ // Apply the original verified membership migration before any paint, including
+ // Back's synchronous snapshot restore. A closed transient frame would let a
+ // following native disclosure click close the asynchronously reopened group.
+ reconcileUnknownExpansion(){
+  const root=this.state.scope({groupKind:'providers'});if(root.coverage.state!=='complete')return;
   for(const provider of root.items){
    const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});
    if(groups.coverage.state!=='complete')continue;
@@ -160,12 +171,6 @@ export class ArchiveNavigator{
     this.state.expanded.delete(oldKey);this.state.expanded.add(navigatorGroupKey(provider.providerKey,'unassigned'));this.onRouteChange();
    }
   }
-  const groupsToLoad=[];for(const provider of root.items){const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});if(groups.coverage.state!=='complete')continue;for(const group of groups.items)if(this.state.expandedFor(group))groupsToLoad.push(group);}
-  for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
-  if(building){this.setStatus(copy('正在整理来源与窗口…','Preparing source groups and windows…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
-  if(this.mode==='source'){const scopes=[...this.state.scopes.values()],fallback=scopes.some(scope=>scope.unavailableReason&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING'),effective=scopes.some(scope=>scope.effectiveOrdering==='source');this.setStatus(fallback?copy('部分来源顺序不可用 · 使用 PAIA 回退','Some source order unavailable · PAIA fallback'):copy('来源顺序已就绪','Source order ready'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{effective:effective?'source':'paia',fallback}}));}
-  else this.setStatus(root.coverage.archiveComplete===false?copy('档案仍在整理，已显示可确认范围','Archive is still building; showing confirmed scope'):'');
-  this.paint();this.schedule();
  }
  setStatus(text){this.status.textContent=text;}
  restoreLegacy(){const list=$('document-list'),count=$('result-count');if(list)list.hidden=false;if(count)count.hidden=false;}
@@ -197,7 +202,7 @@ export class ArchiveNavigator{
  paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
  syncSelection(){for(const button of this.host.querySelectorAll('.archive-navigator-window')){if(button.dataset.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}}
  paint(){
-  if(!this.active)return;const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
+  if(!this.active)return;this.reconcileUnknownExpansion();const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
   const root=this.state.scope({groupKind:'providers'});
   if(root.error){this.tree.append(element('p','archive-navigator-error',copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.')));this.syncLegacy();return;}
   if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}

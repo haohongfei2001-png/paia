@@ -24,6 +24,34 @@ async function fixture(run){
  }finally{for(const [k,v]of prior)if(v)Object.defineProperty(globalThis,k,v);else delete globalThis[k];}
 }
 const titles=tree=>tree.querySelectorAll('.archive-navigator-group-toggle').map(n=>n.textContent);
+function membershipScopes(state,kinds=['unassigned']){
+ const rows=kinds.map(groupKind=>({id:groupKind,kind:'group',providerKey:'chatgpt',groupKind,projectRef:null}));
+ state.scope({providerKey:'chatgpt',groupKind:'groups'}).items=rows;
+ for(const group of rows)Object.assign(state.scope({providerKey:'chatgpt',groupKind:group.groupKind}),{coverage:{state:'complete'},items:[{documentId:'selected',title:'Synthetic window',providerKey:'chatgpt',groupKind:group.groupKind}],nextCursor:null,generation:7});
+ return rows;
+}
+test('actual Back restore paints a verified migrated open group immediately, without changing cached scopes or overriding a following close',()=>fixture(async({owner,state,tree})=>{
+ const [group]=membershipScopes(state);let changes=0;owner.onRouteChange=()=>changes++;
+ const before=structuredClone([...state.scopes]);owner.restoreNavigation({expanded:[navigatorGroupKey('chatgpt','unknown')],loaded:[],scrollTop:0,narrowCollapsed:false,sourceScope:null});
+ assert.equal(tree.querySelector('.archive-navigator-group-toggle').getAttribute('aria-expanded'),'true','first restore paint preserves the previously open group');
+ assert.equal(tree.querySelectorAll('.archive-navigator-window').length,1);
+ assert.deepEqual([...state.expanded],[navigatorGroupKey('chatgpt','unassigned')]);assert.equal(changes,1);
+ assert.deepEqual([...state.scopes],before,'membership cache is only read, never rewritten');
+ owner.paint();assert.equal(changes,1,'repeat paint does not replay the membership transition');
+ await owner.toggleGroup(group);owner.paint();assert.equal(tree.querySelector('.archive-navigator-group-toggle').getAttribute('aria-expanded'),'false','an explicit subsequent close remains closed');assert.equal(changes,2);
+}));
+test('actual paint keeps coexisting unknown and unassigned groups distinct and never opens a manually closed known group',()=>fixture(({owner,state,tree})=>{
+ membershipScopes(state,['unknown','unassigned']);state.expanded=new Set([navigatorGroupKey('chatgpt','unknown')]);let changes=0;owner.onRouteChange=()=>changes++;
+ owner.paint();assert.deepEqual(tree.querySelectorAll('.archive-navigator-group-toggle').map(x=>x.getAttribute('aria-expanded')),['true','false']);assert.equal(changes,0);
+ state.expanded.clear();owner.paint();assert.deepEqual(tree.querySelectorAll('.archive-navigator-group-toggle').map(x=>x.getAttribute('aria-expanded')),['false','false']);assert.equal(changes,0);
+}));
+test('actual paint refuses migration from incomplete root or group evidence, then migrates once when the same cache completes',()=>fixture(({owner,state,tree})=>{
+ membershipScopes(state);state.expanded=new Set([navigatorGroupKey('chatgpt','unknown')]);let changes=0;owner.onRouteChange=()=>changes++;
+ const root=state.scope({groupKind:'providers'}),groups=state.scope({providerKey:'chatgpt',groupKind:'groups'});
+ root.coverage.state='building';owner.paint();assert.equal(state.expanded.has(navigatorGroupKey('chatgpt','unknown')),true);assert.equal(changes,0);
+ root.coverage.state='complete';groups.coverage.state='building';owner.paint();assert.equal(state.expanded.has(navigatorGroupKey('chatgpt','unknown')),true);assert.equal(changes,0);
+ groups.coverage.state='complete';owner.paint();assert.equal(tree.querySelector('.archive-navigator-group-toggle').getAttribute('aria-expanded'),'true');assert.equal(changes,1);
+}));
 test('Reader keeps provider/group DOM order while every source scope/order/cursor stays intact',()=>fixture(({owner,state,tree,groups,slot,reader})=>{
  const before=structuredClone([...state.scopes]);owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(tree.children[0].dataset.providerKey,'other');assert.equal(slot.parentElement,reader);assert.deepEqual([...state.scopes],before);assert.deepEqual(state.scope({providerKey:'chatgpt',groupKind:'groups'}).items,groups);
 }));
