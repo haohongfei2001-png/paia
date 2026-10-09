@@ -119,3 +119,8 @@ Three additive Node-only contracts execute the actual launcher function body wit
 | `tests/native-sync/human-branch-witness-chrome.test.mjs` | `c53d773190300f7c1c746f569d61d7911d6666391eaf430b1b559874d2f496c1` |
 | `/tmp/041-witness-page-isolation-contract.log` | `9a6395ac7ec9723ad756f6f1648bbb9ddd44be29cc59def85e96c9f1fb2fc181` |
 | `/tmp/041-witness-page-isolation-contract-final.log` | `1c890c2c124f75daf3a1626e7936482f4ce08eed99ee7a0d951d84140ae77a3d` |
+
+
+## Current42 implementation-presence profile
+
+Historical41 witness receipts correctly report retentionImplemented:false at their exact original code. The next42 candidate adds a separate private first-sibling writer. The witness fixture now measures that method's actual prototype descriptor through a body-free test-only profile command and requires retentionImplemented:true without invoking it. The witness's own capture/revalidation still has no write capability; productionActivation, writeCapability, fullRecovery and providerActivation remainfalse and all16/121/zero-side-effect assertions remain. Separate retention28-case native evidence qualifies the new writer, not this profile field. Current42 hosted/native integration remains a new gate; historical receipts are not rewritten.
