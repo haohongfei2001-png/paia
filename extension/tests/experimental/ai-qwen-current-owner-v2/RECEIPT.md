@@ -59,3 +59,7 @@ Correction exact source hashes:
 - `replay.mjs` SHA256 `ca50ed2192ab8088b7ce38e24b42c7cd2df54400952ab497f0586ebd55d8cc11`
 - `replay-acceptance.test.mjs` SHA256 `35aade60d3f2e54febf78927bd4afbeefbf3f0a4fafd6dea7186f3b7dda58faa`
 - `reader.test.mjs` SHA256 `af564365d9e48e4b5245e1abdf85ef4bb95292eeeb4ce1890b45a4dbff093be7`
+
+## Independent evidence acceptance
+
+Final finite evidence review `13bf94ec9d1859d52b74e029de0626f044cb97be61e54a172ff029e6794082ae` approves the exact1e50 named synthetic mechanics, independently checking the saved log/manifest and all175 source/Git bindings without repeating nine runs. The review's tracked-clean1e50 observation is its source audit snapshot. Later4515 changes only this receipt and README; all execution-root/owner dependency bytes and fixed manifest remain identical. No quality/model/financial/general-native or whole-AI07 acceptance follows.
