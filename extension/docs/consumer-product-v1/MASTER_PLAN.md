@@ -1,6 +1,6 @@
 # PAIA Consumer Product v1 — Canonical Master Plan
 
-Current coordinated frontier (2026-10-10): accepted0.43.4 main6b4f961; coherent0.43.5 current native pending-generation prerequisite has targeted/source/release evidence, with full high-risk CI and integration pending. STATUS and its coherent receipt own exact claims. All seven selected plans remain unfinished; native Scope/canonical recovery is the next dependency, and external visual/provider/device gates do not expand scope. No new plan or NIB runtime is selected.
+Current coordinated frontier (2026-10-10): accepted0.43.5 main d516c43b, candidate/main full certification21/21 each. Coherent0.43.6 finite native Human-only Group checkpoint has passed frozen782 final combined acceptance and independent finite review; full CI/integration remain pending; it does not select real-provider or whole canonical recovery. STATUS and [batch receipt](implementation/verification/COHERENT-0436-NATIVE-GROUP-CHECKPOINT.md) own exact claims. All seven plans remain unfinished; missing approved CTX/SET visuals and Qwen/provider/device/installed gates remain distinct. No new product plan or NIB runtime is selected.
 
 
 ## Narrow Input Board v4 follow-up — 2026-10-09

@@ -506,7 +506,8 @@ jobs:
         run: |
           set -o pipefail
           test "$(git rev-parse HEAD)" = "$PAIA_TESTED_HEAD"
-          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs tests/native-sync/source-bootstrap-chrome.test.mjs tests/native-sync/source-append-chrome.test.mjs tests/native-sync/group-checkpoint-chrome.test.mjs tests/native-sync/human-library-chrome.test.mjs tests/native-sync/human-branch-witness-chrome.test.mjs tests/native-sync/human-retention-native.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
+          python3 scripts/build_current_release.py
+          xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs tests/native-sync/context-info-chrome.test.mjs tests/native-sync/input-working-chrome.test.mjs tests/native-sync/input-working-receive-chrome.test.mjs tests/native-sync/source-bootstrap-chrome.test.mjs tests/native-sync/source-append-chrome.test.mjs tests/native-sync/group-checkpoint-chrome.test.mjs tests/native-sync/human-library-chrome.test.mjs tests/native-sync/human-branch-witness-chrome.test.mjs tests/native-sync/human-retention-native.test.mjs tests/native-sync/human-current-scope-checkpoint-native.test.mjs 2>&1 | tee work/qa-bns-native-storage/native.log
       - name: Require exact-head complete native receipts
         env:
           PAIA_TESTED_HEAD: ${{ github.sha }}
@@ -611,6 +612,15 @@ jobs:
           assert.deepEqual(retentionCases(retained[0]),retentionCases(retained[1]));assert.deepEqual(retained[0].runtimeHashes,retained[1].runtimeHashes);assert.deepEqual(retained[0].proofHashes,retained[1].proofHashes);assert.equal(retained[0].browserVersion,retained[1].browserVersion);
           const retentionCommonFixtures=receipt=>Object.fromEntries(Object.entries(receipt.fixtureHashes).filter(([path])=>path!=='background/service-worker.js'));
           assert.deepEqual(retentionCommonFixtures(retained[0]),retentionCommonFixtures(retained[1]));
+          const currentScope=['source','release'].map(variant=>{
+            const r=JSON.parse(readFileSync(`work/qa-current-scope-native/${variant}.json`));
+            assert.equal(r.result,'PASS');assert.equal(r.status,'SYNTHETIC_NATIVE_READONLY_SCOPE_EXPORT_CASES_PASS_NOT_COMPLETE_SYNC');assert.equal(r.head,process.env.PAIA_TESTED_HEAD);assert.equal(r.tree,tree);assert.equal(r.variant,variant);assert.equal(r.externalNetworkAttempts,0);
+            assert.equal(r.cases.length,30);assert.ok(r.cases.every(c=>c.result==='PASS'&&c.assertions>0));assert.equal(r.scopeActivated,false);assert.equal(r.restoreActivated,false);assert.equal(r.providerActivated,false);assert.deepEqual(r.memory.sampleFailures,[]);assert.ok(r.memory.samples.length>0);
+            for(const [path,expected] of Object.entries(r.sourceHashes))assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'),expected,path);
+            for(const [path,expected] of Object.entries(r.servedHashes))assert.equal(r.sourceHashes[path],expected,path);
+            return r;
+          });
+          assert.deepEqual(currentScope[0].sourceHashes,currentScope[1].sourceHashes);assert.deepEqual(currentScope[0].servedHashes,currentScope[1].servedHashes);assert.deepEqual(currentScope[0].cases.map(c=>[c.name,c.result,c.assertions]),currentScope[1].cases.map(c=>[c.name,c.result,c.assertions]));assert.equal(currentScope[0].browserVersion,currentScope[1].browserVersion);
           console.log('BNS_NATIVE_STORAGE_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           JS
       - name: Retain exact-head synthetic storage evidence
@@ -631,6 +641,7 @@ jobs:
             extension/work/qa-bns-human-library/
             extension/work/qa-bns-human-branch-witness/
             extension/work/qa-retention-native/
+            extension/work/qa-current-scope-native/
           if-no-files-found: error
           retention-days: 7
 

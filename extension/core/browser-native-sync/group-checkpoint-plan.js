@@ -7,9 +7,17 @@ const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBoo
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
 const singles=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
+const originalPlans=new WeakMap();
+// Compilation identity is local and body-free. A cloned DTO remains useful to
+// old validators but cannot authenticate a native current-generation export.
+export function requireOriginalGroupCheckpointPlan(core,plan){
+ const p=originalPlans.get(plan);
+ if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
 export async function prepareGroupCheckpointPlan(core,input){
+ const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace};
  if(!Array.isArray(input)||input.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
  let size=0;const operations=[],byRevision=new Map(),byId=new Map(),sequences=new Set();
  for(const candidate of input){
@@ -64,5 +72,7 @@ export async function prepareGroupCheckpointPlan(core,input){
  while(ordered.length<groups.length){const ready=groups.filter(group=>!done.has(group.id)&&[...group.dependencies].every(id=>done.has(id))).sort((a,b)=>a.id.localeCompare(b.id));if(!ready.length)fail('BNS_GROUP_CAUSAL_GAP');for(const group of ready){done.add(group.id);ordered.push({...group,dependencies:[...group.dependencies].sort()});}}
  // Exact ordering commitment is independent of received object/page order.
  const graph=ordered.map(group=>({id:group.id,type:group.type,revisions:group.operations.map(op=>op.revisionId),dependencies:group.dependencies}));
- return freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});
+ const plan=freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});
+ if(core.datasetId!==binding.datasetId||core.repository!==binding.repository||core.prefix!==binding.prefix||core.fixedNamespace!==binding.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ originalPlans.set(plan,binding);return plan;
 }
