@@ -15,7 +15,7 @@ test('Sync native proof stays an exact-head opt-in draft job with complete owner
  assert.doesNotMatch(job,/permissions:|secrets\.|continue-on-error|test-name-pattern|test-skip-pattern|environment:/);
  assert.match(job,/command -v google-chrome/);
  assert.match(job,/node --test tests\/browser-native-sync-\*.test.mjs tests\/cpv1-09-prompt-service.test.mjs tests\/cpv1-09-prompt-family.test.mjs tests\/cpv1-09-prompt-security.test.mjs tests\/native-sync\/harness-contract.test.mjs/);
- assert.match(job,/xvfb-run -a node --test --test-concurrency=1 tests\/native-sync\/storage-chrome.test.mjs tests\/native-sync\/publication-chrome.test.mjs tests\/native-sync\/retirement-chrome.test.mjs/);
+ assert.match(job,/xvfb-run -a node --test --test-concurrency=2 tests\/native-sync\/storage-chrome.test.mjs tests\/native-sync\/publication-chrome.test.mjs tests\/native-sync\/retirement-chrome.test.mjs/);
  assert.match(job,/test "\$\(git rev-parse HEAD\)" = "\$PAIA_TESTED_HEAD"/);
  for(const text of ["['source','release'].map",'assertReceipt(JSON.parse','head:process.env.PAIA_TESTED_HEAD,variant',"['rev-parse','HEAD^{tree}']",'assert.equal(receipt.tree,tree)','assert.deepEqual(receipts[0].productionHashes,receipts[1].productionHashes)','requiredFilterIntent:true','assert.deepEqual(receipts[0].filterIntentCases,receipts[1].filterIntentCases)','assert.deepEqual(receipts[0].filterIntentHashes,receipts[1].filterIntentHashes)','assert.equal(receipts[0].browserVersion,receipts[1].browserVersion)'])assert.ok(job.includes(text),text);
  assert.match(job,/if: always\(\)\n        uses: actions\/upload-artifact@v4/);
@@ -49,7 +49,7 @@ test('full certification explicitly runs all nested native Sync files on tested 
  assert.match(native,/ref: \$\{\{ github.sha \}\}\n          persist-credentials: false/);
  assert.equal((native.match(/PAIA_TESTED_HEAD: \$\{\{ github.sha \}\}/g)||[]).length,2);
  assert.doesNotMatch(native,/pull_request.head.sha|test-name-pattern|continue-on-error|test-skip-pattern/);
- const command='xvfb-run -a node --test --test-concurrency=1 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs';
+ const command='xvfb-run -a node --test --test-concurrency=2 tests/native-sync/storage-chrome.test.mjs tests/native-sync/publication-chrome.test.mjs tests/native-sync/retirement-chrome.test.mjs';
  assert.ok(native.includes(command));
  // The entire proven receipt verifier is identical except for its SHA binding.
  const receiptBlock=value=>value.split("          node --input-type=module <<'JS'\n")[1].split('          JS')[0];
