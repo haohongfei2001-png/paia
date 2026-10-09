@@ -2,6 +2,7 @@ import {humanClock} from './browser-native-sync/human-library-allocation.js';
 import {fail,keys,idOK,revisionOK,markHuman,prefix} from './thought-model.js';
 import {journal} from './thought-journal.js';
 export async function editSection(store,request){
+ if(store.humanLibraryJournal)return store.humanLibraryJournal.execute(store,'section-edit',request);
  keys(request,['topicId','sectionId','expectedRevision','title','operationId','restoreRevisionId'],['topicId','sectionId','expectedRevision','title','operationId']);
  if(!idOK(request.topicId)||!idOK(request.sectionId)||!revisionOK(request.expectedRevision)||typeof request.title!=='string'||request.title.length>300)fail();
  return store.operation(request,t=>editSectionInTransaction(store,t,request));

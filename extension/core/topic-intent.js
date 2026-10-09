@@ -27,6 +27,7 @@ export async function automaticMembershipAllowed(t,entry,topicId,placement=null)
  return !placement||placement.lifecycle==='active'&&placement.membershipAuthorship==='ai'&&!placement.sectionProtection&&!placement.orderProtection;
 }
 export async function fixMembershipSet(store,r){
+ if(store.humanLibraryJournal)return store.humanLibraryJournal.execute(store,'fixed',r);
  keys(r,['entryId','expectedRevision','operationId'],['entryId','expectedRevision','operationId']);if(!idOK(r.entryId)||!revisionOK(r.expectedRevision))fail();
  return store.operation(r,t=>fixMembershipSetInTransaction(store,t,r));
 }
@@ -36,6 +37,7 @@ export async function fixMembershipSetInTransaction(store,t,r){const entry=await
   await journal(store,t,{kind:'membership_intent',entityId:entry.id,before,after:intents,fieldMask:['fixed'],actor:'user',reason:'fixed_membership',important:true,operationId:r.operationId,sourceRecordIds:[]});return {id:entry.id,revision:entry.revision};
 }
 export async function moveMembership(store,r){
+ if(store.humanLibraryJournal)return store.humanLibraryJournal.execute(store,'move',r);
  keys(r,['entryId','sourceTopicId','targetTopicId','expectedEntryRevision','expectedSourceRevision','expectedTargetRevision','operationId'],['entryId','sourceTopicId','targetTopicId','expectedEntryRevision','expectedSourceRevision','expectedTargetRevision','operationId']);
  if(![r.entryId,r.sourceTopicId,r.targetTopicId].every(idOK)||r.sourceTopicId===r.targetTopicId||![r.expectedEntryRevision,r.expectedSourceRevision,r.expectedTargetRevision].every(revisionOK))fail();
  return store.operation(r,t=>moveMembershipInTransaction(store,t,r));

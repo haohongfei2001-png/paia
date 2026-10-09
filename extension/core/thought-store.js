@@ -63,7 +63,7 @@ export function planHumanSectionCreation(request,topic,{sectionId,rank,at}){retu
 export function humanPlacementRank(last,old,requestedRank){const rank=requestedRank===undefined?(last?String(Number(last.rank)+1024).padStart(12,'0'):old?.rank||rankBetween()):normalizeRank(requestedRank);return normalizeRank(rank);}
 export function planHumanPlacementRow(topic,entry,old,section,rank,remove){return {id:JSON.stringify([topic.id,topic.activeLayoutGeneration,entry.id]),topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,entryId:entry.id,sectionId:section.sectionId,rank,sectionRank:section.rank,revision:(old?.revision??-1)+1,activeKey:remove?1:0,lifecycle:remove?'removed':'active',membershipAuthorship:'user',sectionProtection:true,orderProtection:true};}
 export class LibraryFoundationStore extends SmartFilterStore {
- constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});this.foundationLoaded=false;}
+ constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
  async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
  async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
@@ -82,6 +82,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async drainInvalidations() {let batches=0;for(;;){const r=await this.processInvalidations();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-invalidation-batch');}}
  async drainPurgeCleanup() {let batches=0;for(;;){const r=await this.processPurgeCleanup();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-purge-batch');}}
  async operation(request,fn) {
+  if(this.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();
   const digest=await hashText(JSON.stringify(request));
   return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
@@ -121,6 +122,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
   await this.entry(id);return this.run(()=>this.repository.transaction(false,async t=>{const rows=await t.all('provenance','byOwner',prefix(['entry',id])),out=[];for(const row of rows){const m=await t.get('inputStates',row.inputId);if(m?.removalState==='active'&&!m.sourcePurged&&await this.sourcePresent(t,row.sourceRecordIds))out.push({...row,availability:m.contentRevision===row.basedOnContentRevision?'resolvable':'version_unavailable'});}return out;}));
  }
  async createEntry(request,hooks={}) {
+  if(this.humanLibraryJournal){if(Object.keys(hooks).length)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');return this.humanLibraryJournal.execute(this,'entry',request);}
   keys(request,['operationId','actor','title','body','note','type','formation','evidence','generator'],['operationId','actor','body','type','formation','evidence']);
   if(!['user','ai'].includes(request.actor))fail();validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
   if(request.actor==='ai'&&request.formation==='inferred')fail();
@@ -154,6 +156,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async editEntry(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'entry-edit',request);
   keys(request,['id','operationId','expectedRevision','changes','actor','revisionReason','restoreRevisionId','expectedFieldRevisions','expectedInputRevision'],['id','operationId','expectedRevision','changes']);
   if(!idOK(request.id)||!revisionOK(request.expectedRevision)||request.actor&&request.actor!=='user')fail();validateFields(request.changes);
   if(request.expectedFieldRevisions!==undefined){keys(request.expectedFieldRevisions,ENTRY_FIELDS);for(const f of Object.keys(request.changes))if(!revisionOK(request.expectedFieldRevisions[f]))fail();}
@@ -176,6 +179,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async removeEntry(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'entry-remove',request);
   keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
   return this.operation(request,t=>this.removeEntryInTransaction(t,request));
  }
@@ -188,6 +192,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async restoreEntry(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'entry-restore',request);
   keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
   return this.operation(request,t=>this.restoreEntryInTransaction(t,request));
  }
@@ -228,6 +233,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  refreshThought() {return Promise.reject(new ArchiveError('INVALID_REQUEST'));}
  async editThought({id,operationId,expectedRevision,changes}={}) {keys(changes,['thoughtText','title','note','topics','types']);if(changes.topics||changes.types)fail();return this.editEntry({id,operationId,expectedRevision,changes:Object.fromEntries(Object.entries(changes).map(([k,v])=>[k==='thoughtText'?'body':k,v]))});}
  async createTopic(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'topic',request);
   keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const nameIdentity=await prepareTopicName(this,request.name);
   return this.operation(request,t=>this.createTopicInTransaction(t,request,nameIdentity));
@@ -240,6 +246,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async renameTopic(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'topic-edit',request,{renameOnly:true});
   keys(request,['id','name','expectedRevision','operationId','restoreRevisionId'],['id','name','expectedRevision','operationId']);
   if(!idOK(request.id)||!revisionOK(request.expectedRevision)||typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const rename=await prepareTopicRename(this,request.id,request.name);
@@ -248,6 +255,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async renameTopicInTransaction(t,request,rename){await checkRestore(this,t,request.restoreRevisionId,'topic',request.id);const row=await this.canonicalTopic(t,request.id);if(row.id!==request.id)fail();if(row.revision!==request.expectedRevision)return {conflict:true};const before=structuredClone(row);await recordTopicRename(t,row,rename,request.operationId,humanClock(this,t));row.name=request.name;row.nameKey=request.name.toLocaleLowerCase();row.revision++;Object.assign(row,planHumanTopicField(row,'name',request.name,request.operationId,humanClock(this,t)));await t.put('topics',row);await journal(this,t,{kind:'topic',entityId:row.id,before,after:row,fieldMask:['name'],actor:'user',reason:request.restoreRevisionId?'restore':'rename',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:[]});return {id:row.id,revision:row.revision};
  }
  async createSection(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'section',request);
   keys(request,['topicId','expectedTopicRevision','title','rank','operationId'],['topicId','expectedTopicRevision','title','operationId']);
   if(!idOK(request.topicId)||!revisionOK(request.expectedTopicRevision)||typeof request.title!=='string'||request.title.length>300)fail();const requestedRank=request.rank===undefined?null:normalizeRank(request.rank);
   return this.operation(request,t=>this.createSectionInTransaction(t,request,requestedRank));
@@ -259,6 +267,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  fixMembershipSet(request){return fixMembershipSet(this,request);}
  moveMembership(request){return moveMembership(this,request);}
  async placeEntry(request) {
+  if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'placement',request);
   keys(request,['entryId','topicId','sectionId','rank','operationId','expectedEntryRevision','expectedTopicRevision','expectedPlacementRevision','remove','restoreRevisionId'],['entryId','topicId','operationId','expectedEntryRevision','expectedTopicRevision']);
   if(!idOK(request.entryId)||!idOK(request.topicId)||!revisionOK(request.expectedEntryRevision)||!revisionOK(request.expectedTopicRevision))fail();
   if(request.remove!==undefined&&typeof request.remove!=='boolean')fail();
