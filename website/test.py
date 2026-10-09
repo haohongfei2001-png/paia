@@ -227,11 +227,10 @@ def capture_scenes(page, name, width):
     page.locator('[data-card-open="rules"]').click()
     stage.screenshot(path=str(OUT / f'{prefix}-context-detail.png'), animations='disabled')
     page.locator('[data-card-detail="rules"] [data-context-back]').click()
-    page.locator('[data-context-global]').click()
-    page.locator('[data-card-allow="inputs"]').click()
     page.locator('[data-card-open="inputs"]').click()
-    page.locator('[data-topic-allow="product"]').click()
     stage.screenshot(path=str(OUT / f'{prefix}-context-topic-scope.png'), animations='disabled')
+    page.locator('[data-topic-allow="product"]').click()
+    stage.screenshot(path=str(OUT / f'{prefix}-context-topic-revoked.png'), animations='disabled')
 
 
 try:
@@ -239,7 +238,7 @@ try:
         browser = p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE'), headless=True, args=['--no-sandbox'])
         version = browser.version
         # All 48 routes retain the complete four-width reflow and safety matrix.
-        review_pages = ('index.html', 'zh/index.html', 'beta.html', 'zh/beta.html', 'demo.html', 'zh/demo.html', 'how-it-works.html', 'zh/how-it-works.html', 'principles.html', 'zh/principles.html')
+        review_pages = tuple(path.relative_to(ROOT).as_posix() for path in PAGES if not path.relative_to(ROOT).as_posix().startswith('en/'))
         for width in [1440, 768, 390, 320]:
             for path in PAGES:
                 name = path.relative_to(ROOT).as_posix()
@@ -308,7 +307,7 @@ try:
 
         for locale in ['', 'zh/']:
             en = locale != 'zh/'
-            # Actual native geometry, keyboard tabs, manual pause and system motion.
+            # Native geometry, keyboard tabs, full default motion and system preference.
             page = browser.new_page(viewport={'width': 1440, 'height': 900}, reduced_motion='no-preference')
             load(page, locale + 'index.html')
             page.evaluate('document.fonts.ready')
@@ -347,13 +346,16 @@ try:
             page.keyboard.press('Enter')
             check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
             page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
+            page.locator('[data-context-clear]').click()
             allowed = page.locator('[data-card-allow="rules"]')
             closed = page.locator('[data-card-allow="info"]')
             allowed.focus()
             page.keyboard.press('Enter')
             page.locator('[data-card-open="info"]').focus()
             check(allowed.get_attribute('aria-pressed') == 'true' and closed.get_attribute('aria-pressed') == 'false' and allowed.inner_text() != closed.inner_text(), f'{locale}: Context permission states remain distinct in text and semantics')
-            check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
+            # Engines may retain a computed medium outline width with style
+            # `none`; test the visible distinction, not that inert default.
+            check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>getComputedStyle(e).outlineStyle==='none'||parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
             page.close()
             page = browser.new_page(viewport={'width': 1280, 'height': 900})
             errors = []

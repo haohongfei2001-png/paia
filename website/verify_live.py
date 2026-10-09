@@ -1,6 +1,7 @@
 """Read-only production readback. No user data, form submission or archive access."""
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from playwright.sync_api import sync_playwright
 import hashlib, json, os
 from core_checks import verify_core
@@ -10,8 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT/'website-test-artifacts'))
 OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
-paths = [p for p in (ROOT/'website/generated-paths.txt').read_text().splitlines() if Path(p).name != '404.html']
-paths += ['assets/website/product-experience.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+generated = (ROOT/'website/generated-paths.txt').read_text().splitlines()
+paths = list(generated)
+paths += ['assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -19,7 +21,13 @@ try:
     for relative in paths:
         url = BASE + '/' + relative
         request = Request(url, headers={'User-Agent':'PAIA-Website-Readback/1.0','Cache-Control':'no-cache'})
-        with urlopen(request, timeout=30) as response:
+        try:
+            response = urlopen(request, timeout=30)
+        except HTTPError as error:
+            if error.code != 404 or Path(relative).name != '404.html':
+                raise
+            response = error
+        with response:
             body = response.read(2_000_000)
             if response.geturl().split('/')[2] != 'inputarchive.com':
                 raise AssertionError('Unexpected production host redirect')
@@ -29,14 +37,17 @@ try:
             if not match:
                 raise AssertionError('Deployment not at reviewed website bytes: '+relative)
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, executable_path=os.environ.get('CHROMIUM_EXECUTABLE'))
+        review_pages = [p for p in generated if p.endswith('.html') and not p.startswith('en/')]
+        review_pages.append('en/index.html')
         for width in (1440,390):
-            for relative in ('index.html','zh/index.html','beta.html','zh/beta.html','demo.html','zh/demo.html','en/index.html'):
+            for relative in review_pages:
                 page = browser.new_page(viewport={'width':width,'height':900})
                 errors=[]
                 page.on('pageerror',lambda error:errors.append(str(error)))
-                response=page.goto(BASE+'/'+relative,wait_until='networkidle',timeout=45000)
-                assert response and response.ok
+                response=page.goto(BASE+'/'+relative,wait_until='load',timeout=45000)
+                assert response and (response.ok or (Path(relative).name == '404.html' and response.status == 404))
+                page.evaluate('document.fonts.ready')
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
                 def live_check(value, label):
@@ -52,6 +63,7 @@ try:
                     verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
                 assert not errors, errors
+                assert page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")')
                 page.emulate_media(reduced_motion='reduce')
                 page.evaluate('document.fonts.ready')
                 page.evaluate('scrollTo(0,document.body.scrollHeight)')

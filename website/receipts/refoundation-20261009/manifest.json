@@ -1,0 +1,807 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-09T07:35:43.376056+00:00",
+  "purpose": "Visual comparison and screenshot provenance only.",
+  "baseline_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+  "baseline_origin": "Production baseline code rendered locally, not a claim that every before image was captured over the live domain.",
+  "candidate_revision": "Website working snapshot before final commit. Final Git delivery and test outcomes belong to the main receipt.",
+  "browser": "Chromium 153.0.8010.0",
+  "transport": "local HTTP for all paired comparisons and product-state selections",
+  "capture_settings": {
+    "baseline_and_final_visual": "capture.cjs: viewport 1440×1000 desktop / 390×844 mobile, reducedMotion=reduce, animations disabled for stable capture, local fonts awaited, lazy images decoded after a page scroll.",
+    "final_full_v3": "Browser-suite PNG outputs at 1440px or 390px width, local HTTP, Chromium 153.0.8010.0. Selected full pages remain complete even where capture viewport height differs from baseline; no vertical stretching is used.",
+    "motion_limit": "Still screenshots do not certify motion quality or performance."
+  },
+  "capture_reports": {
+    "baseline": {
+      "path": "website-qa/baseline/capture-report.json",
+      "sha256": "809bb66739ad074cc326790c208045d87e78e024adf45c12e0bb13601293be54",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "source_root": "/workspace/scratch/6abbbf6240f3/website-qa/baseline-source",
+      "report_is_used_for": "capture provenance only; no final test pass is asserted"
+    },
+    "final_visual": {
+      "path": "website-qa/final-visual/capture-report.json",
+      "sha256": "676366e8e2b305bb7a9c26e4b095e92ed88eebd204d180462cf5ec6305e3993c",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "source_root": "/workspace/scratch/6abbbf6240f3/website-qa/final-source",
+      "report_is_used_for": "capture provenance only; no final test pass is asserted"
+    },
+    "final_full_v3": {
+      "path": "website-qa/final-full-v3/report.json",
+      "sha256": "84b2b1b32b9c9b9e6867e87c509f60a5b049c04c2fa7d608754a63acbf9a04c8",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "source_root": null,
+      "report_is_used_for": "capture provenance only; no final test pass is asserted"
+    }
+  },
+  "sources": {
+    "website-qa/baseline/zh-index-1440-top.png": {
+      "path": "website-qa/baseline/zh-index-1440-top.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-index-1440-top.png",
+      "sha256": "f87c93664e883b6a75b47bf18a93f4ae2bc8a1f7e2af790012f4c5f97844b951",
+      "bytes": 633282,
+      "width": 1440,
+      "height": 1000,
+      "role": "BEFORE",
+      "capture_extent": "first-viewport",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-visual/zh-index-1440-top.png": {
+      "path": "website-qa/final-visual/zh-index-1440-top.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-visual/zh-index-1440-top.png",
+      "sha256": "35c0e8eab93c1d9ac86e56b2acc2624f5e34c02664b6f197c16886cdc89fd414",
+      "bytes": 419791,
+      "width": 1440,
+      "height": 1000,
+      "role": "AFTER",
+      "capture_extent": "first-viewport",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-visual/capture-report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-how-it-works-1440-full.png": {
+      "path": "website-qa/baseline/zh-how-it-works-1440-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-how-it-works-1440-full.png",
+      "sha256": "06ea47d6c688c19f0eda08ad94d910783f7e84cdbeb6f5ecfa54a6ad47482e23",
+      "bytes": 674074,
+      "width": 1440,
+      "height": 3059,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-visual/zh-how-it-works-1440-full.png": {
+      "path": "website-qa/final-visual/zh-how-it-works-1440-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-visual/zh-how-it-works-1440-full.png",
+      "sha256": "beb66d74ded76b14a9de6c6605acdd175f82779c6c252038f3c6c628f3b0a394",
+      "bytes": 718826,
+      "width": 1440,
+      "height": 4718,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-visual/capture-report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-use-cases-1440-full.png": {
+      "path": "website-qa/baseline/zh-use-cases-1440-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-use-cases-1440-full.png",
+      "sha256": "ccc65d54025a4da205c8d6d6b8f80e5a72a46bdd91bbf42455ccabe5232ea5d3",
+      "bytes": 510987,
+      "width": 1440,
+      "height": 2450,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-full-v3/zh-use-cases.html-1440.png": {
+      "path": "website-qa/final-full-v3/zh-use-cases.html-1440.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-use-cases.html-1440.png",
+      "sha256": "324bdaf461a6ea80c4f818384926c5a5a3b509f2ca417658fb5b6db5d5e75971",
+      "bytes": 591409,
+      "width": 1440,
+      "height": 3390,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-about-1440-full.png": {
+      "path": "website-qa/baseline/zh-about-1440-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-about-1440-full.png",
+      "sha256": "df8988e2ccf62bb07f5c86f8dcf377e49e1ad4f1056b1477527cead65715fe42",
+      "bytes": 332951,
+      "width": 1440,
+      "height": 1680,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-full-v3/zh-about.html-1440.png": {
+      "path": "website-qa/final-full-v3/zh-about.html-1440.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-about.html-1440.png",
+      "sha256": "b48227beebacf917989b4e2f91b3b9cae6563ac37c30957313d70e668345ce3c",
+      "bytes": 487620,
+      "width": 1440,
+      "height": 2927,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-blog-1440-full.png": {
+      "path": "website-qa/baseline/zh-blog-1440-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-blog-1440-full.png",
+      "sha256": "d29732f179f1a47915801adffa7f11fda30a92868419bd45942ed9b724622404",
+      "bytes": 164625,
+      "width": 1440,
+      "height": 1180,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-full-v3/zh-blog.html-1440.png": {
+      "path": "website-qa/final-full-v3/zh-blog.html-1440.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-blog.html-1440.png",
+      "sha256": "ca0940c5757ace2df3e5796d63ac4893a395a8da99b0ce6a3392d524881a242c",
+      "bytes": 333871,
+      "width": 1440,
+      "height": 2104,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-beta-390-full.png": {
+      "path": "website-qa/baseline/zh-beta-390-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-beta-390-full.png",
+      "sha256": "78b38fb893be39a34a451e1c759098e959b0f417689fb643dc452e4ea4594ad5",
+      "bytes": 210603,
+      "width": 390,
+      "height": 2345,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-full-v3/zh-beta.html-390.png": {
+      "path": "website-qa/final-full-v3/zh-beta.html-390.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-beta.html-390.png",
+      "sha256": "d69f8990ae61d663abc4a5c28bfafd568a395215d0cc1175a8608c29681d9041",
+      "bytes": 203416,
+      "width": 390,
+      "height": 2356,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-index-390-full.png": {
+      "path": "website-qa/baseline/zh-index-390-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-index-390-full.png",
+      "sha256": "85e142562538b75c7d7d1fd57336932468a82b81610217c91331fcbd58f28368",
+      "bytes": 1191694,
+      "width": 390,
+      "height": 9511,
+      "role": "BEFORE",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-visual/zh-index-390-full.png": {
+      "path": "website-qa/final-visual/zh-index-390-full.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-visual/zh-index-390-full.png",
+      "sha256": "8d59cc9907cc9951de6cb19d70d108a95126715119c2cfdf8eb7b45f092f8ef9",
+      "bytes": 1179325,
+      "width": 390,
+      "height": 9229,
+      "role": "AFTER",
+      "capture_extent": "full-page",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-visual/capture-report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/baseline/zh-index-390-top.png": {
+      "path": "website-qa/baseline/zh-index-390-top.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/baseline/zh-index-390-top.png",
+      "sha256": "2007f36d5e5794f705029beed5dd0d9413f6b16863d7d44f9e69c32ecffdc445",
+      "bytes": 171817,
+      "width": 390,
+      "height": 844,
+      "role": "BEFORE",
+      "capture_extent": "first-viewport",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/baseline/capture-report.json",
+      "source_commit": "ca11a1e4cd794e95f2ad515f5d197da9bef4d833",
+      "candidate_revision_note": null
+    },
+    "website-qa/final-visual/zh-index-390-top.png": {
+      "path": "website-qa/final-visual/zh-index-390-top.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-visual/zh-index-390-top.png",
+      "sha256": "a9e483cd48b2f3bf1a72fbee26b85b43c674bec954de0751bbd04241b206d4bd",
+      "bytes": 139646,
+      "width": 390,
+      "height": 844,
+      "role": "AFTER",
+      "capture_extent": "first-viewport",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-visual/capture-report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/final-full-v3/zh-index.html-1440-context-overview.png": {
+      "path": "website-qa/final-full-v3/zh-index.html-1440-context-overview.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-index.html-1440-context-overview.png",
+      "sha256": "3a970e88b21d86ba34df45545ef6735865e95382241a624e9b2e415ab2277e1f",
+      "bytes": 274260,
+      "width": 1136,
+      "height": 699,
+      "role": "AFTER / product state",
+      "capture_extent": "element screenshot",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/final-full-v3/zh-index.html-1440-topic-reader.png": {
+      "path": "website-qa/final-full-v3/zh-index.html-1440-topic-reader.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-index.html-1440-topic-reader.png",
+      "sha256": "14ca4ea9b36377803280b2690f37850066ff837d3067567f19da16118dc7faa2",
+      "bytes": 83413,
+      "width": 992,
+      "height": 1191,
+      "role": "AFTER / product state",
+      "capture_extent": "element screenshot",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "website-qa/final-full-v3/zh-index.html-1440-prompt.png": {
+      "path": "website-qa/final-full-v3/zh-index.html-1440-prompt.png",
+      "absolute_source_path": "/workspace/scratch/6abbbf6240f3/website-qa/final-full-v3/zh-index.html-1440-prompt.png",
+      "sha256": "ec709c96364f0ec004b56df3aa89282a882af4b62a8375578cc76ac197b23bdb",
+      "bytes": 105036,
+      "width": 548,
+      "height": 687,
+      "role": "AFTER / product state",
+      "capture_extent": "element screenshot",
+      "browser": "153.0.8010.0",
+      "transport": "local HTTP",
+      "capture_report": "website-qa/final-full-v3/report.json",
+      "source_commit": null,
+      "candidate_revision_note": "Website candidate snapshot before final commit; no committed candidate SHA is asserted."
+    },
+    "/workspace/scratch/paia-live-before.jpg": {
+      "path": "/workspace/scratch/paia-live-before.jpg",
+      "absolute_source_path": "/workspace/scratch/paia-live-before.jpg",
+      "sha256": "a7c3d8b697cc71aca0b32808992c361c8a787ce22bfdad2cbe5973661cf3ff02",
+      "bytes": 71142,
+      "width": 1348,
+      "height": 926,
+      "role": "BEFORE / auxiliary live-site capture",
+      "capture_extent": "viewport screenshot as provided",
+      "transport": "direct HTTPS browser capture supplied by the root task",
+      "url": "https://inputarchive.com/zh/",
+      "browser": null,
+      "capture_time": null,
+      "source_commit": null,
+      "limits": "This supplied JPEG does not embed the browser version, exact capture time or verified deployment SHA. It is auxiliary live-site evidence, not an identically sized comparison panel."
+    }
+  },
+  "artifacts": [
+    {
+      "file": "01-home-desktop-before-after.webp",
+      "sha256": "95b2e0eef59cc71f5733a4bd7b481768ab0a5cd2ef85baef6e21cd43c2b56a28",
+      "bytes": 93238,
+      "width": 1864,
+      "height": 820,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/",
+      "scope": "first-viewport",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-index-1440-top.png",
+          "source_crop": null,
+          "scale_factor": 0.625,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 900,
+            "height": 625
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-visual/zh-index-1440-top.png",
+          "source_crop": null,
+          "scale_factor": 0.625,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 944,
+            "y": 142,
+            "width": 900,
+            "height": 625
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "02-how-desktop-full-before-after.webp",
+      "sha256": "c01668bfa92d02c94038043141b1573653233c43165339e1c833193361ccc18e",
+      "bytes": 191816,
+      "width": 1504,
+      "height": 2554,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/how-it-works.html",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-how-it-works-1440-full.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 720,
+            "height": 1530
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-visual/zh-how-it-works-1440-full.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 764,
+            "y": 142,
+            "width": 720,
+            "height": 2359
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "03-use-cases-desktop-full-before-after.webp",
+      "sha256": "7c0a821407f2a6403874b374680a505b687b2c8722b906440bee8ff7f3fa4fb1",
+      "bytes": 137260,
+      "width": 1504,
+      "height": 1890,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/use-cases.html",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-use-cases-1440-full.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 720,
+            "height": 1225
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-full-v3/zh-use-cases.html-1440.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 764,
+            "y": 142,
+            "width": 720,
+            "height": 1695
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "04-about-desktop-full-before-after.webp",
+      "sha256": "d1499b2d6e1c93eb8f5313a5b6995a4cff8210758724288ff66e740c50a3d844",
+      "bytes": 129094,
+      "width": 1504,
+      "height": 1659,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/about.html",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-about-1440-full.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 720,
+            "height": 840
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-full-v3/zh-about.html-1440.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 764,
+            "y": 142,
+            "width": 720,
+            "height": 1464
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "05-blog-desktop-full-before-after.webp",
+      "sha256": "d2554c7447a79d445cc087cf80863833086d3ff6fc7a1dbcbefca730b6a8254f",
+      "bytes": 87856,
+      "width": 1504,
+      "height": 1247,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/blog.html",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-blog-1440-full.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 720,
+            "height": 590
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-full-v3/zh-blog.html-1440.png",
+          "source_crop": null,
+          "scale_factor": 0.5,
+          "resample": "Lanczos",
+          "destination": {
+            "x": 764,
+            "y": 142,
+            "width": 720,
+            "height": 1052
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "06-beta-mobile-full-before-after.webp",
+      "sha256": "75c3e9ba846d57ff7dc283e1998d0f7f5c288e6b297ecc9fe17246d195777c0d",
+      "bytes": 210174,
+      "width": 844,
+      "height": 2551,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/beta.html",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-beta-390-full.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 390,
+            "height": 2345
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-full-v3/zh-beta.html-390.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 434,
+            "y": 142,
+            "width": 390,
+            "height": 2356
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "07-home-mobile-full-before-after.webp",
+      "sha256": "2b12a98573fec4acdb27f5d6a6564b8e7b980b5477f2c84a71e396b285517efd",
+      "bytes": 710758,
+      "width": 844,
+      "height": 9706,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/",
+      "scope": "full-page",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-index-390-full.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 390,
+            "height": 9511
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-visual/zh-index-390-full.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 434,
+            "y": 142,
+            "width": 390,
+            "height": 9229
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "08-home-mobile-top-before-after.webp",
+      "sha256": "234144434c70e19477953bf6cf31380d9b1439115143628c039f846a6564ebe9",
+      "bytes": 84216,
+      "width": 844,
+      "height": 1039,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "before_after_comparison",
+      "page": "/zh/",
+      "scope": "first-viewport",
+      "panels": [
+        {
+          "source": "website-qa/baseline/zh-index-390-top.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 20,
+            "y": 142,
+            "width": 390,
+            "height": 844
+          },
+          "label": "BEFORE"
+        },
+        {
+          "source": "website-qa/final-visual/zh-index-390-top.png",
+          "source_crop": null,
+          "scale_factor": 1.0,
+          "resample": "none",
+          "destination": {
+            "x": 434,
+            "y": 142,
+            "width": 390,
+            "height": 844
+          },
+          "label": "AFTER"
+        }
+      ],
+      "composition_note": "Labels and end-of-page markers are outside screenshots. Each screenshot is uniformly scaled; page heights are not stretched to match. Neutral padding below a shorter screenshot is comparison-board background, not website content."
+    },
+    {
+      "file": "09-context-four-cards.webp",
+      "sha256": "c6bf2af8328223dc8c8515bdf5670c9b1d31489478033b469b51fd097c11fcca",
+      "bytes": 56974,
+      "width": 1168,
+      "height": 811,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "candidate_product_state",
+      "panels": [
+        {
+          "source": "website-qa/final-full-v3/zh-index.html-1440-context-overview.png",
+          "source_crop": null,
+          "scale_factor": 1,
+          "resample": "none",
+          "destination": {
+            "x": 16,
+            "y": 96,
+            "width": 1136,
+            "height": 699
+          }
+        }
+      ],
+      "composition_note": "Original element screenshot retained at native pixel dimensions; the explanatory header is outside it."
+    },
+    {
+      "file": "10-thought-continuous-reader.webp",
+      "sha256": "81545f8bdeeb4ca16e0822577aed6f0197bd239aad6dcc817b3e4e061cc355e8",
+      "bytes": 56564,
+      "width": 1024,
+      "height": 1303,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "candidate_product_state",
+      "panels": [
+        {
+          "source": "website-qa/final-full-v3/zh-index.html-1440-topic-reader.png",
+          "source_crop": null,
+          "scale_factor": 1,
+          "resample": "none",
+          "destination": {
+            "x": 16,
+            "y": 96,
+            "width": 992,
+            "height": 1191
+          }
+        }
+      ],
+      "composition_note": "Original element screenshot retained at native pixel dimensions; the explanatory header is outside it."
+    },
+    {
+      "file": "11-prompt-panel.webp",
+      "sha256": "4214e8a373a5bb0a93d8617383cbb6c10df66f287daad01d3e01ed789f3eda4a",
+      "bytes": 31348,
+      "width": 580,
+      "height": 799,
+      "format": "WebP",
+      "encoding": {
+        "lossless": false,
+        "quality": 94,
+        "method": 6
+      },
+      "kind": "candidate_product_state",
+      "panels": [
+        {
+          "source": "website-qa/final-full-v3/zh-index.html-1440-prompt.png",
+          "source_crop": null,
+          "scale_factor": 1,
+          "resample": "none",
+          "destination": {
+            "x": 16,
+            "y": 96,
+            "width": 548,
+            "height": 687
+          }
+        }
+      ],
+      "composition_note": "Original element screenshot retained at native pixel dimensions; the explanatory header is outside it."
+    },
+    {
+      "file": "12-live-home-before-original.jpg",
+      "sha256": "a7c3d8b697cc71aca0b32808992c361c8a787ce22bfdad2cbe5973661cf3ff02",
+      "bytes": 71142,
+      "width": 1348,
+      "height": 926,
+      "format": "JPEG",
+      "kind": "auxiliary_live_before",
+      "source": "/workspace/scratch/paia-live-before.jpg",
+      "transformation": "none; byte-for-byte copy",
+      "original_bytes_preserved": true
+    }
+  ],
+  "verification_boundary": "No final test success, merge, deployment or live candidate verification is asserted in this manifest.",
+  "total_artifact_bytes": 1860440
+}
