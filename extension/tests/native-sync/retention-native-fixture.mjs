@@ -1,7 +1,8 @@
 import {createHash} from 'node:crypto';
 export const RETENTION_SPECS=Object.freeze({
   "retention": {
-    "file": "human-sibling-retention.test.mjs",
+    "file": "native-sync/fixtures/retention-original/human-sibling-retention.source.mjs",
+    "origin": "tests/human-sibling-retention.test.mjs",
     "sha256": "178acc01ccf8ef2c4cf86a9e1a2692859a3b83419dddaafedfd07d52de32fa42",
     "names": [
       "first complete human sibling retained atomically without canonical writes or echo; exact retry is write-free",
@@ -21,7 +22,8 @@ export const RETENTION_SPECS=Object.freeze({
     ]
   },
   "owner": {
-    "file": "human-retention-repository-owner.test.mjs",
+    "file": "native-sync/fixtures/retention-original/human-retention-repository-owner.source.mjs",
+    "origin": "tests/human-retention-repository-owner.test.mjs",
     "sha256": "801c2ac3efdb7deee7c8da55605d281a3efc2efb6f0fa518ceed99c0062f6224",
     "names": [
       "original owner exact identity rejects aliases, proxies, changed tx and foreign owner, retaining ordinary reads/writes",
