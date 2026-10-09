@@ -15,6 +15,20 @@ export class LocalAssistSession {
  #invalidate(){this.#generation++;for(const s of this.#states.values()){s.published=null;s.validated=null;s.snapshot=null;s.payload=null;}this.#states.clear();this.#handles=new WeakMap();}
  #valid(s){return !!s&&!this.#disposed&&s.generation===this.#generation&&this.#states.get(s.key)===s&&this.#now()-s.created<ASSIST_LIMITS.ttl&&this.#lease.isCurrent(s.lease)===true;}
  #get(handle){const s=this.#handles.get(handle);if(!this.#valid(s))fail('STALE_BASE');return s;}
+ // Retire only unusable, idle private memory; durable jobs/attempts remain the
+ // no-redispatch authority. A planning or running operation owns its slot.
+ async #retireInvalid(){
+  const idle=[...this.#states.values()].filter(s=>!s.planning&&!s.running);if(!idle.length)return;
+  const retired=await this.foundation.read(async t=>{const out=[];for(const s of idle){
+   if(s.planning||s.running||this.#states.get(s.key)!==s)continue;
+   if(!this.#valid(s)){out.push(s);continue;}
+   const row=await t.get('organizerJobs',s.job.id);if(!row){out.push(s);continue;}
+   try{await this.foundation.current(t,await this.foundation.job(t,s.job.id));}
+   catch(error){if(!['STALE_BASE','UNAVAILABLE','CANCELLED'].includes(error.code))throw error;out.push(s);}
+  }return out;});
+  for(const s of retired){if(s.planning||s.running||this.#states.get(s.key)!==s)continue;this.#states.delete(s.key);this.#handles.delete(s.handle);s.published=null;s.validated=null;s.snapshot=null;s.payload=null;s.context=null;}
+ }
+
  async #context(t,ids){
   const cards=await readContextCards(t);if(!Array.isArray(ids)||ids.length>100||new Set(ids).size!==ids.length||ids.some(id=>typeof id!=='string'))fail();
   const items=[],context=[],permissions={global:cards.access.global,cards:{}};
@@ -30,17 +44,17 @@ export class LocalAssistSession {
   return {allowed:true,remoteProcessing:true,binding:structuredClone(binding),scope:structuredClone(scope)};
  }
  async prepare({lease}={}){
-  if(this.#disposed)fail('UNAVAILABLE');if(this.#states.size>=8&&![...this.#states.values()].some(s=>s.lease===lease&&this.#valid(s)))fail('RESOURCE_LIMIT');
+  if(this.#disposed)fail('UNAVAILABLE');await this.#retireInvalid();if(this.#states.size>=8&&![...this.#states.values()].some(s=>s.lease===lease&&this.#valid(s)))fail('RESOURCE_LIMIT');
   const generation=this.#generation,meta=this.#lease.metadata(lease),snapshot=await this.#lease.snapshot(lease);
   const selected=await this.foundation.read(async t=>{const ids=structuredClone(await this.#selector(t,{replyBinding:meta.replyBinding}));return {ids,context:await this.#context(t,ids)};});
   const payload=assembleAssistPayload(snapshot,selected.context.context),key=await this.#lease.evaluationKey(lease,{items:selected.context.items.map(x=>({key:x.key,signature:x.signature})),permissions:selected.context.permissions},this.contractVersion,this.routeVersion);
   if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
   const old=this.#states.get(key);if(old){await old.ready;if(!this.#valid(old))fail('STALE_BASE');return old.handle;}
-  if(this.#states.size>=8)fail('RESOURCE_LIMIT');
+  await this.#retireInvalid();if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');if(this.#states.size>=8)fail('RESOURCE_LIMIT');
   const handle=Object.freeze({}),items=selected.context.items,obligation={version:1,evaluationKey:key},coverage=items.map(i=>({key:i.key,facet:'assist',scope:key}));
-  const s={key,handle,lease,binding:meta.binding,replyBinding:meta.replyBinding,generation,created:this.#now(),contextIds:selected.ids,context:selected.context,items,coverage,obligation,payload,snapshot,job:null,validated:null,published:null,running:null};
+  const s={key,handle,lease,binding:meta.binding,replyBinding:meta.replyBinding,generation,created:this.#now(),contextIds:selected.ids,context:selected.context,items,coverage,obligation,payload,snapshot,planning:true,job:null,validated:null,published:null,running:null};
   this.#states.set(key,s);this.#handles.set(handle,s);
-  try{s.ready=this.foundation.plan({type:'AI_ASSIST',intent:'explicit',items,coverage,replyObligation:obligation,assistIntent:s.binding,contractVersion:this.contractVersion,routeVersion:this.routeVersion}).then(job=>{s.job=job;});await s.ready;if(!this.#valid(s))fail('STALE_BASE');return handle;}catch(e){if(this.#states.get(key)===s)this.#states.delete(key);this.#handles.delete(handle);throw e;}
+  try{s.ready=this.foundation.plan({type:'AI_ASSIST',intent:'explicit',items,coverage,replyObligation:obligation,assistIntent:s.binding,contractVersion:this.contractVersion,routeVersion:this.routeVersion}).then(job=>{s.job=job;});await s.ready;if(!this.#valid(s))fail('STALE_BASE');return handle;}catch(e){if(this.#states.get(key)===s)this.#states.delete(key);this.#handles.delete(handle);throw e;}finally{s.planning=false;}
  }
  async #qualified(s){
   if(!this.#valid(s))fail('STALE_BASE');const snapshot=await this.#lease.snapshot(s.lease);if(!equal(snapshot,s.snapshot)||!this.#valid(s))fail('STALE_BASE');
