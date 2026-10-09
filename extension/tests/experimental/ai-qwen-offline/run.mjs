@@ -1,0 +1,13 @@
+// Usage: node tests/experimental/ai-qwen-offline/run.mjs [--topics=SYN-T01,SYN-T02]
+// Output is synthetic owner identity/digest metadata only; no text or human scores.
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {readArtifacts,ARTIFACT_SHA,OWNER_SHA} from './artifacts.mjs';
+import {runTopic} from './replay.mjs';
+const data=await readArtifacts(),args=process.argv.slice(2);assert.ok(args.length<=1&&args.every(a=>a.startsWith('--topics=')),'only bounded corpus Topic selection');
+const selected=args.length?args[0].slice('--topics='.length).split(','):data.corpus.topics.map(t=>t.id);assert.ok(selected.length&&new Set(selected).size===selected.length);for(const id of selected)assert.ok(data.corpus.topics.some(t=>t.id===id));
+const ownerDigests=async()=>Object.fromEntries(await Promise.all(['artifacts.mjs','replay.mjs','run.mjs'].map(async file=>[file,createHash('sha256').update(await readFile(new URL(file,import.meta.url))).digest('hex')]))),before=await ownerDigests();
+const report={version:1,kind:'OFFLINE_ACTUAL_OWNER_FIXTURE_RECEIPT',modelCalls:0,networkTransport:false,quality:'NOT_RUN',humanJudgments:0,independentHeldOutTopics:0,runtimeSourceBase:data.freeze.sourceBase,experimentOwnerDigests:before,corpusDigest:data.freeze.files['calibration.json'].sha256,contractDigest:data.freeze.files['review-contract.json'].sha256,outputArtifactDigest:ARTIFACT_SHA,additionalOwnerManifestDigest:OWNER_SHA,sourceTimeQualification:'NOT_REPRODUCED',contextScenarios:'NOT_RUN',inFlightRemovalScenario:'NOT_RUN',humanKeepStyleABAConcurrencyScenario:'NOT_RUN',counts:{topics:selected.length,styleVariants:selected.length*3,scheduledPhases:selected.reduce((n,id)=>n+data.corpus.topics.find(t=>t.id===id).phases.length*3,0),completedPhases:0,committedJobs:0,conservativeRefusals:0,unexpectedFailures:0,physicalFixtureCalls:0},cases:[]};
+for(const topicId of selected)for(const style of data.corpus.modes){try{const {f,results}=await runTopic(topicId,style,data);report.cases.push({topicId,style,results,physicalFixtureCalls:f.calls});report.counts.completedPhases+=results.length;report.counts.committedJobs+=results.filter(r=>r.state==='COMMITTED').length;report.counts.conservativeRefusals+=results.filter(r=>r.state==='STALE_REFUSED').length;report.counts.physicalFixtureCalls+=f.calls;}catch(error){report.counts.unexpectedFailures++;report.cases.push({topicId,style,state:'UNEXPECTED_FAILURE',code:error.code??error.name});}}
+assert.deepEqual(await ownerDigests(),before,'experiment bytes unchanged during run');process.stdout.write(JSON.stringify(report,null,2)+'\n');if(report.counts.unexpectedFailures)process.exitCode=1;

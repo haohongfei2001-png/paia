@@ -1,0 +1,1823 @@
+{
+  "version": 1,
+  "scope": "SYNTHETIC_DESIGN_ONLY_NOT_PARSER_OR_PROVIDER_PROOF",
+  "base": "707dd125bb48d75aaad2cb89b4b98ddc66837bbb",
+  "officialShapeReferences": [
+    "U01",
+    "U02"
+  ],
+  "trust": "NONE",
+  "productionActivation": false,
+  "cases": [
+    {
+      "id": "normal-direct-subsets",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 20,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 10
+        }
+      }
+    },
+    {
+      "id": "normal-zero-details",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_creation_input_tokens": 0
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 0,
+          "cachedReadTokens": 0,
+          "cacheCreateTokens": 0
+        }
+      }
+    },
+    {
+      "id": "normal-nonthinking-null-reasoning-conditional",
+      "shapeProfile": "synthetic-only-direct-compatible-nonthinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 0,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 10
+        }
+      },
+      "absenceRule": {
+        "reasoning": "QUALIFIED_NONTHINKING_ZERO_ONLY"
+      }
+    },
+    {
+      "id": "normal-thinking-null-reasoning",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "REASONING_DETAILS_UNQUALIFIED",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-no-explicit-cache-absent-create-conditional",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 20,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 0
+        }
+      },
+      "absenceRule": {
+        "creation": "QUALIFIED_NO_EXPLICIT_CACHE_ZERO_ONLY"
+      }
+    },
+    {
+      "id": "normal-absent-create-unqualified",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "CACHE_DETAILS_UNQUALIFIED",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-bad-total",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 149,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-negative-token",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": -1,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-string-token",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": "50",
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-fraction-token",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100.5,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-unsafe-token",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 9007199254740992,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-extra-billing-key",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          },
+          "new_billable_tokens": 1
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-reasoning-over-completion",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 51,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-text-reasoning-contradiction",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 19
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-overlapping-input-subsets",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 95,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-missing-implicit-cache-count",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "CACHE_DETAILS_UNQUALIFIED",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-null-implicit-cache-count",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": null,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "CACHE_DETAILS_UNQUALIFIED",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-positive-audio-token",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10,
+            "audio_tokens": 1
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "UNSUPPORTED_MODALITY",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-nested-only-create-unqualified",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 10
+            }
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "USAGE_SHAPE_UNQUALIFIED",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-conflicting-create-paths",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 11
+            }
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "USAGE_INVALID",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-null-usage",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": null
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "FINAL_USAGE_MISSING",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-absent-usage",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ]
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "FINAL_USAGE_MISSING",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-missing-base-count",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "FINAL_USAGE_MISSING",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "normal-length-is-billable-not-usable",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "length"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 20,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 10
+        }
+      },
+      "productOutputComplete": false
+    },
+    {
+      "id": "normal-tool-result-is-not-usable",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max-0902",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "tool_calls"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 20,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 10
+        }
+      },
+      "productOutputComplete": false
+    },
+    {
+      "id": "normal-unbound-alias-response",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "id": "synthetic-response-v1",
+        "model": "qwen3.8-max",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "{}"
+            },
+            "finish_reason": "stop"
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 100,
+          "completion_tokens": 50,
+          "total_tokens": 150,
+          "completion_tokens_details": {
+            "reasoning_tokens": 20,
+            "text_tokens": 50
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 30,
+            "cache_creation_input_tokens": 10
+          }
+        }
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "TRANSPORT_BINDING_MISMATCH",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-final-usage",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "KNOWN",
+        "reason": "NONE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false,
+        "neutral": {
+          "inputTokens": 100,
+          "completionTokens": 50,
+          "totalTokens": 150,
+          "reasoningTokens": 20,
+          "cachedReadTokens": 30,
+          "cacheCreateTokens": 10
+        }
+      }
+    },
+    {
+      "id": "stream-missing-usage",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "FINAL_USAGE_MISSING",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-final-without-done",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": false,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "TRANSPORT_INCOMPLETE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-cancel-after-final",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": false
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "TRANSPORT_INCOMPLETE",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-duplicate-equal-final",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "STREAM_FINAL_CONFLICT",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-conflicting-final",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 151,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "STREAM_FINAL_CONFLICT",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-rebound-provider-id",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-other-operation",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "TRANSPORT_BINDING_MISMATCH",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-rebound-model",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-flash",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "TRANSPORT_BINDING_MISMATCH",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-final-usage-with-choices",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "content": "{}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "STREAM_FINAL_CONFLICT",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "stream-usage-before-finish",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "stream",
+      "raw": {
+        "frames": [
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [
+              {
+                "index": 0,
+                "delta": {
+                  "role": "assistant",
+                  "content": ""
+                },
+                "finish_reason": null
+              }
+            ],
+            "usage": null
+          },
+          {
+            "id": "synthetic-response-v1",
+            "model": "qwen3.8-max-0902",
+            "object": "chat.completion.chunk",
+            "choices": [],
+            "usage": {
+              "prompt_tokens": 100,
+              "completion_tokens": 50,
+              "total_tokens": 150,
+              "completion_tokens_details": {
+                "reasoning_tokens": 20,
+                "text_tokens": 50
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 30,
+                "cache_creation_input_tokens": 10
+              }
+            }
+          }
+        ],
+        "done": true,
+        "transportComplete": true
+      },
+      "expected": {
+        "usageState": "INVALID",
+        "reason": "STREAM_FINAL_CONFLICT",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    },
+    {
+      "id": "http-error-is-not-nonbilling",
+      "shapeProfile": "synthetic-only-direct-compatible-thinking",
+      "mode": "normal",
+      "raw": {
+        "error": {
+          "code": "SyntheticUnknownOutcome"
+        }
+      },
+      "expected": {
+        "usageState": "UNKNOWN",
+        "reason": "FINAL_USAGE_MISSING",
+        "reservation": "HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF",
+        "financialAuthority": false,
+        "dispatchAllowed": false
+      }
+    }
+  ],
+  "neutralNegativeOracles": [
+    {
+      "inputTokens": 100,
+      "completionTokens": 50,
+      "totalTokens": 149,
+      "reasoningTokens": 20,
+      "cachedReadTokens": 30,
+      "cacheCreateTokens": 10
+    },
+    {
+      "inputTokens": 100,
+      "completionTokens": 50,
+      "totalTokens": 150,
+      "reasoningTokens": 51,
+      "cachedReadTokens": 30,
+      "cacheCreateTokens": 10
+    },
+    {
+      "inputTokens": 100,
+      "completionTokens": 50,
+      "totalTokens": 150,
+      "reasoningTokens": 20,
+      "cachedReadTokens": 95,
+      "cacheCreateTokens": 10
+    }
+  ]
+}
