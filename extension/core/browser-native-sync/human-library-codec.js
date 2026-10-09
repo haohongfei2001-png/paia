@@ -18,7 +18,7 @@ const fields={
  suppression:'id deletedEntryId lineageId removedAt operationId status scopeVersion scopeTokens evidenceVersionTokens noveltyRuleVersion signatureInput',
  keepSeparate:'id sourceId targetId actor revision scope at',
 };
-const forbidLocal=(value,depth=0)=>{if(depth>32)fail('BNS_HUMAN_CODEC_INVALID');if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(['exactSignature','exactKey','nameToken','scopeToken','versionToken','recoveryPurgeRevision','recoveryGeneration','thought-suppression-key'].includes(key))fail('BNS_HUMAN_CODEC_INVALID');forbidLocal(item,depth+1);}};
+const forbidLocal=(value,depth=0)=>{if(depth>32)fail('BNS_HUMAN_CODEC_INVALID');if(!value||typeof value!=='object')return;for(const [key,item]of Object.entries(value)){if(['indexedSearchVersion','exactSignature','exactKey','nameToken','scopeToken','versionToken','recoveryPurgeRevision','recoveryGeneration','thought-suppression-key'].includes(key))fail('BNS_HUMAN_CODEC_INVALID');forbidLocal(item,depth+1);}};
 export function validateHumanLibraryEntity(type,value){
  if(!HUMAN_LIBRARY_TYPES.includes(type)||!plain(value)||!identifier(value.id)||!exact(value,fields[type].split(' ')))fail('BNS_HUMAN_CODEC_INVALID');try{safeJSON(value);}catch{fail('BNS_HUMAN_CODEC_INVALID');}forbidLocal(value);
  if(type==='entry'&&(value.storageSchema!==2||value.bodyBinding!=='thought'||value.provenanceType!=='user_created'||value.origin!=='user'||typeof value.thoughtText!=='string'||!count(value.revision)||!Array.isArray(value.sourceRecordIds)||value.sourceRecordIds.length||!Array.isArray(value.inputRefs)||value.inputRefs.length||!['active','removed'].includes(value.lifecycle)))fail('BNS_HUMAN_CODEC_INVALID');
