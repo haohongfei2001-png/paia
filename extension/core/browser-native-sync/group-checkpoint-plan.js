@@ -1,10 +1,10 @@
-import {CORE_LIMITS,validateOperation} from './core.js';
-import {bytes,digest,fail} from './value.js';
+import {CORE_LIMITS,validateOperation,validateHumanCommitGroup} from './core.js';
+import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
 
-const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive']});
-const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember']);
+const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
+const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
 const singles=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 // A bounded immutable causal plan only. This module never writes canonical or
@@ -31,7 +31,7 @@ export async function prepareGroupCheckpointPlan(core,input){
   if(Object.hasOwn(families,op.type)){
    const [refs,prepare]=families[op.type];rows=[];
    for(const ref of op.value[refs]){const row=byRevision.get(ref.revisionId);if(!row||row.type!==ref.type||row.entityId!==ref.entityId)fail('BNS_GROUP_INCOMPLETE');rows.push(row);}
-   rows.push(op);prepared=await core[prepare](rows);
+   rows.push(op);prepared=op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):await core[prepare](rows);
    const entities=Object.fromEntries(prepared.members.map(row=>[row.value.entityType,row.value.entity]));
    if(op.type==='sourceBootstrapCommit')capability=await prepareInitialSourcePlan(entities);
    if(op.type==='sourceAppendCommit')capability=await prepareSourceAppendPlan(entities,op.value.documentId);
@@ -47,7 +47,7 @@ export async function prepareGroupCheckpointPlan(core,input){
  }
  const depend=(group,other)=>{if(!other)fail('BNS_GROUP_CAUSAL_GAP');if(other!==group)group.dependencies.add(other.id);};
  for(const group of groups){
-  for(const op of group.operations)for(const id of op.parents){const parent=byRevision.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_GROUP_CAUSAL_GAP');depend(group,claimed.get(id));}
+  for(const op of group.operations){if(op.type==='humanLibraryMember'&&(op.parents.length>1||!equal(op.parents.length?byRevision.get(op.parents[0])?.value.after:null,op.value.before)))fail('BNS_HUMAN_OWNER_CHANGED');for(const id of op.parents){const parent=byRevision.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_GROUP_CAUSAL_GAP');depend(group,claimed.get(id));}}
   if(group.type==='sourceAppendCommit'){
    const anchor=group.prepared.descriptor.value.bootstrap,op=byRevision.get(anchor.revisionId),parent=claimed.get(anchor.revisionId);
    if(!op||op.type!=='sourceBootstrapCommit'||op.operationId!==anchor.operationId||!op.value.members.some(ref=>ref.revisionId===anchor.documentMemberRevisionId&&ref.entityId==='inputDocument:'+group.prepared.descriptor.value.documentId))fail('BNS_GROUP_CAUSAL_GAP');depend(group,parent);
@@ -55,6 +55,11 @@ export async function prepareGroupCheckpointPlan(core,input){
   if(group.type==='inputWorkingCommit')depend(group,createdInputs.get(group.prepared.descriptor.value.inputId));
   if(group.type==='filterIntent'){if(group.operations[0].value.reason!=='restored_from_filter')fail('BNS_GROUP_OWNER_UNSUPPORTED');depend(group,createdSources.get(group.operations[0].entityId));}
  }
+ // Qualified Human owners have no Source/Working references. Preserve their
+ // complete parent order and execute them first, so the original local history
+ // allocator starts from the actual captured empty installation, never a
+ // predicted foreign-owner counter. Existing non-Human dependencies stay intact.
+ const human=groups.filter(group=>group.type==='humanLibraryCommit');for(const group of human)if([...group.dependencies].some(id=>!human.some(other=>other.id===id)))fail('BNS_HUMAN_UNSUPPORTED');for(const group of groups)if(group.type!=='humanLibraryCommit')for(const other of human)group.dependencies.add(other.id);
  const done=new Set(),ordered=[];
  while(ordered.length<groups.length){const ready=groups.filter(group=>!done.has(group.id)&&[...group.dependencies].every(id=>done.has(id))).sort((a,b)=>a.id.localeCompare(b.id));if(!ready.length)fail('BNS_GROUP_CAUSAL_GAP');for(const group of ready){done.add(group.id);ordered.push({...group,dependencies:[...group.dependencies].sort()});}}
  // Exact ordering commitment is independent of received object/page order.

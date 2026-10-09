@@ -22,15 +22,6 @@ export async function validateOperation(operation){
  return operation;
 }
 
-export async function validateHumanCommitGroup(input,datasetId){
-  if(!Array.isArray(input)||input.length<2||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
-  const operations=[];for(const item of input){const op=await validateOperation(item);if(op.datasetId!==datasetId||op.kind!=='put'||op.actor!=='user'||!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_COMMIT_INVALID');operations.push(op);}
-  const descriptors=operations.filter(op=>op.type==='humanLibraryCommit');if(descriptors.length!==1)fail('BNS_HUMAN_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
-  if(descriptor.parents.length||v.id!==descriptor.entityId||v.deviceId!==descriptor.deviceId||v.datasetId!==descriptor.datasetId||members.length!==v.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
-  const ordered=[];for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId&&op.operationId===ref.operationId);if(hits.length!==1)fail('BNS_HUMAN_COMMIT_INCOMPLETE');const op=hits[0],m=op.value;if(op.deviceId!==descriptor.deviceId||m.deviceId!==v.deviceId||m.datasetId!==v.datasetId||m.logicalCommitId!==v.id||m.domainOperationId!==v.domainOperationId||m.requestDigest!==v.requestDigest)fail('BNS_HUMAN_COMMIT_INVALID');ordered.push(op);}
-  return {descriptor,members:ordered,operations};
-}
-
 // Inclusive disjoint ranges above a contiguous frontier. This represents sparse
 // gaps without allocating [1..maxReceived] or treating maxReceived as progress.
 export function acceptSequence(current,sequence){
@@ -242,7 +233,11 @@ export class BrowserNativeSyncCore {
   while(queue.length){const id=queue.pop();if(seen.has(id))continue;const row=await this.get(t,'revision',id);if(!row||row.redacted)fail('BNS_HUMAN_ANCESTRY_REQUIRED');const op=row.operation;if(!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_ANCESTRY_REQUIRED');seen.set(id,op);size+=bytes(op).length;if(seen.size>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');queue.push(...op.parents);if(op.type==='humanLibraryMember'){const head=await this.get(t,'head','humanLibraryCommit',op.value.logicalCommitId);if(head?.purged||head?.revisions.length!==1)fail('BNS_HUMAN_ANCESTRY_REQUIRED');queue.push(...head.revisions);}else queue.push(...op.value.members.map(ref=>ref.revisionId));}
  }
  async prepareHumanReceive(input){
-  const {descriptor,members:ordered,operations}=await validateHumanCommitGroup(input,this.datasetId);
+  if(!Array.isArray(input)||input.length<2||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
+  const operations=[];for(const item of input){const op=await validateOperation(item);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='user'||!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_COMMIT_INVALID');operations.push(op);}
+  const descriptors=operations.filter(op=>op.type==='humanLibraryCommit');if(descriptors.length!==1)fail('BNS_HUMAN_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
+  if(descriptor.parents.length||v.id!==descriptor.entityId||v.deviceId!==descriptor.deviceId||v.datasetId!==descriptor.datasetId||members.length!==v.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
+  const ordered=[];for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId&&op.operationId===ref.operationId);if(hits.length!==1)fail('BNS_HUMAN_COMMIT_INCOMPLETE');const op=hits[0],m=op.value;if(op.deviceId!==descriptor.deviceId||m.deviceId!==v.deviceId||m.datasetId!==v.datasetId||m.logicalCommitId!==v.id||m.domainOperationId!==v.domainOperationId||m.requestDigest!==v.requestDigest)fail('BNS_HUMAN_COMMIT_INVALID');ordered.push(op);}
   const cut=await this.transaction(false,async t=>{
    const prior=await this.get(t,'receipt',descriptor.operationId);if(prior){if(prior.digest!==descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {duplicate:true};}
    await this.requireHumanAncestry(t,operations);
@@ -250,27 +245,6 @@ export class BrowserNativeSyncCore {
    return {namespace:await this.bind(t),generation:(await this.get(t,'generation'))?.value||0};
   },['meta']);
   const prepared={descriptor,members:ordered,...cut};const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};freeze(prepared);this.#humanPrepared.add(prepared);return prepared;
- }
- // A closed grouped graph on an actually empty, fixed replay namespace only.
- // This mints no generic materializer: each Human group still needs the exact
- // original named-owner capability and final current heads/generation checks.
- async prepareHumanRestoreProtocols(groups){
-  if(!this.fixedNamespace||!Array.isArray(groups))fail('BNS_HUMAN_RESTORE_REQUIRED');const input=groups.flatMap(group=>group.operations||[]);
-  if(input.length>CORE_LIMITS.batch||input.reduce((n,op)=>n+bytes(op).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
-  const seen=new Map(),ids=new Set(),sequences=new Set(),heads=new Map(),result=[];let generation=0;
-  for(const group of groups){
-   if(!Array.isArray(group.operations)||!group.operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
-   for(const raw of group.operations){const op=await validateOperation(raw),seq=JSON.stringify([op.deviceId,op.sequence]);if(op.datasetId!==this.datasetId)fail('BNS_DATASET_MISMATCH');if(seen.has(op.revisionId)||ids.has(op.operationId)||sequences.has(seq))fail('BNS_GROUP_DUPLICATE');ids.add(op.operationId);sequences.add(seq);
-    for(const id of op.parents){const parent=seen.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_HUMAN_ANCESTRY_REQUIRED');}
-    const key=JSON.stringify([op.type,op.entityId]);if(!equal(heads.get(key)||[],op.parents))fail('BNS_HUMAN_OWNER_CHANGED');
-    if(op.type==='humanLibraryMember'){if(op.parents.length>1||!equal(op.parents.length?seen.get(op.parents[0]).value.after:null,op.value.before))fail('BNS_HUMAN_OWNER_CHANGED');}
-    seen.set(op.revisionId,op);heads.set(key,[op.revisionId]);
-   }
-   if(group.type==='humanLibraryCommit'){const {descriptor,members}=await validateHumanCommitGroup(group.operations,this.datasetId);if(group.id!==descriptor.revisionId)fail('BNS_HUMAN_COMMIT_INVALID');result.push({descriptor,members,namespace:this.fixedNamespace,generation});}
-   generation+=group.operations.length;
-  }
-  await this.transaction(false,async t=>{if(await this.bind(t)!==this.fixedNamespace||(await t.primaryRangePage('meta',{prefix:this.prefix+'generation:'+this.fixedNamespace+':',limit:1})).rows.length)fail('BNS_HUMAN_RESTORE_REQUIRED');},['meta']);
-  const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};for(const prepared of result){freeze(prepared);this.#humanPrepared.add(prepared);}return Object.freeze(result);
  }
  async commitHumanReceive(t,prepared,writeOwner){
   if(!this.#humanPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const prior=await this.get(t,'receipt',prepared.descriptor.operationId);if(prior){if(prior.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}

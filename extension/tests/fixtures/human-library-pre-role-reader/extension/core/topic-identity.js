@@ -19,23 +19,17 @@ export async function assertTopicIdentityBase(t,base){
 }
 export async function prepareTopicName(store,name){
  await store.finishFoundation();const base=await store.run(()=>store.repository.transaction(false,t=>topicIdentityBase(t),['meta']));
- return prepareTopicNameFromBase(base,name);
+ return {...base,token:await keyedHash(base.secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()])};
 }
-export async function prepareTopicNameFromBase(base,name){return {...base,token:await keyedHash(base.secret,['personal-topic-name-v1',String(name).normalize('NFKC').toLocaleLowerCase().trim()])};}
 export async function topicNameToken(store,name){return (await prepareTopicName(store,name)).token;}
 export async function prepareTopicIdentityName(store,id,newName){
  await store.finishFoundation();const snapshot=await store.run(()=>store.repository.transaction(false,async t=>({before:await t.get('topics',id),...await topicIdentityBase(t)}),['topics','meta']));
- return prepareTopicIdentityFromSnapshot(snapshot,newName);
-}
-export async function prepareTopicIdentityFromSnapshot(snapshot,newName){
  if(!snapshot.before)fail();const normalized=name=>String(name).normalize('NFKC').toLocaleLowerCase().trim();
  return {secret:snapshot.secret,restoreEpoch:snapshot.restoreEpoch,beforeName:snapshot.before.name,beforeRevision:snapshot.before.revision,oldToken:await keyedHash(snapshot.secret,['personal-topic-name-v1',normalized(snapshot.before.name)]),...(newName!==undefined?{newToken:await keyedHash(snapshot.secret,['personal-topic-name-v1',normalized(newName)])}:{})};
 }
-export function planTopicNameRegistration(topic,token,current){
- if(!/^[a-f0-9]{64}$/.test(token))fail();const next=structuredClone(topic);next.identity=identityMetadata(next);next.identity.nameToken=token;const id=namePrefix+token,row=current?structuredClone(current):{id,version:1,topicIds:[]},changed=!row.topicIds.includes(next.id);if(changed)row.topicIds.push(next.id);return {topic:next,registry:row,changed};
-}
 export async function registerTopicName(t,topic,token){
- if(!/^[a-f0-9]{64}$/.test(token))fail();const planned=planTopicNameRegistration(topic,token,await t.get('meta',namePrefix+token));Object.assign(topic,planned.topic);if(planned.changed)await t.put('meta',planned.registry);
+ if(!/^[a-f0-9]{64}$/.test(token))fail();topic.identity=identityMetadata(topic);topic.identity.nameToken=token;const id=namePrefix+token,row=await t.get('meta',id)||{id,version:1,topicIds:[]};
+ if(!row.topicIds.includes(topic.id)){row.topicIds.push(topic.id);await t.put('meta',row);}
 }
 export const prepareTopicRename=prepareTopicIdentityName;
 export function planHumanTopicRename(row,prepared,operationId,at){

@@ -1,5 +1,3 @@
-import {validateHumanAllocationEvents} from './human-library-allocation.js';
-import {validateHumanRequestOrder} from './human-library-request.js';
 import {keyedHash} from '../thought-model.js';
 import {clone,exact,plain,identifier,hash,count,fail,equal} from './value.js';
 import {validatePortableHumanIdentity,portableHumanTopicIdentity,portableHumanSuppression} from './human-library-identity.js';
@@ -36,10 +34,9 @@ export function validateHumanLibraryMember(v){
  if(!all(v,['id','entityType','logicalCommitId','datasetId','deviceId','domainOperationId','requestDigest','before','after'])||!HUMAN_LIBRARY_TYPES.includes(v.entityType)||![v.logicalCommitId,v.datasetId,v.deviceId,v.domainOperationId].every(identifier)||!hash(v.requestDigest)||!plain(v.after)||v.id!==v.entityType+':'+v.after.id)fail('BNS_HUMAN_CODEC_INVALID');validateHumanLibraryEntity(v.entityType,v.after);if(v.before!==null){validateHumanLibraryEntity(v.entityType,v.before);if(v.before.id!==v.after.id)fail('BNS_HUMAN_CODEC_INVALID');}return v;
 }
 export function validateHumanLibraryCommit(v){
- if(!all(v,['id','datasetId','deviceId','domainOperationId','requestDigest','kind','request','requestOrder','changeOrder','fieldRevisionOrder','ownerRequestDigest','options','events','allocation','members'])||![v.id,v.datasetId,v.deviceId,v.domainOperationId].every(identifier)||!hash(v.requestDigest)||!HUMAN_LIBRARY_KINDS.includes(v.kind)||!plain(v.request)||!Array.isArray(v.events)||!Array.isArray(v.members)||!v.members.length||v.members.length>127)fail('BNS_HUMAN_CODEC_INVALID');
+ if(!all(v,['id','datasetId','deviceId','domainOperationId','requestDigest','kind','request','options','events','members'])||![v.id,v.datasetId,v.deviceId,v.domainOperationId].every(identifier)||!hash(v.requestDigest)||!HUMAN_LIBRARY_KINDS.includes(v.kind)||!plain(v.request)||!Array.isArray(v.events)||!Array.isArray(v.members)||!v.members.length||v.members.length>127)fail('BNS_HUMAN_CODEC_INVALID');
  if(!all(v.options,['restore','renameOnly'])||typeof v.options.restore!=='boolean'||typeof v.options.renameOnly!=='boolean'||v.options.restore&&v.kind!=='topic-lifecycle'||v.options.renameOnly&&v.kind!=='topic-edit')fail('BNS_HUMAN_CODEC_INVALID');
- try{validateHumanAllocationEvents(v.events,v.allocation);}catch{fail('BNS_HUMAN_CODEC_INVALID');}
- try{validateHumanRequestOrder(v);}catch{fail('BNS_HUMAN_CODEC_INVALID');}
+ for(const e of v.events)if(!all(e,['kind','value'])||typeof e.value!=='string'||!(e.kind==='uuid'?identifier(e.value):e.kind==='clock'&&Number.isFinite(Date.parse(e.value))))fail('BNS_HUMAN_CODEC_INVALID');
  for(const r of v.members)if(!all(r,['type','entityId','revisionId','operationId'])||r.type!=='humanLibraryMember'||!identifier(r.entityId)||!hash(r.revisionId)||!identifier(r.operationId))fail('BNS_HUMAN_CODEC_INVALID');if(new Set(v.members.map(r=>r.entityId)).size!==v.members.length||new Set(v.members.map(r=>r.revisionId)).size!==v.members.length||new Set(v.members.map(r=>r.operationId)).size!==v.members.length)fail('BNS_HUMAN_CODEC_INVALID');try{safeJSON(v.request);}catch{fail('BNS_HUMAN_CODEC_INVALID');}return v;
 }
 

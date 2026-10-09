@@ -40,7 +40,7 @@ test('actual Topic touch consumes index generation only for an existing active i
  const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();
  const created=await s.createTopic({name:'SYNTHETIC allocation index',operationId:crypto.randomUUID()}),metaId='thought-read-index:v1:topic:'+created.id;
  for(const mode of ['missing','inactive','current','repeated']){
-  const a=prepareHumanAllocation(s),times=[],ids=[];if(mode!=='current')for(let n=0;n<(mode==='repeated'?2:1);n++){times.push(a.clock());if(mode==='repeated')ids.push(a.uuid());}const cap=a.seal();
+  const a=prepareHumanAllocation(s),times=[],ids=[];if(mode!=='current')for(let n=0;n<(mode==='repeated'?2:1);n++){times.push(a.clock());const slot=a.indexGenerationSlot();if(mode==='repeated')ids.push(slot.allocate());slot.close();}const cap=a.seal();
   await s.foundationWrite(async t=>{
    const row=await t.get('topics',created.id);row.lifecycle=mode==='inactive'?'removed':'active';await t.put('topics',row);
    if(mode==='missing')await t.delete('meta',metaId);else{const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=JSON.stringify([row.activeLayoutGeneration,row.organizationRevision||0,row.countVersion||0,epoch,0]);await t.put('meta',{id:metaId,version:THOUGHT_TOPIC_INDEX_VERSION,activeKey:key,buildingKey:key,timeRevision:0});}
