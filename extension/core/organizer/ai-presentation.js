@@ -1,8 +1,9 @@
 import {isIncrementalV3,planIncrementalV3,editIncrementalV3,legacyV2Generation} from './ai-incremental-v3.js';
-import {canonical as manifestCanonical,digest as manifestDigestOf} from '../ai-usage/contracts.js';
+import {canonical as manifestCanonical,digest as manifestDigestOf,unitKey} from '../ai-usage/contracts.js';
 import {isIncrementalV2,planIncrementalV2,editIncrementalField} from './ai-incremental-v2.js';
 import {readAIStyle} from '../ai-organize-style-preference.js';
 import {qualifyOrganizeCache,organizeCacheEvidenceVersion,validOrganizeCacheProfile} from './organize-cache-qualification.js';
+import {qualifiedCoverageId} from '../ai-usage/assist-intent-binding.js';
 import {entryTime} from './topic-chronology.js';
 import {expressionTime} from './expression-time.js';
 import {userAIDraft} from './ai-draft.js';
@@ -168,7 +169,7 @@ export async function editAIPresentation(s,edit={}){
   // Verify cryptographic proposal binding outside IDB; the write transaction
   // compares these exact bytes again after its existing idempotent receipt check.
   const captured=await s.run(()=>s.repository.transaction(false,t=>t.get('meta',ROW+topicId))),v2=[3,4].includes(captured?.candidate?.schemaVersion),proposalBytes=v2?manifestCanonical(captured.candidate.proposal):null,proposalVerified=v2?await manifestDigestOf(captured.candidate.proposal)===captured.candidate.manifestDigest:false;const legacyBase=captured?.candidate?.schemaVersion===4&&isIncrementalV2(captured)?await legacyV2Generation(captured):null,baseBytes=legacyBase?manifestCanonical({projection:captured.projection,manifest:captured.manifest}):null;if(legacyBase&&manifestCanonical(legacyBase)!==manifestCanonical(captured.candidate.baseGeneration))reject('STALE_BASE');
-  const result=await s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if([3,4].includes(row?.candidate?.schemaVersion)&&(!v2||!proposalVerified||manifestCanonical(row.candidate.proposal)!==proposalBytes||row.candidate.manifestDigest!==captured.candidate.manifestDigest))reject('STALE_BASE');if(row?.candidate?.schemaVersion===4&&manifestCanonical(row.candidate.baseGeneration)!==manifestCanonical(captured.candidate.baseGeneration))reject('STALE_BASE');if(baseBytes&&manifestCanonical({projection:row?.projection,manifest:row?.manifest})!==baseBytes)reject('STALE_BASE');if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,[3,4].includes(row.candidate?.schemaVersion)?current.incrementalVersions:row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),await candidateBinding(s,t,topic,current,gate?.epoch,[3,4].includes(row.candidate?.schemaVersion))),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};if([3,4].includes(row.candidate.schemaVersion)){if(!resolved.kept.length)await t.put('meta',{id:CHECKPOINT,version:3,...checkpoint,topicVersions:{...checkpoint?.topicVersions,[topicId]:current.versions},inputVersions:await acknowledgedInputs(s,t,checkpoint||{inputVersions:{},topicVersions:{}},{...topic,...current,prior:checkpoint?.topicVersions?.[topicId]||{}},current.versions)});}else await bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint});await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);return result;});
+  const result=await s.foundationWrite(async t=>{const prior=await receipt(t,request,digest);if(prior)return prior;const row=await t.get('meta',ROW+topicId),topic=await s.canonicalTopic(t,topicId),current=await topicSnapshot(s,t,topic),allowed=new Set(current.entries.map(e=>e.id));if([3,4].includes(row?.candidate?.schemaVersion)&&(!v2||!proposalVerified||manifestCanonical(row.candidate.proposal)!==proposalBytes||row.candidate.manifestDigest!==captured.candidate.manifestDigest))reject('STALE_BASE');if(row?.candidate?.schemaVersion===4&&manifestCanonical(row.candidate.baseGeneration)!==manifestCanonical(captured.candidate.baseGeneration))reject('STALE_BASE');if(baseBytes&&manifestCanonical({projection:row?.projection,manifest:row?.manifest})!==baseBytes)reject('STALE_BASE');if(!row||!isStoredAIPresentation(row,allowed)&&!isBaseNoneEnvelope(row))reject('STALE_BASE');const gate=await t.get('meta','gate');const resolved=applyAIPresentationCandidate(row,{decisions:candidateDecisions,expectedRevision,expectedCandidateKey},allowed,[3,4].includes(row.candidate?.schemaVersion)?current.incrementalVersions:row.candidate?.schemaVersion===1?current.versions:current.scopeVersions,s.clock(),await candidateBinding(s,t,topic,current,gate?.epoch,[3,4].includes(row.candidate?.schemaVersion))),checkpoint=await t.get('meta',CHECKPOINT);resolved.next.basedOnCheckpoint={entryVersions:structuredClone(checkpoint?.topicVersions?.[topicId]||row.basedOnCheckpoint?.entryVersions||{})};if([3,4].includes(row.candidate.schemaVersion)){if(!resolved.kept.length)await t.put('meta',{id:CHECKPOINT,version:3,...checkpoint,topicVersions:{...checkpoint?.topicVersions,[topicId]:current.versions},inputVersions:await acknowledgedInputs(s,t,checkpoint||{inputVersions:{},topicVersions:{}},{...topic,...current,prior:checkpoint?.topicVersions?.[topicId]||{}},current.versions)});}const cacheFence=await bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint});await t.put('meta',resolved.next);if(resolved.changed)await aiJournal(s,t,isBaseNoneEnvelope(row)?null:row,resolved.next,'user',operationId);await candidateFence(t,topicId,null);const result={revision:resolved.revision,adopted:resolved.adopted,kept:resolved.kept,hasCurrent:resolved.hasCurrent};await saveReceipt(s,t,request,digest,result);if(cacheFence&&!cacheFence())reject('STALE_BASE');return result;});
   for(const [token,proof]of localCacheProofs)if(proof.store===s&&proof.key===expectedCandidateKey)localCacheProofs.delete(token);return result;
  }
  if(!idOK(topicId)||!AI_FIELDS.includes(field)||operationId!==null&&(!idOK(operationId)||operationId.length<8))reject('INVALID_OUTPUT');await migrateAIPresentations(s);const request={id:topicId,field,value,expectedRevision,operationId,kind:'ai-field-edit'},digest=operationId?await hashText(JSON.stringify(request)):null;
@@ -262,8 +263,12 @@ export async function readLocalOrganizeScopeInTransaction(s,t,topicId,expectedPr
 // the final injected authority await, including a change during control().
 export async function assertLocalOrganizeCacheControls(s,t,prepared){
  const controls=await s.control(t),current=s.pendingControl||s.controlCache;
- for(const value of [controls,current]){const style=readAIStyle(value?.preferences,prepared.style.expectedEpoch);if(value?.settings?.enabled!==true||value.settings.epoch!==prepared.gateEpoch||!style.available||style.value!==prepared.style.value||style.revision!==prepared.style.expectedRevision||style.epoch!==prepared.style.expectedEpoch)reject('STALE_BASE');}
+ for(const value of [controls,current])if(!cacheControlMatches(value,prepared))reject('STALE_BASE');
 }
+const cacheControlMatches=(value,prepared)=>{const style=readAIStyle(value?.preferences,prepared.style.expectedEpoch);return value?.settings?.enabled===true&&value.settings.epoch===prepared.gateEpoch&&style.available&&style.value===prepared.style.value&&style.revision===prepared.style.expectedRevision&&style.epoch===prepared.style.expectedEpoch;};
+// Same serialized local controls, rechecked synchronously after the caller's
+// final await. This is not cross-process or cross-storage atomic authority.
+export const localOrganizeCacheControlsCurrent=(s,prepared)=>cacheControlMatches(s.pendingControl||s.controlCache,prepared);
 export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,result,candidateId,qualification=null,manifestDigest=null,baseGeneration=null}){
  const current=await readLocalOrganizeScopeInTransaction(s,t,prepared.topic.id,prepared.profile,prepared.incrementalVersion,prepared.physicalChildren,prepared.refreshStyle);if(current.proof!==prepared.proof)reject('STALE_BASE');
  const topic=current.topic,old=topic.stored,cp=current.checkpoint,candidate=createAIPresentationCandidate(topic.presentation,result,{createdAt:s.clock(),materialVersions:prepared.incrementalVersion>=2?topic.incrementalVersions:topic.scopeVersions,sourceBinding:await candidateBinding(s,t,topic,topic,current.gateEpoch,prepared.incrementalVersion>=2),candidateId,manifestDigest,baseGeneration});
@@ -273,6 +278,14 @@ export async function commitLocalOrganizeCandidateInTransaction(s,t,{prepared,re
  if(![3,4].includes(candidate?.schemaVersion)&&candidate?.baseKind==='none'&&qualification?.childId===candidateId&&validOrganizeCacheProfile(qualification.profile)){
   cacheProof=Object.freeze({});if(localCacheProofs.size>=32)localCacheProofs.delete(localCacheProofs.keys().next().value);
   localCacheProofs.set(cacheProof,{store:s,jobId:qualification.jobId,childId:candidateId,key:aiCandidateKey(candidate),topicId:topic.id,coverage:structuredClone(qualification.coverage),profile:structuredClone(qualification.profile),style:structuredClone(prepared.style),evidenceVersion:prepared.evidenceVersion,confirmed:false});
+ }
+ if(candidate?.schemaVersion===4&&candidate.baseKind==='none'&&prepared.incrementalVersion===3&&!prepared.refreshStyle&&!prepared.incremental.retained.length&&qualification?.variant==='atomic-v3'&&validOrganizeCacheProfile(qualification.profile)&&typeof qualification.isCurrent==='function'&&qualification.isCurrent()===true){
+  const generations=Object.values(candidate.proposal.manifest.generations),g=generations[0],job=await t.get('organizerJobs',qualification.jobId),attemptBindings=[];
+  for(const id of qualification.childIds||[])attemptBindings.push(atomicCacheAttemptBinding(await t.get('organizerUsage','aiu:attempt:'+id)));
+  if(generations.length===1&&g.kind==='local-committed-v1'&&g.jobId===qualification.jobId&&g.children.length>=2&&g.children.length<=4&&new Set(g.children.map(c=>c.operationReceiptId)).size===g.children.length&&manifestCanonical(g.children)===manifestCanonical(qualification.children)&&manifestCanonical(g.children.map(c=>c.childId))===manifestCanonical(qualification.childIds)&&candidate.proposal.manifest.blocks.every(b=>!b.manual&&b.generation===g.commitIdentity)&&Object.values(candidate.proposal.manifest.fields).every(f=>f.style===prepared.style.value&&equal(f.generations,[g.commitIdentity]))&&qualification.isCurrent()===true){
+   cacheProof=Object.freeze({});if(localCacheProofs.size>=32)localCacheProofs.delete(localCacheProofs.keys().next().value);
+   localCacheProofs.set(cacheProof,{variant:'atomic-v3',store:s,jobId:qualification.jobId,key:aiCandidateKey(candidate),topicId:topic.id,coverage:structuredClone(qualification.coverage),childIds:structuredClone(qualification.childIds),childCoverage:structuredClone(qualification.childCoverage),items:structuredClone(qualification.items),children:structuredClone(qualification.children),attemptBindings,jobBinding:atomicCacheJobBinding(job),proposal:manifestCanonical(candidate.proposal),profile:structuredClone(qualification.profile),style:structuredClone(prepared.style),evidenceVersion:prepared.evidenceVersion,prepared,isCurrent:qualification.isCurrent,confirmed:false});
+  }
  }
  return {candidateCreated:!!candidate,cacheProof};
 }
@@ -285,18 +298,44 @@ export function releaseLocalOrganizeCacheProof(s,token){if(localCacheProofs.get(
 export async function confirmLocalOrganizeCacheProof(s,token){
  const proof=localCacheProofs.get(token);if(!proof||proof.store!==s)return false;
  const valid=await s.run(()=>s.repository.transaction(false,async t=>{
-  const job=await t.get('organizerJobs',proof.jobId),receipt=await t.get('organizerUsage','aiu:attempt:'+proof.childId),row=await t.get('meta',ROW+proof.topicId);
+  const job=await t.get('organizerJobs',proof.jobId),row=await t.get('meta',ROW+proof.topicId);
+  if(proof.variant==='atomic-v3')return verifyAtomicCacheProof(s,t,token,proof,job,row);
+  const receipt=await t.get('organizerUsage','aiu:attempt:'+proof.childId);
   return job?.kind==='ai_usage_v1'&&job.type==='AI_ORGANIZE'&&job.state==='COMMITTED'&&job.childIds.length===1&&job.childIds[0]===proof.childId&&Array.isArray(job.coverage)&&equal(job.coverage,proof.coverage)&&Array.isArray(job.committedCoverage)&&equal([...job.committedCoverage].sort(),proof.coverage.map(u=>JSON.stringify([u.key,u.facet,u.scope])).sort())&&receipt?.jobId===proof.jobId&&receipt.state==='COMMITTED'&&isBaseNoneEnvelope(row)&&row.needsUpdate!==true&&row.stale!==true&&aiCandidateKey(row.candidate)===proof.key;
- }));
+ })).catch(error=>{if(proof.variant==='atomic-v3'&&localCacheProofs.get(token)===proof)localCacheProofs.delete(token);throw error;});
  if(!valid){localCacheProofs.delete(token);return false;}if(localCacheProofs.get(token)!==proof)return false;proof.confirmed=true;return true;
 }
 async function bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint}){
  // Never recycle an old binding through partial adoption or a human-owned row.
  delete resolved.next.cacheBinding;
- if(!isBaseNoneEnvelope(row)||!resolved.changed||!resolved.hasCurrent||resolved.kept.length||row.needsUpdate===true||row.stale===true||Object.values(resolved.next.protections||{}).some(Boolean)||!equal(presentationContent(resolved.next),row.candidate.proposal))return;
+ if(!isBaseNoneEnvelope(row)||!resolved.changed||!resolved.hasCurrent||resolved.kept.length||row.needsUpdate===true||row.stale===true||Object.values(resolved.next.protections||{}).some(Boolean))return;
+ const atomic=row.candidate?.schemaVersion===4;if(atomic?manifestCanonical({projection:resolved.next.projection,manifest:resolved.next.manifest})!==manifestCanonical({projection:row.candidate.proposal.projection,manifest:row.candidate.proposal.manifest}):!equal(presentationContent(resolved.next),row.candidate.proposal))return;
  const key=aiCandidateKey(row.candidate),match=[...localCacheProofs].find(([,p])=>p.store===s&&p.confirmed&&p.key===key&&p.topicId===topic.id);if(!match)return;const [token,proof]=match;
- if(!equal(checkpoint?.topicVersions?.[topic.id]||{},current.versions))return;
+ if(atomic){if(proof.variant!=='atomic-v3'||!await verifyAtomicCacheProof(s,t,token,proof,await t.get('organizerJobs',proof.jobId),row))return;}else if(!equal(checkpoint?.topicVersions?.[topic.id]||{},current.versions))return;
  const snapshot=await cacheSnapshot(s,t,topic,current),style=snapshot.style;
  if(localCacheProofs.get(token)!==proof||!proof.confirmed||!snapshot.complete||snapshot.evidenceVersion!==proof.evidenceVersion||!style.available||style.value!==proof.style.value||style.revision!==proof.style.expectedRevision||style.epoch!==proof.style.expectedEpoch)return;
+ if(atomic){await assertLocalOrganizeCacheControls(s,t,proof.prepared);if(!atomicCacheProofCurrent(s,token,proof))return;}
  resolved.next.cacheBinding={version:1,topicId:topic.id,presentationRevision:resolved.next.revision,profile:structuredClone(proof.profile),style:{value:style.value,policyVersion:proof.style.policyVersion},evidenceVersion:snapshot.evidenceVersion};
+ if(atomic)return ()=>atomicCacheProofCurrent(s,token,proof)&&atomicCacheControlsCurrent(s,proof);
+}
+
+// Private local proof qualification only. No RPC, financial admission or durable
+// authority format is expanded; both confirmation and adoption reuse this owner.
+const atomicCacheJobBinding=j=>manifestCanonical(j&&{id:j.id,kind:j.kind,version:j.version,commitMode:j.commitMode,type:j.type,childIds:j.childIds,childCoverage:j.childCoverage,coverage:j.coverage,items:j.items,contractVersion:j.contractVersion,routeVersion:j.routeVersion,authority:j.authority,organizeStyle:j.organizeStyle,organizeSemanticKey:j.organizeSemanticKey,cancelEpoch:j.cancelEpoch});
+const atomicCacheAttemptBinding=r=>manifestCanonical(r&&{id:r.id,kind:r.kind,version:r.version,jobId:r.jobId,childId:r.childId,sequence:r.sequence,attemptCount:r.attemptCount,executionKind:r.executionKind,provider:r.provider,parentReservationId:r.parentReservationId,operationReceiptId:r.operationReceiptId});
+const atomicCacheProofCurrent=(s,token,p)=>localCacheProofs.get(token)===p&&p.store===s&&p.isCurrent()===true;
+const atomicCacheControlsCurrent=(s,p)=>localOrganizeCacheControlsCurrent(s,p.prepared);
+async function verifyAtomicCacheProof(s,t,token,p,job,row){
+ if(!atomicCacheProofCurrent(s,token,p)||job?.kind!=='ai_organize_atomic_v1'||job.version!==1||job.commitMode!=='organize-atomic-v1'||job.type!=='AI_ORGANIZE'||job.state!=='COMMITTED'||job.cancelEpoch!==0||atomicCacheJobBinding(job)!==p.jobBinding||!isBaseNoneEnvelope(row)||row.needsUpdate===true||row.stale===true||row.candidate?.schemaVersion!==4||aiCandidateKey(row.candidate)!==p.key||manifestCanonical(row.candidate.proposal)!==p.proposal)return false;
+ const same=(a,b)=>manifestCanonical(a)===manifestCanonical(b),unitKeys=p.coverage.map(unitKey),union=job.childCoverage.flat().map(unitKey);
+ if(job.childIds.length<2||job.childIds.length>4||new Set(job.childIds).size!==job.childIds.length||!same(job.childIds,p.childIds)||!same(job.childCoverage,p.childCoverage)||!same(job.coverage,p.coverage)||!same(job.items,p.items)||unitKeys.length>100||new Set(unitKeys).size!==unitKeys.length||new Set(union).size!==union.length||!same([...union].sort(),[...unitKeys].sort())||!same([...job.committedCoverage].sort(),[...unitKeys].sort())||new Set(p.children.map(c=>c.operationReceiptId)).size!==job.childIds.length)return false;
+ for(const [index,childId]of job.childIds.entries()){
+  const r=await t.get('organizerUsage','aiu:attempt:'+childId),c=p.children[index];
+  if(!atomicCacheProofCurrent(s,token,p)||r?.id!=='aiu:attempt:'+childId||r.kind!=='ai_usage_v1'||r.version!==1||r.jobId!==job.id||r.childId!==childId||r.sequence!==index||r.state!=='COMMITTED'||r.attemptCount!==1||atomicCacheAttemptBinding(r)!==p.attemptBindings[index]||!c||c.childId!==childId||r.operationReceiptId!==c.operationReceiptId)return false;
+  for(const unit of job.childCoverage[index]){
+   const id=qualifiedCoverageId(unit,job),ack=await t.get('organizerWorkItems',id),item=job.items.find(i=>i.key===unit.key);
+   if(!atomicCacheProofCurrent(s,token,p)||ack?.id!==id||ack.kind!=='ai_usage_v1'||ack.jobId!==job.id||ack.state!=='ACKNOWLEDGED'||ack.sequence!==index||ack.outcome!=='COMMITTED'||!same(ack.unit,unit)||!item||ack.signature!==item.signature||!same(ack.inputIds,item.descriptor.inputIds)||!same(ack.sourceRecordIds,item.descriptor.sourceRecordIds))return false;
+  }
+ }
+ return atomicCacheProofCurrent(s,token,p);
 }
