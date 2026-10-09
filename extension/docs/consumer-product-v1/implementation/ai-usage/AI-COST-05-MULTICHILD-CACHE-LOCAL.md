@@ -1,6 +1,6 @@
 # AI-COST-05 multi-child exact cache — local implementation receipt
 
-Code frozen `badd104173523415d042e0f932e4170d4ec591b6`; local unit verification complete, independent review pending. No complete-stage, native, model quality or delivery claim. Base039 `1fa44e4e52680f5245e34f6933c129e659d0675d`, design35de copied as9b61488a. Root and integration_review approved the bounded design before implementation.
+Current code frozen `00a3943322b5a610ec9e44852f3e0859f88eb9f4`; final local unit verification complete, independent re-review pending. Initial code `badd104173523415d042e0f932e4170d4ec591b6` required the two independent corrections recorded below. No complete-stage, native, model quality or delivery claim. Base039 `1fa44e4e52680f5245e34f6933c129e659d0675d`, design35de copied as9b61488a. Root and integration_review approved the bounded design before implementation.
 
 ## Preserved before evidence and necessary readability interface
 
@@ -30,7 +30,7 @@ The same two authorized owners now reuse one pure synchronous predicate for the 
 
 Earlier author checkpoints are preserved: `/tmp/ai-multichild-cache-owning-expanded.log`8PASS/1FAIL used a Note-only edit with the creation-time revision rather than an asserted actual body change. The corrected negative reads the current canonical revision, makes a real body edit and asserts both the increment and changed body before requiring stale-cache refusal. `/tmp/ai-multichild-cache-owning-stable.log`13/13PASS15462.143292ms and `/tmp/ai-multichild-cache-related-final.log`195/195PASS17851.988583ms predate the last synchronous-return repair; neither is relabeled as final-byte evidence. All failures remain available.
 
-## Final exact-byte verification
+## Initial badd1041 exact-byte verification — historical
 
 Nine complete files passed **196/196**, zero failures/skips/cancellations, **18738.534333ms** in `/tmp/ai-multichild-cache-related-last-final.log`:
 
@@ -58,3 +58,42 @@ Recorded evidence log SHA-256 values (byte hashes, not retagged commits):
 
 
 Independent review is pending. This is local fixture mechanics and semantic cache qualification; all real Qwen three-style fidelity/author judgment, prices/billing, cloud/device, whole-programme remote/main/installed/user-delivery gates remain distinct and unclaimed. The existing approved design bytes are unchanged; the narrowly approved readability and demonstrated final-return repairs are accounted for here.
+
+## Independent findings and corrections at 00a39433
+
+Independent reviewer integration_review found two real defects after the initial196 checks. Root explicitly authorized their correction within the existing three-owner scope; no fourth runtime, native, CI or version change occurred. All original records above remain historical evidence, not final-byte passes.
+
+1. With a confirmed private proof, actual40-Entry/two-child job fault injection removing committedCoverage, or replacing it with null/object, caused the optional verifier to throw during spread/sort. Original adoption rolled every store back with STORAGE_FAILED. Disposing only the private proof allowed the same damaged-job candidate to adopt normally, without a binding or additional calls. Independent `/tmp/ai-multichild-cache-independent-malformed-coverage-before.log` is an expected assertion FAIL. Author owning `/tmp/ai-multichild-cache-malformed-owned-before.log` independently preserves1PASS/1FAIL.
+
+   The verifier now explicitly requires an array of the exact expected bounded length and string elements, including sparse-array refusal, before spread/sort. Original exact full-set comparison still rejects duplicate/wrong units. It returns false for malformed optional completion metadata so normal original adoption succeeds without stamping. No broad exception catch was added: actual IDB read failures still propagate and roll the entire adoption back. New owner cases cover the three fields, malformed elements, a hole, duplicate, ordinary successful adoption/idempotent retry and genuine read-error rollback.
+
+2. Independent `/tmp/ai-multichild-cache-independent-final-transaction-dispose-before.log` found that disposing the real fresh cached session after its actual readonly transaction completed but before the outer read Promise returned still delivered CACHED; the next use of the same handle correctly rejected. No writes or calls occurred. The first local microtask repair checked inside the IDB callback, leaving this outer transaction/s.run/readCached await unguarded. Author `/tmp/ai-multichild-cache-transaction-return-owned-before.log` independently preserves0PASS/1FAIL.
+
+   The public run cached branch now awaits the entire readCached operation and synchronously checks the original handles/map identity and current local controls immediately before its real final return. Original UNAVAILABLE for disposed ownership and STALE_BASE for changed controls are preserved. Existing callback checks remain; no new permission/grant or asynchronous work follows the final guard. New actual-owner tests dispose the session or change pending style at the real transaction-return boundary. This closes the reported local asynchronous window and does not claim cross-process atomic controls.
+
+The intermediate198/198PASS23969.75275ms in `/tmp/ai-multichild-cache-related-malformed-final.log` covered the first repair only and is retained without retagging. The author targeted combined corrections pass3/3,2545.25975ms in `/tmp/ai-multichild-cache-two-fixes-owned-after.log`.
+
+## Final 00a39433 exact-byte verification
+
+The same nine complete files listed above now pass **199/199**, zero fail/skipped/cancelled, **21657.991ms**, `/tmp/ai-multichild-cache-two-fixes-related-final.log`. The owning file contains17 complete cases: the original14 plus the three new families above. Original eight regression files remain unchanged. No broad full suite or native/browser run was repeated.
+
+Static package audit **13935 guardrails/416 runtime resources PASS**, `/tmp/ai-multichild-cache-two-fixes-package.log`; whitespace check PASS. New frozen code/test byte hashes:
+
+| Final file | SHA-256 |
+| --- | --- |
+| core/organizer/ai-presentation.js | `33a46bb30d19cdeeec860917acd1386fbcba6362915ac1259eefd30bdcb1039a` |
+| core/organizer/local-organize-session.js | `73ecc37ecaa3e15cc1fdd20f63dc38c82589e7df382febdac2b57deb4e10d9c6` |
+| core/organizer/ai-incremental-v2.js | `bfca551478c57c7506a3177916a0e776630d9790d7751baa23b5a53d0eab4ada` |
+| tests/ai-organize-multichild-cache.test.mjs | `55391109b9b950c5fc4cedb39959a9c2800a24ad82641e7094e7a8d2ee38a525` |
+
+Independent before and final author log hashes:
+
+- `/tmp/ai-multichild-cache-independent-malformed-coverage-before.log`: `a5747e793643ab8a3397086f093e26fb2df6b7869739dd25a288086012c46518`.
+- `/tmp/ai-multichild-cache-independent-final-transaction-dispose-before.log`: `9073c155c60265a47b08d9f59601f8a954d3e13b882c7c573857e85dc293c0e9`.
+- `/tmp/ai-multichild-cache-malformed-owned-before.log`: `d768140ee06562bc17be4aaef3dd5d21220bb8be33f384e5fe3eb678070647b7`.
+- `/tmp/ai-multichild-cache-transaction-return-owned-before.log`: `9642c57badced7c255c976c6328ade37beca2a4b85b235a6c5a506e29ad37800`.
+- `/tmp/ai-multichild-cache-two-fixes-owned-after.log`: `276c54b4cb8c426d07871b509f29f2b9cb5b7f24428170eb8a13eb3a6afda99c`.
+- `/tmp/ai-multichild-cache-two-fixes-related-final.log`: `39dcac67ff5efb3c0605ad1f361bb61365dbe2f1e0edc3c7f2dcf98966278851`.
+- `/tmp/ai-multichild-cache-two-fixes-package.log`: `09b30d836cac9c552a31e28dcc81da67debd16394a081160a89fd06135d2733a`.
+
+Independent reviewer is re-running only the two actual-owner counterexamples against the new frozen code and reviewing the small final diff; approval is pending. The original local-only/Qwen-quality/native/remote/main/installed boundaries remain unchanged.
