@@ -124,3 +124,23 @@ test('duplicate authority remains standalone body-only even for a previously acc
  for(const group of await allGroups(a.core))await b.s.humanLibraryJournal.receive(b.s,group);const group=await latestGroup(a.core,entry.id),before=await snapshot(b.s);
  await assert.rejects(b.s.humanLibraryJournal.retainSibling(b.s,group),{code:'BNS_HUMAN_BRANCH_UNAVAILABLE'});assert.deepEqual(await snapshot(b.s),before);
 });
+
+test('active retention cannot widen origin, materialization, exact member or capability authority',async()=>{
+ for(const changed of ['materialize','origin','member','capability']){
+  const f=await scenario(),before=await snapshot(f.b.s);let calls=0,injected=false;
+  f.b.core.materialize=async t=>{calls++;await t.put('meta',{id:'synthetic-forbidden-retention-materialize',value:true});};
+  const apply=f.b.core.applyInTransaction.bind(f.b.core);
+  f.b.core.applyInTransaction=(t,operation,options)=>{
+   if(!injected&&operation.type==='humanLibraryCommit'){
+    injected=true;
+    if(changed==='materialize')return apply(t,operation,{...options,materialize:true});
+    if(changed==='origin')return apply(t,operation,{...options,origin:'local'});
+    if(changed==='member')return apply(t,clone(operation),options);
+    return apply(t,operation,{...options,humanRetentionCapability:{}});
+   }
+   return apply(t,operation,options);
+  };
+  await assert.rejects(f.b.s.humanLibraryJournal.retainSibling(f.b.s,f.incoming),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
+  assert.equal(injected,true,changed);assert.equal(calls,0,changed);assert.deepEqual(await snapshot(f.b.s),before,changed);
+ }
+});

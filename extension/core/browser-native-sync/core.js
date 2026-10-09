@@ -173,6 +173,7 @@ export class BrowserNativeSyncCore {
   return false;
  }
  async applyInTransaction(t,operation,{origin='remote',materialize=true,workingCapability=null,bootstrapCapability=null,appendCapability=null,humanCapability=null,humanRetentionCapability=null}={}){
+  const activeRetention=this.#humanRetentionTransactions.get(t);if(activeRetention&&(activeRetention.phase!=='apply'||origin!=='remote'||materialize!==false||humanRetentionCapability!==activeRetention||!activeRetention.operations?.has(operation)))fail('BNS_HUMAN_RETENTION_REQUIRED');
   if(origin==='remote'&&['humanLibraryMember','humanLibraryCommit'].includes(operation.type)&&(humanCapability===null||this.#humanTransactions.get(t)!==humanCapability)){const retention=this.#humanRetentionTransactions.get(t);if(!retention||retention!==humanRetentionCapability||retention.phase!=='apply'||!retention.operations?.has(operation))fail('BNS_HUMAN_COMMIT_REQUIRED');}
   if(origin==='remote'&&['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(appendCapability===null||this.#appendTransactions.get(t)!==appendCapability))fail('BNS_SOURCE_APPEND_REQUIRED');
   if(origin==='remote'&&['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(bootstrapCapability===null||this.#bootstrapTransactions.get(t)!==bootstrapCapability))fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');
