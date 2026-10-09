@@ -159,7 +159,7 @@ const topicSnapshot=meta=>({
  complete:!!meta?.activeGeneration,
  building:!!meta?.buildingGeneration
 });
-const liveTopicKey=(topic,epoch,timeRevision=0)=>JSON.stringify([
+export const liveTopicKey=(topic,epoch,timeRevision=0)=>JSON.stringify([
  topic.activeLayoutGeneration,
  topic.organizationRevision||0,
  topic.countVersion||0,
@@ -222,19 +222,7 @@ export function* planThoughtTopicDescriptorRows(descriptor,generationId){
 async function writeTopicDescriptor(t,generationId,descriptor){
  for(const row of planThoughtTopicDescriptorRows(descriptor,generationId))await t.put('libraryMigrationItems',row);
 }
-export async function advanceThoughtTopicIndex(store,{topicId,describe}){
- return store.run(()=>store.repository.transaction(true,async t=>{
-  const topic=await store.canonicalTopic(t,topicId);
-  if(!activeTopic(topic))throw new Error('INVALID_TOPIC');
-  const {meta,key}=await topicMeta(store,t,topic);
-  if(meta.activeKey===key&&!meta.buildingGeneration)return {...topicSnapshot(meta),pending:false,processed:0,key};
-  if(meta.buildingKey!==key)startTopicBuild(store,meta,key);
-  const page=await t.rangePage('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),meta.sourceCursor??null,THOUGHT_TOPIC_BUILD_BATCH);
-  let added=0;
-  for(const {value:placement} of page.rows){
-   const descriptor=await describe(t,topic,placement);
-   meta.scanned++;
-   if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;
+export function accumulateThoughtTopicDescriptor(meta,descriptor){
     const count=stats=>{stats.total++;const year=descriptor.expressionTime?.year;if(Number.isInteger(year))stats.known[year]=(stats.known[year]||0)+1;else stats.unknown++;};
     count(meta.buildingExpressionCounts.all);
     for(const provider of descriptor.providerKeys||[]){const key='provider:'+provider;meta.buildingExpressionCounts.providers[key]??={known:{},unknown:0,total:0};count(meta.buildingExpressionCounts.providers[key]);}
@@ -251,10 +239,8 @@ export async function advanceThoughtTopicIndex(store,{topicId,describe}){
       if(!previous||descriptorId(meta.buildingGeneration,sort,descriptor)<descriptorId(meta.buildingGeneration,sort,previous))meta.buildingUnknown[sort]=descriptor;
      }
     }
-   }
-  }
-  meta.sourceCursor=page.next;
-  if(!page.next){
+}
+export function* completeThoughtTopicProjection(meta){
    meta.activeGeneration=meta.buildingGeneration;
    meta.activeKey=meta.buildingKey;
    meta.activeCount=meta.indexed;
@@ -262,8 +248,28 @@ export async function advanceThoughtTopicIndex(store,{topicId,describe}){
    meta.unknownDescriptor=meta.buildingUnknown;meta.unknownTimeCount=meta.buildingUnknownCount;
    meta.expressionCounts=meta.buildingExpressionCounts;meta.buildingExpressionCounts=null;
    meta.buildingEarliest=null;meta.buildingLatest=null;
-   meta.completedAt=store.clock();
+   meta.completedAt=yield;
    meta.buildingGeneration=null;meta.buildingKey=null;meta.sourceCursor=null;
+}
+export async function advanceThoughtTopicIndex(store,{topicId,describe}){
+ return store.run(()=>store.repository.transaction(true,async t=>{
+  const topic=await store.canonicalTopic(t,topicId);
+  if(!activeTopic(topic))throw new Error('INVALID_TOPIC');
+  const {meta,key}=await topicMeta(store,t,topic);
+  if(meta.activeKey===key&&!meta.buildingGeneration)return {...topicSnapshot(meta),pending:false,processed:0,key};
+  if(meta.buildingKey!==key)startTopicBuild(store,meta,key);
+  const page=await t.rangePage('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),meta.sourceCursor??null,THOUGHT_TOPIC_BUILD_BATCH);
+  let added=0;
+  for(const {value:placement} of page.rows){
+   const descriptor=await describe(t,topic,placement);
+   meta.scanned++;
+   if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;
+    accumulateThoughtTopicDescriptor(meta,descriptor);
+   }
+  }
+  meta.sourceCursor=page.next;
+  if(!page.next){
+   const completion=completeThoughtTopicProjection(meta);completion.next();completion.next(store.clock());
   }
   await t.put('meta',meta);
   return {...topicSnapshot(meta),pending:!!meta.buildingGeneration,processed:page.rows.length,added,key};
