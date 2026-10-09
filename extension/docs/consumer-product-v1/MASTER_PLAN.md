@@ -1,5 +1,15 @@
 # PAIA Consumer Product v1 — Canonical Master Plan
 
+## Narrow Input Board v4 follow-up — 2026-10-09
+
+The owner selected **NIB-V4-1.0** as the new browser-board design baseline and authorized a documentation-only Draft PR. [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md) owns the336px/44px single-line, content-height-only board and lawful Free/Pro boundary; [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) supersedes only the named Popup/Side-Panel/wide-board directions. [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) is the executable S0–S4 breakdown; [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md) preserve actual sources, material and evidence limits.
+
+This is an existing Prompt-lane follow-up with Archive/AI-COST/Settings dependencies, not a new parallel programme. **Current STATUS alone selects execution; all NIB runtime stages remain NOT_STARTED_BY_THIS_TASK.** Existing assigned work and file owners continue unchanged. A subsequent explicit runtime authorization lets Root select S0 without restarting accepted Family/data/composer work or waiting for unrelated whole-product completion.
+
+The local dependency chain is **S0 surface -> S1 Archive search/exact reuse -> S2 complete Free/manual continuity -> S4-local entry replacement**. S3 Pro follows real membership/service/scoped processing/budget gates after S1/S2, then receives an S4-Pro integration supplement. S4-local is not blocked by unavailable paid AI, but cannot remove Popup until retained old capabilities, final entry decision and replacement gates pass. S2 preservation applies immediately in S0/S1; it is not permission to break manual work earlier. Phase IDs are outcomes, not five mandatory PRs or parallel writers.
+
+No new data store, search index, native Side Panel, dual-carrier migration, input writer, capture/removal/retention policy or live provider is authorized by this design integration. Preserve all nonconflicting master-plan content below, with the finite v4 scope taking precedence only in its browser-board domain.
+
 Current scoped integration: **IAH-1.1, 2026-10-08 — existing Archive UI, selected minimal optimization**, preserving AIU-1.0 / AIOS-1.0 and AIU-QWEN-1.0 plus all earlier adopted product lanes. **STATUS.md remains the sole execution queue and coordinated-programme authority.** Design readiness does not select a runtime task.
 
 ## 1. Preserved baseline and current sequencing
