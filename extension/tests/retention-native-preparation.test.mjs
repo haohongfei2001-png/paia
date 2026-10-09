@@ -8,7 +8,7 @@ import {ArchiveRepository,requireRepositoryCommittedIdentity,beginRepositoryHuma
 import {IDBFactory} from './vendor/fake-indexeddb/build/esm/index.js';
 import {prepareHumanRetentionNativeEffects,finalizeHumanRetentionNativeEffects,requireHumanRetentionDeliveredValue} from '../core/browser-native-sync/human-library-plan.js';
 const source=await readFile(new URL('../core/browser-native-sync/human-library-plan.js',import.meta.url),'utf8');
-const registry=source.slice(source.indexOf('const branchWitnesses='),source.indexOf('function branchReady('));
+const registry=source.slice(source.indexOf('const branchWitnesses='),source.indexOf('function branchReady(')).replace(/^export (?=function branchRawMeasure\()/m,'');
 const native=source.slice(source.indexOf('const NATIVE_RETENTION_FIXED='),source.indexOf('function nativeRetentionCausalCertificate('));
 function fixture(){return Function('fail',registry+'\n'+native+`
  const store={},cap=Object.freeze({}),p={store,size:1000},state=branchState(store);state.bytes=p.size;state.busy=true;state.handles.push(cap);branchWitnesses.set(cap,p);const r=nativeRetentionBegin(p,cap);
