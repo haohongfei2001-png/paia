@@ -1,178 +1,64 @@
-# Current website: PAIA product visual system (8 October 2026)
+# PAIA website — full-site refoundation · 9 October 2026
 
-The Owner explicitly redirected the website after PR #212: follow the current
-PAIA product mockups and design language, with a modern technology/art direction,
-more motion and frosted glass. The old website hero and card-layout preservation
-requirement is superseded. Product capability boundaries remain unchanged.
+The Owner authorized a complete redesign, implementation, website-only PR,
+normal merge and production verification. The deployed site, including PR #213,
+is the comparison baseline, not a visual contract to preserve. The final product
+contracts determine product shape; this website remains a bounded illustration.
 
-The homepage now opens with an accessible, three-space product window. Its
-Archive follows the D6.2 Reader; Thought Library uses the newer PT1 grid and
-continuous Section reader; Context uses the current four-card model. The local
-interactive examples share their implementation with `demo.html`. Prompt reuse
-uses the soft optical material direction and deliberate draft-preserving fill.
+## Design and product model
 
-- `site.css`: one shared foundation, navigation, controls and all interior pages.
-- `product-experience.css`: hero, optical layers and all product-example surfaces.
-- `site.js`: real preview tabs, native-scroll optical motion, reduced/manual motion
-  controls and bounded arrivals. No scroll interception or hidden-content gate.
-- `home-core-v2.js`: source-safe editing, prompt reuse, Topic navigation/search,
-  derived-reading example and independent Context permissions.
-- `product_hero.py` / `topic_preview.py` / `prompt_preview.py`: current product composition, synthetic data.
+The site uses a cool-white and blue-gray system of flat reading surfaces, fine
+optical edges and a small number of translucent layers. Product windows keep a
+credible desktop proportion instead of stretching across the page. Navigation,
+annotations and the Prompt companion occupy different depths. Text remains
+readable without a background effect, JavaScript or animation.
 
-The old `home-core-v1.css`, `home-origin-v7.css`, `product-consistency.css` and
-`demo.js` are historical assets, no longer loaded. Brand asset bytes are intact.
-Product core code, permissions, services and deployment workflows are untouched.
+- **Input Archive:** three-space rail, source/project/conversation navigator and
+  an explicitly selected continuous Reader. Reader Find marks and navigates
+  matching inputs without filtering the document. Working edits preserve sources.
+- **Thought Library:** the newer PT1 personal Topic grid and plain Section links,
+  followed by continuous chapters in the same space. No category dashboard,
+  timeline, candidate inbox or additional chapter landing page.
+- **AI Context:** four independent cards, detail editing and separate global,
+  card and Topic choices. This website's fictional user has already granted the
+  sample scopes. Real product first-use defaults remain off; no real AI connects.
+- **Prompt Reuse:** ordinary personal wording, contextual management, a 336px
+  companion panel and intentional fill. A reliable caret or selection end is
+  respected; all draft text survives. Nothing sends automatically.
 
-[Product capability map](PRODUCT_CAPABILITY_MAP.md) records every main claim,
-the actual visual sources, the superseded website restrictions and the two
-private current mockups that were not accessible for direct visual comparison.
+The homepage introduces these spaces; How uses a continuous operation sequence;
+Use cases connects prior expression to a new task; About confines the original
+mailbox story to a brand chapter; Blog and the three essays use editorial reading
+layouts; Data explains independent choices; Beta presents the real application
+and next steps. Legal, status, return and error pages share the system. Different
+pages have their own composition rather than one repeated card template.
 
-Run the normal build and complete website gate:
+## Source ownership
 
-```sh
-python website/build.py
-python website/build.py --check
-python website/test.py
-```
+| Source | Responsibility |
+|---|---|
+| `build.py` | Site shell, route pairing, footer, Beta, legal and return pages |
+| `product_hero.py` | Responsive three-space opening with fictional content |
+| `core.py`, `topic_preview.py`, `prompt_preview.py`, `product_sections.py` | Shared homepage and standalone product examples |
+| `pages.py`, `product_pages.py` | How, use cases, articles, brand, data, status and demo introduction |
+| `assets/website/site.css` | Type, colors, navigation, controls and shared reading/form layouts |
+| `assets/website/product-experience.css` | Product compositions, material depth and responsive product surfaces |
+| `assets/website/interior.css` | Interior page compositions and their responsive layouts |
+| `assets/website/site.js` | Keyboard preview tabs, native-scroll motion, bounded arrivals and mobile navigation |
+| `assets/website/home-core-v2.js` | Page-local source-safe editing, Reader Find, draft insertion, Topics and permissions |
 
-The browser gate covers all routes at desktop/tablet/phone/320px and enlarged
-text, actual interactions, keyboard focus, motion preferences, JS-off reading,
-real link destinations and absence of unsolicited requests. Existing brand and
-content/permission safety checks remain. Old hero hashes and neutral-only color
-assertions are replaced by meaningful current-design checks, not bypassed.
+There is no ordinary-user motion toggle. Animation follows the system's reduced
+motion preference, including preference changes while a page is open. Native
+scrolling is not intercepted; there is no timer gate or perpetual render loop.
+All illustrations are HTML/CSS with synthetic text. Existing licensed fonts,
+brand artwork and media remain self-hosted. No package/runtime dependency is
+added to visitor pages. Retired stylesheets and `demo.js` are not loaded.
 
-After normal GitHub Pages deployment, `python website/verify_live.py` verifies
-actual deployed bytes and live browser interactions. Browser CI is used when the
-local execution environment cannot launch Chromium. No beta form is submitted.
+16 page types have English root and `/zh/` counterparts. `/en/` retains identical
+English aliases. The generator owns 48 HTML files, sitemap and robots. Locale
+switching preserves the route; canonical, hreflang and noindex rules remain.
 
----
-
-## Historical implementation records (superseded where the map above differs)
-
-# V7 origin fidelity — Draft review only (2026-09-28)
-
-The V7 owner request supersedes the earlier pale/green palette and frozen hero
-copy, while retaining the complete hero structure and native scroll timing.
-`home-origin-v7.css` is a homepage-only refinement: neutral surfaces, self-hosted
-Instrument Serif (SIL OFL 1.1), and a separate unchanged PAIA brand font.
-`site.css`, `site.js`, `demo.js` and all brand graphic assets remain byte-identical.
-The existing licensed photo planes are muted, not replaced without a stronger
-source. Product previews retain all prior behavior and add prompt pinning,
-explicit cross-window topic provenance and honest context usage states.
-
-All examples remain fictional and page-local. Prompt reuse, reply-aware
-suggestions and connected context are labelled planned. The new checks in
-`origin_checks.py` run alongside all existing website journeys. V7 does not
-change extension code or product STATUS, and does not authorize production.
-Review evidence and claim boundaries: [V7 receipt](receipts/WEBSITE_V7_ORIGIN.md).
-
----
-
-# PAIA website — post-capture core experiences (2026-09-28)
-
-The owner’s latest instruction preserves the deployed opening and strengthens
-only the four downstream functions. `website/home.py` keeps the exact approved
-hero literal. Shared `site.css`, `site.js`, `demo.js` and all brand images are
-byte-identical to main `d8eb7b1292a3b5d03f8018761c6ab624d05d05c7`.
-
-`website/core.py`, `assets/website/home-core-v1.css` (revision 2) and
-`assets/website/home-core-v2.js` own only the post-capture homepage experiences.
-No owner illustration appears in those feature sections. The existing compact
-brand marks and the original closing artwork remain. The functional visual
-language is a spacious, precise workbench, floating prompt palette, reversible
-topic organization and explicit context-permission boundary, not an illustrated
-story or a dense feature catalogue.
-
-The four browser-local fictional previews provide working-text editing and
-search, immutable source readback, prompt editing/reordering/insertion without
-sending, reversible preset topic grouping and Markdown export, plus explicit
-candidate confirmation, context selection, example authorization, invalidation,
-revocation and local activity. Edits propagate to the topic and its export.
-Candidate confirmation is never implicit selection or consent. There are no
-network calls, storage, analytics, real model processing or archive access.
-AI-response-aware suggestions and connected context are explicitly previews of
-planned capabilities. This website work does not implement those extension
-capabilities or change their current certification.
-
-`website/core_checks.py` is shared by candidate and production browser journeys.
-`verify_live.py` checks the actual current homepage, not the retired v3 picker,
-and includes both post-capture assets in exact-byte production readback. The
-original independent demo, beta form, legal text and non-home routes stay intact.
-Local managed-browser checks can use the documented offline-render mode;
-actual HTTP/download and current-live verification remain separate runner gates.
-
-See `receipts/CORE_EXPERIENCES_20260928.md` for scope and evidence. The earlier
-v4 documentation below describes the frozen opening and the independent demo;
-its old homepage-picker section is historical, not the current home contract.
-
----
-
-## Original v4 foundation (retained opening)
-
-The owner selected the latest supplied PAIA composition and explicitly authorized
-implementation plus a complete website PDF. This supersedes both the v3 flat
-workbench and the rejected `design/website-editorial-v1` delivery. Historical
-artboards remain archived, not a reason to reintroduce rejected copy or layouts.
-
-## Current presentation
-
-A text-only first viewport opens the site. Native downward scrolling moves the
-headline into its editorial position while individually timed inputs emerge;
-PAIA appears after the source cards. The sequence reverses on upward scroll. No
-scroll interception, timed gate, endless autoplay or WebGL runtime is required.
-Small screens use ordinary document flow: first typography, then a staggered
-collection. Reduced-motion and no-JS show all content without a motion gate.
-
-The owner-selected serif/sans contrast, custom vector benefit marks, recognizable
-source SVG marks, unequal card positions, fine connectors, photographic planes,
-glass-framed interactive example and architectural closing are retained. Cards
-are HTML, not a screenshot of a UI. Source marks must remain unobscured. Photos
-are fixed local assets, not remote requests. The architectural crop is from the
-owner-selected image; its source resolution is explicitly recorded, not called
-an original high-resolution photograph.
-
-Copy is concrete and deliberately short. Source capture that is not available
-is marked **Planned**, even inside the hero composition. “Watch the film”, fake
-endorsements, personality profiling and decorative micro-slogans are absent.
-This website is not a reading application or a claim of universal AI access.
-
-## Routes
-
-16 canonical page types have English root and `/zh/` counterparts. `/en/` keeps
-identical legacy English aliases. Locale switching retains the route.
-
-Home; how it works; use cases; interactive example; our story; blog; three
-original product essays; data and permissions; beta application; current status;
-privacy; terms; application return page; 404. Canonical/noindex/hreflang rules,
-real link targets and paired sharing images are generated centrally.
-
-## Real interactions / explicit boundaries
-
-The homepage example has five fictional inputs, selection that changes the
-actual Context view, keyword filtering, keyboard-operable Inputs/Topic/Context
-tabs and an empty state. Filtering never silently changes the selected set.
-The Topic is a fixed example, not a fake automatic AI result.
-
-The separate full demo preserves working-text editing, immutable originals,
-keyword search, Topic readback, explicit Context selection, stale-preview
-invalidation, exact copy and Markdown export. No archive connection, live AI,
-background capture, remote storage or telemetry is introduced by the website.
-
-The existing beta FormSubmit endpoint and recipient are retained. A valid email
-and separate, unchecked forwarding consent are required. All verification is
-read-only: the form is never submitted. The return page does not fabricate an
-email delivery receipt. Existing legal substance/dates are retained.
-
-The extension's canonical product documentation remains the authority for real
-capabilities. Marketing examples do not certify current-live provider support,
-private archive recovery, signed distribution or production AI semantic quality.
-No `extension/**` state, schema, implementation or CI is changed by this work.
-
-## Edit / verify
-
-`website/build.py`, `home.py` and `pages.py` are the only HTML generators.
-`assets/website/site.css` and `site.js` own the public site's presentation and
-homepage behavior. The independent `assets/website/demo.js` is preserved.
+## Build and verify
 
 ```sh
 python website/build.py
@@ -180,39 +66,35 @@ python website/build.py --check
 pip install -r website/requirements.txt
 playwright install chromium
 python website/test.py
-python -m http.server 8000
 ```
 
-Serve the repository root. Committed pages require no build server. Font and
-image assets are self-hosted and recorded in `assets/website/asset-lock.json`.
-`prepare_assets.py` is an explicit one-time acquisition utility; ordinary builds
-and visitor requests never fetch external dependencies. Upstream license text is
-retained separately. Never substitute a system font without screenshot review.
+Serve the repository root over HTTP. Tests use actual generated HTML, CSS and
+JavaScript. The browser suite checks all routes, 1440/768/390/320 reflow, enlarged
+320px text, navigation, keyboard focus, reduced motion, forced colors, no-JS,
+immutable sources, safe insertion, independent scopes and form validation.
+No Beta form is submitted and no private archive is accessed. Test fixtures do
+not prove real AI quality, installed extension behavior or physical-device use.
+`CHROMIUM_EXECUTABLE` optionally selects an existing test Chromium installation;
+the default CI-managed Playwright browser is unchanged.
 
-Website checks cover all generated routes, 1440/768/390/320 reflow, enlarged
-320px text, no unsolicited external requests, image availability, source-mark
-visibility, native/reduced/no-JS motion, keyboard navigation and the complete
-existing demo safety and form-validation paths. Aesthetic review remains
-separate; the number of assertions is not a quality score.
+After the existing GitHub Pages deployment, `python website/verify_live.py`
+compares deployed bytes with the checked-out commit and exercises public pages.
+A previous CDN copy must fail that comparison. Rerun only the live job after
+Pages completes; do not weaken the readback or bypass PR gates.
 
-## Website PDF and motion proof
+[Product capability map](PRODUCT_CAPABILITY_MAP.md) records exact authority,
+claim boundaries and missing private references. [Refoundation receipt](receipts/WEBSITE_FULL_REFOUNDATION_20261009.md) records
+visual comparisons and actual verification separately from product acceptance.
 
-```sh
-pip install pymupdf Pillow
-python website/export_pdf.py --output /tmp/paia-website-pdf
-```
+## Scope and previous records
 
-The exporter serves the actual website locally and uses browser PDF rendering
-with screen media. Each route is a complete, normal-width page with its natural
-height; it is not squeezed into a fixed tall poster. English and Chinese books
-include bookmark navigation, public website links and the hidden interactive
-states. A separate PDF/GIF records the native scroll sequence. All examples are
-fictional and no form is submitted. PDFs are verification/delivery artifacts,
-not dependencies required by the live website.
+This branch changes only the public website, its tests and its evidence. It does
+not change `extension/**`, formal plans, permission defaults, external services,
+product-writer branches or the deployment workflow. The form's existing endpoint,
+recipient and required unchecked forwarding consent are retained. The return page
+never fabricates a delivery receipt.
 
-## Review / integration
-
-See `receipts/WEBSITE_V4.md` for exact source, browser and deployment evidence.
-The temporary source-transfer workflow exists only during this branch's work
-and is removed before integration. Production byte readback is distinct from
-local browser and PDF rendering. Never label a pending deployment as verified.
+Older files in `receipts/` remain historical evidence. Their frozen-hero rules,
+old export/task-package examples and former browser-environment limitations are
+superseded where they conflict with the current Owner direction and product map.
+They are not instructions to restore retired UI or services.

@@ -1,7 +1,7 @@
 """Current D6 / PT1 presentation guards, alongside the complete data journeys.
 
-The October 8 Owner visual direction supersedes the old homepage byte/geometry
-freeze. These checks protect product roles, operability and motion preferences;
+The October 9 full-site Owner direction supersedes old homepage geometry
+and the website motion-pause control. These checks protect product roles, operability and motion preferences;
 they do not certify a real extension, model service or physical device.
 """
 import hashlib
@@ -11,12 +11,22 @@ import json
 def verify_typography(page, check, label='site'):
     def test(ok, name):
         check(ok, f'{label}: {name}')
-    test('sans-serif' in page.locator('h1').evaluate('e=>getComputedStyle(e).fontFamily'), 'primary heading uses the product UI font')
+    # English editorial pages have a deliberate display face; product-led
+    # headings and Chinese titles retain the readable UI face. Brand marks and
+    # product Reader typography are separate roles, verified below.
+    editorial_pages = {'about.html', 'how-it-works.html', 'use-cases.html',
+                       'blog.html', 'article-beliefs.html', 'article-context.html',
+                       'article-reuse.html', 'principles.html', 'status.html'}
+    editorial = (page.locator('html').get_attribute('lang') == 'en' and
+                 page.locator('body').get_attribute('data-page') in editorial_pages)
+    family = page.locator('h1').evaluate('e=>getComputedStyle(e).fontFamily')
+    expected = 'Instrument Serif' if editorial else 'sans-serif'
+    test(expected in family, 'primary heading retains its editorial or product UI type role')
     test('PAIA Display' in page.locator('.wordmark').first.evaluate('e=>getComputedStyle(e).fontFamily'), 'original PAIA brand typography retained')
     test(page.locator('.header-inner').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), 'navigation uses the shared glass surface')
     test(page.locator('.site-header').evaluate("e=>getComputedStyle(e).position==='sticky' && getComputedStyle(e).pointerEvents==='none'"), 'floating header leaves its surrounding space pointer transparent')
     test(page.locator('.header-inner').evaluate("e=>getComputedStyle(e).pointerEvents==='auto'"), 'visible navigation panel remains operable')
-    test(page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--focus').trim()==='#235dd3'"), 'D6 focus token is available across routes')
+    test(page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--focus').trim().length>0"), 'shared focus token is available across routes')
 
 
 def verify_origin(page, check, en=True):
@@ -88,44 +98,45 @@ def verify_hero(page, check, en=True, motion=False):
     if not motion:
         return
 
+    test(page.locator('[data-motion-toggle]').count() == 0, 'presentation has no ordinary-user motion switch')
     page.emulate_media(reduced_motion='no-preference')
-    toggle = page.locator('[data-motion-toggle]')
-    if toggle.get_attribute('aria-pressed') == 'true':
-        toggle.click()
     page.wait_for_function("document.documentElement.dataset.motion==='on'")
     page.evaluate("scrollTo({top:0,behavior:'instant'})")
     page.wait_for_function("Number(document.querySelector('[data-product-hero]').dataset.progress)===0")
-    before = page.locator('.ribbon-blue').evaluate('e=>getComputedStyle(e).transform')
+    art = page.locator('[data-scroll-art]').first
+    test(art.count() == 1, 'the scroll illustration exposes its review surface')
+    before = art.evaluate('e=>getComputedStyle(e).transform')
     distance = page.evaluate("()=>{const hero=document.querySelector('[data-product-hero]');const y=hero.offsetHeight*.35;scrollTo({top:y,behavior:'instant'});return y;}")
     page.wait_for_function("Number(document.querySelector('[data-product-hero]').dataset.progress)>.1")
     test(abs(page.evaluate('scrollY') - distance) <= 2, 'normal browser scrolling reaches the requested geometry without interception')
-    test(page.locator('.ribbon-blue').evaluate('e=>getComputedStyle(e).transform') != before, 'scrolling visibly moves the optical layer')
+    test(art.evaluate('e=>getComputedStyle(e).transform') != before, 'scrolling visibly moves the optical illustration')
     test(hero.evaluate("e=>Math.abs(Number(e.dataset.progress)-Number(getComputedStyle(e).getPropertyValue('--hero-progress')))<.001"), 'motion progress agrees with the displayed optical state')
     test(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').get_attribute('inert') is None, 'scroll animation never gates the product preview')
     test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), 'scroll motion stays within the viewport')
     page.evaluate("scrollTo({top:0,behavior:'instant'})")
     page.wait_for_function("Number(document.querySelector('[data-product-hero]').dataset.progress)===0")
-    test(page.locator('.ribbon-blue').evaluate('e=>getComputedStyle(e).transform') == before, 'upward scroll reverses the optical displacement')
-    toggle.click()
-    page.wait_for_function("document.documentElement.dataset.motion==='off'")
-    test(toggle.get_attribute('aria-pressed') == 'true', 'manual pause is exposed as a pressed control')
-    page.locator('[data-preview-tab="context"]').click()
-    test(page.locator('[data-preview-panel="context"]').is_visible(), 'tabs remain usable while motion is paused')
-    test(page.evaluate("document.getAnimations().every(a=>a.playState!=='running')"), 'pause stops current presentation animations')
-    page.evaluate("y=>scrollTo({top:y,behavior:'instant'})", distance)
-    page.wait_for_function("Number(document.querySelector('[data-product-hero]').dataset.progress)===0")
-    test(page.locator('[data-hero-glass]').evaluate("e=>getComputedStyle(e).transform==='none'"), 'paused product surface remains still')
-    toggle.click()
-    page.wait_for_function("document.documentElement.dataset.motion==='on'")
-    test(toggle.get_attribute('aria-pressed') == 'false', 'motion can be explicitly resumed')
+    test(art.evaluate('e=>getComputedStyle(e).transform') == before, 'upward scroll reverses the optical displacement')
+
+    # System preference is the sole motion control. A static perspective or
+    # composition may remain; it must not keep moving as the page scrolls.
     page.emulate_media(reduced_motion='reduce')
     page.wait_for_function("document.documentElement.dataset.motion==='off'")
-    test(toggle.is_disabled() and toggle.get_attribute('aria-pressed') == 'true', 'system reduced motion takes priority over the manual toggle')
     test(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), 'reduced motion removes animated scrolling')
+    frozen = art.evaluate('e=>getComputedStyle(e).transform')
+    page.evaluate("y=>scrollTo({top:y,behavior:'instant'})", distance)
+    page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+    test(art.evaluate('e=>getComputedStyle(e).transform') == frozen, 'reduced motion keeps the optical illustration still during scrolling')
+    page.locator('[data-preview-tab="context"]').click()
+    selected('context')
+    test(page.evaluate("document.getAnimations().every(a=>a.playState!=='running')"), 'reduced motion includes tab transitions and environment motion')
+    test(page.locator('[data-hero-glass]').is_visible(), 'reduced motion retains the complete product surface')
+    page.emulate_media(reduced_motion='no-preference')
+    page.wait_for_function("document.documentElement.dataset.motion==='on'")
+    test(page.locator('[data-preview-panel="context"]').is_visible(), 'restoring system motion keeps the selected product state')
+    page.emulate_media(reduced_motion='reduce')
     page.locator('[data-preview-tab="archive"]').click()
     selected('archive')
-    test(page.evaluate("document.getAnimations().every(a=>a.playState!=='running')"), 'reduced motion includes tab transitions')
-    test(page.locator('[data-hero-glass]').is_visible(), 'reduced motion retains the complete product surface')
+
 
 
 def verify_assets(root, check):

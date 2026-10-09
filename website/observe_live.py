@@ -9,7 +9,7 @@ OUT.mkdir(parents=True,exist_ok=True)
 observations=[]
 try:
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True)
+        browser=p.chromium.launch(headless=True, executable_path=os.environ.get('CHROMIUM_EXECUTABLE'))
         for relative in ('index.html','beta.html','demo.html'):
             url='https://inputarchive.com/'+relative
             with urlopen(Request(url,headers={'User-Agent':'PAIA-Website-Review/1.0'}),timeout=25) as response:

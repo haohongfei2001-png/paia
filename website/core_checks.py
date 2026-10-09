@@ -1,7 +1,9 @@
 """Shared real-browser journeys for the fictional homepage and standalone demo.
 
 Product-model guards survive the visual redesign: immutable sources, safe text,
-explicit insertion, stable Topic readers and independent default-closed Context.
+explicit insertion, stable Topic readers and independent Context permissions.
+The Owner-approved website scenario starts with a fictional user's grants;
+it does not change any real product permission default.
 These checks never certify a real extension, AI connection or cloud service.
 """
 import json
@@ -14,6 +16,11 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         check(value, f'{prefix} core: {label}')
     def on(selector):
         return page.locator(selector).get_attribute('aria-pressed') == 'true'
+    def permission_names():
+        test(page.locator('[data-card-allow]').evaluate_all("""els=>els.every(e=>{
+            const label=e.getAttribute('aria-label')||e.textContent;
+            return label.includes(e.textContent.trim());
+        })"""), 'permission controls keep their visible state in the accessible name')
     def open_card(key):
         page.locator(f'[data-card-open="{key}"]').click()
         test(page.locator(f'[data-card-detail="{key}"]').is_visible(), f'{key} opens its own detail')
@@ -87,6 +94,10 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(page.locator('.core-close img[src*="/brand/paia-logo-v1.webp"]').count() == expected_close, 'original closing brand usage retained')
     test(page.locator('[data-topic-export], [data-authorize], [data-confirm-candidate], [data-build], [data-export]').count() == 0, 'retired export and task-approval controls are absent')
     test(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, 'Thought Library starts at its Topic overview')
+    test(page.locator('[data-demo-permissions="pregranted"]').count() == 1, 'Context declares its fictional pre-granted scenario')
+    test(page.locator('[data-card-allow][aria-pressed=true]').count() == 4 and page.locator('[data-topic-allow][aria-pressed=true]').count() == 2 and on('[data-context-global]'), 'the example user has opened four cards and both example topics')
+    test(page.locator('[data-context-preview] strong').count() == 5, 'the granted overview reads the three personal cards and two complete topics')
+    permission_names()
 
     original = page.locator('[data-original="a"]').text_content()
     independent = page.locator('[data-thought-text="note"]').text_content()
@@ -100,16 +111,75 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(page.locator('[data-reading-output]').get_attribute('data-stale') == 'true', 'source edit retires preset AI reading')
     topic_back('product', initial_topic)
     page.locator('[data-archive-search]').fill('Example working text')
-    test(page.locator('[data-input]:visible').count() == 1, 'search uses current working text')
+    test(page.locator('[data-input]:visible').count() == 3, 'Reader Find retains the complete conversation')
+    test(page.locator('[data-input][data-find-match="true"]').evaluate_all('els=>els.map(e=>e.dataset.input)') == ['a'], 'Reader Find matches the current working text')
+    page.locator('[data-archive-search]').press('Enter')
+    test(page.locator('[data-input][data-find-current="true"]').get_attribute('data-input') == 'a', 'Enter locates the matching input without filtering')
+    test(page.locator('[data-working="a"]').input_value() == changed, 'locating a match never rewrites it')
     page.locator('[data-working="a"]').fill('The matching phrase has now been edited away.')
-    test(page.locator('[data-working="a"]').is_visible() and page.locator('[data-working="a"]').evaluate('e=>e===document.activeElement'), 'search never hides the input being edited')
+    test(page.locator('[data-working="a"]').is_visible() and page.locator('[data-working="a"]').evaluate('e=>e===document.activeElement'), 'Find never hides the input being edited or steals editor focus')
     page.locator('[data-archive-search]').focus()
-    test(page.locator('[data-input]:visible').count() == 0, 'leaving the editor reapplies the current search')
+    test(page.locator('[data-input]:visible').count() == 3 and page.locator('[data-input][data-find-match="true"]').count() == 0, 'editing away a match preserves every input')
     page.locator('[data-archive-search]').fill('')
     page.locator('[data-working="a"]').fill(changed)
     page.locator('[data-archive-search]').fill('no-match-website-core-xyz')
-    test(page.locator('[data-archive-empty]').is_visible(), 'empty search state')
+    test(page.locator('[data-archive-empty]').is_visible() and page.locator('[data-input]:visible').count() == 3, 'no-match feedback leaves the complete conversation visible')
+    test(page.locator('[data-input][data-find-match="true"], [data-input][data-find-current="true"]').count() == 0, 'no-match Find has no false match or current position')
     page.locator('[data-archive-search]').fill('')
+    test(page.locator('[data-input]:visible').count() == 3 and not page.locator('[data-archive-empty]').is_visible(), 'an empty Find query restores ordinary reading')
+    # A shared literal tests next/previous navigation in both locales, then all
+    # edits are restored before the existing Topic and source-safety journeys.
+    prior_b = page.locator('[data-working="b"]').input_value()
+    page.locator('[data-working="a"]').fill(changed + ' Navigation sample.')
+    page.locator('[data-working="b"]').fill(prior_b + ' Navigation sample.')
+    find = page.locator('[data-archive-search]')
+    find.focus()
+    observed = find.evaluate_handle("""el=>{
+        const result={scrollY:null};
+        el.addEventListener('input',()=>{result.scrollY=scrollY;},{capture:true,once:true});
+        return result;
+    }""")
+    try:
+        find.fill('Navigation sample')
+        find_origin = observed.evaluate('result=>result.scrollY')
+    finally:
+        observed.dispose()
+    test(page.locator('[data-input][data-find-match="true"]').count() == 2 and page.locator('[data-input]:visible').count() == 3, 'Find marks multiple matches while keeping nonmatching text')
+    test(page.locator('[data-find-controls]').is_visible() and '2' in page.locator('[data-find-count]').inner_text(), 'Find exposes its honest match count and navigation')
+    find.press('Enter')
+    current = page.locator('[data-input][data-find-current="true"]').get_attribute('data-input')
+    page.locator('[data-find-next]').click()
+    test(page.locator('[data-input][data-find-current="true"]').get_attribute('data-input') != current, 'Next moves to another actual match')
+    page.locator('[data-find-prev]').click()
+    test(page.locator('[data-input][data-find-current="true"]').get_attribute('data-input') == current, 'Previous returns to the prior match')
+    find.press('Escape')
+    page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+    test(find.input_value() == '' and page.locator('[data-input][data-find-match="true"], [data-input][data-find-current="true"]').count() == 0, 'Escape clears Find and its temporary location marks')
+    test(find_origin is not None and abs(page.evaluate('scrollY') - find_origin) <= 2, 'Escape returns to the pre-Find reading position')
+    test(page.locator('[data-working="a"]').input_value() == changed + ' Navigation sample.' and page.locator('[data-working="b"]').input_value() == prior_b + ' Navigation sample.', 'Find navigation and Escape preserve all working text')
+    for exit_action in ('clear query', 'Escape from step button'):
+        find.focus()
+        observed = find.evaluate_handle("""el=>{
+            const result={scrollY:null};
+            el.addEventListener('input',()=>{result.scrollY=scrollY;},{capture:true,once:true});
+            return result;
+        }""")
+        try:
+            find.fill('Navigation sample')
+            repeat_origin = observed.evaluate('result=>result.scrollY')
+        finally:
+            observed.dispose()
+        find.press('Enter')
+        page.locator('[data-find-next]').click()
+        if exit_action == 'clear query':
+            find.fill('')
+        else:
+            page.locator('[data-find-next]').press('Escape')
+        page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
+        restored_y = page.evaluate('scrollY')
+        test(find.input_value() == '' and page.locator('[data-input]:visible').count() == 3 and page.locator('[data-input][data-find-match="true"], [data-input][data-find-current="true"]').count() == 0 and repeat_origin is not None and abs(restored_y - repeat_origin) <= 2 and page.locator('[data-working="a"]').input_value() == changed + ' Navigation sample.' and page.locator('[data-working="b"]').input_value() == prior_b + ' Navigation sample.', f'{exit_action} closes Find, preserves all text and returns to its reading origin ({repeat_origin}; actual {restored_y})')
+    page.locator('[data-working="a"]').fill(changed)
+    page.locator('[data-working="b"]').fill(prior_b)
     page.locator('[data-sort]').click()
     test(page.locator('[data-records]>article').first.get_attribute('data-input') == 'c', 'time order reverses')
     page.locator('[data-sort]').click()
@@ -132,6 +202,38 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.locator('#pc-composer').fill('An existing draft must survive.')
     row.locator('[data-insert]').click()
     test(page.locator('#pc-composer').input_value() == 'An existing draft must survive.\n\n' + prompt, 'insertion preserves existing draft')
+    composer = page.locator('#pc-composer')
+    preserved_draft = composer.input_value()
+    before, after = 'Before.', 'After.'
+    composer.fill(before + after)
+    composer.focus()
+    composer.evaluate("""(el,position)=>{
+        el.setSelectionRange(position,position);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""", len(before))
+    row.locator('[data-insert]').click()
+    test(composer.input_value() == before + '\n\n' + prompt + '\n\n' + after, 'a reliable middle caret inserts the prompt between the intact draft parts')
+    insertion_end = len(before) + 2 + len(prompt)
+    test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'middle insertion leaves the caret at the new prompt end before the remaining draft')
+    before, selected, after = 'Keep ', 'these selected words', ' and the rest.'
+    composer.fill(before + selected + after)
+    composer.focus()
+    composer.evaluate("""(el,range)=>{
+        el.setSelectionRange(range.start,range.end);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""", {'start': len(before), 'end': len(before + selected)})
+    row.locator('[data-insert]').click()
+    test(composer.input_value() == before + selected + '\n\n' + prompt + '\n\n' + after, 'a selected range is preserved and insertion occurs after selectionEnd')
+    insertion_end = len(before + selected) + 2 + len(prompt)
+    test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'selection-based insertion collapses the caret after the new prompt without replacing selected words')
+    test(not requests, 'caret and selection insertion make no send, upload or processing request')
+    # Restore the preceding complete draft and its end caret so the existing
+    # reorder, pin and suggestion journeys retain their original expectations.
+    composer.fill(preserved_draft)
+    composer.evaluate("""el=>{
+        el.setSelectionRange(el.value.length,el.value.length);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""")
     row.locator('[data-move="1"]').click()
     test(page.locator('[data-prompt-list]>div').nth(1).get_attribute('data-prompt-row') == '0', 'prompt order changes')
     test(row.locator('[data-rank]').inner_text() == '02', 'management rank follows order')
@@ -198,10 +300,14 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         test(page.locator('[data-working="a"]').input_value() == changed, 'Topic navigation never rewrites Archive')
         topic_back(key, origin)
 
-    # Permissions remain four independent cards, with no Archive fallback.
+    # Withdraw the fictional user's initial grants through the real control,
+    # then keep the full closed-to-open isolation journey. No default policy
+    # in the extension or real AI service is asserted by this local scenario.
     test(page.locator('[data-context-card]').count() == 4, 'exactly four independent Context cards')
     test(page.locator('[data-context-overview] textarea, [data-context-overview] input').count() == 0, 'overview has no personal body or checkbox matrix')
-    test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'all scope starts closed')
+    page.locator('[data-context-clear]').click()
+    test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'withdrawing the example grants closes every independent scope')
+    permission_names()
     page.locator('[data-card-allow="rules"]').click()
     test(not on('[data-context-global]'), 'opening a card does not open global access')
     test(page.locator('[data-context-preview] strong').count() == 0, 'paused scope releases no example material')
@@ -229,6 +335,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.locator('[data-context-pause]').click()
     test(not on('[data-context-global]') and on('[data-card-allow="rules"]') and on('[data-topic-allow="product"]'), 'pause preserves lower choices')
     test(page.locator('[data-context-preview] strong').count() == 0, 'pause removes effective scope')
+    permission_names()
     page.locator('[data-context-global]').click()
     open_card('inputs')
     page.locator('[data-topic-allow="product"]').click()
