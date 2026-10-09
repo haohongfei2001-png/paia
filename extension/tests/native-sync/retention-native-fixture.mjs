@@ -70,9 +70,10 @@ function nativeStore(clock){
 const extraCase=String.raw`
 test('native owner ignores instance listener interception and transaction-shaped event DTOs',async()=>{
  const f=await scenario(),s=f.b.s,core=f.b.core,db=s.repository.db,originalTransaction=db.transaction,originalBind=core.bind.bind(core);
- const nativeAdd=EventTarget.prototype.addEventListener;let armed=false,intercepts=0,removals=0,dtoInvocations=0,trustedCompletes=0,falseEvents=0;
+ const nativeAdd=EventTarget.prototype.addEventListener,nativeRemove=EventTarget.prototype.removeEventListener;let armed=false,intercepts=0,removals=0,dtoInvocations=0,trustedCompletes=0,falseEvents=0;
  db.transaction=function(...args){const transaction=originalTransaction.apply(this,args);if(armed&&args[1]==='readwrite'){
-  nativeAdd.call(transaction,'complete',event=>{if(event.isTrusted)trustedCompletes++;},{once:true});
+  const observedComplete=event=>{if(event.isTrusted!==true||event.target!==transaction||event.currentTarget!==transaction)return;trustedCompletes++;nativeRemove.call(transaction,'complete',observedComplete);};
+  nativeAdd.call(transaction,'complete',observedComplete);
   transaction.addEventListener=(type,listener)=>{intercepts++;dtoInvocations++;listener({type,isTrusted:true,target:transaction,currentTarget:transaction});};
   transaction.removeEventListener=()=>{removals++;};
  }return transaction;};
