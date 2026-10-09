@@ -6,7 +6,7 @@ import {request} from './common.js';
 import {readTopicRootSlots} from './topic-root-slots.js';
 export const requestNavigation=detail=>document.dispatchEvent(new CustomEvent('paia:navigate',{detail}));
 export function installReaderNavigation({navigate,current,captureNavigator=()=>null,restoreNavigator=()=>{},captureSettings=()=>({}),restoreSettings=()=>{},present=(route,options)=>presentAppShell(document,route,options)}){
- let applying=false,ready=false;
+ let applying=false,ready=false,popIntent=0;
  const route=()=>{const next=appShellRoute(current(),captureNavigator());return next.view==='settings'?{...next,...captureSettings()}:next;};
  const valid=validRoute,historyRoutes=new RouteHistory();let lastRoute=null,committedState=null;
  const commit=({replace=false,anchor,originKey,checkpoint=false}={})=>{
@@ -25,9 +25,15 @@ export function installReaderNavigation({navigate,current,captureNavigator=()=>n
  const checkpoint=()=>{const previous=historyRoutes.decode(history.state?.paiaReader),next=route();if(!previous||!['view','documentId','topicId','contextCard','contextInputId','sourceKey','projectRef','originKey','returnTo'].every(key=>JSON.stringify(previous[key]??null)===JSON.stringify(next[key]??null)))return false;commit({replace:true,checkpoint:true});return true;};
  const restoreCommitted=()=>history.pushState(committedState?structuredClone(committedState):{paiaReader:historyRoutes.encode(route())},'',location.href);
  window.addEventListener('popstate',async event=>{
+  const intent=++popIntent;
   const modal=[...document.querySelectorAll('dialog[open]')].at(-1);if(modal){if(modal.dispatchEvent(new Event('paia:request-close',{cancelable:true})))modal.close();history.pushState({...history.state,paiaReader:historyRoutes.encode(route())},'',location.href);return;}
-  const r=historyRoutes.decode(event.state?.paiaReader)||{view:views.has(event.state?.paiaShell?.view)?event.state.paiaShell.view:'library'};
-  let accepted=false;applying=true;try{const ok=await navigate(r.view,r.documentId||null,r.contextInputId||null,{topicId:r.topicId,contextCard:r.contextCard,originKey:r.originKey,applyNavigator:()=>restoreNavigator(r.navigator),returnTo:r.returnTo,searchQuery:r.searchQuery,sort:r.sort,anchor:r.anchor,history:true});if(ok!==false&&r.view==='settings')restoreSettings(r);if(ok===false)restoreCommitted();else accepted=true;}finally{applying=false;lastRoute=null;if(accepted)commit({replace:true});}
+  const saved=historyRoutes.decode(event.state?.paiaReader),target=saved?null:topicRootTarget(location.href);
+  let r=saved||{view:views.has(event.state?.paiaShell?.view)?event.state.paiaShell.view:'library'},targetReady=false,targetCurrent=null,targetDeparture=null;
+  // Native same-document links create a history entry without our route state.
+  // Resolve its explicit target before committing a neutral fallback, which
+  // would otherwise conceal the Section on the following reload.
+  if(target){const url=location.href,state=JSON.stringify(history.state);targetDeparture=JSON.stringify(route());targetCurrent=()=>intent===popIntent&&location.href===url&&JSON.stringify(history.state)===state;try{await request('GET_LIBRARY_FOUNDATION_STATUS');targetReady=await resolveTopicRootTarget(target,options=>request('GET_LIBRARY_SECTION_PROJECTION',{options}));}catch{}if(!targetCurrent()||JSON.stringify(route())!==targetDeparture)return;r={view:'thoughts',topicId:targetReady?target.topicId:null};}
+  let accepted=false;applying=true;try{const ok=await navigate(r.view,r.documentId||null,r.contextInputId||null,{topicId:r.topicId,contextCard:r.contextCard,originKey:r.originKey,applyNavigator:()=>restoreNavigator(r.navigator),returnTo:r.returnTo,searchQuery:r.searchQuery,sort:r.sort,anchor:r.anchor,history:true});if(target){const owner=current();if(!targetCurrent()||(ok===false?JSON.stringify(route())!==targetDeparture:owner.view!==r.view||(owner.topicId??null)!==(r.topicId??null)||owner.documentId))return;}if(ok!==false&&r.view==='settings')restoreSettings(r);if(ok===false)restoreCommitted();else{accepted=true;if(targetReady&&target.sectionId)document.dispatchEvent(new CustomEvent('paia:topic-root-target',{detail:target}));}}finally{applying=false;lastRoute=null;if(accepted)commit({replace:true});}
  });
  const restore=async()=>{
   const target=topicRootTarget(location.href);let r=historyRoutes.decode(history.state?.paiaReader)||(target?{view:'thoughts',topicId:target.topicId}:null),targetReady=false;
