@@ -31,18 +31,24 @@ function snapshot(value,limits){
   if(typeof v!=='object'||!v)error('USAGE_INVALID');
   if(seen.has(v))error('USAGE_INVALID');seen.add(v);
   const array=Array.isArray(v);if(!array&&!plain(v))error('USAGE_INVALID');
-  const names=Reflect.ownKeys(v);if(names.some(k=>typeof k!=='string'))error('USAGE_INVALID');
-  const descriptors=Object.getOwnPropertyDescriptors(v);
+  // ownKeys necessarily allocates the caller's name list. Reject its known size
+  // before any descriptor sweep; count intrinsic array length as a key too.
+  const names=Reflect.ownKeys(v),count=names.length;
+  if(count>limits.maxKeys-keys)unknown('TRANSPORT_BOUND');
+  if(names.some(k=>typeof k!=='string'))error('USAGE_INVALID');
+  let length;
   if(array){
-   if(!integer(v.length)||names.length!==v.length+1||names.some(k=>k!=='length'&&!/^(0|[1-9][0-9]*)$/.test(k)))error('USAGE_INVALID');
-   if(v.length>limits.maxKeys)unknown('TRANSPORT_BOUND');
+   const d=Object.getOwnPropertyDescriptor(v,'length');
+   if(!d||!own(d,'value')||!integer(d.value))error('USAGE_INVALID');length=d.value;
+   if(length>limits.maxKeys-keys)unknown('TRANSPORT_BOUND');
+   if(names.length!==length+1||names.some(k=>k!=='length'&&!/^(0|[1-9][0-9]*)$/.test(k)))error('USAGE_INVALID');
   }
-  const count=array?v.length:names.length;keys+=count;if(keys>limits.maxKeys)unknown('TRANSPORT_BOUND');charge(2+count);
+  keys+=count;charge(2+count);
   const copy=array?[]:Object.create(null);
   for(const name of names){
    if(array&&name==='length')continue;
-   const d=descriptors[name];if(!d.enumerable||!own(d,'value'))error('USAGE_INVALID');
-   if(array&&Number(name)>=v.length)error('USAGE_INVALID');
+   const d=Object.getOwnPropertyDescriptor(v,name);if(!d||!d.enumerable||!own(d,'value'))error('USAGE_INVALID');
+   if(array&&Number(name)>=length)error('USAGE_INVALID');
    if(!array)string(name);
    copy[name]=visit(d.value,depth+1);
   }
@@ -126,7 +132,7 @@ function usage(raw,b){
 function execute(options,stream){
  // Access options through descriptors as well; do not invoke caller accessors.
  let o;
- try{o=snapshot(options,{maxBytes:HARD.maxBytes+16384,maxDepth:HARD.maxDepth+3,maxKeys:HARD.maxKeys+64,maxStringBytes:HARD.maxStringBytes});}
+ try{o=snapshot(options,{maxBytes:HARD.maxBytes+16384,maxDepth:HARD.maxDepth+3,maxKeys:HARD.maxKeys,maxStringBytes:HARD.maxStringBytes});}
  catch(e){return failure(e);}
  const fields=stream?['binding','frames','done','transportComplete','httpStatus','cancelled']:['binding','response','transportComplete','httpStatus','cancelled'];
  if(!exact(o,fields))return output('INVALID','RESPONSE_SHAPE_INVALID');

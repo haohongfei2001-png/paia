@@ -141,3 +141,11 @@ test('decoded DONE must be unique, after usage and at its actual terminal positi
  assert.equal(parseQwenStreamUsage({...base,frames:s.raw.frames}).reason,'TRANSPORT_INCOMPLETE');
  const invalid=[...s.raw.frames,{kind:'done',body:'SYNTHETIC'}];assert.equal(parseQwenStreamUsage({...base,frames:invalid}).usageState,'INVALID');
 });
+
+test('known over-bound own-key and array sizes refuse before descriptor sweep',()=>{
+ for(const target of [Object.fromEntries(Array.from({length:17000},(_,i)=>['k'+i,0])),Array.from({length:17000},()=>0)]){
+  let inspected=0;const response=new Proxy(target,{getOwnPropertyDescriptor(t,k){inspected++;return Reflect.getOwnPropertyDescriptor(t,k);}});
+  const r=parseQwenUsage({binding:null,response,transportComplete:true,httpStatus:200,cancelled:false});
+  assert.equal(r.reason,'TRANSPORT_BOUND');assert.equal(inspected,0);noAuthority(r);
+ }
+});
