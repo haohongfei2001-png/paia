@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "heldOutId": "PAIA-AIU-QWEN-HELD-ROOT-v1",
+  "writer": "ROOT_SEPARATE_SYNTHETIC_WRITER",
+  "calibrationFreezeCommit": "07d4828497c08cfd62d8e1a47d00827d98affef0",
+  "calibrationDigest": "56891aeb3abcc82e330e542007e849a2efb1c5b819274e11d2234cc2637d8d9b",
+  "reviewContractDigest": "0cda0babef3e2503e3efd8cb28f1f2fd143e8a953fd28dd38ff999adc1b400d3",
+  "file": "held-out-root-v1.json",
+  "sha256": "1ed69045f9787f34dc695b9f2b7187f1e8806ffa1c3abc83cded89f90d9ff88c",
+  "bytes": 49874,
+  "topics": 12,
+  "entries": 36,
+  "exposure": "Read frozen design, field schema, gap audit and challenge categories. A schema-inspection script parsed calibration JSON but suppressed body/annotation text in its output; the separate writer did not consume calibration bodies or generation outputs. No prompt/model tuning has occurred.",
+  "independence": "Separate writer after calibration and interface freeze, not independent human-authored population evidence.",
+  "semanticReference": "NOT_RUN",
+  "qualityQualification": "NOT_RUN",
+  "tuningRule": "If this set is consulted for generation prompt/policy tuning, retire held-out qualification status and freeze a new separate set.",
+  "calibrationBodiesDisplayedToWriter": false,
+  "schemaInspectionParsedCalibrationJSON": true
+}

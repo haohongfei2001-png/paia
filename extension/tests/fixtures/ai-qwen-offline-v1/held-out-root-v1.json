@@ -1,0 +1,1640 @@
+{
+  "version": 1,
+  "id": "PAIA-AIU-QWEN-HELD-ROOT-v1",
+  "scope": "SEPARATELY_AUTHORED_SYNTHETIC_NOT_HUMAN_POPULATION_OR_MODEL_QUALIFICATION",
+  "syntheticOnly": true,
+  "runtimeBase": "707dd125bb48d75aaad2cb89b4b98ddc66837bbb",
+  "contractVersions": {
+    "reviewContractDigest": "0cda0babef3e2503e3efd8cb28f1f2fd143e8a953fd28dd38ff999adc1b400d3"
+  },
+  "modes": [
+    "original",
+    "balanced",
+    "concise"
+  ],
+  "heldOut": {
+    "actualTopics": 12,
+    "status": "SEPARATE_WRITER_FROZEN_PENDING_INDEPENDENT_REVIEW"
+  },
+  "modelRunStatus": "NOT_RUN",
+  "humanAuthorReviewStatus": "NOT_RUN",
+  "topics": [
+    {
+      "id": "HELD-R01",
+      "syntheticAuthorGroup": "HELD-SYN-A01",
+      "partition": "held-out",
+      "title": "Invented workshop terms",
+      "features": [
+        "conditions",
+        "counts",
+        "negation",
+        "chronology"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R01-E001",
+          "revision": 0,
+          "body": "只有场地费用不超过四百元，我才考虑周六举办木工分享。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-01T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R01-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 26,
+              "literal": "只有场地费用不超过四百元，我才考虑周六举办木工分享。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R01-E001-O1",
+            "start": 0,
+            "end": 26,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R01-E002",
+          "revision": 0,
+          "body": "我同意先询价；这不是同意付款，也不是报名确认。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-01T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R01-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "我同意先询价；这不是同意付款，也不是报名确认。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R01-E002-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R01-E003",
+          "revision": 0,
+          "body": "周五仍没有报价，周六的活动暂时没有确定。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-01T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R01-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "周五仍没有报价，周六的活动暂时没有确定。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R01-E003-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R01-E001",
+            "HELD-R01-E002",
+            "HELD-R01-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R01-E001",
+            "HELD-R01-E002",
+            "HELD-R01-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R02",
+      "syntheticAuthorGroup": "HELD-SYN-A02",
+      "partition": "held-out",
+      "title": "Invented reading stance",
+      "features": [
+        "stance",
+        "chronology",
+        "attribution",
+        "voice"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R02-E001",
+          "revision": 0,
+          "body": "去年我觉得速读适合所有书，现在这个说法我不认同了。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-02T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R02-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 25,
+              "literal": "去年我觉得速读适合所有书，现在这个说法我不认同了。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R02-E001-O1",
+            "start": 0,
+            "end": 25,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R02-E002",
+          "revision": 0,
+          "body": "说明书可以扫读；诗歌我愿意慢慢读，这不是效率的问题。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-02T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R02-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 26,
+              "literal": "说明书可以扫读；诗歌我愿意慢慢读，这不是效率的问题。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R02-E002-O1",
+            "start": 0,
+            "end": 26,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R02-E003",
+          "revision": 0,
+          "body": "朋友说慢读浪费时间，那是她的评价，我没有采用。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-02T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R02-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "朋友说慢读浪费时间，那是她的评价，我没有采用。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R02-E003-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R02-E001",
+            "HELD-R02-E002",
+            "HELD-R02-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R02-E001",
+            "HELD-R02-E002",
+            "HELD-R02-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R03",
+      "syntheticAuthorGroup": "HELD-SYN-A03",
+      "partition": "held-out",
+      "title": "Invented tide observation",
+      "features": [
+        "counts",
+        "negation",
+        "uncertainty"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R03-E001",
+          "revision": 0,
+          "body": "我数到十二只纸船，其中两只是昨天留下的。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R03-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "我数到十二只纸船，其中两只是昨天留下的。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R03-E001-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R03-E002",
+          "revision": 0,
+          "body": "不能把十二只都算成今天新放的，也不能说全部已经到达岸边。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R03-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 28,
+              "literal": "不能把十二只都算成今天新放的，也不能说全部已经到达岸边。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R03-E002-O1",
+            "start": 0,
+            "end": 28,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R03-E003",
+          "revision": 0,
+          "body": "河面雾太大，我不知道剩下的纸船在哪里。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R03-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 19,
+              "literal": "河面雾太大，我不知道剩下的纸船在哪里。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R03-E003-O1",
+            "start": 0,
+            "end": 19,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R03-E001",
+            "HELD-R03-E002",
+            "HELD-R03-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R03-E001",
+            "HELD-R03-E002",
+            "HELD-R03-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R04",
+      "syntheticAuthorGroup": "HELD-SYN-A04",
+      "partition": "held-out",
+      "title": "Invented rehearsal boundaries",
+      "features": [
+        "voice",
+        "conditions",
+        "human-keep"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R04-E001",
+          "revision": 0,
+          "body": "演出练习让我有点紧张，远没有到恐惧的程度。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-04T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R04-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 21,
+              "literal": "演出练习让我有点紧张，远没有到恐惧的程度。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R04-E001-O1",
+            "start": 0,
+            "end": 21,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R04-E002",
+          "revision": 0,
+          "body": "我愿意练习，但不愿意别人替我承诺登台。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-04T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R04-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 19,
+              "literal": "我愿意练习，但不愿意别人替我承诺登台。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R04-E002-O1",
+            "start": 0,
+            "end": 19,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R04-E003",
+          "revision": 0,
+          "body": "如果只是封闭排练，我可以参加；公开演出还没决定。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-04T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R04-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 24,
+              "literal": "如果只是封闭排练，我可以参加；公开演出还没决定。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R04-E003-O1",
+            "start": 0,
+            "end": 24,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R04-E001",
+            "HELD-R04-E002",
+            "HELD-R04-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R04-E001",
+            "HELD-R04-E002",
+            "HELD-R04-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R05",
+      "syntheticAuthorGroup": "HELD-SYN-A05",
+      "partition": "held-out",
+      "title": "Invented housing hypothetical",
+      "features": [
+        "hypothetical",
+        "attribution",
+        "negation",
+        "counts"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R05-E001",
+          "revision": 0,
+          "body": "假设我在山城租住一年，这里只是在比较通勤情景。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-05T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R05-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "假设我在山城租住一年，这里只是在比较通勤情景。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R05-E001-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R05-E002",
+          "revision": 0,
+          "body": "并没有确定迁居，更没有签合同。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-05T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R05-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 15,
+              "literal": "并没有确定迁居，更没有签合同。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R05-E002-O1",
+            "start": 0,
+            "end": 15,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R05-E003",
+          "revision": 0,
+          "body": "朋友的四十分钟通勤经验不能当成我的实际通勤时间。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-05T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R05-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 24,
+              "literal": "朋友的四十分钟通勤经验不能当成我的实际通勤时间。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R05-E003-O1",
+            "start": 0,
+            "end": 24,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R05-E001",
+            "HELD-R05-E002",
+            "HELD-R05-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R05-E001",
+            "HELD-R05-E002",
+            "HELD-R05-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R06",
+      "syntheticAuthorGroup": "HELD-SYN-A06",
+      "partition": "held-out",
+      "title": "Invented bilingual uncertainty",
+      "features": [
+        "uncertainty",
+        "conditions",
+        "chronology",
+        "bilingual"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R06-E001",
+          "revision": 0,
+          "body": "I might send the clay samples next Tuesday, unless the test glaze cracks.",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-06T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R06-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 73,
+              "literal": "I might send the clay samples next Tuesday, unless the test glaze cracks.",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R06-E001-O1",
+            "start": 0,
+            "end": 73,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R06-E002",
+          "revision": 0,
+          "body": "我说的是可能寄出，不是已经寄出；Tuesday 也不是确定截止日期。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-06T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R06-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 34,
+              "literal": "我说的是可能寄出，不是已经寄出；Tuesday 也不是确定截止日期。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R06-E002-O1",
+            "start": 0,
+            "end": 34,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R06-E003",
+          "revision": 0,
+          "body": "The blue sample was cracked. I have not checked the green one.",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-06T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R06-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 62,
+              "literal": "The blue sample was cracked. I have not checked the green one.",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R06-E003-O1",
+            "start": 0,
+            "end": 62,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R06-E001",
+            "HELD-R06-E002",
+            "HELD-R06-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R06-E001",
+            "HELD-R06-E002",
+            "HELD-R06-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R07",
+      "syntheticAuthorGroup": "HELD-SYN-A07",
+      "partition": "held-out",
+      "title": "Invented time correction",
+      "features": [
+        "chronology",
+        "counts",
+        "unknown-time"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R07-E001",
+          "revision": 0,
+          "body": "我先前写九月二日，后来查看票根改为九月十二日。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R07-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "我先前写九月二日，后来查看票根改为九月十二日。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R07-E001-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R07-E002",
+          "revision": 0,
+          "body": "两条记录描述的是同一次合成旅行，不是两次旅行。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R07-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "两条记录描述的是同一次合成旅行，不是两次旅行。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R07-E002-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R07-E003",
+          "revision": 0,
+          "body": "回程日期我没有记录，请不要把出发日期用作回程日期。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R07-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 25,
+              "literal": "回程日期我没有记录，请不要把出发日期用作回程日期。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R07-E003-O1",
+            "start": 0,
+            "end": 25,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R07-E001",
+            "HELD-R07-E002",
+            "HELD-R07-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R07-E001",
+            "HELD-R07-E002",
+            "HELD-R07-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R08",
+      "syntheticAuthorGroup": "HELD-SYN-A08",
+      "partition": "held-out",
+      "title": "Invented deliberate similarity",
+      "features": [
+        "exact-duplicate",
+        "near-duplicate",
+        "negation"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R08-E001",
+          "revision": 0,
+          "body": "屋顶花园需要节水，但我没有提出取消浇水。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-08T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R08-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "屋顶花园需要节水，但我没有提出取消浇水。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R08-E001-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R08-E002",
+          "revision": 0,
+          "body": "屋顶花园需要节水，但我没有提出取消浇水。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-08T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R08-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "屋顶花园需要节水，但我没有提出取消浇水。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R08-E002-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R08-E003",
+          "revision": 0,
+          "body": "屋顶花园需要节水，所以我提出取消自动喷水器。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-08T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R08-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 22,
+              "literal": "屋顶花园需要节水，所以我提出取消自动喷水器。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R08-E003-O1",
+            "start": 0,
+            "end": 22,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R08-E001",
+            "HELD-R08-E002",
+            "HELD-R08-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R08-E001",
+            "HELD-R08-E002",
+            "HELD-R08-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R09",
+      "syntheticAuthorGroup": "HELD-SYN-A09",
+      "partition": "held-out",
+      "title": "Invented accessibility notes",
+      "features": [
+        "voice",
+        "attribution",
+        "human-edit"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R09-E001",
+          "revision": 0,
+          "body": "灯光太刺眼！我真想把它调暗一点，不是彻底关掉。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-09T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R09-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "灯光太刺眼！我真想把它调暗一点，不是彻底关掉。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R09-E001-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R09-E002",
+          "revision": 0,
+          "body": "“全部关灯”是海报上的一句话，不是我的操作指令。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-09T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R09-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 24,
+              "literal": "“全部关灯”是海报上的一句话，不是我的操作指令。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R09-E002-O1",
+            "start": 0,
+            "end": 24,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R09-E003",
+          "revision": 0,
+          "body": "请保留我的感叹号；我确实有一点恼火。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-09T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R09-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 18,
+              "literal": "请保留我的感叹号；我确实有一点恼火。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R09-E003-O1",
+            "start": 0,
+            "end": 18,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R09-E001",
+            "HELD-R09-E002",
+            "HELD-R09-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R09-E001",
+            "HELD-R09-E002",
+            "HELD-R09-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R10",
+      "syntheticAuthorGroup": "HELD-SYN-A10",
+      "partition": "held-out",
+      "title": "Invented causal caution",
+      "features": [
+        "uncertainty",
+        "conditions",
+        "counts"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R10-E001",
+          "revision": 0,
+          "body": "种子浸水后发芽更快，但这里只有两组观察。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-10T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R10-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "种子浸水后发芽更快，但这里只有两组观察。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R10-E001-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R10-E002",
+          "revision": 0,
+          "body": "我不能排除温度差异，所以还不能确认是浸水导致。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-10T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R10-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "我不能排除温度差异，所以还不能确认是浸水导致。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R10-E002-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R10-E003",
+          "revision": 0,
+          "body": "下次打算同时控制温度，这个计划尚未执行。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-10T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R10-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 20,
+              "literal": "下次打算同时控制温度，这个计划尚未执行。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R10-E003-O1",
+            "start": 0,
+            "end": 20,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R10-E001",
+            "HELD-R10-E002",
+            "HELD-R10-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R10-E001",
+            "HELD-R10-E002",
+            "HELD-R10-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R11",
+      "syntheticAuthorGroup": "HELD-SYN-A11",
+      "partition": "held-out",
+      "title": "Invented Unicode annotation",
+      "features": [
+        "unicode",
+        "negation",
+        "counts"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R11-E001",
+          "revision": 0,
+          "body": "我把标签写成 café ☕；组合音标不是另一个字。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R11-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 26,
+              "literal": "我把标签写成 café ☕；组合音标不是另一个字。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R11-E001-O1",
+            "start": 0,
+            "end": 26,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R11-E002",
+          "revision": 0,
+          "body": "草稿用的是“家人👨‍👩‍👧‍👦”，不要把一个家庭图案拆成四个独立人。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R11-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 38,
+              "literal": "草稿用的是“家人👨‍👩‍👧‍👦”，不要把一个家庭图案拆成四个独立人。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R11-E002-O1",
+            "start": 0,
+            "end": 38,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R11-E003",
+          "revision": 0,
+          "body": "这里只在比较文字标注，不代表我有四位家庭成员。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "unknown",
+            "iso": null
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R11-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 23,
+              "literal": "这里只在比较文字标注，不代表我有四位家庭成员。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R11-E003-O1",
+            "start": 0,
+            "end": 23,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R11-E001",
+            "HELD-R11-E002",
+            "HELD-R11-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R11-E001",
+            "HELD-R11-E002",
+            "HELD-R11-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    },
+    {
+      "id": "HELD-R12",
+      "syntheticAuthorGroup": "HELD-SYN-A12",
+      "partition": "held-out",
+      "title": "Invented separate project intent",
+      "features": [
+        "cross-section",
+        "human-keep",
+        "counts",
+        "near-duplicate"
+      ],
+      "entries": [
+        {
+          "id": "HELD-R12-E001",
+          "revision": 0,
+          "body": "我把旧码头摄影和新码头测绘放在两个独立章节。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-12T01:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R12-E001-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 22,
+              "literal": "我把旧码头摄影和新码头测绘放在两个独立章节。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R12-E001-O1",
+            "start": 0,
+            "end": 22,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R12-E002",
+          "revision": 0,
+          "body": "二者都提到“码头”，我仍明确要求分别保留。",
+          "lifecycle": "active",
+          "sectionId": "S1",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-12T02:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R12-E002-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 21,
+              "literal": "二者都提到“码头”，我仍明确要求分别保留。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R12-E002-O1",
+            "start": 0,
+            "end": 21,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        },
+        {
+          "id": "HELD-R12-E003",
+          "revision": 0,
+          "body": "摄影章节的三幅图片不是测绘项目的三份成果。",
+          "lifecycle": "active",
+          "sectionId": "S2",
+          "time": {
+            "kind": "known",
+            "iso": "2026-02-12T03:00:00Z"
+          },
+          "human": true,
+          "annotations": [
+            {
+              "id": "HELD-R12-E003-A1",
+              "kind": "whole-statement",
+              "start": 0,
+              "end": 21,
+              "literal": "摄影章节的三幅图片不是测绘项目的三份成果。",
+              "critical": true
+            }
+          ],
+          "obligation": {
+            "id": "HELD-R12-E003-O1",
+            "start": 0,
+            "end": 21,
+            "critical": true,
+            "adjudication": "NOT_RUN",
+            "policy": "Preserve whole meaning, condition, negation, attribution, intensity and temporal uncertainty; never infer additional facts."
+          }
+        }
+      ],
+      "sections": [
+        {
+          "id": "S1",
+          "humanOrdered": true
+        },
+        {
+          "id": "S2",
+          "humanOrdered": true
+        }
+      ],
+      "phases": [
+        {
+          "id": "baseline",
+          "visibleEntryIds": [
+            "HELD-R12-E001",
+            "HELD-R12-E002",
+            "HELD-R12-E003"
+          ],
+          "action": "full-within-existing-scope"
+        }
+      ],
+      "reviewStatus": "UNREVIEWED_SYNTHETIC",
+      "semanticReferenceStatus": "NOT_RUN",
+      "authorRatings": null,
+      "failureObligations": [
+        {
+          "kind": "whole-meaning-preservation",
+          "entryIds": [
+            "HELD-R12-E001",
+            "HELD-R12-E002",
+            "HELD-R12-E003"
+          ],
+          "adjudication": "NOT_RUN"
+        }
+      ]
+    }
+  ]
+}
