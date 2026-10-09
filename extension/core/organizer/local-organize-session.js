@@ -1,3 +1,5 @@
+import {committedV3Generation,legacyV2Generation,mergeIncrementalV3} from './ai-incremental-v3.js';
+import {isIncrementalV2} from './ai-incremental-v2.js';
 import {validateIncrementalResponse,validateIncrementalChild,mergeIncrementalChildren} from './ai-incremental-v2.js';
 import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {localProviderDescriptor,canonical,digest,fail} from '../ai-usage/contracts.js';
@@ -11,29 +13,29 @@ import {validateLocalOrganizeResponse} from './ai-contract.js';
 export class LocalOrganizeSession {
  #store;#incrementalVersion;#foundation;#profile;#route;#handles=new WeakMap();#jobs=new Map();#cached=new Map();#generation=0;
  constructor(store,{resolveAuthority=null,profile=null,routeVersion=null,incrementalVersion=1}={}){
-  if(![1,2].includes(incrementalVersion))fail('INVALID_REQUEST');this.#incrementalVersion=incrementalVersion;
+  if(![1,2,3].includes(incrementalVersion))fail('INVALID_REQUEST');this.#incrementalVersion=incrementalVersion;
   this.#store=store;this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,organizeClosure:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.multi||!state.validated||canonical(r.childIds)!==canonical(state.job.childIds)||canonical(r.units)!==canonical(state.coverage)||state.outputs.size!==r.childIds.length)fail('STALE_BASE');
-   await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest});
+   await this.#assertProvenance(t,state);await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration});
    if(this.#jobs.get(r.logicalJobId)!==state)fail('UNAVAILABLE');return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.outputs.size===r.childIds.length};
   },committers:{organize:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.validated||state.job.childIds[0]!==r.childOperationId||canonical(r.units)!==canonical(state.coverage))fail('STALE_BASE');
-   releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;
-   return {committed:true,coverage:r.units};
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;
+   return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&!!state.validated};
   }}});
  }
  async #completed(state,result){if(this.#jobs.get(state.job.id)!==state)releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);else if(result.state==='COMMITTED')await confirmLocalOrganizeCacheProof(this.#store,state.cacheProof);return result;}
  #state(handle){const state=this.#handles.get(handle);if(!state)fail('UNAVAILABLE');return state;}
- async prepare({topicId,children=1}={}){
-  const generation=this.#generation;
+ async prepare({topicId,children=1,refreshStyle=false}={}){
+  const generation=this.#generation;if(typeof refreshStyle!=='boolean'||refreshStyle&&this.#incrementalVersion!==3)fail('INVALID_REQUEST');
   if(this.#incrementalVersion===1&&children!==1)return {state:'DEFER',reason:'multiple_children_not_supported'};
   if(!Number.isInteger(children)||children<1||children>4)fail('INVALID_REQUEST');
   if(!validOrganizeCacheProfile(this.#profile)||typeof this.#route!=='string'||!this.#route.length||this.#route.length>200)fail('UNAVAILABLE');
   if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');
   await this.#store.aiPresentationStatus({topicId}); // Existing migration/readability owner.
   const data=await this.#foundation.read(async t=>{
-   const prepared=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile,this.#incrementalVersion,children),items=[];
+   const prepared=await readLocalOrganizeScopeInTransaction(this.#store,t,topicId,this.#profile,this.#incrementalVersion,children,refreshStyle),items=[];
    const keys=new Set((prepared.incremental?prepared.inputs.flatMap(i=>JSON.parse(prepared.topic.versions[i.ref])[2].map(x=>x[0])):Object.keys(prepared.topic.inputVersions)).map(id=>JSON.stringify(['input',id])));
    for(const input of prepared.inputs){const key=JSON.stringify(['library_entry',input.ref]),known=await t.get('meta',KNOWN_PREFIX+key);if(known)keys.add(key);else if(!JSON.parse(prepared.topic.versions[input.ref])[2]?.length)fail('STALE_BASE');}
    if(!keys.size&&prepared.incremental)return {prepared,items,coverage:[],cacheAuthority:null};if(!keys.size||keys.size>100)fail('BUDGET_EXCEEDED');
@@ -54,7 +56,7 @@ export class LocalOrganizeSession {
    if(partitions.length<2||partitions.length>children)fail('BUDGET_EXCEEDED');
    for(const p of partitions)p.coverage=coverage.filter(u=>p.keys.has(u.key));
   }
-  const job=await this.#foundation.plan({...(partitions?{commitMode:'organize-atomic-v1',children:partitions.map(p=>p.coverage)}:{}),type:'AI_ORGANIZE',intent:'explicit',items:data.items,coverage,contractVersion:this.#profile.contractVersion,routeVersion:await digest(this.#incrementalVersion===2?[this.#route,this.#profile,data.prepared.evidenceVersion,data.prepared.topic.incrementalVersions]:[this.#route,this.#profile,data.prepared.evidenceVersion]),organizeStyle:data.prepared.style});
+  const job=await this.#foundation.plan({...(partitions?{commitMode:'organize-atomic-v1',children:partitions.map(p=>p.coverage)}:{}),type:'AI_ORGANIZE',intent:'explicit',items:data.items,coverage,contractVersion:this.#profile.contractVersion,routeVersion:await digest(this.#incrementalVersion===3?[this.#route,this.#profile,data.prepared.proof]:this.#incrementalVersion>=2?[this.#route,this.#profile,data.prepared.evidenceVersion,data.prepared.topic.incrementalVersions]:[this.#route,this.#profile,data.prepared.evidenceVersion]),organizeStyle:data.prepared.style});
   if(this.#generation!==generation)fail('UNAVAILABLE');
   const handle=Object.freeze({state:job.state,jobId:job.id});if(!job.id)return handle;
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
@@ -64,12 +66,12 @@ export class LocalOrganizeSession {
   if(this.#generation!==generation)fail('UNAVAILABLE');
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   if(this.#jobs.size+this.#cached.size>=8)fail('UNAVAILABLE');
-  const state={...data,coverage,job,handle,multi:!!partitions,partitions:ordered,outputs:new Map(),validated:null,running:false};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
+  const state={...data,coverage,job,handle,multi:!!partitions,partitions:ordered,outputs:new Map(),provenance:new Map(),validated:null,running:false};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
  }
  async assemble(handle,childId=null){
   const state=this.#state(handle);if(state.cached)fail('UNAVAILABLE');return this.#foundation.read(async t=>{
    const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);
-   const current=await readLocalOrganizeScopeInTransaction(this.#store,t,state.prepared.topic.id,this.#profile,this.#incrementalVersion,state.prepared.physicalChildren);if(current.proof!==state.prepared.proof)fail('STALE_BASE');
+   const current=await readLocalOrganizeScopeInTransaction(this.#store,t,state.prepared.topic.id,this.#profile,this.#incrementalVersion,state.prepared.physicalChildren,state.prepared.refreshStyle);if(current.proof!==state.prepared.proof)fail('STALE_BASE');
    if((!state.multi&&job.childIds.length!==1)||job.committedCoverage.length)fail('STALE_BASE');
    const index=state.multi?job.childIds.indexOf(childId):0;if(index<0)fail('INVALID_REQUEST');const inputs=state.multi?state.partitions[index].inputs:current.inputs;
    const request={topicId:current.topic.id,style:current.style,inputs,profile:this.#profile,...(current.incremental?{responseVersion:2}: {})};if(bytes(request)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');return structuredClone(request);
@@ -101,7 +103,7 @@ export class LocalOrganizeSession {
     if(canonical(metadata.coverage)!==canonical(state.coverage))fail('STALE_BASE');
     const request=await this.assemble(handle),payload={...request,usage:metadata};if(bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
     const response=await provider.execute(Object.freeze(structuredClone(payload)));
-    if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');state.validated=this.#incrementalVersion===2?validateIncrementalResponse(response,request,state.prepared):validateLocalOrganizeResponse(response,request);if(this.#incrementalVersion===2)state.manifestDigest=await digest(state.validated);
+    if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');if(this.#incrementalVersion===3){const blocks=validateIncrementalChild(response,request,state.prepared);state.outputs.set(state.job.childIds[0],blocks);state.provenance.set(state.job.childIds[0],{childId:state.job.childIds[0],operationReceiptId:state.job.childIds[0],payloadDigest:await digest(payload),validatedOutputDigest:await digest(blocks)});await this.#finishV3(state);}else{state.validated=this.#incrementalVersion===2?validateIncrementalResponse(response,request,state.prepared):validateLocalOrganizeResponse(response,request);if(this.#incrementalVersion===2)state.manifestDigest=await digest(state.validated);}
     return {accepted:true,operationReceiptId:state.job.childIds[0]};
    }});
    if(dispatched.state!=='RESPONSE_RECORDED')return dispatched;
@@ -125,14 +127,28 @@ export class LocalOrganizeSession {
     if(canonical(metadata.coverage)!==canonical(state.partitions[i].coverage))fail('STALE_BASE');
     const request=await this.assemble(state.handle,childId),payload={...request,usage:metadata};if(bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
     const response=await provider.execute(Object.freeze(structuredClone(payload)));if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');
-    const blocks=validateIncrementalChild(response,request,state.prepared);if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');state.outputs.set(childId,blocks);
+    const blocks=validateIncrementalChild(response,request,state.prepared);if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');state.outputs.set(childId,blocks);if(this.#incrementalVersion===3)state.provenance.set(childId,{childId,operationReceiptId:childId,payloadDigest:await digest(payload),validatedOutputDigest:await digest(blocks)});
     return {accepted:true,operationReceiptId:childId};
    }});
    if(dispatched.state!=='RESPONSE_RECORDED')return dispatched;
   }
+  if(!state.validated&&this.#incrementalVersion===3)await this.#finishV3(state);
   if(!state.validated){state.validated=mergeIncrementalChildren(state.job.childIds.flatMap(id=>state.outputs.get(id)),{topicId:state.prepared.topic.id,style:state.prepared.style,profile:this.#profile},state.prepared);state.manifestDigest=await digest(state.validated);}
   if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
   return this.#foundation.commitOrganizeClosure(state.job.id,{children});
+ }
+ async #finishV3(state){
+  if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
+  state.baseGeneration=isIncrementalV2(state.prepared.topic.stored)?await legacyV2Generation(state.prepared.topic.stored):null;
+  const generation=await committedV3Generation({jobId:state.job.id,children:state.job.childIds.map(id=>state.provenance.get(id)),style:state.prepared.style.value,profile:this.#profile,control:state.prepared.incremental.control});
+  state.validated=mergeIncrementalV3(state.job.childIds.flatMap(id=>state.outputs.get(id)),{topicId:state.prepared.topic.id,style:state.prepared.style,profile:this.#profile},state.prepared,generation,state.baseGeneration);state.manifestDigest=await digest(state.validated);
+  if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
+ }
+ async #assertProvenance(t,state){
+  if(this.#incrementalVersion!==3)return;
+  const job=await this.#foundation.job(t,state.job.id);if(canonical(job.childIds)!==canonical(state.job.childIds)||canonical(job.coverage)!==canonical(state.coverage)||state.provenance.size!==job.childIds.length)fail('STALE_BASE');
+  for(const id of job.childIds){const receipt=await t.get('organizerUsage','aiu:attempt:'+id),p=state.provenance.get(id);if(receipt?.jobId!==job.id||receipt.childId!==id||receipt.state!=='RESPONSE_RECORDED'||receipt.operationReceiptId!==p?.operationReceiptId)fail('STALE_BASE');}
+  if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
  }
  dispose(){this.#generation++;for(const state of this.#jobs.values())releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
 }

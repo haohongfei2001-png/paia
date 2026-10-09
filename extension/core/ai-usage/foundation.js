@@ -260,7 +260,10 @@ export class AIUsageFoundation {
    const result=await commit(t,Object.freeze({...(job.organizeStyle?{organizeStyle:structuredClone(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,units:structuredClone(remaining),outcome}));
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),remaining.map(unitKey).sort()))fail('STALE_BASE');
    if(job.organizeStyle||job.assistIntent)await this.current(t,job);
-   return this.settleFacet(t,job,index,remaining,{outcome,local});
+   // Optional private owner fence. It is supplied only by a trusted committer,
+   // never a request/provider DTO; promises and nonfunctions fail closed.
+   const assertOwner=()=>{if(Object.hasOwn(result,'isCurrent')&&(typeof result.isCurrent!=='function'||result.isCurrent()!==true))fail('STALE_BASE');};
+   assertOwner();const settled=await this.settleFacet(t,job,index,remaining,{outcome,local});assertOwner();return settled;
  }
  async settleFacet(t,job,index,remaining,{outcome,local=false}){
    const id=job.id;

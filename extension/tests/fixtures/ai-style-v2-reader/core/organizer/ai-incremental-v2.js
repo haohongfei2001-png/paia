@@ -49,7 +49,7 @@ function retainedControl(value){
   return {gate,restore,style,policyText};
  }catch{return null;}
 }
-export function sameRetainedControl(saved,current,style){
+function sameRetainedControl(saved,current,style){
  const prior=retainedControl(saved.manifest.control),next=retainedControl(current);
  return !!prior&&!!next&&saved.manifest.style===prior.style.value&&same(next.style,style)&&prior.style.value===next.style.value&&prior.gate===next.gate&&prior.restore===next.restore&&prior.policyText===next.policyText;
 }
