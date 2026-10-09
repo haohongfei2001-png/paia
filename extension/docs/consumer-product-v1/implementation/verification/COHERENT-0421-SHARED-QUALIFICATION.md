@@ -1,10 +1,10 @@
 # 0.42.1 — shared Human qualification resource ownership
 
-This is a compatible reliability batch on accepted main source `62970f0044b11c1f3e5236610d9846a2f0950df3`, tree `61b963eaef1fbfb1798c289dab6b33c956d458e5`. It changes only the pure Graph qualifier's resource ownership, adds its shared numeric budget service and focused tests, and identifies the delivered runtime as0.42.1. It does not add a database consumer or activate recovery.
+This is a compatible reliability batch on accepted main source `62970f0044b11c1f3e5236610d9846a2f0950df3`, tree `61b963eaef1fbfb1798c289dab6b33c956d458e5`. It changes only the pure Graph qualifier's resource ownership, adds its shared numeric budget service and focused tests, and identifies the candidate runtime as0.42.1. It does not add a database consumer or activate recovery.
 
 ## Behavior and bounded scope
 
-Graph instances now share one canonical numeric service: at most one active qualification, eight retained leases,4MiB retained and8MiB total reservation. Exact existing parsing limits and allocation formulas are preserved. A Graph instance can evict only its own oldest handles on genuine shared-limit failure; it cannot revoke another instance's or future projection owner's leases. Publication failure clears pending references and releases both retained and work tickets. The128-byte escrow preserves bookkeeping charge if retained ownership ends before active work.
+Graph instances now share one canonical numeric service: at most one active qualification, eight retained leases,4MiB retained and8MiB total reservation. Exact existing parsing limits and allocation formulas are preserved. A Graph instance can evict only its own oldest handles on genuine shared-limit failure; it cannot revoke another instance's or future projection owner's leases. Publication failure clears pending references and releases both retained and work tickets. The128-unit logical bookkeeping escrow preserves bookkeeping charge if retained ownership ends before active work.
 
 The service exposes four synchronous lease operations, no stored payload, callback, database reader, counter inspection or reset. Graph retains its original three exports, primitive canonical JSON intake and body-free all-head structural summary. Same-realm module reuse and explicit controlled-reference accounting are claimed; physical heap measurement, hostile pre-import platform substitution and garbage-collection timing are not.
 
