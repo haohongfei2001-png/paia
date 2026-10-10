@@ -1,3 +1,9 @@
+# Accepted0.43.8; next manual Context native batch under acceptance
+
+Current accepted main21a7294ed1b261e76f6e0e5f7a05cd43bba72119/tree2b38063d73d9c03374e70fb2a3ece1deb5d4499e: PR243, candidate/mainFull21requiredSUCCESS each and Prompt5SUCCESS each. Verified444-file package remains uninstalled/undeployed. Next0.43.9 SYNC01 current Human+manualContext preparation/wiring is bounded/defaultfalse, with unchanged original caps/protocol; actual high-risk qualification pending. [Owning batch receipt](implementation/verification/COHERENT-0439-HUMAN-MANUAL-CONTEXT.md) controls limits, negative history and exact evidence. Allseven unfinished; no paid/provider/account/visual substitution or scope expansion.
+
+## Preserved preceding checkpoint
+
 # Accepted0.43.7;0.43.8 current Human + manual Prompt integration pending
 
 Remote main8f80fa304ee4e63b3f85306aac0b3d66df6ddba2/tree2c6719f7f0a50c7ea5610e33a9c5218e6edf23b0 normally merged PR242 after candidateFull38003096989 required21SUCCESS. Exact-mainFull38004397277 required21SUCCESS and Prompt38004397270 required5SUCCESS. Its443-file ZIP passed CRC/all-file/source-byte checks, SHA256661605054a8c6cfcb60e6e3b574113c10cd1881be4bad9922d765a32a9714e8a. Settings compact Reading keyboard return now preserves newer visible focus; updating the extension package is necessary to see it. No installation or formal deployment was performed. The first cancelled native Full37996437712 and second Settings-failed Full37999750213 remain failed history, not acceptance.

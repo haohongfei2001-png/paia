@@ -6,8 +6,8 @@ import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX} from '../ai-usage/delta.js';
 import {equal,fail,count} from './value.js';
 
-// Unwired assertion component. This neither captures native data nor mints a
-// Scope. Only the original branded Group/native owner may eventually call it
+// Pure manual-family assertion. This neither captures native data nor mints a
+// Scope. Only the original branded Group/native owner calls it
 // after paying its physical/expected/Plan/proof and simultaneous scratch phases.
 const types={contextItem:'info',contextRulesItem:'rules',contextNowItem:'now'};
 const desiredKeys=['info','rules','now','inputs'];

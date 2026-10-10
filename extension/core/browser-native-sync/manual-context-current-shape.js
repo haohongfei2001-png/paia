@@ -2,7 +2,7 @@ import {CONTEXT_CARDS_ROW,CONTEXT_LIMITS} from '../context-cards.js';
 import {fail} from './value.js';
 
 // Physical manual-only data, not a causal proof, domain validator or grant.
-// Not wired to current Scope. A future original native owner must prepay the
+// The original current native owner must prepay the
 // entire selected phase and independently validate the original journal chain.
 // Ordinary native structured-clone data only; no Proxy or native-heap claim.
 const refused=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
