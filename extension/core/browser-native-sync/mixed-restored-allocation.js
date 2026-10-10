@@ -1,3 +1,4 @@
+import {reserveOriginalMixedRestoredPrefixPhase} from './human-library-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
 import {requireOriginalCurrentMixedGroupPlan,prepareCurrentMixedGroupCheckpointPlan} from './group-checkpoint-plan.js';
@@ -11,11 +12,12 @@ const proofs=new WeakMap(),refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 // prefix is replayed for local allocator facts; later original local groups
 // retain their real device sequence. This opaque proof grants no native read,
 // budget, write or export. A native consumer still owes all live-work tariffs.
-export async function prepareMixedRestoredAllocationProof(core,plan,meta){
- if(arguments.length!==3)refuse();requireOriginalCurrentMixedGroupPlan(core,plan);
+export async function prepareMixedRestoredAllocationProof(core,plan,meta,native){
+ if(arguments.length!==3&&arguments.length!==4)refuse();requireOriginalCurrentMixedGroupPlan(core,plan);
  if(core.fixedNamespace!==null||!Array.isArray(meta)||meta.length>4096)refuse();
  const active=meta.find(row=>row.id===core.prefix+'active'),completed=meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:'));
  if(!active||completed.length!==1||meta.some(row=>row.id==='recovery-restore-epoch'))refuse();
+ if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'control');
  await assertCompletedGroupedRestoreControl(completed[0],{prefix:core.prefix,datasetId:core.datasetId,active,namespace:active.namespace,epoch:null});requireOriginalCurrentMixedGroupPlan(core,plan);
  const imported=[],local=[];
  for(const group of plan.groups){
@@ -23,8 +25,10 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta){
   if(ours!==0&&ours!==group.operations.length)refuse();(ours?local:imported).push(group);
  }
  if(!imported.length)refuse();
+ if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'compiler');
  const prefix=await prepareCurrentMixedGroupCheckpointPlan(core,imported.flatMap(group=>group.operations));requireOriginalCurrentMixedGroupPlan(core,plan);
  if(prefix.digest!==completed[0].graphDigest)refuse();
+ if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'wire',prefix);
  const ownerScope=await prepareOriginalMixedWireOwnerScope(core,prefix);requireOriginalCurrentMixedGroupPlan(core,plan);
  const coverage=new Map();for(const head of prefix.heads){const row=coverage.get(head.type)??{type:head.type,version:1,count:0};row.count++;coverage.set(head.type,row);}
  const devices=new Set(prefix.groups.flatMap(group=>group.operations.map(op=>op.deviceId))),manifest=completed[0].manifest;
@@ -32,6 +36,7 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta){
  const tail=local.sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence))),localOps=tail.flatMap(group=>group.operations).sort((a,b)=>a.sequence-b.sequence);
  if(localOps.some((op,i)=>op.sequence!==i+1))refuse();
  for(const group of tail){const sequences=group.operations.map(op=>op.sequence).sort((a,b)=>a-b);if(sequences.some((n,i)=>n!==sequences[0]+i)||!['inputWorkingCommit','humanLibraryCommit','promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();}
+ if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'mapped',prefix);
  const inputs=new Map(),history=new Map();let delta=0,revision=0;
  for(const [groups,localGroup]of [[prefix.groups,false],[tail,true]])for(const group of groups){
   if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit'){

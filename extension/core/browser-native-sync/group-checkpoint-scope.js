@@ -166,7 +166,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
  try{
   if(p.mixedCore&&store){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
-   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta);if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
+   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
   if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
@@ -264,4 +264,9 @@ export function originalMixedRestoredMetadataReplay(core,scope,plan){
 export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,store,nonce){
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||scopeDeref.call(p.plan)!==plan||p.mixedCore!==core||!['preparing','ready'].includes(p.phase))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
  return p?.restoredAllocation?measureMixedRestoredExpectation(core,scope,plan,p.restoredAllocation):Object.freeze({B:0,T:0,V:0,E:0});
+}
+
+export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,nonce){
+ requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||p.mixedCore!==core||scopeDeref.call(p.plan)!==plan||p.phase!=='preparing')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire)});
 }

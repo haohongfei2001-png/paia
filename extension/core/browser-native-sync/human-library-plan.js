@@ -1304,11 +1304,41 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
 }
+// Genuine sequential prefix stages reserve their actual operands. The current
+// complete raw/Plan/private Source ownership never leaves this work ticket.
+export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,phase,prefix){
+ requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedRestoredProofRetained)projectionRequired();
+ if(phase==='control'){
+  if(r.mixedRestoredPhase)projectionRequired();const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
+  r.mixedRestoredBase=projectionTreeCharge(frames.scope)+projectionTreeCharge(frames.human)+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
+ }
+ if(phase==='compiler'){
+  if(r.mixedRestoredPhase!=='control')projectionRequired();const totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0};
+  for(const group of plan.groups)if(group.operations.every(op=>op.deviceId!==r.core.deviceId))for(const op of group.operations){const m=projectionRowMeasure(r,op);for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;}
+  r.mixedRestoredPhase='compiler';projectionReserve(r,r.mixedRestoredBase+5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024);return;
+ }
+ requireOriginalCurrentMixedGroupPlan(r.core,prefix);
+ if(phase==='wire'){
+  if(r.mixedRestoredPhase!=='compiler'||prefix.groups.some(group=>group.operations.some(op=>op.deviceId===r.core.deviceId)))projectionRequired();
+  const wire={B:2,T:0,V:1,E:0};let hidden=0;
+  const add=value=>{const m=projectionRowMeasure(r,value);for(const key of ['B','T','V','E'])wire[key]+=m[key];wire.E++;};
+  for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){add(member.value.entity);if(group.type!=='inputWorkingCommit')hidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));}else add(group.operations[0].value);}
+  r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(projectionRowMeasure(r,prefix))+hidden;
+  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024);return;
+ }
+ if(phase==='mapped'){
+  if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';
+  // Prefix local variables still exist until the original preparer returns.
+  // Keep their final remapping/equality/allocator frames paid through return.
+  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+4*projectionCanonicalCharge(projectionRowMeasure(r,prefix))+4096*128+128*1024);return;
+ }
+ projectionRequired();
+}
 // Transfer surviving authenticated prefix/control/allocation ownership only
 // after the original prefix builders have returned, and BEFORE keyed work.
 export function retainOriginalMixedRestoredScopeProof(nonce,store,scope,plan){
  if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
- if(r.mixedRestoredProofRetained||r.group.plan!==plan)projectionRequired();
+ if(r.mixedRestoredProofRetained||r.group.plan!==plan||r.mixedRestoredPhase!=='mapped')projectionRequired();
  const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedKeyedScratch);
 }
 // The original canonical owners borrow only this exact drained cut. A caller
@@ -1496,9 +1526,7 @@ async function projectionCompileInitialMixedScope(r){
  // The restored prefix compiler/control check runs after wire construction
  // returns. Its surviving private prefix and allocation cells remain live
  // through the subsequent keyed phase; the complete current Plan never leaves.
- const restoredBase=3*projectionTreeCharge(wire)+projectionTreeCharge(humanWire)+256*1024;
- const restoredScratch=restored?restoredBase+Math.max(compilerScratch,wireScratch,completedGroupControlScratch(r.core,r.raw)):0;
- const scopeScratch=Math.max(wireScratch,restoredScratch,keyedScratch);r.mixedKeyedScratch=keyedScratch;
+ const scopeScratch=Math.max(wireScratch,keyedScratch);r.mixedKeyedScratch=keyedScratch;
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
