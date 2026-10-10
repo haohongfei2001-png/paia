@@ -1,5 +1,5 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
+import {CORE_LIMITS,validateOperation,validateFrozenOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
@@ -17,6 +17,7 @@ export function requireOriginalGroupCheckpointPlan(core,plan){
  const p=originalPlans.get(plan);
  if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+export function originalGroupCheckpointCoreOrNull(plan){if(!originalPlans.has(plan))return null;return originalGroupCheckpointCore(plan);}
 export function originalGroupCheckpointCore(plan){const binding=originalPlans.get(plan);if(!binding)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalGroupCheckpointPlan(binding.core,plan);return binding.core;}
 export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
  requireOriginalSourceWorkingCore(core);
@@ -57,7 +58,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  for(const candidate of input){
   if(operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
   const operationBytes=bytes(candidate).length;size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
-  const op=await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
+  const op=currentSourceWorking==='mixed'?await validateFrozenOperation(candidate):await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
   if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -171,13 +172,14 @@ export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
 // All independent group-operation clones and private Source bodies stay owned.
 export function measureOriginalMixedRepeatedPreparedOperations(core,plan){
  if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
- const total={B:0,T:0,V:0,E:0};
- for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
-  const p=group.prepared;if(!Array.isArray(p.operations)||p.operations.length!==p.members.length+1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
-  const seen=new Set();for(const op of p.operations){
-   if(seen.has(op)||op!==p.descriptor&&!p.members.includes(op))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');seen.add(op);
-   const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];
-  }
+ const total={B:0,T:0,V:0,E:0},add=op=>{const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];};
+ for(const group of plan.groups)if(group.prepared){
+  const p=group.prepared;
+  // The full Plan meter traverses operations and prepared descriptor/members
+  // separately. Rebate only actual identity aliases, never equal independent
+  // trees or private Source capabilities; their reference cells stay paid.
+  for(const op of [p.descriptor,...p.members])if(group.operations.includes(op))add(op);
+  if(Array.isArray(p.operations))for(const op of p.operations){if(op!==p.descriptor&&!p.members.includes(op))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');add(op);}
  }
  return Object.freeze(total);
 }

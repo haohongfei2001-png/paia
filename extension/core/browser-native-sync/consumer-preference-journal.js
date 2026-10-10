@@ -1,3 +1,4 @@
+import {modeBootstrapCommitment} from './consumer-mode-baseline.js';
 import {defaults,validatePreferences} from '../workspace.js';
 import {requireOriginalConsumerPublicationEvidence} from '../indexed-store.js';
 import {ArchiveError} from '../constants.js';
@@ -18,7 +19,7 @@ const exact=(value,keys)=>value&&Object.keys(value).length===keys.length&&keys.e
 async function currentOwner(t,store,key){
  const row=await t.get('meta',ownerId(key)),rendered=key==='smartFilter'?(await t.get('meta','smart-filter'))?.mode:(await store.control(t)).preferences[key];
  if(row&&(!exact(row,['id','version','revision','intent'])||row.id!==ownerId(key)||row.version!==1||!Number.isSafeInteger(row.revision)||row.revision<1||row.intent?.id!==key||row.intent.value!==rendered&&consumerPreferenceRenderingValue(row.intent)!==rendered))fail('BNS_OWNER_CHANGED');
- return {row:row??null,rendered};
+ return {row:row??null,rendered,...(key==='smartFilter'?{policyEpoch:(await t.get('meta','smart-filter'))?.policyEpoch}:{})};
 }
 
 // Explicit optional original-owner injection. No production worker constructs
@@ -112,8 +113,9 @@ export class ConsumerPreferenceSyncJournal {
  async authorizeRecovery(t,store,token){const prepared=this.#recovery.get(token);if(!prepared||prepared.store!==store||!controlPublicationEqual(prepared.before,await this.recoverySnapshot(t,store))||(!prepared.before.pending.terminal&&!(prepared.before.pending.version===2&&prepared.before.fence.reservation.afterDigest===null&&prepared.before.fence.reservation.fenceDigest===null)))fail('BNS_CONSUMER_PUBLICATION_PENDING');return clone({reservation:prepared.before.fence.reservation,fences:{migration:prepared.before.fence.migration,gate:prepared.before.fence.gate,epoch:prepared.before.fence.epoch},patch:prepared.patch});}
  async bindRecoveryPublication(t,store,token,reservation){const prepared=this.#recovery.get(token);if(!prepared||prepared.store!==store||!equal(await t.get('meta',CONSUMER_PUBLICATION_PENDING_ID),prepared.before.pending)||reservation.revision!==prepared.before.fence.reservation.revision+1||reservation.nonce===prepared.before.fence.reservation.nonce||reservation.databaseId!==prepared.before.pending.databaseId)fail('BNS_CONSUMER_PUBLICATION_PENDING');await t.put('meta',{...prepared.before.pending,terminal:false,controlRevision:reservation.revision,nonce:reservation.nonce});}
  async bootstrap(store){return store.run(async()=>{
-  const before=await this.core.transaction(false,t=>this.snapshot(t,store,CONSUMER_PREFERENCE_KEYS),['meta']),owners=before.owners.filter(owner=>!owner.head&&owner.rendered!==(owner.key==='smartFilter'?'light':defaults()[owner.key]));if(!owners.length)return {count:0};
-  const prepared=await this.restoreFence.prepare(()=>this.core.prepare(owners.map(owner=>({type:'consumerPreference',value:{id:owner.key,value:owner.rendered,explicit:null},expectedParents:[]})),{actor:'bootstrap'}));
+  const before=await this.core.transaction(false,t=>this.snapshot(t,store,CONSUMER_PREFERENCE_KEYS),['meta']),owners=before.owners.filter(owner=>!owner.head&&(owner.rendered!==(owner.key==='smartFilter'?'light':defaults()[owner.key])||owner.key==='smartFilter'&&owner.policyEpoch>0));if(!owners.length)return {count:0};
+  const operationIds=await Promise.all(owners.map(owner=>owner.key==='smartFilter'?modeBootstrapCommitment({datasetId:this.core.datasetId,deviceId:this.core.deviceId,...before.fence,mode:owner.rendered,policyEpoch:owner.policyEpoch}):crypto.randomUUID()));
+  const prepared=await this.restoreFence.prepare(()=>this.core.prepare(owners.map(owner=>({type:'consumerPreference',value:{id:owner.key,value:owner.rendered,explicit:null},expectedParents:[]})),{actor:'bootstrap',operationIds}));
   return this.core.transaction(true,async t=>{if(!equal(await this.snapshot(t,store,CONSUMER_PREFERENCE_KEYS),before))fail('BNS_OWNER_CHANGED');await this.restoreFence.commit(t,prepared);await this.core.commitPrepared(t,prepared,{materialize:false});for(const operation of prepared.operations){await t.put('meta',{id:ownerId(operation.entityId),version:1,revision:1,intent:clone(operation.value)});await this.core.recordMaterializedOwner(t,operation,1);}return {count:prepared.operations.length};});
  });}
 }

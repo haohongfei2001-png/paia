@@ -1,3 +1,4 @@
+import {prepareOriginalMixedModeBaseline} from './mixed-configuration.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
 import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,validateControlPublicationStamp} from '../local-control-publication.js';
 import {CONSUMER_PUBLICATION_PENDING_ID} from './consumer-publication-state.js';
@@ -1538,12 +1539,12 @@ export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
 async function projectionCompileInitialMixedScope(r){
  if(!r.mixedCompilationInspection||!r.nativeDrained||r.binding.fixedNamespace!==null)projectionRequired();
  const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
- const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
+ const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0},sourceEntities={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
  for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix)){
-  if(row.redacted!==false||!row.operation||++number>128)projectionRequired();const m=projectionMeasure(row.operation,'native');for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;
+  if(row.redacted!==false||!row.operation||++number>128)projectionRequired();const m=projectionMeasure(row.operation,'native');for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(['sourceBootstrapMember','sourceAppendMember'].includes(row.operation.type)){const entity=projectionMeasure(row.operation.value.entity,'native');for(const key of ['B','T','V','E'])sourceEntities[key]+=entity[key];sourceEntities.E++;}if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;
  }
  if(!number)projectionRequired();
- const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024;
+ const compilerScratch=projectionTreeCharge(totals)+3*projectionTreeCharge(sourceEntities)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024;
  projectionReserve(r,compilerScratch);const operations=[];for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix))operations.push(row.operation);
  const plan=await prepareCurrentMixedGroupCheckpointPlan(r.core,operations);projectionCurrent(r);requireOriginalCurrentMixedGroupPlan(r.core,plan);
  // This first consuming handshake accepts only original creation/placement
@@ -1591,6 +1592,7 @@ async function projectionCompileInitialMixedScope(r){
  // trees and a second copy of the already unwound construction scratch.
  r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden)+2048;r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
+ projectionReserve(r,32*1024);await prepareOriginalMixedModeBaseline(r.core,r.store,scope,plan,r.raw,r.nonce,restored);projectionCurrent(r);projectionFence(r);projectionReserve(r);
  const searchScratch=mixedCurrentSearchScratch(r);r.semantic=searchScratch.query;r.mixedSearchScratch=searchScratch.search;projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
  // Only new owner-key Map/Set cells survive search construction. Their rows
@@ -1638,6 +1640,7 @@ async function projectionCompileInitialMixedScope(r){
 }
 
 async function projectionObserveControl(r,retain){
+ projectionFence(r);
  const base=projectionRowMeasure(r,r.controlValues),scratch=4*projectionTreeCharge(base)+4*projectionCanonicalCharge(base)+32*1024;
  projectionReserve(r,scratch);const observed=await observeOriginalControlPublication(r.store,r.controlObservation??null);projectionCurrent(r);
  const m=projectionRowMeasure(r,observed.row);projectionReserve(r,4*projectionTreeCharge(m)+4*projectionCanonicalCharge(m)+32*1024);

@@ -25,7 +25,7 @@ import {emptyContextCards as emptyContext} from '../context-cards.js';
 import {REVISION_POLICY} from '../ia-store.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 import {finalConsumerPreferenceOperations,consumerDisplayPreferences,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
-import {originalGroupCheckpointCore} from './group-checkpoint-plan.js';
+import {originalGroupCheckpointCore,originalGroupCheckpointCoreOrNull} from './group-checkpoint-plan.js';
 import {readTopicDesiredOwners,requireLocalTopicChoicesRepresented} from './topic-desired-journal.js';
 import {CONTEXT_TOPIC_ACCESS_ROW} from '../context-topic-preferences.js';
 const originalScopes=new WeakMap(),ScopeWeakRef=globalThis.WeakRef,scopeDeref=ScopeWeakRef.prototype.deref;
@@ -182,9 +182,10 @@ async function compileOriginalWireScope(plan){
 export async function prepareOriginalMixedWireOwnerScope(core,plan){
  requireOriginalCurrentMixedGroupPlan(core,plan);const {scope}=await compileOriginalWireScope(plan);requireOriginalCurrentMixedGroupPlan(core,plan);return scope.ownerScope;
 }
-function requireCompiledGroupScope(scope){const p=originalScopes.get(scope);if(!p||p.phase!=='ready'||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||Object.entries(p.coreBinding).some(([key,value])=>p.core[key]!==value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
+function requireCompiledGroupScope(scope){const p=originalScopes.get(scope);if(!p||p.phase!=='ready'||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||p.core&&Object.entries(p.coreBinding).some(([key,value])=>p.core[key]!==value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
 export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
- const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),core:originalGroupCheckpointCore(plan),consumerOperations:finalConsumerPreferenceOperations(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};p.coreBinding={repository:p.core.repository,datasetId:p.core.datasetId,prefix:p.core.prefix,fixedNamespace:p.core.fixedNamespace};originalScopes.set(scope,p);
+ const originalCore=originalGroupCheckpointCoreOrNull(plan);if(!originalCore&&plan.groups.some(group=>['topicDesired','promptBinding','consumerPreference'].includes(group.type)||group.type==='promptPreferences'&&(group.operations[0].value.splits.length||group.operations[0].value.pins.some(id=>id.startsWith('pf:'))||group.operations[0].value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined))))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),core:originalCore,consumerOperations:finalConsumerPreferenceOperations(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};p.coreBinding=p.core?{repository:p.core.repository,datasetId:p.core.datasetId,prefix:p.core.prefix,fixedNamespace:p.core.fixedNamespace}:null;if(!p.core&&plan.groups.some(g=>g.type==='topicDesired'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScopes.set(scope,p);
  try{
   if(p.mixedCore&&store){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));

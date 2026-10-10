@@ -61,9 +61,18 @@ export async function validateOperation(operation){
  return operation;
 }
 
-export async function validateHumanCommitGroup(input,datasetId){
+// Original immutable validation reuse. Only this private WeakSet can skip a
+// second clone/hash; public mutable inputs always run the complete validator.
+// The returned value is detached and recursively frozen before registration.
+const validatedFrozenOperations=new WeakSet();
+const freezeValidatedOperation=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freezeValidatedOperation(child);Object.freeze(value);}return value;};
+export async function validateFrozenOperation(candidate){
+ if(validatedFrozenOperations.has(candidate))return candidate;
+ const operation=freezeValidatedOperation(await validateOperation(candidate));validatedFrozenOperations.add(operation);return operation;
+}
+export async function validateHumanCommitGroup(input,datasetId,immutable=false){
   if(!Array.isArray(input)||input.length<2||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');
-  const operations=[];for(const item of input){const op=await validateOperation(item);if(op.datasetId!==datasetId||op.kind!=='put'||op.actor!=='user'||!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_COMMIT_INVALID');operations.push(op);}
+  const operations=[];for(const item of input){const op=immutable?await validateFrozenOperation(item):await validateOperation(item);if(op.datasetId!==datasetId||op.kind!=='put'||op.actor!=='user'||!['humanLibraryMember','humanLibraryCommit'].includes(op.type))fail('BNS_HUMAN_COMMIT_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='humanLibraryCommit');if(descriptors.length!==1)fail('BNS_HUMAN_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(descriptor.parents.length||v.id!==descriptor.entityId||v.deviceId!==descriptor.deviceId||v.datasetId!==descriptor.datasetId||members.length!==v.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_HUMAN_COMMIT_INVALID');
   const ordered=[];for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId&&op.operationId===ref.operationId);if(hits.length!==1)fail('BNS_HUMAN_COMMIT_INCOMPLETE');const op=hits[0],m=op.value;if(op.deviceId!==descriptor.deviceId||m.deviceId!==v.deviceId||m.datasetId!==v.datasetId||m.logicalCommitId!==v.id||m.domainOperationId!==v.domainOperationId||m.requestDigest!==v.requestDigest)fail('BNS_HUMAN_COMMIT_INVALID');ordered.push(op);}
@@ -434,7 +443,7 @@ export class BrowserNativeSyncCore {
  }
  async #prepareWorkingReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length<5||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_WORKING_COMMIT_INVALID');
-  const operations=[];for(const candidate of input){const op=clone(await validateOperation(candidate));if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='user')fail('BNS_WORKING_COMMIT_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=currentSourceWorking?await validateFrozenOperation(candidate):clone(await validateOperation(candidate));if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='user')fail('BNS_WORKING_COMMIT_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='inputWorkingCommit');if(descriptors.length!==1)fail('BNS_WORKING_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),value=descriptor.value;
   if(descriptor.parents.length||value.datasetId!==descriptor.datasetId||value.deviceId!==descriptor.deviceId||value.id!==descriptor.entityId||members.length!==value.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_WORKING_COMMIT_INVALID');
   for(const ref of value.members){const matches=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(matches.length!==1)fail('BNS_WORKING_COMMIT_INCOMPLETE');const op=matches[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_WORKING_COMMIT_INVALID');}
@@ -450,7 +459,7 @@ export class BrowserNativeSyncCore {
  async prepareSourceAppendReceive(input){return this.#prepareSourceAppendReceive(input,false);}
  async #prepareSourceAppendReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length!==6||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_SOURCE_APPEND_INVALID');
-  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_APPEND_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=currentSourceWorking?await validateFrozenOperation(candidate):await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_APPEND_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='sourceAppendCommit');if(descriptors.length!==1)fail('BNS_SOURCE_APPEND_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(v.datasetId!==this.datasetId||v.deviceId!==descriptor.deviceId||new Set(operations.map(op=>op.operationId)).size!==6||new Set(operations.map(op=>op.sequence)).size!==6)fail('BNS_SOURCE_APPEND_INVALID');
   for(const ref of v.refs){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(hits.length!==1)fail('BNS_SOURCE_APPEND_INCOMPLETE');const op=hits[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_SOURCE_APPEND_INVALID');}
@@ -466,7 +475,7 @@ export class BrowserNativeSyncCore {
  }
  async #prepareSourceBootstrapReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length!==7||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
-  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_BOOTSTRAP_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=currentSourceWorking?await validateFrozenOperation(candidate):await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_BOOTSTRAP_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='sourceBootstrapCommit');if(descriptors.length!==1)fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(v.datasetId!==this.datasetId||v.deviceId!==descriptor.deviceId||new Set(operations.map(op=>op.operationId)).size!==7||new Set(operations.map(op=>op.sequence)).size!==7)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
   for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(hits.length!==1)fail('BNS_SOURCE_BOOTSTRAP_INCOMPLETE');const op=hits[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_SOURCE_BOOTSTRAP_INVALID');}
@@ -484,7 +493,7 @@ export class BrowserNativeSyncCore {
   if(type==='sourceBootstrapCommit')prepared=await this.#prepareSourceBootstrapReceive(input,true);
   else if(type==='sourceAppendCommit')prepared=await this.#prepareSourceAppendReceive(input,true);
   else if(type==='inputWorkingCommit')prepared=await this.#prepareWorkingReceive(input,true);
-  else prepared=await validateHumanCommitGroup(input,this.datasetId);
+  else prepared=await validateHumanCommitGroup(input,this.datasetId,true);
   requireOriginalSourceWorkingCore(this);return prepared;
  }
  async commitSourceBootstrapReceive(t,prepared,writeOwner){

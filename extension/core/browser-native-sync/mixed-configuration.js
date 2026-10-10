@@ -1,3 +1,5 @@
+import {modeBootstrapCommitment} from './consumer-mode-baseline.js';
+import {requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
 import {CONSUMER_PREFERENCE_KEYS,assertConsumerPreferenceOperation,consumerPreferenceRenderingValue} from './consumer-preference-codec.js';
 import {CONSUMER_OWNER_PREFIX,consumerDisplayPreferences} from './consumer-preference-restore.js';
 import {TOPIC_DESIRED_PREFIX,assertTopicDesiredReference,logicalTopicFacts} from './topic-desired-codec.js';
@@ -8,7 +10,7 @@ import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,validateCon
 import {CONSUMER_PUBLICATION_PENDING_ID} from './consumer-publication-state.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {clone,equal,exact,count,fail} from './value.js';
-const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED'),unproven=()=>fail('BNS_GROUP_COMMIT_UNPROVEN');
+const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED'),unproven=()=>fail('BNS_GROUP_COMMIT_UNPROVEN'),modeBaselines=new WeakMap();
 // Pure typed comparisons inside the original authenticated Mixed consumer.
 // The caller prepays these bounded row/ref/equality operands. No native cut,
 // metadata prefix exemption, grant or transport capability is created here.
@@ -24,9 +26,19 @@ export function mixedConfigurationReplay(core,scope,plan,restored){
  for(const op of local.filter(op=>op.type==='consumerPreference'&&op.entityId==='smartFilter').sort((a,b)=>a.sequence-b.sequence)){
   assertConsumerPreferenceOperation(op);const next=consumerPreferenceRenderingValue(op.value);
   // A prejournal nondefault bootstrap does not prove its prior policy counter.
-  if(op.actor==='bootstrap'&&next!==mode)refuse();if(next!==mode){mode=next;policyEpoch++;}
+  if(op.actor==='bootstrap'){const baseline=modeBaselines.get(scope);if(!baseline||baseline.core!==core||baseline.plan!==plan||baseline.operation!==op||baseline.mode!==next)refuse();mode=next;policyEpoch=baseline.policyEpoch;}else if(next!==mode){mode=next;policyEpoch++;}
  }
  return {revisions,mode,policyEpoch};
+}
+export async function prepareOriginalMixedModeBaseline(core,store,scope,plan,raw,nonce,restored){
+ requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);requireOriginalCurrentMixedGroupScope(core,scope,plan);
+ const local=plan.groups.flatMap(g=>g.operations).filter(op=>op.deviceId===core.deviceId&&op.type==='consumerPreference'&&op.entityId==='smartFilter').sort((a,b)=>a.sequence-b.sequence),bootstrap=local.filter(op=>op.actor==='bootstrap');
+ if(!bootstrap.length)return;if(bootstrap.length!==1||local[0]!==bootstrap[0])unproven();const operation=bootstrap[0],mode=consumerPreferenceRenderingValue(operation.value);let current=mode,changes=0;
+ for(const op of local.slice(1)){const next=consumerPreferenceRenderingValue(op.value);if(next!==current){current=next;changes++;}}
+ const filter=raw.rows.meta.find(r=>r.id==='smart-filter'),policyEpoch=filter?.policyEpoch-changes;
+ if(filter?.mode!==current||!count(policyEpoch))unproven();
+ const commitment=await modeBootstrapCommitment({datasetId:core.datasetId,deviceId:core.deviceId,namespace:raw.namespace,epoch:raw.rows.meta.find(r=>r.id==='recovery-restore-epoch')?.value??null,mode,policyEpoch});
+ requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);if(commitment!==operation.operationId)unproven();modeBaselines.set(scope,{core,plan,operation,mode,policyEpoch});
 }
 export function compareMixedConfiguration(core,scope,plan,raw,control,restored){
  requireOriginalCurrentMixedGroupScope(core,scope,plan);const rows=new Map(raw.rows.meta.map(r=>[r.id,r])),ops=plan.groups.flatMap(g=>g.operations),heads=new Map(plan.heads.map(h=>[h.type+'\0'+h.entityId,h])),key=(type,id)=>protocolPhysicalId(core.prefix,raw.namespace,'materializedOwner',[type,id]),replay=mixedConfigurationReplay(core,scope,plan,restored),consumed=[],values=[],desired=[];
@@ -42,7 +54,9 @@ export function compareMixedConfiguration(core,scope,plan,raw,control,restored){
  const filter=rows.get('smart-filter');if(filter?.mode!==replay.mode||filter.policyEpoch!==replay.policyEpoch)refuse();
  for(const value of scope.expected.topicDesired??[]){const op=consume('topicDesired',value.id,TOPIC_DESIRED_PREFIX,'value');if(!op||!equal(op.value,value))unproven();const member=ops.find(o=>o.revisionId===value.topicRef.memberRevisionId),commit=ops.find(o=>o.revisionId===value.topicRef.commitRevisionId);assertTopicDesiredReference(value,commit,member);desired.push(clone(value));}
  if(raw.rows.meta.filter(row=>row.id.startsWith(TOPIC_DESIRED_PREFIX)).length!==desired.length)refuse();
- const local=rows.get(CONTEXT_TOPIC_ACCESS_ROW),receipts=raw.rows.operationReceipts.filter(row=>row.namespace==='context-topic-access');
+ const local=rows.get(CONTEXT_TOPIC_ACCESS_ROW),allReceipts=raw.rows.operationReceipts.filter(row=>row.namespace==='context-topic-access'),epoch=rows.get('recovery-restore-epoch')?.value??'initial',receipts=allReceipts.filter(row=>!row.result?.noOp);
+ if(allReceipts.length>128||allReceipts.some(row=>!validContextTopicReceipt(row)||row.epoch!==epoch))refuse();
+ for(const row of allReceipts.filter(row=>row.result.noOp))if(row.result.enabled||row.result.revision!==0||ops.some(op=>op.type==='topicDesired'&&op.operationId===row.id.slice('context-topic:'.length)))refuse();
  if(local){if(!validContextTopicPreferences(local)||local.choices.length>128)refuse();let total=0;
   for(const choice of local.choices){const value=desired.find(v=>v.id===choice.topicId),member=value&&ops.find(o=>o.revisionId===value.topicRef.memberRevisionId);if(!value||value.enabled!==choice.enabled||!member||!equal(logicalTopicFacts(member.value.after),{createdAt:choice.binding.createdAt,layoutGeneration:choice.binding.layoutGeneration,removalOperationId:choice.binding.removalOperationId,organizationOperationId:choice.binding.organizationOperationId}))refuse();
    const owned=receipts.filter(r=>r.ownerId===choice.topicId&&!r.result.noOp).sort((a,b)=>a.result.revision-b.result.revision);if(owned.length!==choice.revision||owned.some((r,i)=>!validContextTopicReceipt(r)||r.result.revision!==i+1)||owned.at(-1)?.result.enabled!==choice.enabled)refuse();total+=choice.revision;
@@ -50,7 +64,7 @@ export function compareMixedConfiguration(core,scope,plan,raw,control,restored){
   if(local.revision!==total)refuse();consumed.push(local.id);
  }else if(receipts.length)refuse();
  for(const r of receipts){if(!validContextTopicReceipt(r)||!local?.choices.some(c=>c.topicId===r.ownerId))refuse();const op=ops.find(op=>op.type==='topicDesired'&&op.operationId===r.id.slice('context-topic:'.length));if(op&&(op.deviceId!==core.deviceId||op.actor!=='user'||op.entityId!==r.ownerId||op.value.enabled!==r.result.enabled))refuse();if(!op&&!ops.some(op=>op.type==='topicDesired'&&op.actor==='bootstrap'&&op.deviceId===core.deviceId&&op.entityId===r.ownerId))refuse();}
- const localOps=ops.filter(op=>op.type==='topicDesired'&&op.deviceId===core.deviceId&&op.actor==='user').sort((a,b)=>a.sequence-b.sequence),epoch=rows.get('recovery-restore-epoch')?.value??'initial';
+ const localOps=ops.filter(op=>op.type==='topicDesired'&&op.deviceId===core.deviceId&&op.actor==='user').sort((a,b)=>a.sequence-b.sequence);
  for(const choice of local?.choices??[]){const ours=localOps.filter(op=>op.entityId===choice.topicId),baseline=choice.revision-ours.length;if(baseline<0||baseline&&!ops.some(op=>op.type==='topicDesired'&&op.deviceId===core.deviceId&&op.actor==='bootstrap'&&op.entityId===choice.topicId))refuse();for(let i=0;i<ours.length;i++){const receipt=receipts.find(r=>r.id==='context-topic:'+ours[i].operationId);if(!receipt||receipt.result.noOp||receipt.result.revision!==baseline+i+1||receipt.epoch!==epoch)refuse();}}
  if(receipts.some(receipt=>receipt.epoch!==epoch))refuse();
  return {values:values.sort((a,b)=>a.id.localeCompare(b.id)),desired:desired.sort((a,b)=>a.id.localeCompare(b.id)),consumed,mode:replay.mode,policyEpoch:replay.policyEpoch};

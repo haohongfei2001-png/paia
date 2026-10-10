@@ -15,6 +15,7 @@ const rowId=id=>CONSUMER_OWNER_PREFIX+id;
 // Final, admitted heads only. Historical operations are replayed by Core with
 // origin=remote; their intermediate display values never reach the local SDK.
 export function finalConsumerPreferenceOperations(plan){
+ if(!plan.heads.some(head=>head.type==='consumerPreference')&&!plan.groups.some(group=>group.type==='consumerPreference'))return [];
  requireOriginalGroupCheckpointPlan(originalGroupCheckpointCore(plan),plan);
  const operations=plan.groups.flatMap(g=>g.operations),result=[];
  for(const head of plan.heads)if(head.type==='consumerPreference'){
