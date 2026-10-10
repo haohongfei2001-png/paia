@@ -1,3 +1,5 @@
+import {prepareInitialSourcePlan,initialSourcePlan,initialSourcePlanBorrows} from '../core/browser-native-sync/source-bootstrap-plan.js';
+import {prepareSourceAppendPlan,sourceAppendPlan,sourceAppendPlanBorrows} from '../core/browser-native-sync/source-append-plan.js';
 import {FilterIntentSyncJournal} from '../core/browser-native-sync/filter-intent-journal.js';
 import {InputWorkingSyncJournal} from '../core/browser-native-sync/input-working-journal.js';
 import test from 'node:test';
@@ -29,6 +31,16 @@ async function fixture(t){
  return {s,core,plan,scope,raw:{rows,namespace:'initial'},control,topic};
 }
 const compare=(f,raw=f.raw,control=f.control)=>compareMixedConfiguration(f.core,f.scope,f.plan,raw,control,false);
+test('Source private plans borrow only actual immutable children and keep mutable inputs and readouts detached',async t=>{
+ const f=await fixture(t),group=f.plan.groups.find(g=>g.type==='sourceBootstrapCommit'),entities=Object.fromEntries(group.prepared.members.map(op=>[op.value.entityType,op.value.entity]));
+ assert.equal(initialSourcePlanBorrows(group.capability,entities),true);const original=initialSourcePlan(group.capability);entities.source={};assert.deepEqual(initialSourcePlan(group.capability),original);
+ const mutable=structuredClone(original),cap=await prepareInitialSourcePlan(mutable);assert.equal(initialSourcePlanBorrows(cap,mutable),false);mutable.source.originalText='SYNTHETIC changed after prepare';assert.deepEqual(initialSourcePlan(cap),original);
+ const detached=initialSourcePlan(cap);detached.source.originalText='SYNTHETIC changed readout';assert.deepEqual(initialSourcePlan(cap),original);
+ const forged=structuredClone(original);forged.source.originalText='SYNTHETIC wrong digest';const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}};freeze(forged);await assert.rejects(()=>prepareInitialSourcePlan(forged));
+ const request=capture((await f.s.status()).epoch);request.messages[0]={...request.messages[0],sourceMessageId:'SYNTHETIC-private-append',pageOrder:2,originalText:'SYNTHETIC immutable appended Source'};await f.s.capture(request);const operations=[];for await(const row of f.core.rows('revision'))operations.push(row.operation);const appendedPlan=await prepareCurrentMixedGroupCheckpointPlan(f.core,operations);assert.equal(appendedPlan.groups.filter(g=>g.type==='sourceAppendCommit').length,1);
+ const accessor=structuredClone(original);let text=original.source.originalText;Object.defineProperty(accessor.source,'originalText',{enumerable:true,configurable:true,get:()=>text});freeze(accessor);const pending=prepareInitialSourcePlan(accessor);text='SYNTHETIC changed getter during validation';const getterCap=await pending;assert.equal(initialSourcePlanBorrows(getterCap,accessor),false);assert.deepEqual(initialSourcePlan(getterCap),original);
+ for(const other of appendedPlan.groups.filter(g=>g.type==='sourceAppendCommit')){const values=Object.fromEntries(other.prepared.members.map(op=>[op.value.entityType,op.value.entity]));assert.equal(sourceAppendPlanBorrows(other.capability,values),true);const copy=sourceAppendPlan(other.capability),mutableCap=await prepareSourceAppendPlan(copy,other.prepared.descriptor.value.documentId);assert.equal(sourceAppendPlanBorrows(mutableCap,copy),false);copy.source.originalText='SYNTHETIC changed append';assert.deepEqual(sourceAppendPlan(mutableCap),sourceAppendPlan(other.capability));}
+});
 test('Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows',async t=>{
  const f=await fixture(t),source=f.plan.groups.find(g=>g.type==='sourceBootstrapCommit').prepared.members.find(op=>op.value.entityType==='source').value.entity;
  assert.equal(f.scope.expected.records[0],source);assert.equal(Object.isFrozen(source),true);

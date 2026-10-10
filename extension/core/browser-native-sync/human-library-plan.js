@@ -1,3 +1,5 @@
+import {initialSourcePlanBorrows} from './source-bootstrap-plan.js';
+import {sourceAppendPlanBorrows} from './source-append-plan.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {prepareOriginalMixedModeBaseline} from './mixed-configuration.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
@@ -1567,7 +1569,7 @@ async function projectionCompileInitialMixedScope(r){
  // their own keyed-alias and restored-prefix scratch; never silently fall back.
  assertOriginalInitialMixedScopeCompilationProfile(r.core,plan);
  const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};let wireCount=0,humanCount=0;
- let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
+ let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit'){const entities=Object.fromEntries(group.prepared.members.map(member=>[member.value.entityType,member.value.entity])),borrowed=(group.type==='sourceBootstrapCommit'?initialSourcePlanBorrows:sourceAppendPlanBorrows)(group.capability,entities);sourceHidden+=1024;if(!borrowed)for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));}
  // The compiler has returned. Transfer its complete surviving Plan/private
  // Source before any later meter resizes this same live ticket.
  const repeated=measureOriginalMixedRepeatedPreparedOperations(r.core,plan),repeatedCharge=2*repeated.T+128*repeated.V+8*repeated.E;
@@ -1733,7 +1735,7 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false,mix
   // compiler, never to the retained encoder/recheck cap. End their actual
   // lifetime before transferring that cap; complete native Search rows stay.
   if(mixedExport){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;r.mixedQueryMetaIds=null;r.mixedSearchQueue=null;r.owned-=r.mixedSearchOwned;r.mixedSearchOwned=0;projectionReserve(r);}
-  if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
+  if(PROJECTION_FRAME+r.owned>4*1024*1024){try{fail('BNS_HUMAN_GRAPH_LIMIT');}catch(error){error.message+=' '+JSON.stringify({limit:4*1024*1024,charge:PROJECTION_FRAME+r.owned,owned:r.owned,phase:'retained-admission'});throw error;}}ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
   cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,controlObservation:r.controlObservation,localControlRow:r.localControlRow,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking,mixedIndexInspection:r.mixedIndexInspection};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;r.localControlRow=null;r.controlObservation=null;return cap;
  }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
