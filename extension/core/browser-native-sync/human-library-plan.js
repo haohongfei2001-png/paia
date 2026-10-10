@@ -1478,18 +1478,22 @@ function mixedCurrentSearchScratch(r){
  let expected=0,tokenPeak=0,owners=0;
  for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
   if(++owners>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');projectionPendingOwner(row,kind,true);
-  const task=planSearchQueueLocator(kind,row);
+  const task=planSearchQueueLocator(kind,row);let ownerExpected=0;
   for(const [field,text]of Object.entries(searchOwnerFields(kind,row))){
    if(typeof text!=='string')fail('BNS_HUMAN_SEARCH_UNPROVEN');let decomposed=0;for(const scalar of text)decomposed+=scalar.normalize('NFKD').length;
    const units=3*decomposed,posting=projectionRowMeasure(r,planSearchPostingRow(task,{field,tokenHash:'ffffffff'},row));
    // At most one token per normalized unit. Pay complete flatMap descriptors,
    // PostingRows/IDs and canonical/sort operands, including a missing actual
    // posting counterexample; actual row count cannot bound expected output.
-   expected+=units*(2*projectionTreeCharge(posting)+2*projectionCanonicalCharge(posting)+256);
+   ownerExpected+=units*(2*projectionTreeCharge(posting)+2*projectionCanonicalCharge(posting)+256);
    // Original normalize/lowercase, regexp word strings+headers, mapped hash
    // strings, dedup Set, sorted token/reference arrays and one field frame.
    tokenPeak=Math.max(tokenPeak,units*1024+4096);
   }
+  // Original qualify() builds all fields of ONE owner, compares that complete
+  // expected array, then drops it before the next owner. All actual postings
+  // remain borrowed/charged below; no expected array is retained in the proof.
+  expected=Math.max(expected,ownerExpected);
  }
  const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0,rebuildPeak=0;
  // Price only the actual canonical operands consumed by this Search phase.
