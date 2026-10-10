@@ -20,7 +20,7 @@ test('real original control writer advances one local revision and settles only 
 });
 test('an original nonjournal publication in flight excludes a second same-database control writer',async t=>{
  const f=await fixture(t),other=await f.second(),entered=deferred(),release=deferred(),sets=f.sets();f.hook(async()=>{entered.resolve();await release.promise;});
- const first=f.store.updatePreferences({appearance:'dark'});await entered.promise;const rows=await f.rows(),pending=await f.meta(CONTROL_PUBLICATION_RESERVATION);assert.equal(pending.afterDigest.length,64);assert.equal(pending.fenceDigest.length,64);assert.deepEqual(Object.keys(pending).sort(),['afterDigest','databaseId','fenceDigest','id','nonce','revision','version']);
+ const first=f.store.updatePreferences({appearance:'dark'});await entered.promise;const rows=await f.rows(),pending=await f.meta(CONTROL_PUBLICATION_RESERVATION);assert.equal(pending.beforeDigest.length,64);assert.equal(pending.afterDigest.length,64);assert.equal(pending.fenceDigest.length,64);assert.deepEqual(Object.keys(pending).sort(),['afterDigest','beforeDigest','databaseId','fenceDigest','id','nonce','revision','version']);
  await assert.rejects(other.updatePreferences({language:'en'}),{code:'CONTROL_PUBLICATION_PENDING'});assert.equal(f.sets(),sets+1);assert.deepEqual(await f.rows(),rows,'refused second writer has no canonical, control, lease or revision side effects');
  release.resolve();assert.deepEqual(await first,{ok:true});f.hook(null);assert.deepEqual(await other.updatePreferences({language:'en'}),{ok:true});assert.equal(f.data[STORAGE_KEY].preferences.appearance,'dark');assert.equal(f.data[STORAGE_KEY].preferences.language,'en');
 });
