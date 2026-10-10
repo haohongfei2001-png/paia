@@ -1,3 +1,4 @@
+import {prepareHumanScopeProof} from '../core/browser-native-sync/human-library-scope.js';
 import {checkCurrentGroupProtocolRows} from '../core/browser-native-sync/current-group-protocol-rows.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -117,4 +118,36 @@ test('a forged native mixed compilation nonce never opens the original suppressi
  const x=await producer();try{const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations),before=await all(x.s),run=x.s.run;let calls=0;x.s.run=()=>{calls++;throw Error('SYNTHETIC supplied key reader');};
  try{await assert.rejects(prepareGroupScope(plan,{store:x.s,nativeMixedCompilation:Object.freeze({})}),{code:'BNS_HUMAN_PROJECTION_REQUIRED'});assert.equal(calls,0);}finally{x.s.run=run;}assert.deepEqual(await all(x.s),before);
  }finally{await x.s.repository.close();}
+});
+
+// Invalid earlier suppression must stop before a later asynchronous keyed hash
+// starts. A fail-fast concurrent aggregate otherwise abandons a live operand.
+test('original Human scope preparation leaves no later crypto work after an earlier suppression rejects',async()=>{
+ const id=operationId(),later={id,deletedEntryId:id,lineageId:id,removedAt:'2026-10-10T00:00:00.000Z',operationId:id,status:'active',scopeVersion:1,scopeTokens:[],evidenceVersionTokens:[],noveltyRuleVersion:1,signatureInput:{body:'SYNTHETIC suppression operand',type:'idea'}};
+ const wire={rows:{entry:[],topic:[],section:[],placement:[],history:[],suppression:[{},later],keepSeparate:[]},names:[]},store={run:async()=>Array(32).fill(7)},scope={};
+ const subtle=crypto.subtle,original=Object.getOwnPropertyDescriptor(subtle,'importKey');let started=0,finish;
+ Object.defineProperty(subtle,'importKey',{configurable:true,value:()=>{started++;return new Promise(resolve=>{finish=()=>resolve({});});}});
+ try{await assert.rejects(prepareHumanScopeProof(store,scope,wire),{code:'BNS_HUMAN_SUPPRESSION_UNSUPPORTED'});assert.equal(started,0,'no later keyed operand may outlive failed compilation');}
+ finally{if(finish)finish();if(original)Object.defineProperty(subtle,'importKey',original);else delete subtle.importKey;await Promise.resolve();}
+});
+
+test('consuming original mixed Scope refuses initial delta swaps and Source/Human local-history collisions even with an unchanged sealed graph',async()=>{
+ for(const kind of ['edited-delta-and-map','untouched-append-delta','source-human-history-collision']){
+  const x=await producer();try{
+   const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations),scope=await prepareGroupScope(plan,{store:x.s}),before=await all(x.s);
+   assert.equal(await x.s.repository.transaction(false,t=>requireGroupScope(x.s,t,scope)),true);
+   await x.s.repository.transaction(true,async t=>{
+    if(kind==='source-human-history-collision'){
+     const source=before.revisions.find(row=>row.kind==='input'),human=before.revisions.find(row=>row.kind==='topic');
+     assert.notEqual(source.sequence,human.sequence);await t.put('revisions',{...source,sequence:human.sequence,listKey:[source.entityKey,human.sequence],documentList:[source.documentId,human.sequence]});
+    }else{
+     const state=before.inputStates.find(row=>kind==='edited-delta-and-map'?row.id===x.a:row.id!==x.a),other=before.inputStates.find(row=>row.id!==state.id);assert.notEqual(state.deltaSequence,other.deltaSequence);
+     await t.put('inputStates',{...state,deltaSequence:other.deltaSequence});
+     if(kind==='edited-delta-and-map'){const owner=before.meta.find(row=>row.id.includes(':workingOwner:'));assert.ok(owner);await t.put('meta',{...owner,deltaSequence:other.deltaSequence});}
+    }
+   });
+   const corrupt=await all(x.s);assert.deepEqual(corrupt.meta.filter(row=>row.id.includes(':revision:')),before.meta.filter(row=>row.id.includes(':revision:')));
+   const verdict=await x.s.repository.transaction(false,async t=>{try{await requireGroupScope(x.s,t,scope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');
+  }finally{await x.s.repository.close();}
+ }
 });

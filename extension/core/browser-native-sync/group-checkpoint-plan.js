@@ -25,6 +25,13 @@ export function requireOriginalCurrentMixedGroupPlan(core,plan){
  requireOriginalSourceWorkingCore(core);requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!=='mixed')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+// Body-free original constructor identity for its consuming Scope. Returning
+// an already public Core creates no native read, writer or export authority.
+export function originalCurrentMixedGroupCore(plan){
+ if(arguments.length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const p=originalPlans.get(plan);if(!p||p.currentSourceWorking!=='mixed')return null;
+ requireOriginalCurrentMixedGroupPlan(p.core,plan);return p.core;
+}
 // Restrict this current-native slice before the general Scope owner allocates
 // its complete tables or digests families. The general fixed compiler remains
 // usable for broader future prerequisites; only this original native selection

@@ -1,3 +1,4 @@
+import {assertMixedInitialPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {defaults} from '../workspace.js';
 import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
@@ -10,7 +11,7 @@ import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
 import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
 import {normalizePhysical,physical} from './human-library-journal.js';
-import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan,requireSelectedCurrentSourceWorkingGroupPlan,requireOriginalCurrentMixedGroupPlan} from './group-checkpoint-plan.js';
+import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan,requireSelectedCurrentSourceWorkingGroupPlan,requireOriginalCurrentMixedGroupPlan,originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {acceptSequence} from './core.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
@@ -149,7 +150,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
  if(human)expected.humanLibrary=human;
  const normalized=clone(expected);for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
- const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}},p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human};originalScopes.set(scope,p);
+ const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}},p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};originalScopes.set(scope,p);
  try{if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;}catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){
@@ -167,6 +168,7 @@ export async function requireGroupScope(store,t,scope){
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort((await readRows(t,name)).map(row=>row.value));
  for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(await readRows(t,name));
+ const original=originalScopes.get(scope);if(original?.mixedCore){const plan=scopeDeref.call(original.plan);requireOriginalCurrentMixedGroupScope(original.mixedCore,scope,plan);assertMixedInitialPhysicalAllocations(original.mixedCore,scope,plan,actual,{active:await t.get('meta',original.mixedCore.prefix+'active')??null,input:await t.get('meta','input-delta-sequence')??null,history:await t.get('meta','revision-sequence')??null});}
  for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
  for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));

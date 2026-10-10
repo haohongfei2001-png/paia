@@ -18,7 +18,10 @@ export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompila
  if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
  const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
  for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
- rows.suppression=await Promise.all(rows.suppression.map(row=>localHumanSuppression(row,secret)));current();
+ // A failed compilation must not abandon a later live crypto operand. Keep
+ // the original native work ticket through each actual keyed-hash settlement
+ // and authenticate its current cut before starting the next suppression.
+ const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}rows.suppression=suppression;
  const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);current();names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
  const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate)});
  return normalized.history;
