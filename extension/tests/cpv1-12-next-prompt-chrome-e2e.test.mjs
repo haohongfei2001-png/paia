@@ -120,8 +120,32 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    await page.locator('#prompt-textarea').focus();const cdp=await h.context.newCDPSession(page);await cdp.send('Input.imeSetComposition',{text:'汉',selectionStart:1,selectionEnd:1});await cycle();await page.waitForTimeout(1900);assert.equal(capsule(),undefined);await cdp.send('Input.insertText',{text:'汉'});await cdp.detach();await page.waitForTimeout(900);assert.equal(capsule(),undefined,'no stale automatic queue');
   });
   await check('uncertain native edit is never retried and offers only explicit recovery',async()=>{
-   // A native plain input, not fixture.set(), clears Chromium's conservative IME fence.
-   await page.locator('#prompt-textarea').focus();await page.keyboard.type('x');await page.evaluate(()=>fixture.set('uncertain draft',15));await cycle();const f=await shown();await world.run('globalThis.originalExec=document.execCommand.bind(document);document.execCommand=(...args)=>{originalExec(...args);return false;};');const before=await page.evaluate(()=>fixture.text());await f.getByRole('button',{name:'继续',exact:true}).click();await eventually(()=>f.locator('.next-status').textContent().then(x=>x.includes('未确认')));assert.equal(await page.evaluate(()=>fixture.text()),before+'继续');await world.run('document.execCommand=originalExec;');assert.equal(await f.getByRole('button',{name:'继续',exact:true}).isDisabled(),true);assert.equal(await f.getByRole('button',{name:'复制',exact:true}).isVisible(),true);await f.getByRole('button',{name:'收起本轮建议'}).click();await eventually(()=>!capsule());
+   // Observe the original native fault injection without altering its result.
+   await world.run(`globalThis.uncertainTrace={events:[],exec:[],adapter:[]};globalThis.uncertainInput=e=>uncertainTrace.events.push({trusted:e.isTrusted,isComposing:e.isComposing,inputType:e.inputType});document.addEventListener('input',uncertainInput,true);globalThis.uncertainOriginalOnce=PAIAChatGPTComposerAdapter.prototype.once;PAIAChatGPTComposerAdapter.prototype.once=async function(...args){const out=await uncertainOriginalOnce.apply(this,args);uncertainTrace.adapter.push(out);return out;};`);
+   let f;
+   try{
+    // A native plain input, not fixture.set(), clears Chromium's conservative IME fence.
+    await page.locator('#prompt-textarea').focus();await page.keyboard.type('x');await page.evaluate(()=>fixture.set('uncertain draft',15));await cycle();f=await shown();
+    await f.evaluate(()=>{globalThis.__uncertainFrame={rpc:[],status:[],clicks:[]};const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async(...args)=>{if(args[0]?.type==='PAIA_PROMPT_NEXT_RPC')void __traceNextNative({event:'uncertain-rpc-request',command:args[0].command?.type,nonce:args[0].nonce});const result=await send(...args);if(args[0]?.type==='PAIA_PROMPT_NEXT_RPC'){const value={command:args[0].command?.type,status:result?.data?.status,reason:result?.data?.reason,verified:result?.data?.verified,ok:result?.ok,error:result?.error};__uncertainFrame.rpc.push(value);void __traceNextNative({event:'uncertain-rpc-result',...value});}return result;};document.addEventListener('click',e=>{const value={trusted:e.isTrusted,label:e.target.getAttribute('aria-label'),disabled:e.target.disabled,nonce:location.hash.slice(6)};__uncertainFrame.clicks.push(value);void __traceNextNative({event:'uncertain-native-click',...value});},true);const status=document.querySelector('.next-status');new MutationObserver(()=>__uncertainFrame.status.push(status.textContent)).observe(status,{childList:true,subtree:true,characterData:true});});
+    await world.run(`globalThis.originalExec=document.execCommand.bind(document);document.execCommand=(...args)=>{const result=originalExec(...args);uncertainTrace.exec.push({command:args[0],nativeResult:result,returned:false});return false;};`);
+    const before=await page.evaluate(()=>fixture.text());await f.getByRole('button',{name:'继续',exact:true}).click();await eventually(()=>f.locator('.next-status').textContent().then(x=>x.includes('未确认')));assert.equal(await page.evaluate(()=>fixture.text()),before+'继续');await world.run('document.execCommand=originalExec;');assert.equal(await f.getByRole('button',{name:'继续',exact:true}).isDisabled(),true);assert.equal(await f.getByRole('button',{name:'复制',exact:true}).isVisible(),true);
+    // The feedback/Copy row resizes the parent iframe asynchronously. Frame-local
+    // locator stability alone does not certify that the containing iframe settled.
+    const frameElement=await f.frameElement();
+    try{await eventually(async()=>{
+     const expected=await f.locator('.next-capsule').evaluate(n=>Math.min(400,Math.max(44,Math.ceil(n.getBoundingClientRect().height))));
+     return frameElement.evaluate(async(n,height)=>{const rect=()=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};const first=rect();await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);const last=rect();return n.isConnected&&first.every((x,i)=>x===last[i])&&last[3]===height;},expected);
+    },'uncertain feedback resize settles before its single native dismiss click');}finally{await frameElement.dispose();}
+    const dismissStart=diagnostics.length,frameNonce=f.url().split('#next-')[1];
+    await f.getByRole('button',{name:'收起本轮建议'}).click();
+    await eventually(()=>diagnostics.slice(dismissStart).some(x=>x.event==='uncertain-native-click'&&x.trusted===true&&x.label==='收起本轮建议'&&x.disabled===false&&x.nonce===frameNonce),'the original trusted click reaches the actual dismiss button');
+    await eventually(()=>diagnostics.slice(dismissStart).some(x=>x.event==='uncertain-rpc-request'&&x.command==='hide'&&x.nonce===frameNonce),'the actual button requests dismissal before its frame is destroyed');
+    await eventually(()=>!capsule());
+    assert.equal(diagnostics.slice(dismissStart).filter(x=>x.event==='uncertain-native-click'&&x.trusted===true&&x.label==='收起本轮建议'&&x.disabled===false&&x.nonce===frameNonce).length,1,'exactly one original native dismiss click; no automatic dismissal substitute');
+   }finally{
+    diagnostics.push({event:'uncertain-final',value:await world.run('uncertainTrace'),draft:await page.evaluate(()=>fixture.text()),frame:f&&!f.isDetached()?await f.evaluate(()=>__uncertainFrame):null,status:f&&!f.isDetached()?await f.locator('.next-status').textContent():null});
+    await world.run('if(globalThis.originalExec)document.execCommand=originalExec;PAIAChatGPTComposerAdapter.prototype.once=uncertainOriginalOnce;document.removeEventListener(\'input\',uncertainInput,true);');
+   }
   });
   await check('private light/dark/compact capsule, 44px targets, no stored body, no model request',async()=>{
    for(const [theme,width]of [['light',1280],['dark',1280],['dark',320],['light',320]]){

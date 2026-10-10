@@ -1209,6 +1209,17 @@ function currentContextSnapshotScratch(scope,plan,raw){
  // and bounded descriptor/validator wrappers; full item arrays are above.
  return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+projectionCanonicalCharge(projectionMeasure(plan,'native'))+16*1024;
 }
+function completedGroupControlScratch(core,raw){
+ // Full control source trees are already retained. Independently prepay each
+ // exact control's original manifest canonicalization/UTF8, identity byte copy,
+ // digest/ref comparison, schema vectors and frames on THIS live work ticket.
+ // Summation is intentional: extra controls cannot obtain a cheap exemption.
+ let scratch=0;
+ for(const row of raw.groupMeta){if(typeof row.id!=='string'||!row.id.startsWith(core.prefix+'generation:')||!row.id.endsWith(':restore:'))continue;
+  const m=projectionMeasure(row,'native');scratch+=6*projectionTreeCharge(m)+6*projectionCanonicalCharge(m)+8*m.B+16*m.E+64*1024;
+ }
+ return scratch;
+}
 async function captureCurrentProjection(store,core,group){
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME);
  let r,cap,ticket,primary,failed=false;
@@ -1251,8 +1262,8 @@ async function captureCurrentProjection(store,core,group){
     // The extra4096 is only the fixed ASCII manual-Prompt protocol wrapper.
     promptScratch+=projectionCanonicalCharge(projectionMeasure(r.group.scope.expected.prompt,'native'))+projectionCanonicalCharge(projectionMeasure(r.group.plan,'native'))+4096;
    }
-   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch+currentContextSnapshotScratch(r.group.scope,r.group.plan,r.raw);projectionReserve(r,scratch);
-   human.assertHumanScopeProjectionExpectation(r.group.scope,store,r.raw);owner.assertCurrentHumanGroupNativeSnapshot(core,r.group.scope,r.group.plan,r.raw,r.controlValues,r.group.databaseId);
+   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch+currentContextSnapshotScratch(r.group.scope,r.group.plan,r.raw)+completedGroupControlScratch(core,r.raw);projectionReserve(r,scratch);
+   human.assertHumanScopeProjectionExpectation(r.group.scope,store,r.raw);await owner.assertCurrentHumanGroupNativeSnapshot(core,r.group.scope,r.group.plan,r.raw,r.controlValues,r.group.databaseId);projectionCurrent(r);
    projectionDeepFreeze(r.group.scope);projectionReserve(r);projectionFence(r);
   }
   // Admission must also be readable by the exact original whole-cut equality

@@ -13,9 +13,9 @@ import {prepareAppendApplication,applyAppendApplication} from './source-append-r
 import {JournalRestoreFence,readRestoreEpoch} from './prompt-journal.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
-import {validateCoverage} from './codecs.js';
+import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
-const profileName='bounded-admitted-local-owners',own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
+const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
 async function allOperations(core){const operations=[];for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');if(operations.length===128)fail('BNS_GROUP_RESOURCE_LIMIT');operations.push(row.operation);}return operations;}
@@ -57,9 +57,7 @@ export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGME
 async function manifest(ref,get,core,profile,supported){
  if(ref?.kind!=='checkpoint-manifest')fail('BNS_CHECKPOINT_INVALID');
  const v=decodeJSON(await readObject(ref,get,{profile}),profile.decoded);
- if(!own(v,['magic','protocol','kind','datasetId','clientEncryption','root','level','itemCount','chain','coverage','parents','ownerScope'])||v.magic!=='PAIA-BNS'||v.protocol!==1||v.kind!=='checkpoint-manifest'||v.datasetId!==core.datasetId||v.clientEncryption!=='none'||!Number.isSafeInteger(v.level)||v.level<0||v.level>8||!Number.isSafeInteger(v.itemCount)||v.itemCount<0||v.itemCount>384||(!hash(v.chain)&&v.itemCount!==0)||!Array.isArray(v.parents)||v.parents.length>128||v.parents.some(x=>!hash(x))||new Set(v.parents).size!==v.parents.length)fail('BNS_CHECKPOINT_INVALID');
- const scope=v.ownerScope;if(!own(scope,['version','profile','families'])||scope.version!==1||scope.profile!==profileName||!Array.isArray(scope.families)||scope.families.length>16||scope.families.some(row=>!own(row,['type','count','digest'])||typeof row.type!=='string'||!Number.isSafeInteger(row.count)||row.count<0||row.count>128||!hash(row.digest))||new Set(scope.families.map(x=>x.type)).size!==scope.families.length)fail('BNS_GROUP_SCOPE_INVALID');
- validateCoverage(v.coverage,supported);return v;
+ assertGroupedCheckpointManifest(v,{core,supported});return v;
 }
 async function compile(core,items,manifest,store){
  const scope=manifest.ownerScope;

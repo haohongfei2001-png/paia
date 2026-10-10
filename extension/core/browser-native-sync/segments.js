@@ -11,6 +11,9 @@ function validateRef(ref,profile){
  if(!exact(ref,refFields)||Object.keys(ref).length!==refFields.length||!hash(ref.id)||!hash(ref.digest)||ref.id!==ref.digest||!formats.includes(ref.kind)||!['identity','gzip'].includes(ref.codec)||!count(ref.encodedBytes)||ref.encodedBytes<1||ref.encodedBytes>profile.encoded||!count(ref.decodedBytes)||ref.decodedBytes<1||ref.decodedBytes>profile.decoded)fail('BNS_OBJECT_REF_INVALID');
  return ref;
 }
+// Pure original reference assertion; no immutable read or publication grant.
+export function assertProtocolObjectReference(ref,profile=SEGMENT_PROFILE){validateRef(ref,profile);}
+
 async function transform(data,kind,limit){
  const Stream=kind==='gzip'?globalThis.CompressionStream:globalThis.DecompressionStream;if(!Stream)fail('BNS_CODEC_UNSUPPORTED');
  const stream=new Blob([data]).stream().pipeThrough(new Stream('gzip')),reader=stream.getReader(),parts=[];let length=0;
