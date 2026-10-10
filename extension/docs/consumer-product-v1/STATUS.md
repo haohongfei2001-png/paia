@@ -1,3 +1,13 @@
+# 0.43.14 complete local coverage; formal candidate pending — 2026-10-10
+
+Actual main remains d136165d7de1df25a0b1a46fc549194a8a4c61ef /0.43.13, now Full38046730606 all21 required jobs and Prompt38046730619 all5SUCCESS. Historical skipped audit is excluded. Independent current46 native/456-file package readback is pending; no installation or formal deployment. OriginalD414 failedFull/held0.43.12 stays preserved.
+
+SYNC-01 frozen6746 onD136 now covers all5221 distinct current unit checks through original5220/1FAIL plus unchanged isolated whole performance2PASS (10000commit72s within original120s). All24 complete native files/48 exact6746 source-release receipts pass the full202-line verifier retaining the entire original184-line46 checks. Related exact whole preflight703PASS. Original native setup65/13FAIL and later ESM18/4FAIL remain; only affected complete files reran, final2files4PASS. Independent CODE/resource/split48EVIDENCE d7e0014b approves this finite coverage. Fresh unchanged additive source/release10PASS each binds202runtime23proof at6746; old28 already in48. Standard456build/privacy/package pass. Final additive/docs review and once-only formal21+5 remain pending; no reheadering, fullSync/provider/installed claim. See [owning current record](implementation/verification/COHERENT-04314-SOURCE-WORKING-RESTORED-SUCCESSOR.md).
+
+Root remains single shared writer; allseven unfinished. Exact CTX/SET visual originals, full canonical/portableSettings/provider-device/realQwen quality-billing remain affected independent gates. No oldIAH1.0/NIB/Stage3B/permission/account/paid/userupload/formaldeployment expansion.
+
+## Preserved preceding checkpoint
+
 # 0.43.14 Source/Working restored successor candidate — 2026-10-10
 
 PR249 normally merged actual main d136165d7de1df25a0b1a46fc549194a8a4c61ef, parentD414/treef14c exactly694. Candidate Full38040519419 all21 required jobs and Prompt38040516796 all5 pass; independent guarded integration daf144e39ba362674aa48d8bb68d0fb43f19aa277717968ae8bad10200ec1111 approved. Archive current-project search, visible bounded matches and immediate truthful Thought-writing destination are integrated. Exact-main Full38046730606/Prompt38046730619 and456-file ZIP qualification are pending. Earlier D414 exact-main failure/held455-file ZIP and last fully qualified0.43.10 remain distinct.
