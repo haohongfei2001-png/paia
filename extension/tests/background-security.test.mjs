@@ -84,12 +84,14 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
   let persisted = {};
   let reads = 0;
   let writes = 0;
+  let reloads = 0;
   let isolate;
   const accessRequests = [],notifications=[],notificationWaiters=new Set();
   const isolation = delayedIsolation ? new Promise(resolve => { isolate = resolve; }) : Promise.resolve();
   globalThis.chrome = {
     runtime: {
       id: EXTENSION_ID,
+      reload: () => { reloads += 1; },
       getManifest: () => ({version:'0.8.1'}),
       sendMessage: async message => {
         notifications.push(structuredClone(message));
@@ -132,6 +134,7 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
     releaseIsolation: () => isolate?.(),
     persisted: () => structuredClone(persisted),
     counts: () => ({ reads, writes }),
+    reloads: () => reloads,
     send(request, sender = ui) {
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Synthetic message timed out')), 2000);
@@ -525,10 +528,16 @@ test('Library and Memory access commands remain restricted to trusted UI context
 
 test('no UI, content script or external caller has a reload message command', async()=>{
  const app=await fixture();
- for(const sender of [ui,popup,content,{...ui,id:'another-extension'}]) {
-  const result=await app.send({type:'DEV_RELOAD'},sender);assert.equal(result.ok,false);
+ // This original read awaits originalReady, including startup migration and
+ // recovery. Those independent effects are not caused by a rejected command.
+ assert.deepEqual(await app.send({type:'GET_BOUNDED_ORGANIZER'}),{ok:true,data:null});
+ const before=app.counts(),persisted=app.persisted();
+ for(const [sender,code] of [[ui,'INVALID_REQUEST'],[popup,'INVALID_REQUEST'],[content,'FORBIDDEN'],[{...ui,id:'another-extension'},'FORBIDDEN']]) {
+  await expectError(app.send({type:'DEV_RELOAD'},sender),code);
+  assert.deepEqual(app.counts(),before,'rejected reload command adds no storage access');
+  assert.deepEqual(app.persisted(),persisted,'rejected reload command preserves the complete local row');
+  assert.equal(app.reloads(),0,'no rejected caller can invoke the actual reload capability');
  }
- assert.deepEqual(app.counts(),{reads:0,writes:0});
 });
 test('malformed request types still produce a safe response after import routing',async()=>{const previous=globalThis.chrome;try{const app=await fixture();for(const request of [null,{}, {type:123},{type:{private:'SYNTHETIC'}}])await expectError(app.send(request),'INVALID_REQUEST');}finally{globalThis.chrome=previous;}});
 

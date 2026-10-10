@@ -1,3 +1,11 @@
+# Current acceptance repair and parallel C implementation — 2026-10-11
+
+SYNC-01 B remains unaccepted: second formal head `dce74418` (Full `38094314489`, Prompt `38094314534`) exposed a startup-count fixture boundary and missing navigation mock interfaces. Test-only repairs preserve all original safety assertions and have targeted complete-file passes; current formal browser/native results remain independently pending. The exact failure and repair scopes are retained in [the owning B record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+To continue approved high-complexity work without waiting for B, isolated C implementation starts from the exact unchanged B runtime in branch `codex/sync01-c-shared-canonical-20261011`. Its sole shared-data writer implements the existing full Input-to-Thought binding, atomic Working propagation/history, actual refresh completion and complete Mixed restore consumers as one batch; no helper-only release or C acceptance is claimed. Root retains B test repairs/integration and coordinates any shared-runtime change. The disjoint NIB S0 implementation/review continues. C must incorporate the qualified B base before its final combined acceptance. All remaining approved C/01 obligations and seven-lane scope remain unchanged.
+
+## Preserved preceding checkpoints
+
 # SYNC-01 B repair batch; NIB v4 parallel execution — 2026-10-11
 
 Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2` includes the approved NIB runtime authority from PR #255, retaining qualified runtime 0.43.16. The B branch incorporates that exact main without replacing any runtime or ongoing recovery changes. NIB S0 has its own disjoint implementation/review owner; Root continues to own shared storage, settings publication, Archive navigation and integration.

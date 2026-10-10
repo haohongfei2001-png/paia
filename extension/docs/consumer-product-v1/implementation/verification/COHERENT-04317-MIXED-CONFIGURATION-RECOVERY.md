@@ -30,6 +30,12 @@ One composed repair preserves the original complete Mixed B implementation and n
 
 The independent eight-test repair, startup-code, Router follow-up and F-LARGE reviews approve their finite exact code scopes; original REQUEST_CHANGES remain recorded. Current local evidence is component/WIP evidence only. The fresh composed candidate, required complete native54 gate, actual-main and package fields below stay pending until their own runs finish. Approved main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and PR #255's NIB authority are incorporated without discarding B's runtime changes. No new NIB runtime is included in this Sync B repair batch.
 
+## Second formal candidate: DCE failure and bounded test corrections
+
+Head `dce744188caee29373b9eb8a616356e37a939d3e`, tested merge `73d454d6b38013e74aaa74b59a4298a172b21102`, was submitted to Full [38094314489](https://github.com/haohongfei2001-png/paia/actions/runs/38094314489) and Prompt [38094314534](https://github.com/haohongfei2001-png/paia/actions/runs/38094314534). It is not accepted. Adapter/privacy failed one cold-start reload test; Full and Prompt unit shards1/3 failed because two older Archive navigation fixtures omitted the current `beginNavigation` interface. Their exact failure logs remain preserved. Other browser/native results must be assessed individually when complete, not inferred from these corrections.
+
+The reload fixture now waits for the original startup/migration/recovery readiness, then requires zero additional storage access, the complete unchanged local row, exact caller refusal codes and zero actual reload calls for each rejected message. Existing pre-isolation and failed-isolation absolute-zero tests remain unchanged. Its complete file passes33 tests. The two Archive fixtures add the missing current interface and exact call-count assertions; their full files plus the original route-owner lifecycle file pass34 tests. These are test-only corrections with no new runtime, timeout or permission changes; they do not convert the failed formal candidate into a pass. The next stable head still needs its own applicable formal gates.
+
 ## Final candidate/main fields — pending
 
 - Final reviewed/tested head and merge candidate: PENDING.
