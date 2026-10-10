@@ -4,13 +4,13 @@ const verified=new WeakMap();
 // Immutable original operation children can be lent to the private validated
 // plan. The mutable top-level map is detached. Getter/symbol/mutable children
 // keep the original full clone; full domain validation always runs afterwards.
-function immutableEntityChildren(entities){
- const plain=value=>value&&typeof value==='object'&&(Array.isArray(value)||[Object.prototype,null].includes(Object.getPrototypeOf(value)));
+function immutableEntitySnapshot(entities){
+ const plain=value=>value&&typeof value==='object'&&(Array.isArray(value)?Object.getPrototypeOf(value)===Array.prototype:[Object.prototype,null].includes(Object.getPrototypeOf(value)));
  const frozen=(value,path=new Set())=>{if(!value||typeof value!=='object')return !['function','symbol'].includes(typeof value);if(!plain(value)||path.has(value)||!Object.isFrozen(value)||Object.getOwnPropertySymbols(value).length)return false;path.add(value);for(const [key,d]of Object.entries(Object.getOwnPropertyDescriptors(value))){if(!Object.hasOwn(d,'value')||(!d.enumerable&&!(Array.isArray(value)&&key==='length'))||!frozen(d.value,path))return false;}path.delete(value);return true;};
- if(!plain(entities)||Array.isArray(entities)||Object.getOwnPropertySymbols(entities).length)return false;
- return Object.values(Object.getOwnPropertyDescriptors(entities)).every(d=>d.enumerable&&Object.hasOwn(d,'value')&&frozen(d.value));
+ if(!plain(entities)||Array.isArray(entities)||Object.getOwnPropertySymbols(entities).length)return null;
+ const entries=Object.entries(Object.getOwnPropertyDescriptors(entities));if(!entries.every(([,d])=>d.enumerable&&Object.hasOwn(d,'value')&&frozen(d.value)))return null;return Object.freeze(Object.fromEntries(entries.map(([key,d])=>[key,d.value])));
 }
-export async function prepareInitialSourcePlan(entities){const copy=immutableEntityChildren(entities)?Object.freeze({...entities}):clone(entities);await validateInitialSourceEntities(copy);const capability=Object.freeze({});verified.set(capability,copy);return capability;}
+export async function prepareInitialSourcePlan(entities){const copy=immutableEntitySnapshot(entities)??clone(entities);await validateInitialSourceEntities(copy);const capability=Object.freeze({});verified.set(capability,copy);return capability;}
 export function initialSourcePlanBorrows(capability,entities){const value=verified.get(capability);if(!value)fail('BNS_PREPARATION_REQUIRED');return Object.keys(value).length===Object.keys(entities).length&&Object.keys(value).every(key=>value[key]===entities[key]);}
 export function initialSourcePlan(capability){const value=verified.get(capability);if(!value)fail('BNS_PREPARATION_REQUIRED');return clone(value);}
 // Verify the exact canonical formation after existing index/doc refresh owners.

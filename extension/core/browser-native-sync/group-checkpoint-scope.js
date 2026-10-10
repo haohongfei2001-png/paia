@@ -173,7 +173,7 @@ async function compileOriginalWireScope(plan){
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
  // allocator normalization cannot zero portable Human history by alias.
- if(mixed&&human)delete expected.humanLibrary;const normalized=mixed?{...expected,inputStates:clone(expected.inputStates),revisions:clone(expected.revisions)}:clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
+ if(mixed&&human)delete expected.humanLibrary;const normalized=mixed?{...expected,inputStates:expected.inputStates.map(row=>({...row})),revisions:expected.revisions.map(row=>({...row}))}:clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
  const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
 }
@@ -310,7 +310,7 @@ export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,sto
 // array/object reference cells remain in the full Scope charge.
 function mixedScopeBorrowedOperationTrees(plan,scope){
  const borrowed=new WeakSet(),total={B:0,T:0,V:0,E:0};
- for(const group of plan.groups)for(const op of group.operations)for(const value of [op.value,op.value?.entity,op.value?.after])if(value&&typeof value==='object'&&Object.isFrozen(value))borrowed.add(value);
+ const register=value=>{if(!value||typeof value!=='object'||borrowed.has(value))return;if(!Object.isFrozen(value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');borrowed.add(value);for(const child of Object.values(value))register(child);};for(const group of plan.groups)for(const op of group.operations)register(op.value);
  const visit=value=>{if(!value||typeof value!=='object')return;if(borrowed.has(value)){const m=measureSourceWorkingPhysicalTree(value);for(const key of ['B','T','V','E'])total[key]+=m[key];return;}for(const item of Object.values(value))visit(item);};visit(scope);return Object.freeze(total);
 }
 export function measureOriginalMixedScopeBorrowedOperations(core,scope,plan){
