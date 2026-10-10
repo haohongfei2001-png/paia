@@ -14,10 +14,15 @@ export function requireOriginalGroupCheckpointPlan(core,plan){
  const p=originalPlans.get(plan);
  if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
+ requireOriginalGroupCheckpointPlan(core,plan);
+ if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ requireOriginalSourceWorkingCore(core);
+}
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
 async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorking){
- const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace};
+ const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace,currentSourceWorking};
  if(!Array.isArray(input)||input.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
  let size=0;const operations=[],byRevision=new Map(),byId=new Map(),sequences=new Set();
  for(const candidate of input){

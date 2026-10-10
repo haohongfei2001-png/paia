@@ -10,7 +10,7 @@ import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
 import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
 import {normalizePhysical,physical} from './human-library-journal.js';
-import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan} from './group-checkpoint-plan.js';
 import {acceptSequence} from './core.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
@@ -25,6 +25,14 @@ export function requireGroupHumanCompilationInput(scope,wire){
 export function requireOriginalCurrentGroupScope(core,scope,plan){
  const p=originalScopes.get(scope);requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.some(g=>g.type==='humanLibraryCommit')||plan.groups.some(g=>!['humanLibraryCommit','promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+// Selected Source/Working compilation identity only. A raw argument still has
+// no native read authority; the fixed native owner must supply its private cut.
+export function requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan){
+ const p=originalScopes.get(scope);requireOriginalCurrentSourceWorkingGroupPlan(core,plan);
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||hasHumanScope(scope)||plan.operationCount>128||plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length!==1||plan.groups.filter(g=>g.type==='inputWorkingCommit').length>2||plan.groups.some(g=>!['sourceBootstrapCommit','inputWorkingCommit'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ for(const name of ['records','blocks','inputStates','documents','libraryDocuments'])if(scope.expected[name].length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(scope.expected.revisions.length>96)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 export const currentHumanGroupEmptyStores=Object.freeze(['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','tombstones','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources','filterInputs','filterIntents','inputStates','inputRemovals','categories','dependencies','invalidations','provenance','organizerJobs','organizerWorkItems','organizerSuggestions','entryRelations','librarySearchTerms','organizerUsage']);
 export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','libraryMigrationItems',...currentHumanGroupEmptyStores]);
