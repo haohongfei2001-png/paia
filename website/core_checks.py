@@ -1,9 +1,9 @@
-"""Real-browser data and permission journeys for the standalone fictional demo.
+"""Shared real-browser journeys for the fictional homepage and standalone demo.
 
 Product-model guards survive the visual redesign: immutable sources, safe text,
 explicit insertion, stable Topic readers and independent Context permissions.
-The scenario starts with every permission off, matching first-use policy;
-these page-local toggles never grant real product access.
+The Owner-approved website scenario starts with a fictional user's grants;
+it does not change any real product permission default.
 These checks never certify a real extension, AI connection or cloud service.
 """
 import json
@@ -28,6 +28,18 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     def back(key):
         page.locator(f'[data-card-detail="{key}"] [data-context-back]').click()
         test(page.locator(f'[data-card-open="{key}"]').evaluate('e=>e===document.activeElement'), 'Back restores card focus')
+    def manage_prompt(key):
+        control = page.locator(f'[data-prompt-manage="{key}"]')
+        if control.get_attribute('aria-expanded') != 'true':
+            control.focus()
+            page.keyboard.press('Enter')
+        test(page.locator(f'#pc-prompt-manage-{key}').is_visible(), f'prompt {key} management opens explicitly')
+        return page.locator(f'[data-prompt-row="{key}"]')
+    def close_prompt(key):
+        page.locator(f'#pc-prompt-{key}').focus()
+        page.keyboard.press('Escape')
+        test(not page.locator(f'#pc-prompt-manage-{key}').is_visible(), 'Escape closes the current prompt management')
+        test(page.locator(f'[data-prompt-manage="{key}"]').evaluate('e=>e===document.activeElement'), 'closing prompt management restores its menu focus')
     def topic_open(key, section=None):
         selector = f'[data-topic-block="{key}"] h3 a' if section is None else f'[data-topic-block="{key}"] a[href="#pc-section-{section}"]'
         link = page.locator(selector)
@@ -76,15 +88,18 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.on('request', observe_request)
 
     test(page.locator('[data-core-preview]').count() == 1, 'one shared product illustration')
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
+    if page.locator('.layout-adjusted').count():
+        test(page.locator('.pc-nav').count() == 0 and all(page.locator(s).count() == 1 for s in ['#input-library','#prompt-reuse','#thought-library','#personal-context']), 'home removes secondary navigation, not the four working examples')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
     test(page.locator('[data-core-preview] img[src*="/brand/paia-logo-v1.webp"]').count() == 0, 'brand artwork is not repeated through the product scenes')
     expected_close = 0 if page.locator('body').get_attribute('data-page') == 'demo.html' else 1
     test(page.locator('.core-close img[src*="/brand/paia-logo-v1.webp"]').count() == expected_close, 'original closing brand usage retained')
     test(page.locator('[data-topic-export], [data-authorize], [data-confirm-candidate], [data-build], [data-export]').count() == 0, 'retired export and task-approval controls are absent')
     test(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, 'Thought Library starts at its Topic overview')
-    test(page.locator('[data-demo-permissions="default-off"]').count() == 1, 'Context declares the default-off fictional scenario')
-    test(page.locator('[data-card-allow][aria-pressed=true]').count() == 0 and page.locator('[data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'global, card and Topic access all start off')
-    test(page.locator('[data-context-preview] strong').count() == 0, 'closed default scope releases no material')
+    test(page.locator('[data-demo-permissions="pregranted"]').count() == 1, 'Context declares its fictional pre-granted scenario')
+    test(page.locator('[data-card-allow][aria-pressed=true]').count() == 4 and page.locator('[data-topic-allow][aria-pressed=true]').count() == 2 and on('[data-context-global]'), 'the example user has opened four cards and both example topics')
+    test(page.locator('[data-context-preview] strong').count() == 5, 'the granted overview reads the three personal cards and two complete topics')
     permission_names()
 
     original = page.locator('[data-original="a"]').text_content()
@@ -175,8 +190,88 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
 
     # Ordinary rows stay quiet. Their contextual controls retain all prior edits,
     # ordering and keyboard Pin tests without exposing management by default.
-    from flagship_checks import verify_narrow
-    verify_narrow(page, check, en=en, offline=offline)
+    test(page.locator('[data-prompt-pick]').count() == 3, 'personal prompts are ordinary selectable rows')
+    test(page.locator('.pc-prompt-management:visible').count() == 0, 'editing controls are disclosed only on request')
+    test(page.locator('[data-rank]:visible').count() == 0, 'ordinary prompt rows have no ranking dashboard')
+    test(not page.locator('#pc-local-suggestion').is_visible(), 'optional suggestion starts closed')
+    prompt = 'A personal edited prompt, not a preset.'
+    row = manage_prompt('0')
+    page.locator('#pc-prompt-0').fill(prompt)
+    test(page.locator('[data-prompt-pick="0"]').inner_text() == prompt, 'ordinary prompt row follows the user wording')
+    close_prompt('0')
+    page.locator('[data-prompt-pick="0"]').click()
+    if page.locator('.layout-check:visible').count():
+        page.locator('.layout-check-actions button').last.click()
+        page.locator('.layout-check-actions button').first.click()
+    test(page.locator('#pc-composer').input_value() == prompt, 'empty composer receives the edited prompt from its row')
+    row = manage_prompt('0')
+    page.locator('#pc-composer').fill('An existing draft must survive.')
+    row.locator('[data-insert]').click()
+    test(page.locator('#pc-composer').input_value() == 'An existing draft must survive.\n\n' + prompt, 'insertion preserves existing draft')
+    composer = page.locator('#pc-composer')
+    preserved_draft = composer.input_value()
+    before, after = 'Before.', 'After.'
+    composer.fill(before + after)
+    composer.focus()
+    composer.evaluate("""(el,position)=>{
+        el.setSelectionRange(position,position);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""", len(before))
+    row.locator('[data-insert]').click()
+    test(composer.input_value() == before + '\n\n' + prompt + '\n\n' + after, 'a reliable middle caret inserts the prompt between the intact draft parts')
+    insertion_end = len(before) + 2 + len(prompt)
+    test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'middle insertion leaves the caret at the new prompt end before the remaining draft')
+    before, selected, after = 'Keep ', 'these selected words', ' and the rest.'
+    composer.fill(before + selected + after)
+    composer.focus()
+    composer.evaluate("""(el,range)=>{
+        el.setSelectionRange(range.start,range.end);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""", {'start': len(before), 'end': len(before + selected)})
+    row.locator('[data-insert]').click()
+    test(composer.input_value() == before + selected + '\n\n' + prompt + '\n\n' + after, 'a selected range is preserved and insertion occurs after selectionEnd')
+    insertion_end = len(before + selected) + 2 + len(prompt)
+    test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'selection-based insertion collapses the caret after the new prompt without replacing selected words')
+    test(not requests, 'caret and selection insertion make no send, upload or processing request')
+    # Restore the preceding complete draft and its end caret so the existing
+    # reorder, pin and suggestion journeys retain their original expectations.
+    composer.fill(preserved_draft)
+    composer.evaluate("""el=>{
+        el.setSelectionRange(el.value.length,el.value.length);
+        el.dispatchEvent(new Event('select',{bubbles:true}));
+    }""")
+    row.locator('[data-move="1"]').click()
+    test(page.locator('[data-prompt-list]>div').nth(1).get_attribute('data-prompt-row') == '0', 'prompt order changes')
+    test(row.locator('[data-rank]').inner_text() == '02', 'management rank follows order')
+    row.locator('[data-move="-1"]').click()
+    close_prompt('0')
+    row = manage_prompt('2')
+    pin = row.locator('[data-pin]')
+    pin.focus()
+    page.keyboard.press('Enter')
+    test(pin.get_attribute('aria-pressed') == 'true', 'keyboard pin has explicit selected state')
+    test(page.locator('[data-prompt-list]>div').first.get_attribute('data-prompt-row') == '2', 'pin moves above unpinned prompts')
+    test(row.locator('[data-move="1"]').is_disabled(), 'ordering cannot silently unpin')
+    prior_draft = page.locator('#pc-composer').input_value()
+    row.locator('[data-insert]').click()
+    test(page.locator('#pc-composer').input_value() == prior_draft + '\n\n' + page.locator('#pc-prompt-2').input_value(), 'pinned prompt preserves the draft without sending')
+    pin.click()
+    test(pin.get_attribute('aria-pressed') == 'false', 'unpin is reversible')
+    close_prompt('2')
+    page.locator('[data-suggestion-toggle]').click()
+    test(page.locator('#pc-local-suggestion').is_visible() and page.locator('[data-suggestion-toggle]').get_attribute('aria-expanded') == 'true', 'the separate suggestion opens only when requested')
+    test(page.locator('[data-suggestion]').inner_text() == prompt, 'suggestion refers to saved wording rather than an invented generated candidate')
+    draft = page.locator('#pc-composer').input_value()
+    page.locator('[data-suggestion]').click()
+    test(page.locator('#pc-composer').input_value() == draft + '\n\n' + prompt, 'optional preset preserves the prior draft without sending')
+    page.locator('[data-suggestion-toggle]').click()
+    test(not page.locator('#pc-local-suggestion').is_visible(), 'the separate suggestion can be hidden again')
+    prompt_draft = page.locator('#pc-composer').input_value()
+    page.locator('[data-prompt-toggle]').click()
+    test(not page.locator('#pc-prompt-card').is_visible() and page.locator('[data-prompt-toggle]').get_attribute('aria-expanded') == 'false', 'the orb collapses the prompt card')
+    page.locator('[data-prompt-toggle]').click()
+    test(page.locator('#pc-prompt-card').is_visible() and page.locator('[data-prompt-toggle]').get_attribute('aria-expanded') == 'true', 'the orb reopens the same prompt card')
+    test(page.locator('#pc-composer').input_value() == prompt_draft, 'opening and closing the prompt card never inserts or sends')
 
     # PT1 grid/search/Section navigation replace the retired card-rearrangement demo.
     keys = ['product', 'writing', 'learning']
@@ -211,10 +306,13 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         test(page.locator('[data-working="a"]').input_value() == changed, 'Topic navigation never rewrites Archive')
         topic_back(key, origin)
 
-    # Keep the full closed-to-open isolation journey from the true default-off state.
+    # Withdraw the fictional user's initial grants through the real control,
+    # then keep the full closed-to-open isolation journey. No default policy
+    # in the extension or real AI service is asserted by this local scenario.
     test(page.locator('[data-context-card]').count() == 4, 'exactly four independent Context cards')
     test(page.locator('[data-context-overview] textarea, [data-context-overview] input').count() == 0, 'overview has no personal body or checkbox matrix')
-    test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'unrelated demo operations leave every scope closed')
+    page.locator('[data-context-clear]').click()
+    test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'withdrawing the example grants closes every independent scope')
     permission_names()
     page.locator('[data-card-allow="rules"]').click()
     test(not on('[data-context-global]'), 'opening a card does not open global access')
@@ -233,7 +331,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(not on('[data-card-allow="inputs"]'), 'opening a topic does not open parent card')
     test(changed not in page.locator('[data-context-preview]').inner_text(), 'closed My Inputs denies an open topic')
     test(page.locator('[data-topic-allow="product"] [data-topic-access-state]').inner_text() == ('Open' if en else '已开放'), 'closed parent never labels a retained topic AI-readable')
-    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('What stays after learning' if en else '学过以后，留下什么'), 'the whole permission pill retains its Topic identity')
+    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('A product’s first step' if en else '产品的第一步'), 'the whole permission pill retains its Topic identity')
     back('inputs')
     page.locator('[data-card-allow="inputs"]').click()
     preview = page.locator('[data-context-preview]').inner_text()

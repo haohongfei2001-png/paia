@@ -13,21 +13,20 @@
   const arrive = element => { if (mayMove()) element.animate([{opacity: .4, transform: 'translateY(8px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 220, easing: 'cubic-bezier(.2,0,0,1)'}); };
   const text = (selector, value) => { $(selector).textContent = value; };
   function fit(field) {
-    field.style.height = 'auto';
-    field.style.height = `${Math.max(field.scrollHeight + 2, 36)}px`;
+    field.style.height = root.classList.contains('layout-adjusted') && field.matches('[data-working]') ? '0px' : 'auto';
+    field.style.height = `${root.classList.contains('layout-adjusted') && field.id === 'pc-composer' ? Math.min(180, Math.max(field.scrollHeight + 2, 60)) : Math.max(field.scrollHeight + 2, 36)}px`;
   }
-  all('[disabled]').filter(el => !el.closest('[data-narrow-board]')).forEach(el => { el.disabled = false; });
-  const ownedTextareas = all('textarea').filter(field => !field.closest('[data-narrow-board]'));
-  ownedTextareas.forEach(field => {
+  all('[disabled]').forEach(el => { el.disabled = false; });
+  all('textarea').forEach(field => {
     fit(field);
     field.addEventListener('input', () => fit(field));
   });
-  document.fonts.ready.then(() => ownedTextareas.forEach(fit));
+  document.fonts.ready.then(() => all('textarea').forEach(fit));
   let resizeQueued = false;
   addEventListener('resize', () => {
     if (resizeQueued) return;
     resizeQueued = true;
-    requestAnimationFrame(() => { ownedTextareas.forEach(fit); resizeQueued = false; });
+    requestAnimationFrame(() => { all('textarea').forEach(fit); resizeQueued = false; });
   }, {passive: true});
 
   // Direct working-text editing with separate immutable source text.
@@ -126,7 +125,138 @@
     text('[data-edit-status]', t('示例已还原 · 原始来源未改变', 'Example reset · Original unchanged'));
   });
 
-  // NIB v4 website interactions have a single owner: narrow-board.js.
+  // Personal prompt wording/order are editable. Selecting only fills a composer.
+  const promptList = $('[data-prompt-list]');
+  const composer = $('#pc-composer');
+  let insertionPoint = null;
+  function rememberInsertionPoint() {
+    insertionPoint = {position: composer.selectionEnd, draft: composer.value};
+  }
+  ['focus', 'input', 'select', 'keyup', 'pointerup', 'blur'].forEach(type =>
+    composer.addEventListener(type, rememberInsertionPoint));
+  let composing = false;
+  composer.addEventListener('compositionstart', () => { composing = true; });
+  composer.addEventListener('compositionend', () => { composing = false; });
+  root.addEventListener('paia:demo-insert', event => {
+    if (root.classList.contains('layout-adjusted') && typeof event.detail?.value === 'string') insertPrompt(event.detail.value);
+  });
+  function insertPrompt(value) {
+    if (!value.trim() || composing) return;
+    const draft = composer.value;
+    const position = insertionPoint && insertionPoint.draft === draft ?
+      Math.min(insertionPoint.position, draft.length) : draft.length;
+    // Insert after the selection, preserving both the selected text and the
+    // rest of the draft. An unknown/stale position falls back to the end.
+    const before = draft.slice(0, position);
+    const after = draft.slice(position);
+    const inserted = before + (before ? '\n\n' : '') + value;
+    const next = inserted + (after ? '\n\n' : '') + after;
+    if (next.length > composer.maxLength) return;
+    composer.value = next;
+    fit(composer); composer.focus({preventScroll: true});
+    composer.setSelectionRange(inserted.length, inserted.length);
+    rememberInsertionPoint();
+    if (mayMove()) composer.closest('.pc-composer').animate([{boxShadow: '0 0 0 3px #a4c5f2'}, {boxShadow: '0 0 0 0px #a4c5f200'}], {duration: 650, easing: 'ease-out'});
+    text('[data-prompt-status]', t('已填入本页输入框 · 没有发送', 'Inserted in this page’s composer · Not sent'));
+  }
+  function rankPrompts() {
+    const rows = [...promptList.children];
+    rows.forEach((row, i) => {
+      row.querySelector('[data-rank]').textContent = String(i + 1).padStart(2, '0');
+      row.querySelector('[data-move="-1"]').disabled = i === 0 || rows[i - 1].classList.contains('is-pinned') !== row.classList.contains('is-pinned');
+      row.querySelector('[data-move="1"]').disabled = i === rows.length - 1 || rows[i + 1].classList.contains('is-pinned') !== row.classList.contains('is-pinned');
+    });
+  }
+  const promptToggle = $('[data-prompt-toggle]');
+  promptToggle.addEventListener('click', () => {
+    const card = $('#pc-prompt-card');
+    card.hidden = !card.hidden;
+    promptToggle.setAttribute('aria-expanded', String(!card.hidden));
+    if (!card.hidden) arrive(card);
+  });
+  const suggestionToggle = $('[data-suggestion-toggle]');
+  suggestionToggle.addEventListener('click', () => {
+    const capsule = $('#pc-local-suggestion');
+    capsule.hidden = !capsule.hidden;
+    suggestionToggle.setAttribute('aria-expanded', String(!capsule.hidden));
+    suggestionToggle.textContent = capsule.hidden ? t('显示建议', 'Show suggestion') : t('收起建议', 'Hide suggestion');
+    if (!capsule.hidden) arrive(capsule);
+  });
+  let dragging = null;
+  all('[data-prompt-row]').forEach(row => {
+    const pick = row.querySelector('[data-prompt-pick]');
+    const field = row.querySelector('[data-prompt-text]');
+    const manage = row.querySelector('[data-prompt-manage]');
+    const management = row.querySelector('.pc-prompt-management');
+    pick.addEventListener('click', () => insertPrompt(field.value));
+    row.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !management.hidden) { event.preventDefault(); management.hidden = true; manage.setAttribute('aria-expanded', 'false'); manage.focus({preventScroll: true}); }
+    });
+    manage.addEventListener('click', () => {
+      const opening = management.hidden;
+      all('.pc-prompt-management').forEach(panel => { panel.hidden = true; });
+      all('[data-prompt-manage]').forEach(control => control.setAttribute('aria-expanded', 'false'));
+      management.hidden = !opening;
+      manage.setAttribute('aria-expanded', String(opening));
+      if (opening) { fit(field); arrive(management); }
+    });
+    field.addEventListener('input', () => {
+      pick.textContent = field.value || t('空提示词', 'Empty prompt');
+      pick.disabled = !field.value.trim();
+      if (row.dataset.promptRow === '0') $('[data-suggestion]').textContent = field.value;
+    });
+    row.querySelector('[data-pin]').addEventListener('click', () => {
+      const pinned = row.classList.toggle('is-pinned');
+      const control = row.querySelector('[data-pin]');
+      control.setAttribute('aria-pressed', String(pinned));
+      control.textContent = pinned ? t('已固定', 'Pinned') : t('固定', 'Pin');
+      control.setAttribute('aria-label', pinned ? t('取消固定提示词', 'Unpin prompt') : t('固定提示词', 'Pin prompt'));
+      [...promptList.children].sort((a, b) => Number(b.classList.contains('is-pinned')) - Number(a.classList.contains('is-pinned'))).forEach(item => promptList.append(item));
+      rankPrompts();
+      control.focus({preventScroll: true});
+      text('[data-prompt-status]', pinned ? t('已固定在前方 · 只保留在本页', 'Pinned above unpinned prompts · This page only') : t('已取消固定 · 可继续排序', 'Unpinned · Ready to reorder'));
+    });
+    row.querySelector('[data-insert]').addEventListener('click', () => insertPrompt(row.querySelector('textarea').value));
+    row.querySelectorAll('[data-move]').forEach(control => control.addEventListener('click', () => {
+      const delta = Number(control.dataset.move);
+      const other = delta < 0 ? row.previousElementSibling : row.nextElementSibling;
+      if (!other || other.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
+      if (delta < 0) promptList.insertBefore(row, other); else promptList.insertBefore(other, row);
+      rankPrompts();
+      const available = control.disabled ? row.querySelector('[data-insert]') : control;
+      available.focus({preventScroll: true});
+      text('[data-prompt-status]', t('顺序已在本页更新', 'Prompt order updated on this page'));
+    }));
+    const grip = row.querySelector('.pc-grip');
+    grip.draggable = true;
+    grip.addEventListener('dragstart', event => {
+      dragging = row;
+      event.dataTransfer.setData('text/plain', row.dataset.promptRow);
+      event.dataTransfer.effectAllowed = 'move';
+      row.classList.add('is-dragging');
+    });
+    row.addEventListener('dragover', event => {
+      if (!dragging || dragging === row || dragging.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
+      event.preventDefault(); event.dataTransfer.dropEffect = 'move'; row.classList.add('is-drop-target');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('is-drop-target'));
+    row.addEventListener('drop', event => {
+      if (!dragging || dragging === row || dragging.classList.contains('is-pinned') !== row.classList.contains('is-pinned')) return;
+      event.preventDefault();
+      const after = event.clientY > row.getBoundingClientRect().top + row.offsetHeight / 2;
+      promptList.insertBefore(dragging, after ? row.nextElementSibling : row);
+      rankPrompts();
+      text('[data-prompt-status]', t('顺序已在本页更新', 'Prompt order updated on this page'));
+      all('[data-prompt-row]').forEach(item => item.classList.remove('is-drop-target', 'is-dragging'));
+      dragging = null;
+    });
+    grip.addEventListener('dragend', () => {
+      all('[data-prompt-row]').forEach(item => item.classList.remove('is-drop-target', 'is-dragging'));
+      dragging = null;
+    });
+  });
+  rankPrompts();
+  $('[data-suggestion]').addEventListener('click', () => insertPrompt($('[data-suggestion]').textContent.trim()));
 
   // PT1: stable Topic/Section grid, then a continuous reader in the same space.
   const topicStage = $('[data-topic-stage]');
@@ -184,7 +314,11 @@
   const reading = $('[data-reading-style]');
   function renderReading() {
     const changed = all('[data-working]').some(field => field.value !== originals.get(field.dataset.working));
-    const wording = JSON.parse(root.querySelector('[data-reading-presets]').textContent);
+    const wording = {
+      original: t('保留上方原话。整理只改变阅读呈现，不覆盖你的文字或主题组织。', 'Keep the words above. Organization changes the reading view, never your words or topic structure.'),
+      balanced: t('最初比较素材找回和内容生成，判断创作者更需要什么。随后把第一版缩到一个反复发生的问题，暂缓协作。最新保留的决定是先做素材找回，是否增加生成待后续判断；仍以能否接上下一次任务作为标准。', 'The early question compared material retrieval with generation. The scope then narrowed to one recurring problem, with collaboration deferred. The latest retained decision is to start with retrieval and decide later whether to add generation. Success still means helping the next task build on existing work.'),
+      concise: t('当前决定：先验证素材找回，暂缓协作；是否增加生成以后再判断，标准是下一次任务能否接上积累。', 'Current decision: validate retrieval first and defer collaboration. Decide later whether to add generation, judging it by whether the next task builds on existing work.')
+    };
     const output = $('[data-reading-output]');
     output.replaceChildren();
     const line = document.createElement('p');
@@ -219,7 +353,7 @@
       });
       if (isOn($('[data-card-allow="inputs"]'))) {
         if (isOn($('[data-topic-allow="product"]'))) {
-          scope.push({label: t('我的输入 / 学过以后，留下什么', 'My Inputs / What stays after learning'),
+          scope.push({label: t('我的输入 / 产品的第一步', 'My Inputs / A product’s first step'),
             value: all('[data-topic-reader="product"] [data-thought-text]').map(field => field.textContent).join('\n\n')});
         }
         if (isOn($('[data-topic-allow="writing"]'))) {

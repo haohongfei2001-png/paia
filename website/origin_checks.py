@@ -34,7 +34,10 @@ def verify_origin(page, check, en=True):
         check(ok, ('EN' if en else 'ZH') + ' product design: ' + label)
     verify_typography(page, check, ('EN' if en else 'ZH') + ' product design')
     expected = {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
+    if page.locator('.layout-adjusted').count():
+        test(page.locator('.pc-nav').count()==0 and all(page.locator(s).count()==1 for s in expected), 'approved home destinations survive removal of the redundant nav')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
     for selector in ['.pc-editor-stage', '.pc-palette', '.pc-context-stage']:
         test(page.locator(selector).evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), selector + ' uses the common optical material')
     for selector in ['.pc-document h3', '.pc-topic-reader-head h3']:
@@ -43,11 +46,11 @@ def verify_origin(page, check, en=True):
     test(page.locator('.pc-thought').evaluate_all("els=>els.length===4 && els.every(e=>getComputedStyle(e).boxShadow==='none' && parseFloat(getComputedStyle(e).borderTopWidth)===0)"), 'Topic entries remain continuous prose without individual card chrome')
     test(page.locator('.pc-topic-source').count() == 4, 'topic keeps cross-conversation provenance')
     stamps = [' '.join(value.split()) for value in page.locator('.pc-thought time').all_text_contents()]
-    test(stamps == (['12 AUG 09:42', '26 AUG 11:18', '10 SEP 18:03', '24 SEP 10:26'] if en else ['8 月 12 日 09:42', '8 月 26 日 11:18', '9 月 10 日 18:03', '9 月 24 日 10:26']), 'topic preserves source dates within human-defined Section order')
+    test(stamps == ['12 AUG 09:42', '26 AUG 11:18', '10 SEP 18:03', '24 SEP 10:26'], 'topic preserves the chronological trail')
     test(page.locator('[data-context-card]').count() == 4, 'four independent Context cards remain identifiable')
     test(page.locator('[data-context-overview] textarea').count() == 0, 'overview keeps personal bodies in their details')
     test(('not available yet' if en else '尚未开放') in page.locator('.pc-access-boundary').inner_text(), 'real connection availability is honest')
-    test(('FICTIONAL PAGE' if en else '示例') in page.locator('.pc-prompts').inner_text(), 'personal prompts remain a fictional example')
+    test(('EXAMPLE' if en else '示例') in page.locator('.pc-prompts').inner_text(), 'personal prompts remain a fictional example')
 
 
 def verify_hero(page, check, en=True, motion=False):

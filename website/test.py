@@ -11,8 +11,7 @@ from functools import partial
 from threading import Thread
 import json, os, re, sys, struct, hashlib, traceback
 from core_checks import verify_core
-from flagship_checks import verify_home
-from v2_checks import verify_v2_static
+from layout_checks import verify_layout
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 
@@ -103,7 +102,6 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
     check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
     check(not any(name in source for name in ('home-core-v1.css', 'home-origin-v7.css', 'product-consistency.css', '/assets/website/demo.js')), f'{relative}: no retired stylesheet or demo cascade')
 
-verify_v2_static(ROOT, check)
 verify_assets(ROOT, check)
 
 # Selected D6 text/surface pairs. Visual review also inspects the composited
@@ -204,7 +202,6 @@ def capture_scenes(page, name, width):
     prefix = f'{name.replace("/", "-")}-{width}'
     page.emulate_media(reduced_motion='reduce')
     page.evaluate('document.fonts.ready')
-    page.evaluate('async()=>{document.querySelectorAll("img[loading=lazy]").forEach(e=>e.loading="eager");await Promise.all([...document.images].map(e=>e.decode().catch(()=>{})));}')
     settle_capture_top(page)
     if name in ('index.html', 'zh/index.html'):
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
@@ -216,18 +213,10 @@ def capture_scenes(page, name, width):
     page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
     if name not in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
         return
-    if name in ('index.html', 'zh/index.html'):
-        page.locator('.fs-topic-window').screenshot(path=str(OUT / f'{prefix}-selected-topic.png'), animations='disabled')
-        page.locator('[data-story-reuse="a"]').click()
-        page.locator('[data-narrow-board]').screenshot(path=str(OUT / f'{prefix}-reuse-check.png'), animations='disabled')
-        page.locator('[data-nb-insert-full]').click()
-        page.locator('[data-narrow-board]').screenshot(path=str(OUT / f'{prefix}-reuse-result.png'), animations='disabled')
-        return
     for label, selector in [('archive', '.pc-editor-stage'), ('prompt', '.pc-prompt-scene'), ('topic-root', '[data-topic-stage]'), ('context-overview', '.pc-context-stage')]:
         page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{label}.png'), animations='disabled')
     for label, selector in [('topic-overview', '[data-topic-stage]'), ('context-overview', '.pc-context-stage')]:
         capture_stage_viewport(page, selector, f'{prefix}-{label}-viewport.png')
-    page.locator('[data-prompt-toggle]').click()
     page.locator('[data-prompt-manage="0"]').focus()
     page.keyboard.press('Enter')
     page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{prefix}-prompt-management.png'), animations='disabled')
@@ -242,7 +231,7 @@ def capture_scenes(page, name, width):
     page.locator('[data-card-open="inputs"]').click()
     stage.screenshot(path=str(OUT / f'{prefix}-context-topic-scope.png'), animations='disabled')
     page.locator('[data-topic-allow="product"]').click()
-    stage.screenshot(path=str(OUT / f'{prefix}-context-topic-choice-parent-off.png'), animations='disabled')
+    stage.screenshot(path=str(OUT / f'{prefix}-context-topic-revoked.png'), animations='disabled')
 
 
 try:
@@ -265,12 +254,11 @@ try:
                 check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
                 check_reflow(page, f'{name}: {width}px reflow', name, width, 'layout')
                 verify_typography(page, check, f'{name}: {width}px')
-                if path.name == 'demo.html':
+                if path.name in ('index.html', 'demo.html'):
                     check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
                     check(page.locator('.pc-thought').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e.querySelector(".pc-topic-source")).fontSize)<=parseFloat(getComputedStyle(e.querySelector("[data-thought-text]")).fontSize))'), f'{name}: {width}px provenance stays subordinate to the words')
                     check(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, f'{name}: {width}px default Topic overview is stable')
                     check(page.locator('.pc-prompt-management:visible').count() == 0, f'{name}: {width}px prompt management stays contextual')
-                    page.locator('[data-prompt-toggle]').click()
                     page.locator('[data-prompt-manage="0"]').focus()
                     page.keyboard.press('Enter')
                     check(page.locator('[data-pin]:visible').evaluate_all('els=>els.length===1 && els.every(e=>{const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length===1})'), f'{name}: {width}px disclosed Pin label stays on one line')
@@ -281,13 +269,14 @@ try:
                         check(page.locator('.pc-context-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Context cards stack for reading')
                     check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
                 if path.name == 'index.html':
+                    verify_layout(page, check)
                     check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
                     check(page.locator('[data-preview-tab][aria-selected=true]').get_attribute('data-preview-tab') == 'archive', f'{name}: {width}px Archive is the initial preview')
                 if width == 320 and name in ('index.html', 'zh/index.html'):
                     page.evaluate("scrollTo({top:0,behavior:'instant'})")
                     page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-header.png'), animations='disabled')
                     check(page.evaluate("""()=>{const selectors=['.brand-lockup','.header-actions','.mobile-menu summary'];const r=selectors.map(s=>document.querySelector(s).getBoundingClientRect());const centers=r.map(e=>e.y+e.height/2);return Math.max(...centers)-Math.min(...centers)<5 && r.every(e=>e.left>=0&&e.right<=innerWidth+1) && r[0].right<=r[1].left+1 && r[1].right<=r[2].left+1;}"""), f'{name}: 320px brand, CTA and menu share a clear header row')
-                if name in review_pages and width in (1440, 390) and os.environ.get('WEBSITE_TEST_CAPTURE', '1') == '1':
+                if name in review_pages and width in (1440, 390):
                     # Evidence starts in a fresh page so prior focus-driven
                     # browser scrolling cannot race screenshot positioning.
                     capture_page = browser.new_page(viewport={'width': width, 'height': 900}, reduced_motion='reduce')
@@ -329,7 +318,8 @@ try:
             page = browser.new_page(viewport={'width': 390, 'height': 844})
             load(page, locale + 'index.html')
             verify_hero(page, check, en=en)
-            verify_home(page, check, en=en, offline=OFFLINE)
+            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+            verify_origin(page, check, en=en)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el=>el.open'), f'{locale}: mobile menu opens')
@@ -338,9 +328,6 @@ try:
             check(menu.locator('summary').evaluate('el=>el===document.activeElement'), f'{locale}: menu restores focus')
             page.emulate_media(reduced_motion='reduce')
             check(page.evaluate("getComputedStyle(document.documentElement).scrollBehavior==='auto'"), f'{locale}: reduced motion')
-            load(page, locale + 'demo.html')
-            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
-            verify_origin(page, check, en=en)
             # Narrow regression for the repaired high-contrast title and Orb.
             page.emulate_media(forced_colors='active', reduced_motion='reduce')
             load(page, locale + 'index.html')
@@ -351,9 +338,7 @@ try:
             check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
             settle_capture_top(page)
             page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
-            load(page, locale + 'demo.html')
             orb = page.locator('[data-prompt-toggle]')
-            orb.click()
             check(orb.locator('.paia-orb').evaluate("e=>getComputedStyle(e).display==='none'"), f'{locale}: high-contrast mode hides only the decorative Orb')
             check(orb.is_visible() and orb.evaluate("e=>{const s=getComputedStyle(e);return parseFloat(s.borderTopWidth)>=1&&s.borderTopStyle!=='none'&&s.borderTopColor===s.color&&s.color!==s.backgroundColor;}"), f'{locale}: Orb control retains a contrasting visible button boundary')
             check(orb.evaluate("e=>getComputedStyle(e,'::after').content.includes('−')"), f'{locale}: expanded prompt control has a visible collapse symbol')
@@ -363,7 +348,7 @@ try:
             page.keyboard.press('Enter')
             check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
             page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
-            check(page.locator('[data-context-global]').get_attribute('aria-pressed') == 'false', f'{locale}: forced-color Context also starts closed')
+            page.locator('[data-context-clear]').click()
             allowed = page.locator('[data-card-allow="rules"]')
             closed = page.locator('[data-card-allow="info"]')
             allowed.focus()
@@ -410,10 +395,7 @@ try:
             load(page, locale + 'index.html', scripts=False)
             check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
             check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
-            check(page.locator('.fs-topic-paper').is_visible(), f'{locale}: the selected Topic story is readable without JavaScript')
-            load(page, locale + 'demo.html', scripts=False)
-            check(page.locator('[data-topic-reader="product"]').is_visible(), f'{locale}: native Demo Topic anchors remain readable without JavaScript')
-            check(page.locator('[data-context-global]').get_attribute('aria-pressed') == 'false' and page.locator('[data-context-preview] strong').count() == 0, f'{locale}: no-JS permissions also start closed')
+            check(page.locator('[data-topic-reader="product"]').is_visible(), f'{locale}: native Topic anchors still reach readable content without JavaScript')
             page.close()
             context.close()
         browser.close()

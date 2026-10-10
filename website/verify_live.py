@@ -5,7 +5,6 @@ from urllib.error import HTTPError
 from playwright.sync_api import sync_playwright
 import hashlib, json, os
 from core_checks import verify_core
-from flagship_checks import verify_home
 from origin_checks import verify_hero, verify_origin, verify_typography
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +13,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
 generated = (ROOT/'website/generated-paths.txt').read_text().splitlines()
 paths = list(generated)
-paths += ['assets/website/value-proof.js', 'assets/website/usage.css', 'assets/website/flagship.css', 'assets/website/narrow-board.js', 'assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/home-layout.css', 'assets/website/home-layout.js', 'assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -59,9 +58,7 @@ try:
                     verify_hero(page, live_check, en=not relative.startswith('zh/'), motion=width == 1440)
                     page.evaluate("scrollTo({top:0,behavior:'instant'})")
                     page.screenshot(path=str(OUT / f'live-{relative.replace("/", "-")}-{width}-hero.png'), animations='disabled')
-                if relative in ('index.html','zh/index.html'):
-                    verify_home(page, live_check, en=not relative.startswith('zh/'))
-                if relative in ('demo.html','zh/demo.html'):
+                if relative in ('index.html','zh/index.html','demo.html','zh/demo.html'):
                     verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
                     verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
