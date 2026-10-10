@@ -1,3 +1,9 @@
+# Latest-plan development authorization — 2026-10-11
+
+NIB-V4-1.0 S0–S4 is now runtime-selected within the existing Prompt lane by explicit owner instruction. The [AUTHORITY amendment](AUTHORITY.md#latest-runtime-authorization--2026-10-11) controls; [STATUS](STATUS.md) owns assignments. Implement the latest adopted designs and preserve/complete their necessary earlier foundations through the existing owners. The original NIB documentation-only restriction is historical. Continue the approved Sync convergence work and all other seven-lane obligations; no duplicate scheduler, redesign, wider external authority or completion claim is introduced.
+
+## Preserved previous plan and evidence
+
 # Qualified main0.43.13; Source/Working0.43.14 candidate — 2026-10-10
 
 ## SYNC-01 batch A — complete Mixed recovery candidate 0.43.15
