@@ -1,3 +1,6 @@
+import {prepareMixedRestoredAllocationProof} from '../core/browser-native-sync/mixed-restored-allocation.js';
+import {protocolObject} from '../core/browser-native-sync/segments.js';
+import {bytes} from '../core/browser-native-sync/value.js';
 import {prepareHumanScopeProof} from '../core/browser-native-sync/human-library-scope.js';
 import {checkCurrentGroupProtocolRows} from '../core/browser-native-sync/current-group-protocol-rows.js';
 import test from 'node:test';
@@ -82,6 +85,7 @@ test('source-closed original mixed restore preserves both body owners, untouched
  await x.s.repository.close();
  target=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await target.consent(true);await target.finishFoundation();const core=new BrowserNativeSyncCore(target.repository,{datasetId:x.core.datasetId,deviceId:'SYNTHETIC_mixed_fixed_receiver'}),restore=new GroupedCheckpointRestore(core,{store:target,restoreId:operationId()});
  await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref));assert.equal((await restore.activate()).state,'activated');let cleanup;do{cleanup=await restore.cleanup({limit:3});}while(!cleanup.complete);
+ const receiverPlan=await prepareCurrentMixedGroupCheckpointPlan(core,x.operations),receiverScope=await prepareGroupScope(receiverPlan,{store:target});assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,receiverScope)),true);
  const restored=await all(target);assertMixedCurrentSourceDerivedRows(x.core,scope,plan,restored);assert.deepEqual(restored.records,original.records);assert.deepEqual(restored.times,original.times);assert.deepEqual(restored.blocks,original.blocks);assert.equal((await target.entry(x.entry.id)).body,'SYNTHETIC independently owned human body 中文🙂');assert.equal((await target.topic(x.topic.id)).name,'SYNTHETIC mixed Topic');
  const prompt=(await new PromptReuseService(target).snapshot()).preferences;assert.deepEqual(projectEntity('promptPreferences',prompt),scope.expected.prompt);assert.equal(prompt.overrides[0].reuseCount,0);
  const context=await new ContextCardsService(target).snapshot();assert.equal(context.items.length,1);assert.equal(context.items[0].body,'SYNTHETIC protected manual Info');assert.equal(context.access.global.enabled,false);
@@ -150,4 +154,34 @@ test('consuming original mixed Scope refuses initial delta swaps and Source/Huma
    const verdict=await x.s.repository.transaction(false,async t=>{try{await requireGroupScope(x.s,t,scope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');
   }finally{await x.s.repository.close();}
  }
+});
+
+test('original mixed restored allocation consumes only the authenticated import prefix before genuine local Human and untouched-B edits',async()=>{
+ const x=await producer();let target,third;
+ try{
+  const objects=new Map(),transport={async putImmutable(ref,body){objects.set(ref.id,body.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cut=await buildCheckpoint(x.core,transport,{grouped:{store:x.s}});await x.s.repository.close();
+  target=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await target.consent(true);await target.finishFoundation();const core=new BrowserNativeSyncCore(target.repository,{datasetId:x.core.datasetId,deviceId:'SYNTHETIC_mixed_local_tail_receiver'}),restore=new GroupedCheckpointRestore(core,{store:target,restoreId:operationId()});await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref));await restore.activate();let cleanup;do{cleanup=await restore.cleanup({limit:3});}while(!cleanup.complete);
+  const before=await all(target),b=before.inputStates.find(row=>row.id!==x.a).id;target.sourceBootstrapJournal=new SourceBootstrapJournal(core);target.filterIntentJournal=new FilterIntentSyncJournal(core);target.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:target.filterIntentJournal,logicalCommits:true});target.humanLibraryJournal=new HumanLibrarySyncJournal(core);
+  const human=await target.createEntry({actor:'user',body:'SYNTHETIC genuine B local Human tail 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});await inputEdit(target,b,{libraryText:'SYNTHETIC genuine B local Working tail 中文🙂',note:'SYNTHETIC first appended-B note'});
+  const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);const plan=await prepareCurrentMixedGroupCheckpointPlan(core,operations),scope=await prepareGroupScope(plan,{store:target});
+  // Current compiler's Human-first ordering differs from historical allocation.
+  const localHuman=plan.groups.findIndex(group=>group.type==='humanLibraryCommit'&&group.operations[0].deviceId===core.deviceId),source=plan.groups.findIndex(group=>group.type==='sourceBootstrapCommit');assert.ok(localHuman>=0&&localHuman<source);
+  assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,scope)),true);const actual=await all(target);
+  for(const history of before.revisions)assert.equal(actual.revisions.find(row=>row.id===history.id).sequence,history.sequence);
+  assert.equal(actual.meta.find(row=>row.id==='input-delta-sequence').value,5);assert.equal(actual.inputStates.find(row=>row.id===b).deltaSequence,5);assert.equal(actual.meta.find(row=>row.id==='revision-sequence').value,before.revisions.length+2);
+  assert.equal((await target.entry(human.id)).body,'SYNTHETIC genuine B local Human tail 中文🙂');assert.equal((await target.input(b)).libraryText,'SYNTHETIC genuine B local Working tail 中文🙂');
+  const freeze=value=>{if(value&&typeof value==='object'){for(const item of Object.values(value))freeze(item);Object.freeze(value);}return value;};
+  const wrongGraph=structuredClone(actual.meta),completed=wrongGraph.find(row=>row.id.endsWith(':restore:')),active=wrongGraph.find(row=>row.id===core.prefix+'active');assert.notEqual(completed.graphDigest,plan.digest);completed.graphDigest=plan.digest;active.graphDigest=plan.digest;
+  await assert.rejects(prepareMixedRestoredAllocationProof(core,plan,freeze(wrongGraph)),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+  const wrongManifest=structuredClone(actual.meta),control=wrongManifest.find(row=>row.id.endsWith(':restore:')),pointer=wrongManifest.find(row=>row.id===core.prefix+'active');control.manifest.ownerScope.families[0].digest='f'.repeat(64);const rebuilt=await protocolObject('checkpoint-manifest',bytes(control.manifest));control.manifestRef=rebuilt.ref;control.manifestId=rebuilt.ref.id;pointer.manifestId=rebuilt.ref.id;
+  await assert.rejects(prepareMixedRestoredAllocationProof(core,plan,freeze(wrongManifest)),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});assert.deepEqual(await all(target),actual);
+  const successor=await buildCheckpoint(core,transport,{grouped:{store:target}});await target.repository.close();
+  third=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await third.consent(true);await third.finishFoundation();const nextCore=new BrowserNativeSyncCore(third.repository,{datasetId:core.datasetId,deviceId:'SYNTHETIC_mixed_fresh_third'}),nextRestore=new GroupedCheckpointRestore(nextCore,{store:third,restoreId:operationId()});await nextRestore.stageCheckpoint(successor.ref,ref=>transport.get(ref));await nextRestore.activate();do{cleanup=await nextRestore.cleanup({limit:3});}while(!cleanup.complete);
+  const nextPlan=await prepareCurrentMixedGroupCheckpointPlan(nextCore,operations),nextScope=await prepareGroupScope(nextPlan,{store:third});assert.equal(await third.repository.transaction(false,t=>requireGroupScope(third,t,nextScope)),true);
+  assert.equal((await third.entry(human.id)).body,'SYNTHETIC genuine B local Human tail 中文🙂');assert.equal((await third.input(b)).libraryText,'SYNTHETIC genuine B local Working tail 中文🙂');const stable=await all(third);await nextRestore.activate();assert.deepEqual(await all(third),stable);
+  // Coherent per-Input+mapping corruption is still inconsistent with the
+  // separately authenticated import allocation, even when counters are intact.
+  await third.repository.transaction(true,async t=>{const edited=stable.inputStates.find(row=>row.id===b),other=stable.inputStates.find(row=>row.id!==b),owner=stable.meta.find(row=>row.id.includes(':workingOwner:')&&row.deltaSequence===edited.deltaSequence);assert.ok(owner);assert.notEqual(edited.deltaSequence,other.deltaSequence);await t.put('inputStates',{...edited,deltaSequence:other.deltaSequence});await t.put('meta',{...owner,deltaSequence:other.deltaSequence});});
+  const corrupted=await all(third);assert.deepEqual(corrupted.meta.filter(row=>row.id.includes(':revision:')),stable.meta.filter(row=>row.id.includes(':revision:')));const verdict=await third.repository.transaction(false,async t=>{try{await requireGroupScope(third,t,nextScope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');
+ }finally{await third?.repository.close();await target?.repository.close();await x.s.repository.close();}
 });

@@ -1,3 +1,6 @@
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
+import {borrowOriginalMixedScopeCompilationMeta} from './human-library-plan.js';
 import {assertMixedInitialPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {defaults} from '../workspace.js';
@@ -133,7 +136,7 @@ const counters=new Set(['thought-suppression-key','thought-sequence','revision-s
 const readRows=async(t,name)=>{if(await t.count(name)>128)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all(name);};
 // Exact portable expectations compiled from admitted typed operations, not from
 // arbitrary canonical metadata. Only each owner's named physical counters map.
-export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
+async function compileOriginalWireScope(plan){
  const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents'].map(name=>[name,new Map()]));
  const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences());
  for(const group of plan.groups){
@@ -150,8 +153,22 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
  if(human)expected.humanLibrary=human;
  const normalized=clone(expected);for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
- const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}},p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};originalScopes.set(scope,p);
- try{if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;}catch(error){originalScopes.delete(scope);throw error;}
+ const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
+}
+// Exact original wire-family commitment only. Local keyed expectations and
+// native authority are not created by this body-free imported-prefix check.
+export async function prepareOriginalMixedWireOwnerScope(core,plan){
+ requireOriginalCurrentMixedGroupPlan(core,plan);const {scope}=await compileOriginalWireScope(plan);requireOriginalCurrentMixedGroupPlan(core,plan);return scope.ownerScope;
+}
+export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
+ const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};originalScopes.set(scope,p);
+ try{
+  if(p.mixedCore&&store){
+   const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
+   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active'))p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta);
+  }
+  if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
+ }catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){
  const c=await store.control(t);
@@ -168,7 +185,7 @@ export async function requireGroupScope(store,t,scope){
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort((await readRows(t,name)).map(row=>row.value));
  for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(await readRows(t,name));
- const original=originalScopes.get(scope);if(original?.mixedCore){const plan=scopeDeref.call(original.plan);requireOriginalCurrentMixedGroupScope(original.mixedCore,scope,plan);assertMixedInitialPhysicalAllocations(original.mixedCore,scope,plan,actual,{active:await t.get('meta',original.mixedCore.prefix+'active')??null,input:await t.get('meta','input-delta-sequence')??null,history:await t.get('meta','revision-sequence')??null});}
+ const original=originalScopes.get(scope);if(original?.mixedCore){const plan=scopeDeref.call(original.plan);requireOriginalCurrentMixedGroupScope(original.mixedCore,scope,plan);if(original.restoredAllocation){if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');assertMixedRestoredPhysicalAllocations(original.mixedCore,scope,plan,actual,await t.all('meta'),original.restoredAllocation);}else assertMixedInitialPhysicalAllocations(original.mixedCore,scope,plan,actual,{active:await t.get('meta',original.mixedCore.prefix+'active')??null,input:await t.get('meta','input-delta-sequence')??null,history:await t.get('meta','revision-sequence')??null});}
  for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
  for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));

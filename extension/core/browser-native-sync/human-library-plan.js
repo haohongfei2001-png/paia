@@ -1266,6 +1266,9 @@ export function borrowOriginalMixedScopeCompilationSecret(nonce,store,scope,wire
  const secret=r.raw.rows.meta.find(row=>row.id==='thought-suppression-key')?.value;
  if(!Array.isArray(secret)||secret.length!==32||secret.some(value=>!Number.isInteger(value)||value<0||value>255))projectionRequired();return secret;
 }
+export function borrowOriginalMixedScopeCompilationMeta(nonce,store,scope,wire){
+ if(arguments.length!==4)projectionRequired();borrowOriginalMixedScopeCompilationSecret(nonce,store,scope,wire);return currentProjectionWorks.get(nonce).raw.rows.meta;
+}
 export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
