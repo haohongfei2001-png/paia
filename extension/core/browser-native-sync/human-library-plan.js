@@ -1847,7 +1847,9 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   // Keep all twelve byte/string slots and complete tree/ref charges. Bound
   // their payload by BOTH concurrent operands, not every historical stream.
   // A 64KiB floor independently covers finite index/manifest/ref headers.
-  const bufferWire=p.sourceWorking==='mixed'?Math.max(64*1024,Math.min(wire,SEGMENT_PROFILE.target+4096+peakOutgoingBytes+128+2*p.binding.datasetId.length+4096)):wire;
+  // The private synchronous operand meter below prices actual payloads before
+  // allocation. Its initial floor is also prepaid before entering the encoder.
+  const bufferWire=p.sourceWorking==='mixed'?64*1024:wire;
   const mixed=p.sourceWorking==='mixed';
   const scratch=(mixed?0:projectionTreeCharge(m)+16*m.E)+12*bufferWire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
   // Full outgoing rows are already retained in the authenticated cut. The
@@ -1855,7 +1857,15 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   // time. Pay each complete canonical operand (including all shard entries)
   // on this SAME work ticket before its detached tree/sort vectors allocate.
   // Do not substitute max-row statistics or a simulated packing window.
-  const beforeCanonical=mixed?value=>{projectionFence(r);const measured=projectionMeasure(value,'native');projectionReserve(r,projectionTreeCharge(measured)+16*measured.E);}:null;
+  const beforeCanonical=mixed?(value,outstandingRawBytes)=>{
+   projectionFence(r);const measured=projectionMeasure(value,'native');
+   // add() keeps its actual raw item across the previous shard's awaited
+   // flush. Pay BOTH that byte operand and the complete actual canonical
+   // operand in all twelve slots, with the same finite header floor.
+   const payload=Math.max(64*1024,measured.B+outstandingRawBytes);
+   r.fixedScratch=12*payload+1024*refs+64*1024;
+   projectionReserve(r,projectionTreeCharge(measured)+16*measured.E);
+  }:null;
   async function* rows(kind){
    for(const row of p.raw.groupMeta)if(row.id.startsWith(prefix+kind+':')){
     if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionReserve(r);

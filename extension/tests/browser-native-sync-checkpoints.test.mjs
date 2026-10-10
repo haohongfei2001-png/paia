@@ -22,10 +22,13 @@ test('original checkpoint canonical reservation precedes publication and preserv
  await assert.rejects(encodeOriginalCheckpoint(datasetId,stopped,{profile,cut:expected.cut,rows:a.rows.bind(a),verifyCut:async()=>{},beforeCanonical:()=>{throw marker;}}),error=>error===marker);
  assert.equal(stopped.objects.size,0,'first canonical reservation refuses before any immutable publication');
  const transport=cloud(),phases=[];
- const actual=await encodeOriginalCheckpoint(datasetId,transport,{profile,cut:expected.cut,rows:a.rows.bind(a),verifyCut:async()=>{},beforeCanonical:value=>{phases.push({kind:value.kind,level:value.level,entries:value.entries?.length});}});
+ const actual=await encodeOriginalCheckpoint(datasetId,transport,{profile,cut:expected.cut,rows:a.rows.bind(a),verifyCut:async()=>{},beforeCanonical:(value,outstandingRawBytes)=>{phases.push({kind:value.kind,level:value.level,entries:value.entries?.length,outstandingRawBytes});}});
  assert.deepEqual(actual,expected,'same original encoder keeps exact checkpoint references and manifest');
  assert.deepEqual(transport.objects,original.objects,'all encoded immutable bytes remain exact');
  assert.ok(phases.some(row=>row.level===0&&row.entries>1),'reservation observes the full real multi-item shard');
+ assert.ok(phases.some(row=>row.level===0&&row.outstandingRawBytes>0),'current raw bytes remain metered across a real prior-shard flush');
+ assert.ok(phases.some(row=>row.kind==='chunked'&&row.outstandingRawBytes>10000),'large chunked item retains its full actual raw byte charge');
+ assert.ok(phases.filter(row=>row.level>0||row.kind==='checkpoint-manifest').every(row=>row.outstandingRawBytes===0),'finished items release their raw lifetime before index/manifest encoding');
  assert.ok(phases.some(row=>row.level>0),'actual index canonicalization reserved');
  assert.ok(phases.some(row=>row.kind==='checkpoint-manifest'),'actual manifest canonicalization reserved');
 });

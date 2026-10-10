@@ -27,11 +27,14 @@ export async function encodeOriginalCheckpoint(datasetId,transport,{profile=SEGM
  // Numeric metering on the caller's existing work ticket. This synchronous
  // seam observes the actual operand immediately before canonical allocates;
  // it supplies no rows, reads, commits or alternative packing policy.
- const canonicalBytes=value=>{if(beforeCanonical!==null)beforeCanonical(value);return bytes(value);};
+ let outstandingRawBytes=0;
+ const canonicalBytes=value=>{if(beforeCanonical!==null)beforeCanonical(value,outstandingRawBytes);return bytes(value);};
  let entries=[],entrySize=0,itemCount=0,chain='',leafRefs=[];const coverage=new Map();
  const flush=async()=>{if(!entries.length)return;leafRefs.push(await putVerified(transport,await protocolObject('checkpoint-shard',canonicalBytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level:0,entries}),{profile}),profile));entries=[];entrySize=0;};
  async function add(item){
-  const raw=canonicalBytes(item);chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(raw)));itemCount++;
+  const raw=canonicalBytes(item);outstandingRawBytes=raw.length;
+  try{
+  chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(raw)));itemCount++;
   let entry={kind:'inline',item};
   if(raw.length>profile.target-4096){
    if(raw.length>profile.operationBytes)fail('BNS_OPERATION_RESOURCE_LIMIT');const chunks=[];
@@ -40,6 +43,7 @@ export async function encodeOriginalCheckpoint(datasetId,transport,{profile=SEGM
   }
   const size=canonicalBytes(entry).length;if(entries.length&&(entrySize+size+1024>profile.target||entries.length>=profile.operations))await flush();
   if(size+1024>profile.encoded)fail('BNS_CHECKPOINT_ITEM_LIMIT');entries.push(entry);entrySize+=size;
+  }finally{outstandingRawBytes=0;}
  }
  for await(const row of rows('revision'))await add({kind:'revision',...withoutId(row)});
  for await(const row of rows('head')){await add({kind:'head',...withoutId(row)});const family=coverage.get(row.type)||{type:row.type,version:CODECS[row.type].version,count:0};family.count++;coverage.set(row.type,family);}
