@@ -1,3 +1,13 @@
+# IAH-1.1 existing Project search and matched-result preparation — 0.43.13 (2026-10-10)
+
+ARCHIVE-HOME-03 now has a real conditional action through Reader → 来源变化, using current qualified membership/current Project name and the original accepted save/IME/latest-navigation owner. Clearing the existing conditional scope restores all Source/Project scope while retaining Archive query; whole Project rows remain disclosure. ARCHIVE-HOME-02/06 also closes a proven visual gap: bounded original matched Archive excerpts show their match instead of clipping it after three lines. Reader Find, original ranking/text/schema/permissions and selected minimal geometry are retained; no new Home/permanent scope widget/host entry is selected.
+
+Private preparation is based on reviewed PR24824df, with accepted-main reconciliation still pending. Exact57e5 complete unit5215 and four whole UI10 pass; stronger8196 complete P6 baseline/source/release3 passes, including nonempty painted-match visibility in wide/dark/320/doubled text. Original mixed-current relation and fixture/CSS failures remain preserved in the [owning record](implementation/verification/COHERENT-04313-IAH11-PROJECT-SEARCH.md). New Source/release action images wait for genuine Navigator readiness; independent final evidence/visual integration is pending. These are preparation results, not formal/main/package/installed acceptance.
+
+Remote main remains9110 and its0.43.11 Full failure/held package remain. PR2486423's standalone native release preparation repair has targeted source/release and independent review success, while its revised Full21/current-main gates are pending. Last complete qualified package is0.43.10. All seven lanes remain unfinished; missing exact approved CTX4/SET2 visual materials and external service/device/quality evidence stay separately unverified. No paid provider/account/credential/permission enlargement/user upload/formal deployment is authorized here.
+
+---
+
 # 0.43.12 generic preference publication candidate — 2026-10-10
 
 SET2-01/SYNC prerequisite continues through the original settings write owner: known before-write failure keeps the last acknowledged selection; a rejected publication is confirmed only when complete original local rows, database/gate/recovery identities and live ownership agree after the original transaction commits. Requests are detached before awaits. No replay, stored intent, journal, extra writer, consent/Sync activation or AI-style acknowledgement change is introduced.
