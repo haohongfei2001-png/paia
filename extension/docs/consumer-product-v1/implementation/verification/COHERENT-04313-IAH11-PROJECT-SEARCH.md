@@ -1,3 +1,13 @@
+# 0.43.13 coherent Archive / Thought reliability candidate — 2026-10-10
+
+Actual main d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a is merged0.43.12, but Full38038702703 fails CurrentBrowser5 and its two aggregates. Eighteen required components and Prompt38038702700 five jobs pass; that does not qualify delivery. Its455-file package remains held; last fully qualified package is0.43.10. Preserve the exact failed release writing assertion: selected Topic context was empty while its original index read was pending.
+
+The already reviewed IAH-1.1 minimal candidate is composed with a separate bounded TOPIC-05 writing correction: initialize existing truthful selected/unassigned scope copy immediately after the original workspace mount, then let the original current-surface/index owner paint an actual returned Topic name. No new destination lookup, all-index loading, data/permissions or save owner. Topics outside the first40 retain the existing truthful fallback until qualified paging returns them. Original two pending-context negative tests fail12PASS/2FAIL; repaired six whole Node files74PASS and complete source/release writing file4PASS18235.666ms at actual a5d2d125. Independent finite code review d63cde8db528e6c188693bdf3441168a638f880d1c478849d41c3933a2debf5c approves this small repair. Old main failure is not renamed a pass.
+
+Fresh combined frozen-head complete unit and affected UI, final independent composition, changed-head Full21/Prompt5, guarded integration, actual-main and package gates remain pending. Earlier IAH57e5/8196 evidence retains its actual identities; new Topic runtime bytes mean the earlier whole P6 dependency set is not reused as this composed execution. Allseven unfinished; no paid/model/account, permission expansion, real-user upload, installed or formal-deployment claim.
+
+## Preserved preceding checkpoint
+
 # IAH-1.1 / ARCHIVE-HOME-03 reachable Project search candidate — 0.43.13
 
 The approved minimal scope already has provider-qualified Project queries, but its old `onProjectSearch` callback had no reachable action. This batch reuses Reader → 来源变化 and its existing reading modal. A conditional 搜索此项目档案 action appears only for current confirmed membership and a readable current Project name; last-known names do not authorize or label the action. Whole Project rows still only disclose. No permanent widget, new Home, host entry, router, body store, schema, permission, network/model call or account activation is introduced.
