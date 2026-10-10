@@ -116,7 +116,7 @@ export class TopicActions {
   draft.onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!event.isComposing){event.preventDefault();submit.click();}};
   const copy=button(tc('复制当前文字'),()=>{if(current())return copyReadingText(draft.value);}),cancel=button(tc('取消'),()=>{if(!owner.workspacePreview)this.close(false,owner);});
   const presentation=mountThoughtComposePresentation({content:owner.content,feedback:owner.feedback,nodes,submit,copy,cancel,workspacePreview:!!workspacePreview,workspace:!!workspace});
-  topicContext=presentation.context;
+  topicContext=presentation.context;choiceChanged();
   if(workspacePreview||workspace){choices.dataset.loaded='true';await this.topicChoices(host,topicId,{owner,selected,select:presentation.topicSelect,onChange:choiceChanged});}
   if(current()&&!workspacePreview)draft.focus();
  }
