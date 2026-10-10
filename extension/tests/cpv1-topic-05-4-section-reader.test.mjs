@@ -471,3 +471,11 @@ for(const change of ['current','route','reader','view','root cue'])test('Topic w
  if(change==='route')owner.openIntent++;if(change==='reader')owner.topicReader={};if(change==='view')owner.view='ai';if(change==='root cue')owner.rootCueEpoch++;
  reject(Error('TOPIC_READING_CHANGED'));assert.equal(await pending,false);assert.equal(owner.topicWindowShifting,false);assert.deepEqual(events,change==='current'?['failure','status']:[]);assert.equal(owner.editor,draft);assert.deepEqual(draft,{text:'SYNTHETIC IME 草稿',composing:true});
 });
+
+for(const entry of ['continuation','window'])for(const change of ['current','route','reader','view','root cue'])test(entry+' reset failure belongs only to its exactly installed '+change+' reader',async()=>{
+ let reject;const held=new Promise((_,fail)=>reject=fail),old={stale:true,bodyRevision:1,shiftWindow:()=>true,previous:async()=>{}},replacement={},events=[];
+ const owner=Object.assign(Object.create(TopicController.prototype),{serial:1,openIntent:1,rootCueEpoch:0,view:'original',topicReader:old,topicRestoring:()=>false,topicContinuousVisible:()=>true,topicAnchor:()=>({id:'synthetic-anchor',top:140}),checkAllTracked:async()=>true,updateTopicContinuous:()=>events.push('status'),renderTopicReader:async()=>{},resetTopicReader(options){assert.equal(options.expectedSerial,1);assert.deepEqual(options.restoreAnchor,{id:'synthetic-anchor',top:140});this.topicReader=replacement;return held;},readFailure:()=>events.push('failure')});
+ const pending=entry==='continuation'?owner.loadTopicContinuous('previous',{explicit:false}):owner.shiftTopicWindow('next');await new Promise(resolve=>setImmediate(resolve));assert.equal(owner.topicReader,replacement);
+ if(change==='route')owner.openIntent++;if(change==='reader')owner.topicReader={};if(change==='view')owner.view='ai';if(change==='root cue')owner.rootCueEpoch++;
+ reject(Error('STORAGE_FAILED'));assert.equal(await pending,false);assert.equal(events.filter(event=>event==='failure').length,change==='current'?1:0);if(entry==='window')assert.equal(owner.topicWindowShifting,false);
+});
