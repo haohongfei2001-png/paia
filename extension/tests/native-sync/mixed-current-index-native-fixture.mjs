@@ -58,7 +58,7 @@ export async function runMixedCurrentIndexNativeCases(){
    }
   });
   await run('large malformed actual name-prefix metadata cannot bypass original unchanged live work bound',async()=>{
-   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(300000)};
+   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(180000)};
    try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
     check(error?.code==='BNS_HUMAN_GRAPH_LIMIT'&&error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual large prefix pays separate canonical scratch and refuses original8Mi: '+error?.message);check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
    }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
@@ -70,6 +70,14 @@ export async function runMixedCurrentIndexNativeCases(){
     try{await x.s.repository.transaction(true,t=>t.put(name,corrupt));const cut=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}check(error?.code===code,'exact original historical/query refusal');check(equalSourceWorkingPhysicalTree(await all(x),cut),'whole37 unchanged by historical/query refusal');pool();}
     finally{await x.s.repository.transaction(true,t=>original?t.put(name,original):t.delete(name,id));}
     check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original history/query repair accepted');pool();
+   }
+  });
+  await run('actual search rebuild metadata and non-scalar owner versions pay or refuse before original builders',async()=>{
+   const before=await all(x),rebuild=before.meta.find(row=>row.id==='library-search-rebuild'),owner=before.thoughts[0];
+   for(const [name,id,corrupt,original,code]of [['meta',rebuild.id,{...rebuild,unexpected:'x'.repeat(180000)},rebuild,'BNS_HUMAN_GRAPH_LIMIT'],['thoughts',owner.id,{...owner,contentRevision:['SYNTHETIC_invalid_version']},owner,'BNS_HUMAN_PROJECTION_REQUIRED']]){
+    try{await x.s.repository.transaction(true,t=>t.put(name,corrupt));const cut=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}check(error?.code===code,'exact metered rebuild or scalar version refusal: '+error?.message);if(code==='BNS_HUMAN_GRAPH_LIMIT')check(error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual search metadata operand prepaid on its consumer phase');check(equalSourceWorkingPhysicalTree(await all(x),cut),'whole37 unchanged on actual search shape/budget refusal');pool();}
+    finally{await x.s.repository.transaction(true,t=>t.put(name,original));}
+    check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original search shape repair accepted');pool();
    }
   });
   await run('all public Core reader getters remain uncalled during original native index inspection',async()=>{const names=['rows','get','bind','transaction','prepareCurrentMixedGroupReceive'],descriptors=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(x.core,name)]));let reads=0;for(const name of names)Object.defineProperty(x.core,name,{configurable:true,get(){reads++;throw Error('SYNTHETIC supplied reader');}});try{await inspect(x);check(reads===0,'zero supplied public reader calls');}finally{for(const [name,d]of descriptors)if(d)Object.defineProperty(x.core,name,d);else delete x.core[name];}});

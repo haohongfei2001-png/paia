@@ -1184,9 +1184,10 @@ function projectionNativeOrder(r,store,view,parts,raw=r.raw){
  for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),r.semantic))fail('BNS_HUMAN_CHANGED');
  return expected;
 }
-function projectionPendingOwner(row,kind){
+function projectionPendingOwner(row,kind,allowIndexed=false){
  projectionScalarString(row.id);
- if(!row.id.length||!['active','removed'].includes(row.lifecycle)||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ if(!row.id.length||!['active','removed'].includes(row.lifecycle)||!allowIndexed&&Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ if(allowIndexed&&Object.hasOwn(row,'indexedSearchVersion'))projectionScalarString(row.indexedSearchVersion,128);
  const required=kind==='entry'?['revision','contentRevision']:kind==='topic'?['revision','activeLayoutGeneration']:['revision','layoutGeneration'];
  for(const field of required)if(!Number.isSafeInteger(row[field])||row[field]<0)projectionRequired();
  for(const field of ['layoutGeneration','searchSafetyVersion'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();
@@ -1378,7 +1379,7 @@ function mixedCurrentSearchScratch(r){
  projectionReserve(r,96*1024);
  let expected=0,tokenPeak=0,owners=0;
  for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
-  if(++owners>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');projectionScalarString(row.id);
+  if(++owners>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');projectionPendingOwner(row,kind,true);
   const task=planSearchQueueLocator(kind,row);
   for(const [field,text]of Object.entries(searchOwnerFields(kind,row))){
    if(typeof text!=='string')fail('BNS_HUMAN_SEARCH_UNPROVEN');let decomposed=0;for(const scalar of text)decomposed+=scalar.normalize('NFKD').length;
@@ -1392,8 +1393,12 @@ function mixedCurrentSearchScratch(r){
    tokenPeak=Math.max(tokenPeak,units*1024+4096);
   }
  }
- const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);
- return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4096*128+192*1024;
+ const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0;
+ // Rebuild/root/topic metadata is compared BEFORE the later body consumer.
+ // Price actual corrupt operands here too; its small expected shape cannot
+ // prepay a large actual canonical/JSON comparison tree on this phase.
+ for(const row of r.raw.rows.meta)metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*metaPeak+4096*128+192*1024;
 }
 // Consuming readonly prerequisite: the fixed original native reader checks the
 // complete v5 index inventory on the existing live work ticket and drains it.
