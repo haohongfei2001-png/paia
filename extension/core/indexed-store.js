@@ -66,12 +66,14 @@ export class IndexedArchiveStore {
  async publish(){
   const control=this.pendingControl;if(!control)return;
   const owner=localPublicationOwners.get(this);if(!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');
+  if(owner.dispatched)error('CONTROL_PUBLICATION_ATTEMPT_USED');
   await this.repository.transaction(false,t=>requireControlPublicationOwner(t,owner.reservation,owner.fences),['meta']);
   const payload=structuredClone(controlPublicationRow(control,this.databaseId,owner.reservation)),afterDigest=await controlPublicationDigest(payload),fenceDigest=await controlPublicationDigest(owner.fences);
   if(control!==this.pendingControl||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('CONTROL_PUBLICATION_CHANGED');
   const prepared={...owner.reservation,afterDigest,fenceDigest};
   await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.put('meta',prepared);},['meta']);owner.reservation=prepared;
   if(control!==this.pendingControl||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('CONTROL_PUBLICATION_CHANGED');
+  if(owner.dispatched)error('CONTROL_PUBLICATION_ATTEMPT_USED');owner.dispatched=true;
   try{await this.local.set({[STORAGE_KEY]:payload});}
   catch(e){if(!(#preferencePublication in this)||this.consumerPreferenceJournal&&!this.localPublicationTerminal||!await this.#confirmPreferencePublication(this.#preferencePublication,control)){
    // Only the original Chrome SDK's completed RPC, or an explicitly qualified
