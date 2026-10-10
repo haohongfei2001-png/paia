@@ -136,7 +136,7 @@ export async function prepareCurrentMixedGroupCheckpointPlan(core,input){
 // heads and digest are rebuilt by the SAME original causal graph owner;
 // filtering the current dependency vectors or final heads would be incorrect.
 export async function prepareOriginalCurrentMixedForeignPrefix(core,complete){
- if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);if(originalPlans.get(complete).borrowedFrom)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const binding={...originalPlans.get(complete),borrowedFrom:complete},groups=[],operations=[],byRevision=new Map(),claimed=new Map();let size=0;
  for(const original of complete.groups){
   const ours=original.operations.filter(op=>op.deviceId===core.deviceId).length;if(ours&&ours!==original.operations.length)fail('BNS_GROUP_CAUSAL_GAP');if(ours)continue;

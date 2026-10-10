@@ -1307,8 +1307,8 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
 // Original wire owner hashes one complete normalized family at a time. Map
 // cells are paid before borrowing final immutable members; no body DTO or
 // canonical JSON is built here, and the complete current Plan stays owned.
-function mixedWireCanonicalFamilyPeak(r,plan,humanWire){
- projectionReserve(r,4096*128+128*1024);const humanHistory=new Set(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
+function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
+ projectionReserve(r,surviving+4096*128+128*1024);const humanHistory=new Set(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
  for(const group of plan.groups){
   if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
   else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}
@@ -1334,11 +1334,12 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  requireOriginalCurrentMixedGroupPlan(r.core,prefix);
  if(phase==='wire'){
   if(r.mixedRestoredPhase!=='compiler'||prefix.groups.some(group=>group.operations.some(op=>op.deviceId===r.core.deviceId)))projectionRequired();
-  const wire={B:2,T:0,V:1,E:0};let hidden=0;
-  const add=value=>{const m=projectionRowMeasure(r,value);for(const key of ['B','T','V','E'])wire[key]+=m[key];wire.E++;};
-  for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){add(member.value.entity);if(group.type!=='inputWorkingCommit')hidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));}else add(group.operations[0].value);}
+  const wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};
+  const add=(value,human=false)=>{const m=projectionRowMeasure(r,value);for(const key of ['B','T','V','E']){wire[key]+=m[key];if(human)humanWire[key]+=m[key];}wire.E++;if(human)humanWire.E++;};
+  for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)add(member.value.entity);else add(group.operations[0].value);}
   r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix));
-  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024);return;
+  const surviving=r.mixedRestoredBase+r.mixedRestoredTemporary,meter=mixedWireCanonicalFamilyPeak(r,prefix,humanWire,surviving);
+  projectionReserve(r,surviving+8*projectionTreeCharge(wire)-meter.borrowedTrees+4*meter.peak+8*wire.B+256*1024);return;
  }
  if(phase==='mapped'){
   if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';

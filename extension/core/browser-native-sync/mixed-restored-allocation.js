@@ -55,7 +55,7 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta,native)
  // full Plan or its private Source payload survives into keyed construction.
  // The prefix dependency order was separately digest-checked above; a genuine
  // local Human tail can add dependencies to current full-Plan Source groups.
- const prefixGroups=Object.freeze(prefix.groups.map(group=>{const original=plan.groups.find(row=>row.id===group.id);if(!original||original.type!==group.type||!equal(original.operations,group.operations)||!equal(original.prepared,group.prepared))refuse();return original;}));
+ const prefixGroups=Object.freeze(prefix.groups.map(group=>{const original=plan.groups.find(row=>row.id===group.id);if(!original||original.type!==group.type||original.operations!==group.operations||original.prepared!==group.prepared||original.capability!==group.capability)refuse();return original;}));
  const cap=Object.freeze({});proofs.set(cap,{core,plan,active:Object.freeze(clone(active)),completed:clone(completed[0]),prefixGroups,tail:Object.freeze(tail),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefixGroups,...tail],core.deviceId)});return cap;
 }
 
