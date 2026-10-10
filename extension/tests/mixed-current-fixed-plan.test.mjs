@@ -58,7 +58,7 @@ test('native no-alias profile rejects sealed Topic history aliases before keyed 
   const original=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations);assertOriginalInitialMixedScopeCompilationProfile(x.core,original);
   assert.throws(()=>assertOriginalInitialMixedScopeCompilationProfile(x.core,structuredClone(original)),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
   for(const side of ['before','after']){
-   const rows=structuredClone(x.operations),history=rows.find(op=>op.type==='humanLibraryMember'&&op.value.entityType==='history'&&op.value.after.kind==='topic'&&op.value.after.after);assert.ok(history,'actual Topic history');
+   const rows=structuredClone(x.operations),history=rows.filter(op=>op.type==='humanLibraryMember'&&op.value.entityType==='history'&&op.value.after.kind==='topic'&&op.value.after.after).sort((a,b)=>a.sequence-b.sequence).at(-1);assert.ok(history,'latest actual Topic history');
    // The owner's creation baseline has null before. A synthetic, codec-valid
    // snapshot supplies that side to exercise the same original identity path.
    if(!history.value.after[side])history.value.after[side]=structuredClone(history.value.after.after);
@@ -124,6 +124,29 @@ test('mixed derived formation rejects cross-wired Source partitions, allocator o
  for(const change of [r=>r.recordIndex[0].sequence=99,r=>r.blockIndex[0].recordIds=r.blockIndex[1].recordIds,r=>r.sourceCounts[0].views.reverse(),r=>r.documents[0].displayKey[0]=0,r=>delete r.recordIndex[0].legacyChat,r=>r.sourceCounts.pop()]){const corrupt=structuredClone(rows);change(corrupt);assert.throws(()=>assertMixedCurrentSourceDerivedRows(x.core,scope,plan,corrupt));}
  assert.throws(()=>assertMixedCurrentSourceDerivedRows(x.core,structuredClone(scope),plan,rows),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});assert.deepEqual(await all(x.s),rows);
  }finally{await x.s.repository.close();}
+});
+test('mixed default and named Sections restore with original receipt allocation then accept a genuine Section-local edit back',async()=>{
+ const x=await producer();let target;
+ try{
+  const topicRow=await x.s.repository.transaction(false,t=>t.get('topics',x.topic.id)),named=await x.s.createSection({topicId:x.topic.id,expectedTopicRevision:topicRow.organizationRevision,title:'SYNTHETIC named Section',operationId:operationId()});assert.equal(named.conflict,undefined);
+  const second=await x.s.createEntry({actor:'user',body:'SYNTHETIC second independent owner 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});
+  await x.s.placeEntry({entryId:second.id,topicId:x.topic.id,sectionId:named.sectionId,expectedEntryRevision:0,expectedTopicRevision:named.topicRevision,operationId:operationId()});
+  const operations=[];for await(const row of x.core.rows('revision'))operations.push(row.operation);
+  const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,operations),scope=await prepareGroupScope(plan,{store:x.s}),before=await all(x.s);assert.equal(await x.s.repository.transaction(false,t=>requireGroupScope(x.s,t,scope)),true);
+  assert.equal(before.meta.find(row=>row.id==='thought-sequence').value,14);assert.equal(before.sections.length,2);assert.equal(before.placements.find(row=>row.entryId===x.entry.id).sectionId,topicRow.defaultSectionId);assert.equal(before.placements.find(row=>row.entryId===second.id).sectionId,named.sectionId);
+  const receipt=before.operationReceipts.find(row=>row.ownerId===named.id);assert.deepEqual(receipt.result,named);assert.equal(receipt.operationSequence,9);
+  const objects=new Map(),transport={async putImmutable(ref,body){objects.set(ref.id,body.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cut=await buildCheckpoint(x.core,transport,{grouped:{store:x.s}});
+  await x.s.repository.close();assert.equal(x.s.repository.db,null);
+  target=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:()=> '2026-10-10T12:00:00.000Z'});await target.consent(true);await target.finishFoundation();const receiver=new BrowserNativeSyncCore(target.repository,{datasetId:x.core.datasetId,deviceId:'SYNTHETIC_mixed_section_receiver'}),restore=new GroupedCheckpointRestore(receiver,{store:target,restoreId:operationId()});await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref));assert.equal((await restore.activate()).state,'activated');let cleanup;do{cleanup=await restore.cleanup({limit:3});}while(!cleanup.complete);
+  const restored=await all(target),restoredPlan=await prepareCurrentMixedGroupCheckpointPlan(receiver,operations),restoredScope=await prepareGroupScope(restoredPlan,{store:target});assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,restoredScope)),true);
+  assert.deepEqual(restored.sections,before.sections);assert.deepEqual(restored.placements,before.placements);assert.equal((await target.entry(second.id)).body,'SYNTHETIC second independent owner 中文🙂');assert.equal(restored.meta.find(row=>row.id==='thought-sequence').value,14);
+  target.humanLibraryJournal=new HumanLibrarySyncJournal(receiver);const currentTopic=restored.topics.find(row=>row.id===x.topic.id),old=restored.placements.find(row=>row.entryId===x.entry.id),edit=await target.placeEntry({entryId:x.entry.id,topicId:x.topic.id,sectionId:named.sectionId,expectedEntryRevision:restored.thoughts.find(row=>row.id===x.entry.id).revision,expectedTopicRevision:currentTopic.organizationRevision,expectedPlacementRevision:old.revision,operationId:operationId()});assert.equal(edit.conflict,undefined);
+  const tail=[];for await(const row of receiver.rows('revision'))if(row.operation.deviceId===receiver.deviceId)tail.push(row.operation);assert.ok(tail.length>1);
+  // Reopen original A only after fresh-B recovery has finished; no A state or
+  // preparation token was available to B. Apply the genuine typed B journal.
+  await x.s.repository.open();await x.s.humanLibraryJournal.receive(x.s,tail);const returned=await all(x.s);assert.equal(returned.placements.find(row=>row.entryId===x.entry.id).sectionId,named.sectionId);assert.equal(returned.placements.find(row=>row.entryId===second.id).sectionId,named.sectionId);assert.equal(returned.meta.find(row=>row.id==='thought-sequence').value,17);
+  await x.s.humanLibraryJournal.receive(x.s,tail);assert.deepEqual(await all(x.s),returned);
+ }finally{if(target)await target.repository.close();await x.s.repository.close();}
 });
 
 test('original mixed derived views keep exact qualified known/unknown Source time across both append positions',async()=>{

@@ -1362,7 +1362,7 @@ export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
  if(arguments.length!==2)projectionRequired();requireOriginalCurrentMixedGroupPlan(core,plan);
  const topic=row=>{if(row?.identity?.aliases?.length)projectionRequired();};
  for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
-  if(!['topic','entry','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
+  if(!['topic','entry','section','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
   for(const op of group.prepared.members){
    if(op.value.entityType==='topic'){topic(op.value.before);topic(op.value.after);}
    else if(op.value.entityType==='history')for(const row of [op.value.before,op.value.after])if(row?.kind==='topic'){topic(row.before);topic(row.after);}

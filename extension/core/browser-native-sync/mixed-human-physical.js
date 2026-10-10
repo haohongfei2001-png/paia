@@ -4,27 +4,34 @@ import {protocolPhysicalId} from './physical-key.js';
 import {equal,exact,count,hash,fail} from './value.js';
 
 const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
-// Pure allocation description for the three original named creation/placement
+// Pure allocation description for the original Topic/Entry/Section/placement
 // owners. The caller supplies its authenticated initial chronology or completed
 // import-prefix + original local tail. This computation grants no native cut,
 // scope, write, budget or export capability and never calls a domain writer.
 export function prepareMixedHumanPhysicalExpectation(groups,localDeviceId){
- const entries=new Map(),topics=new Map(),placements=new Map(),receipts=new Map();let sequence=0;
+ const entries=new Map(),topics=new Map(),sections=new Map(),placements=new Map(),receipts=new Map();let sequence=0;
  for(const group of groups){
   if(group.type!=='humanLibraryCommit')continue;
   const descriptor=group.prepared.descriptor.value,members=group.prepared.members;
-  if(!['topic','entry','placement'].includes(descriptor.kind))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(!['topic','entry','section','placement'].includes(descriptor.kind))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const local=group.operations.every(op=>op.deviceId===localDeviceId),member=type=>members.find(op=>op.value.entityType===type)?.value.after;
   let result;
   if(descriptor.kind==='topic'){
    const topic=member('topic'),section=member('section');if(!topic||!section||topics.has(topic.id))refuse();
-   topics.set(topic.id,{row:topic,negativeUpdatedSequence:-++sequence});result={id:topic.id,sectionId:section.sectionId,revision:topic.revision};
+   topics.set(topic.id,{row:topic,negativeUpdatedSequence:-++sequence});sections.set(section.id,section);result={id:topic.id,sectionId:section.sectionId,revision:topic.revision};
   }else if(descriptor.kind==='entry'){
    const entry=member('entry');if(!entry||entries.has(entry.id))refuse();const tick=++sequence;
    entries.set(entry.id,{createdSequence:tick,updatedSequence:tick,negativeUpdatedSequence:-tick});result={id:entry.id,revision:entry.revision};
+  }else if(descriptor.kind==='section'){
+   const section=member('section'),topic=member('topic'),prior=topics.get(descriptor.request.topicId);
+   if(!section||!topic||!prior||topic.id!==descriptor.request.topicId||section.topicId!==topic.id||section.layoutGeneration!==topic.activeLayoutGeneration||section.id!==JSON.stringify([topic.id,topic.activeLayoutGeneration,section.sectionId])||sections.has(section.id))refuse();
+   // Original createSection touches the requested Topic once, then the common
+   // operation receipt advances the second tick. Section has no own sequence.
+   prior.negativeUpdatedSequence=-++sequence;sections.set(section.id,section);
+   result={id:section.id,sectionId:section.sectionId,revision:section.revision,topicRevision:topic.organizationRevision};
   }else{
    const entry=member('entry'),placement=member('placement'),target=descriptor.request.topicId;
-   if(!entry||!placement||!entries.has(entry.id)||placement.entryId!==entry.id||placement.topicId!==target||!topics.has(target))refuse();
+   if(!entry||!placement||!entries.has(entry.id)||placement.entryId!==entry.id||placement.topicId!==target||!topics.has(target)||!sections.has(JSON.stringify([placement.topicId,placement.layoutGeneration,placement.sectionId])))refuse();
    placements.set(placement.id,placement);
    // Original nextPlacements ID ordering includes every layout edge. The target is
    // deliberately touched again below; a Set must not erase its second tick.
@@ -37,7 +44,7 @@ export function prepareMixedHumanPhysicalExpectation(groups,localDeviceId){
   for(const op of members){const {entityType:type,after}=op.value;
    if(type==='topic'){const expected=topics.get(after.id);if(!expected||local&&after.negativeUpdatedSequence!==expected.negativeUpdatedSequence)refuse();expected.row=after;}
    if(type==='entry'&&(!entries.has(after.id)||local&&!equal(physical('entry',after),entries.get(after.id))))refuse();
-   // These three owners only create the untouched Topic baseline history.
+   // These creation/placement owners retain the untouched Topic baseline history.
    // Its snapshot precedes the first touch and stays zero through identity
    // rehash members; foreign wire sequence cannot invent a touched snapshot.
    if(type==='history'&&after.kind==='topic'&&(after.before!==null||after.after?.negativeUpdatedSequence!==0))refuse();
