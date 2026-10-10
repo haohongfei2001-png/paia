@@ -54,5 +54,13 @@ export async function runPreferencePublicationNativeCases(){
  await run('live original control mutation after actual Chrome write cannot be acknowledged',()=>use(async f=>{
   const before=await f.rows(),n=f.writes();let changed=false;f.setMode('after');f.setGetHook(()=>{changed=true;f.store.pendingControl.preferences.appearance='light';});let error;try{await f.store.updatePreferences({appearance:'dark'});}catch(e){error=e;}check(changed&&error===f.fault,'post-publication live owner mismatch retains original error');check(f.writes()===n+1,'no publication replay');check((await f.read()).preferences.appearance==='dark','actual durable intended choice unchanged');check(equal(await f.rows(),before),'all37 and protected human Working unchanged');
  }));
+ await run('inherited original read owner stays readable but cannot gain genuine publication acknowledgement',()=>use(async f=>{
+  const rows=await f.rows(),before=await f.read(),owner=Object.create(f.store),n=f.writes();
+  const preferences=await owner.run(()=>owner.repository.transaction(false,async t=>(await owner.control(t)).preferences));
+  check(equal(preferences,before.preferences),'original inherited readonly flow preserved');check(equal(await f.read(),before),'readonly flow preserves whole local row');check(equal(await f.rows(),rows),'readonly flow preserves all37 native rows');
+  f.setMode('after');let error;try{await owner.updatePreferences({appearance:'dark'});}catch(e){error=e;}
+  check(error===f.fault,'unbranded original facade cannot acknowledge the actual after-write outcome');check(f.writes()===n+1,'one original publication no facade retry');check((await f.read()).preferences.appearance==='dark','real publication remains separate from acknowledgement');check(equal(await f.rows(),rows),'all37 unchanged by refused facade acknowledgement');
+  const result=await f.store.updatePreferences({appearance:'light'});check(result.ok===true,'genuine constructed owner still confirms exact readback');check(f.writes()===n+2,'one subsequent genuine publication');check((await f.read()).preferences.appearance==='light','genuine acknowledged local selection');check(equal(await f.rows(),rows),'protected Source Working and all37 remain unchanged');
+ }));
  return {claim:'SYNTHETIC_GENERIC_PREFERENCE_ACKNOWLEDGEMENT_ONLY',cases,assertions,nativeDatabase:true,nativeDBReopen:true,nativeChromeLocal:true,acknowledgementFault:'synthetic-after-real-local-write',schemaChange:false,durableIntent:false,portableSync:false,provider:false,workerRestart:false,uiQualification:false};
 }
