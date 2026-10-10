@@ -23,6 +23,8 @@ const PREFIX='context-topic:',NAMESPACE='context-topic-access';
 // instances for that store; a worker restart cannot resume an old JS attempt.
 // No durable pending row or content is retained.
 const attempts=new WeakMap();
+const syncServices=new WeakMap();
+export function requireOriginalContextTopicDesiredService(service,journal){const binding=syncServices.get(service);if(!binding||binding.journal!==journal||binding.store!==service.s)throw new ArchiveError('BNS_TOPIC_DESIRED_BINDING');}
 const fail=code=>{throw new ArchiveError(code);};
 const refuse=reason=>{throw Object.assign(new ArchiveError('CONTEXT_INVALIDATED'),{topicReason:reason});};
 const requireFact=(value,reason)=>{if(!value)refuse(reason);};
@@ -35,7 +37,8 @@ function validResult(x){return exact(x,['ok','topicId','enabled','revision','noO
 function validReceipt(r){return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&contextTopicOperationId(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&idOK(r.ownerId)&&stamp(r.createdAt)&&contextTopicDigest(r.digest)&&contextTopicEpoch(r.epoch)&&validResult(r.result)&&r.result.topicId===r.ownerId;}
 
 export class ContextTopicAccessService {
- constructor(store){this.s=store;this.cards=new ContextCardsService(store);if(!attempts.has(store))attempts.set(store,new Map());this.attempts=attempts.get(store);}
+ constructor(store,{syncDesiredJournal=null}={}){this.s=store;this.cards=new ContextCardsService(store);syncServices.set(this,{store,journal:syncDesiredJournal});if(!attempts.has(store))attempts.set(store,new Map());this.attempts=attempts.get(store);}
+ get syncDesiredJournal(){return syncServices.get(this)?.journal??null;}
  ready(){return !!this.s?.repository?.db&&!!this.s.controlCache&&typeof this.s.readableEntry==='function';}
  async row(t){const row=await t.get('meta',CONTEXT_TOPIC_ACCESS_ROW);if(row&&!validContextTopicPreferences(row))refuse('preferences_unavailable');return row||emptyContextTopicPreferences();}
  async admission(t,expectedEpoch,{scope=false}={}){
@@ -90,9 +93,11 @@ export class ContextTopicAccessService {
    requireFact(page.next===null||page.next===previous&&(after===null||this.s.repository.factory.cmp(after,page.next)<0),'incomplete_page');after=page.next;
   }while(after!==null);
   requireFact(total===count,'incomplete_page');
+  const desired=this.syncDesiredJournal?await this.syncDesiredJournal.directory(t):[],desiredIds=new Set(desired.map(row=>row.id));
   const choices=new Map(row.choices.map(c=>[c.topicId,c])),items=[];
-  for(const topic of topics.values())if(['active','dormant'].includes(topic.lifecycle)&&!topic.redirectTo||choices.has(topic.id))items.push({topic,choice:choices.get(topic.id)||null});
+  for(const topic of topics.values())if(['active','dormant'].includes(topic.lifecycle)&&!topic.redirectTo||choices.has(topic.id)||desiredIds.has(topic.id))items.push({topic,choice:choices.get(topic.id)||null});
   for(const choice of row.choices)if(!topics.has(choice.topicId))items.push({topic:{id:choice.topicId,createdAt:choice.binding.createdAt,lifecycle:'missing'},choice});
+  for(const item of desired)if(!topics.has(item.id)&&!choices.has(item.id))items.push({topic:{id:item.id,createdAt:item.createdAt,lifecycle:'missing'},choice:null});
   // The existing Thought stable directory uses this exact createdAt/id key.
   // Read the canonical rows, including retained stale selections, without the
   // root projection's initialization, count rebuild or excerpt/body reads.
@@ -116,6 +121,7 @@ export class ContextTopicAccessService {
      const name=await this.displayName(t,topic,memory);
      const bindingValid=!!binding&&sameContextTopicBinding(binding,expectedBinding),enabled=choice?.enabled===true;
      items.push({topicId:topic.id,name,createdAt:topic.createdAt,lifecycle:topic.lifecycle,enabled,revision:choice?.revision||0,binding,expectedBinding,bindingValid,policyAllowed:false,reason:enabled?(bindingValid?'scope_pending':'selection_stale'):expectedBinding?'topic_off':'topic_unavailable',canEnable:!!expectedBinding,canDisable:enabled,externalAllowed:false});
+     if(this.syncDesiredJournal){const desired=await this.syncDesiredJournal.fact(t,topic.id,choice,expectedBinding);if(desired)items[items.length-1].desired=desired;}
     }
     return {...admission,items,total:all.length,offset,selectedCount:storedCount(row)};
    });
@@ -163,7 +169,7 @@ export class ContextTopicAccessService {
    const verdict=evaluateContextTopicAccess({...scope.snapshot,selection:{...scope.binding,enabled:true}});
    if(!allowedReasons.has(verdict.reason))return refusal(verdict.reason);
   }
-  return this.s.write(async t=>{
+  return this.s.write(async(t,prepared)=>{
    const admission=await this.admission(t,c.epoch),prior=await this.receipt(t,c.operationId,digest,c.epoch,c);if(prior)return prior;
    const row=await this.row(t);let choice=row.choices.find(x=>x.topicId===c.topicId),revision=choice?.revision||0;
    if(revision!==c.expectedRevision)return conflict('revision_changed',revision);
@@ -175,11 +181,11 @@ export class ContextTopicAccessService {
     if(!choice){if(row.choices.length>=CONTEXT_TOPIC_ACCESS_LIMITS.choices)return refusal('preferences_limit');choice={topicId:c.topicId,enabled:true,revision:0,binding};row.choices.push(choice);}else choice.binding=binding;
    }else if(choice&&!sameContextTopicBinding(c.expectedBinding,choice.binding))return conflict('binding_changed',revision);
    const noOp=!choice;
-   if(choice){choice.enabled=c.enabled;choice.revision++;row.revision++;if(!validContextTopicPreferences(row))return refusal('preferences_limit');await t.put('meta',row);revision=choice.revision;}
+   if(choice){choice.enabled=c.enabled;choice.revision++;row.revision++;if(!validContextTopicPreferences(row))return refusal('preferences_limit');await t.put('meta',row);revision=choice.revision;if(this.syncDesiredJournal){if(!prepared)fail('BNS_PREPARATION_REQUIRED');await this.syncDesiredJournal.commit(t,prepared,choice);}}
    const result={ok:true,topicId:c.topicId,enabled:c.enabled,revision,noOp,externalAllowed:false};
    await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:c.topicId,createdAt:this.s.clock(),digest,epoch:c.epoch,result});
    return result;
-  });
+  },null,this.syncDesiredJournal?()=>this.syncDesiredJournal.prepare(this,c):null);
  }
  async outcome(query){
   if(!exact(query,['operationId','digest','epoch'])||!contextTopicOperationId(query.operationId)||!contextTopicDigest(query.digest)||!contextTopicEpoch(query.epoch))fail('INVALID_REQUEST');

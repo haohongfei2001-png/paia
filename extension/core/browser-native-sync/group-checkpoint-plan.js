@@ -4,10 +4,11 @@ import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
 import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
+import {assertTopicDesiredReference} from './topic-desired-codec.js';
 
 const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
-const singles=new Set(['promptPreferences','promptBinding','consumerPreference','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
+const singles=new Set(['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
@@ -104,6 +105,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
   if(group.type==='inputWorkingCommit')depend(group,createdInputs.get(group.prepared.descriptor.value.inputId));
   if(group.type==='filterIntent'){if(group.operations[0].value.reason!=='restored_from_filter')fail('BNS_GROUP_OWNER_UNSUPPORTED');depend(group,createdSources.get(group.operations[0].entityId));}
   if(group.type==='promptPreferences')for(const parent of group.operations[0].parents)if(promptBindings.has(parent))depend(group,promptBindings.get(parent));
+  if(group.type==='topicDesired'){const value=group.operations[0].value;assertTopicDesiredReference(value,byRevision.get(value.topicRef.commitRevisionId),byRevision.get(value.topicRef.memberRevisionId));depend(group,claimed.get(value.topicRef.commitRevisionId));depend(group,claimed.get(value.topicRef.memberRevisionId));}
   if(group.type==='promptBinding'){
    const operation=group.operations[0],prompt=byRevision.get(operation.value.promptRevisionId);if(!prompt||prompt.type!=='promptPreferences'||prompt.entityId!==operation.entityId||prompt.kind!=='put')fail('BNS_GROUP_CAUSAL_GAP');promptCorrectionEnvelope(operation.value,prompt.value);depend(group,claimed.get(prompt.revisionId));
    for(const row of operation.value.bindings)for(const id of row.inputIds)depend(group,createdInputs.get(id));for(const split of prompt.value.splits)depend(group,createdInputs.get(split.inputId));

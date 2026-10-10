@@ -1,4 +1,5 @@
 import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
+import {assertTopicDesiredOperation} from './topic-desired-codec.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryTransactionCommitted,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 import {ArchiveError} from '../constants.js';
@@ -50,6 +51,7 @@ export async function validateOperation(operation){
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
  if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
+ if(operation.type==='topicDesired')assertTopicDesiredOperation(operation);
  if(['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_APPEND_INVALID');
  if(['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
  if(operation.type==='source'&&operation.kind!=='purge'&&operation.actor==='user')fail('BNS_SOURCE_AUTHORITY');
@@ -157,6 +159,7 @@ export class BrowserNativeSyncCore {
    if(head?.purged)fail('BNS_ENTITY_PURGED');
    if(change.expectedParents&&!equal([...change.expectedParents].sort(),[...(head?.revisions||[])].sort()))fail('BNS_HEAD_CHANGED');
    if(change.type==='consumerPreference'&&change.value?.explicit===null&&(actor!=='bootstrap'||head))fail('BNS_BOOTSTRAP_EXISTS');
+   if(change.type==='topicDesired'&&actor==='bootstrap'&&head)fail('BNS_BOOTSTRAP_EXISTS');
    if(head?.revisions?.length>1&&!change.resolve)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
    if(change.resolve&&!equal([...parents].sort(),[...(head?.revisions||[])].sort()))fail('BNS_RESOLUTION_PARENTS');
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:operationIds?.[index]||crypto.randomUUID(),type:change.type,entityId,codecVersion:CODECS[change.type]?.version??1,kind:change.kind||'put',actor,parents:[...parents].sort(),value:change.kind==='purge'?null:clone(change.value)}));
