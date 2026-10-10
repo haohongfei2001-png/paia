@@ -15,9 +15,9 @@ import {inspectMixedCurrentNativeIndexClosure,inspectMixedCurrentNativeScopeComp
 import {equalSourceWorkingPhysicalTree} from '../../core/browser-native-sync/source-working-physical.js';
 import {beginHumanQualificationWork,releaseHumanQualificationLease} from '../../core/browser-native-sync/human-qualification-budget.js';
 
-// One consuming initial mixed native component: exact index/body/search/meta,
-// original encoder/publisher and closed-source fresh restore/editback. Restored
-// native re-export/whole batch qualification remains a separate unfinished gate.
+// One consuming complete mixed synthetic recovery chain: exact index/body/
+// search/meta, original encoder/publisher, closed A→fresh B→real edits→closed
+// B→fresh C. Whole batch/full-tariff qualification remains a separate gate.
 export async function runMixedCurrentIndexNativeCases(){
  let assertions=0;const cases=[],check=(value,label)=>{assertions++;if(!value)throw Error(label);};
  const run=async(name,fn)=>{const before=assertions;try{await fn();cases.push({name,result:'PASS',assertions:assertions-before});}catch(error){cases.push({name,result:'FAIL',assertions:assertions-before,error:{message:error.message,code:error.code}});error.nativeCases=cases;throw error;}};
@@ -99,7 +99,7 @@ export async function runMixedCurrentIndexNativeCases(){
     check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).completeInitialMetadataQualified===true,'original metadata repair exactly accepted');pool();
    }
   });
-  await run('original mixed native factory exports one complete initial cut and a closed sender restores into a genuinely fresh receiver with real editback',async()=>{
+  await run('original mixed native factory restores closed A into fresh B, reexports genuine B edits and restores fresh C with safety refusals',async()=>{
    const objects=new Map(),transport={async putImmutable(ref,data){const prior=objects.get(ref.id);if(prior)check(prior.length===data.length&&prior.every((value,i)=>value===data[i]),'original immutable object collision refusal');objects.set(ref.id,data.slice());},async get(ref){const data=objects.get(ref.id);if(!data)throw Error('SYNTHETIC missing original immutable object');return data.slice();}};
    const before=await all(x),cut=await buildGroupedCheckpoint(x.core,transport,{store:x.s,currentMixedProjection:true});check(cut.ref.kind==='checkpoint-manifest'&&cut.manifest.ownerScope.families.length>0&&cut.cut.generation>0,'original native encoder and publisher carry complete family commitment and actual generation');check(equalSourceWorkingPhysicalTree(await all(x),before),'complete initial native export changes no37-store data');pool();
    await x.s.repository.close();check(x.s.repository.db===null,'sender native database owner truly closed');const b=await fresh('SYNTHETIC_mixed_fresh_receiver');
@@ -109,13 +109,27 @@ export async function runMixedCurrentIndexNativeCases(){
     for(const block of restored.blocks){const row=await b.s.input(block.id);await b.s.editDocument({operationId:crypto.randomUUID(),documentId:row.documentId,blocks:[{id:row.id,expectedRevision:row.revision,libraryText:'SYNTHETIC fresh receiver edit '+(row.id===input?'A':'B')+' 中文🙂',note:'SYNTHETIC real editback',excluded:false}]});check((await b.s.input(row.id)).libraryText.includes('fresh receiver edit'),'genuine receiver Working command committed for each original Input');}
     check(x.s.repository.db===null,'all restore/editback runs while sender remains closed');pool();
     await thoughtRootIndexPage(b.s);await topicReadingPage(b.s,{topicId:topic.id,sort:'asc',limit:40});await b.s.drainLibraryMaintenance();
-    const edited=await all(b),successor=await buildGroupedCheckpoint(b.core,transport,{store:b.s,currentMixedProjection:true});check(equalSourceWorkingPhysicalTree(await all(b),edited),'restored original native re-export preserves whole37');pool();
+    const edited=await all(b),completed=edited.meta.find(row=>row.id.startsWith(b.core.prefix+'generation:')&&row.id.endsWith(':restore:')),receipt=edited.meta.find(row=>row.id.includes(':receipt:'));
+    check(!!completed&&!!receipt,'original restored control and receipt present');
+    const badManifest=structuredClone(completed);badManifest.manifest.ownerScope.families[0].digest=(badManifest.manifest.ownerScope.families[0].digest[0]==='0'?'1':'0')+badManifest.manifest.ownerScope.families[0].digest.slice(1);
+    for(const [corrupt,original,code]of [[{...completed,cleanup:{...completed.cleanup,complete:false}},completed,'BNS_GROUP_CANONICAL_UNREPRESENTED'],[badManifest,completed,'BNS_OBJECT_INTEGRITY'],[null,receipt,'BNS_GROUP_COMMIT_UNPROVEN']]){
+     try{await b.s.repository.transaction(true,t=>corrupt?t.put('meta',corrupt):t.delete('meta',original.id));const invalid=await all(b);let error,calls=0;
+      try{await buildGroupedCheckpoint(b.core,{...transport,async putImmutable(ref,data){calls++;await transport.putImmutable(ref,data);}},{store:b.s,currentMixedProjection:true});}catch(cause){error=cause;}
+      check(error?.code===code,'original restored control/protocol refusal: '+error?.message);check(calls===0,'no immutable publication on invalid original restored proof');check(equalSourceWorkingPhysicalTree(await all(b),invalid),'whole37 unchanged on restored-control/protocol refusal');pool();
+     }finally{await b.s.repository.transaction(true,t=>t.put('meta',original));}
+     check((await inspectMixedCurrentNativeScopeCompilation(b.s,b.core)).completeRestoredMetadataQualified===true,'original repaired restored cut fully consumed');pool();
+    }
+    const successor=await buildGroupedCheckpoint(b.core,transport,{store:b.s,currentMixedProjection:true});check(equalSourceWorkingPhysicalTree(await all(b),edited),'restored original native re-export preserves whole37');pool();
     await b.s.repository.close();check(b.s.repository.db===null&&x.s.repository.db===null,'both original senders closed before fresh third receiver');const c=await fresh('SYNTHETIC_mixed_fresh_third');
     try{check((await all(c)).blocks.length===0,'third receiver genuinely empty');const next=new GroupedCheckpointRestore(c.core,{store:c.s,restoreId:'SYNTHETIC_mixed_native_third_'+crypto.randomUUID()});await next.stageCheckpoint(successor.ref,ref=>transport.get(ref));await next.activate();do{cleanup=await next.cleanup({limit:100});}while(!cleanup.complete);check(cleanup.state==='cleaned','third original cleanup completed');
      const current=await all(c);check(current.blocks.length===2&&current.sections.length===2&&current.placements.length===1,'third retains full mixed owners and default/named Sections');for(const block of current.blocks)check((await c.s.input(block.id)).libraryText===(await Promise.resolve(edited.blocks.find(row=>row.id===block.id))).value.libraryText,'third reads genuine B Working content for each original Input');check((await c.s.entry(entry.id)).body==='SYNTHETIC native index Human 中文🙂','third retains Human body while both senders closed');check(current.meta.some(row=>row.id==='context-cards:v1'&&row.items[0].body==='SYNTHETIC manual Info')&&current.meta.some(row=>row.id==='prompt-reuse:v1'&&row.overrides.length===1),'third retains manual Context/Prompt');pool();
+     await thoughtRootIndexPage(c.s);await topicReadingPage(c.s,{topicId:topic.id,sort:'asc',limit:40});await c.s.drainLibraryMaintenance();
+     const cold=await all(c),qualified=await inspectMixedCurrentNativeScopeCompilation(c.s,c.core);check(qualified.completeRestoredMetadataQualified&&qualified.canonicalBodiesQualified&&qualified.ordinarySearchQualified&&qualified.searchCompleted,'fresh third receiver qualifies complete original restored bodies/metadata/search');check(equalSourceWorkingPhysicalTree(await all(c),cold),'fresh third full native read leaves whole37 unchanged');pool();
+     let changed=false,error;try{await buildGroupedCheckpoint(c.core,{...transport,async putImmutable(ref,data){await transport.putImmutable(ref,data);if(ref.kind==='checkpoint-manifest'&&new TextDecoder().decode(data).includes('ownerScope')){check(!changed,'single late original manifest boundary');const row=await c.s.input(input);await c.s.editDocument({operationId:crypto.randomUUID(),documentId:row.documentId,blocks:[{id:row.id,expectedRevision:row.revision,libraryText:'SYNTHETIC protected late C edit 中文🙂',note:'SYNTHETIC stale candidate refusal',excluded:false}]});changed=true;}}},{store:c.s,currentMixedProjection:true});}catch(cause){error=cause;}
+     check(changed&&error?.code==='BNS_SNAPSHOT_CHANGED','original mixed publication rejects actual changed canonical cut: '+error?.message);check((await c.s.input(input)).libraryText==='SYNTHETIC protected late C edit 中文🙂','late real C Working write remains protected after stale publication refusal');check(x.s.repository.db===null&&b.s.repository.db===null,'both former senders stay closed through fresh C native safety checks');pool();
     }finally{await c.s.repository.close();}
    }finally{if(b.s.repository.db)await b.s.repository.close();}
   });
-  return {status:'SYNTHETIC_MIXED_INITIAL_EXPORT_COMPONENT_ONLY',cases,assertions,stores:37,indices:110,nativeIndexInventory:true,initialNativeExport:true,closedSenderFreshReceiver:true,mixedNativeCapture:false,sharedWorkTicketQualified:false,fullCanonicalReady:false,provider:false,paid:false};
+  return {status:'SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',cases,assertions,stores:37,indices:110,nativeIndexInventory:true,initialNativeExport:true,closedSenderFreshReceiver:true,restoredNativeReexport:true,closedBothSendersFreshThird:true,restoredControlRefusals:true,changedMixedPublicationRefusal:true,mixedNativeCapture:false,sharedWorkTicketQualified:false,fullCanonicalReady:false,provider:false,paid:false};
  }finally{if(x.s.repository.db)await x.s.repository.close();}
 }
