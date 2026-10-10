@@ -1362,7 +1362,14 @@ async function projectionCompileInitialMixedScope(r){
   if(!['topic','entry','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
   for(const op of group.prepared.members)if(op.value.entityType==='topic'&&op.value.after.identity.aliases.length)projectionRequired();
  }
- const m=projectionRowMeasure(r,plan),scopeScratch=8*projectionTreeCharge(m)+4*projectionCanonicalCharge(m)+8*m.B+256*1024;
+ const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0};let wireCount=0;
+ // Scope clones original typed domain members/manual values, not complete
+ // operation envelopes/parents or descriptor vectors. Those remain held in
+ // the independently owned COMPLETE Plan. Price every domain input, including
+ // overwritten histories and both nested sides, without allocating a DTO.
+ const addWire=value=>{const measured=projectionRowMeasure(r,value);if(wireCount++)wire.B++;for(const key of ['B','T','V','E'])wire[key]+=measured[key];wire.E++;};
+ for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else addWire(group.operations[0].value);}
+ const scopeScratch=8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024;
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
