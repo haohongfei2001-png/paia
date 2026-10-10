@@ -6,7 +6,9 @@ const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.s
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{
  const extensionPath=variant==='source'?root:await mkdtemp(join(root,'work/prompt-diagnostic-release-'));if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',extensionPath],{cwd:root,stdio:'pipe'});
  let failures=0;const check=(name,fn)=>t.test(name,async()=>{try{await fn();}catch(error){failures++;throw error;}});
- const h=await FakeChatGPT.start({extensionPath,headless:!process.env.DISPLAY,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
+ // This native DOM/input suite uses headless Chrome even when CI provides Xvfb.
+ // OS/tab visibility belongs to its separate native lifecycle tests.
+ const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
  try{
   await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
