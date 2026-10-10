@@ -1,6 +1,6 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed} from './human-library-plan.js';
+import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
@@ -255,4 +255,13 @@ export async function publishGroupCurrentProjection(core,scope,plan,checkpoint,t
 }
 export function releaseGroupCurrentProjection(scope){
  if(hasHumanScope(scope))releaseHumanCurrentScopeProjection(scope);
+}
+
+export function originalMixedRestoredMetadataReplay(core,scope,plan){
+ requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=originalScopes.get(scope);if(!p?.restoredAllocation)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return originalMixedRestoredReplay(core,scope,plan,p.restoredAllocation);
+}
+export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,store,nonce){
+ requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=originalScopes.get(scope);
+ return p?.restoredAllocation?measureMixedRestoredExpectation(core,scope,plan,p.restoredAllocation):Object.freeze({B:0,T:0,V:0,E:0});
 }

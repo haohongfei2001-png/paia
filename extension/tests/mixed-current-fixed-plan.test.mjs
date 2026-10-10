@@ -4,7 +4,7 @@ import {bytes} from '../core/browser-native-sync/value.js';
 import {prepareHumanScopeProof} from '../core/browser-native-sync/human-library-scope.js';
 import {assertOriginalInitialMixedScopeCompilationProfile} from '../core/browser-native-sync/human-library-plan.js';
 import {checkCurrentGroupProtocolRows} from '../core/browser-native-sync/current-group-protocol-rows.js';
-import {planInitialMixedSemanticMetadata} from '../core/browser-native-sync/source-working-default-meta.js';
+import {planInitialMixedSemanticMetadata,planRestoredMixedSemanticMetadata} from '../core/browser-native-sync/source-working-default-meta.js';
 import {KNOWN_PREFIX,DIRTY_PREFIX,DELTA_COUNTER,HUMAN_FENCE} from '../core/ai-usage/delta.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -222,6 +222,9 @@ test('original mixed restored allocation consumes only the authenticated import 
   const before=await all(target),b=before.inputStates.find(row=>row.id!==x.a).id;target.sourceBootstrapJournal=new SourceBootstrapJournal(core);target.filterIntentJournal=new FilterIntentSyncJournal(core);target.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:target.filterIntentJournal,logicalCommits:true});target.humanLibraryJournal=new HumanLibrarySyncJournal(core);
   const human=await target.createEntry({actor:'user',body:'SYNTHETIC genuine B local Human tail 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});await inputEdit(target,b,{libraryText:'SYNTHETIC genuine B local Working tail 中文🙂',note:'SYNTHETIC first appended-B note'});
   const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);const plan=await prepareCurrentMixedGroupCheckpointPlan(core,operations),scope=await prepareGroupScope(plan,{store:target});
+  const metadata=planRestoredMixedSemanticMetadata(core,scope,plan),actualMeta=(await all(target)).meta,byId=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
+  assert.deepEqual(byId(metadata.known),byId(actualMeta.filter(row=>row.id.startsWith(KNOWN_PREFIX))));assert.deepEqual(byId(metadata.dirty),byId(actualMeta.filter(row=>row.id.startsWith(DIRTY_PREFIX))));assert.deepEqual(metadata.sequence,actualMeta.find(row=>row.id===DELTA_COUNTER));assert.deepEqual(metadata.humanFence,actualMeta.find(row=>row.id===HUMAN_FENCE));
+  assert.throws(()=>planRestoredMixedSemanticMetadata(core,structuredClone(scope),plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
   // Current compiler's Human-first ordering differs from historical allocation.
   const localHuman=plan.groups.findIndex(group=>group.type==='humanLibraryCommit'&&group.operations[0].deviceId===core.deviceId),source=plan.groups.findIndex(group=>group.type==='sourceBootstrapCommit');assert.ok(localHuman>=0&&localHuman<source);
   assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,scope)),true);const actual=await all(target);
@@ -236,6 +239,8 @@ test('original mixed restored allocation consumes only the authenticated import 
   const successor=await buildCheckpoint(core,transport,{grouped:{store:target}});await target.repository.close();
   third=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await third.consent(true);await third.finishFoundation();const nextCore=new BrowserNativeSyncCore(third.repository,{datasetId:core.datasetId,deviceId:'SYNTHETIC_mixed_fresh_third'}),nextRestore=new GroupedCheckpointRestore(nextCore,{store:third,restoreId:operationId()});await nextRestore.stageCheckpoint(successor.ref,ref=>transport.get(ref));await nextRestore.activate();do{cleanup=await nextRestore.cleanup({limit:3});}while(!cleanup.complete);
   const nextPlan=await prepareCurrentMixedGroupCheckpointPlan(nextCore,operations),nextScope=await prepareGroupScope(nextPlan,{store:third});assert.equal(await third.repository.transaction(false,t=>requireGroupScope(third,t,nextScope)),true);
+  const thirdMetadata=planRestoredMixedSemanticMetadata(nextCore,nextScope,nextPlan),thirdMeta=(await all(third)).meta;
+  assert.deepEqual(byId(thirdMetadata.known),byId(thirdMeta.filter(row=>row.id.startsWith(KNOWN_PREFIX))));assert.deepEqual(byId(thirdMetadata.dirty),byId(thirdMeta.filter(row=>row.id.startsWith(DIRTY_PREFIX))));assert.deepEqual(thirdMetadata.sequence,thirdMeta.find(row=>row.id===DELTA_COUNTER));assert.deepEqual(thirdMetadata.humanFence,thirdMeta.find(row=>row.id===HUMAN_FENCE));
   assert.equal((await third.entry(human.id)).body,'SYNTHETIC genuine B local Human tail 中文🙂');assert.equal((await third.input(b)).libraryText,'SYNTHETIC genuine B local Working tail 中文🙂');const stable=await all(third);await nextRestore.activate();assert.deepEqual(await all(third),stable);
   // Coherent per-Input+mapping corruption is still inconsistent with the
   // separately authenticated import allocation, even when counters are intact.

@@ -4,7 +4,7 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
-import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta} from './source-working-default-meta.js';
+import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
 import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
@@ -1455,8 +1455,10 @@ export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
   }
  }
 }
+function sourceHiddenMixedEstimate(plan,r){let value=0;for(const group of plan.groups)if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))for(const member of group.prepared.members)value+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));return value+4096*128;}
 async function projectionCompileInitialMixedScope(r){
- if(!r.mixedCompilationInspection||!r.nativeDrained||r.raw.namespace!=='initial'||r.binding.fixedNamespace!==null||r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active'))projectionRequired();
+ if(!r.mixedCompilationInspection||!r.nativeDrained||r.binding.fixedNamespace!==null)projectionRequired();
+ const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
  const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
  for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix)){
   if(row.redacted!==false||!row.operation||++number>128)projectionRequired();const m=projectionMeasure(row.operation,'native');for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;
@@ -1485,7 +1487,12 @@ async function projectionCompileInitialMixedScope(r){
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
  const wireScratch=8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024;
  const keyedScratch=2*projectionTreeCharge(wire)+4*projectionTreeCharge(humanWire)+2*projectionCanonicalCharge(humanWire)+8*humanWire.B+2*1024*1024;
- const scopeScratch=Math.max(wireScratch,keyedScratch);
+ // The restored prefix compiler/control check runs after wire construction
+ // returns. Its surviving private prefix and allocation cells remain live
+ // through the subsequent keyed phase; the complete current Plan never leaves.
+ const restoredOwned=restored?projectionTreeCharge(m)+sourceHiddenMixedEstimate(plan,r):0;
+ const restoredScratch=restored?compilerScratch+wireScratch+completedGroupControlScratch(r.core,r.raw)+256*1024:0;
+ const scopeScratch=Math.max(wireScratch,restoredScratch,keyedScratch+restoredOwned);
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
@@ -1499,7 +1506,8 @@ async function projectionCompileInitialMixedScope(r){
  // Scope construction and its sequential keyed operands have returned. The
  // same live ticket now owns their actual surviving trees, not both those
  // trees and a second copy of the already unwound construction scratch.
- r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
+ const restoredHidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,r.store,r.nonce);
+ r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden)+projectionTreeCharge(restoredHidden);r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
  r.semantic=mixedCurrentSearchScratch(r);projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
@@ -1536,8 +1544,8 @@ async function projectionCompileInitialMixedScope(r){
  // Pay their sequential peak while both full metadata maps, used-ID cells and
  // all owned raw/Plan/Scope/private trees stay live throughout this function.
  const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw))+4*metaPeak+4096*256+256*1024;
- projectionReserve(r,metadataScratch);assertInitialMixedDefaultMeta(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
- return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
+ projectionReserve(r,metadataScratch);(restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ return Object.freeze({version:1,state:restored?'RESTORED_NATIVE_SCOPE_COMPILATION_ONLY':'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:!restored,completeRestoredMetadataQualified:restored,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
 async function captureCurrentProjection(store,core,group,sourceWorking=false,mixedExport=false){

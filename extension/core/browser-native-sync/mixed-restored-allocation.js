@@ -1,3 +1,4 @@
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
 import {requireOriginalCurrentMixedGroupPlan,prepareCurrentMixedGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {requireOriginalCurrentMixedGroupScope,prepareOriginalMixedWireOwnerScope} from './group-checkpoint-scope.js';
@@ -44,7 +45,7 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta){
    for(const op of group.prepared.members)if(op.value.entityType==='history'){const h=op.value.after;if(!history.has(h.id))history.set(h.id,++revision);if(localGroup&&h.sequence!==history.get(h.id))refuse();}
   }else if(!['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
  }
- const cap=Object.freeze({});proofs.set(cap,{core,plan,active:clone(active),completed:clone(completed[0]),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefix.groups,...tail],core.deviceId)});return cap;
+ const cap=Object.freeze({});proofs.set(cap,{core,plan,active:Object.freeze(clone(active)),completed:clone(completed[0]),prefix,tail:Object.freeze(tail),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefix.groups,...tail],core.deviceId)});return cap;
 }
 
 export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta,cap,humanRows){
@@ -60,4 +61,20 @@ export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta
   const id=head.entityId.slice(9);if(head.revisions.length!==1||!equal(byId.get(key('workingHistory',id)),{id:key('workingHistory',id),revisionId:head.revisions[0],sequence:p.history.get(id)}))refuse();
  }
  assertMixedHumanPhysicalExpectation(core,scope,plan,humanRows,meta,p.human,p.history,p.active.namespace);return true;
+}
+
+// Borrow immutable authenticated replay order only. No native cut, mutable
+// allocator map, metadata exemption or provider/write capability is returned.
+export function originalMixedRestoredReplay(core,scope,plan,cap){
+ requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
+ return Object.freeze({active:p.active,completedId:p.completed.id,transactions:Object.freeze([p.prefix.groups,...p.tail.map(group=>Object.freeze([group]))]),historySequence:id=>p.history.get(id)});
+}
+export function measureMixedRestoredExpectation(core,scope,plan,cap){
+ requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
+ const total={B:0,T:0,V:0,E:0},add=value=>{const m=measureSourceWorkingPhysicalTree(value);for(const key of ['B','T','V','E'])total[key]+=m[key];};
+ add(p.prefix);add(p.active);add(p.completed);
+ for(const map of [p.inputs,p.history,p.human.entries,p.human.topics,p.human.receipts])for(const [key,value]of map)add([key,value]);
+ // Stored Map/array/control wrappers have their own finite cells, independent
+ // of borrowed complete Plan/member rows and already owned public Scope.
+ total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+p.tail.length+64;return Object.freeze(total);
 }
