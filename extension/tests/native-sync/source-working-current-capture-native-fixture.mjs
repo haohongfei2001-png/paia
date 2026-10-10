@@ -29,9 +29,22 @@ export async function runSourceWorkingCurrentCaptureNativeCases(){
    for(const name of names)Object.defineProperty(core,name,{configurable:true,get(){reads++;throw Error('SYNTHETIC supplied Core '+name);}});
    try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);check(reads===0,'all supplied public getter calls zero');releaseHumanCurrentUnindexedProjection(cap);cap=null;}finally{for(const [name,d]of descriptors)if(d)Object.defineProperty(core,name,d);else delete core[name];}pool();
   });
+  await run('larger corrupt native physical row refuses under unchanged original quota and releases all work',async()=>{
+   const original=await store.repository.transaction(false,t=>t.get('blocks',input));
+   try{
+    const corrupt=structuredClone(original);corrupt.value.note='x'.repeat(800000);await store.repository.transaction(true,t=>t.put('blocks',corrupt));const before=await all();let error;
+    try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);}catch(cause){error=cause;}
+    check(error?.code==='BNS_HUMAN_GRAPH_LIMIT','unchanged finite resource refusal before oversized canonical comparison');check(!cap,'no cap on oversized physical refusal');check(equalSourceWorkingPhysicalTree(await all(),before),'all37 exact physical values unchanged on budget refusal');pool();
+   }finally{await store.repository.transaction(true,t=>t.put('blocks',original));}
+  });
   await run('unknown physical local metadata refuses before any capture cap and preserves all37 stores',async()=>{
    await store.repository.transaction(true,t=>t.put('meta',{id:'SYNTHETIC-unknown-source-meta',value:'SYNTHETIC unsupported'}));const before=await all();let error;
    try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);}catch(cause){error=cause;}check(error?.code==='BNS_GROUP_CANONICAL_UNREPRESENTED','unknown exact metadata refusal');check(!cap,'no cap on refusal');check(equalSourceWorkingPhysicalTree(await all(),before),'all37 physical values unchanged after refusal');pool();
+  });
+  await run('third genuine original Working group refuses selected current-native profile before Scope creation',async()=>{
+   await store.repository.transaction(true,t=>t.delete('meta','SYNTHETIC-unknown-source-meta'));
+   const row=await store.input(input);await store.editDocument({operationId:crypto.randomUUID(),documentId:row.documentId,blocks:[{id:input,expectedRevision:row.revision,libraryText:'SYNTHETIC exact Working 中文🙂',note:'SYNTHETIC third edit',excluded:false}]});const before=await all();let error;
+   try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);}catch(cause){error=cause;}check(error?.code==='BNS_HUMAN_PROJECTION_REQUIRED','original two-receipt native count bound refuses third genuine Working commit before Scope');check(!cap,'no cap for third group');check(equalSourceWorkingPhysicalTree(await all(),before),'all37 physical values unchanged on third-group refusal');pool();
   });
   return {status:'SYNTHETIC_SOURCE_WORKING_NATIVE_CAPTURE_ONLY_NOT_EXPORT_OR_RECOVERY',cases,assertions,nativeCapture:true,sourceGroups:1,workingGroups:2,humanJournalAbsent:true,export:false,restore:false,workerRestart:false,provider:false,fullCanonicalReady:false};
  }finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);store.repository.db?.close();}

@@ -19,6 +19,16 @@ export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
  requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+// Restrict this current-native slice before the general Scope owner allocates
+// its complete tables or digests families. The general fixed compiler remains
+// usable for broader future prerequisites; only this original native selection
+// has one Source bootstrap and one/two genuine Working commits.
+export function requireSelectedCurrentSourceWorkingGroupPlan(core,plan){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentSourceWorkingGroupPlan(core,plan);
+ let source=0,working=0;
+ for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')source++;else if(group.type==='inputWorkingCommit')working++;else fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');}
+ if(plan.operationCount>128||source!==1||working<1||working>2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
 async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorking){

@@ -4,7 +4,8 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {assertSourceWorkingDefaultMeta} from './source-working-default-meta.js';
-import {prepareCurrentSourceWorkingGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan} from './group-checkpoint-plan.js';
+import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
 import * as currentSegmentOwner from './segments.js';
@@ -1140,10 +1141,13 @@ async function projectionCompileSourceWorking(r){
  const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024;
  projectionReserve(r,compilerScratch);const operations=[];for(const row of r.raw.groupMeta)if(row.id.startsWith(revisionPrefix))operations.push(row.operation);
  const plan=await prepareCurrentSourceWorkingGroupCheckpointPlan(r.core,operations);projectionCurrent(r);
+ requireSelectedCurrentSourceWorkingGroupPlan(r.core,plan);
+ projectionReserve(r,compilerScratch+sourceWorkingScopeScratch(plan));
  const scope=await currentGroupOwner.prepareGroupScope(plan);projectionCurrent(r);currentGroupOwner.requireOriginalCurrentSourceWorkingGroupScope(r.core,scope,plan);
  let hidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit')for(const member of group.prepared.members)hidden+=projectionTreeCharge(projectionMeasure(member.value.entity,'native'));
  r.owned+=projectionTreeCharge(projectionMeasure(plan,'native'))+projectionTreeCharge(projectionMeasure(scope,'native'))+hidden;
- r.group={...r.group,plan,scope,databaseId:r.binding.databaseId};projectionReserve(r,compilerScratch);
+ r.group={...r.group,plan,scope,databaseId:r.binding.databaseId};
+ projectionReserve(r,compilerScratch+sourceWorkingComparisonScratch(r.raw.rows,r.controlValues,scope.expected));
  assertSourceWorkingDefaultMeta(r.core,scope,plan,r.raw.rows,r.controlValues,r.binding.databaseId);projectionSourceWorkingIndexViews(r);projectionCurrent(r);projectionReserve(r);
 }
 function projectionSourceFree(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key)){const item=value[key];if((key==='sourceRecordIds'||key==='inputRefs')&&(!Array.isArray(item)||item.length))fail('BNS_HUMAN_UNSUPPORTED');projectionSourceFree(item);}}
