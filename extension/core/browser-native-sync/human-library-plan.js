@@ -957,7 +957,17 @@ const projectionPhysicalIndexKey=(r,store,index,row)=>r.mixedIndexInspection?mix
 // and one descriptor/builder/key-generator frame, not initial native cloning.
 function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
 function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
-function projectionReserve(r,scratch=0){const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+(r.fixedScratch||0)+scratch;if(charge>8*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');resizeHumanQualificationLease(r.work,charge);}
+function projectionReserve(r,scratch=0){
+ const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+(r.fixedScratch||0)+scratch;
+ if(charge>8*1024*1024){
+  try{fail('BNS_HUMAN_GRAPH_LIMIT');}catch(error){
+   // Body-free failure evidence for the unfinished mixed compiler. Keep the
+   // original code/limit/refusal; expose no rows, keys, IDs or private secret.
+   if(r.mixedCompilationInspection)error.message+=' '+JSON.stringify({limit:8*1024*1024,charge,owned:r.owned,transient:r.transient||0,fixed:r.fixedScratch||0,scratch,phase:r.phase});throw error;
+  }
+ }
+ resizeHumanQualificationLease(r.work,charge);
+}
 function projectionDeepFreeze(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key))projectionDeepFreeze(value[key]);projectionFreeze(value);}
 function projectionCurrent(r){r.storeAssert(r.store);if(r.revoked||r.closed||!r.work||r.sourceWorking&&r.retainedParent&&(r.retainedParent.revoked||r.retainedParent.released))projectionRequired();if(r.sourceWorking)requireSourceWorkingStoreBinding(r.store,r.core,r.binding);else branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
 function projectionKeep(r,value,transfer=false){
