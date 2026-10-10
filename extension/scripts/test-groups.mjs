@@ -1,4 +1,5 @@
 const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
+const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 // Full37830791787/37833847645 measured whole-file capacity; historical widths stay unchanged.
 const CURRENT_NINE=new Map([
  [removedPlacement,4],
@@ -87,6 +88,7 @@ const CURRENT_NINE=new Map([
  ["ux-r5-ai-update-chrome-e2e.test.mjs",6],
  ["ux-r5-certification-chrome-e2e.test.mjs",8],
  ["ux-r6-release-chrome-e2e.test.mjs",1],
+ [preferencePublication,7],
 ]);
 const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 const writing='topic-section-writing-chrome-e2e.test.mjs';
@@ -95,7 +97,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,
+const CURRENT_BROWSER=new Set([topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -155,6 +157,7 @@ export function group(file) {
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
  const addedName=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===preferencePublication)return 3;if(addedName>preferencePublication)position--;}
  // Admit only this new whole file; keep all previously certified positions.
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===topicReturn)return 2;if(addedName>topicReturn)position--;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}

@@ -1,3 +1,13 @@
+# 0.43.12 generic preference publication candidate — 2026-10-10
+
+SET2-01/SYNC prerequisite continues through the original settings write owner: known before-write failure keeps the last acknowledged selection; a rejected publication is confirmed only when complete original local rows, database/gate/recovery identities and live ownership agree after the original transaction commits. Requests are detached before awaits. No replay, stored intent, journal, extra writer, consent/Sync activation or AI-style acknowledgement change is introduced.
+
+Finite local code/owning/native review passed. [Owning candidate record](implementation/verification/COHERENT-04312-PREFERENCE-PUBLICATION.md) preserves exact versions, first failed probes, withdrawn misbound evidence, true synthetic-fault boundaries and remaining combination/formal/main gates. The current user-facing package remains qualified0.43.10; actualmain0.43.11 FullMac failed and its455-file build is held despite separate native46/Prompt5 passes. Diagnostic65b hostedMac2 success is a different test version and does not prove the old cause fixed.
+
+All seven authorized lanes remain unfinished. Exact CTX4/SET2 visual materials remain separately missing. No paid model, real cloud/user upload, expanded permission, formal deployment, installed build or full Sync readiness is asserted.
+
+---
+
 # 0.43.11 Source/Working local checkpoint candidate — qualification pending (2026-10-10)
 
 Accepted runtime/package remains qualified0.43.10 actual main b28863e9; current docs-only main b461047d is the coherent candidate base. Root's sole-writer SYNC-01 candidate adds only default-false fixed original native Source bootstrap plus1–2 genuine Working groups, all37 tables/49 originalindexes/default18-row metadata and three fully drained cuts through the existing original encoder/restore. It preserves original wire codecs, caps, permissions and default consumers. No public Sync switch/provider/account activation is added.

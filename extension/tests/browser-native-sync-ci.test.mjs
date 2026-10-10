@@ -224,3 +224,15 @@ test('both native jobs append complete Source captures checkpoint recovery and d
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error/);
  }
 });
+
+
+test('current browser native preference proofs keep the genuine clean-checkout prerequisite',()=>{
+ const workflow=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
+ const section=workflow.slice(workflow.indexOf('  current_browser:')).split(/\n  [a-z_]+:/)[0];
+ assert.match(section,/npm install --no-audit --no-fund --package-lock=false/);
+ const proof=readFileSync(new URL('./native-sync/preference-publication-native.test.mjs',import.meta.url),'utf8');
+ assert.ok(proof.includes("assert.equal(before.dirty,'')"),'native execution still rejects a dirty source tree');
+ assert.match(section,/timeout-minutes: 18/);
+ assert.match(section,/xvfb-run -a npm run test:browser/);
+ assert.doesNotMatch(section,/test-name-pattern|test-skip-pattern|continue-on-error/);
+});
