@@ -4,6 +4,10 @@ import {SourceBootstrapJournal} from '../../core/browser-native-sync/source-boot
 import {FilterIntentSyncJournal} from '../../core/browser-native-sync/filter-intent-journal.js';
 import {InputWorkingSyncJournal} from '../../core/browser-native-sync/input-working-journal.js';
 import {HumanLibrarySyncJournal} from '../../core/browser-native-sync/human-library-journal.js';
+import {PromptSyncJournal} from '../../core/browser-native-sync/prompt-journal.js';
+import {PromptReuseService} from '../../core/prompt-reuse-service.js';
+import {ContextDesiredSyncJournal} from '../../core/browser-native-sync/context-desired-journal.js';
+import {ContextCardsService} from '../../core/context-cards.js';
 import {inspectMixedCurrentNativeIndexClosure,inspectMixedCurrentNativeScopeCompilation} from '../../core/browser-native-sync/human-library-plan.js';
 import {equalSourceWorkingPhysicalTree} from '../../core/browser-native-sync/source-working-physical.js';
 import {beginHumanQualificationWork,releaseHumanQualificationLease} from '../../core/browser-native-sync/human-qualification-budget.js';
@@ -26,6 +30,8 @@ export async function runMixedCurrentIndexNativeCases(){
   const input=(await x.s.snapshot()).library.blocks[0].id,row=await x.s.input(input);await x.s.editDocument({operationId:crypto.randomUUID(),documentId:row.documentId,blocks:[{id:input,expectedRevision:row.revision,libraryText:'SYNTHETIC mixed Working 中文🙂',note:'SYNTHETIC',excluded:false}]});
   const topic=await x.s.createTopic({name:'SYNTHETIC native index Topic',operationId:crypto.randomUUID()}),entry=await x.s.createEntry({actor:'user',body:'SYNTHETIC native index Human 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:crypto.randomUUID()});await x.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:0,expectedTopicRevision:0,operationId:crypto.randomUUID()});
   await x.s.createSection({topicId:topic.id,expectedTopicRevision:1,title:'SYNTHETIC named native Section',operationId:crypto.randomUUID()});
+  await new PromptReuseService(x.s,{syncJournal:new PromptSyncJournal(x.core)}).change({action:'create',revision:0,text:'SYNTHETIC manual Prompt'});
+  await new ContextCardsService(x.s,{syncJournal:new ContextDesiredSyncJournal(x.core)}).change({kind:'put',card:'info',itemId:crypto.randomUUID(),operationId:crypto.randomUUID(),epoch:'initial',expectedRevision:0,body:'SYNTHETIC manual Info',section:'SYNTHETIC'});
   await run('actual mixed Source Working and Human native cut checks all37 stores and110 indexes without export grant',()=>inspect(x));
   await run('original initial mixed Scope compiles from the same frozen native cut without a second supplied key or metadata reader',async()=>{
    const before=await all(x),tail=x.s.tail,control=x.s.controlCache,original=Object.getOwnPropertyDescriptor(x.s,'run'),names=['rows','get','bind','transaction','prepareCurrentMixedGroupReceive'],descriptors=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(x.core,name)]));let reads=0;
@@ -34,6 +40,26 @@ export async function runMixedCurrentIndexNativeCases(){
    try{const result=await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);check(reads===0,'no supplied Core/store/key/meta getter');check(result.state==='INITIAL_NATIVE_SCOPE_COMPILATION_ONLY'&&result.scopeCompiled===true&&result.nativeDrained===true,'original branded Plan/Scope compilation from genuine drained nativeR');check(result.canonicalBodiesQualified===true,'original canonical bodies and Source derivatives consumed from the same frozen nativeR');check(result.stores===37&&result.indices===110&&result.operations>0&&result.operations<=128&&result.groups>3,'complete mixed capture/finite compiler');check(result.canonicalQualified===false&&result.exportAdmitted===false&&result.retainedCapability===false&&result.fullTariffsQualified===false,'no fullcanonical/encoder/retained/tariff grant');check(Object.isFrozen(result)&&Object.values(result).every(value=>typeof value!=='object'),'bodyfree fixed compiler findings only');check(x.s.tail===tail&&x.s.controlCache===control,'original tail/control identity never rebound');}
    finally{if(original)Object.defineProperty(x.s,'run',original);else delete x.s.run;for(const [name,d]of descriptors)if(d)Object.defineProperty(x.core,name,d);else delete x.core[name];}
    check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by initial nativeScope compilation');pool();
+  });
+  await run('ordinary completed original search is qualified on the same native cut before current indexed tags are projected',async()=>{
+   await x.s.drainLibraryMaintenance();const before=await all(x);check(before.librarySearchTerms.length>0&&before.libraryMigrationItems.every(row=>row.entityKind!=='search'),'original maintenance created full postings and drained search tasks');
+   const result=await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);check(result.ordinarySearchQualified===true&&result.searchCompleted===true&&result.canonicalBodiesQualified===true,'same-cut completed search and current body projection');check(result.canonicalQualified===false&&result.exportAdmitted===false,'fullmetadata/export still unqualified');check(equalSourceWorkingPhysicalTree(await all(x),before),'search qualification changes no data');pool();
+  });
+  await run('same native body consumer refuses changed Working text and missing completed posting without writes then accepts original repair',async()=>{
+   for(const [name,id,change]of [['blocks',input,row=>({...row,value:{...row.value,note:'SYNTHETIC forged note'}})],['librarySearchTerms',(await all(x)).librarySearchTerms[0].id,()=>null]]){
+    const original=await x.s.repository.transaction(false,t=>t.get(name,id));try{
+     await x.s.repository.transaction(true,t=>change(original)===null?t.delete(name,id):t.put(name,change(original)));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
+     check(['BNS_GROUP_CANONICAL_UNREPRESENTED','BNS_HUMAN_SEARCH_UNPROVEN'].includes(error?.code),'exact original canonical/search refusal');check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by badbody/posting refusal');pool();
+    }finally{await x.s.repository.transaction(true,t=>t.put(name,original));}
+    check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original repair accepted by the same canonical consumer');pool();
+   }
+  });
+  await run('large malformed actual name-prefix metadata cannot bypass original unchanged live work bound',async()=>{
+   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(550000)};
+   try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
+    check(error?.code==='BNS_HUMAN_GRAPH_LIMIT','actual large prefix pays separate canonical scratch and refuses original8Mi');check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
+   }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
+   check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original name metadata repair accepted');pool();
   });
   await run('all public Core reader getters remain uncalled during original native index inspection',async()=>{const names=['rows','get','bind','transaction','prepareCurrentMixedGroupReceive'],descriptors=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(x.core,name)]));let reads=0;for(const name of names)Object.defineProperty(x.core,name,{configurable:true,get(){reads++;throw Error('SYNTHETIC supplied reader');}});try{await inspect(x);check(reads===0,'zero supplied public reader calls');}finally{for(const [name,d]of descriptors)if(d)Object.defineProperty(x.core,name,d);else delete x.core[name];}});
   await run('complete multiEntry index comparison respects native duplicate and invalid-key omission',async()=>{const original=await x.s.repository.transaction(false,t=>t.get('blockIndex',input));try{await x.s.repository.transaction(true,t=>t.put('blockIndex',{...original,recordIds:['SYNTHETIC_duplicate','SYNTHETIC_duplicate',undefined,null,{}]}));const count=await x.s.repository.transaction(false,t=>new Promise((resolve,reject)=>{const request=t.tx.objectStore('blockIndex').index('byRecord').count('SYNTHETIC_duplicate');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);}));check(count===1,'native duplicate yields exactly one entry');await inspect(x);}finally{await x.s.repository.transaction(true,t=>t.put('blockIndex',original));}});

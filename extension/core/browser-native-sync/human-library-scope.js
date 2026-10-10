@@ -4,6 +4,7 @@ import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
 import {keyedHash} from '../thought-model.js';
 import {ownerVersion} from '../library-search.js';
+import {projectOriginalMixedNativeSearchRow} from './human-library-search-proof.js';
 import {captureHumanCurrentUnindexedProjection,captureHumanCurrentGroupProjection,requireHumanCurrentUnindexedProjection,releaseHumanCurrentUnindexedProjection,bindHumanCurrentUnindexedProjectionScope,encodeHumanCurrentGroupCheckpoint,publishHumanCurrentGroupCheckpoint,branchRawMeasure,borrowOriginalMixedScopeCompilationSecret,requireOriginalMixedScopeCompilationCurrent,requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {clone,equal,fail,count} from './value.js';
@@ -84,17 +85,17 @@ export function hasHumanScope(scope){return proofs.has(scope);}
 // Mixed history retains its Source/Working rows. Compare the exact Human ID
 // inventory here; the original outer canonical owner compares every other row.
 // This body assertion neither admits search derivatives nor grants an export.
-export function assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce){
- if(arguments.length!==6)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+export function assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce,searchProof){
+ if(arguments.length!==7)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
  const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(!equal(raw.rows.meta.find(row=>row.id==='thought-suppression-key')?.value,p.secret))fail('BNS_HUMAN_CHANGED');
  for(const [type,name]of Object.entries(types)){
   if(type==='keepSeparate')continue;const rows=raw.rows[name];if(rows.length>128)fail('BNS_GROUP_RESOURCE_LIMIT');
   for(const row of rows)if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
-  if(!equal(sort(rows.map(row=>normalizePhysical(type,row))),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+  if(!equal(sort(rows.map(row=>normalizePhysical(type,['entry','topic','section'].includes(type)?projectOriginalMixedNativeSearchRow(searchProof,type,row):row))),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
  const ids=new Set(p.rows.history.map(row=>row.id)),history=raw.rows.revisions.filter(row=>ids.has(row.id));
- if(!equal(sort(history.map(row=>normalizePhysical('history',row))),p.rows.history))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal(sort(history.map(row=>normalizePhysical('history',projectOriginalMixedNativeSearchRow(searchProof,'history',row)))),p.rows.history))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  for(const [prefix,expected]of [['personalTopicName:',p.names],['topicKeepSeparate:',p.pairs]])if(!equal(sort(raw.rows.meta.filter(row=>row.id.startsWith(prefix))),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return {history:p.rows.history};
 }

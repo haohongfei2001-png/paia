@@ -11,8 +11,8 @@ import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
 import * as currentSegmentOwner from './segments.js';
 import * as currentCheckpointOwner from './checkpoints.js';
-import {inspectHumanUnindexedSearch} from './human-library-search-proof.js';
-import {planSearchQueueLocator} from '../library-search.js';
+import {inspectHumanUnindexedSearch,prepareOriginalMixedNativeSearch,originalMixedNativeSearchCounts,releaseOriginalMixedNativeSearch} from './human-library-search-proof.js';
+import {planSearchQueueLocator,planSearchPostingRow,searchOwnerFields} from '../library-search.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
 import {planIndependentExpressionTime,unknownExpressionTime} from '../organizer/expression-time.js';
 import {planThoughtRootProjection,liveTopicKey,planThoughtTopicBuild,planThoughtTopicDescriptorRows,accumulateThoughtTopicDescriptor,completeThoughtTopicProjection} from '../thought-read-index.js';
@@ -1175,9 +1175,9 @@ async function projectionCompileSourceWorking(r){
 }
 function projectionSourceFree(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key)){const item=value[key];if((key==='sourceRecordIds'||key==='inputRefs')&&(!Array.isArray(item)||item.length))fail('BNS_HUMAN_UNSUPPORTED');projectionSourceFree(item);}}
 function projectionScalarString(value,max=512){if(typeof value!=='string'||value.length>max)projectionRequired();}
-function projectionNativeOrder(r,store,view,parts){
+function projectionNativeOrder(r,store,view,parts,raw=r.raw){
  const path=LIBRARY_INDEXES[store][store==='placements'?'byTopicOrder':'byOwner'];
- const expected=r.raw.rows[store].filter(row=>parts.every((part,i)=>row[path[i]]===part));
+ const expected=raw.rows[store].filter(row=>parts.every((part,i)=>row[path[i]]===part));
  for(const row of expected){const key=projectionExpectedKey(row,path);projectionCompare.call(projectionFactory,key,key);}
  expected.sort((a,b)=>projectionCompare.call(projectionFactory,projectionExpectedKey(a,path),projectionExpectedKey(b,path))||projectionCompare.call(projectionFactory,a.id,b.id));
  if(expected.length!==view.keys.length)fail('BNS_HUMAN_CHANGED');
@@ -1207,24 +1207,25 @@ function projectionSemanticCharge(r){
  }
  return charge;
 }
-function projectionQualify(r){
- const raw=r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
- r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);
- if(rows.provenance.length||rows.dependencies.length||rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
+function projectionQualify(r,mixed=false){
+ const raw=mixed?mixedNativeQueryView(r):r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
+ if(!mixed){r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);}
+ if(rows.provenance.length||rows.dependencies.length||!mixed&&rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
  if(!settings?.enabled||settings.consentVersion!==CONSENT_VERSION||points.gate&&(points.gate.epoch!==settings.epoch||points.gate.enabled!==settings.enabled))fail('BNS_HUMAN_PERMISSION');
  if(points['thought-library']?.sealed)fail('BNS_HUMAN_UNSUPPORTED');
  const epoch=points['thought-epoch']?.value||0;if(!Number.isSafeInteger(epoch)||epoch<0)projectionRequired();
- projectionSourceFree(raw);
+ if(mixed){for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions'])projectionSourceFree(rows[name]);}else projectionSourceFree(raw);
  const migration=new Map(),metadata=new Map();let descriptors=0;
  for(const row of rows.libraryMigrationItems){projectionScalarString(row.id,2048);if(migration.has(row.id))projectionRequired();migration.set(row.id,row);}
  for(const row of raw.prefixes['thought-read-index:']){projectionScalarString(row.id,2048);if(metadata.has(row.id))projectionRequired();metadata.set(row.id,row);}
  const match=row=>{if(!row)return;if(!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');migration.delete(row.id);};
  const queue=[];
- for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
+ if(mixed){for(const row of rows.libraryMigrationItems)if(row.entityKind==='search'){queue.push(row);migration.delete(row.id);}}
+ else for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
  // Every physical migration row will also be matched below; this subset is
  // used only after its exact original queue locator has been observed.
  const search={rows:{thoughts:rows.thoughts,topics:rows.topics,sections:rows.sections,revisions:rows.revisions,libraryMigrationItems:queue,librarySearchTerms:rows.librarySearchTerms},rebuild:points['library-search-rebuild']};
- projectionDeepFreeze(search);inspectHumanUnindexedSearch(search);
+ if(!mixed){projectionDeepFreeze(search);inspectHumanUnindexedSearch(search);}
  const root=metadata.get('thought-read-index:v1:root');
  if(root){
   projectionScalarString(root.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(root.activeGeneration)||typeof root.completedAt!=='string'||!Number.isFinite(Date.parse(root.completedAt)))projectionRequired();
@@ -1234,7 +1235,7 @@ function projectionQualify(r){
  }
  for(const topic of rows.topics){
   const view=raw.placementOrder.find(item=>item.topicId===topic.id);if(!view)projectionRequired();
-  const placements=projectionNativeOrder(r,'placements',view,[topic.id,topic.activeLayoutGeneration,0]);
+  const placements=projectionNativeOrder(r,'placements',view,[topic.id,topic.activeLayoutGeneration,0],raw);
   const id='thought-read-index:v1:topic:'+topic.id,actual=metadata.get(id);if(!actual)continue;
   if(topic.lifecycle!=='active'||topic.redirectTo||actual.version!==THOUGHT_TOPIC_INDEX_VERSION||!Number.isSafeInteger(actual.timeRevision)||actual.timeRevision<0)projectionRequired();
   projectionScalarString(actual.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(actual.activeGeneration)||typeof actual.completedAt!=='string'||!Number.isFinite(Date.parse(actual.completedAt)))projectionRequired();
@@ -1249,7 +1250,7 @@ function projectionQualify(r){
    for(const field of ['entryId','sectionId','sectionRank','rank'])projectionScalarString(p[field]);
    if(row.createdAt!==null&&row.createdAt!==undefined)projectionScalarString(row.createdAt,128);
    const receipts=raw.receiptOrder.find(item=>item.ownerId===row.id);if(!receipts)projectionRequired();
-   const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id]);
+   const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id],raw);
    const receipt=receiptRows[0]??null,evidenceAt=receipt?.result?.independentExpression?.at;if(evidenceAt!==undefined&&evidenceAt!==null)projectionScalarString(evidenceAt,128);
    if(!Number.isSafeInteger(p.revision)||p.revision<0)projectionRequired();
    const expression=row.staleReasons?.includes('source_purged')?unknownExpressionTime():planIndependentExpressionTime(row,receipt);
@@ -1265,12 +1266,22 @@ function projectionQualify(r){
   if(!projectionEqual(r,actual,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(id);
  }
  // Receipt order is authenticated even for an Entry outside a current Topic.
- for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id]);}
+ for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id],raw);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
  migration.clear();metadata.clear();
+ if(mixed){r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
+}
+// Derived reference views retain the original raw/indices. This is neither a
+// second native snapshot nor an alternative repository/transaction facade.
+function mixedNativeQueryView(r){
+ const raw=r.raw,points=Object.create(null),prefixes=Object.create(null);
+ for(const key of projectionPoints)points[key]=raw.rows.meta.find(row=>row.id===key)??null;
+ for(const prefix of projectionPrefixes)prefixes[prefix]=raw.rows.meta.filter(row=>row.id.startsWith(prefix));
+ const indexed=(store,index,parts)=>raw.indices[store][index].filter(item=>Array.isArray(item.key)&&parts.every((part,i)=>projectionCompare.call(projectionFactory,item.key[i],part)===0));
+ return {rows:raw.rows,points,prefixes,placementOrder:raw.rows.topics.map(topic=>({topicId:topic.id,keys:indexed('placements','byTopicOrder',[topic.id,topic.activeLayoutGeneration,0])})),receiptOrder:raw.rows.thoughts.map(entry=>({ownerId:entry.id,keys:indexed('operationReceipts','byOwner',['thought-library',entry.id])}))};
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
-function projectionDrop(r){r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionDrop(r){if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
 function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
 // Original mixed Scope construction will consume the already authenticated,
 // frozen full native cut. No caller-supplied secret/DTO and no Store.run tail
@@ -1297,6 +1308,14 @@ export function requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,pl
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==6||!r||r.sourceWorking!=='mixed'||r.store!==store||r.core!==core||r.phase!=='mixed-canonical-qualifying'||!r.nativeDrained||r.raw!==raw||r.group?.scope!==scope||r.group?.plan!==plan)projectionRequired();
  projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(core,scope,plan);
+}
+export function requireOriginalMixedNativeSearchInputs(nonce,store,core,scope,plan,raw,queue){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ if(currentProjectionWorks.get(nonce).mixedSearchQueue!==queue)projectionRequired();
+}
+export function requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ if(currentProjectionWorks.get(nonce).controlValues!==control)projectionRequired();
 }
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
@@ -1350,6 +1369,32 @@ function completedGroupControlScratch(core,raw){
 }
 const mixedIndexNonempty=new Set([...sourceWorkingCurrentNonemptyStores,'thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','librarySearchTerms']);
 function mixedIndexPrimaryLimit(name){return !mixedIndexNonempty.has(name)?0:name==='meta'||name==='librarySearchTerms'?4096:name==='revisions'?96:name==='libraryMigrationItems'?768:128;}
+function mixedCurrentSearchScratch(r){
+ // Fixed frame is reserved before constructing any per-field meter operand.
+ // Each scalar NFKD temporary is bounded by the current Unicode decomposition
+ // table; their sum bounds NFKC composition. A three-unit lowercase expansion
+ // per decomposed unit also covers conditional SpecialCasing mappings. See
+ // Unicode17 SpecialCasing.txt. Never assume normalized length == input length.
+ projectionReserve(r,96*1024);
+ let expected=0,tokenPeak=0,owners=0;
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
+  if(++owners>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');projectionScalarString(row.id);
+  const task=planSearchQueueLocator(kind,row);
+  for(const [field,text]of Object.entries(searchOwnerFields(kind,row))){
+   if(typeof text!=='string')fail('BNS_HUMAN_SEARCH_UNPROVEN');let decomposed=0;for(const scalar of text)decomposed+=scalar.normalize('NFKD').length;
+   const units=3*decomposed,posting=projectionRowMeasure(r,planSearchPostingRow(task,{field,tokenHash:'ffffffff'},row));
+   // At most one token per normalized unit. Pay complete flatMap descriptors,
+   // PostingRows/IDs and canonical/sort operands, including a missing actual
+   // posting counterexample; actual row count cannot bound expected output.
+   expected+=units*(2*projectionTreeCharge(posting)+2*projectionCanonicalCharge(posting)+256);
+   // Original normalize/lowercase, regexp word strings+headers, mapped hash
+   // strings, dedup Set, sorted token/reference arrays and one field frame.
+   tokenPeak=Math.max(tokenPeak,units*1024+4096);
+  }
+ }
+ const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);
+ return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4096*128+192*1024;
+}
 // Consuming readonly prerequisite: the fixed original native reader checks the
 // complete v5 index inventory on the existing live work ticket and drains it.
 // No raw rows, retained cap, Scope, encoder or export admission is returned.
@@ -1422,6 +1467,11 @@ async function projectionCompileInitialMixedScope(r){
  // trees and a second copy of the already unwound construction scratch.
  r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
+ r.semantic=mixedCurrentSearchScratch(r);projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
+ const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
+ // Only new owner-key Map/Set cells survive search construction. Their rows
+ // borrow the original R and are already owned; no private source is refunded.
+ r.owned+=searchCounts.owners*4096+1024;projectionReserve(r);
  // Pay the actual body comparison independently after construction unwinds.
  // Raw/Plan/Scope/keyed expectations remain owned. Originals compare Human
  // tables sequentially; the outer comparison holds its cloned domain rows and
@@ -1432,9 +1482,19 @@ async function projectionCompileInitialMixedScope(r){
   const measured=projectionRowMeasure(r,r.raw.rows[name]);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));
  }
  for(const id of ['context-cards:v1','prompt-reuse:v1']){const row=r.raw.rows.meta.find(row=>row.id===id);if(row){const measured=projectionRowMeasure(r,row);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));}}
- const expectedBody=projectionRowMeasure(r,scope.expected),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
- projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
- return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
+ // Corrupt metadata operands are independent of the small authentic expected
+ // body: names/pairs compare whole prefix arrays; counter/mapping/receipt
+ // checks compare actual rows individually. Pay each real operand's peak.
+ let metaPeak=0;
+ for(const row of r.raw.rows.meta)metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ for(const prefix of ['personalTopicName:','topicKeepSeparate:']){
+  const total={B:2,T:0,V:1,E:0};let number=0;
+  for(const row of r.raw.rows.meta)if(row.id.startsWith(prefix)){const measured=projectionRowMeasure(r,row);if(number++)total.B++;for(const key of ['B','T','V','E'])total[key]+=measured[key];total.E++;}
+  metaPeak=Math.max(metaPeak,projectionCanonicalCharge(total));
+ }
+ const expectedBody=projectionRowMeasure(r,scope.expected),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,metaPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
+ projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce,r.mixedSearchProof);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
 async function captureCurrentProjection(store,core,group,sourceWorking=false){

@@ -1,6 +1,6 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
@@ -211,11 +211,12 @@ function compareGroupCanonicalValues(scope,actual,human){
 // Original Scope comparison on the already frozen native R, without a fake
 // transaction, a supplied repository facade or a second canonical snapshot.
 // Protocol/full-metadata/search admission remains independently required.
-export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw,control,nonce){
- if(arguments.length!==7)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw,control,nonce,searchProof){
+ if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control);
  if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  assertMixedCurrentSourceDerivedRows(core,scope,plan,raw.rows);
- const human=assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce),actual={},original=originalScopes.get(scope);
+ const human=assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce,searchProof),actual={},original=originalScopes.get(scope);
  for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(raw.rows[name].map(row=>clone(row.value)));
  for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(raw.rows[name].map(row=>clone(row)));
  const humanRows={revisions:actual.revisions,thoughts:raw.rows.thoughts,topics:raw.rows.topics,operationReceipts:raw.rows.operationReceipts};
