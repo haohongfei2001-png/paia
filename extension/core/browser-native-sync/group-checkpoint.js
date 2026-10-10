@@ -1,4 +1,4 @@
-import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
+import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
 import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
 import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
@@ -30,23 +30,25 @@ async function requireCommittedPlan(core,t,plan){
  heads.sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  if(!equal(heads,plan.heads))fail('BNS_GROUP_COMMIT_UNPROVEN');
 }
-async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents){
+async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents,mixed=false){
  let cap;
  try{
-  cap=await captureSourceWorkingCurrentGroupProjection(store,core);
-  await requireSourceWorkingCurrentGroupProjection(cap);
-  const checkpoint=await encodeSourceWorkingCurrentGroupCheckpoint(cap,transport,{profile,parents});
-  await requireSourceWorkingCurrentGroupProjection(cap);
-  const published=await publishSourceWorkingCurrentGroupCheckpoint(cap,checkpoint,transport,{profile});
+  cap=mixed?await captureMixedCurrentGroupProjection(store,core):await captureSourceWorkingCurrentGroupProjection(store,core);
+  const requireCut=mixed?requireMixedCurrentGroupProjection:requireSourceWorkingCurrentGroupProjection;
+  await requireCut(cap);
+  const checkpoint=mixed?await encodeMixedCurrentGroupCheckpoint(cap,transport,{profile,parents}):await encodeSourceWorkingCurrentGroupCheckpoint(cap,transport,{profile,parents});
+  await requireCut(cap);
+  const published=mixed?await publishMixedCurrentGroupCheckpoint(cap,checkpoint,transport,{profile}):await publishSourceWorkingCurrentGroupCheckpoint(cap,checkpoint,transport,{profile});
   // Immutable publication may overlap a genuine local edit. Advertise only an
   // unchanged full37-store/49-index cut after its true native read has drained.
-  await requireSourceWorkingCurrentGroupProjection(cap);
+  await requireCut(cap);
   return {ref:published.ref,manifest:published.manifest,cut:checkpoint.cut};
  }catch(error){if(error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}
  finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);}
 }
-export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false}={}){
- if(typeof currentHumanProjection!=='boolean'||typeof currentSourceWorkingProjection!=='boolean'||currentHumanProjection&&currentSourceWorkingProjection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false,currentMixedProjection=false}={}){
+ if([currentHumanProjection,currentSourceWorkingProjection,currentMixedProjection].some(value=>typeof value!=='boolean')||Number(currentHumanProjection)+Number(currentSourceWorkingProjection)+Number(currentMixedProjection)>1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(currentMixedProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents,true);
  if(currentSourceWorkingProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents);
  if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
