@@ -3,6 +3,7 @@ import {requireSourceWorkingStoreBinding} from './source-working-binding.js';
 import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
+import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
 import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta} from './source-working-default-meta.js';
 import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
@@ -796,7 +797,7 @@ export async function finalizeHumanRetentionNativeEffects(core,retention,claim){
 // original write/finalizer hooks remain observable.
 const retentionNative=(()=>{
  const method=(name,key)=>globalThis[name]?.prototype?.[key],get=(name,key)=>globalThis[name]&&Object.getOwnPropertyDescriptor(globalThis[name].prototype,key)?.get;
- return Object.freeze({transaction:method('IDBDatabase','transaction'),store:method('IDBTransaction','objectStore'),abort:method('IDBTransaction','abort'),db:get('IDBTransaction','db'),mode:get('IDBTransaction','mode'),storeNames:get('IDBTransaction','objectStoreNames'),databaseStoreNames:get('IDBDatabase','objectStoreNames'),listLength:get('DOMStringList','length'),listItem:method('DOMStringList','item'),txError:get('IDBTransaction','error'),storeGet:method('IDBObjectStore','get'),storeCount:method('IDBObjectStore','count'),index:method('IDBObjectStore','index'),storeCursor:method('IDBObjectStore','openCursor'),storeTransaction:get('IDBObjectStore','transaction'),storeName:get('IDBObjectStore','name'),storeKeyPath:get('IDBObjectStore','keyPath'),storeIndexNames:get('IDBObjectStore','indexNames'),indexUnique:get('IDBIndex','unique'),indexMultiEntry:get('IDBIndex','multiEntry'),indexCount:method('IDBIndex','count'),indexCursor:method('IDBIndex','openCursor'),indexStore:get('IDBIndex','objectStore'),indexName:get('IDBIndex','name'),indexKeyPath:get('IDBIndex','keyPath'),result:get('IDBRequest','result'),error:get('IDBRequest','error'),ready:get('IDBRequest','readyState'),source:get('IDBRequest','source'),requestTransaction:get('IDBRequest','transaction'),cursorRequest:get('IDBCursor','request'),cursorSource:get('IDBCursor','source'),cursorKey:get('IDBCursor','key'),cursorPrimaryKey:get('IDBCursor','primaryKey'),cursorContinue:method('IDBCursor','continue'),cursorValue:get('IDBCursorWithValue','value'),bound:globalThis.IDBKeyRange?.bound?.bind(globalThis.IDBKeyRange),add:method('EventTarget','addEventListener'),remove:method('EventTarget','removeEventListener'),eventTarget:get('Event','target'),eventCurrent:get('Event','currentTarget')});
+ return Object.freeze({transaction:method('IDBDatabase','transaction'),store:method('IDBTransaction','objectStore'),abort:method('IDBTransaction','abort'),db:get('IDBTransaction','db'),mode:get('IDBTransaction','mode'),storeNames:get('IDBTransaction','objectStoreNames'),databaseStoreNames:get('IDBDatabase','objectStoreNames'),listLength:get('DOMStringList','length'),listItem:method('DOMStringList','item'),txError:get('IDBTransaction','error'),storeGet:method('IDBObjectStore','get'),storeCount:method('IDBObjectStore','count'),index:method('IDBObjectStore','index'),storeCursor:method('IDBObjectStore','openCursor'),storeTransaction:get('IDBObjectStore','transaction'),storeName:get('IDBObjectStore','name'),storeKeyPath:get('IDBObjectStore','keyPath'),storeAutoIncrement:get('IDBObjectStore','autoIncrement'),storeIndexNames:get('IDBObjectStore','indexNames'),indexUnique:get('IDBIndex','unique'),indexMultiEntry:get('IDBIndex','multiEntry'),indexCount:method('IDBIndex','count'),indexCursor:method('IDBIndex','openCursor'),indexStore:get('IDBIndex','objectStore'),indexName:get('IDBIndex','name'),indexKeyPath:get('IDBIndex','keyPath'),result:get('IDBRequest','result'),error:get('IDBRequest','error'),ready:get('IDBRequest','readyState'),source:get('IDBRequest','source'),requestTransaction:get('IDBRequest','transaction'),cursorRequest:get('IDBCursor','request'),cursorSource:get('IDBCursor','source'),cursorKey:get('IDBCursor','key'),cursorPrimaryKey:get('IDBCursor','primaryKey'),cursorContinue:method('IDBCursor','continue'),cursorValue:get('IDBCursorWithValue','value'),bound:globalThis.IDBKeyRange?.bound?.bind(globalThis.IDBKeyRange),add:method('EventTarget','addEventListener'),remove:method('EventTarget','removeEventListener'),eventTarget:get('Event','target'),eventCurrent:get('Event','currentTarget')});
 })();
 function nativeRetentionAvailable(){for(const key in retentionNative)if(typeof retentionNative[key]!=='function')fail('BNS_HUMAN_RETENTION_REQUIRED');}
 function nativeRetentionCausalReplaySlots(p){
@@ -949,6 +950,8 @@ function projectionBoundedTransport(transport,profile){
 }
 function projectionMeasure(value,frozen=false){const stats={};const B=branchRawMeasure(value,BRANCH_RAW_BYTES,stats,frozen);return {B,T:stats.units,V:stats.nodes,E:stats.slots};}
 function projectionRowMeasure(r,value,frozen='native'){return r.sourceWorking?measureSourceWorkingPhysicalTree(value):projectionMeasure(value,frozen);}
+const projectionIndexSchema=r=>r.mixedIndexInspection?mixedCurrentIndexSchema():sourceWorkingCurrentIndexSchema;
+const projectionPhysicalIndexKey=(r,store,index,row)=>r.mixedIndexInspection?mixedCurrentPhysicalIndexKey(store,index,row):sourceWorkingPhysicalIndexKey(store,index,row);
 // The original clone/tree and canonical slots are used for these exact trees.
 // Fixed frames pay finite selector, listener, meter-stack, 128/768 vectors/maps
 // and one descriptor/builder/key-generator frame, not initial native cloning.
@@ -971,7 +974,7 @@ function projectionGroupCutEqual(r,a,b){
  if(a.namespace!==b.namespace)return false;
  if(r.sourceWorking){
   for(const name of r.group.stores)if(!lists(a.rows[name],b.rows[name]))return false;
-  for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const index of Object.keys(definitions))if(!lists(a.indices[name][index],b.indices[name][index]))return false;
+  for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const index of Object.keys(definitions))if(!lists(a.indices[name][index],b.indices[name][index]))return false;
   const keys=Object.keys(a.points);if(keys.length!==Object.keys(b.points).length)return false;for(const key of keys)if(!projectionOwn(b.points,key)||!projectionEqual(r,a.points[key],b.points[key]))return false;
   return true;
  }
@@ -985,13 +988,14 @@ function projectionFence(r){projectionCurrent(r);const actual=projectionRowMeasu
 function projectionSource(tx,task,r){
  const n=retentionNative,store=n.store.call(tx,task.store);
  if(n.storeTransaction.call(store)!==tx||n.storeName.call(store)!==task.store||n.storeKeyPath.call(store)!=='id')projectionRequired();
- if(r.sourceWorking&&Object.hasOwn(sourceWorkingCurrentIndexSchema,task.store)){
-  const names=n.storeIndexNames.call(store),definitions=sourceWorkingCurrentIndexSchema[task.store];
+ if(r.mixedIndexInspection&&n.storeAutoIncrement.call(store)!==false)projectionRequired();
+ if(r.sourceWorking&&Object.hasOwn(projectionIndexSchema(r),task.store)){
+  const names=n.storeIndexNames.call(store),definitions=projectionIndexSchema(r)[task.store];
   if(n.listLength.call(names)!==Object.keys(definitions).length)projectionRequired();
   for(let i=0;i<n.listLength.call(names);i++)if(!Object.hasOwn(definitions,n.listItem.call(names,i)))projectionRequired();
  }
  if(!task.index)return store;
- const index=n.index.call(store,task.index),path=n.indexKeyPath.call(index),spec=r.sourceWorking?sourceWorkingCurrentIndexSchema[task.store][task.index]:null,expected=spec?spec.path:LIBRARY_INDEXES[task.store][task.index];
+ const index=n.index.call(store,task.index),path=n.indexKeyPath.call(index),spec=r.sourceWorking?projectionIndexSchema(r)[task.store][task.index]:null,expected=spec?spec.path:LIBRARY_INDEXES[task.store][task.index];
  if(spec){if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||n.indexUnique.call(index)!==spec.unique||n.indexMultiEntry.call(index)!==spec.multiEntry||!projectionEqual(r,path,expected))projectionRequired();return index;}
  if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||!Array.isArray(path)||path.length!==expected.length||path.some((x,i)=>x!==expected[i]))projectionRequired();
  return index;
@@ -1005,11 +1009,11 @@ function projectionTasks(r){
  const tasks=[];
  if(r.sourceWorking){
   for(const name of r.group.stores){
-   const limit=!sourceWorkingCurrentNonemptyStores.includes(name)?0:name==='meta'?4096:name==='revisions'?96:name==='operationReceipts'||name==='invalidations'?2:1,target=r.raw.rows[name];
+   const limit=r.mixedIndexInspection?mixedIndexPrimaryLimit(name):!sourceWorkingCurrentNonemptyStores.includes(name)?0:name==='meta'?4096:name==='revisions'?96:name==='operationReceipts'||name==='invalidations'?2:1,target=r.raw.rows[name];
    tasks.push({kind:'count',store:name,limit,target,zero:limit===0});tasks.push({kind:'cursor',store:name,limit,target});
   }
-  for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const index of Object.keys(definitions)){
-   const target=r.raw.indices[name][index];tasks.push({kind:'count',store:name,index,limit:128,target,borrow:true});tasks.push({kind:'cursor',store:name,index,limit:128,target,borrow:true});
+  for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const index of Object.keys(definitions)){
+   const limit=r.mixedIndexInspection?4096:128,target=r.raw.indices[name][index];tasks.push({kind:'count',store:name,index,limit,target,borrow:true});tasks.push({kind:'cursor',store:name,index,limit,target,borrow:true});
   }
   tasks.push({kind:'point',store:'meta',key:r.binding.prefix+'active',active:true});return tasks;
  }
@@ -1082,9 +1086,9 @@ function projectionPump(r,t){
         if(typeof primary!=='string'||primary.length>2048||task.prefix&&!primary.startsWith(task.prefix))projectionRequired();
         if(lastKey!==null){const order=projectionCompare.call(projectionFactory,lastKey,key);if(order>0||order===0&&projectionCompare.call(projectionFactory,lastPrimary,primary)>=0)projectionRequired();}
         value=n.cursorValue.call(cursor);r.transient+=projectionTreeCharge(projectionRowMeasure(r,value));projectionReserve(r);if(!value||value.id!==primary)projectionRequired();
-        const expected=r.sourceWorking&&task.index?sourceWorkingPhysicalIndexKey(task.store,task.index,value):projectionExpectedKey(value,task.index?LIBRARY_INDEXES[task.store][task.index]:'id');
+        const expected=r.sourceWorking&&task.index?projectionPhysicalIndexKey(r,task.store,task.index,value):projectionExpectedKey(value,task.index?LIBRARY_INDEXES[task.store][task.index]:'id');
         // Native keyPath and cursor identity are both checked, not row claims.
-        if(r.sourceWorking&&task.index){const spec=sourceWorkingCurrentIndexSchema[task.store][task.index];if(expected===null||!(spec.multiEntry&&Array.isArray(expected)?expected.some(item=>projectionCompare.call(projectionFactory,key,item)===0):projectionCompare.call(projectionFactory,key,expected)===0))projectionRequired();}
+        if(r.sourceWorking&&task.index){const spec=projectionIndexSchema(r)[task.store][task.index],match=item=>{try{return projectionCompare.call(projectionFactory,key,item)===0;}catch(error){if(!r.mixedIndexInspection)throw error;return false;}};if(expected===null||!(spec.multiEntry&&Array.isArray(expected)?expected.some(match):match(expected)))projectionRequired();}
         else if(!projectionEqual(r,key,expected))projectionRequired();
         if(task.borrow){const whole=r.raw.rows[task.store].find(row=>row.id===primary);if(!whole||!projectionEqual(r,value,whole))fail('BNS_HUMAN_CHANGED');task.target.push(projectionKeep(r,{key,primary}));}
         else{task.target.push(projectionKeep(r,value,true));}
@@ -1108,16 +1112,19 @@ export async function collectHumanCurrentUnindexedProjectionNative(core,t,nonce)
  const r=currentProjectionWorks.get(nonce);if(!r||r.core!==core||r.phase!=='opening')projectionRequired();if(r.sourceWorking)projectionCurrent(r);requireHumanProjectionReadPhase(core,t,nonce);r.phase='reading';r.nativeOpened=true;r.scope=t;await projectionPump(r,t);r.phase='observed';
 }
 function projectionRaw(){const rows=Object.create(null),prefixes=Object.create(null);for(const name of projectionTables)rows[name]=[];for(const name of projectionPrefixes)prefixes[name]=[];return {rows,prefixes,points:Object.create(null),namespace:null,receiptOrder:[],placementOrder:[]};}
-function projectionSourceWorkingRaw(){
+function projectionSourceWorkingRaw(mixedIndexInspection=false){
  const rows=Object.create(null),indices=Object.create(null);for(const name of sourceWorkingCurrentStores())rows[name]=[];
- for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema)){indices[name]=Object.create(null);for(const index of Object.keys(definitions))indices[name][index]=[];}
+ for(const [name,definitions]of Object.entries(mixedIndexInspection?mixedCurrentIndexSchema():sourceWorkingCurrentIndexSchema)){indices[name]=Object.create(null);for(const index of Object.keys(definitions))indices[name][index]=[];}
  return {rows,indices,points:Object.create(null),namespace:null,groupMeta:rows.meta};
 }
 function projectionSourceWorkingIndexViews(r){
- for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const [index,spec]of Object.entries(definitions)){
+ for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const [index,spec]of Object.entries(definitions)){
+  // The complete mixed inspector pays its own current actual table and the
+  // full bounded key/entry/sort vectors before any compound key is formed.
+  if(r.mixedIndexInspection){const m=projectionRowMeasure(r,r.raw.rows[name]);projectionReserve(r,3*projectionTreeCharge(m)+2*projectionCanonicalCharge(m)+4096*128+64*1024);}
   const entries=[];
   for(const row of r.raw.rows[name]){
-   const key=sourceWorkingPhysicalIndexKey(name,index,row);if(key===null)continue;
+   const key=projectionPhysicalIndexKey(r,name,index,row);if(key===null)continue;
    const selected=spec.multiEntry&&Array.isArray(key)?key:[key],seen=[];
    for(const item of selected){try{projectionCompare.call(projectionFactory,item,item);}catch{continue;}if(seen.some(prior=>projectionCompare.call(projectionFactory,prior,item)===0))continue;seen.push(item);entries.push({key:item,primary:row.id});}
   }
@@ -1323,6 +1330,14 @@ function completedGroupControlScratch(core,raw){
  }
  return scratch;
 }
+const mixedIndexNonempty=new Set([...sourceWorkingCurrentNonemptyStores,'thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','librarySearchTerms']);
+function mixedIndexPrimaryLimit(name){return !mixedIndexNonempty.has(name)?0:name==='meta'||name==='librarySearchTerms'?4096:name==='revisions'?96:name==='libraryMigrationItems'?768:128;}
+// Consuming readonly prerequisite: the fixed original native reader checks the
+// complete v5 index inventory on the existing live work ticket and drains it.
+// No raw rows, retained cap, Scope, encoder or export admission is returned.
+export async function inspectMixedCurrentNativeIndexClosure(store,core){
+ if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,'mixed-index-inspection');
+}
 async function captureCurrentProjection(store,core,group,sourceWorking=false){
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME);
  let r,cap,ticket,primary,failed=false;
@@ -1332,8 +1347,8 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
   await Promise.resolve();const storeAssert=requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=sourceWorking?requireSourceWorkingStoreBinding(store,core):branchReady(store,core);
   if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
   if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
-  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],group:null,sourceWorking};
-  if(sourceWorking){r.fixedScratch=4096*16+192*1024;r.group={stores:sourceWorkingCurrentStores()};projectionReserve(r);}
+  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],group:null,sourceWorking,mixedIndexInspection:sourceWorking==='mixed-index-inspection'};
+  if(sourceWorking){r.fixedScratch=4096*16+192*1024+(r.mixedIndexInspection?64*1024:0);projectionReserve(r);r.group={stores:sourceWorkingCurrentStores()};}
   if(group){
    await Promise.resolve();const owner=currentGroupOwner;owner.requireOriginalCurrentGroupScope(core,group.scope,group.plan);
    await Promise.resolve();const human=currentHumanOwner;
@@ -1348,9 +1363,17 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
    projectionReserve(r);r.group={...group,databaseId:store.databaseId,emptyStores:owner.currentHumanGroupEmptyStores,stores:owner.currentHumanGroupStores};
   }
   const m=projectionRowMeasure(r,r.control);r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
-  await r.tail;projectionFence(r);r.raw=sourceWorking?projectionSourceWorkingRaw():projectionRaw();if(r.group&&!sourceWorking)r.raw.groupMeta=[];currentProjectionWorks.set(r.nonce,r);
+  await r.tail;projectionFence(r);r.raw=sourceWorking?projectionSourceWorkingRaw(r.mixedIndexInspection):projectionRaw();if(r.group&&!sourceWorking)r.raw.groupMeta=[];currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
-  if(r.phase!=='observed')projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);if(sourceWorking)await projectionCompileSourceWorking(r);else projectionQualify(r);projectionReserve(r);
+  if(r.phase!=='observed')projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);
+  if(r.mixedIndexInspection){
+   if(!r.nativeDrained||r.listenersCleared===false)projectionRequired();projectionSourceWorkingIndexViews(r);projectionFence(r);projectionReserve(r);
+   let indices=0,indexEntries=0,primaryRows=0;for(const name of r.group.stores){primaryRows+=r.raw.rows[name].length;for(const index of Object.keys(projectionIndexSchema(r)[name])){indices++;indexEntries+=r.raw.indices[name][index].length;}}
+   // Only fixed numeric findings leave the original cut; it is dropped in the
+   // same finally after genuine native terminal/unwind/listener cleanup.
+   return Object.freeze({version:1,state:'INDEX_INVENTORY_ONLY',stores:r.group.stores.length,indices,indexEntries,primaryRows,nativeDrained:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false});
+  }
+  if(sourceWorking)await projectionCompileSourceWorking(r);else projectionQualify(r);projectionReserve(r);
   if(r.group&&!sourceWorking){
    await Promise.resolve();const owner=currentGroupOwner;await Promise.resolve();const human=currentHumanOwner;
    let rowPeak=0;for(const row of r.raw.groupMeta)rowPeak=Math.max(rowPeak,2*projectionCanonicalCharge(projectionMeasure(row,'native')));
