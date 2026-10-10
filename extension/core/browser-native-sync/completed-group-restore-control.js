@@ -26,8 +26,8 @@ function dataTree(value,depth=0){
 }
 const namespace=value=>value==='initial'||opaque(value);
 
-// UNUSED preparation until original native admission prepays every frame and
-// authenticates the complete source cut. This void assertion neither consumes
+// Its original native caller prepays every frame and authenticates the full
+// source cut before calling. This void assertion itself neither consumes
 // metadata nor grants Scope. Historical base counters and manifest families
 // are deliberately not compared with a later, genuinely edited current plan.
 export async function assertCompletedGroupedRestoreControl(row,{prefix,datasetId,active,namespace:currentNamespace,epoch}={}){
