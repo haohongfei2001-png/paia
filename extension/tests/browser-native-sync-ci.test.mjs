@@ -178,3 +178,20 @@ test('both native jobs append complete manual Prompt files and exact generated c
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error/);
  }
 });
+
+
+test('native dependency setup preserves the full clean-worktree proof in both jobs',()=>{
+ for(const name of ['paia-candidate.yml','paia-certification.yml']){
+  const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
+  const section=text.slice(text.indexOf('  sync_native_storage:')).split(/\n  [a-z_]+:/)[0];
+  const installs=section.split('\n').filter(line=>line.includes('npm install'));
+  assert.deepEqual(installs,['      - run: npm install --no-audit --no-fund --package-lock=false']);
+  assert.doesNotMatch(section,/git clean|git reset|package-lock\.json|--untracked-files=no/);
+ }
+ for(const name of ['manual-prompt-shape-native.test.mjs','human-manual-prompt-current-native.test.mjs']){
+  const proof=readFileSync(new URL('./native-sync/'+name,import.meta.url),'utf8');
+  assert.ok(proof.includes("git('status','--porcelain','--untracked-files=all')"));
+  assert.ok(proof.includes("assert.equal(before.dirty,'')"));
+  assert.ok(proof.includes('assert.deepEqual(await snapshot(),before)'));
+ }
+});

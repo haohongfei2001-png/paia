@@ -472,7 +472,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: mkdir -p work/qa-bns-native-storage
-      - run: npm install --no-audit --no-fund
+      - run: npm install --no-audit --no-fund --package-lock=false
       - name: Use signed Ubuntu archive over HTTPS before Sync native dependencies
         run: |
           # Run37685485859 exhausted its unchanged budget on the Azure HTTP mirror.

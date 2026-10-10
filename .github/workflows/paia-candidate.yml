@@ -1485,7 +1485,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: mkdir -p work/qa-bns-native-storage
-      - run: npm install --no-audit --no-fund
+      - run: npm install --no-audit --no-fund --package-lock=false
       - run: npx playwright install --with-deps chromium
       - name: Select hosted Chrome for isolated synthetic extension profiles
         run: |
