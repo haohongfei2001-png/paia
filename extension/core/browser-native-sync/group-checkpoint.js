@@ -1,3 +1,4 @@
+import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
 import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
 import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
@@ -29,8 +30,25 @@ async function requireCommittedPlan(core,t,plan){
  heads.sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  if(!equal(heads,plan.heads))fail('BNS_GROUP_COMMIT_UNPROVEN');
 }
-export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false}={}){
- if(typeof currentHumanProjection!=='boolean')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
+async function buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents){
+ let cap;
+ try{
+  cap=await captureSourceWorkingCurrentGroupProjection(store,core);
+  await requireSourceWorkingCurrentGroupProjection(cap);
+  const checkpoint=await encodeSourceWorkingCurrentGroupCheckpoint(cap,transport,{profile,parents});
+  await requireSourceWorkingCurrentGroupProjection(cap);
+  const published=await publishSourceWorkingCurrentGroupCheckpoint(cap,checkpoint,transport,{profile});
+  // Immutable publication may overlap a genuine local edit. Advertise only an
+  // unchanged full37-store/49-index cut after its true native read has drained.
+  await requireSourceWorkingCurrentGroupProjection(cap);
+  return {ref:published.ref,manifest:published.manifest,cut:checkpoint.cut};
+ }catch(error){if(error?.code==='BNS_HUMAN_CHANGED')fail('BNS_SNAPSHOT_CHANGED');throw error;}
+ finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);}
+}
+export async function buildGroupedCheckpoint(core,transport,{store,profile=SEGMENT_PROFILE,parents=[],currentHumanProjection=false,currentSourceWorkingProjection=false}={}){
+ if(typeof currentHumanProjection!=='boolean'||typeof currentSourceWorkingProjection!=='boolean'||currentHumanProjection&&currentSourceWorkingProjection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(currentSourceWorkingProjection)return buildCurrentSourceWorkingCheckpoint(core,transport,store,profile,parents);
+ if(store?.repository!==core.repository)fail('BNS_GROUP_BINDING');await store.finishFoundation();
  const cut=await store.run(()=>core.transaction(false,t=>authority(store,core,t))),plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
  const verifyCut=async()=>{let originalScope,calls=0;const check=()=>core.transaction(false,async t=>{if(++calls!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScope=t;if(currentHumanProjection)await requireGroupCurrentProjection(store,core,t,scope,plan);else{if(!equal(await authority(store,core,t),cut))fail('BNS_SNAPSHOT_CHANGED');await requireCommittedPlan(core,t,plan);await requireGroupScope(store,t,scope);}});
   // The native certificate pins the settled Store tail. Direct readonly Core

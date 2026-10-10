@@ -1258,7 +1258,7 @@ export async function captureHumanCurrentGroupProjection(store,core,scope,plan){
  return captureCurrentProjection(store,core,{scope,plan});
 }
 // Fixed selected opening only; empty opaque cap, no rows/DTO reader/Plan output.
-// Public Group checkpoint selection and restoration are wired in a later step.
+// Public opt-in uses this fixed original cut; no generic Source reader exists.
 export async function captureSourceWorkingCurrentGroupProjection(store,core){
  if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,true);
 }
@@ -1360,8 +1360,37 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
   if(failed&&ticket){releaseHumanQualificationLease(ticket);if(cap)currentProjectionCaps.delete(cap);}
  }
 }
+// Re-open the original fixed native reader, not a caller-supplied transaction,
+// for every Source/Working cut. The retained original Plan/Scope never escapes.
+// This work remains charged until genuine native unwind/dispatch-end/cleanup.
+export async function requireSourceWorkingCurrentGroupProjection(cap){
+ if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
+ const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,retainedParent:p,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],fixedScratch:4096*16+192*1024};p.frames++;
+ try{
+  if('value'in Object.prototype)projectionRequired();projectionReserve(r);projectionFence(r);r.raw=projectionSourceWorkingRaw();currentProjectionWorks.set(r.nonce,r);
+  await openHumanProjectionNativeRead(p.core,r.nonce);projectionCurrent(r);
+  if(r.phase!=='observed'||!r.nativeDrained)projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);
+  if(!projectionGroupCutEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');projectionFence(r);return true;
+ }catch(error){throw projectionFailure(error,r.cleanupErrors);}
+ finally{
+  if(r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){r.revoked=true;p.revoked=true;projectionQuarantine.set(r.nonce,r);}else projectionDrop(r);
+  p.frames--;if(p.revoked)projectionRevoke(p);
+ }
+}
+// No supplied Scope/Plan or DTO reader. Both original owners receive exactly
+// the privately captured identities on the existing original encoder ticket.
+export async function encodeSourceWorkingCurrentGroupCheckpoint(cap,transport,options){
+ if(arguments.length!==3)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
+ currentGroupOwner.requireOriginalCurrentSourceWorkingGroupScope(p.core,p.group.scope,p.group.plan);
+ return encodeHumanCurrentGroupCheckpoint(cap,p.group.scope,p.group.plan,transport,options);
+}
+export async function publishSourceWorkingCurrentGroupCheckpoint(cap,checkpoint,transport,options){
+ if(arguments.length!==4)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
+ currentGroupOwner.requireOriginalCurrentSourceWorkingGroupScope(p.core,p.group.scope,p.group.plan);
+ return publishHumanCurrentGroupCheckpoint(cap,p.group.scope,p.group.plan,checkpoint,transport,options);
+}
 export async function requireHumanCurrentUnindexedProjection(t,cap){
- if(arguments.length!==2)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked||p.released)projectionRequired();
+ if(arguments.length!==2)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.sourceWorking||p.revoked||p.released)projectionRequired();
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'verifying',closed:false,revoked:false,cleanupErrors:[]};p.frames++;
  try{
   if('value'in Object.prototype)projectionRequired();projectionFence(r);r.raw=projectionRaw();if(r.group){r.owned+=4096*16;projectionReserve(r);r.raw.groupMeta=[];}await projectionPump(r,t);
