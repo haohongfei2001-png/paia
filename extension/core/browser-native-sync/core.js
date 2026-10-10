@@ -63,7 +63,8 @@ export async function validateOperation(operation){
 
 // Original immutable validation reuse. Only this private WeakSet can skip a
 // second clone/hash; public mutable inputs always run the complete validator.
-// The returned value is detached and recursively frozen before registration.
+// Ordinary deeply frozen data can retain its identity after full validation.
+// Mutable or nonordinary inputs return a detached recursively frozen value.
 const validatedFrozenOperations=new WeakSet();
 const freezeValidatedOperation=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freezeValidatedOperation(child);Object.freeze(value);}return value;};
 function immutableOperationData(value,path=new Set()){

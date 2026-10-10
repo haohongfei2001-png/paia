@@ -1,3 +1,9 @@
+# SYNC-01 B complete configuration candidate 0.43.17 — formal gates pending
+
+Approved PR #250 remains merged and authoritative. Batch A and qualified main0.43.16 are retained unchanged. The current single B branch now closes the complete selected configuration recovery path in actual original owners: seven portable intents, full Prompt companions and logical desired Topic facts recover through closed-A/fresh-B edits/re-export/closed-B/fresh-C, without permission donation. Frozen pre-version source/release each11 native scenarios/622 assertions pass with independent exact-byte qualification; these are synthetic component evidence, not formal current-head/main or whole01 acceptance.
+
+Current work is final independent composed review and one high-risk Full candidate plus affected Prompt qualification, then normal integration/exact-main/package gates. Keep original52 native checks and add the complete configuration pair to54; the existing preference current-browser route is not duplicated. Do not release another prerequisite helper. See [single owning batch record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md) for the five-field gap/evidence/remaining-work disposition. Approved C, original01 closing gates, real provider/device and missing precise visual gates remain separately open; no paid/account/permission/deployment authority is added.
+
 # Qualified main 0.43.16; SYNC-01 B consuming recovery in progress — 2026-10-11
 
 PR #250 is merged at `ef08a51a84fccc8e04fd5447fdff6de9fea2a7a9`; its owner-approved revised Sync convergence plan remains the execution basis. Complete Mixed batch A merged via PR #252; its actual-main Topic reading failure was repaired by normally merged [PR #253](https://github.com/haohongfei2001-png/paia/pull/253). Actual main is `959d3bafcaf628fb6c5a34b3fe77249042723360`, tree `35d1d5a125e5c62de012374bba7c179a607deba5`, version **0.43.16**.

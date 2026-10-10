@@ -207,7 +207,7 @@ test('BNS Prompt purge remains explicitly unavailable and atomically preserves t
  await assert.rejects(b.receive(prepared.operations[0]),{code:'BNS_PROMPT_PURGE_SCOPE_UNAVAILABLE'});assert.deepEqual(await b.repository.transaction(false,t=>t.all('meta')),before);
 });
 
-test('original immutable operation validation reuses only detached fully validated frozen identities',async()=>{
+test('original immutable operation validation authenticates frozen identities and detaches mutable inputs',async()=>{
  const source=await op(1),before=structuredClone(source),validated=await validateFrozenOperation(source);
  assert.notEqual(validated,source);assert.deepEqual(validated,before);assert.equal(Object.isFrozen(validated),true);assert.equal(Object.isFrozen(validated.parents),true);assert.equal(Object.isFrozen(validated.value.overrides[0]),true);assert.equal(await validateFrozenOperation(validated),validated);
  source.value.overrides[0].text='SYNTHETIC caller changed after validation';assert.deepEqual(validated,before);await assert.rejects(validateFrozenOperation(source),{code:'BNS_OPERATION_DIGEST'});
