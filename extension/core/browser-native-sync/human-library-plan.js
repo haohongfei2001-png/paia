@@ -1199,7 +1199,11 @@ async function captureCurrentProjection(store,core,group){
    // Borrowed source bodies gain a new lifetime while this cap is retained.
    // Pay their actual trees, private Human expectation and bounded key/task
    // vectors on the same original ticket before opening native requests.
-   r.owned+=projectionTreeCharge(projectionMeasure(group.scope,'native'))+projectionTreeCharge(projectionMeasure(group.plan,'native'))+projectionTreeCharge(human.measureHumanScopeProjectionExpectation(group.scope,store))+4096*16+128*1024;
+   r.owned+=projectionTreeCharge(projectionMeasure(group.scope,'native'))+projectionTreeCharge(projectionMeasure(group.plan,'native'))+projectionTreeCharge(human.measureHumanScopeProjectionExpectation(group.scope,store));
+   // Opening task/selector/Map frames unwind before the retained cap. Keep
+   // their original reserve on this work ticket through finally/drain; only
+   // actual retained trees transfer to the unchanged4MiB retained allowance.
+   r.fixedScratch=4096*16+128*1024;
    projectionReserve(r);r.group={...group,databaseId:store.databaseId,emptyStores:owner.currentHumanGroupEmptyStores,stores:owner.currentHumanGroupStores};
   }
   const m=projectionMeasure(r.control,'native');r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
@@ -1212,7 +1216,16 @@ async function captureCurrentProjection(store,core,group){
    // Original normalizers compare one table at a time; the protocol owner
    // borrows a metered Map and compares one row at a time. No whole meta or
    // whole plan clone exists in those loops. Charge their actual overlap.
-   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak;projectionReserve(r,scratch);
+   let promptScratch=0;
+   if(r.group.plan.groups.some(group=>group.type==='promptPreferences')){
+    const row=r.raw.groupMeta.find(row=>row.id==='prompt-reuse:v1');
+    if(row){const m=projectionMeasure(row,'native'),tree=projectionTreeCharge(m),canonical=projectionCanonicalCharge(m);promptScratch+=4*tree+2*canonical+m.B+16*m.E+4096;}
+    // Pay expected Prompt and historical operations independently. Retained
+    // Scope/Plan trees and a small corrupted actual row cannot pay for them.
+    // The extra4096 is only the fixed ASCII manual-Prompt protocol wrapper.
+    promptScratch+=projectionCanonicalCharge(projectionMeasure(r.group.scope.expected.prompt,'native'))+projectionCanonicalCharge(projectionMeasure(r.group.plan,'native'))+4096;
+   }
+   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch;projectionReserve(r,scratch);
    human.assertHumanScopeProjectionExpectation(r.group.scope,store,r.raw);owner.assertCurrentHumanGroupNativeSnapshot(core,r.group.scope,r.group.plan,r.raw,r.controlValues,r.group.databaseId);
    projectionDeepFreeze(r.group.scope);projectionReserve(r);projectionFence(r);
   }
