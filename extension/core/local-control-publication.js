@@ -27,6 +27,8 @@ export function controlPublicationEncoding(value){
 }
 export const controlPublicationDigest=value=>hashText(controlPublicationEncoding(value));
 export const controlPublicationEqual=(a,b)=>controlPublicationEncoding(a)===controlPublicationEncoding(b);
+export function validateControlPublicationStamp(stamp){if(!exact(stamp,['version','revision','nonce'])||stamp.version!==1||!Number.isSafeInteger(stamp.revision)||stamp.revision<1||typeof stamp.nonce!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(stamp.nonce))refuse('CONTROL_PUBLICATION_INVALID');return stamp;}
+export function controlPublicationRow(control,databaseId,reservation){const controlPublication=validateControlPublicationStamp({version:1,revision:reservation.revision,nonce:reservation.nonce});return {schemaVersion:6,databaseId,...control,controlPublication};}
 export async function readControlPublicationFence(t){
  const revision=await t.get('meta',CONTROL_PUBLICATION_REVISION),reservation=await t.get('meta',CONTROL_PUBLICATION_RESERVATION);
  if(revision!==undefined&&(!exact(revision,['id','version','revision'])||revision.id!==CONTROL_PUBLICATION_REVISION||revision.version!==1||!Number.isSafeInteger(revision.revision)||revision.revision<1))refuse('CONTROL_PUBLICATION_INVALID');
@@ -48,4 +50,8 @@ export async function requireControlPublicationOwner(t,reservation,expected){
  const current=await readControlPublicationFence(t);
  if(!controlPublicationEqual(current.reservation,reservation)||current.revision!==reservation.revision||expected&&!controlPublicationEqual({migration:current.migration,gate:current.gate,epoch:current.epoch},expected))refuse('CONTROL_PUBLICATION_CHANGED');
  return current;
+}
+export async function renewControlPublication(t,reservation,fences,{nonce,beforeDigest}){
+ const current=await requireControlPublicationOwner(t,reservation,fences);if(current.revision>=Number.MAX_SAFE_INTEGER)refuse('CONTROL_PUBLICATION_LIMIT');if(nonce===reservation.nonce||typeof nonce!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(nonce)||typeof beforeDigest!=='string'||!/^[a-f0-9]{64}$/.test(beforeDigest))refuse('CONTROL_PUBLICATION_INVALID');
+ const next={...reservation,revision:current.revision+1,nonce,beforeDigest,afterDigest:null,fenceDigest:null};await t.put('meta',{id:CONTROL_PUBLICATION_REVISION,version:1,revision:next.revision});await t.put('meta',next);return next;
 }

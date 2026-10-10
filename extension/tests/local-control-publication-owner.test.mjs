@@ -7,16 +7,16 @@ import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,controlPubl
 globalThis.IDBKeyRange=IDBKeyRange;
 const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
 async function fixture(t){
- const data={},indexedDB=new IDBFactory(),name='SYNTHETIC-control-publication-'+crypto.randomUUID();let hook=null,sets=0;
- const local={async get(key){return {[key]:structuredClone(data[key])};},async set(value){sets++;if(hook)await hook(value);Object.assign(data,structuredClone(value));}};
- const store=new LibraryDocumentsStore(local,{indexedDB,name});await store.consent(true);await store.finishFoundation();const others=[];
+ const data={},indexedDB=new IDBFactory(),name='SYNTHETIC-control-publication-'+crypto.randomUUID();let hook=null,sets=0,capture=false,lease=null;
+ const local={async get(key){return {[key]:structuredClone(data[key])};},async set(value){sets++;if(capture)lease=await store.repository.transaction(false,tx=>tx.get('meta',CONTROL_PUBLICATION_RESERVATION),['meta']);if(hook)await hook(value);Object.assign(data,structuredClone(value));}};
+ const store=new LibraryDocumentsStore(local,{indexedDB,name});await store.consent(true);await store.finishFoundation();capture=true;const others=[];
  t.after(()=>{store.repository.db?.close();for(const other of others)other.repository.db?.close();});
- return {store,data,local,sets:()=>sets,hook:fn=>{hook=fn;},async second(){const other=new LibraryDocumentsStore(local,{indexedDB,name});await other.finishFoundation();others.push(other);return other;},rows:()=>store.repository.transaction(false,async tx=>{const rows={};for(const name of store.repository.stores)rows[name]=await tx.all(name);return rows;}),meta:id=>store.repository.transaction(false,tx=>tx.get('meta',id),['meta'])};
+ return {store,data,local,lease:()=>structuredClone(lease),sets:()=>sets,hook:fn=>{hook=fn;},async second(){const other=new LibraryDocumentsStore(local,{indexedDB,name});await other.finishFoundation();others.push(other);return other;},rows:()=>store.repository.transaction(false,async tx=>{const rows={};for(const name of store.repository.stores)rows[name]=await tx.all(name);return rows;}),meta:id=>store.repository.transaction(false,tx=>tx.get('meta',id),['meta'])};
 }
 test('real original control writer advances one local revision and settles only its body-free reservation',async t=>{
  const f=await fixture(t),before=await f.rows(),revision=await f.meta(CONTROL_PUBLICATION_REVISION),control=structuredClone(f.data[STORAGE_KEY]),sets=f.sets();
  assert.deepEqual(await f.store.updatePreferences({appearance:'dark'}),{ok:true});assert.equal(f.sets(),sets+1);assert.equal(await f.meta(CONTROL_PUBLICATION_RESERVATION),undefined);assert.deepEqual(await f.meta(CONTROL_PUBLICATION_REVISION),{...revision,revision:revision.revision+1});
- const after=await f.rows();before.meta=before.meta.map(row=>row.id===CONTROL_PUBLICATION_REVISION?{...row,revision:row.revision+1}:row);assert.deepEqual(after,before,'all37 stores differ only in the exactly expected local publication revision');control.preferences.appearance='dark';assert.deepEqual(f.data[STORAGE_KEY],control,'the complete original control and every authority field are exact');
+ const after=await f.rows();before.meta=before.meta.map(row=>row.id===CONTROL_PUBLICATION_REVISION?{...row,revision:row.revision+1}:row);assert.deepEqual(after,before,'all37 stores differ only in the exactly expected local publication revision');control.preferences.appearance='dark';control.controlPublication={version:1,revision:revision.revision+1,nonce:f.lease().nonce};assert.deepEqual(f.data[STORAGE_KEY],control,'the complete original control and every authority field are exact with the actual lease-derived local stamp');
 });
 test('an original nonjournal publication in flight excludes a second same-database control writer',async t=>{
  const f=await fixture(t),other=await f.second(),entered=deferred(),release=deferred(),sets=f.sets();f.hook(async()=>{entered.resolve();await release.promise;});
