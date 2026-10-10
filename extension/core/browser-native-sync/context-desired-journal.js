@@ -17,13 +17,25 @@ async function proof(t,core,id){
  return {epoch,record:p};
 }
 async function record(t,core,value,heads,epoch){const marker=await core.get(t,'ownerRecoveryEpoch');if(marker&&(!exact(marker,['id','version','epoch'])||marker.version!==1||marker.epoch!==epoch))fail('BNS_RESTORE_EPOCH_CHANGED');await core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch});await core.put(t,'contextDesiredOwner',[value.id],{version:1,epoch,heads:[...heads].sort(),value:clone(value)});}
+function desiredStep(op,next,parents){
+ if(!parents.length){if(op.actor!=='bootstrap'&&next.revision!==1)fail('BNS_CONTEXT_TRANSITION_INVALID');}
+ else {const revisions=parents.map(p=>validateEntity(TYPE,p.value).revision),max=Math.max(...revisions);if(op.actor!=='user'||(parents.length===1?next.revision!==max+1:next.revision<=max))fail('BNS_CONTEXT_TRANSITION_INVALID');}
+}
+// Only original transition semantics; actual parents, branded Plan/Core and
+// namespace/epoch/physical proofs remain the caller's independent obligations.
+export function assertContextDesiredOperationTransition(op,parents){
+ if(op.type!==TYPE||op.kind!=='put')fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');
+ const next=validateEntity(TYPE,op.value);
+ if(!Array.isArray(parents)||parents.length>128)fail('BNS_CONTEXT_ANCESTRY_LIMIT');
+ for(const parent of parents)if(!parent||parent.type!==TYPE||parent.entityId!==op.entityId||parent.kind!=='put')fail('BNS_REVISION_MISSING');
+ desiredStep(op,next,parents);
+}
 async function validateChain(t,core,operations,anchors=[]){
  const seen=new Set(),queue=[...operations],stop=new Set(anchors);
  while(queue.length){const op=queue.pop();if(stop.has(op.revisionId)||seen.has(op.revisionId))continue;if(seen.size>=128)fail('BNS_CONTEXT_ANCESTRY_LIMIT');seen.add(op.revisionId);
   if(op.type!==TYPE||op.kind!=='put')fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');const next=validateEntity(TYPE,op.value),parents=[];
   for(const id of op.parents){const p=(await core.get(t,'revision',id))?.operation;if(!p||p.type!==TYPE||p.entityId!==op.entityId||p.kind!=='put')fail('BNS_REVISION_MISSING');parents.push(p);}
-  if(!parents.length){if(op.actor!=='bootstrap'&&next.revision!==1)fail('BNS_CONTEXT_TRANSITION_INVALID');}
-  else {const revisions=parents.map(p=>validateEntity(TYPE,p.value).revision),max=Math.max(...revisions);if(op.actor!=='user'||(parents.length===1?next.revision!==max+1:next.revision<=max))fail('BNS_CONTEXT_TRANSITION_INVALID');}
+  desiredStep(op,next,parents);
   queue.push(...parents);
  }
 }
