@@ -58,7 +58,7 @@ export async function runMixedCurrentIndexNativeCases(){
    }
   });
   await run('large malformed actual name-prefix metadata cannot bypass original unchanged live work bound',async()=>{
-   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(550000)};
+   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(300000)};
    try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
     check(error?.code==='BNS_HUMAN_GRAPH_LIMIT'&&error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual large prefix pays separate canonical scratch and refuses original8Mi: '+error?.message);check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
    }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
