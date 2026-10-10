@@ -153,3 +153,20 @@ export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
  const total=measureSourceWorkingPhysicalTree(prefix.heads);for(const group of prefix.groups){const m=measureSourceWorkingPhysicalTree({id:group.id,type:group.type,dependencies:group.dependencies});for(const key of ['B','T','V','E'])total[key]+=m[key];}
  total.V+=prefix.groups.length*4+16;total.E+=prefix.groups.length*8+32;total.T+=prefix.digest.length;return Object.freeze(total);
 }
+
+// Logical canonical Plan metering still traverses every encoded view. Actual
+// retained ownership counts the already identical Human prepared operation
+// objects once; their extra array/reference cells remain in the full meter.
+// All independent group-operation clones and private Source bodies stay owned.
+export function measureOriginalMixedRepeatedPreparedOperations(core,plan){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
+ const total={B:0,T:0,V:0,E:0};
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
+  const p=group.prepared;if(!Array.isArray(p.operations)||p.operations.length!==p.members.length+1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+  const seen=new Set();for(const op of p.operations){
+   if(seen.has(op)||op!==p.descriptor&&!p.members.includes(op))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');seen.add(op);
+   const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];
+  }
+ }
+ return Object.freeze(total);
+}

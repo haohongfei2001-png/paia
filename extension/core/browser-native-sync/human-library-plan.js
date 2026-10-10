@@ -5,7 +5,7 @@ import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './s
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
 import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
-import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers} from './group-checkpoint-plan.js';
+import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
@@ -1551,7 +1551,8 @@ async function projectionCompileInitialMixedScope(r){
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The compiler has returned. Transfer its complete surviving Plan/private
  // Source before any later meter resizes this same live ticket.
- r.owned+=projectionTreeCharge(m)+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
+ const repeated=measureOriginalMixedRepeatedPreparedOperations(r.core,plan),repeatedCharge=2*repeated.T+128*repeated.V+8*repeated.E;
+ r.owned+=projectionTreeCharge(m)-repeatedCharge+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
  // Scope clones original typed domain members/manual values, not complete
  // operation envelopes/parents or descriptor vectors. Those remain held in
  // the independently owned COMPLETE Plan. Price every domain input, including
@@ -1591,7 +1592,7 @@ async function projectionCompileInitialMixedScope(r){
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
  // Only new owner-key Map/Set cells survive search construction. Their rows
  // borrow the original R and are already owned; no private source is refunded.
- r.owned+=searchCounts.owners*4096+1024;projectionReserve(r);
+ r.mixedSearchOwned=searchCounts.owners*4096+1024;r.owned+=r.mixedSearchOwned;projectionReserve(r);
  // Pay the actual body comparison independently after construction unwinds.
  // Raw/Plan/Scope/keyed expectations remain owned. Originals compare Human
  // tables sequentially; the outer comparison holds its cloned domain rows and
@@ -1692,6 +1693,10 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false,mix
   // Admission must also be readable by the exact original whole-cut equality
   // used at require. Meter and prepay both real canonical operands first.
   if(!(sourceWorking?projectionGroupCutEqual(r,r.raw,r.raw):projectionEqual(r,r.raw,r.raw)))projectionRequired();projectionFence(r);
+  // These consumed query/Search capabilities belong only to the current
+  // compiler, never to the retained encoder/recheck cap. End their actual
+  // lifetime before transferring that cap; complete native Search rows stay.
+  if(mixedExport){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;r.mixedQueryMetaIds=null;r.mixedSearchQueue=null;r.owned-=r.mixedSearchOwned;r.mixedSearchOwned=0;projectionReserve(r);}
   if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
   cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking,mixedIndexInspection:r.mixedIndexInspection};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
