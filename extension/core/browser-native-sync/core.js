@@ -141,7 +141,7 @@ export class BrowserNativeSyncCore {
  async put(t,kind,ids,data){return t.put('meta',{...data,id:await this.idIn(t,kind,...ids)});}
  async namespace(){return this.transaction(false,t=>this.bind(t),['meta']);}
  async read(kind,...ids){return this.transaction(false,t=>this.get(t,kind,...ids),['meta']);}
- async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null}={}){
+ async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
   changes=clone(changes);operationIds=operationIds?clone(operationIds):null;
   const snapshot=await this.transaction(false,async t=>({
@@ -160,6 +160,12 @@ export class BrowserNativeSyncCore {
    if(head?.revisions?.length>1&&!change.resolve)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
    if(change.resolve&&!equal([...parents].sort(),[...(head?.revisions||[])].sort()))fail('BNS_RESOLUTION_PARENTS');
    operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:operationIds?.[index]||crypto.randomUUID(),type:change.type,entityId,codecVersion:CODECS[change.type]?.version??1,kind:change.kind||'put',actor,parents:[...parents].sort(),value:change.kind==='purge'?null:clone(change.value)}));
+  }
+  if(promptBinding){
+   if(!exact(promptBinding,['version','normalizerVersion','bindings'])||Object.keys(promptBinding).length!==3||logicalCommit||sourceBootstrap||sourceAppend||humanLibrary||operations.length!==1||operations[0].type!=='promptPreferences'||operations[0].kind!=='put')fail('BNS_PROMPT_BINDING_INVALID');
+   const value={id:operations[0].entityId,...clone(promptBinding),promptRevisionId:operations[0].revisionId},bindingHead=await this.read('head','promptBinding',value.id);
+   if(bindingHead?.purged)fail('BNS_ENTITY_PURGED');if(bindingHead?.revisions.length>1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+   operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:crypto.randomUUID(),type:'promptBinding',entityId:value.id,codecVersion:1,kind:'put',actor,parents:bindingHead?.revisions??[],value}));
   }
   if(logicalCommit){
    if(!exact(logicalCommit,['id','inputId','documentId','sourceRefs'])||operations.length>=CORE_LIMITS.batch||operations.some(op=>op.type!=='inputWorkingMember'||op.value.logicalCommitId!==logicalCommit.id||op.value.datasetId!==this.datasetId||op.value.deviceId!==this.deviceId))fail('BNS_WORKING_COMMIT_INVALID');

@@ -11,7 +11,7 @@ import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {prepareGroupScope,requireGroupScope,prepareGroupCurrentProjection,requireGroupCurrentProjection,encodeGroupCurrentProjection,publishGroupCurrentProjection,releaseGroupCurrentProjection} from './group-checkpoint-scope.js';
 import {prepareBootstrapApplication,applyBootstrapApplication} from './source-bootstrap-receive.js';
 import {prepareAppendApplication,applyAppendApplication} from './source-append-receive.js';
-import {JournalRestoreFence,readRestoreEpoch} from './prompt-journal.js';
+import {JournalRestoreFence,readRestoreEpoch,materializePromptBinding} from './prompt-journal.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
@@ -149,7 +149,7 @@ export class GroupedCheckpointRestore{
    await requireGroupScope(this.store,t,empty);if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
-   for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
+   for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='promptBinding'?materializePromptBinding:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
    await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
    for(const expected of frontiers){const actual=await replay.get(t,'frontier',expected.deviceId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_FRONTIER');}

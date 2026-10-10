@@ -11,7 +11,9 @@ const generation=async t=>(await t.get('meta','backup-data-generation'))?.value|
 export class PromptReuseService{
  #nextFamilyView;
  constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
- async snapshot(){
+ async syncCorrectionSnapshot(journal){if(!(#nextFamilyView in this)||this.syncJournal!==journal)fail();return this.#snapshot(false);}
+ async snapshot(){return this.#snapshot(true);}
+ async #snapshot(projectCorrections){
   await this.s.finishFoundation();
   let after,base,preferences;const inputs=[];
   do{
@@ -41,7 +43,7 @@ export class PromptReuseService{
   }while(after!==undefined);
   const families=await projectPromptFamilies(inputs,preferences,this.clock());
   await this.s.run(()=>this.s.repository.transaction(false,async t=>{if(base!==await generation(t))changed();},['meta']));
-  return {families,preferences,generation:base,inputs};
+  const snapshot={families,preferences,generation:base,inputs};if(projectCorrections&&this.syncJournal?.correctionBindings)return {...snapshot,...await this.syncJournal.projectCorrections(snapshot,this.clock())};return snapshot;
  }
  async members(id){
   const x=await this.snapshot(),family=x.families.find(f=>f.id===id);if(!family)changed();
@@ -50,7 +52,7 @@ export class PromptReuseService{
  async query({includeHidden=false}={}){
   if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
   this.#nextFamilyView.publish(serial,x);
-  return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true};
+  return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
  }
  async nextFamilyView(){return this.#nextFamilyView.read(expected=>this.assertCurrent(expected));}
  async resolve({id,text}={}){
@@ -86,7 +88,7 @@ export class PromptReuseService{
   p.revision++;if(!validPromptPreferences(p))fail();
   // Optional local BNS proof: serialize/hash before opening IDB. The canonical
   // CAS write and durable outbox are acknowledged only after the same commit.
-  const syncPrepared=this.syncJournal?await this.syncJournal.prepare(x.preferences,p):null;
+  const syncPrepared=this.syncJournal?await this.syncJournal.prepare(x.preferences,p,{inputs:x.inputs,generation:x.generation}):null;
   await this.s.run(()=>this.s.repository.transaction(true,async t=>{
    if(await generation(t)!==x.generation||(await readPromptPreferences(t)).revision!==change.revision)changed();await t.put('meta',p);
    if(this.syncJournal)await this.syncJournal.commit(t,syncPrepared);

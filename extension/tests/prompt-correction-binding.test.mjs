@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {projectPromptFamilies,promptCandidate} from '../core/prompt-family.js';
 import {emptyPromptPreferences} from '../core/prompt-reuse-preferences.js';
-import {PROMPT_CORRECTION_NORMALIZER_VERSION as version,PROMPT_CORRECTION_BINDING_LIMITS,capturePromptCorrectionBinding,validatePromptCorrectionBinding,planPromptCorrectionBinding} from '../core/browser-native-sync/prompt-correction-binding.js';
+import {PROMPT_CORRECTION_NORMALIZER_VERSION as version,PROMPT_CORRECTION_BINDING_LIMITS,capturePromptCorrectionBinding,validatePromptCorrectionBinding,planPromptCorrectionBinding,projectBoundPromptCorrections} from '../core/browser-native-sync/prompt-correction-binding.js';
 const input=(id,text,conversation=id)=>({id,text,conversation,at:null,role:'user',eligible:true});
 const manual='manual:11111111-1111-1111-1111-111111111111',group='22222222-2222-2222-2222-222222222222';
 const capture=(inputs,preferences,normalizerVersion=version)=>capturePromptCorrectionBinding({inputs,preferences,normalizerVersion});
@@ -70,4 +70,10 @@ test('oversize input array is refused before allocating its own-name vector and 
  finally{Object.getOwnPropertyNames=names;}
  for(const text of ['\ud800','\udfff'])await reject(()=>capture([input('a',text)],emptyPromptPreferences()));
  const valid=await capture([input('a','\ud83d\ude00'.repeat(20))],emptyPromptPreferences());assert.equal(validatePromptCorrectionBinding(valid),true);
+});
+test('unknown normalizer with the same current family hash preserves human work as unresolved without attaching it to automatic members',async()=>{
+ const inputs=[input('a','请解释算法'),input('b','解释算法')],p=await corrected(inputs),binding=structuredClone(await capture(inputs,p));binding.normalizerVersion='future-normalizer-v2';const before=structuredClone({inputs,p,binding}),view=await projectBoundPromptCorrections({binding,inputs,preferences:p,now:100});assert.equal(view.bindingsComplete,false);assert.ok(view.unresolved.every(row=>row.reason==='unknown_normalizer'));for(const override of p.overrides){const row=view.families.find(row=>row.id===override.id);assert.equal(row.text,override.text);assert.deepEqual(row.members,[]);assert.equal(row.hidden,override.hidden);assert.equal(row.pinned,p.pins.includes(row.id));}assert.deepEqual({inputs,p,binding},before);
+});
+test('bound projection accepts canonical property order and borrows original IDs after a genuine family hash rebuild',async()=>{
+ const inputs=[input('a','旧说明'),input('b','旧说明')],p=await corrected(inputs),binding=await capture(inputs,p),ordered=JSON.parse(JSON.stringify(binding,(key,value)=>value&&typeof value==='object'&&!Array.isArray(value)?Object.fromEntries(Object.keys(value).sort().map(key=>[key,value[key]])):value)),updated=inputs.map(row=>({...row,text:'新说明'})),view=await projectBoundPromptCorrections({binding:ordered,inputs:updated,preferences:p,now:100});assert.equal(view.bindingsComplete,true);assert.equal(view.families.length,1);assert.equal(view.families[0].id,p.overrides[0].id);assert.equal(view.families[0].text,p.overrides[0].text);assert.deepEqual(view.families[0].members,['a','b']);assert.equal(view.families[0].pinned,true);assert.equal(view.families[0].hidden,true);
 });

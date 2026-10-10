@@ -1,6 +1,7 @@
 import {ArchiveError} from '../constants.js';
-import {projectPromptFamilies} from '../prompt-family.js';
+import {projectPromptFamilies,promptCandidate} from '../prompt-family.js';
 import {PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
+import {equal} from './value.js';
 
 // Names the existing whole-text/finite-lexical projector, not a new normalizer.
 export const PROMPT_CORRECTION_NORMALIZER_VERSION='prompt-candidate-whole-finite-v1';
@@ -75,18 +76,33 @@ function checkedPortable(p){
  const local={...p,revision:0,overrides:p.overrides.map(o=>({...o,reuseCount:0}))};if(!validPromptPreferences(local))invalid();return local;
 }
 const referenced=p=>[...new Set([...p.pins,...p.overrides.map(o=>o.id)])].sort(compare);
-function checkedBinding(value){
- const b=detached(value);if(!own(b,['version','normalizerVersion','portablePreferences','bindings'])||b.version!==1||!version(b.normalizerVersion)||!Array.isArray(b.bindings)||b.bindings.length>PROMPT_CORRECTION_BINDING_LIMITS.families)invalid();
- const p=checkedPortable(b.portablePreferences),refs=referenced(p);if(b.bindings.length!==refs.length)invalid();
+function checkedRows(bindings,refs){
+ if(!Array.isArray(bindings)||bindings.length>PROMPT_CORRECTION_BINDING_LIMITS.families||bindings.length!==refs.length)invalid();
  let anchors=0;const inputs=new Set();
- for(let n=0;n<b.bindings.length;n++){
-  const row=b.bindings[n];if(!own(row,['familyId','kind','inputIds'])||!family(row.familyId)||row.familyId!==refs[n]||!['manual','family','orphan'].includes(row.kind)||!Array.isArray(row.inputIds)||row.inputIds.length>PROMPT_CORRECTION_BINDING_LIMITS.anchors||row.inputIds.some((x,i)=>!id(x)||i>0&&compare(row.inputIds[i-1],x)>=0))invalid();
+ for(let n=0;n<bindings.length;n++){
+  const row=bindings[n];if(!own(row,['familyId','kind','inputIds'])||!family(row.familyId)||row.familyId!==refs[n]||n>0&&compare(refs[n-1],refs[n])>=0||!['manual','family','orphan'].includes(row.kind)||!Array.isArray(row.inputIds)||row.inputIds.length>PROMPT_CORRECTION_BINDING_LIMITS.anchors||row.inputIds.some((x,i)=>!id(x)||i>0&&compare(row.inputIds[i-1],x)>=0))invalid();
   if(manual(row.familyId)?row.kind!=='manual'||row.inputIds.length:row.kind==='manual'||(row.kind==='family')!==(row.inputIds.length>0))invalid();
   for(const inputId of row.inputIds){if(inputs.has(inputId)||++anchors>PROMPT_CORRECTION_BINDING_LIMITS.anchors)invalid();inputs.add(inputId);}
  }
+}
+function checkedBinding(value){
+ const b=detached(value);if(!own(b,['version','normalizerVersion','portablePreferences','bindings'])||b.version!==1||!version(b.normalizerVersion))invalid();
+ const p=checkedPortable(b.portablePreferences);checkedRows(b.bindings,referenced(p));
  return b;
 }
 export function validatePromptCorrectionBinding(binding){checkedBinding(binding);return true;}
+export const PROMPT_CORRECTION_BINDING_ROW='prompt-correction-binding:v1';
+// Body-free canonical companion. Its body/revision link is checked separately
+// against the exact original Prompt operation, never against a similar Family.
+export function validatePromptCorrectionCompanion(value){const b=detached(value);if(!own(b,['id','version','promptRevisionId','normalizerVersion','bindings'])||b.id!==PROMPT_REUSE_ROW||b.version!==1||typeof b.promptRevisionId!=='string'||!/^[a-f0-9]{64}$/.test(b.promptRevisionId)||!version(b.normalizerVersion)||!Array.isArray(b.bindings))invalid();checkedRows(b.bindings,b.bindings.map(row=>row?.familyId));return b;}
+export function promptCorrectionEnvelope(companion,portablePreferences){const b=validatePromptCorrectionCompanion(companion);return checkedBinding({version:1,normalizerVersion:b.normalizerVersion,portablePreferences,bindings:b.bindings});}
+export async function capturePromptCorrectionSuccessor({inputs,preferences,previous=null}={}){
+ const captured=await capturePromptCorrectionBinding({inputs,preferences,normalizerVersion:PROMPT_CORRECTION_NORMALIZER_VERSION});if(!previous)return captured;
+ const old=checkedBinding(previous),rows=new Map(old.bindings.map(row=>[row.familyId,row]));
+ // Existing durable work keeps its original anchors, including missing/orphan
+ // anchors. A current Family graph cannot erase or silently replace them.
+ const next={...captured,normalizerVersion:old.normalizerVersion,bindings:captured.bindings.map(row=>rows.get(row.familyId)||row)};checkedBinding(next);return frozen(next);
+}
 
 export async function capturePromptCorrectionBinding({inputs,preferences,normalizerVersion}={}){
  const source=checkedInputs(inputs),p=checkedPreferences(preferences);if(!version(normalizerVersion))invalid();
@@ -128,4 +144,14 @@ export async function planPromptCorrectionBinding({binding,inputs,normalizerVers
  // Return original work once and a body-free mapping, never an applied prefs row.
  // Callers must qualify original owners/cut and perform their own CAS transaction.
  return frozen({portablePreferences:b.portablePreferences,mappings,unresolved,complete:unresolved.length===0});
+}
+// Presentation aliases borrow the original correction identity/body. Canonical
+// preference IDs, pin order and split facts are never rewritten on rebinding.
+export async function projectBoundPromptCorrections({binding,inputs,preferences,now}={}){
+ const p=checkedPreferences(preferences),source=checkedInputs(inputs),b=checkedBinding(binding);if(!equal(portablePreferences(p),b.portablePreferences))invalid();
+ const plan=await planPromptCorrectionBinding({binding:b,inputs:source,normalizerVersion:PROMPT_CORRECTION_NORMALIZER_VERSION}),unresolvedIds=new Set(plan.mappings.filter(row=>row.status==='unresolved').map(row=>row.familyId)),viewPreferences={...p,pins:p.pins.filter(id=>!unresolvedIds.has(id)),overrides:p.overrides.filter(row=>!unresolvedIds.has(row.id)),splits:b.normalizerVersion===PROMPT_CORRECTION_NORMALIZER_VERSION?p.splits:[]},families=await projectPromptFamilies(source,viewPreferences,now),byId=new Map(families.map(row=>[row.id,row])),overrides=new Map(p.overrides.map(row=>[row.id,row])),replaced=new Set(),aliases=[];
+ for(const id of unresolvedIds){replaced.add(id);const correction=overrides.get(id);if(correction?.text!==undefined)aliases.push({id,text:correction.text,members:[],conversations:0,score:Math.min(.1,(correction.reuseCount||0)*.01),hidden:correction.hidden,edited:true,useful:true,retained:true,pinned:p.pins.includes(id)});}
+ for(const mapping of plan.mappings){if(mapping.status!=='bound'||mapping.familyId===mapping.targetId)continue;const target=byId.get(mapping.targetId),correction=overrides.get(mapping.familyId);if(!target)invalid();const representative=correction?.representative&&source.find(row=>row.id===correction.representative&&target.members.includes(row.id));aliases.push({...target,id:mapping.familyId,text:correction?.text??(representative?promptCandidate(representative.text).text:target.text),score:target.score+Math.min(.1,(correction?.reuseCount||0)*.01),hidden:correction?.hidden===true,edited:correction?.text!==undefined,retained:!!correction,pinned:p.pins.includes(mapping.familyId)});replaced.add(mapping.familyId);replaced.add(mapping.targetId);}
+ const result=[...families.filter(row=>!replaced.has(row.id)),...aliases],pins=new Map(p.pins.map((id,i)=>[id,i]));result.sort((a,b)=>a.pinned!==b.pinned?(a.pinned?-1:1):a.pinned?pins.get(a.id)-pins.get(b.id):b.score-a.score||(a.id<b.id?-1:1));
+ return {families:result,unresolved:plan.unresolved,bindingsComplete:plan.complete};
 }

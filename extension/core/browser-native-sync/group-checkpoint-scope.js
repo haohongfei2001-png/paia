@@ -8,6 +8,7 @@ import {defaults} from '../workspace.js';
 import {readContextCards,validContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
 import {assertManualPromptCurrentPhysicalShape} from './manual-prompt-current-shape.js';
+import {PROMPT_CORRECTION_BINDING_ROW,promptCorrectionEnvelope,validatePromptCorrectionCompanion} from './prompt-correction-binding.js';
 import {assertCurrentContextSnapshot,hasCurrentContextOperations} from './manual-context-current-snapshot.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {backupMetaAllowed} from '../backup-format.js';
@@ -125,6 +126,13 @@ export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,
  const revision=raw.points['revision-sequence'];if((revision?.value||0)!==Math.max(0,...raw.rows.revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
 }
+function physicalPromptCompanion(row,prompt){
+ if(row?.id!==PROMPT_CORRECTION_BINDING_ROW)fail('BNS_GROUP_COMMIT_UNPROVEN');const portable=validatePromptCorrectionCompanion({...row,id:PROMPT_REUSE_ROW});promptCorrectionEnvelope(portable,prompt);return portable;
+}
+function consumePromptCompanion(scope,plan,rows,key,prompt){
+ const expected=scope.expected.promptBinding,head=plan.heads.find(row=>row.type==='promptBinding'&&row.entityId===PROMPT_REUSE_ROW),promptHead=plan.heads.find(row=>row.type==='promptPreferences'&&row.entityId===PROMPT_REUSE_ROW),physical=physicalPromptCompanion(rows.get(PROMPT_CORRECTION_BINDING_ROW),projectEntity('promptPreferences',prompt));
+ if(!head||head.purged||head.revisions.length!==1||physical.promptRevisionId!==promptHead?.revisions[0]||!equal(physical,expected))fail('BNS_GROUP_COMMIT_UNPROVEN');const proofId=key('materializedOwner','promptBinding',PROMPT_REUSE_ROW);if(!equal(rows.get(proofId),{id:proofId,version:1,revisionId:head.revisions[0],ownerRevision:prompt.revision}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(proofId);rows.delete(PROMPT_CORRECTION_BINDING_ROW);
+}
 function assertManualPromptNativeValue(physical,operation,expected){
  if(!validPromptPreferences(physical))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const wire=projectEntity('promptPreferences',physical);
@@ -142,18 +150,18 @@ async function compileOriginalWireScope(plan){
  // independent normalized clone. Generic restore/Source paths keep old copies.
  const mixed=originalCurrentMixedGroupCore(plan),copy=mixed?value=>value:clone;
  const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents'].map(name=>[name,new Map()]));
- const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences());
+ const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences()),promptBinding=null;
  for(const group of plan.groups){
   if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,copy(value));}
   else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
-  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else context.set(op.entityId,copy(op.value));}
+  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else context.set(op.entityId,copy(op.value));}
  }
  const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,clone(row));
  const library={records:[...maps.records.values()],library:emptyLibrary()};syncLibrary(library);
  const documents=library.library.documents.map(row=>{const value={...row,titleRevision:0};delete value.sourceRecordIds;return value;});
  const expected=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()])]));
  expected.documents=sort(documents);expected.libraryDocuments=documents.map(({titleRevision,...row})=>row);
- expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;
+ expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;if(promptBinding)expected.promptBinding=promptBinding;
  if(human)expected.humanLibrary=human;
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
@@ -203,7 +211,7 @@ export async function requireGroupScope(store,t,scope){
   }
  }
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));
- actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));
+ actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));const companion=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  if(human){const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return compareGroupCanonicalValues(scope,actual,human);
 }
@@ -240,7 +248,7 @@ export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw
  else{assertMixedInitialPhysicalAllocations(core,scope,plan,actual,{active:raw.rows.meta.find(row=>row.id===core.prefix+'active')??null,input:raw.rows.meta.find(row=>row.id==='input-delta-sequence')??null,history:raw.rows.meta.find(row=>row.id==='revision-sequence')??null});assertMixedInitialHumanPhysicalAllocations(core,scope,plan,humanRows,raw.rows.meta);}
  const context=raw.rows.meta.find(row=>row.id===CONTEXT_CARDS_ROW)??emptyContext(),prompt=raw.rows.meta.find(row=>row.id===PROMPT_REUSE_ROW)??emptyPromptPreferences();
  if(!validContextCards(context)||!validPromptPreferences(prompt))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
- actual.context=sort(context.items.map(row=>clone(row)));actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));actual.prompt=projectEntity('promptPreferences',prompt);
+ actual.context=sort(context.items.map(row=>clone(row)));actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));actual.prompt=projectEntity('promptPreferences',prompt);const companion=raw.rows.meta.find(row=>row.id===PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return compareGroupCanonicalValues(scope,actual,human);
 }
 export function consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,rows){
@@ -248,7 +256,7 @@ export function consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control
  const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts);
  if(plan.groups.some(group=>group.type==='promptPreferences')){
   const head=plan.heads.find(head=>head.type==='promptPreferences'&&head.entityId===PROMPT_REUSE_ROW),operation=head&&plan.groups.flatMap(group=>group.operations).find(op=>op.revisionId===head.revisions[0]),row=rows.get(PROMPT_REUSE_ROW);
-  if(!head||head.purged||head.revisions.length!==1||!operation||!row)fail('BNS_GROUP_COMMIT_UNPROVEN');assertManualPromptCurrentPhysicalShape(row);assertManualPromptNativeValue(row,operation.value,scope.expected.prompt);
+  if(!head||head.purged||head.revisions.length!==1||!operation||!row)fail('BNS_GROUP_COMMIT_UNPROVEN');if(scope.expected.promptBinding)consumePromptCompanion(scope,plan,rows,key,row);else assertManualPromptCurrentPhysicalShape(row);assertManualPromptNativeValue(row,operation.value,scope.expected.prompt);
   const id=key('materializedOwner','promptPreferences',PROMPT_REUSE_ROW);if(!equal(rows.get(id),{id,version:1,revisionId:head.revisions[0],ownerRevision:row.revision}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);rows.delete(PROMPT_REUSE_ROW);
  }else if(rows.has(PROMPT_REUSE_ROW)){if(!equal(rows.get(PROMPT_REUSE_ROW),emptyPromptPreferences()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');rows.delete(PROMPT_REUSE_ROW);}
  if(hasCurrentContextOperations(plan))assertCurrentContextSnapshot(core,scope,plan,raw,rows);

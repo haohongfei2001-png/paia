@@ -3,10 +3,11 @@ import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSo
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
+import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 
 const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
-const singles=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
+const singles=new Set(['promptPreferences','promptBinding','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
@@ -92,6 +93,7 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
   for(const op of group.prepared.members){const entity=op.value.entity;if(op.value.entityType==='input'){if(createdInputs.has(entity.id))fail('BNS_GROUP_SOURCE_COLLISION');createdInputs.set(entity.id,group);}if(op.value.entityType==='source'){if(createdSources.has(entity.sourceKey))fail('BNS_GROUP_SOURCE_COLLISION');createdSources.set(entity.sourceKey,group);}}
  }
  const depend=(group,other)=>{if(!other)fail('BNS_GROUP_CAUSAL_GAP');if(other!==group)group.dependencies.add(other.id);};
+ const promptBindings=new Map();for(const group of groups)if(group.type==='promptBinding'){const ref=group.operations[0].value.promptRevisionId;if(promptBindings.has(ref))fail('BNS_PROMPT_BINDING_INVALID');promptBindings.set(ref,group);}
  for(const group of groups){
   for(const op of group.operations){if(op.type==='humanLibraryMember'&&(op.parents.length>1||!equal(op.parents.length?byRevision.get(op.parents[0])?.value.after:null,op.value.before)))fail('BNS_HUMAN_OWNER_CHANGED');for(const id of op.parents){const parent=byRevision.get(id);if(!parent||parent.type!==op.type||parent.entityId!==op.entityId)fail('BNS_GROUP_CAUSAL_GAP');depend(group,claimed.get(id));}}
   if(group.type==='sourceAppendCommit'){
@@ -100,7 +102,13 @@ async function finishOriginalCompiledGraph(core,binding,operations,groups,size,b
   }
   if(group.type==='inputWorkingCommit')depend(group,createdInputs.get(group.prepared.descriptor.value.inputId));
   if(group.type==='filterIntent'){if(group.operations[0].value.reason!=='restored_from_filter')fail('BNS_GROUP_OWNER_UNSUPPORTED');depend(group,createdSources.get(group.operations[0].entityId));}
+  if(group.type==='promptPreferences')for(const parent of group.operations[0].parents)if(promptBindings.has(parent))depend(group,promptBindings.get(parent));
+  if(group.type==='promptBinding'){
+   const operation=group.operations[0],prompt=byRevision.get(operation.value.promptRevisionId);if(!prompt||prompt.type!=='promptPreferences'||prompt.entityId!==operation.entityId||prompt.kind!=='put')fail('BNS_GROUP_CAUSAL_GAP');promptCorrectionEnvelope(operation.value,prompt.value);depend(group,claimed.get(prompt.revisionId));
+   for(const row of operation.value.bindings)for(const id of row.inputIds)depend(group,createdInputs.get(id));for(const split of prompt.value.splits)depend(group,createdInputs.get(split.inputId));
+  }
  }
+ for(const [key,revisions]of heads){const [type,id]=JSON.parse(key);if(type!=='promptPreferences')continue;const prompt=byRevision.get(revisions[0]),full=prompt.value.splits.length||prompt.value.pins.some(id=>id.startsWith('pf:'))||prompt.value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined);const bindingRefs=heads.get(JSON.stringify(['promptBinding',id])),companion=bindingRefs&&byRevision.get(bindingRefs[0]);if((full||bindingRefs)&&(!companion||companion.value.promptRevisionId!==prompt.revisionId))fail('BNS_PROMPT_BINDING_REQUIRED');}
  // Qualified Human owners have no Source/Working references. Preserve their
  // complete parent order and execute them first, so the original local history
  // allocator starts from the actual captured empty installation, never a

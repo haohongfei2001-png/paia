@@ -1,6 +1,7 @@
 import {CANDIDATE_CODECS,CODECS,CODEC_COVERAGE} from './codecs.js';
 import {PromptSyncJournal,materializePrompt,restorePromptPreferences} from './prompt-journal.js';
 import {PROMPT_REUSE_ROW} from '../prompt-reuse-preferences.js';
+import {PROMPT_CORRECTION_BINDING_ROW} from './prompt-correction-binding.js';
 import {CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {sourceStructureMetaAllowed} from '../source-structure-backup.js';
@@ -21,6 +22,7 @@ export async function readCanonicalReadiness(core,{promptService=null}={}){
    let count=0;
    if(codec.store!=='meta')count=await t.count(codec.store);
    else if(type==='promptPreferences')count=keys.has(PROMPT_REUSE_ROW)?1:0;
+   else if(type==='promptBinding')count=keys.has(PROMPT_CORRECTION_BINDING_ROW)?1:0;
    else if(type==='sourceStructure')count=scan.keys.filter(sourceStructureMetaAllowed).length;
    else if(type==='topicName')count=scan.keys.filter(topicIdentityMetaAllowed).length;
    else if(type==='consumerPreference')count=keys.has(codec.owner)?1:0;
