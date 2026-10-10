@@ -1373,8 +1373,12 @@ export async function requireSourceWorkingCurrentGroupProjection(cap){
   if(!projectionGroupCutEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');projectionFence(r);return true;
  }catch(error){throw projectionFailure(error,r.cleanupErrors);}
  finally{
-  if(r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){r.revoked=true;p.revoked=true;projectionQuarantine.set(r.nonce,r);}else projectionDrop(r);
-  p.frames--;if(p.revoked)projectionRevoke(p);
+  if(r.nativeOpened&&(!r.nativeDrained||r.listenersCleared===false)){
+   // Quarantined r still borrows the original retained Scope/Plan/control.
+   // Preserve BOTH its live work and p's frame/retained charge until actual
+   // cleanup is proven; never refund a borrowed lifetime in a finally block.
+   r.revoked=true;p.revoked=true;projectionQuarantine.set(r.nonce,r);
+  }else{projectionDrop(r);p.frames--;if(p.revoked)projectionRevoke(p);}
  }
 }
 // No supplied Scope/Plan or DTO reader. Both original owners receive exactly
@@ -1405,7 +1409,11 @@ export async function requireHumanCurrentUnindexedProjection(t,cap){
  }
 }
 export function releaseHumanCurrentUnindexedProjection(cap){
- if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked||p.released)projectionRequired();currentProjectionCaps.delete(cap);projectionRevoke(p);
+ if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.revoked&&!p.sourceWorking||p.released)projectionRequired();
+ // A quarantined Source frame keeps its retained charge even after the public
+ // handle is revoked. Releasing the handle must not replace the original
+ // primary/cleanup error or refund still-borrowed retained values.
+ currentProjectionCaps.delete(cap);projectionRevoke(p);
 }
 // Fixed private producer. The shared original encoder receives only rows from
 // authenticated native R in its actual primary-key order, never Core.rows.
