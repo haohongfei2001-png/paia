@@ -1,6 +1,6 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent,retainOriginalMixedRestoredScopeProof} from './human-library-plan.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent,retainOriginalMixedRestoredScopeProof,reserveOriginalMixedKeyedScopePhase} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
@@ -171,7 +171,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
    measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
-  if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
+  if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){

@@ -1348,12 +1348,21 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  }
  projectionRequired();
 }
+// Enter keyed work only AFTER the original wire builder returned. Price its
+// actual surviving Scope and final Human wire, not overwritten operation
+// histories from the complete Plan, which remain independently owned.
+export function reserveOriginalMixedKeyedScopePhase(nonce,store,scope,plan){
+ if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedKeyedStarted)projectionRequired();
+ const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
+ const scratch=projectionTreeCharge(frames.scope)+4*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
+ r.mixedKeyedStarted=true;r.mixedKeyedScratch=scratch;projectionReserve(r,scratch);
+}
 // Transfer surviving authenticated prefix/control/allocation ownership only
 // after the original prefix builders have returned, and BEFORE keyed work.
 export function retainOriginalMixedRestoredScopeProof(nonce,store,scope,plan){
  if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
  if(r.mixedRestoredProofRetained||r.group.plan!==plan||r.mixedRestoredPhase!=='mapped')projectionRequired();
- const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedKeyedScratch);
+ const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedRestoredBase);
 }
 // The original canonical owners borrow only this exact drained cut. A caller
 // cannot authenticate a cloned raw/Scope/Plan or substitute a later Store read.
@@ -1540,11 +1549,12 @@ async function projectionCompileInitialMixedScope(r){
  // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
  const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees+4*wireMeter.peak+8*wire.B+256*1024;
- const keyedScratch=2*projectionTreeCharge(wire)+4*projectionTreeCharge(humanWire)+2*projectionCanonicalCharge(humanWire)+8*humanWire.B+2*1024*1024;
+ // The keyed phase has its own original-owner entry after the wire builder
+ // returns; its actual surviving objects are charged there before crypto.
  // The restored prefix compiler/control check runs after wire construction
  // returns. Its surviving private prefix and allocation cells remain live
  // through the subsequent keyed phase; the complete current Plan never leaves.
- const scopeScratch=Math.max(wireScratch,keyedScratch);r.mixedKeyedScratch=keyedScratch;
+ const scopeScratch=wireScratch;
 
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
