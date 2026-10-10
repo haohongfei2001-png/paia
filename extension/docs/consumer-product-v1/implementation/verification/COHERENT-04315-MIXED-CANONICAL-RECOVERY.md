@@ -1,0 +1,29 @@
+# 0.43.15 — SYNC-01 batch A Mixed Canonical recovery candidate
+
+## Scope and current state
+
+The owner-approved revised Sync convergence plan merged through PR #250 at main `ef08a51a84fccc8e04fd5447fdff6de9fea2a7a9`. It governs this consuming batch. All main development is preserved. The last qualified package remains 0.43.14 at `fc3cbd35`; this 0.43.15 candidate is **IN_PROGRESS / NOT_FORMALLY_ACCEPTED**, not a new installed or deployed version. SYNC-01 remains partial and not accepted; SYNC-02–06/provider/device acceptance and the seven-plan programme remain open.
+
+Batch A composes one real current native cut containing original Source bootstrap/append and two Inputs, genuine Working journals, independent Human Thought/Topic/default and named Section/placement, manual Context Info and Prompt work. The original fixed reader checks all37 stores/all110 indices, same-cut complete canonical bodies/protocol/global metadata/AIU/query and ordinary completed Search; it uses original branded Plan/Scope, original encoder/publisher and original staged restore. No public supplied Core reader, copied database, second corpus, new restore engine, provider, consent expansion or paid call is introduced.
+
+A closes; a genuinely empty B restores and edits both Inputs; B's original current native exporter reexports that complete mixed cut; B closes; genuinely empty C restores exact B Working content plus Human/manual work. On C the original mixed activation fault rolls back all37 stores and active namespace, then retries successfully. Duplicate activation is a full37 no-op with zero pending/outbox echo. C truly closes and a new original Store/repository reopens the same native database, retaining persisted consent and reading both Inputs, Topic/Thought/default/named Section/placement and Context/Prompt through original consumers. Subsequent original Mixed publication rejects a real intervening C Working edit while preserving that edit.
+
+## Implementation and safety
+
+Original Source-only default selection remains unchanged; Mixed is a separate explicit internal selection with strict original constructor/cut/nonce brands. Completed imported-prefix manifest integrity, semantic ownerScope/family digests, graph, coverage and itemCount must agree. Physical local allocator facts come from the authenticated prefix and each genuine local tail transaction; AIU reuses the original coalescing/live/flush decisions. Unknown or financial metadata is not silently excluded.
+
+Resource caps remain original8MiB live shared work,4MiB retained,2MiB physical-tree bounds and original native timeouts. Sequential wire/keyed/query/Search/manual phases retain all still-live raw/Plan/private Source/Human/control trees. Only actual canceled copies, already identical prepared operation references and a genuinely ended private Search proof remove duplicate ownership/temporary charges. Human outer history remains independently cloned. These are logical bounded tariffs, not a browser heap or large-corpus measurement claim.
+
+## Evidence and remaining integration gates
+
+Runtime `6b427a2488394ffa5ec96a8767400431dfbaf3e8` first passed the complete native A→B→C chain, source/release each16 cases/137 assertions. `82e6bee008c73c926233bd76004d125239c9e671` added restored-control/protocol and publication safety, source/release each16/167. `42fcc0d53a7db16b5997806a0a834182a22d8ec0` added a coherently rebuilt legal immutable manifest/reference plus active/control with a wrong semantic family commitment: original native export refuses, zero publication, all37 unchanged, repair accepted; source/release each16/173. `230cf83ccf3e78e0b39d63c5e8adabc280f26f37` added actual mixed activation rollback/retry, duplicate/noEcho and genuine close/reopen cold consumers; source/release each16/190, zero failures/skips/cancellations and zero network. Each proof binds its own clean head/tree, all294 proof/all279 loaded runtime paths and original generated fixture/worker omission. These component receipts are not retagged as the later version/CI candidate.
+
+Independent finite CODE/resource/complete consuming chain review approves the original runtime and earlier exact evidence; final 0.43.15 candidate's composed review and new exact receipts remain required. Both original CI jobs retain all prior complete48 checks, append both whole Mixed native files (52 source/release receipts total), require current checkout/Git/hash/generated-worker/isolation/status/case/flag evidence and retain failures. New native receipts continue to refuse fullCanonicalReady/sharedWorkTicketQualified/full Sync claims.
+
+Before integration: current owning/related whole Node files and native source/release combination, package/privacy/release checks, final independent composed review, applicable original Full21 and Prompt5. After normal integration: actual exact-main Full/Prompt and package evidence. No formal deployment is authorized by this batch.
+
+All earlier failed stages remain retained, including original180s fixture cleanup timeouts, unsafe history-alias failures, prefix/compiler/wire and Search/metadata8MiB budget failures, and4MiB retained failure. No assertion, timeout, cap or failed/cancelled status was weakened. Actual fixes change the consuming code and then rerun its affected whole files.
+
+## Remaining approved Sync work
+
+Batch B adds original recoverable portable preferences/full manual configuration; batch C covers existing lawful Source/Thought/Topic/saved-work populations and legacy bootstrap. Complete merge/conflict/deletion, empty/nonempty lifecycle, compaction and measured64/256/1024KiB by1k/50k/500k envelope remain mandatory SYNC-01 closing outcomes. These are distinct from batch A and do not create another local-qualifier release loop. Provider/account/cloud permission and real-data transfer remain separately gated.
