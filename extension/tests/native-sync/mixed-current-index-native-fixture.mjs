@@ -1,3 +1,5 @@
+import {protocolObject} from '../../core/browser-native-sync/segments.js';
+import {bytes} from '../../core/browser-native-sync/value.js';
 import {LibraryDocumentsStore} from '../../core/library-documents-store.js';
 import {BrowserNativeSyncCore} from '../../core/browser-native-sync/core.js';
 import {SourceBootstrapJournal} from '../../core/browser-native-sync/source-bootstrap-journal.js';
@@ -119,6 +121,14 @@ export async function runMixedCurrentIndexNativeCases(){
      }finally{await b.s.repository.transaction(true,t=>t.put('meta',original));}
      check((await inspectMixedCurrentNativeScopeCompilation(b.s,b.core)).completeRestoredMetadataQualified===true,'original repaired restored cut fully consumed');pool();
     }
+    // Authenticate a coherent replacement manifest/control first; only the
+    // complete original prefix's semantic family commitment is now wrong.
+    const active=edited.meta.find(row=>row.id===b.core.prefix+'active'),semantic=structuredClone(badManifest),rebuilt=await protocolObject('checkpoint-manifest',bytes(semantic.manifest));semantic.manifestId=rebuilt.ref.id;semantic.manifestRef=rebuilt.ref;
+    try{await b.s.repository.transaction(true,async t=>{await t.put('meta',semantic);await t.put('meta',{...active,manifestId:rebuilt.ref.id});});const invalid=await all(b);let error,calls=0;
+     try{await buildGroupedCheckpoint(b.core,{...transport,async putImmutable(ref,data){calls++;await transport.putImmutable(ref,data);}},{store:b.s,currentMixedProjection:true});}catch(cause){error=cause;}
+     check(error?.code==='BNS_GROUP_CANONICAL_UNREPRESENTED','authenticated original manifest rejects wrong complete semantic family commitment: '+error?.message);check(calls===0,'no publication on wrong authenticated family commitment');check(equalSourceWorkingPhysicalTree(await all(b),invalid),'whole37 unchanged on wrong authenticated family commitment');pool();
+    }finally{await b.s.repository.transaction(true,async t=>{await t.put('meta',completed);await t.put('meta',active);});}
+    check((await inspectMixedCurrentNativeScopeCompilation(b.s,b.core)).completeRestoredMetadataQualified===true,'coherent semantic family repair accepted');pool();
     const successor=await buildGroupedCheckpoint(b.core,transport,{store:b.s,currentMixedProjection:true});check(equalSourceWorkingPhysicalTree(await all(b),edited),'restored original native re-export preserves whole37');pool();
     await b.s.repository.close();check(b.s.repository.db===null&&x.s.repository.db===null,'both original senders closed before fresh third receiver');const c=await fresh('SYNTHETIC_mixed_fresh_third');
     try{check((await all(c)).blocks.length===0,'third receiver genuinely empty');const next=new GroupedCheckpointRestore(c.core,{store:c.s,restoreId:'SYNTHETIC_mixed_native_third_'+crypto.randomUUID()});await next.stageCheckpoint(successor.ref,ref=>transport.get(ref));await next.activate();do{cleanup=await next.cleanup({limit:100});}while(!cleanup.complete);check(cleanup.state==='cleaned','third original cleanup completed');
