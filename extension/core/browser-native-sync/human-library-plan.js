@@ -1526,7 +1526,11 @@ async function projectionCompileInitialMixedScope(r){
  // Full Plan and complete actual metadata operands remain independently owned.
  // Original protocol/AIU builders hold small borrowed maps and newly produced
  // descriptor/signature rows, with one complete actual-row comparison at a time.
- const metadataScratch=mixedCurrentSemanticScratch(r)+4*metaPeak+currentContextSnapshotScratch(scope,plan,r.raw)+4096*256+256*1024;
+ // The original manual snapshot/transition helper returns before the original
+ // semantic chronology constructs its descriptor/signature/known/dirty maps.
+ // Pay their sequential peak while both full metadata maps, used-ID cells and
+ // all owned raw/Plan/Scope/private trees stay live throughout this function.
+ const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw))+4*metaPeak+4096*256+256*1024;
  projectionReserve(r,metadataScratch);assertInitialMixedDefaultMeta(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
  return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
