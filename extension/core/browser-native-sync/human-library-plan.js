@@ -1283,7 +1283,7 @@ function mixedNativeQueryView(r){
  return {rows:raw.rows,points,prefixes,placementOrder:raw.rows.topics.map(topic=>({topicId:topic.id,keys:indexed('placements','byTopicOrder',[topic.id,topic.activeLayoutGeneration,0])})),receiptOrder:raw.rows.thoughts.map(entry=>({ownerId:entry.id,keys:indexed('operationReceipts','byOwner',['thought-library',entry.id])}))};
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
-function projectionDrop(r){if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionDrop(r){if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.mixedRestoredPrefix=null;r.mixedRestoredPhase=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
 function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
 // Original mixed Scope construction will consume the already authenticated,
 // frozen full native cut. No caller-supplied secret/DTO and no Store.run tail
@@ -1308,15 +1308,15 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
 // cells are paid before borrowing final immutable members; no body DTO or
 // canonical JSON is built here, and the complete current Plan stays owned.
 function mixedWireCanonicalFamilyPeak(r,plan,humanWire){
- projectionReserve(r,4096*128+128*1024);const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
+ projectionReserve(r,4096*128+128*1024);const humanHistory=new Set(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
  for(const group of plan.groups){
   if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
-  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='history')maps.revisions.set(member.value.after.id,member.value.after);
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}
   else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
  }
- let peak=projectionCanonicalCharge(humanWire)+64*1024;
- for(const map of Object.values(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
- return peak;
+ let peak=projectionCanonicalCharge(humanWire)+64*1024,borrowedTrees=0;
+ for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ return {peak,borrowedTrees};
 }
 // Genuine sequential prefix stages reserve their actual operands. The current
 // complete raw/Plan/private Source ownership never leaves this work ticket.
@@ -1522,6 +1522,10 @@ async function projectionCompileInitialMixedScope(r){
  // their own keyed-alias and restored-prefix scratch; never silently fall back.
  assertOriginalInitialMixedScopeCompilationProfile(r.core,plan);
  const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};let wireCount=0,humanCount=0;
+ let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
+ // The compiler has returned. Transfer its complete surviving Plan/private
+ // Source before any later meter resizes this same live ticket.
+ r.owned+=projectionTreeCharge(m)+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
  // Scope clones original typed domain members/manual values, not complete
  // operation envelopes/parents or descriptor vectors. Those remain held in
  // the independently owned COMPLETE Plan. Price every domain input, including
@@ -1535,17 +1539,17 @@ async function projectionCompileInitialMixedScope(r){
  // Human-history role), original humanWire, keyed/normalized/nested copies,
  // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
- const wireScratch=8*projectionTreeCharge(wire)+4*mixedWireCanonicalFamilyPeak(r,plan,humanWire)+8*wire.B+256*1024;
+ const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees+4*wireMeter.peak+8*wire.B+256*1024;
  const keyedScratch=2*projectionTreeCharge(wire)+4*projectionTreeCharge(humanWire)+2*projectionCanonicalCharge(humanWire)+8*humanWire.B+2*1024*1024;
  // The restored prefix compiler/control check runs after wire construction
  // returns. Its surviving private prefix and allocation cells remain live
  // through the subsequent keyed phase; the complete current Plan never leaves.
  const scopeScratch=Math.max(wireScratch,keyedScratch);r.mixedKeyedScratch=keyedScratch;
- let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
+
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
  // only its finished scratch; the original work ticket remains continuously live.
- r.owned+=projectionTreeCharge(m)+sourceHidden;operations.length=0;projectionReserve(r);
+ projectionReserve(r);
  // These are conservative finite logical phase slots, not a full heap/tariff
  // qualification. Keep the original limit and all incomplete export flags.
  projectionReserve(r,scopeScratch);r.group={...r.group,plan};r.phase='mixed-scope-preparing';

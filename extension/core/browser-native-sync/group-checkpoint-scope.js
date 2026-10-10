@@ -138,12 +138,15 @@ const readRows=async(t,name)=>{if(await t.count(name)>128)fail('BNS_GROUP_RESOUR
 // Exact portable expectations compiled from admitted typed operations, not from
 // arbitrary canonical metadata. Only each owner's named physical counters map.
 async function compileOriginalWireScope(plan){
+ // Original branded immutable Mixed plans lend their domain rows until the
+ // independent normalized clone. Generic restore/Source paths keep old copies.
+ const copy=originalCurrentMixedGroupCore(plan)?value=>value:clone;
  const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents'].map(name=>[name,new Map()]));
  const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences());
  for(const group of plan.groups){
-  if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,clone(value));}
-  else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,clone(value));}
-  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,clone(op.value));else if(group.type==='promptPreferences')prompt=clone(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,clone(op.value));else context.set(op.entityId,clone(op.value));}
+  if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,copy(value));}
+  else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
+  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else context.set(op.entityId,copy(op.value));}
  }
  const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,clone(row));
  const library={records:[...maps.records.values()],library:emptyLibrary()};syncLibrary(library);
