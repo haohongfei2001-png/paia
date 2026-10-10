@@ -4,6 +4,8 @@ import {bytes} from '../core/browser-native-sync/value.js';
 import {prepareHumanScopeProof} from '../core/browser-native-sync/human-library-scope.js';
 import {assertOriginalInitialMixedScopeCompilationProfile} from '../core/browser-native-sync/human-library-plan.js';
 import {checkCurrentGroupProtocolRows} from '../core/browser-native-sync/current-group-protocol-rows.js';
+import {planInitialMixedSemanticMetadata} from '../core/browser-native-sync/source-working-default-meta.js';
+import {KNOWN_PREFIX,DIRTY_PREFIX,DELTA_COUNTER,HUMAN_FENCE} from '../core/ai-usage/delta.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -38,6 +40,16 @@ async function producer({times=[]}={}){
  await new ContextCardsService(s,{syncJournal:new ContextDesiredSyncJournal(core)}).change({kind:'put',card:'info',itemId:operationId(),operationId:operationId(),epoch:'initial',expectedRevision:0,body:'SYNTHETIC protected manual Info',section:'SYNTHETIC'});
  const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);return {s,core,operations,a,topic,entry};
 }
+test('original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts',async()=>{
+ const x=await producer();try{
+  await x.s.createSection({topicId:x.topic.id,expectedTopicRevision:1,title:'SYNTHETIC named AIU Section',operationId:operationId()});const operations=[];for await(const row of x.core.rows('revision'))operations.push(row.operation);
+  const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,operations),scope=await prepareGroupScope(plan,{store:x.s}),actual=(await all(x.s)).meta,expected=planInitialMixedSemanticMetadata(x.core,scope,plan),sorted=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
+  assert.deepEqual(sorted(expected.known),sorted(actual.filter(row=>row.id.startsWith(KNOWN_PREFIX))));assert.deepEqual(sorted(expected.dirty),sorted(actual.filter(row=>row.id.startsWith(DIRTY_PREFIX))));
+  assert.deepEqual(expected.sequence,actual.find(row=>row.id===DELTA_COUNTER));assert.deepEqual(expected.humanFence,actual.find(row=>row.id===HUMAN_FENCE));assert.equal(expected.sequence.value,10);assert.equal(expected.humanFence.value,5);
+  const entry=expected.known.find(row=>row.descriptor.kind==='library_entry');assert.equal(entry.descriptor.independent,false);assert.deepEqual(entry.descriptor.lineage,[]);
+  assert.throws(()=>planInitialMixedSemanticMetadata(x.core,structuredClone(scope),plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+ }finally{await x.s.repository.close();}
+});
 test('fixed mixed compiler retains genuine append, untouched second Input, Human, Context and Prompt in one original Scope',async()=>{
  const x=await producer();try{const before=await all(x.s),plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations);requireOriginalCurrentMixedGroupPlan(x.core,plan);
  assert.deepEqual(plan,await prepareGroupCheckpointPlan(x.core,[...x.operations].reverse()));const scope=await prepareGroupScope(plan,{store:x.s});requireOriginalCurrentMixedGroupScope(x.core,scope,plan);assertMixedCurrentSourceDerivedRows(x.core,scope,plan,before);checkCurrentGroupProtocolRows(x.core,plan,before,{namespace:'initial',epoch:null,restored:false});assert.throws(()=>requireOriginalCurrentMixedGroupScope(x.core,structuredClone(scope),plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});assert.equal(await x.s.repository.transaction(false,t=>requireGroupScope(x.s,t,scope)),true);

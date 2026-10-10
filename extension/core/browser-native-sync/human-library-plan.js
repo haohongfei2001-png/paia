@@ -4,7 +4,7 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
-import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta} from './source-working-default-meta.js';
+import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta} from './source-working-default-meta.js';
 import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
@@ -13,6 +13,7 @@ import * as currentSegmentOwner from './segments.js';
 import * as currentCheckpointOwner from './checkpoints.js';
 import {inspectHumanUnindexedSearch,prepareOriginalMixedNativeSearch,originalMixedNativeSearchCounts,releaseOriginalMixedNativeSearch} from './human-library-search-proof.js';
 import {planSearchQueueLocator,planSearchPostingRow,searchOwnerFields} from '../library-search.js';
+import {deltaDescription} from '../ai-usage/delta.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
 import {planIndependentExpressionTime,unknownExpressionTime} from '../organizer/expression-time.js';
 import {planThoughtRootProjection,liveTopicKey,planThoughtTopicBuild,planThoughtTopicDescriptorRows,accumulateThoughtTopicDescriptor,completeThoughtTopicProjection} from '../thought-read-index.js';
@@ -1270,7 +1271,7 @@ function projectionQualify(r,mixed=false){
  for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id],raw);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
  migration.clear();metadata.clear();
- if(mixed){r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
+ if(mixed){r.mixedQueryMetaIds=raw.prefixes['thought-read-index:'].map(row=>row.id);r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
 }
 // Derived reference views retain the original raw/indices. This is neither a
 // second native snapshot nor an alternative repository/transaction facade.
@@ -1317,6 +1318,15 @@ export function requireOriginalMixedNativeSearchInputs(nonce,store,core,scope,pl
 export function requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control){
  if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
  if(currentProjectionWorks.get(nonce).controlValues!==control)projectionRequired();
+}
+export function requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control);
+ if(currentProjectionWorks.get(nonce).mixedBodiesConsumed!==true)projectionRequired();
+}
+export function originalMixedNativeDerivedMetaIds(nonce,store,core,scope,plan,raw){
+ if(arguments.length!==6)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ const r=currentProjectionWorks.get(nonce);if(!r.mixedBodiesConsumed||!r.mixedSearchProof||!r.mixedQueryMetaIds)projectionRequired();originalMixedNativeSearchCounts(r.mixedSearchProof);
+ const ids=[...r.mixedQueryMetaIds];for(const row of raw.rows.meta)if(row.id.startsWith('personalTopicName:')||row.id.startsWith('topicKeepSeparate:')||row.id==='library-search-rebuild')ids.push(row.id);return ids;
 }
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
@@ -1399,6 +1409,20 @@ function mixedCurrentSearchScratch(r){
  // prepay a large actual canonical/JSON comparison tree on this phase.
  for(const row of r.raw.rows.meta)metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
  return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*metaPeak+4096*128+192*1024;
+}
+function mixedCurrentSemanticScratch(r){
+ // Meter before original descriptor constructors. Actual IDs/source lineage
+ // have already passed the original canonical bodies and finite128 owners.
+ // No whole Plan is cloned by these pure flush decisions: price every actual
+ // descriptor/signature builder, including unchanged historical rehash inputs.
+ projectionReserve(r,128*1024);let trees=0,peak=0;
+ const add=(name,row)=>{const descriptor=deltaDescription(name,row);if(!descriptor)return;const measured=projectionRowMeasure(r,descriptor);trees+=projectionTreeCharge(measured);peak=Math.max(peak,projectionCanonicalCharge(measured));};
+ for(const group of r.group.plan.groups){
+  if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value;if(type==='inputState')add('inputStates',entity);else if(['baselineRevision','revision'].includes(type))add('revisions',entity);}
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){if(member.value.entityType==='history'){add('revisions',member.value.before);add('revisions',member.value.after);}}
+  else if(['contextItem','contextRulesItem','contextNowItem'].includes(group.type))add('context_item',group.operations[0].value);
+ }
+ return 8*trees+4*peak+128*1024;
 }
 // Consuming readonly prerequisite: the fixed original native reader checks the
 // complete v5 index inventory on the existing live work ticket and drains it.
@@ -1498,8 +1522,13 @@ async function projectionCompileInitialMixedScope(r){
   metaPeak=Math.max(metaPeak,projectionCanonicalCharge(total));
  }
  const expectedBody=projectionRowMeasure(r,scope.expected),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,metaPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
- projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce,r.mixedSearchProof);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
- return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
+ projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce,r.mixedSearchProof);projectionCurrent(r);projectionFence(r);r.mixedBodiesConsumed=true;projectionReserve(r);
+ // Full Plan and complete actual metadata operands remain independently owned.
+ // Original protocol/AIU builders hold small borrowed maps and newly produced
+ // descriptor/signature rows, with one complete actual-row comparison at a time.
+ const metadataScratch=mixedCurrentSemanticScratch(r)+4*metaPeak+currentContextSnapshotScratch(scope,plan,r.raw)+4096*256+256*1024;
+ projectionReserve(r,metadataScratch);assertInitialMixedDefaultMeta(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
 async function captureCurrentProjection(store,core,group,sourceWorking=false){

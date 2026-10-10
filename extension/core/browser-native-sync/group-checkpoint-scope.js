@@ -1,6 +1,6 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl} from './human-library-plan.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
@@ -226,6 +226,17 @@ export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw
  if(!validContextCards(context)||!validPromptPreferences(prompt))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  actual.context=sort(context.items.map(row=>clone(row)));actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));actual.prompt=projectEntity('promptPreferences',prompt);
  return compareGroupCanonicalValues(scope,actual,human);
+}
+export function consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,rows){
+ if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control);
+ const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts);
+ if(plan.groups.some(group=>group.type==='promptPreferences')){
+  const head=plan.heads.find(head=>head.type==='promptPreferences'&&head.entityId===PROMPT_REUSE_ROW),operation=head&&plan.groups.flatMap(group=>group.operations).find(op=>op.revisionId===head.revisions[0]),row=rows.get(PROMPT_REUSE_ROW);
+  if(!head||head.purged||head.revisions.length!==1||!operation||!row)fail('BNS_GROUP_COMMIT_UNPROVEN');assertManualPromptCurrentPhysicalShape(row);assertManualPromptNativeValue(row,operation.value,scope.expected.prompt);
+  const id=key('materializedOwner','promptPreferences',PROMPT_REUSE_ROW);if(!equal(rows.get(id),{id,version:1,revisionId:head.revisions[0],ownerRevision:row.revision}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);rows.delete(PROMPT_REUSE_ROW);
+ }else if(rows.has(PROMPT_REUSE_ROW)){if(!equal(rows.get(PROMPT_REUSE_ROW),emptyPromptPreferences()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');rows.delete(PROMPT_REUSE_ROW);}
+ if(hasCurrentContextOperations(plan))assertCurrentContextSnapshot(core,scope,plan,raw,rows);
+ else if(rows.has(CONTEXT_CARDS_ROW)){if(!equal(rows.get(CONTEXT_CARDS_ROW),emptyContext()))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');rows.delete(CONTEXT_CARDS_ROW);}
 }
 
 
