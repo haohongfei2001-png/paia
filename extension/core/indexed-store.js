@@ -16,6 +16,7 @@ import {AI_STYLE_KEY,readAIStyle} from './ai-organize-style-preference.js';
 import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './diagnostics.js';
 import {purgeSourceStructureForRecords} from './source-structure-store.js';
 import {assessSourcePurge,sourcePurgePreview} from './source-purge-admission.js';
+import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,controlPublicationEqual,controlPublicationDigest} from './local-control-publication.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Conservative, bounded equality for a rejected preference publication only.
@@ -37,12 +38,13 @@ const publicationEqual=(a,b)=>{
 };
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
+const localPublicationOwners=new WeakMap();
 export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;}
- run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
+ run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');localPublicationOwners.set(this,{before,nonce:crypto.randomUUID(),reservation:null,fences:null});this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
- async saveControl(t,c){this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});}
+ async saveControl(t,c){const owner=localPublicationOwners.get(this);if(!owner)error('CONTROL_PUBLICATION_REQUIRED');if(!owner.reservation)owner.reservation=await reserveControlPublication(t,owner.before,{nonce:owner.nonce,databaseId:this.databaseId});else await requireControlPublicationOwner(t,owner.reservation,owner.fences);this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});const now=await readControlPublicationFence(t);owner.fences={migration:now.migration,gate:now.gate,epoch:now.epoch};}
  async #confirmPreferencePublication(intent,control){
   try{
    const owns=()=>intent?.committed&&intent===this.#preferencePublication&&control===intent.control&&control===this.pendingControl&&this.databaseId===intent.databaseId&&publicationEqual({schemaVersion:6,databaseId:this.databaseId,...control},intent.expected);
@@ -58,12 +60,23 @@ export class IndexedArchiveStore {
  }
  async publish(){
   const control=this.pendingControl;if(!control)return;
-  try{await this.local.set({[STORAGE_KEY]:{schemaVersion:6,databaseId:this.databaseId,...control}});}
+  const owner=localPublicationOwners.get(this);if(!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');
+  await this.repository.transaction(false,t=>requireControlPublicationOwner(t,owner.reservation,owner.fences),['meta']);
+  const payload=structuredClone({schemaVersion:6,databaseId:this.databaseId,...control}),afterDigest=await controlPublicationDigest(payload),fenceDigest=await controlPublicationDigest(owner.fences);
+  if(control!==this.pendingControl||!publicationEqual(payload,{schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}))error('CONTROL_PUBLICATION_CHANGED');
+  const prepared={...owner.reservation,afterDigest,fenceDigest};
+  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.put('meta',prepared);},['meta']);owner.reservation=prepared;
+  if(control!==this.pendingControl||!publicationEqual(payload,{schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}))error('CONTROL_PUBLICATION_CHANGED');
+  try{await this.local.set({[STORAGE_KEY]:payload});}
   catch(e){if(!(#preferencePublication in this)||!await this.#confirmPreferencePublication(this.#preferencePublication,control))throw e;}
   finally{if(#preferencePublication in this)this.#preferencePublication=null;}
+  // An acknowledged write releases only its exact reservation. Lost-worker or
+  // failed/unqualified outcomes retain it; neither consent nor a control body is
+  // replayed to make an unknown outcome appear successful.
+  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
   this.controlCache=control;this.pendingControl=null;
  }
- write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,t=>fn(t,prepared));onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}

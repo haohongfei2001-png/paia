@@ -21,7 +21,7 @@ export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b
 
 export class SmartFilterStore extends IAStore {
  constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;}
- write(fn,onCommitted=null){this.filterMutation++;return super.write(fn,onCommitted).finally(()=>{this.filterMutation++;});}
+ write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
   let state=await this.repository.transaction(false,t=>t.get('meta','smart-filter'));
