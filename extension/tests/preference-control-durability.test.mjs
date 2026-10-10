@@ -69,3 +69,24 @@ test('queued saves serialize without replaying a prior before-write failure',asy
  f.local.set=async value=>{if(first){first=false;throw f.fault;}return originalSet(value);};
  const firstSave=f.store.updatePreferences({appearance:'dark'}),secondSave=f.store.updatePreferences({language:'en'});await assert.rejects(firstSave,e=>e===f.fault);assert.deepEqual(await secondSave,{ok:true});assert.equal(f.data[STORAGE_KEY].preferences.appearance,'system');assert.equal(f.data[STORAGE_KEY].preferences.language,'en');
 });
+for(const boundary of ['firstLocal','databaseRead','secondLocal'])test(`live original control mutation at ${boundary} cannot acknowledge a rejected publication`,async t=>{
+ const f=await fixture(t),get=f.local.get.bind(f.local),transaction=f.store.repository.transaction.bind(f.store.repository);let published=false,reads=0,mutated=false;
+ f.setHook(()=>{published=true;throw f.fault;});
+ f.local.get=async key=>{const value=await get(key);if(published&&++reads===(boundary==='firstLocal'?1:2)&&boundary!=='databaseRead'){mutated=true;f.store.pendingControl.preferences.appearance='light';}return value;};
+ f.store.repository.transaction=async(write,fn,stores)=>{const value=await transaction(write,fn,stores);if(!write&&published&&boundary==='databaseRead'){mutated=true;f.store.pendingControl.preferences.appearance='light';}return value;};
+ const n=f.writes();await assert.rejects(f.store.updatePreferences({appearance:'dark'}),e=>e===f.fault);assert.equal(mutated,true);assert.equal(f.writes(),n+1);assert.equal(f.data[STORAGE_KEY].preferences.appearance,'dark');assert.equal(f.store.volatileError.code,'STORAGE_FAILED');
+});
+test('request mutation at an awaited original read cannot change captured generic intent into AI style',async t=>{
+ const f=await fixture(t),changes={appearance:'dark'},original=f.store.repository.transaction.bind(f.store.repository);let mutated=false;f.setHook(()=>{throw f.fault;});
+ f.store.repository.transaction=(write,fn,stores)=>original(write,async tx=>{const get=tx.get.bind(tx);tx.get=async(name,id,...rest)=>{if(write&&!mutated&&name==='meta'&&id==='recovery-restore-epoch'){mutated=true;delete changes.appearance;changes.aiOrganizeStyle={version:1,value:'original',expectedRevision:0,expectedEpoch:'initial'};}return get(name,id,...rest);};return fn(tx);},stores);
+ assert.deepEqual(await f.store.updatePreferences(changes),{ok:true});assert.equal(mutated,true);assert.equal(f.data[STORAGE_KEY].preferences.appearance,'dark');assert.equal(Object.hasOwn(f.data[STORAGE_KEY].preferences,'aiOrganizeStyle'),false);
+});
+test('request mutation cannot turn captured AI style into generic acknowledgement',async t=>{
+ const f=await fixture(t),changes={aiOrganizeStyle:{version:1,value:'original',expectedRevision:0,expectedEpoch:'initial'}},original=f.store.repository.transaction.bind(f.store.repository);let mutated=false;f.setHook(()=>{throw f.fault;});
+ f.store.repository.transaction=(write,fn,stores)=>original(write,async tx=>{const get=tx.get.bind(tx);tx.get=async(name,id,...rest)=>{if(write&&!mutated&&name==='meta'&&id==='backup-recovery-settings'){mutated=true;delete changes.aiOrganizeStyle;changes.appearance='dark';}return get(name,id,...rest);};return fn(tx);},stores);
+ await assert.rejects(f.store.updatePreferences(changes),e=>e===f.fault);assert.equal(mutated,true);assert.equal(f.data[STORAGE_KEY].preferences.aiOrganizeStyle.revision,1);assert.equal(f.data[STORAGE_KEY].preferences.appearance,'system');
+});
+for(const locked of [false,true])test(`uncloneable invalid style keeps original validation or backup-lock priority (${locked})`,async t=>{
+ const f=await fixture(t),n=f.writes();if(locked)await f.store.repository.transaction(true,tx=>tx.put('meta',{id:'backup-recovery-settings',value:{preferences:{}}}),['meta']);
+ await assert.rejects(f.store.updatePreferences({aiOrganizeStyle:{version:1,value:Symbol('SYNTHETIC invalid style'),expectedRevision:0,expectedEpoch:'initial'}}),{code:locked?'BACKUP_BUSY':'INVALID_REQUEST'});assert.equal(f.writes(),n);assert.equal(Object.hasOwn(f.data[STORAGE_KEY].preferences,'aiOrganizeStyle'),false);
+});

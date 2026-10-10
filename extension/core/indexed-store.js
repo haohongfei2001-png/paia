@@ -11,7 +11,7 @@ import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from '
 import {identify,identifySource,hashText} from './dedupe.js';
 import {unknownTime,applySourceTime} from './record-time.js';
 import {syncLibrary,emptyLibrary,detachSources,validateLibraryChanges,memoryContext} from './library.js';
-import {applyDocumentEdit,applyPreferenceChanges} from './workspace.js';
+import {applyDocumentEdit,applyPreferenceChanges,validatePreferences} from './workspace.js';
 import {AI_STYLE_KEY,readAIStyle} from './ai-organize-style-preference.js';
 import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './diagnostics.js';
 import {purgeSourceStructureForRecords} from './source-structure-store.js';
@@ -45,13 +45,15 @@ export class IndexedArchiveStore {
  async saveControl(t,c){this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});}
  async #confirmPreferencePublication(intent,control){
   try{
-   if(!intent?.committed||intent!==this.#preferencePublication||control!==intent.control||control!==this.pendingControl||this.databaseId!==intent.databaseId||!publicationEqual({schemaVersion:6,databaseId:this.databaseId,...control},intent.expected))return false;
+   const owns=()=>intent?.committed&&intent===this.#preferencePublication&&control===intent.control&&control===this.pendingControl&&this.databaseId===intent.databaseId&&publicationEqual({schemaVersion:6,databaseId:this.databaseId,...control},intent.expected);
+   if(!owns())return false;
    const actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];
-   if(!publicationEqual(actual,intent.expected))return false;
+   if(!owns()||!publicationEqual(actual,intent.expected))return false;
    const unchanged=await this.repository.transaction(false,async t=>publicationEqual(await t.get('meta','migration'),intent.migration)&&publicationEqual(await t.get('meta','gate'),intent.gate)&&publicationEqual(await t.get('meta','recovery-restore-epoch'),intent.epoch),['meta']);
-   if(!unchanged)return false;
+   if(!unchanged||!owns())return false;
    // Recheck the original local row after the independent database read.
-   return publicationEqual((await this.local.get(STORAGE_KEY))[STORAGE_KEY],intent.expected);
+   const latest=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];
+   return owns()&&publicationEqual(latest,intent.expected);
   }catch{return false;}
  }
  async publish(){
@@ -61,7 +63,7 @@ export class IndexedArchiveStore {
   finally{this.#preferencePublication=null;}
   this.controlCache=control;this.pendingControl=null;
  }
- write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
@@ -231,7 +233,10 @@ export class IndexedArchiveStore {
  excludeLibrary(id,excluded){return this.write(async t=>{if(typeof excluded!=='boolean')error('INVALID_REQUEST');const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,{excluded,status:excluded?'excluded_by_user':'active',revision:row.value.revision+1});await t.put('blocks',row);const ix=await t.get('blockIndex',id);Object.assign(ix,{excluded,excludedKey:excluded?1:0});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.trackBlock(t,row.value);await this.refreshDoc(t,row.value.documentId);return {id};});}
  updateDocument(id,changes){return this.write(async t=>{const row=await t.get('documents',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes,true));row.value.titleRevision++;const ld=await t.get('libraryDocuments',id);ld.value.userTitle=row.value.userTitle;await t.put('documents',row);await t.put('libraryDocuments',ld);return {id};});}
  updatePreferences(changes){return this.write(async t=>{
-  const aiStyle=Object.hasOwn(changes||{},AI_STYLE_KEY);if(aiStyle&&await t.get('meta','backup-recovery-settings'))error('BACKUP_BUSY');
+  // Detach before any await; the original validator/CAS applies this private copy.
+  let copy,copyError;try{copy=structuredClone(changes);}catch(e){copyError=e;}
+  const aiStyle=Object.hasOwn((copyError?changes:copy)||{},AI_STYLE_KEY);if(aiStyle&&await t.get('meta','backup-recovery-settings'))error('BACKUP_BUSY');
+  if(copyError){validatePreferences(changes);error('INVALID_REQUEST');}changes=copy;
   const epochRow=await t.get('meta','recovery-restore-epoch'),epoch=aiStyle?epochRow?.value??'initial':'initial',c=await this.control(t),result=applyPreferenceChanges(c.preferences,changes,epoch);
   if(result.ok&&result.changed!==false){
    await this.saveControl(t,c);
