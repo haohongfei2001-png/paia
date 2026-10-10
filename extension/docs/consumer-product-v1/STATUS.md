@@ -1,3 +1,19 @@
+# Sync plan review — actual frontier and proposed next outcome (2026-10-10)
+
+This is a **documentation-only proposal awaiting owner review**, not permission to start another runtime writer. For Sync, [BROWSER_NATIVE_SYNC_PLAN](BROWSER_NATIVE_SYNC_PLAN.md) §1 records current code/merge evidence and the Canonical coverage matrix; §§3–3.4 define the finite remaining path, risk gates and batch convergence. STATUS remains the sole execution selector. After approval, the proposed next Sync outcome is **A — mixed current-state recovery**, not another isolated readiness/profile prerequisite.
+
+Audited remote main is `d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a` (0.43.12). #246 Source/Working and #248 preference confirmation are merged partial capabilities, not pending implementations and not full canonical Sync. Main Full [38038702703](https://github.com/haohongfei2001-png/paia/actions/runs/38038702703) failed Current Browser 5/9 plus dependent gates; Prompt [38038702700](https://github.com/haohongfei2001-png/paia/actions/runs/38038702700) passed. Last recorded fully qualified package remains 0.43.10 at `b28863e9c27283385dc09517be31e322e34a8e29`; this review does not build, deliver, install or certify any package.
+
+Active #249 head `694a18e4745dea7048d6864b58ee9d410802d80e` has passing candidate Full/Prompt and owns its Archive/Thought repair, but at this snapshot is unmerged. Re-read its actual state and shared-document diff before integration; do not overwrite or duplicate that lane. Root remains the sole shared runtime/data/CI writer. Website #240 and retained inactive PRs remain untouched.
+
+SYNC-01 is **IN_PROGRESS / PARTIAL / NOT_ACCEPTED**. Its remaining blockers are full mixed writer/data coverage, domain-correct conflict/negative-intent integration, whole restore/merge/tail lifecycle, safe compaction/bounded execution, and the existing measured-profile plus stage acceptance. SYNC-02–06 goals are unchanged; real OAuth, permissions, accounts and external operations remain separately gated. Non-Sync lane ownership and evidence obligations are unchanged.
+
+## Historical execution checkpoints — preserved, not the current Sync selector
+
+The prior candidate headings and “next” instructions below describe their own versions. Read them with the current audited frontier above and their linked owning receipts; do not restart merged work or reinterpret their failures as passes.
+
+---
+
 # 0.43.12 generic preference publication candidate — 2026-10-10
 
 SET2-01/SYNC prerequisite continues through the original settings write owner: known before-write failure keeps the last acknowledged selection; a rejected publication is confirmed only when complete original local rows, database/gate/recovery identities and live ownership agree after the original transaction commits. Requests are detached before awaits. No replay, stored intent, journal, extra writer, consent/Sync activation or AI-style acknowledgement change is introduced.

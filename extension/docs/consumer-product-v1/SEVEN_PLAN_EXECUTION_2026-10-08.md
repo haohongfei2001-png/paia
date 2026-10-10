@@ -1,3 +1,11 @@
+# Sync coordination amendment — 2026-10-10 (review proposal)
+
+For the current Sync frontier and proposed next selection, read [STATUS](STATUS.md). The existing [Browser-Native Sync plan](BROWSER_NATIVE_SYNC_PLAN.md) §1.1 owns the coverage matrix and §3 owns the finite remaining path; this coordination record does not duplicate that plan. No runtime writer, other lane, product goal or safety gate changes in this documentation task. Reconcile active #249's STATUS/coordinating edits before integration.
+
+The preceding-version checkpoints preserved below remain evidence, not current Sync execution instructions. After owner approval, coordinate the mixed recovery outcome with the sole shared data writer; do not repeat already merged #246/#248 work or hold local Sync for unrelated visual/model/provider qualification.
+
+---
+
 # 0.43.12 generic preference publication candidate — 2026-10-10
 
 SET2-01/SYNC prerequisite continues through the original settings write owner: known before-write failure keeps the last acknowledged selection; a rejected publication is confirmed only when complete original local rows, database/gate/recovery identities and live ownership agree after the original transaction commits. Requests are detached before awaits. No replay, stored intent, journal, extra writer, consent/Sync activation or AI-style acknowledgement change is introduced.

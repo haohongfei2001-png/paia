@@ -283,6 +283,8 @@ For unfinished work after this amendment:
 
 Already completed rounds keep their historical evidence unchanged. Do not reopen or recertify them merely because this cadence changed.
 
+**Sync-specific convergence proposal (2026-10-10, subject to owner review):** apply the existing [BROWSER_NATIVE_SYNC_PLAN](BROWSER_NATIVE_SYNC_PLAN.md) §§3.3–3.4 for current risk classification, exact-main depth and the five-field batch record. Sync batch boundaries follow closed recovery gaps, not a fixed number of subrounds/PRs or a time budget. Shared storage, deletion, privacy and restore changes retain the full gates above. Current `workflow_dispatch` also runs historical browser audit jobs; record their separate results and do not use a broad dispatch as a routine prerequisite probe. Keep one current STATUS entry and links to existing evidence rather than replicated logs. This amendment changes documentation only, not CI routing or runtime authorization.
+
 ## 8. Branch, batch and merge discipline
 
 - One integration writer per data/schema/runtime boundary.
