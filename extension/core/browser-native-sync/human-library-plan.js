@@ -1848,7 +1848,14 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   // their payload by BOTH concurrent operands, not every historical stream.
   // A 64KiB floor independently covers finite index/manifest/ref headers.
   const bufferWire=p.sourceWorking==='mixed'?Math.max(64*1024,Math.min(wire,SEGMENT_PROFILE.target+4096+peakOutgoingBytes+128+2*p.binding.datasetId.length+4096)):wire;
-  const scratch=projectionTreeCharge(m)+16*m.E+12*bufferWire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
+  const mixed=p.sourceWorking==='mixed';
+  const scratch=(mixed?0:projectionTreeCharge(m)+16*m.E)+12*bufferWire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
+  // Full outgoing rows are already retained in the authenticated cut. The
+  // original encoder shallowly wraps them and builds one actual shard at a
+  // time. Pay each complete canonical operand (including all shard entries)
+  // on this SAME work ticket before its detached tree/sort vectors allocate.
+  // Do not substitute max-row statistics or a simulated packing window.
+  const beforeCanonical=mixed?value=>{projectionFence(r);const measured=projectionMeasure(value,'native');projectionReserve(r,projectionTreeCharge(measured)+16*measured.E);}:null;
   async function* rows(kind){
    for(const row of p.raw.groupMeta)if(row.id.startsWith(prefix+kind+':')){
     if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionReserve(r);
@@ -1856,8 +1863,13 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
    }
   }
   const generationId=protocolPhysicalId(p.binding.prefix,p.raw.namespace,'generation',[]),cut={namespace:p.raw.namespace,generation:(p.sourceWorking==='mixed'?p.raw.groupMeta.find(row=>row.id===generationId):p.raw.points[generationId])?.value||0,ownerGeneration:p.raw.groupMeta.find(row=>row.id==='backup-data-generation')?.value||0,fence:{epoch:p.raw.points['recovery-restore-epoch']?.value??null,namespace:p.raw.namespace,marker:p.raw.groupMeta.some(row=>row.id===protocolPhysicalId(p.binding.prefix,p.raw.namespace,'ownerRecoveryEpoch',[]))},settings:clone(p.controlValues.settings)};
-  const result=await owner.encodeOriginalCheckpoint(p.binding.datasetId,projectionBoundedTransport(transport,SEGMENT_PROFILE),{profile:SEGMENT_PROFILE,parents:options.parents,cut,rows,verifyCut:async()=>{if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();await projectionObserveControl(r,false);projectionFence(r);projectionReserve(r);}});
-  if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();await projectionObserveControl(r,false);projectionFence(r);projectionDeepFreeze(result);p.encoderResult=result;return result;
+  const result=await owner.encodeOriginalCheckpoint(p.binding.datasetId,projectionBoundedTransport(transport,SEGMENT_PROFILE),{profile:SEGMENT_PROFILE,parents:options.parents,cut,rows,beforeCanonical,verifyCut:async()=>{if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();await projectionObserveControl(r,false);projectionFence(r);projectionReserve(r);}});
+  if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();await projectionObserveControl(r,false);projectionFence(r);
+  // Returned manifest/cut survive this work frame until publication/release.
+  // Their finite tree remains paid inside the cap's unchanged384KiB retained
+  // frame; explicitly enforce its64KiB result partition before transferring.
+  if(mixed&&projectionTreeCharge(projectionMeasure(result,'native'))>64*1024)fail('BNS_HUMAN_QUALIFICATION_LIMIT');
+  projectionDeepFreeze(result);p.encoderResult=result;return result;
  }finally{r.raw=null;r.group=null;r.control=null;r.controlValues=null;releaseHumanQualificationLease(work);p.frames--;if(p.revoked)projectionRevoke(p);}
 }
 export async function publishHumanCurrentGroupCheckpoint(cap,scope,plan,checkpoint,transport,options){

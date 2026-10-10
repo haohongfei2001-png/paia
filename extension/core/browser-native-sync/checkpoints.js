@@ -22,19 +22,23 @@ export async function buildCheckpoint(core,transport,{profile=SEGMENT_PROFILE,pa
 
 // One original encoder for ordinary Core and privately authenticated native
 // sources. This seam conveys no native read or commit authority.
-export async function encodeOriginalCheckpoint(datasetId,transport,{profile=SEGMENT_PROFILE,parents=[],cut,rows,verifyCut}){
+export async function encodeOriginalCheckpoint(datasetId,transport,{profile=SEGMENT_PROFILE,parents=[],cut,rows,verifyCut,beforeCanonical=null}){
  if(!Array.isArray(parents)||parents.length>FANOUT||parents.some(x=>!hash(x)))fail('BNS_CHECKPOINT_PARENTS');
+ // Numeric metering on the caller's existing work ticket. This synchronous
+ // seam observes the actual operand immediately before canonical allocates;
+ // it supplies no rows, reads, commits or alternative packing policy.
+ const canonicalBytes=value=>{if(beforeCanonical!==null)beforeCanonical(value);return bytes(value);};
  let entries=[],entrySize=0,itemCount=0,chain='',leafRefs=[];const coverage=new Map();
- const flush=async()=>{if(!entries.length)return;leafRefs.push(await putVerified(transport,await protocolObject('checkpoint-shard',bytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level:0,entries}),{profile}),profile));entries=[];entrySize=0;};
+ const flush=async()=>{if(!entries.length)return;leafRefs.push(await putVerified(transport,await protocolObject('checkpoint-shard',canonicalBytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level:0,entries}),{profile}),profile));entries=[];entrySize=0;};
  async function add(item){
-  const raw=bytes(item);chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(raw)));itemCount++;
+  const raw=canonicalBytes(item);chain=await digest(bytes(chain+'\n'+new TextDecoder().decode(raw)));itemCount++;
   let entry={kind:'inline',item};
   if(raw.length>profile.target-4096){
    if(raw.length>profile.operationBytes)fail('BNS_OPERATION_RESOURCE_LIMIT');const chunks=[];
    for(let offset=0;offset<raw.length;offset+=profile.chunk)chunks.push(await putVerified(transport,await protocolObject('chunk',raw.slice(offset,offset+profile.chunk),{profile}),profile));
    entry={kind:'chunked',bytes:raw.length,digest:await digest(raw),chunks};
   }
-  const size=bytes(entry).length;if(entries.length&&(entrySize+size+1024>profile.target||entries.length>=profile.operations))await flush();
+  const size=canonicalBytes(entry).length;if(entries.length&&(entrySize+size+1024>profile.target||entries.length>=profile.operations))await flush();
   if(size+1024>profile.encoded)fail('BNS_CHECKPOINT_ITEM_LIMIT');entries.push(entry);entrySize+=size;
  }
  for await(const row of rows('revision'))await add({kind:'revision',...withoutId(row)});
@@ -42,11 +46,11 @@ export async function encodeOriginalCheckpoint(datasetId,transport,{profile=SEGM
  for await(const row of rows('frontier'))await add({kind:'frontier',...withoutId(row)});
  await flush();await verifyCut();
  let level=0,current=leafRefs;
- if(!current.length)current=[await putVerified(transport,await protocolObject('checkpoint-shard',bytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level:0,entries:[]}),{profile}),profile)];
- while(current.length>1){const next=[];level++;for(let offset=0;offset<current.length;offset+=FANOUT)next.push(await putVerified(transport,await protocolObject('checkpoint-shard',bytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level,children:current.slice(offset,offset+FANOUT)}),{profile}),profile));current=next;}
+ if(!current.length)current=[await putVerified(transport,await protocolObject('checkpoint-shard',canonicalBytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level:0,entries:[]}),{profile}),profile)];
+ while(current.length>1){const next=[];level++;for(let offset=0;offset<current.length;offset+=FANOUT)next.push(await putVerified(transport,await protocolObject('checkpoint-shard',canonicalBytes({magic:'PAIA-BNS',protocol:1,datasetId:datasetId,level,children:current.slice(offset,offset+FANOUT)}),{profile}),profile));current=next;}
  await verifyCut();
  const manifest={magic:'PAIA-BNS',protocol:1,kind:'checkpoint-manifest',datasetId:datasetId,clientEncryption:'none',root:current[0],level,itemCount,chain,coverage:[...coverage.values()].sort((a,b)=>a.type.localeCompare(b.type)),parents:[...parents].sort()};
- const object=await protocolObject('checkpoint-manifest',bytes(manifest),{profile});
+ const object=await protocolObject('checkpoint-manifest',canonicalBytes(manifest),{profile});
  await putVerified(transport,object,profile);
  return {ref:object.ref,manifest,cut};
 }
