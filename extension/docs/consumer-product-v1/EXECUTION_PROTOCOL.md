@@ -283,6 +283,8 @@ For unfinished work after this amendment:
 
 Already completed rounds keep their historical evidence unchanged. Do not reopen or recertify them merely because this cadence changed.
 
+**Owner-approved Sync convergence (2026-10-10, PR #250):** apply the existing [BROWSER_NATIVE_SYNC_PLAN](BROWSER_NATIVE_SYNC_PLAN.md) §§3.3–3.4 for current risk classification, exact-main depth and the five-field batch record. Sync batch boundaries follow closed recovery gaps, not a fixed number of subrounds/PRs or a time budget. Shared storage, deletion, privacy and restore changes retain the full gates above. Current `workflow_dispatch` also runs historical browser audit jobs; record their separate results and do not use a broad dispatch as a routine prerequisite probe. Keep one current STATUS entry and links to existing evidence rather than replicated logs. The owner approved main integration and selected SYNC-01 batch A; its consuming mixed Canonical recovery is the development outcome. This planning amendment changes no CI routing, safety gate or separately required external authority.
+
 ## 8. Branch, batch and merge discipline
 
 - One integration writer per data/schema/runtime boundary.

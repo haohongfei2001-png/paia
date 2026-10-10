@@ -1,3 +1,11 @@
+# Owner-approved Sync coordination — 2026-10-10
+
+[STATUS](STATUS.md) selects **SYNC-01 batch A / IN_PROGRESS / NOT_ACCEPTED** under the owner-approved [PR #250](https://github.com/haohongfei2001-png/paia/pull/250) convergence revision. The existing [Browser-Native Sync plan](BROWSER_NATIVE_SYNC_PLAN.md) §1.1 owns the complete Canonical coverage matrix and §3 the finite recovery path. Finish the consuming mixed recovery outcome with the sole shared writer; combine its necessary prerequisites and retain completed exact-version evidence. Preserve latest-main #249/#251 and all private mixed work. No duplicate plan, standalone checker delivery, other-lane reset, new product scope or external authority is created.
+
+The main checkpoints below are retained verbatim as history. Their superseded pending/next statements do not override current STATUS or approved Sync execution. IAH-1.1 remains the selected minimal design, and unavailable precise visuals/real-provider evidence do not suspend independent local development.
+
+---
+
 # Qualified main0.43.13; Source/Working0.43.14 candidate — 2026-10-10
 
 Actual main d136165d7de1df25a0b1a46fc549194a8a4c61ef now passes Full38046730606 all21 required and Prompt38046730619 all5. Independent actual-main delivery review a6d6d0eb1a6f32aaac062d03ab184cc4aa682298cf8b21ef04310f55ee88f635 approves new46 currentmain native receipts/complete original184-line verifier, exact source/tree/code and the456-file package. Qualified ZIP SHA1d485093a2e76fff1d3cad5df174d9289677a3bfeaa293d4cdd8d3c01e98b499,1490106bytes, all456 files matched the fresh standard release. Earlier D414/0.43.12 failed Full/held package is preserved. Installation and formal deployment remain false.
