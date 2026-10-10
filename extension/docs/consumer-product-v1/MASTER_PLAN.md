@@ -1,3 +1,13 @@
+# 0.43.14 Source/Working restored successor candidate — 2026-10-10
+
+PR249 normally merged actual main d136165d7de1df25a0b1a46fc549194a8a4c61ef, parentD414/treef14c exactly694. Candidate Full38040519419 all21 required jobs and Prompt38040516796 all5 pass; independent guarded integration daf144e39ba362674aa48d8bb68d0fb43f19aa277717968ae8bad10200ec1111 approved. Archive current-project search, visible bounded matches and immediate truthful Thought-writing destination are integrated. Exact-main Full38046730606/Prompt38046730619 and456-file ZIP qualification are pending. Earlier D414 exact-main failure/held455-file ZIP and last fully qualified0.43.10 remain distinct.
+
+SYNC-01 now composes bounded original Source/Working cleaned restored successor, genuine local journal continuation, native qualified re-export and fresh second restore through original owners. Frozen c3 component42 Source/430 Sync Node cases and native source/release2 files each7cases79checks pass with independent finite review708709. Complete original46 receipt checks are preserved, with additive24th whole native file and strict new2. The original first CI count/slice60/2 failure is retained; corrected63pass. New0.43.14 version/base changes require fresh complete unit/native48/affected combination, independent composition and formal21+5 before integration; none is inferred from component c3. See [owning batch](implementation/verification/COHERENT-04314-SOURCE-WORKING-RESTORED-SUCCESSOR.md).
+
+Allseven unfinished; default-off/caps37stores/49indexes and selected UI remain. Provider/device/cloud/lost-device/fullcanonical/indexedSearch/portableSettings/Qwen quality-billing, missing exact approved CTX/SET visuals and installed/formaldeployment gates remain separate. No paid/account/credentials/permissions/user upload/irreversible deletion/oldIAH1.0/NIB/Stage3B expansion.
+
+## Preserved preceding checkpoint
+
 # 0.43.13 coherent Archive / Thought reliability candidate — 2026-10-10
 
 Actual main d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a is merged0.43.12, but Full38038702703 fails CurrentBrowser5 and its two aggregates. Eighteen required components and Prompt38038702700 five jobs pass; that does not qualify delivery. Its455-file package remains held; last fully qualified package is0.43.10. Preserve the exact failed release writing assertion: selected Topic context was empty while its original index read was pending.
