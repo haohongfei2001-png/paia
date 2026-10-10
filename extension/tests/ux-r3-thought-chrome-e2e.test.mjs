@@ -279,6 +279,10 @@ for(const variant of ['source','release'])test(`actual Topic continuation genera
  if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
  const h=await FakeChatGPT.start({onboarding:true,...(release?{extensionPath:release}:{})});try{
   const p=await ready(h);await p.setViewportSize({width:1440,height:900});
+  // Hold one-way change notifications, modeling the interval after the real
+  // worker commits but before its event reaches this page. RPCs remain real.
+  await p.addInitScript(()=>{const add=chrome.runtime.onMessage.addListener.bind(chrome.runtime.onMessage),queued=[];globalThis.__holdContinuationNotifications=false;globalThis.__queuedContinuationNotifications=0;chrome.runtime.onMessage.addListener=listener=>add((message,...args)=>{if(__holdContinuationNotifications&&message.type==='ARCHIVE_CHANGED'){__queuedContinuationNotifications++;queued.push(()=>listener(message,...args));return;}return listener(message,...args);});globalThis.__releaseContinuationNotifications=()=>{__holdContinuationNotifications=false;for(const deliver of queued.splice(0))deliver();};});
+  await p.reload();await p.locator('#enable-consent').waitFor({state:'hidden'});
   await p.evaluate(async()=>{const {TopicController}=await import('./topic-workspace.js'),render=TopicController.prototype.renderTopicReader;TopicController.prototype.renderTopicReader=function(...args){globalThis.__actualTopicController=this;return render.apply(this,args);};});
   const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'Synthetic continuation recovery',operationId:op()}});
   for(let i=0;i<50;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'SYNTHETIC retained native Thought '+i+'\nSecond paragraph.',topicId:topic.id}});
@@ -286,19 +290,19 @@ for(const variant of ['source','release'])test(`actual Topic continuation genera
   await eventually(()=>p.evaluate(()=>__actualTopicController?.topicReader?.items.length===40),'original first page has a genuine continuation frontier');
   await field.focus();await field.dispatchEvent('compositionstart');await field.evaluate(node=>{globalThis.__continuationDraft=node;node.textContent='SYNTHETIC 未完成 IME 草稿';node.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',isComposing:true}));});
   await p.evaluate(()=>{
-   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release;const gate=new Promise(resolve=>release=resolve);globalThis.__releaseContinuationRead=release;globalThis.__heldContinuationRead=false;globalThis.__continuationFinished=false;
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release;const gate=new Promise(resolve=>release=resolve);globalThis.__releaseContinuationRead=release;globalThis.__heldContinuationRead=false;globalThis.__continuationFinished=false;__holdContinuationNotifications=true;
    chrome.runtime.sendMessage=async message=>{if(!__heldContinuationRead&&message.type==='GET_LIBRARY_SECTION_READING'&&message.options?.limit===1&&message.options.expectedReadGeneration){__heldContinuationRead=true;await gate;}return send(message);};
    void __actualTopicController.loadTopicContinuous('next',{explicit:false}).then(value=>{globalThis.__continuationOutcome=value;__continuationFinished=true;},error=>{globalThis.__continuationError=error.message;__continuationFinished=true;});
   });
   await eventually(()=>p.evaluate(()=>__heldContinuationRead),'original generation recheck is held before worker invocation');
   await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'SYNTHETIC concurrent canonical Thought',topicId:topic.id}});
-  await p.evaluate(()=>__releaseContinuationRead());await eventually(()=>p.evaluate(()=>__continuationFinished));
+  await p.evaluate(()=>__releaseContinuationRead());await eventually(()=>p.evaluate(()=>__continuationFinished));assert.ok(await p.evaluate(()=>__queuedContinuationNotifications>0),'real canonical write emitted a queued original notification');
   const refused=await p.evaluate(()=>{const owner=__actualTopicController;return {outcome:__continuationOutcome,error:globalThis.__continuationError||null,failed:owner.readFailed,retryHidden:owner.readRetry.hidden,stale:owner.topicReader.stale,retainedBodies:owner.topicReader.items.some(item=>typeof item.entry?.body==='string'),sameNode:document.querySelector('#topic-body [data-entry-field="body"]')===__continuationDraft,body:__continuationDraft.textContent,focused:document.activeElement===__continuationDraft,composing:owner.editor.entry.surface.composing};});
   assert.deepEqual(refused,{outcome:false,error:null,failed:true,retryHidden:false,stale:true,retainedBodies:false,sameNode:true,body:'SYNTHETIC 未完成 IME 草稿',focused:true,composing:true});offline(h);
   // The original retry rereads through the same qualified owner. It never saves
   // or replaces the composing field merely to clear a reading failure.
   await p.evaluate(()=>__actualTopicController.readRetry.click());await eventually(()=>p.evaluate(()=>!__actualTopicController.readFailed&&!__actualTopicController.topicReader.stale),'original explicit retry completes a fresh qualified read');
   assert.deepEqual(await p.evaluate(()=>({same:document.querySelector('#topic-body [data-entry-field="body"]')===__continuationDraft,body:__continuationDraft.textContent,composing:__actualTopicController.editor.entry.surface.composing})),{same:true,body:'SYNTHETIC 未完成 IME 草稿',composing:true});
-  assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:100}})).items.length,51);offline(h);
- }finally{try{await h.archive?.evaluate(()=>globalThis.__releaseContinuationRead?.());}catch{}await h.close();if(release)await rm(release,{recursive:true,force:true});}
+  assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:100}})).items.length,51);await p.evaluate(()=>__releaseContinuationNotifications());offline(h);
+ }finally{try{await h.archive?.evaluate(()=>{globalThis.__releaseContinuationRead?.();globalThis.__releaseContinuationNotifications?.();});}catch{}await h.close();if(release)await rm(release,{recursive:true,force:true});}
 });
