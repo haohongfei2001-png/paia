@@ -1,10 +1,11 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta} from './human-library-plan.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
+import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {defaults} from '../workspace.js';
-import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
+import {readContextCards,validContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
 import {assertManualPromptCurrentPhysicalShape} from './manual-prompt-current-shape.js';
 import {assertCurrentContextSnapshot,hasCurrentContextOperations} from './manual-context-current-snapshot.js';
@@ -12,7 +13,7 @@ import {assertCompletedGroupedRestoreControl} from './completed-group-restore-co
 import {backupMetaAllowed} from '../backup-format.js';
 import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
-import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
+import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,assertOriginalMixedNativeHumanBodies,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
 import {normalizePhysical,physical} from './human-library-journal.js';
 import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan,requireSelectedCurrentSourceWorkingGroupPlan,requireOriginalCurrentMixedGroupPlan,originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {acceptSequence} from './core.js';
@@ -195,13 +196,35 @@ export async function requireGroupScope(store,t,scope){
    assertMixedInitialHumanPhysicalAllocations(original.mixedCore,scope,plan,humanRows,meta);
   }
  }
- for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
- for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));
  actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));
- const expected=clone(scope.expected);if(human){const ids=new Set(human.history.map(row=>row.id));actual.revisions=actual.revisions.map(row=>ids.has(row.id)?normalizePhysical('history',row):row);expected.revisions=sort([...expected.revisions.filter(row=>!ids.has(row.id)),...human.history]);delete expected.humanLibrary;const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(human){const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ return compareGroupCanonicalValues(scope,actual,human);
+}
+function compareGroupCanonicalValues(scope,actual,human){
+ for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
+ for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
+ const expected=clone(scope.expected);if(human){const ids=new Set(human.history.map(row=>row.id));actual.revisions=actual.revisions.map(row=>ids.has(row.id)?normalizePhysical('history',row):row);expected.revisions=sort([...expected.revisions.filter(row=>!ids.has(row.id)),...human.history]);delete expected.humanLibrary;}
  if(!equal(actual,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
+}
+// Original Scope comparison on the already frozen native R, without a fake
+// transaction, a supplied repository facade or a second canonical snapshot.
+// Protocol/full-metadata/search admission remains independently required.
+export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw,control,nonce){
+ if(arguments.length!==7)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ assertMixedCurrentSourceDerivedRows(core,scope,plan,raw.rows);
+ const human=assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce),actual={},original=originalScopes.get(scope);
+ for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(raw.rows[name].map(row=>clone(row.value)));
+ for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(raw.rows[name].map(row=>clone(row)));
+ const humanRows={revisions:actual.revisions,thoughts:raw.rows.thoughts,topics:raw.rows.topics,operationReceipts:raw.rows.operationReceipts};
+ if(original.restoredAllocation)assertMixedRestoredPhysicalAllocations(core,scope,plan,actual,raw.rows.meta,original.restoredAllocation,humanRows);
+ else{assertMixedInitialPhysicalAllocations(core,scope,plan,actual,{active:raw.rows.meta.find(row=>row.id===core.prefix+'active')??null,input:raw.rows.meta.find(row=>row.id==='input-delta-sequence')??null,history:raw.rows.meta.find(row=>row.id==='revision-sequence')??null});assertMixedInitialHumanPhysicalAllocations(core,scope,plan,humanRows,raw.rows.meta);}
+ const context=raw.rows.meta.find(row=>row.id===CONTEXT_CARDS_ROW)??emptyContext(),prompt=raw.rows.meta.find(row=>row.id===PROMPT_REUSE_ROW)??emptyPromptPreferences();
+ if(!validContextCards(context)||!validPromptPreferences(prompt))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ actual.context=sort(context.items.map(row=>clone(row)));actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));actual.prompt=projectEntity('promptPreferences',prompt);
+ return compareGroupCanonicalValues(scope,actual,human);
 }
 
 

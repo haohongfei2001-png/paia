@@ -1291,6 +1291,13 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
 }
+// The original canonical owners borrow only this exact drained cut. A caller
+// cannot authenticate a cloned raw/Scope/Plan or substitute a later Store read.
+export function requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==6||!r||r.sourceWorking!=='mixed'||r.store!==store||r.core!==core||r.phase!=='mixed-canonical-qualifying'||!r.nativeDrained||r.raw!==raw||r.group?.scope!==scope||r.group?.plan!==plan)projectionRequired();
+ projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(core,scope,plan);
+}
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
  return captureCurrentProjection(store,core,null);
@@ -1414,8 +1421,20 @@ async function projectionCompileInitialMixedScope(r){
  // same live ticket now owns their actual surviving trees, not both those
  // trees and a second copy of the already unwound construction scratch.
  r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
- projectionReserve(r);projectionFence(r);r.phase='mixed-scope-compiled';projectionReserve(r);
- return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
+ projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
+ // Pay the actual body comparison independently after construction unwinds.
+ // Raw/Plan/Scope/keyed expectations remain owned. Originals compare Human
+ // tables sequentially; the outer comparison holds its cloned domain rows and
+ // a cloned expected family. Metadata maps/receipt/allocation vectors have a
+ // separate fixed4096/128 frame, never refunded native or compiler trees.
+ let domainTree=0,operandPeak=0;
+ for(const name of ['records','times','blocks','inputStates','documents','libraryDocuments','revisions','filterIntents','thoughts','topics','sections','placements','thoughtSuppressions','operationReceipts']){
+  const measured=projectionRowMeasure(r,r.raw.rows[name]);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));
+ }
+ for(const id of ['context-cards:v1','prompt-reuse:v1']){const row=r.raw.rows.meta.find(row=>row.id===id);if(row){const measured=projectionRowMeasure(r,row);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));}}
+ const expectedBody=projectionRowMeasure(r,scope.expected),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
+ projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
 async function captureCurrentProjection(store,core,group,sourceWorking=false){
