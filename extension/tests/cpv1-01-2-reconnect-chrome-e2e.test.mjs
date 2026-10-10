@@ -1,5 +1,6 @@
 import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -12,9 +13,11 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 test('CPV1-01.2: a newly opened tab after a version update retains the same archive', { timeout: 120000 }, async t => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-updated-release-'));
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-update-profile-'));
-  let h,stage='build fixture release';const started=Date.now();
-  const mark=value=>{stage=value;console.error('UPDATE_LIFECYCLE_STAGE',JSON.stringify({stage,elapsedMs:Date.now()-started}));};
-  const aborted=()=>{let state;try{state={connected:h?.context?.browser()?.isConnected()??false,archiveClosed:h?.archive?.isClosed()??true};}catch{state={observationUnavailable:true};}console.error('UPDATE_LIFECYCLE_ABORT',JSON.stringify({stage,elapsedMs:Date.now()-started,...state}));};
+  let h,stage='build fixture release';const started=Date.now(),events=[];
+  const output=join(root,'work/qa-mac-update-stage');
+  const record=(kind,state={})=>{events.push({kind,stage,elapsedMs:Date.now()-started,...state});assert.ok(events.length<=64);mkdirSync(output,{recursive:true});writeFileSync(join(output,'update.json'),JSON.stringify({schema:1,claim:'SYNTHETIC_READ_ONLY_UPDATE_PHASE_DIAGNOSTIC',testedCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,events},null,2)+'\n');};
+  const mark=value=>{stage=value;record('stage');};
+  const aborted=()=>{let state;try{state={connected:h?.context?.browser()?.isConnected()??false,archiveClosed:h?.archive?.isClosed()??true};}catch{state={observationUnavailable:true};}record('abort',state);};
   t.signal.addEventListener('abort',aborted,{once:true});
   mark(stage);
   execFileSync('python3', ['scripts/build_current_release.py', release], { cwd: root, stdio: 'pipe' });
@@ -74,10 +77,11 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
     finally { clearTimeout(timer); }
     throw new Error(`new-tab update lifecycle failed at ${stage}; state=${JSON.stringify(state)}`, { cause: error });
   } finally {
-    mark('final cleanup');t.signal.removeEventListener('abort',aborted);
+    mark('final cleanup');
     await h?.close();
     await rm(release, { recursive: true, force: true });
     await rm(profile, { recursive: true, force: true });
+    t.signal.removeEventListener('abort',aborted);
   }
 });
 

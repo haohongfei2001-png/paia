@@ -381,6 +381,14 @@ jobs:
         env:
           PAIA_HEADLESS: '1'
         run: node --test --test-reporter=./scripts/test-report.mjs tests/cpv1-01-2-reconnect-chrome-e2e.test.mjs
+      - name: Retain body-free update lifecycle stage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-update-stage-${{ github.sha }}
+          path: extension/work/qa-mac-update-stage/
+          if-no-files-found: error
+          retention-days: 7
 
   historical_browser:
     name: Historical Browser Audit ${{ matrix.shard }}
