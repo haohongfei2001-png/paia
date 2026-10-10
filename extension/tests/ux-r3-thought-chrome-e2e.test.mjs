@@ -273,3 +273,32 @@ test('UX-R3 F-LARGE 100k Inputs / 1000 documents / 300 Topics / 5000 Thoughts: b
 });
 
 async function waitLargeRoot(p,stage){try{await p.locator('#thought-list article.personal-topic-block[data-topic-id]').first().waitFor();}catch(error){await writeFile('work/ux-r3/large-root-'+stage+'.json',JSON.stringify(await p.evaluate(stage=>({stage,history:history.state,rows:document.querySelectorAll('#thought-list article.personal-topic-block[data-topic-id]').length,text:document.body.innerText.slice(0,4000)}),stage),null,2));await shot(p,'large-root-'+stage+'-failure');throw error;}}
+
+for(const variant of ['source','release'])test(`actual Topic continuation generation refusal preserves IME and exposes a working retry (${variant})`,{timeout:180000},async()=>{
+ const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-topic-continuation-')):null;
+ if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({onboarding:true,...(release?{extensionPath:release}:{})});try{
+  const p=await ready(h);await p.setViewportSize({width:1440,height:900});
+  await p.evaluate(async()=>{const {TopicController}=await import('./topic-workspace.js'),render=TopicController.prototype.renderTopicReader;TopicController.prototype.renderTopicReader=function(...args){globalThis.__actualTopicController=this;return render.apply(this,args);};});
+  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'Synthetic continuation recovery',operationId:op()}});
+  for(let i=0;i<50;i++)await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'SYNTHETIC retained native Thought '+i+'\nSecond paragraph.',topicId:topic.id}});
+  await nav(p,'thoughts');await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();const field=p.locator('#topic-body [data-entry-field="body"]').first();await field.waitFor();
+  await eventually(()=>p.evaluate(()=>__actualTopicController?.topicReader?.items.length===40),'original first page has a genuine continuation frontier');
+  await field.focus();await field.dispatchEvent('compositionstart');await field.evaluate(node=>{globalThis.__continuationDraft=node;node.textContent='SYNTHETIC 未完成 IME 草稿';node.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',isComposing:true}));});
+  await p.evaluate(()=>{
+   const send=chrome.runtime.sendMessage.bind(chrome.runtime);let release;const gate=new Promise(resolve=>release=resolve);globalThis.__releaseContinuationRead=release;globalThis.__heldContinuationRead=false;globalThis.__continuationFinished=false;
+   chrome.runtime.sendMessage=async message=>{if(!__heldContinuationRead&&message.type==='GET_LIBRARY_SECTION_READING'&&message.options?.limit===1&&message.options.expectedReadGeneration){__heldContinuationRead=true;await gate;}return send(message);};
+   void __actualTopicController.loadTopicContinuous('next',{explicit:false}).then(value=>{globalThis.__continuationOutcome=value;__continuationFinished=true;},error=>{globalThis.__continuationError=error.message;__continuationFinished=true;});
+  });
+  await eventually(()=>p.evaluate(()=>__heldContinuationRead),'original generation recheck is held before worker invocation');
+  await rpc(p,'CONTINUE_THINKING',{thought:{operationId:op(),body:'SYNTHETIC concurrent canonical Thought',topicId:topic.id}});
+  await p.evaluate(()=>__releaseContinuationRead());await eventually(()=>p.evaluate(()=>__continuationFinished));
+  const refused=await p.evaluate(()=>{const owner=__actualTopicController;return {outcome:__continuationOutcome,error:globalThis.__continuationError||null,failed:owner.readFailed,retryHidden:owner.readRetry.hidden,stale:owner.topicReader.stale,retainedBodies:owner.topicReader.items.some(item=>typeof item.entry?.body==='string'),sameNode:document.querySelector('#topic-body [data-entry-field="body"]')===__continuationDraft,body:__continuationDraft.textContent,focused:document.activeElement===__continuationDraft,composing:owner.editor.entry.surface.composing};});
+  assert.deepEqual(refused,{outcome:false,error:null,failed:true,retryHidden:false,stale:true,retainedBodies:false,sameNode:true,body:'SYNTHETIC 未完成 IME 草稿',focused:true,composing:true});offline(h);
+  // The original retry rereads through the same qualified owner. It never saves
+  // or replaces the composing field merely to clear a reading failure.
+  await p.evaluate(()=>__actualTopicController.readRetry.click());await eventually(()=>p.evaluate(()=>!__actualTopicController.readFailed&&!__actualTopicController.topicReader.stale),'original explicit retry completes a fresh qualified read');
+  assert.deepEqual(await p.evaluate(()=>({same:document.querySelector('#topic-body [data-entry-field="body"]')===__continuationDraft,body:__continuationDraft.textContent,composing:__actualTopicController.editor.entry.surface.composing})),{same:true,body:'SYNTHETIC 未完成 IME 草稿',composing:true});
+  assert.equal((await rpc(p,'TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id,sort:'asc',limit:100}})).items.length,51);offline(h);
+ }finally{try{await h.archive?.evaluate(()=>globalThis.__releaseContinuationRead?.());}catch{}await h.close();if(release)await rm(release,{recursive:true,force:true});}
+});

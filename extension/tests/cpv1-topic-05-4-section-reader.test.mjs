@@ -440,3 +440,34 @@ for(const cause of ['metadata unavailable','metadata cursorInvalid','metadata re
  globalThis.chrome={runtime:{sendMessage:async message=>{assert.equal(message.type,'GET_LIBRARY_TOPIC_READING_METADATA');metadata.beginQualifiedRead();return {ok:true,data:cause==='metadata unavailable'?{unavailable:true,reason:'topic_unavailable'}:cause==='metadata cursorInvalid'?{cursorInvalid:true}:{id:'topic',name:'Topic',revision:2,summary:'SYNTHETIC',recoveryEpoch:'restored'}};}}};
  await assert.rejects(owner.renderTopicReader(),/TOPIC_READING_CHANGED/);assert.equal(reader.stale,true);assert.deepEqual(events,['invalidate','tracked']);
 });
+
+for(const cause of ['generation','restore','unavailable','metadata'])test('automatic Topic continuation owns '+cause+' rejection without painting or losing a draft',()=>withDOM(async({body,get})=>{
+ const f=readerFixture({count:1});await f.reader.initial();f.reader.pageMeta.topic={id:'topic',name:'Topic',revision:2,defaultSectionId:'default'};
+ f.reader.previous=async()=>{f.reader.bodyRevision++;};
+ const draft=new Node();draft.textContent='SYNTHETIC 未保存的组合草稿';body.append(draft);document.activeElement=draft;
+ const events=[],owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',serial:1,openIntent:1,view:'original',topicReader:f.reader,originalPane:body,topicRestoring:()=>false,topicContinuousVisible:()=>true,topicAnchor:()=>null,topicSectionAnchor:()=>null,checkAllTracked:async()=>{events.push('tracked');return true;},renderDocument(){events.push('paint');},updateTopicContinuous(){events.push('status');},snapshotKey:'topic',readKey:()=> 'topic',readRetry:get('retry'),onStatus:(text,state)=>events.push(state)});
+ get('topic-body').append(body);document.activeElement=draft;
+ globalThis.chrome={runtime:{sendMessage:async message=>{
+  if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA')return {ok:true,data:{id:'topic',name:'Topic',revision:cause==='metadata'?3:2,summary:'SYNTHETIC SUMMARY',recoveryEpoch:'initial'}};
+  assert.equal(message.type,'GET_LIBRARY_SECTION_READING');return {ok:true,data:cause==='unavailable'?{unavailable:true}:{coverage:{activeGeneration:cause==='generation'?'changed':'g1'},recoveryEpoch:cause==='restore'?'restored':'initial'}};
+ }}};
+ assert.equal(await owner.loadTopicContinuous('previous',{explicit:false}),false);
+ assert.equal(events.includes('paint'),false);assert.equal(owner.readFailed,true);assert.equal(owner.readRetry.hidden,false);assert.ok(events.includes('read_error'));
+ assert.equal(body.firstElementChild,draft);assert.equal(draft.textContent,'SYNTHETIC 未保存的组合草稿');assert.equal(document.activeElement,draft);
+ if(cause!=='metadata'){assert.equal(f.reader.stale,true);assert.equal(f.reader.sections.size,0);assert.equal(f.reader.pageMeta,null);assert.equal(f.reader.items.some(row=>typeof row.entry?.body==='string'),false);assert.equal(events.filter(event=>event==='tracked').length,2);}
+}));
+for(const change of ['route','reader','view','root cue'])test('retired Topic continuation failure cannot mark a newer '+change+' failed',async()=>{
+ let reject;const held=new Promise((_,fail)=>reject=fail),reader={bodyRevision:1,previous:async()=>{reader.bodyRevision++;}},events=[];
+ const owner=Object.assign(Object.create(TopicController.prototype),{serial:1,openIntent:1,rootCueEpoch:0,view:'original',topicReader:reader,topicRestoring:()=>false,topicContinuousVisible:()=>true,topicAnchor:()=>null,topicSectionAnchor:()=>null,checkAllTracked:async()=>true,updateTopicContinuous:()=>events.push('status'),renderTopicReader:()=>held,readFailure:()=>events.push('failure')});
+ const pending=owner.loadTopicContinuous('previous',{explicit:false});await new Promise(resolve=>setImmediate(resolve));
+ if(change==='route')owner.openIntent++;if(change==='reader')owner.topicReader={};if(change==='view')owner.view='ai';if(change==='root cue')owner.rootCueEpoch++;
+ reject(Error('TOPIC_READING_CHANGED'));assert.equal(await pending,false);assert.equal(events.includes('failure'),false);assert.equal(events.filter(event=>event==='status').length,1);
+});
+
+for(const change of ['current','route','reader','view','root cue'])test('Topic window shift owns a failed read for '+change+' without leaking it to a void observer',async()=>{
+ let reject;const held=new Promise((_,fail)=>reject=fail),reader={shiftWindow:()=>true},events=[],draft={text:'SYNTHETIC IME 草稿',composing:true};
+ const owner=Object.assign(Object.create(TopicController.prototype),{serial:1,openIntent:1,rootCueEpoch:0,view:'original',topicReader:reader,editor:draft,topicRestoring:()=>false,topicContinuousVisible:()=>true,topicAnchor:()=>({id:'synthetic-anchor',top:140}),renderTopicReader:()=>held,readFailure:()=>events.push('failure'),updateTopicContinuous:()=>events.push('status')});
+ const pending=owner.shiftTopicWindow('next');assert.equal(owner.topicWindowShifting,true);
+ if(change==='route')owner.openIntent++;if(change==='reader')owner.topicReader={};if(change==='view')owner.view='ai';if(change==='root cue')owner.rootCueEpoch++;
+ reject(Error('TOPIC_READING_CHANGED'));assert.equal(await pending,false);assert.equal(owner.topicWindowShifting,false);assert.deepEqual(events,change==='current'?['failure','status']:[]);assert.equal(owner.editor,draft);assert.deepEqual(draft,{text:'SYNTHETIC IME 草稿',composing:true});
+});
