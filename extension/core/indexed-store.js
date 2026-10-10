@@ -40,6 +40,11 @@ const publicationEqual=(a,b)=>{
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 const localPublicationOwners=new WeakMap();
+// Body-free evidence from the original publisher, never a caller ACK flag.
+export function requireOriginalConsumerPublicationEvidence(store,reservation,kind){
+ const owner=localPublicationOwners.get(store),evidence=owner?.consumerEvidence;
+ if(!evidence||evidence.journal!==store.consumerPreferenceJournal||!evidence[kind]||!controlPublicationEqual(evidence.reservation,reservation))error('BNS_CONSUMER_PUBLICATION_PENDING');
+}
 export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
@@ -50,6 +55,12 @@ export class IndexedArchiveStore {
  async controlPublicationBinding(t){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');await requireControlPublicationOwner(t,owner.reservation,owner.fences);return structuredClone({reservation:owner.reservation,fences:owner.fences});}
  controlPublicationLoadedRow(){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner)error('CONTROL_PUBLICATION_REQUIRED');return structuredClone({schemaVersion:6,databaseId:this.databaseId,...this.controlCache,...(owner.loadedStamp?{controlPublication:owner.loadedStamp}:{})});}
  async prepareConsumerPreferenceRecovery(t,journal,token){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner||journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_REQUIRED');const binding=await journal.authorizeRecovery(t,this,token);if(!controlPublicationEqual(await readControlPublicationFence(t),owner.before))error('CONTROL_PUBLICATION_CHANGED');const control=structuredClone(this.controlCache),result=applyPreferenceChanges(control.preferences,binding.patch,'initial');if(result.ok!==true)error('CONTROL_PUBLICATION_CHANGED');owner.reservation=await renewControlPublication(t,binding.reservation,binding.fences,{beforeDigest:owner.beforeDigest,nonce:owner.nonce});await journal.bindRecoveryPublication(t,this,token,owner.reservation);owner.fences=binding.fences;this.pendingControl=control;}
+ async confirmConsumerPreferenceRecoveryVisibility(journal,token){
+  const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner||journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_REQUIRED');
+  const binding=await journal.authorizeVisibleRecovery(this,token),actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];
+  if(!controlPublicationEqual(owner.before,binding.fence)||!controlPublicationEqual(actual,this.controlPublicationLoadedRow())||await controlPublicationDigest(actual)!==binding.fence.reservation.afterDigest||await controlPublicationDigest({migration:owner.before.migration,gate:owner.before.gate,epoch:owner.before.epoch})!==binding.fence.reservation.fenceDigest||!controlPublicationEqual(actual,(await this.local.get(STORAGE_KEY))[STORAGE_KEY]))error('BNS_CONSUMER_PUBLICATION_PENDING');
+  owner.consumerEvidence={journal,reservation:structuredClone(binding.fence.reservation),visible:true,terminal:false};
+ }
  async #confirmPreferencePublication(intent,control){
   try{
    const owns=()=>intent?.committed&&intent===this.#preferencePublication&&control===intent.control&&control===this.pendingControl&&this.databaseId===intent.databaseId&&publicationEqual(controlPublicationRow(control,this.databaseId,localPublicationOwners.get(this).reservation),intent.expected);
@@ -82,13 +93,13 @@ export class IndexedArchiveStore {
    // Only the original Chrome SDK's completed RPC, or an explicitly qualified
    // injected adapter with that same terminal contract, supplies this evidence.
    // A timeout, detached call, wrapper rejection or worker restart cannot.
-   if(this.localPublicationTerminal)try{await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal&&await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication))return;await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);}catch{/* Keep foreign/changed or portable-pending state and the original error. */}
+   if(this.localPublicationTerminal)try{owner.consumerEvidence={journal,reservation:structuredClone(owner.reservation),terminal:true,visible:false};await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal&&await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication))return;await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);}catch{/* Keep foreign/changed or portable-pending state and the original error. */}
    throw e;
   }}
   finally{if(#preferencePublication in this)this.#preferencePublication=null;}
   if(journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_CHANGED');
-  if(this.consumerPreferenceJournal&&this.localPublicationTerminal)await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication);},['meta']);
-  if(this.consumerPreferenceJournal){const actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];if(control!==this.pendingControl||!publicationEqual(actual,payload)||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('BNS_CONSUMER_PUBLICATION_PENDING');}
+  if(this.consumerPreferenceJournal&&this.localPublicationTerminal){owner.consumerEvidence={journal,reservation:structuredClone(owner.reservation),terminal:true,visible:false};await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication);},['meta']);}
+  if(this.consumerPreferenceJournal){const actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];if(control!==this.pendingControl||!publicationEqual(actual,payload)||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('BNS_CONSUMER_PUBLICATION_PENDING');owner.consumerEvidence={journal,reservation:structuredClone(owner.reservation),visible:true,terminal:this.localPublicationTerminal};}
   // An acknowledged write releases only its exact reservation. Lost-worker or
   // failed/unqualified outcomes retain it; neither consent nor a control body is
   // replayed to make an unknown outcome appear successful.

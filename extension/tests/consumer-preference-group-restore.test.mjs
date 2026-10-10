@@ -18,6 +18,7 @@ import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
 import {GroupedCheckpointRestore} from '../core/browser-native-sync/group-checkpoint.js';
 import {CONTROL_PUBLICATION_RESERVATION} from '../core/local-control-publication.js';
 import {applyRestoredConsumerPreferenceOwners,prepareRestoredConsumerPreferenceApplication} from '../core/browser-native-sync/consumer-preference-restore.js';
+import {prepareGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
 const datasetId='SYNTHETIC_configuration_group_restore',display={appearance:'dark',language:'en',fontSize:'large',readingWidth:'wide',timeDisplay:'date_only',timeEmphasis:'standard'};
 const rows=f=>f.s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(f.s.repository.stores.map(async name=>[name,await t.all(name)]))));
 const meta=(f,id)=>f.s.repository.transaction(false,t=>t.get('meta',id),['meta']);
@@ -73,4 +74,14 @@ for(const visible of [false,true])test('imported unknown terminal outcome '+(vis
 
 test('a cloned or invented imported preference effect capability has no original write authority',async t=>{
  const f=await staged(t),before=await rows(f.b),control=structuredClone(f.b.data[STORAGE_KEY]),sets=f.b.sets();await assert.rejects(f.b.core.transaction(true,tx=>applyRestoredConsumerPreferenceOwners(tx,{})),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});await assert.rejects(prepareRestoredConsumerPreferenceApplication(f.b.s,f.b.core,{groups:[],heads:[]},f.restore.stage,await f.restore.stage.read('restore')),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});assert.deepEqual(await rows(f.b),before);assert.deepEqual(f.b.data[STORAGE_KEY],control);assert.equal(f.b.sets(),sets);
+});
+
+test('even a real prepared imported snapshot token cannot manufacture SDK terminal or visible evidence',async t=>{
+ const {b,restore}=await staged(t);b.s.publish=async()=>{throw Error('SYNTHETIC undispatched before evidence');};await assert.rejects(restore.activate(),/undispatched before evidence/);const token=await b.journal.preparePublication(b.s),lease=await meta(b,CONTROL_PUBLICATION_RESERVATION),before=await rows(b),control=structuredClone(b.data[STORAGE_KEY]),sets=b.sets();
+ for(const publication of [undefined,token])for(const method of ['markTerminal','settle']){await assert.rejects(b.core.transaction(true,tx=>b.journal[method](tx,b.s,lease,publication)),{code:'BNS_CONSUMER_PUBLICATION_PENDING'});assert.deepEqual(await rows(b),before);assert.deepEqual(b.data[STORAGE_KEY],control);assert.equal(b.sets(),sets);}assert.equal((await restore.stage.read('restore')).phase,'publishing');assert.equal((await meta(b,CONSUMER_PUBLICATION_PENDING_ID)).terminal,false);
+});
+
+test('a supplied stage facade cannot hide the original durable stage changing after preparation',async t=>{
+ const {b,restore}=await staged(t),state=await restore.stage.read('restore'),replay=new BrowserNativeSyncCore(b.s.repository,{datasetId,deviceId:b.core.deviceId,namespace:state.replayId}),operations=[];for await(const row of restore.stage.rows('groupItem'))if(row.item.kind==='revision')operations.push(row.item.operation);const plan=await prepareGroupCheckpointPlan(replay,operations),facade={repository:b.s.repository,datasetId,fixedNamespace:restore.stage.fixedNamespace,get:async()=>structuredClone(state)},token=await prepareRestoredConsumerPreferenceApplication(b.s,replay,plan,facade,state);
+ await b.s.repository.transaction(true,tx=>tx.put('meta',{...state,phase:'SYNTHETIC_changed_original_stage'}));const before=await rows(b),control=structuredClone(b.data[STORAGE_KEY]),sets=b.sets();await assert.rejects(replay.transaction(true,tx=>applyRestoredConsumerPreferenceOwners(tx,token)),{code:'BNS_GROUP_STAGE_CHANGED'});assert.deepEqual(await rows(b),before);assert.deepEqual(b.data[STORAGE_KEY],control);assert.equal(b.sets(),sets);
 });

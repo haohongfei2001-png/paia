@@ -6,6 +6,7 @@ const fail=code=>{throw new ArchiveError(code);};
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {assertProtocolObjectReference,protocolObject,SEGMENT_PROFILE} from './segments.js';
 import {bytes} from './value.js';
+import {protocolPhysicalId} from './physical-key.js';
 import {requireOriginalGroupCheckpointPlan,originalGroupCheckpointCore} from './group-checkpoint-plan.js';
 const applications=new WeakMap();
 export const CONSUMER_OWNER_PREFIX='consumer-preference-owner:';
@@ -40,14 +41,14 @@ export async function requireConsumerPreferenceOwners(t,store,core,operations){
 }
 export async function prepareRestoredConsumerPreferenceApplication(store,core,plan,stageCore,state){
  requireOriginalGroupCheckpointPlan(core,plan);
- if(core.repository!==store.repository||core.fixedNamespace!==state.replayId||stageCore.repository!==core.repository||stageCore.datasetId!==core.datasetId||stageCore.fixedNamespace===core.fixedNamespace||state.phase!=='validated'||state.graphDigest!==plan.digest)fail('BNS_GROUP_STAGE_CHANGED');
+ if(core.repository!==store.repository||core.fixedNamespace!==state.replayId||stageCore.repository!==core.repository||stageCore.datasetId!==core.datasetId||!opaque(stageCore.fixedNamespace)||stageCore.fixedNamespace===core.fixedNamespace||state.id!==protocolPhysicalId(core.prefix,stageCore.fixedNamespace,'restore',[])||state.phase!=='validated'||state.graphDigest!==plan.digest)fail('BNS_GROUP_STAGE_CHANGED');
  await validateImportedConsumerStage(state,core);
  const token=Object.freeze({});applications.set(token,{store,core,plan,stageCore,state:clone(state),operations:finalConsumerPreferenceOperations(plan)});return token;
 }
 export async function applyRestoredConsumerPreferenceOwners(t,token){
  const prepared=applications.get(token);if(!prepared)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const {store,core,plan,stageCore,state,operations}=prepared;requireOriginalGroupCheckpointPlan(core,plan);
- if(!equal(await stageCore.get(t,'restore'),state)||core.repository!==store.repository||core.fixedNamespace!==state.replayId)fail('BNS_GROUP_STAGE_CHANGED');
+ if(!equal(await t.get('meta',state.id),state)||core.repository!==store.repository||core.fixedNamespace!==state.replayId)fail('BNS_GROUP_STAGE_CHANGED');
  if(!operations.length)return null;
  if(!store.consumerPreferenceJournal||store.consumerPreferenceJournal.core.repository!==core.repository||store.consumerPreferenceJournal.core.datasetId!==core.datasetId)fail('BNS_CONSUMER_PREFERENCE_OWNER_REQUIRED');
  await store.qualifyControlPublicationRead(t);
