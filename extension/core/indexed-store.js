@@ -40,7 +40,7 @@ const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSIO
 export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;}
- run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
+ run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
  async saveControl(t,c){this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});}
  async #confirmPreferencePublication(intent,control){
@@ -59,11 +59,11 @@ export class IndexedArchiveStore {
  async publish(){
   const control=this.pendingControl;if(!control)return;
   try{await this.local.set({[STORAGE_KEY]:{schemaVersion:6,databaseId:this.databaseId,...control}});}
-  catch(e){if(!await this.#confirmPreferencePublication(this.#preferencePublication,control))throw e;}
-  finally{this.#preferencePublication=null;}
+  catch(e){if(!(#preferencePublication in this)||!await this.#confirmPreferencePublication(this.#preferencePublication,control))throw e;}
+  finally{if(#preferencePublication in this)this.#preferencePublication=null;}
   this.controlCache=control;this.pendingControl=null;
  }
- write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null){return this.run(async()=>{try{const result=await this.repository.transaction(true,fn);onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
@@ -241,11 +241,11 @@ export class IndexedArchiveStore {
   if(result.ok&&result.changed!==false){
    await this.saveControl(t,c);
    if(!aiStyle){const migration=await t.get('meta','migration'),gate=await t.get('meta','gate');
-    if(migration?.phase==='active'&&migration.databaseId===this.databaseId)this.#preferencePublication={committed:false,control:this.pendingControl,databaseId:this.databaseId,expected:structuredClone({schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}),migration,gate,epoch:epochRow};
+    if(#preferencePublication in this&&migration?.phase==='active'&&migration.databaseId===this.databaseId)this.#preferencePublication={committed:false,control:this.pendingControl,databaseId:this.databaseId,expected:structuredClone({schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}),migration,gate,epoch:epochRow};
    }
   }
   return result;
- },()=>{if(this.#preferencePublication)this.#preferencePublication.committed=true;});}
+ },()=>{if(#preferencePublication in this&&this.#preferencePublication)this.#preferencePublication.committed=true;});}
  aiStylePreference(){return this.run(()=>this.repository.transaction(false,async t=>{if(await t.get('meta','backup-recovery-settings'))error('BACKUP_BUSY');return readAIStyle((await this.control(t)).preferences,(await t.get('meta','recovery-restore-epoch'))?.value??'initial');},['meta']));}
  resolveLegacy(id,include){return this.write(async t=>{if(typeof include!=='boolean')error('INVALID_REQUEST');const row=await t.get('records',id);if(!row||!row.value.hidden&&!row.value.deletedAt)error('INVALID_REQUEST');row.value.hidden=false;row.value.deletedAt=null;await this.saveRecord(t,row.value,await t.get('recordIndex',id));for(const ix of await t.all('blockIndex','byRecord',id)){const b=await t.get('blocks',ix.id);if(b.value.sourceRecordId!==id)continue;const prior=structuredClone(b.value);Object.assign(b.value,{excluded:!include,status:include?'active':'excluded_by_user',revision:b.value.revision+1});if(this.afterLegacyResolve)await this.afterLegacyResolve(t,prior,b.value);await t.put('blocks',b);Object.assign(ix,{excluded:!include,excludedKey:include?0:1});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.refreshDoc(t,b.value.documentId);}return {ok:true};});}
  memoryContext(){return Promise.resolve(memoryContext());}

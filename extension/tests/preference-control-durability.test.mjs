@@ -90,3 +90,14 @@ for(const locked of [false,true])test(`uncloneable invalid style keeps original 
  const f=await fixture(t),n=f.writes();if(locked)await f.store.repository.transaction(true,tx=>tx.put('meta',{id:'backup-recovery-settings',value:{preferences:{}}}),['meta']);
  await assert.rejects(f.store.updatePreferences({aiOrganizeStyle:{version:1,value:Symbol('SYNTHETIC invalid style'),expectedRevision:0,expectedEpoch:'initial'}}),{code:locked?'BACKUP_BUSY':'INVALID_REQUEST'});assert.equal(f.writes(),n);assert.equal(Object.hasOwn(f.data[STORAGE_KEY].preferences,'aiOrganizeStyle'),false);
 });
+
+
+test('existing inherited readonly owner can run without acquiring genuine preference publication authority',async t=>{
+ const f=await fixture(t),owner=Object.create(f.store),before=structuredClone(f.data[STORAGE_KEY]),rows=await f.rows();
+ const result=await owner.run(()=>owner.repository.transaction(false,async tx=>(await owner.control(tx)).preferences));
+ assert.deepEqual(result,before.preferences);assert.deepEqual(await f.rows(),rows);assert.deepEqual(f.data[STORAGE_KEY],before);
+ f.setHook(()=>{throw f.fault;});
+ await assert.rejects(owner.updatePreferences({appearance:'dark'}),error=>error===f.fault,'an inherited facade cannot gain genuine acknowledgement authority');
+ assert.equal(f.data[STORAGE_KEY].preferences.appearance,'dark','the original publication happened but must not be falsely acknowledged by an unbranded facade');
+ assert.deepEqual(await f.store.updatePreferences({appearance:'light'}),{ok:true},'the genuine owner still confirms its exact after-write outcome');
+});
