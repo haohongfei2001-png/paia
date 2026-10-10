@@ -45,7 +45,13 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta){
    for(const op of group.prepared.members)if(op.value.entityType==='history'){const h=op.value.after;if(!history.has(h.id))history.set(h.id,++revision);if(localGroup&&h.sequence!==history.get(h.id))refuse();}
   }else if(!['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
  }
- const cap=Object.freeze({});proofs.set(cap,{core,plan,active:Object.freeze(clone(active)),completed:clone(completed[0]),prefix,tail:Object.freeze(tail),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefix.groups,...tail],core.deviceId)});return cap;
+ // Bind the validated prefix order back to the existing complete immutable
+ // Plan. Prefix compiler/control/ownerScope operands have returned; no second
+ // full Plan or its private Source payload survives into keyed construction.
+ // The prefix dependency order was separately digest-checked above; a genuine
+ // local Human tail can add dependencies to current full-Plan Source groups.
+ const prefixGroups=Object.freeze(prefix.groups.map(group=>{const original=plan.groups.find(row=>row.id===group.id);if(!original||original.type!==group.type||!equal(original.operations,group.operations)||!equal(original.prepared,group.prepared))refuse();return original;}));
+ const cap=Object.freeze({});proofs.set(cap,{core,plan,active:Object.freeze(clone(active)),completed:clone(completed[0]),prefixGroups,tail:Object.freeze(tail),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefixGroups,...tail],core.deviceId)});return cap;
 }
 
 export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta,cap,humanRows){
@@ -67,14 +73,14 @@ export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta
 // allocator map, metadata exemption or provider/write capability is returned.
 export function originalMixedRestoredReplay(core,scope,plan,cap){
  requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
- return Object.freeze({active:p.active,completedId:p.completed.id,transactions:Object.freeze([p.prefix.groups,...p.tail.map(group=>Object.freeze([group]))]),historySequence:id=>p.history.get(id)});
+ return Object.freeze({active:p.active,completedId:p.completed.id,transactions:Object.freeze([p.prefixGroups,...p.tail.map(group=>Object.freeze([group]))]),historySequence:id=>p.history.get(id)});
 }
 export function measureMixedRestoredExpectation(core,scope,plan,cap){
- requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
+ requireOriginalCurrentMixedGroupPlan(core,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
  const total={B:0,T:0,V:0,E:0},add=value=>{const m=measureSourceWorkingPhysicalTree(value);for(const key of ['B','T','V','E'])total[key]+=m[key];};
- add(p.prefix);add(p.active);add(p.completed);
+ add(p.active);add(p.completed);
  for(const map of [p.inputs,p.history,p.human.entries,p.human.topics,p.human.receipts])for(const [key,value]of map)add([key,value]);
  // Stored Map/array/control wrappers have their own finite cells, independent
  // of borrowed complete Plan/member rows and already owned public Scope.
- total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+p.tail.length+64;return Object.freeze(total);
+ total.E+=p.inputs.size+p.history.size+p.human.entries.size+p.human.topics.size+p.human.receipts.size+p.prefixGroups.length+p.tail.length+64;return Object.freeze(total);
 }

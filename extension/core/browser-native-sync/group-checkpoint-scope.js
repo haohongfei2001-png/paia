@@ -1,6 +1,6 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
-import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent} from './human-library-plan.js';
+import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent,retainOriginalMixedRestoredScopeProof} from './human-library-plan.js';
 import {assertMixedCurrentSourceDerivedRows} from './mixed-current-source-derived.js';
 import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
@@ -166,7 +166,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
  try{
   if(p.mixedCore&&store){
    const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
-   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active'))p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta);
+   measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta);if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
   if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
@@ -262,6 +262,6 @@ export function originalMixedRestoredMetadataReplay(core,scope,plan){
  return originalMixedRestoredReplay(core,scope,plan,p.restoredAllocation);
 }
 export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,store,nonce){
- requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=originalScopes.get(scope);
+ requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||scopeDeref.call(p.plan)!==plan||p.mixedCore!==core||!['preparing','ready'].includes(p.phase))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
  return p?.restoredAllocation?measureMixedRestoredExpectation(core,scope,plan,p.restoredAllocation):Object.freeze({B:0,T:0,V:0,E:0});
 }

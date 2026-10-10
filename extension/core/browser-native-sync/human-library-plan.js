@@ -1304,6 +1304,13 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
 }
+// Transfer surviving authenticated prefix/control/allocation ownership only
+// after the original prefix builders have returned, and BEFORE keyed work.
+export function retainOriginalMixedRestoredScopeProof(nonce,store,scope,plan){
+ if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
+ if(r.mixedRestoredProofRetained||r.group.plan!==plan)projectionRequired();
+ const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedKeyedScratch);
+}
 // The original canonical owners borrow only this exact drained cut. A caller
 // cannot authenticate a cloned raw/Scope/Plan or substitute a later Store read.
 export function requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw){
@@ -1455,7 +1462,6 @@ export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
   }
  }
 }
-function sourceHiddenMixedEstimate(plan,r){let value=0;for(const group of plan.groups)if(['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))for(const member of group.prepared.members)value+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));return value+4096*128;}
 async function projectionCompileInitialMixedScope(r){
  if(!r.mixedCompilationInspection||!r.nativeDrained||r.binding.fixedNamespace!==null)projectionRequired();
  const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
@@ -1490,9 +1496,9 @@ async function projectionCompileInitialMixedScope(r){
  // The restored prefix compiler/control check runs after wire construction
  // returns. Its surviving private prefix and allocation cells remain live
  // through the subsequent keyed phase; the complete current Plan never leaves.
- const restoredOwned=restored?projectionTreeCharge(m)+sourceHiddenMixedEstimate(plan,r):0;
- const restoredScratch=restored?compilerScratch+wireScratch+completedGroupControlScratch(r.core,r.raw)+256*1024:0;
- const scopeScratch=Math.max(wireScratch,restoredScratch,keyedScratch+restoredOwned);
+ const restoredBase=3*projectionTreeCharge(wire)+projectionTreeCharge(humanWire)+256*1024;
+ const restoredScratch=restored?restoredBase+Math.max(compilerScratch,wireScratch,completedGroupControlScratch(r.core,r.raw)):0;
+ const scopeScratch=Math.max(wireScratch,restoredScratch,keyedScratch);r.mixedKeyedScratch=keyedScratch;
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
@@ -1506,8 +1512,7 @@ async function projectionCompileInitialMixedScope(r){
  // Scope construction and its sequential keyed operands have returned. The
  // same live ticket now owns their actual surviving trees, not both those
  // trees and a second copy of the already unwound construction scratch.
- const restoredHidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,r.store,r.nonce);
- r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden)+projectionTreeCharge(restoredHidden);r.group={...r.group,scope};
+ r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
  r.semantic=mixedCurrentSearchScratch(r);projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
