@@ -1,3 +1,15 @@
+## Current stable composition — local only, formal gates pending (2026-10-10)
+
+Base is exact remote maincf567aca4d706135a82c6e7475c4bfce343843ed. Its candidate passed full21 but exact-mainFull38016249694 failed CurrentBrowser6 and two dependencies (18requiredPASS/3FAIL), so0.43.9package held. Source Prompt passed; release parent timeout caused one active-child cancellation and six children not started, not eight independent assertion failures. MainPrompt5PASS cannot replace this gate. Original headed-hang cause unproven; complete original localcf40PASS is a separate diagnostic result.
+
+Stable actualf6246884918d521f10d039e375e2fb26985704ef/tree7872e9fddcaa83186c0066afd1361437ea716f7e passed60completeNode658/658 (18574.069ms),20complete nativefiles70Node/40top (194807.796583ms), entire strict40 source/release receipt aggregate; no failure/cancellation/skip. Initial strict wrong-CWD setup failure remains preserved. The45-file/40receipt packet coordinatorSHA699450ae2e10887e59ad658e21bfd249ad046b275c80a46b3b2bfa20c3cee23d binds this exact head. Fresh unchanged external additive10 SOURCE andRELEASE each pass with identical before/after snapshots195runtimepaths; pairSHA44a8b3fe5be2a423811860cbf4418332e4c362013a74e71e616297540f285762. C1 proves early Core.get refusal only; scope interception0 is vacuous for the historical scope mechanism; original E1 baseline/synthetic-complete-abort remain finite. No original28/fullheap claim.
+
+Independent finite F24 journal-native/CI review c5dc0b198d9c3d6e726110b24676f6f606d6183554cc94635628d0fe3ad29cec approves the existing evidence. Root composed only a separate reviewed test execution change into actual6f8d31bc057fb05b9aad21c5c74c43898051241e: PromptSurface headless:true, all native DOM/trusted input/zoom/privacy/40assertions/240s unchanged. Independent selection review45a5c72b7a07bddf63b0ee6e0d1c1a5f0ab5d19c25aa81be6254ae466176514b. Fresh composed wholePrompt40/40PASS59951.277416ms and both14 screenshots, packetSHA6229b4867b97bead952d3e1cefa3d47341b38662fefff4bbef2e1ba72a1a8dce. This does not prove the Linux headed hang cause or alter product runtime; unchanged f624 native evidence retains its actual identity.
+
+Final independent composition, fresh changed-head high-risk Full21/dedicatedPrompt5, normal PR integration, exact-main Full/Prompt and package readback are pending.0.43.10 is not merged/delivered/installed/deployed. All previous failures, setup failures and narrower claims below remain historical. No fullSync/provider/device/Qwen/visual/allseven qualification.
+
+## Preserved preceding implementation checkpoint
+
 # 0.43.10 bounded cleaned-restore successor — local candidate
 
 Base main `cf567aca4d706135a82c6e7475c4bfce343843ed`, tree `4e301b83f869edc29ae3f07bfe59b35e2795c6bb`, normally merged PR244. Candidate0.43.9 Full38014959745 passed21required; actualmain Full38016249694 remains pending here and Prompt38016249727 passed5required. This0.43.10 candidate is not merged, installed or formally deployed. Allseven plans remain unfinished.

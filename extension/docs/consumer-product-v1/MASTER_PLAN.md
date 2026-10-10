@@ -1,3 +1,7 @@
+Current frontier (2026-10-10): remote0.43.9 maincf567aca has failed exact-mainFull38016249694 and its package is held; accepted0.43.8 remains the last fully qualified deliverable. One coherent0.43.10 SYNC01 cleaned-restore successor passes local complete658Node/70native/strict40 plus additive10 pervariant, with finite headless Prompt whole40 composition passed. Independent final composition, fresh high-risk candidate/full-main and package qualification remain required. Current STATUS and [owning receipt](implementation/verification/COHERENT-04310-CLEANED-RESTORE-SUCCESSOR.md) own exact facts; no product expansion/allseven completion/provider or visual substitution is implied.
+
+## Preserved preceding checkpoint
+
 # Accepted0.43.8; next manual Context native batch under acceptance
 
 Current accepted main21a7294ed1b261e76f6e0e5f7a05cd43bba72119/tree2b38063d73d9c03374e70fb2a3ece1deb5d4499e: PR243, candidate/mainFull21requiredSUCCESS each and Prompt5SUCCESS each. Verified444-file package remains uninstalled/undeployed. Next0.43.9 SYNC01 current Human+manualContext preparation/wiring is bounded/defaultfalse, with unchanged original caps/protocol; actual high-risk qualification pending. [Owning batch receipt](implementation/verification/COHERENT-0439-HUMAN-MANUAL-CONTEXT.md) controls limits, negative history and exact evidence. Allseven unfinished; no paid/provider/account/visual substitution or scope expansion.
