@@ -28,7 +28,7 @@ try:
         browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_EXECUTABLE'),headless=True)
         for width in [1440,390,320]:
             for locale in ['', 'zh/']:
-                for route in ['index.html','demo.html','beta.html','status.html']:
+                for route in ['index.html','demo.html','beta.html','status.html','how-it-works.html','use-cases.html','principles.html','about.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html','privacy-policy.html','terms.html','thanks.html','404.html']:
                     page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
                     page.goto(base+'/'+locale+route,wait_until='networkidle')
                     page.evaluate('document.fonts.ready')
@@ -41,14 +41,15 @@ try:
                     if route=='index.html':
                         page.locator('[data-preview-tab="thought"]').click();audit('hero-thought')
                         page.locator('[data-preview-tab="context"]').click();audit('hero-context')
-                        page.locator('[data-story-reuse]').click();audit('reuse-inspection')
+                        page.locator('[data-story-reuse="a"]').click();audit('reuse-inspection')
+                        page.locator('[data-nb-insert-full]').click();audit('argument-in-request')
                     if route=='demo.html':
                         page.locator('[data-topic-block="product"] h3 a').click();audit('topic-reader')
                         page.locator('[data-topic-reader="product"] [data-topic-back]').click()
                         page.locator('[data-prompt-toggle]').click();audit('board-candidates')
                         page.locator('[data-prompt-manage="0"]').click();audit('board-edit')
                         page.locator('[data-edit-cancel]').first.click()
-                        page.locator('[data-nb-search-open]').click();page.locator('[data-nb-query]').fill('Mum' if not locale else '妈妈');audit('board-search')
+                        page.locator('[data-nb-search-open]').click();page.locator('[data-nb-query]').fill('explain' if not locale else '解释');audit('board-search')
                         page.locator('[data-nb-result="a"]').click();audit('board-inspection')
                         page.locator('[data-card-open="inputs"]').click();page.locator('[data-topic-allow="product"]').click();audit('context-topic-parent-off')
                     page.close()

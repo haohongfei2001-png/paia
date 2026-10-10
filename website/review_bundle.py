@@ -72,25 +72,25 @@ with tempfile.TemporaryDirectory(prefix='paia-review-') as working:
         (out/name).write_text(prototype(relative))
     evidence=out/'evidence';evidence.mkdir()
     for file in sorted(args.evidence.iterdir()):
-        if file.is_file() and file.suffix.lower() in {'.png','.json','.md','.gz'}:shutil.copy2(file,evidence/file.name)
-    (out/'README.md').write_text('''# PAIA website review / 官网设计审阅
+        if file.is_file() and not file.name.startswith(('before-','v1-')) and file.suffix.lower() in {'.png','.jpg','.json','.md','.gz'}:shutil.copy2(file,evidence/file.name)
+    (out/'README.md').write_text('''# PAIA website V2 review / 官网 V2 设计审阅
 
 Open START.html in a desktop browser. The four HTML prototypes also work when opened directly, without a server. All data is fictional and page-local; reload resets it. Do not enter private information. Copying requires an explicit user action and may be denied by a browser's local-file policy; insertion remains available.
 
-打开 START.html，或直接打开四份原型。它们无需安装扩展、填写邮箱或连接 AI。先在首页主题中选“用上这句话”，核对后填入草稿；再去完整 Demo 体验来源、编辑、主题和权限。复制功能可能受本地文件权限限制，不会谎报成功。
+打开 START.html，或直接打开四份原型。它们无需安装扩展、填写邮箱或连接 AI。先在首页主题中选“复用这句”，核对后填入草稿，再观察论点与证据边界的演示提示；再去完整 Demo 体验来源、编辑、主题和权限。复制功能可能受本地文件权限限制，不会谎报成功。
 
 No font files are included. Offline HTML uses system fallbacks, so text wrapping can differ slightly from the actual site's fonts. The screenshots show the actual repository build. Beta/status/legal links deliberately open the unchanged public site; these prototypes are not deployed, not extension installers and not a promise of live AI/Pro/cloud availability.
 
 没有合并或部署授权；请在审阅 PR 后明确决定。测试是工程及模拟交互验证，不是消费者研究或留存证明。
 ''')
     runtime=[ROOT/x for x in (ROOT/'website/generated-paths.txt').read_text().splitlines()]
-    runtime += [ROOT/'assets/website'/x for x in ['site.css','interior.css','product-experience.css','flagship.css','site.js','home-core-v2.js','narrow-board.js']]
+    runtime += [ROOT/'assets/website'/x for x in ['site.css','interior.css','product-experience.css','flagship.css','site.js','home-core-v2.js','narrow-board.js','value-proof.js','usage.css']]
     hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in runtime}
-    (out/'source-manifest.json').write_text(json.dumps({'kind':'WEBSITE_ONLY_OFFLINE_PROTOTYPE','base_main':'d516c43b01d4f2f7f3dda93f037ce2145bee5109','deployed':False,'font_files_included':False,'runtime_sha256':hashes},indent=2))
+    (out/'source-manifest.json').write_text(json.dumps({'kind':'WEBSITE_ONLY_OFFLINE_PROTOTYPE','reviewed_product_main':'d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a','deployed':False,'font_files_included':False,'runtime_sha256':hashes},indent=2))
     previews=[('home-zh.html','中文首页'),('demo-zh.html','中文完整 Demo'),('home-en.html','English home'),('demo-en.html','English full demo')]
-    image_names=[p.name for p in sorted(evidence.glob('*.png'))]
+    image_names=[p.name for p in sorted(p for p in evidence.iterdir() if p.suffix in {'.png','.jpg'})]
     image_html=''.join(f'<figure><a href="evidence/{escape(name)}"><img src="evidence/{escape(name)}" loading="lazy" alt="{escape(name)}"></a><figcaption>{escape(name)}</figcaption></figure>' for name in image_names)
-    (out/'START.html').write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIA 官网旗舰体验审阅</title><style>body{margin:0;background:#f5f8fd;color:#172d49;font:16px/1.7 system-ui}main{max-width:1120px;padding:48px 24px;margin:auto}h1{font-size:clamp(28px,5vw,44px);line-height:1.25}a{color:#2458bb;text-underline-offset:4px}.choices{display:flex;flex-wrap:wrap;gap:16px;margin:30px 0}.choices a{background:white;border:1px solid #d4dfef;border-radius:12px;padding:14px 22px;text-decoration:none}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}figure{margin:0;padding:12px;background:white;border:1px solid #dde6f1;border-radius:14px}img{display:block;width:100%;height:270px;object-fit:contain;object-position:top}figcaption{font-size:12px;overflow-wrap:anywhere;margin-top:10px}:focus-visible{outline:3px solid #2458bb;outline-offset:4px}</style><main><p>PAIA / WEBSITE DESIGN REVIEW / 2026-10-10</p><h1>对 AI 说过的话，<br>下次接着用。</h1><p>这是一组可操作的官网原型，不是扩展安装包。虚构数据，仅在本页运行；没有真实 AI 服务。尚未合并或部署。</p><nav class="choices" aria-label="打开原型">'''+''.join(f'<a href="{f}">{name} ↗</a>' for f,name in previews)+'''</nav><p>建议先用首页中“给家人的食谱”主题的一句原话，再到完整 Demo 修改工作文字、核对来源，最后尝试只开放一个主题。离线原型使用系统字体；下方截图来自实际网站构建。点击截图可查看原尺寸。</p><h2>桌面与移动端 / 改造前后</h2><div class="gallery">'''+image_html+'''</div><p><a href="README.md">使用与边界说明</a> · <a href="source-manifest.json">构建指纹</a></p></main></html>''')
+    (out/'START.html').write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIA 官网旗舰体验 V2 审阅</title><style>body{margin:0;background:#f5f8fd;color:#172d49;font:16px/1.7 system-ui}main{max-width:1120px;padding:48px 24px;margin:auto}h1{font-size:clamp(28px,5vw,44px);line-height:1.25}a{color:#2458bb;text-underline-offset:4px}.choices{display:flex;flex-wrap:wrap;gap:16px;margin:30px 0}.choices a{background:white;border:1px solid #d4dfef;border-radius:12px;padding:14px 22px;text-decoration:none}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}figure{margin:0;padding:12px;background:white;border:1px solid #dde6f1;border-radius:14px}img{display:block;width:100%;height:270px;object-fit:contain;object-position:top}figcaption{font-size:12px;overflow-wrap:anywhere;margin-top:10px}:focus-visible{outline:3px solid #2458bb;outline-offset:4px}</style><main><p>PAIA / WEBSITE V2 REVIEW / 2026-10-10</p><h1>对 AI 说过的话，<br>下次接着用。</h1><p>这是一组可操作的官网原型，不是扩展安装包。虚构数据，仅在本页运行；没有真实 AI 服务。尚未合并或部署。</p><nav class="choices" aria-label="打开原型">'''+''.join(f'<a href="{f}">{name} ↗</a>' for f,name in previews)+'''</nav><p>先在首页选一条论点原话，核对后填入，再带回“两周个人尝试”的证据边界，观察当前请求如何变得具体。完整 Demo 可练习编辑、来源和权限。离线原型使用系统字体；下方截图来自实际网站构建。点击截图可查看原尺寸。</p><h2>V2 桌面、移动端与实际交互</h2><div class="gallery">'''+image_html+'''</div><p><a href="README.md">使用与边界说明</a> · <a href="source-manifest.json">构建指纹</a></p></main></html>''')
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(args.output,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as z:
         for file in sorted(out.rglob('*')):

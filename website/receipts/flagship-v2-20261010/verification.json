@@ -1,0 +1,31 @@
+{
+  "candidate": "PR240 V2",
+  "reviewedProductMain": "d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a",
+  "evidence": "actual local HTTP browser tests; synthetic input data",
+  "browser": "154.0.8037.99",
+  "regressionChecks": 6369,
+  "failedChecks": 0,
+  "htmlRoutes": 48,
+  "widths": [
+    1440,
+    768,
+    390,
+    320
+  ],
+  "textEnlargement": "200% at 320 CSS px",
+  "axeScans": 156,
+  "axeIdentifiedViolations": 0,
+  "axeIncompleteGroups": 192,
+  "touchJourneys": 6,
+  "touchPages": 12,
+  "coldLoopbackObservations": 24,
+  "maxObservedCLS": 4.0298675411522635e-05,
+  "realUserStudy": false,
+  "physicalDeviceTest": false,
+  "realAI": false,
+  "formSubmitted": false,
+  "merged": false,
+  "deployed": false,
+  "offlineScenarios": 8,
+  "offlinePassed": 8
+}

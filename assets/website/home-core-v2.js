@@ -184,11 +184,7 @@
   const reading = $('[data-reading-style]');
   function renderReading() {
     const changed = all('[data-working]').some(field => field.value !== originals.get(field.dataset.working));
-    const wording = {
-      original: t('保留上方原话。整理只改变阅读呈现，不覆盖你的文字或主题组织。', 'Keep the words above. Organization changes the reading view, never your words or topic structure.'),
-      balanced: t('想给家人做一本保留妈妈说话方式的食谱。先从六道家常菜开始，每周一道；每道菜前留下她常说的话。不确定的细节下次问她，不补写。', 'Make a family cookbook that keeps Mum’s voice. Start with six recipes, one each weekend, and put something she often says before each recipe. Ask about uncertain details rather than inventing them.'),
-      concise: t('六道家常菜，每周一道；保留妈妈的原话，不补写不确定的细节。', 'Six family recipes, one each weekend. Keep Mum’s words; don’t invent uncertain details.')
-    };
+    const wording = JSON.parse(root.querySelector('[data-reading-presets]').textContent);
     const output = $('[data-reading-output]');
     output.replaceChildren();
     const line = document.createElement('p');
@@ -223,7 +219,7 @@
       });
       if (isOn($('[data-card-allow="inputs"]'))) {
         if (isOn($('[data-topic-allow="product"]'))) {
-          scope.push({label: t('我的输入 / 给家人的食谱', 'My Inputs / Our family cookbook'),
+          scope.push({label: t('我的输入 / 学过以后，留下什么', 'My Inputs / What stays after learning'),
             value: all('[data-topic-reader="product"] [data-thought-text]').map(field => field.textContent).join('\n\n')});
         }
         if (isOn($('[data-topic-allow="writing"]'))) {

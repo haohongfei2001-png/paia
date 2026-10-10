@@ -64,3 +64,11 @@ with zipfile.ZipFile(OUT/'website-review-source.zip','w',zipfile.ZIP_DEFLATED) a
         manifest[relative]=hashlib.sha256(content).hexdigest()
     archive.writestr('REVIEW_SOURCE.json',json.dumps({'commit':head,'font_files_included':False,'product_documents':'read-only candidate-branch references; latest main must be checked separately','sha256':manifest},indent=2))
 print('REVIEW_SOURCE '+json.dumps({'commit':head,'files':len(manifest),'font_files':0}))
+
+# Include the reviewed V2 offline deliverable in the existing CI evidence.
+# Copying a website review ZIP does not deploy it or enable any service.
+from shutil import copyfile
+review_bundle=ROOT/'website/receipts/flagship-v2-20261010/PAIA-Website-V2-2026-10-10.zip'
+if review_bundle.is_file():
+    copyfile(review_bundle,OUT/review_bundle.name)
+    print('V2_REVIEW_BUNDLE '+json.dumps({'file':review_bundle.name,'sha256':hashlib.sha256(review_bundle.read_bytes()).hexdigest(),'deployed':False}))

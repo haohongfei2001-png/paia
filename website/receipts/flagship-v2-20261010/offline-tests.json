@@ -1,0 +1,63 @@
+{
+  "transport": "local files, inlined images/scripts, system font fallback",
+  "realAI": false,
+  "fontFiles": 0,
+  "scenarios": [
+    {
+      "page": "home-en",
+      "width": 1440,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "home-en",
+      "width": 390,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "demo-en",
+      "width": 1440,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "demo-en",
+      "width": 390,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "home-zh",
+      "width": 1440,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "home-zh",
+      "width": 390,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "demo-zh",
+      "width": 1440,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    },
+    {
+      "page": "demo-zh",
+      "width": 390,
+      "pass": true,
+      "scriptErrors": [],
+      "externalRequests": []
+    }
+  ]
+}

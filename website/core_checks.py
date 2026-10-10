@@ -176,7 +176,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     # Ordinary rows stay quiet. Their contextual controls retain all prior edits,
     # ordering and keyboard Pin tests without exposing management by default.
     from flagship_checks import verify_narrow
-    verify_narrow(page, check, en=en)
+    verify_narrow(page, check, en=en, offline=offline)
 
     # PT1 grid/search/Section navigation replace the retired card-rearrangement demo.
     keys = ['product', 'writing', 'learning']
@@ -233,7 +233,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(not on('[data-card-allow="inputs"]'), 'opening a topic does not open parent card')
     test(changed not in page.locator('[data-context-preview]').inner_text(), 'closed My Inputs denies an open topic')
     test(page.locator('[data-topic-allow="product"] [data-topic-access-state]').inner_text() == ('Open' if en else '已开放'), 'closed parent never labels a retained topic AI-readable')
-    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('Our family cookbook' if en else '给家人的食谱'), 'the whole permission pill retains its Topic identity')
+    test(page.locator('[data-topic-allow="product"] .pc-topic-name').inner_text() == ('What stays after learning' if en else '学过以后，留下什么'), 'the whole permission pill retains its Topic identity')
     back('inputs')
     page.locator('[data-card-allow="inputs"]').click()
     preview = page.locator('[data-context-preview]').inner_text()

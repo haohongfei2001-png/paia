@@ -43,7 +43,7 @@ def verify_origin(page, check, en=True):
     test(page.locator('.pc-thought').evaluate_all("els=>els.length===4 && els.every(e=>getComputedStyle(e).boxShadow==='none' && parseFloat(getComputedStyle(e).borderTopWidth)===0)"), 'Topic entries remain continuous prose without individual card chrome')
     test(page.locator('.pc-topic-source').count() == 4, 'topic keeps cross-conversation provenance')
     stamps = [' '.join(value.split()) for value in page.locator('.pc-thought time').all_text_contents()]
-    test(stamps == (['12 AUG 09:42', '10 SEP 18:03', '26 AUG 11:18', '24 SEP 10:26'] if en else ['8 月 12 日 09:42', '9 月 10 日 18:03', '8 月 26 日 11:18', '9 月 24 日 10:26']), 'topic preserves source dates within human-defined Section order')
+    test(stamps == (['12 AUG 09:42', '26 AUG 11:18', '10 SEP 18:03', '24 SEP 10:26'] if en else ['8 月 12 日 09:42', '8 月 26 日 11:18', '9 月 10 日 18:03', '9 月 24 日 10:26']), 'topic preserves source dates within human-defined Section order')
     test(page.locator('[data-context-card]').count() == 4, 'four independent Context cards remain identifiable')
     test(page.locator('[data-context-overview] textarea').count() == 0, 'overview keeps personal bodies in their details')
     test(('not available yet' if en else '尚未开放') in page.locator('.pc-access-boundary').inner_text(), 'real connection availability is honest')

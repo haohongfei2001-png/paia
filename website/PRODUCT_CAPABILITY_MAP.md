@@ -1,84 +1,79 @@
-# PAIA website product consistency — 10 October 2026
+# PAIA website V2 — claim and authority map
 
-Website traceability, **not a product Canonical or implementation plan**. Current
-website branch: `feat/website-words-worth-returning-20261010`; inspected main:
-`d516c43b01d4f2f7f3dda93f037ce2145bee5109` (PR239, integrated 0.43.5).
-The current authorization permits website code/assets/tests and an independent
-PR only. **Owner confirmation is required before merge or deployment.** Earlier
-website receipts with broader release authorization are historical, not current
-permission. No product code, plans, live grants, provider, billing or deployment
-configuration is changed by this work.
+Current website candidate: PR #240. **Not merged, not deployed.** V2 replaces the
+prior proposed narrative, not PAIA's approved product structure. Product main
+reviewed at `d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a` on 2026-10-10; website
+baseline `e1bdc085dcdf06376e5844947f6f17ea02a96a36`. Later prep commit `ae5f8daf`
+adds read-only baseline/source evidence. No overlapping website main changes or
+second active website writer were found at the initial comparison.
 
-## Authority and evidence classes
+## Five distinct states
 
-[AUTHORITY](../extension/docs/consumer-product-v1/AUTHORITY.md),
-[Master Plan](../extension/docs/consumer-product-v1/MASTER_PLAN.md) and
-[STATUS](../extension/docs/consumer-product-v1/STATUS.md) determine scope and
-execution. Current scoped adoptions supersede conflicting old examples; retained
-nonconflicting predecessors remain incorporated where the current document says
-so. The website illustrates the **approved completed product**, not an assertion
-that every illustrated interaction is in the installed version.
+1. **Production website:** existing `inputarchive.com`, observed in both languages
+   and at desktop/mobile widths; it is not this PR's preview.
+2. **PR240 V1:** implemented/tested but unmerged; its visual/system foundations
+   are reused. The rejected narrative is historical evidence only.
+3. **Approved target:** three spaces, original/working distinction, human
+   Topic/Section/Entry organization, NIB v4, independent Context, scoped AI/sync.
+4. **Integrated/qualified local product:** local capture/find/edits, manual Topic,
+   Context and Prompt foundations. STATUS distinguishes current main 0.43.12 from
+   the last qualified user package 0.43.10 and held/pending later gates. Neither
+   source integration nor this website certifies installation or a public release.
+5. **Pending/unactivated:** NIB runtime remains unselected; real AI quality,
+   service/entitlements, external Context and cloud provider/device paths are not
+   publicly available. Older open PRs do not override current domain authority.
 
-| Evidence class | This review's finding | Website treatment |
+All authoritative paths below are under `extension/docs/consumer-product-v1/`.
+`AUTHORITY.md`, current `MASTER_PLAN.md` and `STATUS.md` control precedence and
+execution. Unchanged domain files were compared against the latest main; their
+retained historical sections are not mistaken for current readiness.
+
+| Website demonstration or statement | Product authority | Boundary and presentation |
 |---|---|---|
-| Approved target | Three spaces; Source/Working Input; personal Topic/Section/Entry; Context4; NIB v4; scoped AI; browser-native sync | May be illustrated with explicit fictional and availability labels |
-| Integrated local implementation | Capture/search/working edits, prompt core, Topic and Context foundations exist in main | “Local foundation,” never equivalent to public distribution or installed-build acceptance |
-| Approved but not activated/completed | NIB runtime remains unselected; real AI processing, Pro recommendations, external Context and live cloud transports lack public availability | “Approved / not implemented” or “not available yet,” at the interaction and on Status |
-| Unmerged/historical | Open PRs, old website design draft #91, prototype-only proposals | Not promoted to current authority or implementation |
-| Superseded/removed | Candidate approval inbox; graphs/timeline dashboards; task-packet Context; exports; old wide multi-line Prompt target | Not reintroduced to make the demonstration more impressive |
+| Save authorized sent user inputs with source/time | `PRODUCT_INTENT_CONTRACT.md`; `INPUT_ARCHIVE_INTERACTION_CONTRACT.md` | Supported ChatGPT scope; not assistant replies, drafts, full-account ingestion, arbitrary sites or universal capture |
+| Original sources versus editable working text; local Find and source inspection | Archive interaction contract, current Source/Working owner rules | Current local foundation. A selected Reader illustration is not a new initial Archive Home; neutral entry remains unchanged |
+| Topic → Section → Entry, human order, continuous reading across conversations | `TOPIC_ARCHITECTURE.md`; `THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md` | Root retains the stable Topic/Section overview. Home shows a labelled selected Topic, not a quote-feed Root or timeline dashboard |
+| Explicit whole-input references follow current working edits | PT-02 and retained body-binding contracts | Only the three declared bindings in this example; no general overwrite of independent human Thought bodies or unresolved B-01/B-02 decisions |
+| Prewritten reading alternatives | `AI_ORGANIZE_STYLE_CONTRACT.md`; `AI_USAGE_ARCHITECTURE.md` | Website comparison, not a permanent product per-Topic style control. Real generation is unavailable; changed source makes the preset stale. Human sections and source bodies stay unchanged |
+| Free frequent inputs, manual edits/pin/order, current-body search | `NARROW_INPUT_BOARD_V4_SPEC.md` and retained Prompt contracts | Manual value stands without paid AI. The v4 presentation is explicitly design-approved but not implemented in the extension |
+| Single-line ≤336px candidates; same-width search/check/edit; safe vertical band | NIB v4 spec and acceptance contract | Website host illustration only. No claim of real ChatGPT DOM/extension-frame adaptation from this demonstration |
+| Full/selected exact wording, protected draft and selection, no auto-send | NIB insertion/inspection contract | Stale results and oversized insertions are refused. Clipboard actions are explicit; failure is not reported as success. Historical text grants no new execution authority |
+| Argument and evidence-limit observations below the draft | **Website explanatory guide, not a product capability** | Exact matching of two fixed fictional passages only. Reversible; not semantic analysis, correctness, endorsement, time-saving measurement or generated output |
+| One mobile reading/task switch | **Website presentation only** | One composer and one set of inputs; no new product tabs, stores or underlying architecture |
+| Four Context cards, independent items, global/card/Topic scope | `AI_CONTEXT_CARDS_V2_PLAN.md`, adoption and restrictive read contract | All views, including How and no-JS, start off. No grant, connection, real account read or Archive fallback; lower switches do not open parents |
+| Future authorized Context reads | Context4 §§1.3–1.4 | Unavailable until a real connection exists. Existing external copies cannot be recalled by revocation. Internal processing and external read consent remain separate |
+| Pro recommendations and AI organization | `AI_USAGE_ARCHITECTURE.md`; NIB v4 | Service, membership where required, scoped processing consent and budget must exist. No fake subscription activation, provider call, model output or auto-generation timer |
+| Optional personal-cloud sync | `BROWSER_NATIVE_SYNC_CONTRACT.md` | Planned, user-enabled, same ecosystem and successfully synced material only. No activated cloud service or cross-ecosystem promise |
+| Current Settings scope | `SETTINGS_CONSUMER_V2_ADOPTION.md` / plan | Retained six groups/22 rows and separate feature permission owners; website does not create a settings dashboard or revive BYO API/export controls |
+| Demo, invitation, availability | Existing form and routes | Demo is not an installation. Application does not guarantee a place. Form action, recipient, fields, required unchecked consent and submission behavior are unchanged |
 
-The main merge is not sufficient proof of real-site/physical-device acceptance,
-provider qualification, distribution or cloud activation. The v4 documents were
-merged through PR229; the actual inspected `extension/ui/prompt-surface.css`
-still used 51px rows and a three-line clamp. This website does not modify it.
+## Native-feature comparison
 
-## Claim-to-source mapping
+OpenAI's official Search, Projects and Memory documentation was read on 2026-10-10.
+The site acknowledges historical content search, grouped ongoing work and relevant
+past context. It does not claim that ChatGPT cannot remember, search across chats,
+let people correct memory, or support long-running projects. Notes and prompt
+managers are acknowledged alternatives. PAIA's proposed incremental value is the
+joined input-level workflow, not exclusive ownership of any one outcome.
 
-Paths in the authority column are under `extension/docs/consumer-product-v1/`.
-All four cookbook expressions, dates, people and conversations are fictional.
-The example content is **the person's input**, not AI replies, generated recipes,
-account-wide history, drafts or third-party private records.
+- https://help.openai.com/en/articles/10056348-finding-your-chats-projects-and-files-in-chatgpt
+- https://help.openai.com/en/articles/10169521-projects-in-chatgpt
+- https://help.openai.com/en/articles/8590148-memory-in-chatgpt
 
-| Website claim / demonstration | Product authority | Boundary and availability |
-|---|---|---|
-| Save authorized sent user expressions and reuse them later; hero and story | `PRODUCT_INTENT_CONTRACT.md`, incorporated baseline; `INPUT_ARCHIVE_INTERACTION_CONTRACT.md` | Current supported Chrome/ChatGPT foundation. Not universal capture, automatic historical-account ingestion or a public store release |
-| Find within a conversation; preserve originals while editing a working body; Demo | Archive interaction contract and current Find clarification | Existing source-safe local behavior. Hero Reader is labelled a selected fictional conversation, not a redesigned initial Archive Home |
-| A personal project can contain expressions from more than one conversation | `TOPIC_ARCHITECTURE.md` PT-01–11, `THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md` | Topic Root remains the approved stable grid with plain Section links. Home shows an explicitly opened Topic and continuous prose, not a new Root quote/feed design |
-| Human-defined Section order and exact attributable expressions | Same PT1 authority; human ownership and body binding | The cookbook deliberately places a/c in one Section and b/note in another. Dates are preserved; global chronological sorting is not claimed. Working edits affect only the explicit whole-input references in this illustration |
-| Human organization versus controlled AI organization | `AI_ORGANIZE_STYLE_CONTRACT.md`, `AI_USAGE_ARCHITECTURE.md`, PT1 ownership | Home is manual organization. Demo's three fixed reading presets are labelled planned, are not real generation, and become stale after source edits. No personality summary or invention of user beliefs |
-| Frequent phrase reuse, manual edits/pin/order, lexical search | `NARROW_INPUT_BOARD_V4_SPEC.md`, `NARROW_INPUT_BOARD_V4_PLAN.md`; retained nonconflicting Prompt contracts | Free local core is retained. The **v4 presentation is approved but not implemented in the extension**. Website search reads only its four fictional inputs, including page-local working edits |
-| Narrow one-line rows, same-width search/check/edit, safe vertical band | NIB v4 §§2–6 and plan acceptance matrix | Normal width never exceeds 336px; narrow reference 322px with host/viewport safety. Height is bounded by the example host controls and composer. Website-only geometry does not certify a cross-origin extension frame or actual ChatGPT DOM adaptation |
-| Long/clipped text is inspected before reuse; full/selected exact wording; never auto-send | NIB v4 inspection/insertion contract | Existing draft and selection survive. Plain wording only; no hidden metadata. Stale inspection and oversized insertion are rejected without overwriting. No actual chat message is sent |
-| Pro AI recommendations | NIB v4; `AI_USAGE_ARCHITECTURE.md` admission/entitlement/processing scope | Real service, membership, relevant consent and budget are required. Not available yet. No pretend paid mode, model request, synthetic “AI result” or subscription activation |
-| Four Context cards and independent content; separate global/card/Topic switches | `AI_CONTEXT_CARDS_V2_PLAN.md` and current adoption | All website scopes now start **off**, including no-JS HTML. Global/card/Topic gates remain independent. Opening a lower scope cannot open a parent; closed Topics do not fall back to the Archive |
-| Pause, revoke, remove and undo are different operations | Context4 §§1.3–1.4, CTX4-03–06 | Pause retains lower choices; revoke clears scope without erasing content. Independent card Items retain their own controls. Website toggles are page-local illustrations, not real authorizations |
-| External AI can read only eligible allowed material when connected | Context4 §1.4; `AI_USAGE_ARCHITECTURE.md` | Connections remain unavailable. No fake Connect action. Future revocation stops new reads but cannot recall already-delivered content |
-| Optional same-ecosystem personal-cloud sync | `BROWSER_NATIVE_SYNC_ADOPTION.md`, `BROWSER_NATIVE_SYNC_CONTRACT.md` | Planned, not launched. Successful prior sync and user setup are prerequisites; no automatic cross-ecosystem transfer or new PAIA-hosted content cloud promised |
-| Demo versus installation/application | Actual `demo.html`, `beta.html`, `status.html`, manifest and inspected release situation | Demo operates without installation/email. Beta is invite-only desktop Chrome/ChatGPT; application is not installation or guaranteed admission. No verified public store/download button is invented |
+The selected writing/learning case demonstrates exact preservation of a chosen
+question and a two-week evidence limit. All wording, dates and conversations are
+fictional. The additional learning and weekend-planning cases are illustrative,
+not real user studies, product analytics or promises of behavior change.
 
-## Website composition and scope
+## Exclusions and evidence limits
 
-The hero retains the blue-white optical system, three spaces and original brand
-assets. `story.py` holds the shared fictional material. `flagship_home.py` proves
-one concrete old-words-to-new-draft outcome; `core.py` retains the deeper Demo.
-`narrow-board.js` is the sole owner of the website board; `home-core-v2.js` keeps
-Archive/Topic/Context operations. No new remote/runtime dependency is loaded by
-visitor pages. Story and blog remain in the footer; product/Demo/access/data/status
-receive the primary navigation emphasis. Existing EN, ZH and EN-alias routes,
-form recipient/action, required unchecked consent, legal terms, metadata and SEO
-ownership remain intact.
+No relationship graph, candidate approval inbox, dashboard, automatic belief
+inference, assistant-response archive, exported task packet, private source
+publication, BYO key, real AI or synchronization was introduced. Missing exact
+private product visual originals are not replaced with purported approved art.
 
-Reference authority was inspected in this repository. This review does not claim
-pixel comparison with unavailable private reference packages or substitute its
-fictional cookbook data for an approved product screenshot. It adds no product
-capabilities or decisions to resolve open product B-01/B-02 semantics.
-
-## Verification boundaries
-
-See [the dated design and verification receipt](receipts/FLAGSHIP_20261010.md)
-and its machine-readable reports for actual browser versions, checks, failures
-and final results. Recruited user comprehension/desire/conversion tests have not
-been performed. Viewport simulation is not a physical iPhone/iPad or OS IME test;
-axe and keyboard checks are not a screen-reader certification. The form is never
-submitted in these tests. New website changes remain in the PR; **no deployment
-readback of this new version is claimed before authorized publication**.
+Test evidence belongs to its exact source revision. Source-safe mechanics,
+responsive rendering and access isolation are different from recruited-user
+comprehension/desire, actual retention, real AI quality, installed-extension
+acceptance and public deployment. The completed V2 receipt records what ran and
+what remains untested; V1 successes are not retagged as V2 results.

@@ -1,34 +1,69 @@
-"""Synthetic browser checks, not user research or extension-runtime certification."""
+"""Synthetic browser evidence; not measured human comprehension or retention."""
 
-def verify_home(page, check, en=True):
-    prefix='EN' if en else 'ZH'
-    def test(value,label):check(value,f'{prefix} flagship home: {label}')
-    test(page.locator('[data-core-preview]').count()==0,'full four-part Demo is not repeated on home')
-    test(page.locator('.fs-topic-window').count()==1,'one selected Topic is the value demonstration')
-    test(page.locator('.fs-expression').count()==4,'the story shows four attributable user expressions')
-    test(page.locator('.hero-description br').count()==0,'hero prose reflows without br-dependent word boundaries')
-    labels=page.locator('[data-preview-tab] span').all_text_contents()
-    test(labels==(['Input Archive','Thought Library','AI Context'] if en else ['输入档案','思想库','AI Context']),'all three product-space labels match the site language')
-    test(page.locator('.pv-context-card .is-closed').count()==4,'hero Context starts with all four scopes closed')
-    nav=page.locator('.desktop-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')
-    test(any('demo.html' in x for x in nav) and not any('blog.html' in x or 'about.html' in x for x in nav),'experience is primary; brand editorial stays out of the primary path')
-    test(page.locator('.site-footer a[href$="blog.html"]').count()==1 and page.locator('.site-footer a[href$="about.html"]').count()==1,'story and blog remain reachable in the footer')
-    first=page.locator('.fs-source').first
-    first.locator('summary').focus();page.keyboard.press('Enter')
-    test(first.evaluate('e=>e.open') and 'ChatGPT' in first.inner_text(),'the narrative source opens with the keyboard')
-    first.locator('summary').press('Enter')
-    page.locator('#pc-composer').fill('An existing thought.')
-    page.locator('[data-story-reuse]').click()
-    original=page.locator('.fs-expression>p').first.inner_text()
-    test(page.locator('[data-nb-check-body]').inner_text()==original,'the story transfers exact wording to inspection, not an AI rewrite')
-    test(page.locator('#pc-composer').input_value()=='An existing thought.','opening the reuse moment does not insert automatically')
+
+def verify_home(page, check, en=True, offline=False):
+    def test(value,label): check(value, ('EN' if en else 'ZH') + ' V2 value proof: ' + label)
+    root=page.locator('[data-value-proof]')
+    mobile=page.viewport_size['width']<=760
+    def view(name):
+        if mobile: page.locator(f'[data-proof-view-pick="{name}"]').click()
+    test(page.locator('[data-core-preview]').count()==0,'home does not repeat the full four-part Demo')
+    test(root.count()==1 and page.locator('.fs-topic-window').count()==1,'one shared reading/task workbench')
+    test(page.locator('.fs-expression').count()==4,'four complete source-attributed human inputs')
+    test(page.locator('.hero-description br').count()==0,'natural hero word boundaries survive reflow')
+    test(page.locator('[data-preview-tab] span').all_text_contents()==(['Input Archive','Thought Library','AI Context'] if en else ['输入档案','思想库','AI Context']),'product tabs follow website language')
+    test(page.locator('.pv-context-card .is-closed').count()==4,'all hero Context cards default off')
+    test(page.locator('.desktop-nav a[href$="demo.html"]').count()==1 and page.locator('.desktop-nav a[href$="blog.html"]').count()==0,'product experience is primary navigation')
+    test(page.locator('.site-footer a[href$="blog.html"]').count()==1 and page.locator('.site-footer a[href$="about.html"]').count()==1,'editorial and origin remain in the footer')
+    test(page.locator('.vp-native-sources a').count()==3,'native Search Projects Memory have official references')
+    test(page.locator('[data-proof-line][data-state=included]').count()==0,'no value-proof success before original wording is inserted')
+    view('reading')
+    source=page.locator('.fs-source').first
+    source.locator('summary').focus();page.keyboard.press('Enter')
+    test(source.evaluate('e=>e.open') and 'ChatGPT' in source.inner_text(),'the source is keyboard readable')
+    source.locator('summary').press('Enter')
+    original=page.locator('[data-proof-expression="a"]>p').inner_text()
+    boundary=page.locator('[data-proof-expression="c"]>p').inner_text()
+    view('draft')
+    composer=page.locator('#pc-composer')
+    initial=composer.input_value()
+    test(bool(initial),'the present task exists before any reuse')
+    composer.fill(initial+' Existing draft stays.')
+    preserved=composer.input_value()
+    view('reading')
+    page.locator('[data-story-reuse="a"]').click()
+    test(page.locator('[data-nb-check-body]').inner_text()==original,'selection reveals complete wording, not a summary')
+    test(composer.input_value()==preserved,'inspection does not itself insert text')
+    test(page.locator('[data-proof-line][data-state=included]').count()==0,'inspection alone does not claim a changed request')
     page.locator('[data-nb-insert-full]').click()
-    test(page.locator('#pc-composer').input_value()=='An existing thought.\n\n'+original,'the visible payoff preserves the draft and adds the original words')
-    test(('Not sent' if en else '没有发送') in page.locator('[data-prompt-status]').inner_text(),'the benefit is insertion, never sending')
-    test(not page.evaluate('localStorage.length || sessionStorage.length'),'the story and draft have no persistence')
+    test(composer.input_value()==preserved+'\n\n'+original,'explicit insertion preserves the existing draft')
+    test(page.locator('[data-proof-line="a"]').get_attribute('data-state')=='included' and page.locator('[data-proof-line="c"]').get_attribute('data-state')=='missing','the argument is present but the evidence limit is still missing')
+    view('reading')
+    page.locator('[data-story-reuse="c"]').click()
+    page.locator('[data-nb-insert-full]').click()
+    test(composer.input_value()==preserved+'\n\n'+original+'\n\n'+boundary,'the task now contains the exact argument and evidence boundary')
+    test(page.locator('[data-proof-line][data-state=included]').count()==2,'only the two exact sample passages produce the two guide observations')
+    test(('Not sent' if en else '没有发送') in page.locator('[data-prompt-status]').inner_text(),'nothing is automatically sent')
+    composer.fill(initial+' This looks like a stronger argument.')
+    test(page.locator('[data-proof-line][data-state=included]').count()==0,'arbitrary input is not interpreted as a successful semantic match')
+    composer.fill(initial+'\n'+original[:-1])
+    test(page.locator('[data-proof-line][data-state=included]').count()==0,'partial wording is never claimed to contain the full condition')
+    composer.fill(initial+'\n'+original)
+    view('reading');view('draft')
+    test(composer.input_value()==initial+'\n'+original,'mobile view changes preserve one draft, rather than copying state')
+    composer.dispatch_event('compositionstart')
+    test(page.locator('[data-proof-reset]').is_disabled(),'request reset cannot interrupt synthetic active composition')
+    composer.dispatch_event('compositionend')
+    page.locator('[data-proof-reset]').click()
+    test(composer.input_value()==initial and page.locator('[data-proof-line][data-state=included]').count()==0,'reset restores the request and reverses the guide observations')
+    test(page.locator('[data-proof-expression="a"]>p').text_content()==original,'all reuse paths leave source material intact')
+    if mobile:
+        test(page.locator('[data-proof-pane=reading]').get_attribute('hidden') is not None and page.locator('[data-proof-pane=draft]').is_visible(),'one mobile pane is visible after deliberate navigation')
+    if not offline:
+        test(not page.evaluate('localStorage.length || sessionStorage.length'),'the illustrative task has no persistence')
 
 
-def verify_narrow(page, check, en=True):
+def verify_narrow(page, check, en=True, offline=False):
     prefix='EN' if en else 'ZH'
     def test(value,label):check(value,f'{prefix} NIB v4 example: {label}')
     root=page.locator('[data-narrow-board]');card=page.locator('#pc-prompt-card');toggle=page.locator('[data-prompt-toggle]')
@@ -142,4 +177,5 @@ def verify_narrow(page, check, en=True):
     page.locator('[data-working="a"]').fill(working)
     row=manage('0');page.locator('#pc-prompt-0').fill(original);row.locator('[data-edit-save]').click()
     composer.fill('')
-    test(not page.evaluate('localStorage.length || sessionStorage.length'),'all board edits and searches remain in current-page memory')
+    if not offline:
+        test(not page.evaluate('localStorage.length || sessionStorage.length'),'all board edits and searches remain in current-page memory')

@@ -12,6 +12,7 @@ from threading import Thread
 import json, os, re, sys, struct, hashlib, traceback
 from core_checks import verify_core
 from flagship_checks import verify_home
+from v2_checks import verify_v2_static
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 
@@ -102,6 +103,7 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
     check('/assets/website/site.css' in styles and '/assets/website/product-experience.css' in styles, f'{relative}: shared product visual system loaded')
     check(not any(name in source for name in ('home-core-v1.css', 'home-origin-v7.css', 'product-consistency.css', '/assets/website/demo.js')), f'{relative}: no retired stylesheet or demo cascade')
 
+verify_v2_static(ROOT, check)
 verify_assets(ROOT, check)
 
 # Selected D6 text/surface pairs. Visual review also inspects the composited
@@ -202,6 +204,7 @@ def capture_scenes(page, name, width):
     prefix = f'{name.replace("/", "-")}-{width}'
     page.emulate_media(reduced_motion='reduce')
     page.evaluate('document.fonts.ready')
+    page.evaluate('async()=>{document.querySelectorAll("img[loading=lazy]").forEach(e=>e.loading="eager");await Promise.all([...document.images].map(e=>e.decode().catch(()=>{})));}')
     settle_capture_top(page)
     if name in ('index.html', 'zh/index.html'):
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
@@ -215,7 +218,7 @@ def capture_scenes(page, name, width):
         return
     if name in ('index.html', 'zh/index.html'):
         page.locator('.fs-topic-window').screenshot(path=str(OUT / f'{prefix}-selected-topic.png'), animations='disabled')
-        page.locator('[data-story-reuse]').click()
+        page.locator('[data-story-reuse="a"]').click()
         page.locator('[data-narrow-board]').screenshot(path=str(OUT / f'{prefix}-reuse-check.png'), animations='disabled')
         page.locator('[data-nb-insert-full]').click()
         page.locator('[data-narrow-board]').screenshot(path=str(OUT / f'{prefix}-reuse-result.png'), animations='disabled')
@@ -326,7 +329,7 @@ try:
             page = browser.new_page(viewport={'width': 390, 'height': 844})
             load(page, locale + 'index.html')
             verify_hero(page, check, en=en)
-            verify_home(page, check, en=en)
+            verify_home(page, check, en=en, offline=OFFLINE)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
             check(menu.evaluate('el=>el.open'), f'{locale}: mobile menu opens')

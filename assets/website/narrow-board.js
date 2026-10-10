@@ -68,6 +68,7 @@
     fitComposer(); composer.focus({preventScroll:true}); composer.setSelectionRange(inserted.length,inserted.length); remember();
     const message = t('已填入本页输入框 · 没有发送','Inserted in this page’s composer · Not sent');
     $('[data-prompt-status]').textContent = message; status(message);
+    composer.dispatchEvent(new Event('input',{bubbles:true}));
     return true;
   }
   function show(next,focus=null) {
@@ -231,6 +232,7 @@
     if (next !== null) { event.preventDefault(); picks[next].focus(); }
   });
   document.querySelectorAll('[data-story-reuse]').forEach(link => link.addEventListener('click',() => {
+    document.dispatchEvent(new Event('paia:demo-inspection'));
     inspect({kind:'input',id:link.dataset.storyReuse},link,'candidates');
   }));
   const layoutClose = document.createElement('button'); layoutClose.type = 'button'; layoutClose.className = 'pc-quiet';

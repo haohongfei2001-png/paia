@@ -33,7 +33,9 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        product_css='<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261010a">\n<script src="/assets/website/home-core-v2.js?v=20261010a" defer></script>\n<link rel="stylesheet" href="/assets/website/flagship.css?v=20261010a">\n<script src="/assets/website/narrow-board.js?v=20261010a" defer></script>\n' if page in ('index.html','demo.html') else ''
+        product_css='<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261010v2">\n<script src="/assets/website/home-core-v2.js?v=20261010v2" defer></script>\n<link rel="stylesheet" href="/assets/website/flagship.css?v=20261010v2">\n<script src="/assets/website/narrow-board.js?v=20261010v2" defer></script>\n<script src="/assets/website/value-proof.js?v=20261010v2" defer></script>\n' if page in ('index.html','demo.html') else ''
+        if page in ('how-it-works.html','use-cases.html'):
+            product_css += '<link rel="stylesheet" href="/assets/website/usage.css?v=20261010v2">\n'
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -64,7 +66,7 @@ def build(lang):
 <meta name="twitter:image" content="{BASE}/assets/website/og-{lang}.png">
 <link rel="icon" href="/assets/website/brand/paia-icon-v1.png" type="image/png">
 <link rel="apple-touch-icon" href="/assets/website/brand/paia-icon-v1.png">
-<link rel="stylesheet" href="/assets/website/site.css?v=20261009b">
+<link rel="stylesheet" href="/assets/website/site.css?v=20261010v2">
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <script src="/assets/website/site.js?v=20261009a" defer></script>
@@ -125,7 +127,7 @@ def build(lang):
       (t('5. 第三方服务','5. Third-party services'),t('PAIA 可能与浏览器、AI 服务或其他第三方平台配合使用。第三方服务的可用性、条款和技术变化不由 PAIA 控制，相关功能可能因此调整。','PAIA may work with browsers, AI services and other third-party platforms. PAIA does not control their availability, terms or technical changes, which may require changes to related features.')),
       (t('6. 可用性与责任边界','6. Availability and limitations'),t('Beta 版本按当前状态提供，不承诺持续、无错误或永久可用。产品会尽力降低数据风险，但用户仍应为重要资料保留独立备份。','The beta is provided in its current state, without a promise of continuous, error-free or permanent availability. The product seeks to reduce data risks, but users should keep independent backups of important material.'))]
     for page,title,sections,date in [('privacy-policy.html',t('隐私政策','Privacy policy'),privacy_sections,'2026-10-08'),('terms.html',t('使用条款','Terms'),terms_sections,'2026-10-08')]:
-        content=f'''<section class="page-intro wrap"><p class="eyebrow">PAIA · PRIVATE BETA</p><h1>{title}</h1><p class="small">{t('政策内容最后更新','Policy content last updated')}: {date} · {t('页面呈现更新','Presentation updated')}: 2026-10-09</p></section><article class="prose legal-prose wrap">{''.join(f'<section><h2>{h}</h2><p>{p}</p></section>' for h,p in sections)}<section><h2>{t('7. 联系','7. Contact')}</h2><p>{t('有关本政策、Beta 或申请信息删除的问题，请联系','For policy, beta or application-deletion questions, contact')} <a href="mailto:{EMAIL}">{EMAIL}</a>{t("。", ".")}</p></section>{f'<aside class="notice"><p>{t("网站示例补充说明：示例输入只在当前页面内存中使用，不上传或持久保存；刷新即清除。网站托管和 FormSubmit 仍有各自的数据处理边界。", "Website sample clarification: inputs are used only in current-page memory, not uploaded or persisted, and clear on reload. Website hosting and FormSubmit have their own data-processing boundaries.")}</p>{a("principles.html",t("查看具体的数据与授权边界","Read the practical data boundaries"))}</aside>' if page=='privacy-policy.html' else ''}</article>'''
+        content=f'''<section class="page-intro wrap"><p class="eyebrow">PAIA · PRIVATE BETA</p><h1>{title}</h1><p class="small">{t('政策内容最后更新','Policy content last updated')}: {date} · {t('页面呈现更新','Presentation updated')}: 2026-10-09</p></section><article class="prose legal-prose wrap">{''.join(f'<section><h2>{h}</h2><p>{p}</p></section>' for h,p in sections)}<section><h2>{t('7. 联系','7. Contact')}</h2><p>{t('有关本政策、Beta 或申请信息删除的问题，请联系','For policy, beta or application-deletion questions, contact')} <a href="mailto:{EMAIL}">{EMAIL}</a>{t("。", ".")}</p></section>{f'<div class="notice"><p>{t("网站示例补充说明：示例输入只在当前页面内存中使用，不上传或持久保存；刷新即清除。网站托管和 FormSubmit 仍有各自的数据处理边界。", "Website sample clarification: inputs are used only in current-page memory, not uploaded or persisted, and clear on reload. Website hosting and FormSubmit have their own data-processing boundaries.")}</p>{a("principles.html",t("查看具体的数据与授权边界","Read the practical data boundaries"))}</div>' if page=='privacy-policy.html' else ''}</article>'''
         content=content.replace('<article class="prose legal-prose wrap">', '<div class="legal-layout wrap"><nav class="legal-index" aria-label="'+t('本页目录','On this page')+'"><strong>'+t('阅读本页','IN THIS DOCUMENT')+'</strong>'+''.join(f'<a href="#policy-{i}">{h}</a>' for i,(h,_) in enumerate(sections,1))+'</nav><article class="prose legal-prose">').replace('</article>', '</article></div>')
         for i,(h,_) in enumerate(sections,1):
             content=content.replace(f'<section><h2>{h}</h2>', f'<section id="policy-{i}"><h2>{h}</h2>')
