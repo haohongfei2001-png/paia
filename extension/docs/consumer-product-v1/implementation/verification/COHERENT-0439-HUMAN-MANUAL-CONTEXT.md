@@ -1,3 +1,11 @@
+# Local stable combination independently approved; formal gates pending
+
+Finite final combination EVIDENCE32e4ad2807a8c15e14382b0dac06cb0e725828f988281a39c19df675496dc0ac APPROVE:42fullpacket hashes/38actual1fae receipts/305uniqueGit/proofdependencies, actual646Node/38top68Native and entirestrictworkflowPASS; fresh193runtime/23proof/additive10source+10release/originalhistorical/externalpins andfailurehistory verified. This supports normal PR/freshFull21 only. PreviousCODE/resource4b4eddda andfiniteContextEVID/CIb3709af4 retaintheiroriginalscopes. PageChrome153,actualMV3Chrome154 andfourlegacyunrecordedversion receipts are distinct; no singleuniformbrowser/physicalheap proof. Laterdocs-onlycommits are notretaggedasactual1fae.
+
+Rootsharedwriter completedlocalbatch; candidateformalFull21/Prompt, normalintegration/exact-main/userpackage remainpending. Allseven remainopen andrealprovider/device/Qwenquality/visual/installed/deploymentclaims separate.
+
+## Preserved stable-batch evidence and original failure history
+
 # Stable0.43.9 local combination complete; formal integration pending
 
 Exactclean1fae16729de478a74fe963594c239fe3cb184b26/treee77d73199fb2942bdb53d1fd6d1b9b6c4599ff10 completed59wholeNodefiles646/646PASS19940.812042ms and19completeNativefiles38top/68NodePASS184510.597583ms,0fail/cancel/skipped. Current original strictworkflow verifier actuallypassed all38same-head/tree source/release receipts and new24case218proof. Private446-file release source/runtime bindings remain exact. Laterdocumentation is separate from actual1fae execution; formalFull21/merge/exact-main/installed/deployment remain pending. Finite earlier CODE/resource4b4eddda andContext0589/1faeCI EVIDENCEb3709af4 approve only their bounded scope; finalstablecombination review PENDING.
