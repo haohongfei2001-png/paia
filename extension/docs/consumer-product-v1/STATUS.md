@@ -1,3 +1,9 @@
+# 0.43.16 owning Topic read-recovery repair — candidate verified locally
+
+Approved PR #250 remains merged at `ef08a51a`; the revised Sync convergence plan is the official execution basis. Complete Mixed SYNC-01 batch A code normally merged via PR #252 at `bfb084a107874d772303ed58f2a15227a716559b`. Candidate Full21+Prompt5 passed, but actual-main Full `38074216098` failed original Browser7 with an unhandled `TOPIC_READING_CHANGED`; actual-main native52 and Prompt5 retain their narrower passes. The0.43.15 ZIP is held, and qualified0.43.14 remains separately bound to `fc3cbd35`.
+
+Current selected work is the proven existing TOPIC-05 read-owner recovery repair0.43.16, preserving all Mixed/main/WIP outcomes. Local five whole owning Node files136PASS; clean`7419977e` whole UX-R3 browser28PASS including source/release strict refusal, IME preservation, original retry and all51 native records; release462 guards and independent finite code/fixture reviews pass. **Formal candidate / normal integration / exact-main / package qualification are still pending.** See the [single owning repair record](implementation/verification/COHERENT-04316-TOPIC-READING-RECOVERY.md). Close this package hold, then continue approved B/C consuming recovery and original01 closing gates. No standalone prerequisite release, whole Sync/provider/installed claim or scope expansion.
+
 # Owner-approved Sync convergence; batch A selected — 2026-10-10
 
 ## SYNC-01 batch A — complete Mixed recovery candidate 0.43.15
