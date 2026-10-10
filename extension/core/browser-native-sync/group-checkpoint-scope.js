@@ -140,7 +140,7 @@ const readRows=async(t,name)=>{if(await t.count(name)>128)fail('BNS_GROUP_RESOUR
 async function compileOriginalWireScope(plan){
  // Original branded immutable Mixed plans lend their domain rows until the
  // independent normalized clone. Generic restore/Source paths keep old copies.
- const copy=originalCurrentMixedGroupCore(plan)?value=>value:clone;
+ const mixed=originalCurrentMixedGroupCore(plan),copy=mixed?value=>value:clone;
  const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents'].map(name=>[name,new Map()]));
  const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences());
  for(const group of plan.groups){
@@ -155,7 +155,10 @@ async function compileOriginalWireScope(plan){
  expected.documents=sort(documents);expected.libraryDocuments=documents.map(({titleRevision,...row})=>row);
  expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;
  if(human)expected.humanLibrary=human;
- const normalized=clone(expected);for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
+ // Portable Human is independently compiled already. Mixed Scope can borrow
+ // that untouched aggregate; OUTER history stays independently cloned so its
+ // allocator normalization cannot zero portable Human history by alias.
+ if(mixed&&human)delete expected.humanLibrary;const normalized=clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
  const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
 }
@@ -271,5 +274,5 @@ export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,sto
 
 export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,nonce){
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||p.mixedCore!==core||scopeDeref.call(p.plan)!==plan||p.phase!=='preparing')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire)});
+ return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire),borrowedHuman:scope.expected.humanLibrary===p.humanWire});
 }

@@ -1308,14 +1308,17 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
 // cells are paid before borrowing final immutable members; no body DTO or
 // canonical JSON is built here, and the complete current Plan stays owned.
 function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
- projectionReserve(r,surviving+4096*128+128*1024);const humanHistory=new Set(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
+ projectionReserve(r,surviving+4096*128+128*1024);const humanHistory=new Set(),humanFinal=new Map(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
  for(const group of plan.groups){
   if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
-  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){humanFinal.set(member.value.entityType+'\0'+member.value.after.id,member.value.after);if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}}
   else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
  }
  let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0;
  for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ // Exactly one portable Human aggregate clone was removed by the original
+ // Mixed wire owner. Rebate its final rows/names, never original Plan/raw.
+ for(const value of humanFinal.values())borrowedTrees+=projectionTreeCharge(projectionRowMeasure(r,value));borrowedTrees+=projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
  return {peak,borrowedTrees};
 }
 // Genuine sequential prefix stages reserve their actual operands. The current
@@ -1324,7 +1327,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedRestoredProofRetained)projectionRequired();
  if(phase==='control'){
   if(r.mixedRestoredPhase)projectionRequired();const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
-  r.mixedRestoredBase=projectionTreeCharge(frames.scope)+projectionTreeCharge(frames.human)+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
+  r.mixedRestoredBase=projectionTreeCharge(frames.scope)+(frames.borrowedHuman?0:projectionTreeCharge(frames.human))+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
  }
  if(phase==='compiler'){
   if(r.mixedRestoredPhase!=='control')projectionRequired();const totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0};
@@ -1355,7 +1358,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
 export function reserveOriginalMixedKeyedScopePhase(nonce,store,scope,plan){
  if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedKeyedStarted)projectionRequired();
  const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
- const scratch=projectionTreeCharge(frames.scope)+4*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
+ const scratch=projectionTreeCharge(frames.scope)+(4-(frames.borrowedHuman?1:0))*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
  r.mixedKeyedStarted=true;r.mixedKeyedScratch=scratch;projectionReserve(r,scratch);
 }
 // Transfer surviving authenticated prefix/control/allocation ownership only
