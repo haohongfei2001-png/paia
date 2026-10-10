@@ -207,10 +207,20 @@ export async function requireGroupScope(store,t,scope){
  if(human){const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return compareGroupCanonicalValues(scope,actual,human);
 }
+// Human bodies/history are checked by their original owner before this outer
+// comparison. Omit the portable aggregate before cloning rather than allocating
+// its duplicate only to discard it; all shared history/domain operands remain.
+function canonicalComparisonExpected(scope,human){
+ return human?Object.fromEntries(Object.entries(scope.expected).filter(([name])=>name!=='humanLibrary')):scope.expected;
+}
+export function measureOriginalMixedCanonicalComparisonExpected(core,store,scope,plan,raw,nonce){
+ if(arguments.length!==6)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ return measureSourceWorkingPhysicalTree(canonicalComparisonExpected(scope,hasHumanScope(scope)));
+}
 function compareGroupCanonicalValues(scope,actual,human){
  for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
  for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
- const expected=clone(scope.expected);if(human){const ids=new Set(human.history.map(row=>row.id));actual.revisions=actual.revisions.map(row=>ids.has(row.id)?normalizePhysical('history',row):row);expected.revisions=sort([...expected.revisions.filter(row=>!ids.has(row.id)),...human.history]);delete expected.humanLibrary;}
+ const expected=clone(canonicalComparisonExpected(scope,!!human));if(human){const ids=new Set(human.history.map(row=>row.id));actual.revisions=actual.revisions.map(row=>ids.has(row.id)?normalizePhysical('history',row):row);expected.revisions=sort([...expected.revisions.filter(row=>!ids.has(row.id)),...human.history]);delete expected.humanLibrary;}
  if(!equal(actual,expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  return true;
 }

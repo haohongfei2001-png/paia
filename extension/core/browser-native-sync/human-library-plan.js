@@ -1473,10 +1473,13 @@ function mixedCurrentSearchScratch(r){
   }
  }
  const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0;
+ // Price only the actual canonical operands consumed by this Search phase.
+ // Complete restored-control metadata remains owned and is independently
+ // priced by the later complete body/metadata consumers.
  // Rebuild/root/topic metadata is compared BEFORE the later body consumer.
  // Price actual corrupt operands here too; its small expected shape cannot
  // prepay a large actual canonical/JSON comparison tree on this phase.
- for(const row of r.raw.rows.meta)metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ for(const row of r.raw.rows.meta)if(row.id==='library-search-rebuild'||row.id.startsWith('thought-read-index:'))metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
  return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*metaPeak+4096*128+192*1024;
 }
 function mixedCurrentSemanticScratch(r){
@@ -1599,7 +1602,7 @@ async function projectionCompileInitialMixedScope(r){
   for(const row of r.raw.rows.meta)if(row.id.startsWith(prefix)){const measured=projectionRowMeasure(r,row);if(number++)total.B++;for(const key of ['B','T','V','E'])total[key]+=measured[key];total.E++;}
   metaPeak=Math.max(metaPeak,projectionCanonicalCharge(total));
  }
- const expectedBody=projectionRowMeasure(r,scope.expected),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,metaPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
+ const expectedBody=currentGroupOwner.measureOriginalMixedCanonicalComparisonExpected(r.core,r.store,scope,plan,r.raw,r.nonce),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,metaPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
  projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce,r.mixedSearchProof);projectionCurrent(r);projectionFence(r);r.mixedBodiesConsumed=true;projectionReserve(r);
  // Full Plan and complete actual metadata operands remain independently owned.
  // Original protocol/AIU builders hold small borrowed maps and newly produced
