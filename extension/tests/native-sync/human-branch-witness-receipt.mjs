@@ -67,6 +67,8 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/browser-native-sync/input-working-inbox.js',
   'core/browser-native-sync/input-working-journal.js',
   'core/browser-native-sync/manual-owners.js',
+  'core/browser-native-sync/manual-context-current-shape.js',
+  'core/browser-native-sync/manual-context-current-snapshot.js',
   'core/browser-native-sync/manual-prompt-current-shape.js',
   'core/browser-native-sync/physical-key.js',
   'core/browser-native-sync/prompt-journal.js',

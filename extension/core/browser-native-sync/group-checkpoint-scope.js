@@ -3,6 +3,7 @@ import {defaults} from '../workspace.js';
 import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
 import {assertManualPromptCurrentPhysicalShape} from './manual-prompt-current-shape.js';
+import {assertCurrentContextSnapshot,hasCurrentContextOperations} from './manual-context-current-snapshot.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
@@ -22,7 +23,7 @@ export function requireGroupHumanCompilationInput(scope,wire){
 }
 export function requireOriginalCurrentGroupScope(core,scope,plan){
  const p=originalScopes.get(scope);requireOriginalGroupCheckpointPlan(core,plan);
- if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.some(g=>g.type==='humanLibraryCommit')||plan.groups.some(g=>!['humanLibraryCommit','promptPreferences'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.some(g=>g.type==='humanLibraryCommit')||plan.groups.some(g=>!['humanLibraryCommit','promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 export const currentHumanGroupEmptyStores=Object.freeze(['records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','tombstones','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources','filterInputs','filterIntents','inputStates','inputRemovals','categories','dependencies','invalidations','provenance','organizerJobs','organizerWorkItems','organizerSuggestions','entryRelations','librarySearchTerms','organizerUsage']);
 export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','libraryMigrationItems',...currentHumanGroupEmptyStores]);
@@ -56,6 +57,10 @@ export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,contro
   take(key('materializedOwner','promptPreferences',PROMPT_REUSE_ROW),{version:1,revisionId:promptHead.revisions[0],ownerRevision:physicalPrompt.revision});
   assertManualPromptNativeValue(physicalPrompt,promptOperation.value,scope.expected.prompt);rows.delete(PROMPT_REUSE_ROW);
  }
+ // This selected family runs only after the original native owner has paid
+ // its independent physical/expected/history/transition scratch phase. Both
+ // owner helpers unwind before final unknown metadata inventory.
+ if(hasCurrentContextOperations(plan))assertCurrentContextSnapshot(core,scope,plan,raw,rows);
  // Exact attested Human key inventory, never a prefix exemption. The active
  // namespace and generation points are already authenticated by native R.
  for(const row of Object.values(raw.points))if(row)rows.delete(row.id);

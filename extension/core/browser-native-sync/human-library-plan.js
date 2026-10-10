@@ -1183,6 +1183,32 @@ export async function captureHumanCurrentGroupProjection(store,core,scope,plan){
  if(arguments.length!==4)projectionRequired();
  return captureCurrentProjection(store,core,{scope,plan});
 }
+// A selected Context phase uses only original native structured-clone trees.
+// Meter before the new owner creates vectors, validator clones or canonical
+// operands. Full Scope/Plan/raw retained trees and old Human/row peaks remain.
+// No Prompt scratch credits, larger pool or retained refund fund this phase.
+function currentContextSnapshotScratch(scope,plan,raw){
+ const kinds=['contextItem','contextRulesItem','contextNowItem','contextDesired'];
+ let selected=false,transitionPeak=0;
+ for(const group of plan.groups)if(kinds.includes(group.type)){
+  selected=true;
+  for(const op of group.operations){
+   const m=projectionMeasure(op.value,'native');
+   // Two simultaneously validated values (next and original parent), each
+   // with its original codec's clone/JSON/UTF8 and equality operands. Parent
+   // values are themselves in this complete authenticated Plan inventory.
+   transitionPeak=Math.max(transitionPeak,4*projectionTreeCharge(m)+4*projectionCanonicalCharge(m));
+  }
+ }
+ if(!selected)return 0;
+ let physical=0;const row=raw.groupMeta.find(row=>row.id==='context-cards:v1');
+ if(row){const m=projectionMeasure(row,'native');physical=4*projectionTreeCharge(m)+2*projectionCanonicalCharge(m)+m.B+16*m.E;}
+ // Independently pay expected items/desired values and complete historical
+ // operation operands even when actual physical metadata is small or missing.
+ // 16KiB bounds three128 reference vectors, one fixed manual key <=512 chars,
+ // and bounded descriptor/validator wrappers; full item arrays are above.
+ return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+projectionCanonicalCharge(projectionMeasure(plan,'native'))+16*1024;
+}
 async function captureCurrentProjection(store,core,group){
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME);
  let r,cap,ticket,primary,failed=false;
@@ -1225,7 +1251,7 @@ async function captureCurrentProjection(store,core,group){
     // The extra4096 is only the fixed ASCII manual-Prompt protocol wrapper.
     promptScratch+=projectionCanonicalCharge(projectionMeasure(r.group.scope.expected.prompt,'native'))+projectionCanonicalCharge(projectionMeasure(r.group.plan,'native'))+4096;
    }
-   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch;projectionReserve(r,scratch);
+   const scratch=12*1024+4096*128+human.measureHumanScopeProjectionComparisonPeak(r.group.scope,store,r.raw)+rowPeak+promptScratch+currentContextSnapshotScratch(r.group.scope,r.group.plan,r.raw);projectionReserve(r,scratch);
    human.assertHumanScopeProjectionExpectation(r.group.scope,store,r.raw);owner.assertCurrentHumanGroupNativeSnapshot(core,r.group.scope,r.group.plan,r.raw,r.controlValues,r.group.databaseId);
    projectionDeepFreeze(r.group.scope);projectionReserve(r);projectionFence(r);
   }
