@@ -15,6 +15,9 @@ const prefix=p=>IDBKeyRange.bound(p,[...p,[]],false,true);
 const idOK=id=>typeof id==='string'&&id.length>0&&id.length<=200;
 const sourceKeys=async(t,b)=>{const keys=[];for(const p of b.provenance){const r=await t.get('recordIndex',p.sourceRecordId);if(r)keys.push(r.sourceKey||'legacy:'+r.id);}return keys;};
 const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.contentRevision>0||b.provenance.length!==1||b.mergedSourceIds?.length>1;
+// Original default constructor only; no filter decision, native cut or write
+// authority. Bounded sync consumers use the authentic creation owner values.
+export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
 
 export class SmartFilterStore extends IAStore {
  constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;}
@@ -43,7 +46,7 @@ export class SmartFilterStore extends IAStore {
    await this.repository.checkpoint('filter-migration-batch');
   }while(state.phase!=='active');
  }
- initialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
+ initialFilter(b,m,legacy=false){return planInitialFilter(b,m,legacy);}
  async sourceOperation(request,enrich){
   this.filterMutation++;try{
   const result=await super.sourceOperation(request,enrich);

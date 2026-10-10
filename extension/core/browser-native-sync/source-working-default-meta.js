@@ -10,6 +10,7 @@ import {consumeOriginalMixedManualMeta} from './group-checkpoint-scope.js';
 import {requireOriginalMixedNativeBodiesConsumed,originalMixedNativeDerivedMetaIds} from './human-library-plan.js';
 import {checkCurrentGroupProtocolRows} from './current-group-protocol-rows.js';
 import {physical} from './human-library-journal.js';
+import {planInitialFilter} from '../smart-filter-store.js';
 import {equal,exact,hash,count,opaque,fail} from './value.js';
 
 const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
@@ -78,19 +79,26 @@ export function assertInitialMixedDefaultMeta(core,store,scope,plan,raw,control,
  take('thought-epoch',{value:working.length});
  const semantic=planInitialMixedSemanticMetadata(core,scope,plan);
  for(const row of [...semantic.known,...semantic.dirty,semantic.sequence,...(semantic.humanFence?[semantic.humanFence]:[])]){const {id,...expected}=row;take(id,expected);}
- const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<plan.groups.length)refuse();take(generation.id,{value:generation.value});
- qualifyMixedWorkingDerivatives(scope,working,rows);
+ const backupGroups=plan.groups.filter(group=>['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(group.type)||['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type)&&group.operations[0].actor==='user').length;
+ const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<backupGroups)refuse();take(generation.id,{value:generation.value});
+ qualifyMixedWorkingDerivatives(scope,plan,working,rows);
  for(const row of rows.meta)if(!used.has(row.id))refuse();return true;
 }
-function qualifyMixedWorkingDerivatives(scope,working,rows){
+function qualifyMixedWorkingDerivatives(scope,plan,working,rows){
  const perInput=new Map();for(const group of working){const input=group.prepared.members.find(member=>member.value.entityType==='input')?.value.entity;if(!input)refuse();const list=perInput.get(input.id)??[];list.push(group);perInput.set(input.id,list);}
- if(rows.filterInputs.length!==perInput.size||rows.invalidations.length!==working.length)refuse();
+ if(rows.filterInputs.length!==scope.expected.blocks.length||rows.invalidations.length!==working.length)refuse();
  const sequences=new Set(),matched=new Set(),ordered=[...working].sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence)));
  for(const row of rows.invalidations){
   const groups=perInput.get(row.inputId),state=groups?.find(group=>group.prepared.members.some(member=>member.value.entityType==='inputState'&&member.value.entity.contentRevision===row.contentRevision));
   if(!state||matched.has(state)||!exact(row,['id','eventSchema','inputId','reason','contentRevision','sequence','at','stateKey','state','cursor','dependencyAck','organizerAck'])||!opaque(row.id)||row.eventSchema!==2||row.reason!=='source_updated'||!count(row.sequence)||row.sequence!==ordered.indexOf(state)+1||sequences.has(row.sequence)||!iso(row.at)||row.stateKey!==0||row.state!=='pending'||row.cursor!==null||row.dependencyAck!==false||row.organizerAck!==false)refuse();sequences.add(row.sequence);matched.add(state);
  }
- const seen=new Set();for(const row of rows.filterInputs){const input=scope.expected.blocks.find(input=>input.id===row.id),groups=perInput.get(row.id);if(!input||!groups||seen.has(row.id)||!iso(row.overrideAt)||!equal(row,{id:input.id,documentId:input.documentId,authorship:'untouched',userEdited:true,filterOverride:'keep',presence:null,evaluationRevision:groups.length,pendingKey:1,decision:'keep',reasonCode:'user_protected',...FILTER_VERSIONS,basedOnContentRevision:0,overrideReason:'user_edit',overrideAt:row.overrideAt,failed:false}))refuse();seen.add(row.id);}
+ const creation=plan.groups.filter(group=>['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type)).flatMap(group=>group.prepared.members);
+ const seen=new Set();for(const row of rows.filterInputs){
+  const input=scope.expected.blocks.find(input=>input.id===row.id),groups=perInput.get(row.id);if(!input||seen.has(row.id))refuse();
+  if(groups){if(!iso(row.overrideAt)||!equal(row,{id:input.id,documentId:input.documentId,authorship:'untouched',userEdited:true,filterOverride:'keep',presence:null,evaluationRevision:groups.length,pendingKey:1,decision:'keep',reasonCode:'user_protected',...FILTER_VERSIONS,basedOnContentRevision:0,overrideReason:'user_edit',overrideAt:row.overrideAt,failed:false}))refuse();}
+  else{const baseline=creation.find(member=>member.value.entityType==='input'&&member.value.entity.id===row.id)?.value.entity,state=creation.find(member=>member.value.entityType==='inputState'&&member.value.entity.id===row.id)?.value.entity;if(!baseline||!state||!equal(row,planInitialFilter(baseline,state)))refuse();}
+  seen.add(row.id);
+ }
 }
 // Selected initial Source/Working profile only. The original native owner must
 // authenticate rows/control/databaseId and pay all original builder/Map/equality
