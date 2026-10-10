@@ -6,7 +6,7 @@ const brands=new WeakMap(),live=new Map();
 let retained=0,count=0,work=null;
 const argument=()=>fail('BNS_HUMAN_QUALIFICATION_ARGUMENT_INVALID');
 const required=()=>fail('BNS_HUMAN_QUALIFICATION_LEASE_REQUIRED');
-const limit=()=>fail('BNS_HUMAN_QUALIFICATION_LIMIT');
+const limit=details=>{try{fail('BNS_HUMAN_QUALIFICATION_LIMIT');}catch(error){if(details)error.message+=' '+JSON.stringify(details);throw error;}};
 function bytes(value,ceiling){if(!Number.isSafeInteger(value)||value<MIN||value>ceiling)argument();}
 function record(lease){const r=brands.get(lease);if(!r||live.get(lease)!==r)required();return r;}
 function active(lease){const r=record(lease);if(r!==work||r.phase!=='work'||r.committed)required();return r;}
@@ -22,7 +22,7 @@ export function beginHumanQualificationWork(kind,reservedBytes){
 }
 export function resizeHumanQualificationLease(lease,reservedBytes){
  if(arguments.length!==2)argument();bytes(reservedBytes,TOTAL);
- const r=active(lease);if(retained+reservedBytes>TOTAL)limit();r.charge=reservedBytes;
+ const r=active(lease);if(retained+reservedBytes>TOTAL)limit({limit:TOTAL,retained,work:reservedBytes,charge:retained+reservedBytes});r.charge=reservedBytes;
 }
 export function retainHumanQualificationLease(lease,retainedBytes){
  if(arguments.length!==2)argument();bytes(retainedBytes,RETAINED);
