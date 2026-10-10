@@ -9,7 +9,8 @@ import {validatePreferences,syncWorkspace} from '../core/workspace.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 const change=(value,expectedRevision)=>({[AI_STYLE_KEY]:{version:1,value,expectedRevision,expectedEpoch:'initial'}});
 function local(){const values={};return {values,writes:0,fail:null,async getBytesInUse(){return 0;},async get(k){return {[k]:structuredClone(values[k])};},async set(row){this.writes++;if(this.fail==='before')throw Error('synthetic write failure');Object.assign(values,structuredClone(row));if(this.fail==='after')throw Error('synthetic lost acknowledgement');}};}
-async function fixture(Store){const storage=local(),s=new Store(storage,{indexedDB:new IDBFactory()});await s.status();return {s,storage,read:async()=>(await s.snapshot()).preferences};}
+// This synchronous synthetic adapter gives a known terminal result on rejection.
+async function fixture(Store,localPublicationTerminal=true){const storage=local(),s=new Store(storage,{indexedDB:new IDBFactory(),localPublicationTerminal});await s.status();return {s,storage,read:async()=>(await s.snapshot()).preferences};}
 
 for(const Store of [ArchiveStore,IndexedArchiveStore]){
  test(`${Store.name} defaults without a write, records explicit balanced, CAS and A-B-A intent`,async()=>{
@@ -48,4 +49,16 @@ test('style preference request and portable envelope reject extra authority, amb
  for(const extra of [{grant:true},{jobs:[]},{consent:true},{value:'x'.repeat(65)},{value:{nested:'style'}},{revision:0},{explicit:false},{version:0}])assert.equal(portableAIStyle({...valid,...extra}),false);
  const state={library:{blocks:[],documents:[]},preferences:{[AI_STYLE_KEY]:valid}};syncWorkspace(state);assert.deepEqual(state.preferences[AI_STYLE_KEY],valid);
  const exhausted={[AI_STYLE_KEY]:{version:1,value:'balanced',revision:Number.MAX_SAFE_INTEGER,explicit:true}};assert.throws(()=>applyAIStyleChange(exhausted,{version:1,value:'original',expectedRevision:Number.MAX_SAFE_INTEGER,expectedEpoch:'initial'}),e=>e.code==='FEATURE_UNAVAILABLE');assert.equal(exhausted[AI_STYLE_KEY].value,'balanced');
+});
+
+
+test('unknown IndexedArchiveStore publication cannot be retried after wrapper rejection',async()=>{
+ const {s,storage,read}=await fixture(IndexedArchiveStore,false);await s.updatePreferences(change('original',0));
+ storage.fail='before';await assert.rejects(s.updatePreferences(change('concise',1)));storage.fail=null;
+ const all=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)]))));
+ const before=await all(),localBefore=structuredClone(storage.values),writes=storage.writes;
+ assert.ok(before.meta.some(r=>r.id==='local-control-publication:reservation'));
+ await assert.rejects(s.updatePreferences(change('concise',1)),{code:'CONTROL_PUBLICATION_PENDING'});
+ assert.deepEqual(await all(),before);assert.deepEqual(storage.values,localBefore);assert.equal(storage.writes,writes);
+ assert.equal(readAIStyle(await read()).value,'original');
 });

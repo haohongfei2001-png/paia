@@ -26,7 +26,9 @@ test('reading controls remain local and never scan old request logs or expose us
  },stores);
  const controls=await organizerControls(f.s);f.s.repository.transaction=transaction;
  assert.deepEqual(controls,{readingSort:'asc',inputReadingSort:'asc',libraryView:'original'});
- assert.deepEqual(reads,[['meta','thought-binding:v1'],['meta','thought-reverse-edit:v1'],['meta','library-documents-compat-v2'],['meta','organizer-controls']]);
+ const publicationFence=['local-control-publication:revision','local-control-publication:reservation','migration','gate','recovery-restore-epoch'];
+ const fenced=keys=>[...publicationFence,...publicationFence,...keys];
+ assert.deepEqual(reads,[...fenced(['thought-binding:v1','thought-reverse-edit:v1']),...fenced(['library-documents-compat-v2']),...fenced(['organizer-controls'])].map(id=>['meta',id]));
  await setOrganizerControls(f.s,{readingSort:'desc',inputReadingSort:'desc',libraryView:'ai'});
  assert.deepEqual(await organizerControls(f.s),{readingSort:'desc',inputReadingSort:'desc',libraryView:'ai'});
  const saved=await meta(f.s,'organizer-controls');for(const key of ['dailyRequests','batchMode','aiOnboardingSeen'])assert.equal(saved[key],prior[key]);

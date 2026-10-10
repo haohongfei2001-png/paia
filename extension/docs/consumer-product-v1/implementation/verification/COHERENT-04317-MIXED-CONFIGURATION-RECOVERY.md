@@ -1,6 +1,6 @@
 # 0.43.17 — consuming Mixed preferences and complete manual configuration
 
-State: **CODE / TARGETED COMPONENT EVIDENCE COMPLETE; FORMAL CANDIDATE / INTEGRATION / EXACT MAIN / DELIVERY PENDING**. This is approved SYNC-01 batch B on batch A's existing path, not full SYNC-01 or provider acceptance.
+State: **FIRST FORMAL CANDIDATE FAILED; COMPOSED REPAIR / REQUALIFICATION IN PROGRESS; INTEGRATION / EXACT MAIN / DELIVERY PENDING**. This is approved SYNC-01 batch B on batch A's existing path, not full SYNC-01 or provider acceptance.
 
 1. **Gap closed in code:** ordinary seven portable Settings/Smart Filter intents, full Prompt hide/order/split/representative/manual corrections with stable Input companions, logical Topic desired access and pre-journal manual baselines can share the original native Mixed checkpoint and original atomic restore. Existing selected Source/Working, Human Topics/default and named Sections, Thoughts and manual Context remain present.
 2. **Critical path:** without these original owners an ordinarily configured installation cannot recover its own manual intent. This batch consumes the existing A path and #248 publication owner; no helper-only release, fake cloud account, new UI/model/provider, second body store or permission grant is introduced. Production Sync/provider remains off as required by 01.
@@ -16,10 +16,24 @@ Historical budget failures, wrong original no-op test epoch, the single-Input gu
 
 Fresh remote reconstruction before this candidate still found main `959d3bafcaf628fb6c5a34b3fe77249042723360`, merged PR250 `ef08a51a84fccc8e04fd5447fdff6de9fea2a7a9`, original main Full38079265306 and Prompt38079265315 successful. Qualified0.43.16 and held0.43.15 packages remain unchanged. Ordinary code integration is authorized; paid model calls, cloud credentials/accounts, wider permissions, real-user uploads, formal deployment and irreversible deletion are not inferred.
 
+## First formal failure and composed repair
+
+The first formal head was `b7d1625f4dd337a147c7ec59807f0fdf2f555c84`, tested by Full [38092248910](https://github.com/haohongfei2001-png/paia/actions/runs/38092248910) and Prompt [38092248869](https://github.com/haohongfei2001-png/paia/actions/runs/38092248869). Both failed. Full's tested merge was `30875d13079a55b981b0888335f4395e619449f6`. Unit1/2/4 and Browser1/4/5/8/9 failed; native stopped at its Node preflight, so no successful native54 run is inferred. Complete original job logs and failed local counterexamples are retained in the private repair evidence packet.
+
+One composed repair preserves the original complete Mixed B implementation and narrows the failures:
+
+- Existing owner inventories and exact readonly transaction expectations now include the actual global publication fences. F-LARGE traces both five-key metadata fences and the original four domain reads; no writes/scans, original scale and all timing budgets remain.
+- Native stateless Section qualification protects the pending history entry from background refresh. Explicit newer navigation cancels that intent, including after qualification, so an old navigation cannot suppress or overwrite the new history commit.
+- Topic reading-position completion uses its original captured topic and intent. Leaving or reopening during its awaited write does not send a second read-record request to an unrelated or null topic. Actual current-owner errors remain observable.
+- Cold worker startup may release only the exact proven undispatched reservation or a fully matching already-visible SDK publication. It checks original SDK identity, actual full local row, revision/nonce, database, gate, recovery epoch and final transaction identity. It preserves all committed canonical rows and the restrictive gate, makes no SDK write, and leaves prepared unknown/nonvisible, malformed or separately owned recovery state held.
+- UX6 fixture retry is bounded to a refused original read whose callback never began, installed after original maintenance settles. Entered or committed callbacks and mutations are never retried. CTX fixture now drains the real empty worker owners before the independent page Store publishes fixture settings; it neither resets failed owners nor weakens the original final recovery fence.
+
+The independent eight-test repair, startup-code, Router follow-up and F-LARGE reviews approve their finite exact code scopes; original REQUEST_CHANGES remain recorded. Current local evidence is component/WIP evidence only. The fresh composed candidate, required complete native54 gate, actual-main and package fields below stay pending until their own runs finish. Approved main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and PR #255's NIB authority are incorporated without discarding B's runtime changes. No new NIB runtime is included in this Sync B repair batch.
+
 ## Final candidate/main fields — pending
 
 - Final reviewed/tested head and merge candidate: PENDING.
-- Formal Full/Prompt exact candidate evidence: PENDING.
+- First formal Full/Prompt evidence: FAILED at B7 as recorded above. Repaired exact candidate: PENDING.
 - Normal merge and actual-main Full/native54/current Prompt evidence: PENDING.
 - Once-built package SHA256 and delivery qualification: PENDING.
 - No production UI/Sync/account activation or installation acceptance is claimed.

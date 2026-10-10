@@ -64,6 +64,33 @@ export class IndexedArchiveStore {
  #preferencePublication=null;
  constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
  run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);localPublicationOwners.set(this,{before,beforeDigest:await controlPublicationDigest(local),loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null});this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
+ // Explicit startup repair of an original local publication, never a replay.
+ // Prepared but unobserved SDK writes remain held: a restart is not an ACK.
+ recoverControlPublication(){const task=this.tail.then(async()=>{
+  const bound=originalLocalControls.get(this),pending=()=>({state:'pending'});
+  const original=()=>{if(!bound||this.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set)error('CONTROL_PUBLICATION_CHANGED');};
+  original();if(!this.loaded){await this.repository.initialize();this.loaded=true;}
+  const snapshot=t=>Promise.all([readControlPublicationFence(t),t.keys('meta',null,'bns:consumer-preference-publication:pending'),t.keys('meta',null,'backup-recovery-settings')]).then(([fence,consumer,backup])=>({fence,blocked:consumer.length>0||backup.length>0}));
+  original();const before=await this.repository.transaction(false,snapshot,['meta']),reservation=before.fence.reservation;
+  if(!reservation)return {state:'absent'};
+  if(before.blocked||this.consumerPreferenceJournal)return pending();
+  const actual=(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY];original();
+  if(!actual||actual.schemaVersion!==6||actual.databaseId!==reservation.databaseId||before.fence.migration?.phase!=='active'||before.fence.migration.databaseId!==actual.databaseId)return pending();
+  if(Object.hasOwn(actual,'controlPublication'))validateControlPublicationStamp(actual.controlPublication);
+  const digest=await controlPublicationDigest(actual),fences={migration:before.fence.migration,gate:before.fence.gate,epoch:before.fence.epoch};
+  const undispatched=reservation.afterDigest===null&&reservation.fenceDigest===null&&reservation.beforeDigest===digest;
+  const visible=reservation.afterDigest!==null&&reservation.fenceDigest!==null&&reservation.afterDigest===digest&&reservation.fenceDigest===await controlPublicationDigest(fences)&&actual.controlPublication?.revision===reservation.revision&&actual.controlPublication?.nonce===reservation.nonce&&fences.gate?.epoch===actual.settings?.epoch&&fences.gate?.enabled===actual.settings?.enabled;
+  if(!undispatched&&!visible)return pending();
+  if(!controlPublicationEqual(actual,(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY]))return pending();original();
+  return this.repository.transaction(true,async t=>{
+   original();const current=await snapshot(t);original();if(!controlPublicationEqual(before,current))return pending();
+   // An undispatched owner must still pass its prepared-write CAS before SDK
+   // dispatch, so removal invalidates it. Preserve the restrictive gate and
+   // allocated revision, including an interrupted pause or unaccepted consent.
+   await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);
+   return {state:undispatched?'cancelled-undispatched':'settled-visible'};
+  },['meta']);
+ });this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
  async saveControl(t,c){const owner=localPublicationOwners.get(this);if(!owner)error('CONTROL_PUBLICATION_REQUIRED');if(!owner.reservation)owner.reservation=await reserveControlPublication(t,owner.before,{nonce:owner.nonce,databaseId:this.databaseId,beforeDigest:owner.beforeDigest});else await requireControlPublicationOwner(t,owner.reservation,owner.fences);this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});const now=await readControlPublicationFence(t);owner.fences={migration:now.migration,gate:now.gate,epoch:now.epoch};}
  async qualifyControlPublicationRead(t){const owner=localPublicationOwners.get(this),current=await readControlPublicationFence(t);if(!(#preferencePublication in this)||!owner)error('CONTROL_PUBLICATION_REQUIRED');if(current.reservation)error('CONTROL_PUBLICATION_PENDING');if(!controlPublicationEqual(current,owner.before)||current.migration?.phase!=='active'||current.migration.databaseId!==this.databaseId)error('CONTROL_PUBLICATION_CHANGED');return current;}

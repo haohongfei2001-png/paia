@@ -4,6 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import {STORAGE_KEY,ArchiveError,safeErrorCode} from '../core/constants.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,conversation,eventually,pause} from './harness/fake-chatgpt.mjs';
@@ -152,4 +153,40 @@ test('capture recovery: permanent deletion wins over visible replay and late met
   await eventually(async()=>(await h.state()).records.length===3);
   await saveEvidence(h,page,'tombstone-replay',{purgedSourceStayedAbsent:true,lateMetadataDidNotResurrect:true});await world.cdp.detach();
  }finally{await f.close();}
+});
+
+// Whole-file coverage of the original local publication owner across real reload.
+const LEASE='local-control-publication:reservation',REVISION='local-control-publication:revision';
+async function publicationOracle(h){return h.archive.evaluate(async()=>{
+ const {DATABASE_NAME}=await import('/core/idb-repository.js'),{STORAGE_KEY}=await import('/core/constants.js');
+ const db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DATABASE_NAME);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+ try{const names=[...db.objectStoreNames],tx=db.transaction(names,'readonly'),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});const rows=Object.fromEntries(await Promise.all(names.map(async name=>[name,await new Promise((resolve,reject)=>{const r=tx.objectStore(name).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);})])));await done;return {rows,local:(await chrome.storage.local.get(STORAGE_KEY))[STORAGE_KEY]};}finally{db.close();}
+ });}
+
+for(const variant of ['source','release'])for(const phase of ['undispatched','visible','unknown'])test(`original publication reload ${variant}: ${phase}`,{timeout:90000},async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'paia-publication-reload-'));let h;
+ try{
+  const path=variant==='source'?root:join(dir,'release');if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',path],{cwd:root,stdio:'pipe'});
+  h=await FakeChatGPT.start({extensionPath:path,headless:true});await devMode(h);await rpc(h,{type:'CONSENT',accepted:true});await rpc(h,{type:'GET_LIBRARY_FOUNDATION_STATUS'});
+  const worker=h.context.serviceWorkers().find(w=>w.url().startsWith(`chrome-extension://${h.extensionId}/`));assert.ok(worker);
+  await worker.evaluate(({phase,storageKey})=>{
+   globalThis.__publicationReloadEntered=false;
+   if(phase==='undispatched'){
+    // Stop only after the original transaction committed its unprepared lease:
+    // the next original digest is preparing the SDK payload, before dispatch.
+    let reserved=false;const put=IDBObjectStore.prototype.put,digest=crypto.subtle.digest.bind(crypto.subtle);
+    IDBObjectStore.prototype.put=function(row,...args){const result=put.call(this,row,...args);if(this.name==='meta'&&row?.id==='local-control-publication:reservation'&&row.afterDigest===null)this.transaction.addEventListener('complete',()=>{reserved=true;},{once:true});return result;};
+    crypto.subtle.digest=async(...args)=>{if(reserved){globalThis.__publicationReloadEntered=true;return new Promise(()=>{});}return digest(...args);};
+   }else{const original=chrome.storage.local.set.bind(chrome.storage.local);chrome.storage.local.set=async value=>{if(!Object.hasOwn(value,storageKey))return original(value);if(phase==='visible')await original(value);globalThis.__publicationReloadEntered=true;await new Promise(()=>{});};}
+  },{phase,storageKey:STORAGE_KEY});
+  const pending=rpc(h,{type:'SET_ENABLED',enabled:false}).then(()=>({acknowledged:true}),()=>({acknowledged:false}));
+  await eventually(()=>worker.evaluate(()=>globalThis.__publicationReloadEntered),'original publisher reached exact injected interruption');
+  const before=await publicationOracle(h),lease=before.rows.meta.find(r=>r.id===LEASE),revision=before.rows.meta.find(r=>r.id===REVISION);assert.equal(Object.keys(before.rows).length,37);assert.ok(lease);assert.equal(lease.afterDigest===null,phase==='undispatched');assert.equal(before.rows.meta.find(r=>r.id==='gate').enabled,false);
+  if(phase==='visible')assert.deepEqual(before.local.controlPublication,{version:1,revision:lease.revision,nonce:lease.nonce});
+  await reload(h,currentVersion);assert.deepEqual(await pending,{acknowledged:false},'a lost response is never an acknowledged operation');
+  const after=await publicationOracle(h),expected=structuredClone(before);if(phase!=='unknown')expected.rows.meta=expected.rows.meta.filter(r=>r.id!==LEASE);assert.deepEqual(after,expected,'only a proven exact lease may be removed; all 37 stores and original local control body stay intact');assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,false);
+  if(phase==='unknown'){const result=await h.archive.evaluate(()=>chrome.runtime.sendMessage({type:'SET_ENABLED',enabled:true}));assert.equal(result.ok,false);assert.equal(result.error,safeErrorCode(new ArchiveError('CONTROL_PUBLICATION_PENDING')));assert.deepEqual(await publicationOracle(h),after,'unknown SDK outcome stays held without an automatic or explicit replay');}
+  else{await rpc(h,{type:'SET_ENABLED',enabled:true});const final=await publicationOracle(h);assert.equal(final.rows.meta.some(r=>r.id===LEASE),false);assert.equal(final.rows.meta.find(r=>r.id===REVISION).revision,revision.revision+1);assert.notEqual(final.local.controlPublication.nonce,lease.nonce);assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,true);}
+  assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);
+ }finally{await h?.close();await rm(dir,{recursive:true,force:true});}
 });

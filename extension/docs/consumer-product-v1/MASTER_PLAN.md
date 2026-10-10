@@ -1,3 +1,13 @@
+# SYNC-01 B repair batch; NIB v4 parallel execution — 2026-10-11
+
+Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2` includes the approved NIB runtime authority from PR #255, retaining qualified runtime 0.43.16. The B branch incorporates that exact main without replacing any runtime or ongoing recovery changes. NIB S0 has its own disjoint implementation/review owner; Root continues to own shared storage, settings publication, Archive navigation and integration.
+
+PR #254 first formal head `b7d1625f4dd337a147c7ec59807f0fdf2f555c84` **FAILED** Full `38092248910` and Prompt `38092248869`; it is not accepted or delivered. Its native job failed the Node preflight before executing the native54 suite. Current work repairs exact owner inventories/transaction oracles, real navigation and late Topic-position races, proven cold publication recovery, and test setup races without weakening original data-safety or final-fence assertions. Historical failure records and component receipts retain their exact versions. The next stable composed revision still needs fresh formal Full/native54 and affected Prompt acceptance, normal integration, exact-main qualification and one package. See [owning repair and recovery record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+The seven-lane scope and approved Sync convergence remain unchanged. Unknown prepared SDK outcomes stay held; cold startup never manufactures acknowledgement or replays an unknown write. No full-Sync, installed-version, paid-provider or missing precise-visual acceptance is claimed.
+
+## Previous checkpoints, preserved with their original evidence scope
+
 # Latest-plan development authorization — 2026-10-11
 
 NIB-V4-1.0 S0–S4 is now runtime-selected within the existing Prompt lane by explicit owner instruction. The [AUTHORITY amendment](AUTHORITY.md#latest-runtime-authorization--2026-10-11) controls; [STATUS](STATUS.md) owns assignments. Implement the latest adopted designs and preserve/complete their necessary earlier foundations through the existing owners. The original NIB documentation-only restriction is historical. Continue the approved Sync convergence work and all other seven-lane obligations; no duplicate scheduler, redesign, wider external authority or completion claim is introduced.
