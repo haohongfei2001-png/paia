@@ -1,3 +1,4 @@
+import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
 import {borrowOriginalMixedScopeCompilationMeta,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeControl,requireOriginalMixedNativeBodiesConsumed,requireOriginalMixedScopeCompilationCurrent,retainOriginalMixedRestoredScopeProof,reserveOriginalMixedKeyedScopePhase} from './human-library-plan.js';
@@ -249,7 +250,7 @@ function compareGroupCanonicalValues(scope,actual,human){
 export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw,control,nonce,searchProof){
  if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
  requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control);
- if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal(control.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  assertMixedCurrentSourceDerivedRows(core,scope,plan,raw.rows);
  const human=assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce,searchProof),actual={},original=originalScopes.get(scope);
  for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort(raw.rows[name].map(row=>clone(row.value)));
@@ -260,11 +261,13 @@ export function assertOriginalCurrentMixedNativeBodies(core,store,scope,plan,raw
  const context=raw.rows.meta.find(row=>row.id===CONTEXT_CARDS_ROW)??emptyContext(),prompt=raw.rows.meta.find(row=>row.id===PROMPT_REUSE_ROW)??emptyPromptPreferences();
  if(!validContextCards(context)||!validPromptPreferences(prompt))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  actual.context=sort(context.items.map(row=>clone(row)));actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));actual.prompt=projectEntity('promptPreferences',prompt);const companion=raw.rows.meta.find(row=>row.id===PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const configuration=compareMixedConfiguration(core,scope,plan,raw,control,!!original.restoredAllocation);if(scope.expected.consumerPreferences)actual.consumerPreferences=configuration.values;if(scope.expected.topicDesired)actual.topicDesired=configuration.desired;
  return compareGroupCanonicalValues(scope,actual,human);
 }
 export function consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,rows){
  if(arguments.length!==8)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control);
  const key=(kind,...parts)=>protocolPhysicalId(core.prefix,raw.namespace,kind,parts);
+ const configuration=compareMixedConfiguration(core,scope,plan,raw,control,!!originalScopes.get(scope).restoredAllocation);for(const id of configuration.consumed)rows.delete(id);consumeMixedPublicationMetadata(rows);
  if(plan.groups.some(group=>group.type==='promptPreferences')){
   const head=plan.heads.find(head=>head.type==='promptPreferences'&&head.entityId===PROMPT_REUSE_ROW),operation=head&&plan.groups.flatMap(group=>group.operations).find(op=>op.revisionId===head.revisions[0]),row=rows.get(PROMPT_REUSE_ROW);
   if(!head||head.purged||head.revisions.length!==1||!operation||!row)fail('BNS_GROUP_COMMIT_UNPROVEN');if(scope.expected.promptBinding)consumePromptCompanion(scope,plan,rows,key,row);else assertManualPromptCurrentPhysicalShape(row);assertManualPromptNativeValue(row,operation.value,scope.expected.prompt);

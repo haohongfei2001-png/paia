@@ -34,7 +34,7 @@ const unavailable=reason=>({available:false,reason,version:1,epoch:null,authorit
 const errorReason=error=>error?.topicReason||({'CONSENT_REQUIRED':'consent_unavailable','CONTEXT_INVALIDATED':'epoch_changed','STORAGE_FAILED':'storage_unavailable','STORAGE_FULL':'storage_unavailable'}[error?.code]??'storage_unavailable');
 const storedCount=row=>row.choices.filter(c=>c.enabled).length;
 function validResult(x){return exact(x,['ok','topicId','enabled','revision','noOp','externalAllowed'])&&x.ok===true&&idOK(x.topicId)&&typeof x.enabled==='boolean'&&revisionOK(x.revision)&&typeof x.noOp==='boolean'&&x.externalAllowed===false&&(x.noOp?x.enabled===false&&x.revision===0:x.revision>0);}
-function validReceipt(r){return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&contextTopicOperationId(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&idOK(r.ownerId)&&stamp(r.createdAt)&&contextTopicDigest(r.digest)&&contextTopicEpoch(r.epoch)&&validResult(r.result)&&r.result.topicId===r.ownerId;}
+export function validContextTopicReceipt(r){return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&contextTopicOperationId(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&idOK(r.ownerId)&&stamp(r.createdAt)&&contextTopicDigest(r.digest)&&contextTopicEpoch(r.epoch)&&validResult(r.result)&&r.result.topicId===r.ownerId;}
 
 export class ContextTopicAccessService {
  constructor(store,{syncDesiredJournal=null}={}){this.s=store;this.cards=new ContextCardsService(store);syncServices.set(this,{store,journal:syncDesiredJournal});if(!attempts.has(store))attempts.set(store,new Map());this.attempts=attempts.get(store);}
@@ -138,7 +138,7 @@ export class ContextTopicAccessService {
  }
  async receipt(t,operationId,digest,epoch,change){
   const receipt=await t.get('operationReceipts',PREFIX+operationId);if(!receipt)return null;
-  if(!validReceipt(receipt)||receipt.digest!==digest||receipt.epoch!==epoch||change&&(receipt.ownerId!==change.topicId||receipt.result.enabled!==change.enabled||receipt.result.revision!==(receipt.result.noOp?0:change.expectedRevision+1)||receipt.result.noOp&&change.expectedRevision!==0))fail('INVALID_REQUEST');
+  if(!validContextTopicReceipt(receipt)||receipt.digest!==digest||receipt.epoch!==epoch||change&&(receipt.ownerId!==change.topicId||receipt.result.enabled!==change.enabled||receipt.result.revision!==(receipt.result.noOp?0:change.expectedRevision+1)||receipt.result.noOp&&change.expectedRevision!==0))fail('INVALID_REQUEST');
   return receipt.result;
  }
  change(input){
@@ -194,7 +194,7 @@ export class ContextTopicAccessService {
   return this.s.repository.transaction(false,async t=>{
    await this.admission(t,query.epoch);const receipt=await t.get('operationReceipts',PREFIX+query.operationId);
    if(!receipt)return {state:pending||this.attempts.has(query.operationId)?'unknown':'not_committed',externalAllowed:false};
-   if(!validReceipt(receipt)||receipt.digest!==query.digest||receipt.epoch!==query.epoch)return {state:'unknown',externalAllowed:false};
+   if(!validContextTopicReceipt(receipt)||receipt.digest!==query.digest||receipt.epoch!==query.epoch)return {state:'unknown',externalAllowed:false};
    return {state:'committed',result:receipt.result,externalAllowed:false};
   },['meta','operationReceipts']);
  }

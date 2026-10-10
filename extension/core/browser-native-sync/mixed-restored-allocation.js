@@ -30,12 +30,12 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta,native)
  if(prefix.digest!==completed[0].graphDigest)refuse();
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'wire',prefix);
  const ownerScope=await prepareOriginalMixedWireOwnerScope(core,prefix);requireOriginalCurrentMixedGroupPlan(core,plan);
- const coverage=new Map();for(const head of prefix.heads){const row=coverage.get(head.type)??{type:head.type,version:1,count:0};row.count++;coverage.set(head.type,row);}
+ const coverage=new Map();for(const head of prefix.heads){const operation=prefix.groups.flatMap(g=>g.operations).find(op=>op.revisionId===head.revisions[0]);if(!operation)refuse();const row=coverage.get(head.type)??{type:head.type,version:operation.codecVersion,count:0};if(row.version!==operation.codecVersion)refuse();row.count++;coverage.set(head.type,row);}
  const devices=new Set(prefix.groups.flatMap(group=>group.operations.map(op=>op.deviceId))),manifest=completed[0].manifest;
  if(!equal(ownerScope,manifest.ownerScope)||!equal([...coverage.values()].sort((a,b)=>a.type.localeCompare(b.type)),manifest.coverage)||manifest.itemCount!==prefix.operationCount+prefix.heads.length+devices.size)refuse();
  const tail=local.sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence))),localOps=tail.flatMap(group=>group.operations).sort((a,b)=>a.sequence-b.sequence);
  if(localOps.some((op,i)=>op.sequence!==i+1))refuse();
- for(const group of tail){const sequences=group.operations.map(op=>op.sequence).sort((a,b)=>a-b);if(sequences.some((n,i)=>n!==sequences[0]+i)||!['inputWorkingCommit','humanLibraryCommit','promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();}
+ for(const group of tail){const sequences=group.operations.map(op=>op.sequence).sort((a,b)=>a-b);if(sequences.some((n,i)=>n!==sequences[0]+i)||!['inputWorkingCommit','humanLibraryCommit','promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();}
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'mapped',prefix);
  const inputs=new Map(),history=new Map();let delta=0,revision=0;
  for(const [groups,localGroup]of [[prefix.groups,false],[tail,true]])for(const group of groups){
@@ -48,7 +48,7 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta,native)
    for(const op of group.prepared.members)if(op.value.entityType==='revision'){const h=op.value.entity;if(!history.has(h.id))history.set(h.id,++revision);if(localGroup&&h.sequence!==history.get(h.id))refuse();}
   }else if(group.type==='humanLibraryCommit'){
    for(const op of group.prepared.members)if(op.value.entityType==='history'){const h=op.value.after;if(!history.has(h.id))history.set(h.id,++revision);if(localGroup&&h.sequence!==history.get(h.id))refuse();}
-  }else if(!['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
+  }else if(!['promptPreferences','promptBinding','consumerPreference','topicDesired','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
  }
  // Bind the validated prefix order back to the existing complete immutable
  // Plan. Prefix compiler/control/ownerScope operands have returned; no second

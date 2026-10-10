@@ -1,3 +1,4 @@
+import {observeOriginalControlPublication,requireOriginalControlObservation} from '../core/indexed-store.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -46,4 +47,21 @@ test('exact local encoding preserves missing, own undefined, signed zero and pri
 });
 test('local encoding refuses getters, cycles and aggregate limits before hashing or publishing',()=>{
  let reads=0;const getter={get value(){reads++;return 'SYNTHETIC';}};assert.throws(()=>controlPublicationEncoding(getter),{code:'CONTROL_PUBLICATION_INVALID'});assert.equal(reads,0);const cycle={};cycle.self=cycle;assert.throws(()=>controlPublicationEncoding(cycle),{code:'CONTROL_PUBLICATION_INVALID'});assert.throws(()=>controlPublicationEncoding({a:'x'.repeat(2097153),b:'y'.repeat(2097153)}),{code:'CONTROL_PUBLICATION_LIMIT'});
+});
+
+test('original native control observation follows the settled stamp and refuses same-render foreign stamp without writes',async t=>{
+ const f=await fixture(t);await f.store.updatePreferences({appearance:'dark'});const rows=await f.rows(),sets=f.sets(),actual=structuredClone(f.data[STORAGE_KEY]),first=await observeOriginalControlPublication(f.store);
+ assert.deepEqual(first.row,actual);assert.equal(first.kind,'original-injected-adapter');assert.equal(requireOriginalControlObservation(f.store,first.token),true);
+ assert.deepEqual((await observeOriginalControlPublication(f.store,first.token)).row,actual);
+ for(const change of [row=>row.controlPublication.nonce=crypto.randomUUID(),row=>row.controlPublication.revision++,row=>row.diagnostics.status='SYNTHETIC_foreign',row=>row.databaseId='SYNTHETIC_foreign']){
+  const damaged=structuredClone(actual);change(damaged);f.data[STORAGE_KEY]=damaged;await assert.rejects(observeOriginalControlPublication(f.store,first.token),{code:'CONTROL_PUBLICATION_CHANGED'});assert.deepEqual(f.data[STORAGE_KEY],damaged);assert.deepEqual(await f.rows(),rows);assert.equal(f.sets(),sets);f.data[STORAGE_KEY]=structuredClone(actual);
+ }
+ assert.deepEqual((await observeOriginalControlPublication(f.store,first.token)).row,actual);
+});
+test('original native control observation rejects swapped SDK facade and getters and a forged observation capability',async t=>{
+ const f=await fixture(t),first=await observeOriginalControlPublication(f.store),rows=await f.rows(),control=structuredClone(f.data[STORAGE_KEY]),sets=f.sets(),get=f.local.get;
+ f.store.local={...f.local};await assert.rejects(observeOriginalControlPublication(f.store,first.token),{code:'CONTROL_PUBLICATION_CHANGED'});f.store.local=f.local;
+ let called=0;f.local.get=async function(key){called++;return get.call(this,key);};await assert.rejects(observeOriginalControlPublication(f.store,first.token),{code:'CONTROL_PUBLICATION_CHANGED'});assert.equal(called,0);f.local.get=get;
+ assert.throws(()=>requireOriginalControlObservation(f.store,Object.freeze({})),{code:'CONTROL_PUBLICATION_CHANGED'});await assert.rejects(observeOriginalControlPublication(f.store,Object.freeze({})),{code:'CONTROL_PUBLICATION_CHANGED'});
+ assert.deepEqual(await f.rows(),rows);assert.deepEqual(f.data[STORAGE_KEY],control);assert.equal(f.sets(),sets);assert.deepEqual((await observeOriginalControlPublication(f.store,first.token)).row,control);
 });
