@@ -1617,7 +1617,13 @@ async function projectionCompileInitialMixedScope(r){
  // semantic chronology constructs its descriptor/signature/known/dirty maps.
  // Pay their sequential peak while both full metadata maps, used-ID cells and
  // all owned raw/Plan/Scope/private trees stay live throughout this function.
- const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw))+4*metaPeak+4096*256+256*1024;
+ // The exact completed control already passed the original restored body
+ // proof's whole-row comparison above. Protocol metadata marks precisely that
+ // authenticated ID used and never canonicalizes it a second time. Retain its
+ // complete raw/private trees and the prior body peak; unknown rows still pay.
+ const completedId=restored?currentGroupOwner.originalMixedRestoredMetadataReplay(r.core,scope,plan).completedId:null;let metadataPeak=0;
+ for(const row of r.raw.rows.meta)if(row.id!==completedId)metadataPeak=Math.max(metadataPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw))+4*metadataPeak+4096*256+256*1024;
  projectionReserve(r,metadataScratch);(restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
  return Object.freeze({version:1,state:restored?'RESTORED_NATIVE_SCOPE_COMPILATION_ONLY':'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:!restored,completeRestoredMetadataQualified:restored,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
