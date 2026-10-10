@@ -62,11 +62,18 @@ export async function runMixedCurrentIndexNativeCases(){
    }
   });
   await run('large malformed actual name-prefix metadata cannot bypass original unchanged live work bound',async()=>{
-   const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(180000)};
-   try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
-    check(error?.code==='BNS_HUMAN_GRAPH_LIMIT'&&error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual large prefix pays separate canonical scratch and refuses original8Mi: '+error?.message);check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
-   }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
-   check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original name metadata repair accepted');pool();
+   // Actual alias elimination leaves the former 180k fixture below the limit.
+   // It must still fail exact semantic validation; a distinct larger operand
+   // must pay the full canonical peak and fail the unchanged original8Mi gate.
+   for(const [size,code]of [[180000,'BNS_GROUP_CANONICAL_UNREPRESENTED'],[512000,'BNS_HUMAN_GRAPH_LIMIT']]){
+    const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(size)};
+    try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
+     check(error?.code===code,'actual name-prefix exact semantic/budget refusal '+size+': '+error?.stack);
+     if(code==='BNS_HUMAN_GRAPH_LIMIT'){const budget=JSON.parse(error.message.slice(error.message.indexOf('{')));check(budget.phase==='mixed-canonical-qualifying'&&budget.limit===8*1024*1024&&budget.charge>budget.limit,'actual large prefix pays separate canonical scratch before original8Mi refusal');}
+     check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by name metadata refusal');pool();
+    }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
+    check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original name metadata repair accepted');pool();
+   }
   });
   await run('current completed search tag cannot authorize an old Topic baseline phase or an unknown query descriptor',async()=>{
    const before=await all(x),history=before.revisions.find(row=>row.kind==='topic'),extra={id:'SYNTHETIC_unknown_query',entityKind:'thought_root_v1:SYNTHETIC',statusKey:2,topicId:topic.id,sourceRecordIds:[]};
@@ -78,8 +85,8 @@ export async function runMixedCurrentIndexNativeCases(){
   });
   await run('actual search rebuild metadata and non-scalar owner versions pay or refuse before original builders',async()=>{
    const before=await all(x),rebuild=before.meta.find(row=>row.id==='library-search-rebuild'),owner=before.thoughts[0];
-   for(const [name,id,corrupt,original,code]of [['meta',rebuild.id,{...rebuild,unexpected:'x'.repeat(180000)},rebuild,'BNS_HUMAN_GRAPH_LIMIT'],['thoughts',owner.id,{...owner,contentRevision:['SYNTHETIC_invalid_version']},owner,'BNS_HUMAN_PROJECTION_REQUIRED']]){
-    try{await x.s.repository.transaction(true,t=>t.put(name,corrupt));const cut=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}check(error?.code===code,'exact metered rebuild or scalar version refusal: '+error?.message);if(code==='BNS_HUMAN_GRAPH_LIMIT')check(error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual search metadata operand prepaid on its consumer phase');check(equalSourceWorkingPhysicalTree(await all(x),cut),'whole37 unchanged on actual search shape/budget refusal');pool();}
+   for(const [name,id,corrupt,original,code]of [['meta',rebuild.id,{...rebuild,unexpected:'x'.repeat(180000)},rebuild,'BNS_HUMAN_SEARCH_UNPROVEN'],['meta',rebuild.id,{...rebuild,unexpected:'x'.repeat(512000)},rebuild,'BNS_HUMAN_GRAPH_LIMIT'],['thoughts',owner.id,{...owner,contentRevision:['SYNTHETIC_invalid_version']},owner,'BNS_HUMAN_PROJECTION_REQUIRED']]){
+    try{await x.s.repository.transaction(true,t=>t.put(name,corrupt));const cut=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}check(error?.code===code,'exact metered rebuild or scalar version refusal: '+error?.message);if(code==='BNS_HUMAN_GRAPH_LIMIT'){const budget=JSON.parse(error.message.slice(error.message.indexOf('{')));check(budget.phase==='mixed-canonical-qualifying'&&budget.limit===8*1024*1024&&budget.charge>budget.limit,'actual search metadata operand prepaid on its consumer phase under original8Mi');}check(equalSourceWorkingPhysicalTree(await all(x),cut),'whole37 unchanged on actual search shape/budget refusal');pool();}
     finally{await x.s.repository.transaction(true,t=>t.put(name,original));}
     check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original search shape repair accepted');pool();
    }

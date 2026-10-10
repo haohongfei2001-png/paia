@@ -168,6 +168,9 @@ for(const variant of ['source','release'])for(const phase of ['undispatched','vi
  try{
   const path=variant==='source'?root:join(dir,'release');if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',path],{cwd:root,stdio:'pipe'});
   h=await FakeChatGPT.start({extensionPath:path,headless:true});await devMode(h);await rpc(h,{type:'CONSENT',accepted:true});await rpc(h,{type:'GET_LIBRARY_FOUNDATION_STATUS'});
+  // Settle the original consent-to-history onboarding transition before the
+  // full-store publication baseline; reload may read it again but not change it.
+  const onboarding=await rpc(h,{type:'GET_ONBOARDING'});assert.ok(['history','done'].includes(onboarding.step));
   const worker=h.context.serviceWorkers().find(w=>w.url().startsWith(`chrome-extension://${h.extensionId}/`));assert.ok(worker);
   await worker.evaluate(({phase,storageKey})=>{
    globalThis.__publicationReloadEntered=false;
@@ -181,7 +184,7 @@ for(const variant of ['source','release'])for(const phase of ['undispatched','vi
   },{phase,storageKey:STORAGE_KEY});
   const pending=rpc(h,{type:'SET_ENABLED',enabled:false}).then(()=>({acknowledged:true}),()=>({acknowledged:false}));
   await eventually(()=>worker.evaluate(()=>globalThis.__publicationReloadEntered),'original publisher reached exact injected interruption');
-  const before=await publicationOracle(h),lease=before.rows.meta.find(r=>r.id===LEASE),revision=before.rows.meta.find(r=>r.id===REVISION);assert.equal(Object.keys(before.rows).length,37);assert.ok(lease);assert.equal(lease.afterDigest===null,phase==='undispatched');assert.equal(before.rows.meta.find(r=>r.id==='gate').enabled,false);
+  const before=await publicationOracle(h),lease=before.rows.meta.find(r=>r.id===LEASE),revision=before.rows.meta.find(r=>r.id===REVISION);assert.equal(Object.keys(before.rows).length,37);assert.equal(before.rows.meta.find(r=>r.id==='first-run-onboarding').step,onboarding.step);assert.ok(lease);assert.equal(lease.afterDigest===null,phase==='undispatched');assert.equal(before.rows.meta.find(r=>r.id==='gate').enabled,false);
   if(phase==='visible')assert.deepEqual(before.local.controlPublication,{version:1,revision:lease.revision,nonce:lease.nonce});
   await reload(h,currentVersion);assert.deepEqual(await pending,{acknowledged:false},'a lost response is never an acknowledged operation');
   const after=await publicationOracle(h),expected=structuredClone(before);if(phase!=='unknown')expected.rows.meta=expected.rows.meta.filter(r=>r.id!==LEASE);assert.deepEqual(after,expected,'only a proven exact lease may be removed; all 37 stores and original local control body stay intact');assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,false);

@@ -36,6 +36,14 @@ Head `dce744188caee29373b9eb8a616356e37a939d3e`, tested merge `73d454d6b38013e74
 
 The reload fixture now waits for the original startup/migration/recovery readiness, then requires zero additional storage access, the complete unchanged local row, exact caller refusal codes and zero actual reload calls for each rejected message. Existing pre-isolation and failed-isolation absolute-zero tests remain unchanged. Its complete file passes33 tests. The two Archive fixtures add the missing current interface and exact call-count assertions; their full files plus the original route-owner lifecycle file pass34 tests. These are test-only corrections with no new runtime, timeout or permission changes; they do not convert the failed formal candidate into a pass. The next stable head still needs its own applicable formal gates.
 
+## Completed DCE triage and final test-only corrections
+
+Full and Prompt above both concluded FAILURE. Current Browser 1/2/3/5/6/7/8/9 passed; Browser4 failed the source unknown-publication case because the independent first-run consent-to-history transition changed its full-store baseline. The fixture now calls the original GET_ONBOARDING owner before establishing that baseline and asserts the returned history/done step. All subsequent complete37-store, SDK, revision, gate, unknown-outcome and no-replay comparisons remain unchanged. The complete original file passes11 tests with zero failures, skips or cancellations; independent review approves this finite test correction.
+
+The native job's original command reported80 pass/2 fail and stopped before the new configuration pair, so no native54 completion is claimed. Actual canonical alias elimination makes the former180000-character malicious metadata operands fit within the unchanged8MiB limit; original semantic validators correctly reject them. The repaired fixture preserves both original operands with their exact semantic error codes and adds512000-character operands requiring the exact original budget error, mixed-canonical-qualifying phase,8MiB limit and charge greater than that limit. Both malformed name-prefix and search-rebuild cases retain full37-store equality, resource-pool release, original-row repair and successful requalification. No runtime budget or validator is changed. The complete source/release file passes2 tests (both full16-case journeys); independent reviews approve both bounded corrections. Earlier failing formal and diagnostic runs remain preserved separately.
+
+Together with the33-test privacy file and34-test navigation-owner files above, these are exact local component receipts, not a replacement for the next composed Full/native54 and affected Prompt gates. No timeout increase, assertion removal, product scope change or permission change is included.
+
 ## Final candidate/main fields — pending
 
 - Final reviewed/tested head and merge candidate: PENDING.
