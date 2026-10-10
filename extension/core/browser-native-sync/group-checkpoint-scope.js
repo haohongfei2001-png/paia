@@ -4,6 +4,7 @@ import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {readPromptPreferences,PROMPT_REUSE_ROW,emptyPromptPreferences,validPromptPreferences} from '../prompt-reuse-preferences.js';
 import {assertManualPromptCurrentPhysicalShape} from './manual-prompt-current-shape.js';
 import {assertCurrentContextSnapshot,hasCurrentContextOperations} from './manual-context-current-snapshot.js';
+import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
@@ -29,7 +30,7 @@ export const currentHumanGroupEmptyStores=Object.freeze(['records','recordIndex'
 export const currentHumanGroupStores=Object.freeze(['meta','thoughts','topics','sections','placements','thoughtSuppressions','revisions','operationReceipts','libraryMigrationItems',...currentHumanGroupEmptyStores]);
 // Called only by the fixed original native capture after metering all source
 // trees and operands. No public Core or wrapper read is a source of truth.
-export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,control,databaseId){
+export async function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,control,databaseId){
  requireOriginalCurrentGroupScope(core,scope,plan);
  if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||control.classificationRules.length||control.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const rows=new Map(raw.groupMeta.map(row=>[row.id,row])),take=(id,expected)=>{const row=rows.get(id);if(!row||!equal(row,{...expected,id}))fail('BNS_GROUP_COMMIT_UNPROVEN');rows.delete(id);};
@@ -61,6 +62,16 @@ export function assertCurrentHumanGroupNativeSnapshot(core,scope,plan,raw,contro
  // its independent physical/expected/history/transition scratch phase. Both
  // owner helpers unwind before final unknown metadata inventory.
  if(hasCurrentContextOperations(plan))assertCurrentContextSnapshot(core,scope,plan,raw,rows);
+ // Exactly one terminal control for this active replay. The full native cut
+ // retains every row, and the final unknown inventory still rejects leftover
+ // groupItem rows, extra controls and all other inactive protocol metadata.
+ // Native admission prepays this original immutable-identity phase before its
+ // asynchronous digest; no public reader or caller-supplied proof is trusted.
+ if(active?.manifestId!==undefined||active?.graphDigest!==undefined){
+  const completed=[];for(const [id,row]of rows)if(id.startsWith(core.prefix+'generation:')&&id.endsWith(':restore:'))completed.push(row);
+  if(completed.length!==1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+  await assertCompletedGroupedRestoreControl(completed[0],{prefix:core.prefix,datasetId:core.datasetId,active,namespace:raw.namespace,epoch});rows.delete(completed[0].id);
+ }
  // Exact attested Human key inventory, never a prefix exemption. The active
  // namespace and generation points are already authenticated by native R.
  for(const row of Object.values(raw.points))if(row)rows.delete(row.id);
