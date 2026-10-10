@@ -53,37 +53,58 @@ export async function trackSemanticClear(t,store){
 }
 function observe(t,old,next){
  if(!old&&!next||same(old,next))return;
+ const changes=t.semanticChanges??=new Map();observeSemanticChange(changes,old,next);
+}
+// Original coalescing decision shared with the bounded canonical consumer.
+// These pure descriptions grant no transaction, provider or write authority.
+export function observeSemanticChange(changes,old,next){
+ if(!old&&!next||same(old,next))return;
  const subject=next||{...old,removed:true,revision:old.revision+1};
- const changes=t.semanticChanges??=new Map(),slot=JSON.stringify([subject.key,subject.recordId||null]),prior=changes.get(slot);
+ const slot=JSON.stringify([subject.key,subject.recordId||null]),prior=changes.get(slot);
  // Restore may replay journals in arbitrary UUID order in one transaction.
  // Coalesce the newest revision for each physical owner before flushing it.
  if(subject.journalId&&prior?.after.journalId&&subject.revision<prior.after.revision)return;
  changes.set(slot,{before:prior?prior.before:old,after:subject});
+}
+export function semanticDeltaLiveEligible(after,{ownerPresent=false,live=null,topicPresent=false,topic=null}={}){
+ if(after.journalId&&!after.fenceOnly){
+  if(ownerPresent&&(!live||live.revision<after.revision))return false;
+  if(after.topicId&&topicPresent&&(!topic||topic.activeLayoutGeneration!==after.layoutGeneration))return false;
+ }
+ return true;
+}
+export function planSemanticDeltaWrite(before,after,known,previous,sequence){
+ if(same(before,after))return null;
+ const signature=deltaSignature(after);if(known?.signature===signature)return null;
+ if(after.journalId&&known?.descriptor.journalId&&after.recordId===known.descriptor.recordId&&after.revision<known.descriptor.revision)return null;
+ const row={id:KNOWN_PREFIX+after.key,version:1,descriptor:after,signature,sequence:sequence+1};
+ const dirty=after.removed||after.fenceOnly?null:{...row,id:DIRTY_PREFIX+after.key,requirements:[],pendingFacets:['topic','context'],...(previous?.signature===signature?{requirements:previous.requirements||[],pendingFacets:previous.pendingFacets||['topic','context']}:{})};
+ return {row,dirty};
 }
 export async function flushSemanticWrites(t){
  if(!t.semanticChanges?.size&&!t.aiUsageBoundaryChanged)return;
  let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false;const changedEvidence=new Map();
  for(const {before,after}of (t.semanticChanges||new Map()).values()){
   const key=after.key;if(same(before,after))continue;
+  let ownerPresent=false,live=null,topicPresent=false,topic=null;
   if(after.journalId&&!after.fenceOnly){
    const table={library_entry:'thoughts',topic:'topics',section:'sections',placement:'placements'}[after.kind];
-   if(table&&t.tx.objectStoreNames.contains(table)){const live=await t.get(table,after.recordId);if(!live||live.revision<after.revision)continue;}
+   if(table&&t.tx.objectStoreNames.contains(table)){ownerPresent=true;live=await t.get(table,after.recordId);}
    // A historical layout incarnation cannot replace the current Section owner.
-   if(after.topicId&&t.tx.objectStoreNames.contains('topics')){const topic=await t.get('topics',after.topicId);if(!topic||topic.activeLayoutGeneration!==after.layoutGeneration)continue;}
+   if(after.topicId&&t.tx.objectStoreNames.contains('topics')){topicPresent=true;topic=await t.get('topics',after.topicId);}
   }
-  const signature=deltaSignature(after),known=await t.get('meta',KNOWN_PREFIX+key);
-  if(known?.signature===signature)continue;
+  if(!semanticDeltaLiveEligible(after,{ownerPresent,live,topicPresent,topic}))continue;
+  const known=await t.get('meta',KNOWN_PREFIX+key);
   // Journal replay cannot replace the newest known human revision. Transport
   // delivery order is not semantic novelty, and history deletion is not intent.
-  if(after.journalId&&known?.descriptor.journalId&&after.recordId===known.descriptor.recordId&&after.revision<known.descriptor.revision)continue;
-  changed=true;human||=after.human;
   const previous=await t.get('meta',DIRTY_PREFIX+key);
-  const row={id:KNOWN_PREFIX+key,version:1,descriptor:after,signature,sequence:++sequence};
+  const planned=planSemanticDeltaWrite(before,after,known,previous,sequence);if(!planned)continue;
+  changed=true;human||=after.human;const {row,dirty}=planned;sequence=row.sequence;
   await t.put('meta',row);changedEvidence.set(key,row);
   // Removed evidence never waits for paid cleanup. The known tombstone/fence
   // invalidates outstanding handles even if create/delete coalesces to no work.
-  if(after.removed||after.fenceOnly){await t.delete('meta',DIRTY_PREFIX+key);continue;}
-  await t.put('meta',{...row,id:DIRTY_PREFIX+key,requirements:[],pendingFacets:['topic','context'],...(previous?.signature===signature?{requirements:previous.requirements||[],pendingFacets:previous.pendingFacets||['topic','context']}:{})});
+  if(dirty===null){await t.delete('meta',DIRTY_PREFIX+key);continue;}
+  await t.put('meta',dirty);
  }
  if(changed)await t.put('meta',{id:DELTA_COUNTER,value:sequence});
  if(human)await t.put('meta',{id:HUMAN_FENCE,value:integer((await t.get('meta',HUMAN_FENCE))?.value)+1});

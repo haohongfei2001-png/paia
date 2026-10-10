@@ -433,9 +433,10 @@ export class BrowserNativeSyncCore {
   try{for(const operation of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,operation,{origin:'remote',materialize:false,workingCapability:capability});const head=await this.get(t,'head',operation.type,operation.entityId);if(result.state!=='applied'||head?.purged||!equal(head?.revisions,[operation.revisionId]))fail('BNS_WORKING_ANCESTRY_REQUIRED');}await writeOwner();return {state:'applied'};}
   finally{this.#workingTransactions.delete(t);}
  }
- async prepareSourceAppendReceive(input){
+ async prepareSourceAppendReceive(input){return this.#prepareSourceAppendReceive(input,false);}
+ async #prepareSourceAppendReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length!==6||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_SOURCE_APPEND_INVALID');
-  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_APPEND_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_APPEND_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='sourceAppendCommit');if(descriptors.length!==1)fail('BNS_SOURCE_APPEND_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(v.datasetId!==this.datasetId||v.deviceId!==descriptor.deviceId||new Set(operations.map(op=>op.operationId)).size!==6||new Set(operations.map(op=>op.sequence)).size!==6)fail('BNS_SOURCE_APPEND_INVALID');
   for(const ref of v.refs){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(hits.length!==1)fail('BNS_SOURCE_APPEND_INCOMPLETE');const op=hits[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_SOURCE_APPEND_INVALID');}
@@ -460,6 +461,17 @@ export class BrowserNativeSyncCore {
  async prepareCurrentSourceWorkingReceive(type,input){
   if(arguments.length!==2||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(this);
   const prepared=await(type==='sourceBootstrapCommit'?this.#prepareSourceBootstrapReceive(input,true):this.#prepareWorkingReceive(input,true));requireOriginalSourceWorkingCore(this);return prepared;
+ }
+ // Original typed preparation for the consuming mixed-current compiler. This
+ // creates no native cut, transport authority or broader Source-only admission.
+ async prepareCurrentMixedGroupReceive(type,input){
+  if(arguments.length!==2||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(this);
+  let prepared;
+  if(type==='sourceBootstrapCommit')prepared=await this.#prepareSourceBootstrapReceive(input,true);
+  else if(type==='sourceAppendCommit')prepared=await this.#prepareSourceAppendReceive(input,true);
+  else if(type==='inputWorkingCommit')prepared=await this.#prepareWorkingReceive(input,true);
+  else prepared=await validateHumanCommitGroup(input,this.datasetId);
+  requireOriginalSourceWorkingCore(this);return prepared;
  }
  async commitSourceBootstrapReceive(t,prepared,writeOwner){
   if(!this.#bootstrapPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const previous=await this.get(t,'receipt',prepared.descriptor.operationId);if(previous){if(previous.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}
@@ -545,4 +557,10 @@ export function requireOriginalSourceWorkingCore(core){
 export async function prepareOriginalSourceWorkingReceive(core,type,input){
  if(arguments.length!==3||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
  const value=await sourceWorkingCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
+}
+
+const currentMixedCorePreparation=sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareCurrentMixedGroupReceive').value;
+export async function prepareOriginalCurrentMixedGroupReceive(core,type,input){
+ if(arguments.length!==3||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
+ const value=await currentMixedCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
 }

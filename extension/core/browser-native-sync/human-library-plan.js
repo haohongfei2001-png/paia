@@ -3,15 +3,17 @@ import {requireSourceWorkingStoreBinding} from './source-working-binding.js';
 import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './source-working-canonical.js';
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
-import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta} from './source-working-default-meta.js';
-import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan} from './group-checkpoint-plan.js';
+import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
+import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
+import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
 import * as currentSegmentOwner from './segments.js';
 import * as currentCheckpointOwner from './checkpoints.js';
-import {inspectHumanUnindexedSearch} from './human-library-search-proof.js';
-import {planSearchQueueLocator} from '../library-search.js';
+import {inspectHumanUnindexedSearch,prepareOriginalMixedNativeSearch,originalMixedNativeSearchCounts,releaseOriginalMixedNativeSearch} from './human-library-search-proof.js';
+import {planSearchQueueLocator,planSearchPostingRow,searchOwnerFields} from '../library-search.js';
+import {deltaDescription} from '../ai-usage/delta.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
 import {planIndependentExpressionTime,unknownExpressionTime} from '../organizer/expression-time.js';
 import {planThoughtRootProjection,liveTopicKey,planThoughtTopicBuild,planThoughtTopicDescriptorRows,accumulateThoughtTopicDescriptor,completeThoughtTopicProjection} from '../thought-read-index.js';
@@ -796,7 +798,7 @@ export async function finalizeHumanRetentionNativeEffects(core,retention,claim){
 // original write/finalizer hooks remain observable.
 const retentionNative=(()=>{
  const method=(name,key)=>globalThis[name]?.prototype?.[key],get=(name,key)=>globalThis[name]&&Object.getOwnPropertyDescriptor(globalThis[name].prototype,key)?.get;
- return Object.freeze({transaction:method('IDBDatabase','transaction'),store:method('IDBTransaction','objectStore'),abort:method('IDBTransaction','abort'),db:get('IDBTransaction','db'),mode:get('IDBTransaction','mode'),storeNames:get('IDBTransaction','objectStoreNames'),databaseStoreNames:get('IDBDatabase','objectStoreNames'),listLength:get('DOMStringList','length'),listItem:method('DOMStringList','item'),txError:get('IDBTransaction','error'),storeGet:method('IDBObjectStore','get'),storeCount:method('IDBObjectStore','count'),index:method('IDBObjectStore','index'),storeCursor:method('IDBObjectStore','openCursor'),storeTransaction:get('IDBObjectStore','transaction'),storeName:get('IDBObjectStore','name'),storeKeyPath:get('IDBObjectStore','keyPath'),storeIndexNames:get('IDBObjectStore','indexNames'),indexUnique:get('IDBIndex','unique'),indexMultiEntry:get('IDBIndex','multiEntry'),indexCount:method('IDBIndex','count'),indexCursor:method('IDBIndex','openCursor'),indexStore:get('IDBIndex','objectStore'),indexName:get('IDBIndex','name'),indexKeyPath:get('IDBIndex','keyPath'),result:get('IDBRequest','result'),error:get('IDBRequest','error'),ready:get('IDBRequest','readyState'),source:get('IDBRequest','source'),requestTransaction:get('IDBRequest','transaction'),cursorRequest:get('IDBCursor','request'),cursorSource:get('IDBCursor','source'),cursorKey:get('IDBCursor','key'),cursorPrimaryKey:get('IDBCursor','primaryKey'),cursorContinue:method('IDBCursor','continue'),cursorValue:get('IDBCursorWithValue','value'),bound:globalThis.IDBKeyRange?.bound?.bind(globalThis.IDBKeyRange),add:method('EventTarget','addEventListener'),remove:method('EventTarget','removeEventListener'),eventTarget:get('Event','target'),eventCurrent:get('Event','currentTarget')});
+ return Object.freeze({transaction:method('IDBDatabase','transaction'),store:method('IDBTransaction','objectStore'),abort:method('IDBTransaction','abort'),db:get('IDBTransaction','db'),mode:get('IDBTransaction','mode'),storeNames:get('IDBTransaction','objectStoreNames'),databaseStoreNames:get('IDBDatabase','objectStoreNames'),listLength:get('DOMStringList','length'),listItem:method('DOMStringList','item'),txError:get('IDBTransaction','error'),storeGet:method('IDBObjectStore','get'),storeCount:method('IDBObjectStore','count'),index:method('IDBObjectStore','index'),storeCursor:method('IDBObjectStore','openCursor'),storeTransaction:get('IDBObjectStore','transaction'),storeName:get('IDBObjectStore','name'),storeKeyPath:get('IDBObjectStore','keyPath'),storeAutoIncrement:get('IDBObjectStore','autoIncrement'),storeIndexNames:get('IDBObjectStore','indexNames'),indexUnique:get('IDBIndex','unique'),indexMultiEntry:get('IDBIndex','multiEntry'),indexCount:method('IDBIndex','count'),indexCursor:method('IDBIndex','openCursor'),indexStore:get('IDBIndex','objectStore'),indexName:get('IDBIndex','name'),indexKeyPath:get('IDBIndex','keyPath'),result:get('IDBRequest','result'),error:get('IDBRequest','error'),ready:get('IDBRequest','readyState'),source:get('IDBRequest','source'),requestTransaction:get('IDBRequest','transaction'),cursorRequest:get('IDBCursor','request'),cursorSource:get('IDBCursor','source'),cursorKey:get('IDBCursor','key'),cursorPrimaryKey:get('IDBCursor','primaryKey'),cursorContinue:method('IDBCursor','continue'),cursorValue:get('IDBCursorWithValue','value'),bound:globalThis.IDBKeyRange?.bound?.bind(globalThis.IDBKeyRange),add:method('EventTarget','addEventListener'),remove:method('EventTarget','removeEventListener'),eventTarget:get('Event','target'),eventCurrent:get('Event','currentTarget')});
 })();
 function nativeRetentionAvailable(){for(const key in retentionNative)if(typeof retentionNative[key]!=='function')fail('BNS_HUMAN_RETENTION_REQUIRED');}
 function nativeRetentionCausalReplaySlots(p){
@@ -949,12 +951,24 @@ function projectionBoundedTransport(transport,profile){
 }
 function projectionMeasure(value,frozen=false){const stats={};const B=branchRawMeasure(value,BRANCH_RAW_BYTES,stats,frozen);return {B,T:stats.units,V:stats.nodes,E:stats.slots};}
 function projectionRowMeasure(r,value,frozen='native'){return r.sourceWorking?measureSourceWorkingPhysicalTree(value):projectionMeasure(value,frozen);}
+const projectionIndexSchema=r=>r.mixedIndexInspection?mixedCurrentIndexSchema():sourceWorkingCurrentIndexSchema;
+const projectionPhysicalIndexKey=(r,store,index,row)=>r.mixedIndexInspection?mixedCurrentPhysicalIndexKey(store,index,row):sourceWorkingPhysicalIndexKey(store,index,row);
 // The original clone/tree and canonical slots are used for these exact trees.
 // Fixed frames pay finite selector, listener, meter-stack, 128/768 vectors/maps
 // and one descriptor/builder/key-generator frame, not initial native cloning.
 function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
 function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
-function projectionReserve(r,scratch=0){const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+(r.fixedScratch||0)+scratch;if(charge>8*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');resizeHumanQualificationLease(r.work,charge);}
+function projectionReserve(r,scratch=0){
+ const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+(r.fixedScratch||0)+scratch;
+ if(charge>8*1024*1024){
+  try{fail('BNS_HUMAN_GRAPH_LIMIT');}catch(error){
+   // Body-free failure evidence for the unfinished mixed compiler. Keep the
+   // original code/limit/refusal; expose no rows, keys, IDs or private secret.
+   if(r.mixedCompilationInspection)error.message+=' '+JSON.stringify({limit:8*1024*1024,charge,owned:r.owned,transient:r.transient||0,fixed:r.fixedScratch||0,scratch,phase:r.phase});throw error;
+  }
+ }
+ resizeHumanQualificationLease(r.work,charge);
+}
 function projectionDeepFreeze(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key))projectionDeepFreeze(value[key]);projectionFreeze(value);}
 function projectionCurrent(r){r.storeAssert(r.store);if(r.revoked||r.closed||!r.work||r.sourceWorking&&r.retainedParent&&(r.retainedParent.revoked||r.retainedParent.released))projectionRequired();if(r.sourceWorking)requireSourceWorkingStoreBinding(r.store,r.core,r.binding);else branchReady(r.store,r.core,r.binding);if(r.store.tail!==r.tail||r.store.controlCache!==r.control||r.store.pendingControl)fail('BNS_HUMAN_CHANGED');}
 function projectionKeep(r,value,transfer=false){
@@ -971,7 +985,7 @@ function projectionGroupCutEqual(r,a,b){
  if(a.namespace!==b.namespace)return false;
  if(r.sourceWorking){
   for(const name of r.group.stores)if(!lists(a.rows[name],b.rows[name]))return false;
-  for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const index of Object.keys(definitions))if(!lists(a.indices[name][index],b.indices[name][index]))return false;
+  for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const index of Object.keys(definitions))if(!lists(a.indices[name][index],b.indices[name][index]))return false;
   const keys=Object.keys(a.points);if(keys.length!==Object.keys(b.points).length)return false;for(const key of keys)if(!projectionOwn(b.points,key)||!projectionEqual(r,a.points[key],b.points[key]))return false;
   return true;
  }
@@ -985,13 +999,14 @@ function projectionFence(r){projectionCurrent(r);const actual=projectionRowMeasu
 function projectionSource(tx,task,r){
  const n=retentionNative,store=n.store.call(tx,task.store);
  if(n.storeTransaction.call(store)!==tx||n.storeName.call(store)!==task.store||n.storeKeyPath.call(store)!=='id')projectionRequired();
- if(r.sourceWorking&&Object.hasOwn(sourceWorkingCurrentIndexSchema,task.store)){
-  const names=n.storeIndexNames.call(store),definitions=sourceWorkingCurrentIndexSchema[task.store];
+ if(r.mixedIndexInspection&&n.storeAutoIncrement.call(store)!==false)projectionRequired();
+ if(r.sourceWorking&&Object.hasOwn(projectionIndexSchema(r),task.store)){
+  const names=n.storeIndexNames.call(store),definitions=projectionIndexSchema(r)[task.store];
   if(n.listLength.call(names)!==Object.keys(definitions).length)projectionRequired();
   for(let i=0;i<n.listLength.call(names);i++)if(!Object.hasOwn(definitions,n.listItem.call(names,i)))projectionRequired();
  }
  if(!task.index)return store;
- const index=n.index.call(store,task.index),path=n.indexKeyPath.call(index),spec=r.sourceWorking?sourceWorkingCurrentIndexSchema[task.store][task.index]:null,expected=spec?spec.path:LIBRARY_INDEXES[task.store][task.index];
+ const index=n.index.call(store,task.index),path=n.indexKeyPath.call(index),spec=r.sourceWorking?projectionIndexSchema(r)[task.store][task.index]:null,expected=spec?spec.path:LIBRARY_INDEXES[task.store][task.index];
  if(spec){if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||n.indexUnique.call(index)!==spec.unique||n.indexMultiEntry.call(index)!==spec.multiEntry||!projectionEqual(r,path,expected))projectionRequired();return index;}
  if(n.indexStore.call(index)!==store||n.indexName.call(index)!==task.index||!Array.isArray(path)||path.length!==expected.length||path.some((x,i)=>x!==expected[i]))projectionRequired();
  return index;
@@ -1005,11 +1020,11 @@ function projectionTasks(r){
  const tasks=[];
  if(r.sourceWorking){
   for(const name of r.group.stores){
-   const limit=!sourceWorkingCurrentNonemptyStores.includes(name)?0:name==='meta'?4096:name==='revisions'?96:name==='operationReceipts'||name==='invalidations'?2:1,target=r.raw.rows[name];
+   const limit=r.mixedIndexInspection?mixedIndexPrimaryLimit(name):!sourceWorkingCurrentNonemptyStores.includes(name)?0:name==='meta'?4096:name==='revisions'?96:name==='operationReceipts'||name==='invalidations'?2:1,target=r.raw.rows[name];
    tasks.push({kind:'count',store:name,limit,target,zero:limit===0});tasks.push({kind:'cursor',store:name,limit,target});
   }
-  for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const index of Object.keys(definitions)){
-   const target=r.raw.indices[name][index];tasks.push({kind:'count',store:name,index,limit:128,target,borrow:true});tasks.push({kind:'cursor',store:name,index,limit:128,target,borrow:true});
+  for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const index of Object.keys(definitions)){
+   const limit=r.mixedIndexInspection?4096:128,target=r.raw.indices[name][index];tasks.push({kind:'count',store:name,index,limit,target,borrow:true});tasks.push({kind:'cursor',store:name,index,limit,target,borrow:true});
   }
   tasks.push({kind:'point',store:'meta',key:r.binding.prefix+'active',active:true});return tasks;
  }
@@ -1082,9 +1097,9 @@ function projectionPump(r,t){
         if(typeof primary!=='string'||primary.length>2048||task.prefix&&!primary.startsWith(task.prefix))projectionRequired();
         if(lastKey!==null){const order=projectionCompare.call(projectionFactory,lastKey,key);if(order>0||order===0&&projectionCompare.call(projectionFactory,lastPrimary,primary)>=0)projectionRequired();}
         value=n.cursorValue.call(cursor);r.transient+=projectionTreeCharge(projectionRowMeasure(r,value));projectionReserve(r);if(!value||value.id!==primary)projectionRequired();
-        const expected=r.sourceWorking&&task.index?sourceWorkingPhysicalIndexKey(task.store,task.index,value):projectionExpectedKey(value,task.index?LIBRARY_INDEXES[task.store][task.index]:'id');
+        const expected=r.sourceWorking&&task.index?projectionPhysicalIndexKey(r,task.store,task.index,value):projectionExpectedKey(value,task.index?LIBRARY_INDEXES[task.store][task.index]:'id');
         // Native keyPath and cursor identity are both checked, not row claims.
-        if(r.sourceWorking&&task.index){const spec=sourceWorkingCurrentIndexSchema[task.store][task.index];if(expected===null||!(spec.multiEntry&&Array.isArray(expected)?expected.some(item=>projectionCompare.call(projectionFactory,key,item)===0):projectionCompare.call(projectionFactory,key,expected)===0))projectionRequired();}
+        if(r.sourceWorking&&task.index){const spec=projectionIndexSchema(r)[task.store][task.index],match=item=>{try{return projectionCompare.call(projectionFactory,key,item)===0;}catch(error){if(!r.mixedIndexInspection)throw error;return false;}};if(expected===null||!(spec.multiEntry&&Array.isArray(expected)?expected.some(match):match(expected)))projectionRequired();}
         else if(!projectionEqual(r,key,expected))projectionRequired();
         if(task.borrow){const whole=r.raw.rows[task.store].find(row=>row.id===primary);if(!whole||!projectionEqual(r,value,whole))fail('BNS_HUMAN_CHANGED');task.target.push(projectionKeep(r,{key,primary}));}
         else{task.target.push(projectionKeep(r,value,true));}
@@ -1108,16 +1123,19 @@ export async function collectHumanCurrentUnindexedProjectionNative(core,t,nonce)
  const r=currentProjectionWorks.get(nonce);if(!r||r.core!==core||r.phase!=='opening')projectionRequired();if(r.sourceWorking)projectionCurrent(r);requireHumanProjectionReadPhase(core,t,nonce);r.phase='reading';r.nativeOpened=true;r.scope=t;await projectionPump(r,t);r.phase='observed';
 }
 function projectionRaw(){const rows=Object.create(null),prefixes=Object.create(null);for(const name of projectionTables)rows[name]=[];for(const name of projectionPrefixes)prefixes[name]=[];return {rows,prefixes,points:Object.create(null),namespace:null,receiptOrder:[],placementOrder:[]};}
-function projectionSourceWorkingRaw(){
+function projectionSourceWorkingRaw(mixedIndexInspection=false){
  const rows=Object.create(null),indices=Object.create(null);for(const name of sourceWorkingCurrentStores())rows[name]=[];
- for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema)){indices[name]=Object.create(null);for(const index of Object.keys(definitions))indices[name][index]=[];}
+ for(const [name,definitions]of Object.entries(mixedIndexInspection?mixedCurrentIndexSchema():sourceWorkingCurrentIndexSchema)){indices[name]=Object.create(null);for(const index of Object.keys(definitions))indices[name][index]=[];}
  return {rows,indices,points:Object.create(null),namespace:null,groupMeta:rows.meta};
 }
 function projectionSourceWorkingIndexViews(r){
- for(const [name,definitions]of Object.entries(sourceWorkingCurrentIndexSchema))for(const [index,spec]of Object.entries(definitions)){
+ for(const [name,definitions]of Object.entries(projectionIndexSchema(r)))for(const [index,spec]of Object.entries(definitions)){
+  // The complete mixed inspector pays its own current actual table and the
+  // full bounded key/entry/sort vectors before any compound key is formed.
+  if(r.mixedIndexInspection){const m=projectionRowMeasure(r,r.raw.rows[name]);projectionReserve(r,3*projectionTreeCharge(m)+2*projectionCanonicalCharge(m)+4096*128+64*1024);}
   const entries=[];
   for(const row of r.raw.rows[name]){
-   const key=sourceWorkingPhysicalIndexKey(name,index,row);if(key===null)continue;
+   const key=projectionPhysicalIndexKey(r,name,index,row);if(key===null)continue;
    const selected=spec.multiEntry&&Array.isArray(key)?key:[key],seen=[];
    for(const item of selected){try{projectionCompare.call(projectionFactory,item,item);}catch{continue;}if(seen.some(prior=>projectionCompare.call(projectionFactory,prior,item)===0))continue;seen.push(item);entries.push({key:item,primary:row.id});}
   }
@@ -1158,18 +1176,19 @@ async function projectionCompileSourceWorking(r){
 }
 function projectionSourceFree(value){if(!value||typeof value!=='object')return;for(const key in value)if(projectionOwn(value,key)){const item=value[key];if((key==='sourceRecordIds'||key==='inputRefs')&&(!Array.isArray(item)||item.length))fail('BNS_HUMAN_UNSUPPORTED');projectionSourceFree(item);}}
 function projectionScalarString(value,max=512){if(typeof value!=='string'||value.length>max)projectionRequired();}
-function projectionNativeOrder(r,store,view,parts){
+function projectionNativeOrder(r,store,view,parts,raw=r.raw){
  const path=LIBRARY_INDEXES[store][store==='placements'?'byTopicOrder':'byOwner'];
- const expected=r.raw.rows[store].filter(row=>parts.every((part,i)=>row[path[i]]===part));
+ const expected=raw.rows[store].filter(row=>parts.every((part,i)=>row[path[i]]===part));
  for(const row of expected){const key=projectionExpectedKey(row,path);projectionCompare.call(projectionFactory,key,key);}
  expected.sort((a,b)=>projectionCompare.call(projectionFactory,projectionExpectedKey(a,path),projectionExpectedKey(b,path))||projectionCompare.call(projectionFactory,a.id,b.id));
  if(expected.length!==view.keys.length)fail('BNS_HUMAN_CHANGED');
  for(let i=0;i<expected.length;i++)if(view.keys[i].primary!==expected[i].id||!projectionEqual(r,view.keys[i].key,projectionExpectedKey(expected[i],path),r.semantic))fail('BNS_HUMAN_CHANGED');
  return expected;
 }
-function projectionPendingOwner(row,kind){
+function projectionPendingOwner(row,kind,allowIndexed=false){
  projectionScalarString(row.id);
- if(!row.id.length||!['active','removed'].includes(row.lifecycle)||Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ if(!row.id.length||!['active','removed'].includes(row.lifecycle)||!allowIndexed&&Object.hasOwn(row,'indexedSearchVersion'))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ if(allowIndexed&&Object.hasOwn(row,'indexedSearchVersion'))projectionScalarString(row.indexedSearchVersion,128);
  const required=kind==='entry'?['revision','contentRevision']:kind==='topic'?['revision','activeLayoutGeneration']:['revision','layoutGeneration'];
  for(const field of required)if(!Number.isSafeInteger(row[field])||row[field]<0)projectionRequired();
  for(const field of ['layoutGeneration','searchSafetyVersion'])if(row[field]!==undefined&&(!Number.isSafeInteger(row[field])||row[field]<0))projectionRequired();
@@ -1190,24 +1209,25 @@ function projectionSemanticCharge(r){
  }
  return charge;
 }
-function projectionQualify(r){
- const raw=r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
- r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);
- if(rows.provenance.length||rows.dependencies.length||rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
+function projectionQualify(r,mixed=false){
+ const raw=mixed?mixedNativeQueryView(r):r.raw,rows=raw.rows,points=raw.points,settings=r.controlValues.settings;
+ if(!mixed){r.semantic=projectionSemanticCharge(r);projectionReserve(r,r.semantic);}
+ if(rows.provenance.length||rows.dependencies.length||!mixed&&rows.librarySearchTerms.length||raw.prefixes['memory:topic:'].length||raw.prefixes['memory:section:'].length)fail('BNS_HUMAN_UNSUPPORTED');
  if(!settings?.enabled||settings.consentVersion!==CONSENT_VERSION||points.gate&&(points.gate.epoch!==settings.epoch||points.gate.enabled!==settings.enabled))fail('BNS_HUMAN_PERMISSION');
  if(points['thought-library']?.sealed)fail('BNS_HUMAN_UNSUPPORTED');
  const epoch=points['thought-epoch']?.value||0;if(!Number.isSafeInteger(epoch)||epoch<0)projectionRequired();
- projectionSourceFree(raw);
+ if(mixed){for(const name of ['thoughts','topics','sections','placements','thoughtSuppressions'])projectionSourceFree(rows[name]);}else projectionSourceFree(raw);
  const migration=new Map(),metadata=new Map();let descriptors=0;
  for(const row of rows.libraryMigrationItems){projectionScalarString(row.id,2048);if(migration.has(row.id))projectionRequired();migration.set(row.id,row);}
  for(const row of raw.prefixes['thought-read-index:']){projectionScalarString(row.id,2048);if(metadata.has(row.id))projectionRequired();metadata.set(row.id,row);}
  const match=row=>{if(!row)return;if(!migration.has(row.id)||!projectionEqual(r,migration.get(row.id),row,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');migration.delete(row.id);};
  const queue=[];
- for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
+ if(mixed){for(const row of rows.libraryMigrationItems)if(row.entityKind==='search'){queue.push(row);migration.delete(row.id);}}
+ else for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of rows[name]){projectionPendingOwner(row,kind);const task=planSearchQueueLocator(kind,row);match(task);queue.push(task);}
  // Every physical migration row will also be matched below; this subset is
  // used only after its exact original queue locator has been observed.
  const search={rows:{thoughts:rows.thoughts,topics:rows.topics,sections:rows.sections,revisions:rows.revisions,libraryMigrationItems:queue,librarySearchTerms:rows.librarySearchTerms},rebuild:points['library-search-rebuild']};
- projectionDeepFreeze(search);inspectHumanUnindexedSearch(search);
+ if(!mixed){projectionDeepFreeze(search);inspectHumanUnindexedSearch(search);}
  const root=metadata.get('thought-read-index:v1:root');
  if(root){
   projectionScalarString(root.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(root.activeGeneration)||typeof root.completedAt!=='string'||!Number.isFinite(Date.parse(root.completedAt)))projectionRequired();
@@ -1217,7 +1237,7 @@ function projectionQualify(r){
  }
  for(const topic of rows.topics){
   const view=raw.placementOrder.find(item=>item.topicId===topic.id);if(!view)projectionRequired();
-  const placements=projectionNativeOrder(r,'placements',view,[topic.id,topic.activeLayoutGeneration,0]);
+  const placements=projectionNativeOrder(r,'placements',view,[topic.id,topic.activeLayoutGeneration,0],raw);
   const id='thought-read-index:v1:topic:'+topic.id,actual=metadata.get(id);if(!actual)continue;
   if(topic.lifecycle!=='active'||topic.redirectTo||actual.version!==THOUGHT_TOPIC_INDEX_VERSION||!Number.isSafeInteger(actual.timeRevision)||actual.timeRevision<0)projectionRequired();
   projectionScalarString(actual.activeGeneration,80);if(!/^[A-Za-z0-9_.-]+$/.test(actual.activeGeneration)||typeof actual.completedAt!=='string'||!Number.isFinite(Date.parse(actual.completedAt)))projectionRequired();
@@ -1232,7 +1252,7 @@ function projectionQualify(r){
    for(const field of ['entryId','sectionId','sectionRank','rank'])projectionScalarString(p[field]);
    if(row.createdAt!==null&&row.createdAt!==undefined)projectionScalarString(row.createdAt,128);
    const receipts=raw.receiptOrder.find(item=>item.ownerId===row.id);if(!receipts)projectionRequired();
-   const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id]);
+   const receiptRows=projectionNativeOrder(r,'operationReceipts',receipts,['thought-library',row.id],raw);
    const receipt=receiptRows[0]??null,evidenceAt=receipt?.result?.independentExpression?.at;if(evidenceAt!==undefined&&evidenceAt!==null)projectionScalarString(evidenceAt,128);
    if(!Number.isSafeInteger(p.revision)||p.revision<0)projectionRequired();
    const expression=row.staleReasons?.includes('source_purged')?unknownExpressionTime():planIndependentExpressionTime(row,receipt);
@@ -1248,13 +1268,130 @@ function projectionQualify(r){
   if(!projectionEqual(r,actual,expected,r.semantic))fail('BNS_HUMAN_PROJECTION_UNPROVEN');metadata.delete(id);
  }
  // Receipt order is authenticated even for an Entry outside a current Topic.
- for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id]);}
+ for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id],raw);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
  migration.clear();metadata.clear();
+ if(mixed){r.semantic=r.mixedSearchScratch;projectionReserve(r,r.semantic);r.mixedQueryMetaIds=raw.prefixes['thought-read-index:'].map(row=>row.id);r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
+}
+// Derived reference views retain the original raw/indices. This is neither a
+// second native snapshot nor an alternative repository/transaction facade.
+function mixedNativeQueryView(r){
+ const raw=r.raw,points=Object.create(null),prefixes=Object.create(null);
+ for(const key of projectionPoints)points[key]=raw.rows.meta.find(row=>row.id===key)??null;
+ for(const prefix of projectionPrefixes)prefixes[prefix]=raw.rows.meta.filter(row=>row.id.startsWith(prefix));
+ const indexed=(store,index,parts)=>raw.indices[store][index].filter(item=>Array.isArray(item.key)&&parts.every((part,i)=>projectionCompare.call(projectionFactory,item.key[i],part)===0));
+ return {rows:raw.rows,points,prefixes,placementOrder:raw.rows.topics.map(topic=>({topicId:topic.id,keys:indexed('placements','byTopicOrder',[topic.id,topic.activeLayoutGeneration,0])})),receiptOrder:raw.rows.thoughts.map(entry=>({ownerId:entry.id,keys:indexed('operationReceipts','byOwner',['thought-library',entry.id])}))};
 }
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
-function projectionDrop(r){r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
+function projectionDrop(r){if(r.mixedSearchProof){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;}r.mixedSearchQueue=null;r.mixedRestoredPrefix=null;r.mixedRestoredPhase=null;r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
 function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
+// Original mixed Scope construction will consume the already authenticated,
+// frozen full native cut. No caller-supplied secret/DTO and no Store.run tail
+// replacement is admitted. Only initial readonly compilation inspection uses
+// this seam; mixed canonical encoder/export admission remains disabled.
+export function borrowOriginalMixedScopeCompilationSecret(nonce,store,scope,wire){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==4||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||!r.nativeDrained||!r.raw||!r.group?.plan)projectionRequired();
+ projectionCurrent(r);currentGroupOwner.requireOriginalMixedHumanCompilationInput(r.core,scope,wire,r.group.plan);
+ if(r.mixedCompilingScope&&r.mixedCompilingScope!==scope)projectionRequired();r.mixedCompilingScope=scope;
+ const secret=r.raw.rows.meta.find(row=>row.id==='thought-suppression-key')?.value;
+ if(!Array.isArray(secret)||secret.length!==32||secret.some(value=>!Number.isInteger(value)||value<0||value>255))projectionRequired();return secret;
+}
+export function borrowOriginalMixedScopeCompilationMeta(nonce,store,scope,wire){
+ if(arguments.length!==4)projectionRequired();borrowOriginalMixedScopeCompilationSecret(nonce,store,scope,wire);return currentProjectionWorks.get(nonce).raw.rows.meta;
+}
+export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
+}
+// Original wire owner hashes one complete normalized family at a time. Map
+// cells are paid before borrowing final immutable members; no body DTO or
+// canonical JSON is built here, and the complete current Plan stays owned.
+function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
+ projectionReserve(r,surviving+4096*128+128*1024);const humanHistory=new Set(),humanFinal=new Map(),maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
+ for(const group of plan.groups){
+  if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){humanFinal.set(member.value.entityType+'\0'+member.value.after.id,member.value.after);if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}}
+  else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
+ }
+ let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0;
+ for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ // Exactly one portable Human aggregate clone was removed by the original
+ // Mixed wire owner. Rebate its final rows/names, never original Plan/raw.
+ for(const value of humanFinal.values())borrowedTrees+=projectionTreeCharge(projectionRowMeasure(r,value));borrowedTrees+=projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
+ return {peak,borrowedTrees};
+}
+// Genuine sequential prefix stages reserve their actual operands. The current
+// complete raw/Plan/private Source ownership never leaves this work ticket.
+export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,phase,prefix){
+ requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedRestoredProofRetained)projectionRequired();
+ if(phase==='control'){
+  if(r.mixedRestoredPhase)projectionRequired();const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
+  r.mixedRestoredBase=projectionTreeCharge(frames.scope)+(frames.borrowedHuman?0:projectionTreeCharge(frames.human))+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
+ }
+ if(phase==='compiler'){
+  if(r.mixedRestoredPhase!=='control')projectionRequired();const totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0};
+  for(const group of plan.groups)if(group.operations.every(op=>op.deviceId!==r.core.deviceId))for(const op of group.operations){const m=projectionRowMeasure(r,op);for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;}
+  r.mixedRestoredPhase='compiler';projectionReserve(r,r.mixedRestoredBase+4*projectionCanonicalCharge(peak)+8*peak.B+4096*256+192*1024);return;
+ }
+ requireOriginalCurrentMixedGroupPlan(r.core,prefix);
+ if(phase==='wire'){
+  if(r.mixedRestoredPhase!=='compiler'||prefix.groups.some(group=>group.operations.some(op=>op.deviceId===r.core.deviceId)))projectionRequired();
+  const wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};
+  const add=(value,human=false)=>{const m=projectionRowMeasure(r,value);for(const key of ['B','T','V','E']){wire[key]+=m[key];if(human)humanWire[key]+=m[key];}wire.E++;if(human)humanWire.E++;};
+  for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)add(member.value.entity);else add(group.operations[0].value);}
+  r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix));
+  const surviving=r.mixedRestoredBase+r.mixedRestoredTemporary,meter=mixedWireCanonicalFamilyPeak(r,prefix,humanWire,surviving);
+  projectionReserve(r,surviving+8*projectionTreeCharge(wire)-meter.borrowedTrees+4*meter.peak+8*wire.B+256*1024);return;
+ }
+ if(phase==='mapped'){
+  if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';
+  // Prefix local variables still exist until the original preparer returns.
+  // Keep their final remapping/equality/allocator frames paid through return.
+  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+4*projectionCanonicalCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix))+4096*128+128*1024);return;
+ }
+ projectionRequired();
+}
+// Enter keyed work only AFTER the original wire builder returned. Price its
+// actual surviving Scope and final Human wire, not overwritten operation
+// histories from the complete Plan, which remain independently owned.
+export function reserveOriginalMixedKeyedScopePhase(nonce,store,scope,plan){
+ if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedKeyedStarted)projectionRequired();
+ const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
+ const scratch=projectionTreeCharge(frames.scope)+(4-(frames.borrowedHuman?1:0))*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
+ r.mixedKeyedStarted=true;r.mixedKeyedScratch=scratch;projectionReserve(r,scratch);
+}
+// Transfer surviving authenticated prefix/control/allocation ownership only
+// after the original prefix builders have returned, and BEFORE keyed work.
+export function retainOriginalMixedRestoredScopeProof(nonce,store,scope,plan){
+ if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);
+ if(r.mixedRestoredProofRetained||r.group.plan!==plan||r.mixedRestoredPhase!=='mapped')projectionRequired();
+ const hidden=currentGroupOwner.measureOriginalMixedRestoredScopeExpectation(r.core,scope,plan,store,nonce);r.owned+=projectionTreeCharge(hidden);r.mixedRestoredProofRetained=true;projectionReserve(r,r.mixedRestoredBase);
+}
+// The original canonical owners borrow only this exact drained cut. A caller
+// cannot authenticate a cloned raw/Scope/Plan or substitute a later Store read.
+export function requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==6||!r||r.sourceWorking!=='mixed'||r.store!==store||r.core!==core||r.phase!=='mixed-canonical-qualifying'||!r.nativeDrained||r.raw!==raw||r.group?.scope!==scope||r.group?.plan!==plan)projectionRequired();
+ projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(core,scope,plan);
+}
+export function requireOriginalMixedNativeSearchInputs(nonce,store,core,scope,plan,raw,queue){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ if(currentProjectionWorks.get(nonce).mixedSearchQueue!==queue)projectionRequired();
+}
+export function requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ if(currentProjectionWorks.get(nonce).controlValues!==control)projectionRequired();
+}
+export function requireOriginalMixedNativeBodiesConsumed(nonce,store,core,scope,plan,raw,control){
+ if(arguments.length!==7)projectionRequired();requireOriginalMixedNativeControl(nonce,store,core,scope,plan,raw,control);
+ if(currentProjectionWorks.get(nonce).mixedBodiesConsumed!==true)projectionRequired();
+}
+export function originalMixedNativeDerivedMetaIds(nonce,store,core,scope,plan,raw){
+ if(arguments.length!==6)projectionRequired();requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ const r=currentProjectionWorks.get(nonce);if(!r.mixedBodiesConsumed||!r.mixedSearchProof||!r.mixedQueryMetaIds)projectionRequired();originalMixedNativeSearchCounts(r.mixedSearchProof);
+ const ids=[...r.mixedQueryMetaIds];for(const row of raw.rows.meta)if(row.id.startsWith('personalTopicName:')||row.id.startsWith('topicKeepSeparate:')||row.id==='library-search-rebuild')ids.push(row.id);return ids;
+}
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
  return captureCurrentProjection(store,core,null);
@@ -1268,11 +1405,16 @@ export async function captureHumanCurrentGroupProjection(store,core,scope,plan){
 export async function captureSourceWorkingCurrentGroupProjection(store,core){
  if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,true);
 }
+// Explicit bounded mixed producer only. The ordinary Source-only selector and
+// the readonly inspection APIs keep their separate guards and default behavior.
+export async function captureMixedCurrentGroupProjection(store,core){
+ if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,'mixed',true);
+}
 // A selected Context phase uses only original native structured-clone trees.
 // Meter before the new owner creates vectors, validator clones or canonical
 // operands. Full Scope/Plan/raw retained trees and old Human/row peaks remain.
 // No Prompt scratch credits, larger pool or retained refund fund this phase.
-function currentContextSnapshotScratch(scope,plan,raw){
+function currentContextSnapshotScratch(scope,plan,raw,mixed=false){
  const kinds=['contextItem','contextRulesItem','contextNowItem','contextDesired'];
  let selected=false,transitionPeak=0;
  for(const group of plan.groups)if(kinds.includes(group.type)){
@@ -1290,9 +1432,13 @@ function currentContextSnapshotScratch(scope,plan,raw){
  if(row){const m=projectionMeasure(row,'native');physical=4*projectionTreeCharge(m)+2*projectionCanonicalCharge(m)+m.B+16*m.E;}
  // Independently pay expected items/desired values and complete historical
  // operation operands even when actual physical metadata is small or missing.
+ // The mixed consumer borrows the already owned/validated full Plan; its
+ // manual owner constructs only operation-reference vectors and compares each
+ // transition/value above, never a whole-Plan canonical temporary. Keep the
+ // older Source-only charge unchanged.
  // 16KiB bounds three128 reference vectors, one fixed manual key <=512 chars,
  // and bounded descriptor/validator wrappers; full item arrays are above.
- return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+projectionCanonicalCharge(projectionMeasure(plan,'native'))+16*1024;
+ return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+(mixed?0:projectionCanonicalCharge(projectionMeasure(plan,'native')))+16*1024;
 }
 function completedGroupControlScratch(core,raw){
  // Full control source trees are already retained. Independently prepay each
@@ -1305,7 +1451,190 @@ function completedGroupControlScratch(core,raw){
  }
  return scratch;
 }
-async function captureCurrentProjection(store,core,group,sourceWorking=false){
+const mixedIndexNonempty=new Set([...sourceWorkingCurrentNonemptyStores,'thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems','librarySearchTerms']);
+function mixedIndexPrimaryLimit(name){return !mixedIndexNonempty.has(name)?0:name==='meta'||name==='librarySearchTerms'?4096:name==='revisions'?96:name==='libraryMigrationItems'?768:128;}
+function mixedCurrentSearchScratch(r){
+ // Fixed frame is reserved before constructing any per-field meter operand.
+ // Each scalar NFKD temporary is bounded by the current Unicode decomposition
+ // table; their sum bounds NFKC composition. A three-unit lowercase expansion
+ // per decomposed unit also covers conditional SpecialCasing mappings. See
+ // Unicode17 SpecialCasing.txt. Never assume normalized length == input length.
+ projectionReserve(r,96*1024);
+ let expected=0,tokenPeak=0,owners=0;
+ for(const [kind,name]of [['entry','thoughts'],['topic','topics'],['section','sections']])for(const row of r.raw.rows[name]){
+  if(++owners>128)fail('BNS_HUMAN_SEARCH_UNPROVEN');projectionPendingOwner(row,kind,true);
+  const task=planSearchQueueLocator(kind,row);
+  for(const [field,text]of Object.entries(searchOwnerFields(kind,row))){
+   if(typeof text!=='string')fail('BNS_HUMAN_SEARCH_UNPROVEN');let decomposed=0;for(const scalar of text)decomposed+=scalar.normalize('NFKD').length;
+   const units=3*decomposed,posting=projectionRowMeasure(r,planSearchPostingRow(task,{field,tokenHash:'ffffffff'},row));
+   // At most one token per normalized unit. Pay complete flatMap descriptors,
+   // PostingRows/IDs and canonical/sort operands, including a missing actual
+   // posting counterexample; actual row count cannot bound expected output.
+   expected+=units*(2*projectionTreeCharge(posting)+2*projectionCanonicalCharge(posting)+256);
+   // Original normalize/lowercase, regexp word strings+headers, mapped hash
+   // strings, dedup Set, sorted token/reference arrays and one field frame.
+   tokenPeak=Math.max(tokenPeak,units*1024+4096);
+  }
+ }
+ const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0,rebuildPeak=0;
+ // Price only the actual canonical operands consumed by this Search phase.
+ // Complete restored-control metadata remains owned and is independently
+ // priced by the later complete body/metadata consumers.
+ // Rebuild/root/topic metadata is compared BEFORE the later body consumer.
+ // Price actual corrupt operands here too; its small expected shape cannot
+ // prepay a large actual canonical/JSON comparison tree on this phase.
+ for(const row of r.raw.rows.meta)if(row.id==='library-search-rebuild'||row.id.startsWith('thought-read-index:')){
+  const charge=projectionCanonicalCharge(projectionRowMeasure(r,row));metaPeak=Math.max(metaPeak,charge);if(row.id==='library-search-rebuild')rebuildPeak=charge;
+ }
+ const frame=4096*128+192*1024;
+ // The original query descriptors/comparisons finish and their Maps clear
+ // before the original Search tokenizer/posting constructors run. Keep every
+ // actual R/Plan/Scope/private tree owned across both sequential phases.
+ return {query:3*projectionTreeCharge(query)+4*metaPeak+frame,search:expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*rebuildPeak+frame};
+}
+function mixedCurrentSemanticScratch(r){
+ // Meter before original descriptor constructors. Actual IDs/source lineage
+ // have already passed the original canonical bodies and finite128 owners.
+ // No whole Plan is cloned by these pure flush decisions: price every actual
+ // descriptor/signature builder, including unchanged historical rehash inputs.
+ projectionReserve(r,128*1024);let trees=0,peak=0;
+ const add=(name,row)=>{const descriptor=deltaDescription(name,row);if(!descriptor)return;const measured=projectionRowMeasure(r,descriptor);trees+=projectionTreeCharge(measured);peak=Math.max(peak,projectionCanonicalCharge(measured));};
+ for(const group of r.group.plan.groups){
+  if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value;if(type==='inputState')add('inputStates',entity);else if(['baselineRevision','revision'].includes(type))add('revisions',entity);}
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){if(member.value.entityType==='history'){add('revisions',member.value.before);add('revisions',member.value.after);}}
+  else if(['contextItem','contextRulesItem','contextNowItem'].includes(group.type))add('context_item',group.operations[0].value);
+ }
+ return 8*trees+4*peak+128*1024;
+}
+// Consuming readonly prerequisite: the fixed original native reader checks the
+// complete v5 index inventory on the existing live work ticket and drains it.
+// No raw rows, retained cap, Scope, encoder or export admission is returned.
+export async function inspectMixedCurrentNativeIndexClosure(store,core){
+ if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,'mixed-index-inspection');
+}
+// Original native-cut/compiler handshake prerequisite only. It is deliberately
+// separate from encoder admission: complete canonical/meta/query qualification
+// and independent full tariffs remain unfinished, so no cap is ever returned.
+export async function inspectMixedCurrentNativeScopeCompilation(store,core){
+ if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,'mixed');
+}
+// The finite no-alias handshake must cover every identity actually consumed
+// by the original keyed compiler, including both Topic history snapshots.
+// This assertion creates no Scope, native authority or export capability.
+export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
+ if(arguments.length!==2)projectionRequired();requireOriginalCurrentMixedGroupPlan(core,plan);
+ const topic=row=>{if(row?.identity?.aliases?.length)projectionRequired();};
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
+  if(!['topic','entry','section','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
+  for(const op of group.prepared.members){
+   if(op.value.entityType==='topic'){topic(op.value.before);topic(op.value.after);}
+   else if(op.value.entityType==='history')for(const row of [op.value.before,op.value.after])if(row?.kind==='topic'){topic(row.before);topic(row.after);}
+  }
+ }
+}
+async function projectionCompileInitialMixedScope(r){
+ if(!r.mixedCompilationInspection||!r.nativeDrained||r.binding.fixedNamespace!==null)projectionRequired();
+ const restored=r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active');if(!restored&&r.raw.namespace!=='initial')projectionRequired();
+ const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
+ for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix)){
+  if(row.redacted!==false||!row.operation||++number>128)projectionRequired();const m=projectionMeasure(row.operation,'native');for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;
+ }
+ if(!number)projectionRequired();
+ const compilerScratch=5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024;
+ projectionReserve(r,compilerScratch);const operations=[];for(const row of r.raw.groupMeta)if(row.id.startsWith(prefix))operations.push(row.operation);
+ const plan=await prepareCurrentMixedGroupCheckpointPlan(r.core,operations);projectionCurrent(r);requireOriginalCurrentMixedGroupPlan(r.core,plan);
+ // This first consuming handshake accepts only original creation/placement
+ // kinds, with no rename aliases/index-generation work. Later profiles owe
+ // their own keyed-alias and restored-prefix scratch; never silently fall back.
+ assertOriginalInitialMixedScopeCompilationProfile(r.core,plan);
+ const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};let wireCount=0,humanCount=0;
+ let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
+ // The compiler has returned. Transfer its complete surviving Plan/private
+ // Source before any later meter resizes this same live ticket.
+ const repeated=measureOriginalMixedRepeatedPreparedOperations(r.core,plan),repeatedCharge=2*repeated.T+128*repeated.V+8*repeated.E;
+ r.owned+=projectionTreeCharge(m)-repeatedCharge+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
+ // Scope clones original typed domain members/manual values, not complete
+ // operation envelopes/parents or descriptor vectors. Those remain held in
+ // the independently owned COMPLETE Plan. Price every domain input, including
+ // overwritten histories and both nested sides, without allocating a DTO.
+ const addWire=(value,human=false)=>{const measured=projectionRowMeasure(r,value);if(wireCount++)wire.B++;for(const key of ['B','T','V','E'])wire[key]+=measured[key];wire.E++;if(human){if(humanCount++)humanWire.B++;for(const key of ['B','T','V','E'])humanWire[key]+=measured[key];humanWire.E++;}};
+ for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else addWire(group.operations[0].value);}
+ // Original wire Maps/generated library/expected/normalized/family digest
+ // have returned before keyed Human construction starts. Reserve their peak,
+ // not their complete finished scratch PLUS the later transformation frame.
+ // The keyed phase independently pays surviving Scope (including the second
+ // Human-history role), original humanWire, keyed/normalized/nested copies,
+ // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
+ // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
+ const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees+4*wireMeter.peak+8*wire.B+256*1024;
+ // The keyed phase has its own original-owner entry after the wire builder
+ // returns; its actual surviving objects are charged there before crypto.
+ // The restored prefix compiler/control check runs after wire construction
+ // returns. Its surviving private prefix and allocation cells remain live
+ // through the subsequent keyed phase; the complete current Plan never leaves.
+ const scopeScratch=wireScratch;
+
+ // The fixed compiler has actually returned and all validator/hash awaits
+ // settled. Transfer its surviving Plan/private Source trees, then release
+ // only its finished scratch; the original work ticket remains continuously live.
+ projectionReserve(r);
+ // These are conservative finite logical phase slots, not a full heap/tariff
+ // qualification. Keep the original limit and all incomplete export flags.
+ projectionReserve(r,scopeScratch);r.group={...r.group,plan};r.phase='mixed-scope-preparing';
+ const scope=await currentGroupOwner.prepareGroupScope(plan,{store:r.store,nativeMixedCompilation:r.nonce});projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(r.core,scope,plan);
+ const hidden=currentHumanOwner.measureOriginalMixedHumanScopeExpectation(scope,r.store,r.nonce);
+ // Scope construction and its sequential keyed operands have returned. The
+ // same live ticket now owns their actual surviving trees, not both those
+ // trees and a second copy of the already unwound construction scratch.
+ r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
+ projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
+ const searchScratch=mixedCurrentSearchScratch(r);r.semantic=searchScratch.query;r.mixedSearchScratch=searchScratch.search;projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
+ const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
+ // Only new owner-key Map/Set cells survive search construction. Their rows
+ // borrow the original R and are already owned; no private source is refunded.
+ r.mixedSearchOwned=searchCounts.owners*4096+1024;r.owned+=r.mixedSearchOwned;projectionReserve(r);
+ // Pay the actual body comparison independently after construction unwinds.
+ // Raw/Plan/Scope/keyed expectations remain owned. Originals compare Human
+ // tables sequentially; the outer comparison holds its cloned domain rows and
+ // a cloned expected family. Metadata maps/receipt/allocation vectors have a
+ // separate fixed4096/128 frame, never refunded native or compiler trees.
+ let domainTree=0,operandPeak=0;
+ for(const name of ['records','times','blocks','inputStates','documents','libraryDocuments','revisions','filterIntents','thoughts','topics','sections','placements','thoughtSuppressions','operationReceipts']){
+  const measured=projectionRowMeasure(r,r.raw.rows[name]);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));
+ }
+ for(const id of ['context-cards:v1','prompt-reuse:v1']){const row=r.raw.rows.meta.find(row=>row.id===id);if(row){const measured=projectionRowMeasure(r,row);domainTree+=projectionTreeCharge(measured);operandPeak=Math.max(operandPeak,projectionCanonicalCharge(measured));}}
+ // Corrupt metadata operands are independent of the small authentic expected
+ // body: names/pairs compare whole prefix arrays; counter/mapping/receipt
+ // checks compare actual rows individually. Pay each real operand's peak.
+ let metaPeak=0;
+ for(const row of r.raw.rows.meta)metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ for(const prefix of ['personalTopicName:','topicKeepSeparate:']){
+  const total={B:2,T:0,V:1,E:0};let number=0;
+  for(const row of r.raw.rows.meta)if(row.id.startsWith(prefix)){const measured=projectionRowMeasure(r,row);if(number++)total.B++;for(const key of ['B','T','V','E'])total[key]+=measured[key];total.E++;}
+  metaPeak=Math.max(metaPeak,projectionCanonicalCharge(total));
+ }
+ const expectedBody=currentGroupOwner.measureOriginalMixedCanonicalComparisonExpected(r.core,r.store,scope,plan,r.raw,r.nonce),bodyScratch=3*domainTree+3*projectionTreeCharge(expectedBody)+4*Math.max(operandPeak,metaPeak,projectionCanonicalCharge(expectedBody))+4096*128+192*1024;
+ projectionReserve(r,bodyScratch);currentGroupOwner.assertOriginalCurrentMixedNativeBodies(r.core,r.store,scope,plan,r.raw,r.controlValues,r.nonce,r.mixedSearchProof);projectionCurrent(r);projectionFence(r);r.mixedBodiesConsumed=true;projectionReserve(r);
+ // Full Plan and complete actual metadata operands remain independently owned.
+ // Original protocol/AIU builders hold small borrowed maps and newly produced
+ // descriptor/signature rows, with one complete actual-row comparison at a time.
+ // The original manual snapshot/transition helper returns before the original
+ // semantic chronology constructs its descriptor/signature/known/dirty maps.
+ // Pay their sequential peak while both full metadata maps, used-ID cells and
+ // all owned raw/Plan/Scope/private trees stay live throughout this function.
+ // The exact completed control already passed the original restored body
+ // proof's whole-row comparison above. Protocol metadata marks precisely that
+ // authenticated ID used and never canonicalizes it a second time. Retain its
+ // complete raw/private trees and the prior body peak; unknown rows still pay.
+ requireOriginalMixedNativeBodiesConsumed(r.nonce,r.store,r.core,scope,plan,r.raw,r.controlValues);
+ const completedId=restored?currentGroupOwner.originalMixedRestoredMetadataReplay(r.core,scope,plan).completedId:null;let metadataPeak=0;
+ for(const row of r.raw.rows.meta)if(row.id!==completedId)metadataPeak=Math.max(metadataPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
+ const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw,true))+4*metadataPeak+4096*256+256*1024;
+ projectionReserve(r,metadataScratch);(restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
+ return Object.freeze({version:1,state:restored?'RESTORED_NATIVE_SCOPE_COMPILATION_ONLY':'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:!restored,completeRestoredMetadataQualified:restored,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
+}
+
+async function captureCurrentProjection(store,core,group,sourceWorking=false,mixedExport=false){
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME);
  let r,cap,ticket,primary,failed=false;
  try{
@@ -1314,8 +1643,8 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
   await Promise.resolve();const storeAssert=requireOriginalLibraryDocumentsStore;storeAssert(store);const binding=sourceWorking?requireSourceWorkingStoreBinding(store,core):branchReady(store,core);
   if(typeof binding.datasetId!=='string'||typeof binding.deviceId!=='string'||typeof binding.prefix!=='string'||binding.fixedNamespace!==null&&(typeof binding.fixedNamespace!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.fixedNamespace)))projectionRequired();
   if(binding.prefix!=='bns:v1:'+binding.datasetId+':'||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.datasetId)||!/^[A-Za-z0-9_-]{8,128}$/.test(binding.deviceId))projectionRequired();
-  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],group:null,sourceWorking};
-  if(sourceWorking){r.fixedScratch=4096*16+192*1024;r.group={stores:sourceWorkingCurrentStores()};projectionReserve(r);}
+  r={work,owned:0,store,storeAssert,core,binding,tail:store.tail,control:store.controlCache,controlValues:null,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],group:null,sourceWorking,mixedIndexInspection:sourceWorking==='mixed-index-inspection'||sourceWorking==='mixed',mixedCompilationInspection:sourceWorking==='mixed'};
+  if(sourceWorking){r.fixedScratch=4096*16+192*1024+(r.mixedIndexInspection?64*1024:0);projectionReserve(r);r.group={stores:sourceWorkingCurrentStores()};}
   if(group){
    await Promise.resolve();const owner=currentGroupOwner;owner.requireOriginalCurrentGroupScope(core,group.scope,group.plan);
    await Promise.resolve();const human=currentHumanOwner;
@@ -1330,9 +1659,18 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
    projectionReserve(r);r.group={...group,databaseId:store.databaseId,emptyStores:owner.currentHumanGroupEmptyStores,stores:owner.currentHumanGroupStores};
   }
   const m=projectionRowMeasure(r,r.control);r.owned+=projectionTreeCharge(m);projectionReserve(r);r.controlValues=clone(r.control);projectionDeepFreeze(r.controlValues);
-  await r.tail;projectionFence(r);r.raw=sourceWorking?projectionSourceWorkingRaw():projectionRaw();if(r.group&&!sourceWorking)r.raw.groupMeta=[];currentProjectionWorks.set(r.nonce,r);
+  await r.tail;projectionFence(r);r.raw=sourceWorking?projectionSourceWorkingRaw(r.mixedIndexInspection):projectionRaw();if(r.group&&!sourceWorking)r.raw.groupMeta=[];currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(core,r.nonce);projectionCurrent(r);
-  if(r.phase!=='observed')projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);if(sourceWorking)await projectionCompileSourceWorking(r);else projectionQualify(r);projectionReserve(r);
+  if(r.phase!=='observed')projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);
+  if(r.mixedIndexInspection){
+   if(!r.nativeDrained||r.listenersCleared===false)projectionRequired();projectionSourceWorkingIndexViews(r);projectionFence(r);projectionReserve(r);
+   if(r.mixedCompilationInspection){const findings=await projectionCompileInitialMixedScope(r);if(!mixedExport)return findings;}
+   else{let indices=0,indexEntries=0,primaryRows=0;for(const name of r.group.stores){primaryRows+=r.raw.rows[name].length;for(const index of Object.keys(projectionIndexSchema(r)[name])){indices++;indexEntries+=r.raw.indices[name][index].length;}}
+   // Only fixed numeric findings leave the original cut; it is dropped in the
+   // same finally after genuine native terminal/unwind/listener cleanup.
+   return Object.freeze({version:1,state:'INDEX_INVENTORY_ONLY',stores:r.group.stores.length,indices,indexEntries,primaryRows,nativeDrained:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false});}
+  }
+  if(!mixedExport){if(sourceWorking)await projectionCompileSourceWorking(r);else projectionQualify(r);}projectionReserve(r);
   if(r.group&&!sourceWorking){
    await Promise.resolve();const owner=currentGroupOwner;await Promise.resolve();const human=currentHumanOwner;
    let rowPeak=0;for(const row of r.raw.groupMeta)rowPeak=Math.max(rowPeak,2*projectionCanonicalCharge(projectionMeasure(row,'native')));
@@ -1355,8 +1693,12 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
   // Admission must also be readable by the exact original whole-cut equality
   // used at require. Meter and prepay both real canonical operands first.
   if(!(sourceWorking?projectionGroupCutEqual(r,r.raw,r.raw):projectionEqual(r,r.raw,r.raw)))projectionRequired();projectionFence(r);
+  // These consumed query/Search capabilities belong only to the current
+  // compiler, never to the retained encoder/recheck cap. End their actual
+  // lifetime before transferring that cap; complete native Search rows stay.
+  if(mixedExport){releaseOriginalMixedNativeSearch(r.mixedSearchProof);r.mixedSearchProof=null;r.mixedQueryMetaIds=null;r.mixedSearchQueue=null;r.owned-=r.mixedSearchOwned;r.mixedSearchOwned=0;projectionReserve(r);}
   if(PROJECTION_FRAME+r.owned>4*1024*1024)fail('BNS_HUMAN_GRAPH_LIMIT');ticket=retainHumanQualificationLease(work,PROJECTION_FRAME+r.owned);
-  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking};
+  cap=Object.freeze({});const p={store,storeAssert,core,binding,tail:r.tail,control:r.control,controlValues:r.controlValues,raw:r.raw,ticket,frames:0,revoked:false,released:false,group:r.group,sourceWorking,mixedIndexInspection:r.mixedIndexInspection};
   currentProjectionCaps.set(cap,p);r.raw=null;r.controlValues=null;return cap;
  }catch(error){primary=error;failed=true;throw projectionFailure(primary,r?.cleanupErrors??[]);}
  finally{
@@ -1370,10 +1712,15 @@ async function captureCurrentProjection(store,core,group,sourceWorking=false){
 // for every Source/Working cut. The retained original Plan/Scope never escapes.
 // This work remains charged until genuine native unwind/dispatch-end/cleanup.
 export async function requireSourceWorkingCurrentGroupProjection(cap){
- if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
+ if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.sourceWorking!==true||p.revoked||p.released)projectionRequired();return requireCurrentNativeGroupProjection(cap,p);
+}
+export async function requireMixedCurrentGroupProjection(cap){
+ if(arguments.length!==1)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.sourceWorking!=='mixed'||p.revoked||p.released)projectionRequired();currentGroupOwner.requireOriginalCurrentMixedGroupScope(p.core,p.group.scope,p.group.plan);return requireCurrentNativeGroupProjection(cap,p);
+}
+async function requireCurrentNativeGroupProjection(cap,p){
  const work=beginHumanQualificationWork('projection',PROJECTION_FRAME),r={...p,work,owned:0,retainedParent:p,raw:null,scope:null,identity:null,nonce:Object.freeze({}),phase:'opening',closed:false,revoked:false,cleanupErrors:[],fixedScratch:4096*16+192*1024};p.frames++;
  try{
-  if('value'in Object.prototype)projectionRequired();projectionReserve(r);projectionFence(r);r.raw=projectionSourceWorkingRaw();currentProjectionWorks.set(r.nonce,r);
+  if('value'in Object.prototype)projectionRequired();projectionReserve(r);projectionFence(r);r.raw=projectionSourceWorkingRaw(p.mixedIndexInspection);currentProjectionWorks.set(r.nonce,r);
   await openHumanProjectionNativeRead(p.core,r.nonce);projectionCurrent(r);
   if(r.phase!=='observed'||!r.nativeDrained)projectionRequired();projectionRowMeasure(r,r.raw);projectionDeepFreeze(r.raw);
   if(!projectionGroupCutEqual(r,r.raw,p.raw))fail('BNS_HUMAN_CHANGED');projectionFence(r);return true;
@@ -1393,6 +1740,12 @@ export async function encodeSourceWorkingCurrentGroupCheckpoint(cap,transport,op
  if(arguments.length!==3)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
  currentGroupOwner.requireOriginalCurrentSourceWorkingGroupScope(p.core,p.group.scope,p.group.plan);
  return encodeHumanCurrentGroupCheckpoint(cap,p.group.scope,p.group.plan,transport,options);
+}
+export async function encodeMixedCurrentGroupCheckpoint(cap,transport,options){
+ if(arguments.length!==3)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.sourceWorking!=='mixed'||p.revoked||p.released)projectionRequired();currentGroupOwner.requireOriginalCurrentMixedGroupScope(p.core,p.group.scope,p.group.plan);return encodeHumanCurrentGroupCheckpoint(cap,p.group.scope,p.group.plan,transport,options);
+}
+export async function publishMixedCurrentGroupCheckpoint(cap,checkpoint,transport,options){
+ if(arguments.length!==4)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||p.sourceWorking!=='mixed'||p.revoked||p.released)projectionRequired();currentGroupOwner.requireOriginalCurrentMixedGroupScope(p.core,p.group.scope,p.group.plan);return publishHumanCurrentGroupCheckpoint(cap,p.group.scope,p.group.plan,checkpoint,transport,options);
 }
 export async function publishSourceWorkingCurrentGroupCheckpoint(cap,checkpoint,transport,options){
  if(arguments.length!==4)projectionRequired();const p=currentProjectionCaps.get(cap);if(!p||!p.sourceWorking||p.revoked||p.released)projectionRequired();
@@ -1431,7 +1784,15 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   if('value'in Object.prototype)projectionRequired();projectionFence(r);
   await Promise.resolve();const {SEGMENT_PROFILE}=currentSegmentOwner;await Promise.resolve();const owner=currentCheckpointOwner;
   if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if(options.profile!==SEGMENT_PROFILE)fail('BNS_GROUP_RESOURCE_LIMIT');
-  const m=projectionMeasure(p.raw.groupMeta,'native'),items=plan.operationCount+plan.heads.length+plan.operationCount;
+  let m=projectionMeasure(p.raw.groupMeta,'native');const items=plan.operationCount+plan.heads.length+plan.operationCount;
+  const prefix=protocolPhysicalId(p.binding.prefix,p.raw.namespace,'',[]).slice(0,-1);
+  if(p.sourceWorking==='mixed'){
+   // The original encoder consumes only these three exact protocol streams.
+   // Full local metadata remains retained; price actual outgoing row operands
+   // instead of inventing a second serialization of local AIU/query metadata.
+   m={B:2,T:0,V:1,E:0};let number=0;
+   for(const row of p.raw.groupMeta)if(['revision','head','frontier'].some(kind=>row.id.startsWith(prefix+kind+':'))){const measured=projectionMeasure(row,'native');if(number++)m.B++;for(const key of ['B','T','V','E'])m[key]+=measured[key];m.E++;}
+  }
   const wire=m.B+128*items+2*p.binding.datasetId.length+4096,refs=items+Math.ceil(wire/SEGMENT_PROFILE.chunk)+6;
   // Exact source-bound slot families: canonical tree and key-sort vectors,
   // item JSON/UTF8, decoded-chain/concat/chain UTF8, shard JSON/UTF8, immutable
@@ -1440,14 +1801,13 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   // Twelve wire-sized byte/string slots bound their overlapping original owner
   // buffers. This is a logical tariff, not a browser/native-heap theorem.
   const scratch=projectionTreeCharge(m)+16*m.E+12*wire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
-  const prefix=protocolPhysicalId(p.binding.prefix,p.raw.namespace,'',[]).slice(0,-1);
   async function* rows(kind){
    for(const row of p.raw.groupMeta)if(row.id.startsWith(prefix+kind+':')){
     if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionReserve(r);
     yield row;
    }
   }
-  const cut={namespace:p.raw.namespace,generation:p.raw.points[protocolPhysicalId(p.binding.prefix,p.raw.namespace,'generation',[])]?.value||0,ownerGeneration:p.raw.groupMeta.find(row=>row.id==='backup-data-generation')?.value||0,fence:{epoch:p.raw.points['recovery-restore-epoch']?.value??null,namespace:p.raw.namespace,marker:p.raw.groupMeta.some(row=>row.id===protocolPhysicalId(p.binding.prefix,p.raw.namespace,'ownerRecoveryEpoch',[]))},settings:clone(p.controlValues.settings)};
+  const generationId=protocolPhysicalId(p.binding.prefix,p.raw.namespace,'generation',[]),cut={namespace:p.raw.namespace,generation:(p.sourceWorking==='mixed'?p.raw.groupMeta.find(row=>row.id===generationId):p.raw.points[generationId])?.value||0,ownerGeneration:p.raw.groupMeta.find(row=>row.id==='backup-data-generation')?.value||0,fence:{epoch:p.raw.points['recovery-restore-epoch']?.value??null,namespace:p.raw.namespace,marker:p.raw.groupMeta.some(row=>row.id===protocolPhysicalId(p.binding.prefix,p.raw.namespace,'ownerRecoveryEpoch',[]))},settings:clone(p.controlValues.settings)};
   const result=await owner.encodeOriginalCheckpoint(p.binding.datasetId,projectionBoundedTransport(transport,SEGMENT_PROFILE),{profile:SEGMENT_PROFILE,parents:options.parents,cut,rows,verifyCut:async()=>{if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionReserve(r);}});
   if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionDeepFreeze(result);p.encoderResult=result;return result;
  }finally{r.raw=null;r.group=null;r.control=null;r.controlValues=null;releaseHumanQualificationLease(work);p.frames--;if(p.revoked)projectionRevoke(p);}

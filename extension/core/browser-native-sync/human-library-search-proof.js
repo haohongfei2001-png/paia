@@ -1,7 +1,8 @@
 import {ownerVersion,planSearchQueueLocator,planSearchPostings,planSearchPostingRow} from '../library-search.js';
-import {humanSearchPlanWitness,branchRawMeasure} from './human-library-plan.js';
+import {humanSearchPlanWitness,branchRawMeasure,requireOriginalMixedNativeCanonicalCut,requireOriginalMixedNativeSearchInputs} from './human-library-plan.js';
 import {bytes,clone,equal,fail} from './value.js';
 const proofs=new WeakMap();
+const mixedProofs=new WeakMap();
 const kinds={entry:'thoughts',topic:'topics',section:'sections'};
 const limits={thoughts:128,topics:128,sections:128,revisions:128,libraryMigrationItems:128,librarySearchTerms:32768};
 const sort=rows=>[...rows].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
@@ -43,6 +44,33 @@ function qualify(raw){
  }
  return {owners,completed};
 }
+// Same original search semantics on a borrowed authenticated native cut. The
+// original query owner must first exactly consume every non-search migration
+// row. Neither arbitrary subsets nor another captured repository are accepted.
+export function prepareOriginalMixedNativeSearch(nonce,store,core,scope,plan,raw,queue){
+ if(arguments.length!==7)fail('BNS_HUMAN_SEARCH_PROOF_REQUIRED');requireOriginalMixedNativeSearchInputs(nonce,store,core,scope,plan,raw,queue);
+ const search={rows:{thoughts:raw.rows.thoughts,topics:raw.rows.topics,sections:raw.rows.sections,revisions:raw.rows.revisions,libraryMigrationItems:queue,librarySearchTerms:raw.rows.librarySearchTerms},rebuild:raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null},verified=qualify(search);
+ // Pending owners still owe their exact original locator. The old standalone
+ // qualifier's permissive absent-task state is not native completion proof.
+ if(queue.length!==verified.owners.size-verified.completed.size)fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ const cap=Object.freeze({});mixedProofs.set(cap,{nonce,store,core,scope,plan,raw,...verified});return cap;
+}
+function mixedProof(cap){const p=mixedProofs.get(cap);if(!p)fail('BNS_HUMAN_SEARCH_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(p.nonce,p.store,p.core,p.scope,p.plan,p.raw);return p;}
+export function originalMixedNativeSearchCounts(cap){const p=mixedProof(cap);return Object.freeze({owners:p.owners.size,completed:p.completed.size});}
+export function projectOriginalMixedNativeSearchRow(cap,type,row){
+ const p=mixedProof(cap),out=clone(row);
+ if(Object.hasOwn(kinds,type)){
+  const id=key(type,row.id);if(p.owners.get(id)!==row)fail('BNS_HUMAN_SEARCH_PROOF_REQUIRED');
+  if(Object.hasOwn(out,'indexedSearchVersion')){if(!p.completed.has(id)||out.indexedSearchVersion!==ownerVersion(type,row))fail('BNS_HUMAN_SEARCH_UNPROVEN');delete out.indexedSearchVersion;}
+ }else if(type==='history'){
+  if(!p.raw.rows.revisions.includes(row))fail('BNS_HUMAN_SEARCH_PROOF_REQUIRED');
+  // This finite creation profile has no named historical indexed-phase grant.
+  // In particular, a current Topic's tag cannot authorize its old baseline.
+  if(Object.hasOwn(out,'indexedSearchVersion')||out.kind==='topic'&&['before','after'].some(side=>out[side]&&Object.hasOwn(out[side],'indexedSearchVersion')))fail('BNS_HUMAN_SEARCH_UNPROVEN');
+ }
+ return out;
+}
+export function releaseOriginalMixedNativeSearch(cap){const p=mixedProofs.get(cap);if(!p)fail('BNS_HUMAN_SEARCH_PROOF_REQUIRED');p.owners.clear();p.completed.clear();mixedProofs.delete(cap);}
 const pendingDescriptor=Object.getOwnPropertyDescriptor,pendingOwn=Object.hasOwn;
 function pendingDataField(value,key,required=false,code='BNS_HUMAN_SEARCH_UNPROVEN'){
  const d=pendingDescriptor(value,key);

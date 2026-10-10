@@ -17,6 +17,9 @@ on:
       - 'extension/background/assist-reply-lease.js'
       - 'extension/content/assist-result.js'
       - 'extension/core/ai-usage/local-assist-session.js'
+      # Canonical recovery and its shared semantic owner consume Prompt work.
+      - 'extension/core/browser-native-sync/**'
+      - 'extension/core/ai-usage/delta.js'
       - '.github/workflows/paia-prompt-reuse.yml'
 permissions:
   contents: read

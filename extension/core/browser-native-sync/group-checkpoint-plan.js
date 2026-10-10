@@ -1,4 +1,5 @@
-import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,requireOriginalSourceWorkingCore} from './core.js';
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
@@ -7,7 +8,7 @@ const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBoo
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
 const singles=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
-const originalPlans=new WeakMap();
+const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
 // old validators but cannot authenticate a native current-generation export.
 export function requireOriginalGroupCheckpointPlan(core,plan){
@@ -18,6 +19,19 @@ export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
  requireOriginalSourceWorkingCore(core);
  requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+// Distinct constructor identity for the consuming mixed recovery batch. It
+// preserves the old one-Source selection rather than broadening that proof.
+export function requireOriginalCurrentMixedGroupPlan(core,plan){
+ requireOriginalSourceWorkingCore(core);requireOriginalGroupCheckpointPlan(core,plan);
+ if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!=='mixed')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+// Body-free original constructor identity for its consuming Scope. Returning
+// an already public Core creates no native read, writer or export authority.
+export function originalCurrentMixedGroupCore(plan){
+ if(arguments.length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const p=originalPlans.get(plan);if(!p||p.currentSourceWorking!=='mixed')return null;
+ requireOriginalCurrentMixedGroupPlan(p.core,plan);return p.core;
 }
 // Restrict this current-native slice before the general Scope owner allocates
 // its complete tables or digests families. The general fixed compiler remains
@@ -35,12 +49,15 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace,currentSourceWorking};
  if(!Array.isArray(input)||input.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
  let size=0;const operations=[],byRevision=new Map(),byId=new Map(),sequences=new Set();
+ // Recheck each iteration: validation awaits must not let a growing vector
+ // bypass the original 128-operation bound checked at entry.
  for(const candidate of input){
-  size+=bytes(candidate).length;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
-  const op=await validateOperation(candidate);
+  if(operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
+  const operationBytes=bytes(candidate).length;size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
+  const op=await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
   if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
-  if(currentSourceWorking&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const sequence=JSON.stringify([op.deviceId,op.sequence]);
   if(byRevision.has(op.revisionId)||byId.has(op.operationId)||sequences.has(sequence))fail('BNS_GROUP_DUPLICATE');
@@ -56,7 +73,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   if(Object.hasOwn(families,op.type)){
    const [refs,prepare]=families[op.type];rows=[];
    for(const ref of op.value[refs]){const row=byRevision.get(ref.revisionId);if(!row||row.type!==ref.type||row.entityId!==ref.entityId)fail('BNS_GROUP_INCOMPLETE');rows.push(row);}
-   rows.push(op);prepared=op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):currentSourceWorking?await prepareOriginalSourceWorkingReceive(core,op.type,rows):await core[prepare](rows);
+   rows.push(op);prepared=currentSourceWorking==='mixed'?await prepareOriginalCurrentMixedGroupReceive(core,op.type,rows):op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):currentSourceWorking?await prepareOriginalSourceWorkingReceive(core,op.type,rows):await core[prepare](rows);
    const entities=Object.fromEntries(prepared.members.map(row=>[row.value.entityType,row.value.entity]));
    if(op.type==='sourceBootstrapCommit')capability=await prepareInitialSourcePlan(entities);
    if(op.type==='sourceAppendCommit')capability=await prepareSourceAppendPlan(entities,op.value.documentId);
@@ -66,6 +83,10 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   groups.push(group);
  }
  if(claimed.size!==operations.length)fail('BNS_GROUP_INCOMPLETE');
+ return finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);
+}
+async function finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads){
+ const currentSourceWorking=binding.currentSourceWorking;
  const createdInputs=new Map(),createdSources=new Map();
  for(const group of groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit'){
   for(const op of group.prepared.members){const entity=op.value.entity;if(op.value.entityType==='input'){if(createdInputs.has(entity.id))fail('BNS_GROUP_SOURCE_COLLISION');createdInputs.set(entity.id,group);}if(op.value.entityType==='source'){if(createdSources.has(entity.sourceKey))fail('BNS_GROUP_SOURCE_COLLISION');createdSources.set(entity.sourceKey,group);}}
@@ -101,4 +122,51 @@ export async function prepareGroupCheckpointPlan(core,input){return prepareGroup
 export async function prepareCurrentSourceWorkingGroupCheckpointPlan(core,input){
  if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalSourceWorkingCore(core);
  return prepareGroupCheckpointPlanInternal(core,input,true);
+}
+
+// Pure fixed-original compilation only; the native owner must still bind and
+// qualify the complete physical cut before the mixed exporter can consume it.
+export async function prepareCurrentMixedGroupCheckpointPlan(core,input){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalSourceWorkingCore(core);
+ return prepareGroupCheckpointPlanInternal(core,input,'mixed');
+}
+
+// Original closed graph construction from already admitted immutable domain
+// groups. No validator/Source private payload is cloned again. Dependencies,
+// heads and digest are rebuilt by the SAME original causal graph owner;
+// filtering the current dependency vectors or final heads would be incorrect.
+export async function prepareOriginalCurrentMixedForeignPrefix(core,complete){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);if(originalPlans.get(complete).borrowedFrom)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const binding={...originalPlans.get(complete),borrowedFrom:complete},groups=[],operations=[],byRevision=new Map(),claimed=new Map();let size=0;
+ for(const original of complete.groups){
+  const ours=original.operations.filter(op=>op.deviceId===core.deviceId).length;if(ours&&ours!==original.operations.length)fail('BNS_GROUP_CAUSAL_GAP');if(ours)continue;
+  const group={id:original.id,type:original.type,operations:original.operations,prepared:original.prepared,capability:original.capability,dependencies:new Set()};groups.push(group);
+  for(const op of group.operations){const length=originalOperationSizes.get(op);if(!Number.isSafeInteger(length)||length<1||byRevision.has(op.revisionId))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');size+=length;operations.push(op);byRevision.set(op.revisionId,op);claimed.set(op.revisionId,group);}
+ }
+ if(!groups.length||operations.length>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
+ const heads=new Map(),parents=new Set(operations.flatMap(op=>op.parents));for(const op of operations){const key=JSON.stringify([op.type,op.entityId]);if(!heads.has(key))heads.set(key,[]);if(!parents.has(op.revisionId))heads.get(key).push(op.revisionId);}
+ for(const revisions of heads.values())if(revisions.length!==1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+ const prefix=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requireOriginalCurrentMixedGroupPlan(core,complete);return prefix;
+}
+export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
+ requireOriginalCurrentMixedGroupPlan(core,complete);requireOriginalCurrentMixedGroupPlan(core,prefix);if(originalPlans.get(prefix).borrowedFrom!==complete)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const total=measureSourceWorkingPhysicalTree(prefix.heads);for(const group of prefix.groups){const m=measureSourceWorkingPhysicalTree({id:group.id,type:group.type,dependencies:group.dependencies});for(const key of ['B','T','V','E'])total[key]+=m[key];}
+ total.V+=prefix.groups.length*4+16;total.E+=prefix.groups.length*8+32;total.T+=prefix.digest.length;return Object.freeze(total);
+}
+
+// Logical canonical Plan metering still traverses every encoded view. Actual
+// retained ownership counts the already identical Human prepared operation
+// objects once; their extra array/reference cells remain in the full meter.
+// All independent group-operation clones and private Source bodies stay owned.
+export function measureOriginalMixedRepeatedPreparedOperations(core,plan){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
+ const total={B:0,T:0,V:0,E:0};
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
+  const p=group.prepared;if(!Array.isArray(p.operations)||p.operations.length!==p.members.length+1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+  const seen=new Set();for(const op of p.operations){
+   if(seen.has(op)||op!==p.descriptor&&!p.members.includes(op))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');seen.add(op);
+   const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];
+  }
+ }
+ return Object.freeze(total);
 }

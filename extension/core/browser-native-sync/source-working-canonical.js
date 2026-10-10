@@ -1,10 +1,9 @@
+import {checkCurrentGroupProtocolRows} from './current-group-protocol-rows.js';
 import {STORES,FILTER_STORES,IA_STORES} from '../idb-repository.js';
 import {LIBRARY_STORES} from '../thought-schema.js';
 import {requireOriginalCurrentSourceWorkingGroupScope} from './group-checkpoint-scope.js';
 import {assertSourceWorkingDerivedRows,assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
-import {protocolPhysicalId} from './physical-key.js';
-import {acceptSequence} from './core.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {equal,exact,hash,count,opaque,fail} from './value.js';
@@ -59,20 +58,7 @@ function qualifyRows(core,scope,plan,rows,{namespace,epoch,restored,activeId,com
  sameRows(rows.blocks,expected.blocks.map(value=>({id:value.id,value})));
  sameRows(rows.libraryDocuments,expected.libraryDocuments.map(value=>({id:value.id,value})));
  sameRows(rows.times,expected.times);sameRows(rows.filterIntents,expected.filterIntents);
- const meta=new Map(rows.meta.map(row=>[row.id,row]));if(meta.size!==rows.meta.length||core.fixedNamespace!==null||!restored&&(meta.has(core.prefix+'active')||meta.has('recovery-restore-epoch')))unrepresented();
- const key=(kind,...parts)=>protocolPhysicalId(core.prefix,namespace,kind,parts),used=new Set(restored?[activeId,completedId]:[]);
- const take=(id,value)=>{const row=meta.get(id);if(!row||!equal(row,{...value,id}))unproven();used.add(id);};
- const operations=plan.groups.flatMap(group=>group.operations),frontiers=new Map();
- if(!restored&&operations.some(op=>op.deviceId!==core.deviceId))unrepresented();
- for(const op of operations){
-  take(key('revision',op.revisionId),{operation:op,redacted:false});take(key('receipt',op.operationId),{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});
-  take(key('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),{operationId:op.operationId,digest:op.revisionId});take(key('entityRevision',op.type,op.entityId,op.revisionId),{revisionId:op.revisionId});
-  frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
-  const out=key('outbox',op.operationId);if(meta.has(out)){if(restored&&op.deviceId!==core.deviceId)unrepresented();take(out,{operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
- }
- for(const head of plan.heads)take(key('head',head.type,head.entityId),head);
- for(const [deviceId,value]of frontiers)take(key('frontier',deviceId),{...value,deviceId});
- const local=operations.filter(op=>op.deviceId===core.deviceId);if(local.length)take(key('device',core.deviceId),{sequence:Math.max(...local.map(op=>op.sequence))});take(key('generation'),{value:operations.length});take(key('ownerRecoveryEpoch'),{version:1,epoch});
+ const {meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace,epoch,restored,activeId,completedId});
  const inputHead=plan.heads.find(head=>head.type==='inputWorkingMember'&&head.entityId==='input:'+input.id);if(!inputHead)unproven();
  const deltaSequence=working.length+1;take(key('workingOwner',input.id),{revisionId:inputHead.revisions[0],deltaSequence});
  sameRows(rows.inputStates,expected.inputStates.map(row=>({...row,deltaSequence})));
