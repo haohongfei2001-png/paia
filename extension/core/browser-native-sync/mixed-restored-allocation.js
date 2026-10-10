@@ -1,7 +1,7 @@
 import {reserveOriginalMixedRestoredPrefixPhase} from './human-library-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
-import {requireOriginalCurrentMixedGroupPlan,prepareCurrentMixedGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {requireOriginalCurrentMixedGroupPlan,prepareOriginalCurrentMixedForeignPrefix} from './group-checkpoint-plan.js';
 import {requireOriginalCurrentMixedGroupScope,prepareOriginalMixedWireOwnerScope} from './group-checkpoint-scope.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {protocolPhysicalId} from './physical-key.js';
@@ -26,7 +26,7 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta,native)
  }
  if(!imported.length)refuse();
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'compiler');
- const prefix=await prepareCurrentMixedGroupCheckpointPlan(core,imported.flatMap(group=>group.operations));requireOriginalCurrentMixedGroupPlan(core,plan);
+ const prefix=await prepareOriginalCurrentMixedForeignPrefix(core,plan);requireOriginalCurrentMixedGroupPlan(core,plan);
  if(prefix.digest!==completed[0].graphDigest)refuse();
  if(native)reserveOriginalMixedRestoredPrefixPhase(native.nonce,native.store,native.scope,plan,'wire',prefix);
  const ownerScope=await prepareOriginalMixedWireOwnerScope(core,prefix);requireOriginalCurrentMixedGroupPlan(core,plan);

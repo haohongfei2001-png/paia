@@ -20,7 +20,7 @@ import {PromptSyncJournal} from '../core/browser-native-sync/prompt-journal.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {ContextDesiredSyncJournal} from '../core/browser-native-sync/context-desired-journal.js';
 import {ContextCardsService} from '../core/context-cards.js';
-import {prepareGroupCheckpointPlan,prepareCurrentSourceWorkingGroupCheckpointPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+import {prepareGroupCheckpointPlan,prepareCurrentSourceWorkingGroupCheckpointPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,prepareOriginalCurrentMixedForeignPrefix,measureOriginalMixedPrefixWrappers} from '../core/browser-native-sync/group-checkpoint-plan.js';
 import {prepareGroupScope,requireGroupScope,requireOriginalCurrentMixedGroupScope} from '../core/browser-native-sync/group-checkpoint-scope.js';
 import {assertMixedCurrentSourceDerivedRows} from '../core/browser-native-sync/mixed-current-source-derived.js';
 import {projectEntity} from '../core/browser-native-sync/codecs.js';
@@ -222,6 +222,13 @@ test('original mixed restored allocation consumes only the authenticated import 
   const before=await all(target),b=before.inputStates.find(row=>row.id!==x.a).id;target.sourceBootstrapJournal=new SourceBootstrapJournal(core);target.filterIntentJournal=new FilterIntentSyncJournal(core);target.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:target.filterIntentJournal,logicalCommits:true});target.humanLibraryJournal=new HumanLibrarySyncJournal(core);
   const human=await target.createEntry({actor:'user',body:'SYNTHETIC genuine B local Human tail 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});await inputEdit(target,b,{libraryText:'SYNTHETIC genuine B local Working tail 中文🙂',note:'SYNTHETIC first appended-B note'});
   const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);const plan=await prepareCurrentMixedGroupCheckpointPlan(core,operations),scope=await prepareGroupScope(plan,{store:target});
+  const borrowedPrefix=await prepareOriginalCurrentMixedForeignPrefix(core,plan),referencePrefix=await prepareCurrentMixedGroupCheckpointPlan(core,operations.filter(op=>op.deviceId!==core.deviceId));
+  assert.deepEqual(borrowedPrefix,referencePrefix);for(const group of borrowedPrefix.groups){const owner=plan.groups.find(row=>row.id===group.id);assert.equal(group.operations,owner.operations);assert.equal(group.prepared,owner.prepared);assert.equal(group.capability,owner.capability);}
+  assert.ok(measureOriginalMixedPrefixWrappers(core,plan,borrowedPrefix).V>0);assert.throws(()=>measureOriginalMixedPrefixWrappers(core,plan,structuredClone(borrowedPrefix)),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});await assert.rejects(prepareOriginalCurrentMixedForeignPrefix(core,structuredClone(plan)),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+  // A complete valid graph is not a closed prefix if its foreign Working tail
+  // depends on Source created by the selected local device. Rebuild original
+  // creator/parent edges; never filter dependencies/heads to manufacture a cut.
+  const origin=new BrowserNativeSyncCore(target.repository,{datasetId:core.datasetId,deviceId:x.core.deviceId}),originPlan=await prepareCurrentMixedGroupCheckpointPlan(origin,operations);await assert.rejects(prepareOriginalCurrentMixedForeignPrefix(origin,originPlan),{code:'BNS_GROUP_CAUSAL_GAP'});
   const metadata=planRestoredMixedSemanticMetadata(core,scope,plan),actualMeta=(await all(target)).meta,byId=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
   assert.deepEqual(byId(metadata.known),byId(actualMeta.filter(row=>row.id.startsWith(KNOWN_PREFIX))));assert.deepEqual(byId(metadata.dirty),byId(actualMeta.filter(row=>row.id.startsWith(DIRTY_PREFIX))));assert.deepEqual(metadata.sequence,actualMeta.find(row=>row.id===DELTA_COUNTER));assert.deepEqual(metadata.humanFence,actualMeta.find(row=>row.id===HUMAN_FENCE));
   assert.throws(()=>planRestoredMixedSemanticMetadata(core,structuredClone(scope),plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});

@@ -5,7 +5,7 @@ import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './s
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
 import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
-import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan} from './group-checkpoint-plan.js';
+import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
@@ -1329,7 +1329,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  if(phase==='compiler'){
   if(r.mixedRestoredPhase!=='control')projectionRequired();const totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0};
   for(const group of plan.groups)if(group.operations.every(op=>op.deviceId!==r.core.deviceId))for(const op of group.operations){const m=projectionRowMeasure(r,op);for(const key of ['B','T','V','E'])totals[key]+=m[key];totals.E++;if(projectionCanonicalCharge(m)>projectionCanonicalCharge(peak))peak=m;}
-  r.mixedRestoredPhase='compiler';projectionReserve(r,r.mixedRestoredBase+5*projectionTreeCharge(totals)+6*projectionCanonicalCharge(peak)+8*peak.B+4096*128+192*1024);return;
+  r.mixedRestoredPhase='compiler';projectionReserve(r,r.mixedRestoredBase+4*projectionCanonicalCharge(peak)+8*peak.B+4096*256+192*1024);return;
  }
  requireOriginalCurrentMixedGroupPlan(r.core,prefix);
  if(phase==='wire'){
@@ -1337,14 +1337,14 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
   const wire={B:2,T:0,V:1,E:0};let hidden=0;
   const add=value=>{const m=projectionRowMeasure(r,value);for(const key of ['B','T','V','E'])wire[key]+=m[key];wire.E++;};
   for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){add(member.value.entity);if(group.type!=='inputWorkingCommit')hidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));}else add(group.operations[0].value);}
-  r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(projectionRowMeasure(r,prefix))+hidden;
+  r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix));
   projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024);return;
  }
  if(phase==='mapped'){
   if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';
   // Prefix local variables still exist until the original preparer returns.
   // Keep their final remapping/equality/allocator frames paid through return.
-  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+4*projectionCanonicalCharge(projectionRowMeasure(r,prefix))+4096*128+128*1024);return;
+  projectionReserve(r,r.mixedRestoredBase+r.mixedRestoredTemporary+4*projectionCanonicalCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix))+4096*128+128*1024);return;
  }
  projectionRequired();
 }

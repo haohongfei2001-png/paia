@@ -1,3 +1,4 @@
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,prepareOriginalCurrentMixedGroupReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
@@ -7,7 +8,7 @@ const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBoo
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
 const singles=new Set(['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
-const originalPlans=new WeakMap();
+const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
 // old validators but cannot authenticate a native current-generation export.
 export function requireOriginalGroupCheckpointPlan(core,plan){
@@ -52,8 +53,8 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  // bypass the original 128-operation bound checked at entry.
  for(const candidate of input){
   if(operations.length>=CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
-  size+=bytes(candidate).length;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
-  const op=await validateOperation(candidate);
+  const operationBytes=bytes(candidate).length;size+=operationBytes;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
+  const op=await validateOperation(candidate);originalOperationSizes.set(op,operationBytes);
   if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(currentSourceWorking===true&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -82,6 +83,10 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
   groups.push(group);
  }
  if(claimed.size!==operations.length)fail('BNS_GROUP_INCOMPLETE');
+ return finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);
+}
+async function finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads){
+ const currentSourceWorking=binding.currentSourceWorking;
  const createdInputs=new Map(),createdSources=new Map();
  for(const group of groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit'){
   for(const op of group.prepared.members){const entity=op.value.entity;if(op.value.entityType==='input'){if(createdInputs.has(entity.id))fail('BNS_GROUP_SOURCE_COLLISION');createdInputs.set(entity.id,group);}if(op.value.entityType==='source'){if(createdSources.has(entity.sourceKey))fail('BNS_GROUP_SOURCE_COLLISION');createdSources.set(entity.sourceKey,group);}}
@@ -124,4 +129,27 @@ export async function prepareCurrentSourceWorkingGroupCheckpointPlan(core,input)
 export async function prepareCurrentMixedGroupCheckpointPlan(core,input){
  if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalSourceWorkingCore(core);
  return prepareGroupCheckpointPlanInternal(core,input,'mixed');
+}
+
+// Original closed graph construction from already admitted immutable domain
+// groups. No validator/Source private payload is cloned again. Dependencies,
+// heads and digest are rebuilt by the SAME original causal graph owner;
+// filtering the current dependency vectors or final heads would be incorrect.
+export async function prepareOriginalCurrentMixedForeignPrefix(core,complete){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,complete);
+ const binding={...originalPlans.get(complete),borrowedFrom:complete},groups=[],operations=[],byRevision=new Map(),claimed=new Map();let size=0;
+ for(const original of complete.groups){
+  const ours=original.operations.filter(op=>op.deviceId===core.deviceId).length;if(ours&&ours!==original.operations.length)fail('BNS_GROUP_CAUSAL_GAP');if(ours)continue;
+  const group={id:original.id,type:original.type,operations:original.operations,prepared:original.prepared,capability:original.capability,dependencies:new Set()};groups.push(group);
+  for(const op of group.operations){const length=originalOperationSizes.get(op);if(!Number.isSafeInteger(length)||length<1||byRevision.has(op.revisionId))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');size+=length;operations.push(op);byRevision.set(op.revisionId,op);claimed.set(op.revisionId,group);}
+ }
+ if(!groups.length||operations.length>CORE_LIMITS.batch||size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
+ const heads=new Map(),parents=new Set(operations.flatMap(op=>op.parents));for(const op of operations){const key=JSON.stringify([op.type,op.entityId]);if(!heads.has(key))heads.set(key,[]);if(!parents.has(op.revisionId))heads.get(key).push(op.revisionId);}
+ for(const revisions of heads.values())if(revisions.length!==1)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
+ const prefix=await finishOriginalCompiledGraph(core,binding,operations,groups,size,byRevision,claimed,heads);requireOriginalCurrentMixedGroupPlan(core,complete);return prefix;
+}
+export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
+ requireOriginalCurrentMixedGroupPlan(core,complete);requireOriginalCurrentMixedGroupPlan(core,prefix);if(originalPlans.get(prefix).borrowedFrom!==complete)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const total=measureSourceWorkingPhysicalTree(prefix.heads);for(const group of prefix.groups){const m=measureSourceWorkingPhysicalTree({id:group.id,type:group.type,dependencies:group.dependencies});for(const key of ['B','T','V','E'])total[key]+=m[key];}
+ total.V+=prefix.groups.length*4+16;total.E+=prefix.groups.length*8+32;total.T+=prefix.digest.length;return Object.freeze(total);
 }
