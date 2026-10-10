@@ -32,7 +32,7 @@ function field(row,key){const d=descriptor(row,key);if(!d)return undefined;if(!o
 // entry for a missing/undefined path; native identity/order/cmp remain the owner.
 // Compound key vectors must be paid by the calling native task before creation.
 export function sourceWorkingPhysicalIndexKey(store,index,row){
- if(arguments.length!==3)fail('BNS_SOURCE_WORKING_PHYSICAL_INVALID');
+ if(arguments.length!==3||typeof store!=='string'||typeof index!=='string')fail('BNS_SOURCE_WORKING_PHYSICAL_INVALID');
  if(!own(sourceWorkingCurrentIndexSchema,store))fail('BNS_SOURCE_WORKING_PHYSICAL_INVALID');
  const definitions=sourceWorkingCurrentIndexSchema[store],spec=own(definitions,index)?definitions[index]:null;
  if(!spec)fail('BNS_SOURCE_WORKING_PHYSICAL_INVALID');

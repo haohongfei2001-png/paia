@@ -24,4 +24,5 @@ test('fixed schema is deeply immutable and index key projection never invokes su
  let reads=0;const row={};Object.defineProperty(row,'legacyChat',{get(){reads++;return 'SYNTHETIC';}});assert.throws(()=>key('recordIndex','byLegacyChat',row),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.equal(reads,0);
  assert.equal(key('recordIndex','byLegacyChat',Object.create({legacyChat:'SYNTHETIC'})),null);
  for(const [store,index]of [['records','bySource'],['SYNTHETIC','bySource'],['recordIndex','constructor'],['__proto__','hasOwnProperty'],['constructor','prototype']])assert.throws(()=>key(store,index,{}),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});
+ let coerced=0;const selector={[Symbol.toPrimitive](){coerced++;return 'recordIndex';}};assert.throws(()=>key(selector,'bySource',{}),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.throws(()=>key('recordIndex',selector,{}),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.equal(coerced,0);
 });

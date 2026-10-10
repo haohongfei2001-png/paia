@@ -28,3 +28,6 @@ test('original consent/control/database binding is required and consumer setting
 test('complete control meter rejects a supplied getter before reading consent or preferences',async()=>{
  const x=await producer();try{let reads=0;const control={...x.control};Object.defineProperty(control,'preferences',{enumerable:true,get(){reads++;return x.control.preferences;}});assert.throws(()=>qualify(x.core,x.scope,x.plan,x.rows,control,x.databaseId),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.equal(reads,0);}finally{await x.store.repository.close();}
 });
+test('original migration DDL version and Library migration copied version must agree',async()=>{
+ const x=await producer();try{for(const id of ['thought-ddl','thought-library']){const rows=structuredClone(x.rows);rows.meta.find(row=>row.id===id).fromVersion++;assert.throws(()=>qualify(x.core,x.scope,x.plan,rows,x.control,x.databaseId),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});}}finally{await x.store.repository.close();}
+});
