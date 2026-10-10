@@ -1,3 +1,4 @@
+import {originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
 import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
@@ -10,9 +11,17 @@ import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethod
 import {clone,equal,fail,count} from './value.js';
 const proofs=new WeakMap(),preparations=new WeakSet(),types={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',keepSeparate:'pairs'};
 const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
+function observeHumanScopeNames(names,after){for(const name of [after.name,...after.identity.aliases.map(alias=>alias.name)]){const normalized=String(name).normalize('NFKC').toLocaleLowerCase().trim(),row=names.get(normalized)||{name:normalized,topicIds:[]};if(!row.topicIds.includes(after.id))row.topicIds.push(after.id);names.set(normalized,row);}}
+// Meter the original name builder, including actual Unicode normalization and
+// distinct Topic memberships. Native callers must prepay its finite Map/string
+// frame; this numeric output creates no Scope or metadata-admission authority.
+export function measureOriginalMixedWireNames(plan){
+ if(arguments.length!==1||!originalCurrentMixedGroupCore(plan))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const names=new Map();for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='topic')observeHumanScopeNames(names,member.value.after);
+ return Object.freeze(measureSourceWorkingPhysicalTree([...names.values()]));
+}
 export function compileHumanScope(plan){
  const maps=Object.fromEntries([...Object.keys(types),'history'].map(type=>[type,new Map()])),names=new Map();
- for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,clone(after));if(type==='topic')for(const name of [after.name,...after.identity.aliases.map(alias=>alias.name)]){const normalized=String(name).normalize('NFKC').toLocaleLowerCase().trim(),row=names.get(normalized)||{name:normalized,topicIds:[]};if(!row.topicIds.includes(after.id))row.topicIds.push(after.id);names.set(normalized,row);}}
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
 export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
