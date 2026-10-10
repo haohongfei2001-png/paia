@@ -1304,6 +1304,20 @@ export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
  const r=currentProjectionWorks.get(nonce);
  if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
 }
+// Original wire owner hashes one complete normalized family at a time. Map
+// cells are paid before borrowing final immutable members; no body DTO or
+// canonical JSON is built here, and the complete current Plan stays owned.
+function mixedWireCanonicalFamilyPeak(r,plan,humanWire){
+ projectionReserve(r,4096*128+128*1024);const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents','context','desired','prompt'].map(name=>[name,new Map()]));
+ for(const group of plan.groups){
+  if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members){const {entityType:type,entity}=member.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions',revision:'revisions',filterIntent:'filterIntents'}[type];if(name&&!(type==='timeEvidence'&&entity.value===null))maps[name].set(entity.id,entity);}
+  else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='history')maps.revisions.set(member.value.after.id,member.value.after);
+  else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
+ }
+ let peak=projectionCanonicalCharge(humanWire)+64*1024;
+ for(const map of Object.values(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ return peak;
+}
 // Genuine sequential prefix stages reserve their actual operands. The current
 // complete raw/Plan/private Source ownership never leaves this work ticket.
 export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,phase,prefix){
@@ -1521,7 +1535,7 @@ async function projectionCompileInitialMixedScope(r){
  // Human-history role), original humanWire, keyed/normalized/nested copies,
  // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
- const wireScratch=8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024;
+ const wireScratch=8*projectionTreeCharge(wire)+4*mixedWireCanonicalFamilyPeak(r,plan,humanWire)+8*wire.B+256*1024;
  const keyedScratch=2*projectionTreeCharge(wire)+4*projectionTreeCharge(humanWire)+2*projectionCanonicalCharge(humanWire)+8*humanWire.B+2*1024*1024;
  // The restored prefix compiler/control check runs after wire construction
  // returns. Its surviving private prefix and allocation cells remain live
