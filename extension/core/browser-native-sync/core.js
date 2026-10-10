@@ -3,6 +3,7 @@ import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethod
 import {ArchiveError} from '../constants.js';
 import {claimHumanBranchRetention,requireHumanBranchRetentionInTransaction,assertHumanBranchRetentionCurrent,finishHumanBranchRetention,prepareHumanRetentionNativeEffects,verifyHumanRetentionNativeCommitted,finalizeHumanRetentionNativeEffects,requireHumanRetentionDeliveredValue,collectHumanCurrentUnindexedProjectionNative,requireHumanProjectionNativePreparation,finishHumanProjectionNativeDrain} from './human-library-plan.js';
 import {CODECS,validateEntityAsync} from './codecs.js';
+import {assertConsumerPreferenceOperation} from './consumer-preference-codec.js';
 import {canonical,clone,count,digest,equal,exact,fail,hash,identifier,opaque,SyncError,bytes} from './value.js';
 
 export const CORE_LIMITS=Object.freeze({batch:128,batchBytes:4*1024*1024,parents:128,heads:128,gapRanges:4096,ancestryReads:100000,pendingDependents:512});
@@ -44,9 +45,10 @@ export async function sealOperation(input){
 }
 export async function validateOperation(operation){
  operation=clone(operation);
- if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==1||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
+ if(!exact(operation,opFields)||Object.keys(operation).length!==opFields.length||operation.protocol!==1||!opaque(operation.datasetId)||!opaque(operation.deviceId)||!opaque(operation.operationId)||!count(operation.sequence)||operation.sequence<1||!identifier(operation.entityId)||!Object.hasOwn(CODECS,operation.type)||operation.codecVersion!==CODECS[operation.type].version||!['put','purge'].includes(operation.kind)||!['user','source','bootstrap'].includes(operation.actor)||!Array.isArray(operation.parents)||operation.parents.length>CORE_LIMITS.parents||operation.parents.some(x=>!hash(x))||new Set(operation.parents).size!==operation.parents.length||!hash(operation.revisionId))fail('BNS_OPERATION_INVALID');
  if(operation.kind==='purge'){if(operation.actor!=='user'||operation.value!==null)fail('BNS_PURGE_INVALID');}
  else{await validateEntityAsync(operation.type,operation.value,operation.codecVersion);if(operation.value.id!==operation.entityId)fail('BNS_ENTITY_MISMATCH');}
+ if(operation.type==='consumerPreference')assertConsumerPreferenceOperation(operation);
  if(['sourceAppendMember','sourceAppendCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_APPEND_INVALID');
  if(['sourceBootstrapMember','sourceBootstrapCommit'].includes(operation.type)&&(operation.kind!=='put'||operation.actor!=='bootstrap'||operation.parents.length))fail('BNS_SOURCE_BOOTSTRAP_INVALID');
  if(operation.type==='source'&&operation.kind!=='purge'&&operation.actor==='user')fail('BNS_SOURCE_AUTHORITY');
@@ -153,9 +155,10 @@ export class BrowserNativeSyncCore {
    const head=snapshot.heads[index],parents=change.parents??head?.revisions??[];
    if(head?.purged)fail('BNS_ENTITY_PURGED');
    if(change.expectedParents&&!equal([...change.expectedParents].sort(),[...(head?.revisions||[])].sort()))fail('BNS_HEAD_CHANGED');
+   if(change.type==='consumerPreference'&&change.value?.explicit===null&&(actor!=='bootstrap'||head))fail('BNS_BOOTSTRAP_EXISTS');
    if(head?.revisions?.length>1&&!change.resolve)fail('BNS_CONFLICT_REQUIRES_RESOLUTION');
    if(change.resolve&&!equal([...parents].sort(),[...(head?.revisions||[])].sort()))fail('BNS_RESOLUTION_PARENTS');
-   operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:operationIds?.[index]||crypto.randomUUID(),type:change.type,entityId,codecVersion:1,kind:change.kind||'put',actor,parents:[...parents].sort(),value:change.kind==='purge'?null:clone(change.value)}));
+   operations.push(await sealOperation({protocol:1,datasetId:this.datasetId,deviceId:this.deviceId,sequence:++sequence,operationId:operationIds?.[index]||crypto.randomUUID(),type:change.type,entityId,codecVersion:CODECS[change.type]?.version??1,kind:change.kind||'put',actor,parents:[...parents].sort(),value:change.kind==='purge'?null:clone(change.value)}));
   }
   if(logicalCommit){
    if(!exact(logicalCommit,['id','inputId','documentId','sourceRefs'])||operations.length>=CORE_LIMITS.batch||operations.some(op=>op.type!=='inputWorkingMember'||op.value.logicalCommitId!==logicalCommit.id||op.value.datasetId!==this.datasetId||op.value.deviceId!==this.deviceId))fail('BNS_WORKING_COMMIT_INVALID');
