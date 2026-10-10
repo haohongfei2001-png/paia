@@ -34,7 +34,7 @@ export async function readControlPublicationFence(t){
  return {revision:revision?.revision??0,reservation,migration:await t.get('meta','migration'),gate:await t.get('meta','gate'),epoch:await t.get('meta','recovery-restore-epoch')};
 }
 export async function reserveControlPublication(t,before,{nonce,databaseId}){
- await requireConsumerPublicationSettled(t);
+ try{await requireConsumerPublicationSettled(t);}catch(error){if(error.code==='BNS_CONSUMER_PUBLICATION_PENDING')refuse(error.code);throw error;}
  const current=await readControlPublicationFence(t);
  if(current.reservation)refuse('CONTROL_PUBLICATION_PENDING');
  if(!controlPublicationEqual(current,before))refuse('CONTROL_PUBLICATION_CHANGED');

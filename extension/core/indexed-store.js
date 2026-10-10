@@ -17,6 +17,7 @@ import {sanitizeDiagnostics,sanitizeStructure,sanitizeCaptureHealth} from './dia
 import {purgeSourceStructureForRecords} from './source-structure-store.js';
 import {assessSourcePurge,sourcePurgePreview} from './source-purge-admission.js';
 import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,controlPublicationEqual,controlPublicationDigest} from './local-control-publication.js';
+import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Conservative, bounded equality for a rejected preference publication only.
@@ -41,10 +42,12 @@ const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSIO
 const localPublicationOwners=new WeakMap();
 export class IndexedArchiveStore {
  #preferencePublication=null;
- constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;}
+ constructor(local,options={}){this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
  run(fn){const task=this.tail.then(async()=>{if(!this.loaded){await this.repository.initialize();this.loaded=true;}const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');localPublicationOwners.set(this,{before,nonce:crypto.randomUUID(),reservation:null,fences:null});this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();return fn();});this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
  async saveControl(t,c){const owner=localPublicationOwners.get(this);if(!owner)error('CONTROL_PUBLICATION_REQUIRED');if(!owner.reservation)owner.reservation=await reserveControlPublication(t,owner.before,{nonce:owner.nonce,databaseId:this.databaseId});else await requireControlPublicationOwner(t,owner.reservation,owner.fences);this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});const now=await readControlPublicationFence(t);owner.fences={migration:now.migration,gate:now.gate,epoch:now.epoch};}
+ async qualifyControlPublicationRead(t){const owner=localPublicationOwners.get(this),current=await readControlPublicationFence(t);if(!(#preferencePublication in this)||!owner)error('CONTROL_PUBLICATION_REQUIRED');if(current.reservation)error('CONTROL_PUBLICATION_PENDING');if(!controlPublicationEqual(current,owner.before)||current.migration?.phase!=='active'||current.migration.databaseId!==this.databaseId)error('CONTROL_PUBLICATION_CHANGED');return current;}
+ async controlPublicationBinding(t){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');await requireControlPublicationOwner(t,owner.reservation,owner.fences);return structuredClone({reservation:owner.reservation,fences:owner.fences});}
  async #confirmPreferencePublication(intent,control){
   try{
    const owns=()=>intent?.committed&&intent===this.#preferencePublication&&control===intent.control&&control===this.pendingControl&&this.databaseId===intent.databaseId&&publicationEqual({schemaVersion:6,databaseId:this.databaseId,...control},intent.expected);
@@ -68,12 +71,18 @@ export class IndexedArchiveStore {
   await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.put('meta',prepared);},['meta']);owner.reservation=prepared;
   if(control!==this.pendingControl||!publicationEqual(payload,{schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}))error('CONTROL_PUBLICATION_CHANGED');
   try{await this.local.set({[STORAGE_KEY]:payload});}
-  catch(e){if(!(#preferencePublication in this)||!await this.#confirmPreferencePublication(this.#preferencePublication,control))throw e;}
+  catch(e){if(!(#preferencePublication in this)||!await this.#confirmPreferencePublication(this.#preferencePublication,control)){
+   // Only the original Chrome SDK's completed RPC, or an explicitly qualified
+   // injected adapter with that same terminal contract, supplies this evidence.
+   // A timeout, detached call, wrapper rejection or worker restart cannot.
+   if(this.localPublicationTerminal)try{await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);}catch{/* Keep foreign/changed or portable-pending state and the original error. */}
+   throw e;
+  }}
   finally{if(#preferencePublication in this)this.#preferencePublication=null;}
   // An acknowledged write releases only its exact reservation. Lost-worker or
   // failed/unqualified outcomes retain it; neither consent nor a control body is
   // replayed to make an unknown outcome appear successful.
-  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
+  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
   this.controlCache=control;this.pendingControl=null;
  }
  write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,t=>fn(t,prepared));onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
@@ -245,20 +254,21 @@ export class IndexedArchiveStore {
  updateLibrary(id,changes){return this.write(async t=>{const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes));row.value.editedAt=this.clock();row.value.revision++;await t.put('blocks',row);return {id};});}
  excludeLibrary(id,excluded){return this.write(async t=>{if(typeof excluded!=='boolean')error('INVALID_REQUEST');const row=await t.get('blocks',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,{excluded,status:excluded?'excluded_by_user':'active',revision:row.value.revision+1});await t.put('blocks',row);const ix=await t.get('blockIndex',id);Object.assign(ix,{excluded,excludedKey:excluded?1:0});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.trackBlock(t,row.value);await this.refreshDoc(t,row.value.documentId);return {id};});}
  updateDocument(id,changes){return this.write(async t=>{const row=await t.get('documents',id);if(!row)error('INVALID_REQUEST');Object.assign(row.value,validateLibraryChanges(changes,true));row.value.titleRevision++;const ld=await t.get('libraryDocuments',id);ld.value.userTitle=row.value.userTitle;await t.put('documents',row);await t.put('libraryDocuments',ld);return {id};});}
- updatePreferences(changes){return this.write(async t=>{
+ updatePreferences(changes){const journal=this.consumerPreferenceJournal;let captured,captureError;if(journal)try{captured=structuredClone(changes);}catch(e){captureError=e;}return this.write(async(t,prepared)=>{
   // Detach before any await; the original validator/CAS applies this private copy.
-  let copy,copyError;try{copy=structuredClone(changes);}catch(e){copyError=e;}
+  let copy,copyError;try{if(captureError)throw captureError;copy=structuredClone(journal?captured:changes);}catch(e){copyError=e;}
   const aiStyle=Object.hasOwn((copyError?changes:copy)||{},AI_STYLE_KEY);if(aiStyle&&await t.get('meta','backup-recovery-settings'))error('BACKUP_BUSY');
   if(copyError){validatePreferences(changes);error('INVALID_REQUEST');}changes=copy;
-  const epochRow=await t.get('meta','recovery-restore-epoch'),epoch=aiStyle?epochRow?.value??'initial':'initial',c=await this.control(t),result=applyPreferenceChanges(c.preferences,changes,epoch);
+  const epochRow=await t.get('meta','recovery-restore-epoch'),epoch=aiStyle?epochRow?.value??'initial':'initial',c=await this.control(t);if(prepared)await journal.authorize(t,this,prepared);const result=applyPreferenceChanges(c.preferences,changes,epoch);
   if(result.ok&&result.changed!==false){
    await this.saveControl(t,c);
+   if(prepared)await journal.commit(t,this,prepared);
    if(!aiStyle){const migration=await t.get('meta','migration'),gate=await t.get('meta','gate');
     if(#preferencePublication in this&&migration?.phase==='active'&&migration.databaseId===this.databaseId)this.#preferencePublication={committed:false,control:this.pendingControl,databaseId:this.databaseId,expected:structuredClone({schemaVersion:6,databaseId:this.databaseId,...this.pendingControl}),migration,gate,epoch:epochRow};
    }
   }
   return result;
- },()=>{if(#preferencePublication in this&&this.#preferencePublication)this.#preferencePublication.committed=true;});}
+ },()=>{if(#preferencePublication in this&&this.#preferencePublication)this.#preferencePublication.committed=true;},journal&&!captureError?()=>journal.prepare(this,captured):null);}
  aiStylePreference(){return this.run(()=>this.repository.transaction(false,async t=>{if(await t.get('meta','backup-recovery-settings'))error('BACKUP_BUSY');return readAIStyle((await this.control(t)).preferences,(await t.get('meta','recovery-restore-epoch'))?.value??'initial');},['meta']));}
  resolveLegacy(id,include){return this.write(async t=>{if(typeof include!=='boolean')error('INVALID_REQUEST');const row=await t.get('records',id);if(!row||!row.value.hidden&&!row.value.deletedAt)error('INVALID_REQUEST');row.value.hidden=false;row.value.deletedAt=null;await this.saveRecord(t,row.value,await t.get('recordIndex',id));for(const ix of await t.all('blockIndex','byRecord',id)){const b=await t.get('blocks',ix.id);if(b.value.sourceRecordId!==id)continue;const prior=structuredClone(b.value);Object.assign(b.value,{excluded:!include,status:include?'active':'excluded_by_user',revision:b.value.revision+1});if(this.afterLegacyResolve)await this.afterLegacyResolve(t,prior,b.value);await t.put('blocks',b);Object.assign(ix,{excluded:!include,excludedKey:include?0:1});ix.listKey[1]=ix.excludedKey;await t.put('blockIndex',ix);await this.refreshDoc(t,b.value.documentId);}return {ok:true};});}
  memoryContext(){return Promise.resolve(memoryContext());}
