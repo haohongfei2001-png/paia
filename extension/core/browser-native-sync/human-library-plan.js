@@ -1252,7 +1252,11 @@ function projectionQualify(r,mixed=false){
   for(const field of ['organizationRevision','countVersion'])if(topic[field]!==undefined&&topic[field]!==null&&(!Number.isSafeInteger(topic[field])||topic[field]<0))projectionRequired();
   const key=liveTopicKey(topic,epoch,actual.timeRevision);
   const seed={id,version:THOUGHT_TOPIC_INDEX_VERSION,timeRevision:actual.timeRevision,activeGeneration:null,activeKey:null,buildingGeneration:null,buildingKey:null,sourceCursor:null,scanned:0,indexed:0};
-  const expected=planThoughtTopicBuild(seed,key,actual.activeGeneration);
+  const expected=planThoughtTopicBuild(seed,key,actual.activeGeneration),generations=new Set([actual.activeGeneration]);
+  // The original reader retains old generations when only its global epoch
+  // changes. Qualify them conservatively using the complete SAME current
+  // semantic constructors, never by ignoring a prefix or deleting a cache.
+  if(mixed)for(const row of migration.values())if(row.topicId===topic.id){const hit=/^thought_topic_v1:([A-Za-z0-9_.-]{1,80}):(asc|desc|expression-asc|expression-desc)$/.exec(row.entityKind);if(hit)generations.add(hit[1]);if(generations.size>128)fail('BNS_HUMAN_GRAPH_LIMIT');}
   for(const p of placements){
    expected.scanned++;if(p.lifecycle!=='active')continue;
    const row=rows.thoughts.find(entry=>entry.id===p.entryId);if(!row||row.storageSchema!==2||row.lifecycle!=='active')continue;
@@ -1268,8 +1272,8 @@ function projectionQualify(r,mixed=false){
    const iterator=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
    projectionGeneratorNext.call(iterator);projectionGeneratorNext.call(iterator,expression);const descriptor=projectionGeneratorNext.call(iterator,[]).value;
    if(++descriptors>128)fail('BNS_HUMAN_GRAPH_LIMIT');expected.indexed++;
-   const rowIterator=planThoughtTopicDescriptorRows(descriptor,actual.activeGeneration);
-   for(let item=projectionGeneratorNext.call(rowIterator);!item.done;item=projectionGeneratorNext.call(rowIterator))match(item.value);
+   for(const generation of generations){const rowIterator=planThoughtTopicDescriptorRows(descriptor,generation);
+    for(let item=projectionGeneratorNext.call(rowIterator);!item.done;item=projectionGeneratorNext.call(rowIterator))match(item.value);}
    accumulateThoughtTopicDescriptor(expected,descriptor);
   }
   const done=completeThoughtTopicProjection(expected);projectionGeneratorNext.call(done);projectionGeneratorNext.call(done,actual.completedAt);
