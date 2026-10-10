@@ -18,6 +18,9 @@ function step(operation,parent=null){
   if(next.deletedBy!==operation.operationId||!equal(next.body,before.body)||!equal(next.section,before.section))fail('BNS_CONTEXT_TRANSITION_INVALID');
  }else if(next.deletedBy!==null)fail('BNS_CONTEXT_TRANSITION_INVALID');
 }
+// Assert the original single transition only. This does not validate a Core
+// binding, authorize a Scope or replace the complete bounded causal chain.
+export {step as assertContextManualOperationTransition};
 async function chain(t,core,operation,verified=null){
  for(let n=0;n<128;n++){
   if(verified&&operation.revisionId===verified.revisionId)return;
