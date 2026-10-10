@@ -1363,15 +1363,22 @@ async function projectionCompileInitialMixedScope(r){
   for(const op of group.prepared.members)if(op.value.entityType==='topic'&&op.value.after.identity.aliases.length)projectionRequired();
  }
  const m=projectionRowMeasure(r,plan),scopeScratch=8*projectionTreeCharge(m)+4*projectionCanonicalCharge(m)+8*m.B+256*1024;
+ let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
+ // The fixed compiler has actually returned and all validator/hash awaits
+ // settled. Transfer its surviving Plan/private Source trees, then release
+ // only its finished scratch; the original work ticket remains continuously live.
+ r.owned+=projectionTreeCharge(m)+sourceHidden;operations.length=0;projectionReserve(r);
  // Provisional finite preparation reserves the complete Plan for Map/member/
  // wire/normalized/keyed clones plus fixed transformation slots, independently
  // of raw. These are live logical charges, not full heap/tariff qualification.
- projectionReserve(r,compilerScratch+scopeScratch+2*1024*1024);r.group={...r.group,plan};r.phase='mixed-scope-preparing';
+ projectionReserve(r,scopeScratch+2*1024*1024);r.group={...r.group,plan};r.phase='mixed-scope-preparing';
  const scope=await currentGroupOwner.prepareGroupScope(plan,{store:r.store,nativeMixedCompilation:r.nonce});projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(r.core,scope,plan);
- const hidden=currentHumanOwner.measureOriginalMixedHumanScopeExpectation(scope,r.store,r.nonce);let sourceHidden=0;
- for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
- r.owned+=projectionTreeCharge(m)+projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden)+sourceHidden;r.group={...r.group,scope};
- projectionReserve(r,compilerScratch+scopeScratch+2*1024*1024);projectionFence(r);r.phase='mixed-scope-compiled';projectionReserve(r);
+ const hidden=currentHumanOwner.measureOriginalMixedHumanScopeExpectation(scope,r.store,r.nonce);
+ // Scope construction and its sequential keyed operands have returned. The
+ // same live ticket now owns their actual surviving trees, not both those
+ // trees and a second copy of the already unwound construction scratch.
+ r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
+ projectionReserve(r);projectionFence(r);r.phase='mixed-scope-compiled';projectionReserve(r);
  return Object.freeze({version:1,state:'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
 
