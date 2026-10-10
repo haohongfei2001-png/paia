@@ -1,3 +1,4 @@
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
 import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
@@ -71,6 +72,13 @@ export function assertHumanScopeProjectionExpectation(scope,store,raw){
  // existing tree only after this genuine cut match, so a later caller mutation
  // cannot change the compiled Human expectation behind the private native cap.
  const freeze=v=>{if(v&&typeof v==='object'){for(const item of Object.values(v))freeze(item);Object.freeze(v);}};freeze(p.rows);freeze(p.names);freeze(p.pairs);freeze(p.secret);
+}
+// Numeric measurement of the actual private keyed expectation while the
+// original mixed native compiler owns its live nonce. No key or row escapes.
+export function measureOriginalMixedHumanScopeExpectation(scope,store,nonce){
+ if(arguments.length!==3)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);
+ const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return Object.freeze(measureSourceWorkingPhysicalTree([p.rows,p.names,p.pairs,p.secret]));
 }
 export function hasHumanScope(scope){return proofs.has(scope);}
 export async function requireHumanScope(store,t,scope){
