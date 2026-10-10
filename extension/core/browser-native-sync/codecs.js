@@ -1,4 +1,5 @@
 import {validateHumanLibraryMember,validateHumanLibraryCommit} from './human-library-codec.js';
+import {validateConsumerPreference} from './consumer-preference-codec.js';
 import {validateSourceAppendMember,validateSourceAppendCommit} from './source-append-codec.js';
 import {validateSourceBootstrapMember,validateSourceBootstrapCommit} from './source-bootstrap-codec.js';
 import {BACKUP_SECTIONS,projectBackupEntity,validateBackupItem} from '../backup-format.js';
@@ -49,9 +50,7 @@ entries.push(
  ['promptPreferences',spec('promptPreferences',prompt,{store:'meta',owner:PROMPT_REUSE_ROW})],
  ['sourceStructure',spec('sourceStructure',value=>{validateSourceStructureBackupRow(value);return value;},{store:'meta'})],
  ['topicName',spec('topicName',value=>{if(!validTopicNameRegistry(value))fail('BNS_CODEC_INVALID');return value;},{store:'meta'})],
- ['consumerPreference',spec('consumerPreference',value=>{
-  if(!exact(value,['id','value','explicit'])||!['language','appearance','fontSize','readingWidth','timeDisplay','timeEmphasis','smartFilter'].includes(value.id)||value.explicit!==true||typeof value.value!=='string'||value.value.length>100)fail('BNS_CODEC_INVALID');return value;
- },{store:'meta',owner:'control'})],
+ ['consumerPreference',spec('consumerPreference',validateConsumerPreference,{store:'meta',owner:'control'})],
  ['inputDocument',spec('inputDocument',value=>{
   if(!exact(value,['id','source','working'])||value.source?.id!==value.id||value.working?.id!==value.id)fail('BNS_CODEC_INVALID');
   validateBackupItem({type:'item',section:'inputDocuments',value:value.source,working:value.working,order:0});return value;
