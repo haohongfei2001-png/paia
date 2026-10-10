@@ -200,7 +200,7 @@ test('native dependency setup preserves the full clean-worktree proof in both jo
 test('both native jobs include complete Context current proof and original exact-byte and lifetime guards',()=>{
  const full=readFileSync(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8');
  for(const native of [job,full.split('  sync_native_storage:\n')[1].split('  certified:')[0]]){
-  for(const text of ['tests/manual-context-current-shape.test.mjs','tests/manual-context-current-snapshot.test.mjs','tests/context-current-transition-interface.test.mjs','tests/native-sync/human-manual-context-current-native.test.mjs',"mode==='human-manual-context-current'",'runHumanManualContextCurrentNativeCases',"assert.equal(r.cases.cases.length,24)","assert.equal(r.cases.actualContextOperationCount,12)","assert.equal(r.cases.lateCutContextOperationCount,13)",'extension/work/qa-human-manual-context-current/'])assert.ok(native.includes(text),text);
+  for(const text of ['tests/manual-context-current-shape.test.mjs','tests/manual-context-current-snapshot.test.mjs','tests/context-current-transition-interface.test.mjs','tests/native-sync/human-manual-context-current-native.test.mjs',"mode==='human-manual-context-current'",'runHumanManualContextCurrentNativeCases',"assert.equal(r.cases.cases.length,24)","assert.equal(r.cases.assertions,218)","assert.equal(r.cases.actualContextOperationCount,12)","assert.equal(r.cases.lateCutContextOperationCount,13)",'extension/work/qa-human-manual-context-current/'])assert.ok(native.includes(text),text);
   assert.match(native,/timeout-minutes: 12/);assert.doesNotMatch(native,/test-name-pattern|test-skip-pattern|continue-on-error|permissions:|secrets\./);
  }
 });
