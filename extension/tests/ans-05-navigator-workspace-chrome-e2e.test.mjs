@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {failWorkingInputCommits} from './harness/working-input-failure.mjs';
 import {rememberArchiveDirectory,assertArchiveDirectoryUnchanged,assertBlankArchiveReader} from './harness/d7-archive-reference.mjs';
 
@@ -94,11 +95,15 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).isVisible(),'mobile Window switch opens A');assert.equal(await p.locator('#archive-navigator').isVisible(),false);
   phase='source membership move';
   await p.setViewportSize({width:1440,height:900});const projectB={providerKey:'chatgpt',namespace:'ans05-fixture',projectId:'beta'};
-  await p.evaluate(async({projectB})=>{
+  await p.evaluate(`(async()=>{
+   const projectB=${JSON.stringify(projectB)},preDispatchRead=${runWithPreDispatchReadRetry.toString()};
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),ref={platform:'chatgpt',sourceConversationId:'ans05-chat-a'},at=Date.now()+10000,e=n=>({id:'ans05-move-'+n,contractId:'ans05.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'relationship',digest:(100+n).toString(16).padStart(64,'0')});
+   // Retry only acquisition before this independent fixture callback begins.
+   // An entered metadata transaction and its original evidence are never replayed.
+   const originalRun=s.run.bind(s);s.run=callback=>preDispatchRead(originalRun,callback);
    const c=await structure.conversation(ref);await structure.observeConversation({conversationRef:ref,expectedRevision:c.relationshipRevision,observedAt:new Date(at).toISOString(),evidence:e(1),membership:{state:'project',projectRef:projectB},projectName:'ANS05 Project Beta',sourceStatus:'observed_active'});
    const project=await structure.project(projectB);await structure.observeProject({projectRef:projectB,expectedRevision:project?.relationshipRevision||0,observedAt:new Date(at+1000).toISOString(),evidence:e(2),currentName:'ANS05 Project Beta',sourceStatus:'observed_active'});
-  },{projectB});await refreshNavigator(p);
+  })()`);await refreshNavigator(p);
   const beta=await waitGroup(p,'ANS05 Project Beta');await eventually(async()=>await beta.getAttribute('aria-expanded')==='true','active moved parent expands');
   await eventually(()=>windowButton(p,'ANS-05 A').getAttribute('aria-current').then(x=>x==='page'),'active ID survives move');
   assert.match(await p.locator('.library-prose').first().textContent(),/ANS05_DIRTY_BUFFER/);

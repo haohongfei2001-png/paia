@@ -44,6 +44,14 @@ The native job's original command reported80 pass/2 fail and stopped before the 
 
 Together with the33-test privacy file and34-test navigation-owner files above, these are exact local component receipts, not a replacement for the next composed Full/native54 and affected Prompt gates. No timeout increase, assertion removal, product scope change or permission change is included.
 
+## Third formal candidate: fixture acquisition and native scheduling
+
+Head `75265cc6509f16180c4e4fe57f1436fcf4fb3258`, tested merge `778bcda990f9ce4ab81f48e503eb22c739cda1e2`, received successful [Prompt 38095584123](https://github.com/haohongfei2001-png/paia/actions/runs/38095584123). [Full 38095584129](https://github.com/haohongfei2001-png/paia/actions/runs/38095584129) concluded CANCELLED, with Browser1 and Browser3 failures and a cancelled native job. Four unit shards, adapter/privacy, release guards, macOS jobs and the other seven browser shards passed their exact scopes. This is not a complete acceptance receipt.
+
+Both browser stacks identify the original IndexedArchiveStore.run control-fence check before callback entry. Browser1's historical purge fixture did not identify which drain/form substage raced; it now adds body-free stage labels. Browser3's original lifecycle artifact identifies source membership move. Only those new synthetic store instances use the existing bounded pre-dispatch helper: one exact changed-fence reacquisition before callback entry, no retry of entered callbacks, mutations, entire metadata operations or the pinned historical purge body. The original helper's10 complete tests pass, including real same-database conflict and committed-callback non-replay. All five purge-dependent browser files pass31 tests; the original complete ANS05 Navigator file passes1, with no skips/cancellations/failures. Production publication logic and every existing refusal, whole-store equality, geometry, history and recovery assertion remain unchanged.
+
+The native original26-file command completed52 top-level journeys (82 total tests) successfully in609945ms. Its separate configuration command was then cancelled at the existing12-minute job limit; its two receipts are not PASS. The correction keeps the same ordered union of27 whole files and all54 independently validated receipt requirements, runs them in one command with three bounded workers, and retains the12-minute limit and always-uploaded evidence. No scenario, timeout or assertion is removed or relaxed. Fresh exact-candidate native54 and Full acceptance are still required. Original failed/cancelled logs and finite independent reviews remain preserved.
+
 ## Final candidate/main fields — pending
 
 - Final reviewed/tested head and merge candidate: PENDING.

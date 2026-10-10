@@ -1,3 +1,13 @@
+# SYNC-01 B bounded fixture and native scheduling repair — 2026-10-11
+
+Formal head `75265cc6509f16180c4e4fe57f1436fcf4fb3258`, tested merge `778bcda990f9ce4ab81f48e503eb22c739cda1e2`, remains unaccepted. Prompt `38095584123` succeeded. Full `38095584129` concluded CANCELLED: Browser1 and Browser3 failed independent synthetic-store read-fence acquisition before their callbacks began; the native job passed its original52 top-level journeys before the serial configuration tail was cancelled at the unchanged job limit. No cancelled or skipped result is accepted.
+
+The composed correction reuses the existing tested one-retry helper only on those isolated fixture instances, only for exact `CONTROL_PUBLICATION_CHANGED` before callback entry. Entered writes and whole domain actions are never replayed; runtime guards, pinned historical state and complete zero-effect assertions remain. Five complete affected browser files pass31 tests, the complete Navigator file passes1, and the original retry contract passes10. The same27 complete native files now share three bounded workers, retaining the original12-minute job limit, all54 independent receipt requirements and all assertions. Finite independent review and fresh formal acceptance remain distinct; see [owning B evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+Root continues B integration. The independent C writer closes the complete shared Canonical chain; the Prompt writer and Root close NIB S1 search/reuse and Archive arrival. Their component results are not combined acceptance. Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2`, qualified0.43.16, all earlier failures and remaining seven-lane obligations are preserved.
+
+## Preserved preceding checkpoints
+
 # Current acceptance repair and parallel C implementation — 2026-10-11
 
 SYNC-01 B remains unaccepted: second formal head `dce74418` (Full `38094314489`, Prompt `38094314534`) exposed a startup-count fixture boundary and missing navigation mock interfaces. Full and Prompt are now complete failures. Eight of nine browser shards passed; the remaining browser failure was an unsettled original onboarding transition. The native job exposed two obsolete budget-fixture thresholds and did not reach the new configuration pair. Test-only repairs retain exact refusal codes, unchanged whole-store comparisons and the original 8 MiB limit; complete affected-file local evidence passes. Fresh formal candidate acceptance remains pending. The exact failure and repair scopes are retained in [the owning B record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
