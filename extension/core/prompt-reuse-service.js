@@ -1,5 +1,7 @@
 import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError} from './constants.js';
+import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
+const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
 import {inputProjection} from './thought-evidence.js';
 import {materialRead} from './manual-materials.js';
 import {memoryRange,validateMemoryRow} from './memory/model.js';
@@ -90,6 +92,7 @@ export class PromptReuseService{
   // CAS write and durable outbox are acknowledged only after the same commit.
   const syncPrepared=this.syncJournal?await this.syncJournal.prepare(x.preferences,p,{inputs:x.inputs,generation:x.generation}):null;
   await this.s.run(()=>this.s.repository.transaction(true,async t=>{
+   await publicationSettled(t);
    if(await generation(t)!==x.generation||(await readPromptPreferences(t)).revision!==change.revision)changed();await t.put('meta',p);
    if(this.syncJournal)await this.syncJournal.commit(t,syncPrepared);
   }));return {revision:p.revision,id:o.id};
@@ -98,6 +101,7 @@ export class PromptReuseService{
  async noteVerifiedReuse(id){
   const x=await this.snapshot();if(!x.families.some(f=>f.id===id&&!f.hidden))return;
   return this.s.run(()=>this.s.repository.transaction(true,async t=>{
+   await publicationSettled(t);
    // A late acknowledgement cannot recreate an override deleted since selection.
    if(await generation(t)!==x.generation)changed();
    const p=await readPromptPreferences(t),before=structuredClone(p);let o=p.overrides.find(x=>x.id===id);if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}

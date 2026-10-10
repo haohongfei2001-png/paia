@@ -7,7 +7,7 @@ import {promptCorrectionEnvelope} from './prompt-correction-binding.js';
 
 const families=Object.freeze({sourceBootstrapCommit:['members','prepareSourceBootstrapReceive'],sourceAppendCommit:['refs','prepareSourceAppendReceive'],inputWorkingCommit:['members','prepareWorkingReceive'],humanLibraryCommit:['members',null]});
 const members=new Set(['sourceBootstrapMember','sourceAppendMember','inputWorkingMember','humanLibraryMember']);
-const singles=new Set(['promptPreferences','promptBinding','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
+const singles=new Set(['promptPreferences','promptBinding','consumerPreference','contextItem','contextRulesItem','contextNowItem','contextDesired','filterIntent']);
 const freeze=x=>{if(x&&typeof x==='object'){for(const value of Object.values(x))freeze(value);Object.freeze(x);}return x;};
 const originalPlans=new WeakMap(),originalOperationSizes=new WeakMap();
 // Compilation identity is local and body-free. A cloned DTO remains useful to
@@ -16,6 +16,7 @@ export function requireOriginalGroupCheckpointPlan(core,plan){
  const p=originalPlans.get(plan);
  if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+export function originalGroupCheckpointCore(plan){const binding=originalPlans.get(plan);if(!binding)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalGroupCheckpointPlan(binding.core,plan);return binding.core;}
 export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
  requireOriginalSourceWorkingCore(core);
  requireOriginalGroupCheckpointPlan(core,plan);

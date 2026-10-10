@@ -23,6 +23,8 @@ import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DE
 import {emptyContextCards as emptyContext} from '../context-cards.js';
 import {REVISION_POLICY} from '../ia-store.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
+import {finalConsumerPreferenceOperations,consumerDisplayPreferences,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
+import {originalGroupCheckpointCore} from './group-checkpoint-plan.js';
 const originalScopes=new WeakMap(),ScopeWeakRef=globalThis.WeakRef,scopeDeref=ScopeWeakRef.prototype.deref;
 const freezeScope=value=>{if(value&&typeof value==='object'){for(const item of Object.values(value))freezeScope(item);Object.freeze(value);}return value;};
 // Called only by the original native compiler while this Scope is preparing.
@@ -154,7 +156,7 @@ async function compileOriginalWireScope(plan){
  for(const group of plan.groups){
   if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value,name={source:'records',timeEvidence:'times',input:'blocks',inputState:'inputStates',baselineRevision:'revisions'}[type];if(name&&!(type==='timeEvidence'&&value.value===null))maps[name].set(value.id,copy(value));}
   else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
-  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else context.set(op.entityId,copy(op.value));}
+  else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else if(group.type!=='consumerPreference')context.set(op.entityId,copy(op.value));}
  }
  const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,clone(row));
  const library={records:[...maps.records.values()],library:emptyLibrary()};syncLibrary(library);
@@ -162,6 +164,7 @@ async function compileOriginalWireScope(plan){
  const expected=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()])]));
  expected.documents=sort(documents);expected.libraryDocuments=documents.map(({titleRevision,...row})=>row);
  expected.context=sort([...context.values()]);expected.desired=['info','rules','now','inputs'].map(id=>desired.get(id)||{id,enabled:false,revision:0});expected.prompt=prompt;if(promptBinding)expected.promptBinding=promptBinding;
+ const consumer=finalConsumerPreferenceOperations(plan);if(consumer.length)expected.consumerPreferences=consumer.map(op=>copy(op.value));
  if(human)expected.humanLibrary=human;
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
@@ -187,7 +190,7 @@ export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
 }
 export async function requireGroupScope(store,t,scope){
  const c=await store.control(t);
- if(!equal(c.preferences,defaults())||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal(c.preferences,consumerDisplayPreferences(scope.expected.consumerPreferences??[]))||!equal(c.memoryAccessPolicy,{enabled:false,status:'disabled'})||c.classificationRules.length||c.filterRules.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  const human=hasHumanScope(scope)?await requireHumanScope(store,t,scope):null,humanStores=new Set(['thoughts','topics','sections','placements','thoughtSuppressions','libraryMigrationItems']);
  for(const name of t.tx.objectStoreNames)if(!represented.has(name)&&!ephemeralStores.has(name)&&!(human&&humanStores.has(name))&&await t.count(name))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  // Only key bounded metadata inspection. Never export arbitrary meta/body rows.
@@ -195,7 +198,7 @@ export async function requireGroupScope(store,t,scope){
  for(const key of keys){
   if(human?.allowed.has(key))continue;
   if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
-  if(key==='smart-filter'){const row=await t.get('meta',key);if(row.mode!=='light'||row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
+  if(key==='smart-filter'){const row=await t.get('meta',key),intent=scope.expected.consumerPreferences?.find(row=>row.id==='smartFilter');if(row.mode!==(intent?.value??'light')||!count(row.policyEpoch)||!intent&&row.policyEpoch!==0)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');continue;}
   if(backupMetaAllowed(key))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort((await readRows(t,name)).map(row=>row.value));
@@ -211,6 +214,7 @@ export async function requireGroupScope(store,t,scope){
   }
  }
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));
+ const plan=scopeDeref.call(originalScopes.get(scope).plan),consumer=await requireConsumerPreferenceOwners(t,store,originalGroupCheckpointCore(plan),finalConsumerPreferenceOperations(plan));if(scope.expected.consumerPreferences)actual.consumerPreferences=consumer;
  actual.prompt=projectEntity('promptPreferences',await readPromptPreferences(t));const companion=await t.get('meta',PROMPT_CORRECTION_BINDING_ROW);if(scope.expected.promptBinding)actual.promptBinding=physicalPromptCompanion(companion,actual.prompt);else if(companion)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
  if(human){const revisions=await t.all('revisions'),sequence=await t.get('meta','revision-sequence');if((sequence?.value||0)!==Math.max(0,...revisions.map(row=>row.sequence)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
  return compareGroupCanonicalValues(scope,actual,human);

@@ -144,11 +144,11 @@ export class BrowserNativeSyncCore {
  async prepareLocal(changes,{actor='user',operationIds=null,logicalCommit=null,sourceBootstrap=null,sourceAppend=null,humanLibrary=null,promptBinding=null}={}){
   if(!Array.isArray(changes)||!changes.length||changes.length>CORE_LIMITS.batch)fail('BNS_BATCH_LIMIT');
   changes=clone(changes);operationIds=operationIds?clone(operationIds):null;
-  const snapshot=await this.transaction(false,async t=>({
+  const snapshot=await this.transaction(false,async t=>{await requireConsumerPublicationSettled(t);return ({
    sequence:(await this.get(t,'device',this.deviceId))?.sequence||0,
    generation:(await this.get(t,'generation'))?.value||0,namespace:await this.bind(t),
    heads:await Promise.all(changes.map(c=>this.get(t,'head',c.type,c.entityId||c.value?.id))),
-  }),['meta']);
+  });},['meta']);
   const operations=[],seen=new Set();let sequence=snapshot.sequence;
   for(let index=0;index<changes.length;index++){
    const change=changes[index],entityId=change.entityId||change.value?.id,entity=key([change.type,entityId]);
@@ -192,6 +192,7 @@ export class BrowserNativeSyncCore {
   return {datasetId:this.datasetId,deviceId:this.deviceId,baseSequence:snapshot.sequence,baseGeneration:snapshot.generation,baseNamespace:snapshot.namespace,operations};
  }
  async commitPrepared(t,prepared,{origin='local',materialize=true}={}){
+  await requireConsumerPublicationSettled(t);
   if(prepared.datasetId!==this.datasetId||prepared.deviceId!==this.deviceId||!['local','remote'].includes(origin))fail('BNS_BINDING_CHANGED');
   // Seals are prepared before the IDB transaction. Reject caller mutation using
   // a private capability below rather than starting crypto while IDB is alive.

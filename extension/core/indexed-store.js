@@ -64,34 +64,38 @@ export class IndexedArchiveStore {
   }catch{return false;}
  }
  async publish(){
-  const control=this.pendingControl;if(!control)return;
+  const control=this.pendingControl;if(!control)return;const journal=this.consumerPreferenceJournal;
   const owner=localPublicationOwners.get(this);if(!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');
   if(owner.dispatched)error('CONTROL_PUBLICATION_ATTEMPT_USED');
   await this.repository.transaction(false,t=>requireControlPublicationOwner(t,owner.reservation,owner.fences),['meta']);
   const payload=structuredClone(controlPublicationRow(control,this.databaseId,owner.reservation)),afterDigest=await controlPublicationDigest(payload),fenceDigest=await controlPublicationDigest(owner.fences);
   if(control!==this.pendingControl||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('CONTROL_PUBLICATION_CHANGED');
+  const publication=journal?await journal.preparePublication(this):undefined;
+  if(journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_CHANGED');
   const prepared={...owner.reservation,afterDigest,fenceDigest};
-  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await t.put('meta',prepared);},['meta']);owner.reservation=prepared;
+  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(journal)await journal.requirePreparedPublication(t,this,publication);await t.put('meta',prepared);},['meta']);owner.reservation=prepared;
   if(control!==this.pendingControl||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('CONTROL_PUBLICATION_CHANGED');
+  if(journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_CHANGED');
   if(owner.dispatched)error('CONTROL_PUBLICATION_ATTEMPT_USED');owner.dispatched=true;
   try{await this.local.set({[STORAGE_KEY]:payload});}
   catch(e){if(!(#preferencePublication in this)||this.consumerPreferenceJournal&&!this.localPublicationTerminal||!await this.#confirmPreferencePublication(this.#preferencePublication,control)){
    // Only the original Chrome SDK's completed RPC, or an explicitly qualified
    // injected adapter with that same terminal contract, supplies this evidence.
    // A timeout, detached call, wrapper rejection or worker restart cannot.
-   if(this.localPublicationTerminal)try{await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal&&await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation))return;await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);}catch{/* Keep foreign/changed or portable-pending state and the original error. */}
+   if(this.localPublicationTerminal)try{await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal&&await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication))return;await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);}catch{/* Keep foreign/changed or portable-pending state and the original error. */}
    throw e;
   }}
   finally{if(#preferencePublication in this)this.#preferencePublication=null;}
-  if(this.consumerPreferenceJournal&&this.localPublicationTerminal)await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation);},['meta']);
+  if(journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_CHANGED');
+  if(this.consumerPreferenceJournal&&this.localPublicationTerminal)await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);await this.consumerPreferenceJournal.markTerminal(t,this,owner.reservation,publication);},['meta']);
   if(this.consumerPreferenceJournal){const actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];if(control!==this.pendingControl||!publicationEqual(actual,payload)||!publicationEqual(payload,controlPublicationRow(this.pendingControl,this.databaseId,owner.reservation)))error('BNS_CONSUMER_PUBLICATION_PENDING');}
   // An acknowledged write releases only its exact reservation. Lost-worker or
   // failed/unqualified outcomes retain it; neither consent nor a control body is
   // replayed to make an unknown outcome appear successful.
-  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
+  await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation,publication);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
   this.controlCache=control;this.pendingControl=null;
  }
- write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,t=>fn(t,prepared));onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
