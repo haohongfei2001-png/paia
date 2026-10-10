@@ -14,9 +14,9 @@ function shape(value){
  else if(p!==objectPrototype&&p!==null)required();
  if(symbols(value).length)required();
 }
-function field(value,key){const d=descriptor(value,key);if(!d||!('value'in d)||!d.enumerable)required();return d.value;}
+function field(value,key){const d=descriptor(value,key);if(!d||!own(d,'value')||!d.enumerable)required();return d.value;}
 function arrayShape(value){
- const d=descriptor(value,'length');if(!d||!('value'in d)||!Number.isSafeInteger(d.value)||d.value<0||d.value>4096)required();
+ const d=descriptor(value,'length');if(!d||!own(d,'value')||!Number.isSafeInteger(d.value)||d.value<0||d.value>4096)required();
  let n=0;for(const key in value)if(own(value,key)){
   if(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=d.value||++n>d.value)required();
  }
@@ -27,6 +27,7 @@ function arrayShape(value){
 // string or normalized body copy is made; descriptor/name vectors belong to
 // the finite prepayment ledger of the native caller, never a heap theorem.
 export function measureSourceWorkingPhysicalTree(value,limit=2*1024*1024){
+ if('value'in objectPrototype)required();
  if(!Number.isSafeInteger(limit)||limit<1||limit>2*1024*1024)required();
  let B=0,T=0,V=0,E=0;const add=n=>{B+=n;if(B>limit)fail('BNS_HUMAN_GRAPH_LIMIT');};
  const text=s=>{T+=s.length;add(2);for(let i=0;i<s.length;i++){
@@ -51,6 +52,7 @@ export function measureSourceWorkingPhysicalTree(value,limit=2*1024*1024){
 // Complete structural equality includes own presence, array order, undefined
 // and Object.is signed-zero identity. It produces no canonical/encoded copy.
 export function equalSourceWorkingPhysicalTree(a,b){
+ if('value'in objectPrototype)required();
  let visited=0;
  const compare=(x,y,depth)=>{
   if(++visited>200000||depth>32)fail('BNS_HUMAN_GRAPH_LIMIT');

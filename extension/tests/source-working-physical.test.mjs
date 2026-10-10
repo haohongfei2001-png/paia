@@ -33,3 +33,10 @@ test('finite physical meter rejects oversize, excess keys/array extent, deep cyc
  const cyclic={};cyclic.self=cyclic;assert.throws(()=>measure(cyclic),{code:'BNS_HUMAN_GRAPH_LIMIT'});
  assert.throws(()=>measure({body:'\ud800'}),{code:'BNS_TEXT_ENCODING'});
 });
+
+test('polluted descriptor prototype cannot turn an accessor into an own data field',()=>{
+ let calls=0;const row={};Object.defineProperty(row,'body',{enumerable:true,get(){calls++;return 'SYNTHETIC getter';}});
+ const descriptor=Object.create(null);Object.assign(descriptor,{value:'SYNTHETIC inherited descriptor value',configurable:true});
+ Object.defineProperty(Object.prototype,'value',descriptor);
+ try{assert.throws(()=>measure(row),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.throws(()=>equal(row,{body:'SYNTHETIC inherited descriptor value'}),{code:'BNS_SOURCE_WORKING_PHYSICAL_INVALID'});assert.equal(calls,0);}finally{delete Object.prototype.value;}
+});
