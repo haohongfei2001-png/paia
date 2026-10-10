@@ -6,7 +6,12 @@ import {STORAGE_KEY} from '../../core/constants.js';
 export async function runPreferencePublicationNativeCases(){
  const cases=[];let assertions=0;
  const check=(value,message)=>{assertions++;if(!value)throw Error(message);};
- const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+ const equal=(a,b)=>{
+  if(Object.is(a,b))return true;
+  if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+  const keys=Reflect.ownKeys(a);if(keys.length!==Reflect.ownKeys(b).length)return false;
+  return keys.every(key=>Object.hasOwn(b,key)&&equal(a[key],b[key]));
+ };
  const run=async(name,fn)=>{const n=assertions;try{await fn();cases.push({name,result:'PASS',assertions:assertions-n});}catch(e){cases.push({name,result:'FAIL',assertions:assertions-n,error:e.message});throw e;}};
  async function fixture(){
   const id=crypto.randomUUID(),prefix='SYNTHETIC-preference-native:'+id+':',key=prefix+STORAGE_KEY,name='SYNTHETIC-preference-native-'+id;
