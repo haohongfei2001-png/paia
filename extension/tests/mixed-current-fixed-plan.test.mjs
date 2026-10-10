@@ -185,3 +185,41 @@ test('original mixed restored allocation consumes only the authenticated import 
   const corrupted=await all(third);assert.deepEqual(corrupted.meta.filter(row=>row.id.includes(':revision:')),stable.meta.filter(row=>row.id.includes(':revision:')));const verdict=await third.repository.transaction(false,async t=>{try{await requireGroupScope(third,t,nextScope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');
  }finally{await third?.repository.close();await target?.repository.close();await x.s.repository.close();}
 });
+
+test('initial original mixed Scope rejects coherent Human query sequence and mapping tampering despite unchanged sealed operations',async()=>{
+ const x=await producer();try{const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations),scope=await prepareGroupScope(plan,{store:x.s}),before=await all(x.s),entry=before.thoughts[0],mapping=before.meta.find(row=>row.type==='entry'&&row.id.includes(':humanMapping:'));
+ assert.ok(mapping);await x.s.repository.transaction(true,async t=>{await t.put('thoughts',{...entry,createdSequence:100,updatedSequence:100,negativeUpdatedSequence:-100});await t.put('meta',{...mapping,local:{createdSequence:100,updatedSequence:100,negativeUpdatedSequence:-100}});await t.put('meta',{id:'thought-sequence',value:101});});
+ const changed=await all(x.s);assert.deepEqual(changed.meta.filter(row=>row.id.includes(':revision:')),before.meta.filter(row=>row.id.includes(':revision:')));
+ const verdict=await x.s.repository.transaction(false,async t=>{try{await requireGroupScope(x.s,t,scope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');assert.deepEqual(await all(x.s),changed);
+ }finally{await x.s.repository.close();}
+});
+test('initial original mixed Scope rejects altered Human domain result and extra receipt inventory without touching the whole37 cut',async()=>{
+ const x=await producer();try{const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations),scope=await prepareGroupScope(plan,{store:x.s}),before=await all(x.s),receipt=before.operationReceipts.find(row=>row.namespace==='thought-library');assert.ok(receipt);
+ await x.s.repository.transaction(true,async t=>{await t.put('operationReceipts',{...receipt,result:{...receipt.result,revision:999}});await t.put('operationReceipts',{...receipt,id:'SYNTHETIC_extra_receipt',operationSequence:888});});const changed=await all(x.s);
+ const verdict=await x.s.repository.transaction(false,async t=>{try{await requireGroupScope(x.s,t,scope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED');assert.deepEqual(await all(x.s),changed);
+ }finally{await x.s.repository.close();}
+});
+
+test('authenticated restored prefix and genuine local Human tail reject physical counters, exact domain receipt phases and unknown retries',async()=>{
+ const x=await producer();let target;try{
+  const objects=new Map(),transport={async putImmutable(ref,body){objects.set(ref.id,body.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cut=await buildCheckpoint(x.core,transport,{grouped:{store:x.s}});await x.s.repository.close();
+  target=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory()});await target.consent(true);await target.finishFoundation();const core=new BrowserNativeSyncCore(target.repository,{datasetId:x.core.datasetId,deviceId:'SYNTHETIC_human_physical_restored'}),restore=new GroupedCheckpointRestore(core,{store:target,restoreId:operationId()});await restore.stageCheckpoint(cut.ref,ref=>transport.get(ref));await restore.activate();let cleanup;do{cleanup=await restore.cleanup({limit:3});}while(!cleanup.complete);
+  target.humanLibraryJournal=new HumanLibrarySyncJournal(core);await target.createEntry({actor:'user',body:'SYNTHETIC original local Human after restored prefix',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});
+  const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);const plan=await prepareCurrentMixedGroupCheckpointPlan(core,operations),scope=await prepareGroupScope(plan,{store:target}),before=await all(target);assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,scope)),true);
+  for(const kind of ['entry-and-mapping','thought-counter','topic-physical','receipt-sequence','receipt-clock','receipt-result','unknown-retry']){
+   const entry=before.thoughts[0],topic=before.topics[0],mapping=before.meta.find(row=>row.type==='entry'&&row.id.includes(':humanMapping:')&&row.local.createdSequence===entry.createdSequence),receipt=before.operationReceipts[0];
+   await target.repository.transaction(true,async t=>{
+    if(kind==='entry-and-mapping'){await t.put('thoughts',{...entry,createdSequence:777,updatedSequence:777,negativeUpdatedSequence:-777});await t.put('meta',{...mapping,local:{createdSequence:777,updatedSequence:777,negativeUpdatedSequence:-777}});}
+    if(kind==='thought-counter')await t.put('meta',{id:'thought-sequence',value:888});
+    if(kind==='topic-physical')await t.put('topics',{...topic,negativeUpdatedSequence:-999});
+    if(kind==='receipt-sequence')await t.put('operationReceipts',{...receipt,operationSequence:999});
+    if(kind==='receipt-clock')await t.put('operationReceipts',{...receipt,createdAt:'2026-10-11T00:00:00.000Z'});
+    if(kind==='receipt-result')await t.put('operationReceipts',{...receipt,result:{...receipt.result,revision:999}});
+    if(kind==='unknown-retry')await t.put('operationReceipts',{...receipt,id:'SYNTHETIC_extra_receipt',namespace:'SYNTHETIC_unknown'});
+   });const changed=await all(target);assert.deepEqual(changed.meta.filter(row=>row.id.includes(':revision:')),before.meta.filter(row=>row.id.includes(':revision:')));
+   const verdict=await target.repository.transaction(false,async t=>{try{await requireGroupScope(target,t,scope);return 'ACCEPTED';}catch(error){return error.code;}});assert.equal(verdict,'BNS_GROUP_CANONICAL_UNREPRESENTED',kind);assert.deepEqual(await all(target),changed);
+   await target.repository.transaction(true,async t=>{for(const name of ['thoughts','topics','meta','operationReceipts']){await t.clear(name);for(const row of before[name])await t.put(name,row);}});
+   assert.equal(await target.repository.transaction(false,t=>requireGroupScope(target,t,scope)),true,'exact original restoration after '+kind);
+  }
+ }finally{if(target)await target.repository.close();await x.s.repository.close();}
+});

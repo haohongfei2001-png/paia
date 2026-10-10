@@ -1,7 +1,7 @@
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations} from './mixed-restored-allocation.js';
 import {borrowOriginalMixedScopeCompilationMeta} from './human-library-plan.js';
-import {assertMixedInitialPhysicalAllocations} from './mixed-initial-allocation.js';
+import {assertMixedInitialPhysicalAllocations,assertMixedInitialHumanPhysicalAllocations} from './mixed-initial-allocation.js';
 import {syncLibrary,emptyLibrary} from '../library.js';
 import {defaults} from '../workspace.js';
 import {readContextCards,CONTEXT_CARDS_ROW} from '../context-cards.js';
@@ -185,7 +185,16 @@ export async function requireGroupScope(store,t,scope){
  }
  const actual={};for(const name of ['records','blocks','documents','libraryDocuments'])actual[name]=sort((await readRows(t,name)).map(row=>row.value));
  for(const name of ['times','inputStates','revisions','filterIntents'])actual[name]=sort(await readRows(t,name));
- const original=originalScopes.get(scope);if(original?.mixedCore){const plan=scopeDeref.call(original.plan);requireOriginalCurrentMixedGroupScope(original.mixedCore,scope,plan);if(original.restoredAllocation){if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');assertMixedRestoredPhysicalAllocations(original.mixedCore,scope,plan,actual,await t.all('meta'),original.restoredAllocation);}else assertMixedInitialPhysicalAllocations(original.mixedCore,scope,plan,actual,{active:await t.get('meta',original.mixedCore.prefix+'active')??null,input:await t.get('meta','input-delta-sequence')??null,history:await t.get('meta','revision-sequence')??null});}
+ const original=originalScopes.get(scope);if(original?.mixedCore){
+  const plan=scopeDeref.call(original.plan);requireOriginalCurrentMixedGroupScope(original.mixedCore,scope,plan);
+  if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');const meta=await t.all('meta'),humanRows={revisions:actual.revisions};
+  for(const name of ['thoughts','topics','operationReceipts'])humanRows[name]=await readRows(t,name);
+  if(original.restoredAllocation)assertMixedRestoredPhysicalAllocations(original.mixedCore,scope,plan,actual,meta,original.restoredAllocation,humanRows);
+  else{
+   assertMixedInitialPhysicalAllocations(original.mixedCore,scope,plan,actual,{active:meta.find(row=>row.id===original.mixedCore.prefix+'active')??null,input:meta.find(row=>row.id==='input-delta-sequence')??null,history:meta.find(row=>row.id==='revision-sequence')??null});
+   assertMixedInitialHumanPhysicalAllocations(original.mixedCore,scope,plan,humanRows,meta);
+  }
+ }
  for(const row of actual.inputStates){if(!count(row.deltaSequence)||row.deltaSequence<1)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.deltaSequence=0;}
  for(const row of actual.revisions){if(!count(row.sequence)||row.sequence<1||!equal(row.listKey,[row.entityKey,row.sequence])||!equal(row.documentList,[row.documentId,row.sequence]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const context=await readContextCards(t);actual.context=sort(context.items);actual.desired=['info','rules','now','inputs'].map(id=>({id,...context.access[id]}));

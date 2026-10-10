@@ -1,3 +1,4 @@
+import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
 import {requireOriginalCurrentMixedGroupScope} from './group-checkpoint-scope.js';
 import {count,equal,fail} from './value.js';
 
@@ -27,4 +28,12 @@ export function assertMixedInitialPhysicalAllocations(core,scope,plan,rows,count
  }
  if(!equal(counters.history,{id:'revision-sequence',value:Math.max(0,...seen)}))refuse();
  return true;
+}
+
+export function assertMixedInitialHumanPhysicalAllocations(core,scope,plan,rows,meta){
+ if(arguments.length!==5)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupScope(core,scope,plan);
+ if(core.fixedNamespace!==null||meta.some(row=>row.id===core.prefix+'active')||plan.groups.some(group=>group.operations.some(op=>op.deviceId!==core.deviceId)))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ const chronology=[...plan.groups].sort((a,b)=>Math.min(...a.operations.map(op=>op.sequence))-Math.min(...b.operations.map(op=>op.sequence)));
+ const expected=prepareMixedHumanPhysicalExpectation(chronology,core.deviceId),history=new Map(rows.revisions.map(row=>[row.id,row.sequence]));
+ return assertMixedHumanPhysicalExpectation(core,scope,plan,rows,meta,expected,history,'initial');
 }

@@ -1,3 +1,4 @@
+import {prepareMixedHumanPhysicalExpectation,assertMixedHumanPhysicalExpectation} from './mixed-human-physical.js';
 import {requireOriginalCurrentMixedGroupPlan,prepareCurrentMixedGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {requireOriginalCurrentMixedGroupScope,prepareOriginalMixedWireOwnerScope} from './group-checkpoint-scope.js';
 import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
@@ -43,11 +44,11 @@ export async function prepareMixedRestoredAllocationProof(core,plan,meta){
    for(const op of group.prepared.members)if(op.value.entityType==='history'){const h=op.value.after;if(!history.has(h.id))history.set(h.id,++revision);if(localGroup&&h.sequence!==history.get(h.id))refuse();}
   }else if(!['promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(group.type))refuse();
  }
- const cap=Object.freeze({});proofs.set(cap,{core,plan,active:clone(active),completed:clone(completed[0]),inputs,history,delta,revision});return cap;
+ const cap=Object.freeze({});proofs.set(cap,{core,plan,active:clone(active),completed:clone(completed[0]),inputs,history,delta,revision,human:prepareMixedHumanPhysicalExpectation([...prefix.groups,...tail],core.deviceId)});return cap;
 }
 
-export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta,cap){
- if(arguments.length!==6)refuse();requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
+export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta,cap,humanRows){
+ if(arguments.length!==7)refuse();requireOriginalCurrentMixedGroupScope(core,scope,plan);const p=proofs.get(cap);if(!p||p.core!==core||p.plan!==plan)refuse();
  const byId=new Map(meta.map(row=>[row.id,row]));if(byId.size!==meta.length||!equal(byId.get(p.active.id),p.active)||!equal(byId.get(p.completed.id),p.completed)||meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:')).length!==1||byId.has('recovery-restore-epoch'))refuse();
  if(rows.inputStates.length!==p.inputs.size||rows.revisions.length!==p.history.size||!equal(byId.get('input-delta-sequence'),{id:'input-delta-sequence',value:p.delta})||!equal(byId.get('revision-sequence'),{id:'revision-sequence',value:p.revision}))refuse();
  for(const state of rows.inputStates)if(state.deltaSequence!==p.inputs.get(state.id))refuse();
@@ -58,5 +59,5 @@ export function assertMixedRestoredPhysicalAllocations(core,scope,plan,rows,meta
  }else if(head.type==='inputWorkingMember'&&head.entityId.startsWith('revision:')){
   const id=head.entityId.slice(9);if(head.revisions.length!==1||!equal(byId.get(key('workingHistory',id)),{id:key('workingHistory',id),revisionId:head.revisions[0],sequence:p.history.get(id)}))refuse();
  }
- return true;
+ assertMixedHumanPhysicalExpectation(core,scope,plan,humanRows,meta,p.human,p.history,p.active.namespace);return true;
 }
