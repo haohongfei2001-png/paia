@@ -1,3 +1,4 @@
+import {syncLibrary,emptyLibrary} from '../library.js';
 import {prepareOriginalMixedModeBaseline} from './mixed-configuration.js';
 import {observeOriginalControlPublication,requireOriginalControlObservation} from '../indexed-store.js';
 import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,validateControlPublicationStamp} from '../local-control-publication.js';
@@ -1319,12 +1320,21 @@ function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
   else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){humanFinal.set(member.value.entityType+'\0'+member.value.after.id,member.value.after);if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}}
   else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='promptBinding'?'promptBinding':group.type==='consumerPreference'?'consumerPreferences':group.type==='topicDesired'?'topicDesired':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
  }
- let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0,removedTrees=0;
- for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(name==='revisions'&&humanHistory.has(value.id)||!['inputStates','revisions'].includes(name))removedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0,removedTrees=0,normalizationTrees=0;
+ for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(name==='revisions'&&humanHistory.has(value.id)||!['inputStates','revisions'].includes(name))removedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}if(['inputStates','revisions'].includes(name))normalizationTrees+=projectionTreeCharge(m);peak=Math.max(peak,projectionCanonicalCharge(m));}
  // Exactly one portable Human aggregate clone was removed by the original
  // Mixed wire owner. Rebate its final rows/names, never original Plan/raw.
  for(const value of humanFinal.values()){const tree=projectionTreeCharge(projectionRowMeasure(r,value));borrowedTrees+=tree;removedTrees+=tree;}borrowedTrees+=projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
- return {peak,borrowedTrees,removedTrees};
+ // Measure the original generated library and complete fallback families too.
+ // Prepay their bounded constructor before calling the SAME original builder;
+ // these temporary meter trees finish before the real Scope wire phase starts.
+ const records=[...maps.records.values()],recordMeasure=projectionRowMeasure(r,records);
+ projectionReserve(r,surviving+4*projectionTreeCharge(recordMeasure)+4096*128+256*1024);
+ const library={records,library:emptyLibrary()};syncLibrary(library);
+ const documents=library.library.documents.map(row=>{const value={...row,titleRevision:0};delete value.sourceRecordIds;return value;}),libraryDocuments=documents.map(({titleRevision,...row})=>row),defaultsDesired=['info','rules','now','inputs'].map(id=>maps.desired.get(id)||{id,enabled:false,revision:0}),emptyPrompt={id:'prompt-reuse:v1',version:1,pins:[],overrides:[],splits:[]};
+ let generatedTrees=projectionTreeCharge(projectionRowMeasure(r,library.library))+projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
+ for(const family of [documents,libraryDocuments,defaultsDesired,...(maps.prompt.size?[]:[emptyPrompt])]){const measured=projectionRowMeasure(r,family);generatedTrees+=projectionTreeCharge(measured);peak=Math.max(peak,projectionCanonicalCharge(measured));}
+ return {peak,borrowedTrees,removedTrees,normalizationTrees,generatedTrees};
 }
 // Genuine sequential prefix stages reserve their actual operands. The current
 // complete raw/Plan/private Source ownership never leaves this work ticket.
@@ -1347,7 +1357,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
   for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)add(member.value.entity);else add(group.operations[0].value);}
   r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix));
   const surviving=r.mixedRestoredBase+r.mixedRestoredTemporary,meter=mixedWireCanonicalFamilyPeak(r,prefix,humanWire,surviving);
-  projectionReserve(r,surviving+8*projectionTreeCharge(wire)-meter.borrowedTrees-meter.removedTrees+4*meter.peak+8*wire.B+256*1024);return;
+  projectionReserve(r,surviving+2*meter.normalizationTrees+2*meter.generatedTrees+4*meter.peak+8*wire.B+4096*128+256*1024);return;
  }
  if(phase==='mapped'){
   if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';
@@ -1571,7 +1581,7 @@ async function projectionCompileInitialMixedScope(r){
  // Human-history role), original humanWire, keyed/normalized/nested copies,
  // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
- const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees-wireMeter.removedTrees+4*wireMeter.peak+8*wire.B+256*1024;
+ const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=2*wireMeter.normalizationTrees+2*wireMeter.generatedTrees+4*wireMeter.peak+8*wire.B+4096*128+256*1024;
  // The keyed phase has its own original-owner entry after the wire builder
  // returns; its actual surviving objects are charged there before crypto.
  // The restored prefix compiler/control check runs after wire construction
