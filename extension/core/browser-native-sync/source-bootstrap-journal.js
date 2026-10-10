@@ -19,8 +19,9 @@ export async function sourceBootstrapSnapshot(store,core,t,r){
   time:await t.get('times',r.sourceKey)??null,sourceTombstone:await t.get('tombstones','source:'+r.sourceKey)??null,snapshotTombstone:await t.get('tombstones','snapshot:'+r.dedupeKey)??null,removal:await t.get('inputRemovals',r.sourceKey)??null,excluded:await captureIsExcluded(t,r.chatId)};
 }
 export function requireAbsent(snapshot){if(snapshot.record||snapshot.input||snapshot.document||snapshot.sameSource||snapshot.sameDedupe||snapshot.sameChat||snapshot.time||snapshot.sourceTombstone||snapshot.snapshotTombstone||snapshot.removal||snapshot.excluded)fail('BNS_SOURCE_BOOTSTRAP_UNAVAILABLE');}
+const originalSourceBootstrapOwners=new WeakMap();
 export class SourceBootstrapJournal{
- constructor(core){this.core=core;}
+ constructor(core){this.core=core;originalSourceBootstrapOwners.set(this,{core:this.core});}
  capture(store,request,enrich){
   if(store.repository!==this.core.repository||store.sourceBootstrapJournal!==this||enrich)fail('BNS_SOURCE_BOOTSTRAP_UNSUPPORTED');
   const {chat,messages}=validateCapture(request);if(messages.length!==1)fail('BNS_SOURCE_BOOTSTRAP_UNSUPPORTED');
@@ -40,4 +41,14 @@ export class SourceBootstrapJournal{
    await store.publish();return result;
   });
  }
+}
+
+// Constructor-private identity only for the selected native Source/Working
+// profile. No registration, reader, transport or write authority is exported.
+const originalSourceBootstrapOwnersDescriptor=Object.getOwnPropertyDescriptor, originalSourceBootstrapOwnersOwn=Object.hasOwn, originalSourceBootstrapOwnersPrototype=Object.getPrototypeOf;
+const originalSourceBootstrapOwnersMethods=new Map(Object.getOwnPropertyNames(SourceBootstrapJournal.prototype).filter(name=>name!=='constructor').map(name=>[name,originalSourceBootstrapOwnersDescriptor(SourceBootstrapJournal.prototype,name)?.value]));
+export function assertOriginalSourceBootstrapOwner(journal,core){
+ const binding=originalSourceBootstrapOwners.get(journal);if(arguments.length!==2||!binding||binding.core!==core||originalSourceBootstrapOwnersPrototype(journal)!==SourceBootstrapJournal.prototype)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');
+ for(const [name,value]of Object.entries(binding)){const d=originalSourceBootstrapOwnersDescriptor(journal,name);if(!d||!originalSourceBootstrapOwnersOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
+ for(const [name,value]of originalSourceBootstrapOwnersMethods){const own=originalSourceBootstrapOwnersDescriptor(journal,name),d=own||originalSourceBootstrapOwnersDescriptor(SourceBootstrapJournal.prototype,name);if(!d||!originalSourceBootstrapOwnersOwn(d,'value')||typeof value!=='function'||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
 }

@@ -1,4 +1,4 @@
-import {CORE_LIMITS,validateOperation,validateHumanCommitGroup} from './core.js';
+import {CORE_LIMITS,validateOperation,validateHumanCommitGroup,prepareOriginalSourceWorkingReceive,requireOriginalSourceWorkingCore} from './core.js';
 import {bytes,digest,fail,equal} from './value.js';
 import {prepareInitialSourcePlan} from './source-bootstrap-plan.js';
 import {prepareSourceAppendPlan} from './source-append-plan.js';
@@ -14,16 +14,33 @@ export function requireOriginalGroupCheckpointPlan(core,plan){
  const p=originalPlans.get(plan);
  if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
+export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
+ requireOriginalSourceWorkingCore(core);
+ requireOriginalGroupCheckpointPlan(core,plan);
+ if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+// Restrict this current-native slice before the general Scope owner allocates
+// its complete tables or digests families. The general fixed compiler remains
+// usable for broader future prerequisites; only this original native selection
+// has one Source bootstrap and one/two genuine Working commits.
+export function requireSelectedCurrentSourceWorkingGroupPlan(core,plan){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentSourceWorkingGroupPlan(core,plan);
+ let source=0,working=0;
+ for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')source++;else if(group.type==='inputWorkingCommit')working++;else fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');}
+ if(plan.operationCount>128||source!==1||working<1||working>2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
-export async function prepareGroupCheckpointPlan(core,input){
- const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace};
+async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorking){
+ const binding={core,datasetId:core.datasetId,repository:core.repository,prefix:core.prefix,fixedNamespace:core.fixedNamespace,currentSourceWorking};
  if(!Array.isArray(input)||input.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');
  let size=0;const operations=[],byRevision=new Map(),byId=new Map(),sequences=new Set();
  for(const candidate of input){
   size+=bytes(candidate).length;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
   const op=await validateOperation(candidate);
+  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
+  if(currentSourceWorking&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const sequence=JSON.stringify([op.deviceId,op.sequence]);
   if(byRevision.has(op.revisionId)||byId.has(op.operationId)||sequences.has(sequence))fail('BNS_GROUP_DUPLICATE');
@@ -39,7 +56,7 @@ export async function prepareGroupCheckpointPlan(core,input){
   if(Object.hasOwn(families,op.type)){
    const [refs,prepare]=families[op.type];rows=[];
    for(const ref of op.value[refs]){const row=byRevision.get(ref.revisionId);if(!row||row.type!==ref.type||row.entityId!==ref.entityId)fail('BNS_GROUP_INCOMPLETE');rows.push(row);}
-   rows.push(op);prepared=op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):await core[prepare](rows);
+   rows.push(op);prepared=op.type==='humanLibraryCommit'?await validateHumanCommitGroup(rows,core.datasetId):currentSourceWorking?await prepareOriginalSourceWorkingReceive(core,op.type,rows):await core[prepare](rows);
    const entities=Object.fromEntries(prepared.members.map(row=>[row.value.entityType,row.value.entity]));
    if(op.type==='sourceBootstrapCommit')capability=await prepareInitialSourcePlan(entities);
    if(op.type==='sourceAppendCommit')capability=await prepareSourceAppendPlan(entities,op.value.documentId);
@@ -73,6 +90,15 @@ export async function prepareGroupCheckpointPlan(core,input){
  // Exact ordering commitment is independent of received object/page order.
  const graph=ordered.map(group=>({id:group.id,type:group.type,revisions:group.operations.map(op=>op.revisionId),dependencies:group.dependencies}));
  const plan=freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});
+ if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
  if(core.datasetId!==binding.datasetId||core.repository!==binding.repository||core.prefix!==binding.prefix||core.fixedNamespace!==binding.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  originalPlans.set(plan,binding);return plan;
+}
+
+export async function prepareGroupCheckpointPlan(core,input){return prepareGroupCheckpointPlanInternal(core,input,false);}
+// Only fixed original Source/Working validators; no supplied preparation method.
+// The later native capture owner still authenticates the complete current cut.
+export async function prepareCurrentSourceWorkingGroupCheckpointPlan(core,input){
+ if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalSourceWorkingCore(core);
+ return prepareGroupCheckpointPlanInternal(core,input,true);
 }

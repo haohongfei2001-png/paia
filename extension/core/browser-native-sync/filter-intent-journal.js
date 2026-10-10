@@ -28,8 +28,9 @@ export async function prepareRestoredFilterSources(records){
  const cap=Object.freeze({});restoredProofs.set(cap,byKey);return cap;
 }
 
+const originalFilterIntentOwners=new WeakMap();
 export class FilterIntentSyncJournal{
- constructor(core){this.core=core;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.working=new WeakSet();}
+ constructor(core){this.core=core;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.working=new WeakSet();originalFilterIntentOwners.set(this,{core:this.core,fence:this.fence,prepared:this.prepared,working:this.working});}
  assertStore(store){if(store.repository!==this.core.repository)fail('BNS_BINDING_CHANGED');}
  async qualify(keys){
   keys=[...new Set(keys)];if(!keys.length||keys.length>LIMIT)fail('BNS_FILTER_SOURCE_UNQUALIFIED');
@@ -112,4 +113,14 @@ async function applyFilterOwner(journal,t,operation,before){
    const head=await journal.core.get(t,'head','filterIntent',operation.entityId);
    if(head?.revisions.length===1&&head.revisions[0]===operation.revisionId&&!equal(before.local[0]??null,operation.value))await t.put('filterIntents',clone(operation.value));
    return result;
+}
+
+// Constructor-private identity only for the selected native Source/Working
+// profile. No registration, reader, transport or write authority is exported.
+const originalFilterIntentOwnersDescriptor=Object.getOwnPropertyDescriptor, originalFilterIntentOwnersOwn=Object.hasOwn, originalFilterIntentOwnersPrototype=Object.getPrototypeOf;
+const originalFilterIntentOwnersMethods=new Map(Object.getOwnPropertyNames(FilterIntentSyncJournal.prototype).filter(name=>name!=='constructor').map(name=>[name,originalFilterIntentOwnersDescriptor(FilterIntentSyncJournal.prototype,name)?.value]));
+export function assertOriginalFilterIntentOwner(journal,core){
+ const binding=originalFilterIntentOwners.get(journal);if(arguments.length!==2||!binding||binding.core!==core||originalFilterIntentOwnersPrototype(journal)!==FilterIntentSyncJournal.prototype)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');
+ for(const [name,value]of Object.entries(binding)){const d=originalFilterIntentOwnersDescriptor(journal,name);if(!d||!originalFilterIntentOwnersOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
+ for(const [name,value]of originalFilterIntentOwnersMethods){const own=originalFilterIntentOwnersDescriptor(journal,name),d=own||originalFilterIntentOwnersDescriptor(FilterIntentSyncJournal.prototype,name);if(!d||!originalFilterIntentOwnersOwn(d,'value')||typeof value!=='function'||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
 }

@@ -1,3 +1,13 @@
+# 0.43.11 Source/Working local checkpoint candidate — qualification pending (2026-10-10)
+
+Accepted runtime/package remains qualified0.43.10 actual main b28863e9; current docs-only main b461047d is the coherent candidate base. Root's sole-writer SYNC-01 candidate adds only default-false fixed original native Source bootstrap plus1–2 genuine Working groups, all37 tables/49 originalindexes/default18-row metadata and three fully drained cuts through the existing original encoder/restore. It preserves original wire codecs, caps, permissions and default consumers. No public Sync switch/provider/account activation is added.
+
+Finite repaired capture, source-closed recovery/rollback/retry/noecho/consumer-reopen and declared native cleanup-fault component tests pass at their actual separate identities. Independent resource/Code reviews preserve and repair the original failed async getter, copied migration relationship, actual operand prepayment and borrowed-frame cleanup boundaries. Stable changed-version complete regression/strict46 native receipts, final independent composition, Full21/Prompt5, guarded integration and exact-main package gates remain pending. See [owning coherent Source/Working receipt](implementation/verification/COHERENT-04311-SOURCE-WORKING-CURRENT.md). No old component evidence is retagged as current head.
+
+Allseven unfinished; TOPIC/Prompt/IAH1.1 final acceptance, missing approved exact CTX/SET visual originals, portableSettings recoverable durability, fullcanonical/indexed Search/provider/device/lostdevice and realQwen quality/billing remain distinct. No paid/account/credential/permission expansion, real-user upload, formal deployment, irreversible deletion, oldIAH1.0/NIB/Stage3B selection.
+
+## Preserved preceding checkpoint
+
 # Accepted main 0.43.10; Source/Working current-native batch continues (2026-10-10)
 
 PR245 normally merged at `b28863e9c27283385dc09517be31e322e34a8e29`, tree `0a8cdd7aced5689e6b921cd60dc39624f4c109d7`, parent `cf567aca4d706135a82c6e7475c4bfce343843ed`. Exact revised candidate3e20/testedmergeb1b0 passed all21 Full gates in38021591370 and all5 Prompt gates in38021591413, followed by independent finite integration approval. Actual-main Full38023070845 independently passes all21 required jobs; actual-main Prompt38023070898 passes all5. Historical skipped audit is excluded. All40 fresh actual-main native receipts pass the unchanged complete161-line strict verifier. Candidate executions remain attached to their actual identities.
