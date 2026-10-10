@@ -8,6 +8,8 @@ import {PromptSyncJournal} from '../../core/browser-native-sync/prompt-journal.j
 import {PromptReuseService} from '../../core/prompt-reuse-service.js';
 import {ContextDesiredSyncJournal} from '../../core/browser-native-sync/context-desired-journal.js';
 import {ContextCardsService} from '../../core/context-cards.js';
+import {thoughtRootIndexPage} from '../../core/thought-read-index.js';
+import {topicReadingPage} from '../../core/organizer/topic-reading.js';
 import {inspectMixedCurrentNativeIndexClosure,inspectMixedCurrentNativeScopeCompilation} from '../../core/browser-native-sync/human-library-plan.js';
 import {equalSourceWorkingPhysicalTree} from '../../core/browser-native-sync/source-working-physical.js';
 import {beginHumanQualificationWork,releaseHumanQualificationLease} from '../../core/browser-native-sync/human-qualification-budget.js';
@@ -42,7 +44,8 @@ export async function runMixedCurrentIndexNativeCases(){
    check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by initial nativeScope compilation');pool();
   });
   await run('ordinary completed original search is qualified on the same native cut before current indexed tags are projected',async()=>{
-   await x.s.drainLibraryMaintenance();const before=await all(x);check(before.librarySearchTerms.length>0&&before.libraryMigrationItems.every(row=>row.entityKind!=='search'),'original maintenance created full postings and drained search tasks');
+   await thoughtRootIndexPage(x.s);await topicReadingPage(x.s,{topicId:topic.id,sort:'asc',limit:40});await x.s.drainLibraryMaintenance();const before=await all(x);check(before.librarySearchTerms.length>0&&before.libraryMigrationItems.every(row=>row.entityKind!=='search'),'original maintenance created full postings and drained search tasks');
+   check(before.libraryMigrationItems.some(row=>row.entityKind.startsWith('thought_root_v1:'))&&before.libraryMigrationItems.some(row=>row.entityKind.startsWith('thought_topic_v')),'ordinary root and topic query descriptors coexist with completed search');
    const result=await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);check(result.ordinarySearchQualified===true&&result.searchCompleted===true&&result.canonicalBodiesQualified===true,'same-cut completed search and current body projection');check(result.canonicalQualified===false&&result.exportAdmitted===false,'fullmetadata/export still unqualified');check(equalSourceWorkingPhysicalTree(await all(x),before),'search qualification changes no data');pool();
   });
   await run('same native body consumer refuses changed Working text and missing completed posting without writes then accepts original repair',async()=>{
@@ -57,9 +60,17 @@ export async function runMixedCurrentIndexNativeCases(){
   await run('large malformed actual name-prefix metadata cannot bypass original unchanged live work bound',async()=>{
    const row={id:'personalTopicName:SYNTHETIC_oversized',version:1,topicIds:['SYNTHETIC'],unexpected:'x'.repeat(550000)};
    try{await x.s.repository.transaction(true,t=>t.put('meta',row));const before=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}
-    check(error?.code==='BNS_HUMAN_GRAPH_LIMIT','actual large prefix pays separate canonical scratch and refuses original8Mi');check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
+    check(error?.code==='BNS_HUMAN_GRAPH_LIMIT'&&error.message.includes('"phase":"mixed-canonical-qualifying"'),'actual large prefix pays separate canonical scratch and refuses original8Mi: '+error?.message);check(equalSourceWorkingPhysicalTree(await all(x),before),'whole37 unchanged by real metadata budget refusal');pool();
    }finally{await x.s.repository.transaction(true,t=>t.delete('meta',row.id));}
    check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original name metadata repair accepted');pool();
+  });
+  await run('current completed search tag cannot authorize an old Topic baseline phase or an unknown query descriptor',async()=>{
+   const before=await all(x),history=before.revisions.find(row=>row.kind==='topic'),extra={id:'SYNTHETIC_unknown_query',entityKind:'thought_root_v1:SYNTHETIC',statusKey:2,topicId:topic.id,sourceRecordIds:[]};
+   for(const [name,id,corrupt,original,code]of [['revisions',history.id,{...history,after:{...history.after,indexedSearchVersion:before.topics[0].indexedSearchVersion}},history,'BNS_HUMAN_SEARCH_UNPROVEN'],['libraryMigrationItems',extra.id,extra,null,'BNS_HUMAN_PROJECTION_UNPROVEN']]){
+    try{await x.s.repository.transaction(true,t=>t.put(name,corrupt));const cut=await all(x);let error;try{await inspectMixedCurrentNativeScopeCompilation(x.s,x.core);}catch(e){error=e;}check(error?.code===code,'exact original historical/query refusal');check(equalSourceWorkingPhysicalTree(await all(x),cut),'whole37 unchanged by historical/query refusal');pool();}
+    finally{await x.s.repository.transaction(true,t=>original?t.put(name,original):t.delete(name,id));}
+    check((await inspectMixedCurrentNativeScopeCompilation(x.s,x.core)).canonicalBodiesQualified===true,'original history/query repair accepted');pool();
+   }
   });
   await run('all public Core reader getters remain uncalled during original native index inspection',async()=>{const names=['rows','get','bind','transaction','prepareCurrentMixedGroupReceive'],descriptors=new Map(names.map(name=>[name,Object.getOwnPropertyDescriptor(x.core,name)]));let reads=0;for(const name of names)Object.defineProperty(x.core,name,{configurable:true,get(){reads++;throw Error('SYNTHETIC supplied reader');}});try{await inspect(x);check(reads===0,'zero supplied public reader calls');}finally{for(const [name,d]of descriptors)if(d)Object.defineProperty(x.core,name,d);else delete x.core[name];}});
   await run('complete multiEntry index comparison respects native duplicate and invalid-key omission',async()=>{const original=await x.s.repository.transaction(false,t=>t.get('blockIndex',input));try{await x.s.repository.transaction(true,t=>t.put('blockIndex',{...original,recordIds:['SYNTHETIC_duplicate','SYNTHETIC_duplicate',undefined,null,{}]}));const count=await x.s.repository.transaction(false,t=>new Promise((resolve,reject)=>{const request=t.tx.objectStore('blockIndex').index('byRecord').count('SYNTHETIC_duplicate');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);}));check(count===1,'native duplicate yields exactly one entry');await inspect(x);}finally{await x.s.repository.transaction(true,t=>t.put('blockIndex',original));}});
