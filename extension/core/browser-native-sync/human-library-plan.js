@@ -1826,14 +1826,14 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   if('value'in Object.prototype)projectionRequired();projectionFence(r);
   await Promise.resolve();const {SEGMENT_PROFILE}=currentSegmentOwner;await Promise.resolve();const owner=currentCheckpointOwner;
   if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();if(options.profile!==SEGMENT_PROFILE)fail('BNS_GROUP_RESOURCE_LIMIT');
-  let m=projectionMeasure(p.raw.groupMeta,'native');const items=plan.operationCount+plan.heads.length+plan.operationCount;
+  let m=projectionMeasure(p.raw.groupMeta,'native'),peakOutgoingBytes=0;const items=plan.operationCount+plan.heads.length+plan.operationCount;
   const prefix=protocolPhysicalId(p.binding.prefix,p.raw.namespace,'',[]).slice(0,-1);
   if(p.sourceWorking==='mixed'){
    // The original encoder consumes only these three exact protocol streams.
    // Full local metadata remains retained; price actual outgoing row operands
    // instead of inventing a second serialization of local AIU/query metadata.
    m={B:2,T:0,V:1,E:0};let number=0;
-   for(const row of p.raw.groupMeta)if(['revision','head','frontier'].some(kind=>row.id.startsWith(prefix+kind+':'))){const measured=projectionMeasure(row,'native');if(number++)m.B++;for(const key of ['B','T','V','E'])m[key]+=measured[key];m.E++;}
+   for(const row of p.raw.groupMeta)if(['revision','head','frontier'].some(kind=>row.id.startsWith(prefix+kind+':'))){const measured=projectionMeasure(row,'native');peakOutgoingBytes=Math.max(peakOutgoingBytes,measured.B);if(number++)m.B++;for(const key of ['B','T','V','E'])m[key]+=measured[key];m.E++;}
   }
   const wire=m.B+128*items+2*p.binding.datasetId.length+4096,refs=items+Math.ceil(wire/SEGMENT_PROFILE.chunk)+6;
   // Exact source-bound slot families: canonical tree and key-sort vectors,
@@ -1842,7 +1842,13 @@ export async function encodeHumanCurrentGroupCheckpoint(cap,scope,plan,transport
   // copy, plus finite chunk/index ref trees.
   // Twelve wire-sized byte/string slots bound their overlapping original owner
   // buffers. This is a logical tariff, not a browser/native-heap theorem.
-  const scratch=projectionTreeCharge(m)+16*m.E+12*wire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
+  // The SAME original encoder flushes a target-bounded shard sequentially;
+  // add() retains one current raw item while the previous shard awaits I/O.
+  // Keep all twelve byte/string slots and complete tree/ref charges. Bound
+  // their payload by BOTH concurrent operands, not every historical stream.
+  // A 64KiB floor independently covers finite index/manifest/ref headers.
+  const bufferWire=p.sourceWorking==='mixed'?Math.max(64*1024,Math.min(wire,SEGMENT_PROFILE.target+4096+peakOutgoingBytes+128+2*p.binding.datasetId.length+4096)):wire;
+  const scratch=projectionTreeCharge(m)+16*m.E+12*bufferWire+1024*refs+64*1024;r.fixedScratch=scratch;projectionReserve(r);
   async function* rows(kind){
    for(const row of p.raw.groupMeta)if(row.id.startsWith(prefix+kind+':')){
     if(p.revoked||p.released||currentProjectionCaps.get(cap)!==p)projectionRequired();projectionFence(r);projectionReserve(r);
