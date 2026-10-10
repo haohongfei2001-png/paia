@@ -66,9 +66,14 @@ export async function validateOperation(operation){
 // The returned value is detached and recursively frozen before registration.
 const validatedFrozenOperations=new WeakSet();
 const freezeValidatedOperation=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freezeValidatedOperation(child);Object.freeze(value);}return value;};
+function immutableOperationData(value,path=new Set()){
+ if(!value||typeof value!=='object')return !['function','symbol'].includes(typeof value);
+ if(path.has(value)||!Object.isFrozen(value)||Object.getOwnPropertySymbols(value).length||(Array.isArray(value)?Object.getPrototypeOf(value)!==Array.prototype:![Object.prototype,null].includes(Object.getPrototypeOf(value))))return false;
+ path.add(value);for(const [key,d]of Object.entries(Object.getOwnPropertyDescriptors(value))){if(!Object.hasOwn(d,'value')||(!d.enumerable&&!(Array.isArray(value)&&key==='length'))||!immutableOperationData(d.value,path))return false;}path.delete(value);return true;
+}
 export async function validateFrozenOperation(candidate){
  if(validatedFrozenOperations.has(candidate))return candidate;
- const operation=freezeValidatedOperation(await validateOperation(candidate));validatedFrozenOperations.add(operation);return operation;
+ const validated=await validateOperation(candidate);const operation=immutableOperationData(candidate)&&equal(candidate,validated)?candidate:freezeValidatedOperation(validated);validatedFrozenOperations.add(operation);return operation;
 }
 export async function validateHumanCommitGroup(input,datasetId,immutable=false){
   if(!Array.isArray(input)||input.length<2||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_HUMAN_GRAPH_LIMIT');

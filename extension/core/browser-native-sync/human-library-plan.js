@@ -12,7 +12,7 @@ import {sourceWorkingCurrentStores,sourceWorkingCurrentNonemptyStores} from './s
 import {sourceWorkingCurrentIndexSchema,sourceWorkingPhysicalIndexKey} from './source-working-index-schema.js';
 import {mixedCurrentIndexSchema,mixedCurrentPhysicalIndexKey} from './mixed-current-index-schema.js';
 import {assertSourceWorkingDefaultMeta,assertSourceWorkingRestoredDefaultMeta,assertInitialMixedDefaultMeta,assertRestoredMixedDefaultMeta} from './source-working-default-meta.js';
-import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations} from './group-checkpoint-plan.js';
+import {prepareCurrentSourceWorkingGroupCheckpointPlan,requireSelectedCurrentSourceWorkingGroupPlan,prepareCurrentMixedGroupCheckpointPlan,requireOriginalCurrentMixedGroupPlan,measureOriginalMixedPrefixWrappers,measureOriginalMixedRepeatedPreparedOperations,measureOriginalMixedPlanNativeOperationAliases} from './group-checkpoint-plan.js';
 import {sourceWorkingScopeScratch,sourceWorkingComparisonScratch} from './source-working-qualification-cost.js';
 import * as currentGroupOwner from './group-checkpoint-scope.js';
 import * as currentHumanOwner from './human-library-scope.js';
@@ -1573,7 +1573,7 @@ async function projectionCompileInitialMixedScope(r){
  // The compiler has returned. Transfer its complete surviving Plan/private
  // Source before any later meter resizes this same live ticket.
  const repeated=measureOriginalMixedRepeatedPreparedOperations(r.core,plan),repeatedCharge=2*repeated.T+128*repeated.V+8*repeated.E;
- r.owned+=projectionTreeCharge(m)-repeatedCharge+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
+ r.owned+=projectionTreeCharge(m)-repeatedCharge-projectionAliasCharge(measureOriginalMixedPlanNativeOperationAliases(r.core,plan,operations))+sourceHidden;operations.length=0;projectionReserve(r,128*1024);
  // Scope clones original typed domain members/manual values, not complete
  // operation envelopes/parents or descriptor vectors. Those remain held in
  // the independently owned COMPLETE Plan. Price every domain input, including

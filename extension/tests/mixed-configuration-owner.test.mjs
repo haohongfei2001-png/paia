@@ -13,7 +13,7 @@ import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library
 import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
 import {TopicDesiredSyncJournal} from '../core/browser-native-sync/topic-desired-journal.js';
 import {ContextTopicAccessService} from '../core/context-topic-access.js';
-import {prepareCurrentMixedGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
+import {measureOriginalMixedPlanNativeOperationAliases,prepareCurrentMixedGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
 import {measureOriginalMixedScopeBorrowedOperations,prepareGroupScope} from '../core/browser-native-sync/group-checkpoint-scope.js';
 import {compareMixedConfiguration} from '../core/browser-native-sync/mixed-configuration.js';
 import {protocolPhysicalId} from '../core/browser-native-sync/physical-key.js';
@@ -47,6 +47,7 @@ test('Mixed Scope borrows only original immutable domain identities and clones a
  assert.equal(f.scope.expected.records[0],source);assert.equal(Object.isFrozen(source),true);
  const state=f.plan.groups.filter(g=>g.type==='inputWorkingCommit').at(-1).prepared.members.find(op=>op.value.entityType==='inputState').value.entity;
  assert.notEqual(f.scope.expected.inputStates[0],state);assert.equal(f.scope.expected.inputStates[0].deltaSequence,0);assert.equal(state.deltaSequence>0,true);const baselineId=f.plan.groups.find(g=>g.type==='sourceBootstrapCommit').prepared.members.find(op=>op.value.entityType==='baselineRevision').value.entity.id,baseline=f.plan.groups.flatMap(g=>g.prepared?.members??[]).filter(op=>['baselineRevision','revision'].includes(op.value.entityType)&&op.value.entity.id===baselineId).sort((a,b)=>a.sequence-b.sequence).at(-1).value.entity,normalized=f.scope.expected.revisions.find(row=>row.id===baseline.id);assert.notEqual(normalized,baseline);assert.equal(normalized.before,baseline.before);assert.equal(normalized.after,baseline.after);assert.equal(normalized.sequence,0);assert.equal(baseline.sequence>0,true);
+ const operations=[];for await(const row of f.core.rows('revision'))operations.push(row.operation);const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}};operations.forEach(freeze);const borrowedPlan=await prepareCurrentMixedGroupCheckpointPlan(f.core,operations);assert.equal(borrowedPlan.groups.every(group=>group.operations.every(op=>operations.includes(op))),true);assert.equal(measureOriginalMixedPlanNativeOperationAliases(f.core,borrowedPlan,operations).V>0,true);assert.equal(measureOriginalMixedPlanNativeOperationAliases(f.core,borrowedPlan,structuredClone(operations)).V,0);assert.throws(()=>measureOriginalMixedPlanNativeOperationAliases(f.core,structuredClone(borrowedPlan),operations));
  const alias=measureOriginalMixedScopeBorrowedOperations(f.core,f.scope,f.plan);assert.equal(alias.V>0,true);assert.throws(()=>measureOriginalMixedScopeBorrowedOperations(f.core,structuredClone(f.scope),f.plan));assert.throws(()=>measureOriginalMixedScopeBorrowedOperations(f.core,f.scope,structuredClone(f.plan)));assert.equal(compare(f).mode,'off');
 });
 test('original mode chronology counts real changes only and original desired receipts match the original local choices',async t=>{

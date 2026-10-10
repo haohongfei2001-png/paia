@@ -170,6 +170,10 @@ export function measureOriginalMixedPrefixWrappers(core,complete,prefix){
 // retained ownership counts the already identical Human prepared operation
 // objects once; their extra array/reference cells remain in the full meter.
 // All independent group-operation clones and private Source bodies stay owned.
+export function measureOriginalMixedPlanNativeOperationAliases(core,plan,nativeOperations){
+ if(arguments.length!==3||!Array.isArray(nativeOperations))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
+ const native=new Set(nativeOperations),seen=new WeakSet(),total={B:0,T:0,V:0,E:0};for(const group of plan.groups)for(const op of group.operations)if(native.has(op)&&!seen.has(op)){seen.add(op);const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];}return Object.freeze(total);
+}
 export function measureOriginalMixedRepeatedPreparedOperations(core,plan){
  if(arguments.length!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupPlan(core,plan);
  const total={B:0,T:0,V:0,E:0},add=op=>{const m=measureSourceWorkingPhysicalTree(op);for(const key of ['B','T','V','E'])total[key]+=m[key];};
