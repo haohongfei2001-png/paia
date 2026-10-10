@@ -95,6 +95,9 @@ dialog::backdrop{background:#16221638}
 #smart-filter-settings label{display:inline-flex;align-items:center;gap:6px;margin-right:24px}
 .search-input{user-select:text}
 .search-excerpt{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* The bounded original excerpt must actually show its lexical match, including
+   preceding conditions; clipping must not hide a deep match under three lines. */
+body[data-paia-space="library"] .search-input .search-excerpt:has(.search-match){display:block;-webkit-line-clamp:unset;overflow-wrap:anywhere}
 .filter-search-label{color:#89919b;font-size:11px}
 #filter-onboarding{font-size:12px;color:#8a929c;margin:0 0 14px}
 .filter-recent-row{border-bottom:1px solid #e8e9ec;padding:16px 0}
