@@ -1345,6 +1345,20 @@ export async function inspectMixedCurrentNativeIndexClosure(store,core){
 export async function inspectMixedCurrentNativeScopeCompilation(store,core){
  if(arguments.length!==2)projectionRequired();return captureCurrentProjection(store,core,null,'mixed');
 }
+// The finite no-alias handshake must cover every identity actually consumed
+// by the original keyed compiler, including both Topic history snapshots.
+// This assertion creates no Scope, native authority or export capability.
+export function assertOriginalInitialMixedScopeCompilationProfile(core,plan){
+ if(arguments.length!==2)projectionRequired();requireOriginalCurrentMixedGroupPlan(core,plan);
+ const topic=row=>{if(row?.identity?.aliases?.length)projectionRequired();};
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
+  if(!['topic','entry','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
+  for(const op of group.prepared.members){
+   if(op.value.entityType==='topic'){topic(op.value.before);topic(op.value.after);}
+   else if(op.value.entityType==='history')for(const row of [op.value.before,op.value.after])if(row?.kind==='topic'){topic(row.before);topic(row.after);}
+  }
+ }
+}
 async function projectionCompileInitialMixedScope(r){
  if(!r.mixedCompilationInspection||!r.nativeDrained||r.raw.namespace!=='initial'||r.binding.fixedNamespace!==null||r.raw.rows.meta.some(row=>row.id===r.binding.prefix+'active'))projectionRequired();
  const prefix=protocolPhysicalId(r.binding.prefix,r.raw.namespace,'revision',[]),totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0},number=0;
@@ -1358,10 +1372,7 @@ async function projectionCompileInitialMixedScope(r){
  // This first consuming handshake accepts only original creation/placement
  // kinds, with no rename aliases/index-generation work. Later profiles owe
  // their own keyed-alias and restored-prefix scratch; never silently fall back.
- for(const group of plan.groups)if(group.type==='humanLibraryCommit'){
-  if(!['topic','entry','placement'].includes(group.prepared.descriptor.value.kind))projectionRequired();
-  for(const op of group.prepared.members)if(op.value.entityType==='topic'&&op.value.after.identity.aliases.length)projectionRequired();
- }
+ assertOriginalInitialMixedScopeCompilationProfile(r.core,plan);
  const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0};let wireCount=0;
  // Scope clones original typed domain members/manual values, not complete
  // operation envelopes/parents or descriptor vectors. Those remain held in

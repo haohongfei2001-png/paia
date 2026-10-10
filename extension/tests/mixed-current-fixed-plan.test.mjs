@@ -2,6 +2,7 @@ import {prepareMixedRestoredAllocationProof} from '../core/browser-native-sync/m
 import {protocolObject} from '../core/browser-native-sync/segments.js';
 import {bytes} from '../core/browser-native-sync/value.js';
 import {prepareHumanScopeProof} from '../core/browser-native-sync/human-library-scope.js';
+import {assertOriginalInitialMixedScopeCompilationProfile} from '../core/browser-native-sync/human-library-plan.js';
 import {checkCurrentGroupProtocolRows} from '../core/browser-native-sync/current-group-protocol-rows.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -50,6 +51,28 @@ test('fixed mixed compiler never invokes supplied Source/Working family or new p
  const x=await producer();let calls=0;try{for(const name of ['prepareSourceBootstrapReceive','prepareSourceAppendReceive','prepareWorkingReceive','prepareCurrentMixedGroupReceive'])Object.defineProperty(x.core,name,{configurable:true,get(){calls++;throw Error('SYNTHETIC supplied method');}});
  const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations);requireOriginalCurrentMixedGroupPlan(x.core,plan);assert.equal(calls,0);assert.equal(plan.groups.filter(g=>g.type==='sourceAppendCommit').length,1);
  await assert.rejects(prepareGroupCheckpointPlan(x.core,x.operations),/SYNTHETIC supplied method/);assert.equal(calls,1);
+ }finally{await x.s.repository.close();}
+});
+test('native no-alias profile rejects sealed Topic history aliases before keyed Scope construction',async()=>{
+ const x=await producer();try{
+  const original=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations);assertOriginalInitialMixedScopeCompilationProfile(x.core,original);
+  assert.throws(()=>assertOriginalInitialMixedScopeCompilationProfile(x.core,structuredClone(original)),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+  for(const side of ['before','after']){
+   const rows=structuredClone(x.operations),history=rows.find(op=>op.type==='humanLibraryMember'&&op.value.entityType==='history'&&op.value.after.kind==='topic'&&op.value.after.after);assert.ok(history,'actual Topic history');
+   // The owner's creation baseline has null before. A synthetic, codec-valid
+   // snapshot supplies that side to exercise the same original identity path.
+   if(!history.value.after[side])history.value.after[side]=structuredClone(history.value.after.after);
+   const descriptor=rows.find(op=>op.type==='humanLibraryCommit'&&op.value.members.some(ref=>ref.revisionId===history.revisionId));assert.ok(descriptor);
+   history.value.after[side].identity.aliases.push({name:'SYNTHETIC retained historical alias',actor:'user',revision:0,operationId:operationId(),at:'2026-10-10T00:00:00.000Z'});
+   // Reseal the actual descendant links as well as the changed member and its
+   // descriptor. An unrelated causal-gap refusal would not exercise the gate.
+   const revisions=new Map();rows.sort((a,b)=>a.sequence-b.sequence);
+   for(let i=0;i<rows.length;i++){const op=rows[i],prior=op.revisionId;op.parents=op.parents.map(id=>revisions.get(id)||id);if(op.type==='humanLibraryCommit')op.value.members=op.value.members.map(ref=>({...ref,revisionId:revisions.get(ref.revisionId)||ref.revisionId}));rows[i]=await sealOperation(op);revisions.set(prior,rows[i].revisionId);}
+   const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,rows);requireOriginalCurrentMixedGroupPlan(x.core,plan);
+   // The original typed compiler accepts this sealed history. The consuming
+   // finite native profile, rather than a changed codec/assertion, refuses it.
+   assert.throws(()=>assertOriginalInitialMixedScopeCompilationProfile(x.core,plan),{code:'BNS_HUMAN_PROJECTION_REQUIRED'});
+  }
  }finally{await x.s.repository.close();}
 });
 test('fixed mixed compiler refuses omitted append member and complete bootstrap ancestor without partial acceptance',async()=>{
