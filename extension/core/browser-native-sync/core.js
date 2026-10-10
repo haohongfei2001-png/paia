@@ -1,3 +1,4 @@
+import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {protocolKey as key,protocolPhysicalId} from './physical-key.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods,awaitRepositoryTransactionSettled,requireRepositoryTransactionCommitted,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 import {ArchiveError} from '../constants.js';
@@ -520,10 +521,10 @@ export class BrowserNativeSyncCore {
   return {applied};
  }
  async *rows(kind){const namespace=await this.namespace();let after=null;do{const page=await this.transaction(false,async t=>{if(await this.bind(t)!==namespace)fail('BNS_SNAPSHOT_CHANGED');return t.primaryRangePage('meta',{prefix:await this.idIn(t,kind),after,limit:100});},['meta']);for(const row of page.rows)yield row.value;after=page.next;}while(after);}
- async *outbox(){for await(const row of this.rows('outbox')){const revision=await this.read('revision',row.revisionId);if(revision&&(!revision.redacted||revision.operation.kind==='purge'))yield clone(revision.operation);}}
+ async *outbox(){await this.transaction(false,t=>requireConsumerPublicationSettled(t),['meta']);for await(const row of this.rows('outbox')){await this.transaction(false,t=>requireConsumerPublicationSettled(t),['meta']);const revision=await this.read('revision',row.revisionId);if(revision&&(!revision.redacted||revision.operation.kind==='purge'))yield clone(revision.operation);}}
  async acknowledge(operationId,revisionId){
   if(!opaque(operationId)||!hash(revisionId))fail('BNS_ACK_INVALID');
-  return this.transaction(true,async t=>{const row=await this.get(t,'outbox',operationId);if(!row)return {state:'absent'};if(row.revisionId!==revisionId)fail('BNS_ACK_INVALID');if(row.publicationId!==undefined)fail('BNS_PUBLICATION_OWNS_ACK');await t.delete('meta',row.id);return {state:'acknowledged'};},['meta']);
+  return this.transaction(true,async t=>{await requireConsumerPublicationSettled(t);const row=await this.get(t,'outbox',operationId);if(!row)return {state:'absent'};if(row.revisionId!==revisionId)fail('BNS_ACK_INVALID');if(row.publicationId!==undefined)fail('BNS_PUBLICATION_OWNS_ACK');await t.delete('meta',row.id);return {state:'acknowledged'};},['meta']);
  }
  async state(){const heads=[];for await(const head of this.rows('head')){const versions=[];if(!head.purged)for(const revisionId of head.revisions){const row=await this.read('revision',revisionId);if(!row||row.redacted)fail('BNS_REVISION_MISSING');versions.push(row.operation);}heads.push({type:head.type,entityId:head.entityId,purged:head.purged,revisions:head.revisions,versions});}return heads.sort((a,b)=>canonical([a.type,a.entityId]).localeCompare(canonical([b.type,b.entityId])));}
 }
