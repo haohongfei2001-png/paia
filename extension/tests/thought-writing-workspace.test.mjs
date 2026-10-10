@@ -14,3 +14,15 @@ import {TopicController} from '../ui/topic-workspace.js';
 for(const phase of ['before','during'])test('actual Root painter defers '+phase+' hydration without consuming the existing DOM anchor',async()=>{let release,deferred=0,painted=0;const held=new Promise(resolve=>release=resolve),collection={windowRevision:1,hydrateWindow:()=>held},w=Object.assign(Object.create(TopicController.prototype),{serial:1,homeCollection:collection,actions:{surface:phase==='before'?{workspace:true}:null,onDeferredRead:()=>deferred++},paintHome:()=>painted++});const pending=w.renderHomeReader({key:'same-root',top:140});w.actions.surface={workspace:true};release(true);assert.equal(await pending,false);assert.equal(painted,0);assert.equal(deferred,1);assert.equal(w.homeCollection,collection);});
 test('actual Topic painter refuses a held body hydration after writing begins',async()=>{let release,deferred=0,painted=0;const held=new Promise(resolve=>release=resolve),reader={windowRevision:1,hydrateWindow:()=>held},w=Object.assign(Object.create(TopicController.prototype),{serial:1,topicReader:reader,openIntent:2,view:'original',actions:{surface:null,onDeferredRead:()=>deferred++},renderDocument:()=>painted++});const pending=w.renderTopicReader({id:'same-entry',top:140});w.actions.surface={workspace:true};release(true);assert.equal(await pending,false);assert.equal(painted,0);assert.equal(deferred,1);});
 test('direct Root paint cannot write slots during an active ordinary writing session',()=>{let deferred=0;const w=Object.assign(Object.create(TopicController.prototype),{actions:{surface:{workspace:true},onDeferredRead:()=>deferred++},personalRoot:{render(){assert.fail('must not paint Root');}}});w.paintHome({items:[],complete:true},'');assert.equal(deferred,1);});
+
+for(const topicId of ['topic',undefined])test('workspace context is truthful while the original Topic read is pending '+(topicId||'unassigned'),()=>withTopicActions(async f=>{
+ const host=document.createElement('section');document.body.append(host);
+ const opening=f.owner.compose({topicId,sectionId:topicId?'named':undefined,workspace:{host}});await tick();
+ const context=find(host,n=>n.className==='thought-compose-context'),editor=f.owner.draft;
+ assert.equal(context.textContent,topicId?'保存到当前主题':'暂不加入主题');
+ editor.value='SYNTHETIC draft while actual Topic read is held';globalThis.confirm=()=>false;
+ assert.equal(f.owner.leave(),false);assert.equal(f.owner.draft,editor);assert.equal(f.calls.length,0);
+ await f.respond({ok:true,data:{items:[{id:'topic',name:'SYNTHETIC qualified Topic'}],nextCursor:null}});await opening;
+ assert.equal(context.textContent,topicId?'SYNTHETIC qualified Topic':'暂不加入主题');
+ assert.equal(f.owner.draft,editor);assert.equal(editor.value,'SYNTHETIC draft while actual Topic read is held');assert.equal(f.calls.length,0);
+}));

@@ -45,6 +45,7 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   const start=performance.now();await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');const row=p.locator('.search-input').first();await eventually(()=>row.isVisible());data.queryMs=performance.now()-start;
   if(variant==='baseline'){await shot(p,variant+'-results-wide');return;}
   assert.match(await p.locator('#scope-search').getAttribute('aria-label'),/搜索全部档案/);
+  assert.equal(await row.locator('mark.search-match').first().evaluate(n=>{const box=n.closest('.search-excerpt').getBoundingClientRect();const rects=[...n.getClientRects()];return rects.length>0&&rects.every(r=>r.top>=box.top-1&&r.bottom<=box.bottom+1&&r.left>=box.left-1&&r.right<=box.right+1);}),true,'actual deep-result matching text is not visually clipped');
   await row.focus();const arrival=performance.now();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
   await eventually(()=>p.evaluate(()=>{const ranges=[...(CSS.highlights.get('paia-search')||[])];return ranges.some(n=>n.toString()==='SYNTHETIC_SELECTED_DEEP'&&n.getBoundingClientRect().top>=0&&n.getBoundingClientRect().bottom<=innerHeight);}), 'deep matching occurrence visibly arrives');data.arrivalMs=performance.now()-arrival;
   assert.equal(await p.locator('#reader-scope-search').inputValue(),'');assert.equal(await p.locator('#reader-scope-search').getAttribute('aria-label'),'在当前聊天窗口中查找');assert.equal(await p.locator('#reader-scope-search').getAttribute('placeholder'),'在此对话中查找');
@@ -59,6 +60,7 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
    if(mode.scale===2)assert.equal(await p.locator('.search-excerpt').first().evaluate(n=>parseFloat(getComputedStyle(n).fontSize)),28,'result text is actually doubled from14px to28px');
    const metric=await p.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,coarse:matchMedia('(pointer: coarse)').matches}));
    assert.ok(metric.overflow<=2,mode.name+' root reflow '+JSON.stringify(metric));assert.equal(metric.reduced,true);assert.equal(metric.coarse,true);
+   assert.equal(await row.locator('mark.search-match').first().evaluate(n=>{const box=n.closest('.search-excerpt').getBoundingClientRect();const rects=[...n.getClientRects()];return rects.length>0&&rects.every(r=>r.top>=box.top-1&&r.bottom<=box.bottom+1&&r.left>=box.left-1&&r.right<=box.right+1);}),true,mode.name+' actual matching text stays visible');
    const box=await row.boundingBox();assert.ok(box.width>=44&&box.height>=44,'coarse result target');data[mode.name]={...metric,row:box};
    await row.focus();assert.equal(await row.evaluate(n=>document.activeElement===n),true);await shot(p,variant+'-'+mode.name+'-result');
    await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());

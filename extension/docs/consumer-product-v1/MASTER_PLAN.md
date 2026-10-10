@@ -1,3 +1,55 @@
+# Qualified main0.43.13; Source/Working0.43.14 candidate — 2026-10-10
+
+Actual main d136165d7de1df25a0b1a46fc549194a8a4c61ef now passes Full38046730606 all21 required and Prompt38046730619 all5. Independent actual-main delivery review a6d6d0eb1a6f32aaac062d03ab184cc4aa682298cf8b21ef04310f55ee88f635 approves new46 currentmain native receipts/complete original184-line verifier, exact source/tree/code and the456-file package. Qualified ZIP SHA1d485093a2e76fff1d3cad5df174d9289677a3bfeaa293d4cdd8d3c01e98b499,1490106bytes, all456 files matched the fresh standard release. Earlier D414/0.43.12 failed Full/held package is preserved. Installation and formal deployment remain false.
+
+IAH-1.1 selected six minimal outcomes are implemented and applicable automated/source-package engineering acceptance is CLOSED; no additional runtime gap was found in independent exactD136 six-outcome audit9449251cb33f238db2bc9ce6a6a94f0a8b6e94f74d7353866b84e7e03a3c7c1e. Updating the extension exposes the qualified current-Project search action and visibly complete bounded matching excerpts. No oldHome/permanent widget/host action is selected; installed/current-live user and broader scale/device observations are not inferred from finiteP6. Release the IAH implementation writer; preserve its owners and negative history.
+
+SYNC-01 continues the finite default-off Source/Working restored successor0.43.14. Exact6746 local split coverage5221 unique unit/24whole native48 strict receipts/703 originalpreflight plus freshadditive10 source-release and independent finite composition are retained with their actual headers. Docs-only reconciliation changes no runtime/test/CI/version/proof dependency. Final additive/docs readiness review, once-only formal21+5, normal integration and its own actualmain/package gates remain pending. See [owning record](implementation/verification/COHERENT-04314-SOURCE-WORKING-RESTORED-SUCCESSOR.md).
+
+The other six development lanes remain unfinished at their current stages; allseven is false. Missing approved exact CTX/SET visual originals, fullcanonical/portableSettings/provider-device/lost-device/realQwen quality-billing and installed/formaldeployment boundaries remain distinct. Root sole shared writer; no new product scope, paidmodel/account/credential/permission/userupload/destructive or oldIAH1.0/NIB/Stage3B work.
+
+## Preserved preceding checkpoint
+
+# 0.43.14 complete local coverage; formal candidate pending — 2026-10-10
+
+Actual main remains d136165d7de1df25a0b1a46fc549194a8a4c61ef /0.43.13, now Full38046730606 all21 required jobs and Prompt38046730619 all5SUCCESS. Historical skipped audit is excluded. Independent current46 native/456-file package readback is pending; no installation or formal deployment. OriginalD414 failedFull/held0.43.12 stays preserved.
+
+SYNC-01 frozen6746 onD136 now covers all5221 distinct current unit checks through original5220/1FAIL plus unchanged isolated whole performance2PASS (10000commit72s within original120s). All24 complete native files/48 exact6746 source-release receipts pass the full202-line verifier retaining the entire original184-line46 checks. Related exact whole preflight703PASS. Original native setup65/13FAIL and later ESM18/4FAIL remain; only affected complete files reran, final2files4PASS. Independent CODE/resource/split48EVIDENCE d7e0014b approves this finite coverage. Fresh unchanged additive source/release10PASS each binds202runtime23proof at6746; old28 already in48. Standard456build/privacy/package pass. Final additive/docs review and once-only formal21+5 remain pending; no reheadering, fullSync/provider/installed claim. See [owning current record](implementation/verification/COHERENT-04314-SOURCE-WORKING-RESTORED-SUCCESSOR.md).
+
+Root remains single shared writer; allseven unfinished. Exact CTX/SET visual originals, full canonical/portableSettings/provider-device/realQwen quality-billing remain affected independent gates. No oldIAH1.0/NIB/Stage3B/permission/account/paid/userupload/formaldeployment expansion.
+
+## Preserved preceding checkpoint
+
+# 0.43.14 Source/Working restored successor candidate — 2026-10-10
+
+PR249 normally merged actual main d136165d7de1df25a0b1a46fc549194a8a4c61ef, parentD414/treef14c exactly694. Candidate Full38040519419 all21 required jobs and Prompt38040516796 all5 pass; independent guarded integration daf144e39ba362674aa48d8bb68d0fb43f19aa277717968ae8bad10200ec1111 approved. Archive current-project search, visible bounded matches and immediate truthful Thought-writing destination are integrated. Exact-main Full38046730606/Prompt38046730619 and456-file ZIP qualification are pending. Earlier D414 exact-main failure/held455-file ZIP and last fully qualified0.43.10 remain distinct.
+
+SYNC-01 now composes bounded original Source/Working cleaned restored successor, genuine local journal continuation, native qualified re-export and fresh second restore through original owners. Frozen c3 component42 Source/430 Sync Node cases and native source/release2 files each7cases79checks pass with independent finite review708709. Complete original46 receipt checks are preserved, with additive24th whole native file and strict new2. The original first CI count/slice60/2 failure is retained; corrected63pass. New0.43.14 version/base changes require fresh complete unit/native48/affected combination, independent composition and formal21+5 before integration; none is inferred from component c3. See [owning batch](implementation/verification/COHERENT-04314-SOURCE-WORKING-RESTORED-SUCCESSOR.md).
+
+Allseven unfinished; default-off/caps37stores/49indexes and selected UI remain. Provider/device/cloud/lost-device/fullcanonical/indexedSearch/portableSettings/Qwen quality-billing, missing exact approved CTX/SET visuals and installed/formaldeployment gates remain separate. No paid/account/credentials/permissions/user upload/irreversible deletion/oldIAH1.0/NIB/Stage3B expansion.
+
+## Preserved preceding checkpoint
+
+# 0.43.13 coherent Archive / Thought reliability candidate — 2026-10-10
+
+Actual main d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a is merged0.43.12, but Full38038702703 fails CurrentBrowser5 and its two aggregates. Eighteen required components and Prompt38038702700 five jobs pass; that does not qualify delivery. Its455-file package remains held; last fully qualified package is0.43.10. Preserve the exact failed release writing assertion: selected Topic context was empty while its original index read was pending.
+
+The already reviewed IAH-1.1 minimal candidate is composed with a separate bounded TOPIC-05 writing correction: initialize existing truthful selected/unassigned scope copy immediately after the original workspace mount, then let the original current-surface/index owner paint an actual returned Topic name. No new destination lookup, all-index loading, data/permissions or save owner. Topics outside the first40 retain the existing truthful fallback until qualified paging returns them. Original two pending-context negative tests fail12PASS/2FAIL; repaired six whole Node files74PASS and complete source/release writing file4PASS18235.666ms at actual a5d2d125. Independent finite code review d63cde8db528e6c188693bdf3441168a638f880d1c478849d41c3933a2debf5c approves this small repair. Old main failure is not renamed a pass.
+
+Fresh combined frozen-head complete unit and affected UI, final independent composition, changed-head Full21/Prompt5, guarded integration, actual-main and package gates remain pending. Earlier IAH57e5/8196 evidence retains its actual identities; new Topic runtime bytes mean the earlier whole P6 dependency set is not reused as this composed execution. Allseven unfinished; no paid/model/account, permission expansion, real-user upload, installed or formal-deployment claim.
+
+## Preserved preceding checkpoint
+
+# IAH-1.1 existing Project search and matched-result preparation — 0.43.13 (2026-10-10)
+
+ARCHIVE-HOME-03 now has a real conditional action through Reader → 来源变化, using current qualified membership/current Project name and the original accepted save/IME/latest-navigation owner. Clearing the existing conditional scope restores all Source/Project scope while retaining Archive query; whole Project rows remain disclosure. ARCHIVE-HOME-02/06 also closes a proven visual gap: bounded original matched Archive excerpts show their match instead of clipping it after three lines. Reader Find, original ranking/text/schema/permissions and selected minimal geometry are retained; no new Home/permanent scope widget/host entry is selected.
+
+Private preparation began on reviewed PR24824df and is now reconciled onto actual integrated0.43.12 main d414; exact-main package acceptance remains separate. Exact57e5 complete unit5215 and four whole UI10 pass; stronger8196 complete P6 baseline/source/release3 passes, including nonempty painted-match visibility in wide/dark/320/doubled text. Original mixed-current relation and fixture/CSS failures remain preserved in the [owning record](implementation/verification/COHERENT-04313-IAH11-PROJECT-SEARCH.md). New Source/release action images wait for genuine Navigator readiness; independent final evidence/visual integration is pending. These are preparation results, not formal/main/package/installed acceptance.
+
+PR2486423 passed all21 required Full38037567843 and all5 Prompt38037565930 checks, received independent final integration approval9c21830e238961c2376d181a75be8b47c4720d4bd93efca759b616781c0745b2, and normally merged as actual signedmain d414b0baf4c62c0ba8e7c6cb59620b117d2e5a5a (tree exactly6423, parent9110). This IAH candidate is reconciled onto that actual main; all496 P6 runtime/harness/proof input bytes remain identical to actual8196 evidence. Actual-main Full38038702703 and Prompt38038702700 gates/package qualification are pending. Old9110/0.43.11 Full failure and held build remain recorded. Last complete qualified package is0.43.10. All seven lanes remain unfinished; missing exact approved CTX4/SET2 visual materials and external service/device/quality evidence stay separately unverified. No paid provider/account/credential/permission enlargement/user upload/formal deployment is authorized here.
+
+---
+
 # 0.43.12 generic preference publication candidate — 2026-10-10
 
 SET2-01/SYNC prerequisite continues through the original settings write owner: known before-write failure keeps the last acknowledged selection; a rejected publication is confirmed only when complete original local rows, database/gate/recovery identities and live ownership agree after the original transaction commits. Requests are detached before awaits. No replay, stored intent, journal, extra writer, consent/Sync activation or AI-style acknowledgement change is introduced.

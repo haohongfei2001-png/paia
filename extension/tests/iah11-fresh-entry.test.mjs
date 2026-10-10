@@ -127,3 +127,11 @@ test('actual same-origin restoration preserves the navigator render identity cac
  vm.runInContext(actual('function restoreArchiveOrigin(', '\nfunction focusArchiveOrigin('),context);
  context.restoreArchiveOrigin({navigator:{expanded:[],loaded:[],scrollTop:0},includeFiltered:true});
 });
+
+// The real navigation owner must accept leave before resolving an explicit
+// Project action; a pending read must not supersede a newer navigation.
+test('explicit scope resolution stays behind accepted save/IME and latest navigation intent',async()=>{
+ for(const accepted of [false,true]){const {context,seen}=freshFixture(accepted);let resolved=0,applied=0;const opened=await context.navigate('library',null,null,{searchQuery:'ARCHIVE_A',resetArchiveSearch:true,resolveNavigator:async()=>{resolved++;return ()=>applied++;}});assert.equal(opened,accepted);assert.equal(resolved,accepted?1:0);assert.equal(applied,accepted?1:0);if(accepted)assert.deepEqual(seen,[{query:'ARCHIVE_A',cursor:null,history:[]}]);else assert.deepEqual(seen,[]);}
+ const {context,seen}=freshFixture();let release,entered;const started=new Promise(resolve=>entered=resolve);let applied=0;const pending=context.navigate('library',null,null,{searchQuery:'ARCHIVE_A',resetArchiveSearch:true,resolveNavigator:()=>new Promise(resolve=>{release=()=>resolve(()=>applied++);entered();})});await started;context.navigationIntent++;release();assert.equal(await pending,false);assert.equal(applied,0);assert.deepEqual(seen,[]);assert.equal(context.documentId,'synthetic-doc');assert.equal(context.query,'ARCHIVE_A');
+});
+test('unconfirmed scope after leave never changes query, scope, Reader or history',async()=>{const {context,seen}=freshFixture();const original=context.searchProject;let closed=0;context.readingModals.close=()=>closed++;assert.equal(await context.navigate('library',null,null,{searchQuery:'OTHER',resetArchiveSearch:true,resolveNavigator:async()=>null}),false);assert.equal(closed,0);assert.equal(context.searchProject,original);assert.equal(context.documentId,'synthetic-doc');assert.equal(context.query,'ARCHIVE_A');assert.deepEqual(seen,[]);});
