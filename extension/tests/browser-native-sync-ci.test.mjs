@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {assertNetworkLedger} from './native-sync/proof-oracles.mjs';
 const workflow=readFileSync(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
 const job=workflow.match(/^  sync_native_storage:\n([\s\S]*?)(?=^  \w+:)/m)?.[1];
 const aggregate=workflow.slice(workflow.indexOf('  candidate:'));
@@ -253,5 +255,38 @@ test('both native jobs preserve complete48 and require all four exact-head consu
  for(const name of ['paia-candidate.yml','paia-certification.yml']){
   const workflow=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
   for(const text of ['BNS_NATIVE_COMPLETE_48_PARTIAL_CORE_PASS','BNS_NATIVE_COMPLETE_52_MIXED_BATCH_A_LOCAL_ONLY','tests/mixed-current-fixed-plan.test.mjs','tests/mixed-current-index-schema.test.mjs','mixed-allocation-owner','mixed-current-index','SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',"assert.equal(r.cases.stores,37)","assert.equal(r.cases.indices,110)","assert.equal(r.cases.assertions,assertions)",'mixedActivationRollback','duplicateRestoreNoEcho','coldReopenedOriginalConsumers','extension/work/qa-mixed-current-index/','extension/work/qa-mixed-allocation-owner/'])assert.ok(workflow.includes(text),text);
+ }
+});
+
+test('configuration native pair is added once while generic preference acknowledgement keeps its original browser route',()=>{
+ for(const name of ['paia-candidate.yml','paia-certification.yml']){
+  const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
+  assert.equal(text.split('xvfb-run -a node --test tests/native-sync/mixed-configuration-native.test.mjs 2>&1').length,2);
+  assert.ok(text.includes('BNS_NATIVE_COMPLETE_52_MIXED_BATCH_A_LOCAL_ONLY'));assert.ok(text.includes('BNS_NATIVE_COMPLETE_54_MIXED_CONFIGURATION_BATCH_B_LOCAL_ONLY'));
+  assert.ok(text.includes('path: extension/work/qa-mixed-configuration/'));assert.ok(text.includes('tests/consumer-preference-group-restore.test.mjs'));
+  assert.equal(text.includes('node --test tests/native-sync/preference-publication-native.test.mjs'),false,'retain the already owned browser route without duplicate execution');
+ }
+ const route=readFileSync(new URL('./settings-preference-publication-chrome-e2e.test.mjs',import.meta.url),'utf8');assert.ok(route.includes("import './native-sync/preference-publication-native.test.mjs'"));
+});
+
+test('actual added configuration receipt gate refuses wrong version, missing owners, drift, partial vectors and network history',()=>{
+ const digest=value=>createHash('sha256').update(value).digest('hex');
+ for(const name of ['paia-candidate.yml','paia-certification.yml']){
+  const text=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8'),start=text.indexOf('          // Add the consuming configuration pair'),end=text.indexOf("          console.log('BNS_NATIVE_COMPLETE_54",start);
+  assert.ok(start>0&&end>start);
+  const check=new Function('readFileSync','execFileSync','manualDigest','manualExpected','tree','assert','assertNetworkLedger','process',text.slice(start,end));
+  // Synthetic contract inputs exercise the actual workflow parser. They are
+  // not runtime/browser receipts and never claim native behavior qualification.
+  const head='1'.repeat(40),tree='2'.repeat(40),worker="    case 'FILTER_DIAGNOSTICS': return store.filterDiagnostics();\n",fixture='export function runMixedConfigurationNativeCases(){}',generated=fixture+"\nconst originalRun=globalThis.__bnsNative.run;globalThis.__bnsNative.run=(command,args)=>command==='mixed-configuration'?runMixedConfigurationNativeCases():originalRun(command,args);\n";
+  const hashes={'core/synthetic-owner.js':digest('Synthetic owner')},runtimeHashes={...hashes},scripts=['scripts/build_current_release.py','scripts/package_assets.py','scripts/check_package.py','scripts/check_release_product.py','scripts/build_daily_use.py'];for(const path of scripts)hashes[path]=digest('Synthetic '+path);
+  const source={schema:1,result:'PASS',head,tree,variant:'source',dirty:'',archivePageClosed:true,hashes,runtimeHashes,generatedSha256:digest(generated),originalWorkerSha256:digest(worker),instrumentedWorkerSha256:digest("import './bns-native-storage-fixture.mjs';\nimport './bns-mixed-configuration.mjs';\n"+worker),browserVersion:'Synthetic contract browser',claim:'SYNTHETIC_MIXED_CONFIGURATION_CLOSED_AB_FRESH_C_COMPONENT_ONLY',cases:{status:'SYNTHETIC_MIXED_CONFIGURATION_CLOSED_AB_FRESH_C_COMPONENT_ONLY',stores:37,indices:110,assertions:622,cases:[60,37,12,72,123,10,48,12,72,93,81].map((assertions,index)=>({name:'Synthetic contract '+index,result:'PASS',assertions}))},isolation:{nativeFactory:true,networkAttempts:0,httpRequests:0,networkLedger:{complete:true,transitions:[],observations:['opened','final'].map(point=>({point,lifetime:'Synthetic lifetime',nativeFactory:true,networkAttempts:[]}))}}};
+  for(const key of ['actualChromeLocalOwner','sevenPreferenceOwners','fullPromptCompanion','manualContextOwners','logicalTopicDesired','ordinaryCompletedSearch','initialNativeExport','closedSenderFreshReceiver','restoredNativeReexport','closedBothSendersFreshThird','publicationMetadataRefusals','rawSameRenderWrongNonceRefusal','mixedActivationRollback','duplicateRestoreNoEcho','changedConfigurationPublicationRefusal','prejournalModeBaseline','negativeOnlyNoopReceipt','foreignModeCounterNotDonated','prejournalLightBaseline','historicalNoopLaterEnable','foreignLightCounterNotDonated','ordinaryRetainedTopicGenerations','malformedRetainedGenerationRefusals'])source.cases[key]=true;
+  for(const key of ['provider','paid','fullCanonicalReady','mixedNativeCapture','sharedWorkTicketQualified'])source.cases[key]=false;
+  const release={...structuredClone(source),variant:'release',originalWorkerSha256:digest(''),instrumentedWorkerSha256:digest("import './bns-native-storage-fixture.mjs';\nimport './bns-mixed-configuration.mjs';\n"),releaseBuildSha256:'3'.repeat(64)};
+  const run=receipts=>check(path=>path.includes('work/qa-mixed-configuration/')?JSON.stringify(receipts[path.includes('/release.json')?1:0]):path==='background/service-worker.js'?worker:path.includes('mixed-configuration-native-fixture')?fixture:Buffer.from('Synthetic '+path),(_command,args)=>Buffer.from('Synthetic '+args.at(-1).split(':extension/')[1]),digest,()=>({hashes:structuredClone(source.hashes),runtimeHashes:structuredClone(runtimeHashes)}),tree,assert,assertNetworkLedger,{env:{PAIA_TESTED_HEAD:head}});
+  run([source,release]);
+  for(const mutate of [r=>r.result='cancelled',r=>r.head='4'.repeat(40),r=>r.tree='5'.repeat(40),r=>r.dirty=' M core/synthetic-owner.js',r=>delete r.hashes['core/synthetic-owner.js'],r=>r.runtimeHashes['core/synthetic-owner.js']='6'.repeat(64),r=>r.generatedSha256='7'.repeat(64),r=>r.instrumentedWorkerSha256='8'.repeat(64),r=>r.cases.cases.pop(),r=>r.cases.cases[0].result='SKIPPED',r=>r.cases.cases[0].assertions--,r=>delete r.cases.fullPromptCompanion,r=>r.cases.provider=true,r=>r.cases.fullCanonicalReady=true,r=>r.isolation.networkLedger.observations[0].networkAttempts.push({denied:true}),r=>r.releaseBuildSha256='invalid']){
+   const receipts=structuredClone([source,release]);mutate(receipts[1]);assert.throws(()=>run(receipts));
+  }
  }
 });
