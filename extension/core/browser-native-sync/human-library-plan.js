@@ -1383,23 +1383,31 @@ async function projectionCompileInitialMixedScope(r){
  // kinds, with no rename aliases/index-generation work. Later profiles owe
  // their own keyed-alias and restored-prefix scratch; never silently fall back.
  assertOriginalInitialMixedScopeCompilationProfile(r.core,plan);
- const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0};let wireCount=0;
+ const m=projectionRowMeasure(r,plan),wire={B:2,T:0,V:1,E:0},humanWire={B:2,T:0,V:1,E:0};let wireCount=0,humanCount=0;
  // Scope clones original typed domain members/manual values, not complete
  // operation envelopes/parents or descriptor vectors. Those remain held in
  // the independently owned COMPLETE Plan. Price every domain input, including
  // overwritten histories and both nested sides, without allocating a DTO.
- const addWire=value=>{const measured=projectionRowMeasure(r,value);if(wireCount++)wire.B++;for(const key of ['B','T','V','E'])wire[key]+=measured[key];wire.E++;};
- for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else addWire(group.operations[0].value);}
- const scopeScratch=8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024;
+ const addWire=(value,human=false)=>{const measured=projectionRowMeasure(r,value);if(wireCount++)wire.B++;for(const key of ['B','T','V','E'])wire[key]+=measured[key];wire.E++;if(human){if(humanCount++)humanWire.B++;for(const key of ['B','T','V','E'])humanWire[key]+=measured[key];humanWire.E++;}};
+ for(const group of plan.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)addWire(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)addWire(member.value.entity);else addWire(group.operations[0].value);}
+ // Original wire Maps/generated library/expected/normalized/family digest
+ // have returned before keyed Human construction starts. Reserve their peak,
+ // not their complete finished scratch PLUS the later transformation frame.
+ // The keyed phase independently pays surviving Scope (including the second
+ // Human-history role), original humanWire, keyed/normalized/nested copies,
+ // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
+ // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
+ const wireScratch=8*projectionTreeCharge(wire)+4*projectionCanonicalCharge(wire)+8*wire.B+256*1024;
+ const keyedScratch=2*projectionTreeCharge(wire)+4*projectionTreeCharge(humanWire)+2*projectionCanonicalCharge(humanWire)+8*humanWire.B+2*1024*1024;
+ const scopeScratch=Math.max(wireScratch,keyedScratch);
  let sourceHidden=0;for(const group of plan.groups)if(group.type==='sourceBootstrapCommit'||group.type==='sourceAppendCommit')for(const member of group.prepared.members)sourceHidden+=projectionTreeCharge(projectionRowMeasure(r,member.value.entity));
  // The fixed compiler has actually returned and all validator/hash awaits
  // settled. Transfer its surviving Plan/private Source trees, then release
  // only its finished scratch; the original work ticket remains continuously live.
  r.owned+=projectionTreeCharge(m)+sourceHidden;operations.length=0;projectionReserve(r);
- // Provisional finite preparation reserves the complete Plan for Map/member/
- // wire/normalized/keyed clones plus fixed transformation slots, independently
- // of raw. These are live logical charges, not full heap/tariff qualification.
- projectionReserve(r,scopeScratch+2*1024*1024);r.group={...r.group,plan};r.phase='mixed-scope-preparing';
+ // These are conservative finite logical phase slots, not a full heap/tariff
+ // qualification. Keep the original limit and all incomplete export flags.
+ projectionReserve(r,scopeScratch);r.group={...r.group,plan};r.phase='mixed-scope-preparing';
  const scope=await currentGroupOwner.prepareGroupScope(plan,{store:r.store,nativeMixedCompilation:r.nonce});projectionCurrent(r);currentGroupOwner.requireOriginalCurrentMixedGroupScope(r.core,scope,plan);
  const hidden=currentHumanOwner.measureOriginalMixedHumanScopeExpectation(scope,r.store,r.nonce);
  // Scope construction and its sequential keyed operands have returned. The
