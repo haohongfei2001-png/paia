@@ -1,0 +1,186 @@
+[
+  {
+    "locale": "zh/",
+    "width": 1440,
+    "errors": [],
+    "height": 5840,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "425.922px 764.484px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "425.922px 764.484px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "425.922px 764.484px"
+      }
+    ]
+  },
+  {
+    "locale": "zh/",
+    "width": 768,
+    "errors": [],
+    "height": 6548,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "272px 408px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "272px 408px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "272px 408px"
+      }
+    ]
+  },
+  {
+    "locale": "zh/",
+    "width": 390,
+    "errors": [],
+    "height": 8888,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "350px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "350px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "350px"
+      }
+    ]
+  },
+  {
+    "locale": "zh/",
+    "width": 320,
+    "errors": [],
+    "height": 9267,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "288px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "288px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "288px"
+      }
+    ]
+  },
+  {
+    "locale": "",
+    "width": 1440,
+    "errors": [],
+    "height": 5964,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "425.922px 764.484px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "425.922px 764.484px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "425.922px 764.484px"
+      }
+    ]
+  },
+  {
+    "locale": "",
+    "width": 768,
+    "errors": [],
+    "height": 6972,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "272px 408px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "272px 408px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "272px 408px"
+      }
+    ]
+  },
+  {
+    "locale": "",
+    "width": 390,
+    "errors": [],
+    "height": 9428,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "350px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "350px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "350px"
+      }
+    ]
+  },
+  {
+    "locale": "",
+    "width": 320,
+    "errors": [],
+    "height": 10089,
+    "overflow": false,
+    "nav": 0,
+    "rails": 0,
+    "grid": [
+      {
+        "selector": ".pc-review",
+        "columns": "288px"
+      },
+      {
+        "selector": ".pc-topics",
+        "columns": "288px"
+      },
+      {
+        "selector": ".pc-context>.wrap",
+        "columns": "288px"
+      }
+    ]
+  }
+]

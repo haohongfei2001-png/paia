@@ -13,8 +13,8 @@
   const arrive = element => { if (mayMove()) element.animate([{opacity: .4, transform: 'translateY(8px)'}, {opacity: 1, transform: 'translateY(0)'}], {duration: 220, easing: 'cubic-bezier(.2,0,0,1)'}); };
   const text = (selector, value) => { $(selector).textContent = value; };
   function fit(field) {
-    field.style.height = 'auto';
-    field.style.height = `${Math.max(field.scrollHeight + 2, 36)}px`;
+    field.style.height = root.classList.contains('layout-adjusted') && field.matches('[data-working]') ? '0px' : 'auto';
+    field.style.height = `${root.classList.contains('layout-adjusted') && field.id === 'pc-composer' ? Math.min(180, Math.max(field.scrollHeight + 2, 60)) : Math.max(field.scrollHeight + 2, 36)}px`;
   }
   all('[disabled]').forEach(el => { el.disabled = false; });
   all('textarea').forEach(field => {
@@ -134,8 +134,14 @@
   }
   ['focus', 'input', 'select', 'keyup', 'pointerup', 'blur'].forEach(type =>
     composer.addEventListener(type, rememberInsertionPoint));
+  let composing = false;
+  composer.addEventListener('compositionstart', () => { composing = true; });
+  composer.addEventListener('compositionend', () => { composing = false; });
+  root.addEventListener('paia:demo-insert', event => {
+    if (root.classList.contains('layout-adjusted') && typeof event.detail?.value === 'string') insertPrompt(event.detail.value);
+  });
   function insertPrompt(value) {
-    if (!value.trim()) return;
+    if (!value.trim() || composing) return;
     const draft = composer.value;
     const position = insertionPoint && insertionPoint.draft === draft ?
       Math.min(insertionPoint.position, draft.length) : draft.length;
@@ -144,7 +150,9 @@
     const before = draft.slice(0, position);
     const after = draft.slice(position);
     const inserted = before + (before ? '\n\n' : '') + value;
-    composer.value = inserted + (after ? '\n\n' : '') + after;
+    const next = inserted + (after ? '\n\n' : '') + after;
+    if (next.length > composer.maxLength) return;
+    composer.value = next;
     fit(composer); composer.focus({preventScroll: true});
     composer.setSelectionRange(inserted.length, inserted.length);
     rememberInsertionPoint();

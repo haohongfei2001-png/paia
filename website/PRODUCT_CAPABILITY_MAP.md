@@ -1,3 +1,14 @@
+# Current website execution scope — 11 October 2026
+
+The owner selected a copy-frozen layout adjustment of the live site. This record's
+product-capability descriptions remain reference material; its older permission
+to publish does not authorize this candidate. **No merge/deployment.** See
+[the current scoped receipt](receipts/LAYOUT_ONLY_20261011.md). Existing user-facing
+copy, original/working data and explicitly labelled fictional permissions remain.
+The Orb/Capsule/Board controls are page-local presentation alternatives only.
+
+---
+
 # PAIA website product consistency — 9 October 2026
 
 This is a traceability record for the website implementation, not a new product

@@ -88,7 +88,10 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.on('request', observe_request)
 
     test(page.locator('[data-core-preview]').count() == 1, 'one shared product illustration')
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
+    if page.locator('.layout-adjusted').count():
+        test(page.locator('.pc-nav').count() == 0 and all(page.locator(s).count() == 1 for s in ['#input-library','#prompt-reuse','#thought-library','#personal-context']), 'home removes secondary navigation, not the four working examples')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
     test(page.locator('[data-core-preview] img[src*="/brand/paia-logo-v1.webp"]').count() == 0, 'brand artwork is not repeated through the product scenes')
     expected_close = 0 if page.locator('body').get_attribute('data-page') == 'demo.html' else 1
     test(page.locator('.core-close img[src*="/brand/paia-logo-v1.webp"]').count() == expected_close, 'original closing brand usage retained')
@@ -197,6 +200,9 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(page.locator('[data-prompt-pick="0"]').inner_text() == prompt, 'ordinary prompt row follows the user wording')
     close_prompt('0')
     page.locator('[data-prompt-pick="0"]').click()
+    if page.locator('.layout-check:visible').count():
+        page.locator('.layout-check-actions button').last.click()
+        page.locator('.layout-check-actions button').first.click()
     test(page.locator('#pc-composer').input_value() == prompt, 'empty composer receives the edited prompt from its row')
     row = manage_prompt('0')
     page.locator('#pc-composer').fill('An existing draft must survive.')

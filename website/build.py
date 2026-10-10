@@ -34,6 +34,8 @@ def build(lang):
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
         product_css='<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261009a">\n<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n' if page in ('index.html','demo.html') else ''
+        if page == 'index.html':
+            product_css += '<link rel="stylesheet" href="/assets/website/home-layout.css?v=20261011">\n<script src="/assets/website/home-layout.js?v=20261011" defer></script>\n'
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>

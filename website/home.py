@@ -21,4 +21,5 @@ def icon(name, cls='art-icon'):
 def render(t, a, button, statusmini):
     from product_hero import render_hero
     from core import render as render_core
-    return render_hero(t, a, button, icon) + render_core(t, a, button, icon)
+    from home_layout import apply_home_layout
+    return render_hero(t, a, button, icon) + apply_home_layout(render_core(t, a, button, icon), t)

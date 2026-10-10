@@ -1,0 +1,221 @@
+{
+  "scope": "changed homepage content only; WCAG2A/AA and WCAG2.1A/AA; not screenreader or whole-site certification",
+  "scans": [
+    {
+      "language": "",
+      "width": 1440,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 1440,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 59
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 1440,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 66
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 390,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 57
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 390,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 390,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 65
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 320,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 57
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 320,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "",
+      "width": 320,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 65
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 1440,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 1440,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 59
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 1440,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 66
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 390,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 57
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 390,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 390,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 65
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 320,
+      "mode": "orb",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 57
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 320,
+      "mode": "capsule",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 58
+        }
+      ]
+    },
+    {
+      "language": "zh/",
+      "width": 320,
+      "mode": "board",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 65
+        }
+      ]
+    }
+  ]
+}
