@@ -8,7 +8,11 @@ import {acceptSequence} from './core.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 import {equal,exact,hash,count,opaque,fail} from './value.js';
 
-export const sourceWorkingCurrentStores=Object.freeze([...STORES,...IA_STORES,...FILTER_STORES,...LIBRARY_STORES]);
+// Defer the body-free schema vector until invocation: this owner can join the
+// original Core/Repository static import cycle in an MV3 worker. No imported
+// repository binding is read while that original module is still initializing.
+let currentStores;
+export function sourceWorkingCurrentStores(){return currentStores??=Object.freeze([...STORES,...IA_STORES,...FILTER_STORES,...LIBRARY_STORES]);}
 export const sourceWorkingCurrentNonemptyStores=Object.freeze(['meta','records','recordIndex','blocks','blockIndex','documents','libraryDocuments','times','sourceCounts','inputStates','revisions','filterInputs','filterIntents','operationReceipts','invalidations']);
 const unrepresented=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 const unproven=()=>fail('BNS_GROUP_COMMIT_UNPROVEN');
@@ -25,8 +29,9 @@ function sameRows(actual,expected){
 export function assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows){
  if(arguments.length!==4)unrepresented();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
  measureSourceWorkingPhysicalTree(rows);
- if(Object.keys(rows).length!==37||sourceWorkingCurrentStores.some(name=>!Object.hasOwn(rows,name)||!Array.isArray(rows[name])))unrepresented();
- for(const name of sourceWorkingCurrentStores){
+ const stores=sourceWorkingCurrentStores();
+ if(Object.keys(rows).length!==37||stores.some(name=>!Object.hasOwn(rows,name)||!Array.isArray(rows[name])))unrepresented();
+ for(const name of stores){
   if(!sourceWorkingCurrentNonemptyStores.includes(name)&&rows[name].length)unrepresented();
   for(const row of rows[name])assertSourceWorkingSpecialScalars(name,row);
  }
