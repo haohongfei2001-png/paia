@@ -161,7 +161,7 @@ async function compileOriginalWireScope(plan){
   else if(group.type==='inputWorkingCommit')for(const op of group.prepared.members){const {entityType:type,entity:value}=op.value;maps[{input:'blocks',inputState:'inputStates',revision:'revisions',filterIntent:'filterIntents'}[type]].set(value.id,copy(value));}
   else if(group.type!=='humanLibraryCommit'){const op=group.operations[0];if(group.type==='filterIntent')maps.filterIntents.set(op.entityId,copy(op.value));else if(group.type==='promptPreferences')prompt=copy(op.value);else if(group.type==='promptBinding')promptBinding=copy(op.value);else if(group.type==='contextDesired')desired.set(op.entityId,copy(op.value));else if(group.type==='topicDesired')topicDesired.set(op.entityId,copy(op.value));else if(group.type!=='consumerPreference')context.set(op.entityId,copy(op.value));}
  }
- const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,clone(row));
+ const human=plan.groups.some(group=>group.type==='humanLibraryCommit')?compileHumanScope(plan):null;if(human)for(const row of human.rows.history)maps.revisions.set(row.id,mixed?row:clone(row));
  const library={records:[...maps.records.values()],library:emptyLibrary()};syncLibrary(library);
  const documents=library.library.documents.map(row=>{const value={...row,titleRevision:0};delete value.sourceRecordIds;return value;});
  const expected=Object.fromEntries(Object.entries(maps).map(([name,map])=>[name,sort([...map.values()])]));
@@ -173,7 +173,7 @@ async function compileOriginalWireScope(plan){
  // Portable Human is independently compiled already. Mixed Scope can borrow
  // that untouched aggregate; OUTER history stays independently cloned so its
  // allocator normalization cannot zero portable Human history by alias.
- if(mixed&&human)delete expected.humanLibrary;const normalized=clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
+ if(mixed&&human)delete expected.humanLibrary;const normalized=mixed?{...expected,inputStates:clone(expected.inputStates),revisions:clone(expected.revisions)}:clone(expected);if(mixed&&human)normalized.humanLibrary=human;for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
  const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}};return {scope,human};
 }
@@ -305,7 +305,18 @@ export function measureOriginalMixedRestoredScopeExpectation(core,scope,plan,sto
  return p?.restoredAllocation?measureMixedRestoredExpectation(core,scope,plan,p.restoredAllocation):Object.freeze({B:0,T:0,V:0,E:0});
 }
 
+// Only exact immutable operation subtrees are already owned by the complete
+// original Plan. Count each aliased traversal the Scope meter would repeat;
+// array/object reference cells remain in the full Scope charge.
+function mixedScopeBorrowedOperationTrees(plan,scope){
+ const borrowed=new WeakSet(),total={B:0,T:0,V:0,E:0};
+ for(const group of plan.groups)for(const op of group.operations)for(const value of [op.value,op.value?.entity,op.value?.after])if(value&&typeof value==='object'&&Object.isFrozen(value))borrowed.add(value);
+ const visit=value=>{if(!value||typeof value!=='object')return;if(borrowed.has(value)){const m=measureSourceWorkingPhysicalTree(value);for(const key of ['B','T','V','E'])total[key]+=m[key];return;}for(const item of Object.values(value))visit(item);};visit(scope);return Object.freeze(total);
+}
+export function measureOriginalMixedScopeBorrowedOperations(core,scope,plan){
+ requireOriginalCurrentMixedGroupScope(core,scope,plan);return mixedScopeBorrowedOperationTrees(plan,scope);
+}
 export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,nonce){
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||p.mixedCore!==core||scopeDeref.call(p.plan)!==plan||p.phase!=='preparing')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire),borrowedHuman:scope.expected.humanLibrary===p.humanWire});
+ return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire),borrowedHuman:scope.expected.humanLibrary===p.humanWire,borrowedOperations:mixedScopeBorrowedOperationTrees(plan,scope)});
 }

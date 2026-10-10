@@ -20,8 +20,8 @@ export function measureOriginalMixedWireNames(plan){
  return Object.freeze(measureSourceWorkingPhysicalTree([...names.values()]));
 }
 export function compileHumanScope(plan){
- const maps=Object.fromEntries([...Object.keys(types),'history'].map(type=>[type,new Map()])),names=new Map();
- for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
+ const maps=Object.fromEntries([...Object.keys(types),'history'].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,mixed?after:clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
 export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){

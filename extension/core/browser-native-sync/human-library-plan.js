@@ -961,6 +961,7 @@ const projectionPhysicalIndexKey=(r,store,index,row)=>r.mixedIndexInspection?mix
 // Fixed frames pay finite selector, listener, meter-stack, 128/768 vectors/maps
 // and one descriptor/builder/key-generator frame, not initial native cloning.
 function projectionTreeCharge(m){return 2*m.T+128*m.V+8*m.E+128;}
+function projectionAliasCharge(m){return 2*m.T+128*m.V+8*m.E;}
 function projectionCanonicalCharge(m){return projectionTreeCharge(m)+16*m.E+2*m.B+128;}
 function projectionReserve(r,scratch=0){
  const charge=PROJECTION_FRAME+r.owned+(r.transient||0)+(r.fixedScratch||0)+scratch;
@@ -1318,12 +1319,12 @@ function mixedWireCanonicalFamilyPeak(r,plan,humanWire,surviving=0){
   else if(group.type==='humanLibraryCommit')for(const member of group.prepared.members){humanFinal.set(member.value.entityType+'\0'+member.value.after.id,member.value.after);if(member.value.entityType==='history'){maps.revisions.set(member.value.after.id,member.value.after);humanHistory.add(member.value.after.id);}}
   else{const op=group.operations[0],name=group.type==='promptPreferences'?'prompt':group.type==='promptBinding'?'promptBinding':group.type==='consumerPreference'?'consumerPreferences':group.type==='topicDesired'?'topicDesired':group.type==='contextDesired'?'desired':group.type==='filterIntent'?'filterIntents':'context';maps[name].set(op.entityId,op.value);}
  }
- let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0;
- for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
+ let peak=projectionCanonicalCharge(humanWire)+projectionCanonicalCharge(currentHumanOwner.measureOriginalMixedWireNames(plan))+16*1024,borrowedTrees=0,removedTrees=0;
+ for(const [name,map]of Object.entries(maps)){const m={B:2,T:0,V:1,E:0};let n=0;for(const value of map.values()){const row=projectionRowMeasure(r,value);if(name!=='revisions'||!humanHistory.has(value.id))borrowedTrees+=projectionTreeCharge(row);if(name==='revisions'&&humanHistory.has(value.id)||!['inputStates','revisions'].includes(name))removedTrees+=projectionTreeCharge(row);if(n++)m.B++;for(const key of ['B','T','V','E'])m[key]+=row[key];m.E++;}peak=Math.max(peak,projectionCanonicalCharge(m));}
  // Exactly one portable Human aggregate clone was removed by the original
  // Mixed wire owner. Rebate its final rows/names, never original Plan/raw.
- for(const value of humanFinal.values())borrowedTrees+=projectionTreeCharge(projectionRowMeasure(r,value));borrowedTrees+=projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
- return {peak,borrowedTrees};
+ for(const value of humanFinal.values()){const tree=projectionTreeCharge(projectionRowMeasure(r,value));borrowedTrees+=tree;removedTrees+=tree;}borrowedTrees+=projectionTreeCharge(currentHumanOwner.measureOriginalMixedWireNames(plan));
+ return {peak,borrowedTrees,removedTrees};
 }
 // Genuine sequential prefix stages reserve their actual operands. The current
 // complete raw/Plan/private Source ownership never leaves this work ticket.
@@ -1331,7 +1332,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedRestoredProofRetained)projectionRequired();
  if(phase==='control'){
   if(r.mixedRestoredPhase)projectionRequired();const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
-  r.mixedRestoredBase=projectionTreeCharge(frames.scope)+(frames.borrowedHuman?0:projectionTreeCharge(frames.human))+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
+  r.mixedRestoredBase=projectionTreeCharge(frames.scope)-projectionAliasCharge(frames.borrowedOperations)+(frames.borrowedHuman?0:projectionTreeCharge(frames.human))+128*1024;r.mixedRestoredPhase='control';projectionReserve(r,r.mixedRestoredBase+completedGroupControlScratch(r.core,r.raw));return;
  }
  if(phase==='compiler'){
   if(r.mixedRestoredPhase!=='control')projectionRequired();const totals={B:2,T:0,V:1,E:0};let peak={B:0,T:0,V:0,E:0};
@@ -1346,7 +1347,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
   for(const group of prefix.groups){if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)add(member.value.after,true);else if(['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit'].includes(group.type))for(const member of group.prepared.members)add(member.value.entity);else add(group.operations[0].value);}
   r.mixedRestoredPhase='wire';r.mixedRestoredPrefix=prefix;r.mixedRestoredTemporary=projectionTreeCharge(measureOriginalMixedPrefixWrappers(r.core,plan,prefix));
   const surviving=r.mixedRestoredBase+r.mixedRestoredTemporary,meter=mixedWireCanonicalFamilyPeak(r,prefix,humanWire,surviving);
-  projectionReserve(r,surviving+8*projectionTreeCharge(wire)-meter.borrowedTrees+4*meter.peak+8*wire.B+256*1024);return;
+  projectionReserve(r,surviving+8*projectionTreeCharge(wire)-meter.borrowedTrees-meter.removedTrees+4*meter.peak+8*wire.B+256*1024);return;
  }
  if(phase==='mapped'){
   if(r.mixedRestoredPhase!=='wire'||r.mixedRestoredPrefix!==prefix)projectionRequired();r.mixedRestoredPrefix=null;r.mixedRestoredPhase='mapped';
@@ -1362,7 +1363,7 @@ export function reserveOriginalMixedRestoredPrefixPhase(nonce,store,scope,plan,p
 export function reserveOriginalMixedKeyedScopePhase(nonce,store,scope,plan){
  if(arguments.length!==4)projectionRequired();requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const r=currentProjectionWorks.get(nonce);if(r.group.plan!==plan||r.mixedKeyedStarted)projectionRequired();
  const frames=currentGroupOwner.measureOriginalMixedPreparingWireScope(r.core,scope,plan,store,nonce);
- const scratch=projectionTreeCharge(frames.scope)+(4-(frames.borrowedHuman?1:0))*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
+ const scratch=projectionTreeCharge(frames.scope)-projectionAliasCharge(frames.borrowedOperations)+(4-(frames.borrowedHuman?1:0))*projectionTreeCharge(frames.human)+2*projectionCanonicalCharge(frames.human)+8*frames.human.B+2*1024*1024;
  r.mixedKeyedStarted=true;r.mixedKeyedScratch=scratch;projectionReserve(r,scratch);
 }
 // Transfer surviving authenticated prefix/control/allocation ownership only
@@ -1570,7 +1571,7 @@ async function projectionCompileInitialMixedScope(r){
  // Human-history role), original humanWire, keyed/normalized/nested copies,
  // one sequential canonical/HMAC operand and the unchanged finite2Mi token/
  // name/default/wrapper frame. No raw/Plan/private Source tree is refunded.
- const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees+4*wireMeter.peak+8*wire.B+256*1024;
+ const wireMeter=mixedWireCanonicalFamilyPeak(r,plan,humanWire),wireScratch=8*projectionTreeCharge(wire)-wireMeter.borrowedTrees-wireMeter.removedTrees+4*wireMeter.peak+8*wire.B+256*1024;
  // The keyed phase has its own original-owner entry after the wire builder
  // returns; its actual surviving objects are charged there before crypto.
  // The restored prefix compiler/control check runs after wire construction
@@ -1590,7 +1591,7 @@ async function projectionCompileInitialMixedScope(r){
  // Scope construction and its sequential keyed operands have returned. The
  // same live ticket now owns their actual surviving trees, not both those
  // trees and a second copy of the already unwound construction scratch.
- r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden)+2048;r.group={...r.group,scope};
+ r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))-projectionAliasCharge(currentGroupOwner.measureOriginalMixedScopeBorrowedOperations(r.core,scope,plan))+projectionTreeCharge(hidden)+2048;r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
  projectionReserve(r,32*1024);await prepareOriginalMixedModeBaseline(r.core,r.store,scope,plan,r.raw,r.nonce,restored);projectionCurrent(r);projectionFence(r);projectionReserve(r);
  const searchScratch=mixedCurrentSearchScratch(r);r.semantic=searchScratch.query;r.mixedSearchScratch=searchScratch.search;projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);

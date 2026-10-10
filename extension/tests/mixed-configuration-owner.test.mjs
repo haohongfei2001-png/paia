@@ -12,7 +12,7 @@ import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consume
 import {TopicDesiredSyncJournal} from '../core/browser-native-sync/topic-desired-journal.js';
 import {ContextTopicAccessService} from '../core/context-topic-access.js';
 import {prepareCurrentMixedGroupCheckpointPlan} from '../core/browser-native-sync/group-checkpoint-plan.js';
-import {prepareGroupScope} from '../core/browser-native-sync/group-checkpoint-scope.js';
+import {measureOriginalMixedScopeBorrowedOperations,prepareGroupScope} from '../core/browser-native-sync/group-checkpoint-scope.js';
 import {compareMixedConfiguration} from '../core/browser-native-sync/mixed-configuration.js';
 import {protocolPhysicalId} from '../core/browser-native-sync/physical-key.js';
 globalThis.IDBKeyRange=IDBKeyRange;
@@ -29,6 +29,13 @@ async function fixture(t){
  return {s,core,plan,scope,raw:{rows,namespace:'initial'},control,topic};
 }
 const compare=(f,raw=f.raw,control=f.control)=>compareMixedConfiguration(f.core,f.scope,f.plan,raw,control,false);
+test('Mixed Scope borrows only original immutable domain identities and clones allocator-normalized rows',async t=>{
+ const f=await fixture(t),source=f.plan.groups.find(g=>g.type==='sourceBootstrapCommit').prepared.members.find(op=>op.value.entityType==='source').value.entity;
+ assert.equal(f.scope.expected.records[0],source);assert.equal(Object.isFrozen(source),true);
+ const state=f.plan.groups.filter(g=>g.type==='inputWorkingCommit').at(-1).prepared.members.find(op=>op.value.entityType==='inputState').value.entity;
+ assert.notEqual(f.scope.expected.inputStates[0],state);assert.equal(f.scope.expected.inputStates[0].deltaSequence,0);assert.equal(state.deltaSequence>0,true);
+ const alias=measureOriginalMixedScopeBorrowedOperations(f.core,f.scope,f.plan);assert.equal(alias.V>0,true);assert.throws(()=>measureOriginalMixedScopeBorrowedOperations(f.core,structuredClone(f.scope),f.plan));assert.throws(()=>measureOriginalMixedScopeBorrowedOperations(f.core,f.scope,structuredClone(f.plan)));assert.equal(compare(f).mode,'off');
+});
 test('original mode chronology counts real changes only and original desired receipts match the original local choices',async t=>{
  const f=await fixture(t),before=structuredClone(f.raw),actual=compare(f);assert.equal(actual.mode,'off');assert.equal(actual.policyEpoch,3);assert.equal(f.raw.rows.meta.find(r=>r.id==='consumer-preference-owner:smartFilter').revision,4);assert.equal(actual.values.length,2);assert.deepEqual(actual.desired.map(x=>x.enabled),[false]);assert.equal(f.raw.rows.operationReceipts.filter(r=>r.namespace==='context-topic-access'&&r.result.noOp).length,1);assert.deepEqual(f.raw,before);
 });
