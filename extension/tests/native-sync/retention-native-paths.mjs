@@ -43,6 +43,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/browser-native-sync/input-working-inbox.js",
   "core/browser-native-sync/input-working-journal.js",
   "core/browser-native-sync/manual-owners.js",
+  "core/browser-native-sync/manual-prompt-current-shape.js",
   "core/browser-native-sync/physical-key.js",
   "core/browser-native-sync/prompt-journal.js",
   "core/browser-native-sync/publications.js",
