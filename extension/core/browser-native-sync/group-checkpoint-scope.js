@@ -10,7 +10,7 @@ import {projectEntity} from './codecs.js';
 import {clone,digest,equal,fail,count,exact,hash,opaque} from './value.js';
 import {compileHumanScope,prepareHumanScopeProof,hasHumanScope,requireHumanScope,prepareHumanCurrentGroupScopeProjection,requireHumanCurrentGroupScope,encodeHumanCurrentGroupScope,publishHumanCurrentGroupScope,releaseHumanCurrentScopeProjection} from './human-library-scope.js';
 import {normalizePhysical,physical} from './human-library-journal.js';
-import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan,requireSelectedCurrentSourceWorkingGroupPlan} from './group-checkpoint-plan.js';
+import {requireOriginalGroupCheckpointPlan,requireOriginalCurrentSourceWorkingGroupPlan,requireSelectedCurrentSourceWorkingGroupPlan,requireOriginalCurrentMixedGroupPlan} from './group-checkpoint-plan.js';
 import {acceptSequence} from './core.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
@@ -19,12 +19,24 @@ import {REVISION_POLICY} from '../ia-store.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 const originalScopes=new WeakMap(),ScopeWeakRef=globalThis.WeakRef,scopeDeref=ScopeWeakRef.prototype.deref;
 const freezeScope=value=>{if(value&&typeof value==='object'){for(const item of Object.values(value))freezeScope(item);Object.freeze(value);}return value;};
+// Called only by the original native compiler while this Scope is preparing.
+// The opaque original nonce is separately authenticated by that native owner.
+export function requireOriginalMixedHumanCompilationInput(core,scope,wire,plan){
+ requireOriginalCurrentMixedGroupPlan(core,plan);const p=originalScopes.get(scope);
+ if(arguments.length!==4||!p||p.phase!=='preparing'||scopeDeref.call(p.plan)!==plan||p.humanWire!==wire||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
 export function requireGroupHumanCompilationInput(scope,wire){
  const p=originalScopes.get(scope);if(p&&(p.phase!=='preparing'||p.humanWire!==wire))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 export function requireOriginalCurrentGroupScope(core,scope,plan){
  const p=originalScopes.get(scope);requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||!plan.groups.some(g=>g.type==='humanLibraryCommit')||plan.groups.some(g=>!['humanLibraryCommit','promptPreferences','contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+}
+// Original compilation identity for the consuming mixed recovery path. This
+// is not native-read authority and cannot authenticate a cloned Scope/Plan.
+export function requireOriginalCurrentMixedGroupScope(core,scope,plan){
+ requireOriginalCurrentMixedGroupPlan(core,plan);const p=originalScopes.get(scope);
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||!hasHumanScope(scope)||plan.operationCount>128||!plan.groups.some(g=>g.type==='sourceBootstrapCommit')||!plan.groups.some(g=>g.type==='inputWorkingCommit')||!plan.groups.some(g=>g.type==='humanLibraryCommit'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 // Selected Source/Working compilation identity only. A raw argument still has
 // no native read authority; the fixed native owner must supply its private cut.
@@ -120,7 +132,7 @@ const counters=new Set(['thought-suppression-key','thought-sequence','revision-s
 const readRows=async(t,name)=>{if(await t.count(name)>128)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all(name);};
 // Exact portable expectations compiled from admitted typed operations, not from
 // arbitrary canonical metadata. Only each owner's named physical counters map.
-export async function prepareGroupScope(plan,{store}={}){
+export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
  const maps=Object.fromEntries(['records','times','blocks','inputStates','revisions','filterIntents'].map(name=>[name,new Map()]));
  const context=new Map(),desired=new Map();let prompt=projectEntity('promptPreferences',emptyPromptPreferences());
  for(const group of plan.groups){
@@ -138,7 +150,7 @@ export async function prepareGroupScope(plan,{store}={}){
  const normalized=clone(expected);for(const row of normalized.inputStates)row.deltaSequence=0;for(const row of normalized.revisions){row.sequence=0;row.listKey=[row.entityKey,0];row.documentList=[row.documentId,0];}
  const families=[];for(const [type,value]of Object.entries(normalized)){const count=Array.isArray(value)?value.length:1;families.push({type,count,digest:await digest(value)});}
  const scope={expected:normalized,ownerScope:{version:1,profile:'bounded-admitted-local-owners',families:families.sort((a,b)=>a.type.localeCompare(b.type))}},p={plan:new ScopeWeakRef(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human};originalScopes.set(scope,p);
- try{if(human)await prepareHumanScopeProof(store,scope,human);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;}catch(error){originalScopes.delete(scope);throw error;}
+ try{if(human)await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;}catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){
  const c=await store.control(t);

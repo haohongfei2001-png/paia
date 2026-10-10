@@ -1255,6 +1255,21 @@ function projectionQualify(r){
 function projectionFailure(primary,errors){return errors.length?new AggregateError([primary,...errors],'Projection primary and cleanup failures',{cause:primary}):primary;}
 function projectionDrop(r){r.failedRequest=null;r.raw=null;r.group=null;r.encoderResult=null;r.scope=null;r.identity=null;r.controlValues=null;r.control=null;r.tail=null;r.closed=true;currentProjectionWorks.delete(r.nonce);if(r.work){const work=r.work;r.work=null;releaseHumanQualificationLease(work);}}
 function projectionRevoke(p){p.revoked=true;if(p.frames===0&&!p.released){p.released=true;p.raw=null;p.group=null;p.encoderResult=null;p.controlValues=null;releaseHumanQualificationLease(p.ticket);p.ticket=null;}}
+// Original mixed Scope construction will consume the already authenticated,
+// frozen full native cut. No caller-supplied secret/DTO and no Store.run tail
+// replacement is admitted. The consuming mixed opening is not enabled yet.
+export function borrowOriginalMixedScopeCompilationSecret(nonce,store,scope,wire){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==4||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||!r.nativeDrained||!r.raw||!r.group?.plan)projectionRequired();
+ projectionCurrent(r);currentGroupOwner.requireOriginalMixedHumanCompilationInput(r.core,scope,wire,r.group.plan);
+ if(r.mixedCompilingScope&&r.mixedCompilingScope!==scope)projectionRequired();r.mixedCompilingScope=scope;
+ const secret=r.raw.rows.meta.find(row=>row.id==='thought-suppression-key')?.value;
+ if(!Array.isArray(secret)||secret.length!==32||secret.some(value=>!Number.isInteger(value)||value<0||value>255))projectionRequired();return secret;
+}
+export function requireOriginalMixedScopeCompilationCurrent(nonce,store,scope){
+ const r=currentProjectionWorks.get(nonce);
+ if(arguments.length!==3||!r||r.sourceWorking!=='mixed'||r.store!==store||r.phase!=='mixed-scope-preparing'||r.mixedCompilingScope!==scope||!r.nativeDrained)projectionRequired();projectionCurrent(r);
+}
 export async function captureHumanCurrentUnindexedProjection(store,core){
  if(arguments.length!==2)projectionRequired();
  return captureCurrentProjection(store,core,null);

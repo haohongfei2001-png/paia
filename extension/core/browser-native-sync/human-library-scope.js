@@ -3,7 +3,7 @@ import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
 import {normalizePhysical} from './human-library-journal.js';
 import {keyedHash} from '../thought-model.js';
 import {ownerVersion} from '../library-search.js';
-import {captureHumanCurrentUnindexedProjection,captureHumanCurrentGroupProjection,requireHumanCurrentUnindexedProjection,releaseHumanCurrentUnindexedProjection,bindHumanCurrentUnindexedProjectionScope,encodeHumanCurrentGroupCheckpoint,publishHumanCurrentGroupCheckpoint,branchRawMeasure} from './human-library-plan.js';
+import {captureHumanCurrentUnindexedProjection,captureHumanCurrentGroupProjection,requireHumanCurrentUnindexedProjection,releaseHumanCurrentUnindexedProjection,bindHumanCurrentUnindexedProjectionScope,encodeHumanCurrentGroupCheckpoint,publishHumanCurrentGroupCheckpoint,branchRawMeasure,borrowOriginalMixedScopeCompilationSecret,requireOriginalMixedScopeCompilationCurrent} from './human-library-plan.js';
 import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {clone,equal,fail,count} from './value.js';
 const proofs=new WeakMap(),preparations=new WeakSet(),types={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',keepSeparate:'pairs'};
@@ -13,13 +13,13 @@ export function compileHumanScope(plan){
  for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,clone(after));if(type==='topic')for(const name of [after.name,...after.identity.aliases.map(alias=>alias.name)]){const normalized=String(name).normalize('NFKC').toLocaleLowerCase().trim(),row=names.get(normalized)||{name:normalized,topicIds:[]};if(!row.topicIds.includes(after.id))row.topicIds.push(after.id);names.set(normalized,row);}}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
-export async function prepareHumanScopeProof(store,scope,wire){
+export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
  requireGroupHumanCompilationInput(scope,wire);
- if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const secret=await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');
- const rows=clone(wire.rows);for(const row of rows.entry)row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);for(const row of rows.topic)row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;
- for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side])row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;
- rows.suppression=await Promise.all(rows.suppression.map(row=>localHumanSuppression(row,secret)));
- const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
+ if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
+ const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
+ for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
+ rows.suppression=await Promise.all(rows.suppression.map(row=>localHumanSuppression(row,secret)));current();
+ const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);current();names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
  const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate)});
  return normalized.history;
  }finally{preparations.delete(scope);}
