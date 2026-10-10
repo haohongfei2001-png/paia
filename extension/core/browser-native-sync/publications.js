@@ -143,11 +143,11 @@ export class PreparedPublicationJournal {
   return this.core.transaction(true,async t=>{
    const current=await this.#bound(t,row);if(current.state==='confirmed')return this.core.get(t,'publicationReceipt',row.publicationId);if(['blocked_integrity','blocked_remote_missing','obsolete'].includes(current.state))fail('BNS_PUBLICATION_BLOCKED');if(current.nextIndex!==current.objectRefs.length)fail('BNS_PUBLICATION_INCOMPLETE');await this.#checkCut(t,current);
    for(let i=0;i<current.objectRefs.length;i++){const receipt=await this.core.get(t,'publicationObject',row.publicationId,indexKey(i));if(receipt?.state!=='verified'||!equal(receipt.ref,current.objectRefs[i]))fail('BNS_PUBLICATION_INCOMPLETE');}
-   await this.checkpoint('publication-before-ack',t);
+   await this.checkpoint('publication-before-ack',t);await this.#checkCut(t,current);
    for(const ref of current.operationRefs)await t.delete('meta',await this.core.idIn(t,'outbox',ref.operationId));
    const receipt={publicationId:row.publicationId,namespace:row.namespace,state:'confirmed',blueprintDigest:row.blueprintDigest,operationCount:row.operationRefs.length,descriptors:row.objectRefs.filter(ref=>ref.kind==='descriptor')};
    await this.core.put(t,'publicationReceipt',[row.publicationId],receipt);await this.core.put(t,'publication',[row.publicationId],{...withoutId(current),state:'confirmed',error:null});await t.delete('meta',await this.core.idIn(t,'publicationActive',row.publicationId));
-   await this.checkpoint('publication-after-ack',t);return receipt;
+   await this.checkpoint('publication-after-ack',t);await requireConsumerPublicationSettled(t);return receipt;
   },['meta']);
  }
  async *publish(publicationId,transport){

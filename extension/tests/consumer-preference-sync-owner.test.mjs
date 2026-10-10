@@ -58,3 +58,10 @@ test('an already reserved portable cut refuses upload until visibility is settle
  await core.repository.transaction(true,t=>t.delete('meta',pendingId),['meta']);assert.equal((await journal.run(prepared.publicationId,transport)).state,'confirmed');assert.ok(puts>0);assert.equal(await core.read('outbox',operation.operationId),undefined);
  }finally{core.repository.db.close();}
 });
+
+for(const stage of ['publication-before-ack','publication-after-ack'])test('same-transaction '+stage+' visibility failure rolls back acknowledgement and permits exact retry',async()=>{
+ const core=await device();try{const operation=await queuedPreference(core);let injected=true;const journal=new PreparedPublicationJournal(core,{checkpoint:async(name,t)=>{if(name===stage&&injected)await t.put('meta',{id:pendingId,version:1,state:'SYNTHETIC-pending-at-ack'});}}),prepared=await journal.prepare(),objects=new Map(),transport={async putImmutable(ref,data){objects.set(ref.id,data.slice());},async get(ref){return objects.get(ref.id);}};
+ await assert.rejects(journal.run(prepared.publicationId,transport),{code:'BNS_CONSUMER_PUBLICATION_PENDING'});assert.ok(await core.read('outbox',operation.operationId));assert.equal(await core.read('publicationReceipt',prepared.publicationId),undefined);assert.notEqual((await core.read('publication',prepared.publicationId)).state,'confirmed');assert.equal(await core.repository.transaction(false,t=>t.get('meta',pendingId),['meta']),undefined,'the original failed transaction rolls back its injected visibility state too');
+ injected=false;assert.equal((await journal.run(prepared.publicationId,transport)).state,'confirmed');assert.equal(await core.read('outbox',operation.operationId),undefined);
+ }finally{core.repository.db.close();}
+});
