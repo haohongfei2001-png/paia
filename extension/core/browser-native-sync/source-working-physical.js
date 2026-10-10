@@ -5,7 +5,7 @@ import {fail} from './value.js';
 // Native owners legitimately use own undefined and signed zero in derived IDB
 // indexes. Keep their exact identity; canonical wire data remains strict.
 const own=Object.hasOwn,descriptor=Object.getOwnPropertyDescriptor;
-const prototype=Object.getPrototypeOf,symbols=Object.getOwnPropertySymbols;
+const prototype=Object.getPrototypeOf,symbols=Object.getOwnPropertySymbols,names=Object.getOwnPropertyNames;
 const array=Array.isArray,objectPrototype=Object.prototype,arrayPrototype=Array.prototype;
 const required=()=>fail('BNS_SOURCE_WORKING_PHYSICAL_INVALID');
 function shape(value){
@@ -20,7 +20,7 @@ function arrayShape(value){
  let n=0;for(const key in value)if(own(value,key)){
   if(!/^(0|[1-9][0-9]*)$/.test(key)||Number(key)>=d.value||++n>d.value)required();
  }
- if(n!==d.value||Object.getOwnPropertyNames(value).length!==n+1)required();return d.value;
+ if(n!==d.value||names(value).length!==n+1)required();return d.value;
 }
 // Same finite depth/node/string limits as the original strict native meter.
 // Extra physical scalars pay fixed tagged-slot space; no representation, JSON
@@ -44,7 +44,7 @@ export function measureSourceWorkingPhysicalTree(value,limit=2*1024*1024){
   let first=true,fields=0;for(const key in v)if(own(v,key)){if(++fields>128)fail('BNS_HUMAN_GRAPH_LIMIT');if(!first)add(1);first=false;E++;text(key);add(1);visit(field(v,key),depth+1);}
   // A native clone has no nonenumerable object fields. Do not silently ignore
   // forged fields that would otherwise disappear from the complete cut.
-  if(Object.getOwnPropertyNames(v).length!==fields)required();
+  if(names(v).length!==fields)required();
  };
  visit(value,0);return {B,T,V,E};
 }
@@ -61,7 +61,7 @@ export function equalSourceWorkingPhysicalTree(a,b){
   if(array(x)){const n=arrayShape(x);if(n!==arrayShape(y))return false;for(let i=0;i<n;i++)if(!compare(field(x,String(i)),field(y,String(i)),depth+1))return false;return true;}
   let nx=0,ny=0;for(const key in x)if(own(x,key)){if(++nx>128)fail('BNS_HUMAN_GRAPH_LIMIT');if(!own(y,key)||!compare(field(x,key),field(y,key),depth+1))return false;}
   for(const key in y)if(own(y,key)&&++ny>128)fail('BNS_HUMAN_GRAPH_LIMIT');
-  if(Object.getOwnPropertyNames(x).length!==nx||Object.getOwnPropertyNames(y).length!==ny)required();return nx===ny;
+  if(names(x).length!==nx||names(y).length!==ny)required();return nx===ny;
  };
  return compare(a,b,0);
 }
