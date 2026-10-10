@@ -1,3 +1,9 @@
+# Latest-plan development authorization — 2026-10-11
+
+NIB-V4-1.0 S0–S4 is now runtime-selected within the existing Prompt lane by explicit owner instruction. The [AUTHORITY amendment](AUTHORITY.md#latest-runtime-authorization--2026-10-11) controls; [STATUS](STATUS.md) owns assignments. Implement the latest adopted designs and preserve/complete their necessary earlier foundations through the existing owners. The original NIB documentation-only restriction is historical. Continue the approved Sync convergence work and all other seven-lane obligations; no duplicate scheduler, redesign, wider external authority or completion claim is introduced.
+
+## Preserved previous plan and evidence
+
 # SYNC-01 B complete configuration candidate 0.43.17 — formal gates pending
 
 Approved PR #250 remains merged and authoritative. Batch A and qualified main0.43.16 are retained unchanged. The current single B branch now closes the complete selected configuration recovery path in actual original owners: seven portable intents, full Prompt companions and logical desired Topic facts recover through closed-A/fresh-B edits/re-export/closed-B/fresh-C, without permission donation. Frozen pre-version source/release each11 native scenarios/622 assertions pass with independent exact-byte qualification; these are synthetic component evidence, not formal current-head/main or whole01 acceptance.

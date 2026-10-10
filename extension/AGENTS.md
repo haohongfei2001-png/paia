@@ -1,5 +1,9 @@
 # PAIA current engineering instructions
 
+## Latest NIB execution authorization — 2026-10-11
+
+The owner explicitly authorizes latest adopted-plan development including Narrow Input Board v4 S0–S4 within the Prompt lane. Read `docs/consumer-product-v1/AUTHORITY.md` latest runtime authorization, current STATUS and the NIB SPEC/PLAN/INTEGRATION/ACCEPTANCE/REFERENCES before editing. Earlier NIB documentation-only restrictions are historical. Preserve and complete necessary existing foundations through their original owners; current shared-data/Settings/worker/navigation/CI writers remain exclusive. Implementation authorization does not imply runtime acceptance or the separately gated paid/account/permission/deployment actions.
+
 ## Current scoped Archive adoption — IAH-1.1, 2026-10-08
 
 The owner approved **PAIA Archive Existing UI — Minimal Optimization**, selecting necessary B changes rather than the entire prototype. The owner subsequently explicitly authorized IAH-1.1 runtime execution as the seventh coordinated lane. This supersedes the prior documentation-only task and Archive exclusion; the confirmed selected minimal design is unchanged. Current `docs/consumer-product-v1/STATUS.md` controls scheduling; no old global next pointer is restored.

@@ -1,5 +1,13 @@
 # Narrow Input Board v4 — Executable Incremental Plan
 
+## Latest runtime authorization — 2026-10-11
+
+The owner explicitly authorizes development of the latest adopted plans, including **NIB-V4-1.0 / CPV1-NIBV4 S0–S4**, and requires preserving and completing the earlier foundations those plans consume. NIB runtime is **EXECUTION_SELECTED** within the existing Prompt lane. This supersedes the earlier documentation-only / runtime-not-authorized / runtime-not-selected / no-merge restrictions for this adopted scope; those statements below describe the original planning task, not the current authorization.
+
+Keep the approved v4 design and its dependency order: S0 surface and compatibility → S1 original Archive query and exact reuse → S2 complete Free/manual continuity → S4-local entry replacement; S3 Pro consumes qualified AI-COST/service dependencies and requires its S4-Pro supplement before exposure. The owner has authorized implementation and ordinary protocol-compliant integration. Actual paid calls, accounts/credentials, expanded permissions, real-user uploads, formal deployment and irreversible deletion are not authorized by this instruction. Unresolved product choices, including the proposed focus-only toolbar behavior, are not silently decided by general development authorization; implement the already decided work while retaining the existing entry until its replacement is fully specified and accepted.
+
+Preserve original Family/manual identity, edits/order/hide/split, verified reuse and single insertion coordinator, draft/IME/target protection, position/reset, local default-off Stage 3A, Archive query/revision/eligibility and return owners, AI admission/budget and Sync recovery. Repair a demonstrated missing dependency through its original owner, not a parallel store, query, writer or permission path. Existing completed exact-version evidence remains valid only for unchanged code and dependencies. No old IAH-1.0, native Side Panel, wide/dual-carrier design or unrelated remote Stage 3B is revived.
+
 Plan: **CPV1-NIBV4 / S0–S4**. Design authority: [NIB-V4-1.0](NARROW_INPUT_BOARD_V4_SPEC.md). Baseline inspected: main `47aa4df45fb9010a7be364fe144560e3f22b9887`, extension **0.41.0**; not the prototype's older 0.38 baseline.
 
 **This PR is design/planning only. Every NIB runtime stage is NOT_STARTED and RUNTIME_NOT_AUTHORIZED_BY_THIS_TURN.** A subsequent explicit implementation authorization and the existing Root's assignment in STATUS select work; adopting this plan does not start an agent, change an in-flight branch, dispatch tests or merge code.
