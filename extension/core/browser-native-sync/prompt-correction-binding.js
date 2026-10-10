@@ -76,18 +76,22 @@ function checkedPortable(p){
  const local={...p,revision:0,overrides:p.overrides.map(o=>({...o,reuseCount:0}))};if(!validPromptPreferences(local))invalid();return local;
 }
 const referenced=p=>[...new Set([...p.pins,...p.overrides.map(o=>o.id)])].sort(compare);
-function checkedRows(bindings,refs){
+function checkedRows(bindings,refs,splitInputs=null){
  if(!Array.isArray(bindings)||bindings.length>PROMPT_CORRECTION_BINDING_LIMITS.families||bindings.length!==refs.length)invalid();
  let anchors=0;const inputs=new Set();
  for(let n=0;n<bindings.length;n++){
   const row=bindings[n];if(!own(row,['familyId','kind','inputIds'])||!family(row.familyId)||row.familyId!==refs[n]||n>0&&compare(refs[n-1],refs[n])>=0||!['manual','family','orphan'].includes(row.kind)||!Array.isArray(row.inputIds)||row.inputIds.length>PROMPT_CORRECTION_BINDING_LIMITS.anchors||row.inputIds.some((x,i)=>!id(x)||i>0&&compare(row.inputIds[i-1],x)>=0))invalid();
   if(manual(row.familyId)?row.kind!=='manual'||row.inputIds.length:row.kind==='manual'||(row.kind==='family')!==(row.inputIds.length>0))invalid();
-  for(const inputId of row.inputIds){if(inputs.has(inputId)||++anchors>PROMPT_CORRECTION_BINDING_LIMITS.anchors)invalid();inputs.add(inputId);}
+  // A later explicit split may share an anchor with retained older work. Only
+  // the exact linked Prompt split facts authorize that bounded relationship;
+  // the body-free structural codec alone cannot prove it. Per-row uniqueness
+  // and total anchor cost, including repeated anchors, stay unchanged.
+  for(const inputId of row.inputIds){if(inputs.has(inputId)&&splitInputs!==null&&!splitInputs.has(inputId)||++anchors>PROMPT_CORRECTION_BINDING_LIMITS.anchors)invalid();inputs.add(inputId);}
  }
 }
 function checkedBinding(value){
  const b=detached(value);if(!own(b,['version','normalizerVersion','portablePreferences','bindings'])||b.version!==1||!version(b.normalizerVersion))invalid();
- const p=checkedPortable(b.portablePreferences);checkedRows(b.bindings,referenced(p));
+ const p=checkedPortable(b.portablePreferences);checkedRows(b.bindings,referenced(p),new Set(p.splits.map(row=>row.inputId)));
  return b;
 }
 export function validatePromptCorrectionBinding(binding){checkedBinding(binding);return true;}

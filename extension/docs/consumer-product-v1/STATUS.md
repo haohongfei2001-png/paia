@@ -1,3 +1,15 @@
+# Qualified main 0.43.16; SYNC-01 B consuming recovery in progress — 2026-10-11
+
+PR #250 is merged at `ef08a51a84fccc8e04fd5447fdff6de9fea2a7a9`; its owner-approved revised Sync convergence plan remains the execution basis. Complete Mixed batch A merged via PR #252; its actual-main Topic reading failure was repaired by normally merged [PR #253](https://github.com/haohongfei2001-png/paia/pull/253). Actual main is `959d3bafcaf628fb6c5a34b3fe77249042723360`, tree `35d1d5a125e5c62de012374bba7c179a607deba5`, version **0.43.16**.
+
+Exact-main [Full 38079265306](https://github.com/haohongfei2001-png/paia/actions/runs/38079265306) has all 21 required jobs SUCCESS; [Prompt 38079265315](https://github.com/haohongfei2001-png/paia/actions/runs/38079265315) has all 5 SUCCESS. The original complete strict native52 verifier passed the exact-main source/release receipts, with no failed/skipped/cancelled case counted as PASS. The once-built 462-file package is qualified: SHA256 `ba2ce94f518912c41192b24946caa0d7cad69603905af40a611c2a4b73c74d7f`, 1,520,515 bytes. No installation or formal deployment is inferred. The failed/held 0.43.15 package and separately qualified 0.43.14 remain unchanged history.
+
+Current selected work continues **approved SYNC-01 batch B**, composing original portable display/Smart Filter ownership and durable local-publication recovery with full Prompt corrections and logical Topic desired selections in the complete Mixed path. Work stays in one isolated B branch; local component results, finite code reviews and generic owner recovery are not native/full-B acceptance. Preserve all latest main and other-lane outcomes. Complete B's same-cut capture, closed-A/fresh-B continuation, closed-B/fresh-C recovery and safety/resource evidence as one consuming batch; do not release prerequisite helpers. Approved C and original SYNC-01 closing gates remain required; whole Sync and all seven lanes are unfinished.
+
+## Preserved preceding main and candidate checkpoints
+
+The preceding records below retain their original commit/test/package scope. Their pending statements are historical where superseded by the exact-main receipt above.
+
 # 0.43.16 owning Topic read-recovery repair — candidate verified locally
 
 Approved PR #250 remains merged at `ef08a51a`; the revised Sync convergence plan is the official execution basis. Complete Mixed SYNC-01 batch A code normally merged via PR #252 at `bfb084a107874d772303ed58f2a15227a716559b`. Candidate Full21+Prompt5 passed, but actual-main Full `38074216098` failed original Browser7 with an unhandled `TOPIC_READING_CHANGED`; actual-main native52 and Prompt5 retain their narrower passes. The0.43.15 ZIP is held, and qualified0.43.14 remains separately bound to `fc3cbd35`.
