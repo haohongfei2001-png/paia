@@ -416,8 +416,11 @@ export class BrowserNativeSyncCore {
   return outcome;
  }
  async prepareWorkingReceive(input){
+  return this.#prepareWorkingReceive(input,false);
+ }
+ async #prepareWorkingReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length<5||input.length>CORE_LIMITS.batch||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_WORKING_COMMIT_INVALID');
-  const operations=[];for(const candidate of input){const op=clone(await validateOperation(candidate));if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='user')fail('BNS_WORKING_COMMIT_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=clone(await validateOperation(candidate));if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='user')fail('BNS_WORKING_COMMIT_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='inputWorkingCommit');if(descriptors.length!==1)fail('BNS_WORKING_COMMIT_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),value=descriptor.value;
   if(descriptor.parents.length||value.datasetId!==descriptor.datasetId||value.deviceId!==descriptor.deviceId||value.id!==descriptor.entityId||members.length!==value.members.length||new Set(operations.map(op=>op.operationId)).size!==operations.length||new Set(operations.map(op=>op.sequence)).size!==operations.length)fail('BNS_WORKING_COMMIT_INVALID');
   for(const ref of value.members){const matches=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(matches.length!==1)fail('BNS_WORKING_COMMIT_INCOMPLETE');const op=matches[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_WORKING_COMMIT_INVALID');}
@@ -444,12 +447,19 @@ export class BrowserNativeSyncCore {
   try{for(const op of [...prepared.members,prepared.descriptor]){const result=await this.applyInTransaction(t,op,{origin:'remote',materialize:false,appendCapability:cap});const head=await this.get(t,'head',op.type,op.entityId);if(result.state!=='applied'||head?.purged||!equal(head?.revisions,[op.revisionId]))fail('BNS_SOURCE_APPEND_INVALID');}await writeOwner();return {state:'applied'};}finally{this.#appendTransactions.delete(t);}
  }
  async prepareSourceBootstrapReceive(input){
+  return this.#prepareSourceBootstrapReceive(input,false);
+ }
+ async #prepareSourceBootstrapReceive(input,currentSourceWorking){
   if(!Array.isArray(input)||input.length!==7||input.reduce((n,x)=>n+bytes(x).length,0)>CORE_LIMITS.batchBytes)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
-  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_BOOTSTRAP_INVALID');operations.push(op);}
+  const operations=[];for(const candidate of input){const op=await validateOperation(candidate);if(currentSourceWorking)requireOriginalSourceWorkingCore(this);if(op.datasetId!==this.datasetId||op.kind!=='put'||op.actor!=='bootstrap'||op.parents.length)fail('BNS_SOURCE_BOOTSTRAP_INVALID');operations.push(op);}
   const descriptors=operations.filter(op=>op.type==='sourceBootstrapCommit');if(descriptors.length!==1)fail('BNS_SOURCE_BOOTSTRAP_REQUIRED');const descriptor=descriptors[0],members=operations.filter(op=>op!==descriptor),v=descriptor.value;
   if(v.datasetId!==this.datasetId||v.deviceId!==descriptor.deviceId||new Set(operations.map(op=>op.operationId)).size!==7||new Set(operations.map(op=>op.sequence)).size!==7)fail('BNS_SOURCE_BOOTSTRAP_INVALID');
   for(const ref of v.members){const hits=members.filter(op=>op.type===ref.type&&op.entityId===ref.entityId&&op.revisionId===ref.revisionId);if(hits.length!==1)fail('BNS_SOURCE_BOOTSTRAP_INCOMPLETE');const op=hits[0];if(op.deviceId!==descriptor.deviceId||op.value.deviceId!==descriptor.deviceId||op.value.datasetId!==this.datasetId||op.value.logicalCommitId!==descriptor.entityId)fail('BNS_SOURCE_BOOTSTRAP_INVALID');}
   const prepared={descriptor,members};const freeze=x=>{if(x&&typeof x==='object'){for(const y of Object.values(x))freeze(y);Object.freeze(x);}return x;};freeze(prepared);this.#bootstrapPrepared.add(prepared);return prepared;
+ }
+ async prepareCurrentSourceWorkingReceive(type,input){
+  if(arguments.length!==2||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(this);
+  const prepared=await(type==='sourceBootstrapCommit'?this.#prepareSourceBootstrapReceive(input,true):this.#prepareWorkingReceive(input,true));requireOriginalSourceWorkingCore(this);return prepared;
  }
  async commitSourceBootstrapReceive(t,prepared,writeOwner){
   if(!this.#bootstrapPrepared.has(prepared)||typeof writeOwner!=='function')fail('BNS_PREPARATION_REQUIRED');const previous=await this.get(t,'receipt',prepared.descriptor.operationId);if(previous){if(previous.digest!==prepared.descriptor.revisionId)fail('BNS_OPERATION_COLLISION');return {state:'duplicate'};}
@@ -527,12 +537,12 @@ export function openHumanProjectionNativeRead(core,nonce){return originalProject
 // Fixed original pure preparation for the selected native Source/Working mode.
 // Constructor identity is not a read, write, native-cut or transport grant.
 const sourceWorkingCoreDescriptor=Object.getOwnPropertyDescriptor,sourceWorkingCoreOwn=Object.hasOwn,sourceWorkingCorePrototype=Object.getPrototypeOf;
-const sourceWorkingCoreMethods=new Map([['sourceBootstrapCommit',sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareSourceBootstrapReceive').value],['inputWorkingCommit',sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareWorkingReceive').value]]);
+const sourceWorkingCorePreparation=sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareCurrentSourceWorkingReceive').value;
 export function requireOriginalSourceWorkingCore(core){
  const binding=originalSourceWorkingCoreBindings.get(core);if(arguments.length!==1||!binding||sourceWorkingCorePrototype(core)!==BrowserNativeSyncCore.prototype)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');
  for(const [name,value]of Object.entries(binding)){const d=sourceWorkingCoreDescriptor(core,name);if(!d||!sourceWorkingCoreOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
 }
 export async function prepareOriginalSourceWorkingReceive(core,type,input){
- if(arguments.length!==3||!sourceWorkingCoreMethods.has(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
- const value=await sourceWorkingCoreMethods.get(type).call(core,input);requireOriginalSourceWorkingCore(core);return value;
+ if(arguments.length!==3||!['sourceBootstrapCommit','inputWorkingCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
+ const value=await sourceWorkingCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
 }

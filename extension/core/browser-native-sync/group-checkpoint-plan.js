@@ -15,9 +15,9 @@ export function requireOriginalGroupCheckpointPlan(core,plan){
  if(arguments.length!==2||!p||p.core!==core||core.datasetId!==p.datasetId||core.repository!==p.repository||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }
 export function requireOriginalCurrentSourceWorkingGroupPlan(core,plan){
+ requireOriginalSourceWorkingCore(core);
  requireOriginalGroupCheckpointPlan(core,plan);
  if(arguments.length!==2||originalPlans.get(plan).currentSourceWorking!==true)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- requireOriginalSourceWorkingCore(core);
 }
 // A bounded immutable causal plan only. This module never writes canonical or
 // protocol rows. Domain capabilities are minted by the existing strict owners.
@@ -28,6 +28,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  for(const candidate of input){
   size+=bytes(candidate).length;if(size>CORE_LIMITS.batchBytes)fail('BNS_GROUP_RESOURCE_LIMIT');
   const op=await validateOperation(candidate);
+  if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
   if(op.datasetId!==core.datasetId)fail('BNS_DATASET_MISMATCH');
   if(currentSourceWorking&&!['sourceBootstrapCommit','sourceBootstrapMember','inputWorkingCommit','inputWorkingMember'].includes(op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   if(op.kind!=='put'||!members.has(op.type)&&!singles.has(op.type)&&!Object.hasOwn(families,op.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
@@ -79,6 +80,7 @@ async function prepareGroupCheckpointPlanInternal(core,input,currentSourceWorkin
  // Exact ordering commitment is independent of received object/page order.
  const graph=ordered.map(group=>({id:group.id,type:group.type,revisions:group.operations.map(op=>op.revisionId),dependencies:group.dependencies}));
  const plan=freeze({heads:[...heads].map(([key,revisions])=>({type:JSON.parse(key)[0],entityId:JSON.parse(key)[1],revisions,purged:false,fence:null})).sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId]))),groups:ordered,operationCount:operations.length,operationBytes:size,digest:await digest(graph)});
+ if(currentSourceWorking)requireOriginalSourceWorkingCore(core);
  if(core.datasetId!==binding.datasetId||core.repository!==binding.repository||core.prefix!==binding.prefix||core.fixedNamespace!==binding.fixedNamespace)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  originalPlans.set(plan,binding);return plan;
 }

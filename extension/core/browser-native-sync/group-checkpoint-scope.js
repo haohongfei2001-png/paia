@@ -30,7 +30,7 @@ export function requireOriginalCurrentGroupScope(core,scope,plan){
 // no native read authority; the fixed native owner must supply its private cut.
 export function requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan){
  const p=originalScopes.get(scope);requireOriginalCurrentSourceWorkingGroupPlan(core,plan);
- if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||hasHumanScope(scope)||plan.operationCount>128||plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length!==1||plan.groups.filter(g=>g.type==='inputWorkingCommit').length>2||plan.groups.some(g=>!['sourceBootstrapCommit','inputWorkingCommit'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(arguments.length!==3||!p||p.phase!=='ready'||scopeDeref.call(p.plan)!==plan||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||hasHumanScope(scope)||plan.operationCount>128||plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length!==1||plan.groups.filter(g=>g.type==='inputWorkingCommit').length<1||plan.groups.filter(g=>g.type==='inputWorkingCommit').length>2||plan.groups.some(g=>!['sourceBootstrapCommit','inputWorkingCommit'].includes(g.type)))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  for(const name of ['records','blocks','inputStates','documents','libraryDocuments'])if(scope.expected[name].length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  if(scope.expected.revisions.length>96)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
 }

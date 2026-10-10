@@ -33,3 +33,12 @@ test('physical checker requires original ready Plan and Scope instead of an othe
  const old=await prepareGroupCheckpointPlan(x.core,x.operations),oldScope=await prepareGroupScope(old);assert.throws(()=>assertSourceWorkingDerivedRows(x.core,oldScope,old,x.rows),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'},'public family-preparation path cannot acquire fixed current Source authority');
  }finally{await x.store.repository.close();}
 });
+test('selected Source profile rejects an async Core getter at Scope entry and rejects bootstrap-only without changing default compilation',async()=>{
+ const x=await producer();try{
+  const original=Object.getOwnPropertyDescriptor(x.core,'datasetId');let reads=0;Object.defineProperty(x.core,'datasetId',{configurable:true,get(){reads++;return original.value;}});
+  try{assert.throws(()=>assertSourceWorkingDerivedRows(x.core,x.scope,x.plan,x.rows),{code:'BNS_SOURCE_WORKING_OWNER_REQUIRED'});assert.equal(reads,0);}finally{Object.defineProperty(x.core,'datasetId',original);}
+  const operations=x.plan.groups.find(group=>group.type==='sourceBootstrapCommit').operations,plan=await prepareCurrentSourceWorkingGroupCheckpointPlan(x.core,operations),scope=await prepareGroupScope(plan);
+  assert.throws(()=>requireOriginalCurrentSourceWorkingGroupScope(x.core,scope,plan),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+  const old=await prepareGroupCheckpointPlan(x.core,operations);assert.equal(old.groups.length,1);assert.equal(old.groups[0].type,'sourceBootstrapCommit');
+ }finally{await x.store.repository.close();}
+});
