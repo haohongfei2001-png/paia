@@ -1,4 +1,4 @@
-import {assertSourceWorkingCanonicalAndProtocolRows} from './source-working-canonical.js';
+import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows} from './source-working-canonical.js';
 import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {defaults} from '../workspace.js';
 import {CONSENT_VERSION} from '../constants.js';
@@ -14,6 +14,14 @@ const iso=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
 // frames. This pure complete inventory check creates no read or export grant.
 export function assertSourceWorkingDefaultMeta(core,scope,plan,rows,control,databaseId){
  if(arguments.length!==6)refuse();assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows);
+ qualifyLocal(core,scope,plan,rows,control,databaseId,plan.groups.filter(group=>group.type==='inputWorkingCommit').length+1);
+}
+export async function assertSourceWorkingRestoredDefaultMeta(core,scope,plan,rows,control,databaseId){
+ if(arguments.length!==6)refuse();
+ const localWorking=await assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows);
+ qualifyLocal(core,scope,plan,rows,control,databaseId,localWorking+1);
+}
+function qualifyLocal(core,scope,plan,rows,control,databaseId,aiSequence){
  assertSourceWorkingSpecialScalars('meta',control);
  if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||!Array.isArray(control.classificationRules)||control.classificationRules.length||!Array.isArray(control.filterRules)||control.filterRules.length)refuse();
  const settings=control.settings;if(!exact(settings,['consentVersion','consentAt','enabled','epoch'])||settings.consentVersion!==CONSENT_VERSION||settings.enabled!==true||!iso(settings.consentAt)||!count(settings.epoch)||settings.epoch<1||!opaque(databaseId))refuse();
@@ -29,9 +37,9 @@ export function assertSourceWorkingDefaultMeta(core,scope,plan,rows,control,data
  const library=read('thought-library');if(!count(library.fromVersion)||library.fromVersion>5||library.fromVersion!==ddl.fromVersion||!iso(library.startedAt)||!iso(library.completedAt))refuse();take('thought-library',{schemaVersion:1,migrationVersion:1,fromVersion:library.fromVersion,targetVersion:5,phase:'active',cursor:null,mapped:0,quarantined:0,sealed:0,startedAt:library.startedAt,libraryActivation:'ready',verified:true,completedAt:library.completedAt});
  const compat=read('library-documents-compat-v2');if(!iso(compat.completedAt))refuse();take('library-documents-compat-v2',{cursor:null,complete:true,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0,completedAt:compat.completedAt});
  const secret=read('thought-suppression-key');if(!Array.isArray(secret.value)||secret.value.length!==32||secret.value.some(value=>!Number.isInteger(value)||value<0||value>255))refuse();take('thought-suppression-key',{value:secret.value});
- take('thought-epoch',{value:working});take('input-delta-sequence',{value:working+1});take('revision-sequence',{value:rows.revisions.length});take(DELTA_COUNTER,{value:working+1});
+ take('thought-epoch',{value:working});take('input-delta-sequence',{value:working+1});take('revision-sequence',{value:rows.revisions.length});take(DELTA_COUNTER,{value:aiSequence});
  const generation=read('backup-data-generation');if(!count(generation.value)||generation.value<working+1)refuse();take('backup-data-generation',{value:generation.value});
- const descriptor=deltaDescription('inputStates',rows.inputStates[0]);if(!descriptor)refuse();const signature=deltaSignature(descriptor),sequence=working+1;
+ const descriptor=deltaDescription('inputStates',rows.inputStates[0]);if(!descriptor)refuse();const signature=deltaSignature(descriptor),sequence=aiSequence;
  take(KNOWN_PREFIX+descriptor.key,{version:1,descriptor,signature,sequence});take(DIRTY_PREFIX+descriptor.key,{version:1,descriptor,signature,sequence,requirements:[],pendingFacets:['topic','context']});
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.

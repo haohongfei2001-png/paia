@@ -6,6 +6,7 @@ import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {acceptSequence} from './core.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
+import {assertCompletedGroupedRestoreControl} from './completed-group-restore-control.js';
 import {equal,exact,hash,count,opaque,fail} from './value.js';
 
 // Defer the body-free schema vector until invocation: this owner can join the
@@ -28,6 +29,22 @@ function sameRows(actual,expected){
 // authenticate complete indexes, and pin the complete raw cut at every boundary.
 export function assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows){
  if(arguments.length!==4)unrepresented();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
+ qualifyRows(core,scope,plan,rows,{namespace:'initial',epoch:null,restored:false});
+}
+// Pure qualification of the original frozen native cut. Completion authentication
+// does not read storage or grant a projection; the fixed native caller prepays
+// every immutable-control frame before this asynchronous identity check.
+export async function assertSourceWorkingRestoredCanonicalAndProtocolRows(core,scope,plan,rows){
+ if(arguments.length!==4)unrepresented();requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);measureSourceWorkingPhysicalTree(rows);if(core.fixedNamespace!==null)unrepresented();
+ const active=rows.meta.find(row=>row.id===core.prefix+'active'),completed=rows.meta.filter(row=>row.id.startsWith(core.prefix+'generation:')&&row.id.endsWith(':restore:'));
+ const epochRow=rows.meta.find(row=>row.id==='recovery-restore-epoch');if(epochRow||!active||completed.length!==1)unrepresented();
+ const namespace=active.namespace,epoch=null;
+ await assertCompletedGroupedRestoreControl(completed[0],{prefix:core.prefix,datasetId:core.datasetId,active,namespace,epoch});
+ qualifyRows(core,scope,plan,rows,{namespace,epoch,restored:true,activeId:active.id,completedId:completed[0].id});
+ return plan.groups.filter(group=>group.type==='inputWorkingCommit'&&group.prepared.descriptor.deviceId===core.deviceId).length;
+}
+function qualifyRows(core,scope,plan,rows,{namespace,epoch,restored,activeId,completedId}){
+ requireOriginalCurrentSourceWorkingGroupScope(core,scope,plan);
  measureSourceWorkingPhysicalTree(rows);
  const stores=sourceWorkingCurrentStores();
  if(Object.keys(rows).length!==37||stores.some(name=>!Object.hasOwn(rows,name)||!Array.isArray(rows[name])))unrepresented();
@@ -42,20 +59,20 @@ export function assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows
  sameRows(rows.blocks,expected.blocks.map(value=>({id:value.id,value})));
  sameRows(rows.libraryDocuments,expected.libraryDocuments.map(value=>({id:value.id,value})));
  sameRows(rows.times,expected.times);sameRows(rows.filterIntents,expected.filterIntents);
- const meta=new Map(rows.meta.map(row=>[row.id,row]));if(meta.size!==rows.meta.length||core.fixedNamespace!==null||meta.has(core.prefix+'active')||meta.has('recovery-restore-epoch'))unrepresented();
- const key=(kind,...parts)=>protocolPhysicalId(core.prefix,'initial',kind,parts),used=new Set();
+ const meta=new Map(rows.meta.map(row=>[row.id,row]));if(meta.size!==rows.meta.length||core.fixedNamespace!==null||!restored&&(meta.has(core.prefix+'active')||meta.has('recovery-restore-epoch')))unrepresented();
+ const key=(kind,...parts)=>protocolPhysicalId(core.prefix,namespace,kind,parts),used=new Set(restored?[activeId,completedId]:[]);
  const take=(id,value)=>{const row=meta.get(id);if(!row||!equal(row,{...value,id}))unproven();used.add(id);};
  const operations=plan.groups.flatMap(group=>group.operations),frontiers=new Map();
- if(operations.some(op=>op.deviceId!==core.deviceId))unrepresented();
+ if(!restored&&operations.some(op=>op.deviceId!==core.deviceId))unrepresented();
  for(const op of operations){
   take(key('revision',op.revisionId),{operation:op,redacted:false});take(key('receipt',op.operationId),{digest:op.revisionId,deviceId:op.deviceId,sequence:op.sequence});
   take(key('sequence',op.deviceId,String(op.sequence).padStart(16,'0')),{operationId:op.operationId,digest:op.revisionId});take(key('entityRevision',op.type,op.entityId,op.revisionId),{revisionId:op.revisionId});
   frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
-  const out=key('outbox',op.operationId);if(meta.has(out))take(out,{operationId:op.operationId,revisionId:op.revisionId,state:'queued'});
+  const out=key('outbox',op.operationId);if(meta.has(out)){if(restored&&op.deviceId!==core.deviceId)unrepresented();take(out,{operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
  }
  for(const head of plan.heads)take(key('head',head.type,head.entityId),head);
  for(const [deviceId,value]of frontiers)take(key('frontier',deviceId),{...value,deviceId});
- take(key('device',core.deviceId),{sequence:Math.max(...operations.map(op=>op.sequence))});take(key('generation'),{value:operations.length});take(key('ownerRecoveryEpoch'),{version:1,epoch:null});
+ const local=operations.filter(op=>op.deviceId===core.deviceId);if(local.length)take(key('device',core.deviceId),{sequence:Math.max(...local.map(op=>op.sequence))});take(key('generation'),{value:operations.length});take(key('ownerRecoveryEpoch'),{version:1,epoch});
  const inputHead=plan.heads.find(head=>head.type==='inputWorkingMember'&&head.entityId==='input:'+input.id);if(!inputHead)unproven();
  const deltaSequence=working.length+1;take(key('workingOwner',input.id),{revisionId:inputHead.revisions[0],deltaSequence});
  sameRows(rows.inputStates,expected.inputStates.map(row=>({...row,deltaSequence})));
@@ -69,8 +86,9 @@ export function assertSourceWorkingCanonicalAndProtocolRows(core,scope,plan,rows
  for(const row of rows.meta)if(row.id.startsWith('bns:')&&!used.has(row.id))unrepresented();
  // UI retry digests authenticate local retry evidence, not portable revision
  // digests; full request bytes are not reconstructed from a typed descriptor.
- if(rows.operationReceipts.length!==working.length||new Set(rows.operationReceipts.map(row=>row.id)).size!==working.length)unrepresented();
- for(const row of rows.operationReceipts)if(!exact(row,['id','namespace','schemaVersion','ownerId','createdAt','digest','result'])||!working.some(group=>group.prepared.descriptor.entityId===row.id)||row.namespace!=='working-input'||row.schemaVersion!==1||row.ownerId!==document.id||!iso(row.createdAt)||!hash(row.digest)||!equal(row.result,{ok:true}))unrepresented();
+ const localWorking=restored?working.filter(group=>group.prepared.descriptor.deviceId===core.deviceId):working;
+ if(rows.operationReceipts.length!==localWorking.length||new Set(rows.operationReceipts.map(row=>row.id)).size!==localWorking.length)unrepresented();
+ for(const row of rows.operationReceipts)if(!exact(row,['id','namespace','schemaVersion','ownerId','createdAt','digest','result'])||!localWorking.some(group=>group.prepared.descriptor.entityId===row.id)||row.namespace!=='working-input'||row.schemaVersion!==1||row.ownerId!==document.id||!iso(row.createdAt)||!hash(row.digest)||!equal(row.result,{ok:true}))unrepresented();
  // Local pending derivatives remain local. Their exact immutable current cut
  // is pinned by the native owner; no history timestamp is invented or uploaded.
  if(rows.invalidations.length!==working.length||new Set(rows.invalidations.map(row=>row.id)).size!==working.length)unrepresented();
