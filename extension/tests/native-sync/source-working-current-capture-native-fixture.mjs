@@ -44,7 +44,7 @@ export async function runSourceWorkingCurrentCaptureNativeCases(){
   await run('third genuine original Working group refuses selected current-native profile before Scope creation',async()=>{
    await store.repository.transaction(true,t=>t.delete('meta','SYNTHETIC-unknown-source-meta'));
    const row=await store.input(input);await store.editDocument({operationId:crypto.randomUUID(),documentId:row.documentId,blocks:[{id:input,expectedRevision:row.revision,libraryText:'SYNTHETIC exact Working 中文🙂',note:'SYNTHETIC third edit',excluded:false}]});const before=await all();let error;
-   try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);}catch(cause){error=cause;}check(error?.code==='BNS_HUMAN_PROJECTION_REQUIRED','original two-receipt native count bound refuses third genuine Working commit before Scope');check(!cap,'no cap for third group');check(equalSourceWorkingPhysicalTree(await all(),before),'all37 physical values unchanged on third-group refusal');pool();
+   try{cap=await captureSourceWorkingCurrentGroupProjection(store,core);}catch(cause){error=cause;}check(error?.code==='BNS_HUMAN_GRAPH_LIMIT','original two-receipt native count bound refuses third genuine Working commit before Scope');check(!cap,'no cap for third group');check(equalSourceWorkingPhysicalTree(await all(),before),'all37 physical values unchanged on third-group refusal');pool();
   });
   return {status:'SYNTHETIC_SOURCE_WORKING_NATIVE_CAPTURE_ONLY_NOT_EXPORT_OR_RECOVERY',cases,assertions,nativeCapture:true,sourceGroups:1,workingGroups:2,humanJournalAbsent:true,export:false,restore:false,workerRestart:false,provider:false,fullCanonicalReady:false};
  }finally{if(cap)releaseHumanCurrentUnindexedProjection(cap);store.repository.db?.close();}
