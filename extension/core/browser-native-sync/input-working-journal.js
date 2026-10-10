@@ -10,8 +10,9 @@ const absent=x=>x??null;
 const sameSnapshot=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Default publication stays local-only. Optional logical commits have an explicit
 // receiver module; neither path registers a production remote materializer.
+const originalInputWorkingOwners=new WeakMap();
 export class InputWorkingSyncJournal{
- constructor(core,{filterJournal,logicalCommits=false}={}){if(!(filterJournal instanceof FilterIntentSyncJournal)||filterJournal.core!==core)fail('BNS_WORKING_BINDING_REQUIRED');if(typeof logicalCommits!=='boolean')fail('BNS_WORKING_BINDING_REQUIRED');this.logicalCommits=logicalCommits;this.core=core;this.filter=filterJournal;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.transactions=new WeakMap();}
+ constructor(core,{filterJournal,logicalCommits=false}={}){if(!(filterJournal instanceof FilterIntentSyncJournal)||filterJournal.core!==core)fail('BNS_WORKING_BINDING_REQUIRED');if(typeof logicalCommits!=='boolean')fail('BNS_WORKING_BINDING_REQUIRED');this.logicalCommits=logicalCommits;this.core=core;this.filter=filterJournal;this.fence=new JournalRestoreFence(core);this.prepared=new WeakMap();this.transactions=new WeakMap();originalInputWorkingOwners.set(this,{core:this.core,filter:this.filter,fence:this.fence,prepared:this.prepared,transactions:this.transactions,logicalCommits:this.logicalCommits});}
  async snapshot(t,id,documentId,at){
   const b=(await t.get('blocks',id))?.value,document=await t.get('documents',documentId),workingDocument=await t.get('libraryDocuments',documentId),state=await t.get('inputStates',id),index=await t.get('blockIndex',id),filter=await t.get('filterInputs',id);
   if(!b||!document||!workingDocument||!state||!index||b.documentId!==documentId||state.documentId!==documentId||index.documentId!==documentId||b.excluded||b.branchStatus||state.removalState!=='active'||state.sourcePurged||!count(state.contentRevision)||!Array.isArray(b.provenance)||!b.provenance.length||b.provenance.length>16||b.provenanceSignature!==JSON.stringify(b.provenance)||!equal(state.sourceRecordIds,[...b.provenance.map(p=>p.sourceRecordId)]))fail('BNS_WORKING_SCOPE_UNAVAILABLE');
@@ -77,4 +78,14 @@ export class InputWorkingSyncJournal{
   if(this.logicalCommits)for(const operation of prepared.operations){if(operation.type!=='inputWorkingMember')continue;const value=operation.value.entity;if(operation.value.entityType==='input')await this.core.put(t,'workingOwner',[value.id],{revisionId:operation.revisionId,deltaSequence:p.inputState.deltaSequence});if(operation.value.entityType==='revision')await this.core.put(t,'workingHistory',[value.id],{revisionId:operation.revisionId,sequence:value.sequence});}return result;
  }
  release(prepared){this.filter.release(prepared);this.prepared.delete(prepared);}
+}
+
+// Constructor-private identity only for the selected native Source/Working
+// profile. No registration, reader, transport or write authority is exported.
+const originalInputWorkingOwnersDescriptor=Object.getOwnPropertyDescriptor, originalInputWorkingOwnersOwn=Object.hasOwn, originalInputWorkingOwnersPrototype=Object.getPrototypeOf;
+const originalInputWorkingOwnersMethods=new Map(Object.getOwnPropertyNames(InputWorkingSyncJournal.prototype).filter(name=>name!=='constructor').map(name=>[name,originalInputWorkingOwnersDescriptor(InputWorkingSyncJournal.prototype,name)?.value]));
+export function assertOriginalInputWorkingOwner(journal,core){
+ const binding=originalInputWorkingOwners.get(journal);if(arguments.length!==2||!binding||binding.core!==core||originalInputWorkingOwnersPrototype(journal)!==InputWorkingSyncJournal.prototype)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');
+ for(const [name,value]of Object.entries(binding)){const d=originalInputWorkingOwnersDescriptor(journal,name);if(!d||!originalInputWorkingOwnersOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
+ for(const [name,value]of originalInputWorkingOwnersMethods){const own=originalInputWorkingOwnersDescriptor(journal,name),d=own||originalInputWorkingOwnersDescriptor(InputWorkingSyncJournal.prototype,name);if(!d||!originalInputWorkingOwnersOwn(d,'value')||typeof value!=='function'||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
 }

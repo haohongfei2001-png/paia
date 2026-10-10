@@ -11,6 +11,7 @@ export const CORE_LIMITS=Object.freeze({batch:128,batchBytes:4*1024*1024,parents
 const humanRetentionTransactions=new WeakMap();
 const humanRetentionPreparations=new WeakMap();
 const humanProjectionReads=new WeakMap();
+const originalSourceWorkingCoreBindings=new WeakMap();
 export function requireHumanProjectionNativeDrainPhase(core,t,nonce){const r=humanProjectionReads.get(nonce);if(!r||r.core!==core||r.wrapper!==t||r.phase!=='drained'||!r.dispatchEnded)fail('BNS_HUMAN_PROJECTION_REQUIRED');}
 
 export function requireHumanProjectionReadPhase(core,t,nonce){
@@ -122,7 +123,7 @@ export class BrowserNativeSyncCore {
   this.conflictOwners=Object.freeze({...conflictOwners});
   this.repository=repository;this.#retentionRepositoryTransaction=typeof repository?.transaction==='function'?repository.transaction.bind(repository):null;this.datasetId=datasetId;this.deviceId=deviceId;
   if(namespace!==null&&!opaque(namespace))fail('BNS_NAMESPACE_INVALID');
-  this.prefix=`bns:v1:${datasetId}:`;this.fixedNamespace=namespace;this.boundTransactions=new WeakMap();this.materialize=materialize;this.checkpoint=checkpoint;
+  this.prefix=`bns:v1:${datasetId}:`;this.fixedNamespace=namespace;this.boundTransactions=new WeakMap();this.materialize=materialize;this.checkpoint=checkpoint;originalSourceWorkingCoreBindings.set(this,{repository,datasetId,deviceId,prefix:this.prefix,fixedNamespace:namespace});
  }
  async transaction(write,fn,stores){let semanticError;try{return await this.repository.transaction(write,async t=>{try{return await fn(t);}catch(error){if(error instanceof SyncError)semanticError=error;throw error;}},stores);}catch(error){throw semanticError||error;}}
  async bind(t){
@@ -522,3 +523,16 @@ function requireOriginalHumanRetentionCoreDataMethods(core){
 // Fixed original entry, never an instance-supplied transaction/reader callback.
 const originalProjectionRead=BrowserNativeSyncCore.prototype.captureHumanCurrentProjectionNative;
 export function openHumanProjectionNativeRead(core,nonce){return originalProjectionRead.call(core,nonce);}
+
+// Fixed original pure preparation for the selected native Source/Working mode.
+// Constructor identity is not a read, write, native-cut or transport grant.
+const sourceWorkingCoreDescriptor=Object.getOwnPropertyDescriptor,sourceWorkingCoreOwn=Object.hasOwn,sourceWorkingCorePrototype=Object.getPrototypeOf;
+const sourceWorkingCoreMethods=new Map([['sourceBootstrapCommit',sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareSourceBootstrapReceive').value],['inputWorkingCommit',sourceWorkingCoreDescriptor(BrowserNativeSyncCore.prototype,'prepareWorkingReceive').value]]);
+export function requireOriginalSourceWorkingCore(core){
+ const binding=originalSourceWorkingCoreBindings.get(core);if(arguments.length!==1||!binding||sourceWorkingCorePrototype(core)!==BrowserNativeSyncCore.prototype)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');
+ for(const [name,value]of Object.entries(binding)){const d=sourceWorkingCoreDescriptor(core,name);if(!d||!sourceWorkingCoreOwn(d,'value')||d.value!==value)fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');}
+}
+export async function prepareOriginalSourceWorkingReceive(core,type,input){
+ if(arguments.length!==3||!sourceWorkingCoreMethods.has(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
+ const value=await sourceWorkingCoreMethods.get(type).call(core,input);requireOriginalSourceWorkingCore(core);return value;
+}
