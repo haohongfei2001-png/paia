@@ -1,3 +1,13 @@
+# Latest-plan execution selected, including Narrow Input Board v4 — 2026-10-11
+
+The owner explicitly authorizes the latest adopted seven-lane plans and NIB-V4-1.0 runtime development within the Prompt lane. [Current authorization](AUTHORITY.md#latest-runtime-authorization--2026-10-11) supersedes the original NIB documentation-only restriction. Existing scopes and accepted foundations remain active; IAH-1.1 remains the minimal Archive design. Plan adoption, code, tests, integration and installed/live acceptance remain distinct.
+
+Current assignments: Root retains shared data, Settings, worker/gateway, Archive/navigation, CI and programme documents, and continues the coherent SYNC-01 B repair/acceptance in PR #254 (head b7d1625f, base main 959d3baf). Its first formal Full/Prompt run contains failures, not acceptance. An isolated Prompt surface writer starts NIB S0 against main 959d3baf, owning only original core/prompt-surface-layout.js, content/prompt-surface.js, ui/prompt-surface.{css,js,html} and related S0 tests. Changes at Root-owned boundaries must be coordinated through Root. No overlapping patches or resets of the ongoing mixed recovery work.
+
+NIB follows [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). First deliverable: the approved narrow, single-line, content-height surface with complete existing manual/Family, draft/IME, verified insertion and lifecycle compatibility. S1/S2 consume the existing Archive query and reuse owners; S3 depends on qualified AI admission and separately authorized real services; S4 preserves every existing entry/control until full replacement acceptance. Pending design choices remain explicit, not a blanket block on independent development. No NIB code/test/main/installed completion is claimed by this assignment.
+
+## Preserved earlier execution and evidence
+
 # 0.43.16 owning Topic read-recovery repair — candidate verified locally
 
 Approved PR #250 remains merged at `ef08a51a`; the revised Sync convergence plan is the official execution basis. Complete Mixed SYNC-01 batch A code normally merged via PR #252 at `bfb084a107874d772303ed58f2a15227a716559b`. Candidate Full21+Prompt5 passed, but actual-main Full `38074216098` failed original Browser7 with an unhandled `TOPIC_READING_CHANGED`; actual-main native52 and Prompt5 retain their narrower passes. The0.43.15 ZIP is held, and qualified0.43.14 remains separately bound to `fc3cbd35`.
