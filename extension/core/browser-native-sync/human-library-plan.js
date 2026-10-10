@@ -1271,7 +1271,7 @@ function projectionQualify(r,mixed=false){
  for(const entry of rows.thoughts){const view=raw.receiptOrder.find(item=>item.ownerId===entry.id);if(!view)projectionRequired();projectionNativeOrder(r,'operationReceipts',view,['thought-library',entry.id],raw);}
  if(metadata.size||migration.size)fail('BNS_HUMAN_PROJECTION_UNPROVEN');
  migration.clear();metadata.clear();
- if(mixed){r.mixedQueryMetaIds=raw.prefixes['thought-read-index:'].map(row=>row.id);r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
+ if(mixed){r.semantic=r.mixedSearchScratch;projectionReserve(r,r.semantic);r.mixedQueryMetaIds=raw.prefixes['thought-read-index:'].map(row=>row.id);r.mixedSearchQueue=queue;r.mixedSearchProof=prepareOriginalMixedNativeSearch(r.nonce,r.store,r.core,r.group.scope,r.group.plan,r.raw,queue);r.mixedSearchQueue=null;}
 }
 // Derived reference views retain the original raw/indices. This is neither a
 // second native snapshot nor an alternative repository/transaction facade.
@@ -1472,15 +1472,21 @@ function mixedCurrentSearchScratch(r){
    tokenPeak=Math.max(tokenPeak,units*1024+4096);
   }
  }
- const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0;
+ const actual=projectionRowMeasure(r,r.raw.rows.librarySearchTerms),query=projectionRowMeasure(r,r.raw.rows.libraryMigrationItems);let metaPeak=0,rebuildPeak=0;
  // Price only the actual canonical operands consumed by this Search phase.
  // Complete restored-control metadata remains owned and is independently
  // priced by the later complete body/metadata consumers.
  // Rebuild/root/topic metadata is compared BEFORE the later body consumer.
  // Price actual corrupt operands here too; its small expected shape cannot
  // prepay a large actual canonical/JSON comparison tree on this phase.
- for(const row of r.raw.rows.meta)if(row.id==='library-search-rebuild'||row.id.startsWith('thought-read-index:'))metaPeak=Math.max(metaPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
- return expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*metaPeak+4096*128+192*1024;
+ for(const row of r.raw.rows.meta)if(row.id==='library-search-rebuild'||row.id.startsWith('thought-read-index:')){
+  const charge=projectionCanonicalCharge(projectionRowMeasure(r,row));metaPeak=Math.max(metaPeak,charge);if(row.id==='library-search-rebuild')rebuildPeak=charge;
+ }
+ const frame=4096*128+192*1024;
+ // The original query descriptors/comparisons finish and their Maps clear
+ // before the original Search tokenizer/posting constructors run. Keep every
+ // actual R/Plan/Scope/private tree owned across both sequential phases.
+ return {query:3*projectionTreeCharge(query)+4*metaPeak+frame,search:expected+tokenPeak+2*projectionTreeCharge(actual)+2*projectionCanonicalCharge(actual)+3*projectionTreeCharge(query)+4*rebuildPeak+frame};
 }
 function mixedCurrentSemanticScratch(r){
  // Meter before original descriptor constructors. Actual IDs/source lineage
@@ -1577,7 +1583,7 @@ async function projectionCompileInitialMixedScope(r){
  // trees and a second copy of the already unwound construction scratch.
  r.owned+=projectionTreeCharge(projectionRowMeasure(r,scope))+projectionTreeCharge(hidden);r.group={...r.group,scope};
  projectionReserve(r);projectionFence(r);r.phase='mixed-canonical-qualifying';
- r.semantic=mixedCurrentSearchScratch(r);projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
+ const searchScratch=mixedCurrentSearchScratch(r);r.semantic=searchScratch.query;r.mixedSearchScratch=searchScratch.search;projectionReserve(r,r.semantic);projectionQualify(r,true);projectionCurrent(r);
  const searchCounts=originalMixedNativeSearchCounts(r.mixedSearchProof);
  // Only new owner-key Map/Set cells survive search construction. Their rows
  // borrow the original R and are already owned; no private source is refunded.
