@@ -1414,7 +1414,7 @@ export async function captureMixedCurrentGroupProjection(store,core){
 // Meter before the new owner creates vectors, validator clones or canonical
 // operands. Full Scope/Plan/raw retained trees and old Human/row peaks remain.
 // No Prompt scratch credits, larger pool or retained refund fund this phase.
-function currentContextSnapshotScratch(scope,plan,raw){
+function currentContextSnapshotScratch(scope,plan,raw,mixed=false){
  const kinds=['contextItem','contextRulesItem','contextNowItem','contextDesired'];
  let selected=false,transitionPeak=0;
  for(const group of plan.groups)if(kinds.includes(group.type)){
@@ -1432,9 +1432,13 @@ function currentContextSnapshotScratch(scope,plan,raw){
  if(row){const m=projectionMeasure(row,'native');physical=4*projectionTreeCharge(m)+2*projectionCanonicalCharge(m)+m.B+16*m.E;}
  // Independently pay expected items/desired values and complete historical
  // operation operands even when actual physical metadata is small or missing.
+ // The mixed consumer borrows the already owned/validated full Plan; its
+ // manual owner constructs only operation-reference vectors and compares each
+ // transition/value above, never a whole-Plan canonical temporary. Keep the
+ // older Source-only charge unchanged.
  // 16KiB bounds three128 reference vectors, one fixed manual key <=512 chars,
  // and bounded descriptor/validator wrappers; full item arrays are above.
- return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+projectionCanonicalCharge(projectionMeasure(plan,'native'))+16*1024;
+ return physical+transitionPeak+projectionCanonicalCharge(projectionMeasure(scope.expected.context,'native'))+projectionCanonicalCharge(projectionMeasure(scope.expected.desired,'native'))+(mixed?0:projectionCanonicalCharge(projectionMeasure(plan,'native')))+16*1024;
 }
 function completedGroupControlScratch(core,raw){
  // Full control source trees are already retained. Independently prepay each
@@ -1621,9 +1625,10 @@ async function projectionCompileInitialMixedScope(r){
  // proof's whole-row comparison above. Protocol metadata marks precisely that
  // authenticated ID used and never canonicalizes it a second time. Retain its
  // complete raw/private trees and the prior body peak; unknown rows still pay.
+ requireOriginalMixedNativeBodiesConsumed(r.nonce,r.store,r.core,scope,plan,r.raw,r.controlValues);
  const completedId=restored?currentGroupOwner.originalMixedRestoredMetadataReplay(r.core,scope,plan).completedId:null;let metadataPeak=0;
  for(const row of r.raw.rows.meta)if(row.id!==completedId)metadataPeak=Math.max(metadataPeak,projectionCanonicalCharge(projectionRowMeasure(r,row)));
- const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw))+4*metadataPeak+4096*256+256*1024;
+ const metadataScratch=Math.max(mixedCurrentSemanticScratch(r),currentContextSnapshotScratch(scope,plan,r.raw,true))+4*metadataPeak+4096*256+256*1024;
  projectionReserve(r,metadataScratch);(restored?assertRestoredMixedDefaultMeta:assertInitialMixedDefaultMeta)(r.core,r.store,scope,plan,r.raw,r.controlValues,r.binding.databaseId,r.nonce);projectionCurrent(r);projectionFence(r);projectionReserve(r);r.phase='mixed-scope-compiled';
  return Object.freeze({version:1,state:restored?'RESTORED_NATIVE_SCOPE_COMPILATION_ONLY':'INITIAL_NATIVE_SCOPE_COMPILATION_ONLY',operations:plan.operationCount,groups:plan.groups.length,stores:37,indices:110,nativeDrained:true,scopeCompiled:true,canonicalBodiesQualified:true,ordinarySearchQualified:true,searchCompleted:searchCounts.owners===searchCounts.completed&&equal(r.raw.rows.meta.find(row=>row.id==='library-search-rebuild')??null,{id:'library-search-rebuild',phase:3,cursor:null,complete:true}),completeInitialMetadataQualified:!restored,completeRestoredMetadataQualified:restored,canonicalQualified:false,exportAdmitted:false,retainedCapability:false,fullTariffsQualified:false});
 }
