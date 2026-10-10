@@ -1,4 +1,5 @@
 import {ViewSessions} from './view-session.js';
+import {readArchiveProjectSearch,sameArchiveProjectSearch} from './archive-project-search.js';
 import {validArchiveOrigin} from './route-history.js';
 import {ContextCardsPage} from './context-cards.js';
 import './archive-icons.js';
@@ -62,9 +63,9 @@ const memory=new MemoryPanel({contextDisabled:true,onHome:()=>navigate('thoughts
 let shellRouteReady=false,navigationInFlight=0;
 const reader=new ReaderExperience({read:()=>({view,documentId,editor,state}),notify,menu:(...args)=>openMenu(...args),reload:()=>refresh()});
 const inputRecovery=new InputRecoveryPresentation({host:document.querySelector('.workspace'),compare:$('reload-document'),read:()=>({view,documentId,editor,state})});
-const archiveNavigator=new ArchiveNavigator({onOpenWindow:id=>navigate(view,id,null,{archiveEntry:'tree'}),onSourceDetail:(subject,trigger)=>showNavigatorSourceDetail(subject,trigger),onProjectSearch:async(projectRef,title)=>{if(view!=='library'||documentId){const opened=await navigate('library');if(!opened)return;}searchProject={ref:projectRef,title};archiveNavigator.sourceScope=projectRef.providerKey;archiveNavigator.sourceSelect.value=projectRef.providerKey;archiveNavigator.lastPaintSignature=null;archiveNavigator.paint();pageCursor=null;pageHistory=[];updateSearchProjectScope();scopeSearch.input.focus();void refresh();},onStatus:text=>status(text),onScopeChange:()=>{searchProject=null;updateSearchProjectScope();pageCursor=null;pageHistory=[];void refresh();},onRouteChange:()=>{if(shellRouteReady&&!navigationInFlight&&view===archiveNavigator.view&&documentId===archiveNavigator.selectedDocumentId)routes.commit({replace:true});}});
+const archiveNavigator=new ArchiveNavigator({onOpenWindow:id=>navigate(view,id,null,{archiveEntry:'tree'}),onSourceDetail:(subject,trigger)=>showNavigatorSourceDetail(subject,trigger),onStatus:text=>status(text),onScopeChange:()=>{searchProject=null;updateSearchProjectScope();pageCursor=null;pageHistory=[];void refresh();},onRouteChange:()=>{if(shellRouteReady&&!navigationInFlight&&view===archiveNavigator.view&&documentId===archiveNavigator.selectedDocumentId)routes.commit({replace:true});}});
 function updateSearchProjectScope(){const chip=$('search-project-scope');chip.hidden=!searchProject||view!=='library';if(searchProject)chip.textContent='Project：'+searchProject.title+' · 清除范围';}
-$('search-project-scope').addEventListener('click',()=>{searchProject=null;updateSearchProjectScope();pageCursor=null;pageHistory=[];void refresh();});
+$('search-project-scope').addEventListener('click',async()=>{const opened=await navigate('library',null,null,{searchQuery:view==='library'?query:queries.get('library')||'',resetArchiveSearch:true,applyNavigator:()=>{searchProject=null;archiveNavigator.sourceScope=null;archiveNavigator.sourceSelect.value='';archiveNavigator.lastPaintSignature=null;updateSearchProjectScope();}});if(opened)scopeSearch.input.focus({preventScroll:true});});
 const topicActions=new TopicActions({flush:async()=>{if(view==='thoughts')return thoughts.flushEditors();editor?.collect();return editor?editor.flush():true;},notify,onThought:id=>thoughts.openStandalone(id),onTopic:id=>thoughts.open(id)});thoughts.actions=topicActions;thoughts.desktopAppearance=true;
 const writingHost=element('section');writingHost.id='thought-writing-workspace';writingHost.hidden=true;document.querySelector('.workspace').append(writingHost);topicActions.workspaceHost=writingHost;let writingRefreshPending=false,writingReturn=null;
 topicActions.onWorkspaceChange=()=>{
@@ -238,6 +239,7 @@ const startupNavigation=new Promise(resolve=>{releaseStartupNavigation=resolve;}
 async function navigate(next,id=null,contextId=null,options={}){if(!options.keepAppearancePreview&&!closeDesktopAppearancePreview())return false;let intent=null;navigationInFlight++;try{if(!options.restore)await startupNavigation;
  intent=++navigationIntent;scopeSearch.input.disabled=true;readerScopeSearch.input.disabled=true;++documentSearchIntent;clearTimeout(documentSearchTimer);documentSearchTimer=null;for(const current of documentSearchStates.values())if(current.loading){current.loading=false;current.stale=true;}clearTimeout(inputSearchTimer);const origin=view;
  let settingsOrigin=null,departureOrigin=null,departureCaptured=false;if(!await leave(false,()=>{if(intent!==navigationIntent)return;if(id&&['library','archive'].includes(next)&&(!documentId||options.archiveEntry==='tree')){departureCaptured=true;departureOrigin=captureArchiveOrigin({kind:options.archiveEntry==='tree'?'tree':contextId?'input':'document',targetId:contextId||id,readerDocumentId:id});}if(next==='settings'&&origin!=='settings')settingsOrigin=routes.snapshot();})||intent!==navigationIntent)return false;
+ if(options.resolveNavigator){const apply=await options.resolveNavigator();if(intent!==navigationIntent||typeof apply!=='function')return false;options={...options,applyNavigator:apply};}
  documentSearchStates.park();$('document-search-results').replaceChildren();$('document-search-status').textContent='';$('document-search-tools').hidden=true;readingModals.close();
  if(origin==='revisit')await revisitPage.leave({toReader:!!id||next==='thoughts'});
  else if(returnTo==='revisit'&&next!=='revisit'&&!id)await revisitPage.leave();
@@ -424,6 +426,32 @@ async function showNavigatorSourceDetail(subject,trigger){
   }
   if(detail.hasMore)history.append(element('p','muted',tc('这里只显示最近可读取的一批关系历史；完整事实仍保存在本机。')));
   container.append(history,element('p','muted',tc('这些是来源关系事实，不会重写当时原文或你的工作文字。')));
+  let originIntent=navigationIntent;const originView=view,originDocument=documentId;
+  const currentDetail=()=>isCurrent()&&originIntent===navigationIntent&&originView===view&&originDocument===documentId;
+  const read=subject=>request('PAIA_ARCHIVE_SOURCE_DETAIL',{subject});
+  const project=await readArchiveProjectSearch(read,subject,currentDetail);if(!currentDetail())return;
+  if(project){
+   const search=element('button','',readerCopy('搜索此项目档案','Search this Project archive'));search.type='button';search.dataset.archiveProjectSearch='';
+   search.addEventListener('click',async()=>{
+    if(search.disabled||!currentDetail())return;search.disabled=true;
+    const archiveQuery=view==='library'?query:queries.get('library')||'';let unconfirmed=false;
+    try{
+     const opened=await navigate('library',null,null,{searchQuery:archiveQuery,resetArchiveSearch:true,resolveNavigator:async()=>{
+      // The original navigation owner has accepted save/IME and claimed the
+      // latest intent. Recheck current membership after that await, before any
+      // scope, query, result or history mutation.
+      const acceptedIntent=navigationIntent;
+      const live=()=>isCurrent()&&navigationIntent===acceptedIntent&&originView===view&&originDocument===documentId;
+      const verified=await readArchiveProjectSearch(read,subject,live);
+      if(!live()||!sameArchiveProjectSearch(project,verified)){unconfirmed=true;return null;}
+      return ()=>{searchProject={ref:verified.ref,title:verified.title};archiveNavigator.sourceScope=verified.ref.providerKey;archiveNavigator.sourceSelect.value=verified.ref.providerKey;archiveNavigator.lastPaintSignature=null;archiveNavigator.state.select(null);updateSearchProjectScope();};
+     }});
+     if(opened)scopeSearch.input.focus({preventScroll:true});else if(unconfirmed&&isCurrent())notify(readerCopy('项目范围尚未确认，请重新查看来源关系。','Project scope is unconfirmed; review its current source relationship.'));
+    }catch{if(isCurrent())notify(readerCopy('项目范围暂时无法读取。','Project scope is temporarily unavailable.'));}
+    finally{search.disabled=false;if(isCurrent()&&!navigationInFlight&&originView===view&&originDocument===documentId)originIntent=navigationIntent;}
+   });container.append(element('p','',readerCopy('当前 Project：','Current Project: ')+project.title),search);
+  }
+
  }catch{if(!isCurrent())return;container.append(element('p','',tc('来源关系暂时无法读取；当前档案与 Reader 不受影响。')));}
  if(!$('info-dialog').open)readingModals.open($('info-dialog'),{trigger:document.activeElement});
 }
