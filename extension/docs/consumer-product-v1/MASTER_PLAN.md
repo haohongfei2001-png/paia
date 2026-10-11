@@ -1,3 +1,13 @@
+# SET2-02 Data destinations: repaired exact candidate0.43.25 — 2026-10-12
+
+Executable candidate fb8d4aec498067a702bf50afdb902a764cadef3e/tree389225314047e929df4489e844c3d90774d92ca0 preserves latest main32bc1bb44ccdd3ed682d300c0699c816924a1b2d. Original import and Source Records owners now use normal Settings destinations; original Backup controls use one guarded native detail. Actual close waits for successful same-session cancellation acknowledgement; refusal retains the selected file, staged preview and replacement confirmation for explicit retry. Busy inspection/restore remains visible. No storage/schema/worker/provider/permission change.
+
+Exact frozen owning/admission64PASS and complete affected source/release8PASS111811.900959ms (all0fail/cancel/skip), including actual cancellation RPC refusal then explicit retry, real historical/segmented recovery and actual Backup text contrast. Package15832guards/464runtime resourcesPASS. The current corpus adds one complete file (95 total) on shard4 at widths4/5/6/7/9; all470 prior assignments and frozen baseline rows remain unchanged. Predecessor b82 author40/8 passes did not cover three independently found ACK/contrast/admission defects; its REQUEST_CHANGES and all inner-loop failures remain retained. Follow implementation/settings/SET2-DATA-DESTINATIONS-04325.md. Independent limited code/component review e96abeb82b2aadd5c2d015c00d6cc81a183134126ecbe17d891041d439124904 approves fb8 and closes the three findings; exact-head light integration/merge/main readback are pending; this is not complete SET2/all48-scene or installed/current-live acceptance.
+
+SYNC-01 batch A whole mixed Canonical remains with its exclusive shared-data writer. Actual source A43/B42/C41 selected route passes cover secondB/freshC Working, full current metadata/body/110/index query/reexport, authentic saved-state counterfactuals, strongheld old Scope/app refusal and lateSDK/control zero finalACK. Whole coherent source/release, post-stale SavedHuman continuation, final immutable review and high-risk gates remain open. The former encoder8Mi failures are retained; selected successor source success is not full Sync/account/device delivery. No helper PR or expanded authority.
+
+## Preserved earlier candidate and failure records
+
 # SET2-02 Data destination presentation candidate — 2026-10-12
 
 Fresh integration base main32bc1bb44ccdd3ed682d300c0699c816924a1b2d 0.43.24 is qualified by selected Light38164516027 all8 and Prompt38164515786 all5. Full/native jobs for that ordinary change were skipped, not passed. No deployment/installation claim.
