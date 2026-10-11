@@ -1,3 +1,4 @@
+import {promoteTopicSection} from './topic-section-promotion.js';
 import {clearExactRepeats,revealExactRepeat,localizeExactRepeats} from './topic-exact-repeat-reading.js';
 import {SettingsRemovedList} from './settings-removed-list.js';
 import {mountReverseEditOptOut} from './thought-reverse-edit-optout.js';
@@ -31,6 +32,26 @@ const button=(label,run)=>{const b=element('button','',label);b.type='button';b.
 const editable=(tag,field,value,label)=>{const e=element(tag,'',value);e.contentEditable='plaintext-only';e.dataset[field[0]]=field[1];e.setAttribute('aria-label',label);return e;};
 // Menus are scoped to trusted Library UI; native details keeps Tab/Enter access.
 const actionMenu=(label,items)=>{const menu=element('details','library-actions'),trigger=element('summary'),panel=element('div','library-action-list');setIconOnly(trigger,'more',label);trigger.setAttribute('role','button');trigger.setAttribute('aria-expanded','false');menu.append(trigger,panel);for(const [text,run]of items){const b=button(text,()=>{menu.open=false;trigger.focus({preventScroll:true});return run();});panel.append(b);}menu.addEventListener('toggle',()=>{trigger.setAttribute('aria-expanded',String(menu.open));if(menu.open)for(const other of document.querySelectorAll('.library-actions[open]'))if(other!==menu)other.open=false;});menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;trigger.focus({preventScroll:true});}});menu.addEventListener('focusout',event=>{if(event.relatedTarget&&!menu.contains(event.relatedTarget))menu.open=false;});return menu;};
+// Only the open native Section menu owns this transient viewport adjustment.
+// Resizing labels must not leave a newly added action below the visible window.
+function fitSectionActionMenu(menu){
+ if(typeof ResizeObserver!=='function'||typeof window==='undefined')return;
+ const panel=menu.querySelector('.library-action-list');let live=null;
+ const restore=()=>{if(!live)return;const prior=live;live=null;prior.observer.disconnect();window.removeEventListener('resize',fit);window.removeEventListener('scroll',fit,true);for(const [key,value,priority]of prior.styles)if(value)panel.style.setProperty(key,value,priority);else panel.style.removeProperty(key);};
+ const fit=()=>{
+  if(!menu.open||!menu.isConnected){restore();return;}
+  const anchor=menu.getBoundingClientRect(),below=Math.max(0,window.innerHeight-anchor.bottom-8),above=Math.max(0,anchor.top-8);
+  const natural=panel.scrollHeight+panel.offsetHeight-panel.clientHeight,down=natural<=below||natural>above&&below>=above;
+  panel.style.maxHeight=Math.max(1,down?below:above)+'px';panel.style.overflowY='auto';
+  const height=panel.getBoundingClientRect().height;
+  panel.style.top=(down?anchor.height:-height)+'px';
+ };
+ menu.addEventListener('toggle',()=>{
+  if(!menu.open){restore();return;}if(live)return;
+  const observer=new ResizeObserver(fit);live={observer,styles:['top','max-height','overflow-y'].map(key=>[key,panel.style.getPropertyValue(key),panel.style.getPropertyPriority(key)])};
+  window.addEventListener('resize',fit);window.addEventListener('scroll',fit,{capture:true,passive:true});observer.observe(panel);observer.observe(menu);fit();
+ });
+}
 const revisionLabel=r=>r.reason==='edit'&&r.kind==='topic'&&r.fieldMask?.includes('name')?'主题重命名':r.reason==='edit'&&r.kind==='section'?'章节重命名':({edit:'用户编辑',user_edit:'用户编辑',create:'创建',ai_update:'AI 更新',refresh:'AI 更新',delete:'删除',restore:'恢复',rename:'重命名',merge:'合并',reorder:'调整顺序',place:'添加到主题',unplace:'移出主题',pin:'置顶',update:'更新'}[r.reason]||(r.actor==='ai'?'AI 整理':'用户操作'));
 const stale=e=>e.archiveChanged?tc('档案有更新 · 查看'):e.thoughtEditedAt?tc('已在思想库编辑'):e.freshness==='stale'?(e.integrity==='partial'||e.integrity==='detached'?'部分来源已移除':'来源已更新'):'';
 export class MetadataEditor {
@@ -613,14 +634,16 @@ export class TopicController {
   header.sectionActionRow={...section};
   let menu=header.querySelector('.topic-section-actions');
   if(!menu){
-   menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
+   menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down'],['提升为独立主题','promote']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
    menu.classList.add('topic-section-actions');
+   fitSectionActionMenu(menu);
    menu.querySelector('summary').addEventListener('click',event=>{if(menu.getAttribute('aria-busy')==='true'){event.preventDefault();event.stopPropagation();}});
    header.append(menu);
   }
   this.updateSectionActionControls(menu);
  }
  async sectionContextAction(section,action){
+  if(action==='promote')return promoteTopicSection(this,section);
   if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault)return;
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
   const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;

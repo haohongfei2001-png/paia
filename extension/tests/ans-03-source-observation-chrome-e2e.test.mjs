@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 
 const rpc=async(page,type,fields={})=>{
  const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
@@ -11,11 +12,21 @@ async function consent(page){
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'ANS-03 consent persists');
  const skip=page.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();
 }
+async function initializeSourceReader(page){
+ await page.evaluate(`(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');
+  const s=new OrganizerStore(chrome.storage.local);await s.finishFoundation();
+  if(!['loaded','iaLoaded','filterLoaded','foundationLoaded','bindingsLoaded','documentsLoaded'].every(key=>s[key]===true))throw Error('ANS03_READER_NOT_INITIALIZED');
+  // Initialize before the live producer. Only this independent original
+  // conversation/history reader may retry one pre-callback publication change.
+  const originalRun=s.run.bind(s),retry=${runWithPreDispatchReadRetry.toString()};
+  s.run=callback=>retry(originalRun,callback);
+  globalThis.__ans03SourceReader={store:s,structure:new SourceStructureStore(s)};
+ })()`);
+}
 async function sourceRow(page,id){
  return page.evaluate(async id=>{
-  const {OrganizerStore}=await import('../core/organizer/store.js');
-  const {SourceStructureStore}=await import('../core/source-structure-store.js');
-  const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s);
+  const structure=globalThis.__ans03SourceReader.structure;
   const ref={platform:'chatgpt',sourceConversationId:id},row=await structure.conversation(ref);
   const history=await structure.history({kind:'conversation',conversationRef:ref});
   return {row,history:history.items};
@@ -24,7 +35,7 @@ async function sourceRow(page,id){
 test('ANS-03 trusted current-route observation settles after capture, respects exclusion/pause, and synthetic lifecycle stays separate',{timeout:240000},async()=>{
  const h=await FakeChatGPT.start({headless:true});
  try{
-  const archive=h.archive;await consent(archive);
+  const archive=h.archive;await consent(archive);await initializeSourceReader(archive);
   const a={id:'ans03-browser-presence',title:'ANS-03 Presence',base:1609459200,messages:[
    {id:'ans03-browser-message-001',text:'ANS03 SAME SYNTHETIC TEXT'},
    {id:'ans03-browser-message-002',text:'ANS03 SAME SYNTHETIC TEXT'}
@@ -124,5 +135,5 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal((await h.state()).records.some(r=>r.chatId===c.id),false);
   assert.equal(h.extensionNetworkRequests,0,'source observation adds no active extension request');
   assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }finally{try{await h.archive.evaluate(async()=>{const reader=globalThis.__ans03SourceReader;delete globalThis.__ans03SourceReader;if(reader)await reader.store.repository.close();});}finally{await h.close();}}
 });
