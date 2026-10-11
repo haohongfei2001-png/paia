@@ -1,0 +1,967 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PAIA Settings Consumer v2 — Specification</title><style>*{box-sizing:border-box}body{font:14px/1.7 "Noto Sans CJK SC","PingFang SC",system-ui,sans-serif;background:#f4f6fa;color:#17233c;margin:0}header{padding:20px 28px 16px;background:#fff;border-bottom:1px solid #e6ebf2}h1{font:500 24px/1.5 Georgia,"Noto Serif CJK SC",serif;margin:0 0 4px}.meta{font-size:12px;color:#63728a;margin:0 0 16px}.toolbar{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:end}.toolbar label{display:grid;gap:4px;font-size:12px;color:#63728a}select,button{font:13px/1.7 inherit;min-height:40px;padding:7px 10px;border:1px solid #9caac0;background:#fff;color:#17233c;border-radius:6px;max-width:100%}.toolbar label:first-child{flex:1;min-width:220px}.toolbar button{cursor:pointer}#preview-area{padding:24px;display:flex;justify-content:center;overflow:hidden}#frame-wrap{position:relative;background:white;outline:1px solid #e6ebf2;box-shadow:0 6px 24px #17233c0a}iframe{display:block;border:0;transform-origin:top left;background:#fff}footer{padding:0 28px 28px;max-width:1100px;color:#63728a;font-size:12px}.instructions{max-width:1060px;padding:0 28px 28px}details>summary{cursor:pointer;color:#235dd3;min-height:44px}.spec{background:#fff;padding:28px;margin-top:16px}.spec table{border-collapse:collapse;width:100%;font-size:12px;line-height:1.9}.spec th,.spec td{padding:10px;border-bottom:1px solid #e6ebf2;text-align:left;vertical-align:top}.spec th{background:#f4f6fa}.spec code{overflow-wrap:anywhere;font-size:12px}.spec h1{margin-top:36px}.spec h2{font-size:20px;margin-top:32px}.spec h3{font-size:16px}.spec .document{padding-bottom:40px;border-bottom:1px solid #e6ebf2}a{color:#235dd3}:focus-visible{outline:2px solid #235dd3;outline-offset:3px}@media(max-width:600px){header{padding:16px}#preview-area{padding:12px}.toolbar{gap:10px}.spec{padding:16px}.spec table{display:block;overflow:auto}.instructions{padding:0 16px 16px}}.spec{max-width:1160px;margin:24px auto;padding:40px}.spec p,.spec li{overflow-wrap:anywhere}header{max-width:1160px;margin:auto}nav{display:flex;gap:16px;flex-wrap:wrap}body{padding-bottom:32px}@media(max-width:600px){.spec{margin:0;padding:20px}}</style></head><body><header><h1>PAIA Settings · 最终设计与开发计划</h1><p class="meta">SETTINGS-CV2-1.0 / 2026-10-07 / 主体视觉不变，仅做最后必要修正 / 未实现生产代码</p><nav><a href="#A-Current-Settings-Audit">A · Current-Settings-Audit</a><a href="#B-New-Settings-IA">B · New-Settings-IA</a><a href="#C-Ownership-Map">C · Ownership-Map</a><a href="#D-Supersession-Map">D · Supersession-Map</a><a href="#E-Prototype-Verification">E · Prototype-Verification</a><a href="#F-Settings-Development-Plan">F · Settings-Development-Plan</a><a href="#G-Final-Design-Adoption">G · Final-Design-Adoption</a></nav></header><main class="spec"><section class="document" id="A-Current-Settings-Audit"><h1>A · Current Settings Audit</h1>
+<p><strong>Settings Consumer v2 / 2026-10-07 / 最终定向修正</strong></p>
+<p>本轮重新核对远端 main：<code>29940a921e4797c463a5e7e8436bafe6125f9f1d</code>，tree <code>441510f4212e25776cc4175242e6c5cc97da0ac0</code>。运行包声明 0.12.1；这不是用户本机安装确认。已批准 Context 四卡、Thought PT-1 与 Prompt Reuse 的方向不变。本文件是审计，不表示运行代码已修改。</p>
+<h2>1. 当前真实组合方式</h2>
+<p>静态 <code>extension/ui/archive.html#settings-panel</code> 提供时间、过滤、会员占位、历史导入、旧访问、已有备份恢复、移除恢复、版本和来源控件；<code>settings-preferences.js:setupSettingsShell()</code> 动态移动这些节点并把剩余节点收进 Advanced。<code>r6-settings.js</code> 又在旧 memory/backup 容器内安装预览遮罩与存储信息。最终样式是 <code>settings-preferences.css</code> 与后加载的 <code>app-shell.css</code> 共同作用，不能只按一份早期 CSS 实现。</p>
+<p>因此当前问题不是缺少圆角或统一颜色，而是不同职责共用旧容器、重复入口、无效占位、正常设置与恢复维护混杂。直接删除 DOM 会破坏仍然硬绑定这些节点的 <code>archive.js</code>、SmartFilterUI、r6 等调用链。</p>
+<h2>2. 核实后保留的真实能力</h2>
+<table>
+<thead>
+<tr>
+  <th>能力</th>
+  <th>当前依据</th>
+  <th>最终处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>保存用户已发送文字</td>
+  <td><code>archive.js</code> → CONSENT / SET_ENABLED → worker/store</td>
+  <td>保留，命名“保存我的 AI 输入”，不改变采集边界。</td>
+</tr>
+<tr>
+  <td>Smart Filter</td>
+  <td><code>ui/smart-filter.js</code> 与 FILTER_MODE/STATUS/PROTECT/KEEP</td>
+  <td>保留 light/off，显示开/关；编辑保护不能随旧按钮删除。</td>
+</tr>
+<tr>
+  <td>字号 / 宽度</td>
+  <td><code>settings-preferences.js</code> 的 FONT_PX / WIDTH_PX</td>
+  <td>四档 16/17/19/21；三档 640/680/720，保留原值，只改显示名称。</td>
+</tr>
+<tr>
+  <td>时间</td>
+  <td>timeDisplay / timeEmphasis</td>
+  <td>前者简化名称；后者从普通 UI 退役，正文统一安静但可见。</td>
+</tr>
+<tr>
+  <td>隐藏预览</td>
+  <td><code>r6-settings.js:setPreviewMask/syncPrivacy</code></td>
+  <td>独立挂载到新隐私组；保留读取失败不泄露、失败回退。</td>
+</tr>
+<tr>
+  <td>导入 / 备份恢复</td>
+  <td>initHistoryCompletion / ImportHandler；BackupPanel / BackupService</td>
+  <td>复用真实校验、冲突、暂停继续、确认与激活。</td>
+</tr>
+<tr>
+  <td>移除恢复 / 来源 / 版本</td>
+  <td>InputReview、TopicController、typed worker commands、OriginalSurface</td>
+  <td>一个恢复发现入口，底层不同操作不合并；版本只在内容自身。</td>
+</tr>
+<tr>
+  <td>索引或数据修复</td>
+  <td><code>maintenance-recovery.js</code></td>
+  <td>当前已按真实问题条件显示，不误报为所有诊断都常驻；保留并改善呈现。</td>
+</tr>
+<tr>
+  <td>更新信息</td>
+  <td>worker 的 <code>paia-consumer-update:v1</code> 事件状态</td>
+  <td>有现成状态事实，不代表已具备完整检查/发布/安装闭环。</td>
+</tr>
+</tbody>
+</table>
+<h2>3. 本轮最终减法</h2>
+<p>上一版 Settings 两处 AI 入口收敛为唯一入口；本机存储与数据存储不再各占一行；版本历史说明也退出 Settings；笼统“永久删除数据”被删除。第一组改为“输入档案”，避免把过滤误读为采集准入。Prompt 的适用状态以及 About 的版本、更新信息改成轻量事实，不伪装成不可操作的设置行。</p>
+<p>最终完整目标：20 个主要可操作行，另有 1 个次要重置动作。此数不包含分组目录、事实说明、条件故障、临时对话框或将来真实更新动作；不是要求在功能尚未接通时填满 20 行。</p>
+<h2>4. 容易被误判为已有的接口</h2>
+<p>当前 Prompt Surface 的 <code>promptSurfaceV1</code> 是受 Prompt owner 管理的单站点状态，只有 version/open/position。Settings 不能冒充网页内容脚本调用 HOST。重置位置需要在同一 owner 内增加受限命令，并解决活跃页面缓存位置、延迟拖动写回与重置的竞争。</p>
+<p>当前四卡与 Stage 3A 的正式计划不等于 main 已具备可用 runtime。Settings 只显示真实状态；没有连接证据不能展示“已连接”，没有 Stage 3A owner 不能让开关仅在界面上变绿。</p>
+<p>当前 Source 已存在具体对象的预检与永久删除保护。删除 Settings 抽象入口不取消这些能力，也不解除 B-02。旧 deny/local-only/revoked 与撤销路径必须安全承接，不是删 UI 时一起删掉。</p>
+<h2>5. 重新读取的依据</h2>
+<p>主要源：<code>extension/AGENTS.md</code>；Consumer Product v1 的 AUTHORITY、STATUS、MASTER_PLAN、EXECUTION_PROTOCOL、PRODUCT_INTENT_CONTRACT、UX_CONTRACT；四卡 PLAN/ADOPTION/REFERENCES；PT-1 VISUAL_AUTHORITY；Prompt SURFACE/STAGE_3A；当前 Consumer Cleanup 历史记录；D7-CURRENT-CERTIFICATION 与 D7-UI-COHERENCE。</p>
+<p>实际代码：archive.html、archive.js、settings-preferences.js/css、r6-settings.js、ux-r1-state.js、app-shell.js/css、smart-filter.js、archive-order-settings.js、maintenance-recovery.js、background/service-worker.js、background/prompt-surface.js、content/prompt-surface.js、core/feature-availability.js、manifest/package。</p>
+<p>原 D7 的 PASS/FAIL、历史 UI 和旧设计包保持原样。本轮新增的是最终目标与可执行计划，不是重跑了旧生产认证。</p>
+<h2>提交前远端更新核对</h2>
+<p>最终读取 main <code>288e17fb7adaf05b63a4af72458c1d6787488e0d</code>，manifest/package 为 0.13.0。初始 29940a9 审计仍记录其当时事实。新增 Topic-01 身份/人工意图与严格恢复兼容已合并；Settings UI、Context、Prompt 文件未因这批提交变化。回执仍待完整 exact-main 验收与 canonical 收尾，不将“已合并”写成阶段完成，也不重复开发已合并基础。数据恢复对接当前 Topic 身份图、名称围栏及人工组织约束校验。</p>
+</section><section class="document" id="B-New-Settings-IA"><h1>B · New Settings IA</h1>
+<p><strong>SETTINGS-CV2-1.0 / 最终设计冻结 / 2026-10-07</strong></p>
+<p>保留既定轻量目录＋内容区、六组、行式布局与当前 PAIA 主体视觉。不再探索另一套方案。固定方向已被负责人保留，本轮按明确要求做最终减法；修正后的像素结果没有另行声称获得一次新的人工视觉复审。</p>
+<h2>1. 最终实际设置清单</h2>
+<table>
+<thead>
+<tr>
+  <th>分组</th>
+  <th>项目</th>
+  <th>类型 / 默认或状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>输入档案</td>
+  <td>保存我的 AI 输入</td>
+  <td>开关；未同意的新用户保持关，首次明确同意后才开启；已有用户保留。</td>
+</tr>
+<tr>
+  <td>输入档案</td>
+  <td>智能过滤</td>
+  <td>开关；默认开对应 light，已有 off 不改变。</td>
+</tr>
+<tr>
+  <td>阅读与外观</td>
+  <td>外观</td>
+  <td>跟随系统 / 浅色 / 深色。</td>
+</tr>
+<tr>
+  <td>阅读与外观</td>
+  <td>语言</td>
+  <td>跟随系统 / 中文 / English；生产 enum 保留 zh-CN。</td>
+</tr>
+<tr>
+  <td>阅读与外观</td>
+  <td>正文字号</td>
+  <td>小 / 标准 / 大 / 特大。</td>
+</tr>
+<tr>
+  <td>阅读与外观</td>
+  <td>阅读宽度</td>
+  <td>紧凑 / 标准 / 宽。</td>
+</tr>
+<tr>
+  <td>阅读与外观</td>
+  <td>时间显示</td>
+  <td>标准 / 详细；不另设视觉强调。</td>
+</tr>
+<tr>
+  <td>AI 与提示词</td>
+  <td>AI 上下文</td>
+  <td>状态＋唯一跳转；不可用、确认关闭、真实连接分别表达。</td>
+</tr>
+<tr>
+  <td>AI 与提示词</td>
+  <td>下一句建议</td>
+  <td>默认关闭，显式开启；未接通真实 owner 时不画可用假开关。</td>
+</tr>
+<tr>
+  <td>隐私与访问</td>
+  <td>隐藏内容预览</td>
+  <td>开关；沿用已存值，默认关。</td>
+</tr>
+<tr>
+  <td>隐私与访问</td>
+  <td>支持的网站</td>
+  <td>跳转到真实支持与网站能力说明。</td>
+</tr>
+<tr>
+  <td>数据与恢复</td>
+  <td>导入历史输入</td>
+  <td>进入已有官方文件导入流程。</td>
+</tr>
+<tr>
+  <td>数据与恢复</td>
+  <td>存储空间</td>
+  <td>占用＋详情，例如 124 MB ›。</td>
+</tr>
+<tr>
+  <td>数据与恢复</td>
+  <td>从已有 PAIA 备份恢复</td>
+  <td>选择、校验、预览、冲突处理、确认。</td>
+</tr>
+<tr>
+  <td>数据与恢复</td>
+  <td>已移除的内容</td>
+  <td>统一发现入口；分类型恢复。</td>
+</tr>
+<tr>
+  <td>数据与恢复</td>
+  <td>原始来源记录</td>
+  <td>进入现有来源阅读范围。</td>
+</tr>
+<tr>
+  <td>关于 PAIA</td>
+  <td>隐私说明</td>
+  <td>已确认真实文档。</td>
+</tr>
+<tr>
+  <td>关于 PAIA</td>
+  <td>使用条款</td>
+  <td>已确认真实文档。</td>
+</tr>
+<tr>
+  <td>关于 PAIA</td>
+  <td>帮助</td>
+  <td>已配置的真实帮助。</td>
+</tr>
+<tr>
+  <td>关于 PAIA</td>
+  <td>反馈</td>
+  <td>已确认渠道，不默认附带私人内容。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>合计 20 个主要可操作行：4 个开关、5 个选择、11 个目的地；另 1 个次要动作“重置悬浮按钮位置”。</strong></p>
+<p>Prompt Reuse 的“当前支持 ChatGPT”是相关区域的轻量事实，不单列无动作 row。本机保存事实只在隐私组用一句说明；空间详情只在数据组。About 的实际版本与未知/可用更新状态是轻量元信息，真实更新可用且流程安全时才出现更新动作，不在正常行数中计入。</p>
+<h2>2. 正常文案</h2>
+<p>“保存我的 AI 输入”辅助说明：保存你在支持的 AI 中发送的文字。首次同意说明明确：普通聊天中已发送、已显示的用户文字，默认不保存临时聊天、草稿、完整 AI 回复或附件正文；恢复可能收录当前仍显示的旧输入。</p>
+<p>“智能过滤”辅助说明：弱化明显的操作性输入，原始内容仍保留。它不是保存开关，不改变来源、移除状态或 AI 授权；用户编辑和保留优先。</p>
+<p>“AI 上下文”：管理 AI 可以知道的信息和可以读取的思想。Settings 不展示卡片正文、Topic 胶囊、连接授权矩阵或第二处访问管理。</p>
+<p>“下一句建议”：根据新完成的 AI 回复，在本机临时提供建议。首次开启时才详细解释范围；关闭立即停止新的读取并清空当前建议，不影响普通复用。</p>
+<p>“隐藏内容预览”：在列表和搜索中隐藏正文摘句。不是加密/截图保护等说明放帮助，不占常态两三行灰字。</p>
+<h2>3. 视觉与响应式</h2>
+<p>继续使用当前 PAIA 的白底/深色语义角色、主导航、标识、衬线标题、正文与元信息字体、蓝色 focus/选中态、轻分割线、6px 控件圆角。不以大卡片围起每组，不把 Prompt 的跨站毛玻璃复制到设置页。</p>
+<p>宽屏维持主导航与轻量设置目录，内容按当前 PAIA 轴线排列；组标题、行标签和值对齐。字号预览使用真实四档，但设置页本身仍用 UI 字体角色。行高由内容决定，不硬裁切长中文或 English。</p>
+<p>低于 1024 CSS px，设置目录与组页堆叠；进入后“← 设置”。200% 文字可更早触发堆叠，保留实际文字放大，不用缩小字体抵消。320px 不横向滚动；label/value 自然换行；开关仍为至少 44px 可点击目标。没有第三、第四层侧栏。</p>
+<p>选择项在轻量对话框内，打开后 focus 到当前选项，键盘可访问，关闭回原设置；窄屏对话框自然滚动。Settings 组切换和跨模块返回使用现有导航 owner，并保留组、滚动和焦点。进入/退出设置不丢 Reader 或 Prompt 的未保存文字与 IME。</p>
+<h2>4. 状态与数据风险</h2>
+<p>读取失败不是关闭；未连接不等于权限已知关闭；Prompt 支持网站不等于外部 AI 连接。只有持久化成功才能反馈已保存；失败保持已确认值并可重试。隐私读取失败不能临时暴露上次隐藏的预览。</p>
+<p>已有备份恢复在确认前不改变活跃档案；临时校验分段不等于已恢复。空库、互不冲突合并、替换各自保留适用范围。替换需独立影响说明与确认，合并遇冲突不悄悄写覆盖，失败保留当前库。恢复不会重开外部授权或下一句建议。这里没有创建/导出备份。</p>
+<p>已移除内容只统一找入口。Input 恢复、Topic 容器/关系恢复、Entry/Placement 恢复仍调用真实 owner，不复制正文、不丢人工意图、不复活永久删除，不更改 AI 访问。待确认导入归属不属于已移除列表。</p>
+<p>没有 Settings 版本历史说明、自动保存版本行、retention/prune 或笼统永久删除入口。版本在内容自身。合法的 Source 永久删除在具体 Source 上预检影响范围；混合人工派生边界不明确时继续拒绝。</p>
+<p>正常不展示 Diagnostics。确认发生对应索引/数据问题后才在相关位置显示一项修复；超时不能被当成损坏。修复成功清除过时警报，失败不冒充已修复。</p>
+<h2>5. 真实填充与状态覆盖</h2>
+<p>本包有 25 个交互场景和 26 张画板（额外 English 阅读页）。覆盖六组、捕获暂停/首次同意、真实依赖未接通示意、Context 关闭/合成连接数、Stage 3A 关闭/开启/同意、导入、8 项移除内容、旧备份选择/预览/失败、索引 warning、存储详情、窄屏、深色、200% 与保存失败。</p>
+<p>所有记录、124 MB、8 项、连接数与故障是标注过的样机数据。开启/恢复等演示不会读取用户文件或修改 PAIA。具体生产 gap、兼容映射、阶段和验收见 <code>F-Settings-Development-Plan.md</code>。</p>
+</section><section class="document" id="C-Ownership-Map"><h1>C · Ownership Map</h1>
+<p><strong>最终原则：Settings 只展示和调用真实 owner，不复制其状态。</strong></p>
+<table>
+<thead>
+<tr>
+  <th>控制或事实</th>
+  <th>唯一状态 / 行为 owner</th>
+  <th>Settings 的角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Settings 组、返回、焦点、滚动</td>
+  <td>AppShell / 现有 RouteSession 的有界 view state</td>
+  <td>提供六组导航，不建第二个 router。</td>
+</tr>
+<tr>
+  <td>保存我的 AI 输入</td>
+  <td>Capture 的 CONSENT / SET_ENABLED 与 store</td>
+  <td>消费当前状态，明确同意，失败回退。</td>
+</tr>
+<tr>
+  <td>智能过滤</td>
+  <td>SmartFilterUI / FILTER_MODE 等 store 操作</td>
+  <td>显示 light/off 为开/关，保留人工保护。</td>
+</tr>
+<tr>
+  <td>外观、语言、正文尺寸、时间格式</td>
+  <td>原 UPDATE_PREFERENCES 与现有规范化</td>
+  <td>标签映射、即时生效、狭窄写入。</td>
+</tr>
+<tr>
+  <td>预览遮罩</td>
+  <td>r6 隐私 owner / hideContentPreviews</td>
+  <td>单次挂载；不复制字段、不在读失败时露出正文。</td>
+</tr>
+<tr>
+  <td>AI Context 状态</td>
+  <td>AI Context / Passport 的只读摘要</td>
+  <td>仅“AI 与提示词 → AI 上下文”一处状态与入口。</td>
+</tr>
+<tr>
+  <td>四卡、Global/Card/Topic Access、Connections</td>
+  <td>AI Context</td>
+  <td>不提供任何副本、矩阵、按钮或权限写入。</td>
+</tr>
+<tr>
+  <td>Topic / Section / Entry、组织与局部 AI Organize</td>
+  <td>Thought Library / PT-1</td>
+  <td>不进入 Settings；仅兼容合法恢复。</td>
+</tr>
+<tr>
+  <td>Prompt 文本、pin/order/edit/hide/split、插入</td>
+  <td>Prompt Surface / PromptReuseService</td>
+  <td>不管理、不复制列表。</td>
+</tr>
+<tr>
+  <td>Prompt 状态与位置</td>
+  <td>PromptSurfaceCommands / promptSurfaceV1</td>
+  <td>显示必要适用事实；调用其受限 position-only reset。</td>
+</tr>
+<tr>
+  <td>下一句建议权限与生命周期</td>
+  <td>现有 Stage 3A 计划对应的真实 Prompt owner</td>
+  <td>独立显式开启入口，不放进 UX preference 副本。</td>
+</tr>
+<tr>
+  <td>档案窗口排序</td>
+  <td>ArchiveOrderPreferenceService</td>
+  <td>迁入 Archive Navigator，同一偏好与回退。</td>
+</tr>
+<tr>
+  <td>历史导入</td>
+  <td>initHistoryCompletion / ImportHandler</td>
+  <td>同一导入 flow 的低频入口，非同步。</td>
+</tr>
+<tr>
+  <td>存储占用</td>
+  <td>浏览器 estimate，由现有 r6 数据呈现</td>
+  <td>一个数据详情入口，未知不编造 0。</td>
+</tr>
+<tr>
+  <td>已有备份恢复</td>
+  <td>BackupPanel / BackupService / worker recovery fence</td>
+  <td>原流程的新呈现，不实现新备份引擎。</td>
+</tr>
+<tr>
+  <td>已移除内容发现</td>
+  <td>对不同已有 query 的组合 read/presenter</td>
+  <td>聚合入口和分页，不创造 universal restore。</td>
+</tr>
+<tr>
+  <td>Input 恢复</td>
+  <td>InputReview / 对应 Input 命令</td>
+  <td>保留 source 与人工编辑保护。</td>
+</tr>
+<tr>
+  <td>Topic/Entry/Placement 恢复</td>
+  <td>对应 Thought owner 与身份/关系操作</td>
+  <td>逐类型调用；不复制正文、不开放权限。</td>
+</tr>
+<tr>
+  <td>原始来源 / 具体 Source 永久删除</td>
+  <td>OriginalSurface/ArchiveOriginalQuery；Source 预检与 purge owner</td>
+  <td>来源入口保留；删除仍在具体对象，B-02 拒绝保留。</td>
+</tr>
+<tr>
+  <td>版本历史</td>
+  <td>当前 Input / Thought / Entry 的历史 owner</td>
+  <td>Settings 无入口或说明。</td>
+</tr>
+<tr>
+  <td>数据/索引修复</td>
+  <td>maintenance-recovery / IntegrityPanel / 对应 store</td>
+  <td>真实故障才呈现，不能增加平时的维护后台。</td>
+</tr>
+<tr>
+  <td>版本 / 更新 / 法律与帮助目的地</td>
+  <td>manifest、现有更新生命周期、已确认内容/渠道</td>
+  <td>只消费真实事实与可用动作，不制造能力。</td>
+</tr>
+</tbody>
+</table>
+<h2>依赖未接通时</h2>
+<p>Context route/state、撤销兼容以及 Stage 3A 开启/撤销接口必须由各自模块提供。缺失时只显示真实不可用，不以 Settings local boolean 伪装接通。完整 Thought UI 不是 Settings 前置；缺少未来模块不阻挡本地阅读偏好、输入保存、导入与合法恢复。</p>
+<p>旧 local-only/deny/revoked/session 保护不因 UI 删除而被清空。最后一个可用撤销入口必须等 Context owner 提供可达替代后再移除。不会为 Settings 重新设计四卡或重启 Passport 控制台。</p>
+</section><section class="document" id="D-Supersession-Map"><h1>D · Supersession Map</h1>
+<p><strong>SETTINGS-CV2-1.0：只替代冲突的 Settings 产品/呈现，不抹掉历史证据。</strong></p>
+<table>
+<thead>
+<tr>
+  <th>旧项 / 旧解释</th>
+  <th>最终位置</th>
+  <th>处理与兼容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>输入与采集 / 内容与收录</td>
+  <td>输入档案</td>
+  <td>改名，强调过滤不决定保存。</td>
+</tr>
+<tr>
+  <td>自动保存 / 暂停捕获</td>
+  <td>输入档案 → 保存我的 AI 输入</td>
+  <td>同一 enabled/consent；不读草稿或完整回复。</td>
+</tr>
+<tr>
+  <td>Smart Filter 轻度 / 关闭</td>
+  <td>输入档案 → 智能过滤</td>
+  <td>light/off 映射开/关，保留人工保护。</td>
+</tr>
+<tr>
+  <td>检查未处理历史输入</td>
+  <td>内部维护 / 真实故障恢复</td>
+  <td>不常驻设置，不删除必要底层能力。</td>
+</tr>
+<tr>
+  <td>查看过滤内容</td>
+  <td>Archive 范围发现</td>
+  <td>不归入“已移除”。</td>
+</tr>
+<tr>
+  <td>发送时间</td>
+  <td>阅读与外观 → 时间显示</td>
+  <td>date_and_time/seconds 映射标准/详细；旧 date_only 保持现有分钟可见兼容。</td>
+</tr>
+<tr>
+  <td>时间标签 / 弱化 / 标准</td>
+  <td>无普通设置</td>
+  <td>固定安静可见；保留旧字段兼容，不意外写覆盖。</td>
+</tr>
+<tr>
+  <td>字号 px</td>
+  <td>阅读与外观</td>
+  <td>四档小/标准/大/特大，21px 不丢。</td>
+</tr>
+<tr>
+  <td>宽度 px</td>
+  <td>阅读与外观</td>
+  <td>紧凑/标准/宽，原 640/680/720 不 reset。</td>
+</tr>
+<tr>
+  <td>减少动态效果“跟随系统”独立行</td>
+  <td>系统行为</td>
+  <td>无选择且无必要目的地，不单列行。</td>
+</tr>
+<tr>
+  <td>档案窗口顺序</td>
+  <td>Archive Navigator</td>
+  <td>同一 paia/source preference，保留可靠性回退。</td>
+</tr>
+<tr>
+  <td>AI 服务“尚未开放” / Membership</td>
+  <td>删除</td>
+  <td>不展示空服务/购买占位；真实服务仍不可用。</td>
+</tr>
+<tr>
+  <td>AI 与提示词 → AI 上下文</td>
+  <td>保留唯一入口</td>
+  <td>只读状态＋Context route。</td>
+</tr>
+<tr>
+  <td>隐私与访问 → AI 访问</td>
+  <td>删除</td>
+  <td>不再双入口。</td>
+</tr>
+<tr>
+  <td>local-only / 外部连接开关</td>
+  <td>Context 的限制与连接 owner</td>
+  <td>UI 退出，限制不删除；新可达撤销链完成前保留安全兼容。</td>
+</tr>
+<tr>
+  <td>撤销连接与临时授权</td>
+  <td>AI Context 内的连接/受限兼容</td>
+  <td>不在 Settings 维护第二份状态。</td>
+</tr>
+<tr>
+  <td>隐私 → 数据存储 row</td>
+  <td>隐私组极轻本机事实</td>
+  <td>不伪装可操作行。</td>
+</tr>
+<tr>
+  <td>数据 → 本机存储</td>
+  <td>数据与恢复 → 存储空间</td>
+  <td>一个占用/详情目的地。</td>
+</tr>
+<tr>
+  <td>设备同步不可用行</td>
+  <td>删除</td>
+  <td>不为未来云能力占位。</td>
+</tr>
+<tr>
+  <td>隐藏内容预览</td>
+  <td>隐私与访问</td>
+  <td>保留，同一 flag；长解释进帮助。</td>
+</tr>
+<tr>
+  <td>支持网站 / host strings</td>
+  <td>隐私与访问 → 支持的网站</td>
+  <td>展示服务名与真实支持，不等于 AI 连接。</td>
+</tr>
+<tr>
+  <td>历史导入 / Onboarding 重复块</td>
+  <td>数据与恢复 → 导入历史输入</td>
+  <td>一个 flow；Onboarding 自身保留。</td>
+</tr>
+<tr>
+  <td>Backup restore</td>
+  <td>从已有 PAIA 备份恢复</td>
+  <td>选择/校验/预览/冲突/确认；空库/合并/替换真实适用；不生成备份。</td>
+</tr>
+<tr>
+  <td>原备份错误接管全设置页</td>
+  <td>原恢复流程内局部失败</td>
+  <td>保留组导航与可用档案，不据错误创建新管理页。</td>
+</tr>
+<tr>
+  <td>恢复思想 / 移除主题 / 移除内容</td>
+  <td>已移除的内容</td>
+  <td>入口合并；Input、Topic、Entry、Placement 命令不合并。</td>
+</tr>
+<tr>
+  <td>待确认与已移除输入</td>
+  <td>拆分</td>
+  <td>待确认归属留导入结果/Archive；已移除进入统一发现。</td>
+</tr>
+<tr>
+  <td>恢复旧版数据</td>
+  <td>仅真实待处理时可达</td>
+  <td>不常驻正常设置，不取消遗留恢复。</td>
+</tr>
+<tr>
+  <td>版本历史 / 自动保存 / retention / prune</td>
+  <td>内容本身</td>
+  <td>Settings 连“了解版本历史”都删除；历史能力与策略保留。</td>
+</tr>
+<tr>
+  <td>原始来源记录</td>
+  <td>数据与恢复</td>
+  <td>保留现有真实来源阅读入口。</td>
+</tr>
+<tr>
+  <td>永久删除数据…</td>
+  <td>删除抽象入口</td>
+  <td>合法永久删除在具体 Source 上；真实影响预检/B-02 保留。</td>
+</tr>
+<tr>
+  <td>数据完整性 / 索引修复 / Diagnostics</td>
+  <td>条件式 Recovery</td>
+  <td>真实故障才出现；超时不视为损坏。</td>
+</tr>
+<tr>
+  <td>Prompt reuse inert row</td>
+  <td>相关组内轻量适用事实</td>
+  <td>无未经定义的总开关，不复制 Prompt manager。</td>
+</tr>
+<tr>
+  <td>下一句建议</td>
+  <td>AI 与提示词</td>
+  <td>默认关，真实 Stage 3A owner 提供 enable/revoke。</td>
+</tr>
+<tr>
+  <td>重置悬浮按钮位置</td>
+  <td>次要动作</td>
+  <td>Prompt owner position-only；不改 open、prompt、pin、hidden、顺序。</td>
+</tr>
+<tr>
+  <td>关于的版本 / 更新 row</td>
+  <td>轻量实际元信息</td>
+  <td>有真实更新动作才展示；不伪造“已是最新”。</td>
+</tr>
+<tr>
+  <td>高级兜底、设置搜索、Topic/Prompt 管理</td>
+  <td>删除 / 留真正模块</td>
+  <td>不建第七组，不让未知节点自动进入普通 Settings。</td>
+</tr>
+</tbody>
+</table>
+<h2>旧设计与证据</h2>
+<p>D6.2 Settings S01–S05 及 D7 Settings 对应呈现、横向分组/窄屏 select、旧 Settings IA 正式由本次目标替代；共享主导航、字体、颜色、focus、分割线、暗色与其他空间的角色继续有效。旧 PRODUCT_INTENT 第 15 节 / PRODUCT current-scope 中“Settings Membership / AI service”只是此处 UI 被替代，不能误解为真实 AI 服务已实现。</p>
+<p>旧 D7 设计图、实现报告、测试注册及失败/PASS 保持原始记录。后续生产实现应把冲突的 UI 断言替换为等效或更强的新断言，不删除整套安全测试或把失败改写成通过。</p>
+<p>前一版设计包保持不变；v2 包只包含本轮修正后的当前目标。本轮样机复验记录及其一次键盘焦点失败/修复保存在 E 和 prototype-checks.json，不提升为 production certification。</p>
+<h2>开发集成</h2>
+<p>采用记录、完整开发计划、视觉引用分别使用 <code>SETTINGS_CONSUMER_V2_ADOPTION.md</code>、<code>SETTINGS_CONSUMER_V2_PLAN.md</code>、<code>SETTINGS_CONSUMER_V2_REFERENCES.md</code>。canonical AUTHORITY/UX/MASTER/STATUS 接入同一队列；更新前 STATUS/MASTER 通过原 blob 保存精确快照。当前唯一下一开发任务保留 <code>CPV1-TOPIC-01</code>：完成已合并身份基础的 exact-main 完整验收与 canonical 收尾，不重复开发已合并代码。Settings 不是第二条并行“下一项”。</p>
+</section><section class="document" id="E-Prototype-Verification"><h1>E · Prototype Verification</h1>
+<p>最终定向修正版独立样机复验，2026-10-07。浏览器 Chromium 144.0.7559.96，容器内渲染。<strong>不是生产扩展认证。</strong></p>
+<h2>本轮结果</h2>
+<p>六组 × 六种宽度（320 / 390 / 768 / 1024 / 1280 / 1440）× 浅深色 × 100%/200% 文字：<strong>144/144</strong> 组布局检查通过。检查了页面横向溢出、主要行数、可见 label/control 超出视口和同一行 label/value 重叠。</p>
+<p><strong>41/41</strong> 项独立样机交互检查通过；JavaScript page error <strong>0</strong>。</p>
+<p>覆盖：六组及单一 Context 入口、无版本/抽象 purge、依赖未接通状态、显式开启/取消/关闭建议、捕获与建议独立、首次捕获同意及失败回退、过滤与捕获独立、四档字号与三档宽度及两档时间、21px 保留、English/暗色、重置位置不改提示词状态、存储详情、条件 warning/repair、恢复预览/失败/替换确认、已移除内容、来源边界、待确认导入归属、320px 返回、键盘焦点和 44px coarse target。</p>
+<p>完整逐项名称、结果和数据见 <code>prototype-checks.json</code>。当前检查脚本随包保留为 <code>checks/verify.py</code>，需要 Python Playwright 与 Chromium；它只加载独立 HTML，不调用 PAIA。</p>
+<h2>负面历史没有删除</h2>
+<p>首轮完整复验：布局 144/144、交互 40/41。键盘选择弹层打开后 focus 留在标题，End 没有进入选项列表；随后改为聚焦当前选项，再跑完整矩阵得到上述结果。首次同意的失败回退、重置位置后的焦点返回也在最终复验前修正。没有把这些问题重标成一开始就通过。</p>
+<p>环境禁止 file:// 导航，测试通过 set_content 加载同一独立 HTML，并注入查询字符串；每次使用新页面防止顶层声明重复。这是测试环境路径，不是 PAIA 运行机制。</p>
+<h2>不支持的结论</h2>
+<p>没有运行生产 npm test/check/build，没有修改 Settings 生产 JS/CSS/HTML，没有安装 PAIA、访问真实档案、执行 schema migration、导入用户文件或进行删除。样机在内存中演示保存和回退；这<strong>不证明</strong>真实持久化、权限校验、备份完整性或跨进程同步。</p>
+<p>没有实际 Stage 3A reply 生命周期、真实 ChatGPT 插入、物理 IME、屏幕阅读器、用户价值、性能或发布通路认证。连接数、容量、故障、导入与恢复数据均为标注示例。对应风险必须按 F 的生产测试矩阵另行验证。</p>
+<p>本次界面册使用 25 个场景和额外 English 画板，共 26 张当前浏览器图。视觉检查是此次设计交付检查，不是负责人又一次逐像素批准或生产 accessibility PASS。</p>
+</section><section class="document" id="F-Settings-Development-Plan"><h1>Settings Consumer v2 — implementation plan</h1>
+<p>Date: 2026-10-07. Workstream: <strong>CPV1-SET2</strong>, inside PAIA Consumer Product v1.
+Design: <strong>SETTINGS-CV2-1.0 / ADOPTED / FROZEN</strong>. Runtime implementation: <strong>NOT_STARTED_BY_THIS_TASK</strong>.</p>
+<p>Read <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/SETTINGS_CONSUMER_V2_ADOPTION.md">ADOPTION</a> for settled product/visual decisions and <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/SETTINGS_CONSUMER_V2_REFERENCES.md">REFERENCES</a> for exact private artifacts. Do not redesign from this plan. <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/STATUS.md">STATUS</a> is the only execution queue; <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md">EXECUTION_PROTOCOL</a>, <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/TECHNICAL_PLAN.md">TECHNICAL_PLAN</a> and <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/VERIFICATION.md">VERIFICATION</a> retain their controls.</p>
+<h2>1. Baseline, evidence and scope</h2>
+<p>Final integration read: main <code>288e17fb7adaf05b63a4af72458c1d6787488e0d</code>; tree <code>550aab987b33196ea05ed5fec06e93771670b35e</code>; manifest/package 0.13.0. Initial design/source audit used <code>29940a921e4797c463a5e7e8436bafe6125f9f1d</code> (0.12.1); it is retained as a historical read, not the final integration base. This is a source read, not an installed-version claim. Re-read main and affected interfaces at implementation start. Reconcile any newer implementation rather than recreating it.</p>
+<p>The baseline includes Consumer Cleanup (PR173), Archive navigation preservation (PR175), approved CTX4 and PT-1 plans, existing Prompt Stage 1/2, and the separately approved Stage 3A contract. During this task PR177 integrated Topic-01 and advanced the product identity to 0.13.0. The subsequent TOPIC-01 receipt records MAIN_INTEGRATED / INDEPENDENT_REVIEW_CLEARED / EXACT_MAIN_FULL_CERTIFICATION_PENDING, not stage completion. The canonical queue remains TOPIC-01, now for verification/closure rather than reimplementation. The complete initial-to-final comparison leaves Settings/UI/Context/Prompt files unchanged; preserve the new identity, intent and strict restore code. <code>core/topic-identity-backup.js:validateTopicIdentityGraph</code> validates existing Topic metadata, name-token references, keep-separate endpoints and organization intents. Data/recovery must consume it through the current BackupService, including foreign-key conflicts, restore-epoch revalidation and current producer-minor compatibility. Do not recreate these already integrated foundations. New Context runtime/live service is not established. The retained Stage 3A candidate/history is not proof of main integration; do not merge PR164 or revive a historical writer as a side effect of Settings planning.</p>
+<p>Only production Settings presentation, its safe route/state integration, necessary owner adapters and corresponding tests belong to eventual implementation. No new content store, detector/model, cloud sync, provider, permission expansion, payment, export, backup generation, global purge or different Topic architecture is in this workstream. This planning task implements none of it.</p>
+<h2>2. Source-grounded gap and owner register</h2>
+<p>Paths in this section are relative to <code>extension/</code>. The final target inventory is the 20 rows plus one secondary action in ADOPTION, not a second IA here.</p>
+<table>
+<thead>
+<tr>
+  <th>Gap</th>
+  <th>Baseline evidence and real owner</th>
+  <th>Required change / boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>S01 Shell assembly</td>
+  <td><code>ui/settings-preferences.js:setupSettingsShell</code>, <code>ui/ux-r1-state.js:SETTINGS_GROUPS</code>, <code>ui/archive.html#settings-panel</code>; <code>ui/app-shell.js:AppShellController</code>; <code>ui/reader-navigation.js</code> RouteSession</td>
+  <td>Replace horizontal groups/mobile select and automatic Advanced fallback with explicit six-group composition. Extend existing route/view-state owner with bounded Settings group/index/return/focus state; do not create a second router or persisted content model.</td>
+</tr>
+<tr>
+  <td>S02 Reading presentation</td>
+  <td><code>settings-preferences.js:FONT_PX/WIDTH_PX, loadPreferences/savePreference/applyPreferences</code>; <code>ux-r1-state.js:normalizeUXPreferences</code>; <code>archive.js</code> time listeners</td>
+  <td>Reuse durable preference commands and existing enum values. Rename values, retain four sizes, remove time-emphasis UI/listener. Reader uses fixed quiet time presentation with accurate time format. Preserve current system-theme/locale behavior and saved overrides.</td>
+</tr>
+<tr>
+  <td>S03 Saving/filter</td>
+  <td><code>archive.js</code> CONSENT/SET_ENABLED binding; <code>ui/smart-filter.js:SmartFilterUI.changeMode/settings/protectUserEdit/recent</code>; worker FILTER_MODE/FILTER_STATUS/FILTER_PROTECT/FILTER_KEEP</td>
+  <td>Two distinct switches under Input Archive. Do not lose edit-protection listeners when replacing radio/recover nodes. Add acknowledged switch rollback/read-error handling, not a new filter engine. Move filtered-content discovery to Archive; historical-processing UI is absent normally.</td>
+</tr>
+<tr>
+  <td>S04 Privacy mounting</td>
+  <td><code>ui/r6-settings.js:installPrivacy/syncPrivacy/setPreviewMask/applyMask</code> currently mounts under <code>#memory-settings</code></td>
+  <td>Give the existing hide-preview owner an explicit Privacy host before deleting old memory markup. Preserve read epochs, fail-closed mask and write rollback. No duplicate hide preference.</td>
+</tr>
+<tr>
+  <td>S05 Context</td>
+  <td><code>archive.js:new MemoryPanel({contextDisabled:true})</code>; <code>ui/memory.js</code>; <code>core/memory/service.js</code>; <code>core/passport.js</code>; worker PAIA_MEMORY_STATUS/SETTINGS and PAIA_PASSPORT_*</td>
+  <td>Settings consumes only minimal availability/access-summary/route from Context. No permission writes or card data in Settings. Until replacement exists, display unavailable truth; never map an error to off/connected. Legacy deny/local-only/revoked constraints and a usable revocation route must remain.</td>
+</tr>
+<tr>
+  <td>S06 Prompt visibility/status</td>
+  <td><code>background/prompt-surface.js:PromptSurfaceCommands</code>, <code>content/prompt-surface.js</code>, <code>ui/prompt-surface.*</code>; diagnostic entry currently popup-only</td>
+  <td>Static supported-site facts may be derived from actual installed capability. Live status requires a scoped read through the same Prompt owner, not forging a popup sender. No global enable switch. Prompt management stays on the Surface.</td>
+</tr>
+<tr>
+  <td>S07 Position reset</td>
+  <td><code>PromptSurfaceCommands</code> key <code>promptSurfaceV1</code>; <code>validSurface</code> accepts exactly version/open/position; current HOST requires a live supported tab and content-frame identity</td>
+  <td><strong>New minimal owner method required.</strong> Settings cannot invoke HOST directly. Add a narrow trusted extension-page reset at the Prompt owner, patch position only, retain open and all Prompt Family state. Coordinate cached live-host position and stale saves; see section 5.</td>
+</tr>
+<tr>
+  <td>S08 Suggestions</td>
+  <td><code>PROMPT_REUSE_STAGE_3A.md</code>; current main manifest/worker do not establish that runtime owner</td>
+  <td>Integrate the real CPV1-12.3A-1 enable/revoke owner when available. Settings supplies its sole normal preference surface, not independent storage/detector/current-reply reads. Until then no actionable pretend switch; this does not block unrelated local Settings.</td>
+</tr>
+<tr>
+  <td>S09 Storage</td>
+  <td><code>r6-settings.js:refreshStorage/storageEstimateText</code>, browser <code>navigator.storage.estimate()</code></td>
+  <td>One meaningful Data storage detail destination, local fact in Privacy prose. Present correct decimal MB or correctly labeled units; missing usage is unknown, never zero. Do not invent a storage-clear service.</td>
+</tr>
+<tr>
+  <td>S10 Import</td>
+  <td><code>ui/history-completion.js:initHistoryCompletion</code>, <code>archive.js:historyPanel</code> with <code>beforeOpen:leave(true)</code>; <code>background/import-handler.js:ImportHandler</code></td>
+  <td>Reuse one official-file import flow from Settings and Archive overflow. Remove duplicated onboarding/history blocks from Settings without deleting onboarding. Retain consent, preview, dedupe, pause/reselect/resume, cancellation and pending-destination results.</td>
+</tr>
+<tr>
+  <td>S11 Restore</td>
+  <td><code>ui/backup.js:BackupPanel</code>, <code>core/backup-service.js:BackupService</code>; PAIA_BACKUP_BEGIN_RESTORE/STAGE/PREVIEW/RESTORE/CANCEL and worker <code>withRecoveryFence</code></td>
+  <td>Re-present existing-file restore without creating backups. Keep empty/merge/replace eligibility, staging, conflicts and atomic activation. Delete old CSS that takes over/hides all Settings navigation on inspection failure; keep failure local to its flow.</td>
+</tr>
+<tr>
+  <td>S12 Removed discovery</td>
+  <td><code>ui/review.js:InputReview</code>, <code>ui/topic-workspace.js:TopicController</code>; worker EXCLUDE_LIBRARY, GET_LIBRARY_REMOVED_TOPICS/RESTORE_LIBRARY_TOPIC, GET_LIBRARY_REMOVED/RESTORE_LIBRARY_ENTRY, placement/path APIs</td>
+  <td>A typed composite read/presenter may aggregate existing pages with independent cursors. Every restore dispatches to its actual object owner with current identity/revision/scope. Do not introduce a universal restore mutation, body copies or synthetic relationships. Pending branches remain in import/Archive.</td>
+</tr>
+<tr>
+  <td>S13 Source/history</td>
+  <td><code>archive.js</code> source route, <code>ui/original-surface.js:OriginalSurface</code>, <code>core/archive-original-query.js</code>; <code>purgeSource</code>, PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT/PURGE_SOURCE; GET_REVISIONS/RESTORE_REVISION</td>
+  <td>Retain Source route and content-specific history. Remove all Settings version-history/prune nodes and their hard-bound listeners. No generic purge entry; preserve actual scoped purge and B-02 refusal.</td>
+</tr>
+<tr>
+  <td>S14 Conditional recovery</td>
+  <td><code>ui/maintenance-recovery.js:beginMaintenanceRead/presentSettingsRecovery</code>; <code>ui/integrity.js:IntegrityPanel</code>; <code>core/integrity-checker.js</code>; REBUILD_LIBRARY_SEARCH</td>
+  <td>Reuse actual-fault state; normal DOM contains no exposed diagnostics. Maintain cancellation, truthful failure/success and repair scope. A transport timeout or incomplete indexing is not proof of corruption.</td>
+</tr>
+<tr>
+  <td>S15 About/update</td>
+  <td>manifest version; worker <code>paia-consumer-update:v1</code>, onUpdateAvailable/onInstalled</td>
+  <td>Render real version/update metadata and only a supported safe update action. Existing event status is not a verified latest-release query. Legal/help/feedback destinations require confirmed content/channel; no fake links or auto-attached archive data.</td>
+</tr>
+<tr>
+  <td>S16 Old sort/control glue</td>
+  <td><code>ui/archive-order-settings.js:ArchiveOrderSettings</code>; <code>core/source-ordering.js:ArchiveOrderPreferenceService</code>; <code>ui/archive.js</code> direct getElementById listeners</td>
+  <td>Move Archive window-order control to Archive's contextual sorting with same paia/source state and honest fallback. Remove obsolete bindings in the same batch as their DOM; prevent null dereferences or multiple listeners.</td>
+</tr>
+</tbody>
+</table>
+<p>Safety dispatch remains in the worker and existing domain stores (<code>OrganizerStore</code> extends <code>LibraryDocumentsStore</code>). <code>core/feature-availability.js</code> still rejects cancelled export/backup-generation, old Context creation, external enabling and retired direct-service commands. Removing Settings UI is not permission to delete or bypass these guards.</p>
+<h2>3. Ordered delivery stages</h2>
+<p>All stages are <strong>PLANNED</strong>, not implemented. A coherent batch can include several outcomes; no one-row/one-PR requirement. Shared runtime files have one writer. Apply ordinary targeted/affected/light-integration cadence, escalating changed authorization, deletion, migration or storage invariants under EXECUTION_PROTOCOL. Source/release verification at closure is required, not another mock.</p>
+<h3>CPV1-SET2-01 — Real Settings shell and local preferences</h3>
+<p><strong>Goal:</strong> open all six groups through the real shell and complete saving/filter/reading/privacy preference changes with persistence and safe return.</p>
+<p>Scope: <code>archive.html</code>, <code>settings-preferences.js/css</code>, <code>ux-r1-state.js</code>, <code>r6-settings.js</code>, AppShell/RouteSession integration and affected <code>archive.js</code>/SmartFilter bindings. Keep shared shell CSS changes narrowly scoped; move Archive window sorting to its existing contextual owner. Use explicit hosts instead of relocating unclassified DOM to Advanced.</p>
+<p>Owners: AppShell/RouteSession for navigation; store UPDATE_PREFERENCES; capture CONSENT/SET_ENABLED; SmartFilterUI and filter store methods; r6 preview-mask owner. Small group/scroll/focus state is view state, not a new domain entity.</p>
+<p>Not included: Context cards/permissions, Stage 3A implementation, new filter strengths, schema/body migration, cloud or data-management engines. Unconnected rows show truthful availability, not fake controls.</p>
+<p>Compatibility: section 4 mappings; preserve consent and all stored choices; keep content history functional after deleting Settings history listeners. Removing privacy's old memory host cannot expose previously masked text. Apply cross-tab events without disrupting focused controls or dirty readers.</p>
+<p>Tests: persistence/reopen/refresh, old enum fixtures, failed writes and stale reads, capture first-use and pause/resume, filter versus capture independence and manual keep/edit protection, preview-mask fail-closed, language/system-theme, keyboard/Back/Forward/focus, Reader IME/leave protection, no leftover Advanced/search/duplicate owner.</p>
+<p>Visual evidence: real extension six groups, default/paused/first-use, reading four sizes, light/dark, 320 and representative 200%, save failure. Match final private references, recording actual fonts and saved preferences.</p>
+<p>Exit: real local switches/selections survive refresh and rollback correctly; final group inventory and routes are reachable; obsolete nodes/listeners retired; old relevant safety tests replaced by equivalent current assertions rather than disabled.</p>
+<p>Blockers: missing exact private visual bytes blocks visual acceptance only. No complete Thought UI, paid AI, external connector or Stage 3A prerequisite blocks this local stage.</p>
+<h3>CPV1-SET2-02 — Data and recovery convergence</h3>
+<p><strong>Goal:</strong> one usable Data group with five destinations, complete existing import/restore and typed removed-content recovery.</p>
+<p>Scope: Settings presenters and existing history/backup/review/source/recovery controllers; narrow composite read adapter only when existing paged queries need coordination. Reuse store operations and isolated staging. Reposition failure views rather than introducing another library/recovery system.</p>
+<p>Owners: initHistoryCompletion/ImportHandler; BackupPanel/BackupService; InputReview and actual Topic/Entry/Placement methods; r6 browser estimate; OriginalSurface/ArchiveOriginalQuery; maintenance-recovery/IntegrityPanel.</p>
+<p>Not included: export/backup generation, retention/pruning UI, sync, generic data purge, settlement of B-02, Topic redesign or full Topic UI dependency.</p>
+<p>Compatibility: cancelled/partial import retains completed work and permits same-file resume; merge conflicts do not silently overwrite; replacement remains separately confirmed and atomically activated; deletion fences and recovery epochs survive. Typed recovery restores only the affected object/edge, preserves other placements/body hashes and does not reopen access. Existing-file restore must never import enabled Stage 3A or old grants. Unknown legal recovery stays blocked, not coerced through another command.</p>
+<p>Tests: consent and no active write before confirmation; duplicate imports, missing times/branches, interrupted/reselected files; restore corrupt/incomplete/unsupported files, empty/merge/replace, conflict before activation, cancellation/interruption, late changes and rollback; removed object types and pagination; purge/recapture/import anti-resurrection; unchanged Source/body/permissions; storage unknown/decimal-unit correctness; confirmed-fault repair and cancellation without data loss.</p>
+<p>Visual evidence: real import/preview/result, storage details, empty/merge/replace restore and failure, complete removed list with typed actions, Source return, conditional warning/repair, narrow and dark.</p>
+<p>Exit: five destinations work through real owners; no duplicate onboarding managers or data stores; recovery failures preserve current usable archive; no Settings versions/general-purge/diagnostics dashboard.</p>
+<p>Blockers: genuinely ambiguous B-02 effects stay refused. This cannot prevent lawful import/read/recovery or require completion of PT-1 visual work. Broad source data access is not authorized for testing; use synthetic/sanitized fixtures.</p>
+<h3>CPV1-SET2-03 — Context and Prompt owner integration</h3>
+<p><strong>Goal:</strong> the single Context status/route, real Prompt-owned position reset and the genuine suggestion preference integrate without any duplicated authority.</p>
+<p>Scope: Settings adapters; minimal Context read-summary/route contract; narrow Prompt status/reset handling; binding to the existing Stage 3A owner once that separately scoped implementation exists. Names for new adapter methods must be chosen/documented during engineering; this plan does not claim they already exist.</p>
+<p>Owners: Context/Passport for restrictive state and revocation; PromptSurfaceCommands for surface state; CPV1-12.3A-1 owner for reply eligibility/authorization. See section 5 for the exact reset race and state rules.</p>
+<p>Not included: four-card implementation, Topic permissions, external clients, membership, model calls, the detector/capsule itself, changing Stage 1/2 material or auto-merging a retained candidate. Settings must not proxy archive/Topic bodies to compute its status.</p>
+<p>Compatibility: preserve legacy deny/local-only/revoked and session revocation. Remove the last old revoke entry only when the real Context destination provides an equally reachable revoke path, including unavailable-connection mode. Do not bridge through a permission-widening setting. Maintain Stage 3A off after upgrade/restore and independent capture pause.</p>
+<p>Tests: Context disabled/known-off/valid connected/unknown/read-error/stale read; exact route return and no permission writes; trusted sender rejection; reset while card open/editing/dragging/multiple tabs with stale host save/restart/failure; pin/order/text/hide/open invariance; Stage 3A opt-in/cancel/disable during analysis or insertion, late results, reload/restore off, no durable assistant body/network/send, capture independence.</p>
+<p>Visual evidence: real unavailable then actual off/on/connected only where genuinely implemented; explicit suggestion consent, reset/failure/focus, narrow/dark. Synthetic connection counts remain visibly labeled in design evidence, never production fixtures masquerading as live success.</p>
+<p>Exit: local bridges verified plus real Stage 3A owner bound; one state owner per field; no fake successful route, reset or toggle. If only a subset is ready, record it as partial integration; the full stage is not complete.</p>
+<p>Blockers: CTX4 route/status and reachable revocation adapter, plus real CPV1-12.3A-1 enable/revoke interface. Real external AI connection is required for a live connected-state claim, not for safe unavailable/off rendering. Complete Thought UI and external model service are not prerequisites for position reset or local suggestions.</p>
+<h3>CPV1-SET2-04 — About and truthful availability</h3>
+<p><strong>Goal:</strong> version/update information and four useful destinations, without placeholders or invented release/legal claims.</p>
+<p>Scope: About presentation and verified existing distribution/status/help/legal/feedback routing. Read manifest version; expose the existing worker-owned update-event state via a bounded trusted read if needed. No updater rewrite or external request merely on opening Settings.</p>
+<p>Owners: manifest and current Chrome update lifecycle; canonical verified product documents/contact channel; existing global navigation/leave guard. No new telemetry owner.</p>
+<p>Not included: release publication, store upload, force reload, signing/distribution provisioning, drafting legal terms, automatic diagnostic attachment or paid-service setup.</p>
+<p>Compatibility: absence of update evidence is unknown, not latest; available update must protect dirty work, allow defer and reconcile genuine installed version. Display actual release version, never branch/schema/commit/test details in the product. Legal links cannot point to a guessed address.</p>
+<p>Tests: actual/unknown/available/installed/error update states, unsaved editor blocks unsafe reload, no unexpected network or permissions; destination verification; correct locale and focus; feedback sends no private archive text by default.</p>
+<p>Visual evidence: real About normal and available-update states only when supported, long localized names, dark/narrow/200%.</p>
+<p>Exit: four destination rows resolve to approved real resources and update information is truthful; no no-op rows. Unconfirmed legal/feedback destinations block that part and final release acceptance, not other local stages.</p>
+<p>Blockers: authoritative published legal/help/feedback destinations and any missing legitimate distribution update action. Source status events alone cannot certify the consumer update path.</p>
+<h3>CPV1-SET2-05 — Migration and production convergence closure</h3>
+<p><strong>Goal:</strong> certify the implemented final Settings against real owner boundaries, old preferences, complete visual references and affected source/release journeys.</p>
+<p>Scope: final integrated migration fixtures, accessibility/responsive behavior, whole-screen comparisons, affected tests and canonical receipts/status. Reconcile fresh main and one current implementation, not a parallel prototype embedded as production.</p>
+<p>Owners: existing verification/route/domain owners and a single integration writer; no substitute mock algorithms. Tests exercise production modules/commands and actual extension pages.</p>
+<p>Not included: resolving unrelated B gates, installing into the owner's daily profile, live model spending or release unless separately authorized. Prototype PASS cannot close any production assertion.</p>
+<p>Compatibility: read-old/write-narrow, all section 4 preservation invariants, restore/cross-tab/worker-restart combinations and rejected retired commands. Do not delete history evidence or relax the old suite for a clean report.</p>
+<p>Tests/evidence: section 6 matrix plus required unit/adapter/privacy/package and affected browser checks; final production accessibility and exact source/release visual comparison at 320/390/768/1024/1280/1440, light/dark, Chinese/English and true 200% text. Physical IME, screen reader, live ChatGPT/release-update evidence are separate labels where applicable, not inferred from DOM success.</p>
+<p>Exit: SET2-01..04 applicable outcomes complete; every shipped destination/control has a real owner; no widening/resurrection; evidence and remaining external limitations explicit. Whole workstream COMPLETE is forbidden with an unimplemented suggestion owner, inaccessible revoke path or unverified mandatory destination. Independent local milestones may remain engineering-complete with dependent closure pending.</p>
+<p>Blockers: only missing evidence/interfaces for their affected claims. A docs-only task cannot start this stage automatically.</p>
+<h2>4. Concrete migration and compatibility contract</h2>
+<p>Default approach is <strong>presentation mapping plus narrow writes</strong>, not a schema migration. Do not bump UX_PREF_VERSION, reset the preference object or invent a migration marker merely to rename labels. Stored values are owned by existing validators; old valid fields not shown in Settings remain compatible until separately justified retirement.</p>
+<table>
+<thead>
+<tr>
+  <th>Existing state</th>
+  <th>Final presentation / treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>fontSize small/standard/large/xlarge</td>
+  <td>小/标准/大/特大; exact 16/17/19/21 mapping preserved, including explicitly saved standard.</td>
+</tr>
+<tr>
+  <td>readingWidth narrow/standard/wide</td>
+  <td>紧凑/标准/宽; exact 640/680/720 preserved. Do not replace with the shared unsaved 800px reference.</td>
+</tr>
+<tr>
+  <td>appearance system/light/dark</td>
+  <td>Same values; system remains a preference, not rewritten to today's resolved theme.</td>
+</tr>
+<tr>
+  <td>language system/zh-CN/en</td>
+  <td>Same actual enums. The design prototype's <code>zh</code> alias is not a production migration value.</td>
+</tr>
+<tr>
+  <td>timeDisplay date_and_time</td>
+  <td>标准, with real date and minutes.</td>
+</tr>
+<tr>
+  <td>timeDisplay date_and_seconds</td>
+  <td>详细; retain seconds where genuinely known. No fabricated precision/time.</td>
+</tr>
+<tr>
+  <td>legacy date_only</td>
+  <td>Present 标准, matching the current Reader's existing minute-visible compatibility; preserve original value until a justified normalized write, not reset on page open.</td>
+</tr>
+<tr>
+  <td>timeEmphasis subtle/standard</td>
+  <td>Remove UI/listener; effective Reader time style is consistently quiet and legible. Retain old field for compatibility/rollback; never apply old emphasis accidentally during late rerender. Source timestamps are untouched.</td>
+</tr>
+<tr>
+  <td>filter mode light/off</td>
+  <td>UI on/off respectively; new default remains light, manual off survives. Existing protected edits/keep/restores/negative intent remain. Unsupported/corrupt values are not silently interpreted as permission to change user intent.</td>
+</tr>
+<tr>
+  <td>settings consentVersion/enabled</td>
+  <td>Read existing status, no new capture boolean. First enable requires actual consent acknowledgement. Failed enable or pause returns to confirmed state; do not silently consent on error.</td>
+</tr>
+<tr>
+  <td>hideContentPreviews</td>
+  <td>Reuse existing flag and masking class; unreadable state keeps the last privacy-protective view. Never default a previously hidden preview to visible on failed refresh.</td>
+</tr>
+<tr>
+  <td>Archive order paia/source</td>
+  <td>Same preference, moved UI only. Preserve source-unavailable fallback and pending-safe-application behavior; no re-sorting protected active views to match a mock.</td>
+</tr>
+<tr>
+  <td>legacy localOnly / denials / revoked grants / session state</td>
+  <td>Preserve all restrictive effects, including unknown legacy state; do not turn off restrictions because old controls disappear. New Context owner consumes them without unioning access. Credentials are neither read nor cleared.</td>
+</tr>
+<tr>
+  <td>promptSurfaceV1</td>
+  <td>Current single-site version/open/position state remains owned by PromptSurfaceCommands. Reset changes position only; no restore of a stale cached offset after successful reset.</td>
+</tr>
+<tr>
+  <td>Stage 3A absent/new/upgrade/restored</td>
+  <td>Off, with only a fresh explicit enable acknowledged by the real Prompt owner granting current eligible reply access. Restored permissions never activate reply reads.</td>
+</tr>
+<tr>
+  <td>Topic/Entry/Placement, body, revisions, tombstones, human intent</td>
+  <td>No Settings body migration. Discovery aggregation does not alter semantics. Deletion protection, negative membership and explicit current authorization outrank convenience.</td>
+</tr>
+</tbody>
+</table>
+<p>Take synthetic before/after snapshots and compare complete protected fields/body hashes, not just visible labels. Repeat mappings idempotently, interrupt at write acknowledgement and reconcile, test old backups and mixed old/new windows. If engineering reveals a genuine schema need, satisfy TECHNICAL_PLAN preservation/receipt requirements first; this document does not authorize an actual user-data migration.</p>
+<h2>5. Cross-module interface and availability rules</h2>
+<p><strong>Context:</strong> reuse the existing route owner, passing only a return target. A minimal read summary needs availability, known access state, valid connection count when known and a resolvable route; these are conceptual fields, not asserted existing method names. No bodies, per-Topic matrix or duplicated permission writes. Loading/error/unavailable differ from confirmed off. A connected count does not override global pause. Revoke remains reachable even if new connections are unavailable; migrate it as Context-owned limited compatibility, not a resurrected Settings permission console.</p>
+<p><strong>Thought/recovery:</strong> consume existing typed identity, lifecycle, revision and recovery eligibility. Track pagination/partial coverage per source; an incomplete discovery is not an empty removed list. Restore relationship and whole-content operations keep their respective scope and revision checks. Newly available PT-1 interfaces replace compatibility adapters without changing this Settings IA; full Thought visual implementation is not a dependency.</p>
+<p><strong>Prompt reset:</strong> the current HOST entry rejects Settings senders, correctly. Extend PromptSurfaceCommands with a tightly allowlisted extension-page-only reset command, validating the actual sender and consent. Read current <code>promptSurfaceV1</code>, patch position to null, preserve open, and acknowledge only after storage succeeds. Notify/reconcile each supported live host's in-memory position. Ensure a delayed drag/save begun before reset cannot overwrite the reset; serialize or add the minimum Prompt-owned revision/generation fence, with a documented compatibility path through <code>validSurface</code>. Never add an independent Settings copy. Editing/IME remains owned by the prompt card; reset must not close it or dispose its draft. Unsupported/inactive tabs need no fabricated live acknowledgement; persisted reset is applied on the next eligible host initialization.</p>
+<p><strong>Stage 3A:</strong> bind to the existing feature workstream's real authorization owner, not <code>normalizeUXPreferences</code>. Enable only after explicit local-scope consent and durable acknowledgement; disable revokes eligibility before late results can appear. Zero assistant body persistence/network requests and fill-only behavior must be tested in the owning feature as well as the Settings bridge. A missing detector/client or unsupported site results in honest unavailable/no suggestion, never a toggle that only changes its own visual state. No automatic enabling on capture resume, Context connect, backup restore or update.</p>
+<p><strong>About/websites:</strong> currently supported site is ChatGPT; a permission pattern does not prove functional integration or a connected AI. Existing Chrome update events are useful state, not proof a current update was checked. Legal/support URLs/content and any browser-permission-management route must be verified at implementation; none is invented here. Missing destinations remain an explicit dependency, not permanently shipped no-op controls.</p>
+<h2>6. Test and evidence matrix</h2>
+<table>
+<thead>
+<tr>
+  <th>Risk</th>
+  <th>Required production evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Preference ownership/durability</td>
+  <td>Actual storage read/write, refresh/reopen/worker restart, two windows, failed acknowledgement/stale read and narrow writes preserving unrelated fields.</td>
+</tr>
+<tr>
+  <td>Capture/filter</td>
+  <td>Consent, pause/resume, current visible history boundary, no Temporary Chat capture, filter on/off, manual keep/edit/exclusion protection and unchanged Source bodies.</td>
+</tr>
+<tr>
+  <td>Navigation/edit safety</td>
+  <td>Group/index/deep route, Back/Forward, scroll/focus return, modal cancellation, IME composition and dirty Reader/Prompt drafts retained.</td>
+</tr>
+<tr>
+  <td>Context</td>
+  <td>Real unavailable/off/count states, route return, no writes to permission state, retained legacy revoke/deny, no Archive fallback.</td>
+</tr>
+<tr>
+  <td>Prompt</td>
+  <td>Trusted sender validation, position reset with stale multi-tab writes, exact pin/text/order/hide/open preservation; Stage 3A off/on/revoke/restart/restore/late result and no send/upload/retention.</td>
+</tr>
+<tr>
+  <td>Import/restore</td>
+  <td>Actual official-format synthetic adapters; consent, preview, duplicates, protected work, pause/reselect/resume/cancel, invalid/incomplete backup, modes, conflict/revalidation/atomic rollback, anti-resurrection and grants off.</td>
+</tr>
+<tr>
+  <td>Recovery/source/history</td>
+  <td>All lawful removed object types and full pagination, unchanged unaffected bodies/edges, B-02 refusal, content history still reachable, no Settings history/general purge.</td>
+</tr>
+<tr>
+  <td>Faults/availability</td>
+  <td>Confirmed fault only, no diagnostic dashboard, cancellation/retry, no false repaired/latest/connected; truthful storage estimates.</td>
+</tr>
+<tr>
+  <td>Visual/accessibility</td>
+  <td>Six groups, all private reference scenarios, English/Chinese, dark/light, 320px, 200% actual text, keyboard and screen-reader labels, 44px coarse targets, focus not obscured, reduced motion.</td>
+</tr>
+<tr>
+  <td>Retired commands</td>
+  <td>Old export/backup generation/direct AI/permission-widening commands remain rejected without side effects; no legacy credential reads or resets.</td>
+</tr>
+</tbody>
+</table>
+<p>Baseline scripts are <code>npm test</code>, <code>npm run test:unit</code>, <code>npm run test:browser</code>, <code>npm run test:ui-refresh</code>, <code>npm run check</code>, and <code>npm run build:release</code> in extension/. Re-read actual <code>package.json</code> and test registrations before selecting runs; this planning task runs none of these production commands. Use targeted production-function tests in the inner loop, affected browser journeys and current integration gates for the coherent batch; apply full certification when the changed risk demands it. Build is not publication permission.</p>
+<p>Update obsolete D7 Settings assertions to the new scoped product target while preserving equivalent or stronger behavioral/privacy tests. Keep historical files and their original failures/results. Do not drop entire test files, extend timeouts or force-click hidden obsolete UI merely for green status. Prototype layout/interaction checks remain separate records and cannot substitute for production-function, source/release, live-provider, actual-device or usability evidence.</p>
+<h2>7. Integration, receipts and sole queue</h2>
+<p>Preserve pre-adoption STATUS and MASTER by their original blobs as PRE_SETTINGS_V2 snapshots. Record actual implementation base/head, writer, phase outcomes, changed owner boundaries, source/release visual evidence and precise deferred obligations in STATUS/receipts when implementation is requested. There is no automatic runtime continuation from this documentation commit.</p>
+<p><strong>Sole current next development task: CPV1-TOPIC-01 — complete exact-main full verification and canonical closure of the already integrated identity/human-intent foundation.</strong> This follows the fresh implementation receipt and retains STATUS’s phase, without rebuilding merged code or claiming verification already passed. SET2-01 is the first planned Settings outcome, not another current next pointer.</p>
+<p>After that selected foundation’s verified closure, integrate local SET2-01/02/04 in the existing Consumer Product sequence without waiting for full Thought UI. SET2-03 consumes Context route/revocation and existing Prompt feature interfaces when ready; do not open parallel competing writers. SET2-05 closes the affected integrated outcome. No-taxonomy Topic architecture, CTX4 phases, Prompt 12.3A phases, their real-service dependencies and all retained cancelled/deferred scope remain unchanged.</p>
+</section><section class="document" id="G-Final-Design-Adoption"><h1>Settings Consumer v2 — final design adoption</h1>
+<p>Decision date: 2026-10-07. Contract: <strong>SETTINGS-CV2-1.0</strong>.
+Status: <strong>OWNER_DIRECTED / ADOPTED / DESIGN_FROZEN</strong>.
+Implementation by this task: <strong>NOT_STARTED</strong>.</p>
+<p>The owner retained the reviewed Settings composition, directed a finite final simplification, and requested immediate design freeze, executable planning and canonical GitHub integration. This adopts those corrections; it is not another concept exploration. The corrected private artifacts are identified in <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/SETTINGS_CONSUMER_V2_REFERENCES.md">REFERENCES</a>. Their verification is independent-prototype evidence, not production certification or a subsequently observed owner pixel review.</p>
+<p><a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/SETTINGS_CONSUMER_V2_ADOPTION.md">This document</a> owns Settings product/presentation decisions. <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/SETTINGS_CONSUMER_V2_PLAN.md">PLAN</a> owns implementation gaps, stages, compatibility and acceptance. <a href="https://github.com/haohongfei2001-png/paia/blob/main/extension/docs/consumer-product-v1/STATUS.md">STATUS</a> alone selects execution. Common PAIA shell/tokens and the existing Context, Thought and Prompt contracts retain their own authority.</p>
+<h2>1. Frozen composition and inventory</h2>
+<p>Desktop uses a lightweight Settings directory plus one content area. Six groups, setting rows and restrained separators; no large card grid, Settings search, Advanced catch-all, third/fourth navigation tree, new brand language or duplicate primary space. First desktop entry selects Input Archive. Below 1024 CSS px, directory and group are stacked destinations; the group has Back to Settings. Text enlargement may trigger stacked composition earlier. Browser history, group/scroll/focus restoration and the existing Reader leave guard are required.</p>
+<table>
+<thead>
+<tr>
+  <th>Group</th>
+  <th>Normal actionable rows</th>
+  <th style="text-align:right">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>输入档案 / Input Archive</td>
+  <td>保存我的 AI 输入; 智能过滤</td>
+  <td style="text-align:right">2</td>
+</tr>
+<tr>
+  <td>阅读与外观 / Reading &amp; appearance</td>
+  <td>外观; 语言; 正文字号; 阅读宽度; 时间显示</td>
+  <td style="text-align:right">5</td>
+</tr>
+<tr>
+  <td>AI 与提示词 / AI &amp; prompts</td>
+  <td>AI 上下文; 下一句建议</td>
+  <td style="text-align:right">2</td>
+</tr>
+<tr>
+  <td>隐私与访问 / Privacy &amp; access</td>
+  <td>隐藏内容预览; 支持的网站</td>
+  <td style="text-align:right">2</td>
+</tr>
+<tr>
+  <td>数据与恢复 / Data &amp; recovery</td>
+  <td>导入历史输入; 存储空间; 从已有 PAIA 备份恢复; 已移除的内容; 原始来源记录</td>
+  <td style="text-align:right">5</td>
+</tr>
+<tr>
+  <td>关于 PAIA / About PAIA</td>
+  <td>隐私说明; 使用条款; 帮助; 反馈</td>
+  <td style="text-align:right">4</td>
+</tr>
+</tbody>
+</table>
+<p>The final target has <strong>20 main actionable rows: four switches, five selections, eleven destination rows; plus one secondary position-reset action</strong>. This counts the fully connected design, not capability availability in the current extension. Conditional repair/update actions and temporary dialogs are not permanent rows. Do not manufacture controls to meet a numeric quota.</p>
+<p>Prompt Reuse applicability is a compact heading/status beside its relevant preference, not an inert duplicate setting. About shows actual version and update status as unboxed metadata; an update action exists only for a real available update and supported safe route. The local-storage privacy fact is light prose, not a second storage row. Unsupported future languages/sites, membership, cloud controls and fake successes are absent.</p>
+<h2>2. Final consumer decisions</h2>
+<h3>Input Archive and reading</h3>
+<p>Saving refers to text <strong>the user sends to a supported AI</strong>, not assistant output. First enablement retains explicit capture consent. Pause/resume does not erase existing material; resuming can capture older eligible inputs still visible on the page. Temporary Chat remains excluded, without a nonfunctional switch.</p>
+<p>Smart Filter changes default Archive visibility, not capture, Source existence, Topic membership or external AI access. UI is on/off over the existing light/off modes. Manual edits/keep/restore/exclusions outrank filtering. Historical-processing commands and filter diagnostics are not ordinary settings. Filtered-content discovery remains in Archive and is distinct from removal.</p>
+<p>Preserve four actual size choices: 小/标准/大/特大 (16/17/19/21 px internally), and 紧凑/标准/宽 (640/680/720 px internally). Existing stored choices are not reset. Time display is 标准/详细; delete the second emphasis selector. Time is always quiet but legible. Prose choices affect Archive/Thought text, not Settings UI typography. Follow-system appearance/language and Chinese/English remain; no invented supported locale.</p>
+<h3>AI and Prompt ownership</h3>
+<p>The <strong>only Settings AI access destination</strong> is AI &amp; prompts -&gt; AI Context. It displays a read-only truthful status and opens the Context-owned route. Privacy has no second access entry. Global, Card, Topic and Connection state, the four cards and their editing stay in Context. Settings never reads the entire archive to calculate a status or creates a permission store. Unknown/unavailable cannot be labeled connected or open; off is used only for a known off state.</p>
+<p>Prompt text, pin/order/edit/hide/split and insertion remain in the cross-site Prompt Surface. No new global enable switch is adopted. Closing the card is not disabling the product. The secondary reset changes <strong>position only</strong>, retaining prompts, manual order, hidden/pinned state, open/closed state and suggestion permission.</p>
+<p>下一句建议 is the existing approved Stage 3A preference: default off, explicit enable, local temporary processing of the newly completed latest reply; no historical backlog, durable reply body, upload, model request or auto-send. Capture pause and this permission are independent. Disable clears current suggestions and rejects late results without disabling Stage 1/2. Settings consumes the Prompt-owned implementation; it does not implement a detector, second preference or Stage 3B. Before that implementation exists, a concise truthful unavailable state replaces an actionable enable control.</p>
+<h3>Privacy, data and recovery</h3>
+<p>Hide content previews controls excerpts in lists/search; detailed encryption/screenshot limitations belong in help. Supported websites shows actual supported service names and capability facts, not raw host patterns or an AI-connection matrix. Current local residency is one quiet sentence. Storage space and necessary browser estimates have their sole actionable destination in Data.</p>
+<p>Import remains import, not sync. Existing-file restore remains select -&gt; validate -&gt; preview impact/conflicts -&gt; confirm, using the existing staged/validated activation service. No active library is changed before the authorized commit; isolated validation staging is not activation. Backup generation/export remain cancelled.</p>
+<p>Removed content has one discovery entry but retains typed recovery: Input, Topic container/relationship, Entry and Placement operations remain distinct. A relationship restore cannot duplicate a body, undo a stronger deletion/negative intent, restore grants or broaden AI access. Unresolved import destinations are not removed content; use import results/Archive. Source records retain their existing low-frequency read route.</p>
+<p><strong>No version-history row, explanation, retention selector, automatic-version notice or pruning action remains in Settings.</strong> Content-specific history/restore and underlying preservation rules remain. Help may explain them without creating a Settings history feature.</p>
+<p><strong>No abstract permanent-delete-data entry is adopted.</strong> Supported permanent deletion begins on its actual Source/object, previews real scope and preserves the existing unambiguous/B-02 preflight and final revalidation. Mixed-human/unknown derivative boundaries remain gated. Removing an entry point never removes a safety restriction.</p>
+<p>Diagnostics are absent normally. A relevant confirmed data/index failure reveals a local action; messaging interruption alone is not corruption. Failed repair keeps the real error visible without claiming success; successful recovery clears obsolete fault presentation. No telemetry/audit expansion follows from this design.</p>
+<h2>3. Shared visual and interaction authority</h2>
+<p>Retain current AppShell, PrimaryNav, logo, title/UI/prose/metadata fonts, light/dark role palette, content axis, selected/focus roles, control geometry and responsive behavior. The existing final CSS cascade, not an early overwritten declaration, is the implementation reference. Main titles use the shared 28/38 desktop role, reduced appropriately on compact screens; settings text uses shared UI roles. Do not substitute a new font, green canvas, ornamental glass or iOS-style card-list shell.</p>
+<p>Rows can wrap, values remain identifiable, switches have labeled on/off states and native semantics. Narrow/coarse targets are at least 44 CSS px. At 320 CSS px and 200% text there is no page overflow, essential clipping or focus obscured by sticky chrome. Use natural flow for enlarged dialogs; no forced fixed heights. Normal reversible changes apply after durable acknowledgement; failure retains/reconciles the last confirmed state with a local retry message. Cross-window changes, IME, dirty Reader state, late responses and focus return remain protected.</p>
+<h2>4. Exact scoped supersession</h2>
+<table>
+<thead>
+<tr>
+  <th>Former target</th>
+  <th>Disposition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>D6.2 Settings S01-S05 composition, D7 Settings presentation, horizontal groups/mobile group select and older Settings IA</td>
+  <td>Replaced for Settings by this six-group directory/row design and its corrected references.</td>
+</tr>
+<tr>
+  <td>Input &amp; capture / Content &amp; capture name</td>
+  <td>Replaced by Input Archive, separating saving from filtering semantics.</td>
+</tr>
+<tr>
+  <td>Membership/AI-service unavailable panel, including the Settings-entry wording in PRODUCT.md current scope and PRODUCT_INTENT_CONTRACT.md section 15</td>
+  <td>Removed as ordinary Settings UI. Paid service prerequisites/unavailability remain unchanged.</td>
+</tr>
+<tr>
+  <td>Duplicate Privacy AI access entry; local-only/external toggle console; revoke action as a separate Settings owner</td>
+  <td>Replaced by the sole Context route. Restrictive legacy state and reachable revocation must be safely handed to the real owner before removing the last usable path.</td>
+</tr>
+<tr>
+  <td>Duplicate data/local storage rows</td>
+  <td>One Data storage destination; light local-residency prose only in Privacy.</td>
+</tr>
+<tr>
+  <td>Settings version history/helper/retention/prune, generic permanent-delete entry</td>
+  <td>Removed from Settings. Content history and scoped legitimate Source purge remain.</td>
+</tr>
+<tr>
+  <td>Topic/Section/Organizer permissions and Prompt manager/settings copies</td>
+  <td>Not Settings responsibilities. PT-1, CTX4 and Prompt contracts unchanged.</td>
+</tr>
+<tr>
+  <td>Ordinary recovery/diagnostics dashboard</td>
+  <td>Absent; only actual-fault recovery remains.</td>
+</tr>
+<tr>
+  <td>First Settings review's 25-row inventory and duplicate/history/general-purge screens</td>
+  <td>Superseded by corrected final artifacts; old checks remain historical prototype evidence.</td>
+</tr>
+</tbody>
+</table>
+<p>Frozen D6/D7 artboards, implementation reports, acceptance registrations, failures and historical PASS remain unmodified. Their nonconflicting data/edit/privacy/recovery requirements survive and need equivalent current tests. Shared visual roles still govern all spaces. This does not reopen Thought, Context or Prompt design, change their identity/permissions, or authorize an unrelated feature.</p>
+<h2>5. Adoption boundary</h2>
+<p>Initial design read: main <code>29940a921e4797c463a5e7e8436bafe6125f9f1d</code> (0.12.1). Final integration read: main <code>288e17fb7adaf05b63a4af72458c1d6787488e0d</code>, tree <code>550aab987b33196ea05ed5fec06e93771670b35e</code>, manifest/package 0.13.0. The intervening Topic-01 integration and strict identity/restore code are retained unchanged; its receipt still requires exact-main full verification and canonical closure. Settings/UI/Context/Prompt source files were unchanged by that intervening work. Corrected prototype verification is recorded in REFERENCES; it is not extension persistence, authorization, migration, physical IME, screen-reader or live-provider evidence.</p>
+<p>This adoption changes documents and privately delivered design artifacts only. No production JS/CSS/HTML, manifest, schema, tests, user data, installed extension, AI service, permissions, spending, deployment or release is changed. Current restrictions and existing unfinished work remain. Exact pre-adoption STATUS/MASTER blobs are retained as same-directory PRE_SETTINGS_V2 snapshots. The sole next task remains the one selected in STATUS; Settings stages are planned outcomes, not a parallel execution queue.</p>
+</section></main></body></html>

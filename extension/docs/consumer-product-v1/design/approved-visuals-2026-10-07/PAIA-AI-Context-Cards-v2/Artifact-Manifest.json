@@ -1,0 +1,182 @@
+{
+  "main_sha": "690a7e2bb8d838882f6eb3833f3bb909a158dc4f",
+  "kind": "design-only; not production",
+  "logo_git_blob_sha": "eb8d5b75680b3617cf070d7ef845003bae4dc93a",
+  "files": [
+    {
+      "file": "AI-Context-Design.md",
+      "bytes": 24428,
+      "sha256": "d520ff4894d37e1ffe6bb46c36c0976f344b99c91b452db46c7af962d48790e2"
+    },
+    {
+      "file": "AI-Context.html",
+      "bytes": 48792,
+      "sha256": "8aef96ae28768a7b76b65d3e496f7fa5ed95a8b212708dc55e816dac5d1c31e3"
+    },
+    {
+      "file": "Check-History.md",
+      "bytes": 878,
+      "sha256": "ea361361020a863085ee02bf9da5bd1be24c3d7f60152348d079e11f0b3fc05b"
+    },
+    {
+      "file": "Overview-1.png",
+      "bytes": 268670,
+      "sha256": "c7a9780d6141835df1316b7353f6732392a5134b5f534c9c6e7beb0dd02102a8"
+    },
+    {
+      "file": "Overview-2.png",
+      "bytes": 262222,
+      "sha256": "6b65d9b7b8a05e24aa0fa0949483a1a6c76b37d0f49b3ddd6e2145681bafa034"
+    },
+    {
+      "file": "Prototype-Checks.json",
+      "bytes": 9670,
+      "sha256": "f459f7e574b452a0b9da85932572457aeb82a62145b4a32a2c752ed44cf8a27f"
+    },
+    {
+      "file": "README.txt",
+      "bytes": 1000,
+      "sha256": "c4a1bba318b0e7691516f8a033636749203bbba17a3d7fab39624579484292c4"
+    },
+    {
+      "file": "Review.html",
+      "bytes": 74617,
+      "sha256": "323750bfd20760f581d2c3350b4057a6df5a1b8fb3339902b176e183a194c5d7"
+    },
+    {
+      "file": "Screens.html",
+      "bytes": 7019,
+      "sha256": "83c04e67199d16c6e76839005ad634ab33b67dad21e033be025cb8d60480cdeb"
+    },
+    {
+      "file": "Screens.json",
+      "bytes": 6322,
+      "sha256": "1789526ac5b8d30c2562142394b8bf3bfb0c1a928172cc78b2e1007f8d6f8695"
+    },
+    {
+      "file": "assets/Context-Composition.css",
+      "bytes": 10451,
+      "sha256": "73ab4e70b534ceaedff94b5ddc7e99bd9f0f36759358d2b1110b7711133d0fbc"
+    },
+    {
+      "file": "assets/Inherited-Shell.css",
+      "bytes": 6966,
+      "sha256": "d005853cbbd3bb70bcb86093cda0a1aa88e8f4d9c9d2115410348c9c024e6ab0"
+    },
+    {
+      "file": "assets/paia-logo-64.png",
+      "bytes": 5119,
+      "sha256": "8ceeec4a7044006eda727ab25fe420a594ce2abb1c4c428204ed9f653f007863"
+    },
+    {
+      "file": "screens/01-Home.png",
+      "bytes": 51387,
+      "sha256": "57c3dec15bd93a85cf77d7b5035c663a1cc9d9ee6e85c9a3f6144b12ec653856"
+    },
+    {
+      "file": "screens/02-Cards-Off.png",
+      "bytes": 54951,
+      "sha256": "5bac715af3debc85ee45848da2e0e85cc647d096808f270fba9753611e2709b8"
+    },
+    {
+      "file": "screens/03-Global-Off.png",
+      "bytes": 55182,
+      "sha256": "81d88876909d3b9b0cb99e5e6db749ce549ecef95a5cf5b0f345531353e61ee5"
+    },
+    {
+      "file": "screens/04-Info.png",
+      "bytes": 80632,
+      "sha256": "e6130937a71499f814522cf39e95f11263a3cdbaf4b18fa8fd471e72fca9c471"
+    },
+    {
+      "file": "screens/05-Inline-Editing.png",
+      "bytes": 85104,
+      "sha256": "869f5ce8bbce451777216645a168cb31d8e42abf92155c1edbcb3bd157dddaed"
+    },
+    {
+      "file": "screens/06-Rules.png",
+      "bytes": 74243,
+      "sha256": "f2614b3ac63db71f76cdd708dffc7ccfffa606aaa50ddc30331145b5944e2653"
+    },
+    {
+      "file": "screens/07-Now.png",
+      "bytes": 61481,
+      "sha256": "31a239c8182aef0ed0cc14c3928ff0d7a362913a96f10e6c556dd489651be9a6"
+    },
+    {
+      "file": "screens/08-Inputs-20.png",
+      "bytes": 50334,
+      "sha256": "ad6e30d0f759b043c18837d65ea09dc1c50ff7a1c91101ebddb8925faf1c1c78"
+    },
+    {
+      "file": "screens/09-Inputs-50.png",
+      "bytes": 89734,
+      "sha256": "c83cb77a5616136f10237663421a77e16b46cf53e8d9fca0f63166e31369e597"
+    },
+    {
+      "file": "screens/10-Inputs-144.png",
+      "bytes": 206821,
+      "sha256": "82b470d9b372c7b60cf38e3d34c02c908c2d5c3e27b1a8fb839a31892c6b83f0"
+    },
+    {
+      "file": "screens/11-Connections.png",
+      "bytes": 37097,
+      "sha256": "46ccd3e9b3572cf2c5d0abcc8d589a6db786022bff041dde0f74a5c4727e79ef"
+    },
+    {
+      "file": "screens/12-Compact.png",
+      "bytes": 43176,
+      "sha256": "08ef7552adea723fb3f4364048dddc4e29280a78ee52d268e533d71b8c5dc9c9"
+    },
+    {
+      "file": "screens/13-Dark.png",
+      "bytes": 52395,
+      "sha256": "a1fd51eccd6dc3bcec9ff439ddc7856e65c87817250bc63398ca8ed148a58d9f"
+    },
+    {
+      "file": "screens/14-Inputs-Paused.png",
+      "bytes": 51151,
+      "sha256": "49b6aaef8b82702c0ddf469557f4383ed758fa997a7fe8ac246e236324a0f791"
+    },
+    {
+      "file": "screens/15-Empty.png",
+      "bytes": 53265,
+      "sha256": "42e02e39162a1b2fceb2f1341b3b1663eac77f96e110e03d26d5940bb001e189"
+    },
+    {
+      "file": "screens/16-Save-Failed.png",
+      "bytes": 86219,
+      "sha256": "ab7449bf614ae7b26ccc3f21c402551e0f688c68b4497c5f233b15241773d862"
+    },
+    {
+      "file": "screens/17-New-Topic.png",
+      "bytes": 51504,
+      "sha256": "2adfbcf63b02cd2aacf2e9b8b4504569b51cf26250b1a5dbebc18c0abdd31dfd"
+    },
+    {
+      "file": "screens/18-Dark-Inputs.png",
+      "bytes": 94904,
+      "sha256": "9e6244a6c9d02c8279790b73cd83afbe06b4dd96300e18a13d62d18362a8a639"
+    },
+    {
+      "file": "screens/19-Compact-Info.png",
+      "bytes": 64267,
+      "sha256": "0c91cd4886134a1a16a51e1ff1b0c0d0c805652282233f308d375752fcc58e07"
+    },
+    {
+      "file": "screens/20-Connect.png",
+      "bytes": 47995,
+      "sha256": "58d972cdb3aeb817240ec2fd08bca1385aef5f821a19fa4f81fee90e5d4e9c70"
+    },
+    {
+      "file": "screens/21-Tablet.png",
+      "bytes": 42802,
+      "sha256": "cfd4bc52087d89902b7bd7779a4e158b3cf7eeb04d42d941da4a7a5aa2437c93"
+    },
+    {
+      "file": "screens/22-No-AI.png",
+      "bytes": 51419,
+      "sha256": "bb3590d189b74c14040fca7f88d3f638f3666cc5c318b8a05a5671ca97ea02d6"
+    }
+  ]
+}
