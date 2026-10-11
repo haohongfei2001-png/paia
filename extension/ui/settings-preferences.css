@@ -130,9 +130,9 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel .ux-settings-nav>button[aria-current="page"]{background:var(--selected);color:var(--focus);font-weight:500}
 #settings-panel .ux-settings-nav>button>.paia-icon{display:none}
 #settings-panel .ux-settings-body,#settings-panel .ux-settings-group{min-width:0;width:100%;max-width:680px;padding:0;margin:0;border:0;background:transparent}
-#settings-panel .ux-settings-group>h2{display:block;margin:0 0 12px;font:500 22px/1.45 var(--title-font)}
+#settings-panel .ux-settings-group>h2{display:block;margin:0 0 12px;font:500 22px/1.455 var(--title-font)}
 #settings-panel .ux-settings-group>h3,#settings-panel #settings-prompt-status>h3{font:500 14px/1.7 var(--font);margin:28px 0 8px}
-#settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:85px;padding:20px 0;margin:0;width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--text);text-align:left;font:400 14px/1.7 var(--font)}
+#settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:85px;padding:20px 0;margin:0;width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--text);text-align:left;font:400 14px/1.6 var(--font)}
 #settings-panel .ux-setting-copy{display:grid;gap:4px;min-width:0;flex:1}
 #settings-panel .ux-setting-description,#settings-panel .ux-settings-note{display:block;margin:4px 0 0;color:var(--muted);font:400 12px/1.85 var(--font);overflow-wrap:anywhere}
 #settings-panel .ux-settings-group>.ux-settings-note{margin-top:22px}
@@ -140,9 +140,9 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel .ux-setting-switch[data-on="true"]{border-color:transparent;background:var(--selected);color:var(--focus)}
 #settings-panel .ux-preference-setting>span{max-width:none;flex:1}
 #settings-panel .ux-preference-setting select{max-width:52%;width:auto;min-width:112px;min-height:44px;padding:8px 8px;border:0;background-color:transparent;color:var(--muted);text-align:right;font:400 13px/1.7 var(--font)}
-#settings-panel .ux-reading-example{margin-top:28px;padding:0 0 0 20px;border-left:2px solid var(--line);max-width:var(--paia-prose-width)}
+#settings-panel .ux-reading-example{margin-top:28px;padding:0 0 0 20px;border-left:2px solid var(--line)}
 #settings-panel .ux-reading-example small{display:block;margin:0 0 8px;color:var(--muted);font:400 12px/1.8 var(--font)}
-#settings-panel .ux-reading-example p{margin:0;font:400 var(--paia-prose-size)/1.85 var(--font)}
+#settings-panel .ux-reading-example p{margin:0;max-width:var(--paia-prose-width);font:400 var(--paia-prose-size)/1.85 var(--font)}
 #settings-panel .ux-settings-feedback{margin:0;padding:0;color:var(--muted);font:400 12px/1.8 var(--font);overflow-wrap:anywhere}
 #settings-panel .ux-settings-feedback:not(:empty){padding:8px 0}
 #settings-panel .ux-settings-feedback[data-kind="error"]{color:var(--danger)}
@@ -160,20 +160,28 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 .thought-reverse-edit-disable{margin:4px 0;background:transparent;border:1px solid var(--line);border-radius:6px;min-height:36px;color:var(--muted)}
 .thought-reverse-edit-feedback{display:block;color:var(--muted);font-size:12px}
 @media(max-width:1023px){
- #settings-panel{max-width:760px;padding:24px 20px 56px}
+ #settings-panel{max-width:856px;padding:24px var(--archive-gutter) 56px}
  #settings-panel .ux-settings-header{padding-left:0;margin-bottom:24px}
  #settings-panel .ux-settings-layout{display:block}
+ #settings-panel .ux-settings-body,#settings-panel .ux-settings-group{max-width:none}
+ #settings-panel .ux-settings-nav{max-width:680px}
  #settings-panel .ux-settings-nav{display:block;margin:0!important}
  #settings-panel .ux-settings-nav>button{display:flex;width:100%;min-height:68px;padding:20px 0;border-bottom:1px solid var(--line);border-radius:0;color:var(--text);background:transparent;font-size:14px}
  #settings-panel .ux-settings-nav>button[aria-current="page"]{font-weight:400}
  #settings-panel .ux-settings-nav>button>.paia-icon{display:block}
  #settings-panel .ux-settings-shell[data-settings-index="false"]>.ux-settings-header,#settings-panel .ux-settings-shell[data-settings-index="false"] .ux-settings-nav{display:none}
  #settings-panel .ux-settings-shell[data-settings-index="true"] .ux-settings-body{display:none}
- #settings-panel #ux-settings-group-back{display:inline-flex;margin:0 0 20px;padding:8px 0;border:0;background:transparent;color:var(--muted);min-height:44px}
+ #settings-panel #ux-settings-group-back{display:inline-flex;margin:0 0 12px;padding:4px 0;border:0;background:transparent;color:var(--muted);min-height:44px;font:400 13px/1.65 var(--font)}
  #settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{flex-direction:row;align-items:center;gap:12px;min-height:85px}
  #settings-panel .ux-preference-setting select{width:auto;max-width:58%;min-width:96px;min-height:44px}
  #settings-panel .ux-setting-switch{min-height:44px}
- #settings-panel .ux-settings-group>h2{margin-bottom:12px}
+ #settings-panel .ux-settings-group>h2{font-size:28px;line-height:1.4;margin-bottom:16px}
+}
+@media(max-width:767px){
+ #settings-panel{padding-top:20px}
+ #settings-panel .ux-settings-group>h2{font-size:24px;line-height:1.46}
+ #settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{padding-block:18px;min-height:76px}
+ #settings-panel .ux-reading-example{padding-left:16px}
 }
 @media(pointer:coarse){#settings-panel .ux-setting-switch,.thought-reverse-edit-disable{min-height:44px}}
 
