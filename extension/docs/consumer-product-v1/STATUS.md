@@ -1,3 +1,13 @@
+# Current PR256 0.43.21: self-contained release verification — 2026-10-11
+
+PR256 head6f45d4a4adc4b13e634af3681f060b37766f52cf Full38134316473 completed FAILURE only in Browser5: the newly added accessibility release variant could not find `work/current-release/manifest.json` and never started its browser. The source variant passes the original modal and new unchanged-title assertions; all four Original lifecycle variants, the remaining35/36 Browser5 tests and all eight other browser shards pass. All unit, contracts, build, both macOS and native jobs pass. The failure is retained; no cancelled/skipped result is promoted.
+
+Fixture-only afdec52d9046cf80ee1286a9c4222459ae34963c now creates one owned temporary release directory, invokes the original standard builder there and cleans up only that directory. It no longer depends on a previously built global directory. All original scenario actions, assertions and120000ms limits remain unchanged. Its complete source/release accessibility file passes2/2,0fail/cancel/skip,14927.485541ms. Runtime, version0.43.21 and package bytes are unchanged; prior runtime proofs retain their original execution identity.
+
+The independent Prompt PR workflow is not selected by these seven title-only paths. Candidate Prompt behavior is covered by Full's five original whole files and unit/contracts/build checks; this is not a nonexistent separate workflow PASS. Routing addendum570a10310804f6fdebde907e491bb8150981117fb4c4e6ffc330de8b27331d09 records the exact mapping. Fresh changed-candidate Full, normal merge and exact-main Full AND Prompt remain required before one qualified package. Main remainsa3f10e/held0.43.20; the package is not installed or delivered. Complete Canonical C remains independently in progress.
+
+## Preserved prior checkpoint
+
 # Current 0.43.21: preserve unchanged original titles — 2026-10-11
 
 PR254 merged normally into main `a3f10e113b2fd8fe8b872daeb6a34b927c2d5459` after exact candidate Full38130860979, Prompt38130861004 and Visual38130861087 passed. Exact-main Full38132087458 subsequently FAILED its original Browser5 accessibility Source-dialog assertion; the other eight browser shards, four unit shards, contracts, build, macOS and native jobs passed. Main Prompt38132087462 passed. Fresh main native54 top-level/84 total passed both unchanged strict gates. Native success does not override failed Full. The 0.43.20 package remains held, not delivered; the last qualified package remains0.43.16. Automatic Pages38132085522 was cancelled before deployment steps; cancelled is not passed.

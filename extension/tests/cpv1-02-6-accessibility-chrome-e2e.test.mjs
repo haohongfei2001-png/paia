@@ -1,14 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result.ok,true,JSON.stringify(result));return result.data;};
 const noOverflow=page=>page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+const releaseRoot=mkdtempSync(join(tmpdir(),'paia-a11y-original-release-'));
+test.after(()=>rmSync(releaseRoot,{recursive:true,force:true}));
+try{console.log(execFileSync('python3',['scripts/build_current_release.py',releaseRoot],{cwd:fileURLToPath(new URL('../',import.meta.url)),encoding:'utf8'}));}catch(error){console.log(String(error.stdout||''));console.error(String(error.stderr||''));throw error;}
 
 for(const variant of ['source','release'])test('CPV1-02.6 Reader and Archive keep long multilingual content, focus, 200% scale, 320px and reduced motion usable '+variant,{timeout:120000},async()=>{
- const h=await FakeChatGPT.start({onboarding:true,...(variant==='release'?{extensionPath:fileURLToPath(new URL('../work/current-release/',import.meta.url))}:{})});
+ const h=await FakeChatGPT.start({onboarding:true,...(variant==='release'?{extensionPath:releaseRoot}:{})});
  try{
   const p=h.archive;
   // Read-only, bounded lifecycle evidence for failures; never retry the action.
