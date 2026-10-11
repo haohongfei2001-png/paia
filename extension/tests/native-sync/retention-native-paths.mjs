@@ -1,5 +1,6 @@
 // Actual static/literal dependency inventories. Contract tests recompute both.
 export const RETENTION_RUNTIME_PATHS=Object.freeze([
+  "background/archive-arrival.js",
   "background/capture-recovery.js",
   "background/import-handler.js",
   "background/prompt-next.js",
@@ -7,9 +8,12 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "background/prompt-surface.js",
   "core/ai-organize-style-preference.js",
   "core/ai-usage/assist-intent-binding.js",
+  "core/ai-usage/assist-response.js",
   "core/ai-usage/contracts.js",
   "core/ai-usage/delta.js",
   "core/ai-usage/foundation.js",
+  "core/ai-usage/historical-candidate-contract.js",
+  "core/ai-usage/historical-candidate-session.js",
   "core/ai-usage/organize-style-binding.js",
   "core/ai-usage/semantic-invalidation.js",
   "core/archive-navigation-index.js",
@@ -166,6 +170,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/prompt-family.js",
   "core/prompt-reuse-preferences.js",
   "core/prompt-reuse-service.js",
+  "core/prompt-selection.js",
   "core/qualified-input-search.js",
   "core/read-projection-keys.js",
   "core/reader-state.js",
@@ -216,7 +221,8 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/topic-root-target.js",
   "core/universal-search.js",
   "core/validation.js",
-  "core/workspace.js"
+  "core/workspace.js",
+  "ui/input-search.js"
 ]);
 export const RETENTION_PROOF_PATHS=Object.freeze([
   "background/service-worker.js",

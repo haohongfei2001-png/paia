@@ -79,7 +79,7 @@ test('saved open anchor remains viewport-bounded when scrolling moves the compos
  }
 });
 
-async function hostFixture(){
+async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
  const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map();let failHost=false;
  const rect={x:500,y:100,width:44,height:44,left:500,right:544,top:100,bottom:144};
  const element=tag=>{
@@ -92,9 +92,9 @@ async function hostFixture(){
  const document={documentElement:html,createElement:element,addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
  const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
   matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
-  requestAnimationFrame:f=>{f();},PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
+  requestAnimationFrame:animationFrame,PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
   PAIAPromptLayout:()=>({orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:350}}),
-  chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return failHost&&r.type==='PAIA_PROMPT_SURFACE_HOST'?{ok:false,error:'CONSENT_REQUIRED'}:{ok:true,data:{version:1,open:false,position:null}};}}}};
+  chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return failHost&&r.type==='PAIA_PROMPT_SURFACE_HOST'?{ok:false,error:'CONSENT_REQUIRED'}:{ok:true,data:{version:1,open:false,position:null,...(displayPreferences?{displayPreferences}:{})}};}}}};
  sandbox.window={addEventListener:(k,f)=>windowHandlers.set(k,f),removeEventListener:k=>windowHandlers.delete(k)};
  vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
  const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
@@ -212,4 +212,11 @@ test('display-only activation never reinitializes an open private editor; consen
  assert.equal(frame.isConnected,false,'original authority activation still revokes unavailable context');
  const reads=f.sent.length;f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_ACTIVATE',reason:'display-preferences'},{id:'ext'},()=>{});await new Promise(setImmediate);
  assert.equal(f.sent.length,reads+1,'collapsed display refresh uses the read-only original HOST');
+});
+
+
+test('initial connected orb already has the saved accessible language and theme before its first animation frame',async()=>{
+ const pending=[],f=await hostFixture({displayPreferences:{appearance:'dark',language:'en'},animationFrame:callback=>pending.push(callback)}),host=f.nodes.find(node=>node.dataset.paiaPromptSurface==='');
+ assert.equal(host.isConnected,true);assert.ok(pending.length>0);assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');
+ while(pending.length)pending.shift()();assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');assert.equal(f.nodes.some(node=>node.tag==='iframe'),false);assert.equal(f.sent.some(request=>request.state),false);
 });
