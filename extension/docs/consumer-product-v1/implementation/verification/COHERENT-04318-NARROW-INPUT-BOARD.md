@@ -1,3 +1,21 @@
+# Current0.43.19 follow-up: qualified Topic continuation counts — 2026-10-11
+
+Main remains531dbcf/qualified0.43.16 and remote PR254 d3b3 remains failed Full38123272698. The earlier prepared ec70 publication was never pushed. Retain all its Settings setup isolation and failure diagnostics, and all earlier failure records.
+
+Independent UIS02 review identified a real count-presenter gap, without claiming the unique cloud cause. With actual OrganizerStore, ThoughtSectionReading and ContinuousTopicReader, three original canonical query pages reproduce a count stuck at1+ after the second page (old complete file4PASS1FAIL). The original current-reader presenter now updates counts after continuation, fencing Topic/query/provider/stale state and preserving honest partial counts. Independent review additionally caught restored saved terminal flags during real pending hydration; a held completed original page response proves3+ while hydrating and3 only after release. The pre-guard counter remains4PASS1FAIL. No DTO, query assertion, producer, write guard or deadline is weakened.
+
+Exact runtime78f10336e50692427193e95903691ff48459348f passes four complete owning unit files19/19,0fail/cancel/skip,2238.338208ms, and the original complete UIS02 headless source journey1/1,9107.745542ms. This source browser run is distinct from the earlier25/25 Settings/source/release combination; no new packaged-browser proof is inferred. Independent follow-up4416f5acfa39e97a2a3bbba29c4de85505980a039f2d856e64c8857961560e4e closes only the finite code issue. The bounded failure artifact adds six body-free index/cursor-presence/coverage/generation-match fields to discriminate any future failure.
+
+One coherent0.43.19 follow-up proceeds to fresh formal Full/Prompt; normal merge, exact-main Full/Prompt and one qualified package remain pending. No dependency/version/permission changes, installation or deployment. TOPIC05.5 and the complete mixed Canonical C remain separate unintegrated batches. C294 local passes and finite independent code approval do not qualify original native/full-resource/complete Sync acceptance.
+
+## Preserved prior checkpoint
+
+## d3b3 formal failures and finite two-fixture follow-up — 2026-10-11
+
+Full38123272698 is failed, with Settings source manual Prompt setup rejecting a stale snapshot and UIS02 current-Topic match timing out. Seven other browser shards and all unit/contracts/build/macOS checks pass; Prompt38123272534 and Visual38123272597 pass. Native54/84 is independently qualified at signed tested merge77fd96edd7803a96625a650f6305a3ed2beac6f2 by both unchanged strict gates (review333a4e4df5f48ce395ae88f78c1f64da175844c1b592c70e5967f194b623b828). Neither failure is relabelled.
+
+The original manual Prompt setup is moved intact before producer startup; its original revision/generation fences remain. UIS02 only persists its existing bounded body-free diagnostic on failure, always rethrowing the original error. Cloud search cause is UNKNOWN, and this is not a search runtime repair. Two entire local files pass25/25 in27886.025ms, with3317 source/481 existing qualified package files unchanged. Independent two-file review d074a1f96424300a8f28ac33fab1a461c4a2437a46ec6293ce558c9f98a3b48c approves only this scope. Exact-head formal Full/Prompt, integration and exact-main qualification remain pending.
+
 # NIB v4 local foundation — implementation, qualification pending
 
 This is the existing Prompt lane's approved NIB-V4-1.0 implementation, following the latest runtime authorization. It is not a separate product queue or an IAH-1.0 implementation. The current candidate is0.43.19; prior0.43.18 evidence below retains its original identity. Neither is claimed merged, installed or delivered. Current qualified main remains0.43.16; the candidate contains the unaccepted SYNC-01 B dependency and cannot silently inherit its acceptance.

@@ -167,7 +167,16 @@ export class TopicController {
  topicSectionAnchor(){return this.topicReader?.captureSectionAnchor?.(this.originalPane||$('topic-body'))||null;}
  async checkAllTracked(serial=this.serial){if(!this.editor?.entry)return true;const ids=[...this.editor.entry.entries.keys()];for(let i=0;i<ids.length;i+=100){const result=await request('GET_LIBRARY_TRACKED_ENTRIES',{options:{ids:ids.slice(i,i+100)}});if(serial!==this.serial)return false;await this.editor.entry.checkTracked(result||[]);}return serial===this.serial;}
  topicPageFromReader(){const reader=this.topicReader,state=reader?.state(),meta=reader?.pageMeta||{};if(!reader||!state)return null;const pins=this.editor?.entry.protectedIds?.()||new Set(),layout=reader.layout(pins),items=layout.filter(x=>x.kind==='item').map(x=>x.item);return {...meta,topic:meta.topic||this.topic,sections:[...reader.sections.values()],items,windowLayout:layout,nextCursor:state.nextCursor,previousCursor:state.previousCursor,sectionCursor:state.sectionCursor,query:reader.query,sort:reader.sort,matchCount:meta.matchCount};}
- updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;
+ updateTopicSearchCount(){
+  const count=$('topic-search-count'),reader=this.topicReader;if(!count||!this.topicContinuousVisible())return;
+  const query=$('topic-search').value.trim(),state=reader?.state();
+  // A continuation may finish after another query was typed. Its retained
+  // bodies and terminal flags never describe that newer search or a refusal.
+  if(!state||state.stale||reader.topicId!==this.id||reader.query!==query||(reader.providerKey??null)!==(this.topicProviderKey??null)){count.textContent='';return;}
+  const complete=state.terminalNext&&state.terminalPrevious&&!reader.hydrating&&!state.loadingNext&&!state.loadingPrevious&&!state.indexing&&!state.errorNext&&!state.errorPrevious&&!state.continuationNext&&!state.continuationPrevious&&!state.protectionBlocked;
+  count.textContent=query||this.topicProviderKey?`${state.items.length}${complete?'':'+'} 条${query?'匹配':'当前来源'}内容`:'';
+ }
+ updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;this.updateTopicSearchCount();
   const before=$('topic-continuous-before'),after=$('topic-continuous-after'),pending=state.loadingNext||state.loadingPrevious||state.indexing,unsettled=pending||state.stale;
   for(const [edge,continuation,error]of [['before',state.continuationPrevious,state.errorPrevious],['after',state.continuationNext,state.errorNext]]){const retry=$('topic-continuous-'+edge+'-retry');retry.hidden=pending||!error&&!continuation;retry.textContent=tc(continuation?'继续载入':'重试加载');}
   before.dataset.terminal=String(!unsettled&&!state.errorPrevious&&!state.continuationPrevious&&!!state.terminalPrevious);after.dataset.terminal=String(!unsettled&&!state.errorNext&&!state.continuationNext&&!state.protectionBlocked&&!!state.terminalNext);
@@ -871,7 +880,7 @@ export class TopicController {
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
   const saved=!resetFromStart&&!sectionId&&!timeEdge?(this.topicReader?.snapshot(visible,visible?null:this.topicSectionAnchor())||this.contentResume):null;this.contentResume=null;
   const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial});if(serial!==this.serial||state.stale)return false;
-  const query=$('topic-search').value.trim();$('topic-search-count').textContent=query||this.topicProviderKey?`${state.items.length}${state.terminalNext&&state.terminalPrevious?'':'+'} 条${query?'匹配':'当前来源'}内容`:'';
+  this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
 

@@ -198,6 +198,12 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     await settings.locator('#consent-check').waitFor({state:'visible'});await settings.locator('#consent-check').check();await settings.locator('#enable-consent').click();
     await eventually(async()=>(await rpc(settings,'GET_STATUS')).consented===true,'independent informed capture consent is confirmed');
     await rpc(settings,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>settings.evaluate(()=>document.documentElement.lang==='en'));
+    // Create the independent manual Prompt before starting the owned capture producer.
+    // Its real revision CAS remains strict; later capture and controls must preserve it.
+    const query=await rpc(settings,'PAIA_PROMPT_QUERY'),manualText='SYNTHETIC S4 independent manual Prompt';
+    const authored=await rpc(settings,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:query.revision,text:manualText}});
+    const createdPrompt=await rpc(settings,'PAIA_PROMPT_QUERY',{includeHidden:true}),manual=createdPrompt.items.find(item=>item.id===authored.id);let promptBefore,lastPromptGeneration;
+    assert.equal(manual.text,manualText);assert.equal(manual.edited,true);assert.deepEqual(manual.members,[]);
     const source={id:'s4-e04-manual-source',title:'SYNTHETIC S4 retained manual work',base:1609459200,messages:[{id:'s4-e04-source-input',text:'SYNTHETIC S4 original source expression'}]};
     const host=await controls.open(source,{arrival:'dom-first'});
     await eventually(async()=>{const state=await controls.state(),record=state.records.find(row=>row.originalText===source.messages[0].text);return !!record&&state.library.blocks.some(block=>block.originalTextReference===record.id);},'original capture creates the real paired Source/Input');
@@ -206,10 +212,6 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     const first=await rpc(settings,'GET_INPUT',{id:block.id}),manualBody='SYNTHETIC S4 independently authored Working body';
     await rpc(settings,'EDIT_DOCUMENT',{edit:{operationId:crypto.randomUUID(),documentId:first.documentId,blocks:[{id:first.id,expectedRevision:first.revision,libraryText:manualBody,note:first.note,excluded:false}]}});
     const inputBefore=await rpc(settings,'GET_INPUT',{id:first.id});assert.equal(inputBefore.libraryText,manualBody);
-    const query=await rpc(settings,'PAIA_PROMPT_QUERY'),manualText='SYNTHETIC S4 independent manual Prompt';
-    const authored=await rpc(settings,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:query.revision,text:manualText}});
-    const createdPrompt=await rpc(settings,'PAIA_PROMPT_QUERY',{includeHidden:true}),manual=createdPrompt.items.find(item=>item.id===authored.id);let promptBefore,lastPromptGeneration;
-    assert.equal(manual.text,manualText);assert.equal(manual.edited,true);assert.deepEqual(manual.members,[]);
     const recordsBeforePause=(await controls.state()).records;
     await host.locator('textarea').fill('SYNTHETIC independent unsent composer draft');
     await host.locator('textarea').evaluate(node=>{globalThis.__s4Composer=node;node.setSelectionRange(10,21);globalThis.__s4NoSend=0;document.addEventListener('submit',()=>__s4NoSend++,true);node.addEventListener('keydown',event=>{if(event.key==='Enter')__s4NoSend++;});});

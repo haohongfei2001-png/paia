@@ -1,3 +1,27 @@
+# Current0.43.19 follow-up: qualified Topic continuation counts — 2026-10-11
+
+Main remains531dbcf/qualified0.43.16 and remote PR254 d3b3 remains failed Full38123272698. The earlier prepared ec70 publication was never pushed. Retain all its Settings setup isolation and failure diagnostics, and all earlier failure records.
+
+Independent UIS02 review identified a real count-presenter gap, without claiming the unique cloud cause. With actual OrganizerStore, ThoughtSectionReading and ContinuousTopicReader, three original canonical query pages reproduce a count stuck at1+ after the second page (old complete file4PASS1FAIL). The original current-reader presenter now updates counts after continuation, fencing Topic/query/provider/stale state and preserving honest partial counts. Independent review additionally caught restored saved terminal flags during real pending hydration; a held completed original page response proves3+ while hydrating and3 only after release. The pre-guard counter remains4PASS1FAIL. No DTO, query assertion, producer, write guard or deadline is weakened.
+
+Exact runtime78f10336e50692427193e95903691ff48459348f passes four complete owning unit files19/19,0fail/cancel/skip,2238.338208ms, and the original complete UIS02 headless source journey1/1,9107.745542ms. This source browser run is distinct from the earlier25/25 Settings/source/release combination; no new packaged-browser proof is inferred. Independent follow-up4416f5acfa39e97a2a3bbba29c4de85505980a039f2d856e64c8857961560e4e closes only the finite code issue. The bounded failure artifact adds six body-free index/cursor-presence/coverage/generation-match fields to discriminate any future failure.
+
+One coherent0.43.19 follow-up proceeds to fresh formal Full/Prompt; normal merge, exact-main Full/Prompt and one qualified package remain pending. No dependency/version/permission changes, installation or deployment. TOPIC05.5 and the complete mixed Canonical C remain separate unintegrated batches. C294 local passes and finite independent code approval do not qualify original native/full-resource/complete Sync acceptance.
+
+## Preserved prior checkpoint
+
+# Current0.43.19 candidate: isolated manual setup and retained search failure evidence — 2026-10-11
+
+PR254d3b3c0de1e2cbd0fe785e2a1d7dbf4a7e9a6ba01 is NOT_ACCEPTED. Full38123272698 fails Browser1 at original Settings E04 manual Prompt setup (`MEMORY_STALE`) and Browser4 at original UIS02 current-Topic matching; seven other browser shards, all four unit shards, contracts, build and both macOS jobs pass. Prompt38123272534 and Visual38123272597 pass. Fresh native54 top-level/84total passes and both original strict gates are independently qualified at actual signed merge77fd96edd7803a96625a650f6305a3ed2beac6f2, tree41c9398dffdcb9da33a288aad370b2adf1c57f84. This does not close the failed Full gate.
+
+The Settings fixture creates its independent manual Prompt before starting its capture producer. The same authentic query/create/CAS and all original manual Input, Prompt, consent, pause, composer, focus and zero-network assertions remain; no write retry or stale guard changes. UIS02 keeps its original journey and assertions and now saves its existing bounded body-free failure diagnostic as an artifact. Its unique cloud failure cause remains UNKNOWN; no search runtime fix or cloud PASS is claimed.
+
+The two complete local files pass25/25,0fail/cancel/skip,27886.025ms (Settings source/release24 plus UIS021). All3317 tracked source and481 existing standard release files stay identical across this run. The qualified About-fix package is reused because runtime/dependencies are unchanged; no new build, browser version or release identity is invented. Source independent two-file review d074a1f96424300a8f28ac33fab1a461c4a2437a46ec6293ce558c9f98a3b48c approves the finite fixture/diagnostic scope.
+
+One combined follow-up proceeds through fresh formal Full/Prompt; merge and exact-main Full/Prompt plus one qualified package remain pending. Main531dbcf/qualified0.43.16 is unchanged. TOPIC05.5 and whole Canonical C remain separate unintegrated work; missing visual materials, actual provider/account/device, installation and deployment gates remain unverified.
+
+## Preserved prior checkpoint
+
 # Current0.43.19 candidate: update focus repair and bounded browser readiness — 2026-10-11
 
 PR254827c3dc2a67b6ee40892e2f11691d411a2966ab0 remains NOT_ACCEPTED. Full38121366502 fails Browser1 at the original Settings update-focus assertion and Browser5 at the original accessibility Source-dialog assertion; its other seven browser shards, four unit shards, contracts, build, both macOS jobs and independently qualified native54/84 pass. Prompt38121366499 fails the source Stage3A choice-insertion feedback; its release file and four unit shards pass. Visual38121366516 passes. All failures remain recorded; no skipped job is accepted.
