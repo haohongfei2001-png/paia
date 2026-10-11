@@ -52,6 +52,12 @@ Both browser stacks identify the original IndexedArchiveStore.run control-fence 
 
 The native original26-file command completed52 top-level journeys (82 total tests) successfully in609945ms. Its separate configuration command was then cancelled at the existing12-minute job limit; its two receipts are not PASS. The correction keeps the same ordered union of27 whole files and all54 independently validated receipt requirements, runs them in one command with three bounded workers, and retains the12-minute limit and always-uploaded evidence. No scenario, timeout or assertion is removed or relaxed. Fresh exact-candidate native54 and Full acceptance are still required. Original failed/cancelled logs and finite independent reviews remain preserved.
 
+## Fourth candidate: native scheduling contract correction
+
+Candidate `b2888c9e21ce5290d7abc32e2860bd35dbe53953` retained the same runtime. Full [38097033505](https://github.com/haohongfei2001-png/paia/actions/runs/38097033505) exposed seven obsolete command-shape assertions in `browser-native-sync-ci.test.mjs`: native preflight724/731 and Unit2 1291/1298 failed on those same assertions, before any native source/release execution. Prompt [38097033467](https://github.com/haohongfei2001-png/paia/actions/runs/38097033467) failed its corresponding unit shard, so its foundation did not run. Original logs are retained; other Full jobs must be evaluated individually when complete.
+
+The test-only follow-up now separately requires the unchanged candidate command (two workers,26 ordered files plus the serial configuration file) and the reviewed Full command (three workers,27 ordered files in one command). It requires configuration execution exactly once, retains every original ordered file, all52/54 receipt validation, negative cases, time limits and non-success aggregate refusal. Independent review approves the finite exact test change. Its complete24 tests pass, and the original full native preflight passes731 tests with zero failure, skip or cancellation in19488.291834ms. These local passes are not native execution or formal acceptance. This was an omitted test-contract update in the scheduling change; it does not indicate a production data-guard change.
+
 ## Final candidate/main fields — pending
 
 - Final reviewed/tested head and merge candidate: PENDING.
