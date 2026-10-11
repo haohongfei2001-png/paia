@@ -1,0 +1,489 @@
+{
+  "scope": "Isolated design prototype only. Not production, live connector, physical IME, performance or security certification.",
+  "browser": "Chromium / Playwright",
+  "rendering": "set_content with query-fixture injection; browser navigation is policy-blocked in this environment",
+  "fixture": "Synthetic content; in-memory state; no real archives, OAuth or APIs.",
+  "checks": [
+    {
+      "test": "no-horizontal-overflow:01-Home",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:02-Cards-Off",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:03-Global-Off",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:04-Info",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:05-Inline-Editing",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 924,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:06-Rules",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:07-Now",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:08-Inputs-20",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:09-Inputs-50",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:10-Inputs-144",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 1414,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:11-Connections",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:12-Compact",
+      "pass": true,
+      "details": {
+        "w": 390,
+        "h": 987,
+        "viewport": 390
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:13-Dark",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:14-Inputs-Paused",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:15-Empty",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:16-Save-Failed",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 932,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:17-New-Topic",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:18-Dark-Inputs",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:19-Compact-Info",
+      "pass": true,
+      "details": {
+        "w": 390,
+        "h": 958,
+        "viewport": 390
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:20-Connect",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:21-Tablet",
+      "pass": true,
+      "details": {
+        "w": 768,
+        "h": 1024,
+        "viewport": 768
+      }
+    },
+    {
+      "test": "no-horizontal-overflow:22-No-AI",
+      "pass": true,
+      "details": {
+        "w": 1440,
+        "h": 900,
+        "viewport": 1440
+      }
+    },
+    {
+      "test": "home-four-cards",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "home-no-private-details",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "home-one-screen",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "shell-original-rail",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "shell-left-axis",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "shell-original-title-role",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "no-checkbox-no-search",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "card-toggle-does-not-navigate",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "inputs-card-off-preserves-topics",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "global-off-preserves-groups",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "global-off-preserves-topics",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "global-off-no-ai-readable-claim",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "card-opens-detail",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "inline-edit-ack",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "inline-edit-protected",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "delete-suppression",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "delete-undo",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "user-created-context",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "composition-does-not-commit",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compositionend-commits",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "exactly-144-topics",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "topics-no-management-controls",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "topic-toggle-stable-order",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "topic-toggle-keeps-independent-context",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "topic-keyboard-end",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "topics-one-tab-entry",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "failed-save-preserves-text",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "failed-save-leave-guard",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "failed-save-explicit-retry",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:320:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:320:",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:320:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:320:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:320:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:320:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:390:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:390:",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:390:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:390:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:390:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "compact-native-nav:390:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:768:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:768:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:768:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1024:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1024:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1024:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1280:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1280:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1280:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1440:home",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1440:page=inputs&topics=144",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "width:1440:page=info",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "saved-large-reading-text-no-overflow",
+      "pass": true,
+      "details": null
+    },
+    {
+      "test": "no-page-errors",
+      "pass": true,
+      "details": []
+    },
+    {
+      "test": "no-external-requests",
+      "pass": true,
+      "details": []
+    }
+  ],
+  "passed": 78,
+  "total": 78,
+  "errors": []
+}

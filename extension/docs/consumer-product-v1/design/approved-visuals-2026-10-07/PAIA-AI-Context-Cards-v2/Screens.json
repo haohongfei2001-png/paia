@@ -1,0 +1,332 @@
+[
+  {
+    "id": "01-Home",
+    "name": "首页 · 正常",
+    "query": "",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/01-Home.png"
+  },
+  {
+    "id": "02-Cards-Off",
+    "name": "首页 · 部分类别关闭",
+    "query": "state=cards-off",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/02-Cards-Off.png"
+  },
+  {
+    "id": "03-Global-Off",
+    "name": "首页 · 全局访问关闭",
+    "query": "state=global-off",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/03-Global-Off.png"
+  },
+  {
+    "id": "04-Info",
+    "name": "我的信息",
+    "query": "page=info",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/04-Info.png"
+  },
+  {
+    "id": "05-Inline-Editing",
+    "name": "我的信息 · 直接编辑",
+    "query": "page=info",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 924,
+      "viewport": 1440
+    },
+    "file": "screens/05-Inline-Editing.png"
+  },
+  {
+    "id": "06-Rules",
+    "name": "我的规则",
+    "query": "page=rules",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/06-Rules.png"
+  },
+  {
+    "id": "07-Now",
+    "name": "我的现在",
+    "query": "page=now",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/07-Now.png"
+  },
+  {
+    "id": "08-Inputs-20",
+    "name": "我的输入 · 20 个主题",
+    "query": "page=inputs&topics=20",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/08-Inputs-20.png"
+  },
+  {
+    "id": "09-Inputs-50",
+    "name": "我的输入 · 50 个主题",
+    "query": "page=inputs&topics=50",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/09-Inputs-50.png"
+  },
+  {
+    "id": "10-Inputs-144",
+    "name": "我的输入 · 144 个主题",
+    "query": "page=inputs&topics=144",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 1414,
+      "viewport": 1440
+    },
+    "file": "screens/10-Inputs-144.png"
+  },
+  {
+    "id": "11-Connections",
+    "name": "已连接的 AI",
+    "query": "page=connections",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/11-Connections.png"
+  },
+  {
+    "id": "12-Compact",
+    "name": "窄屏首页",
+    "query": "",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "capture": {
+      "w": 390,
+      "h": 987,
+      "viewport": 390
+    },
+    "file": "screens/12-Compact.png"
+  },
+  {
+    "id": "13-Dark",
+    "name": "深色首页",
+    "query": "theme=dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/13-Dark.png"
+  },
+  {
+    "id": "14-Inputs-Paused",
+    "name": "我的输入 · 上层关闭",
+    "query": "page=inputs&topics=20&state=inputs-off",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/14-Inputs-Paused.png"
+  },
+  {
+    "id": "15-Empty",
+    "name": "首次打开 · 空内容",
+    "query": "state=empty",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/15-Empty.png"
+  },
+  {
+    "id": "16-Save-Failed",
+    "name": "我的信息 · 保存失败",
+    "query": "page=info&state=save-failed",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 932,
+      "viewport": 1440
+    },
+    "file": "screens/16-Save-Failed.png"
+  },
+  {
+    "id": "17-New-Topic",
+    "name": "新主题 · 默认关闭",
+    "query": "page=inputs&topics=20&state=new-topic",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/17-New-Topic.png"
+  },
+  {
+    "id": "18-Dark-Inputs",
+    "name": "深色 · 主题授权",
+    "query": "page=inputs&topics=50&theme=dark",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/18-Dark-Inputs.png"
+  },
+  {
+    "id": "19-Compact-Info",
+    "name": "窄屏 · 我的信息",
+    "query": "page=info",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "capture": {
+      "w": 390,
+      "h": 958,
+      "viewport": 390
+    },
+    "file": "screens/19-Compact-Info.png"
+  },
+  {
+    "id": "20-Connect",
+    "name": "连接许可",
+    "query": "page=connect",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/20-Connect.png"
+  },
+  {
+    "id": "21-Tablet",
+    "name": "平板 · 首页",
+    "query": "",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "capture": {
+      "w": 768,
+      "h": 1024,
+      "viewport": 768
+    },
+    "file": "screens/21-Tablet.png"
+  },
+  {
+    "id": "22-No-AI",
+    "name": "已有内容 · 尚未连接",
+    "query": "state=no-ai",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "capture": {
+      "w": 1440,
+      "h": 900,
+      "viewport": 1440
+    },
+    "file": "screens/22-No-AI.png"
+  }
+]

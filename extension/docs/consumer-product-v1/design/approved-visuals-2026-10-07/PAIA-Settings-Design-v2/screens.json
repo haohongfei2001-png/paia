@@ -1,0 +1,466 @@
+[
+  {
+    "id": "01",
+    "name": "01 · 总入口 / 输入档案",
+    "file": "screens/01.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "capture"
+    },
+    "sha256": "16d428c48e549648ff2ad0f41f2243c28525e2b12155591c59c513d8f41d3480"
+  },
+  {
+    "id": "02",
+    "name": "02 · 输入已暂停",
+    "file": "screens/02.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "capture",
+      "case": "paused"
+    },
+    "sha256": "e2fb39e401851bc9601d868e60806ebdd9680ac0b1a7e316a80322e7e8360104"
+  },
+  {
+    "id": "03",
+    "name": "03 · 阅读与外观",
+    "file": "screens/03.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "reading"
+    },
+    "sha256": "122860d4a291b022d2015510c685e85233035718942c2d61ccf05b023e9f0a33"
+  },
+  {
+    "id": "04",
+    "name": "04 · AI 与提示词 / 未连接 / 建议关闭",
+    "file": "screens/04.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "ai"
+    },
+    "sha256": "c141c2805ac0bd627ad41093192771935e3608cdad077ee739a19277407b942c"
+  },
+  {
+    "id": "05",
+    "name": "05 · 隐私与访问",
+    "file": "screens/05.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "privacy"
+    },
+    "sha256": "3e358421f60b3216d62197587e1c96dcac906ca9eb422a58a55fd4c8beecfc3d"
+  },
+  {
+    "id": "06",
+    "name": "06 · 数据与恢复 / 有导入和移除内容",
+    "file": "screens/06.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data"
+    },
+    "sha256": "7e9fdcd8e051bba5c7c5b6f22f2c5fd68b9bfb3972b366f3c40e2d7bfbb0e6ae"
+  },
+  {
+    "id": "07",
+    "name": "07 · 关于 PAIA",
+    "file": "screens/07.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "about"
+    },
+    "sha256": "7ae163094ff07286a4c7b5f847e67bbe75c297c798945525a86838cb6d78bae8"
+  },
+  {
+    "id": "08",
+    "name": "08 · 确认的索引故障（合成）",
+    "file": "screens/08.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "warning"
+    },
+    "sha256": "3eb3e5940a35123d97c237669997e7a6062a9b56883dba0eadb69abe52a261de"
+  },
+  {
+    "id": "09",
+    "name": "09 · 窄屏设置目录",
+    "file": "screens/09.png",
+    "viewport": [
+      320,
+      850
+    ],
+    "rendered_size": [
+      320,
+      909
+    ],
+    "parameters": {
+      "group": "capture",
+      "screen": "index",
+      "width": 320
+    },
+    "sha256": "f026da9e750079536703009da8ae1c09a769ec2ec0b1ec2f4a6b5aaebbc77bf3"
+  },
+  {
+    "id": "10",
+    "name": "10 · 320px / AI 与提示词",
+    "file": "screens/10.png",
+    "viewport": [
+      320,
+      850
+    ],
+    "rendered_size": [
+      320,
+      909
+    ],
+    "parameters": {
+      "group": "ai",
+      "width": 320
+    },
+    "sha256": "f31e1f6ecea4ea7ec8ec8d5c8f338b777eb59942c73e693d10f36a6456623b6e"
+  },
+  {
+    "id": "11",
+    "name": "11 · 深色 / 阅读与外观",
+    "file": "screens/11.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "reading",
+      "theme": "dark"
+    },
+    "sha256": "4e4df39da0c9cb8b8f0c5831791403967199d8a0f244ac7d463ef0d7466d1da3"
+  },
+  {
+    "id": "12",
+    "name": "12 · 200% 文字 / 数据与恢复",
+    "file": "screens/12.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "text": 200
+    },
+    "sha256": "4dfe891f67a42165a325e96263787510b84b199c3f4d328a771a8ccc13aa844e"
+  },
+  {
+    "id": "13",
+    "name": "13 · 320px + 200% 文字",
+    "file": "screens/13.png",
+    "viewport": [
+      320,
+      850
+    ],
+    "rendered_size": [
+      320,
+      1098
+    ],
+    "parameters": {
+      "group": "data",
+      "text": 200,
+      "width": 320
+    },
+    "sha256": "1ac2a8a2316adfc0ebb6a9c0743f01c0976240bfa717ac3fe23b5eee9089295d"
+  },
+  {
+    "id": "14",
+    "name": "14 · 从已有备份恢复 / 选择",
+    "file": "screens/14.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "restore-choose"
+    },
+    "sha256": "065a5488f4e02830280cd5ba51532462f1d834313cf0e097398726be57d74f6b"
+  },
+  {
+    "id": "15",
+    "name": "15 · 从已有备份恢复 / 预览",
+    "file": "screens/15.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "restore-preview"
+    },
+    "sha256": "530153cbaa8dde4edc24612d17c2eccdb619538a5172817b2d400889dee2b97c"
+  },
+  {
+    "id": "16",
+    "name": "16 · 备份校验失败",
+    "file": "screens/16.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "restore-invalid"
+    },
+    "sha256": "f349594e3b923073d45a1b5f29bfdf9f8343ee270764444d668f2cbbec257634"
+  },
+  {
+    "id": "17",
+    "name": "17 · 下一句建议 / 显式开启",
+    "file": "screens/17.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "ai",
+      "case": "suggest-consent"
+    },
+    "sha256": "e260d6ffaa92f13bf2d2c133b95dff22176a710c71d570d0051cb2948df2bdb5"
+  },
+  {
+    "id": "18",
+    "name": "18 · 已移除内容 / 8 项可滚动列表",
+    "file": "screens/18.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "removed"
+    },
+    "sha256": "c5d848add5d8eb76e0428c848ed539f4e45191512d6f51ae72cde4ab196eb411"
+  },
+  {
+    "id": "19",
+    "name": "19 · 历史输入 / 预览与待确认",
+    "file": "screens/19.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "import-preview"
+    },
+    "sha256": "e21fac2722f705524937c12ea7fb247b65913f628a4935734277c05156df888d"
+  },
+  {
+    "id": "20",
+    "name": "20 · 保存失败 / 请点击任意开关",
+    "file": "screens/20.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "capture",
+      "case": "save-failure"
+    },
+    "sha256": "b6d443ebc958cb838d1645071b5ada97d45d978071815d237f30715b996f1982"
+  },
+  {
+    "id": "21",
+    "name": "21 · 访问已开启且连接 2 个 AI（目标示例）",
+    "file": "screens/21.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "ai",
+      "case": "connected"
+    },
+    "sha256": "bed825c6bdfc986542f28431c4693c7c4bd4d5f67cab2a8c085f841657457572"
+  },
+  {
+    "id": "22",
+    "name": "22 · 存储空间 / 详情",
+    "file": "screens/22.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "data",
+      "case": "storage"
+    },
+    "sha256": "758373ff854de53c01eb3117745b8a902f657f7d3c6f3ab32c0b7ff00abcf7af"
+  },
+  {
+    "id": "23",
+    "name": "23 · 首次使用 / 尚未同意保存",
+    "file": "screens/23.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "capture",
+      "case": "first-use"
+    },
+    "sha256": "e2fb39e401851bc9601d868e60806ebdd9680ac0b1a7e316a80322e7e8360104"
+  },
+  {
+    "id": "24",
+    "name": "24 · 下一句建议 / 已显式开启（示例）",
+    "file": "screens/24.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "ai",
+      "case": "suggest-on"
+    },
+    "sha256": "28405f4863d012e9f2e9929117cda5287458b2e0ddf7702a53cf29f86482f0fb"
+  },
+  {
+    "id": "25",
+    "name": "25 · 依赖尚未接通 / 真实不可用",
+    "file": "screens/25.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "ai",
+      "case": "capability-unavailable"
+    },
+    "sha256": "8ed98f4f21289297aaf92b79a2216d9fe0d76cf94f780c9b9a860f8a4cb41dcf"
+  },
+  {
+    "id": "26",
+    "name": "26 · English / Reading & appearance",
+    "file": "screens/26.png",
+    "viewport": [
+      1440,
+      900
+    ],
+    "rendered_size": [
+      1440,
+      900
+    ],
+    "parameters": {
+      "group": "reading",
+      "locale": "en"
+    },
+    "sha256": "158b84c3686e2531c85c69e53078d66d18b09e033e1c14256c2fa70b7ee16c87"
+  }
+]

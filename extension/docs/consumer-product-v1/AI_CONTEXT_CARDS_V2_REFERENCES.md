@@ -1,5 +1,15 @@
 # AI Context Cards v2 — approved visual references
 
+## Original approved design files now in this repository — 2026-10-11
+
+The owner explicitly authorized storing the previously private, synthetic **Context v2 visual reference files in the existing public PAIA repository**. Downloading them from a different ChatGPT account or a Mac is no longer a development prerequisite. The preserved original package and unpacked files are available at:
+
+- [Original Context design ZIP](design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2.zip) — SHA-256 `a1657d1b4bc36326d4cf8260d4e858f565f707a9e71dd959cd64adc8d6240b2c`.
+- [22 full-size Context state screenshots](design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2/screens/), [interactive Review.html](design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2/Review.html), [source design notes](design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2/AI-Context-Design.md).
+- [Source package index and compatibility rules](design/approved-visuals-2026-10-07/README.md).
+
+The older **Access and privacy** paragraph below accurately records that these visual bytes were not in the repository *at the 2026-10-07 adoption time*; its asset-location instruction is superseded by this explicit publication. No current user archive, accounts, credentials, permissions, provider enablement, or behavioral product decision is published or changed. Original sample states remain illustrative. The later owner-approved 17px/680px reading standard remains in force.
+
 Owner approval recorded: 2026-10-07. This is a reference manifest, not a new visual design or runtime certificate.
 
 The approved private delivery is `PAIA-AI-Context-Cards-v2.zip`, SHA-256 `a1657d1b4bc36326d4cf8260d4e858f565f707a9e71dd959cd64adc8d6240b2c`.

@@ -1,5 +1,15 @@
 # Settings Consumer v2 — frozen visual references
 
+## Original approved design files now in this repository — 2026-10-11
+
+The owner explicitly authorized storing the previously private, synthetic **Settings v2 visual reference files in the existing public PAIA repository**. Development agents can now inspect the exact original artifacts without accessing a separate ChatGPT account or Mac:
+
+- [Original Settings v2 design ZIP](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2.zip) — SHA-256 `c9d53e2ba34cc29a46124c7cada6de77ac9c2ee24704069beedfb44189b22f7c`.
+- [26 full-size Settings state screenshots](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/screens/), [26-page Visual-Review.pdf](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/Visual-Review.pdf), [interactive Review.html](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/Review.html).
+- [Source package index and compatibility rules](design/approved-visuals-2026-10-07/README.md).
+
+The earlier **Access and disclosure** paragraph below records the private-asset location *at adoption time* and is superseded only for the availability of the original visual files. Subsequent Settings AI Organize style and Sync adjustments continue to supersede incompatible sample rows. These are synthetic, static design references, not proof of active services, user-installation parity, or production tests.
+
 Decision: owner-directed final correction and design freeze, 2026-10-07. Contract SETTINGS-CV2-1.0. Initial design audit main `29940a921e4797c463a5e7e8436bafe6125f9f1d`; final integration read main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, tree `550aab987b33196ea05ed5fec06e93771670b35e`. The latter preserves the intervening Topic-01 integration and 0.13.0 identity. Settings and shared UI source stayed unchanged; the About reference now shows 0.13.0.
 
 This is the exact private handoff manifest, not production implementation or a replacement for opening the images. The owner retained the first review's overall language and directed the finite final simplifications recorded in [ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md). No separate later owner pixel review of the corrected artifacts is asserted.
