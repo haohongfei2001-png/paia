@@ -1,3 +1,13 @@
+# PR263 original Full failure and exact successor verification — 2026-10-12
+
+Original Full38176833567 at published9f failed Unit1/3 and Browser3/4/8; retain every failure and the failed aggregate. Successor2e1a539c575173f9de5297a43e4cc4fc9b564352/tree9e3fecfbdd91eb985e62331b912d891ce5fb115b fixes one Removed presentation lifecycle boundary and five test fixtures/counters while preserving all original owner/CAS/digest/epoch/unknown outcomes, data/refusal assertions, timeouts and whole-file coverage. Pure language synchronization cannot change live membership or disabled state. Actual preference-broadcast-after-old-ACK source/release counter is in the original wholePlacement file; the original wholeData no-RPC/same-node/focus/user-text/disabled language oracle remains unchanged.
+
+Use the existing PAIA_FULL_CERTIFICATION for this same stable recovery batch. Required original headed Settings/device, whole Thought/current browsers, unit/contracts/package, native strict gates and aggregate must pass the reviewed changed head. Original9f component receipts stay9f; no prior successful or skipped/cancelled evidence is relabeled. Exact main Full/Prompt/native/public-byte qualification remains after a guarded reviewed merge. No runtime/CI assertion discount or repeated deployment is introduced; targeted headless evidence is not full certification.
+
+Exact2e limited CODE/component approvale4da25662f43316a9ab7e58ed452c961dee7cd9a5acf6bb6fa9f8f5e16613e65/binding293c7612cbc851050cffa31a3c8c3b991c64660dd2f383a58f62e07b882b9632 permits final reviewed-ready candidate preparation; it does not replace new-head Full or actual main gates.
+
+## Preserved protocol and original selection
+
 # SET2 Removed composite stable-batch verification selection — 2026-10-12
 
 This batch keeps current main b8a09bbfd4b57447c71f8b18bb1e528c65e0668e and approved Settings18 presentation while reconnecting every already supported Removed kind through its original typed owner. The original whole Data journey covers real Source/release recovery, unknown receipts, CAS/epoch, paging, pending-import discovery and history lifecycle. Original local failed/headless-device records remain failures; no assertion, timeout, admission, privacy, native or budget guard is reduced.

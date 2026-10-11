@@ -1,3 +1,13 @@
+# Executable frontier: PR263 repaired stable Removed batch and full mixed Sync — 2026-10-12
+
+Mainb8/product0.43.25 is unchanged. PR263 original9f Full38176833567 failed Unit1/3 and Browser3/4/8; original logs/failed aggregate remain. Keep existing full-certification marker and all whole-file/device/native/aggregate guards for the next actual changed candidate. No same-SHA confirmation rerun or deployment is requested.
+
+Root owns reviewed-coherent SET2-02 successor2e1a539c575173f9de5297a43e4cc4fc9b564352/tree9e3fecfbdd91eb985e62331b912d891ce5fb115b: pure language copy preserves original unknown recovery/current nodes while actual reads/current ACK own membership. Existing fixture preconditions are explicit and exact. Targeted four whole browser files6P and final source/release wholePlacement2P prove the old-ACK→real preference broadcast same-node/original one-write case and reviewed read-only Reload path, plus original Data controls/focus/body/CAS/permissions. Exact2e limited CODE/component reviewe4da25662f43316a9ab7e58ed452c961dee7cd9a5acf6bb6fa9f8f5e16613e65/binding293c7612cbc851050cffa31a3c8c3b991c64660dd2f383a58f62e07b882b9632 is approved; final docs addendum, exact new-head cloud gates, reviewed merge and main/release qualification remain distinct steps. No completeSET2-02/05 or26-screen final certification follows.
+
+Exclusive data writer continues approvedPR250 SYNC-01 Batch A minimum in one actual producer/restore/edit/re-export chain. Source r129 A45/B48/C61 now covers expanded third pre-enrollment bound Working and independent Thought edit after stale SavedAI; complete source/release four-case/negative/frozen review gate remains. Root holds the separate CI route until that coherent freeze. Preserve all latest Topic/Context/AI/Prompt/NIBv4/IAH1.1 foundations and existing closures; do not reopen selected six IAH outcomes or approved S4 focus/open decision.
+
+## Preserved previous frontier
+
 # Current executable frontier: SET2 Removed0.43.26 and complete mixed SYNC-01 — 2026-10-12
 
 Current accepted main b8a09bbfd4b57447c71f8b18bb1e528c65e0668e, product0.43.25 preserves PR262 Data destinations, all earlier Topic/Context/AI/Prompt/NIBv4/selected IAH1.1 outcomes. Exact-main selected Light8/Prompt5 and internal484-file byte qualification are recorded in STATUS; no Full/native skip is converted into a pass.

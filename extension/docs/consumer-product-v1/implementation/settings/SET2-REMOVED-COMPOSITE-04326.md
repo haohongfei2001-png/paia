@@ -1,3 +1,23 @@
+# PR263 first Full repair — exact local code2e1a539c575173f9de5297a43e4cc4fc9b564352
+
+Successor2e1a539c575173f9de5297a43e4cc4fc9b564352/tree9e3fecfbdd91eb985e62331b912d891ce5fb115b, parentee1139960f2d831c65f15fcf6497e2597f395677 follows published9f91eaaf6b6b71a45905c7c6e3affd7291b67ae3. Product0.43.26 remains the same unmerged coherent batch. Remote mainb8/product0.43.25, original approved Settings18, shared data/worker/provider/permissions and old evidence remain intact.
+
+## Original failures and concrete correction
+
+Full38176833567 signed1193/treecf77 completed FAIL, with original Unit1/3 and Browser3/4/8 plus failed certification/aggregate. Unit1 real HTMLElement dataset was missing only in its fake node; Unit3 old literal no-argument editor signature extraction became invalid. ee113 corrects their fixtures without changing the original executed behaviors or assertions; first17P1F English-copy mistake is retained, final whole2 files18P84.537584ms. Independent UNIT_FIX_REVIEW2c073eab92c3c06e69220b828c47485a657ee62c5418a2d30b1666c52c1f41b0 approves this limited boundary.
+
+Browser3 still targeted the retired #r6-source-records wrapper; its original retained guarded button is now #settings-source-records, and every original click/filter/Source equality/retired-export refusal remains. Browser4 Data assumed Chinese in native host English without selecting language; it now saveszh-CN and waits for the actual DOM before original Chinese assertions, retaining later real English switch. Placement's same reopened uncertain-node failure is not removed or relaxed. Original restore broadcast→SettingsLocal.load→applyPreferences may finish after an old ACK retires its model attempt; old preferences render could delete the current reopened row indirectly. Browser8 likewise exposed purelocale changing pending-control invariants. The exact unique hosted timing remains unknown.
+
+The runtime separates text sync from original actual-read/current-ACK rendering. Cached records and last-render unconfirmed/unknown state determine copy; locale does not read live model outcomes to requalify/delete/move nodes or change disabled controls. Actual qualified generation reads/current ACK continue doing those tasks. Original typed operations, digest/CAS/epoch/outcome/visible guards remain unchanged. Unknown requests retain original identity, never become assumed uncommitted or a new recovery. The added existing-file counter uses genuineUPDATE_PREFERENCES en→zh after held oldACK, requiring the same current uncertain DOM node and one original mutation, then explicit readonly Reload. The one-write counter runs before Reload; the unchanged reviewed read-only Reload path is code evidence, not a new post-Reload mutation-count assertion.
+
+## Exact bounded validation and next gates
+
+Four original complete affected files6PASS0fail/cancel/skip93827.927458ms: Data source/release, Data destinations source/release, Placement source/release, UIS01. r17 Placement read its prior unchanged fixture before the added broadcast counter and does not qualify that new counter. Final unchanged wholePlacement source/standardrelease2PASS14590.269416ms binds the final new counter. Original wholeData keeps exact locale controls/nodes/focus/usertext/zeroRPC oracle. Three whole model/unit files33PASS65.482125ms; package15859guards/465runtime resources and development privacy PASS. These exact code/dependency vectors support targeted readiness only, not full current-head certification.
+
+Author packet PR263-2E1A-LOCALE-REPAIR-AUTHOR-20261012 AUTHOR1dccdbc4ce334ef32090130ec24eb414cfd992bef12c09b5041e2db689dde870/BINDING7560d8b691ad5b53cdffec24389215c0b5a53cf1039f5786d8ee827f04f477a1 contains six actual Git/SHA file bindings, original logs and retained failures. Original readonly diagnosisfafd28901bd6cfb3d177c4956341cadffd83091cdc78c203523514d4a1e29395/binding709dc29d3ea5ea258a0f49b5edf50e80322e20688f70c08a688bec881df2000f is not final code approval. Exact2e independent limited CODE/component APPROVED reporte4da25662f43316a9ab7e58ed452c961dee7cd9a5acf6bb6fa9f8f5e16613e65/binding293c7612cbc851050cffa31a3c8c3b991c64660dd2f383a58f62e07b882b9632 closes the reviewed six-path boundary; author Reload evidence addendum explicitly preserves its counting limitation. Final docs-only addendum precedes one changed-head publication; fresh Full/native/headed-device/wholeThought/aggregate and subsequent main/public-release qualification are still required. No merge/install/deploy/fullSET2/seven-lane claim.
+
+## Preserved candidate receipt and all earlier failures
+
 # SET2-02 Approved Removed composition —0.43.26 candidate
 
 ## Identity and approved scope
