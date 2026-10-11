@@ -38,7 +38,7 @@ const openSurfaceTools=async frame=>{if(await frame.locator('#surface-tools').is
 const surfaceClick=async(frame,selector)=>{await openSurfaceTools(frame);await clickSurface(frame,frame.locator(selector));};
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{
  const extensionPath=variant==='source'?root:process.env.NIB_RELEASE_PATH||await mkdtemp(join(root,'work/prompt-diagnostic-release-'));if(variant==='release'&&!process.env.NIB_RELEASE_PATH)execFileSync('python3',['scripts/build_current_release.py',extensionPath],{cwd:root,stdio:'pipe'});
- let failures=0;const check=(name,fn)=>t.test(name,async()=>{try{await fn();}catch(error){failures++;console.error(name,error.stack);throw error;}});
+ let failures=0,failureProbe=null;const check=(name,fn)=>t.test(name,async()=>{try{await fn();}catch(error){failures++;try{await failureProbe?.(name);}catch(diagnosticError){console.error('Prompt case diagnostic unavailable:',diagnosticError.name);}console.error(name,error.stack);throw error;}});
  // This native DOM/input suite uses headless Chrome even when CI provides Xvfb.
  // OS/tab visibility belongs to its separate native lifecycle tests.
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
@@ -51,6 +51,14 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const arrange=async p=>{await p.addStyleTag({content:'body{margin:0;min-height:100vh}form{position:fixed;left:16px;right:16px;bottom:16px;border:1px solid #aaa;padding:12px;background:#fafafa}#blur{position:fixed;top:8px;left:8px}@media(prefers-color-scheme:dark){body{background:#1f1f1f;color:#eee}form{background:#292929}}'});};await arrange(page);
   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
+  failureProbe=async name=>{
+   const frame=card(),child=frame?await frame.locator('html').evaluate(()=>{
+    const status=document.getElementById('status')?.textContent??'',shape=node=>{if(!node)return null;const r=node.getBoundingClientRect();return {hidden:node.hidden,disabled:node.disabled,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};};
+    return {pending:document.documentElement.hasAttribute('data-layout-pending'),focusTag:document.activeElement?.tagName,status:{empty:!status,inserted:status.includes('已插入'),inserting:status.includes('正在插入'),unknown:status.includes('未确认'),stale:status.includes('已变化'),unavailable:status.includes('不可用')},check:shape(document.getElementById('check-text')),fill:shape(document.querySelector('#check-text .actions button')),rows:document.querySelectorAll('.row').length};
+   },null,{timeout:1000}):null;
+   const host=await page.locator('html').evaluate(()=>{const view=globalThis.fixture?.view,selection=view?.state?.selection;return {documentFocused:document.hasFocus(),visibility:document.visibilityState,focusTag:document.activeElement?.tagName,focusEditable:document.activeElement?.isContentEditable===true,editorFocused:view?.hasFocus(),selection:selection?{from:selection.from,to:selection.to,empty:selection.empty}:null,bodyLength:view?.state?.doc?.textContent.length};},null,{timeout:1000});
+   await writeFile(join(receiptDir,variant+'-case-failure.json'),JSON.stringify({name,child,host},null,2)+'\n');
+  };
   // Resolve the current closed-shadow iframe within the existing readiness budget.
   // Only an actually detached Frame permits reacquisition; all other errors fail.
   const readyCard=async(resolve=card)=>{let ready;await eventually(async()=>{const f=resolve();if(!f||f.isDetached())return false;let visible;try{visible=await f.locator('.row').first().isVisible();}catch(error){if(f.isDetached())return false;throw error;}if(!visible||f.isDetached()||resolve()!==f)return false;ready=f;return true;},'current Prompt frame has visible rows');await (await ready.frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});await ready.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await ready.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));await settleSurface(ready);assert.equal(ready.isDetached(),false,'ready Prompt frame remains attached');assert.equal(resolve(),ready,'ready Prompt owner remains current');return ready;};

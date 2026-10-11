@@ -4,6 +4,7 @@ import {historicalBackupItems} from './harness/historical-backup-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,readFile,mkdtemp,rm} from 'node:fs/promises';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import {execFile} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -11,6 +12,17 @@ import {promisify} from 'node:util';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const execFileAsync=promisify(execFile);
+let diagnosticPhase='not-started';const diagnosticPhases=[],diagnosticRPC=[];
+const phase=name=>{diagnosticPhase=name;diagnosticPhases.push({at:Date.now(),phase:name});if(diagnosticPhases.length>96)diagnosticPhases.shift();};
+const diagnosticFile=value=>{try{mkdirSync('work/ux-r6',{recursive:true});writeFileSync('work/ux-r6/uir04-failure-phases.json',JSON.stringify({phase:diagnosticPhase,phases:diagnosticPhases,rpcEvents:diagnosticRPC,...value},null,2)+'\n');}catch(error){console.error('UIR04 phase diagnostic unavailable:',error.name);}};
+const installRPCDiagnostic=async(page,journey)=>{page.on('console',message=>{const text=message.text();if(!text.startsWith('UIR04_PRIVATE_RPC '))return;try{const event=JSON.parse(text.slice(18));diagnosticRPC.push({journey,...event});if(diagnosticRPC.length>128)diagnosticRPC.shift();}catch{}});return page.evaluate(journey=>{
+ const original=chrome.runtime.sendMessage;globalThis.__uir04ObservedRPC={journey,events:[],pending:0};
+ const add=event=>{const state=__uir04ObservedRPC;state.events.push({at:Date.now(),...event});if(state.events.length>128)state.events.shift();console.info('UIR04_PRIVATE_RPC '+JSON.stringify(state.events.at(-1)));};
+ chrome.runtime.sendMessage=function(...args){const result=Reflect.apply(original,this,args),type=args[0]?.type;if(typeof type!=='string'||!/^([A-Z][A-Z0-9_]{0,63})$/.test(type)||!result?.then)return result;__uir04ObservedRPC.pending++;add({type,point:'request'});result.then(response=>{__uir04ObservedRPC.pending--;const raw=typeof response?.error==='string'?response.error:response?.error?.code;add({type,point:'reply',ok:response?.ok===true,code:typeof raw==='string'&&/^[A-Z0-9_]{1,64}$/.test(raw)?raw:null});},error=>{__uir04ObservedRPC.pending--;add({type,point:'rejected',name:typeof error?.name==='string'&&/^[A-Za-z0-9_]{1,64}$/.test(error.name)?error.name:'UNKNOWN'});}).catch(error=>{console.error('UIR04 observer unavailable:',error?.name??'UNKNOWN');});return result;};
+},journey);};
+const failedJourney=async(h,error)=>{try{const rpc=await h.archive.locator('html').evaluate(()=>globalThis.__uir04ObservedRPC??null,null,{timeout:1000});diagnosticFile({errorName:error.name,rpc});}catch(diagnosticError){diagnosticFile({errorName:error.name,diagnosticError:diagnosticError.name});}};
+const traced=async(name,fn)=>{phase(name);const result=await fn();phase(name+' completed');return result;};
+
 const rpc=async(page,type,fields={})=>{const response=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(response.ok,true,JSON.stringify(response));return response.data;};
 async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()));await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);const onboarding=await rpc(page,'GET_ONBOARDING');assert.equal(onboarding.step,'history');assert.equal(onboarding.historyState,'not_started');assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive hides the card without skipping optional import');}
 
@@ -195,38 +207,39 @@ async function removedListSafety(page){
 
 async function sourceAndBackup(marker){
  const h=await FakeChatGPT.start({onboarding:true});let backupBytes;
- try{
+ try{await installRPCDiagnostic(h.archive,'source');
   const page=h.archive;await consent(page);await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
   await h.open({id:'uir04-data-source',title:'UIR-04 数据恢复',base:1609459200,messages:[{id:'uir04-data-message',text:marker}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===marker));await page.bringToFront();
   await page.setViewportSize({width:1440,height:900});await openData(page);await assertDataOwners(page);await eventually(async()=>!(await page.locator('#r6-storage-estimate').textContent()).includes('正在读取'));
-  await removedCompositeOwners(h,'source');await removedInputSafety(h);await pendingInputDialogSafety(h);await readOnlyDetails(page,'source');
+  await traced('source mixed Removed owners',()=>removedCompositeOwners(h,'source'));await traced('source Input restore',()=>removedInputSafety(h));await traced('source pending history',()=>pendingInputDialogSafety(h));await traced('source read-only details',()=>readOnlyDetails(page,'source'));
   // Capture has been exercised above. Close its real producers and restart the
   // worker before the read-only fixture boundary, retaining the full-state oracle.
   for(const producer of h.context.pages())if(producer.url().startsWith('https://chatgpt.com/'))await producer.close();
-  await h.restartWorker();const before=await h.state();backupBytes=Buffer.from((await historicalBackupItems(page)).map(row=>JSON.stringify(row)).join('\n')+'\n');assert.deepEqual(await h.state(),before,'historical fixture encoding is read-only');
-  await shot(page,'uir-04-data-1440x900-light');await page.setViewportSize({width:390,height:844});await assertDataOwners(page);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-data-390x844-light');await removedListSafety(page);await assertNoNetwork(h);
- }finally{await h.close();}
+  await traced('source worker restart',()=>h.restartWorker());const before=await h.state();backupBytes=Buffer.from((await traced('source original backup export',()=>historicalBackupItems(page))).map(row=>JSON.stringify(row)).join('\n')+'\n');assert.deepEqual(await h.state(),before,'historical fixture encoding is read-only');
+  await shot(page,'uir-04-data-1440x900-light');await page.setViewportSize({width:390,height:844});await assertDataOwners(page);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-data-390x844-light');await traced('source Removed history and pagination',()=>removedListSafety(page));await assertNoNetwork(h);
+ }catch(error){await failedJourney(h,error);throw error;}finally{await h.close();}
  return backupBytes;
 }
 
 async function restoreJourney(backupBytes,marker){
  const h=await FakeChatGPT.start({onboarding:true});
- try{
+ try{await installRPCDiagnostic(h.archive,'restore');
   const page=h.archive;await consent(page);await openData(page);const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'rejected/preview-only inspections never change the current library');
   await eventually(()=>page.locator('#backup-preview').isVisible(),'restore preview is explicit');assert.equal(await page.locator('#backup-restore').isEnabled(),true,'validated empty-library restore requires the explicit confirm action');assert.match(await page.locator('#backup-status').textContent(),/请核对/);await shot(page,'uir-04-data-restore-preview');
   await page.locator('#backup-restore').click();await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),'explicit restore completes');
   const index=await rpc(page,'GET_PAGE',{page:{view:'archive',limit:100}}),doc=index.documents.find(row=>row.originalConversationTitle==='UIR-04 数据恢复');assert.ok(doc?.id);const records=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId:doc.id,limit:100}});assert.ok(records.records.some(row=>row.originalText===marker));await assertDataOwners(page);await assertNoNetwork(h);
- }finally{await h.close();}
+ }catch(error){await failedJourney(h,error);throw error;}finally{await h.close();}
 }
 
 async function releaseJourney(backupBytes){
  const releasePath=await mkdtemp(join(tmpdir(),'paia-uir04-data-release-'));await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});const h=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
- try{const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);await readOnlyDetails(page,'release');assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'release inspection never commits a restore');assert.equal(await page.locator('#backup-restore').isEnabled(),true);await page.evaluate(()=>{const original=chrome.runtime.sendMessage;globalThis.__cancelCompletion={original,held:false,release:null};chrome.runtime.sendMessage=async function(message,...args){const response=await original.call(this,message,...args);if(message.type==='PAIA_BACKUP_CANCEL'){__cancelCompletion.held=true;await new Promise(resolve=>__cancelCompletion.release=resolve);}return response;};});
+ try{await installRPCDiagnostic(h.archive,'release');const page=h.archive;await consent(page);await page.setViewportSize({width:390,height:844});await openData(page);await assertDataOwners(page);await readOnlyDetails(page,'release');assert.equal(await page.locator('#filter-advanced').count(),0,'current release keeps diagnostics pruning');assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)<=2);await shot(page,'uir-04-current-release-data-390x844-light');const before=await h.state();await rejectAndReselectBackup(page,backupBytes);assert.deepEqual(await h.state(),before,'release inspection never commits a restore');assert.equal(await page.locator('#backup-restore').isEnabled(),true);await page.evaluate(()=>{const original=chrome.runtime.sendMessage;globalThis.__cancelCompletion={original,held:false,release:null};chrome.runtime.sendMessage=async function(message,...args){const response=await original.call(this,message,...args);if(message.type==='PAIA_BACKUP_CANCEL'){__cancelCompletion.held=true;await new Promise(resolve=>__cancelCompletion.release=resolve);}return response;};});
  try{await page.locator('#backup-cancel').click();await eventually(()=>page.evaluate(()=>__cancelCompletion.held));assert.equal(await page.locator('#backup-preview').isVisible(),true,'click returns while the real cancellation acknowledgement is held');assert.equal(await page.locator('#backup-choose').isDisabled(),true,'pending cancellation retains the existing operation lock');await page.evaluate(()=>__cancelCompletion.release());await eventually(async()=>await page.locator('#backup-choose').isEnabled()&&!await page.locator('#backup-preview').isVisible(),'actual cancellation acknowledgement clears the preview and releases the operation lock');assert.equal(await page.locator('#backup-preview').isVisible(),false);}
  finally{await page.evaluate(()=>{__cancelCompletion.release?.();chrome.runtime.sendMessage=__cancelCompletion.original;});}
- await page.keyboard.press('Escape');await page.locator('#settings-backup-dialog').waitFor({state:'hidden'});assert.equal(await page.locator('#settings-backup').evaluate(n=>document.activeElement===n),true,'completed cancellation returns to the native destination');await removedCompositeOwners(h,'release');await removedListSafety(page);await removedInputSafety(h);await pendingInputDialogSafety(h);await assertNoNetwork(h);}finally{await h.close();await rm(releasePath,{recursive:true,force:true});}
+ await page.keyboard.press('Escape');await page.locator('#settings-backup-dialog').waitFor({state:'hidden'});assert.equal(await page.locator('#settings-backup').evaluate(n=>document.activeElement===n),true,'completed cancellation returns to the native destination');await traced('release mixed Removed owners',()=>removedCompositeOwners(h,'release'));await traced('release Removed history and pagination',()=>removedListSafety(page));await traced('release Input restore',()=>removedInputSafety(h));await traced('release pending history',()=>pendingInputDialogSafety(h));await assertNoNetwork(h);}catch(error){await failedJourney(h,error);throw error;}finally{await h.close();await rm(releasePath,{recursive:true,force:true});}
 }
 
-test('UIR-04 Data & devices separates Backup, complete export, local status and scoped Source owners while preserving explicit restore in source and current release Chrome',{timeout:300000},async()=>{
- const marker='UIR04_DATA_PRIVATE synthetic input for local-only data presentation.';const backupBytes=await sourceAndBackup(marker);assert.ok(backupBytes?.length);await restoreJourney(backupBytes,marker);await releaseJourney(backupBytes);
+test('UIR-04 Data & devices separates Backup, complete export, local status and scoped Source owners while preserving explicit restore in source and current release Chrome',{timeout:300000},async t=>{
+ let completed=false;t.signal.addEventListener('abort',()=>{if(!completed)diagnosticFile({aborted:true});},{once:true});
+ const marker='UIR04_DATA_PRIVATE synthetic input for local-only data presentation.';const backupBytes=await traced('source journey',()=>sourceAndBackup(marker));assert.ok(backupBytes?.length);await traced('restore journey',()=>restoreJourney(backupBytes,marker));await traced('release journey',()=>releaseJourney(backupBytes));completed=true;
 });

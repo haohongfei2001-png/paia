@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 
 const rpc=async(page,type,fields={})=>{
  const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
@@ -44,11 +46,14 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(()=>page.locator('.archive-navigator-window[aria-current="page"]').isVisible());
   assert.match(await page.locator('.library-prose').first().textContent(),/CPV1_NAV_IDENTITY_BODY/);
 
-  const projectRef=await page.evaluate(async({chatId,documentId})=>{
+  const projectRef=await page.evaluate(`(async()=>{
+   const {chatId,documentId}=${JSON.stringify({chatId,documentId})},preDispatchRead=${runWithPreDispatchReadRetry.toString()};
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceStructureStore}=await import('../core/source-structure-store.js');
    const store=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(store);
-   await store.finishFoundation();
+   const originalRun=store.run.bind(store);globalThis.__navigatorFoundationAcquisitions=[];
+   store.run=callback=>preDispatchRead(fn=>{const event={entered:false},events=globalThis.__navigatorFoundationAcquisitions;events.push(event);if(events.length>32)events.shift();return originalRun(()=>{event.entered=true;return fn();}).catch(error=>{event.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);
+   try{await store.finishFoundation();}finally{store.run=originalRun;}
    const ref={platform:'chatgpt',sourceConversationId:chatId};
    const previous=await structure.conversation(ref);
    const at=Math.max(Date.now(),Date.parse(previous?.lastObservedAt||'')||0)+1000;
@@ -57,7 +62,7 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
    await structure.observeConversation({conversationRef:ref,expectedRevision:previous?.relationshipRevision||0,observedAt:new Date(at).toISOString(),evidence:evidence(1),membership:{state:'project',projectRef},projectName:'Synthetic Alpha',sourceStatus:'observed_active'});
    await structure.observeProject({projectRef,expectedRevision:0,observedAt:new Date(at+1000).toISOString(),evidence:evidence(2),currentName:'Synthetic Alpha',sourceStatus:'observed_active'});
    return projectRef;
-  },{chatId,documentId});
+  })()`);
   await page.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
   await eventually(async()=>{
    const status=await rpc(page,'PAIA_ARCHIVE_NAV_STATUS',{page:{selectedDocumentId:documentId}});
@@ -109,6 +114,9 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   assert.match(await page.locator('.library-prose').first().textContent(),/CPV1_NAV_IDENTITY_BODY/);
   await eventually(async()=>await page.locator(`.archive-navigator-window[data-document-id="${documentId}"][aria-current="page"]`).count()===1,'source deletion keeps the selected Conversation');
   assert.equal(harness.externalRequests,0);
+ }catch(error){
+  try{const acquisitions=await harness.archive.locator('html').evaluate(()=>globalThis.__navigatorFoundationAcquisitions??[],null,{timeout:1000});await mkdir('work/cpv1-023-navigator',{recursive:true});await writeFile('work/cpv1-023-navigator/foundation-failure.json',JSON.stringify({errorName:error.name,acquisitions},null,2)+'\n');}catch(diagnosticError){console.error('Navigator foundation diagnostic unavailable:',diagnosticError.name);}
+  throw error;
  }finally{await harness?.close();}
 });
 
