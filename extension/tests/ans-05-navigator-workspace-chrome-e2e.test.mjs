@@ -19,12 +19,12 @@ async function waitGroup(p,text){await eventually(()=>group(p,text).isVisible(),
 async function revealCompactAction(p,selector){const menu=p.locator('#archive-compact-navigation');if(await menu.isVisible().catch(()=>false)&&await p.locator(selector).evaluate(node=>!!node.closest('#archive-compact-reader-actions'))&&!await menu.evaluate(node=>node.open))await menu.locator('summary').click();}
 
 test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive sheet safe',{timeout:300000},async t=>{
- const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture';
+ const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture',fixtureAcquisitions=[];
  const recordSheetFocus=async action=>focusTransitions.push({phase,action,...await p.evaluate(()=>({id:document.activeElement?.id||'',tag:document.activeElement?.tagName,parent:document.activeElement?.parentElement?.id||'',inSheet:document.getElementById('archive-reader-navigator-slot').contains(document.activeElement)}))});
  // A Node test timeout does not cancel a pending page.evaluate. Its body finally
  // may never run, so lifecycle cleanup must independently release this browser.
  t.after(async()=>{
-  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions},null,2)+'\n');}
+  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions,fixtureAcquisitions},null,2)+'\n');}
   finally{await h.close();}
  });
  try{
@@ -100,9 +100,10 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),ref={platform:'chatgpt',sourceConversationId:'ans05-chat-a'},at=Date.now()+10000,e=n=>({id:'ans05-move-'+n,contractId:'ans05.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'relationship',digest:(100+n).toString(16).padStart(64,'0')});
    // Retry only acquisition before this independent fixture callback begins.
    // An entered metadata transaction and its original evidence are never replayed.
-   const originalRun=s.run.bind(s);s.run=callback=>preDispatchRead(originalRun,callback);
-   const c=await structure.conversation(ref);await structure.observeConversation({conversationRef:ref,expectedRevision:c.relationshipRevision,observedAt:new Date(at).toISOString(),evidence:e(1),membership:{state:'project',projectRef:projectB},projectName:'ANS05 Project Beta',sourceStatus:'observed_active'});
-   const project=await structure.project(projectB);await structure.observeProject({projectRef:projectB,expectedRevision:project?.relationshipRevision||0,observedAt:new Date(at+1000).toISOString(),evidence:e(2),currentName:'ANS05 Project Beta',sourceStatus:'observed_active'});
+   const originalRun=s.run.bind(s);let operation='conversation-read';globalThis.__ans05FixtureAcquisitions=[];
+   s.run=callback=>preDispatchRead(fn=>{const event={operation,entered:false};const events=globalThis.__ans05FixtureAcquisitions;events.push(event);if(events.length>32)events.shift();return originalRun(()=>{event.entered=true;return fn();}).catch(error=>{event.error=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);
+   const c=await structure.conversation(ref);operation='conversation-observe';await structure.observeConversation({conversationRef:ref,expectedRevision:c.relationshipRevision,observedAt:new Date(at).toISOString(),evidence:e(1),membership:{state:'project',projectRef:projectB},projectName:'ANS05 Project Beta',sourceStatus:'observed_active'});
+   operation='project-read';const project=await structure.project(projectB);operation='project-observe';await structure.observeProject({projectRef:projectB,expectedRevision:project?.relationshipRevision||0,observedAt:new Date(at+1000).toISOString(),evidence:e(2),currentName:'ANS05 Project Beta',sourceStatus:'observed_active'});
   })()`);await refreshNavigator(p);
   const beta=await waitGroup(p,'ANS05 Project Beta');await eventually(async()=>await beta.getAttribute('aria-expanded')==='true','active moved parent expands');
   await eventually(()=>windowButton(p,'ANS-05 A').getAttribute('aria-current').then(x=>x==='page'),'active ID survives move');
@@ -141,5 +142,5 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await p.screenshot({path:'work/ans-05-navigator/desktop-reader.png',fullPage:true});
   phase='final privacy assertions';
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);phase='complete';
- }finally{await h.close();}
+ }finally{fixtureAcquisitions=await p.evaluate(()=>globalThis.__ans05FixtureAcquisitions??[]).catch(()=>[]);await h.close();}
 });

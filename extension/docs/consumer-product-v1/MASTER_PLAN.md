@@ -1,3 +1,15 @@
+# Current combined candidate: 35f5 failure and owning test follow-up — 2026-10-11
+
+PR254 head `35f5bea3a7681511af717ac793fbf2a9a6687c1e`, tested merge `35c0b0b4b5001ba674a5efcef48b584341af86f5`, remains **NOT_ACCEPTED**. Full38115286496 failed Browser1/3/6; Prompt38115286475 and Visual38115286480 passed. Fresh native54 top-level journeys/84 total tests and both original strict receipt gates passed independent verification (job114398876635,391916.739205ms). Failed, skipped and cancelled results are never accepted as passing.
+
+The follow-up changes only three test/harness files. Context's original Add action awaits editor flush before mounting; the test now waits for exactly one distinct new editor, then requires that same identity to persist. Original conflict, IME, delete/undo/order and protected-data checks remain. The complete Context and Navigator files pass9 tests with zero fail/cancel/skip. Original pre-dispatch retry contracts pass10. Navigator and historical Backup add bounded body-free acquisition diagnostics without changing guards, maintenance, retries, actions or deadlines; the original UX-R6 whole file passes1. The cloud acquisition causes remain UNKNOWN; a local pass is not proof of their repair.
+
+S4 remains separate: the owner-approved current-window focus/no-refresh behavior proceeds through full replacement acceptance. Settings source/release16 component tests pass, including same-button compact retry; toolbar discarded-tab lookup and the complete retained-control composition remain under qualification. Popup stays until replacement gates pass. Shared Canonical C continues the same complete recovery batch, including original resource ownership and honest pre-journal baseline enrollment. Neither is silently included or certified by this test-only follow-up.
+
+No merge, package delivery or installed acceptance is claimed. Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and qualified0.43.16 remain unchanged. Runtime/dependencies are unchanged from35f5; existing exact unchanged component receipts retain their original versions. The next stable candidate still needs required formal gates, normal integration and exact-main qualification.
+
+## Preserved prior checkpoint
+
 # Current combined candidate: f1dc failure and bounded fixture repairs — 2026-10-11
 
 PR254 head `f1dc3e29b86ab822dd235cb6cbd03220520a99b0` (tested merge `a6fe8af1e01f12b74e7762b1d8a72218975bec87`) remains **NOT_ACCEPTED**. Full38113001373 and Visual38113001386 failed; Prompt38113001378 passed. Browser4/5/6/8 failed, while the other five current browser shards, all unit shards, contracts/build and both macOS jobs passed. Fresh native54 top-level journeys/84 total tests and both original strict artifact gates passed independent verification. No skipped or cancelled job is accepted.
