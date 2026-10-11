@@ -1,3 +1,15 @@
+# Current0.43.19 candidate: update focus repair and bounded browser readiness — 2026-10-11
+
+PR254827c3dc2a67b6ee40892e2f11691d411a2966ab0 remains NOT_ACCEPTED. Full38121366502 fails Browser1 at the original Settings update-focus assertion and Browser5 at the original accessibility Source-dialog assertion; its other seven browser shards, four unit shards, contracts, build, both macOS jobs and independently qualified native54/84 pass. Prompt38121366499 fails the source Stage3A choice-insertion feedback; its release file and four unit shards pass. Visual38121366516 passes. All failures remain recorded; no skipped job is accepted.
+
+A genuine held Chrome update callback reproduces disabled-button focus loss on both source and release. The bounded About repair returns focus only to the same still-visible control when no newer user intent exists; Tab, another group, hidden/changed document and window departure cancel ownership. Original eight browser cases and their focus assertion remain; three added actual-browser scenarios give24/24 complete-file passes, with16 original-controller unit passes and one standard481-file build. Independent Root review checks the exact three-file patch and applied-byte identity.
+
+The original Stage3A fixture now observes actual parent/capsule geometry before its unchanged single native click, reusing the original uncertain-insertion readiness condition. Its complete source/release file passes26/26. The original accessibility fixture completes all capture, Navigator and exact Reader-body assertions before retiring only its owned capture producer and observing original status/filter readiness; its entire file passes1/1. Assertions, operation retry policy and deadlines remain unchanged. The original cloud causes for these two intermittent failures remain UNKNOWN, and the first local failed attempts are preserved rather than relabelled.
+
+Root combines these five runtime/test files in one reviewed0.43.19 follow-up. Fresh formal exact-head Full/Prompt and normal exact-main Full plus Prompt and one qualified package remain required. Main531dbcf/qualified0.43.16 is unchanged. Shared Canonical C and TOPIC-05.5 manual-promotion UI continue with separate writers; no full Sync, unavailable-design visual, real provider/account/device, installation or deployment acceptance is claimed.
+
+## Preserved prior checkpoint
+
 # Current0.43.19 candidate: complete browser/native pass, security fixture follow-up — 2026-10-11
 
 PR2541adb8a5a04747c53a636d85b61f244b9f7c2238d, actual signed tested merge23176eadb89487741d246cf827b5a816995591a8, has all nine current browser shards (93 complete files), all four unit shards, release build and both macOS gates passing in Full38120160826. Visual38120160816 passes. Fresh native54 top-level/84total tests pass with both original strict receipt verifiers independently qualified. Full and Prompt38120160813 remain FAILURE solely because the original background-security synthetic Chrome fixture lacked toolbar listener registration; skipped jobs are not counted.

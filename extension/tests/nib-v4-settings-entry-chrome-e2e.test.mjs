@@ -25,6 +25,8 @@ function installUpdateFixture(){
  if(location.pathname!=='/ui/archive.html')return;
  const runtime=chrome.runtime,originalCheck=runtime.requestUpdateCheck,originalSend=runtime.sendMessage.bind(runtime);
  const f={calls:0,callbacks:[],reads:0,completedReads:0,held:null,holdNext:false,failNext:false,failures:0,clicks:[]};
+ f.focus=[];f.focusMark=stage=>{if(f.focus.length<32)f.focus.push({stage,active:document.activeElement?.id==='settings-check-update'?'check':document.activeElement===document.body?'body':'other',disabled:document.getElementById('settings-check-update')?.disabled===true,connected:document.getElementById('settings-check-update')?.isConnected===true,visible:document.visibilityState});};
+ for(const type of ['focusin','focusout','pointerdown','keydown'])document.addEventListener(type,event=>{if(event.target?.id==='settings-check-update'||document.getElementById('settings-update-status')?.getAttribute('aria-busy')==='true')f.focusMark(type+':'+String(event.isTrusted));},true);
  runtime.requestUpdateCheck=callback=>{f.calls++;f.callbacks.push(callback);};
  runtime.sendMessage=async(message,...args)=>{
   if(message?.type!=='PAIA_SETTINGS_UPDATE_STATUS')return originalSend(message,...args);
@@ -94,9 +96,9 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
    assert.deepEqual(await page.evaluate(key=>chrome.storage.local.get(key),UPDATE_KEY),before);
   });
   await check('available response uses the original strict version owner and actual Chrome-local event record',async()=>{
-   await button.click();await finish('update_available',{version:target});await idle();
+   await page.evaluate(()=>__settingsUpdateFixture.focusMark('available-before-click'));await button.click();await page.evaluate(()=>__settingsUpdateFixture.focusMark('available-after-click'));await finish('update_available',{version:target});await idle();await page.evaluate(()=>__settingsUpdateFixture.focusMark('available-after-idle'));
    assert.equal(await status.textContent(),`Chrome reported version ${target} available. You can keep working.`);
-   assert.equal(await button.evaluate(node=>document.activeElement===node),true,'completed check preserves the genuine control focus');
+   try{assert.equal(await button.evaluate(node=>document.activeElement===node),true,'completed check preserves the genuine control focus');}catch(error){try{console.error('SETTINGS_CHECK_FOCUS_FAILURE',JSON.stringify(await page.evaluate(()=>__settingsUpdateFixture.focus)));}catch{}throw error;}
    const record=await page.evaluate(key=>chrome.storage.local.get(key),UPDATE_KEY);assert.deepEqual(Object.keys(record[UPDATE_KEY]).sort(),['at','fromVersion','state','toVersion']);
    assert.equal(record[UPDATE_KEY].state,'available');assert.equal(record[UPDATE_KEY].fromVersion,version);assert.equal(record[UPDATE_KEY].toVersion,target);assert.ok(Number.isSafeInteger(record[UPDATE_KEY].at));
    assert.equal((await rpc(page,'PAIA_SETTINGS_UPDATE_STATUS')).targetVersion,target);
@@ -108,6 +110,24 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     assert.equal(await button.textContent(),'Retry check');assert.equal(await status.textContent(),'This update check could not be confirmed. Keep the current installation and local data; retry manually later. This does not mean an update was installed.');assert.doesNotMatch(await status.textContent(),/private invalid|latest|GitHub/);assert.equal((await status.textContent()).includes(target),false);
     assert.deepEqual(await page.evaluate(key=>chrome.storage.local.get(key),UPDATE_KEY),baseline,'unqualified callback never rewrites the original event');
    }
+  });
+  await check('a genuinely held check retains its control focus across native disabled rendering',async()=>{
+   await button.click();assert.equal(await button.isDisabled(),true);assert.equal((await fixture()).pending,1);
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   await page.evaluate(()=>__settingsUpdateFixture.focusMark('held-after-render'));
+   await finish('no_update');await idle();
+   try{assert.equal(await button.evaluate(node=>document.activeElement===node),true,'completed held check preserves the genuine control focus');}catch(error){try{console.error('SETTINGS_HELD_FOCUS_FAILURE',JSON.stringify(await page.evaluate(()=>__settingsUpdateFixture.focus)));}catch{}throw error;}
+  });
+  await check('a later trusted Tab intent keeps its actual destination when the check completes',async()=>{
+   await button.click();assert.equal((await fixture()).pending,1);await page.keyboard.press('Tab');
+   await page.evaluate(()=>{__settingsUpdateFixture.focusDestination=document.activeElement;});assert.equal(await button.evaluate(node=>document.activeElement===node),false);
+   await finish('no_update');await idle();assert.equal(await page.evaluate(()=>document.activeElement===__settingsUpdateFixture.focusDestination),true,"completion cannot reclaim focus from the user's Tab destination");
+  });
+  await check('leaving About while checking cannot move focus back to its hidden control',async()=>{
+   await button.click();await chooseConsumerGroup(page,'reading');await page.evaluate(()=>{__settingsUpdateFixture.focusDestination=document.activeElement;});
+   assert.equal(await button.isVisible(),false);await finish('no_update');await eventually(async()=>(await fixture()).pending===0);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+   assert.equal(await page.evaluate(()=>document.activeElement===__settingsUpdateFixture.focusDestination),true,'completion cannot reclaim focus after leaving About');assert.equal(await button.evaluate(node=>document.activeElement===node),false);
+   await chooseConsumerGroup(page,'about');await idle();
   });
   await check('failed status read keeps a truthful error and reopening About performs one real retry without update dispatch',async()=>{
    await chooseConsumerGroup(page,'reading');await page.evaluate(()=>{__settingsUpdateFixture.failNext=true;});const count=(await fixture()).calls;

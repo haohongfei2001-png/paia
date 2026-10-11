@@ -34,6 +34,21 @@ export function mountSettingsAbout(host,{version,language=()=>document.documentE
  root.append(installed,update);if(check)root.append(check);root.append(links);host.append(root);
  const sync=()=>{const locale=language(),chinese=locale==='zh-CN';update.textContent=aboutUpdateText(updateState,chinese);update.setAttribute('aria-busy',String(updateState.state==='loading'||checking));if(check){check.disabled=checking;check.textContent=updateState.state==='check-unavailable'?(chinese?'重试检查':'Retry check'):(chinese?'检查此安装的更新':'Check this installation for updates');}links.setAttribute('aria-label',chinese?'关于 PAIA 的链接':'About PAIA links');for(const item of aboutDestinations(locale)){const {link,label}=nodes.get(item.key);label.textContent=item.label;link.href=item.href;link.setAttribute('aria-label',item.label+(item.external?(chinese?'（在新标签页打开）':' (opens in a new tab)'):(chinese?'（打开邮件应用）':' (opens your mail app)')));if(item.external){link.target='_blank';link.rel='noopener noreferrer';}else{link.removeAttribute('target');link.removeAttribute('rel');}}};
  const refresh=async()=>{if(!readUpdateStatus||checking)return;const epoch=++readEpoch;updateState={state:'loading'};sync();try{const value=await readUpdateStatus();if(epoch!==readEpoch)return;updateState=value?.version===version&&['available','installed','unknown'].includes(value.state)?value:{state:'unknown'};}catch{if(epoch!==readEpoch)return;updateState={state:'error'};}sync();};
- async function performCheck(){if(checking||!checkForUpdate)return;checking=true;const epoch=++readEpoch;updateState={state:'checking'};sync();try{const value=await checkForUpdate();if(epoch===readEpoch)updateState=value?.version===version&&['available','checked-none','check-unavailable'].includes(value.state)?value:{state:'check-unavailable'};}catch{if(epoch===readEpoch)updateState={state:'check-unavailable'};}finally{checking=false;sync();}}
+ const retainCheckFocus=()=>{
+  const doc=check?.ownerDocument||document,view=doc.defaultView;
+  if(doc.activeElement!==check||!doc.addEventListener||!view?.addEventListener)return ()=>{};
+  let current=true;
+  const cancel=event=>{if(event.type==='focusout'&&event.target===check&&check.disabled&&event.relatedTarget==null)return;current=false;};
+  const visibility=()=>{if(doc.visibilityState!=='visible')current=false;};
+  const events=['pointerdown','keydown','wheel','focusin','focusout'];
+  for(const type of events)doc.addEventListener(type,cancel,true);
+  doc.addEventListener('visibilitychange',visibility);view.addEventListener('blur',cancel);view.addEventListener('pagehide',cancel);
+  return ()=>{
+   for(const type of events)doc.removeEventListener(type,cancel,true);
+   doc.removeEventListener('visibilitychange',visibility);view.removeEventListener('blur',cancel);view.removeEventListener('pagehide',cancel);
+   if(current&&view.document===doc&&doc.visibilityState==='visible'&&doc.hasFocus()&&check.ownerDocument===doc&&check.isConnected&&root.contains(check)&&check.getClientRects().length>0&&doc.activeElement===doc.body)check.focus({preventScroll:true});
+  };
+ };
+ async function performCheck(){if(checking||!checkForUpdate)return;const finishFocus=retainCheckFocus();checking=true;const epoch=++readEpoch;updateState={state:'checking'};sync();try{const value=await checkForUpdate();if(epoch===readEpoch)updateState=value?.version===version&&['available','checked-none','check-unavailable'].includes(value.state)?value:{state:'check-unavailable'};}catch{if(epoch===readEpoch)updateState={state:'check-unavailable'};}finally{checking=false;sync();finishFocus();}}
  const owner={sync,refresh,root};owners.set(host,owner);sync();return owner;
 }
