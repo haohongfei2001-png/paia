@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -10,7 +11,7 @@ test('Q1/Q2/Q3/Q4 production worker enforces extension-page/consent/strict reque
  globalThis.fetch=async()=>{networkCalls++;throw Error('Unexpected network');};
  const local={setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),set:async values=>Object.assign(data,structuredClone(values)),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},getBytesInUse:async()=>0};
  globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local}};
- await import('../background/service-worker.js');
+ toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
  const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve));
  const rpc=async(type,fields={})=>{const reply=await send({type,...fields});assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;};
  const query={version:1,namespace:'working-input',ownerRef:'unavailable',operationId:'synthetic-operation',requestDigest:'0'.repeat(64),epoch:'initial'};

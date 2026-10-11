@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -13,7 +14,7 @@ async function fixture(){
   remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete values[key];},
   getBytesInUse:async()=>0
  }}};
- await import('../background/service-worker.js?ans04-worker='+crypto.randomUUID());
+ toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js?ans04-worker='+crypto.randomUUID());
  return {notifications,send:(request,sender=ui)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('worker request timeout')),5000);assert.equal(listener(request,sender,r=>{clearTimeout(timer);resolve(r);}),true);})};
 }
 test('ANS-04 real worker gates Navigator to consented exact extension UI and never uses GET_STATE/materialize/network',async t=>{

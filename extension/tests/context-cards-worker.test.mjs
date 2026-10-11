@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -5,7 +6,7 @@ test('CTX4 actual worker caller/consent/draft fences and retired outbound routes
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'},values={},sessionValues={};let listener,network=0;
  const storage=data=>({setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),set:async rows=>Object.assign(data,structuredClone(rows)),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},getBytesInUse:async()=>0});
- globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.1'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local:storage(values),session:storage(sessionValues)}};globalThis.fetch=async()=>{network++;throw Error('unexpected network');};await import('../background/service-worker.js');
+ globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.1'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local:storage(values),session:storage(sessionValues)}};globalThis.fetch=async()=>{network++;throw Error('unexpected network');};toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
  const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve)),rpc=async(type,fields={})=>{const r=await send({type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
  const types=['PAIA_CONTEXT_CARDS_SNAPSHOT','PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_CARDS_OUTCOME','PAIA_CONTEXT_CARDS_DRAFTS'];for(const type of types)assert.equal((await send({type})).error,'CONSENT_REQUIRED');await rpc('CONSENT',{accepted:true});
  for(const sender of [{id,url:'https://chatgpt.com/c/synthetic',frameId:0,tab:{id:1,url:'https://chatgpt.com/c/synthetic'}},{id:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',url:ui.url},{id,url:origin+'ui/prompt-surface.html'}])for(const type of types)assert.equal((await send({type},sender)).error,'FORBIDDEN');

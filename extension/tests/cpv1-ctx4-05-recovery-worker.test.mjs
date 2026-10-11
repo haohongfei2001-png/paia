@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup,inputEdit} from './harness/thought-m1.mjs';
@@ -17,7 +18,7 @@ async function fixture(){
  const scope=await readContextTopicScope(f.s,{topicId:topic.id}),p=await f.s.repository.transaction(false,t=>inputProjection(f.s,t,input.id)),request={operationId:op(),epoch:'initial',itemId:op(),card:'info',expectedRevision:0,body:'SYNTHETIC automatic body',section:'SYNTHETIC section',associationIds:[op()],evidence:[{topicId:topic.id,inputId:input.id,selectedFields:['body'],fieldDigests:{body:await hashText(p.body)},expectedTopicBinding:scope.binding,expectedRemovalSequence:p.lastRemovalSequence}]};await new ContextMaintenanceService(f.s,{processingVerifier:verifier}).maintain(caller,request);
  const values={...(await f.storage.get(STORAGE_KEY))},local=storage(values);Object.assign(f.storage,local);
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'};let listener,network=0;globalThis.indexedDB=f.indexedDB;globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.15.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>{listener=fn;}}},storage:{local:f.storage,session:storage({})}};globalThis.fetch=async()=>{network++;throw Error('SYNTHETIC unexpected network');};
- const restart=()=>import('../background/service-worker.js?ctx405-recovery='+op());await restart();const send=message=>new Promise(resolve=>listener(message,ui,resolve));
+ toolbarRegistrationFixture(globalThis.chrome);const restart=()=>import('../background/service-worker.js?ctx405-recovery='+op());await restart();const send=message=>new Promise(resolve=>listener(message,ui,resolve));
  return {...f,request,input,values,send,restart,network:()=>network};
 }
 for(const scenario of ['committed','newer_edit','unknown_receipt','wrong_digest','wrong_token','unsaved'])test('CTX4-05 actual worker restart handles '+scenario+' recovery without losing or reviving draft text',async()=>{

@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -22,7 +23,7 @@ test('TOPIC-05.4 actual worker fences local Section prose and keeps captured rec
  for(const [Type]of originals)Type.prototype.wake=async()=>{wakes++;};
  let store;const originalPage=ThoughtSectionReading.prototype.page,originalMetadata=ThoughtLibraryReadModel.prototype.topicReadingMetadata;
  try{
-  await import('../background/service-worker.js');
+  toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
   const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve)),rpc=async(type,fields={},sender=ui)=>{const result=await send({type,...fields},sender);assert.equal(result.ok,true,JSON.stringify(result));return result.data;};
   const request={type:'GET_LIBRARY_SECTION_READING',options:{topicId:'synthetic'}};
   const metadataRequest={type:'GET_LIBRARY_TOPIC_READING_METADATA',id:'synthetic'};

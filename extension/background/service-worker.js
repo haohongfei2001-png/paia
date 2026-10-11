@@ -1,3 +1,4 @@
+import {installToolbarEntry} from './toolbar-entry.js';
 import {HistoricalCandidateSession} from '../core/ai-usage/historical-candidate-session.js';
 import {ArchiveArrival} from './archive-arrival.js';
 import {NextPromptCommands} from './prompt-next.js';
@@ -494,3 +495,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     .catch(error => sendResponse({ ok: false, ...(['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)?{phase:'message_handler'}:{}), error: typeof request?.type==='string' && request.type.startsWith('IMPORT_') ? safeImportError(error) : ['UPDATE_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW'].includes(request?.type)&&!(error instanceof ArchiveError)?'INTERNAL_RUNTIME_ERROR':safeErrorCode(error) }));
   return true;
 });
+
+installToolbarEntry(chrome,{clients:globalThis.clients});

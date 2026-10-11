@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -46,7 +47,7 @@ test('actual worker refuses withdrawn commands, preserves capture/edit data and 
   const storage=data=>({setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),set:async rows=>Object.assign(data,structuredClone(rows)),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},getBytesInUse:async()=>0});
   const local=storage(values),session=storage(sessionValues),read=session.get;session.get=async key=>{sessionReads.push(key);return read(key);};
   globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local,session}};
-  await import('../background/service-worker.js');
+  toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
   const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve));
   const rpc=async(type,fields={})=>{const reply=await send({type,...fields});assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;};
   assert.equal((await send({type:'PAIA_BACKUP_BEGIN_EXPORT'})).error,'CONSENT_REQUIRED');

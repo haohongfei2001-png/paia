@@ -1,3 +1,4 @@
+import {installToolbarClient} from '../background/toolbar-entry.js';
 import {installArchiveArrival} from './archive-arrival.js';
 import {ViewSessions} from './view-session.js';
 import {readArchiveProjectSearch,sameArchiveProjectSearch} from './archive-project-search.js';
@@ -635,3 +636,5 @@ export async function openDesktopAppearancePreview(options){
 function closeContextDesignView(){contextCards.close();}
 function renderContextDesignView(){}
 document.addEventListener('paia:context-unavailable',()=>notify('AI Context 目前不可用。已有资料与权限记录仍保留。'));
+
+installToolbarClient(chrome);

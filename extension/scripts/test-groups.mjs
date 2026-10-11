@@ -1,11 +1,12 @@
-const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs'];
+const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 // Full37830791787/37833847645 measured whole-file capacity; historical widths stay unchanged.
 // Latest completed Full38095584129: shard2=712s and shard9=677s.
-// Admit only complete new files, retaining all old assignments and deadlines.
+// Full38115286496: shard1=796s, shard7=749s. Add complete S4 Settings/toolbar files
+// to 1/7 respectively; preserve every old assignment and the 18-minute deadline.
 const CURRENT_NINE=new Map([
- [NIB_BROWSER[0],9],[NIB_BROWSER[1],9],[NIB_BROWSER[2],2],[NIB_BROWSER[3],6],
+ [NIB_BROWSER[0],9],[NIB_BROWSER[1],9],[NIB_BROWSER[2],2],[NIB_BROWSER[3],6],[NIB_BROWSER[4],1],[NIB_BROWSER[5],7],
  [removedPlacement,4],
  ["activation-return-round410-chrome-e2e.test.mjs",9],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",9],

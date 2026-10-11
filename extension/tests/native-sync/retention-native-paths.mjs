@@ -6,6 +6,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "background/prompt-next.js",
   "background/prompt-reuse-commands.js",
   "background/prompt-surface.js",
+  "background/toolbar-entry.js",
   "core/ai-organize-style-preference.js",
   "core/ai-usage/assist-intent-binding.js",
   "core/ai-usage/assist-response.js",

@@ -1,4 +1,4 @@
-const nib=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs'];
+const nib=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';

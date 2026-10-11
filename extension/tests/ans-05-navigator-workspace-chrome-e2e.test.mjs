@@ -19,19 +19,19 @@ async function waitGroup(p,text){await eventually(()=>group(p,text).isVisible(),
 async function revealCompactAction(p,selector){const menu=p.locator('#archive-compact-navigation');if(await menu.isVisible().catch(()=>false)&&await p.locator(selector).evaluate(node=>!!node.closest('#archive-compact-reader-actions'))&&!await menu.evaluate(node=>node.open))await menu.locator('summary').click();}
 
 test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive sheet safe',{timeout:300000},async t=>{
- const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture',fixtureAcquisitions=[];
+ const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture',fixtureAcquisitions=[],fixturePreparation=[];const capturePages=[];
  const recordSheetFocus=async action=>focusTransitions.push({phase,action,...await p.evaluate(()=>({id:document.activeElement?.id||'',tag:document.activeElement?.tagName,parent:document.activeElement?.parentElement?.id||'',inSheet:document.getElementById('archive-reader-navigator-slot').contains(document.activeElement)}))});
  // A Node test timeout does not cancel a pending page.evaluate. Its body finally
  // may never run, so lifecycle cleanup must independently release this browser.
  t.after(async()=>{
-  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions,fixtureAcquisitions},null,2)+'\n');}
+  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions,fixtureAcquisitions,fixturePreparation},null,2)+'\n');}
   finally{await h.close();}
  });
  try{
   await p.setViewportSize({width:1440,height:900});await consent(p);
-  await h.open({id:'ans05-chat-a',title:'ANS-05 A',base:1609459200,messages:[{id:'ans05-a-msg',text:'ANS05_A_BODY 原始 A'}]},{arrival:'dom-first'});
+  capturePages.push(await h.open({id:'ans05-chat-a',title:'ANS-05 A',base:1609459200,messages:[{id:'ans05-a-msg',text:'ANS05_A_BODY 原始 A'}]},{arrival:'dom-first'}));
   let a,b;await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library',limit:100}});a=page.documents.find(x=>x.sourceConversationId==='ans05-chat-a');return !!a;},'A captured');
-  await h.open({id:'ans05-chat-b',title:'ANS-05 B',base:1609459260,messages:[{id:'ans05-b-msg',text:'ANS05_B_BODY 原始 B'}]},{arrival:'dom-first'});
+  capturePages.push(await h.open({id:'ans05-chat-b',title:'ANS-05 B',base:1609459260,messages:[{id:'ans05-b-msg',text:'ANS05_B_BODY 原始 B'}]},{arrival:'dom-first'}));
   await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library',limit:100}});b=page.documents.find(x=>x.sourceConversationId==='ans05-chat-b');return !!b;},'B captured');await p.bringToFront();assert.ok(a&&b);
   phase='source metadata fixture';
   const projectA={providerKey:'chatgpt',namespace:'ans05-fixture',projectId:'alpha'};
@@ -94,6 +94,18 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await trigger.click();await eventually(()=>p.locator('#archive-navigator').isVisible());await windowButton(p,'ANS-05 A').click();
   await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).isVisible(),'mobile Window switch opens A');assert.equal(await p.locator('#archive-navigator').isVisible(),false);
   phase='source membership move';
+  // The original capture/UI assertions are complete. Retire only these two
+  // owned synthetic producers before independently acquiring metadata CAS.
+  // Their ordinary repeating CAPTURE/DIAGNOSTIC publications are not part of
+  // the membership-move operation, and neither that operation nor its guards
+  // are retried when an entered callback fails.
+  await Promise.all(capturePages.map(page=>page.close()));
+  fixturePreparation.push({point:'owned-capture-pages-closed',count:capturePages.length});
+  const settledStatus=await rpc(p,'GET_STATUS');
+  fixturePreparation.push({point:'original-worker-status-read',consented:settledStatus.consented,enabled:settledStatus.enabled});
+  let settledFilter;
+  await eventually(async()=>{settledFilter=await rpc(p,'FILTER_STATUS');return settledFilter.pending===0&&(settledFilter.mode==='off'||settledFilter.taskState==='idle');},'original filter owner completes pending fixture work');
+  fixturePreparation.push({point:'original-filter-settled',mode:settledFilter.mode,pending:settledFilter.pending,taskState:settledFilter.taskState});
   await p.setViewportSize({width:1440,height:900});const projectB={providerKey:'chatgpt',namespace:'ans05-fixture',projectId:'beta'};
   await p.evaluate(`(async()=>{
    const projectB=${JSON.stringify(projectB)},preDispatchRead=${runWithPreDispatchReadRetry.toString()};

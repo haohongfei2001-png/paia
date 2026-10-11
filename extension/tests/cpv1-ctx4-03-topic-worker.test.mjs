@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -57,7 +58,7 @@ test('CTX4-03 actual worker keeps Topic choices local, durable, strictly fenced 
   for(const [Class,wake] of wakeOriginals)Class.prototype.wake=wake;
   for(const [key,value] of Object.entries(previous))if(value===undefined)delete globalThis[key];else globalThis[key]=value;
  });
- await import('../background/service-worker.js');
+ toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
  const send=(message,sender=archive)=>new Promise(resolve=>assert.equal(listener(message,sender,resolve),true));
  const rpc=async(type,fields={},sender=archive)=>{const result=await send({type,...fields},sender);assert.equal(result.ok,true,JSON.stringify(result));return result.data;};
  const emptyChange=()=>({topicId:'synthetic-unselected-topic',enabled:false,expectedRevision:0,expectedBinding:null,epoch:'initial',operationId:operationId()});

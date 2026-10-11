@@ -1,3 +1,19 @@
+# Current coherent candidate: approved toolbar and Settings replacement, 0.43.19 — 2026-10-11
+
+The owner-approved S4 current-window focus/no-refresh behavior is now implemented in the local candidate. It reuses an existing PAIA without reload or unsaved-edit loss, otherwise opens PAIA with original first-use onboarding. Settings retains original Next consent/revocation, pause/resume/backfill, actual current-install update status and reachable fault recovery. Production default_popup is removed only in this replacement candidate; original Popup behavior remains tested in an isolated legacy fixture. No permission or live provider capability is added.
+
+Root now combines S4 with the bounded ANS05 repair in one stable0.43.19 follow-up to existing PR254, preserving its mixed configuration recovery and NIB S0/S1/S2/provider-disabled S3. This explicitly replaces the earlier separate-S4 scheduling below. Shared Canonical C remains independently owned and unaccepted, pursuing the complete pre-journal old-library → closed A → fresh B → new edit → closed B → fresh C path rather than publishing helper slices.
+
+Frozen local runtime1cd628938332125c75afb99afa80374d9efff2a6/treeb650c4d4ece646a039d1b7b379d001e50d44cb3f passes the standard481-file0.43.19 release build. Four complete browser files pass50 tests (toolbar28, Settings replacement18, original Settings Next2, original isolated Popup2). The first combined invocation remains52total50PASS2FAIL because both Stage3A variants lacked an ignored test dependency. After linking existing exact package versions, its unchanged complete source/release file passes26/26. All3316 tracked files and481 release files remain unchanged across both runs. This is complete five-file coverage across two executions, not one falsely relabelled PASS. About1280 and compact recovery320 screenshots are byte-identical source/release; unavailable approved SET2 precise visual material remains missing.
+
+Original c926 whole-unit5555/5541PASS14FAIL and initial package-check failure remain recorded. Reviewed bounded mock/recovery/scanner repairs pass six owning files23 tests plus the final20-variant guard test; no whole5555 PASS is claimed. Current browser coverage is93 complete files, preserving every old91 assignment and existing limits. Final exact-head Full, Prompt, visual, fresh native54 strict receipts, normal integration and exact-main verification remain required.
+
+Previous PR254f6d0fbe7 Full38117822135 remains FAILURE on ANS05 pre-dispatch acquisition; other eight browser shards, units/contracts/build/native/macOS pass. Prompt38117822121 and Visual38117822120 pass at their original version. The reviewed ANS05 test retires only its completed capture producers and observes the original queue before independent membership acquisition; original whole1PASS at0b443a98, with no mutation retry, relaxed assertion or extended deadline. Its unique overlapping cloud publisher remains UNKNOWN.
+
+Main531dbcf88a88a397570d7cf5bc55888b97d259d2 and qualified0.43.16 remain unchanged. No current-candidate merge, delivered/installed version, complete C/Sync, real cloud/device/account, paid AI or deployment is claimed. See [owning evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+## Preserved prior checkpoint
+
 # Current combined candidate: 35f5 failure and owning test follow-up — 2026-10-11
 
 PR254 head `35f5bea3a7681511af717ac793fbf2a9a6687c1e`, tested merge `35c0b0b4b5001ba674a5efcef48b584341af86f5`, remains **NOT_ACCEPTED**. Full38115286496 failed Browser1/3/6; Prompt38115286475 and Visual38115286480 passed. Fresh native54 top-level journeys/84 total tests and both original strict receipt gates passed independent verification (job114398876635,391916.739205ms). Failed, skipped and cancelled results are never accepted as passing.

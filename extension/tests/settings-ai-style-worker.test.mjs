@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -15,7 +16,7 @@ test('actual worker style CAS schedules no filters, maintenance, Topic scan or p
  const prototypes=[FilterRunner.prototype,SafetyRunner.prototype,LibraryRunner.prototype],old=prototypes.map(p=>p.wake),wakes=[0,0,0],transaction=ArchiveRepository.prototype.transaction;
  try{
   prototypes.forEach((p,index)=>p.wake=async()=>{wakes[index]++;});
-  await import('../background/service-worker.js');
+  toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
   const send=(request,sender=ui)=>new Promise(resolve=>listener(request,sender,resolve));
   await send({type:'GET_BOUNDED_ORGANIZER'});await new Promise(resolve=>setImmediate(resolve));wakes.fill(0);events.length=0;
   ArchiveRepository.prototype.transaction=function(write,fn,stores){return transaction.call(this,write,t=>fn(new Proxy(t,{get(target,key){const value=target[key];if(typeof value!=='function')return value;return (...args)=>{if(['all','count','keys','edge'].includes(key)&&['topics','thoughts','placements','sections','organizerJobs'].includes(args[0]))topicReads++;return value.apply(target,args);};}})),stores);};
