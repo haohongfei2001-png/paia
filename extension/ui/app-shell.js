@@ -13,7 +13,7 @@ const labels=()=>document.documentElement.lang==='en'?1:0;
 // navigation owner. Topic/Context use their existing page controllers until
 // their approved slices replace them; neither installs another shell/router.
 export class AppShellController {
- constructor(){this.route={view:'library'};this.settingsReturn={view:'library'};this.mounted=false;}
+ constructor({settingsBackup=null}={}){this.settingsBackup=settingsBackup;this.route={view:'library'};this.settingsReturn={view:'library'};this.mounted=false;}
  connect(options){
   if(this.routes)throw Error('APP_SHELL_ALREADY_CONNECTED');
   this.navigate=options.navigate;
@@ -41,7 +41,7 @@ export class AppShellController {
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
-  installSettingsPreferences({routeChanged:options=>this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.originKey?{originKey:this.settingsReturn.originKey}:{}),...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
+  installSettingsPreferences({backup:this.settingsBackup,routeChanged:options=>this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.originKey?{originKey:this.settingsReturn.originKey}:{}),...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
   const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();

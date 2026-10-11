@@ -1,3 +1,4 @@
+const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const nib=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
@@ -64,7 +65,7 @@ const current=[...names].filter(name=>group(name)==='browser E2E').sort();
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 if(!current.includes(preferencePublication)||testShard(preferencePublication,current.indexOf(preferencePublication),9,'browser E2E')!==7)throw Error('PREFERENCE_NATIVE_CURRENT_ROUTING_INVALID');
-if(current.length!==94||!current.includes(ai)||!current.includes(topicReturn))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
+if(current.length!==95||!current.includes(ai)||!current.includes(topicReturn))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
 for(const count of [4,5,6,7])if(testShard(ai,current.indexOf(ai),count,'browser E2E')!==4)throw Error('AI_WHOLE_FILE_ROUTING');
 const sectionActions='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 if(!current.includes(sectionActions))throw Error('SECTION_ACTIONS_NATIVE_MISSING');
@@ -109,7 +110,7 @@ for(const [count,expected]of [[4,1],[5,1],[6,6]])if(testShard(context,current.in
 const root='cpv1-topic-05-2-root-chrome-e2e.test.mjs';
 if(!current.includes(root))throw Error('TOPIC05_ROOT_BROWSER_MISSING');
 for(const count of [4,5,6])if(testShard(root,current.indexOf(root),count,'browser E2E')!==3)throw Error('TOPIC05_ROOT_BROWSER_ROUTING');
-const beforeQ4=current.filter(name=>![promotion,...nib,preferencePublication,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,iah,selected,ai,sectionActions,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
+const beforeQ4=current.filter(name=>![settingsData,promotion,...nib,preferencePublication,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,iah,selected,ai,sectionActions,section,root,maintenance,context,consumer,...promptReuseFiles,'desktop-vnext-context-chrome-e2e.test.mjs','cpv1-05-dvn-organize-chrome-e2e.test.mjs','cpv1-02-dvn-topic-content-chrome-e2e.test.mjs','cpv1-02-dvn-topic-years-chrome-e2e.test.mjs','cpv1-02-dvn-topic-root-chrome-e2e.test.mjs','cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs','cpv1-02-dvn-purge-chrome-e2e.test.mjs','cpv1-02-dvn-removal-chrome-e2e.test.mjs','cpv1-02-dvn-search-chrome-e2e.test.mjs'].includes(name));
 for(const [position,name]of beforeQ4.entries()){
  const expected=['cpv1-02-dvn-working-revision-chrome-e2e.test.mjs','cpv1-07-historical-comparison-chrome-e2e.test.mjs'].includes(name)?1:position%4+1;
  if(testShard(name,current.indexOf(name),4,'browser E2E')!==expected)throw Error('Q4_SHIFTED_PREVIOUS_BROWSER_ROUTING:'+name);
@@ -126,7 +127,7 @@ const frozen=JSON.parse(await readFile('docs/consumer-product-v1/implementation/
 const prior=[...frozen.rows,...promptReuseFiles.map(file=>({file,before:3,after:3})),
  {file:consumer,before:1,after:1},{file:context,before:1,after:6}];
 if(frozen.files!==68||prior.length!==73||new Set(prior.map(row=>row.file)).size!==73
- ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==promotion&&!nib.includes(name)&&name!==preferencePublication&&name!==topicReturn&&name!==removedPlacement&&name!==maintenance&&name!==root&&name!==section&&name!==sectionActions&&name!==ai&&name!==entryMove&&name!==writing&&name!==settingsNext&&name!==next&&name!==iah&&name!==selected).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
+ ||prior.map(row=>row.file).sort().join('|')!==current.filter(name=>name!==settingsData&&name!==promotion&&!nib.includes(name)&&name!==preferencePublication&&name!==topicReturn&&name!==removedPlacement&&name!==maintenance&&name!==root&&name!==section&&name!==sectionActions&&name!==ai&&name!==entryMove&&name!==writing&&name!==settingsNext&&name!==next&&name!==iah&&name!==selected).join('|'))throw Error('CONTEXT_MAINTENANCE_PRIOR_CORPUS_CHANGED');
 for(const row of prior)for(const count of [4,5,6]){
  const expected=count===6?(row.file==='uir-04-settings-chrome-e2e.test.mjs'?6:row.after):
   count===4&&row.file==='cpv1-02-dvn-direct-edit-chrome-e2e.test.mjs'?3:row.before;
@@ -159,13 +160,16 @@ for(const count of [4,5,6,7,9])if(testShard(topicReturn,current.indexOf(topicRet
 
 // New board files join current acceptance exactly once; no prior file moves.
 const preNib=JSON.parse(await readFile('tests/fixtures/pre-nib-current-browser-routing.json','utf8'));
-if(preNib.rows.length!==87||preNib.rows.map(row=>row[0]).join('|')!==current.filter(name=>name!==promotion&&!nib.includes(name)).join('|'))throw Error('NIB_PREVIOUS_CORPUS_CHANGED');
+if(preNib.rows.length!==87||preNib.rows.map(row=>row[0]).join('|')!==current.filter(name=>name!==settingsData&&name!==promotion&&!nib.includes(name)).join('|'))throw Error('NIB_PREVIOUS_CORPUS_CHANGED');
 for(const row of preNib.rows)for(const [index,width]of preNib.widths.entries())if(testShard(row[0],current.indexOf(row[0]),width,'browser E2E')!==row[index+1])throw Error('NIB_SHIFTED_PREVIOUS_ROUTING:'+row[0]);
 for(const [index,file]of nib.entries())if(!names.has(file)||group(file)!=='browser E2E'||testShard(file,current.indexOf(file),9,'browser E2E')!==[9,9,2,6,1,7][index])throw Error('NIB_CURRENT_NATIVE_NOT_ADMITTED:'+file);
 console.log('NIB_CURRENT_COVERAGE_PASS previous=87 added=6; promotion separately admitted');
 const prePromotion=JSON.parse(await readFile('tests/fixtures/pre-topic-promotion-current-browser-routing.json','utf8'));
-if(prePromotion.rows.length!==93||prePromotion.rows.map(row=>row[0]).join('|')!==current.filter(name=>name!==promotion).join('|'))throw Error('PROMOTION_PREVIOUS_CORPUS_CHANGED');
+if(prePromotion.rows.length!==93||prePromotion.rows.map(row=>row[0]).join('|')!==current.filter(name=>name!==settingsData&&name!==promotion).join('|'))throw Error('PROMOTION_PREVIOUS_CORPUS_CHANGED');
 for(const row of prePromotion.rows)for(const [index,width]of prePromotion.widths.entries())if(testShard(row[0],current.indexOf(row[0]),width,'browser E2E')!==row[index+1])throw Error('PROMOTION_SHIFTED_PREVIOUS_ROUTING:'+row[0]);
 for(const width of [4,5,6,7,9])if(!names.has(promotion)||group(promotion)!=='browser E2E'||testShard(promotion,current.indexOf(promotion),width,'browser E2E')!==4)throw Error('PROMOTION_CURRENT_NATIVE_NOT_ADMITTED');
 for(const name of ['topic-section-promotion-owner.test.mjs','topic-section-promotion-ui.test.mjs'])if(!names.has(name)||group(name)!=='unit')throw Error('PROMOTION_UNIT_NOT_ADMITTED:'+name);
 console.log('PROMOTION_CURRENT_COVERAGE_PASS previous=93 added=1 total=94; original routes preserved');
+
+for(const width of [4,5,6,7,9])if(!names.has(settingsData)||group(settingsData)!=='browser E2E'||testShard(settingsData,current.indexOf(settingsData),width,'browser E2E')!==4)throw Error('SETTINGS_DATA_CURRENT_NATIVE_NOT_ADMITTED');
+console.log('SETTINGS_DATA_CURRENT_COVERAGE_PASS previous=94 added=1 total=95; original routes preserved');

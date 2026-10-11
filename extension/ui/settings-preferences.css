@@ -14,25 +14,17 @@
 .onboarding-history .history-steps{border-color:var(--paia-subtle);color:var(--paia-secondary)}
 .onboarding-history .muted{color:var(--paia-secondary)}
 .ux-backup-failure-title,#backup-failure-page-title,#backup-failure-return,#backup-failure-note{display:none}
-/* S05 is the existing Backup owner in its real rejected-inspection state.
-   Other groups and their controls are retained; only the active Data view changes. */
-body.uir-settings-active:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .workspace{padding-bottom:0}
-#settings-panel:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]){padding-bottom:40px}
-.ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure])>.ux-settings-header,
-.ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .ux-settings-nav,
-#ux-settings-data-group:has(#backup-settings[data-inspection-failure])>:not(.ux-settings-detail:has(>#backup-settings[data-inspection-failure])),
-#ux-settings-data-group>.ux-settings-detail:has(>#backup-settings[data-inspection-failure])>summary{display:none}
-#ux-settings-data-group:not([hidden])>.ux-settings-detail:has(>#backup-settings[data-inspection-failure]){display:block!important;border:0}
-#settings-panel .ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) .ux-settings-layout{display:block}
-#settings-panel .ux-settings-shell:has(#ux-settings-data-group:not([hidden]) #backup-settings[data-inspection-failure]) #ux-settings-group-back{display:none}
-#settings-panel #backup-settings[data-inspection-failure]{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:calc(100dvh - 64px);padding:0;border:0}
-#backup-settings[data-inspection-failure]>:not(#backup-failure-page-title):not(.ux-backup-failure-title):not(#backup-status):not(#backup-choose):not(#backup-failure-return):not(#backup-failure-note){display:none}
-#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-page-title{display:block;order:0;max-width:calc(100% - 96px);margin:0;font:500 28px/1.357142857 var(--title-font);overflow-wrap:anywhere}
-#settings-panel #backup-settings[data-inspection-failure]>.ux-backup-failure-title{display:block;order:1;margin:92px 0 16px;font-size:24px;line-height:1.333333333}
-#settings-panel #backup-settings[data-inspection-failure]>#backup-status{display:block;order:2;margin:0;color:var(--muted);font-size:16px;line-height:1.625;overflow-wrap:anywhere}
-#settings-panel #backup-settings[data-inspection-failure]>#backup-choose{display:block;order:3;max-width:100%;margin:60px 0 0;padding:6px 14px;border-color:var(--text);background:var(--text);color:var(--bg);font-size:13px;line-height:1.692307692;white-space:normal;overflow-wrap:anywhere}
-#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-return{display:block;position:absolute;top:0;right:0;max-width:80px;margin:0;padding:6px 12px;min-height:36px;border:0;background:transparent;color:var(--muted);line-height:1.5;white-space:normal;overflow-wrap:anywhere}
-#settings-panel #backup-settings[data-inspection-failure]>#backup-failure-note{display:block;order:4;max-width:100%;margin-top:auto;padding-top:48px;color:var(--muted);font-size:12px;line-height:1.666666667;overflow-wrap:anywhere}
+/* Rejected inspection remains inside its owning detail; Settings navigation
+   and every other destination retain their normal composition. */
+#settings-backup-dialog #backup-settings{margin:0;padding:0;border:0}
+#settings-backup-dialog #r6-backup-heading{display:none}
+#settings-backup-dialog :is(button,select){box-sizing:border-box;min-height:44px;max-width:100%;font:400 13px/1.7 var(--font);white-space:normal;overflow-wrap:anywhere}
+#settings-backup-dialog label{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:44px}
+#settings-backup-dialog #backup-settings[data-inspection-failure]>:not(#backup-status):not(.ux-backup-actions){display:none}
+#settings-backup-dialog .ux-backup-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:28px}
+#settings-backup-dialog .ux-backup-actions button{padding:8px 16px;border:1px solid var(--control);border-radius:6px;background:var(--bg);color:var(--text)}
+#settings-backup-dialog #backup-failure-return{display:block}
+#settings-backup-dialog #backup-choose{background:var(--text);border-color:var(--text);color:var(--bg)}
 #backup-preview{margin:28px 0;padding:20px;border:1px solid var(--line);border-radius:6px}
 #backup-preview-content>p{overflow-wrap:anywhere}
 /* The Data controls and the existing local import owner share D6.2 controls.
