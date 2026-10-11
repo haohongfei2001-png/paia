@@ -121,13 +121,13 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 /* SETTINGS-CV2-1.0: explicit directory and content, same shared PAIA roles. */
 #settings-panel{box-sizing:border-box;width:100%;max-width:1008px;padding:24px 32px 80px;margin:0}
 #settings-panel .ux-settings-shell{max-width:920px}
-#settings-panel .ux-settings-header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;margin:0 0 32px;padding-left:12px}
-#settings-panel .ux-settings-header h1{grid-column:1;grid-row:1;margin:0;font:500 28px/1.36 var(--title-font)}
-#settings-panel .ux-settings-back{grid-column:2;grid-row:1;border:0;background:transparent;color:var(--muted)}
+#settings-panel .ux-settings-header{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;margin:0 0 32px;padding-left:12px}
+#settings-panel .ux-settings-header h1{grid-column:1;grid-row:1;margin:0;font:500 28px/1.357142857 var(--title-font)}
+#settings-panel .ux-settings-back{position:absolute;top:0;right:0;max-width:45%;width:max-content;grid-column:auto;grid-row:auto;border:0;background:transparent;color:var(--muted)}
 #settings-panel .ux-settings-layout{display:grid;grid-template-columns:196px minmax(0,680px);gap:44px;align-items:start}
 #settings-panel .ux-settings-nav{display:grid;gap:4px;margin:0;padding:0;border:0}
 #settings-panel .ux-settings-nav>button{display:flex;align-items:center;justify-content:space-between;text-align:left;min-height:44px;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--muted);font:400 13px/1.7 var(--font);white-space:normal}
-#settings-panel .ux-settings-nav>button[aria-current="page"]{background:var(--selected);color:var(--focus)}
+#settings-panel .ux-settings-nav>button[aria-current="page"]{background:var(--selected);color:var(--focus);font-weight:500}
 #settings-panel .ux-settings-nav>button>.paia-icon{display:none}
 #settings-panel .ux-settings-body,#settings-panel .ux-settings-group{min-width:0;width:100%;max-width:680px;padding:0;margin:0;border:0;background:transparent}
 #settings-panel .ux-settings-group>h2{display:block;margin:0 0 12px;font:500 22px/1.45 var(--title-font)}
@@ -140,9 +140,9 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel .ux-setting-switch[data-on="true"]{border-color:transparent;background:var(--selected);color:var(--focus)}
 #settings-panel .ux-preference-setting>span{max-width:none;flex:1}
 #settings-panel .ux-preference-setting select{max-width:52%;width:auto;min-width:112px;min-height:44px;padding:8px 8px;border:0;background-color:transparent;color:var(--muted);text-align:right;font:400 13px/1.7 var(--font)}
-#settings-panel .ux-reading-example{margin-top:28px;padding:0 20px;border-left:2px solid var(--line);max-width:var(--paia-prose-width)}
-#settings-panel .ux-reading-example small{color:var(--muted);font:400 12px/1.8 var(--font)}
-#settings-panel .ux-reading-example p{margin:12px 0 0;font:400 var(--paia-prose-size)/1.85 var(--font)}
+#settings-panel .ux-reading-example{margin-top:28px;padding:0 0 0 20px;border-left:2px solid var(--line);max-width:var(--paia-prose-width)}
+#settings-panel .ux-reading-example small{display:block;margin:0 0 8px;color:var(--muted);font:400 12px/1.8 var(--font)}
+#settings-panel .ux-reading-example p{margin:0;font:400 var(--paia-prose-size)/1.85 var(--font)}
 #settings-panel .ux-settings-feedback{margin:0;padding:0;color:var(--muted);font:400 12px/1.8 var(--font);overflow-wrap:anywhere}
 #settings-panel .ux-settings-feedback:not(:empty){padding:8px 0}
 #settings-panel .ux-settings-feedback[data-kind="error"]{color:var(--danger)}
@@ -165,6 +165,7 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
  #settings-panel .ux-settings-layout{display:block}
  #settings-panel .ux-settings-nav{display:block;margin:0!important}
  #settings-panel .ux-settings-nav>button{display:flex;width:100%;min-height:68px;padding:20px 0;border-bottom:1px solid var(--line);border-radius:0;color:var(--text);background:transparent;font-size:14px}
+ #settings-panel .ux-settings-nav>button[aria-current="page"]{font-weight:400}
  #settings-panel .ux-settings-nav>button>.paia-icon{display:block}
  #settings-panel .ux-settings-shell[data-settings-index="false"]>.ux-settings-header,#settings-panel .ux-settings-shell[data-settings-index="false"] .ux-settings-nav{display:none}
  #settings-panel .ux-settings-shell[data-settings-index="true"] .ux-settings-body{display:none}
