@@ -1,3 +1,9 @@
+# SYNC-01 B strict native54 passes; three browser boundaries remain — 2026-10-11
+
+PR254 exact98ba / tested merge3a2120 remains **NOT_ACCEPTED**: Full38099919356 FAILURE, Prompt38099919323 SUCCESS. All54 native journeys and their strict evidence now pass. Browser4 UIS02 current-Topic match remains under diagnosis. Browser6 followup adds a proven Context older-reply rollback/conflict fix and original Prompt durable-position/open-state fixture correction; their complete affected native files pass locally, with formal acceptance pending. Root/Human/Prompt owners have disjoint assignments; no assertion or timeout is reduced. See the single [owning failure and repair record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#sixth-formal-candidate-strict-native54-pass-and-fresh-browser-failures) for exact evidence. C complete shared recovery and NIB S1/S2 continue independently; main531dbcf / qualified0.43.16 remain unchanged.
+
+## Preserved preceding checkpoints
+
 # SYNC-01 B native54 executed; strict evidence repair and browser diagnosis — 2026-10-11
 
 PR254 head `2cc7be2adb4f608adbd22050eed25b4268e7b154`, tested merge `0f41248c28606f05a8ef66768f5fada97df26693`, remains **NOT_ACCEPTED**. Full `38098168029` failed; Prompt `38098168035` succeeded. All54 native journeys completed, but the strict evidence gate still expected190 assertions rather than201 after the previously added budget negatives. Both complete verifiers now require the exact201 total and exact case vector; independent replay against all54 original CI receipts passes. The original formal failure remains a failure.
