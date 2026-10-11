@@ -12,6 +12,14 @@ export async function thoughtPrimary(page,view){
 }
 export async function openThoughtMenu(page){
  const menu=page.locator('#topic-menu>.library-actions');
+ // A saved-field ACK and viewport change can still leave native focusout/toggle
+ // and the original header reflow queued. Observe that actual disclosure before
+ // the one trusted click; preserve the strict open-state assertion afterwards.
+ await eventually(async()=>{
+  const before=await menu.locator(':scope>summary').boundingBox();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const after=await menu.locator(':scope>summary').boundingBox();return before&&after&&['x','y','width','height'].every(key=>before[key]===after[key]);
+ },'original Thought disclosure geometry settles before activation');
  if(!await menu.evaluate(node=>node.open))await menu.locator(':scope>summary').click();
  assert.equal(await menu.evaluate(node=>node.open),true);
 }

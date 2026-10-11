@@ -3,11 +3,24 @@ import test from 'node:test';import assert from 'node:assert/strict';import {fil
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';import {routeComposer,isolated} from './harness/prompt-composer.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com/c/prompt-insertion-fixture',receiptDir=join(root,'work/prompt-surface');
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-const settleSurface=async frame=>{await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));};
+const settleSurface=async frame=>{
+ // Original child measurement ACK precedes the host's scheduled frame reflow.
+ // Wait for both actual surfaces before one trusted action, within the existing
+ // eventually budget. Do not retry a click or force a target through movement.
+ await eventually(async()=>{
+  const element=await frame.frameElement(),before=await element.boundingBox();
+  for(let turn=0;turn<2;turn++){
+   await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+   await frame.page().evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+   if(await frame.evaluate(()=>document.documentElement.hasAttribute('data-layout-pending')))return false;
+  }
+  const after=await element.boundingBox();return before&&after&&['x','y','width','height'].every(key=>before[key]===after[key]);
+ },'original Prompt child ACK and parent frame geometry are settled');
+};
 const surfaceReady=async frame=>{await eventually(()=>frame.locator('#refresh').isEnabled(),'the original refresh owner has completed');await settleSurface(frame);};
 const clickSurface=async(frame,locator)=>{await surfaceReady(frame);await locator.click();};
 const openSurfaceTools=async frame=>{if(await frame.locator('#surface-tools').isHidden()){await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));await frame.locator('#surface-more').click();await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));}};
-const surfaceClick=async(frame,selector)=>{await openSurfaceTools(frame);await frame.locator(selector).click();};
+const surfaceClick=async(frame,selector)=>{await openSurfaceTools(frame);await clickSurface(frame,frame.locator(selector));};
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{
  const extensionPath=variant==='source'?root:process.env.NIB_RELEASE_PATH||await mkdtemp(join(root,'work/prompt-diagnostic-release-'));if(variant==='release'&&!process.env.NIB_RELEASE_PATH)execFileSync('python3',['scripts/build_current_release.py',extensionPath],{cwd:root,stdio:'pipe'});
  let failures=0;const check=(name,fn)=>t.test(name,async()=>{try{await fn();}catch(error){failures++;console.error(name,error.stack);throw error;}});
@@ -25,7 +38,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   const card=()=>page.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));
   // Resolve the current closed-shadow iframe within the existing readiness budget.
   // Only an actually detached Frame permits reacquisition; all other errors fail.
-  const readyCard=async(resolve=card)=>{let ready;await eventually(async()=>{const f=resolve();if(!f||f.isDetached())return false;let visible;try{visible=await f.locator('.row').first().isVisible();}catch(error){if(f.isDetached())return false;throw error;}if(!visible||f.isDetached()||resolve()!==f)return false;ready=f;return true;},'current Prompt frame has visible rows');await (await ready.frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});await ready.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await ready.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));assert.equal(ready.isDetached(),false,'ready Prompt frame remains attached');assert.equal(resolve(),ready,'ready Prompt owner remains current');return ready;};
+  const readyCard=async(resolve=card)=>{let ready;await eventually(async()=>{const f=resolve();if(!f||f.isDetached())return false;let visible;try{visible=await f.locator('.row').first().isVisible();}catch(error){if(f.isDetached())return false;throw error;}if(!visible||f.isDetached()||resolve()!==f)return false;ready=f;return true;},'current Prompt frame has visible rows');await (await ready.frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});await ready.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await ready.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));await settleSurface(ready);assert.equal(ready.isDetached(),false,'ready Prompt frame remains attached');assert.equal(resolve(),ready,'ready Prompt owner remains current');return ready;};
   const open=async()=>{
    // Initial visible mount can still be restoring an already-open frame.
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -189,7 +202,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const f=card(),ids=await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id));
    const expectTheme=async theme=>{await eventually(()=>orb.getAttribute('data-theme').then(x=>x===theme),'host theme '+theme);await eventually(()=>f.evaluate(()=>getComputedStyle(document.documentElement).color).then(x=>x===(theme==='dark'?'rgb(233, 238, 246)':'rgb(29, 39, 56)')),'frame contrast '+theme);assert.deepEqual(await f.locator('.row').evaluateAll(rows=>rows.map(r=>r.dataset.id)),ids);};
    for(const theme of ['dark','light','dark','light']){await page.emulateMedia({colorScheme:theme});await expectTheme(theme);}
-   await f.locator('.row').first().locator('.more').click();await f.getByRole('button',{name:'编辑',exact:true}).click();await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved theme transition');
+   await clickSurface(f,f.locator('.row').first().locator('.more'));await clickSurface(f,f.getByRole('button',{name:'编辑',exact:true}));await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved theme transition');
    // An explicit PAIA choice wins over both system media and unrelated host classes.
    await page.emulateMedia({colorScheme:'light'});await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await expectTheme('dark');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');
    await page.evaluate(()=>document.documentElement.classList.add('dark'));await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});await expectTheme('light');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved theme transition');await page.evaluate(()=>document.documentElement.classList.remove('dark'));await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{appearance:'system'}});await f.getByRole('button',{name:'取消',exact:true}).click();
