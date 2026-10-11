@@ -1726,7 +1726,7 @@ jobs:
           console.log('BNS_NATIVE_COMPLETE_48_PARTIAL_CORE_PASS '+process.env.PAIA_TESTED_HEAD);
           // The original complete48 checks above are preserved. Add both
           // consuming Mixed owner/current-chain files, never a filtered subset.
-          for(const [mode,run,status,count,assertions]of [['mixed-allocation-owner','runMixedAllocationOwnerNativeCases','SYNTHETIC_MIXED_TYPED_SCOPE_NATIVE_IDB_ONLY',8,158],['mixed-current-index','runMixedCurrentIndexNativeCases','SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',16,190]]){
+          for(const [mode,run,status,count,assertions]of [['mixed-allocation-owner','runMixedAllocationOwnerNativeCases','SYNTHETIC_MIXED_TYPED_SCOPE_NATIVE_IDB_ONLY',8,158],['mixed-current-index','runMixedCurrentIndexNativeCases','SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',16,201]]){
             const fixture=mode+'-native-fixture.mjs',test=mode+'-native.test.mjs',expected=manualExpected(fixture,test);
             for(const path of ['scripts/build_current_release.py','scripts/build_daily_use.py','scripts/package_assets.py','scripts/check_package.py','scripts/check_release_product.py']){const bytes=readFileSync(path);assert.deepEqual(bytes,execFileSync('git',['show',process.env.PAIA_TESTED_HEAD+':extension/'+path]));expected.hashes[path]=manualDigest(bytes);}
             const generated=readFileSync('tests/native-sync/'+fixture,'utf8').replaceAll('../../core/','../core/')+`\nconst originalRun=globalThis.__bnsNative.run;globalThis.__bnsNative.run=(command,args)=>command==='${mode}'?${run}():originalRun(command,args);\n`;
@@ -1738,7 +1738,7 @@ jobs:
               assert.equal(r.claim,status);assert.equal(r.cases.status,status);assert.equal(r.cases.cases.length,count);assert.equal(r.cases.assertions,assertions);for(const c of r.cases.cases){assert.equal(c.result,'PASS');assert.ok(c.assertions>0);}
               for(const key of ['provider','fullCanonicalReady','mixedNativeCapture','sharedWorkTicketQualified'])assert.equal(r.cases[key],false);
               if(mode==='mixed-current-index'){
-                assert.equal(r.cases.stores,37);assert.equal(r.cases.indices,110);assert.deepEqual(r.cases.cases.map(c=>c.assertions),[8,10,6,10,5,10,11,9,9,3,3,3,3,3,20,77]);
+                assert.equal(r.cases.stores,37);assert.equal(r.cases.indices,110);assert.deepEqual(r.cases.cases.map(c=>c.assertions),[8,10,6,10,11,10,16,9,9,3,3,3,3,3,20,77]);
                 for(const key of ['nativeIndexInventory','initialNativeExport','closedSenderFreshReceiver','restoredNativeReexport','closedBothSendersFreshThird','restoredControlRefusals','changedMixedPublicationRefusal','mixedActivationRollback','duplicateRestoreNoEcho','coldReopenedOriginalConsumers'])assert.equal(r.cases[key],true);assert.equal(r.cases.paid,false);
               }else{
                 assert.equal(r.cases.sourceGroups,2);assert.equal(r.cases.workingGroups,3);for(const key of ['sourceOwnerAbsent','successorOwnerAbsent','postRestoreJournalEdit','successorRestore'])assert.equal(r.cases[key],true);for(const key of ['workerRestart','completeIndexInventoryQualified'])assert.equal(r.cases[key],false);

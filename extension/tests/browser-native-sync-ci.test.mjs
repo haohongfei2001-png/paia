@@ -254,6 +254,8 @@ test('both native jobs require all restored Source successor receipts, physical 
 test('both native jobs preserve complete48 and require all four exact-head consuming Mixed receipts',()=>{
  for(const name of ['paia-candidate.yml','paia-certification.yml']){
   const workflow=readFileSync(new URL('../../.github/workflows/'+name,import.meta.url),'utf8');
+  assert.ok(workflow.includes("'SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',16,201"));
+  assert.ok(workflow.includes('assert.deepEqual(r.cases.cases.map(c=>c.assertions),[8,10,6,10,11,10,16,9,9,3,3,3,3,3,20,77])'));
   for(const text of ['BNS_NATIVE_COMPLETE_48_PARTIAL_CORE_PASS','BNS_NATIVE_COMPLETE_52_MIXED_BATCH_A_LOCAL_ONLY','tests/mixed-current-fixed-plan.test.mjs','tests/mixed-current-index-schema.test.mjs','mixed-allocation-owner','mixed-current-index','SYNTHETIC_MIXED_CLOSED_AB_FRESH_C_COMPONENT_ONLY',"assert.equal(r.cases.stores,37)","assert.equal(r.cases.indices,110)","assert.equal(r.cases.assertions,assertions)",'mixedActivationRollback','duplicateRestoreNoEcho','coldReopenedOriginalConsumers','extension/work/qa-mixed-current-index/','extension/work/qa-mixed-allocation-owner/'])assert.ok(workflow.includes(text),text);
  }
 });

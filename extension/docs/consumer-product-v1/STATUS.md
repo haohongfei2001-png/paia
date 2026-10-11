@@ -1,3 +1,11 @@
+# SYNC-01 B native54 executed; strict evidence repair and browser diagnosis — 2026-10-11
+
+PR254 head `2cc7be2adb4f608adbd22050eed25b4268e7b154`, tested merge `0f41248c28606f05a8ef66768f5fada97df26693`, remains **NOT_ACCEPTED**. Full `38098168029` failed; Prompt `38098168035` succeeded. All54 native journeys completed, but the strict evidence gate still expected190 assertions rather than201 after the previously added budget negatives. Both complete verifiers now require the exact201 total and exact case vector; independent replay against all54 original CI receipts passes. The original formal failure remains a failure.
+
+Browser2 failed the original750ms Topic performance assertion; Browser4 failed the empty-Topic fixture navigation before conflict editing. Local complete files pass with added bounded diagnostics, but neither cloud cause is established or declared repaired. Preserve original assertions, fixtures and limits; the next stable candidate collects actual failure evidence as part of the already necessary exact-head qualification. Root owns B integration; C original shared recovery and NIB S1/S2 qualification continue with separate writers. Main531dbcf/qualified0.43.16 remain unchanged. See [owning evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#fifth-formal-candidate-native54-completion-and-two-browser-failures).
+
+## Preserved preceding checkpoints
+
 # SYNC-01 B fourth formal failure and bounded fixture correction — 2026-10-11
 
 Formal candidate `b2888c9e21ce5290d7abc32e2860bd35dbe53953`, tested merge `d8350518ad1d2978961d06fdcb95f7e800113f86`, remains NOT_ACCEPTED. Full `38097033505` failed Native preflight and Unit2 on the same seven outdated command-contract expectations; native browser execution and strict54 receipts were not reached. Prompt `38097033467` failed those same seven expectations. Browser1 completed 88 PASS / 1 FAIL: its transient single-read synthetic outage was cleared by an independent popup refresh before the retry click. The other eight current browser shards passed. Previous failure and cancellation records remain unchanged.
