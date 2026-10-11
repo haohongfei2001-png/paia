@@ -171,6 +171,10 @@ for(const variant of ['source','release'])for(const phase of ['undispatched','vi
   // Settle the original consent-to-history onboarding transition before the
   // full-store publication baseline; reload may read it again but not change it.
   const onboarding=await rpc(h,{type:'GET_ONBOARDING'});assert.ok(['history','done'].includes(onboarding.step));
+  // Complete the original empty Archive navigation before the publication cut.
+  // A later UI read must not initialize unrelated derived rows inside the
+  // strict unknown-write comparison; all37 rows remain in every equality.
+  await eventually(async()=>{const page=await rpc(h,{type:'PAIA_ARCHIVE_NAV_PAGE',page:{groupKind:'providers'}});return page.coverage.state==='complete'&&page.coverage.archiveComplete===true;},'original empty Archive navigation completes before publication fault');
   const worker=h.context.serviceWorkers().find(w=>w.url().startsWith(`chrome-extension://${h.extensionId}/`));assert.ok(worker);
   await worker.evaluate(({phase,storageKey})=>{
    globalThis.__publicationReloadEntered=false;
