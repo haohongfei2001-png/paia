@@ -42,6 +42,36 @@ test('new revision, pending status or replacement epoch refuses before Input wri
 test('unknown Input commit survives close/reopen and reconciles without a second write',async()=>{
  let outcome='unknown';const f=fixture((type,data,state)=>{if(type==='EDIT_DOCUMENT'){state.input.excluded=false;state.generation++;throw Error('lost acknowledgement');}if(type==='PAIA_ARCHIVE_OPERATION_OUTCOME')return outcome==='unknown'?{state:'unknown'}:{state:'committed',result:{ok:true}};});await f.owner.open();await f.owner.load('input');await assert.rejects(f.owner.restore('input','same'),{code:'SAVE_OUTCOME_UNKNOWN'});const query=structuredClone(f.owner.attempts.values().next().value.session.pending.query);f.owner.close();await f.owner.open();await f.owner.load('input');assert.equal(f.owner.rows.size,0);outcome='committed';await f.owner.restore('input','same');assert.equal(f.calls.filter(c=>c.type==='EDIT_DOCUMENT').length,1);assert.equal(f.owner.attempts.size,0);assert.deepEqual(f.calls.filter(c=>c.type==='PAIA_ARCHIVE_OPERATION_OUTCOME').at(-1).data.query,query);
 });
+test('an old ACK remains owned through a reopened late empty list until explicit current review',async()=>{
+ const ack=held(),read=held();let removed=true,holdRead=false;
+ const f=fixture(type=>{if(type==='GET_LIBRARY_REMOVED_TOPICS')return holdRead?read.promise:{items:removed?[{id:'same',revision:3,name:'SYNTHETIC Topic'}]:[],nextCursor:null};if(type==='RESTORE_LIBRARY_TOPIC'){removed=false;return ack.promise;}});
+ await f.owner.open();await f.owner.load('topic');const restore=f.owner.restore('topic','same');await new Promise(resolve=>setTimeout(resolve,0));
+ f.owner.close();await f.owner.open();holdRead=true;const loading=f.owner.load('topic');await new Promise(resolve=>setTimeout(resolve,0));
+ ack.resolve({id:'same',restored:true});await restore;read.resolve({items:[],nextCursor:null});await loading;
+ assert.equal(f.owner.rows.size,0);assert.equal(f.owner.attempts.size,1,'the new view retains its original unreviewed operation');
+ await f.owner.restore('topic','same');assert.equal(f.owner.attempts.size,0);assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1,'explicit review consumes the original ACK without another write');
+});
+test('explicit read-only reopen clears an old known ACK without dropping a newer removed row',async()=>{
+ const ack=held();let revision=3;
+ const f=fixture(type=>type==='GET_LIBRARY_REMOVED_TOPICS'?{items:[{id:'same',revision,name:'SYNTHETIC Topic'}],nextCursor:null}:type==='RESTORE_LIBRARY_TOPIC'?ack.promise:undefined);
+ await f.owner.open();await f.owner.load('topic');const restore=f.owner.restore('topic','same');await new Promise(resolve=>setTimeout(resolve,0));
+ f.owner.close();revision=5;await f.owner.open();await f.owner.load('topic');ack.resolve({id:'same',restored:true});await restore;
+ assert.equal(f.owner.rows.values().next().value.item.revision,5);assert.equal(f.owner.attempts.size,1);
+ await f.owner.open();await f.owner.load('topic');assert.equal(f.owner.attempts.size,0);assert.equal(f.owner.rows.values().next().value.item.revision,5);assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1);
+});
+test('a known old ACK cannot be reviewed through a replacement recovery epoch',async()=>{
+ const ack=held();const f=fixture(type=>type==='RESTORE_LIBRARY_TOPIC'?ack.promise:undefined);
+ await f.owner.open();await f.owner.load('topic');const restore=f.owner.restore('topic','same');await new Promise(resolve=>setTimeout(resolve,0));
+ f.owner.close();f.state.epoch='replacement';await f.owner.open();ack.resolve({id:'same',restored:true});await restore;
+ await assert.rejects(f.owner.restore('topic','same'),{code:'BACKUP_CHANGED'});assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1);
+});
+test('an already in-flight reopen cannot retire an ACK recorded after its read started',async()=>{
+ const ack=held(),snapshot=held();let holdSnapshot=false;
+ const f=fixture((type,data)=>type==='RESTORE_LIBRARY_TOPIC'?ack.promise:holdSnapshot&&type==='GET_PAGE'&&data.page.view==='settings'?snapshot.promise:undefined);
+ await f.owner.open();await f.owner.load('topic');const restore=f.owner.restore('topic','same');await new Promise(resolve=>setTimeout(resolve,0));
+ f.owner.close();holdSnapshot=true;const opening=f.owner.open();ack.resolve({id:'same',restored:true});await restore;snapshot.resolve({dataGeneration:0,recoveryEpoch:'initial'});await opening;
+ assert.equal(f.owner.attempts.size,1);holdSnapshot=false;await f.owner.open();assert.equal(f.owner.attempts.size,1,'a Settings snapshot is not a qualified typed read');await f.owner.load('topic');assert.equal(f.owner.attempts.size,0);assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1);
+});
 test('unknown outcome cannot write again and explicit not-committed retry preserves operation/digest',async()=>{
  let outcome='unknown',writes=0;const f=fixture(type=>{if(type==='EDIT_DOCUMENT'&&++writes===1)throw Error('lost before write');if(type==='PAIA_ARCHIVE_OPERATION_OUTCOME')return {state:outcome};});await f.owner.open();await f.owner.load('input');await assert.rejects(f.owner.restore('input','same'),{code:'SAVE_OUTCOME_UNKNOWN'});const attempt=f.owner.attempts.values().next().value,edit=structuredClone(attempt.edit),query=structuredClone(attempt.session.pending.query);await assert.rejects(f.owner.restore('input','same'),{code:'SAVE_OUTCOME_UNKNOWN'});assert.equal(writes,1);outcome='not_committed';await f.owner.restore('input','same');assert.equal(writes,2);assert.deepEqual(f.calls.filter(c=>c.type==='EDIT_DOCUMENT').map(c=>c.data.edit),[edit,edit]);assert.deepEqual(f.calls.filter(c=>c.type==='PAIA_ARCHIVE_OPERATION_OUTCOME').at(-1).data.query,query);
 });
@@ -64,4 +94,14 @@ test('an in-place typed retry reconciles its own generation change without chang
 });
 test('a replacement epoch denies an original typed retry before another write',async()=>{
  const f=fixture(type=>type==='RESTORE_LIBRARY_TOPIC'?Promise.reject(Error('unknown')):undefined);await f.owner.open();await f.owner.load('topic');await assert.rejects(f.owner.restore('topic','same'));f.state.epoch='replacement';await assert.rejects(f.owner.restore('topic','same'),{code:'BACKUP_CHANGED'});assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1);
+});
+
+test('an ACK-following read that fails current qualification retains the original receipt',async()=>{
+ const ack=held();let invalid=false;
+ const f=fixture(type=>type==='RESTORE_LIBRARY_TOPIC'?ack.promise:type==='GET_LIBRARY_REMOVED_TOPICS'&&invalid?{items:[],nextCursor:null,cursorInvalid:true}:undefined);
+ await f.owner.open();await f.owner.load('topic');const restore=f.owner.restore('topic','same');await new Promise(resolve=>setTimeout(resolve,0));
+ f.owner.close();await f.owner.open();ack.resolve({id:'same',restored:true});await restore;
+ await f.owner.open();invalid=true;await assert.rejects(f.owner.load('topic'),{code:'BACKUP_CHANGED'});
+ assert.equal(f.owner.attempts.size,1);assert.equal(f.calls.filter(call=>call.type==='RESTORE_LIBRARY_TOPIC').length,1);
+ invalid=false;await f.owner.load('topic');assert.equal(f.owner.attempts.size,0);assert.equal(f.owner.rows.size,1,'a fresh typed row is preserved independently of the old ACK');
 });

@@ -13,12 +13,16 @@ const cursorState = () => ({started:false,cursor:null,documents:[],documentCurso
 export class SettingsRemovedComposite {
   constructor(send=request,isActive=()=>true) { this.send=send; this.isActive=isActive; this.serial=0; this.active=false; this.attempts=new Map(); }
   async open() {
+    // Only acknowledgements already known when this explicit read starts may
+    // be retired by it. A late ACK cannot turn an in-flight reopen into review.
+    this.settledAtOpen=new Map([...this.attempts].filter(([,attempt])=>attempt.settled&&!attempt.busy));
     const serial=++this.serial; this.active=true; this.fence=null;
     this.rows=new Map(); this.pages=new Map(REMOVED_KINDS.map(kind=>[kind,{...cursorState(),items:[],done:false,pending:null,error:null}]));
     const snapshot=await this.send('GET_PAGE',{page:{view:'settings'}});
     if(!this.current(serial))return false;
     if(!Number.isSafeInteger(snapshot.dataGeneration)||typeof snapshot.recoveryEpoch!=='string')throw stale();
-    this.fence={generation:snapshot.dataGeneration,epoch:snapshot.recoveryEpoch}; return true;
+    this.fence={generation:snapshot.dataGeneration,epoch:snapshot.recoveryEpoch};
+    return true;
   }
   close() { this.active=false; ++this.serial; }
   current(serial) { return this.active&&serial===this.serial&&this.isActive(); }
@@ -60,6 +64,10 @@ export class SettingsRemovedComposite {
       page.items.push(...items); page.started=true; page.error=null;
       if(kind==='input')Object.assign(page,{cursor:state.cursor,documents:state.documents,documentCursor:state.documentCursor,documentStarted:state.documentStarted,done:!result.next});
       else { page.cursor=result.nextCursor??null; page.done=page.cursor===null; }
+      // A Settings snapshot alone does not qualify a removed-kind read. Retire
+      // only receipts already known before this open, after its actual typed
+      // page has completed under the current generation and recovery epoch.
+      for(const [k,attempt]of this.settledAtOpen)if(attempt.row.kind===kind&&this.attempts.get(k)===attempt&&attempt.fence.epoch===fence.epoch&&!attempt.busy)this.attempts.delete(k);
       return items;
     })();
     try { return await page.pending; }
@@ -71,6 +79,16 @@ export class SettingsRemovedComposite {
     const row=this.rows?.get(k)??attempt?.row; if(!row||!this.current(this.serial))return;
     const serial=this.serial;
     if(attempt?.busy)return;
+    if(attempt?.settled) {
+      if(this.fence?.epoch!==attempt.fence.epoch)throw stale();
+      await this.check(serial);
+      if(this.attempts.get(k)!==attempt)throw stale();
+      this.attempts.delete(k);
+      if(attempt.settled.conflict===true)throw conflict();
+      // This is the original receipt, not a new mutation or proof that the
+      // currently displayed (possibly newer) removal has been restored.
+      return attempt.settled;
+    }
     if(!attempt) {
       attempt={busy:false,dispatched:false,row,fence:row.fence,revision:row.item.revision,edit:null,session:null};
       if(kind==='input')attempt.session=new WorkingInputSaveSession(async(type,data)=>{
@@ -117,14 +135,19 @@ export class SettingsRemovedComposite {
       if(kind==='input')result=(await attempt.session.save(attempt.edit,attempt.fence.epoch)).result;
       else {if(!this.current(serial))throw stale();attempt.dispatched=true;result=await this.send(kind==='topic'?'RESTORE_LIBRARY_TOPIC':kind==='placement'?'RESTORE_LIBRARY_PLACEMENT':'RESTORE_LIBRARY_ENTRY',{edit:attempt.edit});}
       if(!result||typeof result!=='object')throw Object.assign(new Error('Restore outcome remains unknown'),{code:'SAVE_OUTCOME_UNKNOWN'});
-      if(result.conflict===true) { this.attempts.delete(k); throw conflict(); }
-      this.attempts.delete(k);
+      if(!this.current(serial)) {
+        if(this.attempts.get(k)===attempt)attempt.settled=result;
+        if(result.conflict===true)throw conflict();
+        return result;
+      }
+      if(this.attempts.get(k)===attempt)this.attempts.delete(k);
+      if(result.conflict===true)throw conflict();
       if(this.current(serial)&&this.rows.get(k)===row&&row.item.revision===attempt.revision&&row.fence.epoch===attempt.fence.epoch)this.rows.delete(k);
       return result;
     } catch(error) {
       // Before a write was staged there is no unknown outcome to preserve.
       // Once staged, reopening or reloading never mints a different operation.
-      if(!attempt.dispatched||error.code==='CONFLICT'&&attempt.session?.pending?.state==='not_committed')this.attempts.delete(k);
+      if((!attempt.dispatched||error.code==='CONFLICT'&&attempt.session?.pending?.state==='not_committed')&&this.attempts.get(k)===attempt)this.attempts.delete(k);
       throw error;
     } finally { attempt.busy=false; }
   }
