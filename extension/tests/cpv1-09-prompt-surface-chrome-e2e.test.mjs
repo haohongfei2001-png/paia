@@ -21,7 +21,13 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   // Resolve the current closed-shadow iframe within the existing readiness budget.
   // Only an actually detached Frame permits reacquisition; all other errors fail.
   const readyCard=async()=>{let ready;await eventually(async()=>{const f=card();if(!f||f.isDetached())return false;let visible;try{visible=await f.locator('.row').first().isVisible();}catch(error){if(f.isDetached())return false;throw error;}if(!visible||f.isDetached()||card()!==f)return false;ready=f;return true;},'current Prompt frame has visible rows');await (await ready.frameElement()).evaluate(async e=>{await Promise.all(e.getAnimations().map(a=>a.finished));});assert.equal(ready.isDetached(),false,'ready Prompt frame remains attached');assert.equal(card(),ready,'ready Prompt owner remains current');return ready;};
-  const open=async()=>{if(!card())await orb.click();return readyCard();};
+  const open=async()=>{
+   // Initial visible mount can still be restoring an already-open frame.
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   const worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));assert.ok(worker);
+   const host=await worker.evaluate(async url=>{const tabs=await chrome.tabs.query({url:'https://chatgpt.com/*'}),matches=tabs.filter(tab=>tab.url===url);if(matches.length!==1)throw Error('Exact original source tab missing');return chrome.tabs.sendMessage(matches[0].id,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});},page.url());assert.equal(host.url,page.url());
+   if(host.open)await eventually(()=>card()?.url().endsWith('#'+host.nonce),'original current host nonce owns the restored frame');else await orb.click();return readyCard();
+  };
   // Read-only synthetic lifecycle trace: no retry, timeout or assertion changes.
   const frameIds=new WeakMap();let nextFrameId=0;const frameId=f=>{if(!frameIds.has(f))frameIds.set(f,++nextFrameId);return frameIds.get(f);};
   const trace=(phase,data={})=>navigationTrace.push({at:Date.now(),phase,...data});
