@@ -18,7 +18,22 @@ const settleSurface=async frame=>{
  },'original Prompt child ACK and parent frame geometry are settled');
 };
 const surfaceReady=async frame=>{await eventually(()=>frame.locator('#refresh').isEnabled(),'the original refresh owner has completed');await settleSurface(frame);};
-const clickSurface=async(frame,locator)=>{await surfaceReady(frame);await locator.click();};
+const clickSurface=async(frame,locator)=>{
+ await surfaceReady(frame);
+ try{await locator.click();}catch(error){
+  // Failure-only geometry/owner evidence: no bodies, values, retry or action.
+  // A diagnostic failure must never replace the original click exception.
+  try{
+   const state=await frame.locator('html').evaluate(()=>{
+    const shape=node=>{if(!node)return null;const r=node.getBoundingClientRect(),style=getComputedStyle(node);return {tag:node.tagName,id:node.id,class:node.className,hidden:node.hidden,disabled:node.disabled,display:style.display,visibility:style.visibility,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};};
+    return {pending:document.documentElement.hasAttribute('data-layout-pending'),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},focusTag:document.activeElement?.tagName,list:shape(document.querySelector('#list')),check:shape(document.querySelector('#check-text')),editor:shape(document.querySelector('#editor')),row:shape(document.querySelector('.row')),more:shape(document.querySelector('.row .more'))};
+   },null,{timeout:1000});
+   const owner=await (await frame.frameElement()).evaluate(node=>{const shape=n=>{if(!n)return null;const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {tag:n.tagName,id:n.id,hidden:n.hidden,display:s.display,visibility:s.visibility,rect:{x:r.x,y:r.y,width:r.width,height:r.height}};};return {frame:shape(node),parent:shape(node.parentElement),host:shape(node.getRootNode()?.host),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio}};});
+   await mkdir(receiptDir,{recursive:true});await writeFile(join(receiptDir,'click-owner-failure-'+Date.now()+'.json'),JSON.stringify({frameUrl:frame.url(),state,owner},null,2)+'\n');
+  }catch(diagnosticError){console.error('Prompt click owner diagnostic unavailable:',diagnosticError.name);}
+  throw error;
+ }
+};
 const openSurfaceTools=async frame=>{if(await frame.locator('#surface-tools').isHidden()){await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));await frame.locator('#surface-more').click();await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));}};
 const surfaceClick=async(frame,selector)=>{await openSurfaceTools(frame);await clickSurface(frame,frame.locator(selector));};
 for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isolated native Chrome',{timeout:240000},async t=>{

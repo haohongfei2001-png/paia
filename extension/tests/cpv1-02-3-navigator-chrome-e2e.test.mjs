@@ -26,11 +26,20 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   let documentId;
   await eventually(async()=>{const result=await rpc(page,'GET_PAGE',{page:{view:'library'}});documentId=result.documents.find(row=>row.sourceConversationId===chatId)?.id;return !!documentId;});
   await page.bringToFront();
-  await eventually(()=>page.locator('.archive-navigator-group-toggle').first().isVisible());
-  for(const group of await page.locator('.archive-navigator-group-toggle').all()){
-   await group.click();
-   if(await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).count())break;
-  }
+  // Captured records precede the real Source observation/index projection.
+  // Both fixture pages are ordinary unassigned chats; wait for those actual
+  // facts before selecting their group, which can otherwise be a transient
+  // unknown row that disappears when the second capture is observed.
+  await eventually(async()=>{
+   const documents=(await rpc(page,'GET_PAGE',{page:{view:'library'}})).documents;
+   const ids=[chatId,'cpv1-023-other'].map(id=>documents.find(row=>row.sourceConversationId===id)?.id);
+   if(ids.some(id=>!id))return false;
+   for(const id of ids){const status=await rpc(page,'PAIA_ARCHIVE_NAV_STATUS',{page:{selectedDocumentId:id}});if(status.coverage.state!=='complete'||status.selectedPath?.available!==true||status.selectedPath.documentId!==id||status.selectedPath.providerKey!=='chatgpt'||status.selectedPath.groupKind!=='unassigned')return false;}
+   return true;
+  },'both captured chats have their actual unassigned Source projection');
+  const groupSelector=await page.evaluate(async()=>{const {navigatorGroupKey}=await import('./archive-navigator.js');return '[data-ans-nav-key="'+CSS.escape('group:'+navigatorGroupKey('chatgpt','unassigned'))+'"]';});
+  const group=page.locator(groupSelector);await group.waitFor({state:'visible'});
+  if(await group.getAttribute('aria-expanded')!=='true')await group.click();
   await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).click();
   await eventually(()=>page.locator('.archive-navigator-window[aria-current="page"]').isVisible());
   assert.match(await page.locator('.library-prose').first().textContent(),/CPV1_NAV_IDENTITY_BODY/);
