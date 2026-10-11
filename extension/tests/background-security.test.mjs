@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 globalThis.IDBKeyRange=IDBKeyRange;
 // Synthetic data only. Imports the real service worker with an in-memory Chrome
@@ -120,6 +121,7 @@ async function fixture({ isolationFailure = false, delayedIsolation = false } = 
       async getBytesInUse() { return Buffer.byteLength(JSON.stringify(persisted)); }
     } }
   };
+  toolbarRegistrationFixture(chrome);
   await import(`../background/service-worker.js?synthetic-test=${crypto.randomUUID()}`);
   assert.equal(typeof listener, 'function');
   return {

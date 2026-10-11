@@ -1,3 +1,13 @@
+# Current0.43.19 candidate: complete browser/native pass, security fixture follow-up — 2026-10-11
+
+PR2541adb8a5a04747c53a636d85b61f244b9f7c2238d, actual signed tested merge23176eadb89487741d246cf827b5a816995591a8, has all nine current browser shards (93 complete files), all four unit shards, release build and both macOS gates passing in Full38120160826. Visual38120160816 passes. Fresh native54 top-level/84total tests pass with both original strict receipt verifiers independently qualified. Full and Prompt38120160813 remain FAILURE solely because the original background-security synthetic Chrome fixture lacked toolbar listener registration; skipped jobs are not counted.
+
+The follow-up adds only the existing synthetic listener-registration helper import/call before the original worker import. All original security assertions, storage counts, sender/consent fences and deadlines remain byte-for-byte. Complete original privacy/security59/59 and package/development audits pass on6f94d9d8 plus exactly those two lines, subsequently committed57f9c137. Independent reviewda6b4378/cbb7bab2 approves that limited repair. Runtime/dependencies and version0.43.19 are unchanged; earlier native/browser evidence keeps its exact identity. Root submits one consolidated test/documentation follow-up, then requires its formal Full/Prompt and normal exact-main qualification. No original failure is relabelled.
+
+Main531dbcf/qualified0.43.16 remains unchanged. Shared Canonical C is still independently in progress; no full Sync, missing-design visual, real provider/account/device, installed or deployment acceptance is claimed.
+
+## Preserved prior checkpoint
+
 # Current coherent candidate: approved toolbar and Settings replacement, 0.43.19 — 2026-10-11
 
 The owner-approved S4 current-window focus/no-refresh behavior is now implemented in the local candidate. It reuses an existing PAIA without reload or unsaved-edit loss, otherwise opens PAIA with original first-use onboarding. Settings retains original Next consent/revocation, pause/resume/backfill, actual current-install update status and reachable fault recovery. Production default_popup is removed only in this replacement candidate; original Popup behavior remains tested in an isolated legacy fixture. No permission or live provider capability is added.
