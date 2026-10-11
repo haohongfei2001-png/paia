@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -16,7 +17,7 @@ test('audit recovery uses the production worker: purge, stale replay, both race 
   set:async values=>{if(pauseSet&&Object.keys(values).some(k=>k.startsWith(recoveryDraftPrefix)))await pauseSet();Object.assign(data,structuredClone(values));},
   remove:async keys=>{const list=Array.isArray(keys)?keys:[keys];if(list.some(k=>k.startsWith(recoveryDraftPrefix))){if(failRemove)throw Error('Synthetic storage failure');if(pauseRemove)await pauseRemove();}for(const k of list)delete data[k];},getBytesInUse:async()=>0};
  globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.12.0'}),getURL:path=>origin+path,sendMessage:async()=>{},onMessage:{addListener:fn=>listener=fn}},storage:{local:area}};
- await import('../background/service-worker.js');
+ toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
  const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve));
  const rpc=async(type,fields={},sender=ui)=>{const reply=await send({type,...fields},sender);assert.equal(reply.ok,true,JSON.stringify(reply));return reply.data;};
  const make=async label=>{

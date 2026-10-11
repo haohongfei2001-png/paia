@@ -34,3 +34,10 @@ export function localProviderDescriptor(provider){
 export const ASSIST_RESULT_KIND='ai_assist_result_v1';
 export function validateReplyObligation(value){exact(value,['version','evaluationKey']);if(value.version!==1||!token(value.evaluationKey))fail();return value;}
 export function isAssistResultJob(job){return job?.kind===ASSIST_RESULT_KIND&&job.version===1&&job.type==='AI_ASSIST'&&job.childIds?.length===1&&job.replyObligation?.version===1&&token(job.replyObligation.evaluationKey);}
+
+// A historical-ID result is neither reply generation nor a facet ACK. It uses
+// the same AI_ASSIST child/attempt owner without borrowing reply consent.
+export const HISTORICAL_CANDIDATE_KIND='ai_assist_candidates_v1';
+export function validateCandidateObligation(value){exact(value,['version','evaluationKey']);if(value.version!==1||!token(value.evaluationKey))fail();return value;}
+export function isHistoricalCandidateJob(job){return job?.kind===HISTORICAL_CANDIDATE_KIND&&job.version===1&&job.type==='AI_ASSIST'&&job.childIds?.length===1&&job.candidateObligation?.version===1&&token(job.candidateObligation.evaluationKey);}
+export const isPrivateResultJob=job=>isAssistResultJob(job)||isHistoricalCandidateJob(job);

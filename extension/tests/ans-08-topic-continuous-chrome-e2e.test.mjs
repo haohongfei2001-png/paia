@@ -84,11 +84,16 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,sort:'asc',limit:40}),cursor=first.nextCursor,samples=[];let operations=null;
    if(!cursor)throw Error('NO_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
   },seed.topicId);
+  await mkdir('work/ans-08',{recursive:true});
+  await writeFile('work/ans-08/topic-performance.json',JSON.stringify(perf,null,2));
+  console.log('ANS08_TOPIC_PERFORMANCE '+JSON.stringify(perf));
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
   const sectionPerf=await page.evaluate(async topicId=>{
    const call=async options=>{const r=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,limit:40}),cursor=first.nextCursor,samples=[],operationSamples=[];let operations=null;
    if(!cursor)throw Error('NO_SECTION_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;operationSamples.push(operations);}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples,operationSamples};
   },seed.topicId);
+  await writeFile('work/ans-08/section-performance.json',JSON.stringify(sectionPerf,null,2));
+  console.log('ANS08_SECTION_PERFORMANCE '+JSON.stringify(sectionPerf));
   assert.ok(sectionPerf.p95<=750,'actual warmed Section next-chunk p95 <= 750 ms');assert.equal(sectionPerf.operationSamples.length,30);for(const sample of sectionPerf.operationSamples){assert.ok(sample.placementCandidates<=40);assert.ok(sample.hydratedEntries<=40);}
 
 

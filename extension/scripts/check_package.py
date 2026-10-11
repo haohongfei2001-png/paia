@@ -84,7 +84,34 @@ def audit_manifest():
     require(background.get("type") == "module", "Background must use a packaged ES module")
     local_reference(background.get("service_worker"), path, "background.service_worker")
     action = manifest.get("action", {})
-    local_reference(action.get("default_popup"), path, "action.default_popup")
+    if "default_popup" in action:
+        local_reference(action.get("default_popup"), path, "action.default_popup")
+    else:
+        # S4 replaces the action only through the reviewed local owner. This
+        # static wiring check supplements, not substitutes for, native tests.
+        require(background.get("service_worker") == "background/service-worker.js",
+                "Toolbar entry requires the original service worker")
+        local_reference("background/toolbar-entry.js", path, "Reviewed toolbar owner")
+        worker_path = ROOT / "background/service-worker.js"
+        worker_text = worker_path.read_text(encoding="utf-8") if worker_path.is_file() else ""
+        def executable_js(text):
+            # Keep quoted import paths and URL wildcards intact. Mask comments
+            # and whole template strings so inert hook text cannot qualify.
+            tokens = '\'(?:\\\\[\\s\\S]|[^\'\\\\])*\'|\\"(?:\\\\[\\s\\S]|[^\\"\\\\])*\\"|`(?:\\\\[\\s\\S]|[^`\\\\])*`|/\\*[\\s\\S]*?(?:\\*/|$)|//[^\\r\\n]*'
+            return re.sub(tokens, lambda match: re.sub(r"[^\r\n]", " ", match.group())
+                          if match.group().startswith(("/*", "//", "`")) else match.group(), text)
+        worker_text = executable_js(worker_text)
+        require(bool(re.search(r"^import\s*\{\s*installToolbarEntry\s*\}\s*from\s*['\"]\./toolbar-entry\.js['\"];[ \t]*$", worker_text, re.M)),
+                "Toolbar entry requires the reviewed packaged import")
+        require(bool(re.search(r"^installToolbarEntry\(chrome,\s*\{clients:globalThis\.clients\}\);[ \t]*$", worker_text, re.M)),
+                "Toolbar entry requires the original explicit worker installation")
+        archive_path = ROOT / "ui/archive.js"
+        archive_text = archive_path.read_text(encoding="utf-8") if archive_path.is_file() else ""
+        archive_text = executable_js(archive_text)
+        require(bool(re.search(r"^import\s*\{\s*installToolbarClient\s*\}\s*from\s*['\"]\.\./background/toolbar-entry\.js['\"];[ \t]*$", archive_text, re.M)),
+                "Toolbar entry requires the original Archive identity import")
+        require(bool(re.search(r"^installToolbarClient\(chrome\);[ \t]*$", archive_text, re.M)),
+                "Toolbar entry requires the original Archive identity listener")
     icon_references(action.get("default_icon"), path, "action.default_icon")
     icon_references(manifest.get("icons"), path, "icons")
     if manifest.get("options_page"):
@@ -230,6 +257,13 @@ def audit_js(path, text):
                     "Prompt movement keys must be orb scoped")
         if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
             scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
+            # Original-text range selection stays inside the private check body;
+            # no global/host key capture and no key values are consumed.
+            reviewed = "body.addEventListener('keyup',selected);"
+            require(text.count(reviewed) == 1 and "body.className='check-body'" in text
+                    and "body.contains(range.startContainer)" in text and "body.contains(range.endContainer)" in text,
+                    "Prompt range selection must remain exact private-body scoped")
+            scanned = scanned.replace(reviewed, "SCOPED_PROMPT_RANGE_SELECTION();", 1)
         if label == "keyboard listener" and path == ROOT / "ui/prompt-next.js":
             reviewed = "capsule.addEventListener('keydown',"
             require(text.count(reviewed) == 1 and "e.key==='Escape'" in text,

@@ -1,4 +1,5 @@
 import {formPreGatePurgeState} from '../fixtures/pre-b02-purge-state.mjs';
+import {runWithPreDispatchReadRetry} from './pre-dispatch-read-retry.mjs';
 
 // Synthetic historical state admission, ONLY in automation's isolated profile.
 // Current worker denial + whole-database/recovery equality must pass FIRST.
@@ -15,7 +16,12 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   const {purgeSourceStructureForRecords}=await import(chrome.runtime.getURL('core/source-structure-store.js'));
   const error=code=>{throw new ArchiveError(code);},id=${JSON.stringify(id)};
   const store=new OrganizerStore(chrome.storage.local);
-  await store.drainPurgeCleanup();await store.drainInvalidations();await store.drainLibraryMaintenance();
+  // This independent fixture instance can race the real worker while acquiring
+  // its initial read fence. Never replay an entered callback or the pinned body.
+  const preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=store.run.bind(store);
+  store.run=callback=>preDispatchRead(originalRun,callback);
+  const stage=async(label,fn)=>{try{return await fn();}catch(cause){throw new Error('HISTORICAL_FIXTURE_STAGE:'+label+':'+(cause?.code||cause?.message||'UNKNOWN'),{cause});}};
+  await stage('drain-purge',()=>store.drainPurgeCleanup());await stage('drain-invalidations',()=>store.drainInvalidations());await stage('drain-library',()=>store.drainLibraryMaintenance());
   let prior=null,stable=0;for(let n=0;n<100&&stable<8;n++){const generation=await store.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']);stable=generation===prior?stable+1:0;prior=generation;if(stable<8)await new Promise(resolve=>setTimeout(resolve,25));}if(stable<8)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
   const preview=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id});
   if(!preview.ok)throw Error('HISTORICAL_FIXTURE_PREFLIGHT_FAILED');
@@ -30,7 +36,7 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   };
   const before=await digest(),snapshot=before.snapshot,denied=await chrome.runtime.sendMessage({type:'PURGE_SOURCE',id,confirm:true});
   const after=await digest();if(denied.ok||denied.error!=='SOURCE_PURGE_OWNER_GATE'||after.hash!==before.hash){const next=after.snapshot,changed=Object.keys(snapshot.db).filter(k=>JSON.stringify(snapshot.db[k])!==JSON.stringify(next.db[k])),local=Object.keys({...snapshot.local,...next.local}).filter(k=>JSON.stringify(snapshot.local[k])!==JSON.stringify(next.local[k]));const meta=changed.includes('meta')?[...new Set([...snapshot.db.meta,...next.db.meta].map(r=>r.id))].filter(id=>JSON.stringify(snapshot.db.meta.find(r=>r.id===id))!==JSON.stringify(next.db.meta.find(r=>r.id===id))):[];throw Error('CURRENT_B02_ZERO_EFFECTS_FAILED:'+JSON.stringify({denied,changed,local,meta}));}
-  const form=${formPreGatePurgeState.toString()};await form.call(store,id,true);
+  const form=${formPreGatePurgeState.toString()};await stage('form-historical-state',()=>form.call(store,id,true));
   await chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'SYNTHETIC_PRE_GATE_FIXTURE'});
   return {evidenceClass:'CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY',beforeDigest:before.hash};
  })()`);

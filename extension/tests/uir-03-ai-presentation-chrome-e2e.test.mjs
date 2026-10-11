@@ -2,7 +2,7 @@ import {thoughtHistoryAction} from './harness/current-thought-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture as baseFixture,rpc,authority,savedRow,editSaved,refusedAI,setAIView as rawSetAIView,openTopic,noApproval,quiet,screenshotMatrix} from './harness/consumer-ai-browser.mjs';
-import {eventually} from './harness/fake-chatgpt.mjs';
+import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 async function verifySavedSummaryAccess(p,variant){
  const summary=p.locator('[data-ai-saved-fields] > summary'),details=p.locator('[data-ai-saved-fields]'),cdp=await p.context().newCDPSession(p);
@@ -38,21 +38,45 @@ async function verifySavedSummaryAccess(p,variant){
 
 async function setAIView(p,on){await rawSetAIView(p,on);if(on){const details=p.locator('[data-ai-saved-fields]');await details.waitFor();if(!await details.evaluate(n=>n.open))await details.locator('summary').click();}}
 
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
+function installVS05Diagnostic(){
+ const trace={phase:'fixture initial topic navigation',events:[]};globalThis.__vs05Diagnostic=trace;
+ const record=value=>{trace.events.push({...value,at:performance.now()});if(trace.events.length>120)trace.events.shift();};
+ document.addEventListener('click',event=>{const node=event.target instanceof Element?event.target.closest('[data-topic-id],[data-view],button,a,input'):null;record({event:'click',trusted:event.isTrusted,tag:node?.tagName,id:node?.id,view:node?.dataset.view,topicLink:node?.classList.contains('personal-topic-link')===true});},true);
+ const original=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=function(message,...args){const result=original(message,...args);if(result&&typeof result.then==='function')return result.then(reply=>{record({event:'reply',type:message?.type,ok:reply?.ok,error:reply?.error,items:Array.isArray(reply?.data?.items)?reply.data.items.length:undefined});return reply;},error=>{record({event:'reject',type:message?.type,name:error?.name});throw error;});return result;};
+}
+async function vs05Failure(h,variant,error){
+ let state=null;
+ try{state=await h.archive.evaluate(()=>{const t=globalThis.__vs05Diagnostic;return {phase:t?.phase,events:t?.events,view:document.querySelector('[data-view][aria-current="page"]')?.dataset.view,documentVisible:!!document.querySelector('#thought-document')&&!document.querySelector('#thought-document').hidden,headingCount:document.querySelectorAll('#topic-heading h1').length,headingVisible:!!document.querySelector('#topic-heading h1')?.getClientRects().length,activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,topicLinks:document.querySelectorAll('.personal-topic-link').length,recomposing:document.documentElement.classList.contains('paia-recomposing')};});}catch(diagnosticError){state={unavailable:diagnosticError.name};}
+ // The CI reporter does not forward test stdout. Retain bounded original state
+ // in the original error and artifact, without replacing the original failure.
+ const detail='VS05_NATIVE_FAILURE '+variant+' '+JSON.stringify(state),originalStack=error.stack||String(error);
+ try{error.message+='\n'+detail;error.stack=originalStack+'\n'+detail;}catch{}
+ try{const dir=process.env.PAIA_CONSUMER_EVIDENCE_DIR||'work/consumer-cleanup';await mkdir(dir,{recursive:true});await writeFile(join(dir,variant+'-vs05-navigation-failure.json'),JSON.stringify({variant,state},null,2));}catch{}
+ throw error;
+}
+async function observedFixture(variant,options){
+ if(options.count!==64)return baseFixture(variant,options);
+ // Observe the actual page before the existing fixture's first native action.
+ // No SDK, original action or navigation helper is replaced.
+ const start=FakeChatGPT.start;let observed;
+ FakeChatGPT.start=async function(...args){observed=await start.apply(this,args);await observed.archive.evaluate(installVS05Diagnostic);return observed;};
+ try{return await baseFixture(variant,options);}catch(error){if(observed){try{await vs05Failure(observed,variant,error);}catch{}finally{await observed.close().catch(closeError=>console.log('VS05_FIXTURE_CLEANUP_FAILURE',variant,closeError.name));}}throw error;}finally{FakeChatGPT.start=start;}
+}
 async function fixture(variant,options={}){
- if(variant!=='release')return baseFixture(variant,options);
+ if(variant!=='release')return observedFixture(variant,options);
  const path=await mkdtemp(join(tmpdir(),'paia-ai-reading-release-'));
- try{execFileSync('python3',['scripts/build_current_release.py',join(path,'release')],{stdio:'pipe'});const f=await baseFixture(variant,{...options,releasePath:join(path,'release')}),close=f.h.close.bind(f.h);f.h.close=async()=>{try{await close();}finally{await rm(path,{recursive:true,force:true});}};return f;}catch(error){await rm(path,{recursive:true,force:true});throw error;}
+ try{execFileSync('python3',['scripts/build_current_release.py',join(path,'release')],{stdio:'pipe'});const f=await observedFixture(variant,{...options,releasePath:join(path,'release')}),close=f.h.close.bind(f.h);f.h.close=async()=>{try{await close();}finally{await rm(path,{recursive:true,force:true});}};return f;}catch(error){await rm(path,{recursive:true,force:true});throw error;}
 }
 
 test('UIR-03 saved Organized presentation remains readable and editable while retired Provider commands refuse in source and release',{timeout:300000},async()=>{
  for(const variant of ['source','release']){const f=await fixture(variant);try{const {p,h,topic}=f,before=await authority(p);await setAIView(p,true);await p.locator('[data-ai-field="currentView"]').waitFor();await noApproval(p);await refusedAI(p,topic.id);await screenshotMatrix(p,'saved-ai',variant);const savedBefore=await savedRow(p,topic.id),savedEdit=await editSaved(f);await thoughtHistoryAction(p,'library-undo');await eventually(async()=>(await savedRow(p,topic.id)).blockSummary===savedBefore.blockSummary,'visible undo targets saved AI');await p.setViewportSize({width:320,height:900});await thoughtHistoryAction(p,'library-redo');await eventually(async()=>(await savedRow(p,topic.id)).blockSummary===savedEdit.blockSummary,'visible redo restores the AI edit');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'open AI menu stays inside narrow viewport');await p.setViewportSize({width:1440,height:900});const after=await authority(p);assert.deepEqual(after.records,before.records);assert.deepEqual(after.thoughts,before.thoughts);const history=await rpc(p,'GET_AI_PRESENTATION_REVISIONS',{options:{topicId:topic.id}});assert.ok(history.items.length>0);await quiet(h);}finally{await f.h.close();}}
 });
 test('VS-05 long Topic remains interactive across refused AI, navigation and reduced motion in source and release',{timeout:300000},async()=>{
- for(const variant of ['source','release']){const f=await fixture(variant,{count:64});try{const {p,h,topic}=f;await setAIView(p,true);await refusedAI(p,topic.id);await p.emulateMedia({reducedMotion:'reduce'});await setAIView(p,false);await p.locator('#topic-search').fill('原始思想 0');await eventually(async()=>/1\+? 条匹配/.test(await p.locator('#topic-search-count').textContent()));assert.ok(await p.locator('#original-reading-body [data-entry-id]').count()<=60);await p.locator('#topic-search').fill('');await openTopic(p,topic);await setAIView(p,true);await p.locator('[data-ai-field="currentView"]').waitFor();const row=await savedRow(p,topic.id);await setAIView(p,false);await setAIView(p,true);assert.deepEqual(await savedRow(p,topic.id),row,'view transitions do not create phantom revisions');await quiet(h);}finally{await f.h.close();}}
+ for(const variant of ['source','release']){const f=await fixture(variant,{count:64});try{const {p,h,topic}=f;await p.evaluate(()=>__vs05Diagnostic.phase='original refused AI and search');await setAIView(p,true);await refusedAI(p,topic.id);await p.emulateMedia({reducedMotion:'reduce'});await setAIView(p,false);await p.locator('#topic-search').fill('原始思想 0');await eventually(async()=>/1\+? 条匹配/.test(await p.locator('#topic-search-count').textContent()));assert.ok(await p.locator('#original-reading-body [data-entry-id]').count()<=60);await p.locator('#topic-search').fill('');await p.evaluate(()=>__vs05Diagnostic.phase='original second openTopic');await openTopic(p,topic);await p.evaluate(()=>__vs05Diagnostic.phase='original saved view roundtrip');await setAIView(p,true);await p.locator('[data-ai-field="currentView"]').waitFor();const row=await savedRow(p,topic.id);await setAIView(p,false);await setAIView(p,true);assert.deepEqual(await savedRow(p,topic.id),row,'view transitions do not create phantom revisions');await quiet(h);}catch(error){await vs05Failure(f.h,variant,error);}finally{await f.h.close();}}
 });
 for(const variant of ['source','release'])test(`D7 retired worker launch cannot create pending work or replace saved AI (${variant})`,{timeout:180000},async()=>{
  const f=await fixture(variant);try{await setAIView(f.p,true);await refusedAI(f.p,f.topic.id);await f.h.restartWorker();await refusedAI(f.p,f.topic.id);await f.p.locator('[data-ai-field="blockSummary"]').waitFor();await noApproval(f.p);await quiet(f.h);}finally{await f.h.close();}

@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -15,7 +16,7 @@ async function worker({pending=false,failure=null}={}){
  const seed=new OrganizerStore(storage);await seed.consent(true);await seed.finishFoundation();await seed.updatePreferences(change('original',0).changes);
  if(pending){const preferences=structuredClone(values[STORAGE_KEY].preferences);preferences.aiOrganizeStyle={version:1,value:'concise',revision:7,explicit:true};await seed.run(()=>seed.repository.transaction(true,async t=>{await t.put('meta',{id:'backup-recovery-settings',value:{id:'preferences',preferences}});await t.put('meta',{id:'recovery-restore-epoch',value:'startup-restore'});},['meta']));}
  fail=failure;globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.15.0'}),getURL:path=>origin+path,sendMessage:async message=>events.push(message),onMessage:{addListener:fn=>listener=fn}},storage:{local:storage,session:{...storage,get:async()=>({}),set:async()=>{}}}};globalThis.fetch=async()=>assert.fail('no network');
- await import(`../background/service-worker.js?styleRecovery=${++imports}`);
+ toolbarRegistrationFixture(globalThis.chrome);await import(`../background/service-worker.js?styleRecovery=${++imports}`);
  const send=request=>new Promise(resolve=>listener(request,ui,resolve));return {send,read:()=>send({type:'PAIA_SETTINGS_AI_STYLE'}),seed,values,events,setFailure:value=>fail=value};
 }
 test('style reads and writes wait for startup recovery instead of acknowledging an overwritten choice',async()=>{

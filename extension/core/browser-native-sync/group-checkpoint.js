@@ -11,11 +11,14 @@ import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
 import {prepareGroupScope,requireGroupScope,prepareGroupCurrentProjection,requireGroupCurrentProjection,encodeGroupCurrentProjection,publishGroupCurrentProjection,releaseGroupCurrentProjection} from './group-checkpoint-scope.js';
 import {prepareBootstrapApplication,applyBootstrapApplication} from './source-bootstrap-receive.js';
 import {prepareAppendApplication,applyAppendApplication} from './source-append-receive.js';
-import {JournalRestoreFence,readRestoreEpoch} from './prompt-journal.js';
+import {JournalRestoreFence,readRestoreEpoch,materializePromptBinding} from './prompt-journal.js';
 import {CONSENT_VERSION} from '../constants.js';
 import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
+import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
+import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from './consumer-publication-state.js';
+import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
@@ -89,7 +92,7 @@ async function compile(core,items,manifest,store){
  }
  const plan=await prepareGroupCheckpointPlan(core,operations),canonical=await prepareGroupScope(plan,{store});
  const sorted=rows=>[...rows].sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
- const families=new Map();for(const head of plan.heads){const x=families.get(head.type)||{type:head.type,version:1,count:0};x.count++;families.set(head.type,x);}const coverage=[...families.values()].sort((a,b)=>a.type.localeCompare(b.type));
+ const families=new Map();for(const head of plan.heads){const operation=operations.find(op=>op.revisionId===head.revisions[0]);const x=families.get(head.type)||{type:head.type,version:operation.codecVersion,count:0};x.count++;families.set(head.type,x);}const coverage=[...families.values()].sort((a,b)=>a.type.localeCompare(b.type));
  if(!equal(coverage,manifest.coverage)||!equal(sorted(heads),plan.heads)||!equal(canonical.ownerScope,scope))fail('BNS_GROUP_SCOPE_INVALID');
  const expected=new Map();for(const op of operations)expected.set(op.deviceId,acceptSequence(expected.get(op.deviceId),op.sequence));
  if(frontiers.length!==expected.size||new Set(frontiers.map(x=>x.deviceId)).size!==frontiers.length)fail('BNS_CHECKPOINT_FRONTIER');
@@ -118,7 +121,7 @@ export class GroupedCheckpointRestore{
   }));
  }
  async stageCheckpoint(ref,get,options={}){
-  let state=await this.begin(ref,get,options);if(state.phase==='activated'||state.phase==='validated')return state;
+  let state=await this.begin(ref,get,options);if(['activated','validated','publishing'].includes(state.phase))return state;
   let index=0;for await(const item of checkpointItems(state.manifest,get,{profile:this.profile})){
    const at=index++;if(at<state.received)continue;
    await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==at)fail('BNS_RESTORE_STAGE_CHANGED');if(!equal(await authority(this.store,this.live,t),current.base))fail('BNS_RESTORE_LOCAL_CHANGED');await this.stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item});await this.stage.put(t,'restore',[],{...withoutId(current),received:at+1});await requireStorageBudget(t,this.stage,current.replayId);},['meta']);await this.checkpoint('staged-item',index);
@@ -128,8 +131,14 @@ export class GroupedCheckpointRestore{
   await this.stage.transaction(true,async t=>{const current=await this.stage.get(t,'restore');if(current.phase!=='staging'||current.received!==items.length||items.length!==current.manifest.itemCount)fail('BNS_RESTORE_STAGE_CHANGED');await this.stage.put(t,'restore',[],{...withoutId(current),phase:'validated',graphDigest:compiled.plan.digest});},['meta']);return this.stage.read('restore');
  }
  async activate(){
-  const state=await this.stage.read('restore');if(!state||!['validated','activated'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
+  const state=await this.stage.read('restore');if(!state||!['validated','activated','publishing'].includes(state.phase))fail('BNS_RESTORE_NOT_READY');
+  if(state.phase==='publishing'){
+   if(!this.store.consumerPreferenceJournal)fail('BNS_CONSUMER_PREFERENCE_OWNER_REQUIRED');
+   await this.store.consumerPreferenceJournal.recover(this.store);
+   const current=await this.stage.read('restore');if(current?.phase!=='activated')fail('BNS_CONSUMER_PUBLICATION_PENDING');return this.activate();
+  }
   if(state.phase==='activated')return this.store.run(()=>this.live.transaction(false,async t=>{
+   await requireConsumerPublicationSettled(t);
    const current=await this.stage.get(t,'restore'),active=await t.get('meta',this.live.prefix+'active');
    if(!equal(current,state)||active?.namespace!==state.replayId||active.manifestId!==state.manifestId||active.graphDigest!==state.graphDigest||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');
    return {state:'activated',namespace:state.replayId};
@@ -137,25 +146,31 @@ export class GroupedCheckpointRestore{
   const items=[];for await(const row of this.stage.rows('groupItem'))items.push(row.item);
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),{plan,canonical,frontiers}=await compile(replay,items,state.manifest,this.store);
   if(plan.digest!==state.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
-  const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay);
+  const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
   const sourceProof=await prepareRestoredFilterSources(canonical.expected.records.map(row=>({...row})));
   const humanApplication=await prepareHumanGroupApplication(this.store,replay,plan);
   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
+  const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
-  return this.store.run(()=>this.live.transaction(true,async t=>{
+  return this.store.run(async()=>{const result=await this.live.transaction(true,async t=>{
    const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
    if(state.phase==='activated'){const active=await t.get('meta',this.live.prefix+'active');if(active?.namespace!==state.replayId||active.manifestId!==state.manifestId||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');return {state:'activated',namespace:state.replayId};}
    if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
+   await requireConsumerPublicationSettled(t);await this.store.qualifyControlPublicationRead(t);
    await requireGroupScope(this.store,t,empty);if(humanApplication)await requireHumanGroupApplication(t,humanApplication);
    for(const kind of ['pending','publicationActive'])if((await t.primaryRangePage('meta',{prefix:await this.live.idIn(t,kind),limit:1})).rows.length)fail('BNS_RESTORE_LIVE_PENDING');
    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
-   for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0]);if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
+   for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?materializePromptBinding:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
+   const publication=consumerApplication?await applyRestoredConsumerPreferenceOwners(t,consumerApplication):null;
    await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
    for(const expected of frontiers){const actual=await replay.get(t,'frontier',expected.deviceId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_FRONTIER');}
    await this.checkpoint('before-activation',t);await t.put('meta',{id:this.live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest});
-   await this.stage.put(t,'restore',[],{...withoutId(state),phase:'activated'});await this.checkpoint('after-activation',t);return {state:'activated',namespace:state.replayId};
-  }));
+   const publishing=!!publication?.operations.length;
+   await this.stage.put(t,'restore',[],{...withoutId(state),phase:publishing?'publishing':'activated'});
+   if(publishing){const binding=await this.store.controlPublicationBinding(t);await t.put('meta',{id:CONSUMER_PUBLICATION_PENDING_ID,version:2,namespace:state.replayId,databaseId:binding.reservation.databaseId,controlRevision:binding.reservation.revision,nonce:binding.reservation.nonce,terminal:false,before:publication.before,operations:publication.operations,restore:{stageId:state.id,manifestId:state.manifestId,graphDigest:state.graphDigest,replayId:state.replayId,operations:publication.allOperations,smartFilter:publication.smartFilter}});}
+   await this.checkpoint('after-activation',t);return {state:publishing?'publishing':'activated',namespace:state.replayId};
+  });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
  }
  async cleanup({abandon=false,limit=100}={}){
   if(typeof abandon!=='boolean'||!Number.isSafeInteger(limit)||limit<1||limit>100)fail('BNS_GROUP_CLEANUP_INVALID');

@@ -21,7 +21,7 @@ export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b
 
 export class SmartFilterStore extends IAStore {
  constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;}
- write(fn,onCommitted=null){this.filterMutation++;return super.write(fn,onCommitted).finally(()=>{this.filterMutation++;});}
+ write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
   let state=await this.repository.transaction(false,t=>t.get('meta','smart-filter'));
@@ -76,7 +76,7 @@ export class SmartFilterStore extends IAStore {
   }finally{this.filterMutation++;}
  }
  filterStatus(){return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','smart-filter'),pending:await t.count('filterInputs','byPending',0)})));}
- setFilterMode(mode){if(!['light','off'].includes(mode))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const row=await t.get('meta','smart-filter');if(row.mode!==mode){row.mode=mode;row.policyEpoch++;await t.put('meta',row);}return {ok:true,mode};});}
+ setFilterMode(mode){if(!['light','off'].includes(mode))return Promise.reject(new ArchiveError('INVALID_REQUEST'));const journal=this.consumerPreferenceJournal;return this.write(async(t,prepared)=>{if(prepared)await journal.authorize(t,this,prepared);const row=await t.get('meta','smart-filter');if(row.mode!==mode){row.mode=mode;row.policyEpoch++;await t.put('meta',row);}if(prepared)await journal.commitMode(t,this,prepared);return {ok:true,mode};},null,journal?()=>journal.prepareMode(this,mode):null);}
  takeFilterNotice(){return this.write(async t=>{const row=await t.get('meta','smart-filter');const show=row.noticePending&&row.mode==='light';if(show){row.noticePending=false;row.noticeShownAt=this.clock();await t.put('meta',row);}return {show};});}
  recoverFilters(){this.filterMutation++;return this.run(async()=>{await this.repository.transaction(true,async t=>{const row=await t.get('meta','smart-filter');row.phase='upgrading_policy';row.cursor=null;row.taskState='idle';await t.put('meta',row);});this.filterLoaded=false;await this.initializeFilter();this.filterLoaded=true;return {ok:true};}).finally(()=>{this.filterMutation++;});}
  setFilterTask(state){if(!['idle','running','failed'].includes(state))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const row=await t.get('meta','smart-filter');row.taskState=state;if(state!=='running')row.lastCheckedAt=Date.parse(this.clock());await t.put('meta',row);if(state==='failed')for(const input of await t.all('filterInputs','byPending',0,50)){input.failed=true;await t.put('filterInputs',input);}});}

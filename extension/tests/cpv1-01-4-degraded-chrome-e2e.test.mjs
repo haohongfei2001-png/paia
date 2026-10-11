@@ -38,26 +38,41 @@ test('CPV1-01.4 archive read failure retains a bounded retry and hides raw error
     try {
       h=await FakeChatGPT.start({headless:true});
       const page=await h.context.newPage();
-      await page.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);
-      await page.locator('#check-update').waitFor();
-      await page.evaluate(()=>{
+      // Keep the synthetic read outage active across startup/storage refreshes.
+      // Only the trusted retry click releases it, before the original handler runs.
+      await page.addInitScript(()=>{
         const send=chrome.runtime.sendMessage.bind(chrome.runtime);
+        const evidence=globalThis.__readRecovery={failedReads:0,retryClicks:0,successfulReads:0};
         let fail=true;
+        document.addEventListener('click',event=>{
+          if(event.isTrusted&&event.target.closest?.('#recovery-action')?.dataset.action==='retry_read'){
+            evidence.retryClicks++;fail=false;
+          }
+        },true);
         chrome.runtime.sendMessage=async message=>{
           if(message?.type==='GET_PAGE'&&fail){
-            fail=false;
+            evidence.failedReads++;
             return {ok:false,error:'SYNTHETIC_PRIVATE_DETAIL'};
           }
-          return send(message);
+          const response=await send(message);
+          if(message?.type==='GET_PAGE'&&response?.ok)evidence.successfulReads++;
+          return response;
         };
       });
+      await page.goto(`chrome-extension://${h.extensionId}/ui/popup.html`);
+      await page.locator('#check-update').waitFor();
       await page.evaluate(()=>chrome.storage.local.set({'paia-test-recovery-pulse':Date.now()}));
       await eventually(async()=>await page.locator('#recovery-card').isVisible());
       assert.match(await page.locator('#recovery-title').textContent(),/无法读取本机档案状态/);
       assert.equal(await page.locator('#recovery-action').textContent(),'重试读取');
       assert.doesNotMatch(await page.locator('body').textContent(),/SYNTHETIC_PRIVATE_DETAIL/);
+      const beforeRetry=await page.evaluate(()=>({...globalThis.__readRecovery}));
+      assert.ok(beforeRetry.failedReads>=1);
+      assert.equal(beforeRetry.retryClicks,0);assert.equal(beforeRetry.successfulReads,0);
       await page.locator('#recovery-action').click();
       await eventually(async()=>!(await page.locator('#recovery-card').isVisible()));
+      const afterRetry=await page.evaluate(()=>({...globalThis.__readRecovery}));
+      assert.equal(afterRetry.retryClicks,1);assert.ok(afterRetry.successfulReads>=1);
       assert.equal(await page.locator('#open-archive').isEnabled(),true);assert.doesNotMatch(await page.locator('#recovery-card').textContent(),/导出|生成备份/);
       assert.deepEqual(h.errors,[]);
     } finally { await h?.close(); }

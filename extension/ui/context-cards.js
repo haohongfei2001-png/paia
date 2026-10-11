@@ -50,13 +50,13 @@ export class ContextItemEditor {
    if(ack.result.itemId!==this.id||ack.result.lifecycle!=='active'||!Number.isSafeInteger(ack.result.revision))throw Error('SAVE_OUTCOME_UNKNOWN');
    if(ack.change.operationId===this.undoOperationId){this.journal.undo.pop();this.undoOperationId=null;}else if(before!==ack.change.body&&before.trim())this.journal.record({body:before});
    this.saved={...this.saved,body:ack.change.body,revision:ack.result.revision};this.fresh=false;this.failed=false;
-   await this.recovery.clear(ack.change.operationId).catch(()=>{});
+   await this.recovery.discard(ack.change.operationId).catch(()=>{});
    this.feedback.textContent=this.local===ack.change.body?copy('已保存','Saved'):copy('还有修改未保存','Newer changes are not saved yet');
    return true;
   }catch(error){this.failed=true;if(error?.code==='CONTEXT_INVALIDATED'){this.conflicted=true;this.feedbackFailure(true);}else this.feedbackFailure();return false;}finally{this.saving=null;}})();
   const ok=await this.saving;if(ok&&this.dirty())return this.flush();if(ok)this.page.clearLeaveNotice?.();return ok;
  }
- receive(item,epoch=this.epoch){if(epoch!==this.epoch){if(this.dirty()||this.composing||this.saving){this.conflicted=true;this.feedbackFailure(true);return;}this.epoch=epoch;this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch});}if(this.saving)return;if(!item||item.revision!==this.saved.revision){if(this.dirty()||this.composing){this.conflicted=true;this.feedbackFailure(true);return;}if(item){this.saved=structuredClone(item);this.local=item.body;this.field.textContent=item.body;this.feedback.replaceChildren();}}}
+ receive(item,epoch=this.epoch){if(epoch===this.epoch&&item&&item.revision<this.saved.revision)return;if(epoch!==this.epoch){if(this.dirty()||this.composing||this.saving){this.conflicted=true;this.feedbackFailure(true);return;}this.epoch=epoch;this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch});}if(this.saving)return;if(!item||item.revision!==this.saved.revision){if(this.dirty()||this.composing){this.conflicted=true;this.feedbackFailure(true);return;}if(item){this.saved=structuredClone(item);this.local=item.body;this.field.textContent=item.body;this.feedback.replaceChildren();}}}
  async undo(){this.menu.open=false;if(!await this.flush())return;const prior=this.journal.undo.at(-1);if(!prior||!prior.body.trim())return;this.local=prior.body;this.field.textContent=prior.body;this.changed();this.undoOperationId=this.operation().operationId;await this.flush(true);this.field.focus();}
  dispose(){this.autosave.dispose();this.surface.dispose();}
 }

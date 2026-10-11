@@ -19,10 +19,16 @@ async function scopeIdentity(query,scope){
  return {scope:normalized,signature:await hashText(JSON.stringify([normalizeSearch(query),scope.ranked,scope.providerKey,selectedProject,scope.includeFiltered,scope.dateFrom,scope.dateTo]))};
 }
 const validSnapshot=(value,signature)=>exact(value,['version','generation','signature'])&&value.version===1&&integer(value.generation)&&value.signature===signature;
-export async function prepareInputSearchArrival(store,options){
- const context=options.searchContext;
- if(options.qualifyContext!==true||!exact(context,['query','knownRevision','searchSnapshot','scope'])||!integer(context.knownRevision))invalid();
+// Shared qualification for an explicit query-only continuation. It validates
+// the original scope/snapshot identity without inventing an Input/document.
+export async function prepareInputSearchContext(context){
+ if(!exact(context,['query','knownRevision','searchSnapshot','scope'])||!integer(context.knownRevision))invalid();
  const identity=await scopeIdentity(context.query,context.scope);if(!validSnapshot(context.searchSnapshot,identity.signature))invalid();
+ return identity;
+}
+export async function prepareInputSearchArrival(store,options){
+ if(options.qualifyContext!==true)invalid();
+ const identity=await prepareInputSearchContext(options.searchContext);
  // Hashing happens outside the final IDB transaction. Its captured source
  // identity is compared again inside that transaction before membership use.
  await store.run(()=>{});

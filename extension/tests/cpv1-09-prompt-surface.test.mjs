@@ -1,19 +1,19 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import vm from 'node:vm';
 import {PromptSurfaceCommands,validSurface} from '../background/prompt-surface.js';
 const nonce='11111111-1111-4111-8111-111111111111',url='https://chatgpt.com/c/synthetic';
-function fixture(){const sent=[],writes=[],calls=[],storage={};let consent=true;
+function fixture(){const sent=[],writes=[],calls=[],storage={};let consent=true;const preferences={appearance:'system',language:'system',privateSetting:'DO_NOT_EXPOSE'},reads=[];
  const api={runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,sendMessage:async()=>{}},storage:{local:{get:async()=>storage,set:async x=>{writes.push(x);Object.assign(storage,x);}}},tabs:{get:async()=>({id:7,url}),sendMessage:async(...args)=>{sent.push(args);return {open:true,nonce,url,dark:false};}}};
- const commands={service:{s:{status:async()=>({consented:consent})},members:async()=>[]},dispatch:async c=>{calls.push(c);return {items:[]};}};
+ const commands={service:{s:{status:async()=>({consented:consent}),run:async fn=>fn(),repository:{transaction:async(w,fn,stores)=>{reads.push({w,stores});return fn({});}},control:async()=>({preferences})},members:async()=>[]},dispatch:async c=>{calls.push(c);return {items:[]};}};
  const s=new PromptSurfaceCommands(commands,api),sender={id:'ext',tab:{id:7},frameId:2,url:api.runtime.getURL('ui/prompt-surface.html')+'#'+nonce},request={type:'PAIA_PROMPT_SURFACE_RPC',nonce,command:{type:'PAIA_PROMPT_QUERY'}};
- return {s,api,sender,request,sent,writes,calls,revoke(){consent=false;}};
+ return {s,api,sender,request,sent,writes,calls,preferences,reads,revoke(){consent=false;}};
 }
 test('surface frames require exact origin, nonce, current host, positive frame and consent',async()=>{
- const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],theme:'light'});
+ const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],theme:'light',displayPreferences:{appearance:'system',language:'system'}});
  for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:0},{...f.sender,frameId:undefined},{...f.sender,url},{...f.sender,tab:{id:7,incognito:true}},{...f.sender,url:f.sender.url+'x'}])await assert.rejects(()=>f.s.handle(f.request,sender));
  f.api.tabs.sendMessage=async()=>({open:true,nonce,url:url+'/changed'});await assert.rejects(()=>f.s.handle(f.request,f.sender));f.revoke();await assert.rejects(()=>f.s.handle(f.request,f.sender),e=>e.code==='CONSENT_REQUIRED');
 });
 test('host gets only geometry; frame insertion is forcibly bound to its own tab and cannot query arbitrary capabilities',async()=>{
- const f=fixture(),sender={...f.sender,frameId:0,url};assert.deepEqual(await f.s.handle({type:'PAIA_PROMPT_SURFACE_HOST'},sender),{version:1,open:false,position:null});
+ const f=fixture(),sender={...f.sender,frameId:0,url};assert.deepEqual(await f.s.handle({type:'PAIA_PROMPT_SURFACE_HOST'},sender),{version:1,open:false,position:null,displayPreferences:{appearance:'system',language:'system'}});
  await assert.rejects(()=>f.s.handle(f.request,sender));
  await f.s.handle({...f.request,command:{type:'PAIA_PROMPT_INSERT',id:'p',text:'selected',operationId:nonce}},f.sender);assert.deepEqual(f.calls.at(-1),{type:'PAIA_PROMPT_INSERT',id:'p',text:'selected',operationId:nonce,tabId:7,url});
  for(const command of [{type:'GET_STATE'},{type:'PAIA_PROMPT_TARGETS'},{type:'PAIA_PROMPT_INSERT',tabId:99}])await assert.rejects(()=>f.s.handle({...f.request,command},f.sender));
@@ -28,7 +28,7 @@ test('position is bounded device-only metadata, with no website or archive body 
 test('safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,640,1280])for(const height of [500,800])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.9}]){
-  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}const attached={x:g.card.x+g.card.w-40,y:g.card.y-32,w:44,h:44};assert.ok(attached.y>=0&&attached.y+attached.h<=height);assert.ok(attached.y+attached.h<=form.top||attached.y>=form.bottom);assert.equal(g.orb.w,44);assert.ok(g.card.y+g.card.h<=g.orb.y||g.card.y>=g.orb.y+44);
+  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,44);assert.equal(g.card.y+g.card.h,form.top-12);assert.equal(g.card.w,width<=400?width-32:336);
  }
 });
 test('surface publishes only one static extension frame, no host library bridge or new privileged host',async()=>{
@@ -53,7 +53,7 @@ test('open geometry uses one visible anchor, projects the attached card into saf
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,390,1280])for(const height of [500,844,900])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.4}]){
   const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
-  assert.equal(g.orb.x,g.card.x+g.card.w-40);assert.equal(g.orb.y,g.card.y-32);
+  assert.equal(g.orb.x,g.card.x+g.card.w-44);assert.equal(g.orb.y,g.card.y);
   for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
   const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
  }
@@ -67,37 +67,37 @@ test('SPA geometry save binds the initial sender URL to the exact live document,
  f.api.tabs.sendMessage=async()=>{f.api.tabs.get=async()=>({id:7,url:url+'/navigated'});return {url};};await assert.rejects(()=>f.s.handle(request,sender));assert.equal(f.writes.length,1);assert.equal(f.calls.length,0);
 });
 
-test('open surface can move alongside a narrow composer instead of snapping to a vertical band',async()=>{
+test('open surface retains horizontal position while v4 anchors vertically above the composer',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
- const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,400);assert.equal(g.orb.y,500);assert.ok(g.card.x+g.card.w<600);assert.ok(g.card.y+g.card.h<=900);
+ const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,400);assert.equal(g.card.y+g.card.h,758);assert.equal(g.orb.y,g.card.y);assert.ok(g.card.x+g.card.w<600);assert.ok(g.card.y+g.card.h<=900);
 });
 
 test('saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,1280])for(const form of [{left:16,right:width-16,top:940,bottom:1040},{left:16,right:width-16,top:-200,bottom:-20},{left:width+20,right:width+400,top:300,bottom:500},{left:-400,right:-20,top:300,bottom:500}])for(const position of [{x:0,y:0},{x:1,y:1},{x:.5,y:.5}]){
-  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);assert.ok(g?.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
+  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);assert.ok(g);if(form.top<0){assert.equal(g.card,null);continue;}assert.ok(g.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
  }
 });
 
-async function hostFixture(){
- const nodes=[],sent=[],listeners=new Map();
+async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
+ const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map();let failHost=false;
  const rect={x:500,y:100,width:44,height:44,left:500,right:544,top:100,bottom:144};
  const element=tag=>{
   const attrs=new Map(),handlers=new Map(),node={tag,dataset:{},style:{},hidden:false,isConnected:false,handlers,
    setAttribute(k,v){attrs.set(k,v);},getAttribute:k=>attrs.get(k),addEventListener(k,v){handlers.set(k,v);},removeEventListener(){},
    append(...children){for(const c of children)c.isConnected=true;},attachShadow(){return element('shadow');},remove(){this.isConnected=false;},
-   getBoundingClientRect:()=>({...rect}),setPointerCapture(){},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
+   getBoundingClientRect:()=>({...rect}),setPointerCapture(id){this.pointerId=id;},hasPointerCapture(id){return this.pointerId===id;},releasePointerCapture(id){assert.equal(this.pointerId,id);this.pointerId=null;this.releases=(this.releases||0)+1;handlers.get('lostpointercapture')?.({pointerId:id});},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
  };
  const html=element('html');html.classList={contains:()=>false};
- const document={documentElement:html,createElement:element,addEventListener(){},removeEventListener(){}};
+ const document={documentElement:html,createElement:element,addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
  const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
   matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
-  requestAnimationFrame:f=>{f();},PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
+  requestAnimationFrame:animationFrame,PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
   PAIAPromptLayout:()=>({orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:350}}),
-  chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return {ok:true,data:{version:1,open:false,position:null}};}}}};
- sandbox.window={addEventListener(){},removeEventListener(){}};
+  chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return failHost&&r.type==='PAIA_PROMPT_SURFACE_HOST'?{ok:false,error:'CONSENT_REQUIRED'}:{ok:true,data:{version:1,open:false,position:null,...(displayPreferences?{displayPreferences}:{})}};}}}};
+ sandbox.window={addEventListener:(k,f)=>windowHandlers.set(k,f),removeEventListener:k=>windowHandlers.delete(k)};
  vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
- const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
+ const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
 }
 
 test('open orb requests the private card close policy instead of only focusing or destroying its frame',async()=>{
@@ -111,6 +111,27 @@ test('orb drag click suppression ends with its gesture and keyboard activation s
  f.fire('pointerdown');f.fire('pointerup');f.fire('click',{detail:1});assert.equal(count(),1,'next pointer click toggles');
  f.fire('pointerdown');f.fire('pointermove',{clientX:532});f.fire('pointercancel');f.fire('click',{detail:0});assert.equal(count(),2,'keyboard click after cancelled drag toggles');
  f.fire('keydown',{key:'Escape',isComposing:true});f.fire('keydown',{key:'Escape',keyCode:229});assert.equal(count(),2);f.fire('keydown',{key:'Escape'});assert.equal(count(),3);
+});
+
+test('orb drag temporarily excludes the iframe from hit testing and every terminal path releases capture once',async()=>{
+ for(const terminal of ['pointerup','pointercancel','lostpointercapture','blur','reset','close','dispose','authority']){
+  const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe'),style=()=>frame.getAttribute('style'),writes=()=>f.sent.filter(r=>r.state).length;
+  assert.match(style(),/pointer-events:auto/);const before=writes();
+  for(const fields of [{isTrusted:false},{button:2},{isPrimary:false}]){f.fire('pointerdown',fields);f.fire('pointermove',{clientX:532});assert.match(style(),/pointer-events:auto/);}
+  f.fire('pointerdown');f.fire('pointermove',{clientX:524});assert.match(style(),/pointer-events:auto/,'subthreshold remains an ordinary click');
+  f.fire('pointermove',{clientX:532,pointerId:2});assert.match(style(),/pointer-events:auto/,'a different pointer cannot move the owned gesture');
+  f.fire('pointermove',{clientX:532});assert.match(style(),/pointer-events:none/);assert.equal(frame.isConnected,true);
+  if(terminal==='blur')f.windowHandlers.get('blur')();
+  else if(terminal==='reset')f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_POSITION_RESET',positionGeneration:1},{id:'ext'},()=>{});
+  else if(terminal==='close')f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce},{id:'ext'},()=>{});
+  else if(terminal==='dispose')f.sandbox.PAIAPromptSurface.dispose();
+  else if(terminal==='authority'){f.failHost();f.documentHandlers.get('visibilitychange')();await new Promise(setImmediate);}
+  else f.fire(terminal);
+  assert.equal(f.orb.pointerId,null,terminal+' releases the original capture');assert.equal(f.orb.releases,1,terminal+' releases exactly once');
+  if(!['close','dispose','authority'].includes(terminal)){assert.match(style(),/pointer-events:auto/,terminal+' restores hit testing');assert.equal(frame.isConnected,true);}
+  const after=writes();assert.equal(after-before,['pointerup','pointercancel','lostpointercapture','blur','close'].includes(terminal)?1:0,terminal+' uses the existing persistence boundary');
+  f.fire('pointerup');f.fire('lostpointercapture');f.windowHandlers.get('blur')?.();assert.equal(writes(),after,'repeated terminal events cannot save again');assert.equal(f.orb.releases,1);
+ }
 });
 
 test('host close request is nonce-only and bound to the exact active top document, consent and live card',async()=>{
@@ -143,4 +164,59 @@ test('frosted v2 presentation removes hard reflection and double rim without cha
  assert.match(style,/button:focus-visible\{outline:2px solid/);
  assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
  assert.doesNotMatch(style,/url\(|animation:.*infinite/);
+});
+
+ test('authenticated measure is geometry-only, bounded, exact-shaped and nonce-bound',async()=>{
+ const f=fixture(),send=command=>f.s.handle({...f.request,command},f.sender);
+ for(const command of [{type:'measure',height:134},{type:'measure',height:4096,minimumHeight:1024},{type:'measure',height:200,appearance:'light'},{type:'measure',height:200,minimumHeight:134,appearance:'dark',language:'en'}]){assert.deepEqual(await send(command),{});assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:command.height,...('minimumHeight'in command?{minimumHeight:command.minimumHeight}:{}),...('appearance'in command?{appearance:command.appearance}:{}),...('language'in command?{language:command.language}:{})},{frameId:0}]);}
+ for(const command of [{type:'unknown',height:134},{type:'measure'},{type:'measure',height:0},{type:'measure',height:4097},{type:'measure',height:1.2},{type:'measure',height:NaN},{type:'measure',height:undefined},{type:'measure',height:null},{type:'measure',height:134,body:'private'},...[undefined,null,'system','EN','zh',1,{},['en']].map(language=>({type:'measure',height:134,language})),...[undefined,null,'system','DARK',1,{},['dark']].map(appearance=>({type:'measure',height:134,appearance})),...[undefined,null,NaN,43,1025,135,44.5].map(minimumHeight=>({type:'measure',height:134,minimumHeight}))])await assert.rejects(()=>send(command),e=>e.code==='FORBIDDEN');
+ for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:0},{...f.sender,url:f.sender.url+'x'}])await assert.rejects(()=>f.s.handle({...f.request,command:{type:'measure',height:134}},sender));
+ await assert.rejects(()=>f.s.handle({...f.request,nonce:'22222222-2222-4222-8222-222222222222',command:{type:'measure',height:134}},f.sender));assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);
+ });
+ test('host measurement accepts only current private nonce and preserves the frame',async()=>{
+ const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe'),calls=[];f.sandbox.PAIAPromptLayout=(...args)=>{calls.push(args[5]);return {orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:134}};};
+ const receive=(r,s={id:'ext'})=>f.listeners.get('message')(r,s,()=>{});
+ receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'foreign'});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'ext',tab:{id:7}});assert.equal(calls.length,0);
+ receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,appearance:'system'});assert.equal(calls.length,0);receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200,appearance:'dark'});assert.equal(calls.length,0);
+ receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,minimumHeight:150,appearance:'dark',language:'en'});assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(frame.title,'PAIA Frequent inputs');assert.equal(f.nodes.find(n=>n.dataset.paiaPromptSurface!==undefined).dataset.theme,'dark');assert.equal(calls.at(-1).contentHeight,200);assert.equal(calls.at(-1).minimumHeight,150);assert.equal(frame.isConnected,true);assert.equal(f.nodes.filter(n=>n.tag==='iframe').length,1);
+ });
+
+test('measure acknowledgements follow layout and cannot authorize a superseded nonce or generation',async()=>{
+ const f=await hostFixture();f.fire('click');const frames=[],replies=[];f.sandbox.requestAnimationFrame=fn=>frames.push(fn);
+ const receive=(height,nonceValue=nonce)=>f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:nonceValue,height,minimumHeight:134},{id:'ext'},reply=>replies.push({...reply}));
+ receive(180,'22222222-2222-4222-8222-222222222222');assert.equal(frames.length,0);receive(180);receive(220);assert.equal(replies.length,0);frames.shift()();assert.deepEqual(replies,[{measured:false}]);frames.shift()();assert.equal(replies.length,1);frames.shift()();assert.deepEqual(replies,[{measured:false},{measured:true}]);assert.equal(f.nodes.filter(n=>n.tag==='iframe').length,1);
+});
+
+test('surface exposes only normalized display preferences through the original read-only meta owner',async()=>{
+ const f=fixture();Object.assign(f.preferences,{appearance:'dark',language:'en'});
+ assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],theme:'light',displayPreferences:{appearance:'dark',language:'en'}});
+ assert.deepEqual(f.reads,[{w:false,stores:['meta']}]);assert.equal(f.writes.length,0);
+ Object.assign(f.preferences,{appearance:'not-a-theme',language:'private-value'});
+ assert.deepEqual((await f.s.handle(f.request,f.sender)).displayPreferences,{appearance:'system',language:'system'});
+ assert.equal(f.writes.length,0);assert.ok(!JSON.stringify(f.sent).includes('DO_NOT_EXPOSE'));
+});
+
+test('first collapsed host reads only display choices and cannot persist them as geometry',async()=>{
+ const f=fixture();Object.assign(f.preferences,{appearance:'light',language:'en'});const sender={...f.sender,frameId:0,url};
+ assert.deepEqual(await f.s.handle({type:'PAIA_PROMPT_SURFACE_HOST'},sender),{version:1,open:false,position:null,displayPreferences:{appearance:'light',language:'en'}});
+ assert.deepEqual(f.reads,[{w:false,stores:['meta']}]);assert.equal(f.writes.length,0);
+ await assert.rejects(()=>f.s.handle({type:'PAIA_PROMPT_SURFACE_HOST',state:{version:1,open:false,position:null,displayPreferences:{appearance:'dark',language:'zh-CN'}}},sender));assert.equal(f.writes.length,0);
+});
+
+test('display-only activation never reinitializes an open private editor; consent activation retains its guard',async()=>{
+ const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe'),before=f.sent.length;
+ f.sandbox.chrome.runtime.sendMessage=async r=>{f.sent.push(r);return {ok:false,error:'STORAGE_FAILED'};};
+ f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_ACTIVATE',reason:'display-preferences'},{id:'ext'},()=>{});await new Promise(setImmediate);
+ assert.equal(f.sent.length,before);assert.equal(frame.isConnected,true);
+ f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_ACTIVATE'},{id:'ext'},()=>{});await new Promise(setImmediate);
+ assert.equal(frame.isConnected,false,'original authority activation still revokes unavailable context');
+ const reads=f.sent.length;f.listeners.get('message')({type:'PAIA_PROMPT_SURFACE_ACTIVATE',reason:'display-preferences'},{id:'ext'},()=>{});await new Promise(setImmediate);
+ assert.equal(f.sent.length,reads+1,'collapsed display refresh uses the read-only original HOST');
+});
+
+
+test('initial connected orb already has the saved accessible language and theme before its first animation frame',async()=>{
+ const pending=[],f=await hostFixture({displayPreferences:{appearance:'dark',language:'en'},animationFrame:callback=>pending.push(callback)}),host=f.nodes.find(node=>node.dataset.paiaPromptSurface==='');
+ assert.equal(host.isConnected,true);assert.ok(pending.length>0);assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');
+ while(pending.length)pending.shift()();assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');assert.equal(f.nodes.some(node=>node.tag==='iframe'),false);assert.equal(f.sent.some(request=>request.state),false);
 });

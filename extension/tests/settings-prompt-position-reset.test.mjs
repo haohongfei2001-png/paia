@@ -22,7 +22,7 @@ function ownerFixture(value=initial()){
   tabs:{query:async()=>[...tabs.values()].map(clone),get:async id=>clone(tabs.get(id)),sendMessage:async(id,message,options)=>{
    sent.push([id,clone(message),clone(options)]);if(!hosts.has(id))throw Error('host unavailable');return hosts.get(id).receive(message);
   }}};
- const commands={service:{s:{status:async()=>({consented:consent})},members:async()=>{throw Error('no prompt family reads');}},dispatch:async request=>{calls.push(request);throw Error('no prompt command dispatch');}};
+ const commands={service:{s:{status:async()=>({consented:consent}),run:async fn=>fn(),repository:{transaction:async(write,fn,stores)=>{assert.equal(write,false);assert.deepEqual(stores,['meta']);return fn({});}},control:async()=>({preferences:{appearance:'system',language:'zh-CN'}})},members:async()=>{throw Error('no prompt family reads');}},dispatch:async request=>{calls.push(request);throw Error('no prompt command dispatch');}};
  const archive={id:'ext',url:api.runtime.getURL('ui/archive.html'),frameId:0};
  const f={api,archive,storage,writes,sent,calls,hosts,tabs,get owner(){return owner;},restart(){owner=new PromptSurfaceCommands(commands,api);},
   revoke(){consent=false;},grant(){consent=true;},status(){return owner.handle({type:STATUS},archive);},reset(){return owner.handle({type:RESET},archive);},
@@ -64,7 +64,7 @@ async function hostFixture(f,id=7,transform=async(_request,data)=>data){
   fire(type,fields={}){this.orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:240,clientY:250,preventDefault(){},...fields});},
   async flush(){for(let i=0;i<4;i++){await tick();while(rafs.length)rafs.shift()();}},
   async revisit(){documentHandlers.get('visibilitychange')?.();await this.flush();},dispose(){sandbox.PAIAPromptSurface.dispose();}};
- f.hosts.set(id,h);vm.runInContext(hostSource,context);await h.flush();return h;
+ f.hosts.set(id,h);vm.runInContext(hostSource,context);await h.flush();h.fire('click');await h.flush();return h;
 }
 
 test('Settings reads stored geometry only and reset patches its existing key after durable success',{timeout:5000},async()=>{
@@ -108,7 +108,7 @@ test('stale legacy and modern saves cannot alter open or position after reset, i
  const f=ownerFixture();await f.reset();f.restart();const saved=clone(f.storage[KEY]);
  for(const state of [{...initial(),open:false},{...initial(),open:false,positionGeneration:0},{...initial(),positionGeneration:2}])await assert.rejects(()=>f.hostWrite(state),error=>error.code==='STALE_BASE');
  assert.deepEqual(f.storage[KEY],saved);assert.equal(f.writes.length,1);
- const current=await f.hostRead();assert.deepEqual(await f.hostWrite({...current,position:{x:.4,y:.2},open:false}),{...current,position:{x:.4,y:.2},open:false});
+ const {displayPreferences,...current}=await f.hostRead();assert.deepEqual(displayPreferences,{appearance:'system',language:'zh-CN'});assert.deepEqual(await f.hostWrite({...current,position:{x:.4,y:.2},open:false}),{...current,position:{x:.4,y:.2},open:false});
 });
 
 test('serialized host writes and reset do not interleave lost updates; writes in either order remain fenced',{timeout:5000},async()=>{
@@ -219,29 +219,16 @@ test('a reset arriving before the first HOST reply prevents old initialization f
  assert.equal(f.storage[KEY].position,null);assert.equal(f.storage[KEY].positionGeneration,1);
 });
 
-test('default open geometry uses safe lateral space when a tall composer leaves no vertical band',{timeout:5000},()=>{
+test('v4 refuses a tall-composer band instead of placing the board beside or below it',{timeout:5000},()=>{
  const sandbox={};vm.runInNewContext(layoutSource,sandbox);
- for(const form of [{left:800,right:1200,top:50,bottom:850},{left:80,right:480,top:50,bottom:850},{left:800,right:1400,top:-50,bottom:950},{left:-200,right:480,top:-50,bottom:950}]){
-  const actual=sandbox.PAIAPromptLayout(1280,900,form,null,true);assert.ok(actual?.card,'a viable default lateral card must remain visible');
-  for(const box of [actual.orb,actual.card]){
-   assert.ok(box.x>=8&&box.y>=8&&box.x+box.w<=1272&&box.y+box.h<=892);
-   assert.ok(box.x+box.w<=form.left-8||box.x>=form.right+8,'both card and visible handle avoid the tall composer');
-  }
-  assert.equal(actual.orb.x,actual.card.x+actual.card.w-40);assert.equal(actual.orb.y,actual.card.y-32);
- }
+ for(const form of [{left:800,right:1200,top:50,bottom:850},{left:80,right:480,top:50,bottom:850},{left:800,right:1400,top:-50,bottom:950},{left:-200,right:480,top:-50,bottom:950}]){const actual=sandbox.PAIAPromptLayout(1280,900,form,null,true);assert.ok(actual);assert.equal(actual.card,null);}
 });
 
-test('reset keeps a lateral editor visible and preserves its draft/focus while retaining null device position',{timeout:5000},async()=>{
- let resetBounds;
+test('unavailable geometry retains editor, IME and focus across reset and recovers in the same frame',{timeout:5000},async()=>{
  for(const position of [{x:.2,y:.3},{x:.05,y:.65}]){
-  const f=ownerFixture({...initial(),position});f.composerBounds={left:800,right:1200,top:50,bottom:850};
-  const h=await hostFixture(f),frame=h.frame;assert.ok(frame);assert.equal(frame.hidden,false);
-  frame.editor={draft:'retained draft 中文',composing:true,selection:[1,4]};frame.focus();
-  assert.deepEqual(await f.reset(),{status:'reset',changed:true});await h.flush();
-  assert.equal(h.frame,frame);assert.equal(frame.hidden,false);assert.equal(h.focused,frame);
-  assert.deepEqual(frame.editor,{draft:'retained draft 中文',composing:true,selection:[1,4]});
-  assert.equal(h.position,null);assert.equal(f.storage[KEY].position,null);assert.equal(f.storage[KEY].open,true);
-  const bounds=frame.getAttribute('style');if(resetBounds)assert.equal(bounds,resetBounds,'reset placement cannot reuse either previous custom offset');resetBounds=bounds;
-  assert.deepEqual(await f.reset(),{status:'reset',changed:false});await h.flush();assert.equal(frame.hidden,false);assert.equal(frame.getAttribute('style'),bounds);
+  const f=ownerFixture({...initial(),position}),h=await hostFixture(f),frame=h.frame;assert.ok(frame);assert.equal(frame.hidden,false);
+  frame.editor={draft:'retained draft 中文',composing:true,selection:[1,4]};frame.focus();f.composerBounds={left:800,right:1200,top:50,bottom:850};await h.revisit();assert.equal(frame.hidden,true);
+  assert.deepEqual(await f.reset(),{status:'reset',changed:true});await h.flush();assert.equal(h.frame,frame);assert.equal(frame.hidden,true);assert.equal(h.focused,frame);assert.deepEqual(frame.editor,{draft:'retained draft 中文',composing:true,selection:[1,4]});assert.equal(h.position,null);assert.equal(f.storage[KEY].position,null);assert.equal(f.storage[KEY].open,true);
+  f.composerBounds={left:600,right:1264,top:760,bottom:884};await h.revisit();assert.equal(h.frame,frame);assert.equal(frame.hidden,false);assert.equal(h.focused,frame);assert.deepEqual(frame.editor,{draft:'retained draft 中文',composing:true,selection:[1,4]});
  }
 });

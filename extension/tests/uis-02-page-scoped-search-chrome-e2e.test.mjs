@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 import {openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
@@ -117,6 +118,7 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
     await page.locator(`.personal-topic-link[data-topic-id="${topics.a.id}"]`).click();
     await eventually(()=>page.locator('#topic-search').isVisible(),'Thought topic search is visible');
     await expectSingleSearch(page,'topic-search','Thought topic');
+    await page.evaluate(()=>{globalThis.__uis02TopicReads=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const relevant=/LIBRARY.*READING|LIBRARY_TOPIC|LIBRARY_ENTRY/.test(message?.type||''),row=relevant?{type:message.type,query:message.options?.query==='UIS02_TOPIC_A_TARGET'?'current':message.options?.query==='UIS02_TOPIC_B_TARGET'?'other':message.options?.query?'other-query':'empty',phase:'sent'}:null;if(row){globalThis.__uis02TopicReads.push(row);if(globalThis.__uis02TopicReads.length>100)globalThis.__uis02TopicReads.shift();}try{const result=await send(message);if(row)Object.assign(row,{phase:'returned',ok:result?.ok,error:result?.error?.code,cursorInvalid:result?.data?.cursorInvalid,unavailable:result?.data?.unavailable,itemCount:result?.data?.items?.length,indexing:result?.data?.indexing===true,hasNext:!!result?.data?.nextCursor,hasPrevious:!!result?.data?.previousCursor,coverageStart:result?.data?.coverage?.start===true,coverageEnd:result?.data?.coverage?.end===true,generationMatches:message.options?.expectedReadGeneration?message.options.expectedReadGeneration===result?.data?.coverage?.activeGeneration:null});return result;}catch(error){if(row)row.phase='rejected';throw error;}};});
     await shortcut(page,'f',{metaKey:true});
     assert.equal(await activeId(page),'topic-search','Cmd/Ctrl+F focuses current Thought topic search');
     await page.locator('#topic-search').fill('UIS02_TOPIC_B_TARGET');
@@ -124,7 +126,7 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
     await eventually(async()=>/0 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'other-topic content is excluded');
     assert.equal(await page.locator('#topic-body [data-entry-id]').count(),0,'Thought topic search cannot leak another topic');
     await page.locator('#topic-search').fill('UIS02_TOPIC_A_TARGET');
-    await eventually(async()=>/1 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'current topic match appears');
+    try{await eventually(async()=>/1 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'current topic match appears');}catch(error){try{const diagnostic=await page.evaluate(()=>({queryIsCurrent:document.getElementById('topic-search').value==='UIS02_TOPIC_A_TARGET',count:document.getElementById('topic-search-count').textContent,entries:document.querySelectorAll('#topic-body [data-entry-id]').length,state:document.getElementById('thought-document').dataset.state,retryVisible:!document.getElementById('library-read-retry').hidden,reads:globalThis.__uis02TopicReads}));console.error('UIS02_TOPIC_SEARCH_DIAGNOSTIC',JSON.stringify(diagnostic));await mkdir('work/uis02-search-diagnostic',{recursive:true});await writeFile('work/uis02-search-diagnostic/failure.json',JSON.stringify(diagnostic,null,2)+'\n');}catch{}throw error;}
     assert.equal(await page.locator('#topic-body [data-entry-id]').count(),1);
 
     // Settings: no search box, no visible launcher, and PAIA search-focus shortcuts do not open hidden/global search.

@@ -104,13 +104,14 @@ export class ContextCardsService {
   // A lost acknowledgement/clear may leave the exact already-committed edit
   // resident. Prove that historic edit without releasing the draft body or
   // treating a newer canonical revision as its source-authority baseline.
+  // Manual items owe this same exact receipt proof and have no Source envelope.
   const change=draft?.operation?.change;
   if(!lineageExact(draft,['version','kind','ownerId','token','epoch','operation','sourceRecordIds','updatedAt','expiresAt'])||draft.version!==1||!lineageExact(draft.operation,['type','change'])||!lineageArray(draft.sourceRecordIds,2000)||!draft.sourceRecordIds.every(id=>bounded(id,512)&&id.length)||!Number.isFinite(draft.updatedAt)||!Number.isFinite(draft.expiresAt)||draft.kind!=='context_item'||draft.operation.type!=='PAIA_CONTEXT_CARDS_CHANGE'||change?.kind!=='put'||draft.ownerId!==change.itemId||draft.token!==change.operationId||draft.epoch!==change.epoch)return false;
   try{validateContextChange(change);}catch{return false;}
   const database=this.s.repository.db,digest=await hashText(JSON.stringify(change));
   return contextLineageRead(this.s,async t=>{
    await this.admitted(t,draft.epoch);const row=await this.row(t),item=row.items.find(x=>x.id===change.itemId),receipt=await t.get('operationReceipts','context:'+change.operationId);
-   if(item?.origin!=='automatic'||!item.protected||!item.userEdited||item.card!==itemCard(change)||!lineageExact(receipt,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])||receipt.id!=='context:'+change.operationId||receipt.namespace!=='context-cards'||receipt.schemaVersion!==1||receipt.ownerId!==change.itemId||receipt.epoch!==change.epoch||receipt.digest!==digest||typeof receipt.createdAt!=='string'||receipt.createdAt.length>64||!Number.isFinite(Date.parse(receipt.createdAt)))return false;
+   if(!['automatic','manual'].includes(item?.origin)||item.origin==='manual'&&draft.sourceRecordIds.length||!item.protected||!item.userEdited||item.card!==itemCard(change)||!lineageExact(receipt,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])||receipt.id!=='context:'+change.operationId||receipt.namespace!=='context-cards'||receipt.schemaVersion!==1||receipt.ownerId!==change.itemId||receipt.epoch!==change.epoch||receipt.digest!==digest||typeof receipt.createdAt!=='string'||receipt.createdAt.length>64||!Number.isFinite(Date.parse(receipt.createdAt)))return false;
    const result=receipt.result;
    return lineageExact(result,['ok','itemId','revision','lifecycle','deletedBy'])&&result.ok===true&&result.itemId===change.itemId&&result.revision===change.expectedRevision+1&&result.lifecycle==='active'&&result.deletedBy===null&&item.revision>=result.revision&&(item.revision!==result.revision||item.body===change.body&&item.section===change.section);
   },['meta','operationReceipts'],database).catch(()=>{throw new ArchiveError('UNAVAILABLE');});

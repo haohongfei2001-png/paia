@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {ArchiveRepository} from '../core/idb-repository.js';
-import {BrowserNativeSyncCore,acceptSequence,sealOperation,validateOperation} from '../core/browser-native-sync/core.js';
+import {BrowserNativeSyncCore,acceptSequence,sealOperation,validateOperation,validateFrozenOperation} from '../core/browser-native-sync/core.js';
 import {projectEntity,validateEntity,CODEC_COVERAGE} from '../core/browser-native-sync/codecs.js';
 import {PromptSyncJournal,materializePrompt} from '../core/browser-native-sync/prompt-journal.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
@@ -205,4 +205,17 @@ test('BNS Prompt purge remains explicitly unavailable and atomically preserves t
  const a=await device('device_alpha_01'),root=await local(a,'preserved synthetic'),b=await device('device_beta_001',{materialize:materializePrompt});await b.receive(root);
  const prepared=await a.prepare([{type:'promptPreferences',entityId:PROMPT_REUSE_ROW,kind:'purge'}]);await a.commit(prepared);const before=await b.repository.transaction(false,t=>t.all('meta'));
  await assert.rejects(b.receive(prepared.operations[0]),{code:'BNS_PROMPT_PURGE_SCOPE_UNAVAILABLE'});assert.deepEqual(await b.repository.transaction(false,t=>t.all('meta')),before);
+});
+
+test('original immutable operation validation authenticates frozen identities and detaches mutable inputs',async()=>{
+ const source=await op(1),before=structuredClone(source),validated=await validateFrozenOperation(source);
+ assert.notEqual(validated,source);assert.deepEqual(validated,before);assert.equal(Object.isFrozen(validated),true);assert.equal(Object.isFrozen(validated.parents),true);assert.equal(Object.isFrozen(validated.value.overrides[0]),true);assert.equal(await validateFrozenOperation(validated),validated);
+ source.value.overrides[0].text='SYNTHETIC caller changed after validation';assert.deepEqual(validated,before);await assert.rejects(validateFrozenOperation(source),{code:'BNS_OPERATION_DIGEST'});
+ const forged=structuredClone(before);forged.value.overrides[0].text='SYNTHETIC frozen forged payload';Object.freeze(forged);await assert.rejects(validateFrozenOperation(forged),{code:'BNS_OPERATION_DIGEST'});
+ const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}};
+ const publicFrozen=structuredClone(before);freeze(publicFrozen);assert.equal(await validateFrozenOperation(publicFrozen),publicFrozen);
+ const frozenBad=structuredClone(before);frozenBad.value.overrides[0].text='SYNTHETIC wrong deeply frozen digest';freeze(frozenBad);await assert.rejects(validateFrozenOperation(frozenBad),{code:'BNS_OPERATION_DIGEST'});
+ const inherited=structuredClone(before),prototype=Object.create(Array.prototype);prototype.some=()=>{throw Error('SYNTHETIC inherited method');};Object.setPrototypeOf(inherited.parents,prototype);freeze(inherited);const inheritedValidated=await validateFrozenOperation(inherited);assert.notEqual(inheritedValidated,inherited);assert.deepEqual(inheritedValidated,before);
+ const accessor=structuredClone(before);let text=before.value.overrides[0].text;Object.defineProperty(accessor.value.overrides[0],'text',{enumerable:true,configurable:true,get:()=>text});freeze(accessor);const pending=validateFrozenOperation(accessor);text='SYNTHETIC accessor changed during async hash';const accessorValidated=await pending;assert.notEqual(accessorValidated,accessor);assert.deepEqual(accessorValidated,before);await assert.rejects(validateFrozenOperation(new Proxy(publicFrozen,{})));
+ assert.throws(()=>{validated.value.overrides[0].text='SYNTHETIC mutation';},TypeError);assert.deepEqual(validated,before);
 });

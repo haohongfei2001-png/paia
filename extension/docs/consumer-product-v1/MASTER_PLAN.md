@@ -1,8 +1,202 @@
+# TOPIC-05.5 manual Section promotion candidate0.43.20 — 2026-10-11
+
+## Coherent candidate and retained formal failure
+
+Remote main remains531dbcf88a88a397570d7cf5bc55888b97d259d2 (qualified0.43.16). PR2548b297 Full38125979824 completed FAILURE in Browser3/4/6: original Prompt compatibility release frame lifecycle, ANS03 live pure-read publication acquisition, and NIB historical release mount revision race. Prompt38125979820 and Visual38125979845 passed. Fresh native54top-level/84total passed both unchanged strict gates at actual signed tested merge7631efd21069f81bf170cf02d3d2082bf3a7ba6a; independent report65f7849a1d8e40c4489128a49590cc8842d260e7c331592cae3957de8ecbc3cf qualifies only that native scope. No failed Full is promoted to accepted.
+
+The coherent0.43.20 follow-up retains all earlier mixed configuration, approved S4 toolbar/Settings and Topic count work, adding this complete TOPIC05.5 batch and three finite fixture corrections. ANS03 initializes the actual independent reader before capture and asserts all six real initialization flags; the existing bounded helper retries only one typed pre-callback pure-read publication conflict, never an entered callback or a mutation. Prompt compatibility waits for authenticated old-frame destruction, a distinct new nonce, actual expected row and original pending/layout completion before its unchanged single insertion. NIB uses explicitly recorded completion-only/default-null and synthetic-provider mirrors, observing original accepted Source promises and actual same-worker maintenance including follow-up running promises; its three original revision-guarded writes are unchanged. All original assertions/deadlines and failure records remain; unique cloud publishers/lifecycle causes remain UNKNOWN.
+
+Exact4bf00bf2845a7f7d7e3ea56f58bf055ac2e6fb0d runs all three original whole browser files:29PASS,0FAIL/cancel/skip,72382.917792ms. Source/release NIB receipts retain all six fresh profiles, original completion tickets and zero external network calls. Default-null capability remains denied; the separate synthetic fixture-only provider is exercised without any paid or remote provider call. Combination binding7773e25171a91d9d98acd05c192ebb216f2e04fa7101149b4da096aa5e189d38. This is local affected verification; fresh formal changed-candidate Full/Prompt, normal integration, exact-main Full and Prompt, and one qualified package remain pending. Unfinished complete mixed Canonical C is excluded from this publication. No installation or formal deployment is performed.
+
+The contextual Section menu now reaches the existing whole-Section manual promotion owner. It previews the actual complete placement set, asks for explicit confirmation, preserves original bodies/Source/Working/negative intent and the parent Topic/old Section identity, and creates a distinct Topic with external access closed. The original composite-history undo is reachable. Uncertain signed work is reconciled through its original operation instead of creating another request. A configured journal retains its truthful prewrite unsupported boundary pending the complete Canonical consumer; this candidate does not certify full Sync.
+
+The worker binds every operation to the current top-level Archive document. The private prepare pool is bounded across concurrent calls; cancellation cannot roll back a confirmed operation. Old document handles cannot exhaust the pool forever. API-absent compatibility exercises the original actual WindowClient/MessageChannel path without inventing a Chrome114 device result. Section menu positioning keeps all four actions and their trigger reachable at320 CSS pixels and200% text, retaining44px targets and original reading/editor behavior.
+
+Independent full finite review fda29acf686b81b3548ec8bc6889d0412440a7bc299a5eb3bcd1edbfb8045422 approves the complete27-path Topic integration over the already reviewed0.43.19 candidate. The original93 browser assignments are unchanged for widths4/5/6/7/9; the added complete promotion file gives94 and routes to the existing shard4 without changing job limits or dropping assertions. Prior native/fixture failures and their corrections remain in the owning records.
+
+At aeaa2a71,19 complete unit/contract files pass142/142. The0.43.20 identity-only update6e6d1c71 builds484 standard files, then passes the complete three-file source/release Topic plus source UIS02 combination17/17,0fail/cancel/skip,31035.507ms. Subsequent screenshot-only1c73 reuses exactly that runtime/package and runs its complete original promotion file14/14,14511.565708ms. The earlier mistaken-path cancelled attempt remains cancelled and is not a pass. Source/release actual preview images and native 200% Section-menu images are retained. These results are distinct executions, not one invented summed run.
+
+Final finite follow-up f4959183 moves the actual whole-move preview before the same original confirmation form and restores the shared dialog order in finally after confirm/cancel. Its10-case original UI file passes544.099334ms. One fresh standard484-file build and the complete original promotion source/release file pass14/14,0fail/cancel/skip,14707.114916ms. The native assertion verifies actual sibling order and one unchanged submit control. Root inspected both actual final preview images; no whole-screen approved-design or byte-identical-image claim is inferred. Prior17 and14 executions remain bound to their earlier versions, with unchanged-code evidence reused only within its proper scope.
+
+Formal candidate/main acceptance, installed availability and full TOPIC/Sync acceptance remain pending. The separate0.43.19 PR254 Full/Prompt runs are not evidence for this changed candidate. All missing design/provider/account/device/deployment gates retain their actual status; no paid model, upload, new permission or deployment is enabled.
+
+## Preserved prior checkpoint
+
+# Current0.43.19 follow-up: qualified Topic continuation counts — 2026-10-11
+
+Main remains531dbcf/qualified0.43.16 and remote PR254 d3b3 remains failed Full38123272698. The earlier prepared ec70 publication was never pushed. Retain all its Settings setup isolation and failure diagnostics, and all earlier failure records.
+
+Independent UIS02 review identified a real count-presenter gap, without claiming the unique cloud cause. With actual OrganizerStore, ThoughtSectionReading and ContinuousTopicReader, three original canonical query pages reproduce a count stuck at1+ after the second page (old complete file4PASS1FAIL). The original current-reader presenter now updates counts after continuation, fencing Topic/query/provider/stale state and preserving honest partial counts. Independent review additionally caught restored saved terminal flags during real pending hydration; a held completed original page response proves3+ while hydrating and3 only after release. The pre-guard counter remains4PASS1FAIL. No DTO, query assertion, producer, write guard or deadline is weakened.
+
+Exact runtime78f10336e50692427193e95903691ff48459348f passes four complete owning unit files19/19,0fail/cancel/skip,2238.338208ms, and the original complete UIS02 headless source journey1/1,9107.745542ms. This source browser run is distinct from the earlier25/25 Settings/source/release combination; no new packaged-browser proof is inferred. Independent follow-up4416f5acfa39e97a2a3bbba29c4de85505980a039f2d856e64c8857961560e4e closes only the finite code issue. The bounded failure artifact adds six body-free index/cursor-presence/coverage/generation-match fields to discriminate any future failure.
+
+One coherent0.43.19 follow-up proceeds to fresh formal Full/Prompt; normal merge, exact-main Full/Prompt and one qualified package remain pending. No dependency/version/permission changes, installation or deployment. TOPIC05.5 and the complete mixed Canonical C remain separate unintegrated batches. C294 local passes and finite independent code approval do not qualify original native/full-resource/complete Sync acceptance.
+
+## Preserved prior checkpoint
+
+# Current0.43.19 candidate: isolated manual setup and retained search failure evidence — 2026-10-11
+
+PR254d3b3c0de1e2cbd0fe785e2a1d7dbf4a7e9a6ba01 is NOT_ACCEPTED. Full38123272698 fails Browser1 at original Settings E04 manual Prompt setup (`MEMORY_STALE`) and Browser4 at original UIS02 current-Topic matching; seven other browser shards, all four unit shards, contracts, build and both macOS jobs pass. Prompt38123272534 and Visual38123272597 pass. Fresh native54 top-level/84total passes and both original strict gates are independently qualified at actual signed merge77fd96edd7803a96625a650f6305a3ed2beac6f2, tree41c9398dffdcb9da33a288aad370b2adf1c57f84. This does not close the failed Full gate.
+
+The Settings fixture creates its independent manual Prompt before starting its capture producer. The same authentic query/create/CAS and all original manual Input, Prompt, consent, pause, composer, focus and zero-network assertions remain; no write retry or stale guard changes. UIS02 keeps its original journey and assertions and now saves its existing bounded body-free failure diagnostic as an artifact. Its unique cloud failure cause remains UNKNOWN; no search runtime fix or cloud PASS is claimed.
+
+The two complete local files pass25/25,0fail/cancel/skip,27886.025ms (Settings source/release24 plus UIS021). All3317 tracked source and481 existing standard release files stay identical across this run. The qualified About-fix package is reused because runtime/dependencies are unchanged; no new build, browser version or release identity is invented. Source independent two-file review d074a1f96424300a8f28ac33fab1a461c4a2437a46ec6293ce558c9f98a3b48c approves the finite fixture/diagnostic scope.
+
+One combined follow-up proceeds through fresh formal Full/Prompt; merge and exact-main Full/Prompt plus one qualified package remain pending. Main531dbcf/qualified0.43.16 is unchanged. TOPIC05.5 and whole Canonical C remain separate unintegrated work; missing visual materials, actual provider/account/device, installation and deployment gates remain unverified.
+
+## Preserved prior checkpoint
+
+# Current0.43.19 candidate: update focus repair and bounded browser readiness — 2026-10-11
+
+PR254827c3dc2a67b6ee40892e2f11691d411a2966ab0 remains NOT_ACCEPTED. Full38121366502 fails Browser1 at the original Settings update-focus assertion and Browser5 at the original accessibility Source-dialog assertion; its other seven browser shards, four unit shards, contracts, build, both macOS jobs and independently qualified native54/84 pass. Prompt38121366499 fails the source Stage3A choice-insertion feedback; its release file and four unit shards pass. Visual38121366516 passes. All failures remain recorded; no skipped job is accepted.
+
+A genuine held Chrome update callback reproduces disabled-button focus loss on both source and release. The bounded About repair returns focus only to the same still-visible control when no newer user intent exists; Tab, another group, hidden/changed document and window departure cancel ownership. Original eight browser cases and their focus assertion remain; three added actual-browser scenarios give24/24 complete-file passes, with16 original-controller unit passes and one standard481-file build. Independent Root review checks the exact three-file patch and applied-byte identity.
+
+The original Stage3A fixture now observes actual parent/capsule geometry before its unchanged single native click, reusing the original uncertain-insertion readiness condition. Its complete source/release file passes26/26. The original accessibility fixture completes all capture, Navigator and exact Reader-body assertions before retiring only its owned capture producer and observing original status/filter readiness; its entire file passes1/1. Assertions, operation retry policy and deadlines remain unchanged. The original cloud causes for these two intermittent failures remain UNKNOWN, and the first local failed attempts are preserved rather than relabelled.
+
+Root combines these five runtime/test files in one reviewed0.43.19 follow-up. Fresh formal exact-head Full/Prompt and normal exact-main Full plus Prompt and one qualified package remain required. Main531dbcf/qualified0.43.16 is unchanged. Shared Canonical C and TOPIC-05.5 manual-promotion UI continue with separate writers; no full Sync, unavailable-design visual, real provider/account/device, installation or deployment acceptance is claimed.
+
+## Preserved prior checkpoint
+
+# Current0.43.19 candidate: complete browser/native pass, security fixture follow-up — 2026-10-11
+
+PR2541adb8a5a04747c53a636d85b61f244b9f7c2238d, actual signed tested merge23176eadb89487741d246cf827b5a816995591a8, has all nine current browser shards (93 complete files), all four unit shards, release build and both macOS gates passing in Full38120160826. Visual38120160816 passes. Fresh native54 top-level/84total tests pass with both original strict receipt verifiers independently qualified. Full and Prompt38120160813 remain FAILURE solely because the original background-security synthetic Chrome fixture lacked toolbar listener registration; skipped jobs are not counted.
+
+The follow-up adds only the existing synthetic listener-registration helper import/call before the original worker import. All original security assertions, storage counts, sender/consent fences and deadlines remain byte-for-byte. Complete original privacy/security59/59 and package/development audits pass on6f94d9d8 plus exactly those two lines, subsequently committed57f9c137. Independent reviewda6b4378/cbb7bab2 approves that limited repair. Runtime/dependencies and version0.43.19 are unchanged; earlier native/browser evidence keeps its exact identity. Root submits one consolidated test/documentation follow-up, then requires its formal Full/Prompt and normal exact-main qualification. No original failure is relabelled.
+
+Main531dbcf/qualified0.43.16 remains unchanged. Shared Canonical C is still independently in progress; no full Sync, missing-design visual, real provider/account/device, installed or deployment acceptance is claimed.
+
+## Preserved prior checkpoint
+
+# Current coherent candidate: approved toolbar and Settings replacement, 0.43.19 — 2026-10-11
+
+The owner-approved S4 current-window focus/no-refresh behavior is now implemented in the local candidate. It reuses an existing PAIA without reload or unsaved-edit loss, otherwise opens PAIA with original first-use onboarding. Settings retains original Next consent/revocation, pause/resume/backfill, actual current-install update status and reachable fault recovery. Production default_popup is removed only in this replacement candidate; original Popup behavior remains tested in an isolated legacy fixture. No permission or live provider capability is added.
+
+Root now combines S4 with the bounded ANS05 repair in one stable0.43.19 follow-up to existing PR254, preserving its mixed configuration recovery and NIB S0/S1/S2/provider-disabled S3. This explicitly replaces the earlier separate-S4 scheduling below. Shared Canonical C remains independently owned and unaccepted, pursuing the complete pre-journal old-library → closed A → fresh B → new edit → closed B → fresh C path rather than publishing helper slices.
+
+Frozen local runtime1cd628938332125c75afb99afa80374d9efff2a6/treeb650c4d4ece646a039d1b7b379d001e50d44cb3f passes the standard481-file0.43.19 release build. Four complete browser files pass50 tests (toolbar28, Settings replacement18, original Settings Next2, original isolated Popup2). The first combined invocation remains52total50PASS2FAIL because both Stage3A variants lacked an ignored test dependency. After linking existing exact package versions, its unchanged complete source/release file passes26/26. All3316 tracked files and481 release files remain unchanged across both runs. This is complete five-file coverage across two executions, not one falsely relabelled PASS. About1280 and compact recovery320 screenshots are byte-identical source/release; unavailable approved SET2 precise visual material remains missing.
+
+Original c926 whole-unit5555/5541PASS14FAIL and initial package-check failure remain recorded. Reviewed bounded mock/recovery/scanner repairs pass six owning files23 tests plus the final20-variant guard test; no whole5555 PASS is claimed. Current browser coverage is93 complete files, preserving every old91 assignment and existing limits. Final exact-head Full, Prompt, visual, fresh native54 strict receipts, normal integration and exact-main verification remain required.
+
+Previous PR254f6d0fbe7 Full38117822135 remains FAILURE on ANS05 pre-dispatch acquisition; other eight browser shards, units/contracts/build/native/macOS pass. Prompt38117822121 and Visual38117822120 pass at their original version. The reviewed ANS05 test retires only its completed capture producers and observes the original queue before independent membership acquisition; original whole1PASS at0b443a98, with no mutation retry, relaxed assertion or extended deadline. Its unique overlapping cloud publisher remains UNKNOWN.
+
+Main531dbcf88a88a397570d7cf5bc55888b97d259d2 and qualified0.43.16 remain unchanged. No current-candidate merge, delivered/installed version, complete C/Sync, real cloud/device/account, paid AI or deployment is claimed. See [owning evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+## Preserved prior checkpoint
+
+# Current combined candidate: 35f5 failure and owning test follow-up — 2026-10-11
+
+PR254 head `35f5bea3a7681511af717ac793fbf2a9a6687c1e`, tested merge `35c0b0b4b5001ba674a5efcef48b584341af86f5`, remains **NOT_ACCEPTED**. Full38115286496 failed Browser1/3/6; Prompt38115286475 and Visual38115286480 passed. Fresh native54 top-level journeys/84 total tests and both original strict receipt gates passed independent verification (job114398876635,391916.739205ms). Failed, skipped and cancelled results are never accepted as passing.
+
+The follow-up changes only three test/harness files. Context's original Add action awaits editor flush before mounting; the test now waits for exactly one distinct new editor, then requires that same identity to persist. Original conflict, IME, delete/undo/order and protected-data checks remain. The complete Context and Navigator files pass9 tests with zero fail/cancel/skip. Original pre-dispatch retry contracts pass10. Navigator and historical Backup add bounded body-free acquisition diagnostics without changing guards, maintenance, retries, actions or deadlines; the original UX-R6 whole file passes1. The cloud acquisition causes remain UNKNOWN; a local pass is not proof of their repair.
+
+S4 remains separate: the owner-approved current-window focus/no-refresh behavior proceeds through full replacement acceptance. Settings source/release16 component tests pass, including same-button compact retry; toolbar discarded-tab lookup and the complete retained-control composition remain under qualification. Popup stays until replacement gates pass. Shared Canonical C continues the same complete recovery batch, including original resource ownership and honest pre-journal baseline enrollment. Neither is silently included or certified by this test-only follow-up.
+
+No merge, package delivery or installed acceptance is claimed. Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and qualified0.43.16 remain unchanged. Runtime/dependencies are unchanged from35f5; existing exact unchanged component receipts retain their original versions. The next stable candidate still needs required formal gates, normal integration and exact-main qualification.
+
+## Preserved prior checkpoint
+
+# Current combined candidate: f1dc failure and bounded fixture repairs — 2026-10-11
+
+PR254 head `f1dc3e29b86ab822dd235cb6cbd03220520a99b0` (tested merge `a6fe8af1e01f12b74e7762b1d8a72218975bec87`) remains **NOT_ACCEPTED**. Full38113001373 and Visual38113001386 failed; Prompt38113001378 passed. Browser4/5/6/8 failed, while the other five current browser shards, all unit shards, contracts/build and both macOS jobs passed. Fresh native54 top-level journeys/84 total tests and both original strict artifact gates passed independent verification. No skipped or cancelled job is accepted.
+
+The follow-up preserves runtime and all original assertions/deadlines. The visual fixture now explicitly selects its Chinese language and waits for a neutral pointer state; complete source8/release8 and the unchanged comparison pass with zero pixel differences. The Data fixture waits for the actual restore commit before inspecting its already-visible panel; its original complete file passes. Consent-reload and Source-dialog failures did not reproduce in their isolated complete files; their causes remain UNKNOWN, and bounded failure-only diagnostics preserve the original thrown error. The original Prompt surface readiness repair passes all40 source/release tests, including split and second-tab/discard behavior. These are component results, not a new formal candidate pass.
+
+The user has now expressly approved S4 toolbar behavior: focus an existing PAIA tab in the current window without reload or unsaved-edit loss; otherwise open PAIA, retaining first-use onboarding. S4 implementation and replacement acceptance proceed in a separate batch; Popup remains until those gates pass. This latest decision supersedes the historical pending-decision statements below. Shared Canonical C remains with its sole writer, including original resource accounting and pre-journal library bootstrap; neither C nor S4 is included in this PR254 repair.
+
+Root prepares one consolidated follow-up after complete affected verification and independent review. Exact follow-up Full/Prompt/visual gates, normal integration, exact-main verification and a qualified package remain required. Main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and qualified0.43.16 are unchanged. See [owning evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+## Preserved prior checkpoint
+
+# Combined candidate: formal failures under bounded repair — 2026-10-11
+
+PR254 publication2ea33e817bb3aa596b429db7443c718e0418bd65 preserves the exact development779aec tree. Prompt38110775241 passes, but Full38110775163 fails native preflight and Browser2/5/9; PromptVisual38110775168 also fails. Six current browser shards, four unit shards, contracts/build and both macOS jobs pass. The earlier original saved-candidate Topic reopen now passes its complete five-case file, without establishing a unique cause for its historical failure. No skipped or cancelled job is counted as PASS, and no current main/package delivery is accepted.
+
+The repaired original native preflight passes731+132 whole-file tests after adding six actual imported dependencies to its strict manifest; native54 was not executed on2ea33. Original visual capture now uses real orb/More/full-text review actions and retains every original assertion; the restored moving-row secondary controls pass source8/release8 plus the original comparison. A separately reproduced initial orb language/theme race is fixed before DOM connection: original held-frame counter22PASS/1FAIL becomes44PASS across its two owning unit files, and unchanged whole surface browser source/release24PASS. These exact-component results are not a clean2ea33 or new formal head pass.
+
+Original AppShell late-read counters reproduce cancellation of a newer explicit Topic open. The reviewed repair keeps the original Topic id/open intent through the shell read; complete related units25 and unchanged whole VS05 browser10 pass. The NIB search fixture now closes its completed capture producer and waits for actual original owner queues before the protected baseline; the unchanged full37 and write-CAS assertions pass across all34 source/release cases. Its cloud failures remain failures and their unique cause is not claimed. Root combines these reviewed repairs in one follow-up to existingPR254; fresh exact-head Full/Prompt/native/visual gates are still required, and main531dbcf/qualified0.43.16 stays unchanged.
+
+SYNC-01 C continues in its separate single-writer batch. Real nonzero journal history through closed A, fresh B, cleanup, cold B, another edit and fresh C passes. Existing pre-journal canonical bootstrap and legitimate purge/cleanup safety-floor coverage remain open, alongside complete private resource/native qualification. No C helper release, nonempty merge, live provider, missing-design visual acceptance or deployment is implied. See [NIB evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+## Preserved prior checkpoint
+
+# Stable local configuration and narrow Prompt combination — 2026-10-11
+
+The0.43.18 integration candidate preserves all current main and PR254 B configuration recovery, and incorporates approved NIB S0/S1/S2 plus the provider-disabled S3 owner. Frozen runtime291e1114 passes the complete original unit suite5516/5516; its unchanged runtime atce520 passes complete adapter102 and privacy/security59. Final native fixture1c7ce6e7 passes all14 original historical-candidate source/release tests with0fail/cancel/skip, all3305 tracked files/182 proof dependencies/478 release files unchanged across the run. The standard release was built once. Earlier136-test browser proof remains bound to5d7247df and is not recertified by these results.
+
+Revocation/original timeout restores local controls while preserving UNKNOWN and its reservation; a cold replacement session cannot dispatch a second historical request before the first resolves. Production provider/entitlement/processing capabilities remain unavailable. S4 Popup replacement and its pending toolbar decision are unchanged. The two failed S3 startup runs remain2PASS/2FAIL each; exact generated-module parsing identified a missing fixture brace, now repaired with a pre-browser syntax check. The completed onboarding prerequisite alone was not the cause repair.
+
+Root prepares one stable, non-forced update of existing PR254 for exact-head Full/Prompt verification. Previous3bb Full38104707936 remains failed on the original saved-candidate Topic reopen; no unique cloud cause is claimed, and that complete original case must pass. No current candidate/main/package delivery is yet accepted. Qualified main531dbcf/0.43.16 remains unchanged. See [NIB evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md) and [B recovery evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+The separate C writer continues original bound/passive Thought recovery and complete cold A/B/C continuation, with native memory/cut qualification still open. Its local code/reviews do not qualify full C or whole Sync. Missing approved CTX/SET precise visuals, real Qwen/device/account and installed/deployment gates remain separate. No additional external authority or eighth product queue is introduced.
+
+## Preserved prior checkpoints
+
+# SYNC-01 B native54 executed; strict evidence repair and browser diagnosis — 2026-10-11
+
+PR254 head `2cc7be2adb4f608adbd22050eed25b4268e7b154`, tested merge `0f41248c28606f05a8ef66768f5fada97df26693`, remains **NOT_ACCEPTED**. Full `38098168029` failed; Prompt `38098168035` succeeded. All54 native journeys completed, but the strict evidence gate still expected190 assertions rather than201 after the previously added budget negatives. Both complete verifiers now require the exact201 total and exact case vector; independent replay against all54 original CI receipts passes. The original formal failure remains a failure.
+
+Browser2 failed the original750ms Topic performance assertion; Browser4 failed the empty-Topic fixture navigation before conflict editing. Local complete files pass with added bounded diagnostics, but neither cloud cause is established or declared repaired. Preserve original assertions, fixtures and limits; the next stable candidate collects actual failure evidence as part of the already necessary exact-head qualification. Root owns B integration; C original shared recovery and NIB S1/S2 qualification continue with separate writers. Main531dbcf/qualified0.43.16 remain unchanged. See [owning evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#fifth-formal-candidate-native54-completion-and-two-browser-failures).
+
+## Preserved preceding checkpoints
+
+# SYNC-01 B fourth formal failure and bounded fixture correction — 2026-10-11
+
+Formal candidate `b2888c9e21ce5290d7abc32e2860bd35dbe53953`, tested merge `d8350518ad1d2978961d06fdcb95f7e800113f86`, remains NOT_ACCEPTED. Full `38097033505` failed Native preflight and Unit2 on the same seven outdated command-contract expectations; native browser execution and strict54 receipts were not reached. Prompt `38097033467` failed those same seven expectations. Browser1 completed 88 PASS / 1 FAIL: its transient single-read synthetic outage was cleared by an independent popup refresh before the retry click. The other eight current browser shards passed. Previous failure and cancellation records remain unchanged.
+
+Local `697c6a35` aligns the command-contract expectations with the already reviewed whole-file schedule; exact file order, original candidate scheduling, final three-worker scheduling and all strict receipt checks remain asserted. Complete command contracts24 and original native preflight731 pass. The popup fixture now installs its outage before application startup and retains it until the trusted original retry click; it asserts failure-before-click and successful original read-after-click, without changing runtime, timeout or privacy assertions. Its complete two-scenario file passes. These are component results, not a fresh formal pass. Continue one combined publication after finite review, then exact-head Full/Prompt/native qualification; no runtime delivery or installation is claimed.
+
+# SYNC-01 B bounded fixture and native scheduling repair — 2026-10-11
+
+Formal head `75265cc6509f16180c4e4fe57f1436fcf4fb3258`, tested merge `778bcda990f9ce4ab81f48e503eb22c739cda1e2`, remains unaccepted. Prompt `38095584123` succeeded. Full `38095584129` concluded CANCELLED: Browser1 and Browser3 failed independent synthetic-store read-fence acquisition before their callbacks began; the native job passed its original52 top-level journeys before the serial configuration tail was cancelled at the unchanged job limit. No cancelled or skipped result is accepted.
+
+The composed correction reuses the existing tested one-retry helper only on those isolated fixture instances, only for exact `CONTROL_PUBLICATION_CHANGED` before callback entry. Entered writes and whole domain actions are never replayed; runtime guards, pinned historical state and complete zero-effect assertions remain. Five complete affected browser files pass31 tests, the complete Navigator file passes1, and the original retry contract passes10. The same27 complete native files now share three bounded workers, retaining the original12-minute job limit, all54 independent receipt requirements and all assertions. Finite independent review and fresh formal acceptance remain distinct; see [owning B evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+Root continues B integration. The independent C writer closes the complete shared Canonical chain; the Prompt writer and Root close NIB S1 search/reuse and Archive arrival. Their component results are not combined acceptance. Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2`, qualified0.43.16, all earlier failures and remaining seven-lane obligations are preserved.
+
+## Preserved preceding checkpoints
+
+# Current acceptance repair and parallel C implementation — 2026-10-11
+
+SYNC-01 B remains unaccepted: second formal head `dce74418` (Full `38094314489`, Prompt `38094314534`) exposed a startup-count fixture boundary and missing navigation mock interfaces. Full and Prompt are now complete failures. Eight of nine browser shards passed; the remaining browser failure was an unsettled original onboarding transition. The native job exposed two obsolete budget-fixture thresholds and did not reach the new configuration pair. Test-only repairs retain exact refusal codes, unchanged whole-store comparisons and the original 8 MiB limit; complete affected-file local evidence passes. Fresh formal candidate acceptance remains pending. The exact failure and repair scopes are retained in [the owning B record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+To continue approved high-complexity work without waiting for B, isolated C implementation starts from the exact unchanged B runtime in branch `codex/sync01-c-shared-canonical-20261011`. Its sole shared-data writer implements the existing full Input-to-Thought binding, atomic Working propagation/history, actual refresh completion and complete Mixed restore consumers as one batch; no helper-only release or C acceptance is claimed. Root retains B test repairs/integration and coordinates any shared-runtime change. NIB S0 component evidence is frozen; the disjoint S1 query/current-Input selection and original insertion implementation proceeds on its own branch, with Root retaining the Archive arrival owner. C must incorporate the qualified B base before its final combined acceptance. All remaining approved C/01 obligations and seven-lane scope remain unchanged.
+
+## Preserved preceding checkpoints
+
+# SYNC-01 B repair batch; NIB v4 parallel execution — 2026-10-11
+
+Current main `531dbcf88a88a397570d7cf5bc55888b97d259d2` includes the approved NIB runtime authority from PR #255, retaining qualified runtime 0.43.16. The B branch incorporates that exact main without replacing any runtime or ongoing recovery changes. NIB S0 has its own disjoint implementation/review owner; Root continues to own shared storage, settings publication, Archive navigation and integration.
+
+PR #254 first formal head `b7d1625f4dd337a147c7ec59807f0fdf2f555c84` **FAILED** Full `38092248910` and Prompt `38092248869`; it is not accepted or delivered. Its native job failed the Node preflight before executing the native54 suite. Current work repairs exact owner inventories/transaction oracles, real navigation and late Topic-position races, proven cold publication recovery, and test setup races without weakening original data-safety or final-fence assertions. Historical failure records and component receipts retain their exact versions. The next stable composed revision still needs fresh formal Full/native54 and affected Prompt acceptance, normal integration, exact-main qualification and one package. See [owning repair and recovery record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+The seven-lane scope and approved Sync convergence remain unchanged. Unknown prepared SDK outcomes stay held; cold startup never manufactures acknowledgement or replays an unknown write. No full-Sync, installed-version, paid-provider or missing precise-visual acceptance is claimed.
+
+## Previous checkpoints, preserved with their original evidence scope
+
 # Latest-plan development authorization — 2026-10-11
 
 NIB-V4-1.0 S0–S4 is now runtime-selected within the existing Prompt lane by explicit owner instruction. The [AUTHORITY amendment](AUTHORITY.md#latest-runtime-authorization--2026-10-11) controls; [STATUS](STATUS.md) owns assignments. Implement the latest adopted designs and preserve/complete their necessary earlier foundations through the existing owners. The original NIB documentation-only restriction is historical. Continue the approved Sync convergence work and all other seven-lane obligations; no duplicate scheduler, redesign, wider external authority or completion claim is introduced.
 
 ## Preserved previous plan and evidence
+
+# SYNC-01 B complete configuration candidate 0.43.17 — formal gates pending
+
+Approved PR #250 remains merged and authoritative. Batch A and qualified main0.43.16 are retained unchanged. The current single B branch now closes the complete selected configuration recovery path in actual original owners: seven portable intents, full Prompt companions and logical desired Topic facts recover through closed-A/fresh-B edits/re-export/closed-B/fresh-C, without permission donation. Frozen pre-version source/release each11 native scenarios/622 assertions pass with independent exact-byte qualification; these are synthetic component evidence, not formal current-head/main or whole01 acceptance.
+
+Current work is final independent composed review and one high-risk Full candidate plus affected Prompt qualification, then normal integration/exact-main/package gates. Keep original52 native checks and add the complete configuration pair to54; the existing preference current-browser route is not duplicated. Do not release another prerequisite helper. See [single owning batch record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md) for the five-field gap/evidence/remaining-work disposition. Approved C, original01 closing gates, real provider/device and missing precise visual gates remain separately open; no paid/account/permission/deployment authority is added.
+
+# Qualified main 0.43.16; SYNC-01 B consuming recovery in progress — 2026-10-11
+
+PR #250 is merged at `ef08a51a84fccc8e04fd5447fdff6de9fea2a7a9`; its owner-approved revised Sync convergence plan remains the execution basis. Complete Mixed batch A merged via PR #252; its actual-main Topic reading failure was repaired by normally merged [PR #253](https://github.com/haohongfei2001-png/paia/pull/253). Actual main is `959d3bafcaf628fb6c5a34b3fe77249042723360`, tree `35d1d5a125e5c62de012374bba7c179a607deba5`, version **0.43.16**.
+
+Exact-main [Full 38079265306](https://github.com/haohongfei2001-png/paia/actions/runs/38079265306) has all 21 required jobs SUCCESS; [Prompt 38079265315](https://github.com/haohongfei2001-png/paia/actions/runs/38079265315) has all 5 SUCCESS. The original complete strict native52 verifier passed the exact-main source/release receipts, with no failed/skipped/cancelled case counted as PASS. The once-built 462-file package is qualified: SHA256 `ba2ce94f518912c41192b24946caa0d7cad69603905af40a611c2a4b73c74d7f`, 1,520,515 bytes. No installation or formal deployment is inferred. The failed/held 0.43.15 package and separately qualified 0.43.14 remain unchanged history.
+
+Current selected work continues **approved SYNC-01 batch B**, composing original portable display/Smart Filter ownership and durable local-publication recovery with full Prompt corrections and logical Topic desired selections in the complete Mixed path. Work stays in one isolated B branch; local component results, finite code reviews and generic owner recovery are not native/full-B acceptance. Preserve all latest main and other-lane outcomes. Complete B's same-cut capture, closed-A/fresh-B continuation, closed-B/fresh-C recovery and safety/resource evidence as one consuming batch; do not release prerequisite helpers. Approved C and original SYNC-01 closing gates remain required; whole Sync and all seven lanes are unfinished.
+
+## Preserved preceding main and candidate checkpoints
+
+The preceding records below retain their original commit/test/package scope. Their pending statements are historical where superseded by the exact-main receipt above.
 
 # Qualified main0.43.13; Source/Working0.43.14 candidate — 2026-10-10
 

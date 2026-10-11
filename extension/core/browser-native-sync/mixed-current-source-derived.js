@@ -4,17 +4,18 @@ import {measureSourceWorkingPhysicalTree,equalSourceWorkingPhysicalTree} from '.
 import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {fail} from './value.js';
 
-// Finite consuming mixed batch: one bootstrap plus one original append, in one
+// Finite consuming mixed batch: one bootstrap, with at most one original append, in one
 // Conversation, with independently owned Human work. No native grant, budget
 // exemption or broadening of the existing one-Source exporter is created here.
 // The native caller must prepay these original builder/sort/comparison frames.
 export function assertMixedCurrentSourceDerivedRows(core,scope,plan,rows){
  if(arguments.length!==4)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalCurrentMixedGroupScope(core,scope,plan);measureSourceWorkingPhysicalTree(rows);
  const creation=plan.groups.filter(g=>g.type==='sourceBootstrapCommit'||g.type==='sourceAppendCommit');
- if(creation.length!==2||creation.filter(g=>g.type==='sourceBootstrapCommit').length!==1||creation.filter(g=>g.type==='sourceAppendCommit').length!==1||scope.expected.records.length!==2||scope.expected.blocks.length!==2||scope.expected.documents.length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
- const ordered=[creation.find(g=>g.type==='sourceBootstrapCommit'),creation.find(g=>g.type==='sourceAppendCommit')],records=scope.expected.records,blocks=scope.expected.blocks,doc=scope.expected.documents[0];
+ const size=creation.length;
+ if(![1,2].includes(size)||creation.filter(g=>g.type==='sourceBootstrapCommit').length!==1||creation.filter(g=>g.type==='sourceAppendCommit').length!==size-1||scope.expected.records.length!==size||scope.expected.blocks.length!==size||scope.expected.documents.length!==1)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const ordered=[creation.find(g=>g.type==='sourceBootstrapCommit'),...creation.filter(g=>g.type==='sourceAppendCommit')],records=scope.expected.records,blocks=scope.expected.blocks,doc=scope.expected.documents[0];
  const sources=ordered.map(g=>g.prepared.members.find(m=>m.value.entityType==='source')?.value.entity),inputs=ordered.map(g=>g.prepared.members.find(m=>m.value.entityType==='input')?.value.entity);
- if(sources.some(s=>!s||s.chatId!==doc.sourceConversationId)||inputs.some(b=>!b||b.documentId!==doc.id)||new Set(sources.map(s=>s.id)).size!==2||new Set(inputs.map(b=>b.id)).size!==2)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(sources.some(s=>!s||s.chatId!==doc.sourceConversationId)||inputs.some(b=>!b||b.documentId!==doc.id)||new Set(sources.map(s=>s.id)).size!==size||new Set(inputs.map(b=>b.id)).size!==size)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const recordRows=sources.map((source,i)=>recordIndex(records.find(r=>r.id===source.id),i)),blockRows=inputs.map((input,i)=>blockIndex(blocks.find(b=>b.id===input.id),i,records));
  // RefreshDoc prices/updates one count for each immutable Source key. Preserve
  // that partition rather than collapsing two Source facts into one aggregate.

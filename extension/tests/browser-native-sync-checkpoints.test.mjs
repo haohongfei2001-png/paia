@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
 import {ArchiveRepository} from '../core/idb-repository.js';
 import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
-import {buildCheckpoint,StagedSyncRestore} from '../core/browser-native-sync/checkpoints.js';
+import {buildCheckpoint,encodeOriginalCheckpoint,StagedSyncRestore} from '../core/browser-native-sync/checkpoints.js';
 import {materializePrompt,restorePromptPreferences} from '../core/browser-native-sync/prompt-journal.js';
 import {readPromptPreferences} from '../core/prompt-reuse-preferences.js';
 import {SEGMENT_PROFILE} from '../core/browser-native-sync/segments.js';
@@ -15,6 +15,23 @@ async function local(core,text){const p=await core.prepare([{type:'promptPrefere
 function cloud(){const objects=new Map();return {objects,async putImmutable(ref,value){const previous=objects.get(ref.id);if(previous&&!Buffer.from(previous).equals(Buffer.from(value)))throw Error('collision');objects.set(ref.id,value.slice());},async get(ref){const value=objects.get(ref.id);if(!value)throw Error('missing synthetic object');return value.slice();}};}
 const ownerState=core=>core.repository.transaction(false,t=>readPromptPreferences(t));
 const restore=(core,options={})=>new StagedSyncRestore(core,{owners:{promptPreferences:restorePromptPreferences},...options});
+test('original checkpoint canonical reservation precedes publication and preserves exact sharded wire',async()=>{
+ const a=await device('device_alpha_01');for(let i=0;i<12;i++)await local(a,'Synthetic history '+i+' '+ 'x'.repeat(i===6?10000:100));
+ const profile={...SEGMENT_PROFILE,target:8192},original=cloud(),expected=await buildCheckpoint(a,original,{profile});
+ const stopped=cloud(),marker=Error('Synthetic reservation refusal');
+ await assert.rejects(encodeOriginalCheckpoint(datasetId,stopped,{profile,cut:expected.cut,rows:a.rows.bind(a),verifyCut:async()=>{},beforeCanonical:()=>{throw marker;}}),error=>error===marker);
+ assert.equal(stopped.objects.size,0,'first canonical reservation refuses before any immutable publication');
+ const transport=cloud(),phases=[];
+ const actual=await encodeOriginalCheckpoint(datasetId,transport,{profile,cut:expected.cut,rows:a.rows.bind(a),verifyCut:async()=>{},beforeCanonical:(value,outstandingRawBytes)=>{phases.push({kind:value.kind,level:value.level,entries:value.entries?.length,outstandingRawBytes});}});
+ assert.deepEqual(actual,expected,'same original encoder keeps exact checkpoint references and manifest');
+ assert.deepEqual(transport.objects,original.objects,'all encoded immutable bytes remain exact');
+ assert.ok(phases.some(row=>row.level===0&&row.entries>1),'reservation observes the full real multi-item shard');
+ assert.ok(phases.some(row=>row.level===0&&row.outstandingRawBytes>0),'current raw bytes remain metered across a real prior-shard flush');
+ assert.ok(phases.some(row=>row.kind==='chunked'&&row.outstandingRawBytes>10000),'large chunked item retains its full actual raw byte charge');
+ assert.ok(phases.filter(row=>row.level>0||row.kind==='checkpoint-manifest').every(row=>row.outstandingRawBytes===0),'finished items release their raw lifetime before index/manifest encoding');
+ assert.ok(phases.some(row=>row.level>0),'actual index canonicalization reserved');
+ assert.ok(phases.some(row=>row.kind==='checkpoint-manifest'),'actual manifest canonicalization reserved');
+});
 test('BNS fresh virtual installation restores only verified cloud checkpoint objects atomically',async()=>{
  const a=await device('device_alpha_01'),b=await device('device_beta_001'),transport=cloud();for(const text of ['first','second','exact final 文本 e\u0301'])await local(a,text);
  const cp=await buildCheckpoint(a,transport),r=restore(b);await r.stageCheckpoint(cp.ref,ref=>transport.get(ref));assert.deepEqual(await b.state(),[]);assert.deepEqual((await ownerState(b)).overrides,[]);

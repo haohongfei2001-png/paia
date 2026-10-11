@@ -25,3 +25,14 @@ test('About mounts four real links without requests, writes, navigation or legal
  document.activeElement=links[0];language='en';owner.sync();assert.equal(document.activeElement,links[0]);assert.equal(links[0].firstElementChild.textContent,'Privacy');assert.equal(links[0].href,'https://inputarchive.com/privacy-policy.html');assert.match(created.find(node=>node.id==='settings-update-status').textContent,/No confirmed/);assert.equal(created.filter(node=>node.tagName==='A').length,4);
  }finally{for(const [key,value]of prior)if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
 });
+
+test('About explicit source check is trusted, single-flight, focus-safe and keeps old reads from erasing the outcome',async()=>{
+ const prior=Object.getOwnPropertyDescriptor(globalThis,'document'),created=[],reads=[],checks=[];let language='en';
+ Object.defineProperty(globalThis,'document',{configurable:true,value:{documentElement:{lang:language},createElement:tag=>{const n=new PresentationNode(tag);created.push(n);return n;},createElementNS:(ns,tag)=>new PresentationNode(tag,ns)}});
+ try{const owner=mountSettingsAbout(new PresentationNode('section'),{version:'0.43.18',language:()=>language,readUpdateStatus:()=>new Promise(resolve=>reads.push(resolve)),checkForUpdate:()=>new Promise((resolve,reject)=>checks.push({resolve,reject}))}),check=created.find(n=>n.id==='settings-check-update'),status=created.find(n=>n.id==='settings-update-status');
+ assert.equal(checks.length,0);assert.equal(created.filter(n=>n.tagName==='A').length,4);check.listeners.get('click')({isTrusted:false});assert.equal(checks.length,0);
+ const old=owner.refresh();document.activeElement=check;check.listeners.get('click')({isTrusted:true});assert.equal(checks.length,1);assert.equal(check.disabled,true);check.listeners.get('click')({isTrusted:true});await owner.refresh();assert.equal(checks.length,1);assert.equal(reads.length,1);reads[0]({version:'0.43.18',state:'installed'});await old;assert.match(status.textContent,/Checking/);
+ checks[0].resolve({version:'0.43.18',state:'checked-none'});await new Promise(resolve=>setImmediate(resolve));assert.match(status.textContent,/installation source.*no pending update/);assert.equal(check.disabled,false);assert.equal(document.activeElement,check);
+ check.listeners.get('click')({isTrusted:true});checks[1].reject(Error('private'));await new Promise(resolve=>setImmediate(resolve));assert.match(status.textContent,/could not be confirmed/);assert.doesNotMatch(status.textContent,/private|latest/);assert.equal(check.textContent,'Retry check');language='zh-CN';owner.sync();assert.equal(check.textContent,'重试检查');assert.match(status.textContent,/当前安装和本机资料保持原状/);assert.equal(created.filter(n=>n.tagName==='A').length,4);
+ }finally{if(prior)Object.defineProperty(globalThis,'document',prior);else delete globalThis.document;}
+});

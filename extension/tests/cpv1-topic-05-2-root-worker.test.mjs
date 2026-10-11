@@ -1,3 +1,4 @@
+import {toolbarRegistrationFixture} from './harness/toolbar-registration.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
@@ -6,7 +7,7 @@ test('TOPIC-05.2 actual worker admits exact trusted fragment pages and keeps rea
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
  const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'},values={},sessionValues={};let listener,network=0,notifications=0;
  const storage=data=>({setAccessLevel:async()=>{},get:async keys=>keys===null?structuredClone(data):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in data).map(k=>[k,structuredClone(data[k])])),set:async rows=>Object.assign(data,structuredClone(rows)),remove:async keys=>{for(const key of Array.isArray(keys)?keys:[keys])delete data[key];},getBytesInUse:async()=>0});
- globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.14.0'}),getURL:path=>origin+path,sendMessage:async()=>{notifications++;},onMessage:{addListener:fn=>listener=fn}},storage:{local:storage(values),session:storage(sessionValues)}};globalThis.fetch=async()=>{network++;throw Error('unexpected network');};await import('../background/service-worker.js');
+ globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.14.0'}),getURL:path=>origin+path,sendMessage:async()=>{notifications++;},onMessage:{addListener:fn=>listener=fn}},storage:{local:storage(values),session:storage(sessionValues)}};globalThis.fetch=async()=>{network++;throw Error('unexpected network');};toolbarRegistrationFixture(globalThis.chrome);await import('../background/service-worker.js');
  const send=(message,sender=ui)=>new Promise(resolve=>listener(message,sender,resolve)),rpc=async(type,fields={},sender=ui)=>{const result=await send({type,...fields},sender);assert.equal(result.ok,true,JSON.stringify(result));return result.data;};
  const malformed=['#spoof','#paia-thought?topic=','#paia-thought?topic=a&section=','#paia-thought?topic=a&topic=b','#paia-thought?topic=a&section=b&section=c','#paia-thought?topic=a&body=private','#paia-thought?%74opic=a','#paia-thought?topic=%61','#paia-thought?topic=%ZZ','#paia-thought?topic=%E0%A4%A','#paia-thought?section=b&topic=a','#paia-thought?topic=a%26section%3Db&extra=c'];
  for(const suffix of malformed)assert.equal((await send({type:'GET_LIBRARY_ROOT_PROJECTION'},{id,url:ui.url+suffix})).error,'FORBIDDEN',suffix);

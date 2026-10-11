@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {failWorkingInputCommits} from './harness/working-input-failure.mjs';
 import {rememberArchiveDirectory,assertArchiveDirectoryUnchanged,assertBlankArchiveReader} from './harness/d7-archive-reference.mjs';
 
@@ -18,19 +19,19 @@ async function waitGroup(p,text){await eventually(()=>group(p,text).isVisible(),
 async function revealCompactAction(p,selector){const menu=p.locator('#archive-compact-navigation');if(await menu.isVisible().catch(()=>false)&&await p.locator(selector).evaluate(node=>!!node.closest('#archive-compact-reader-actions'))&&!await menu.evaluate(node=>node.open))await menu.locator('summary').click();}
 
 test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive sheet safe',{timeout:300000},async t=>{
- const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture';
+ const h=await FakeChatGPT.start(),p=h.archive,focusTransitions=[];let phase='consent and capture',fixtureAcquisitions=[],fixturePreparation=[];const capturePages=[];
  const recordSheetFocus=async action=>focusTransitions.push({phase,action,...await p.evaluate(()=>({id:document.activeElement?.id||'',tag:document.activeElement?.tagName,parent:document.activeElement?.parentElement?.id||'',inSheet:document.getElementById('archive-reader-navigator-slot').contains(document.activeElement)}))});
  // A Node test timeout does not cancel a pending page.evaluate. Its body finally
  // may never run, so lifecycle cleanup must independently release this browser.
  t.after(async()=>{
-  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions},null,2)+'\n');}
+  try{await mkdir('work/ans-05-navigator',{recursive:true});await writeFile('work/ans-05-navigator/lifecycle.json',JSON.stringify({phase,aborted:t.signal.aborted,focusTransitions,fixtureAcquisitions,fixturePreparation},null,2)+'\n');}
   finally{await h.close();}
  });
  try{
   await p.setViewportSize({width:1440,height:900});await consent(p);
-  await h.open({id:'ans05-chat-a',title:'ANS-05 A',base:1609459200,messages:[{id:'ans05-a-msg',text:'ANS05_A_BODY 原始 A'}]},{arrival:'dom-first'});
+  capturePages.push(await h.open({id:'ans05-chat-a',title:'ANS-05 A',base:1609459200,messages:[{id:'ans05-a-msg',text:'ANS05_A_BODY 原始 A'}]},{arrival:'dom-first'}));
   let a,b;await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library',limit:100}});a=page.documents.find(x=>x.sourceConversationId==='ans05-chat-a');return !!a;},'A captured');
-  await h.open({id:'ans05-chat-b',title:'ANS-05 B',base:1609459260,messages:[{id:'ans05-b-msg',text:'ANS05_B_BODY 原始 B'}]},{arrival:'dom-first'});
+  capturePages.push(await h.open({id:'ans05-chat-b',title:'ANS-05 B',base:1609459260,messages:[{id:'ans05-b-msg',text:'ANS05_B_BODY 原始 B'}]},{arrival:'dom-first'}));
   await eventually(async()=>{const page=await rpc(p,'GET_PAGE',{page:{view:'library',limit:100}});b=page.documents.find(x=>x.sourceConversationId==='ans05-chat-b');return !!b;},'B captured');await p.bringToFront();assert.ok(a&&b);
   phase='source metadata fixture';
   const projectA={providerKey:'chatgpt',namespace:'ans05-fixture',projectId:'alpha'};
@@ -93,18 +94,35 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await trigger.click();await eventually(()=>p.locator('#archive-navigator').isVisible());await windowButton(p,'ANS-05 A').click();
   await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_DIRTY_BUFFER'}).isVisible(),'mobile Window switch opens A');assert.equal(await p.locator('#archive-navigator').isVisible(),false);
   phase='source membership move';
+  // The original capture/UI assertions are complete. Retire only these two
+  // owned synthetic producers before independently acquiring metadata CAS.
+  // Their ordinary repeating CAPTURE/DIAGNOSTIC publications are not part of
+  // the membership-move operation, and neither that operation nor its guards
+  // are retried when an entered callback fails.
+  await Promise.all(capturePages.map(page=>page.close()));
+  fixturePreparation.push({point:'owned-capture-pages-closed',count:capturePages.length});
+  const settledStatus=await rpc(p,'GET_STATUS');
+  fixturePreparation.push({point:'original-worker-status-read',consented:settledStatus.consented,enabled:settledStatus.enabled});
+  let settledFilter;
+  await eventually(async()=>{settledFilter=await rpc(p,'FILTER_STATUS');return settledFilter.pending===0&&(settledFilter.mode==='off'||settledFilter.taskState==='idle');},'original filter owner completes pending fixture work');
+  fixturePreparation.push({point:'original-filter-settled',mode:settledFilter.mode,pending:settledFilter.pending,taskState:settledFilter.taskState});
   await p.setViewportSize({width:1440,height:900});const projectB={providerKey:'chatgpt',namespace:'ans05-fixture',projectId:'beta'};
-  await p.evaluate(async({projectB})=>{
+  await p.evaluate(`(async()=>{
+   const projectB=${JSON.stringify(projectB)},preDispatchRead=${runWithPreDispatchReadRetry.toString()};
    const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),ref={platform:'chatgpt',sourceConversationId:'ans05-chat-a'},at=Date.now()+10000,e=n=>({id:'ans05-move-'+n,contractId:'ans05.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'relationship',digest:(100+n).toString(16).padStart(64,'0')});
-   const c=await structure.conversation(ref);await structure.observeConversation({conversationRef:ref,expectedRevision:c.relationshipRevision,observedAt:new Date(at).toISOString(),evidence:e(1),membership:{state:'project',projectRef:projectB},projectName:'ANS05 Project Beta',sourceStatus:'observed_active'});
-   const project=await structure.project(projectB);await structure.observeProject({projectRef:projectB,expectedRevision:project?.relationshipRevision||0,observedAt:new Date(at+1000).toISOString(),evidence:e(2),currentName:'ANS05 Project Beta',sourceStatus:'observed_active'});
-  },{projectB});await refreshNavigator(p);
+   // Retry only acquisition before this independent fixture callback begins.
+   // An entered metadata transaction and its original evidence are never replayed.
+   const originalRun=s.run.bind(s);let operation='conversation-read';globalThis.__ans05FixtureAcquisitions=[];
+   s.run=callback=>preDispatchRead(fn=>{const event={operation,entered:false};const events=globalThis.__ans05FixtureAcquisitions;events.push(event);if(events.length>32)events.shift();return originalRun(()=>{event.entered=true;return fn();}).catch(error=>{event.error=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);
+   const c=await structure.conversation(ref);operation='conversation-observe';await structure.observeConversation({conversationRef:ref,expectedRevision:c.relationshipRevision,observedAt:new Date(at).toISOString(),evidence:e(1),membership:{state:'project',projectRef:projectB},projectName:'ANS05 Project Beta',sourceStatus:'observed_active'});
+   operation='project-read';const project=await structure.project(projectB);operation='project-observe';await structure.observeProject({projectRef:projectB,expectedRevision:project?.relationshipRevision||0,observedAt:new Date(at+1000).toISOString(),evidence:e(2),currentName:'ANS05 Project Beta',sourceStatus:'observed_active'});
+  })()`);await refreshNavigator(p);
   const beta=await waitGroup(p,'ANS05 Project Beta');await eventually(async()=>await beta.getAttribute('aria-expanded')==='true','active moved parent expands');
   await eventually(()=>windowButton(p,'ANS-05 A').getAttribute('aria-current').then(x=>x==='page'),'active ID survives move');
   assert.match(await p.locator('.library-prose').first().textContent(),/ANS05_DIRTY_BUFFER/);
   await revealCompactAction(p,'#document-menu');await p.locator('#document-menu').click();await p.getByRole('menuitem',{name:'来源变化',exact:true}).click();await p.locator('#info-dialog[open]').waitFor();await p.locator('#info-content .source-relationship-history').waitFor({state:'visible'});assert.match(await p.locator('#info-content').textContent(),/ANS05 Project Beta/);assert.match(await p.locator('#info-content').textContent(),/关系历史/);await p.locator('#close-info').click();const badDetail=await p.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_DETAIL',subject:{kind:'conversation',conversationRef:{platform:'chatgpt',sourceConversationId:'ans05-chat-a'}},unexpected:true}));assert.equal(badDetail.ok,false);assert.equal(badDetail.error,'INVALID_REQUEST');
   phase='source deletion projection';
-  await p.evaluate(async({projectB})=>{const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),bRef={platform:'chatgpt',sourceConversationId:'ans05-chat-b'},at=Date.now()+20000,e=(name,n)=>({id:'ans05-delete-'+name+'-'+n,contractId:'ans05.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'lifecycle',digest:(200+n).toString(16).padStart(64,'0')});const b=await structure.conversation(bRef);await structure.observeConversation({conversationRef:bRef,expectedRevision:b?.relationshipRevision||0,observedAt:new Date(at).toISOString(),evidence:e('conversation',1),membership:{state:'unknown',projectRef:null},sourceStatus:'confirmed_deleted'});const project=await structure.project(projectB);await structure.observeProject({projectRef:projectB,expectedRevision:project.relationshipRevision,observedAt:new Date(at+1000).toISOString(),evidence:e('project',2),currentName:'ANS05 Project Beta',sourceStatus:'confirmed_deleted'});},{projectB});await refreshNavigator(p);
+  await p.evaluate(`(async()=>{const projectB=${JSON.stringify(projectB)},preDispatchRead=${runWithPreDispatchReadRetry.toString()};const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js');const s=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(s),bRef={platform:'chatgpt',sourceConversationId:'ans05-chat-b'},at=Date.now()+20000,e=(name,n)=>({id:'ans05-delete-'+name+'-'+n,contractId:'ans05.synthetic',contractVersion:1,channel:'synthetic_fixture',scope:'conversation',originClass:'fixture',requestGeneration:n,evidenceKind:'lifecycle',digest:(200+n).toString(16).padStart(64,'0')});const originalRun=s.run.bind(s);s.run=callback=>preDispatchRead(originalRun,callback);const b=await structure.conversation(bRef);await structure.observeConversation({conversationRef:bRef,expectedRevision:b?.relationshipRevision||0,observedAt:new Date(at).toISOString(),evidence:e('conversation',1),membership:{state:'unknown',projectRef:null},sourceStatus:'confirmed_deleted'});const project=await structure.project(projectB);await structure.observeProject({projectRef:projectB,expectedRevision:project.relationshipRevision,observedAt:new Date(at+1000).toISOString(),evidence:e('project',2),currentName:'ANS05 Project Beta',sourceStatus:'confirmed_deleted'});})()`);await refreshNavigator(p);
   const deleted=await waitGroup(p,'来源已删除');if(await deleted.getAttribute('aria-expanded')!=='true')await deleted.click();await eventually(()=>windowButton(p,'ANS-05 B').isVisible(),'confirmed deleted conversation is projected');const betaGroup=p.locator('.archive-navigator-group').filter({hasText:'ANS05 Project Beta'}).first();await eventually(async()=>/来源 Project 已删除/.test(await betaGroup.textContent()),'deleted Project is labeled without deleting child');assert.equal(await windowButton(p,'ANS-05 A').count(),1,'Project deletion keeps archived child Window');await windowButton(p,'ANS-05 B').click();await eventually(()=>p.locator('.library-prose').filter({hasText:'ANS05_B_BODY'}).isVisible(),'deleted-source Window remains readable');
   await mkdir('work/ans-05-navigator',{recursive:true});
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
@@ -136,5 +154,5 @@ test('ANS-05 persistent Navigator keeps Reader, history, paging and responsive s
   await p.screenshot({path:'work/ans-05-navigator/desktop-reader.png',fullPage:true});
   phase='final privacy assertions';
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);phase='complete';
- }finally{await h.close();}
+ }finally{fixtureAcquisitions=await p.evaluate(()=>globalThis.__ans05FixtureAcquisitions??[]).catch(()=>[]);await h.close();}
 });

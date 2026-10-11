@@ -1,4 +1,4 @@
-import {isAssistResultJob} from './contracts.js';
+import {isAssistResultJob,isHistoricalCandidateJob} from './contracts.js';
 import {prefix} from '../thought-model.js';
 const LIMIT=100;
 const stores=['meta','organizerJobs','organizerUsage'];
@@ -12,14 +12,16 @@ export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
  const atomic=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_organize_atomic_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length));
  if(atomic.next!==null||legacy.rows.length+atomic.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
  const assist=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_assist_result_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length-atomic.rows.length));
- const page={rows:[...legacy.rows,...atomic.rows,...assist.rows],next:assist.next};
+ if(assist.next!==null||legacy.rows.length+atomic.rows.length+assist.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ const candidates=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_assist_candidates_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length-atomic.rows.length-assist.rows.length));
+ const page={rows:[...legacy.rows,...atomic.rows,...assist.rows,...candidates.rows],next:candidates.next};
  if(page.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
  if(page.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
  if(!page.rows.length)return {status:'CHECKED',checked:0,cancelled:0,unsupported:0};
  const restore=await t.get('meta','recovery-restore-epoch'),gate=await t.get('meta','gate');
  let cancelled=0,unsupported=0;
  for(const {value:job}of page.rows){
-  if(!(job.kind==='ai_usage_v1'&&!Object.hasOwn(job,'commitMode')||job.kind==='ai_organize_atomic_v1'&&job.commitMode==='organize-atomic-v1'&&job.type==='AI_ORGANIZE'&&job.childIds?.length>=2||isAssistResultJob(job))||job.version!==1||job.cancelEpoch!==0||!Array.isArray(job.items)||!isAssistResultJob(job)&&!job.items.length||job.items.length>100||!Array.isArray(job.childIds)||!job.childIds.length||job.childIds.length>4||!job.authority){unsupported++;continue;}
+  if(!(job.kind==='ai_usage_v1'&&!Object.hasOwn(job,'commitMode')||job.kind==='ai_organize_atomic_v1'&&job.commitMode==='organize-atomic-v1'&&job.type==='AI_ORGANIZE'&&job.childIds?.length>=2||isAssistResultJob(job)||isHistoricalCandidateJob(job))||job.version!==1||job.cancelEpoch!==0||!Array.isArray(job.items)||!isAssistResultJob(job)&&!job.items.length||job.items.length>100||!Array.isArray(job.childIds)||!job.childIds.length||job.childIds.length>4||!job.authority){unsupported++;continue;}
   const a=job.authority;
   // A human fence alone remains rebindable through the existing plan owner.
   // It is not evidence that this job's semantic inputs changed.

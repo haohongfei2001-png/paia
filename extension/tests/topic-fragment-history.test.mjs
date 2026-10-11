@@ -58,3 +58,22 @@ test('older refused fragment completion cannot restore its checkpoint over newer
  const f=fixture();let release;const gate=new Promise(resolve=>release=resolve);f.setAfterNavigate(async()=>{await gate;return false;});const old=f.pop();while(!f.calls.length)await Promise.resolve();
  f.history.replaceState({paiaReader:new RouteHistory().encode({view:'settings'})});await f.pop();const before=structuredClone(f.history.state);release();await old;assert.equal(f.current().view,'settings');assert.deepEqual(f.history.state,before);assert.equal(f.events.length,0);
 });
+
+test('background route refresh cannot stamp neutral history over an unresolved native Section',async()=>{
+ const f=fixture({hold:true}),pending=f.pop();await Promise.resolve();
+ f.routes.commit({replace:true});assert.equal(f.history.state,null,'unqualified native entry stays stateless despite old-view refresh');
+ f.resume();await pending;assert.equal(f.history.state.paiaReader.topicId,'target');assert.equal(f.events.length,1);
+});
+
+test('explicit navigation to the same neutral owner supersedes pending Section qualification',async()=>{
+ const f=fixture({hold:true}),pending=f.pop();await Promise.resolve();
+ f.routes.beginNavigation();f.routes.commit({replace:true});const committed=structuredClone(f.history.state);
+ f.resume();await pending;assert.equal(f.current().view,'library');assert.equal(f.events.length,0);assert.deepEqual(f.history.state,committed);
+});
+
+test('explicit navigation commits while an older qualified native pop still awaits navigation',async()=>{
+ for(const accepted of [false,true]){const f=fixture();let release;const gate=new Promise(resolve=>release=resolve);f.setAfterNavigate(async()=>{await gate;return accepted;});const old=f.pop();while(!f.calls.length)await Promise.resolve();
+  f.routes.beginNavigation();f.setCurrent({view:'settings'});f.routes.commit({replace:true});assert.equal(f.history.state?.paiaReader.view,'settings');const before=structuredClone(f.history.state);
+  release();await old;assert.deepEqual(f.history.state,before);assert.equal(f.events.length,0);await f.routes.restore();assert.equal(f.current().view,'settings');
+ }
+});

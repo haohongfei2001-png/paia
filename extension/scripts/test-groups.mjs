@@ -1,7 +1,15 @@
+const promotion='topic-section-promotion-chrome-e2e.test.mjs';
+const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 // Full37830791787/37833847645 measured whole-file capacity; historical widths stay unchanged.
+// Latest completed Full38095584129: shard2=712s and shard9=677s.
+// Full38115286496: shard1=796s, shard7=749s. Add complete S4 Settings/toolbar files
+// to 1/7 respectively; preserve every old assignment and the 18-minute deadline.
+// Full38121366502 shard4 completed in679s, leaving room for this complete file.
 const CURRENT_NINE=new Map([
+ [promotion,4],
+ [NIB_BROWSER[0],9],[NIB_BROWSER[1],9],[NIB_BROWSER[2],2],[NIB_BROWSER[3],6],[NIB_BROWSER[4],1],[NIB_BROWSER[5],7],
  [removedPlacement,4],
  ["activation-return-round410-chrome-e2e.test.mjs",9],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",9],
@@ -97,7 +105,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,
+const CURRENT_BROWSER=new Set([promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -157,6 +165,9 @@ export function group(file) {
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
  const addedName=file.replaceAll('\\','/').split('/').at(-1);
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===promotion)return 4;if(addedName>promotion)position--;}
+ // Remove only the new insertion positions before frozen historical routing.
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(NIB_BROWSER.includes(addedName))return 4;position-=NIB_BROWSER.filter(name=>addedName>name).length;}
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===preferencePublication)return 3;if(addedName>preferencePublication)position--;}
  // Admit only this new whole file; keep all previously certified positions.
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===topicReturn)return 2;if(addedName>topicReturn)position--;}

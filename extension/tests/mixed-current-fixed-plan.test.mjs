@@ -30,17 +30,29 @@ import {GroupedCheckpointRestore} from '../core/browser-native-sync/group-checkp
 globalThis.IDBKeyRange=IDBKeyRange;
 const operationId=()=>crypto.randomUUID();
 const all=s=>s.repository.transaction(false,async t=>{const rows={};for(const name of s.repository.stores)rows[name]=await t.all(name);return rows;});
-async function producer({times=[]}={}){
+async function producer({times=[],append=true}={}){
  let tick=0;const s=new LibraryDocumentsStore(local(),{indexedDB:new IDBFactory(),clock:()=>new Date(Date.UTC(2026,9,10)+70000*tick++).toISOString()});await s.consent(true);await s.finishFoundation();
  const core=new BrowserNativeSyncCore(s.repository,{datasetId:'SYNTHETIC_mixed_fixed_dataset',deviceId:'SYNTHETIC_mixed_fixed_device'});
  s.sourceBootstrapJournal=new SourceBootstrapJournal(core);s.filterIntentJournal=new FilterIntentSyncJournal(core);s.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:s.filterIntentJournal,logicalCommits:true});s.humanLibraryJournal=new HumanLibrarySyncJournal(core);
  const epoch=(await s.status()).epoch,requestA=capture(epoch,'SYNTHETIC_A','SYNTHETIC immutable A 中文🙂');if(times[0]!=null)requestA.messages[0].sourceTime={state:'valid',createTime:times[0],updateTime:null};await s.capture(requestA);const a=(await s.snapshot()).library.blocks[0].id;await inputEdit(s,a,{libraryText:'SYNTHETIC genuine edited A 中文🙂',note:'SYNTHETIC first note'});
- const requestB=capture(epoch,'SYNTHETIC_B','SYNTHETIC immutable untouched B 中文🙂');if(times[1]!=null)requestB.messages[0].sourceTime={state:'valid',createTime:times[1],updateTime:null};await s.capture(requestB);await inputEdit(s,a,{note:'SYNTHETIC later note'});
+ if(append){const requestB=capture(epoch,'SYNTHETIC_B','SYNTHETIC immutable untouched B 中文🙂');if(times[1]!=null)requestB.messages[0].sourceTime={state:'valid',createTime:times[1],updateTime:null};await s.capture(requestB);await inputEdit(s,a,{note:'SYNTHETIC later note'});}
  const topic=await s.createTopic({name:'SYNTHETIC mixed Topic',operationId:operationId()}),entry=await s.createEntry({actor:'user',body:'SYNTHETIC independently owned human body 中文🙂',type:'idea',formation:'explicit',evidence:[],operationId:operationId()});await s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:0,expectedTopicRevision:0,operationId:operationId()});
  await new PromptReuseService(s,{syncJournal:new PromptSyncJournal(core)}).change({action:'create',revision:0,text:'SYNTHETIC manual Prompt'});
  await new ContextCardsService(s,{syncJournal:new ContextDesiredSyncJournal(core)}).change({kind:'put',card:'info',itemId:operationId(),operationId:operationId(),epoch:'initial',expectedRevision:0,body:'SYNTHETIC protected manual Info',section:'SYNTHETIC'});
  const operations=[];for await(const row of core.rows('revision'))operations.push(row.operation);return {s,core,operations,a,topic,entry};
 }
+test('ordinary one-Input mixed baseline validates complete original derived owners without inventing an append',async()=>{
+ const x=await producer({append:false});try{
+  const plan=await prepareCurrentMixedGroupCheckpointPlan(x.core,x.operations),scope=await prepareGroupScope(plan,{store:x.s}),rows=await all(x.s);
+  assert.equal(plan.groups.filter(group=>group.type==='sourceBootstrapCommit').length,1);assert.equal(plan.groups.some(group=>group.type==='sourceAppendCommit'),false);
+  assert.equal(rows.records.length,1);assert.equal(rows.blocks.length,1);assertMixedCurrentSourceDerivedRows(x.core,scope,plan,rows);
+  for(const corrupt of [r=>r.recordIndex[0].sequence++,r=>r.blockIndex[0].recordIds=['SYNTHETIC_wrong_source'],r=>r.sourceCounts.pop(),r=>r.documents[0].displayKey[0]=0]){
+   const changed=structuredClone(rows);corrupt(changed);assert.throws(()=>assertMixedCurrentSourceDerivedRows(x.core,scope,plan,changed));
+  }
+  assert.throws(()=>assertMixedCurrentSourceDerivedRows(x.core,structuredClone(scope),plan,rows),{code:'BNS_GROUP_SCOPE_PROOF_REQUIRED'});
+  assert.deepEqual(await all(x.s),rows,'complete derived qualification never changes the original37 stores');
+ }finally{await x.s.repository.close();}
+});
 test('original initial Mixed flush chronology exactly consumes all AIU metadata without replacing journal descriptors by live Thoughts',async()=>{
  const x=await producer();try{
   await x.s.createSection({topicId:x.topic.id,expectedTopicRevision:1,title:'SYNTHETIC named AIU Section',operationId:operationId()});const operations=[];for await(const row of x.core.rows('revision'))operations.push(row.operation);

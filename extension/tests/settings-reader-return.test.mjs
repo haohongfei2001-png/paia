@@ -10,6 +10,7 @@ class Node extends PresentationNode {
  querySelector(){return null;}
  querySelectorAll(){return [];}
  closest(){return this.parentElement;}
+ after(...nodes){const parent=this.parentElement,before=this.nextSibling;if(parent)for(const node of nodes)parent.insertBefore(node,before);}
  click(){return this.listeners.get('click')?.();}
 }
 

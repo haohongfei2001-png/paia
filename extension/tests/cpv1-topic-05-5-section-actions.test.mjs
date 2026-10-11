@@ -20,7 +20,7 @@ test('05.5 named and empty Section menus retain native controls and updated iden
  const page={topic:{id:'topic',defaultSectionId:'default'},sections:[defaultRow,named,empty],items:[]};
  const render=()=>renderTopicSectionProse({body,page,entryNode:()=>{throw Error('no body expected');},sectionActions:(header,row)=>w.renderSectionActions(header,row)});
  render();assert.equal(body.children.length,2);assert.equal(body.querySelectorAll('h2').length,2);assert.equal(body.querySelectorAll('details').length,2);
- const menu=body.querySelector('details'),summary=menu.querySelector('summary');assert.equal(summary.getAttribute('aria-label'),'章节操作');assert.equal(summary.getAttribute('role'),'button');assert.deepEqual(menu.querySelectorAll('button').map(n=>n.textContent),['重命名','向上移动','向下移动']);
+ const menu=body.querySelector('details'),summary=menu.querySelector('summary');assert.equal(summary.getAttribute('aria-label'),'章节操作');assert.equal(summary.getAttribute('role'),'button');assert.deepEqual(menu.querySelectorAll('button').map(n=>n.textContent),['重命名','向上移动','向下移动','提升为独立主题']);
  summary.focus();named.revision=4;named.title='New label';render();assert.equal(body.querySelector('details'),menu);assert.equal(document.activeElement,summary);assert.equal(menu.parentElement.sectionActionRow.revision,4);assert.equal(body.querySelector('h2').textContent,'New label');
  menu.open=true;let prevented=false;menu.listeners.get('keydown')({key:'Escape',preventDefault(){prevented=true;},stopPropagation(){}});assert.equal(menu.open,false);assert.equal(prevented,true);assert.equal(document.activeElement,summary);
 }));

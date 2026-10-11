@@ -1,10 +1,14 @@
 import {CANDIDATE_CODECS,CODECS,CODEC_COVERAGE} from './codecs.js';
 import {PromptSyncJournal,materializePrompt,restorePromptPreferences} from './prompt-journal.js';
 import {PROMPT_REUSE_ROW} from '../prompt-reuse-preferences.js';
+import {PROMPT_CORRECTION_BINDING_ROW} from './prompt-correction-binding.js';
 import {CONTEXT_CARDS_ROW} from '../context-cards.js';
 import {backupMetaAllowed} from '../backup-format.js';
 import {sourceStructureMetaAllowed} from '../source-structure-backup.js';
 import {topicIdentityMetaAllowed} from '../topic-identity-backup.js';
+import {CONSUMER_OWNER_PREFIX} from './consumer-preference-restore.js';
+import {TOPIC_DESIRED_PREFIX} from './topic-desired-codec.js';
+import {CONTEXT_TOPIC_ACCESS_ROW} from '../context-topic-preferences.js';
 import {fail} from './value.js';
 const META_LIMIT=10000;
 // Key-only traversal: no arbitrary meta payloads, bodies or portable export.
@@ -21,9 +25,11 @@ export async function readCanonicalReadiness(core,{promptService=null}={}){
    let count=0;
    if(codec.store!=='meta')count=await t.count(codec.store);
    else if(type==='promptPreferences')count=keys.has(PROMPT_REUSE_ROW)?1:0;
+   else if(type==='promptBinding')count=keys.has(PROMPT_CORRECTION_BINDING_ROW)?1:0;
    else if(type==='sourceStructure')count=scan.keys.filter(sourceStructureMetaAllowed).length;
    else if(type==='topicName')count=scan.keys.filter(topicIdentityMetaAllowed).length;
-   else if(type==='consumerPreference')count=keys.has(codec.owner)?1:0;
+   else if(type==='consumerPreference')count=scan.keys.filter(key=>typeof key==='string'&&key.startsWith(CONSUMER_OWNER_PREFIX)).length;
+   else if(type==='topicDesired'){const row=keys.has(CONTEXT_TOPIC_ACCESS_ROW)?await t.get('meta',CONTEXT_TOPIC_ACCESS_ROW):null;if(row&&(!Array.isArray(row.choices)||row.choices.length>4096))fail('BNS_CODEC_INVALID');count=Math.max(scan.keys.filter(key=>typeof key==='string'&&key.startsWith(TOPIC_DESIRED_PREFIX)).length,row?.choices.length??0);}
    else if(['contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(type)){
     // Aggregate canonical owner has no item-count index. Read its shape only;
     // no body is compared, hashed, retained or returned by this preflight.

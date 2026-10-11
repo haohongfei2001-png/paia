@@ -19,8 +19,8 @@ async function physical(s,store,row){await new Promise((resolve,reject)=>{const 
 
 test('actual completed owners qualify through one readonly capture, empty/cloned capabilities have no authority',async()=>{
  const f=await fixture();await topic(f);await f.s.createEntry({actor:'user',body:'Synthetic body café 🧭',title:'Synthetic title',type:'idea',formation:'explicit',evidence:[],operationId:op()});await completed(f.s);
- const before=await snapshot(f.s),writes=[],transaction=f.s.repository.transaction.bind(f.s.repository);f.s.repository.transaction=(write,fn,...rest)=>{writes.push(write);return transaction(write,fn,...rest);};
- const cap=await captureHumanCompletedSearch(f.s,f.core);assert.deepEqual(writes,[false]);assert.deepEqual(Reflect.ownKeys(cap),[]);assert.ok(Object.isFrozen(cap));assert.deepEqual(await snapshot(f.s),before);
+ const before=await snapshot(f.s),writes=[],transaction=f.s.repository.transaction.bind(f.s.repository);f.s.repository.transaction=(write,fn,...rest)=>{writes.push({write,stores:rest[0]});return transaction(write,fn,...rest);};
+ const cap=await captureHumanCompletedSearch(f.s,f.core);assert.deepEqual(writes,[{write:false,stores:['meta']},{write:false,stores:['meta']},{write:false,stores:undefined}],'two publication-fence reads bracket local controls before exactly one complete canonical capture');assert.deepEqual(Reflect.ownKeys(cap),[]);assert.ok(Object.isFrozen(cap));assert.deepEqual(await snapshot(f.s),before);
  await f.core.transaction(true,t=>requireHumanCompletedSearch(t,cap));
  for(const bad of [{},structuredClone(cap),Object.freeze({completed:true})])await assert.rejects(f.core.transaction(true,t=>requireHumanCompletedSearch(t,bad)),{code:'BNS_HUMAN_SEARCH_PROOF_REQUIRED'});
  assert.deepEqual(await snapshot(f.s),before);

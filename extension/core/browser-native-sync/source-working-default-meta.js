@@ -1,3 +1,5 @@
+import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
+import {consumerDisplayPreferences} from './consumer-preference-restore.js';
 import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows} from './source-working-canonical.js';
 import {assertSourceWorkingSpecialScalars} from './source-working-derived.js';
 import {defaults} from '../workspace.js';
@@ -73,7 +75,8 @@ function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databas
  const replay=restored?originalMixedRestoredMetadataReplay(core,scope,plan):null;
  if(restored&&raw.namespace!==replay.active.namespace)refuse();
  const rows=raw.rows,{meta,key,used,take}=checkCurrentGroupProtocolRows(core,plan,rows,{namespace:raw.namespace,epoch:null,restored,activeId:replay?.active.id,completedId:replay?.completedId}),read=id=>{const row=meta.get(id);if(!row)refuse();return row;};
- qualifyDefaultInfrastructure(rows,control,databaseId,take,read,{records:scope.expected.records.length,blocks:scope.expected.blocks.length,documents:scope.expected.documents.length});
+ const configuration=mixedConfigurationReplay(core,scope,plan,restored);
+ qualifyDefaultInfrastructure(rows,control,databaseId,take,read,{records:scope.expected.records.length,blocks:scope.expected.blocks.length,documents:scope.expected.documents.length},{preferences:consumerDisplayPreferences(scope.expected.consumerPreferences??[]),mode:configuration.mode,policyEpoch:configuration.policyEpoch});
  const operations=plan.groups.flatMap(group=>group.operations);
  for(const head of plan.heads){
   if(head.revisions.length!==1)refuse();const op=operations.find(op=>op.revisionId===head.revisions[0]);if(!op)refuse();
@@ -141,18 +144,19 @@ function qualifyLocal(core,scope,plan,rows,control,databaseId,aiSequence){
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.
  // No unvalidated protocol prefix or arbitrary local key is exempted here.
- for(const row of rows.meta)if(!admitted.has(row.id)&&!row.id.startsWith('bns:'))refuse();
+ const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);
+ for(const row of remaining.values())if(!row.id.startsWith('bns:'))refuse();
 }
 
-function qualifyDefaultInfrastructure(rows,control,databaseId,take,read,sourceSequence){
+function qualifyDefaultInfrastructure(rows,control,databaseId,take,read,sourceSequence,configuration=null){
  assertSourceWorkingSpecialScalars('meta',control);
- if(!equal(control.preferences,defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||!Array.isArray(control.classificationRules)||control.classificationRules.length||!Array.isArray(control.filterRules)||control.filterRules.length)refuse();
+ if(!equal(control.preferences,configuration?.preferences??defaults())||!equal(control.memoryAccessPolicy,{enabled:false,status:'disabled'})||!Array.isArray(control.classificationRules)||control.classificationRules.length||!Array.isArray(control.filterRules)||control.filterRules.length)refuse();
  const settings=control.settings;if(!exact(settings,['consentVersion','consentAt','enabled','epoch'])||settings.consentVersion!==CONSENT_VERSION||settings.enabled!==true||!iso(settings.consentAt)||!count(settings.epoch)||settings.epoch<1||!opaque(databaseId))refuse();
  take('sequence',sourceSequence);take('gate',{epoch:settings.epoch,enabled:true});
  const migration=read('migration');if(!hash(migration.digest))refuse();take('migration',{phase:'active',databaseId,cursor:0,digest:migration.digest,verified:true,recoveryVerified:true,recordCount:0,blockCount:0});
  const ddl=read('thought-ddl');if(!count(ddl.fromVersion)||ddl.fromVersion>5)refuse();take('thought-ddl',{fromVersion:ddl.fromVersion,toVersion:5});
  const ia=read('ia-migration');if(!iso(ia.startedAt)||!iso(ia.completedAt))refuse();take('ia-migration',{phase:'active',cursor:null,count:0,version:1,startedAt:ia.startedAt,verified:true,completedAt:ia.completedAt,policy:REVISION_POLICY});
- const filter=read('smart-filter');if(!iso(filter.completedAt))refuse();take('smart-filter',{phase:'active',migrationVersion:1,cursor:null,mapped:0,legacyCount:0,mode:'light',noticePending:false,decisionSequence:0,policyEpoch:0,...FILTER_VERSIONS,verified:true,diagnosticsVersion:1,taskState:'idle',completedAt:filter.completedAt});
+ const filter=read('smart-filter');if(!iso(filter.completedAt))refuse();take('smart-filter',{phase:'active',migrationVersion:1,cursor:null,mapped:0,legacyCount:0,mode:configuration?.mode??'light',noticePending:false,decisionSequence:0,policyEpoch:configuration?.policyEpoch??0,...FILTER_VERSIONS,verified:true,diagnosticsVersion:1,taskState:'idle',completedAt:filter.completedAt});
  take('thought-binding:v1',{version:1,cursor:null,complete:true,input:0,thought:0});take('thought-reverse-edit:v1',{version:1,enabled:false});
  const library=read('thought-library');if(!count(library.fromVersion)||library.fromVersion>5||library.fromVersion!==ddl.fromVersion||!iso(library.startedAt)||!iso(library.completedAt))refuse();take('thought-library',{schemaVersion:1,migrationVersion:1,fromVersion:library.fromVersion,targetVersion:5,phase:'active',cursor:null,mapped:0,quarantined:0,sealed:0,startedAt:library.startedAt,libraryActivation:'ready',verified:true,completedAt:library.completedAt});
  const compat=read('library-documents-compat-v2');if(!iso(compat.completedAt))refuse();take('library-documents-compat-v2',{cursor:null,complete:true,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0,completedAt:compat.completedAt});

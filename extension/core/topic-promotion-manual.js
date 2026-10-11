@@ -1,3 +1,4 @@
+import {ArchiveError} from './constants.js';
 import {fail,keys,idOK,revisionOK,same,keyedHash,prefix} from './thought-model.js';
 import {hashText} from './dedupe.js';
 import {topicIdentityBase,assertTopicIdentityBase} from './topic-identity.js';
@@ -11,6 +12,7 @@ export const MANUAL_PROMOTION_PREFIX='personal-topic-manual-promotion:';
 const TABLE='organizerWorkItems',PAGE=100,unique=xs=>[...new Set(xs)];
 const itemId=(id,index)=>id+':'+String(index).padStart(3,'0');
 const workIdOK=id=>typeof id==='string'&&id.startsWith(MANUAL_PROMOTION_PREFIX)&&idOK(id.slice(MANUAL_PROMOTION_PREFIX.length))&&!id.slice(MANUAL_PROMOTION_PREFIX.length).includes(':');
+const requireUnjournaledPromotion=store=>{if(store.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');};
 const active=signal=>{if(signal?.aborted)fail();};
 const publicAuthority=({secret,...authority})=>authority;
 const freeze=value=>{if(value&&typeof value==='object'){for(const v of Object.values(value))freeze(v);Object.freeze(value);}return value;};
@@ -68,13 +70,13 @@ export class ManualSectionPromotionService {
  }
  cancel(handle){const state=this.#plans.get(handle);if(!state)fail();state.cancelled=true;}
  async confirm(handle,confirmation){
-  keys(confirmation,['confirmed'],['confirmed']);if(confirmation.confirmed!==true)fail();const state=this.#plans.get(handle);if(!state||state.cancelled)fail();active(state.signal);const {request,authority,snapshot,nameToken,snapshotDigest}=state,at=Date.parse(this.store.clock());
+  keys(confirmation,['confirmed'],['confirmed']);if(confirmation.confirmed!==true)fail();const state=this.#plans.get(handle);if(!state||state.cancelled)fail();active(state.signal);requireUnjournaledPromotion(this.store);const {request,authority,snapshot,nameToken,snapshotDigest}=state,at=Date.parse(this.store.clock());
   const confirmed=state.confirmed??={request,authority:publicAuthority(authority),snapshotDigest,nameToken,plan:{name:request.name,entryIds:snapshot.placements.map(p=>p.entryId)},sourceRecordIds:unique([...(snapshot.topic.sourceRecordIds||[]),...(snapshot.section.sourceRecordIds||[]),...snapshot.entries.flatMap(e=>e.sourceRecordIds)]),scope:[...new Map(snapshot.entries.flatMap(e=>e.scope).map(s=>[s.inputId,s])).values()],at,expiresAt:at+PROMOTION_LIMITS.lifetimeMs};
   const signature=await keyedHash(authority.secret,['confirmed-user-section-promotion-v1',confirmed]),id=MANUAL_PROMOTION_PREFIX+request.operationId;
   return this.store.foundationWrite(async t=>{
-   await this.checkAuthority(t,authority);await this.checkSnapshot(t,request,snapshot);active(state.signal);if(state.cancelled)fail();const old=await t.get(TABLE,id);
+   requireUnjournaledPromotion(this.store);await this.checkAuthority(t,authority);await this.checkSnapshot(t,request,snapshot);active(state.signal);if(state.cancelled)fail();const old=await t.get(TABLE,id);
    if(old){this.validate(old);if(!same(old.confirmed,confirmed)||old.signature!==signature)fail();return {workId:id,state:old.state,revision:old.revision};}
-   if(await t.get('operationReceipts',request.operationId))fail();await t.put(TABLE,{id,kind:'personal_topic_manual_promotion',version:1,state:'confirmed',stateKey:1,revision:0,offset:0,confirmed,signature,sourceRecordIds:confirmed.sourceRecordIds,inputIds:confirmed.scope.map(s=>s.inputId)});active(state.signal);if(state.cancelled)fail();return {workId:id,state:'confirmed',revision:0};
+   if(await t.get('operationReceipts',request.operationId))fail();requireUnjournaledPromotion(this.store);await t.put(TABLE,{id,kind:'personal_topic_manual_promotion',version:1,state:'confirmed',stateKey:1,revision:0,offset:0,confirmed,signature,sourceRecordIds:confirmed.sourceRecordIds,inputIds:confirmed.scope.map(s=>s.inputId)});active(state.signal);if(state.cancelled)fail();requireUnjournaledPromotion(this.store);return {workId:id,state:'confirmed',revision:0};
   });
  }
  validate(row){
@@ -88,8 +90,8 @@ export class ManualSectionPromotionService {
  }
  async check(t,{row,authority,snapshot}){await this.checkAuthority(t,authority);if(!same(row,await t.get(TABLE,row.id))||row.confirmed.expiresAt<=Date.parse(this.store.clock()))fail();await this.checkSnapshot(t,row.confirmed.request,snapshot);}
  async stage(id,{limit=100}={}){
-  if(!Number.isSafeInteger(limit)||limit<1||limit>100)fail();const state=await this.resume(id),{row,snapshot}=state,c=row.confirmed;
-  return this.store.foundationWrite(async t=>{await this.check(t,state);if(row.state==='ready')return {workId:id,state:'ready',staged:row.offset,total:c.plan.entryIds.length};const end=Math.min(row.offset+limit,c.plan.entryIds.length),placements=new Map(snapshot.placements.map(p=>[p.entryId,p])),organizations=new Map(snapshot.organizations.map(e=>[e.entryId,e]));for(let index=row.offset;index<end;index++){const entryId=c.plan.entryIds[index];await t.put(TABLE,{id:itemId(id,index),kind:'personal_topic_manual_promotion_placement',version:1,stateKey:1,parentId:id,index,entryId,placement:placements.get(entryId),organization:organizations.get(entryId),sourceRecordIds:c.sourceRecordIds,inputIds:c.scope.map(s=>s.inputId)});}row.offset=end;row.revision++;row.state=end===c.plan.entryIds.length?'ready':'staging';await t.put(TABLE,row);return {workId:id,state:row.state,staged:end,total:c.plan.entryIds.length,revision:row.revision};});
+  if(!Number.isSafeInteger(limit)||limit<1||limit>100)fail();requireUnjournaledPromotion(this.store);const state=await this.resume(id),{row,snapshot}=state,c=row.confirmed;
+  return this.store.foundationWrite(async t=>{requireUnjournaledPromotion(this.store);await this.check(t,state);requireUnjournaledPromotion(this.store);if(row.state==='ready')return {workId:id,state:'ready',staged:row.offset,total:c.plan.entryIds.length};const end=Math.min(row.offset+limit,c.plan.entryIds.length),placements=new Map(snapshot.placements.map(p=>[p.entryId,p])),organizations=new Map(snapshot.organizations.map(e=>[e.entryId,e]));for(let index=row.offset;index<end;index++){const entryId=c.plan.entryIds[index];await t.put(TABLE,{id:itemId(id,index),kind:'personal_topic_manual_promotion_placement',version:1,stateKey:1,parentId:id,index,entryId,placement:placements.get(entryId),organization:organizations.get(entryId),sourceRecordIds:c.sourceRecordIds,inputIds:c.scope.map(s=>s.inputId)});}row.offset=end;row.revision++;row.state=end===c.plan.entryIds.length?'ready':'staging';requireUnjournaledPromotion(this.store);await t.put(TABLE,row);requireUnjournaledPromotion(this.store);return {workId:id,state:row.state,staged:end,total:c.plan.entryIds.length,revision:row.revision};});
  }
  async rollback(id){
   if(!workIdOK(id))fail();return this.store.foundationWrite(async t=>{const row=await t.get(TABLE,id);if(!row)return await t.get('operationReceipts',id.slice(MANUAL_PROMOTION_PREFIX.length))?{cancelled:false,committed:true}:{cancelled:true};this.validate(row);for(let i=0;i<row.confirmed.plan.entryIds.length;i++)await t.delete(TABLE,itemId(id,i));await t.delete(TABLE,id);return {cancelled:true};});
@@ -98,11 +100,11 @@ export class ManualSectionPromotionService {
   if(!idOK(operationId))fail();await this.store.finishFoundation();return this.store.run(()=>this.store.repository.transaction(false,async t=>{const receipt=await t.get('operationReceipts',operationId);if(!receipt)return null;const r=receipt.result;if(r?.kind!=='personal_topic_promotion'||r.intentMode!=='user_structural'||r.operationId!==operationId)fail();await this.authority(t);for(const m of r.mappings){const history=await t.get('revisions',m.targetRevisionId);if(!history||!await this.store.sourcePresent(t,history.sourceRecordIds))fail();}return r;}));
  }
  async activate(id){
-  if(!workIdOK(id))fail();const prior=await this.result(id.slice(MANUAL_PROMOTION_PREFIX.length));if(prior)return prior;const state=await this.resume(id),{row,snapshot,authority}=state,c=row.confirmed;if(row.state!=='ready'||row.offset!==c.plan.entryIds.length)fail();const request={kind:'confirmed-user-section-promotion',...c.request,confirmation:row.signature},digest=await hashText(JSON.stringify(request));
+  if(!workIdOK(id))fail();const prior=await this.result(id.slice(MANUAL_PROMOTION_PREFIX.length));if(prior)return prior;requireUnjournaledPromotion(this.store);const state=await this.resume(id),{row,snapshot,authority}=state,c=row.confirmed;if(row.state!=='ready'||row.offset!==c.plan.entryIds.length)fail();const request={kind:'confirmed-user-section-promotion',...c.request,confirmation:row.signature},digest=await hashText(JSON.stringify(request));
   return this.store.foundationWrite(async t=>{
-   const replay=await t.get('operationReceipts',c.request.operationId);if(replay){if(replay.digest!==digest)fail();await this.checkAuthority(t,authority,{generation:false});return replay.result;}await this.check(t,state);
+   const replay=await t.get('operationReceipts',c.request.operationId);if(replay){if(replay.digest!==digest)fail();await this.checkAuthority(t,authority,{generation:false});return replay.result;}requireUnjournaledPromotion(this.store);await this.check(t,state);
    const placements=new Map(snapshot.placements.map(p=>[p.entryId,p])),organizations=new Map(snapshot.organizations.map(e=>[e.entryId,e]));for(let index=0;index<c.plan.entryIds.length;index++){const staged=await t.get(TABLE,itemId(id,index)),entryId=c.plan.entryIds[index];if(!staged||staged.kind!=='personal_topic_manual_promotion_placement'||staged.parentId!==id||staged.index!==index||staged.entryId!==entryId||!same(staged.placement,placements.get(entryId))||!same(staged.organization,organizations.get(entryId)))fail();}
-   return applyConfirmedPromotion(this.store,t,{snapshot,confirmed:c,request,digest,id,itemId,origin:'user',scope:c.scope,authorizeTarget:async()=>this.checkAuthority(t,authority)});
+   const result=await applyConfirmedPromotion(this.store,t,{snapshot,confirmed:c,request,digest,id,itemId,origin:'user',scope:c.scope,authorizeTarget:async()=>{requireUnjournaledPromotion(this.store);await this.checkAuthority(t,authority);requireUnjournaledPromotion(this.store);}});requireUnjournaledPromotion(this.store);return result;
   });
  }
 }

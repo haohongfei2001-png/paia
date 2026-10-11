@@ -1,3 +1,4 @@
+import {PROMPT_HISTORY_SCOPE} from '../core/prompt-selection.js';
 import {ArchiveError} from '../core/constants.js';
 import {own} from '../core/prompt-reuse-preferences.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
@@ -7,7 +8,18 @@ const KEY='promptSurfaceV1',site=url=>{try{return new URL(url).origin==='https:/
 const generation=v=>v.positionGeneration??0;
 export const validSurface=v=>own(v,['version','open','position','positionGeneration'])&&v.version===1&&typeof v.open==='boolean'&&(v.positionGeneration===undefined||Number.isSafeInteger(v.positionGeneration)&&v.positionGeneration>=0)&&(v.position===null||own(v.position,['x','y'])&&['x','y'].every(k=>Number.isFinite(v.position[k])&&v.position[k]>=0&&v.position[k]<=1));
 export class PromptSurfaceCommands{
- constructor(commands,api){this.commands=commands;this.api=api;this.frames=new Map();this.geometryQueue=Promise.resolve();}
+ constructor(commands,api,{openArchiveArrival=null}={}){this.openArchiveArrival=openArchiveArrival;this.commands=commands;this.api=api;this.frames=new Map();this.candidates=new Map();this.geometryQueue=Promise.resolve();}
+ removeTab(tabId){this.frames.delete(tabId);this.candidates.delete(tabId);}
+ async retireCandidateFrames(){
+  // Admission-time, bounded metadata liveness only. A collapsed HOST can retire
+  // a cache slot without the tab being removed; no durable AI receipt is touched.
+  for(const [tabId,entry]of [...this.candidates]){
+   const source=entry.source;let tab,contexts,host;
+   try{tab=await this.api.tabs.get(tabId);contexts=await this.api.runtime.getContexts({documentIds:[source.documentId]});host=await this.api.tabs.sendMessage(tabId,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});}catch{continue;}
+   const live=tab.url===source.url&&tab.windowId===source.windowId&&!tab.incognito&&!tab.discarded&&contexts.some(c=>c.documentId===source.documentId&&c.tabId===source.tabId&&c.windowId===source.windowId&&c.frameId===source.frameId&&c.documentUrl===this.api.runtime.getURL('ui/prompt-surface.html')+'#'+source.nonce&&c.incognito!==true)&&host?.open===true&&host.nonce===source.nonce&&host.url===source.url;
+   if(!live&&this.candidates.get(tabId)===entry)this.candidates.delete(tabId);
+  }
+ }
  async isIdle(tabId){
   const host=await this.api.tabs.sendMessage(tabId,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});
   if(!host?.open)return host?.dragging!==true;
@@ -26,7 +38,7 @@ export class PromptSurfaceCommands{
   if(state!==undefined&&!validSurface(state))throw new ArchiveError('INVALID_REQUEST');
   return this.geometry(async()=>{
    await this.consent();const saved=await this.readGeometry();await this.consent();
-   if(state===undefined)return saved;
+   if(state===undefined){const displayPreferences=await this.readDisplayPreferences();await this.consent();return {...saved,displayPreferences};}
    // No stale open/position write, including old content scripts after restart.
    if(generation(state)!==generation(saved))throw new ArchiveError('STALE_BASE');
    await this.api.storage.local.set({[KEY]:state});return state;
@@ -90,16 +102,103 @@ export class PromptSurfaceCommands{
   this.frames.set(tab.id,{id:sender.frameId,nonce:r.nonce});
   const c=r.command;if(!c||typeof c.type!=='string')fail();
   if(['next_available','next_reopen'].includes(c.type))return this.next.card(c,tab);
-  if(c.type==='close'&&own(c,['type'])){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});return {};}
+  if(['history_candidates_status','history_candidates_refresh','history_candidates_adopt'].includes(c.type)){
+   const fields=c.type==='history_candidates_refresh'?['type','query']:['type'];
+   if(!own(c,fields)||Object.keys(c).length!==fields.length||typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
+   const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url},identity=JSON.stringify(source),assertCurrent=()=>this.currentSelectionTarget(source);
+   await assertCurrent();
+   const service=this.commands.service;
+   if(c.type==='history_candidates_status'){const status=await service.historicalCandidateStatus();await assertCurrent();return status;}
+   if(c.type==='history_candidates_refresh'){
+    if(typeof c.query!=='string'||!c.query.trim()||c.query.length>1000)fail();
+    // One original private frame per tab. A new document replaces only its own
+    // cache slot; it cannot adopt the previous frame's successful result.
+    await this.retireCandidateFrames();await assertCurrent();if(!this.candidates.has(tab.id)&&this.candidates.size>=8)throw new ArchiveError('RESOURCE_LIMIT');
+    const handle=await service.refreshHistoricalCandidates(c.query,{identity,assertCurrent});await assertCurrent();this.candidates.set(tab.id,{identity,handle,source});return {ready:true};
+   }
+   const entry=this.candidates.get(tab.id);if(entry&&entry.identity!==identity){this.candidates.delete(tab.id);throw new ArchiveError('FORBIDDEN');}
+   const result=await service.adoptHistoricalCandidates(entry?.handle),displayPreferences=await this.readDisplayPreferences();await assertCurrent();await service.assertCurrent(result.generation);if(result.candidateSource==='ai')await service.assertHistoricalCandidatesCurrent(entry.handle);
+   return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce},displayPreferences};
+  }
+
+  // Geometry only: the already authenticated private frame supplies a finite
+  // intrinsic height. The host still owns placement and verifies the nonce.
+  if(c.type==='measure'){
+   const hasMinimum=Object.hasOwn(c,'minimumHeight'),hasAppearance=Object.hasOwn(c,'appearance'),hasLanguage=Object.hasOwn(c,'language');
+   if(hasAppearance&&!['light','dark'].includes(c.appearance)||hasLanguage&&!['zh-CN','en'].includes(c.language))fail();
+   if(!own(c,['type','height',...(hasMinimum?['minimumHeight']:[]),...(hasAppearance?['appearance']:[]),...(hasLanguage?['language']:[])])||!Number.isInteger(c.height)||c.height<1||c.height>4096||hasMinimum&&(!Number.isInteger(c.minimumHeight)||c.minimumHeight<44||c.minimumHeight>1024||c.minimumHeight>c.height))fail();
+   await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:r.nonce,height:c.height,...(hasMinimum?{minimumHeight:c.minimumHeight}:{}),...(hasAppearance?{appearance:c.appearance}:{}),...(hasLanguage?{language:c.language}:{})},{frameId:0});return {};
+  }
+  if(c.type==='close'&&own(c,['type'])){this.candidates.delete(tab.id);await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});return {};}
+  if(c.type==='history_open_paia'){
+   if(!own(c,['type','query','searchSnapshot','ref','range'])||!['query','searchSnapshot','ref'].every(key=>Object.hasOwn(c,key))||typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
+   if(c.ref!==null)await this.commands.service.resolveSelection(c.ref,c.range??null);else if(c.range!==undefined&&c.range!==null)fail();
+   const descriptor=await this.commands.service.qualifyArchiveArrival({version:1,query:c.query,scope:{...PROMPT_HISTORY_SCOPE},searchSnapshot:c.searchSnapshot,ref:c.ref});
+   if(typeof this.openArchiveArrival!=='function')throw new ArchiveError('UNAVAILABLE');
+   return this.openArchiveArrival(descriptor,{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url});
+  }
   if(c.type==='members'&&own(c,['type','id']))return this.commands.service.members(c.id);
-  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT'].includes(c.type))fail();
-  if(c.type==='PAIA_PROMPT_INSERT'){
-   if(!own(c,['type','id','text','operationId']))fail();
+  if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
+  if(c.type==='PAIA_PROMPT_INSERT'||c.type==='PAIA_PROMPT_SELECTION_INSERT'){
+   if(!own(c,c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId']:['type','ref','range','operationId','target']))fail();
+   if(c.type==='PAIA_PROMPT_SELECTION_INSERT'){const target=c.target;if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||!target||!own(target,['url','documentId','nonce'])||Object.keys(target).length!==3||target.url!==tab.url||target.documentId!==sender.documentId||target.nonce!==r.nonce)fail();const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};return this.commands.dispatch({type:c.type,ref:c.ref,range:c.range,operationId:c.operationId,tabId:tab.id,url:tab.url},{assertTarget:()=>this.currentSelectionTarget(source),targetIdentity:source});}
    return this.commands.dispatch({...c,tabId:tab.id,url:tab.url});
   }
+  const reading=['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY'].includes(c.type);
+  const readSource=reading?{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url}:null;
+  if(reading)await this.currentReadTarget(readSource);
   const result=await this.commands.dispatch(c);
-  if(c.type==='PAIA_PROMPT_CHANGE')void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
-  return c.type==='PAIA_PROMPT_QUERY'?{...result,theme:host.dark?'dark':'light'}:result;
+  // An original read can yield while the iframe/chat is replaced or consent is
+  // revoked. Do not deliver its body to the formerly valid private surface.
+  if(reading){
+   await this.currentReadTarget(readSource);
+   // The asynchronous host check can outlive a real Working edit. Re-read the
+   // original domain owner before delivering the already-read body.
+   if(c.type==='PAIA_PROMPT_SELECTION_READ')await this.commands.service.assertSelectionCurrent(result);
+   else if(result.searchSnapshot&&!result.changed)await this.commands.service.assertCurrent(result.searchSnapshot.generation);
+  }
+  if(['PAIA_PROMPT_CHANGE','PAIA_PROMPT_HISTORY_SAVE'].includes(c.type))void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
+  if(['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY'].includes(c.type)){if(typeof sender.documentId!=='string'||!sender.documentId)fail();return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce}};}
+  if(c.type==='PAIA_PROMPT_COPY_TEXT'&&typeof sender.documentId==='string'&&sender.documentId)return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce}};
+  if(c.type!=='PAIA_PROMPT_QUERY')return result;
+  // Read only the two bounded display choices through the existing owner. No
+  // settings body, control capability or alternate persistence is exposed.
+  const displayPreferences=await this.readDisplayPreferences();
+  return {...result,theme:host.dark?'dark':'light',displayPreferences};
+ }
+ async currentReadTarget(source){
+  const fail=()=>{throw new ArchiveError('FORBIDDEN');},api=this.api;
+  if(typeof source.documentId!=='string'||!source.documentId)fail();
+  const current=await api.tabs.get(source.tabId);
+  if(current.incognito||current.discarded||current.windowId!==source.windowId||current.url!==source.url)fail();
+  if(typeof api.runtime.getContexts!=='function')throw new ArchiveError('UNAVAILABLE');
+  const contexts=await api.runtime.getContexts({documentIds:[source.documentId]});
+  if(!contexts.some(c=>c.documentId===source.documentId&&c.tabId===source.tabId&&c.windowId===source.windowId&&c.frameId===source.frameId&&c.documentUrl===api.runtime.getURL('ui/prompt-surface.html')+'#'+source.nonce&&c.incognito!==true))fail();
+  const host=await api.tabs.sendMessage(source.tabId,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});
+  if(!host?.open||host.nonce!==source.nonce||host.url!==source.url)fail();
+  const latest=await api.tabs.get(source.tabId);
+  if(latest.incognito||latest.discarded||latest.windowId!==source.windowId||latest.url!==source.url)fail();
+  await this.consent();
+ }
+ async currentSelectionTarget(source){
+  const fail=()=>{throw new ArchiveError('FORBIDDEN');},api=this.api;
+  const current=await api.tabs.get(source.tabId);
+  if(current.incognito||current.discarded||current.active!==true||current.windowId!==source.windowId||current.url!==source.url)fail();
+  if(typeof api.windows?.get!=='function'||typeof api.runtime.getContexts!=='function')throw new ArchiveError('UNAVAILABLE');
+  const window=await api.windows.get(source.windowId);if(window.focused!==true||window.incognito===true)fail();
+  const contexts=await api.runtime.getContexts({documentIds:[source.documentId]});
+  if(!contexts.some(c=>c.documentId===source.documentId&&c.tabId===source.tabId&&c.windowId===source.windowId&&c.frameId===source.frameId&&c.documentUrl===api.runtime.getURL('ui/prompt-surface.html')+'#'+source.nonce&&c.incognito!==true))fail();
+  const host=await api.tabs.sendMessage(source.tabId,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});
+  if(!host?.open||host.nonce!==source.nonce||host.url!==source.url)fail();
+  await this.consent();
+  const latest=await api.tabs.get(source.tabId);if(latest.incognito||latest.discarded||latest.active!==true||latest.windowId!==source.windowId||latest.url!==source.url)fail();
+  const focused=await api.windows.get(source.windowId);if(focused.focused!==true||focused.incognito===true)fail();
+ }
+ async readDisplayPreferences(){
+  const store=this.commands.service.s;return await store.run(()=>store.repository.transaction(false,async t=>{
+   const {preferences}=await store.control(t);
+   return {appearance:['light','dark','system'].includes(preferences.appearance)?preferences.appearance:'system',language:['zh-CN','en','system'].includes(preferences.language)?preferences.language:'system'};
+  },['meta']));
  }
  async diagnostic(r,sender){
   const api=this.api;

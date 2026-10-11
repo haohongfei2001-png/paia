@@ -1,5 +1,7 @@
 import {installSettingsDetails} from './settings-details.js';
 import {mountSettingsAbout} from './settings-about.js';
+import {checkInstallationUpdate} from './installation-update-check.js';
+import {settingsCaptureRecovery} from './settings-capture-recovery.js';
 import {mountSettingsAIStyle} from './settings-ai-style.js';
 import {mountSettingsNext} from './settings-next.js';
 import {mountSettingsPromptPosition} from './settings-prompt-position.js';
@@ -41,10 +43,11 @@ async function loadPreferences(){const page=await local.load();if(page){archiveO
 function syncPreferenceControls(){
  for(const [id,key] of PREFS){const el=$(id);if(!el)continue;el.disabled=!local.loaded||local.busy;const value=key==='timeDisplay'?timeDisplayValue(uxPreferences[key]):uxPreferences[key];if(document.activeElement!==el||local.busy||local.feedback==='save-error')el.value=value;}
  const capture=$('toggle-capture');if(capture){capture.disabled=!local.loaded||local.busy||!local.capture?.consented;const on=local.capture?.enabled===true;capture.setAttribute('aria-checked',String(on));capture.dataset.on=String(on);capture.textContent=local.capture?copy(on?'开':'关',on?'On':'Off'):copy('读取中','Loading');}
+ const retry=$('settings-read-retry');if(retry){retry.hidden=local.feedback!=='read-error';retry.disabled=local.busy;}
  const feedback=$('ux-settings-feedback');if(feedback){const text={saving:['正在保存…','Saving…'],saved:['已保存','Saved'],'read-error':['无法读取设置，保留上次确认的状态。','Could not read settings. Keeping the last confirmed state.'],'save-error':['保存未获确认，已重新核对设置。请重试。','Save was not confirmed. Settings were checked again. Please retry.']}[local.feedback];feedback.textContent=text?copy(...text):'';feedback.dataset.kind=local.feedback.endsWith('error')?'error':'status';}
 }
 export function presentSettingsStatus(page){
- const health=$('ux-capture-health');if(health){health.textContent=diagnosticText(page);health.hidden=!health.textContent;}
+ const health=$('ux-capture-health');if(health){health.textContent=[diagnosticText(page),settingsCaptureRecovery(page,language())].filter(Boolean).join(' ');health.hidden=!health.textContent;}
  const status=$('ux-local-state');if(status){const failed=['STORAGE_FAILED','STORAGE_FULL'].includes(page?.diagnostics?.lastError?.code);status.textContent=failed?copy('本机保存遇到问题','Local storage unavailable'):copy('本机保存','Saved locally');status.dataset.kind=failed?'error':'ok';}
 }
 function tuneOnboarding(){
@@ -68,7 +71,7 @@ export function restoreSettingsView(value={}){const key=value.settingsGroup==='i
 function activateGroup(key,{history=true,focus=false}={}){
  if(key!=='index'&&!groups.has(key))return;const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
  for(const [name,section]of groups)section.hidden=index||name!==key;for(const [name,tab]of tabs)tab.setAttribute('aria-current',name===key?'page':'false');
- const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);}
+ const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);const retry=$('settings-read-retry');if(retry)feedback.after(retry);}
  $('ux-settings-group-back').hidden=index;syncSettingsLocale();if(history&&changed)onRouteChange({replace:false});if(settingsVisible&&key==='about')void about?.refresh();if(settingsVisible&&key==='ai'){void style?.refresh();void promptPosition?.refresh();void promptNext?.refresh();}
  if(focus&&settingsVisible){const expected=key,focused=document.activeElement;requestAnimationFrame(()=>{
   if(!settingsVisible||group!==expected||groupFocusSerial!==serial)return;
@@ -80,7 +83,7 @@ function activateGroup(key,{history=true,focus=false}={}){
 function setupSettingsShell(){
  const panel=$('settings-panel');if(!panel||$('ux-settings-shell'))return;const shell=node('div','ux-settings-shell');shell.id='ux-settings-shell';
  const head=node('header','ux-settings-header'),back=button('','ux-settings-back'),title=copyNode('h1','','设置','Settings'),feedback=node('p','ux-settings-feedback');
- const backLabel=setIconLabel(back,'back',copy('返回','Back'));backLabel.dataset.settingsZh='返回';backLabel.dataset.settingsEn='Back';head.id='ux-settings-header';back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());head.append(title,back,feedback);
+ const backLabel=setIconLabel(back,'back',copy('返回','Back'));backLabel.dataset.settingsZh='返回';backLabel.dataset.settingsEn='Back';head.id='ux-settings-header';back.id='ux-settings-back';title.id='ux-settings-title';feedback.id='ux-settings-feedback';feedback.setAttribute('role','status');back.addEventListener('click',()=>onBack());head.append(title,back,feedback);const retry=copyNode('button','ux-settings-secondary','重试读取设置','Retry reading settings');retry.id='settings-read-retry';retry.type='button';retry.hidden=true;retry.setAttribute('aria-describedby',feedback.id);retry.addEventListener('click',event=>{if(event.isTrusted&&!local.busy)void loadPreferences();});head.append(retry);
  const layout=node('div','ux-settings-layout'),nav=node('nav','ux-settings-nav'),body=node('div','ux-settings-body'),groupBack=button('','ux-settings-group-back');groupBack.id='ux-settings-group-back';setIconLabel(groupBack,'back',copy('设置','Settings'));groupBack.addEventListener('click',()=>activateGroup('index',{focus:true}));body.append(groupBack);
  for(const [key]of SETTINGS_GROUPS){const section=node('section','ux-settings-group'),h=copyNode('h2','',...SETTINGS_LABELS[key]),tab=button('');section.dataset.group=key;section.id=`ux-settings-${key}-group`;h.id=`ux-settings-${key}-title`;h.tabIndex=-1;section.setAttribute('aria-labelledby',h.id);section.append(h);groups.set(key,section);body.append(section);tab.id=`ux-settings-${key}-link`;tab.dataset.settingsGroup=key;tab.append(copyNode('span','',...SETTINGS_LABELS[key]),createIcon('chevron-right'));tab.setAttribute('aria-controls',section.id);tab.addEventListener('click',()=>activateGroup(key,{focus:compact()}));tabs.set(key,tab);nav.append(tab);}
  layout.append(nav,body);shell.append(head,layout);panel.prepend(shell);const move=(id,key)=>{const el=$(id);if(el)groups.get(key).append(el);};
@@ -91,7 +94,7 @@ function setupSettingsShell(){
  const backupFailure=copyNode('h3','ux-backup-failure-title','这份备份未通过校验','This backup could not be validated');backupFailure.id='ux-backup-failure-title';$('backup-status')?.before(backupFailure);
  move('history-settings','data');const data=groups.get('data');data.append(detail('存储空间','Storage space',[$('r6-data-status')]),detail('从已有 PAIA 备份恢复','Restore an existing PAIA backup',[$('backup-settings')]),detail('已移除的内容','Removed content',[$('manage-excluded'),$('library-management')]));move('r6-source-records','data');move('legacy-entry','data');move('product-diagnostics','data');
  settingsDetails=installSettingsDetails({dataGroup:groups.get('data'),language});
- about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language,readUpdateStatus:()=>request('PAIA_SETTINGS_UPDATE_STATUS')});
+ about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language,readUpdateStatus:()=>request('PAIA_SETTINGS_UPDATE_STATUS'),checkForUpdate:typeof chrome.runtime.requestUpdateCheck==='function'?()=>checkInstallationUpdate(chrome.runtime,chrome.storage.local):undefined});
  const orderHost=$('archive-order-host');if(orderHost)orderHost.append(archiveOrderSettings.element());activateGroup(compact()?'index':'content',{history:false});
 }
 export function syncSettingsCopy(root=document){for(const el of root.querySelectorAll('[data-settings-zh]')){const text=copy(el.dataset.settingsZh,el.dataset.settingsEn);if(el.textContent!==text)el.textContent=text;}}

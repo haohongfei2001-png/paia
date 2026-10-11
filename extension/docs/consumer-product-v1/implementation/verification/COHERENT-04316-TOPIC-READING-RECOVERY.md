@@ -1,3 +1,11 @@
+# Exact-main delivery closure — 2026-10-11
+
+[PR #253](https://github.com/haohongfei2001-png/paia/pull/253) normally merged at `959d3bafcaf628fb6c5a34b3fe77249042723360`, preserving all complete Mixed A and main development. Its final candidate `55e77f1ccda4e32c263ca12553dda3dd9840c692` and tested signed merge `2df27610220da9280081a858c5e01cb1db90f20f` were independently reviewed; PR Full `38077475939` has all21 required SUCCESS. PR Prompt was correctly NOT_APPLICABLE for the unchanged owning path filter, not recorded as PASS.
+
+Actual-main [Full 38079265306](https://github.com/haohongfei2001-png/paia/actions/runs/38079265306) all21 and [Prompt 38079265315](https://github.com/haohongfei2001-png/paia/actions/runs/38079265315) all5 SUCCESS, plus exact original native52/226-line strict verifier, close the main engineering gates. The once-built 462-file 0.43.16 ZIP is qualified, SHA256 `ba2ce94f518912c41192b24946caa0d7cad69603905af40a611c2a4b73c74d7f`, 1,520,515 bytes. The user-visible update handles stale Topic continuation/window refusal through the original retry UI while retaining current drafts, IME and focus. No installed/current-user or formal deployment claim is made.
+
+The earlier bfb actual-main failure and held0.43.15 are preserved. This closure does not complete B/C, original SYNC-01 closing gates, providers or all seven lanes. Continue the approved coherent B configuration/full-Prompt/logical-Topic recovery batch, without another helper release. The candidate history below remains tied to its stated versions.
+
 # 0.43.16 — current Topic reading failure recovery
 
 ## Existing outcome preserved

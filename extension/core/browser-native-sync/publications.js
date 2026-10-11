@@ -1,10 +1,11 @@
+import {requireConsumerPublicationSettled} from './consumer-publication-state.js';
 import {packOperations,readObject,readSegmentDescriptor,SEGMENT_PROFILE} from './segments.js';
 import {validateOperation} from './core.js';
 import {bytes,clone,count,digest,equal,exact,fail,hash,opaque} from './value.js';
 
 export const PUBLICATION_LIMITS=Object.freeze({operations:512,bytes:4*1024*1024,objects:512,journalBytes:256*1024,page:100});
 const activeStates=['prepared','uploading','unknown','blocked_integrity','blocked_remote_missing','obsolete'];
-const safeFailures=new Set(['BNS_OBJECT_INTEGRITY','BNS_OBJECT_NOT_FOUND','BNS_PUBLICATION_OBSOLETE','BNS_BINDING_CHANGED','BNS_PUBLICATION_CHANGED','BNS_CUT_RESERVED','BNS_PUBLICATION_BLOCKED','BNS_PUBLICATION_CORRUPT','BNS_PUBLICATION_REENCODED','BNS_PUBLICATION_INCOMPLETE','BNS_PUBLICATION_RETIRED']);
+const safeFailures=new Set(['BNS_CONSUMER_PUBLICATION_PENDING','BNS_OBJECT_INTEGRITY','BNS_OBJECT_NOT_FOUND','BNS_PUBLICATION_OBSOLETE','BNS_BINDING_CHANGED','BNS_PUBLICATION_CHANGED','BNS_CUT_RESERVED','BNS_PUBLICATION_BLOCKED','BNS_PUBLICATION_CORRUPT','BNS_PUBLICATION_REENCODED','BNS_PUBLICATION_INCOMPLETE','BNS_PUBLICATION_RETIRED']);
 const immutable=row=>({version:row.version,publicationId:row.publicationId,namespace:row.namespace,datasetId:row.datasetId,producer:row.producer,target:row.target,profile:row.profile,operationRefs:row.operationRefs,objectRefs:row.objectRefs});
 const withoutId=row=>{const {id,...value}=row;return value;};
 const publicState=row=>({publicationId:row.publicationId,namespace:row.namespace,state:row.state,operationCount:row.operationRefs.length,objectCount:row.objectRefs.length,verifiedObjects:row.nextIndex,blueprintDigest:row.blueprintDigest});
@@ -32,6 +33,7 @@ export class PreparedPublicationJournal {
  }
  async #bound(t,row){if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');const current=await this.core.get(t,'publication',row.publicationId);if(!current||current.blueprintDigest!==row.blueprintDigest)fail('BNS_PUBLICATION_CHANGED');if(current.state==='retired_obsolete')fail('BNS_PUBLICATION_RETIRED');return current;}
  async #checkCut(t,row,{unreserved=false}={}){
+  await requireConsumerPublicationSettled(t);
   if(await this.core.bind(t)!==row.namespace)fail('BNS_BINDING_CHANGED');
   for(const ref of row.operationRefs){
    const queued=await this.core.get(t,'outbox',ref.operationId),revision=await this.core.get(t,'revision',ref.revisionId);
@@ -44,6 +46,7 @@ export class PreparedPublicationJournal {
   const profile=clone(this.profile),existing=await this.#load(publicationId);
   if(existing){if(existing.target!==target||!equal(existing.profile,profile))fail('BNS_PUBLICATION_COLLISION');return publicState(existing);}
   const selection=await this.core.transaction(false,async t=>{
+   await requireConsumerPublicationSettled(t);
    const namespace=await this.core.bind(t),rows=[];let scanned=0,cursor=after;
    do{const page=await t.primaryRangePage('meta',{prefix:await this.core.idIn(t,'outbox'),after:cursor,limit:Math.min(PUBLICATION_LIMITS.page,maxOperations-scanned)});scanned+=page.rows.length;for(const {value}of page.rows){if(!exact(value,['id','operationId','revisionId','state','publicationId'])||!opaque(value.operationId)||!hash(value.revisionId)||value.state!=='queued'||value.id!==await this.core.idIn(t,'outbox',value.operationId)||value.publicationId!==undefined&&!opaque(value.publicationId))fail('BNS_PUBLICATION_CORRUPT');if(value.publicationId===undefined)rows.push({operationId:value.operationId,revisionId:value.revisionId});}cursor=page.next;if(!cursor||scanned>=maxOperations)break;}while(true);
    return {namespace,rows,nextCursor:cursor};
@@ -124,6 +127,9 @@ export class PreparedPublicationJournal {
   },['meta']);
  }
  async #failed(row,error){
+  // Unsettled local visibility is not an attempted/unknown cloud upload. Keep
+  // the exact reserved cut and queue intact for its original recovery retry.
+  if(error?.code==='BNS_CONSUMER_PUBLICATION_PENDING')return;
   const state=error?.code==='BNS_PUBLICATION_OBSOLETE'?'obsolete':error?.code==='BNS_OBJECT_INTEGRITY'?'blocked_integrity':error?.code==='BNS_OBJECT_NOT_FOUND'?'blocked_remote_missing':'unknown';
   await this.core.transaction(true,async t=>{const current=await this.#bound(t,row);if(current.state==='confirmed'||['blocked_integrity','blocked_remote_missing','obsolete'].includes(current.state))return;await this.core.put(t,'publication',[row.publicationId],{...withoutId(current),state,error:state==='unknown'?'BNS_TRANSPORT_UNKNOWN':error.code});},['meta']);
  }
@@ -137,11 +143,11 @@ export class PreparedPublicationJournal {
   return this.core.transaction(true,async t=>{
    const current=await this.#bound(t,row);if(current.state==='confirmed')return this.core.get(t,'publicationReceipt',row.publicationId);if(['blocked_integrity','blocked_remote_missing','obsolete'].includes(current.state))fail('BNS_PUBLICATION_BLOCKED');if(current.nextIndex!==current.objectRefs.length)fail('BNS_PUBLICATION_INCOMPLETE');await this.#checkCut(t,current);
    for(let i=0;i<current.objectRefs.length;i++){const receipt=await this.core.get(t,'publicationObject',row.publicationId,indexKey(i));if(receipt?.state!=='verified'||!equal(receipt.ref,current.objectRefs[i]))fail('BNS_PUBLICATION_INCOMPLETE');}
-   await this.checkpoint('publication-before-ack',t);
+   await this.checkpoint('publication-before-ack',t);await this.#checkCut(t,current);
    for(const ref of current.operationRefs)await t.delete('meta',await this.core.idIn(t,'outbox',ref.operationId));
    const receipt={publicationId:row.publicationId,namespace:row.namespace,state:'confirmed',blueprintDigest:row.blueprintDigest,operationCount:row.operationRefs.length,descriptors:row.objectRefs.filter(ref=>ref.kind==='descriptor')};
    await this.core.put(t,'publicationReceipt',[row.publicationId],receipt);await this.core.put(t,'publication',[row.publicationId],{...withoutId(current),state:'confirmed',error:null});await t.delete('meta',await this.core.idIn(t,'publicationActive',row.publicationId));
-   await this.checkpoint('publication-after-ack',t);return receipt;
+   await this.checkpoint('publication-after-ack',t);await requireConsumerPublicationSettled(t);return receipt;
   },['meta']);
  }
  async *publish(publicationId,transport){

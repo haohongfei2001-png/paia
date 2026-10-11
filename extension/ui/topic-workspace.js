@@ -1,3 +1,4 @@
+import {promoteTopicSection} from './topic-section-promotion.js';
 import {clearExactRepeats,revealExactRepeat,localizeExactRepeats} from './topic-exact-repeat-reading.js';
 import {SettingsRemovedList} from './settings-removed-list.js';
 import {mountReverseEditOptOut} from './thought-reverse-edit-optout.js';
@@ -31,6 +32,26 @@ const button=(label,run)=>{const b=element('button','',label);b.type='button';b.
 const editable=(tag,field,value,label)=>{const e=element(tag,'',value);e.contentEditable='plaintext-only';e.dataset[field[0]]=field[1];e.setAttribute('aria-label',label);return e;};
 // Menus are scoped to trusted Library UI; native details keeps Tab/Enter access.
 const actionMenu=(label,items)=>{const menu=element('details','library-actions'),trigger=element('summary'),panel=element('div','library-action-list');setIconOnly(trigger,'more',label);trigger.setAttribute('role','button');trigger.setAttribute('aria-expanded','false');menu.append(trigger,panel);for(const [text,run]of items){const b=button(text,()=>{menu.open=false;trigger.focus({preventScroll:true});return run();});panel.append(b);}menu.addEventListener('toggle',()=>{trigger.setAttribute('aria-expanded',String(menu.open));if(menu.open)for(const other of document.querySelectorAll('.library-actions[open]'))if(other!==menu)other.open=false;});menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;trigger.focus({preventScroll:true});}});menu.addEventListener('focusout',event=>{if(event.relatedTarget&&!menu.contains(event.relatedTarget))menu.open=false;});return menu;};
+// Only the open native Section menu owns this transient viewport adjustment.
+// Resizing labels must not leave a newly added action below the visible window.
+function fitSectionActionMenu(menu){
+ if(typeof ResizeObserver!=='function'||typeof window==='undefined')return;
+ const panel=menu.querySelector('.library-action-list');let live=null;
+ const restore=()=>{if(!live)return;const prior=live;live=null;prior.observer.disconnect();window.removeEventListener('resize',fit);window.removeEventListener('scroll',fit,true);for(const [key,value,priority]of prior.styles)if(value)panel.style.setProperty(key,value,priority);else panel.style.removeProperty(key);};
+ const fit=()=>{
+  if(!menu.open||!menu.isConnected){restore();return;}
+  const anchor=menu.getBoundingClientRect(),below=Math.max(0,window.innerHeight-anchor.bottom-8),above=Math.max(0,anchor.top-8);
+  const natural=panel.scrollHeight+panel.offsetHeight-panel.clientHeight,down=natural<=below||natural>above&&below>=above;
+  panel.style.maxHeight=Math.max(1,down?below:above)+'px';panel.style.overflowY='auto';
+  const height=panel.getBoundingClientRect().height;
+  panel.style.top=(down?anchor.height:-height)+'px';
+ };
+ menu.addEventListener('toggle',()=>{
+  if(!menu.open){restore();return;}if(live)return;
+  const observer=new ResizeObserver(fit);live={observer,styles:['top','max-height','overflow-y'].map(key=>[key,panel.style.getPropertyValue(key),panel.style.getPropertyPriority(key)])};
+  window.addEventListener('resize',fit);window.addEventListener('scroll',fit,{capture:true,passive:true});observer.observe(panel);observer.observe(menu);fit();
+ });
+}
 const revisionLabel=r=>r.reason==='edit'&&r.kind==='topic'&&r.fieldMask?.includes('name')?'主题重命名':r.reason==='edit'&&r.kind==='section'?'章节重命名':({edit:'用户编辑',user_edit:'用户编辑',create:'创建',ai_update:'AI 更新',refresh:'AI 更新',delete:'删除',restore:'恢复',rename:'重命名',merge:'合并',reorder:'调整顺序',place:'添加到主题',unplace:'移出主题',pin:'置顶',update:'更新'}[r.reason]||(r.actor==='ai'?'AI 整理':'用户操作'));
 const stale=e=>e.archiveChanged?tc('档案有更新 · 查看'):e.thoughtEditedAt?tc('已在思想库编辑'):e.freshness==='stale'?(e.integrity==='partial'||e.integrity==='detached'?'部分来源已移除':'来源已更新'):'';
 export class MetadataEditor {
@@ -167,7 +188,16 @@ export class TopicController {
  topicSectionAnchor(){return this.topicReader?.captureSectionAnchor?.(this.originalPane||$('topic-body'))||null;}
  async checkAllTracked(serial=this.serial){if(!this.editor?.entry)return true;const ids=[...this.editor.entry.entries.keys()];for(let i=0;i<ids.length;i+=100){const result=await request('GET_LIBRARY_TRACKED_ENTRIES',{options:{ids:ids.slice(i,i+100)}});if(serial!==this.serial)return false;await this.editor.entry.checkTracked(result||[]);}return serial===this.serial;}
  topicPageFromReader(){const reader=this.topicReader,state=reader?.state(),meta=reader?.pageMeta||{};if(!reader||!state)return null;const pins=this.editor?.entry.protectedIds?.()||new Set(),layout=reader.layout(pins),items=layout.filter(x=>x.kind==='item').map(x=>x.item);return {...meta,topic:meta.topic||this.topic,sections:[...reader.sections.values()],items,windowLayout:layout,nextCursor:state.nextCursor,previousCursor:state.previousCursor,sectionCursor:state.sectionCursor,query:reader.query,sort:reader.sort,matchCount:meta.matchCount};}
- updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;
+ updateTopicSearchCount(){
+  const count=$('topic-search-count'),reader=this.topicReader;if(!count||!this.topicContinuousVisible())return;
+  const query=$('topic-search').value.trim(),state=reader?.state();
+  // A continuation may finish after another query was typed. Its retained
+  // bodies and terminal flags never describe that newer search or a refusal.
+  if(!state||state.stale||reader.topicId!==this.id||reader.query!==query||(reader.providerKey??null)!==(this.topicProviderKey??null)){count.textContent='';return;}
+  const complete=state.terminalNext&&state.terminalPrevious&&!reader.hydrating&&!state.loadingNext&&!state.loadingPrevious&&!state.indexing&&!state.errorNext&&!state.errorPrevious&&!state.continuationNext&&!state.continuationPrevious&&!state.protectionBlocked;
+  count.textContent=query||this.topicProviderKey?`${state.items.length}${complete?'':'+'} 条${query?'匹配':'当前来源'}内容`:'';
+ }
+ updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;this.updateTopicSearchCount();
   const before=$('topic-continuous-before'),after=$('topic-continuous-after'),pending=state.loadingNext||state.loadingPrevious||state.indexing,unsettled=pending||state.stale;
   for(const [edge,continuation,error]of [['before',state.continuationPrevious,state.errorPrevious],['after',state.continuationNext,state.errorNext]]){const retry=$('topic-continuous-'+edge+'-retry');retry.hidden=pending||!error&&!continuation;retry.textContent=tc(continuation?'继续载入':'重试加载');}
   before.dataset.terminal=String(!unsettled&&!state.errorPrevious&&!state.continuationPrevious&&!!state.terminalPrevious);after.dataset.terminal=String(!unsettled&&!state.errorNext&&!state.continuationNext&&!state.protectionBlocked&&!!state.terminalNext);
@@ -340,7 +370,7 @@ export class TopicController {
  }
  async reverseSetting(){let box=$('thought-reverse-edit');if(!box){const host=document.querySelector('.ux-settings-group[data-group="advanced"]');if(!host)return;const label=element('label','setting');box=element('input');box.type='checkbox';box.id='thought-reverse-edit';label.append(box,document.createTextNode(tc('同时修改档案中的对应完整内容')));host.append(label,element('p','muted',tc('仅对仍与档案完整对应的内容生效；已改写、选段和 AI 稿不反向修改。')));box.onchange=async()=>{const previous=!box.checked;box.disabled=true;try{await request('SET_THOUGHT_REVERSE_EDIT',{enabled:box.checked});}catch{box.checked=previous;this.onStatus('设置尚未保存，已恢复原值。','error');}finally{box.disabled=false;}};}box.disabled=true;try{box.checked=(await request('GET_THOUGHT_REVERSE_EDIT')).enabled;const status=await request('GET_LIBRARY_FOUNDATION_STATUS'),migration=status.bindingMigration;let summary=$('thought-binding-migration');if(!summary){summary=element('p','muted');summary.id='thought-binding-migration';box.parentElement.after(summary);}summary.textContent=migration?.complete?'旧版引用迁移已完成 · 跟随 '+migration.input+' · 独立 '+migration.thought:'旧版引用正在迁移；现有文字按安全规则保留。';}finally{box.disabled=false;}}
  schedulePosition(){clearTimeout(this.positionTimer);if(!this.id||this.view!=='original'||document.hidden||document.querySelector('dialog[open]'))return;this.positionTimer=setTimeout(()=>void this.rememberPosition(),3000);}
- async rememberPosition(){if(!this.id||document.hidden||this.editor?.dirty()||this.editor?.saving||isComposing(this.editor)||document.querySelector('dialog[open]'))return;const el=[...$('topic-body').querySelectorAll('[data-entry-field="body"]')].find(n=>n.getBoundingClientRect().bottom>140&&n.getBoundingClientRect().top<innerHeight);if(!el)return;const id=el.closest('[data-entry-id]').dataset.entryId,row=this.editor?.entry.entries.get(id);if(!row)return;let offset=0;const range=document.caretRangeFromPoint?.(Math.max(20,el.getBoundingClientRect().left+4),Math.max(140,el.getBoundingClientRect().top+8));if(range&&el.contains(range.startContainer)){const before=range.cloneRange();before.selectNodeContents(el);before.setEnd(range.startContainer,range.startOffset);offset=before.toString().length;}await request('THOUGHT_POSITION',{position:{topicId:this.id,entryId:id,revision:row.revision,offset,sort:this.readingSort,expanded:[]}});await request('RECORD_TOPIC_READ',{id:this.id});}
+ async rememberPosition(){if(!this.id||document.hidden||this.editor?.dirty()||this.editor?.saving||isComposing(this.editor)||document.querySelector('dialog[open]'))return;const topicId=this.id,serial=this.serial,openIntent=this.openIntent;const el=[...$('topic-body').querySelectorAll('[data-entry-field="body"]')].find(n=>n.getBoundingClientRect().bottom>140&&n.getBoundingClientRect().top<innerHeight);if(!el)return;const id=el.closest('[data-entry-id]').dataset.entryId,row=this.editor?.entry.entries.get(id);if(!row)return;let offset=0;const range=document.caretRangeFromPoint?.(Math.max(20,el.getBoundingClientRect().left+4),Math.max(140,el.getBoundingClientRect().top+8));if(range&&el.contains(range.startContainer)){const before=range.cloneRange();before.selectNodeContents(el);before.setEnd(range.startContainer,range.startOffset);offset=before.toString().length;}await request('THOUGHT_POSITION',{position:{topicId,entryId:id,revision:row.revision,offset,sort:this.readingSort,expanded:[]}});if(this.id!==topicId||this.serial!==serial||this.openIntent!==openIntent)return;await request('RECORD_TOPIC_READ',{id:topicId});}
  async restorePosition(anchor){if(anchor?.nearby)announce(tc('原位置已移除，从附近继续。'));if(!anchor?.entryId)return;const el=[...$('topic-body').querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===anchor.entryId)?.querySelector('[data-entry-field="body"]');if(!el)return;const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n,offset=anchor.offset;while(n=walker.nextNode()){if(offset<=n.length){const r=document.createRange();r.setStart(n,offset);r.collapse(true);scrollBy(0,r.getBoundingClientRect().top-140);break;}offset-=n.length;}}
  clearActionFeedback(){$('ai-update-feedback')?.replaceChildren();}
  rootAction(method,...args){return()=>this[method](...args);}
@@ -604,14 +634,16 @@ export class TopicController {
   header.sectionActionRow={...section};
   let menu=header.querySelector('.topic-section-actions');
   if(!menu){
-   menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
+   menu=actionMenu(tc('章节操作'),[['重命名', 'rename'],['向上移动','up'],['向下移动','down'],['提升为独立主题','promote']].map(([label,action])=>[tc(label),()=>this.sectionContextAction(header.sectionActionRow,action)]));
    menu.classList.add('topic-section-actions');
+   fitSectionActionMenu(menu);
    menu.querySelector('summary').addEventListener('click',event=>{if(menu.getAttribute('aria-busy')==='true'){event.preventDefault();event.stopPropagation();}});
    header.append(menu);
   }
   this.updateSectionActionControls(menu);
  }
  async sectionContextAction(section,action){
+  if(action==='promote')return promoteTopicSection(this,section);
   if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault)return;
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
   const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
@@ -871,7 +903,7 @@ export class TopicController {
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
   const saved=!resetFromStart&&!sectionId&&!timeEdge?(this.topicReader?.snapshot(visible,visible?null:this.topicSectionAnchor())||this.contentResume):null;this.contentResume=null;
   const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial});if(serial!==this.serial||state.stale)return false;
-  const query=$('topic-search').value.trim();$('topic-search-count').textContent=query||this.topicProviderKey?`${state.items.length}${state.terminalNext&&state.terminalPrevious?'':'+'} 条${query?'匹配':'当前来源'}内容`:'';
+  this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
 

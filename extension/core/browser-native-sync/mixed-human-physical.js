@@ -1,3 +1,4 @@
+import {validContextTopicReceipt} from '../context-topic-access.js';
 import {requireOriginalCurrentMixedGroupScope} from './group-checkpoint-scope.js';
 import {physical} from './human-library-journal.js';
 import {protocolPhysicalId} from './physical-key.js';
@@ -71,8 +72,8 @@ export function assertMixedHumanPhysicalExpectation(core,scope,plan,rows,meta,ex
   let local={};if(type==='entry')local=expected.entries.get(after.id);else if(type==='topic')local={negativeUpdatedSequence:expected.topics.get(after.id)?.negativeUpdatedSequence};else if(type==='history'){const actual=rows.revisions.find(row=>row.id===after.id);if(!actual||actual.sequence!==history.get(after.id))refuse();local=physical(type,actual);}
   if(!equal(byId.get(key(head.entityId)),{id:key(head.entityId),type,local,wire:physical(type,after),revisionId:op.revisionId}))refuse();
  }
- const working=plan.groups.filter(group=>group.type==='inputWorkingCommit'&&group.prepared.descriptor.deviceId===core.deviceId),humanIds=new Set(),context=operations.filter(op=>op.deviceId===core.deviceId&&op.actor==='user'&&['contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(op.type));let localWorking=0,localContext=0;
- if(rows.operationReceipts.length!==expected.receipts.size+working.length+context.length||new Set(rows.operationReceipts.map(row=>row.id)).size!==rows.operationReceipts.length)refuse();
+ const working=plan.groups.filter(group=>group.type==='inputWorkingCommit'&&group.prepared.descriptor.deviceId===core.deviceId),humanIds=new Set(),context=operations.filter(op=>op.deviceId===core.deviceId&&op.actor==='user'&&['contextItem','contextRulesItem','contextNowItem','contextDesired'].includes(op.type));const topicReceipts=rows.operationReceipts.filter(row=>row.namespace==='context-topic-access');let localWorking=0,localContext=0;
+ if(rows.operationReceipts.length!==expected.receipts.size+working.length+context.length+topicReceipts.length||new Set(rows.operationReceipts.map(row=>row.id)).size!==rows.operationReceipts.length)refuse();
  for(const row of rows.operationReceipts){
   if(row.namespace==='thought-library'){const receipt=expected.receipts.get(row.id);if(!receipt||humanIds.has(row.id)||!equal(row,receipt))refuse();humanIds.add(row.id);}
   else if(row.namespace==='working-input'){
@@ -87,7 +88,8 @@ export function assertMixedHumanPhysicalExpectation(core,scope,plan,rows,meta,ex
    // command hash/clock are not portable; bind its existing result and epoch
    // without importing or forging a UI retry receipt on a foreign restore.
    if(!exact(row,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','result'])||row.schemaVersion!==1||row.ownerId!==value.id||row.epoch!==((byId.get('recovery-restore-epoch')?.value)||'initial')||!Number.isFinite(Date.parse(row.createdAt))||!hash(row.digest)||!equal(row.result,result))refuse();localContext++;
-  }else refuse();
+  }else if(row.namespace==='context-topic-access'){if(!validContextTopicReceipt(row))refuse();}
+  else refuse();
  }
  if(humanIds.size!==expected.receipts.size||localWorking!==working.length||localContext!==context.length||!count(expected.sequence))refuse();return true;
 }

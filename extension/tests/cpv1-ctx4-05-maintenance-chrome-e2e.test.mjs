@@ -418,22 +418,32 @@ async function observeWorkerMaintenance(worker,page){
   const {filter,safety,library,cards}=globalThis.__ctx4WorkerOwners||{},owners=new Set([filter,safety,library]);
   if(owners.size!==3||[...owners].some(owner=>typeof owner?.wake!=='function'||owner.store!==library?.store)
    ||cards?.s!==library?.store)throw Error('Actual worker maintenance owners were not observed');
-  globalThis.__ctx4Maintenance={owners,async settle(){
+  const refusals=[],store=library.store,originalRun=store.run;
+  // Observe the original dispatch boundary; never retry or replace its work.
+  store.run=function(callback){let entered=false;return Reflect.apply(originalRun,this,[()=>{entered=true;return callback();}]).catch(error=>{
+   if(refusals.length<128)refusals.push({code:typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,63}$/.test(error.code)?error.code:'OTHER',callbackEntered:entered});
+   throw error;
+  });};
+  globalThis.__ctx4Maintenance={owners,refusals,phase:'idle',failurePoint:null,async diagnostics(){
+   return {phase:this.phase,failurePoint:this.failurePoint,owners:[...owners].map(owner=>({kind:owner===filter?'filter':owner===safety?'safety':'library',failed:owner.failed===true,running:!!owner.running})),libraryMaintenanceFailed:store.libraryMaintenanceFailed===true,refusals:refusals.slice()};
+  },async settle(){
+   this.phase='drain';this.failurePoint=null;
    // Filtering and safety invalidation can enqueue Library work. Drain those
    // real owners in that order, including each follow-on wake, so Library
    // cannot finish before the preceding owners queue their derived work.
    for(const owner of owners){await owner.wake();while(owner.running)await owner.running;}
    for(;;){const running=[...owners].map(owner=>owner.running).filter(Boolean);if(!running.length)break;await Promise.all(running);}
-   if([...owners].some(owner=>owner.failed||owner.store.libraryMaintenanceFailed))throw Error('Actual worker maintenance failed');
+   if([...owners].some(owner=>owner.failed||owner.store.libraryMaintenanceFailed)){this.failurePoint='owner-failed';throw Error('Actual worker maintenance failed');}
    const store=library.store;
-   const foundation=await store.libraryStatus(),filter=await store.filterStatus();
+   this.phase='read-status';const foundation=await store.libraryStatus(),filter=await store.filterStatus();
    const pending=await store.repository.transaction(false,async t=>({
     searchComplete:(await t.get('meta','library-search-rebuild'))?.complete===true,
     tasks:(await t.all('libraryMigrationItems')).filter(row=>row.statusKey===0).length
    }),['meta','libraryMigrationItems']);
    if(!foundation.compatibility.complete||foundation.pendingCleanupJobs||foundation.pendingInvalidations||!pending.searchComplete||pending.tasks
     ||(filter.mode!=='off'&&filter.pending)||['running','failed'].includes(filter.taskState)||[...owners].some(owner=>owner.running))
-    throw Error('Actual worker maintenance is not settled');
+    {this.failurePoint='not-settled';throw Error('Actual worker maintenance is not settled');}
+   this.phase='settled';
   }};
  });
  // GET_STATUS uses the existing worker dispatch path which wakes all three
@@ -462,6 +472,9 @@ async function workerRecoveryBatch(extensionPath){
   phase='discover-worker';
   worker=h.context.serviceWorkers().find(value=>value.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);assert.ok(worker);
   phase='observe-worker-maintenance';await observeWorkerMaintenance(worker,page);
+  // Finish the real startup/readiness work before the independent page Store
+  // publishes fixture control. No failed owner is reset or mutation replayed.
+  phase='settle-empty-worker-maintenance';await worker.evaluate(()=>__ctx4Maintenance.settle());
   phase='prepare-worker-data';await page.evaluate(()=>__ctx4Native.prepareWorker());
   phase='settle-fixture-maintenance';await worker.evaluate(()=>__ctx4Maintenance.settle());
   phase='seed-worker-drafts';
@@ -517,6 +530,7 @@ async function workerRecoveryBatch(extensionPath){
   report.failureCategory=['AssertionError','TypeError','ReferenceError','SyntaxError','TimeoutError'].includes(error?.name)?error.name:'Error';
  }
  finally{
+  if(worker)report.maintenanceDiagnostics=await worker.evaluate(()=>globalThis.__ctx4Maintenance?.diagnostics()).catch(()=>null);
   if(worker)report.events=await worker.evaluate(()=>{const value=__ctx4BatchProbe;if(!value)return [];value.restore();return value.events;}).catch(()=>[]);
   try{if(page)await page.evaluate(()=>globalThis.__ctx4Native?.closeWorker()).catch(()=>{});if(h)await h.close();}
   finally{await rm(temporary,{recursive:true,force:true});}

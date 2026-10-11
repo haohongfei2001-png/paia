@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,readFile,mkdtemp,rm} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,mkdtemp,rm,cp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFile} from 'node:child_process';
@@ -61,6 +61,26 @@ test('UIR-04 popup keeps compact capture, accessible help and honest failure fee
   for(const extensionPath of ['.',releasePath]){const h=await FakeChatGPT.start({extensionPath,onboarding:true,headless:true});try{await popupJourney(h);}finally{await h.close();}}
  }finally{await rm(releaseRoot,{recursive:true,force:true});}
 });
+
+// After S4 cutover this remains a complete legacy-control regression. Restore
+// only the old manifest action in an isolated synthetic package; never change
+// the source installation or imply that the production action still opens it.
+async function legacyPopupFixture(){
+ const original=await readFile('manifest.json','utf8'),manifest=JSON.parse(original);
+ if(manifest.action.default_popup==='ui/popup.html')return {path:'.',temporary:false,mode:'current-default-popup'};
+ assert.equal(Object.hasOwn(manifest.action,'default_popup'),false,'only the reviewed toolbar cutover may select the legacy control');
+ const worker=await readFile('background/service-worker.js','utf8');
+ assert.match(worker,/installToolbarEntry\(chrome/,'production replacement remains wired');
+ const path=await mkdtemp(join(tmpdir(),'paia-popup-legacy-control-'));
+ try{
+  for(const name of ['adapter','background','content','core','ui','icons','manifest.json','package.json'])await cp(name,join(path,name),{recursive:true});
+  manifest.action.default_popup='ui/popup.html';
+  await writeFile(join(path,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+  const restored=JSON.parse(await readFile(join(path,'manifest.json'),'utf8'));delete restored.action.default_popup;
+  assert.deepEqual(restored,JSON.parse(original),'the synthetic control changes only default_popup');
+  return {path,temporary:true,mode:'isolated-legacy-default-popup-control'};
+ }catch(error){await rm(path,{recursive:true,force:true});throw error;}
+}
 
 // Native action popup, not popup.html in a resized ordinary tab. Chrome 127+
 // documents action.openPopup(); extension.getViews({type:'popup'}) supplies the
@@ -191,14 +211,15 @@ function assertNativeGeometry(value,label){
 }
 
 test('Bounded native action popup has intrinsic width, readable count labels and reachable update help',{timeout:90000},async()=>{
- let h,headSha=null,nativeBrowserFrame=null;const states=[];let currentState='startup';
+ let h,fixture,headSha=null,nativeBrowserFrame=null;const states=[];let currentState='startup';
  await mkdir(nativeArtifactDir,{recursive:true});
  try{
   headSha=(await execFileAsync('git',['rev-parse','HEAD'],{cwd:process.cwd()})).stdout.trim();
   assert.match(headSha,/^[a-f0-9]{40}$/,'native evidence uses an exact Git commit');
   await artifactJSON('acceptance',{status:'RUNNING',headSha,states});
   if(process.env.PAIA_TESTED_HEAD)assert.equal(headSha,process.env.PAIA_TESTED_HEAD,'checked-out HEAD must match the requested native-popup test head');
-  h=await FakeChatGPT.start({onboarding:true,headless:false,viewport:null});h.nativeEvidenceHead=headSha;
+  fixture=await legacyPopupFixture();
+  h=await FakeChatGPT.start({extensionPath:fixture.path,onboarding:true,headless:false,viewport:null});h.nativeEvidenceHead=headSha;
   const p=h.archive;await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
   const capture=async(name,options)=>{currentState=name;const report=await captureNativeEvidence(h,name,options);states.push({name,screenshot:report.screenshot.file,geometry:report.geometry,presentation:report.presentation,target:report.target,countEvidence:report.countEvidence});assertPopupPresentation(report.presentation,'light');return report.geometry;};
   currentState='unconsented';await openNativePopup(h);let value=await capture(currentState);assertNativeGeometry(value,'unconsented');assert.equal(value.count,'0');assert.equal(value.consent,false);assert.equal(value.toggleHidden,true);assert.equal(value.active,false);assert.equal(value.background,'rgb(255, 255, 255)');await closeNativePopup(p);
@@ -219,10 +240,10 @@ test('Bounded native action popup has intrinsic width, readable count labels and
   await p.evaluate(()=>{const w=chrome.extension.getViews({type:'popup'})[0];w.document.querySelector('#update-details p').scrollIntoView({block:'end'});});
   value=await capture('help-reachable',{countEvidence:'DOM presentation stress only; archive count remains zero'});assert.ok(value.helpText.y>=0&&value.helpText.bottom<=value.height+1,'on-demand help remains reachable within the actual popup');
   await closeNativePopup(p);await assertNoNetwork(h);
-  await artifactJSON('acceptance',{status:'PASS',headSha,kind:'native-action-popup',states,viewportEmulation:null,nativeBrowserFrame});
+  await artifactJSON('acceptance',{status:'PASS',headSha,kind:'native-action-popup',fixture:fixture.mode,productionToolbarAcceptance:false,states,viewportEmulation:null,nativeBrowserFrame});
  }catch(error){
   const failure={status:'FAIL',headSha,expectedHeadSha:process.env.PAIA_TESTED_HEAD||null,state:currentState,states,error:errorDetails(error)};
   if(h){try{await captureNativeEvidence(h,'failure-current',{countEvidence:'inspect state metadata; may contain DOM presentation stress',failure});}catch(captureError){failure.artifactError=errorDetails(captureError);}}
   await artifactJSON('failure',failure);await artifactJSON('acceptance',failure);throw error;
- }finally{await h?.close();}
+ }finally{await h?.close();if(fixture?.temporary)await rm(fixture.path,{recursive:true,force:true});}
 });

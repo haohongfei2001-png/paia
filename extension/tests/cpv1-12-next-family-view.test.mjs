@@ -5,13 +5,19 @@ import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {NextFamilyView,NEXT_FAMILY_VIEW_TTL} from '../core/next-family-view.js';
 import {matchNextFamily} from '../core/next-family-matcher.js';
 import {key} from '../core/memory/model.js';
+import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../core/local-control-publication.js';
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const reply={completed:true,text:'Next, ask me to explain sorting.',blocks:1,excluded:false};
 async function fixture(){const f=await completeFixture({texts:['explain sorting','explain sorting']});let now=100;f.service=new PromptReuseService(f.s,{clock:()=>now});f.time=n=>{now=n;};return f;}
-test('actual explicit query warms exact Family DTO; cold reads do no IO and warm reads only generation',async()=>{
+test('actual explicit query warms exact Family DTO; cold reads do no IO and warm reads only publication fences and generation',async()=>{
  const f=await fixture(),before={...f.s.repository.metrics};assert.equal((await f.service.nextFamilyView()).available,false);assert.deepEqual(f.s.repository.metrics,before);
- const q=await f.service.query(),metrics={...f.s.repository.metrics},v=await f.service.nextFamilyView();assert.equal(v.available,true);assert.equal(v.items[0].id,q.items[0].id);assert.equal(matchNextFamily(reply,v).type,'PROMPT_FAMILY_MATCH');
- assert.equal(f.s.repository.metrics.scans,metrics.scans);assert.equal(f.s.repository.metrics.reads,metrics.reads+1);assert.equal(f.s.repository.metrics.writes,metrics.writes);
+ const q=await f.service.query(),metrics={...f.s.repository.metrics},trace=[],transaction=f.s.repository.transaction.bind(f.s.repository);
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const call={write,stores,gets:[]};trace.push(call);const get=t.get.bind(t);t.get=(store,key)=>{call.gets.push([store,key]);return get(store,key);};return fn(t);},stores);
+ let v;try{v=await f.service.nextFamilyView();}finally{f.s.repository.transaction=transaction;}
+ assert.equal(v.available,true);assert.equal(v.items[0].id,q.items[0].id);assert.equal(matchNextFamily(reply,v).type,'PROMPT_FAMILY_MATCH');
+ const fence=[CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,'migration','gate','recovery-restore-epoch'].map(key=>['meta',key]);
+ assert.deepEqual(trace,[{write:false,stores:['meta'],gets:fence},{write:false,stores:['meta'],gets:fence},{write:false,stores:['meta'],gets:[['meta','backup-data-generation']]}]);
+ assert.equal(f.s.repository.metrics.scans,metrics.scans);assert.equal(f.s.repository.metrics.reads,metrics.reads+trace.reduce((n,call)=>n+call.gets.length,0));assert.equal(f.s.repository.metrics.writes,metrics.writes);
  v.items[0].text='caller mutation';assert.equal((await f.service.nextFamilyView()).items[0].text,'explain sorting');
  f.time(100+NEXT_FAMILY_VIEW_TTL);assert.equal((await f.service.nextFamilyView()).available,false);
  await f.service.query();f.time(0);assert.equal((await f.service.nextFamilyView()).available,false);assert.equal(f.requests.length,0);
