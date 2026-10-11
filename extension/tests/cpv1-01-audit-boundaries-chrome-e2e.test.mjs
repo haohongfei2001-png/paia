@@ -59,6 +59,12 @@ test('audit independent Thought can save, edit and open history while response r
 test('audit retired Source exports reject repeated calls without reads, downloads or data mutation',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
   const p=await ready(h);await h.open({id:'audit-export',title:'Synthetic audit export',messages:[{id:'audit-export-one',text:'Synthetic export content'}]});await eventually(async()=>(await h.state()).records.length===1,'source captured');await p.bringToFront();
+  // Complete the fixture's genuine capture/filter publication and open its
+  // original Reader before observing the retired export event's zero-read cut.
+  // The strict all-command empty assertion below is unchanged.
+  await eventually(async()=>{const filter=await rpc(p,'FILTER_STATUS');return filter.pending===0&&filter.taskState==='idle';},'synthetic capture/filter work completes before the export baseline');
+  await openArchiveWindow(p,{text:'Synthetic audit export'});await p.locator('.library-prose').first().waitFor();
+  await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const downloads=[];p.on('download',download=>downloads.push(download));const before=await h.state();
   assert.equal(await p.locator('#archive-root-export-json,#archive-root-export-markdown,#r6-export-json,#r6-export-markdown,#backup-create').count(),0);
   await p.evaluate(async()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__auditExportCalls=[];chrome.runtime.sendMessage=message=>{__auditExportCalls.push(message.type);return send(message);};for(let i=0;i<3;i++)document.dispatchEvent(new CustomEvent('paia:export',{detail:{format:'json'}}));});

@@ -22,7 +22,24 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   store.run=callback=>preDispatchRead(originalRun,callback);
   const stage=async(label,fn)=>{try{return await fn();}catch(cause){throw new Error('HISTORICAL_FIXTURE_STAGE:'+label+':'+(cause?.code||cause?.message||'UNKNOWN'),{cause});}};
   await stage('drain-purge',()=>store.drainPurgeCleanup());await stage('drain-invalidations',()=>store.drainInvalidations());await stage('drain-library',()=>store.drainLibraryMaintenance());
-  let prior=null,stable=0;for(let n=0;n<100&&stable<8;n++){const generation=await store.repository.transaction(false,async t=>(await t.get('meta','backup-data-generation'))?.value||0,['meta']);stable=generation===prior?stable+1:0;prior=generation;if(stable<8)await new Promise(resolve=>setTimeout(resolve,25));}if(stable<8)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
+  // Navigation read projections do not advance backup-data-generation. Finish
+  // their actual pending scopes before freezing the complete refusal oracle;
+  // never suppress a reader, discard meta rows, or retry an entered purge.
+  let prior=null,stable=0;for(let n=0;n<100&&stable<8;n++){
+   const filter=await store.filterStatus();if(filter.taskState==='failed')throw Error('HISTORICAL_FIXTURE_FILTER_FAILED');
+   const meta=await store.repository.transaction(false,t=>t.all('meta'),['meta']);
+   const scopes=new Map([['providers'],...meta.filter(row=>row.id.startsWith('ans:index-state:v1:scope:')).map(row=>row.scope)].map(scope=>[JSON.stringify(scope),scope]));
+   let complete=!filter.pending&&filter.taskState==='idle';
+   for(const scope of scopes.values()){
+    const page=scope[0]==='providers'?{groupKind:'providers'}:scope[0]==='groups'?{providerKey:scope[1],groupKind:'groups'}:{providerKey:scope[1],groupKind:scope[2],...(scope[2]==='project'?{projectRef:{providerKey:scope[3][0],namespace:scope[3][1],projectId:scope[3][2]}}:{})};
+    const result=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_NAV_PAGE',page});if(!result.ok)throw Error('HISTORICAL_FIXTURE_NAVIGATION_FAILED');
+    complete&&=result.data.coverage.state==='complete'&&result.data.coverage.archiveComplete;
+   }
+   const settled=await store.repository.transaction(false,t=>t.all('meta'),['meta']),catalog=settled.find(row=>row.id==='ans:index-state:v1:catalog');
+   complete&&=catalog?.phase==='complete'&&!catalog.pending&&!settled.some(row=>row.id.startsWith('ans:index-state:v1:dirty:')||row.id.startsWith('ans:index-state:v1:gc:')||row.id.startsWith('ans:index-state:v1:scope:')&&(row.shadow||row.activeRevision!==row.revision));
+   const current=JSON.stringify(settled);stable=complete&&current===prior?stable+1:0;prior=current;
+   if(stable<8)await new Promise(resolve=>setTimeout(resolve,25));
+  }if(stable<8)throw Error('HISTORICAL_FIXTURE_MAINTENANCE_NOT_SETTLED');
   const preview=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_SOURCE_PURGE_PREFLIGHT',id});
   if(!preview.ok)throw Error('HISTORICAL_FIXTURE_PREFLIGHT_FAILED');
   if(${JSON.stringify(allowCurrentPure)}&&preview.data.state==='unambiguous'){
