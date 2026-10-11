@@ -1,3 +1,13 @@
+# Current executable frontier: SET2 Removed0.43.26 and complete mixed SYNC-01 — 2026-10-12
+
+Current accepted main b8a09bbfd4b57447c71f8b18bb1e528c65e0668e, product0.43.25 preserves PR262 Data destinations, all earlier Topic/Context/AI/Prompt/NIBv4/selected IAH1.1 outcomes. Exact-main selected Light8/Prompt5 and internal484-file byte qualification are recorded in STATUS; no Full/native skip is converted into a pass.
+
+Root exclusively integrates coherent SET2-02 Removed composition46a00b5838ffa1570ce5c0f9919e17a0787a83a9, product0.43.26, through the existing four typed owners and original History discovery. Original approved Settings18, real current and unknown recovery, paging, lifecycle, native focus and Source/body/permission preservation are the batch boundary. Code/components and targeted actual source/release evidence are distinct from pending independent final review, exact-head cloud headed device/whole Thought acceptance, merge and exact-main release qualification. See [receipt](implementation/settings/SET2-REMOVED-COMPOSITE-04326.md). Settings has26 original screenshots/25 interactive scenes; the combined Context+Settings48 is not a Settings-only acceptance count.
+
+The independent data writer continues approved PR250 SYNC-01 Batch A complete mixed Canonical path; A44/B48/freshC19 and reached37/110 are partial author diagnostics before unchanged8Mi body refusal. Original bound pre-enrollment Working history, full continuation/negative safety and immutable acceptance still need closure in that same coherent batch. No unused helper integration, old-plan split queue or new product scope is selected. All outstanding latest seven-lane gates remain; original IAH1.1 selected six outcomes and approved S4 opening are preserved and not redone. Paid/model/account/permission/upload/deployment/deletion decisions remain separately gated.
+
+## Preserved previous execution record
+
 # SET2-02 Data destinations: repaired exact candidate0.43.25 — 2026-10-12
 
 Executable candidate fb8d4aec498067a702bf50afdb902a764cadef3e/tree389225314047e929df4489e844c3d90774d92ca0 preserves latest main32bc1bb44ccdd3ed682d300c0699c816924a1b2d. Original import and Source Records owners now use normal Settings destinations; original Backup controls use one guarded native detail. Actual close waits for successful same-session cancellation acknowledgement; refusal retains the selected file, staged preview and replacement confirmation for explicit retry. Busy inspection/restore remains visible. No storage/schema/worker/provider/permission change.

@@ -1,3 +1,11 @@
+# SET2 Removed composite stable-batch verification selection — 2026-10-12
+
+This batch keeps current main b8a09bbfd4b57447c71f8b18bb1e528c65e0668e and approved Settings18 presentation while reconnecting every already supported Removed kind through its original typed owner. The original whole Data journey covers real Source/release recovery, unknown receipts, CAS/epoch, paging, pending-import discovery and history lifecycle. Original local failed/headless-device records remain failures; no assertion, timeout, admission, privacy, native or budget guard is reduced.
+
+Classify the coherent candidate as a bounded SET2-02 recovery/production acceptance boundary and select the existing full gate with PAIA_FULL_CERTIFICATION. Original cloud Xvfb/pinned-Chrome current browser tests provide the necessary headed-device evidence without a visible user browser. All whole files, original native gate and required aggregates remain; no CI configuration changes or same-SHA confirmation deployment are introduced. Independent review precedes ready-PR integration, and a full boundary merge retains the marker for actual exact-main qualification. Neither local partial evidence nor a skipped/cancelled job is a pass. Full SET2 final visual/state and all seven plans remain separate obligations.
+
+## Preserved protocol and receipts
+
 # Prompt Reuse independent integration amendment — 2026-10-05
 
 After viewing and retaining the material candidate, the owner authorized finishing
