@@ -38,7 +38,7 @@ async function verifySavedSummaryAccess(p,variant){
 
 async function setAIView(p,on){await rawSetAIView(p,on);if(on){const details=p.locator('[data-ai-saved-fields]');await details.waitFor();if(!await details.evaluate(n=>n.open))await details.locator('summary').click();}}
 
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -49,7 +49,14 @@ function installVS05Diagnostic(){
  const original=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=function(message,...args){const result=original(message,...args);if(result&&typeof result.then==='function')return result.then(reply=>{record({event:'reply',type:message?.type,ok:reply?.ok,error:reply?.error,items:Array.isArray(reply?.data?.items)?reply.data.items.length:undefined});return reply;},error=>{record({event:'reject',type:message?.type,name:error?.name});throw error;});return result;};
 }
 async function vs05Failure(h,variant,error){
- try{const state=await h.archive.evaluate(()=>{const t=globalThis.__vs05Diagnostic;return {phase:t?.phase,events:t?.events,view:document.querySelector('[data-view][aria-current="page"]')?.dataset.view,documentVisible:!!document.querySelector('#thought-document')&&!document.querySelector('#thought-document').hidden,headingCount:document.querySelectorAll('#topic-heading h1').length,headingVisible:!!document.querySelector('#topic-heading h1')?.getClientRects().length,activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,topicLinks:document.querySelectorAll('.personal-topic-link').length,recomposing:document.documentElement.classList.contains('paia-recomposing')};});console.log('VS05_NATIVE_FAILURE',variant,JSON.stringify(state));}catch(diagnosticError){console.log('VS05_NATIVE_DIAGNOSTIC_UNAVAILABLE',variant,diagnosticError.name);}throw error;
+ let state=null;
+ try{state=await h.archive.evaluate(()=>{const t=globalThis.__vs05Diagnostic;return {phase:t?.phase,events:t?.events,view:document.querySelector('[data-view][aria-current="page"]')?.dataset.view,documentVisible:!!document.querySelector('#thought-document')&&!document.querySelector('#thought-document').hidden,headingCount:document.querySelectorAll('#topic-heading h1').length,headingVisible:!!document.querySelector('#topic-heading h1')?.getClientRects().length,activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,topicLinks:document.querySelectorAll('.personal-topic-link').length,recomposing:document.documentElement.classList.contains('paia-recomposing')};});}catch(diagnosticError){state={unavailable:diagnosticError.name};}
+ // The CI reporter does not forward test stdout. Retain bounded original state
+ // in the original error and artifact, without replacing the original failure.
+ const detail='VS05_NATIVE_FAILURE '+variant+' '+JSON.stringify(state),originalStack=error.stack||String(error);
+ try{error.message+='\n'+detail;error.stack=originalStack+'\n'+detail;}catch{}
+ try{const dir=process.env.PAIA_CONSUMER_EVIDENCE_DIR||'work/consumer-cleanup';await mkdir(dir,{recursive:true});await writeFile(join(dir,variant+'-vs05-navigation-failure.json'),JSON.stringify({variant,state},null,2));}catch{}
+ throw error;
 }
 async function observedFixture(variant,options){
  if(options.count!==64)return baseFixture(variant,options);

@@ -1,8 +1,8 @@
-# SYNC-01 B current native54 and repaired Context pass; two browser gates remain — 2026-10-11
+# SYNC-01 B native54 passes; current browser failure repair remains open — 2026-10-11
 
-PR254 exacteadcd279 / tested merge6aae137b remains **NOT_ACCEPTED**: Full38101954091 FAILURE, Prompt38101954271 SUCCESS. All54 native journeys and strict evidence pass, as do all units/privacy/build/macOS and seven current browser shards, including the repaired Context/original Prompt boundary and UIS02. Browser4 publication recovery failed its complete-store comparison when original Archive navigation initialized a derived catalog after the baseline; the fixture now completes that original initialization before the fault, retaining every equality, and the full11 source/release file passes locally. Browser5 long-Topic heading navigation remains under bounded diagnosis.
+PR254 exact0c5c0fcc / tested mergeb22b833b remains **NOT_ACCEPTED**: Full38103287879 FAILURE, Prompt38103287882 SUCCESS. Fresh native54 and both strict artifact gates pass; Browser1/4/6/7/9, units, privacy, release and macOS also pass. Browser2/3/5/8 fail. Root closes the original navigation fixture prerequisites and preserves complete failure evidence; the Topic and Data-page cloud causes remain under diagnosis. No failed, skipped or cancelled result is accepted.
 
-Root owns B integration and its publication fixture; Human owns only the UIR test diagnosis. C complete shared recovery and NIB S1/S2 continue with disjoint writers. No unchanged CI rerun, assertion/timeout reduction, merge or new delivery. See the [single owning record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#seventh-formal-candidate-current-context-and-native54-pass) for exact failures/evidence. Main531dbcf / qualified0.43.16 remain unchanged.
+Root owns B integration, navigation fixtures and the test report; Human owns only the UIR Topic diagnostic. C shared Canonical producer/receiver and NIB S1/S2 continue with disjoint writers. One stable repair batch must meet fresh required gates before integration. Main531dbcf / qualified0.43.16 remain unchanged. See the [single owning record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#eighth-formal-candidate-native54-and-four-browser-failures).
 
 ## Preserved preceding checkpoints
 
