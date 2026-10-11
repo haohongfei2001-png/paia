@@ -56,8 +56,19 @@ function mountRemovedDetail(language) {
  const failure=error=>error?.code==='BACKUP_CHANGED'?text('列表已改变，请重新加载。','The list changed. Reload before continuing.'):error?.code==='CONFLICT'?text('内容或组织已更新，请重新加载后再试。','The content or organization changed. Reload before trying again.'):text('处理尚未完成，当前内容保留。请核对结果或重试。','This has not completed. Content is preserved. Check the result or retry.');
  const button=(label,run)=>{const node=document.createElement('button');node.type='button';node.textContent=label;node.addEventListener('click',()=>void run());return node;};
  const statusCopy=()=>statusError?failure(statusError):statusState==='reading'?text('正在读取已移除内容…','Reading removed content…'):statusState==='partial-empty'?text('当前页没有可恢复内容，可以继续加载。','No restorable content on this page. Continue loading.'):statusState==='empty'?text('没有当前可恢复的已移除内容。','There is no removed content currently available to restore.'):statusState==='retained'?text('已核对原恢复结果；当前内容仍保留在列表中。','The original result is confirmed; the current item remains in the list.'):statusState==='restored'?text('已恢复，AI 权限未改变。','Restored. AI access is unchanged.') : '';
- const render=()=>{
+ const syncCopy=()=>{
   intro.textContent=text('移除不等于永久删除。这里只列出当前仍可恢复的内容。','Removal is not permanent deletion. Only currently restorable items are listed here.');footer.textContent=text('恢复不会重新开放 AI 权限。','Restoring never re-opens AI access.');
+  for(const row of cached.values()){
+   const {kind,item}=row.record;row.feedback.textContent=row.error?failure(row.error):'';
+   row.title.textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');
+   row.description.textContent=row.unknown?text('上次恢复结果尚未核对；这不是新的恢复请求。','The previous recovery result is unconfirmed; this is the original request.'):kind==='placement'?text('内容仍保留 · 从「'+item.topicName+'」中移除',`Content retained · Removed from ${item.topicName}`)+(item.sectionName?' · '+item.sectionName:''):text(...labels[kind]);
+   row.action.textContent=row.unconfirmed?text('核对结果或重试','Check result or retry'):text(...actions[kind]);
+   if(row.history)row.history.textContent=kind==='topic'?text('版本历史','Version history'):text('版本','Versions');
+  }
+  for(const [kind,control]of moreControls)control.textContent=kind==='reload'?text('重新加载列表','Reload list'):text(...titles[kind]);
+  status.textContent=statusCopy();
+ };
+ const render=()=>{
   const wanted=[],seen=new Set();
   for(const kind of REMOVED_KINDS)for(const record of [...(model.rows?.values()??[]),...model.attempts.values(),...(keepRows?[...cached.values()].filter(row=>!model.pages?.get(row.record.kind)?.started).map(row=>row.record):[])].map(value=>value.row??value)) {
    if(record.kind!==kind)continue;const {item}=record,key=JSON.stringify([kind,item.id]);if(seen.has(key))continue;seen.add(key);
@@ -72,17 +83,15 @@ function mountRemovedDetail(language) {
     });action.dataset.recoveryKind=kind;node.append(title,description,action);let history=null;
     if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';row={node,title,description,action,history,feedback};cached.set(key,row);
    }
-   row.record=record;row.feedback.textContent=row.error?failure(row.error):'';row.title.textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');row.description.textContent=kind==='placement'?text('内容仍保留 · 从「'+item.topicName+'」中移除',`Content retained · Removed from ${item.topicName}`)+(item.sectionName?' · '+item.sectionName:''):text(...labels[kind]);
-   const attempt=model.attempts.get(key);row.action.textContent=attempt?.edit?text('核对结果或重试','Check result or retry'):text(...actions[kind]);row.action.disabled=!!attempt?.busy||!model.rows.has(key)&&!attempt;
-   if(row.history){row.history.textContent=kind==='topic'?text('版本历史','Version history'):text('版本','Versions');row.history.disabled=!!attempt?.busy||!model.rows.has(key);}
-   if(attempt?.edit&&!model.rows.has(key))row.description.textContent=text('上次恢复结果尚未核对；这不是新的恢复请求。','The previous recovery result is unconfirmed; this is the original request.');
+   row.record=record;const attempt=model.attempts.get(key);row.unconfirmed=!!attempt?.edit;row.unknown=!!attempt?.edit&&!model.rows.has(key);row.action.disabled=!!attempt?.busy||!model.rows.has(key)&&!attempt;
+   if(row.history)row.history.disabled=!!attempt?.busy||!model.rows.has(key);
    wanted.push(row.node);
   }
   let cursor=list.firstChild;for(const node of wanted){if(node!==cursor)list.insertBefore(node,cursor);cursor=node.nextSibling;}for(const node of [...list.children])if(!wanted.includes(node))node.remove();
   for(const [key,row]of cached)if(!seen.has(key)){row.node.remove();cached.delete(key);}
   const controls=[];for(const kind of REMOVED_KINDS){const page=model.pages?.get(kind);if(!page||page.done&&!page.error)continue;let control=moreControls.get(kind);if(!control){control=button('',async()=>{const serial=viewSerial;control.disabled=true;try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))render();});moreControls.set(kind,control);}control.textContent=text(...titles[kind]);control.disabled=!!page.pending||!model.fence||page.error?.code==='BACKUP_CHANGED';controls.push(control);}
   let reload=moreControls.get('reload');if(!reload){reload=button('',()=>open());moreControls.set('reload',reload);}reload.textContent=text('重新加载列表','Reload list');if(statusError||model.attempts.size||[...model.pages.values()].some(page=>page.error))controls.push(reload);let position=more.firstChild;for(const node of controls){if(position!==node)more.insertBefore(node,position);position=node.nextSibling;}for(const node of [...more.children])if(!controls.includes(node))node.remove();
-  if(model.fence&&[...model.pages.values()].every(page=>page.done)&&!wanted.length&&(statusState==='reading'||statusState==='partial-empty'||statusState===null)&&!statusError)statusState='empty';if(statusState==='partial-empty'&&wanted.length)statusState=null;status.textContent=statusCopy();
+  if(model.fence&&[...model.pages.values()].every(page=>page.done)&&!wanted.length&&(statusState==='reading'||statusState==='partial-empty'||statusState===null)&&!statusError)statusState='empty';if(statusState==='partial-empty'&&wanted.length)statusState=null;syncCopy();
  };
  const open=async(preserve=false)=>{
   const serial=++viewSerial,focused=preserve&&list.contains(document.activeElement)?document.activeElement:null;let focusMoved=false;
@@ -104,7 +113,7 @@ function mountRemovedDetail(language) {
  detail=mountSettingsDetail({id:'settings-removed',title:['已移除的内容','Removed content'],content,language:renderedLanguage,onOpen:open});
  detail.dialog.addEventListener('close',()=>{++viewSerial;model.close();cached.clear();list.replaceChildren();more.replaceChildren();});
  const observer=new MutationObserver(()=>{if(detail.dialog.open&&(document.getElementById('settings-panel').hidden||document.getElementById('ux-settings-data-group').hidden))detail.dialog.close();});for(const id of ['settings-panel','ux-settings-data-group'])observer.observe(document.getElementById(id),{attributes:true,attributeFilter:['hidden']});
- document.addEventListener('paia:preferences-applied',()=>{detail.sync();if(detail.dialog.open)render();});return detail;
+ document.addEventListener('paia:preferences-applied',()=>{detail.sync();if(detail.dialog.open)syncCopy();});return detail;
 }
 export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;

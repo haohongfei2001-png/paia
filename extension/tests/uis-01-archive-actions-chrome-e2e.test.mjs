@@ -89,10 +89,10 @@ test('UIS-01 quiets Archive root and keeps history reachable while retired expor
     await page.locator('[data-view="settings"]').click();
     await eventually(()=>page.locator('#settings-panel').isVisible(),'Settings opens');
     await page.locator('[data-settings-group="data"]').click();
-    await eventually(()=>page.locator('#r6-source-records').isVisible(),'Data & devices shows Source Records entry');
+    await eventually(()=>page.locator('#settings-source-records').isVisible(),'Data & devices shows Source Records entry');
     assert.equal(await page.locator('#archive-root-overflow').isVisible(),false,'Archive overflow is not exposed in Settings');
     assert.equal(await page.locator('#r6-complete-export').count(),0,'complete export implementation has no UI owner');
-    await page.locator('#r6-source-records button').click();
+    await page.locator('#settings-source-records').click();
     await eventually(()=>page.locator('#collection-panel').isVisible(),'Source Records root opens');
     await page.locator('#scope-search').fill('UIS01_EXPORT_FILTER_A');
     await eventually(async()=>await page.locator('.conversation-document').count()===1,'Source Records filter narrows the current scope');

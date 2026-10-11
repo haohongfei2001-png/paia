@@ -15,7 +15,7 @@ for(const variant of ['source','release'])test(`SET2-02 ${variant} real import/s
  await mkdir(out,{recursive:true});
  try{
   h=await FakeChatGPT.start({extensionPath:release||root,headless:true,launchThroughPort:true});const p=h.archive;
-  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await eventually(()=>p.locator('html').getAttribute('lang').then(language=>language==='zh-CN'));
   await p.setViewportSize({width:1440,height:900});await p.locator('.sidebar-bottom [data-view="settings"]').click();await chooseConsumerGroup(p,'data');
   const before=await rpc(p,'GET_PAGE',{page:{view:'settings'}});
   await p.evaluate(()=>{globalThis.__dataNodes=['settings-history','backup-settings','backup-file','backup-choose','backup-mode','backup-confirm-replace','history-latest','settings-source-records'].map(id=>[id,document.getElementById(id)]);const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__dataCalls=[];globalThis.__dataOriginal=original;chrome.runtime.sendMessage=async m=>{__dataCalls.push(m.type);const response=await original(m);if(m.type==='PAIA_BACKUP_BEGIN_RESTORE'&&globalThis.__dataHoldBegin)await new Promise(resolve=>globalThis.__dataReleaseBegin=resolve);return response;};});
