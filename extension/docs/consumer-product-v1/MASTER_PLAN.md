@@ -1,3 +1,15 @@
+# Current combined candidate: f1dc failure and bounded fixture repairs — 2026-10-11
+
+PR254 head `f1dc3e29b86ab822dd235cb6cbd03220520a99b0` (tested merge `a6fe8af1e01f12b74e7762b1d8a72218975bec87`) remains **NOT_ACCEPTED**. Full38113001373 and Visual38113001386 failed; Prompt38113001378 passed. Browser4/5/6/8 failed, while the other five current browser shards, all unit shards, contracts/build and both macOS jobs passed. Fresh native54 top-level journeys/84 total tests and both original strict artifact gates passed independent verification. No skipped or cancelled job is accepted.
+
+The follow-up preserves runtime and all original assertions/deadlines. The visual fixture now explicitly selects its Chinese language and waits for a neutral pointer state; complete source8/release8 and the unchanged comparison pass with zero pixel differences. The Data fixture waits for the actual restore commit before inspecting its already-visible panel; its original complete file passes. Consent-reload and Source-dialog failures did not reproduce in their isolated complete files; their causes remain UNKNOWN, and bounded failure-only diagnostics preserve the original thrown error. The original Prompt surface readiness repair passes all40 source/release tests, including split and second-tab/discard behavior. These are component results, not a new formal candidate pass.
+
+The user has now expressly approved S4 toolbar behavior: focus an existing PAIA tab in the current window without reload or unsaved-edit loss; otherwise open PAIA, retaining first-use onboarding. S4 implementation and replacement acceptance proceed in a separate batch; Popup remains until those gates pass. This latest decision supersedes the historical pending-decision statements below. Shared Canonical C remains with its sole writer, including original resource accounting and pre-journal library bootstrap; neither C nor S4 is included in this PR254 repair.
+
+Root prepares one consolidated follow-up after complete affected verification and independent review. Exact follow-up Full/Prompt/visual gates, normal integration, exact-main verification and a qualified package remain required. Main `531dbcf88a88a397570d7cf5bc55888b97d259d2` and qualified0.43.16 are unchanged. See [owning evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+## Preserved prior checkpoint
+
 # Combined candidate: formal failures under bounded repair — 2026-10-11
 
 PR254 publication2ea33e817bb3aa596b429db7443c718e0418bd65 preserves the exact development779aec tree. Prompt38110775241 passes, but Full38110775163 fails native preflight and Browser2/5/9; PromptVisual38110775168 also fails. Six current browser shards, four unit shards, contracts/build and both macOS jobs pass. The earlier original saved-candidate Topic reopen now passes its complete five-case file, without establishing a unique cause for its historical failure. No skipped or cancelled job is counted as PASS, and no current main/package delivery is accepted.

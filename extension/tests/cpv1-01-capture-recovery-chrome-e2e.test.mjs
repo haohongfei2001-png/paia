@@ -115,6 +115,16 @@ test('capture recovery: no consent and pause remain fail-closed across real relo
   assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,false);
   assert.equal(await page.locator('#paia-reconnect-notice').count(),0);
   await saveEvidence(h,page,'consent-pause',{unconsentedRecords:0,pausedRecords:3});
+ }catch(error){
+  try{const diagnostic=await h.archive.evaluate(async key=>{
+   const raw=(await chrome.storage.local.get(key))[key];
+   const {controlPublicationDigest}=await import('../core/local-control-publication.js');
+   const actualDigest=raw?await controlPublicationDigest(raw):null;
+   const db=await new Promise((resolve,reject)=>{const req=indexedDB.open('paia-archive');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});
+   try{const ids=['local-control-publication:reservation','local-control-publication:revision','gate','migration','recovery-restore-epoch','bns:consumer-preference-publication:pending','backup-recovery-settings'];const tx=db.transaction('meta','readonly'),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);}),rows=await Promise.all(ids.map(id=>new Promise((resolve,reject)=>{const req=tx.objectStore('meta').get(id);req.onsuccess=()=>resolve(req.result??null);req.onerror=()=>reject(req.error);})));await done;const [reservation,revision,gate,migration,epoch,consumer,backup]=rows;
+    return {database:db.name,schema:db.version,storeCount:db.objectStoreNames.length,reservation,revision,gate,migrationPhase:migration?.phase??null,restoreEpoch:epoch?.value??null,consumerPending:!!consumer,backupPending:!!backup,localSchema:raw?.schemaVersion??null,localStamp:raw?.controlPublication??null,localConsentVersion:raw?.settings?.consentVersion??null,localEnabled:raw?.settings?.enabled??null,localEpoch:raw?.settings?.epoch??null,beforeDigestMatches:reservation?.beforeDigest===actualDigest,afterDigestMatches:reservation?.afterDigest===actualDigest};
+   }finally{db.close();}
+  },STORAGE_KEY);await mkdir(evidence,{recursive:true});await writeFile(join(evidence,'no-consent-reload-failure-metadata.json'),JSON.stringify(diagnostic,null,2));console.error('NO_CONSENT_RELOAD_METADATA '+JSON.stringify(diagnostic));}catch(diagnosticError){console.error('NO_CONSENT_RELOAD_DIAGNOSTIC_FAILED '+JSON.stringify({name:diagnosticError?.name}));}throw error;
  }finally{await f.close();}
 });
 

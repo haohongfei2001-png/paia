@@ -9,6 +9,8 @@ test('CPV1-02.6 Reader and Archive keep long multilingual content, focus, 200% s
  const h=await FakeChatGPT.start({onboarding:true});
  try{
   const p=h.archive;
+  // Read-only, bounded lifecycle evidence for failures; never retry the action.
+  await p.evaluate(()=>{const events=[];globalThis.__sourceDialogEvidence=events;const add=value=>{events.push(value);if(events.length>24)events.shift();};chrome.runtime.onMessage.addListener(m=>{if(m.type==='ARCHIVE_CHANGED')add({event:'archive-changed',cause:typeof m.cause==='string'&&/^[A-Z0-9_]{1,64}$/.test(m.cause)?m.cause:'unknown',open:document.getElementById('info-dialog')?.open});});document.getElementById('info-dialog').addEventListener('close',()=>add({event:'dialog-close',open:document.getElementById('info-dialog').open}));});
   await p.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
   assert.equal(await p.locator('#onboarding-history-step').isVisible(),false,'Archive root stays blank; optional history import belongs to Settings');
@@ -39,5 +41,5 @@ test('CPV1-02.6 Reader and Archive keep long multilingual content, focus, 200% s
   await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true);
   assert.equal(await p.locator('#document-body').evaluate(el=>getComputedStyle(el).scrollBehavior),'auto','Reader uses no forced smooth scrolling under reduced motion');
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }catch(error){try{console.error('A11Y_ORIGINAL_MODAL_FAILURE',JSON.stringify(await h.archive.evaluate(()=>({events:globalThis.__sourceDialogEvidence,dialogOpen:document.getElementById('info-dialog')?.open,sourceRows:document.querySelectorAll('#info-content .source-original').length,contextHidden:document.getElementById('context-menu')?.hidden,readerVisible:!!document.getElementById('document-panel')?.getClientRects().length,activeTag:document.activeElement?.tagName}))));}catch(diagnosticError){console.error('A11Y_ORIGINAL_MODAL_DIAGNOSTIC_FAILED',diagnosticError?.name);}throw error;}finally{await h.close();}
 });
