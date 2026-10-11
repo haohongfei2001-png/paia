@@ -50,7 +50,7 @@ export class ContextItemEditor {
    if(ack.result.itemId!==this.id||ack.result.lifecycle!=='active'||!Number.isSafeInteger(ack.result.revision))throw Error('SAVE_OUTCOME_UNKNOWN');
    if(ack.change.operationId===this.undoOperationId){this.journal.undo.pop();this.undoOperationId=null;}else if(before!==ack.change.body&&before.trim())this.journal.record({body:before});
    this.saved={...this.saved,body:ack.change.body,revision:ack.result.revision};this.fresh=false;this.failed=false;
-   await this.recovery.clear(ack.change.operationId).catch(()=>{});
+   await this.recovery.discard(ack.change.operationId).catch(()=>{});
    this.feedback.textContent=this.local===ack.change.body?copy('已保存','Saved'):copy('还有修改未保存','Newer changes are not saved yet');
    return true;
   }catch(error){this.failed=true;if(error?.code==='CONTEXT_INVALIDATED'){this.conflicted=true;this.feedbackFailure(true);}else this.feedbackFailure();return false;}finally{this.saving=null;}})();

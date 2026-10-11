@@ -1,3 +1,15 @@
+# Current0.43.20 follow-up: Context recovery and exact inventories — 2026-10-11
+
+Main remains531dbcf88a88a397570d7cf5bc55888b97d259d2 (qualified0.43.16). PR254f34262aee5580f2df9f50de0d59b15391a1a9fcf Full38128255053 completed FAILURE: Unit4 old Root-routing count, native Node preflight exact runtime inventories, and Browser6 original CTX4-02 release Now edit. Browser1/2/3/4/5/7/8/9, contracts, release build and both macOS jobs pass. Visual38128255056 passes; Prompt38128255030 fails the same inventory count and its downstream skipped job is not a pass. Actual native browser execution did not start. Earlier ANS03, Prompt compatibility and NIB historical source/release fixes pass their current browser shards. Retain all original failure evidence.
+
+The original Context owners reproduce two actual defects: queued protection can recreate an already-committed recovery draft after acknowledgement cleanup, and failed cleanup leaves a manual committed draft that the automatic-only receipt predicate cannot retire. The UI now waits its actual protection drain before exact-token discard; a newer token survives. Original worker reconciliation admits protected manual Items only with an empty Source envelope and the same complete exact receipt/digest/epoch/owner/card/result/revision proof. Unknown or unsaved work and failed cleanup retain their drafts. CAS, Source lineage, original deadlines and all existing browser assertions remain unchanged. The old cloud trace cannot establish its unique triggering race; bounded write/recovery diagnostics are now retained separately from snapshot polling.
+
+Combined2948bcf52813c95a6f938c7a06d378a285268af4 passes12 complete affected unit/contract files151/151 in2010.58575ms and the original complete Context headless source/release browser file8/8 in82118.415125ms, with0fail/cancel/skip. Its fresh standard0.43.20 package contains484 files; package/development audits pass. The original two-counter failures, the UI-only117/118 result and manual-worker pre-fix21/25 result remain recorded. Independent UI/diagnostic reviewc09fba813a1b1fdfd82ce07467df0ac40eb523bcbe67f112b9b5c326a28ba4e1 and manual-receipt review75bc49a281ee1fb28e2a981c363f80e84e93cd6315ccb7b46b5a4f938fe929b8 approve the finite repair only.
+
+Exact inventory corrections retain all original browser-file assignments while acknowledging the94th whole Topic promotion file, and all original224 runtime dependencies plus eight actual static promotion dependencies (232 total). Strict assertion/proof inventories, receipt gates, permissions and CI limits remain unchanged. One combined candidate follow-up proceeds to fresh Full/Prompt and native qualification; normal merge, exact-main Full/Prompt and qualified delivery remain pending. Complete mixed Canonical C is independently in progress and excluded. No missing visual/provider/account/device gate, paid model, installation or deployment is claimed complete.
+
+## Preserved prior checkpoint
+
 # TOPIC-05.5 manual Section promotion candidate0.43.20 — 2026-10-11
 
 ## Coherent candidate and retained formal failure
