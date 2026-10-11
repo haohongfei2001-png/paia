@@ -44,6 +44,27 @@ async function reload(h,version){
  h.archive=await h.context.newPage();await h.archive.goto(`chrome-extension://${h.extensionId}/ui/archive.html`);
  await eventually(async()=>{try{return (await rpc(h,{type:'GET_STATUS'}))!==null;}catch{return false;}},'new extension UI can read its existing archive');
 }
+async function diagnosticPublicationSettled(h,page,code,replyCompleted=null){
+ const world=await isolated(h,page);
+ try{
+  await eventually(async()=>{
+   if(await world.evaluate('globalThis.PAIACaptureLifecycle?.ready === true')!==true)return false;
+   if(replyCompleted&&!await replyCompleted())return false;
+   return h.archive.evaluate(async({key,code})=>{
+    const {DATABASE_NAME}=await import('/core/idb-repository.js');
+    const before=(await chrome.storage.local.get(key))[key];
+    const db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DATABASE_NAME);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+    try{
+     const fence=async()=>{const tx=db.transaction(['meta'],'readonly'),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});const rows=await Promise.all(['local-control-publication:reservation','local-control-publication:revision'].map(id=>new Promise((resolve,reject)=>{const r=tx.objectStore('meta').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);})));await done;return rows;};
+     const [reservation,revision]=await fence();
+     const after=(await chrome.storage.local.get(key))[key],stamp=before?.controlPublication;
+     const [lastReservation,lastRevision]=await fence();
+     return !reservation&&!lastReservation&&stamp?.version===1&&stamp.revision===revision?.revision&&revision.revision===lastRevision?.revision&&stamp.nonce===after?.controlPublication?.nonce&&stamp.revision===after?.controlPublication?.revision&&after.diagnostics?.status===code&&typeof after.diagnostics.lastScanAt==='string';
+    }finally{db.close();}
+   },{key:STORAGE_KEY,code});
+  },'original diagnostic publication finishes before the deliberate reload');
+ }finally{await world.cdp.detach();}
+}
 async function saveEvidence(h,page,name,fields={}){
  await mkdir(evidence,{recursive:true});
  const records=(await h.state()).records;
@@ -107,10 +128,19 @@ test('capture recovery: no consent and pause remain fail-closed across real relo
  const f=await setup(),{h}=f;
  try{
   const page=await h.open(conversation('recover-consent-chat'),{arrival:'dom-first'});await h.draft(page,'UNSENT_NO_CONSENT');
+  await diagnosticPublicationSettled(h,page,'CONSENT_REQUIRED');
   await reload(h,currentVersion);await pause(2500);assert.equal((await h.state()).records.length,0);
   await allow(h);await eventually(async()=>(await h.state()).records.length===3);
-  await rpc(h,{type:'SET_ENABLED',enabled:false});
-  await h.send(page,{id:'paused-sent-message-004',text:'Synthetic sent while paused'});
+  const pauseWorld=await isolated(h,page);
+  try{
+   assert.equal(await pauseWorld.evaluate(`(() => {const original=chrome.runtime.sendMessage,observed={completed:false};const wrapped=function(message,...args){const reply=Reflect.apply(original,this,[message,...args]);if(message?.type==='DIAGNOSTIC'&&message.code==='PAUSED')Promise.resolve(reply).then(result=>{observed.completed=result?.ok===true;},()=>{});return reply;};globalThis.__pauseDiagnosticObservation={original,wrapped,observed};chrome.runtime.sendMessage=wrapped;return true;})()`),true);
+   await rpc(h,{type:'SET_ENABLED',enabled:false});
+   await h.send(page,{id:'paused-sent-message-004',text:'Synthetic sent while paused'});
+   await diagnosticPublicationSettled(h,page,'PAUSED',()=>pauseWorld.evaluate('globalThis.__pauseDiagnosticObservation.observed.completed'));
+  }finally{
+   await pauseWorld.evaluate(`(() => {const state=globalThis.__pauseDiagnosticObservation;if(state&&chrome.runtime.sendMessage===state.wrapped)chrome.runtime.sendMessage=state.original;delete globalThis.__pauseDiagnosticObservation;return true;})()`);
+   await pauseWorld.cdp.detach();
+  }
   await reload(h,currentVersion);await pause(2500);assert.equal((await h.state()).records.length,3);
   assert.equal((await rpc(h,{type:'GET_STATUS'})).enabled,false);
   assert.equal(await page.locator('#paia-reconnect-notice').count(),0);
