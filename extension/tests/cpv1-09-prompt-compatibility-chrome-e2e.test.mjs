@@ -6,7 +6,7 @@ for(const runtime of ['source','release'])test('bounded current composer compati
  const extensionPath=runtime==='source'?root:join(root,'work/current-release');if(runtime==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true});let world;
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'SET_ENABLED',{enabled:false});
+  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});await rpc(h.archive,'SET_ENABLED',{enabled:false});
   const ui=await h.context.newPage();await ui.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');const text='Compatibility synthetic';await rpc(ui,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:0,text}});
   await routeComposer(h.context,root,{signature:'current'});const page=await h.context.newPage();await page.goto(url);await page.waitForFunction(()=>globalThis.fixture?.view);await page.addStyleTag({content:'form{position:fixed;bottom:20px;left:20px;right:20px;padding:12px}'});
   world=await isolated(page,h.extensionId);const orb=page.locator('[data-paia-prompt-surface]');const status=()=>world.run('(()=>{const a=new PAIAChatGPTComposerAdapter();try{return a.discover().status;}finally{a.dispose();}})()');

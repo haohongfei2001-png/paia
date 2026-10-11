@@ -135,3 +135,17 @@ test('explicit scope resolution stays behind accepted save/IME and latest naviga
  const {context,seen}=freshFixture();let release,entered;const started=new Promise(resolve=>entered=resolve);let applied=0;const pending=context.navigate('library',null,null,{searchQuery:'ARCHIVE_A',resetArchiveSearch:true,resolveNavigator:()=>new Promise(resolve=>{release=()=>resolve(()=>applied++);entered();})});await started;context.navigationIntent++;release();assert.equal(await pending,false);assert.equal(applied,0);assert.deepEqual(seen,[]);assert.equal(context.documentId,'synthetic-doc');assert.equal(context.query,'ARCHIVE_A');
 });
 test('unconfirmed scope after leave never changes query, scope, Reader or history',async()=>{const {context,seen}=freshFixture();const original=context.searchProject;let closed=0;context.readingModals.close=()=>closed++;assert.equal(await context.navigate('library',null,null,{searchQuery:'OTHER',resetArchiveSearch:true,resolveNavigator:async()=>null}),false);assert.equal(closed,0);assert.equal(context.searchProject,original);assert.equal(context.documentId,'synthetic-doc');assert.equal(context.query,'ARCHIVE_A');assert.deepEqual(seen,[]);});
+
+test('arrival read receipt excludes successful refresh during held leave when its own read fails',async()=>{
+ const {context}=freshFixture();context.serial=10;context.state={synthetic:true};context.lastSuccessfulRefresh=null;
+ context.leave=async()=>{context.serial++;context.lastSuccessfulRefresh={serial:context.serial,view:context.view,documentId:context.documentId,query:context.query,state:context.state};return true;};
+ context.refresh=async()=>{context.serial++;};
+ assert.equal(await context.navigate('library',null,null,{requireFreshArrival:true,searchQuery:'ARCHIVE_A'}),'arrival_unavailable');
+});
+test('arrival read receipt requires its successful current read, not an old or superseded state',async()=>{
+ for(const stale of [false,true]){
+  const {context}=freshFixture();context.serial=10;context.state={synthetic:true};context.lastSuccessfulRefresh=null;
+  context.refresh=async()=>{context.serial++;context.lastSuccessfulRefresh={serial:context.serial,view:context.view,documentId:context.documentId,query:context.query,state:stale?{}:context.state};};
+  assert.equal(await context.navigate('library',null,null,{requireFreshArrival:true,searchQuery:'new'}),stale?'arrival_unavailable':true);
+ }
+});

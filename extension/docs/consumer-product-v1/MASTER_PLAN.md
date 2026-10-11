@@ -1,3 +1,15 @@
+# Stable local configuration and narrow Prompt combination — 2026-10-11
+
+The0.43.18 integration candidate preserves all current main and PR254 B configuration recovery, and incorporates approved NIB S0/S1/S2 plus the provider-disabled S3 owner. Frozen runtime291e1114 passes the complete original unit suite5516/5516; its unchanged runtime atce520 passes complete adapter102 and privacy/security59. Final native fixture1c7ce6e7 passes all14 original historical-candidate source/release tests with0fail/cancel/skip, all3305 tracked files/182 proof dependencies/478 release files unchanged across the run. The standard release was built once. Earlier136-test browser proof remains bound to5d7247df and is not recertified by these results.
+
+Revocation/original timeout restores local controls while preserving UNKNOWN and its reservation; a cold replacement session cannot dispatch a second historical request before the first resolves. Production provider/entitlement/processing capabilities remain unavailable. S4 Popup replacement and its pending toolbar decision are unchanged. The two failed S3 startup runs remain2PASS/2FAIL each; exact generated-module parsing identified a missing fixture brace, now repaired with a pre-browser syntax check. The completed onboarding prerequisite alone was not the cause repair.
+
+Root prepares one stable, non-forced update of existing PR254 for exact-head Full/Prompt verification. Previous3bb Full38104707936 remains failed on the original saved-candidate Topic reopen; no unique cloud cause is claimed, and that complete original case must pass. No current candidate/main/package delivery is yet accepted. Qualified main531dbcf/0.43.16 remains unchanged. See [NIB evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md) and [B recovery evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+The separate C writer continues original bound/passive Thought recovery and complete cold A/B/C continuation, with native memory/cut qualification still open. Its local code/reviews do not qualify full C or whole Sync. Missing approved CTX/SET precise visuals, real Qwen/device/account and installed/deployment gates remain separate. No additional external authority or eighth product queue is introduced.
+
+## Preserved prior checkpoints
+
 # SYNC-01 B native54 executed; strict evidence repair and browser diagnosis — 2026-10-11
 
 PR254 head `2cc7be2adb4f608adbd22050eed25b4268e7b154`, tested merge `0f41248c28606f05a8ef66768f5fada97df26693`, remains **NOT_ACCEPTED**. Full `38098168029` failed; Prompt `38098168035` succeeded. All54 native journeys completed, but the strict evidence gate still expected190 assertions rather than201 after the previously added budget negatives. Both complete verifiers now require the exact201 total and exact case vector; independent replay against all54 original CI receipts passes. The original formal failure remains a failure.

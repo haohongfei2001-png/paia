@@ -1,3 +1,31 @@
+# Stable local configuration and narrow Prompt combination — 2026-10-11
+
+The0.43.18 integration candidate preserves all current main and PR254 B configuration recovery, and incorporates approved NIB S0/S1/S2 plus the provider-disabled S3 owner. Frozen runtime291e1114 passes the complete original unit suite5516/5516; its unchanged runtime atce520 passes complete adapter102 and privacy/security59. Final native fixture1c7ce6e7 passes all14 original historical-candidate source/release tests with0fail/cancel/skip, all3305 tracked files/182 proof dependencies/478 release files unchanged across the run. The standard release was built once. Earlier136-test browser proof remains bound to5d7247df and is not recertified by these results.
+
+Revocation/original timeout restores local controls while preserving UNKNOWN and its reservation; a cold replacement session cannot dispatch a second historical request before the first resolves. Production provider/entitlement/processing capabilities remain unavailable. S4 Popup replacement and its pending toolbar decision are unchanged. The two failed S3 startup runs remain2PASS/2FAIL each; exact generated-module parsing identified a missing fixture brace, now repaired with a pre-browser syntax check. The completed onboarding prerequisite alone was not the cause repair.
+
+Root prepares one stable, non-forced update of existing PR254 for exact-head Full/Prompt verification. Previous3bb Full38104707936 remains failed on the original saved-candidate Topic reopen; no unique cloud cause is claimed, and that complete original case must pass. No current candidate/main/package delivery is yet accepted. Qualified main531dbcf/0.43.16 remains unchanged. See [NIB evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md) and [B recovery evidence](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md).
+
+The separate C writer continues original bound/passive Thought recovery and complete cold A/B/C continuation, with native memory/cut qualification still open. Its local code/reviews do not qualify full C or whole Sync. Missing approved CTX/SET precise visuals, real Qwen/device/account and installed/deployment gates remain separate. No additional external authority or eighth product queue is introduced.
+
+## Preserved prior checkpoints
+
+# NIB S1/S3 local combination; mixed Canonical C continues — 2026-10-11
+
+The frozen local0.43.18 candidate5d7247df passes136 tests across five complete source/release browser files. It preserves current-read guards and original Prompt/Stage3A behavior, and admits only a private synthetic historical AI provider for mechanical verification. A newly identified never-settling-provider continuity boundary is under repair; no live Pro or full S3 acceptance. Current browser coverage is91 complete files with every old87 route preserved; six stale old-corpus contracts are being corrected without changing their historical assertions. See [NIB evidence](implementation/verification/COHERENT-04318-NARROW-INPUT-BOARD.md).
+
+SYNC-01 C b2eecac9 has independently verified original Entry body-plus-extra fields and cold A→B→local edit→C recovery; complete original composite97 tests pass. Its remaining labels/detach/restore, initial-cut and native resource closure stay within the same coherent C batch. B PR254 remains formally failed on its saved-candidate Topic reopen; real saved-reply/broadcast causal probes did not reproduce that cloud failure. No merge or delivery is claimed. Qualified main531dbcf/0.43.16 and all prior failures remain unchanged. Root owns integration/CI, C has one shared-data writer and S3 one isolated owner.
+
+## Preserved preceding checkpoints
+
+# SYNC-01 B ninth formal candidate: one Topic-reopen failure — 2026-10-11
+
+PR254 head `3bb2b9ffb6a086345a48f9a1a981372387eda31b` is **NOT_ACCEPTED**. Full38104707936 failed; Prompt38104707981 passed. Fresh Native54 top-level journeys /84 total tests and both strict receipt gates pass independently, along with all units/contracts/build/macOS and eight current browser shards. Browser8 has one original saved-candidate Topic reopen failure at the existing30-second heading wait; both aggregate gates fail. The prior Data and VS05 failures now pass but remain preserved as historical failures with unestablished causes.
+
+Root retains integration and NIB qualification; the bounded shared test helper diagnosis is assigned to the independent reviewer without shared runtime ownership. C original mixed recovery and private provider-disabled NIB S3 continue in separate worktrees. No merge/package/installation or full-Sync claim. See the [ninth-candidate owning record](implementation/verification/COHERENT-04317-MIXED-CONFIGURATION-RECOVERY.md#ninth-formal-candidate-native54-and-eight-browser-shards-pass-topic-reopen-remains-failed).
+
+## Preserved preceding checkpoints
+
 # SYNC-01 B native54 passes; current browser failure repair remains open — 2026-10-11
 
 PR254 exact0c5c0fcc / tested mergeb22b833b remains **NOT_ACCEPTED**: Full38103287879 FAILURE, Prompt38103287882 SUCCESS. Fresh native54 and both strict artifact gates pass; Browser1/4/6/7/9, units, privacy, release and macOS also pass. Browser2/3/5/8 fail. Root closes the original navigation fixture prerequisites and preserves complete failure evidence; the Topic and Data-page cloud causes remain under diagnosis. No failed, skipped or cancelled result is accepted.

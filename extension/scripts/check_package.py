@@ -230,6 +230,13 @@ def audit_js(path, text):
                     "Prompt movement keys must be orb scoped")
         if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
             scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
+            # Original-text range selection stays inside the private check body;
+            # no global/host key capture and no key values are consumed.
+            reviewed = "body.addEventListener('keyup',selected);"
+            require(text.count(reviewed) == 1 and "body.className='check-body'" in text
+                    and "body.contains(range.startContainer)" in text and "body.contains(range.endContainer)" in text,
+                    "Prompt range selection must remain exact private-body scoped")
+            scanned = scanned.replace(reviewed, "SCOPED_PROMPT_RANGE_SELECTION();", 1)
         if label == "keyboard listener" and path == ROOT / "ui/prompt-next.js":
             reviewed = "capsule.addEventListener('keydown',"
             require(text.count(reviewed) == 1 and "e.key==='Escape'" in text,

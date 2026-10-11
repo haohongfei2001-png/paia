@@ -1,10 +1,10 @@
-import {assertAssistIntent,validateAssistIntent,qualifiedCoverageId} from './assist-intent-binding.js';
+import {assertAssistIntent,validateAssistIntent,validateHistoricalIntent,qualifiedCoverageId} from './assist-intent-binding.js';
 import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX,HUMAN_FENCE,deltaDescription,deltaSignature} from './delta.js';
-import {JOB_TYPES,CHILD_LIMITS,fail,opaque,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor,ASSIST_RESULT_KIND,validateReplyObligation,isAssistResultJob} from './contracts.js';
+import {JOB_TYPES,CHILD_LIMITS,fail,opaque,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor,ASSIST_RESULT_KIND,validateReplyObligation,isAssistResultJob,HISTORICAL_CANDIDATE_KIND,validateCandidateObligation,isHistoricalCandidateJob,isPrivateResultJob} from './contracts.js';
 const ATOMIC='ai_organize_atomic_v1';
 const atomicJob=j=>j?.kind===ATOMIC&&j.version===1&&j.commitMode==='organize-atomic-v1'&&j.type==='AI_ORGANIZE'&&j.childIds?.length>=2&&j.childIds.length<=4;
-const knownJob=j=>j?.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j)||isAssistResultJob(j);
+const knownJob=j=>j?.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j)||isPrivateResultJob(j);
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1';
 const terminal=new Set(['COMMITTED','CANCELLED_BEFORE_DISPATCH','REJECTED','EXPIRED_UNCOMMITTED']);
 const coverId=(key,facet,scope)=>'aiu:coverage:'+canonical([key,facet,scope]);
@@ -13,11 +13,23 @@ const dispatchFenceId=id=>'aiu:dispatched:'+id;
 const safeJob=j=>({id:j.id,type:j.type,state:j.state,childIds:[...j.childIds],committedCoverage:[...j.committedCoverage],cancelEpoch:j.cancelEpoch});
 async function count(t,key){const row=await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0};if(!Object.hasOwn(row,key)||!integer(row[key]))fail();row[key]++;await t.put('meta',row);}
 
+// Opt-in historical execution uses the existing original transport deadline.
+// A timed-out/aborted dispatch remains possibly billable; late transport output
+// is never an ACK, and the feature owner retains any still-live physical call.
+async function historicalExecution(provider,request,{signal,timeoutMs}){
+ const controller=new AbortController();let timer,abort;
+ try{
+  const stop=new Promise((_,reject)=>{abort=()=>{controller.abort();reject(Object.assign(Error('CANCELLED'),{code:'CANCELLED'}));};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();timer=setTimeout(()=>{controller.abort();reject(Object.assign(Error('TIMEOUT'),{code:'TIMEOUT'}));},timeoutMs);});
+  const response=Promise.resolve().then(()=>{if(controller.signal.aborted)fail('CANCELLED');return provider.execute(request,{signal:controller.signal});});
+  return await Promise.race([response,stop]);
+ }finally{clearTimeout(timer);if(abort)signal.removeEventListener('abort',abort);}
+}
+
 // Trusted local owner integration, intentionally not a worker/public command.
 // Only constructor-injected domain owners can commit. There is no production
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
- constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,committers={},organizeClosure=null,assistResult=null}={}){this.s=store;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null}={}){this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope){
@@ -26,7 +38,7 @@ export class AIUsageFoundation {
   if(!equal(resolved?.scope,{evidenceKeys:request.evidenceKeys,coverage:request.coverage}))fail('UNAVAILABLE');
   const {scope:approvedScope,...answer}=resolved,authority=validateAuthority(answer,type),gate=await t.get('meta','gate');
   if(gate?.enabled!==true||(await t.get('meta','thought-library'))?.sealed)fail('UNAVAILABLE');
-  return {...authority,gateEpoch:gate.epoch,restoreEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',humanFence:type==='AI_ASSIST'&&scope.assistIntent?null:(await t.get('meta',HUMAN_FENCE))?.value??0};
+  return {...authority,gateEpoch:gate.epoch,restoreEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',humanFence:type==='AI_ASSIST'&&(scope.assistIntent||scope.historicalIntent)?null:(await t.get('meta',HUMAN_FENCE))?.value??0};
  }
  async collect({cursor=null,limit=25,facets=['topic','context','filter']}={}){
   if(!Array.isArray(facets)||!facets.length||facets.some(f=>!['topic','context','filter'].includes(f))||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith(DIRTY_PREFIX)))fail();
@@ -82,12 +94,18 @@ export class AIUsageFoundation {
  async plan(request){
   // Capture caller-owned evidence before any authority or storage await.
   request=structuredClone(request);
-  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent','commitMode','replyObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
+  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent','commitMode','replyObligation','historicalIntent','candidateObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
   const {type,items,contractVersion,routeVersion,intent}=request;
   const reply=Object.hasOwn(request,'replyObligation');const replyObligation=reply?validateReplyObligation(request.replyObligation):null;if(reply&&(type!=='AI_ASSIST'||typeof this.assistResult!=='function'||Object.hasOwn(request,'children')||Object.hasOwn(request,'commitMode')))fail();
+  const candidates=Object.hasOwn(request,'candidateObligation'),candidateObligation=candidates?validateCandidateObligation(request.candidateObligation):null;
+  if(candidates&&(type!=='AI_ASSIST'||reply||typeof this.candidateResult!=='function'||typeof this.resolveHistoricalIntent!=='function'||Object.hasOwn(request,'assistIntent')||Object.hasOwn(request,'children')||Object.hasOwn(request,'commitMode')))fail();
+  const historical=Object.hasOwn(request,'historicalIntent'),historicalIntent=historical?validateHistoricalIntent(type,request.historicalIntent):null;
+  if(candidates!==historical)fail();
+  const resultBinding=reply?{kind:ASSIST_RESULT_KIND,replyObligation}:candidates?{kind:HISTORICAL_CANDIDATE_KIND,candidateObligation,historicalIntent}:{};
+  const privateResult=reply||candidates;
   const atomic=Object.hasOwn(request,'commitMode');if(atomic&&(request.commitMode!=='organize-atomic-v1'||type!=='AI_ORGANIZE'||typeof this.organizeClosure!=='function'))fail();
   const assisted=Object.hasOwn(request,'assistIntent'),assistIntent=assisted?validateAssistIntent(type,request.assistIntent):null;
-  if(type==='AI_ASSIST'&&(!assisted||typeof this.resolveAssistIntent!=='function'))fail('UNAVAILABLE');
+  if(type==='AI_ASSIST'&&!candidates&&(!assisted||typeof this.resolveAssistIntent!=='function'))fail('UNAVAILABLE');
   const styled=Object.hasOwn(request,'organizeStyle'),organizeStyle=styled?validateOrganizeStyle(type,request.organizeStyle):null;
   if(!JOB_TYPES.includes(type)||!['explicit','maintenance'].includes(intent)||type!=='AI_MAINTENANCE'&&intent!=='explicit'||!opaque(contractVersion)||!opaque(routeVersion)||!Array.isArray(items)||!reply&&!items.length||items.length>100)fail();
   const seen=new Set();for(const item of items){exact(item,['key','signature','descriptor']);if(typeof item.key!=='string'||item.key.length>450||typeof item.signature!=='string'||item.signature.length>16000||seen.has(item.key))fail();seen.add(item.key);}
@@ -95,16 +113,16 @@ export class AIUsageFoundation {
   const children=(request.children||[coverage]).map(c=>reply&&!c.length?[]:validateCoverage(c,type)).sort((a,b)=>canonical(a).localeCompare(canonical(b)));
   if(!children.length||children.length>CHILD_LIMITS[type]||!equal(children.flat().map(unitKey).sort(),coverage.map(unitKey).sort()))fail();
   if(atomic&&(children.length<2||coverage.some(u=>u.facet!=='organize')))fail();
-  const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...(reply?{kind:ASSIST_RESULT_KIND,replyObligation}:{}),...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...(reply?{kind:ASSIST_RESULT_KIND,replyObligation}:{}),...(assisted?{assistIntent}:{})});return {authority};});
+  const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{}),...(historical?{historicalIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});return {authority};});
   const scope=items.map(i=>({key:i.key,signature:i.signature})).sort((a,b)=>a.key.localeCompare(b.key));
-  const identity={...(reply?{kind:ASSIST_RESULT_KIND,replyObligation}:{}),...(atomic?{commitMode:request.commitMode}:{}),...(assisted&&!reply?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
+  const identity={...resultBinding,...(atomic?{commitMode:request.commitMode}:{}),...(assisted&&!reply?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
   const organizeSemanticKey=styled?await digest({...identity,style:styleSemantics(organizeStyle)}):null;
   const id='aiu:job:'+await digest(styled?{...identity,organizeStyle}:identity);
   const childIds=await Promise.all(children.map((c,index)=>digest([id,index,c]).then(hash=>'aiu:child:'+hash)));
   const targetScopes=[...new Set(coverage.map(c=>c.scope))].sort();
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
-  const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':targetScopes]);
-  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
+  const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
+  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   return this.write(async t=>{
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();
@@ -124,7 +142,7 @@ export class AIUsageFoundation {
     job.cancelEpoch++;job.state='CANCELLED_BEFORE_DISPATCH';job.stateKey=1;await t.put('organizerJobs',job);
    }}
    const allCovered=[];for(const unit of coverage){const saved=await t.get('organizerWorkItems',qualifiedCoverageId(unit,proposed)),item=items.find(i=>i.key===unit.key);if(saved?.signature===item.signature)allCovered.push(unitKey(unit));}
-   if(!reply&&allCovered.length===coverage.length){await count(t,'skippedNoDelta');return {id:null,type,state:'NO_DELTA',childIds:[],committedCoverage:allCovered,cancelEpoch:0};}
+   if(!privateResult&&allCovered.length===coverage.length){await count(t,'skippedNoDelta');return {id:null,type,state:'NO_DELTA',childIds:[],committedCoverage:allCovered,cancelEpoch:0};}
    // No coarse checkpoint is advanced: exact incomplete facet/scope units stay.
    if(type==='AI_MAINTENANCE')for(const item of items){let dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(dirty&&dirty.signature!==item.signature)fail('STALE_BASE');if(!dirty)dirty={...(await t.get('meta',KNOWN_PREFIX+item.key)),id:DIRTY_PREFIX+item.key,requirements:[],pendingFacets:[]};const needed=coverage.filter(c=>c.key===item.key&&!allCovered.includes(unitKey(c)));dirty.requirements=[...new Set([...(dirty.requirements||[]),...coverage.filter(c=>c.key===item.key).map(unitKey)])].sort();dirty.pendingFacets=[...new Set([...(dirty.pendingFacets||['topic','context']),...needed.map(c=>c.facet)])].sort();await t.put('meta',dirty);}
    if(atomic&&allCovered.length)fail('STALE_BASE');
@@ -136,7 +154,7 @@ export class AIUsageFoundation {
  async reserve(id,{reservationId,executionKind='fixture'}={}){
   if(!opaque(id)||!opaque(reservationId)||!['fixture','local'].includes(executionKind))fail('UNAVAILABLE');
   return this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);if(job.state!=='PLANNED')return safeJob(job);
-   for(let index=0;index<job.childIds.length;index++){const childId=job.childIds[index],existing=await t.get('organizerUsage',receiptId(childId)),covered=isAssistResultJob(job)?job.resultCommitted===true:job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));if(covered&&existing?.state==='COMMITTED')continue;if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');if(existing&&(existing.attemptCount!==0||existing.state!=='PLANNED'||existing.executionKind!=='local'))fail('OUTCOME_UNKNOWN');await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:reservationId,executionKind,sequence:index,state:covered?'COMMITTED':'RESERVED',stateKey:covered?1:0,windowIds:[],attemptCount:0,spendState:covered?'NO_PROVIDER_COST':'RESERVED_UNPRICED',effectiveResultCount:0});}
+   for(let index=0;index<job.childIds.length;index++){const childId=job.childIds[index],existing=await t.get('organizerUsage',receiptId(childId)),covered=isPrivateResultJob(job)?job.resultCommitted===true:job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));if(covered&&existing?.state==='COMMITTED')continue;if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');if(existing&&(existing.attemptCount!==0||existing.state!=='PLANNED'||existing.executionKind!=='local'))fail('OUTCOME_UNKNOWN');await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:reservationId,executionKind,sequence:index,state:covered?'COMMITTED':'RESERVED',stateKey:covered?1:0,windowIds:[],attemptCount:0,spendState:covered?'NO_PROVIDER_COST':'RESERVED_UNPRICED',effectiveResultCount:0});}
    job.state='RESERVED';await t.put('organizerJobs',job);return safeJob(job);
   });
  }
@@ -145,12 +163,12 @@ export class AIUsageFoundation {
    const coverage=job.childCoverage[index].filter(u=>!job.committedCoverage.includes(unitKey(u))),items=new Map();
    for(const item of job.items){if(items.has(item.key))fail();items.set(item.key,item);}
    const evidence=[...new Set(coverage.map(u=>u.key))].map(key=>{const item=items.get(key);if(!item)fail();return {key:item.key,signature:item.signature,lineage:item.descriptor.lineage};});
-   return {...(isAssistResultJob(job)?{replyObligation:structuredClone(job.replyObligation)}:{}),...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0};
+   return {...(isAssistResultJob(job)?{replyObligation:structuredClone(job.replyObligation)}:isHistoricalCandidateJob(job)?{candidateObligation:structuredClone(job.candidateObligation)}:{}),...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0};
  }
- async dispatch(id,childId,provider){
-  const descriptor=localProviderDescriptor(provider);
+ async dispatch(id,childId,provider,execution=null){
+  const descriptor=localProviderDescriptor(provider);if(execution!==null){exact(execution,['signal','timeoutMs']);if(!(execution.signal instanceof AbortSignal)||!integer(execution.timeoutMs)||execution.timeoutMs!==this.s.organizerBudget.limits.timeoutMs)fail();execution=Object.freeze({signal:execution.signal,timeoutMs:execution.timeoutMs});}
   const prepared=await this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
-   if(index<0||!receipt||receipt.jobId!==id)fail();
+   if(index<0||!receipt||receipt.jobId!==id||execution!==null&&!isHistoricalCandidateJob(job))fail();
    if(terminal.has(job.state))return {reused:true,state:job.state,childId};
    if((await t.get('meta',job.flightId))?.jobId!==id)fail('REQUEST_ALREADY_IN_FLIGHT');
    if(receipt.state!=='RESERVED')return {reused:true,state:receipt.state,childId};
@@ -170,7 +188,7 @@ export class AIUsageFoundation {
   // Only the provider-neutral metadata boundary is exercised in this slice.
   // Actual bounded body assembly remains with the current source gateways and
   // separately qualified feature owners; no durable prompt/response handoff.
-  let response;try{response=await provider.execute(Object.freeze(structuredClone(prepared.request)));}catch{await this.markUnknown(id,childId);return {state:'OUTCOME_UNKNOWN',childId};}
+  let response;try{response=await (execution===null?provider.execute(Object.freeze(structuredClone(prepared.request))):historicalExecution(provider,Object.freeze(structuredClone(prepared.request)),execution));}catch{await this.markUnknown(id,childId);return {state:'OUTCOME_UNKNOWN',childId};}
   return this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt||receipt.state!=='DISPATCHED')return {state:receipt?.state||'OUTCOME_UNKNOWN',childId};
    // Never persist arbitrary provider response/error fields.
    if(response?.accepted!==true||!opaque(response.operationReceiptId)){receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';}
@@ -187,7 +205,7 @@ export class AIUsageFoundation {
   else if(states.has('RESPONSE_RECORDED'))job.state='RESPONSE_RECORDED';
   else if(states.has('RESERVED'))job.state='RESERVED';
   else if(states.has('PLANNED'))job.state='PLANNED';
-  else if(isAssistResultJob(job)?job.resultCommitted===true:job.coverage.every(u=>job.committedCoverage.includes(unitKey(u))))job.state='COMMITTED';
+  else if(isPrivateResultJob(job)?job.resultCommitted===true:job.coverage.every(u=>job.committedCoverage.includes(unitKey(u))))job.state='COMMITTED';
   else if(states.has('EXPIRED_UNCOMMITTED')||job.cancelEpoch&&receipts.some(r=>r.attemptCount))job.state='EXPIRED_UNCOMMITTED';
   else if(states.has('REJECTED'))job.state='REJECTED';
   else job.state='CANCELLED_BEFORE_DISPATCH';
@@ -219,7 +237,7 @@ export class AIUsageFoundation {
   units=structuredClone(units);
   // Validate and commit one local subset atomically. An unresolved sibling (or
   // the remainder of this same child) is still PLANNED and can be reserved once.
-  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job)||isAssistResultJob(job))fail();await this.current(t,job);const validated=validateCoverage(units,job.type),index=job.childCoverage.findIndex(c=>validated.every(u=>u.facet===facet&&c.some(v=>unitKey(u)===unitKey(v))));if(index<0)fail();
+  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job)||isPrivateResultJob(job))fail();await this.current(t,job);const validated=validateCoverage(units,job.type),index=job.childCoverage.findIndex(c=>validated.every(u=>u.facet===facet&&c.some(v=>unitKey(u)===unitKey(v))));if(index<0)fail();
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);if(terminal.has(job.state))fail('CANCELLED');
    const childId=job.childIds[index],prior=await t.get('organizerUsage',receiptId(childId));if(prior&&(prior.executionKind!=='local'||prior.attemptCount!==0||prior.state!=='PLANNED'))fail();
    if(!prior)await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:'local-no-cost',executionKind:'local',sequence:index,state:'PLANNED',stateKey:0,windowIds:[],attemptCount:0,spendState:'NO_PROVIDER_COST',effectiveResultCount:0});
@@ -229,7 +247,7 @@ export class AIUsageFoundation {
  async commitFacet(id,childId,{facet,units,outcome='COMMITTED',retryCondition=null}={}){
   units=structuredClone(units);
   if(!['COMMITTED','NO_CHANGE','DEFER'].includes(outcome)||retryCondition!==null&&!opaque(retryCondition))fail();
-  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job)||isAssistResultJob(job))fail();await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
+  return this.write(async t=>{const job=await this.job(t,id);if(atomicJob(job)||isPrivateResultJob(job))fail();await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
    if(index<0||!receipt||receipt.jobId!==id||!['RESPONSE_RECORDED','VALIDATED','COMMITTED'].includes(receipt.state))fail();
    return this.applyFacet(t,job,index,{facet,units,outcome,retryCondition});
   });
@@ -246,6 +264,22 @@ export class AIUsageFoundation {
    if(result?.committed!==true||!['SUGGESTION','DEFER'].includes(result.outcome)||typeof result.isCurrent!=='function')fail('STALE_BASE');
    await this.current(t,job);if(result.isCurrent()!==true)fail('STALE_BASE');
    await t.put('organizerWorkItems',{id:'aiu:assist-result:'+id,kind:ASSIST_RESULT_KIND,version:1,jobId:id,childId,state:'ACKNOWLEDGED',stateKey:1,sequence:0,replyObligation:structuredClone(job.replyObligation),outcome:result.outcome,sourceRecordIds:job.sourceRecordIds});
+   receipt.state='COMMITTED';receipt.stateKey=1;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
+   job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await t.put('organizerJobs',job);
+   if(result.isCurrent()!==true)fail('STALE_BASE');return safeJob(job);
+  });
+ }
+ async commitHistoricalCandidates(id){
+  return this.write(async t=>{
+   const job=await this.job(t,id);if(!isHistoricalCandidateJob(job))fail();
+   await this.current(t,job);if(job.resultCommitted===true)return safeJob(job);
+   const childId=job.childIds[0],receipt=await t.get('organizerUsage',receiptId(childId));
+   if(receipt?.kind!==KIND||receipt.jobId!==id||receipt.childId!==childId||receipt.state!=='RESPONSE_RECORDED'||!opaque(receipt.operationReceiptId))fail('OUTCOME_UNKNOWN');
+   if(typeof this.candidateResult!=='function')fail('UNAVAILABLE');
+   const result=await this.candidateResult(t,Object.freeze({logicalJobId:id,childOperationId:childId,operationReceiptId:receipt.operationReceiptId,candidateObligation:structuredClone(job.candidateObligation)}));
+   if(result?.committed!==true||!['CANDIDATES','DEFER'].includes(result.outcome)||typeof result.isCurrent!=='function')fail('STALE_BASE');
+   await this.current(t,job);if(result.isCurrent()!==true)fail('STALE_BASE');
+   await t.put('organizerWorkItems',{id:'aiu:historical-result:'+id,kind:HISTORICAL_CANDIDATE_KIND,version:1,jobId:id,childId,state:'ACKNOWLEDGED',stateKey:1,sequence:0,candidateObligation:structuredClone(job.candidateObligation),outcome:result.outcome,sourceRecordIds:job.sourceRecordIds});
    receipt.state='COMMITTED';receipt.stateKey=1;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
    job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await t.put('organizerJobs',job);
    if(result.isCurrent()!==true)fail('STALE_BASE');return safeJob(job);
@@ -269,7 +303,7 @@ export class AIUsageFoundation {
   });
  }
  async applyFacet(t,job,index,{facet,units,outcome,retryCondition=null,local=false}){
-   if(atomicJob(job)||isAssistResultJob(job))fail('INVALID_REQUEST');
+   if(atomicJob(job)||isPrivateResultJob(job))fail('INVALID_REQUEST');
    const receipt=await t.get('organizerUsage',receiptId(job.childIds[index])),childId=job.childIds[index],id=job.id;
    const validated=validateCoverage(units,job.type),permitted=new Set(job.childCoverage[index].map(unitKey));if(validated.some(u=>u.facet!==facet||!permitted.has(unitKey(u))))fail();
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);

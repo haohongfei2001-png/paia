@@ -1,3 +1,5 @@
+import {HistoricalCandidateSession} from '../core/ai-usage/historical-candidate-session.js';
+import {ArchiveArrival} from './archive-arrival.js';
 import {NextPromptCommands} from './prompt-next.js';
 import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
 import {isAIStyleOnlyRequest} from '../core/ai-organize-style-preference.js';
@@ -43,12 +45,13 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 const store = new IndexedArchiveStore(chrome.storage.local);
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
-const promptReuse = new PromptReuseCommands(new PromptReuseService(store),chrome);
-const promptSurface = new PromptSurfaceCommands(promptReuse,chrome);
+const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:new HistoricalCandidateSession(store)}),chrome);
+const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
+const promptSurface = new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
 const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
 promptSurface.next=promptNext;
-chrome.tabs?.onRemoved?.addListener(id=>promptNext.removeTab(id));
-chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading')promptNext.removeTab(id);});
+chrome.tabs?.onRemoved?.addListener(id=>{promptSurface.removeTab(id);promptNext.removeTab(id);archiveArrival.removeTab(id);});
+chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading')promptNext.removeTab(id);archiveArrival.changedTab(id,change);});
 chrome.runtime.onInstalled?.addListener(()=>{void promptNext.configure(false).catch(()=>{});});
 const legacyUsage = new LegacyUsageRecords(store);
 const passport = new PassportService(store);
@@ -152,6 +155,7 @@ function isChatGPTContent(sender) {
 async function handle(request, sender) {
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
+  if(request.type.startsWith('PAIA_ARCHIVE_ARRIVAL_'))return archiveArrival.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_NEXT_'))return promptNext.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_SURFACE_'))return promptSurface.handle(request,sender);
   if(request.type.startsWith('PAIA_PROMPT_'))return promptReuse.handle(request,sender);
@@ -477,7 +481,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       sendResponse({ ok: true, data });
-      if(request.type==='CONSENT')void chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE'},{frameId:0})))).catch(()=>{});
+      if(request.type==='CONSENT'||request.type==='UPDATE_PREFERENCES'&&data?.ok===true&&['appearance','language'].some(key=>Object.hasOwn(request.changes||{},key)))void chrome.tabs.query({url:'https://chatgpt.com/*'}).then(tabs=>Promise.allSettled(tabs.filter(t=>!t.incognito).map(t=>chrome.tabs.sendMessage(t.id,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',...(request.type==='UPDATE_PREFERENCES'?{reason:'display-preferences'}:{})},{frameId:0})))).catch(()=>{});
       if(request.type==='OBSERVE_SOURCE_STRUCTURE'&&data?.event===true)void notifySourceStructureChanged();
       if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)void chrome.runtime.sendMessage?.({type:'PAIA_CONTEXT_CARDS_CHANGED'}).catch(()=>{});
       if(request.type==='PAIA_PROMPT_CHANGE')void chrome.runtime.sendMessage?.({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});

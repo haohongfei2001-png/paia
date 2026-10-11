@@ -1,3 +1,6 @@
+import {requireHistoricalCandidateSession} from './ai-usage/historical-candidate-session.js';
+import {prepareInputSearchContext,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
+import {PROMPT_HISTORY_SCOPE,queryPromptHistory,readPromptHistory,readPromptHistoryInTransaction,validPromptSelectionRef,selectPromptRange} from './prompt-selection.js';
 import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
@@ -11,8 +14,8 @@ const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
 export class PromptReuseService{
- #nextFamilyView;
- constructor(store,{clock=()=>Date.now(),syncJournal=null}={}){this.s=store;this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ #nextFamilyView;#historyCandidates;
+ constructor(store,{clock=()=>Date.now(),syncJournal=null,historyCandidates=null}={}){this.s=store;this.#historyCandidates=historyCandidates===null?null:requireHistoricalCandidateSession(historyCandidates,store);this.#historyCandidates?.bindPromptOwner(()=>this.snapshot());this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async syncCorrectionSnapshot(journal){if(!(#nextFamilyView in this)||this.syncJournal!==journal)fail();return this.#snapshot(false);}
  async snapshot(){return this.#snapshot(true);}
  async #snapshot(projectCorrections){
@@ -54,7 +57,25 @@ export class PromptReuseService{
  async query({includeHidden=false}={}){
   if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
   this.#nextFamilyView.publish(serial,x);
-  return {revision:x.preferences.revision,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
+  return {revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
+ }
+ async historicalCandidateStatus(){return {available:this.#historyCandidates?.available()===true};}
+ async refreshHistoricalCandidates(query,source){
+  if(!this.#historyCandidates)throw new ArchiveError('UNAVAILABLE');
+  const handle=await this.#historyCandidates.prepare({query},source);await this.#historyCandidates.run(handle);return handle;
+ }
+ async assertHistoricalCandidatesCurrent(handle){if(!this.#historyCandidates)throw new ArchiveError('UNAVAILABLE');await this.#historyCandidates.read(handle);}
+ async adoptHistoricalCandidates(handle){
+  const local=await this.query();if(!handle||!this.#historyCandidates)return local;
+  try{
+   const result=await this.#historyCandidates.read(handle);if(result.kind!=='CANDIDATES')return local;
+   const items=[];for(const ref of result.refs){const selected=await this.resolveSelection(ref);items.push({id:ref.id,text:selected.text,ref:structuredClone(ref),members:[],pinned:false,hidden:false,edited:false,retained:false,useful:true});}
+   await this.#historyCandidates.read(handle);
+   // Protected human slots remain in their original relative order. AI can add
+   // only already-qualified historical IDs, never replace their authored text.
+   const protectedItems=local.items.filter(x=>x.pinned||x.edited||x.retained);
+   return {...local,items:[...protectedItems,...items],candidateSource:'ai',complete:false};
+  }catch(error){if(!['UNAVAILABLE','STALE_BASE','MEMORY_STALE','CANCELLED'].includes(error.code))throw error;return local;}
  }
  async nextFamilyView(){return this.#nextFamilyView.read(expected=>this.assertCurrent(expected));}
  async resolve({id,text}={}){
@@ -62,8 +83,40 @@ export class PromptReuseService{
   const f=x.families.find(f=>f.id===id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
   if(!f||f.text!==text)changed();return {id:f.id,text:f.text,generation:x.generation};
  }
+ async qualifyArchiveArrival(descriptor){
+  const keys=['version','query','scope','searchSnapshot','ref'];
+  if(!descriptor||!own(descriptor,keys)||Object.keys(descriptor).length!==keys.length||descriptor.version!==1||typeof descriptor.query!=='string'||descriptor.query.length>1000||!descriptor.scope||Object.keys(descriptor.scope).length!==6||Object.entries(PROMPT_HISTORY_SCOPE).some(([key,value])=>descriptor.scope[key]!==value))fail();
+  const ref=descriptor.ref;
+  if(!(await this.s.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
+  if(!descriptor.query.trim()){if(ref!==null||descriptor.searchSnapshot!==null)fail();await this.s.run(()=>this.s.repository.transaction(false,publicationSettled,['meta']));return structuredClone(descriptor);}
+  if(ref!==null&&(!validPromptSelectionRef(ref)||ref.kind!=='history_input'||ref.generation!==descriptor.searchSnapshot?.generation))fail();
+  const searchContext={query:descriptor.query,knownRevision:ref?.contentRevision??0,searchSnapshot:descriptor.searchSnapshot,scope:descriptor.scope};
+  const prepared=ref===null?await prepareInputSearchContext(searchContext):await prepareInputSearchArrival(this.s,{documentId:ref.documentId,qualifyContext:true,searchContext});
+  await this.s.run(()=>this.s.repository.transaction(false,async t=>{
+   await publicationSettled(t);if(await generation(t)!==descriptor.searchSnapshot.generation)changed();
+   if(ref){const input=await readPromptHistoryInTransaction(this.s,t,ref);selectPromptRange(input.body);if(!await matchesInputSearchArrival(this.s,t,input,prepared,await t.get('meta','smart-filter')))changed();}
+  }));
+  return structuredClone(descriptor);
+ }
+ async queryHistory(options){return queryPromptHistory(this.s,options);}
+ async resolveSelection(ref,range=null){
+  if(!validPromptSelectionRef(ref))fail();
+  if(ref.kind==='history_input')return readPromptHistory(this.s,ref,range);
+  const x=await this.snapshot();if(x.generation!==ref.generation||x.preferences.revision!==ref.revision)changed();
+  const family=x.families.find(f=>f.id===ref.id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
+  if(!family||(family.edited?'manual_reuse':'prompt_family')!==ref.kind)changed();
+  return {ref:structuredClone(ref),range:range===null?null:structuredClone(range),text:selectPromptRange(family.text,range),generation:x.generation,familyId:ref.id};
+ }
+ async assertSelectionCurrent(selected){
+  const current=await this.resolveSelection(selected.ref,selected.range);if(current.text!==selected.text)changed();return current;
+ }
  async assertCurrent(expected){return this.s.run(()=>this.s.repository.transaction(false,async t=>{if(expected!==await generation(t))changed();},['meta']));}
- async change(change){
+ async change(change){return this.#change(change);}
+ async createFromHistory(ref,text,revision){
+  if(!validPromptSelectionRef(ref)||ref.kind!=='history_input')fail();
+  return this.#change({action:'create',text,revision},ref);
+ }
+ async #change(change,origin=null){
   if(!own(change,['action','id','revision','text','order','inputIds','representative'])||!Number.isSafeInteger(change.revision))fail();
   const {action,id}=change,x=await this.snapshot();if(x.preferences.revision!==change.revision)changed();
   const p=structuredClone(x.preferences),f=x.families.find(f=>f.id===id);let o=p.overrides.find(o=>o.id===id);
@@ -93,6 +146,7 @@ export class PromptReuseService{
   const syncPrepared=this.syncJournal?await this.syncJournal.prepare(x.preferences,p,{inputs:x.inputs,generation:x.generation}):null;
   await this.s.run(()=>this.s.repository.transaction(true,async t=>{
    await publicationSettled(t);
+   if(origin)await readPromptHistoryInTransaction(this.s,t,origin);
    if(await generation(t)!==x.generation||(await readPromptPreferences(t)).revision!==change.revision)changed();await t.put('meta',p);
    if(this.syncJournal)await this.syncJournal.commit(t,syncPrepared);
   }));return {revision:p.revision,id:o.id};

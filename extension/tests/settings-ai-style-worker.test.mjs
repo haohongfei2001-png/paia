@@ -9,9 +9,9 @@ import {STORAGE_KEY} from '../core/constants.js';
 
 test('actual worker style CAS schedules no filters, maintenance, Topic scan or provider while unrelated preferences keep their owner',async()=>{
  globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange;
- const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'},values={},events=[];let listener,topicReads=0,failAfterWrite=false,failRead=false;
+ const id='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',origin=`chrome-extension://${id}/`,ui={id,url:origin+'ui/archive.html'},values={},events=[],surfaceNotifications=[];let listener,topicReads=0,failAfterWrite=false,failRead=false;
  const storage={setAccessLevel:async()=>{},get:async keys=>{if(failRead)throw Error('synthetic read failure');return keys===null?structuredClone(values):Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(k=>k in values).map(k=>[k,structuredClone(values[k])]));},set:async rows=>{Object.assign(values,structuredClone(rows));if(failAfterWrite)throw Error('synthetic lost ack');},remove:async()=>assert.fail('unexpected deletion'),getBytesInUse:async()=>0};
- globalThis.chrome={runtime:{id,getManifest:()=>({version:'0.15.0'}),getURL:path=>origin+path,sendMessage:async message=>events.push(message),onMessage:{addListener:fn=>listener=fn}},storage:{local:storage,session:{...storage,get:async()=>({}),set:async()=>{}}}};globalThis.fetch=async()=>assert.fail('no network');
+ globalThis.chrome={tabs:{query:async options=>{assert.deepEqual(options,{url:'https://chatgpt.com/*'});return [{id:7,incognito:false},{id:8,incognito:true}];},sendMessage:async(...args)=>surfaceNotifications.push(args)},runtime:{id,getManifest:()=>({version:'0.15.0'}),getURL:path=>origin+path,sendMessage:async message=>events.push(message),onMessage:{addListener:fn=>listener=fn}},storage:{local:storage,session:{...storage,get:async()=>({}),set:async()=>{}}}};globalThis.fetch=async()=>assert.fail('no network');
  const prototypes=[FilterRunner.prototype,SafetyRunner.prototype,LibraryRunner.prototype],old=prototypes.map(p=>p.wake),wakes=[0,0,0],transaction=ArchiveRepository.prototype.transaction;
  try{
   prototypes.forEach((p,index)=>p.wake=async()=>{wakes[index]++;});
@@ -33,8 +33,12 @@ test('actual worker style CAS schedules no filters, maintenance, Topic scan or p
   assert.deepEqual((await read()).data,{available:true,value:'balanced',revision:1,explicit:true,epoch:'initial'});
   failAfterWrite=true;assert.equal((await send(request('concise',1))).error,'STORAGE_FAILED');failAfterWrite=false;assert.deepEqual((await read()).data,{available:true,value:'concise',revision:2,explicit:true,epoch:'initial'});assert.deepEqual((await send(request('original',1))).data,{conflict:true});
   failRead=true;assert.equal((await read()).error,'STORAGE_FAILED');failRead=false;assert.equal((await read()).data.value,'concise');
-  await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(wakes,[0,0,0]);assert.equal(topicReads,0);assert.equal(events.length,1);
+  await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(wakes,[0,0,0]);assert.equal(topicReads,0);assert.equal(events.length,1);assert.deepEqual(surfaceNotifications,[],'style-only writes, conflicts, forbidden and failed requests do not activate surfaces');
   await send({type:'UPDATE_PREFERENCES',changes:{appearance:'dark'}});await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(wakes,[1,1,1],'unrelated preferences preserve the existing maintenance contract');
   assert.equal(values[STORAGE_KEY].preferences.aiOrganizeStyle.revision,2);
+  assert.deepEqual(surfaceNotifications,[[7,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',reason:'display-preferences'},{frameId:0}]],'successful display intent notifies only the ordinary original host without values');
+  const count=surfaceNotifications.length;failRead=true;assert.equal((await send({type:'UPDATE_PREFERENCES',changes:{appearance:'light'}})).error,'STORAGE_FAILED');failRead=false;
+  assert.equal((await send({type:'UPDATE_PREFERENCES',changes:{language:'unsupported'}})).error,'INVALID_REQUEST');await new Promise(resolve=>setImmediate(resolve));assert.equal(surfaceNotifications.length,count,'failed display changes never notify');
+  await send({type:'UPDATE_PREFERENCES',changes:{language:'en'}});await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(surfaceNotifications.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_ACTIVATE',reason:'display-preferences'},{frameId:0}]);assert.equal(surfaceNotifications.length,count+1);assert.deepEqual(wakes,[2,2,2],'both display changes keep original maintenance');
  }finally{prototypes.forEach((p,index)=>p.wake=old[index]);ArchiveRepository.prototype.transaction=transaction;}
 });
