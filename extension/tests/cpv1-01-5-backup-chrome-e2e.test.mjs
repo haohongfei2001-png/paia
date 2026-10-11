@@ -15,7 +15,7 @@ const rpc=async(page,type,fields={})=>{
 
 async function openBackup(page){
  await page.locator('.sidebar [data-view=settings]').click();
- await chooseConsumerGroup(page,'data');await page.locator('details').filter({has:page.locator('#backup-settings')}).locator(':scope > summary').click();
+ await chooseConsumerGroup(page,'data');await page.locator('#settings-backup').click();await page.locator('#settings-backup-dialog').waitFor({state:'visible'});
  await page.locator('#backup-file').waitFor({state:'attached'});assert.equal(await page.locator('#backup-create').count(),0);
 }
 

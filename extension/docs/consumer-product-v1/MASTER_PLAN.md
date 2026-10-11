@@ -1,3 +1,13 @@
+# SET2-02 Data destination presentation candidate — 2026-10-12
+
+Fresh integration base main32bc1bb44ccdd3ed682d300c0699c816924a1b2d 0.43.24 is qualified by selected Light38164516027 all8 and Prompt38164515786 all5. Full/native jobs for that ordinary change were skipped, not passed. No deployment/installation claim.
+
+The sole UI writer has a coherent 0.43.25 candidate for original import/Source Records destination rows and guarded native Backup detail, preserving actual owners and all recovery/consent/CAS boundaries. Follow implementation/settings/SET2-DATA-DESTINATIONS-04325.md. Final version-bound targeted/affected evidence, independent review and integration are pending. Removed discovery/composite and complete SET2 visual/production closure remain open.
+
+SYNC-01 batch A complete C remains open in its sole shared-data worktree. Genuine secondB Working/index/query/reexport and freshC Working/current metadata/body/110 verification have progressed; encoder8Mi refusal and final explicit private Scope retirement/review are unfinished. No helper PR, paid/account/permission or completed Sync claim is introduced. Preserve all current main outcomes and prior failures.
+
+## Preserved prior record
+
 # Current execution: qualified main0.43.23; Settings ordering candidate0.43.24 — 2026-10-12
 
 PR260 is integrated at main17b973e498223418d2179e67a8fe915685dc5ba9/treeada4ab8148ec54c59ee4a26e57de46dca1b10472. Automatic exact-main Full38160847144 SUCCESS with all21 required jobs including9 current browser shards; Prompt38160847121 SUCCESS/all5. Fresh exact-main54 native receipts/84cases plus731preflight/132configuration pass both unchanged original248-line gates, independent reportb9e6bb8c. Internal0.43.23 artifact11710196805/SHA65b438cbd56eb9f2f6a148b54b451d5d7d40a5ce4fc83e23e248843dabd0d28b has all484 bytes equal to the original standard build. Installation, redistribution, deployment, complete Sync and full48-state Settings acceptance are separate. Earlier local/historical/candidate failures remain retained; skipped historical placeholder is not counted as PASS.
