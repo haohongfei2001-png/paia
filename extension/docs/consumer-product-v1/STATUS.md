@@ -1,3 +1,15 @@
+# Current qualification correction — 2026-10-12
+
+PR259 / 0.43.22 remains unmerged. Its771 candidate Full38151628654 and Prompt38151628661 are FAILED: ANS09 denied-purge full-store equality changed navigation scope metadata; macOS four actual lifecycle tests passed but receipt upload timed out; Prompt release review-card visibility failed. Exact signed771 native54/84 and both original strict gates pass only as a component. Preserve every failure; no current-main/user-package/installed/deployed acceptance follows.
+
+Three test-only owner-precondition corrections retain the complete37-store/Chrome recovery equality oracle, original assertions/deadlines and single trusted clicks. Finish actual navigation catalog/scopes/GC before the historical purge fixture snapshot; await the original host PAUSED diagnostic acknowledgement before purge safety baselines; use the existing Prompt child measurement ACK and host geometry readiness before its fill row click. No runtime/data/schema/permission/version/dependency/CI change.
+
+An existing pending scope's actual late query reproduces the original zero-effect failure; after completion the same late query is read-only and the original denial oracle passes. Prompt full source/release40 passes and corrected purge full source/release8 passes; all remaining historical fixture consumers26 pass. The initial broader24-test run remains FAILED with23 passes and one genuine late-PAUSED publication failure. Limited independent code review773cf128 verifies exact3-file725cf520 freeze and22 bindings; it approves formal verification only. The unique earlier cloud interleavings were not recorded.
+
+Fresh corrected-candidate Full/Prompt/native, exact-main and user-visible package qualification remain required. The approved Settings alignment and original design sources are retained; complete visual/state acceptance remains open. SYNC-01 complete mixed Canonical Foundation/presentation continuation is still in its sole writer's branch and is not delivered by this test correction. All seven latest authorized lanes and their outstanding gates remain active.
+
+## Preserved previous qualification and implementation record
+
 # PR259: approved Settings alignment candidate0.43.22, not delivered — 2026-10-11
 
 Remote main3f07d0cb0dfeb7f835259332a800ee8f36276c1e remains preserved. PR259 previoushead121270f8cabcea12cc782db203c1ff60309de1a5, actual signed testedmergef8d702b0265f457a0df22f0490aaf9a5dc1a8f2f/tree07f86d7ebb71298a9f100d7a6311aa00b734815e, Full38148592164 FAILED only originalUIS02 current Topic search in Browser4 and dependent aggregates. All other current required component jobs pass, including all three earlier failed files; Prompt38148592148 passes all5. Fresh native54/84 plus preflight731/configuration132 pass both unchanged original248-line gates EXIT0, independent component report63b485ba764e14c536004808e466822bb593487dd70525150165d41113a84be8. This is partial Core evidence, not Full or complete Sync.

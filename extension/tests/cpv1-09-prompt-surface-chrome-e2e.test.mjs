@@ -46,7 +46,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const host=await worker.evaluate(async url=>{const tabs=await chrome.tabs.query({url:'https://chatgpt.com/*'}),matches=tabs.filter(tab=>tab.url===url);if(matches.length!==1)throw Error('Exact original source tab missing');return chrome.tabs.sendMessage(matches[0].id,{type:'PAIA_PROMPT_SURFACE_PROBE'},{frameId:0});},page.url());assert.equal(host.url,page.url());
    if(host.open)await eventually(()=>card()?.url().endsWith('#'+host.nonce),'original current host nonce owns the restored frame');else await orb.click();return readyCard();
   };
-  const fill=async(f,value=text)=>{await f.getByRole('button',{name:value,exact:true}).click();await f.locator('#check-text').waitFor({state:'visible'});assert.equal(await f.locator('.check-body').textContent(),value);assert.ok(await f.locator('.check-body').evaluate(n=>n.clientHeight<=150));await f.getByRole('button',{name:'填入整条',exact:true}).click();};
+  const fill=async(f,value=text)=>{await clickSurface(f,f.getByRole('button',{name:value,exact:true}));await f.locator('#check-text').waitFor({state:'visible'});assert.equal(await f.locator('.check-body').textContent(),value);assert.ok(await f.locator('.check-body').evaluate(n=>n.clientHeight<=150));await f.getByRole('button',{name:'填入整条',exact:true}).click();};
   // Read-only synthetic lifecycle trace: no retry, timeout or assertion changes.
   const frameIds=new WeakMap();let nextFrameId=0;const frameId=f=>{if(!frameIds.has(f))frameIds.set(f,++nextFrameId);return frameIds.get(f);};
   const trace=(phase,data={})=>navigationTrace.push({at:Date.now(),phase,...data});
