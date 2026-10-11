@@ -1,5 +1,6 @@
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
+import {SettingsRemovedComposite,REMOVED_KINDS} from './settings-removed-composite.js';
 
 export function mountSettingsDetail({id,title,dialogTitle=()=>title,content,value=()=>'',language=()=>document.documentElement.lang,onOpen=()=>{},beforeClose=null}){
  const row=document.createElement('button');row.type='button';row.id=id;row.className='ux-setting-row ux-settings-destination';row.setAttribute('aria-haspopup','dialog');
@@ -41,6 +42,70 @@ export function mountSettingsDestination(button,{title,description=null,language
  const sync=()=>{label.textContent=title[language()==='zh-CN'?0:1];};sync();return {row:button,sync};
 }
 let owner=null;
+function mountRemovedDetail(language) {
+ let detail,viewSerial=0,keepRows=false,statusState=null,statusError=null;
+ const renderedLanguage=()=>document.documentElement.lang||language();
+ const visible=()=>!!detail?.dialog.open&&!document.getElementById('settings-panel').hidden&&!document.getElementById('ux-settings-data-group').hidden;
+ const model=new SettingsRemovedComposite(undefined,visible),content=document.createElement('div'),intro=document.createElement('p'),status=document.createElement('p'),list=document.createElement('div'),more=document.createElement('div'),footer=document.createElement('p');
+ content.className='ux-settings-removed-content';intro.className=footer.className='ux-settings-removed-note';status.setAttribute('role','status');list.id='settings-removed-composite-list';more.className='ux-settings-removed-more';content.append(intro,status,list,more,footer);
+ const text=(zh,en)=>renderedLanguage()==='zh-CN'?zh:en,cached=new Map(),moreControls=new Map();
+ const current=serial=>serial===viewSerial&&visible();
+ const labels={input:['输入 · 从档案中移除','Input · Removed from Archive'],topic:['主题 · 从思想库中移除','Topic · Removed from Thought Library'],entry:['内容 · 从思想库中移除','Content · Removed from Thought Library'],placement:['内容仍保留 · 从主题中移除','Content retained · Removed from a Topic']};
+ const actions={input:['恢复到档案','Restore to Archive'],topic:['恢复主题','Restore topic'],entry:['恢复内容','Restore content'],placement:['放回这个主题','Put back in this topic']};
+ const titles={input:['更多已移除输入','More removed Inputs'],topic:['更多已移除主题','More removed Topics'],entry:['更多已移除内容','More removed content'],placement:['更多已移除关系','More removed relationships']};
+ const failure=error=>error?.code==='BACKUP_CHANGED'?text('列表已改变，请重新加载。','The list changed. Reload before continuing.'):error?.code==='CONFLICT'?text('内容或组织已更新，请重新加载后再试。','The content or organization changed. Reload before trying again.'):text('处理尚未完成，当前内容保留。请核对结果或重试。','This has not completed. Content is preserved. Check the result or retry.');
+ const button=(label,run)=>{const node=document.createElement('button');node.type='button';node.textContent=label;node.addEventListener('click',()=>void run());return node;};
+ const statusCopy=()=>statusError?failure(statusError):statusState==='reading'?text('正在读取已移除内容…','Reading removed content…'):statusState==='partial-empty'?text('当前页没有可恢复内容，可以继续加载。','No restorable content on this page. Continue loading.'):statusState==='empty'?text('没有当前可恢复的已移除内容。','There is no removed content currently available to restore.'):statusState==='retained'?text('已核对原恢复结果；当前内容仍保留在列表中。','The original result is confirmed; the current item remains in the list.'):statusState==='restored'?text('已恢复，AI 权限未改变。','Restored. AI access is unchanged.') : '';
+ const render=()=>{
+  intro.textContent=text('移除不等于永久删除。这里只列出当前仍可恢复的内容。','Removal is not permanent deletion. Only currently restorable items are listed here.');footer.textContent=text('恢复不会重新开放 AI 权限。','Restoring never re-opens AI access.');
+  const wanted=[],seen=new Set();
+  for(const kind of REMOVED_KINDS)for(const record of [...(model.rows?.values()??[]),...model.attempts.values(),...(keepRows?[...cached.values()].filter(row=>!model.pages?.get(row.record.kind)?.started).map(row=>row.record):[])].map(value=>value.row??value)) {
+   if(record.kind!==kind)continue;const {item}=record,key=JSON.stringify([kind,item.id]);if(seen.has(key))continue;seen.add(key);
+   let row=cached.get(key);
+   if(!row) {
+    const node=document.createElement('div'),title=document.createElement('p'),description=document.createElement('p'),feedback=document.createElement('p');node.className='ux-settings-recovery-entry';description.className='ux-settings-removed-note';feedback.className='ux-settings-recovery-feedback';feedback.setAttribute('role','status');
+    const action=button('',async()=>{
+     const serial=viewSerial,focused=document.activeElement===action,index=[...list.querySelectorAll('[data-recovery-kind]')].indexOf(action);let focusMoved=false,failed=false;const trackFocus=event=>{if(event.target!==action)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);action.disabled=true;row.error=null;feedback.textContent='';
+     try {await model.restore(kind,item.id);if(!current(serial))return;const next=await open(true);if(!current(next))return;statusState=model.rows.has(key)?'retained':'restored';statusError=null;status.textContent=statusCopy();if(focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body)){const actions=[...list.querySelectorAll('[data-recovery-kind]')];(actions[Math.min(Math.max(0,index),actions.length-1)]||detail.dialog.querySelector('.ux-settings-detail-close')).focus({preventScroll:true});}}
+     catch(error) {failed=true;if(current(serial))row.error=error;}
+     finally {if(current(serial)){render();if(failed&&focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body))action.focus({preventScroll:true});}if(focused)document.removeEventListener('focusin',trackFocus);}
+    });action.dataset.recoveryKind=kind;node.append(title,description,action);let history=null;
+    if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';row={node,title,description,action,history,feedback};cached.set(key,row);
+   }
+   row.record=record;row.feedback.textContent=row.error?failure(row.error):'';row.title.textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');row.description.textContent=kind==='placement'?text('内容仍保留 · 从「'+item.topicName+'」中移除',`Content retained · Removed from ${item.topicName}`)+(item.sectionName?' · '+item.sectionName:''):text(...labels[kind]);
+   const attempt=model.attempts.get(key);row.action.textContent=attempt?.edit?text('核对结果或重试','Check result or retry'):text(...actions[kind]);row.action.disabled=!!attempt?.busy||!model.rows.has(key)&&!attempt;
+   if(row.history){row.history.textContent=kind==='topic'?text('版本历史','Version history'):text('版本','Versions');row.history.disabled=!!attempt?.busy||!model.rows.has(key);}
+   if(attempt?.edit&&!model.rows.has(key))row.description.textContent=text('上次恢复结果尚未核对；这不是新的恢复请求。','The previous recovery result is unconfirmed; this is the original request.');
+   wanted.push(row.node);
+  }
+  let cursor=list.firstChild;for(const node of wanted){if(node!==cursor)list.insertBefore(node,cursor);cursor=node.nextSibling;}for(const node of [...list.children])if(!wanted.includes(node))node.remove();
+  for(const [key,row]of cached)if(!seen.has(key)){row.node.remove();cached.delete(key);}
+  const controls=[];for(const kind of REMOVED_KINDS){const page=model.pages?.get(kind);if(!page||page.done&&!page.error)continue;let control=moreControls.get(kind);if(!control){control=button('',async()=>{const serial=viewSerial;control.disabled=true;try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))render();});moreControls.set(kind,control);}control.textContent=text(...titles[kind]);control.disabled=!!page.pending||!model.fence||page.error?.code==='BACKUP_CHANGED';controls.push(control);}
+  let reload=moreControls.get('reload');if(!reload){reload=button('',()=>open());moreControls.set('reload',reload);}reload.textContent=text('重新加载列表','Reload list');if(statusError||model.attempts.size||[...model.pages.values()].some(page=>page.error))controls.push(reload);let position=more.firstChild;for(const node of controls){if(position!==node)more.insertBefore(node,position);position=node.nextSibling;}for(const node of [...more.children])if(!controls.includes(node))node.remove();
+  if(model.fence&&[...model.pages.values()].every(page=>page.done)&&!wanted.length&&(statusState==='reading'||statusState==='partial-empty'||statusState===null)&&!statusError)statusState='empty';if(statusState==='partial-empty'&&wanted.length)statusState=null;status.textContent=statusCopy();
+ };
+ const open=async(preserve=false)=>{
+  const serial=++viewSerial,focused=preserve&&list.contains(document.activeElement)?document.activeElement:null;let focusMoved=false;
+  const trackFocus=event=>{if(event.target!==focused&&event.target!==document.body)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);
+  keepRows=preserve;statusState='reading';statusError=null;status.textContent=statusCopy();if(!preserve){cached.clear();list.replaceChildren();}
+  try{
+   if(!await model.open()||!current(serial))return;render();
+   const reads=REMOVED_KINDS.map(async kind=>{try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))render();});await Promise.allSettled(reads);
+   if(current(serial)&&![...model.pages.values()].some(page=>page.error)){statusState=model.rows.size?null:[...model.pages.values()].every(page=>page.done)?'empty':'partial-empty';status.textContent=statusCopy();}
+   return current(serial)?serial:null;
+  }catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();render();}return current(serial)?serial:null;}
+  finally{
+   // A bounded refresh disables unqualified old rows while it reads. Return
+   // focus only to the same newly qualified node if no newer intent took over.
+   if(focused){document.removeEventListener('focusin',trackFocus);if(current(serial)&&!focusMoved&&focused.isConnected&&!focused.disabled&&document.activeElement===document.body)focused.focus({preventScroll:true});}
+  }
+ };
+
+ detail=mountSettingsDetail({id:'settings-removed',title:['已移除的内容','Removed content'],content,language:renderedLanguage,onOpen:open});
+ detail.dialog.addEventListener('close',()=>{++viewSerial;model.close();cached.clear();list.replaceChildren();more.replaceChildren();});
+ const observer=new MutationObserver(()=>{if(detail.dialog.open&&(document.getElementById('settings-panel').hidden||document.getElementById('ux-settings-data-group').hidden))detail.dialog.close();});for(const id of ['settings-panel','ux-settings-data-group'])observer.observe(document.getElementById(id),{attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('paia:preferences-applied',()=>{detail.sync();if(detail.dialog.open)render();});return detail;
+}
 export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;
  const storageWrapper=storage.closest('.ux-settings-detail');let storageState;const storageDetail=mountSettingsDetail({id:'settings-storage',title:['存储空间','Storage space'],content:storage,language,value:chinese=>storageSummaryText(storageState,!chinese),onOpen:refreshStorage});
@@ -57,6 +122,10 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  const restoreDetail=mountSettingsDetail({id:'settings-backup',title:restoreTitle,dialogTitle:()=>restore.dataset.inspectionFailure==='true'?['这份备份无法恢复','This backup cannot be restored']:restoreTitle,content:restore,language,beforeClose:()=>backup?.leaveSettings()??false});
  new MutationObserver(()=>restoreDetail.sync()).observe(restore,{attributes:true,attributeFilter:['data-inspection-failure']});
  restoreWrapper.replaceWith(restoreDetail.row);restoreDetail.row.disabled=!backup;
+ const removed=document.getElementById('library-management'),pending=document.getElementById('manage-excluded'),removedWrapper=removed.closest('.ux-settings-detail'),removedDetail=mountRemovedDetail(language);
+ // The original legacy controllers still bind these identities. Their former
+ // nested Settings presentation is retired; import results retain pending review.
+ const retired=document.createElement('div');retired.hidden=true;retired.append(removed);document.body.append(retired);pending.removeAttribute('data-settings-zh');pending.removeAttribute('data-settings-en');document.getElementById('history-dialog').append(pending);removedWrapper.replaceWith(removedDetail.row);
  subscribeStorageEstimate(state=>{storageState=state;storageDetail.sync();});
- owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail};return owner;
+ owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail};return owner;
 }

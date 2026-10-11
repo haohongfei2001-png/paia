@@ -233,6 +233,21 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 .ux-settings-detail-dialog .ux-settings-detail-close{flex:none;min-width:44px;min-height:44px;padding:8px;border:0;background:transparent;color:var(--muted);font:400 13px/1.6 var(--font)}
 .ux-settings-detail-dialog .ux-settings-detail-close:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .ux-settings-detail-dialog p{font:400 14px/1.85 var(--font);overflow-wrap:anywhere}
+.ux-settings-detail-dialog .ux-settings-removed-note{font-size:12px;line-height:1.8;color:var(--muted)}
+#settings-removed-composite-list .ux-settings-recovery-entry{padding:16px 0;border-bottom:1px solid var(--line)}
+#settings-removed-composite-list .ux-settings-recovery-entry>p{margin:0 0 4px}
+#settings-removed-dialog button:not(.ux-settings-detail-close){box-sizing:border-box;display:inline-flex;align-items:center;min-height:44px;max-width:100%;padding:6px 0;border:0;border-radius:0;background:transparent;color:var(--muted);font:400 12px/1.7 var(--font);text-align:left;white-space:normal;overflow-wrap:anywhere}
+#settings-removed-dialog>header{gap:12px;margin-bottom:20px}
+#settings-removed-dialog h2{font-size:22px;line-height:1.455}
+#settings-removed-dialog button:hover{color:var(--focus);background:transparent}
+#settings-removed-dialog button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#settings-removed-dialog .ux-settings-removed-content>p{margin:0 0 16px}
+#settings-removed-dialog .ux-settings-removed-content>p[role=status]:empty{display:none}
+#settings-removed-dialog .ux-settings-removed-content>p:last-child{margin-top:20px}
+#settings-removed-dialog .ux-settings-recovery-entry>button+button{margin-left:16px}
+#settings-removed-dialog .ux-settings-recovery-feedback{margin-top:8px;color:var(--danger);font-size:12px}
+#settings-removed-dialog .ux-settings-recovery-feedback:empty{display:none}
+#settings-removed-dialog .ux-settings-removed-more{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .ux-settings-detail-dialog #r6-data-status{margin:0;padding:0;border:0;background:transparent}
 .ux-settings-detail-dialog #r6-data-status>h3{display:none}
 .ux-settings-detail-dialog #r6-data-status>p:last-child{color:var(--muted);font-size:12px}
@@ -265,3 +280,5 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
  .ux-settings-detail-dialog>header>h2{flex:1 1 100%}
  .ux-settings-detail-dialog .ux-settings-detail-close{margin-inline-start:auto}
 }
+
+@media(max-width:440px){#settings-removed-dialog>header{flex-wrap:wrap}#settings-removed-dialog .ux-settings-detail-close{margin-left:auto}}

@@ -82,6 +82,7 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
  $('history-read').addEventListener('click',async()=>{await close();await onRead();});
  $('history-thoughts').addEventListener('click',async()=>{await close();await onNavigate('thoughts');});
  $('history-review').addEventListener('click',async()=>{await close();await onNavigate('excluded');});
+ setHistoryCopy($('manage-excluded'),'查看待确认输入');$('manage-excluded').addEventListener('click',()=>void close().then(()=>onNavigate('excluded')).catch(()=>{setHistoryCopy($('history-error'),'暂时无法取消，请再试一次。');}));
  window.addEventListener('pagehide',()=>{void controller.pause().catch(()=>{});port?.disconnect();});
  return {open,latest};
 }
