@@ -65,3 +65,10 @@ The test-only follow-up now separately requires the unchanged candidate command 
 - Normal merge and actual-main Full/native54/current Prompt evidence: PENDING.
 - Once-built package SHA256 and delivery qualification: PENDING.
 - No production UI/Sync/account activation or installation acceptance is claimed.
+
+## Fourth formal browser failure and original retry fixture closure
+
+Formal candidate `b2888c9e21ce5290d7abc32e2860bd35dbe53953`, tested merge `d8350518ad1d2978961d06fdcb95f7e800113f86`, remains NOT_ACCEPTED. Full `38097033505` failed Native preflight and Unit2 on the same seven outdated command-contract expectations; native browser execution and strict54 receipts were not reached. Prompt `38097033467` failed those same seven expectations. Browser1 completed 88 PASS / 1 FAIL: its transient single-read synthetic outage was cleared by an independent popup refresh before the retry click. The other eight current browser shards passed. Previous failure and cancellation records remain unchanged.
+
+Local `697c6a35` aligns the command-contract expectations with the already reviewed whole-file schedule; exact file order, original candidate scheduling, final three-worker scheduling and all strict receipt checks remain asserted. Complete command contracts24 and original native preflight731 pass. The popup fixture now installs its outage before application startup and retains it until the trusted original retry click; it asserts failure-before-click and successful original read-after-click, without changing runtime, timeout or privacy assertions. Its complete two-scenario file passes. These are component results, not a fresh formal pass. Continue one combined publication after finite review, then exact-head Full/Prompt/native qualification; no runtime delivery or installation is claimed.
+
