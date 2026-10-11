@@ -1,3 +1,4 @@
+const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const nib=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
@@ -555,7 +556,7 @@ const actions='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 test('AI_COST admits one whole file on4 and preserves all304 exact main routes',async()=>{
  const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort();
- assert.equal(baseline.length,76);assert.equal(names.length,94);assert.equal(new Set(baseline.map(row=>row[0])).size,76);assert.deepEqual(names.filter(name=>name!==promotion&&!nib.includes(name)&&name!==preferencePublication&&name!==topicReturn&&name!==removedPlacement&&name!==writing&&name!==settingsNext&&name!==next&&name!==ai&&name!==actions&&!additions.includes(name)),baseline.map(row=>row[0]));
+ assert.equal(baseline.length,76);assert.equal(names.length,95);assert.equal(new Set(baseline.map(row=>row[0])).size,76);assert.deepEqual(names.filter(name=>name!==settingsData&&name!==promotion&&!nib.includes(name)&&name!==preferencePublication&&name!==topicReturn&&name!==removedPlacement&&name!==writing&&name!==settingsNext&&name!==next&&name!==ai&&name!==actions&&!additions.includes(name)),baseline.map(row=>row[0]));
  assert.equal(group(ai),'browser E2E');assert.equal(group('ai-cost-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  for(const file of additions)for(const total of [4,5,6,7])assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),4);
  for(const total of [4,5,6,7])assert.equal(testShard(entryMove,names.indexOf(entryMove),total,'browser E2E'),4);
@@ -563,7 +564,7 @@ test('AI_COST admits one whole file on4 and preserves all304 exact main routes',
  let checked=0;for(const [column,total]of [4,5,6,7].entries()){
   assert.equal(testShard(ai,names.indexOf(ai),total,'browser E2E'),4);assert.equal(testShard(actions,names.indexOf(actions),total,'browser E2E'),4);
   for(const [file,...routes]of baseline){assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),(total===7&&file==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?6:total===7&&file==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]),`${total}:${file}`);assert.equal(testShard('tests/'+file,names.indexOf(file),total,'browser E2E'),(total===7&&file==='ux-r2-reader-revisit-chrome-e2e.test.mjs'?6:total===7&&file==='ux-r4-search-reuse-chrome-e2e.test.mjs'?6:routes[column]));checked++;}
-  const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,94);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(ai));
+  const parts=Array.from({length:total},(_,slot)=>names.filter((file,position)=>testShard(file,position,total,'browser E2E')===slot+1));assert.deepEqual(parts.flat().sort(),names);assert.equal(new Set(parts.flat()).size,95);assert.ok(parts.every(part=>part.length));assert.ok(parts[3].includes(ai));
  }assert.equal(checked,304);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
  assert.deepEqual([...job.matchAll(/shard: '(\d\/9)'/g)].map(row=>row[1]),['1/9','2/9','3/9','4/9','5/9','6/9','7/9','8/9','9/9']);assert.match(job,/timeout-minutes: 18/);assert.match(job,/npm run test:browser/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
