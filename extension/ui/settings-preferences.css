@@ -307,3 +307,16 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-next-consent #settings-next-confirm{background:var(--text);border-color:var(--text);color:var(--bg)}
 #settings-next-consent #settings-next-confirm:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
 @media(max-width:767px){#settings-next-consent{padding:20px}#settings-next-consent>header{gap:8px}}
+
+/* Approved first-use capture confirmation uses the same native sheet. */
+#settings-capture-consent{box-shadow:0 18px 60px rgba(23,35,60,.18);overscroll-behavior:contain;scroll-padding:16px}
+#settings-capture-consent::backdrop{background:rgba(23,35,60,.32)}
+#settings-capture-consent>header{gap:12px;margin-bottom:20px}
+#settings-capture-consent h2{font:500 22px/1.455 var(--title-font)}
+#settings-capture-consent>p{margin:0 0 16px;line-height:1.8}
+#settings-capture-consent .ux-settings-consent-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:28px}
+#settings-capture-consent .ux-settings-consent-actions button{min-height:44px;max-width:100%;padding:8px 16px;border:1px solid var(--control);border-radius:6px;font:400 13px/1.7 var(--font);overflow-wrap:anywhere;text-align:center}
+#settings-capture-consent .ux-settings-consent-actions button:hover:not(:disabled){background:var(--soft)}
+#settings-capture-consent #settings-capture-confirm{background:var(--text);border-color:var(--text);color:var(--bg)}
+#settings-capture-consent #settings-capture-confirm:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
+@media(max-width:767px){#settings-capture-consent{padding:20px}#settings-capture-consent>header{gap:8px}}

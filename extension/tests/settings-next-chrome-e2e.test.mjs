@@ -45,11 +45,15 @@ async function assertApprovedNextCapsule(page){
 }
 
 async function unavailableNextCapsule(page){
- await page.evaluate(()=>{const send=chrome.runtime.sendMessage;globalThis.__nextPillRestoreSend=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async function(message,...args){const result=await send.call(this,message,...args);if(message.type==='PAIA_PROMPT_NEXT_STATUS')throw Error('SYNTHETIC presentation read unavailable after actual read');return result;};});
- try{
-  await chooseConsumerGroup(page,'reading');await chooseConsumerGroup(page,'ai');const input=page.locator('#settings-next-enabled');await eventually(async()=>await input.getAttribute('data-loaded')==='error');assert.equal(await input.isDisabled(),true);assert.equal(await input.isChecked(),false);assert.equal(await input.evaluate(n=>getComputedStyle(n.closest('.ux-preview-control').querySelector('.ux-preview-pill'),'::after').content),'"不可用"');await input.focus();await page.keyboard.press('Space');assert.equal(await page.locator('#settings-next-consent').isVisible(),false,'an unavailable read cannot grant consent');
- }finally{await page.evaluate(()=>{__nextPillRestoreSend();delete globalThis.__nextPillRestoreSend;});}
- await chooseConsumerGroup(page,'reading');await chooseConsumerGroup(page,'ai');await eventually(()=>page.locator('#settings-next-enabled').isEnabled());await assertApprovedNextCapsule(page);
+ await chooseConsumerGroup(page,'reading');const originalLanguage=await page.locator('#ux-language').inputValue();
+ try{for(const [language,label] of [['zh-CN','不可用'],['en','Unavailable']]){
+  await chooseConsumerGroup(page,'reading');await page.locator('#ux-language').selectOption(language);await eventually(()=>page.locator('html').getAttribute('lang').then(value=>value===language));await chooseConsumerGroup(page,'ai');await eventually(()=>page.locator('#settings-next-enabled').isEnabled());
+  await page.evaluate(()=>{const send=chrome.runtime.sendMessage;globalThis.__nextPillRestoreSend=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=async function(message,...args){const result=await send.call(this,message,...args);if(message.type==='PAIA_PROMPT_NEXT_STATUS')throw Error('SYNTHETIC presentation read unavailable after actual read');return result;};});
+  try{
+   await chooseConsumerGroup(page,'reading');await chooseConsumerGroup(page,'ai');const input=page.locator('#settings-next-enabled');await eventually(async()=>await input.getAttribute('data-loaded')==='error');assert.equal(await input.isDisabled(),true);assert.equal(await input.isChecked(),false);assert.equal(await input.evaluate(n=>getComputedStyle(n.closest('.ux-preview-control').querySelector('.ux-preview-pill'),'::after').content),JSON.stringify(label));await input.focus();await page.keyboard.press('Space');assert.equal(await page.locator('#settings-next-consent').isVisible(),false,'an unavailable read cannot grant consent');
+  }finally{await page.evaluate(()=>{__nextPillRestoreSend();delete globalThis.__nextPillRestoreSend;});}
+  await chooseConsumerGroup(page,'reading');await chooseConsumerGroup(page,'ai');await eventually(()=>page.locator('#settings-next-enabled').isEnabled());await assertApprovedNextCapsule(page);assert.equal((await read(page)).enabled,false,'recovery reads do not grant consent');
+ }}finally{await chooseConsumerGroup(page,'reading');await page.locator('#ux-language').selectOption(originalLanguage);await chooseConsumerGroup(page,'ai');await eventually(()=>page.locator('#settings-next-enabled').isEnabled());}
 }
 
 async function approvedNextConsentSheet(page,variant){

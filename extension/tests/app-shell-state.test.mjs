@@ -31,3 +31,13 @@ test('Thought header slots stay consent- and route-owned even when a late page r
   presentAppShell(root,route,{consented});assert.deepEqual(names.filter(id=>!panels.get(id).hidden),shown||[]);
  }
 });
+
+test('unconsented Settings is visible while every stored-body pane stays hidden',()=>{
+ const ids=['collection-panel','document-panel','thought-panel','settings-panel','legacy-panel','memory-panel','revisit-panel'];
+ const panels=new Map(ids.map(id=>[id,{hidden:false,storedBody:'SYNTHETIC preexisting material'}]));
+ const buttons=['library','thoughts','memory','settings','archive'].map(view=>({dataset:{view},setAttribute(){}}));
+ const root={getElementById:id=>panels.get(id),querySelectorAll:()=>buttons};
+ presentAppShell(root,{view:'settings'},{consented:false});assert.deepEqual(ids.filter(id=>!panels.get(id).hidden),['settings-panel']);
+ assert.deepEqual(buttons.filter(node=>!node.disabled).map(node=>node.dataset.view),['library','settings']);
+ presentAppShell(root,{view:'library',documentId:'synthetic-old-document'},{consented:false});assert.ok(ids.every(id=>panels.get(id).hidden),'returning to onboarding cannot reveal even preexisting stored material');
+});

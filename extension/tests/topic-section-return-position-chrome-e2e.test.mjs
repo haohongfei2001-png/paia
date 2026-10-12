@@ -3,20 +3,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
 const offset=160;
 async function fixture(){
  const h=await FakeChatGPT.start({headless:true}),p=h.archive;
- await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
- const seed=await p.evaluate(async()=>{
-  const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();
-  const topic=await s.createTopic({name:'SYNTHETIC current Section return',operationId:op()}),section=await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'SYNTHETIC durable named Section',operationId:op()}),entries=[];
-  for(let i=0;i<12;i++){const created=await s.continueThinking({topicId:topic.id,sectionId:i<4?topic.defaultSectionId:section.sectionId,body:Array.from({length:20},(_,line)=>'SYNTHETIC Entry '+i+' paragraph '+line+' 中文 é 👩🏽‍💻 precise reading text.').join('\n\n'),operationId:op()});entries.push(await s.entry(created.id));}
-  s.repository.close();return {topicId:topic.id,sectionId:section.sectionId,target:entries[7],next:entries[8]};
- });
+ p.on('console',message=>{const text=message.text();if(text.startsWith('SECTION_FIXTURE_ACQUISITIONS '))console.log(text);});
+ try{await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
+ await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent is durably acknowledged before independent Section setup');
+ const seed=await p.evaluate(`(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=s.run.bind(s),events=[];let stage='foundation';
+  s.run=callback=>preDispatchRead(work=>{const event={stage,entered:false};events.push(event);if(events.length>128)events.shift();return originalRun(()=>{event.entered=true;return work();}).catch(error=>{event.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);
+  try{await s.finishFoundation();stage='create-topic';
+  const topic=await s.createTopic({name:'SYNTHETIC current Section return',operationId:op()});stage='read-topic';const currentTopic=await s.topic(topic.id);stage='create-section';const section=await s.createSection({topicId:topic.id,expectedTopicRevision:currentTopic.organizationRevision,title:'SYNTHETIC durable named Section',operationId:op()}),entries=[];
+  for(let i=0;i<12;i++){stage='create-entry-'+i;const created=await s.continueThinking({topicId:topic.id,sectionId:i<4?topic.defaultSectionId:section.sectionId,body:Array.from({length:20},(_,line)=>'SYNTHETIC Entry '+i+' paragraph '+line+' 中文 é 👩🏽‍💻 precise reading text.').join('\\n\\n'),operationId:op()});stage='read-entry-'+i;entries.push(await s.entry(created.id));}
+  return {topicId:topic.id,sectionId:section.sectionId,target:entries[7],next:entries[8]};
+  }finally{s.run=originalRun;console.log('SECTION_FIXTURE_ACQUISITIONS '+JSON.stringify(events));s.repository.close();}
+ })()`);
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
  return {h,p,seed};
+ }catch(error){try{await h.close();}catch(cleanup){console.error('SECTION_FIXTURE_CLEANUP',cleanup?.name||'Error');}throw error;}
 }
 const field=(p,id)=>p.locator(`#topic-body [data-entry-id="${id}"] [data-entry-field="body"]`);
 async function seedPosition(p,s,entry=s.target,at=offset){assert.deepEqual(await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId,entryId:entry.id,revision:entry.revision,offset:at,sort:'asc',expanded:[]}}),{saved:true});}
