@@ -177,3 +177,9 @@ console.log('SETTINGS_DATA_CURRENT_COVERAGE_PASS previous=94 added=1 total=95; o
 
 for(const width of [4,5,6,7,9])if(!names.has(pendingHistory)||group(pendingHistory)!=='browser E2E'||testShard(pendingHistory,current.indexOf(pendingHistory),width,'browser E2E')!==(width===9?7:3))throw Error('PENDING_HISTORY_CURRENT_NATIVE_NOT_ADMITTED');
 console.log('PENDING_HISTORY_CURRENT_COVERAGE_PASS previous=95 added=1 total=96; original routes preserved');
+
+// Retain nine-route history and qualify the actual ten-job union separately.
+const ten=Array.from({length:10},(_,slot)=>current.filter((name,position)=>testShard(name,position,10,'browser E2E')===slot+1));
+if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==current.join('|')||new Set(ten.flat()).size!==current.length||ten[9].join('|')!=='context-cards-chrome-e2e.test.mjs')throw Error('CURRENT_TEN_INCOMPLETE');
+for(const [position,name]of current.entries())if(testShard(name,position,10,'browser E2E')!==(name==='context-cards-chrome-e2e.test.mjs'?10:testShard(name,position,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
+console.log('CURRENT_TEN_COVERAGE_PASS total=96 Context whole-file isolated; every other route preserved');
