@@ -87,7 +87,7 @@ export async function startNavigatorSourceFixture({extensionPath=sourceRoot}={})
  const paths=await copiedFiles(extensionPath),base=new Map();
  for(const path of paths)base.set(path,await readFile(join(extensionPath,path)));
  const runtimePaths=execFileSync('git',['ls-files','-z','extension/core','extension/background','extension/content','extension/ui','extension/adapter','extension/icons','extension/manifest.json'],{cwd:gitRoot,encoding:'utf8'}).split('\0').filter(Boolean);
- const sourceRuntime={},release=resolve(extensionPath)!==resolve(sourceRoot),publicOmissions=new Set(['ui/structure-diagnostics.js','ui/fingerprint-display.js','ui/source-time-display.js']);
+ const sourceRuntime={},release=resolve(extensionPath)!==resolve(sourceRoot),publicOmissions=new Set(['ui/structure-diagnostics.js','ui/fingerprint-display.js','ui/source-time-display.js','icons/brand-icons-provenance.json']);
  for(const gitPath of runtimePaths){
   const path=gitPath.slice('extension/'.length),source=await readFile(join(sourceRoot,path)),git=execFileSync('git',['show',head+':'+gitPath],{cwd:gitRoot});
   sourceRuntime[path]={bytes:source.length,actual:sha(source),git:sha(git)};
