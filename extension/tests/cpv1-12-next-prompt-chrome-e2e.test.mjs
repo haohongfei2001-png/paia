@@ -6,6 +6,12 @@ const root=fileURLToPath(new URL('..',import.meta.url)),url='https://chatgpt.com
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const openSurfaceTools=async frame=>{if(await frame.locator('#surface-tools').isHidden()){await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));await frame.locator('#surface-more').click();await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await frame.waitForFunction(()=>!document.documentElement.hasAttribute('data-layout-pending'));}};
 const surfaceClick=async(frame,selector)=>{await openSurfaceTools(frame);await frame.locator(selector).click();};
+const settledOrdinarySurface=async frame=>{
+ await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
+ await eventually(()=>frame.evaluate(()=>!document.documentElement.hasAttribute('data-layout-pending')),'ordinary Prompt host acknowledges the current view before its single native action');
+ const element=await frame.frameElement();
+ try{await eventually(()=>element.evaluate(async n=>{const rect=()=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};const first=rect();await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);const last=rect();return n.isConnected&&last[2]>0&&last[3]>0&&first.every((x,i)=>x===last[i]);}),'ordinary Prompt parent geometry is stable before its single native action');}finally{await element.dispose();}
+};
 for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' production direct loop',{timeout:180000},async t=>{
  const releasePath=variant==='release'?process.env.NIB_RELEASE_PATH||await mkdtemp(join(tmpdir(),'paia-next-settings-')):null;
  if(releasePath&&!process.env.NIB_RELEASE_PATH)execFileSync('python3',['scripts/build_current_release.py',releasePath],{cwd:root,stdio:'pipe'});
@@ -181,7 +187,36 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
   });
   await check('worker restart recovers prospectively; Stage 1/2 still works after Stage 3 revoke',async()=>{
    await h.restartWorker();await cycle();await page.waitForTimeout(1700);assert.equal(capsule(),undefined,'restart loses old authority and current candidate');await cycle();await shown();await disable();
-   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await surfaceClick(card(),'#new');await card().getByRole('textbox',{name:'复用文本'}).fill('ordinary Stage 1/2');await card().getByRole('button',{name:'保存',exact:true}).click();await card().getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();await eventually(()=>card().locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.send),0);
+   await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());await surfaceClick(card(),'#new');await card().getByRole('textbox',{name:'复用文本'}).fill('ordinary Stage 1/2');await card().getByRole('button',{name:'保存',exact:true}).click();
+   const ordinary=card();
+   await ordinary.evaluate(()=>{globalThis.__ordinaryRestart={requests:[],results:[],clicks:[]};globalThis.__ordinaryRestartSend=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async function(request,...args){const type=request?.command?.type;if(request?.type==='PAIA_PROMPT_SURFACE_RPC')__ordinaryRestart.requests.push({type});const result=await __ordinaryRestartSend.call(this,request,...args);if(request?.type==='PAIA_PROMPT_SURFACE_RPC')__ordinaryRestart.results.push({type,ok:result?.ok,status:result?.data?.status,verified:result?.data?.verified,error:result?.error});return result;};document.addEventListener('click',e=>__ordinaryRestart.clicks.push({trusted:e.isTrusted,insert:!!e.target.closest('.insert'),disabled:!!e.target.closest('button')?.disabled}),true);});
+   let ordinaryFailure=null;
+   try{
+    diagnostics.push({event:'ordinary-restart-before-click',value:await ordinary.getByRole('button',{name:'ordinary Stage 1/2',exact:true}).evaluate(b=>{const n=b.querySelector('.text'),r=b.getBoundingClientRect();return {scrollWidth:n.scrollWidth,clientWidth:n.clientWidth,frameWidth:innerWidth,button:{x:r.x,y:r.y,width:r.width,height:r.height},layoutPending:document.documentElement.hasAttribute('data-layout-pending')};})});
+    await settledOrdinarySurface(ordinary);
+    await ordinary.getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();
+    await eventually(async()=>await ordinary.locator('#check-text').isVisible()||await ordinary.locator('#status').textContent()==='已插入，未发送。','the original row either inserts or opens its approved complete-text review');
+    if(await ordinary.locator('#check-text').isVisible()){
+     assert.equal(await ordinary.locator('.check-body').textContent(),'ordinary Stage 1/2');
+     assert.equal(await ordinary.evaluate(()=>__ordinaryRestart.requests.filter(x=>['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(x.type)).length),0,'review has not dispatched an insertion; this is not a retry');
+     await settledOrdinarySurface(ordinary);await ordinary.getByRole('button',{name:'填入整条',exact:true}).click();
+    }
+    await eventually(()=>card().locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.send),0);
+    assert.equal(await ordinary.evaluate(()=>__ordinaryRestart.requests.filter(x=>['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(x.type)).length),1,'exactly one ordinary insertion after Stage 3 revocation');
+   }catch(error){ordinaryFailure=error;throw error;}finally{
+    try{diagnostics.push({event:'ordinary-restart-final',value:await ordinary.locator('html').evaluate(()=>({trace:__ordinaryRestart,status:document.querySelector('#status').textContent,checking:!document.querySelector('#check-text').hidden,checkLength:document.querySelector('.check-body')?.textContent.length??null,listHidden:document.querySelector('#list').hidden,editorHidden:document.querySelector('#editor').hidden,frameWidth:innerWidth,layoutPending:document.documentElement.hasAttribute('data-layout-pending')}),null,{timeout:1000})});}catch(error){diagnostics.push({event:'ordinary-restart-diagnostic-unavailable',errorName:error.name});}
+    try{await ordinary.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__ordinaryRestartSend;},null,{timeout:1000});}catch(error){if(!ordinaryFailure)throw error;diagnostics.push({event:'ordinary-restart-cleanup-unavailable',errorName:error.name});}
+   }
+  });
+  await check('revoked Stage 3 preserves explicit complete-text review with one ordinary insertion',async()=>{
+   await card().locator('#close').click();await eventually(()=>!card());await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());const frame=card(),text='ordinary Stage 1/2\nExplicit complete-text review.';
+   await surfaceClick(frame,'#new');await frame.getByRole('textbox',{name:'复用文本'}).fill(text);await frame.getByRole('button',{name:'保存',exact:true}).click();await settledOrdinarySurface(frame);
+   await frame.evaluate(()=>{globalThis.__completeReviewWrites=0;globalThis.__completeReviewSend=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async function(request,...args){if(request?.type==='PAIA_PROMPT_SURFACE_RPC'&&['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(request.command?.type))__completeReviewWrites++;return __completeReviewSend.call(this,request,...args);};});
+   let completeReviewFailure=null;
+   try{
+    await frame.getByRole('button',{name:'ordinary Stage 1/2 Explicit complete-text review.',exact:true}).click();await eventually(()=>frame.locator('#check-text').isVisible(),'a multiline expression requires the existing full-text review');assert.equal(await frame.locator('.check-body').textContent(),text);assert.equal(await frame.evaluate(()=>__completeReviewWrites),0);
+    await settledOrdinarySurface(frame);await frame.getByRole('button',{name:'填入整条',exact:true}).click();await eventually(()=>frame.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await frame.evaluate(()=>__completeReviewWrites),1);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);
+   }catch(error){completeReviewFailure=error;throw error;}finally{try{await frame.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__completeReviewSend;},null,{timeout:1000});}catch(error){if(!completeReviewFailure)throw error;diagnostics.push({event:'complete-review-cleanup-unavailable',errorName:error.name});}}
   });
   assert.equal(failures,0);assert.deepEqual(h.errors,[]);
  }finally{if(world)try{diagnostics.push({event:'final-world',value:await world.run('({observed:nextObserve,trace:nextTrace})')});}catch(error){diagnostics.push({event:'final-world-unavailable',error:error.message});}await writeFile(join(out,variant+'-insert-diagnostic.json'),JSON.stringify(diagnostics,null,2));await writeFile(join(out,variant+'.json'),JSON.stringify({variant,evidence:'SYNTHETIC_PRODUCTION_EXTENSION',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),cases,screens,failures,currentLive:'PENDING'},null,2));await world?.cdp.detach();await h.close();if(releasePath&&!process.env.NIB_RELEASE_PATH)await rm(releasePath,{recursive:true,force:true});}
