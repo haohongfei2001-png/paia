@@ -67,3 +67,21 @@ test('TOPIC-05.4 removed persisted Section Entry restores the canonical nearby t
   await thoughtPrimary(p,'thoughts');await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).click();await p.getByText('原位置已移除，从附近继续。',{exact:true}).waitFor();const restored=await exact(p,s,s.next,0);assert.equal(await field(p,s.target.id).count(),0);await evidence(f,'nearby-return',{nearby,restored});
  }finally{await f.h.close();}
 });
+
+test('TOPIC-05.4 a real pending save ACK cannot start a replacement reader while departure is flushing',{timeout:90000},async()=>{
+ const f=await fixture();try{const {p,seed:s}=f;await seedPosition(p,s);await open(p,s);await exact(p,s);
+  await p.evaluate(async()=>{
+   const {TopicController}=await import('../ui/topic-workspace.js');globalThis.__leaveAckTrace={depth:0,refreshWhileLeaving:0,held:false,released:false};
+   const leave=TopicController.prototype.leaveEditors,refresh=TopicController.prototype.refresh;
+   TopicController.prototype.leaveEditors=function(...args){__leaveAckTrace.depth++;const pending=leave.apply(this,args);pending.then(()=>__leaveAckTrace.depth--,()=>__leaveAckTrace.depth--);return pending;};
+   TopicController.prototype.refresh=function(...args){if(__leaveAckTrace.depth)__leaveAckTrace.refreshWhileLeaving++;return refresh.apply(this,args);};
+   const send=chrome.runtime.sendMessage;globalThis.__leaveAckRestore=()=>chrome.runtime.sendMessage=send;
+   chrome.runtime.sendMessage=async function(message,...args){const result=await send.call(this,message,...args);if(message.type==='EDIT_LIBRARY_BATCH'&&!__leaveAckTrace.held){__leaveAckTrace.held=true;await new Promise(resolve=>globalThis.__releaseLeaveAck=resolve);__leaveAckTrace.released=true;}return result;};
+  });
+  const body=field(p,s.target.id),draft=s.target.body+'\n\nSYNTHETIC held real save ACK';await body.evaluate((n,text)=>{n.textContent=text;n.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:'SYNTHETIC held real save ACK'}));},draft);await p.locator('#topic-heading').evaluate(n=>n.focus({preventScroll:true}));
+  await eventually(()=>p.evaluate(()=>__leaveAckTrace.held),'the original storage commit completes before its actual editor ACK');const saved=await rpc(p,'GET_LIBRARY_ENTRY',{id:s.target.id});assert.equal(saved.body,draft);assert.ok(saved.revision>s.target.revision);await seedPosition(p,s,saved);
+  await p.evaluate(({id,at})=>{const b=document.querySelector(`[data-entry-id="${id}"] [data-entry-field="body"]`),w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,left=at;while(n=w.nextNode()){if(left<=n.length){const r=document.createRange();r.setStart(n,left);r.collapse(true);scrollBy(0,r.getBoundingClientRect().top-140);break;}left-=n.length;}},{id:s.target.id,at:offset});await settled(p);
+  await back(p);await eventually(()=>p.evaluate(()=>__leaveAckTrace.depth>0),'real departure is awaiting the same pending editor save');assert.equal(await p.locator('#thought-document').isVisible(),true);await p.evaluate(()=>__releaseLeaveAck());await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).waitFor();assert.equal(await p.evaluate(()=>__leaveAckTrace.refreshWhileLeaving),0,'save completion must not start a replacement reader during the real departure');
+  await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).click();const returned=await exact(p,s,saved);assert.equal(await field(p,s.target.id).textContent(),draft);await evidence(f,'pending-save-ack-return',{returned,trace:await p.evaluate(()=>__leaveAckTrace)});
+ }finally{await f.p.locator('html').evaluate(()=>{globalThis.__releaseLeaveAck?.();globalThis.__leaveAckRestore?.();},null,{timeout:1000}).catch(()=>{});await f.h.close();}
+});

@@ -1,3 +1,7 @@
+# Owner-selected local Chrome delivery priority — 2026-10-12
+
+[Current priority](docs/consumer-product-v1/LOCAL_CHROME_DELIVERY_PRIORITY_2026-10-12.md) supersedes earlier execution pointers: complete the approved local product and self-installable Chrome artifact; pause new SYNC-01 features with a safe R109 checkpoint and retain all safety protections, seven plans and future Sync goals. PR266 continues; Pro exclusively owns PR264/CI infrastructure. Preserve approved originals and truthful unavailable AI states. This is a priority decision, not completed acceptance or an installed build.
+
 
 Independent review identified diagnostic finally reads/cleanup could hide an original error after iframe detachment. A subsequent diagnostic-only correction bounds html reads/cleanup at1000ms, records only unavailable error names, preserves an existing action failure, and still fails an otherwise successful case if cleanup fails. Syntax check passes; original r3 whole28PASS belongs to the pre-correction bytes, not a new browser rerun. Final exact corrected bytes receive code review plus the future automatic changed-head full gate.
 
