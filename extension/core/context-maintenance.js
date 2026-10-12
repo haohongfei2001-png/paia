@@ -50,8 +50,8 @@ async function cancellable(work,signals){
  * Scope and processing flags in request JSON are never accepted as authority.
  */
 export class ContextMaintenanceService {
- #s;#cards;#verifier;#attempts;
- constructor(store,{processingVerifier=null}={}){this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
+ #s;#cards;#verifier;#attempts;#writeTransaction;
+ constructor(store,{processingVerifier=null,writeTransaction=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
  async #verify(caller,scope,signals=[]){
   const timeout=new AbortController(),timer=setTimeout(()=>timeout.abort(),CONTEXT_MAINTENANCE_LIMITS.verificationMs);
   try{
@@ -113,7 +113,7 @@ export class ContextMaintenanceService {
   const abort=()=>{try{transaction?.abort();}catch{}};
   const signals=[...new Set([phase.signal,current.revocationSignal])];
   for(const value of signals)value.addEventListener('abort',abort);
-  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);return await this.#s.repository.transaction(true,async t=>{
+  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);return await this.#writeTransaction(async t=>{
    need(contextLineageReady(this.#s)&&this.#s.repository.db===database);transaction=t.tx;
    const clearDeadline=()=>{clearTimeout(expiryTimer);expiryTimer=null;};
    transaction.addEventListener('complete',clearDeadline,{once:true});transaction.addEventListener('abort',clearDeadline,{once:true});

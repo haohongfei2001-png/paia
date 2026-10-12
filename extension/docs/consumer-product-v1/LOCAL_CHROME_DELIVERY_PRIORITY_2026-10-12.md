@@ -1,6 +1,6 @@
 # Current routing correction — 2026-10-13
 
-This local delivery priority has been fulfilled by 0.43.29 / main `51303e8436faa24f445906a6c4a2c278d6d93001` (Certification `38308057095`, Prompt `38308057140`, both SUCCESS). PR #266/#268/#270 are merged; the pending table and candidate selection below are preserved as the original 2026-10-12 decision, not present-day work. [STATUS](STATUS.md) now selects remaining Canonical engineering, with PR273 bounded byte decoding merged and AI-COST-02 partial request controls selected. All seven plans and outstanding final acceptance obligations remain; Sync new features are still paused and Pro owns PR #264/CI. Local-stage completion is not whole-project completion or blanket future installation authority.
+This local delivery priority has been fulfilled by 0.43.29 / main `51303e8436faa24f445906a6c4a2c278d6d93001` (Certification `38308057095`, Prompt `38308057140`, both SUCCESS). PR #266/#268/#270 are merged; the pending table and candidate selection below are preserved as the original 2026-10-12 decision, not present-day work. [STATUS](STATUS.md) now selects remaining Canonical engineering, with PR273 bounded byte decoding and PR275 partial request controls merged, and AI-COST-03 unified local Maintenance selected. All seven plans and outstanding final acceptance obligations remain; Sync new features are still paused and Pro owns PR #264/CI. Local-stage completion is not whole-project completion or blanket future installation authority.
 
 ## Historical priority decision
 

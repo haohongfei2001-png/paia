@@ -23,7 +23,12 @@ export class TopicFormationService {
  #plans=new WeakMap();
  #decision;
  #parameters;
- constructor(store,{resolveProcessing=null,decision=null,parameters=null}={}){
+ #writeTransaction;
+ constructor(store,{resolveProcessing=null,decision=null,parameters=null,writeTransaction=null}={}){
+  if(writeTransaction!==null&&typeof writeTransaction!=='function')fail();
+  // Constructor-private delegation only; the original callback retains every
+  // domain guard and can share its native transaction with exact facet ACK.
+  this.#writeTransaction=writeTransaction??(fn=>store.foundationWrite(fn));
   this.store=store;this.retrieval=new TopicIdentityRetrieval(store,{resolveProcessing});this.candidates=new HiddenTopicCandidates(store,{resolveProcessing});
   if(decision!==null){keys(decision,['version','assess'],['version','assess']);if(typeof decision.assess!=='function'||typeof decision.version!=='string'||!/^[-a-zA-Z0-9_.]{1,80}$/.test(decision.version))fail();this.#decision=Object.freeze({...decision});}
   this.#parameters=parameters===null?null:formationParameters(parameters);
@@ -89,7 +94,7 @@ export class TopicFormationService {
   if(prior){await this.read(current,t=>this.authorizeTopics(t,current,prior.topicIds||[]));assertActive(state.signal);if(state.cancelled)fail();return prior;}
   if(state.prior)fail();
   const {prepared,plan,projection,entryPlans,snapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan}=state,digest=await hashText(JSON.stringify(operation));
-  return this.store.foundationWrite(async t=>{
+  return this.#writeTransaction(async t=>{
    const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();return replay;}
    const active=()=>{assertActive(state.signal);if(state.cancelled)fail();};active();
    await this.retrieval.guard.check(t,prepared);await this.authorizeTopics(t,prepared,topicIds);
