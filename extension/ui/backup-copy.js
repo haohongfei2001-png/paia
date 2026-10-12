@@ -1,4 +1,16 @@
 const COPY={
+"恢复只在本机进行，捕获授权保持当前设置。":"Restoration stays on this device; capture consent keeps its current setting.",
+"当前的人工修改":"Your current edits",
+"替换会清除当前内容和修改":"Replacement clears current content and edits",
+"保留，冲突时不写入":"Preserved; conflicts write nothing",
+"仅恢复到空库":"Restore only to an empty library",
+"永久删除的来源":"Permanently deleted sources",
+"永久删除标记优先，包含已删除来源的备份不能恢复":"Permanent-deletion markers take precedence; backups containing deleted sources cannot be restored",
+"将用备份替换当前库。当前内容和人工修改将被清除，本机永久删除标记和捕获授权保留。":"This replaces the current library with the backup. Current content and edits will be cleared; local permanent-deletion markers and capture consent are retained.",
+"将合并互不冲突的数据，保留当前内容、人工修改与设置。若实际写入前发现冲突，本次合并不写入。":"This merges non-conflicting data and preserves current content, edits and settings. If a conflict is found before writing, the merge will not be committed.",
+"将在空库中恢复备份内容与版本，仅在本机进行。捕获授权保持当前设置。":"This restores backup content and revisions to an empty library on this device only. Capture consent keeps its current setting.",
+
+"继续":"Continue","备份内容":"Backup contents",
 "选择已有的 PAIA 备份。文件包含私人数据，仅在本机读取。":"Choose an existing PAIA backup. It contains private data and is read only on this device.","从备份恢复":"Restore from backup","恢复方式":"Restore mode","恢复到空库":"Restore to an empty library","合并互不冲突的数据":"Merge non-conflicting data","替换当前库":"Replace the current library","我了解替换会清除当前库内容":"I understand that replacement will clear the current library","取消":"Cancel","校验并预览后再确认。替换会清除当前库；合并遇到冲突时不写入。永久删除的来源无法恢复。支持最多 512 MB / 500000 项的完整分段备份，单文件最多 64 MB / 100000 项。":"Validate and preview before confirming. Replacement clears the current library; a conflicting merge writes nothing. Permanently deleted sources cannot be restored. Complete segmented backups support up to 512 MB / 500000 items; a single file supports up to 64 MB / 100000 items.",
  "请等待当前资料修改完成，再恢复备份。": "Wait for the current data change to finish before restoring.",
  "操作期间本机内容发生变化。请重新校验备份并确认当前库，原有内容保持不变。": "Local data changed during this operation. Validate the backup again and confirm the current library. Existing content is unchanged.",

@@ -8,6 +8,7 @@ class Node extends PresentationNode {
  constructor(registry,tag='div',namespaceURI){super(tag,namespaceURI);this.registry=registry;this.checked=false;this.disabled=false;}
  append(...nodes){super.append(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
  prepend(...nodes){super.prepend(...nodes);for(const node of nodes)if(node.id)this.registry?.set(node.id,node);}
+ after(...nodes){const parent=this.parentElement;if(!parent)return;const next=this.nextSibling;for(const node of nodes){parent.insertBefore(node,next);if(node.id)this.registry?.set(node.id,node);}}
  getAttribute(name){return this.attributes.get(name);}
 }
 async function withDOM(run){
@@ -54,7 +55,12 @@ test('S01 keeps legal saved sizes, six groups and actual controls; system stylin
 });
 
 test('S05 uses one existing picker and cancellation owner, with local-only presentation and explicit return focus',()=>withDOM(async({get})=>{
- const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null}),choose=get('backup-choose'),host=get('backup-settings');host.append(choose,get('backup-file'),get('ux-backup-failure-title'),get('backup-status'));panel.installInspectionPresentation();
+ const panel=Object.assign(Object.create(BackupPanel.prototype),{busy:false,mode:'empty',sessionId:null}),choose=get('backup-choose'),host=get('backup-settings');host.append(choose,get('backup-file'),get('ux-backup-failure-title'),get('backup-status'));
+ // Match archive.html: the existing mode select belongs to a label inside preview.
+ const preview=get('backup-preview'),modeLabel=document.createElement('label');
+ modeLabel.append(get('backup-mode'));preview.append(get('backup-preview-content'),modeLabel,get('backup-confirm-replace-label'),get('backup-restore'),get('backup-cancel'));host.append(preview);panel.installInspectionPresentation();
+ assert.equal(panel.modeLabel,modeLabel);assert.equal(get('backup-mode').parentElement,modeLabel);assert.equal(modeLabel.parentElement,preview);assert.equal(get('backup-preview-note').parentElement,preview);assert.equal(modeLabel.nextSibling,get('backup-preview-note'));assert.equal(get('backup-confirmation-content').parentElement,preview);
+
  choose.focus();panel.presentInspectionFailure(true);assert.equal(document.activeElement,choose);assert.equal(host.children[0],get('backup-failure-page-title'));assert.equal(choose.getAttribute('aria-describedby'),'ux-backup-failure-title backup-status');
  assert.equal(get('backup-choose'),choose);assert.equal(choose.textContent,'重新选择文件');assert.equal(host.getAttribute('aria-labelledby'),'backup-failure-page-title');
  assert.equal(get('backup-failure-page-title').textContent,'数据与恢复');assert.match(get('backup-failure-note').textContent,/不会自动触发外部请求/);

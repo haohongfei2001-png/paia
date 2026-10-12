@@ -31,3 +31,15 @@ test('Source, Project and Context identity replacements do not inherit Search ow
   [{view:'library',documentId:'doc',contextInputId:'a'},{view:'library',documentId:'doc',contextInputId:'b'}]
  ]){const f=fixture();f.set(before);f.routes.commit();f.history.replaceState({...f.history.state,paiaSearch:true});f.set(after);f.routes.commit({replace:true});assert.equal(f.history.state.paiaSearch,undefined);}
 });
+
+// Exercise the actual Settings composition callback against the real history owner.
+test('Settings focus checkpoint before navigation completion cannot replace the departure entry',async()=>{
+ const f=fixture(),shellSource=readFileSync(new URL('../ui/app-shell.js',import.meta.url),'utf8');
+ const callback=shellSource.match(/routeChanged:(options=>[^,]+),back:/)?.[1];assert.ok(callback,'actual Settings route callback is present');
+ const changed=vm.runInNewContext('(function(){return '+callback+';}).call(shell)',{shell:{routes:f.routes}});
+ f.set({view:'settings'});changed({replace:true});f.routes.commit();
+ assert.equal(f.history.state.paiaReader.view,'settings');
+ changed({replace:true});
+ await f.history.back();assert.equal(f.current().view,'library','focus/scroll during arrival preserves the real departure route');
+ await f.history.forward();assert.equal(f.current().view,'settings','the final navigation still pushes exactly one Settings entry');
+});

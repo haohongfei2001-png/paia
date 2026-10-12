@@ -151,8 +151,8 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  const sourceDetail=mountSettingsDestination(sourceButton,{title:['原始来源记录','Original source records'],language});source.replaceWith(sourceDetail.row);
  const restore=document.getElementById('backup-settings'),restoreWrapper=restore.closest('.ux-settings-detail');
  const restoreTitle=['从已有 PAIA 备份恢复','Restore an existing PAIA backup'];
- const restoreDetail=mountSettingsDetail({id:'settings-backup',title:restoreTitle,dialogTitle:()=>restore.dataset.inspectionFailure==='true'?['这份备份无法恢复','This backup cannot be restored']:restoreTitle,content:restore,language,beforeClose:()=>backup?.leaveSettings()??false});
- new MutationObserver(()=>restoreDetail.sync()).observe(restore,{attributes:true,attributeFilter:['data-inspection-failure']});
+ const restoreDetail=mountSettingsDetail({id:'settings-backup',title:restoreTitle,dialogTitle:()=>restore.dataset.inspectionFailure==='true'?['这份备份无法恢复','This backup cannot be restored']:restore.dataset.backupStage==='confirm'?['确认恢复','Confirm restoration']:restore.dataset.backupStage==='preview'?['预览恢复内容','Preview restoration']:restoreTitle,content:restore,language,beforeClose:()=>backup?.leaveSettings()??false});
+ new MutationObserver(()=>restoreDetail.sync()).observe(restore,{attributes:true,attributeFilter:['data-inspection-failure','data-backup-stage']});
  restoreWrapper.replaceWith(restoreDetail.row);restoreDetail.row.disabled=!backup;
  const removed=document.getElementById('library-management'),pending=document.getElementById('manage-excluded'),removedWrapper=removed.closest('.ux-settings-detail'),removedDetail=mountRemovedDetail(language);
  // The original legacy controllers still bind these identities. Their former
