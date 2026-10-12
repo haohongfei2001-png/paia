@@ -1,0 +1,97 @@
+name: PAIA isolated efficiency workbench
+on:
+  push:
+    branches: ['engineering/execution-efficiency-20261012']
+    paths: ['.github/workflows/paia-efficiency-workbench.yml']
+permissions:
+  contents: write
+concurrency:
+  group: paia-efficiency-integration-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/engineering/execution-efficiency-20261012'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reconcile the exact independently verified composition
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN_SHA: '2cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/paia264-final-evidence
+          gh api repos/haohongfei2001-png/paia/git/blobs/e3823056cc66a7fb6e54c2cdfde5d2c30847a619 --jq .content | base64 -d > /tmp/paia264-finalize.py
+          test "$(git hash-object /tmp/paia264-finalize.py)" = e3823056cc66a7fb6e54c2cdfde5d2c30847a619
+          git config user.name 'hongfei hao'
+          git config user.email 'haohongfei2001@gmail.com'
+          git merge --no-commit --no-ff "$MAIN_SHA" || test -f .git/MERGE_HEAD
+          python /tmp/paia264-finalize.py
+          git rm .github/workflows/paia-efficiency-workbench.yml
+          python - <<'PY'
+          import subprocess,json,hashlib
+          from pathlib import Path
+          def git(*a):return subprocess.check_output(['git',*a],text=True).strip()
+          base='2cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a'
+          paths=git('diff','--cached','--name-only',base).splitlines()
+          assert paths==git('diff','--name-only','b8a09bb','95cbcf21').splitlines(),paths
+          expected={
+           '.github/workflows/paia-certification.yml':'adb0cbf0f0ba7efc7fa748a6d9d87ba470b7a8ec',
+           'extension/docs/consumer-product-v1/MASTER_PLAN.md':'3de992b6aece17cdf188620c933ec69616a2cfc9',
+           'extension/docs/consumer-product-v1/STATUS.md':'9b85bb956aa5e0d7819dd0fe0c6560e52e7084d2',
+           'extension/scripts/browser-corpus.mjs':'ebc9b5342cf3baffc89e6ca585f8042875066fe1',
+           'extension/scripts/browser-coverage.mjs':'93c3723f29d714c27676e88b1ebf35945d53f13a',
+           'extension/scripts/check-ui-refresh-ci.mjs':'d9a0a528685957b7845fb227b07e97490bf6f402',
+           'extension/scripts/current-browser-manifest.json':'e009cd8edafa5eb64393b7eabe84e491914577d0',
+           'extension/tests/ai-cost-current-browser-admission.test.mjs':'23b1cf3785f91930443a6b2bd18c765800fa1b71',
+           'extension/tests/current-browser-nine-partition.test.mjs':'d21ae628b0b067ae761d693925077976ea6608bc',
+           'extension/tests/d5-full-browser-partition.test.mjs':'7ea9c0f935d287a1b0f5a379e9430a06030bec00',
+           'extension/tests/iah11-current-browser-admission.test.mjs':'08d218415e4594a59daaa3c263bac5cbc5a8a68a',
+           'extension/tests/topic-section-actions-ci.test.mjs':'03d0c556adf48712b24cd7a76c4b2e166a307814'
+          }
+          for p in paths:assert git('hash-object',p)==expected.get(p,git('rev-parse','8c739ef7:'+p)),p
+          assert git('write-tree')=='3ddbacb88981f1089c61145449439d74c9d42952'
+          assert not git('diff','--cached',base,'--','extension/core','extension/ui','extension/background','extension/content','extension/adapter','extension/manifest.json','extension/package.json','extension/AGENTS.md','extension/docs/consumer-product-v1/AUTHORITY.md','extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md')
+          subprocess.run(['git','diff','--cached','--check',base],check=True)
+          Path('/tmp/paia264-final-evidence/identity.json').write_text(json.dumps({'base':base,'tree':git('write-tree'),'paths':paths,'newBlobs':expected,'remoteRefsChanged':False},indent=2)+'\n')
+          print('EXACT_COMPOSED_TREE_AND_23_PATHS_PASS')
+          PY
+      - name: Retain all admission assertions and independent negative coverage
+        working-directory: extension
+        run: |
+          set -euo pipefail
+          node scripts/check-ui-refresh-ci.mjs | tee /tmp/paia264-final-evidence/preflight.log
+          node --test --test-concurrency=1 tests/browser-corpus.test.mjs tests/*admission.test.mjs tests/*partition.test.mjs tests/*-ci.test.mjs | tee /tmp/paia264-final-evidence/admission.log
+      - name: Publish only immutable verified blobs, never a ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os,json,time,hashlib,urllib.request,subprocess
+          from pathlib import Path
+          record=json.loads(Path('/tmp/paia264-final-evidence/identity.json').read_text())
+          for p,expected in record['newBlobs'].items():
+            raw=Path(p).read_bytes()
+            assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==expected,p
+            req=urllib.request.Request('https://api.github.com/repos/haohongfei2001-png/paia/git/blobs',data=json.dumps({'content':raw.decode(),'encoding':'utf-8'}).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},method='POST')
+            with urllib.request.urlopen(req,timeout=30) as response:created=json.load(response)
+            assert created['sha']==expected,(p,created['sha'])
+            print('VERIFIED_BLOB',p,expected)
+            time.sleep(1)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()==record['tree']
+          print('NO_REMOTE_BRANCH_MAIN_PR_OR_DEPLOYMENT_MUTATED')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paia264-final-composition
+          path: /tmp/paia264-final-evidence/
+          if-no-files-found: error
+          retention-days: 14
