@@ -100,6 +100,7 @@ test('CPV1-03 historical segmented files authenticate before current staged rest
   await eventually(async()=>/替换会清除当前库内容/.test(await page.locator('#backup-preview-content').innerText()),
    'explicit replace preview',30000);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
+  assert.equal(await page.locator('#backup-confirm-replace').isVisible(),false);await page.locator('#backup-continue').click();assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.deepEqual(await domainDigest(harness),before);
   await page.locator('#backup-confirm-replace').check();
   assert.equal(await page.locator('#backup-restore').isEnabled(),true);
   await page.locator('#backup-restore').click();
@@ -127,8 +128,8 @@ test('CPV1-03 historical segmented files authenticate before current staged rest
    'tampered segment rejection',60000);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
   await page.locator('#backup-file').setInputFiles(paths);
-  await eventually(async()=>await page.locator('#backup-restore').isEnabled(),
-   'verified segmented restore preview',60000);
+  await eventually(async()=>await page.locator('#backup-continue').isEnabled(),
+   'verified segmented restore preview',60000);assert.equal(await page.locator('#backup-restore').isDisabled(),true);await page.locator('#backup-continue').click();assert.equal(await page.locator('#backup-restore').isEnabled(),true);
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),
    'segmented recovery',60000);

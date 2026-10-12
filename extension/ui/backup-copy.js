@@ -1,4 +1,5 @@
 const COPY={
+"继续":"Continue","备份内容":"Backup contents",
 "选择已有的 PAIA 备份。文件包含私人数据，仅在本机读取。":"Choose an existing PAIA backup. It contains private data and is read only on this device.","从备份恢复":"Restore from backup","恢复方式":"Restore mode","恢复到空库":"Restore to an empty library","合并互不冲突的数据":"Merge non-conflicting data","替换当前库":"Replace the current library","我了解替换会清除当前库内容":"I understand that replacement will clear the current library","取消":"Cancel","校验并预览后再确认。替换会清除当前库；合并遇到冲突时不写入。永久删除的来源无法恢复。支持最多 512 MB / 500000 项的完整分段备份，单文件最多 64 MB / 100000 项。":"Validate and preview before confirming. Replacement clears the current library; a conflicting merge writes nothing. Permanently deleted sources cannot be restored. Complete segmented backups support up to 512 MB / 500000 items; a single file supports up to 64 MB / 100000 items.",
  "请等待当前资料修改完成，再恢复备份。": "Wait for the current data change to finish before restoring.",
  "操作期间本机内容发生变化。请重新校验备份并确认当前库，原有内容保持不变。": "Local data changed during this operation. Validate the backup again and confirm the current library. Existing content is unchanged.",

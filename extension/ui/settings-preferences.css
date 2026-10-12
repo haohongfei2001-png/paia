@@ -320,3 +320,14 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-capture-consent #settings-capture-confirm{background:var(--text);border-color:var(--text);color:var(--bg)}
 #settings-capture-consent #settings-capture-confirm:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
 @media(max-width:767px){#settings-capture-consent{padding:20px}#settings-capture-consent>header{gap:8px}}
+
+/* Approved existing-file preview and explicit confirmation; one original owner. */
+#settings-backup-dialog #backup-preview{background:transparent;border:0;border-radius:0;padding:0;margin:20px 0}
+#settings-backup-dialog .ux-backup-preview-line{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:14px 0;border-top:1px solid var(--line);font:400 13px/1.7 var(--font)}
+#settings-backup-dialog .ux-backup-preview-line>span:last-child{max-width:65%;text-align:right;color:var(--muted);overflow-wrap:anywhere}
+#settings-backup-dialog #backup-preview-content>.muted{font-size:12px;margin:16px 0;line-height:1.8}
+#settings-backup-dialog #backup-settings:is([data-backup-stage="preview"],[data-backup-stage="confirm"])>p:first-of-type{display:none}
+#settings-backup-dialog h2{font-size:22px;line-height:1.455}
+#settings-backup-dialog :is(#backup-continue,#backup-restore){background:var(--text);color:var(--bg);border-color:var(--text)}
+#settings-backup-dialog #backup-settings[data-backup-stage="confirm"]:has(#backup-confirm-replace-label:not([hidden])) #backup-restore{background:var(--danger);border-color:var(--danger)}
+#settings-backup-dialog .ux-backup-actions>[hidden]{display:none}
