@@ -1,0 +1,1333 @@
+{
+  "evidence": "REAL_LOCAL_HTTP_SYNTHETIC_DATA",
+  "checks": [
+    {
+      "check": "unchanged non-home bytes: 404.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: about.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: article-beliefs.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: article-context.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: article-reuse.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: beta.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: blog.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: demo.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/404.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/about.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/article-beliefs.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/article-context.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/article-reuse.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/beta.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/blog.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/demo.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/how-it-works.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/principles.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/privacy-policy.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/status.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/terms.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/thanks.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: en/use-cases.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: how-it-works.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: principles.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: privacy-policy.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: robots.txt",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: sitemap.xml",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: status.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: terms.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: thanks.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: use-cases.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/404.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/about.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/article-beliefs.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/article-context.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/article-reuse.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/beta.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/blog.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/demo.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/how-it-works.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/principles.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/privacy-policy.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/status.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/terms.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/thanks.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged non-home bytes: zh/use-cases.html",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: website/product_hero.py",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: website/core.py",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: website/topic_preview.py",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: website/product_sections.py",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: website/prompt_preview.py",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: assets/website/site.css",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: assets/website/product-experience.css",
+      "pass": true
+    },
+    {
+      "check": "unchanged original copy/visual/data owner: assets/website/site.js",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen working",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "1440 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "1440 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "1440 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "1440 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "1440 side-by-side .pc-review",
+      "pass": true
+    },
+    {
+      "check": "1440 side-by-side .pc-topics",
+      "pass": true
+    },
+    {
+      "check": "1440 side-by-side .pc-context",
+      "pass": true
+    },
+    {
+      "check": "1440 select orb",
+      "pass": true
+    },
+    {
+      "check": "1440 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "1440 select capsule",
+      "pass": true
+    },
+    {
+      "check": "1440 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "1440 select board",
+      "pass": true
+    },
+    {
+      "check": "1440 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "1440 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "1440 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "1440 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "1440 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "1440 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "1440 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "1440 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "1440 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "1440 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "1440 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "1440 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "1440 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "1440 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "1440 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "1440 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "768 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "768 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "768 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "768 frozen working",
+      "pass": true
+    },
+    {
+      "check": "768 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "768 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "768 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "768 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "768 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "768 side-by-side .pc-review",
+      "pass": true
+    },
+    {
+      "check": "768 side-by-side .pc-topics",
+      "pass": true
+    },
+    {
+      "check": "768 side-by-side .pc-context",
+      "pass": true
+    },
+    {
+      "check": "768 select orb",
+      "pass": true
+    },
+    {
+      "check": "768 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "768 one active state",
+      "pass": true
+    },
+    {
+      "check": "768 select capsule",
+      "pass": true
+    },
+    {
+      "check": "768 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "768 one active state",
+      "pass": true
+    },
+    {
+      "check": "768 select board",
+      "pass": true
+    },
+    {
+      "check": "768 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "768 one active state",
+      "pass": true
+    },
+    {
+      "check": "768 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "768 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "768 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "768 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "768 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "768 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "768 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "768 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "768 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "768 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "768 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "768 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "768 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "768 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "768 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "390 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "390 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "390 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "390 frozen working",
+      "pass": true
+    },
+    {
+      "check": "390 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "390 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "390 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "390 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "390 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "390 select orb",
+      "pass": true
+    },
+    {
+      "check": "390 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "390 one active state",
+      "pass": true
+    },
+    {
+      "check": "390 select capsule",
+      "pass": true
+    },
+    {
+      "check": "390 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "390 one active state",
+      "pass": true
+    },
+    {
+      "check": "390 select board",
+      "pass": true
+    },
+    {
+      "check": "390 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "390 one active state",
+      "pass": true
+    },
+    {
+      "check": "390 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "390 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "390 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "390 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "390 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "390 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "390 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "390 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "390 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "390 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "390 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "390 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "390 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "390 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "390 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "320 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "320 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "320 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "320 frozen working",
+      "pass": true
+    },
+    {
+      "check": "320 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "320 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "320 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "320 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "320 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "320 select orb",
+      "pass": true
+    },
+    {
+      "check": "320 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "320 one active state",
+      "pass": true
+    },
+    {
+      "check": "320 select capsule",
+      "pass": true
+    },
+    {
+      "check": "320 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "320 one active state",
+      "pass": true
+    },
+    {
+      "check": "320 select board",
+      "pass": true
+    },
+    {
+      "check": "320 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "320 one active state",
+      "pass": true
+    },
+    {
+      "check": "320 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "320 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "320 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "320 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "320 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "320 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "320 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "320 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "320 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "320 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "320 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "320 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "320 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "320 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "320 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen working",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 side-by-side .pc-review",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 side-by-side .pc-topics",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 side-by-side .pc-context",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 select orb",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 select capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 select board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1440 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen working",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "zh/768 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "zh/768 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "zh/768 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "zh/768 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "zh/768 side-by-side .pc-review",
+      "pass": true
+    },
+    {
+      "check": "zh/768 side-by-side .pc-topics",
+      "pass": true
+    },
+    {
+      "check": "zh/768 side-by-side .pc-context",
+      "pass": true
+    },
+    {
+      "check": "zh/768 select orb",
+      "pass": true
+    },
+    {
+      "check": "zh/768 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/768 select capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/768 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/768 select board",
+      "pass": true
+    },
+    {
+      "check": "zh/768 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/768 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "zh/768 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "zh/768 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "zh/768 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "zh/768 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/768 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "zh/768 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "zh/768 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "zh/768 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "zh/768 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "zh/768 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "zh/768 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen working",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "zh/390 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "zh/390 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "zh/390 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "zh/390 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "zh/390 select orb",
+      "pass": true
+    },
+    {
+      "check": "zh/390 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/390 select capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/390 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/390 select board",
+      "pass": true
+    },
+    {
+      "check": "zh/390 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/390 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "zh/390 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "zh/390 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "zh/390 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "zh/390 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/390 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "zh/390 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "zh/390 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "zh/390 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "zh/390 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "zh/390 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "zh/390 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390 no JS errors or unexpected network",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen hero",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen headings",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen intro",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen working",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen thought",
+      "pass": true
+    },
+    {
+      "check": "zh/320 frozen scopes",
+      "pass": true
+    },
+    {
+      "check": "zh/320 redundant nav removed, not hidden",
+      "pass": true
+    },
+    {
+      "check": "zh/320 duplicate application rails removed",
+      "pass": true
+    },
+    {
+      "check": "zh/320 all real sample editors retained",
+      "pass": true
+    },
+    {
+      "check": "zh/320 select orb",
+      "pass": true
+    },
+    {
+      "check": "zh/320 orb preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/320 select capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/320 capsule preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/320 select board",
+      "pass": true
+    },
+    {
+      "check": "zh/320 board preserves draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320 one active state",
+      "pass": true
+    },
+    {
+      "check": "zh/320 narrow board <=336 CSS px",
+      "pass": true
+    },
+    {
+      "check": "zh/320 one-line rows",
+      "pass": true
+    },
+    {
+      "check": "zh/320 capsule opens same board",
+      "pass": true
+    },
+    {
+      "check": "zh/320 blur does not close board",
+      "pass": true
+    },
+    {
+      "check": "zh/320 close returns to selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/320 explicit insertion preserves existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320 never auto-sends",
+      "pass": true
+    },
+    {
+      "check": "zh/320 long wording requires inspection",
+      "pass": true
+    },
+    {
+      "check": "zh/320 inspection is exact text",
+      "pass": true
+    },
+    {
+      "check": "zh/320 inspection never widens board",
+      "pass": true
+    },
+    {
+      "check": "zh/320 inspected insert is exact",
+      "pass": true
+    },
+    {
+      "check": "zh/320 no scope changes from display/reuse",
+      "pass": true
+    },
+    {
+      "check": "zh/320 no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320 200% text reflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320 no JS errors or unexpected network",
+      "pass": true
+    }
+  ],
+  "passed": 331,
+  "failed": 0,
+  "unchanged_copy": true,
+  "no_form_submission": true
+}

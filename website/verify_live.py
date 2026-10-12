@@ -13,7 +13,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 BASE = 'https://inputarchive.com'
 generated = (ROOT/'website/generated-paths.txt').read_text().splitlines()
 paths = list(generated)
-paths += ['assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/home-layout.css', 'assets/website/home-layout.js', 'assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []

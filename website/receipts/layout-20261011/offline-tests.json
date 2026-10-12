@@ -1,0 +1,62 @@
+{
+  "scenarios": [
+    {
+      "page": "home-zh",
+      "width": 1440,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "home-zh",
+      "width": 390,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "demo-zh",
+      "width": 1440,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "demo-zh",
+      "width": 390,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "home-en",
+      "width": 1440,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "home-en",
+      "width": 390,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "demo-en",
+      "width": 1440,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    },
+    {
+      "page": "demo-en",
+      "width": 390,
+      "pass": true,
+      "external_requests": [],
+      "errors": []
+    }
+  ],
+  "font_files": 0,
+  "real_ai": false
+}

@@ -11,6 +11,7 @@ from functools import partial
 from threading import Thread
 import json, os, re, sys, struct, hashlib, traceback
 from core_checks import verify_core
+from layout_checks import verify_layout
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 
@@ -268,6 +269,7 @@ try:
                         check(page.locator('.pc-context-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Context cards stack for reading')
                     check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
                 if path.name == 'index.html':
+                    verify_layout(page, check)
                     check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
                     check(page.locator('[data-preview-tab][aria-selected=true]').get_attribute('data-preview-tab') == 'archive', f'{name}: {width}px Archive is the initial preview')
                 if width == 320 and name in ('index.html', 'zh/index.html'):

@@ -34,7 +34,10 @@ def verify_origin(page, check, en=True):
         check(ok, ('EN' if en else 'ZH') + ' product design: ' + label)
     verify_typography(page, check, ('EN' if en else 'ZH') + ' product design')
     expected = {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
+    if page.locator('.layout-adjusted').count():
+        test(page.locator('.pc-nav').count()==0 and all(page.locator(s).count()==1 for s in expected), 'approved home destinations survive removal of the redundant nav')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
     for selector in ['.pc-editor-stage', '.pc-palette', '.pc-context-stage']:
         test(page.locator(selector).evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), selector + ' uses the common optical material')
     for selector in ['.pc-document h3', '.pc-topic-reader-head h3']:

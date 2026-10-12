@@ -1,0 +1,26 @@
+{
+  "site_basis": "actual production matching d516c43; main ef08a51 website trees unchanged",
+  "regression_checks": 6540,
+  "regression_failures": 0,
+  "layout_and_copy_checks": 331,
+  "layout_failures": 0,
+  "axe_scans": 18,
+  "identified_violations": 0,
+  "incomplete_groups": 18,
+  "browser": "154.0.8037.99",
+  "html_routes": 48,
+  "widths": [
+    1440,
+    768,
+    390,
+    320
+  ],
+  "body_copy_unchanged": true,
+  "hero_dom_unchanged": true,
+  "nonhome_generated_files_unchanged": true,
+  "physical_device": false,
+  "form_submitted": false,
+  "real_ai": false,
+  "merged": false,
+  "deployed": false
+}
