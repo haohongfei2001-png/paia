@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-12T23:31:52.741221+08:00",
+  "baseline_main": "8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb",
+  "historical_references": {
+    "before_blue": "77f4af96",
+    "first_blue": "282bfe5e"
+  },
+  "rejected_pr_240": "Not used as a code or design baseline; not modified or merged.",
+  "production_readback": {
+    "matching_entrypoints_and_active_assets": 7,
+    "evidence": "live-main-comparison.json"
+  },
+  "source_freeze": {
+    "unchanged_non_homepage_generated_files": 47,
+    "unchanged_shared_owners": 10,
+    "home_copy_and_hero_markup": "All three homepages match the committed live baseline checks; only the requested section navigation text is removed."
+  },
+  "verification": {
+    "full_website": {
+      "checks": 6437,
+      "failed": 0,
+      "evidence": "regression.json"
+    },
+    "focused_homepage": {
+      "checks": 435,
+      "failed": 0,
+      "evidence": "art-direction-tests.json"
+    },
+    "portable_preview": {
+      "checks": 74,
+      "failed": 0,
+      "evidence": "preview-verification.json"
+    }
+  },
+  "environment": {
+    "playwright": "1.63.0",
+    "screenshot_chromium": "153.0.8010.12",
+    "platform": "macOS arm64, headless isolated browser sessions",
+    "widths_css_px": [
+      1440,
+      1024,
+      768,
+      390,
+      320
+    ]
+  },
+  "source_sha256": {
+    "index.html": "14420cbb0b5f8e1846fa8616a0a78c979a2ea4449f3316023f7a0266867259cd",
+    "en/index.html": "14420cbb0b5f8e1846fa8616a0a78c979a2ea4449f3316023f7a0266867259cd",
+    "zh/index.html": "9cefef9ad163ac858a57a9bf0d6295cd4cfd57ecae4b65c25052973426419c27",
+    "website/home.py": "fdbb10b025bffd01bf6dcb3e10da94af8dd64ae1d45a86bf0ff47e52449ce6c3",
+    "website/build.py": "cd1fdd590bc6c647d4d6efa021d84a13bb849126d2a69ce3ce0cc08f2e426ead",
+    "website/art_direction.py": "a38371cd29b1147ded85b7241306b64915272047b7f6f308f990959f093ea022",
+    "assets/website/home-art.css": "01309d2bad38297629581c6f4741df1263e5439635149c1edd2219540a92f01b",
+    "assets/website/home-art.js": "1157207d230a9d27bf6aa0fe637a86603555e7f76eef07ebc287b4fd39aba3b3",
+    "website/core_checks.py": "afe880b8fc108a69a7069e18e42e743861383486ba6054ad25eadb4931659245",
+    "website/origin_checks.py": "4d5770855c28c9942f0da9441c6619c54f66c782e69422102ef7954f9b2f468b",
+    "website/test.py": "55a418479a07b79feeec75dfe7a1d6d0b54f836db7f8645e6d2457b73d157f1e",
+    "website/art_direction_checks.py": "cef75f317c45514f74f5dc8be5f45a10ba89f9be2833c92d368dc3f929729cd8",
+    "website/art_direction_baseline.json": "039a45374b36036fbba055055724e2d1974a3e2a38fbb32a7928421501dd8485"
+  },
+  "limitations": [
+    "Draft visual candidate, not owner-approved, merged or deployed.",
+    "Browser viewport testing is not physical-device or screen-reader certification.",
+    "WebKit was attempted but did not yield a usable session; it is not counted.",
+    "No real extension, account, archive, AI, sync, permission grant or form submission was tested.",
+    "Portable previews contain no font files and use system fallbacks. Screenshots use existing website fonts."
+  ]
+}

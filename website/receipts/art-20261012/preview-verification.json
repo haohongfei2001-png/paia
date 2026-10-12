@@ -1,0 +1,304 @@
+{
+  "checks": 74,
+  "passed": 74,
+  "failed": [],
+  "scope": "local file previews, bundled Chromium. WebKit was attempted but did not yield a usable session; it is not counted. No physical-device Safari certification.",
+  "results": [
+    {
+      "check": "review.html: no packaged font bytes or font requests",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-1440-full.webp",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-390-full.webp",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-archive.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-archive.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-archive.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-archive.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-thought.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-thought.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-thought.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-thought.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-prompt.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-prompt.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-prompt.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-prompt.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-context.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link before-zh-context.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-context.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-context.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-orb.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-capsule.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-prompt.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-reading.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-card-detail.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-en-1440-full.webp",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link after-zh-768-full.webp",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link history-before-blue-hero.png",
+      "pass": true
+    },
+    {
+      "check": "review.html: local preview link history-first-blue-hero.png",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: no packaged font bytes or font requests",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "home-zh.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: no packaged font bytes or font requests",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: local preview link home-zh.html",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "home-en.html: local preview link home-en.html",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: offline viewport reflows",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: capsule opens the same narrow board",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: actual draft-preserving insertion",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: continuous Topic reading opens",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: independent card details open",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: pause remains explicit",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: no script errors",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/1440: no network requests",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: offline viewport reflows",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: capsule opens the same narrow board",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: actual draft-preserving insertion",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: continuous Topic reading opens",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: independent card details open",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: pause remains explicit",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: no script errors",
+      "pass": true
+    },
+    {
+      "check": "chromium/zh/390: no network requests",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: offline viewport reflows",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: capsule opens the same narrow board",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: actual draft-preserving insertion",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: continuous Topic reading opens",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: independent card details open",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: pause remains explicit",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: no script errors",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/1440: no network requests",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: offline viewport reflows",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: capsule opens the same narrow board",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: actual draft-preserving insertion",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: continuous Topic reading opens",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: independent card details open",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: pause remains explicit",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: no script errors",
+      "pass": true
+    },
+    {
+      "check": "chromium/en/390: no network requests",
+      "pass": true
+    }
+  ]
+}

@@ -103,6 +103,17 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
 
 verify_assets(ROOT, check)
 
+# Keep the current production copy/hero and all unrelated generated pages frozen.
+# This uses a committed exact baseline, not an editable candidate snapshot.
+import subprocess
+art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
+art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), '--static-only'], env=art_env, capture_output=True, text=True)
+art_report_path = OUT / 'art-direction-static' / 'report.json'
+check(art_report_path.is_file(), 'homepage art-direction static guard returned evidence')
+for item in json.loads(art_report_path.read_text())['results']:
+    check(item['pass'], 'homepage frozen baseline: ' + item['check'])
+check(art_result.returncode == 0, 'homepage frozen baseline guard completed without error')
+
 # Selected D6 text/surface pairs. Visual review also inspects the composited
 # translucent layers; token contrast alone is not a full accessibility audit.
 def luminance(color):

@@ -1,0 +1,220 @@
+{
+  "captured_at": "2026-10-12T23:25:25.185050+08:00",
+  "baseline": "8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb",
+  "screenshots": {
+    "images/before-zh-archive.png": {
+      "width": 1248,
+      "height": 1235,
+      "kind": "actual browser element capture"
+    },
+    "images/before-zh-thought.png": {
+      "width": 1248,
+      "height": 1082,
+      "kind": "actual browser element capture"
+    },
+    "images/before-zh-prompt.png": {
+      "width": 1440,
+      "height": 897,
+      "kind": "actual browser element capture"
+    },
+    "images/before-zh-context.png": {
+      "width": 1440,
+      "height": 1167,
+      "kind": "actual browser element capture"
+    },
+    "images/before-en-archive.png": {
+      "width": 1248,
+      "height": 1236,
+      "kind": "actual browser element capture"
+    },
+    "images/before-en-thought.png": {
+      "width": 1248,
+      "height": 1112,
+      "kind": "actual browser element capture"
+    },
+    "images/before-en-prompt.png": {
+      "width": 1440,
+      "height": 935,
+      "kind": "actual browser element capture"
+    },
+    "images/before-en-context.png": {
+      "width": 1440,
+      "height": 1212,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-archive.png": {
+      "width": 1248,
+      "height": 902,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-thought.png": {
+      "width": 1248,
+      "height": 706,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-prompt.png": {
+      "width": 1440,
+      "height": 1063,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-context.png": {
+      "width": 1440,
+      "height": 1174,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-orb.png": {
+      "width": 1440,
+      "height": 1063,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-capsule.png": {
+      "width": 1440,
+      "height": 1063,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-reading.png": {
+      "width": 1248,
+      "height": 1493,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-card-detail.png": {
+      "width": 1440,
+      "height": 1163,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-archive.png": {
+      "width": 1248,
+      "height": 902,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-thought.png": {
+      "width": 1248,
+      "height": 732,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-prompt.png": {
+      "width": 1440,
+      "height": 1064,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-context.png": {
+      "width": 1440,
+      "height": 1175,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-orb.png": {
+      "width": 1440,
+      "height": 1064,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-capsule.png": {
+      "width": 1440,
+      "height": 1064,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-reading.png": {
+      "width": 1248,
+      "height": 1537,
+      "kind": "actual browser element capture"
+    },
+    "images/after-en-card-detail.png": {
+      "width": 1440,
+      "height": 1163,
+      "kind": "actual browser element capture"
+    },
+    "images/after-zh-768-full.webp": {
+      "width": 768,
+      "height": 6906,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "8d57b4f72acfeaf2dd7d7dc646874fab100fa2bbcdc0fbf5b5f38efa0ccd2df3"
+    },
+    "images/before-zh-1440-full.webp": {
+      "width": 1440,
+      "height": 6791,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "6d46ce8ff62d52ef2186d31668899fd74602f101ac924cae1044c6de0684abb2"
+    },
+    "images/after-en-768-full.webp": {
+      "width": 768,
+      "height": 7189,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "d815ae3a59fa2bf6602fa0de3f80ed60332bc5af78a21311c54d02d419c7e92e"
+    },
+    "images/before-en-1440-full.webp": {
+      "width": 1440,
+      "height": 6968,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "cb24c3665738aed8c7173a2dad71988936f4d71c3c82f03e3e90a4d5474ffb3e"
+    },
+    "images/after-en-1440-full.webp": {
+      "width": 1440,
+      "height": 6269,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "51ce732dd349688516d5da8a8fdf5dcac7aa0f4abe4c3a8d50ea094a82b4d583"
+    },
+    "images/after-zh-390-full.webp": {
+      "width": 390,
+      "height": 9124,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "9fcab053f5ad2368879bc1c6aff68c7783afcb41e0130308a62eed6888308d3b"
+    },
+    "images/after-en-390-full.webp": {
+      "width": 390,
+      "height": 9737,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "004556a647db0f15f0b5b1d609c3040760e168097c2155c12b860d7b12ad9b85"
+    },
+    "images/after-zh-1440-full.webp": {
+      "width": 1440,
+      "height": 6178,
+      "kind": "actual full-page browser capture, lossless WebP; decoded pixels verified identical to PNG",
+      "rgb_sha256": "b116097edcce36291a29094b12b6b4e0818a00a9ec8485f6487bc1213a596c4f"
+    }
+  },
+  "geometry": {
+    "before-zh": {
+      "x": 192,
+      "y": -2657.140625,
+      "width": 1056,
+      "height": 733.28125
+    },
+    "before-en": {
+      "x": 192,
+      "y": -2726.921875,
+      "width": 1056,
+      "height": 733.28125
+    },
+    "after-zh": {
+      "x": 613.953125,
+      "y": -2350.515625,
+      "width": 730.046875,
+      "height": 709.15625
+    },
+    "after-en": {
+      "x": 613.953125,
+      "y": -2376.296875,
+      "width": 730.046875,
+      "height": 709.15625
+    }
+  },
+  "browser": "153.0.8010.12",
+  "first_viewport_pixel_comparison_zh": {
+    "identical": false,
+    "changed_box": [
+      1,
+      970,
+      1440,
+      1000
+    ]
+  },
+  "first_viewport_pixel_comparison_en": {
+    "identical": false,
+    "changed_box": [
+      1,
+      975,
+      1440,
+      1000
+    ]
+  },
+  "comparison_note": "First-viewport comparisons include the removed secondary navigation below the hero. Entire hero HTML is independently frozen by source SHA-256."
+}
