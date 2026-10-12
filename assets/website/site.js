@@ -112,3 +112,17 @@
   }
   motionState();
 })();
+
+/* PAIA_FINISHING_20261013: isolated progressive enhancement. Keep the original
+   hero/navigation owner above byte-identical. No script on unrelated routes. */
+(() => {
+  const page = document.body.dataset.page;
+  if (document.querySelector('[data-paia-refinement]')) return;
+  if (!['index.html', 'how-it-works.html', 'beta.html'].includes(page)) return;
+  const style = document.createElement('link');
+  style.rel = 'stylesheet'; style.href = '/assets/website/refinement.css?v=20261013a';
+  style.dataset.paiaRefinement = '';
+  const script = document.createElement('script');
+  script.src = '/assets/website/refinement.js?v=20261013a'; script.defer = true;
+  document.head.append(style, script);
+})();
