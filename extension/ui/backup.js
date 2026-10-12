@@ -36,7 +36,9 @@ export class BackupPanel {
    ['small','backup-failure-note','当前状态不会自动触发外部请求。','This state does not automatically make external requests.'],
   ]){const node=element(tag);node.id=id;const value=document.documentElement.lang==='en'?en:zh;node.dataset.r6Zh=zh;node.dataset.r6En=en;node.textContent=value;if(tag==='button'){node.type='button';node.addEventListener('click',()=>{const dialog=host.closest('dialog');if(dialog?.open)dialog.dispatchEvent(new Event('paia:request-close',{cancelable:true}));else void this.cancel();});}if(tag==='small')host.append(node);else heading.push(node);}host.prepend(...heading);
   const next=setBackupCopy(element('button',''),'继续');next.id='backup-continue';next.type='button';next.addEventListener('click',()=>this.confirmPreview());
-  const actions=element('div','ux-backup-actions');actions.append($('backup-failure-return'),$('backup-choose'),$('backup-cancel'),next,$('backup-restore'));host.append(actions);this.modeLabel=$('backup-mode').parentElement;this.presentStage();
+  const actions=element('div','ux-backup-actions');actions.append($('backup-failure-return'),$('backup-choose'),$('backup-cancel'),next,$('backup-restore'));host.append(actions);this.modeLabel=$('backup-mode').parentElement;
+  const note=setBackupCopy(element('p','muted'),'恢复只在本机进行，捕获授权保持当前设置。');note.id='backup-preview-note';this.modeLabel.after(note);
+  const confirmation=element('p','');confirmation.id='backup-confirmation-content';$('backup-preview').prepend(confirmation);this.presentStage();
  }
  // Presentation never grants restore authority: the original preview and its
  // exact session/mode must still be the ones the user explicitly reviewed.
@@ -51,6 +53,7 @@ export class BackupPanel {
   const next=$('backup-continue');if(next){next.hidden=!hasPreview||confirm;next.disabled=this.busy||!this.preview?.canRestore;}
   $('backup-restore').hidden=!confirm;$('backup-restore').disabled=this.busy||!confirm||!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked;
   if(this.modeLabel)this.modeLabel.hidden=confirm;
+  $('backup-preview-content').hidden=confirm;$('backup-preview-note').hidden=confirm;$('backup-confirmation-content').hidden=!confirm;
   $('backup-confirm-replace-label').hidden=!confirm||this.mode!=='replace';
  }
  presentInspectionFailure(failed){
@@ -82,18 +85,16 @@ export class BackupPanel {
   const row=(label,value)=>{const line=element('div','ux-backup-preview-line');line.append(setBackupCopy(element('span',''),label),setBackupCopy(element('span',''),value));return line;};
   $('backup-preview-content').replaceChildren(
    ...(this.selectedBackupName?[element('p','muted',this.selectedBackupName)]:[]),
-   setBackupCopy(element('p','muted'),`备份日期：${new Date(p.createdAt).toLocaleString()}`),
-   setBackupCopy(element('p','muted'),`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),
    row('备份内容',`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),
-   row('恢复方式',replacing?'替换当前库':merging?'合并互不冲突的数据':'恢复到空库'),
-   setBackupCopy(element('p','muted'),p.canRestore
-    ?replacing?'完整性校验通过。替换会清除当前库内容；本机永久删除标记和捕获授权保留。请勾选确认。'
-     :merging?'完整性校验通过。只合并无冲突的数据，当前设置与现有内容保留。'
-      :'完整性校验通过。确认后将在本机恢复，捕获授权保持当前设置。'
-    :backupMessage(p.reason)));
+   row('当前的人工修改',replacing?'替换会清除当前内容和修改':merging?'保留，冲突时不写入':'仅恢复到空库'),
+   row('永久删除的来源','永久删除标记优先，包含已删除来源的备份不能恢复'));
+  setBackupCopy($('backup-confirmation-content'),replacing
+   ?'将用备份替换当前库。当前内容和人工修改将被清除，本机永久删除标记和捕获授权保留。'
+   :merging?'将合并互不冲突的数据，保留当前内容、人工修改与设置。若实际写入前发现冲突，本次合并不写入。'
+    :'将在空库中恢复备份内容与版本，仅在本机进行。捕获授权保持当前设置。');
   $('backup-preview').hidden=false;
   this.presentStage();
-  this.status(p.canRestore?'请核对备份信息并确认所选恢复方式。':'校验通过，当前库不满足所选恢复方式的安全条件。');
+  this.status(p.canRestore?'请核对备份信息并确认所选恢复方式。':backupMessage(p.reason),p.canRestore?'ready':'failed');
  }
  async selectMode(){
   if(this.busy||!this.sessionId)return;

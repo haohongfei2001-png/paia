@@ -331,3 +331,10 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-backup-dialog :is(#backup-continue,#backup-restore){background:var(--text);color:var(--bg);border-color:var(--text)}
 #settings-backup-dialog #backup-settings[data-backup-stage="confirm"]:has(#backup-confirm-replace-label:not([hidden])) #backup-restore{background:var(--danger);border-color:var(--danger)}
 #settings-backup-dialog .ux-backup-actions>[hidden]{display:none}
+
+/* Preview contains the decision summary; confirmation contains only its effect. */
+#settings-backup-dialog #backup-settings:is([data-backup-stage="preview"],[data-backup-stage="confirm"])>p.muted:not(#backup-status){display:none}
+#settings-backup-dialog #backup-settings:is([data-backup-stage="preview"],[data-backup-stage="confirm"])[data-state="ready"]>#backup-status{display:none}
+#settings-backup-dialog :is(#backup-preview-content,#backup-preview-note,#backup-confirmation-content,#backup-confirm-replace-label)[hidden]{display:none}
+#settings-backup-dialog #backup-preview-note{font-size:12px;line-height:1.8;margin:20px 0 0}
+#settings-backup-dialog #backup-confirmation-content{font-size:13px;line-height:1.8;margin:0 0 20px}
