@@ -123,7 +123,7 @@ const rm=async()=>{},execFileAsync=async()=>{};
 const tmpdir=()=>'/synthetic',join=(...parts)=>parts.join('/');
 `+launcher.replace('performance.now()+300000;','performance.now()+1000;'));
    const env={...process.env};delete env.NODE_TEST_CONTEXT;
-   const result=spawnSync(process.execPath,['--test',file],{encoding:'utf8',timeout:8000,env});
+   const result=spawnSync(process.execPath,['--test','--test-reporter=tap',file],{encoding:'utf8',timeout:8000,env});
    assert.ifError(result.error);
    assert.equal(result.status,expectedExit,label+' '+result.stdout+' '+result.stderr);
    assert.match(result.stdout,/# tests 2/);
