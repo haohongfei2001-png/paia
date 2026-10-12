@@ -34,9 +34,16 @@ def verify_origin(page, check, en=True):
         check(ok, ('EN' if en else 'ZH') + ' product design: ' + label)
     verify_typography(page, check, ('EN' if en else 'ZH') + ' product design')
     expected = {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
-    for selector in ['.pc-editor-stage', '.pc-palette', '.pc-context-stage']:
-        test(page.locator(selector).evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), selector + ' uses the common optical material')
+    if page.locator('.art-directed').count():
+        test(page.locator('.pc-nav').count() == 0, 'homepage has no replacement secondary navigation')
+        test(set(page.locator('.art-directed .pc-section[id]').evaluate_all('els=>els.map(e=>"#"+e.id)')) == expected, 'all four examples remain available through native scrolling')
+        test(page.locator('.pc-palette').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(18px)')"), 'only the floating companion needs bounded glass blur')
+        for selector in ['.pc-editor-stage', '.pc-context-stage']:
+            test(page.locator(selector).evaluate("e=>getComputedStyle(e).backdropFilter==='none'"), selector + ' avoids an unnecessary second optical shell')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == expected, 'navigation reaches each approved working example')
+        for selector in ['.pc-editor-stage', '.pc-palette', '.pc-context-stage']:
+            test(page.locator(selector).evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), selector + ' uses the common optical material')
     for selector in ['.pc-document h3', '.pc-topic-reader-head h3']:
         family = page.locator(selector).first.evaluate('e=>getComputedStyle(e).fontFamily')
         test('Georgia' in family and 'sans-serif' not in family, selector + ' retains the separate reader typography role')

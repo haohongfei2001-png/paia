@@ -21,4 +21,6 @@ def icon(name, cls='art-icon'):
 def render(t, a, button, statusmini):
     from product_hero import render_hero
     from core import render as render_core
-    return render_hero(t, a, button, icon) + render_core(t, a, button, icon)
+    from art_direction import recompose
+    from scroll_story import apply_scroll_story
+    return render_hero(t, a, button, icon) + apply_scroll_story(recompose(render_core(t, a, button, icon), t), t)
