@@ -23,7 +23,7 @@ export class ContextItemEditor {
   const actions=element('div','menu-items');actions.append(button(copy('查看依据','View basis'),()=>{this.menu.open=false;let basis=this.root.querySelector('.item-evidence');if(basis)basis.remove();else{basis=element('p','item-evidence',copy('由你添加，人工修改始终保留。','Added by you. Your edits are protected.'));this.root.append(basis);}}),button(copy('撤销上次修改','Undo last edit'),()=>void this.undo()),button(copy('删除','Delete'),()=>void page.remove(this),'danger'));this.menu.append(summary,actions);this.menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();this.menu.open=false;summary.focus();}});
   this.root.append(this.field,this.menu,this.feedback);
   this.autosave=new AutosaveSession(()=>void this.flush());
-  this.surface=new PlainTextSurface(this.field,{start:()=>this.autosave.cancel(),end:()=>this.changed(),input:()=>this.changed(),leave:()=>void this.flush()});
+  this.surface=new PlainTextSurface(this.field,{start:()=>{this.autosave.cancel();if(!this.failed&&!this.conflicted&&!this.saving)this.feedback.replaceChildren();},end:()=>this.changed(),input:()=>this.changed(),leave:()=>void this.flush()});
   this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch:page.snapshot.epoch});
   this.field.addEventListener('keydown',e=>{if(this.composing||e.isComposing||e.keyCode===229)return;if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();void this.flush();}if(e.key==='Escape'){e.preventDefault();void this.flush().then(ok=>{if(ok)this.field.blur();});}});
   if(!fresh)void this.recover();
@@ -51,7 +51,7 @@ export class ContextItemEditor {
    if(ack.change.operationId===this.undoOperationId){this.journal.undo.pop();this.undoOperationId=null;}else if(before!==ack.change.body&&before.trim())this.journal.record({body:before});
    this.saved={...this.saved,body:ack.change.body,revision:ack.result.revision};this.fresh=false;this.failed=false;
    await this.recovery.discard(ack.change.operationId).catch(()=>{});
-   this.feedback.textContent=this.local===ack.change.body?copy('已保存','Saved'):copy('还有修改未保存','Newer changes are not saved yet');
+   this.feedback.textContent=!this.composing&&this.field.innerText===ack.change.body?copy('已保存','Saved'):copy('还有修改未保存','Newer changes are not saved yet');
    return true;
   }catch(error){this.failed=true;if(error?.code==='CONTEXT_INVALIDATED'){this.conflicted=true;this.feedbackFailure(true);}else this.feedbackFailure();return false;}finally{this.saving=null;}})();
   const ok=await this.saving;if(ok&&this.dirty())return this.flush();if(ok)this.page.clearLeaveNotice?.();return ok;

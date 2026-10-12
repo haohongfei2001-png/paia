@@ -1,3 +1,13 @@
+# Coherent 0.43.28 Context feedback and original Prompt fixture successor — 2026-10-12
+
+Actual main8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb/0.43.27 preserves normally merged PR265; its exact-main Full38211457477 failed original Section fixture while separate Prompt succeeded. PR266 head6a313da580c6718a9be202adcf7358f5b3e6c5eb Full38215340441 now fails only Browser6 Prompt release and both aggregates; Section Browser5 and allother required components succeed. Both failures remain open facts, not current certification.
+
+Root consumes independently reviewed Context two-line save feedback fix, original approved-reference20local-scene harness and matching .28 metadata with the existing Section consent fixture and single original Prompt Back prerequisite. Context whole12PASS127712.530917ms and Prompt whole40PASS85981.624792ms retain their exact precommit code vectors; coherent whole-file combination52PASS129025.768ms/0fail/cancel/skip; package15862guards/465resourcesPASS. True failed/conflicted/saving/IME/CAS/recovery owners and all original assertions/deadlines remain. References11/20 external semantics/fullCTX4 remain open. No Sync moving union, permission/schema/CI/dependency/provider/account or deployment change.
+
+See [bounded successor evidence](implementation/verification/CTX4-PROMPT-COMPOSITE-04328.md). Independent coherent review, one changed-head Full, normal integration and exact-main qualification remain before delivery. SYNC-01 batch A continues exclusive actual mixed closed-B/fresh-C continuation under approved PR250; no helper-only queue or fullSync claim.
+
+## Preserved preceding state
+
 # main8e Full failure: original Section fixture completion — 2026-10-12
 
 PR #265 is merged as main `8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb`, runtime `0.43.27`, with the reviewed original Topic Store queue fix. Candidate Full `38209520091` passed all21 required jobs. Its actual-main Full `38211457477` FAILED the source Section fixture in Browser5 and both aggregates; other18 required components passed, including original UIS and D2, and Prompt `38211457466` passed. Keep candidate and actual-main outcomes distinct. Pages `38211457297` was cancelled during build before deployment; historical audit skipped is not a pass.
