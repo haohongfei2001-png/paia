@@ -74,8 +74,8 @@
     bar.setAttribute('aria-label', t('思想库展示方式', 'Thought Library preview'));
     const choices = [
       ['cards', t('主题', 'Topics')],
-      ['open', t('阅读示意', 'Reading preview')],
-      ['organize', t('整理示意', 'Organization preview')]
+      ['open', t('原文', 'Original')],
+      ['organize', t('整理', 'Organized')]
     ];
     const setView = (view) => {
       thought.dataset.mobileView = view;
@@ -136,7 +136,7 @@
     const intro = document.querySelector('.nr-thought-overview-state');
     if (reader && intro) {
       const details = el('details', 'pf-how-reader');
-      const summary = el('summary', '', t('打开同一主题的阅读示意', 'Open this topic’s reading preview'));
+      const summary = el('summary', '', t('打开同一主题的原文', 'Read this topic’s original'));
       reader.before(details); details.append(summary, reader);
       const reflow = () => { details.open = !phone.matches; };
       reflow(); phone.addEventListener('change', reflow);
@@ -162,8 +162,8 @@
     submit.setAttribute('aria-describedby', status.id);
     const notice = submit.nextElementSibling;
     if (notice?.matches('p.small')) notice.textContent = t(
-      '申请仍由 FormSubmit 处理；收到服务确认后才显示已接收。申请不代表已经获邀。',
-      'FormSubmit processes the application. Receipt is shown only after its confirmation; applying is not an invitation.'
+      '留言由 FormSubmit 转发。收到服务确认后才显示已接收；接收不代表邮件已送达收件箱。',
+      'FormSubmit forwards your message. Receipt is shown after confirmation; acceptance does not guarantee inbox delivery.'
     );
     let busy = false, completed = false;
     const locks = [...form.elements].filter(control => control.matches('input:not([type=hidden]),textarea,select'))
@@ -197,7 +197,7 @@
       }
       busy = true; lock(true); submit.disabled = true; form.setAttribute('aria-busy', 'true');
       submit.textContent = t('正在提交…', 'Submitting…');
-      state('pending', t('正在将申请交给 FormSubmit。请稍候。', 'Sending your application to FormSubmit. Please wait.'));
+      state('pending', t('正在将留言交给 FormSubmit。请稍候。', 'Sending your message to FormSubmit. Please wait.'));
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
       try {
@@ -213,8 +213,8 @@
         if (typeof data.message === 'string' && /activat|verif|confirm.{0,20}email/i.test(data.message)) throw new Error('activation-pending');
         completed = true;
         state('received', t(
-          'FormSubmit 已确认接收。是否获得邀请，将由项目方另行联系。这不是内测资格确认。',
-          'FormSubmit confirmed receipt. The project will contact invited applicants separately. This does not confirm beta access.'
+          'FormSubmit 已确认接收留言。服务接收不等于邮件已送达收件箱。',
+          'FormSubmit confirmed receipt. Service acceptance does not guarantee inbox delivery.'
         ));
         submit.textContent = t('已接收', 'Receipt confirmed');
         status.focus({preventScroll: true});
@@ -222,8 +222,8 @@
         // A timeout can occur after server acceptance. Do not auto-retry or
         // fall back to another POST; an explicit new click is required.
         state('unconfirmed', t(
-          '尚未获得送达确认，填写内容已保留在本页。申请可能已送达，请先检查邮箱或使用下方联系邮箱；再次提交可能重复。',
-          'Delivery is unconfirmed. Your entries remain on this page. The application may have arrived; check your email or use the contact address below. Resubmitting may duplicate it.'
+          '尚未获得送达确认，填写内容已保留在本页。留言可能已送达，请先检查邮箱或使用下方联系邮箱；再次提交可能重复。',
+          'Delivery is unconfirmed. Your entries remain on this page. The message may have arrived; check your email or use the contact address below. Resubmitting may duplicate it.'
         ));
         submit.textContent = t('再次提交', 'Submit again');
         status.focus({preventScroll: true});

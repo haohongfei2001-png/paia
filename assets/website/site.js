@@ -118,11 +118,11 @@
 (() => {
   const page = document.body.dataset.page;
   if (document.querySelector('[data-paia-refinement]')) return;
-  if (!['index.html', 'how-it-works.html', 'beta.html'].includes(page)) return;
+  if (!['index.html', 'how-it-works.html', 'contact.html'].includes(page)) return;
   const style = document.createElement('link');
-  style.rel = 'stylesheet'; style.href = '/assets/website/refinement.css?v=20261013a';
+  style.rel = 'stylesheet'; style.href = '/assets/website/refinement.css?v=20261013c';
   style.dataset.paiaRefinement = '';
   const script = document.createElement('script');
-  script.src = '/assets/website/refinement.js?v=20261013a'; script.defer = true;
+  script.src = '/assets/website/refinement.js?v=20261013c'; script.defer = true;
   document.head.append(style, script);
 })();

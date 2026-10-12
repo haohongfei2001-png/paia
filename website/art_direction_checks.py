@@ -14,7 +14,7 @@ from art_direction import Fragments
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = Path(__file__).with_name('art_direction_baseline.json')
+FIXTURE = Path(__file__).with_name('launch_baseline.json')
 OUT = Path(os.environ.get('WEBSITE_ART_OUTPUT', ROOT / 'website-art-test-artifacts'))
 
 def sha(value): return hashlib.sha256(value).hexdigest()
@@ -82,8 +82,8 @@ try:
             continue
         expected_home = data['home'][name]; d = Fragments(source.decode())
         digest,count = copy_digest(source.decode(),True)
-        check(digest==expected_home['copy_sha256'] and count==expected_home['text_nodes'],name+': all original text preserved except the removed navigation')
-        check(sha(d.outer(d.one(attr='data-product-hero')).encode())==expected_home['hero_sha256'],name+': entire hero markup frozen')
+        check(digest==expected_home['copy_sha256'] and count==expected_home['text_nodes'],name+': approved final-product copy frozen')
+        check(sha(d.outer(d.one(attr='data-product-hero')).encode())==expected_home['hero_sha256'],name+': approved hero markup frozen')
         check('class="pc-nav ' not in source.decode(),name+': no duplicate section navigation')
     for name,expected in data['unchanged_sources'].items():
         raw = (ROOT/name).read_bytes()
@@ -109,6 +109,15 @@ try:
                     page.goto(origin+path,wait_until='networkidle');page.evaluate('document.fonts.ready')
                     def test(ok,label): check(ok,f'{locale}/{width}: '+label)
                     page.locator('#prompt-reuse').scroll_into_view_if_needed()
+                    # The existing geometry owner publishes on rAF after a
+                    # scroll/resize. Observe its ready state before measuring;
+                    # retain every actual width/overlap assertion below.
+                    page.wait_for_function('''()=>{
+                        const h=document.querySelector('[data-ad-host]');
+                        return h?.dataset.geometry==='available' &&
+                          h.querySelector('.pc-composer').getBoundingClientRect().top >
+                          h.querySelector('.pc-window-bar').getBoundingClientRect().bottom+112;
+                    }''',timeout=5000)
                     permission=page.locator('[data-context-global]').get_attribute('aria-pressed')
                     composer=page.locator('#pc-composer');board=page.locator('#pc-prompt-card')
                     test(page.locator('[data-scroll-story="thought"]').count()==1,'Thought has one scroll transformation')
@@ -262,6 +271,17 @@ try:
         for result in json.loads(finish_report.read_text())['results']:
             check(result['pass'], 'finishing: '+result['check'])
         check(completed.returncode == 0, 'finishing journeys completed')
+        # The approved release-copy pass adds real installation/help/contact
+        # journeys, without removing the pre-existing product demo assertions.
+        publication_out=OUT/'publication'
+        publication_env=dict(os.environ, WEBSITE_LAUNCH_OUTPUT=str(publication_out))
+        publication=subprocess.run([sys.executable,str(ROOT/'website/launch_checks.py'),'--browser-only'],env=publication_env,capture_output=True,text=True)
+        publication_report=publication_out/'report.json'
+        check(publication_report.exists(),'publication journeys produced evidence')
+        for result in json.loads(publication_report.read_text())['results']:
+            check(result['pass'],'publication: '+result['check'])
+        check(publication.returncode==0,'publication journeys completed')
+
 except Exception as error:
     results.append({'check':'suite execution','pass':False,'error':str(error)})
 finally:

@@ -5,7 +5,9 @@ article-context.html
 article-reuse.html
 beta.html
 blog.html
+contact.html
 demo.html
+download.html
 en/404.html
 en/about.html
 en/article-beliefs.html
@@ -13,7 +15,10 @@ en/article-context.html
 en/article-reuse.html
 en/beta.html
 en/blog.html
+en/contact.html
 en/demo.html
+en/download.html
+en/help.html
 en/how-it-works.html
 en/index.html
 en/principles.html
@@ -22,6 +27,7 @@ en/status.html
 en/terms.html
 en/thanks.html
 en/use-cases.html
+help.html
 how-it-works.html
 index.html
 principles.html
@@ -39,7 +45,10 @@ zh/article-context.html
 zh/article-reuse.html
 zh/beta.html
 zh/blog.html
+zh/contact.html
 zh/demo.html
+zh/download.html
+zh/help.html
 zh/how-it-works.html
 zh/index.html
 zh/principles.html

@@ -39,7 +39,7 @@ def inline_source(name):
         return '<style>'+css+'</style>'
     html=re.sub(r'<link rel="stylesheet" href="([^"]+)"[^>]*>',style,html)
     html=re.sub(r'((?:src|href)=")(/assets/website/[^"?]+)"',lambda m:m[1]+data_url(m[2])+'"',html)
-    if name.endswith(('index.html','how-it-works.html','beta.html')):
+    if name.endswith(('index.html','how-it-works.html','contact.html')):
         css=data_url('/assets/website/refinement.css')
         html=html.replace('</head>','<link data-paia-refinement rel="stylesheet" href="'+css+'"></head>')
         scripts.append((ROOT/'assets/website/refinement.js').read_text())
@@ -121,7 +121,7 @@ try:
             # submission. The default HTTP run intercepts the actual fetch URL.
             for outcome in ['success','false','non-json','server-error','network-error','activation']:
                 page=browser.new_page(viewport={'width':390,'height':844},reduced_motion='reduce')
-                load(page,prefix+'beta.html')
+                load(page,prefix+'contact.html')
                 page.evaluate("""()=>{
                     window.pfRequests=[];
                     window.fetch=(url,options)=>new Promise((resolve,reject)=>{
@@ -159,7 +159,7 @@ try:
                 check(page.evaluate('pfRequests.length')==1,locale+'/'+outcome+': no automatic retry or second native POST')
                 if outcome=='success':
                     check(submit.is_disabled(),locale+': acknowledged request cannot be resubmitted accidentally')
-                    check(('不是内测资格' if locale=='zh' else 'does not confirm beta access') in page.locator('.pf-form-result').inner_text(),locale+': receipt is not an invitation')
+                    check(('不等于邮件已送达' if locale=='zh' else 'does not guarantee inbox delivery') in page.locator('.pf-form-result').inner_text(),locale+': service receipt does not invent actual inbox delivery')
                 else:
                     check(not submit.is_disabled(),locale+': explicit retry remains available')
                     check(page.locator('#beta-email').get_attribute('readonly') is None,locale+': failure restores editable fields')

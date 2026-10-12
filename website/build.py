@@ -4,6 +4,8 @@ import json
 import sys
 sys.dont_write_bytecode = True
 from home import render as render_home
+from launch_copy import product_copy
+from launch_pages import download as render_download, help_page as render_help, contact as render_contact
 from pages import render_pages
 from product_pages import render_demo, render_trust, render_status, render_about
 ROOT=Path(__file__).resolve().parents[1]
@@ -11,7 +13,7 @@ CHECK='--check' in sys.argv
 GENERATED={}
 def write(path, content):
     relative=path.relative_to(ROOT).as_posix()
-    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html','sitemap.xml','robots.txt'} or (relative.split('/')[0] in {'en','zh'} and relative.count('/')==1 and relative.endswith('.html'))
+    assert relative in {'index.html','demo.html','beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','download.html','help.html','contact.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html','sitemap.xml','robots.txt'} or (relative.split('/')[0] in {'en','zh'} and relative.count('/')==1 and relative.endswith('.html'))
     GENERATED[relative]=content
     if not CHECK:
         path.parent.mkdir(parents=True,exist_ok=True)
@@ -22,14 +24,20 @@ EMAIL='haohongfei2001@gmail.com'
 def build(lang):
     en=lang=='en'
     prefix='/' if en else '/zh/'
-    def t(zh,eng): return eng if en else zh
+    def t(zh,eng): return product_copy(zh,eng,en)
     def link(page='index.html',anchor=''):
+        page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         return prefix + ('' if page=='index.html' else page) + anchor
     def a(page,label,cls='',anchor=''):
+        if cls == 'hero-secondary':
+            page, label = 'demo.html', t('查看演示','View demo') + ' <span aria-hidden="true">↗</span>'
         return f'<a class="{cls}" href="{link(page,anchor)}">{label}</a>'
     def button(page,label,cls='button',anchor=''):
+        if label in ('体验 PAIA', 'Explore PAIA'):
+            page, label = 'download.html', t('添加到 Chrome','Add to Chrome')
         return a(page,label+' <span aria-hidden="true">→</span>',cls,anchor)
     def head(page,title,desc,noindex=False):
+        page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
@@ -69,13 +77,15 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/site.css?v=20261009b">
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
-<script src="/assets/website/site.js?v=20261009a" defer></script>
+<link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
+<script src="/assets/website/site.js?v=20261013c" defer></script>
 </head>
 <body data-page="{page}" data-language="{lang}">
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
-        other=('/zh/'+('' if page=='index.html' else page)) if en else ('/'+('' if page=='index.html' else page))
-        nav=a('index.html',t('首页','Home'))+a('how-it-works.html',t('如何使用','How it works'))+a('use-cases.html',t('使用场景','Use cases'))+a('about.html',t('关于','Our story'))+a('blog.html',t('文章','Blog'))
+        canonical_page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
+        other=('/zh/'+('' if canonical_page=='index.html' else canonical_page)) if en else ('/'+('' if canonical_page=='index.html' else canonical_page))
+        nav=a('index.html',t('产品','Product'))+a('use-cases.html',t('使用场景','Use cases'))+a('how-it-works.html',t('如何使用','How it works'))+a('help.html',t('帮助','Help'))
         nav=nav.replace(f'href="{link(page)}"', f'href="{link(page)}" aria-current="page"')
         return f'''<header class="site-header"><div class="header-inner">
 <div class="brand-lockup"><a class="wordmark" href="{prefix}" aria-label="{t('PAIA 首页','PAIA home')}">PAIA</a></div>
@@ -84,8 +94,10 @@ def build(lang):
 <details class="mobile-menu"><summary aria-label="{t('打开导航菜单','Open navigation menu')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 8h16M4 16h16"/></svg></summary><nav aria-label="{t('移动端导航','Mobile navigation')}">{nav}{a('demo.html',t('体验示例','Explore an example'))}{a('status.html',t('当前状态','Current status'))}</nav></details>
 </div></header>'''
     def footer():
-        return f'''<footer class="site-footer wrap"><div class="footer-main"><div class="footer-brand"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('把每一次表达，留成自己的积累。', 'A place for your words to become your own body of work.')}</p></div><nav aria-label="{t('页脚导航','Footer navigation')}"><div><strong>{t('产品','PRODUCT')}</strong>{a('how-it-works.html',t('如何使用','How it works'))}{a('use-cases.html',t('使用场景','Use cases'))}{a('demo.html',t('交互示例','Interactive example'))}{a('status.html',t('可用范围','Availability'))}</div><div><strong>PAIA</strong>{a('about.html',t('关于我们','Our story'))}{a('blog.html',t('产品文章','Product notes'))}{a('beta.html',t('申请内测','Request access'))}<a href="mailto:{EMAIL}">{t('联系','Contact')}</a></div><div><strong>{t('你的数据','YOUR DATA')}</strong>{a('principles.html',t('数据与权限','Data & permissions'))}{a('privacy-policy.html',t('隐私政策','Privacy policy'))}{a('terms.html',t('使用条款','Terms'))}</div></nav></div><div class="footer-bottom"><span class="copyright">© 2026 PAIA · Private beta</span><span>{t('你的输入，始终属于你。','Your inputs stay yours.')}</span></div></footer>'''
+        return f'''<footer class="site-footer wrap"><div class="footer-main"><div class="footer-brand"><a class="wordmark" href="{prefix}">PAIA</a><p>{t('把每一次表达，留成自己的积累。', 'A place for your words to become your own body of work.')}</p></div><nav aria-label="{t('页脚导航','Footer navigation')}"><div><strong>{t('产品','PRODUCT')}</strong>{a('how-it-works.html',t('如何使用','How it works'))}{a('use-cases.html',t('使用场景','Use cases'))}{a('demo.html',t('交互演示','Interactive demo'))}{a('download.html',t('获取 PAIA','Get PAIA'))}</div><div><strong>{t('了解更多','RESOURCES')}</strong>{a('help.html',t('帮助中心','Help'))}{a('about.html',t('关于 PAIA','About PAIA'))}{a('blog.html',t('产品文章','Product notes'))}{a('contact.html',t('联系','Contact'))}</div><div><strong>{t('你的数据','YOUR DATA')}</strong>{a('principles.html',t('数据与权限','Data & permissions'))}{a('privacy-policy.html',t('隐私政策','Privacy policy'))}{a('terms.html',t('使用条款','Terms'))}</div></nav></div><div class="footer-bottom"><span class="copyright">© 2026 PAIA</span><span>{t('你的输入，始终属于你。','Your inputs stay yours.')}</span></div></footer>'''
     def shell(page,title,desc,body,noindex=False,extra=''):
+        if page == 'status.html':
+            body, title, desc, noindex = render_help(t,a,button), t('PAIA — 帮助','PAIA — Help'), t('找到安装与使用的答案。','Find installation and usage answers.'), True
         out=head(page,title,desc,noindex)+header(page)+f'<main id="main" tabindex="-1">{body}</main>'+footer()+extra+'\n</body>\n</html>\n'
         dest=ROOT/('' if en else 'zh')/page
         dest.parent.mkdir(parents=True,exist_ok=True)
@@ -105,8 +117,12 @@ def build(lang):
     demo=render_demo(t,a,button)
     shell('demo.html',t('PAIA — 找回、整理、复用的交互示例','PAIA — An interactive example of finding, organizing and reusing'),t('用虚构数据体验输入档案、个人提示词、主题阅读和四卡 Context；无需安装，不连接私人档案或 AI。','Try the archive, personal prompts, topic reading and four-card Context with fictional data. No installation, personal archive or AI connection.'),demo,True)
 
-    beta=f'''<section class="beta-intro wrap"><div><p class="eyebrow">PAIA / PRIVATE BETA</p><h1>{t('从你的下一次<br>AI 对话开始。', 'Start with your<br>next conversation.')}</h1></div><div><p class="lead">{t('告诉我们，你最想找回或复用什么。收到邀请后，从桌面 Chrome 和 ChatGPT 开始体验。', 'Tell us what you want to find or reuse. If invited, you will start with Chrome on desktop and ChatGPT.')}</p>{statusmini()}</div></section><section class="beta-layout wrap"><div><form class="beta-form" action="https://formsubmit.co/haohongfei2001@gmail.com" method="POST"><input type="hidden" name="_subject" value="PAIA Private Beta application"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="false"><input type="hidden" name="_next" value="{BASE}{link('thanks.html')}"><input type="hidden" name="language" value="{lang}"><div class="honeypot" aria-hidden="true"><label for="website-url">Leave this field empty</label><input id="website-url" type="text" name="_honey" tabindex="-1" autocomplete="off"></div><h2>{t('申请加入测试','Request an invitation')}</h2><label for="beta-email">{t('邮箱','Email')} <span class="required">{t('必填','Required')}</span></label><input id="beta-email" name="email" type="email" autocomplete="email" required maxlength="254" aria-describedby="email-hint"><p class="field-hint" id="email-hint">{t('用于 Beta 联系和邀请，不要求填写真实姓名。','For beta contact and invitations. No real name required.')}</p><label for="beta-frequency">{t('你使用 ChatGPT 的频率','How often do you use ChatGPT?')}</label><select id="beta-frequency" name="frequency"><option value="">{t('选填','Optional')}</option><option value="daily">{t('每天','Daily')}</option><option value="several-times-week">{t('每周数次','Several times a week')}</option><option value="weekly-or-less">{t('每周或更少','Weekly or less')}</option></select><label for="beta-goal">{t('你最想找回或复用什么？','What would you like to recover or reuse?')}</label><textarea id="beta-goal" name="goal" rows="4" maxlength="1000" placeholder="{t('选填。描述一个场景即可，不要粘贴聊天记录或私人资料。','Optional. Describe a situation, not private information or actual chat text.')}" aria-describedby="form-privacy"></textarea><label class="consent"><input type="checkbox" name="contact_consent" value="yes" required><span>{t('我同意将以上申请信息交给 FormSubmit 转发至项目邮箱，用于 Beta 招募与联系。','I agree to have FormSubmit forward this application to the project email for beta recruitment and contact.')}</span></label><p class="small" id="form-privacy">{t('只有提交此表单才会发送这些信息。不会发送你的 PAIA 档案。可随时通过项目邮箱申请删除；请勿填写敏感信息。','Only submitting this form sends this information. It does not send your PAIA archive. You can request deletion through the project email. Do not include sensitive information.')} {a('privacy-policy.html',t('隐私政策','Privacy policy'))}</p><button class="button" type="submit">{t('提交申请','Submit application')} <span aria-hidden="true">↗</span></button><p class="small">{t('提交后将前往 FormSubmit 处理。以该服务的提交结果为准；申请不代表已经获邀。','Submission is handled by FormSubmit. Its response determines delivery; applying does not mean you have been invited.')}</p></form><p class="small form-alternative">{t('表单无法使用？也可以直接写信：','Form unavailable? You can email instead:')} <a href="mailto:{EMAIL}?subject=PAIA%20Private%20Beta">{EMAIL}</a></p></div><aside class="beta-aside"><h2>{t('申请后会怎样','What happens next')}</h2><ol class="steps-list"><li><h3>{t('我们了解你的使用场景','We review your use case')}</h3><p>{t('招募以当前测试范围为准，不承诺固定回复时间或一定获得名额。','Invitations depend on the current testing scope. There is no guaranteed place or response time.')}</p></li><li><h3>{t('获邀后收到安装说明','Invited participants receive instructions')}</h3><p>{t('包括可用版本、安装方式、当前限制和反馈方式。不是立即安装，也不是公开商店发布。','Including the available build, setup, limitations and feedback path. This is not an instant installation or public store release.')}</p></li><li><h3>{t('从非关键材料开始','Start with non-critical material')}</h3><p>{t('先验证保存、找回和复用是否适合你。重要资料始终保留独立备份。','Check whether capture, retrieval and reuse help you. Always keep independent backups of important data.')}</p></li></ol><div class="beta-note-stack" aria-hidden="true"><i></i><i></i></div><div class="aside-note"><strong>{t('还不确定？','Still exploring?')}</strong><p>{t('先用示例体验，不需要提供邮箱。','Try the sample first. No email needed.')}</p>{a('demo.html',t('打开示例','Open the sample'),'text-link')}</div></aside></section>'''
-    shell('beta.html',t('申请 PAIA Private Beta','Request PAIA Private Beta access'),t('申请参与 PAIA 邀请制测试。桌面 Chrome 扩展，围绕 ChatGPT 网页版；先查看范围、数据边界和申请流程。','Request an invitation to test PAIA for desktop Chrome and ChatGPT Web. Review the scope, data boundaries and application process.'),beta)
+    download_body = render_download(t,a,button)
+    shell('download.html',t('获取 PAIA','Get PAIA'),t('从桌面 Chrome 和 ChatGPT 开始。安装、首次设置与使用帮助。','Start with Chrome on desktop and ChatGPT. Installation, first steps and help.'),download_body)
+    # Preserve old bookmarks, but canonicalize them to the product entry.
+    shell('beta.html',t('获取 PAIA','Get PAIA'),t('从桌面 Chrome 和 ChatGPT 开始。','Start with Chrome on desktop and ChatGPT.'),download_body,True)
+    shell('help.html',t('PAIA — 帮助','PAIA — Help'),t('找到安装、保存、整理与权限的答案。','Answers about installation, capture, organization and permissions.'),render_help(t,a,button))
+    shell('contact.html',t('联系 PAIA','Contact PAIA'),t('使用帮助、数据与权限，以及反馈。','Help, data and permissions, and feedback.'),render_contact(t,a,button,EMAIL,BASE+link('thanks.html')))
 
     shell('principles.html',t('PAIA — 数据与权限','PAIA — Data and permissions'),t('了解本地档案、原话与编辑、四卡 Context、个人主题访问和可选同步的边界。','Understand local archives, sources and edits, four-card Context, personal-topic access and optional sync.'),render_trust(t,a,invitation))
     shell('status.html',t('PAIA — 体验与可用范围','PAIA — Experience and availability'),t('查看可以直接体验的网页示例、测试版申请，以及仍在完成的正式产品能力。','See the web example, beta invitation process and approved capabilities that are still being completed.'),render_status(t,a,invitation,statusmini))
@@ -126,13 +142,13 @@ def build(lang):
       (t('4. 合理使用','4. Acceptable use'),t('请勿利用 PAIA 进行违法活动、未经授权的数据收集、侵犯他人隐私或知识产权，或规避第三方平台的访问和使用限制。','Do not use PAIA for unlawful activity, unauthorized data collection, violations of others’ privacy or intellectual property, or circumvention of third-party access and usage restrictions.')),
       (t('5. 第三方服务','5. Third-party services'),t('PAIA 可能与浏览器、AI 服务或其他第三方平台配合使用。第三方服务的可用性、条款和技术变化不由 PAIA 控制，相关功能可能因此调整。','PAIA may work with browsers, AI services and other third-party platforms. PAIA does not control their availability, terms or technical changes, which may require changes to related features.')),
       (t('6. 可用性与责任边界','6. Availability and limitations'),t('Beta 版本按当前状态提供，不承诺持续、无错误或永久可用。产品会尽力降低数据风险，但用户仍应为重要资料保留独立备份。','The beta is provided in its current state, without a promise of continuous, error-free or permanent availability. The product seeks to reduce data risks, but users should keep independent backups of important material.'))]
-    for page,title,sections,date in [('privacy-policy.html',t('隐私政策','Privacy policy'),privacy_sections,'2026-10-08'),('terms.html',t('使用条款','Terms'),terms_sections,'2026-10-08')]:
-        content=f'''<section class="page-intro wrap"><p class="eyebrow">PAIA · PRIVATE BETA</p><h1>{title}</h1><p class="small">{t('政策内容最后更新','Policy content last updated')}: {date} · {t('页面呈现更新','Presentation updated')}: 2026-10-09</p></section><article class="prose legal-prose wrap">{''.join(f'<section><h2>{h}</h2><p>{p}</p></section>' for h,p in sections)}<section><h2>{t('7. 联系','7. Contact')}</h2><p>{t('有关本政策、Beta 或申请信息删除的问题，请联系','For policy, beta or application-deletion questions, contact')} <a href="mailto:{EMAIL}">{EMAIL}</a>{t("。", ".")}</p></section>{f'<aside class="notice"><p>{t("网站示例补充说明：示例输入只在当前页面内存中使用，不上传或持久保存；刷新即清除。网站托管和 FormSubmit 仍有各自的数据处理边界。", "Website sample clarification: inputs are used only in current-page memory, not uploaded or persisted, and clear on reload. Website hosting and FormSubmit have their own data-processing boundaries.")}</p>{a("principles.html",t("查看具体的数据与授权边界","Read the practical data boundaries"))}</aside>' if page=='privacy-policy.html' else ''}</article>'''
+    for page,title,sections,date in [('privacy-policy.html',t('隐私政策','Privacy policy'),privacy_sections,'2026-10-13'),('terms.html',t('使用条款','Terms'),terms_sections,'2026-10-13')]:
+        content=f'''<section class="page-intro wrap"><p class="eyebrow">PAIA</p><h1>{title}</h1><p class="small">{t('政策内容最后更新','Policy content last updated')}: {date} · {t('页面呈现更新','Presentation updated')}: 2026-10-13</p></section><article class="prose legal-prose wrap">{''.join(f'<section><h2>{h}</h2><p>{p}</p></section>' for h,p in sections)}<section><h2>{t('7. 联系','7. Contact')}</h2><p>{t('有关本政策、Beta 或申请信息删除的问题，请联系','For policy, beta or application-deletion questions, contact')} <a href="mailto:{EMAIL}">{EMAIL}</a>{t("。", ".")}</p></section>{f'<aside class="notice"><p>{t("网站示例补充说明：示例输入只在当前页面内存中使用，不上传或持久保存；刷新即清除。网站托管和 FormSubmit 仍有各自的数据处理边界。", "Website sample clarification: inputs are used only in current-page memory, not uploaded or persisted, and clear on reload. Website hosting and FormSubmit have their own data-processing boundaries.")}</p>{a("principles.html",t("查看具体的数据与授权边界","Read the practical data boundaries"))}</aside>' if page=='privacy-policy.html' else ''}</article>'''
         content=content.replace('<article class="prose legal-prose wrap">', '<div class="legal-layout wrap"><nav class="legal-index" aria-label="'+t('本页目录','On this page')+'"><strong>'+t('阅读本页','IN THIS DOCUMENT')+'</strong>'+''.join(f'<a href="#policy-{i}">{h}</a>' for i,(h,_) in enumerate(sections,1))+'</nav><article class="prose legal-prose">').replace('</article>', '</article></div>')
         for i,(h,_) in enumerate(sections,1):
             content=content.replace(f'<section><h2>{h}</h2>', f'<section id="policy-{i}"><h2>{h}</h2>')
         shell(page,'PAIA — '+title,t('PAIA Private Beta 的隐私和使用边界。','Privacy and usage boundaries for the PAIA private beta.'),content)
-    thanks=f'''<section class="page-intro compact-intro wrap"><span class="return-art" aria-hidden="true"></span><p class="eyebrow">PAIA · PRIVATE BETA</p><h1>{t('接下来，留意你的邮箱。','Next, keep an eye on your inbox.')}</h1><p class="lead">{t('申请不等于获得测试资格。若收到邀请，你会获得安装说明、当前限制与反馈方式。','An application is not an invitation. Invited participants receive setup instructions, current limitations and a feedback path.')}</p><p>{t('此页面本身不确认表单是否送达。没有看到 FormSubmit 的成功结果，或提交时遇到错误？请返回重试，或直接写信联系。','This page alone does not confirm delivery. If you did not see a successful FormSubmit response, or encountered a submission error, return to the form or email us directly.')}</p><div class="actions">{button('index.html',t('回到 PAIA','Back to PAIA'))}{a('beta.html',t('返回申请表','Return to the form'),'text-link')}</div><p class="small"><a href="mailto:{EMAIL}">{EMAIL}</a></p></section>'''
+    thanks=f'''<section class="page-intro compact-intro wrap"><span class="return-art" aria-hidden="true"></span><p class="eyebrow">PAIA</p><h1>{t('接下来，留意你的邮箱。','Next, keep an eye on your inbox.')}</h1><p class="lead">{t('申请不等于获得测试资格。若收到邀请，你会获得安装说明、当前限制与反馈方式。','An application is not an invitation. Invited participants receive setup instructions, current limitations and a feedback path.')}</p><p>{t('此页面本身不确认表单是否送达。没有看到 FormSubmit 的成功结果，或提交时遇到错误？请返回重试，或直接写信联系。','This page alone does not confirm delivery. If you did not see a successful FormSubmit response, or encountered a submission error, return to the form or email us directly.')}</p><div class="actions">{button('index.html',t('回到 PAIA','Back to PAIA'))}{a('contact.html',t('返回联系页','Back to contact'),'text-link')}</div><p class="small"><a href="mailto:{EMAIL}">{EMAIL}</a></p></section>'''
     shell('thanks.html',t('PAIA — 申请后的下一步','PAIA — After applying'),t('Private Beta 申请后的下一步与联系渠道。','Next steps and contact after applying to the private beta.'),thanks,True)
     notfound=f'''<section class="page-intro compact-intro wrap"><span class="return-art" aria-hidden="true"></span><p class="eyebrow">404</p><h1>{t('这页没有找到。','This page wasn’t found.')}</h1><p class="lead">{t('链接可能已变化。你的扩展档案不在这个网站里，不受影响。','The link may have changed. Your extension archive is not stored on this website and is unaffected.')}</p><div class="actions">{button('index.html',t('回到首页','Back to home'))}{a('demo.html',t('体验示例','Try the sample'),'text-link')}</div></section>'''
     shell('404.html',t('PAIA — 页面未找到','PAIA — Page not found'),t('返回 PAIA 首页。','Return to the PAIA homepage.'),notfound,True)
@@ -141,7 +157,7 @@ for lang in ['zh','en']: build(lang)
 # Absolute root paths target the existing custom-domain root deployment.
 urls=[]
 for locale in ['', 'zh/']:
-    for name in ['', 'how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html', 'beta.html','principles.html','status.html','about.html','privacy-policy.html','terms.html']:
+    for name in ['', 'how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html', 'download.html','help.html','contact.html','principles.html','about.html','privacy-policy.html','terms.html']:
         urls.append(f'<url><loc>{BASE}/{locale}{name}</loc></url>')
 write(ROOT/'sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join(urls)+'</urlset>\n')
 write(ROOT/'robots.txt','User-agent: *\nAllow: /\nSitemap: https://inputarchive.com/sitemap.xml\n')
