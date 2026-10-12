@@ -14,6 +14,7 @@ BASE = 'https://inputarchive.com'
 generated = (ROOT/'website/generated-paths.txt').read_text().splitlines()
 paths = list(generated)
 paths += ['assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
+paths += ['assets/website/refinement.css', 'assets/website/refinement.js']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -48,6 +49,8 @@ try:
                 response=page.goto(BASE+'/'+relative,wait_until='load',timeout=45000)
                 assert response and (response.ok or (Path(relative).name == '404.html' and response.status == 404))
                 page.evaluate('document.fonts.ready')
+                if Path(relative).name in ('index.html','how-it-works.html','beta.html'):
+                    page.wait_for_selector('body.pf-ready', timeout=10000)
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
                 def live_check(value, label):

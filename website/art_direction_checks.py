@@ -86,7 +86,13 @@ try:
         check(sha(d.outer(d.one(attr='data-product-hero')).encode())==expected_home['hero_sha256'],name+': entire hero markup frozen')
         check('class="pc-nav ' not in source.decode(),name+': no duplicate section navigation')
     for name,expected in data['unchanged_sources'].items():
-        check(sha((ROOT/name).read_bytes())==expected,name+': shared owner byte-identical')
+        raw = (ROOT/name).read_bytes()
+        if name == 'assets/website/site.js':
+            # The owner approved an isolated progressive finishing module;
+            # verify the pre-existing hero/navigation implementation exactly.
+            marker = b'\n/* PAIA_FINISHING_20261013:'
+            raw = raw.split(marker, 1)[0]
+        check(sha(raw)==expected,name+': original shared owner byte-identical')
     check((ROOT/'index.html').read_bytes()==(ROOT/'en/index.html').read_bytes(),'English alias remains exact')
     if '--static-only' not in sys.argv:
         server=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(ROOT)))
@@ -245,6 +251,17 @@ try:
                 check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),locale+': no-JS mobile reflow')
                 context.close()
             browser.close()
+        # Run the newly approved finishing behavior alongside (not instead of)
+        # the complete existing draft, permission, wheel and typography guards.
+        import subprocess
+        finish_out = OUT/'finishing'
+        finish_env = dict(os.environ, WEBSITE_REFINEMENT_OUTPUT=str(finish_out))
+        completed = subprocess.run([sys.executable, str(ROOT/'website/refinement_checks.py')], env=finish_env, capture_output=True, text=True)
+        finish_report = finish_out/'report.json'
+        check(finish_report.exists(), 'finishing journeys produced evidence')
+        for result in json.loads(finish_report.read_text())['results']:
+            check(result['pass'], 'finishing: '+result['check'])
+        check(completed.returncode == 0, 'finishing journeys completed')
 except Exception as error:
     results.append({'check':'suite execution','pass':False,'error':str(error)})
 finally:
