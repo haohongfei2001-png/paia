@@ -150,7 +150,12 @@ try:
                     # Text enlargement must reflow, not shrink the words.
                     page.add_style_tag(content='html{font-size:200%!important}')
                     page.wait_for_timeout(80)
-                    test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'200% text has no horizontal page overflow')
+                    reflow = page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
+                    if not reflow:
+                        OUT.mkdir(parents=True, exist_ok=True)
+                        diagnostic = page.evaluate("""()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.localName,cls:e.className,id:e.id,left:r.left,right:r.right,width:r.width,text:e.textContent.slice(0,90),font:s.fontSize,whiteSpace:s.whiteSpace}}).filter(e=>e.right>innerWidth+1||e.left< -1).slice(0,35)})""")
+                        (OUT/f'{locale}-{width}-text-200-overflow.json').write_text(json.dumps(diagnostic,ensure_ascii=False,indent=2))
+                    test(reflow,'200% text has no horizontal page overflow')
                     test(page.locator('.pc-review .pc-intro p').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=30,'200% prose is actually enlarged')
                     test(page.locator('[data-prompt-pick]').first.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=26,'200% board text is enlarged without widening the board')
                     # Every card retains an independently reachable hit target.

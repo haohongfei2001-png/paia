@@ -195,3 +195,8 @@
 .art-refined .ad-thought-scroll[data-user-reading=true]{height:auto;min-height:0}
 .art-refined .ad-thought-scroll[data-user-reading=true]>.ad-scroll-sticky{position:relative;top:auto;height:auto;min-height:0;display:block}
 .art-refined .ad-thought-scroll[data-user-reading=true] .ad-thought-scenes{display:none}
+/* Enlarged text must wrap within its own column, including Linux font metrics. */
+.art-refined .ad-prompt-scroll .pc-prompt-copy h2,.art-refined .ad-thought-scroll .pc-heading h2{overflow-wrap:anywhere}
+.art-refined .ad-prompt-scroll .ad-chatgpt-user{min-width:0;overflow-wrap:anywhere}
+.art-refined .ad-prompt-scroll .ad-host .pc-window-bar{flex-wrap:wrap}
+.art-refined .ad-prompt-scroll .ad-host .pc-window-bar>span{min-width:0;white-space:normal;overflow-wrap:anywhere}
