@@ -17,11 +17,25 @@ export function historyLatestText(record,language='zh-CN',failed=false){
  const date=new Date(record.completedAt).toLocaleDateString(english?'en':'zh-CN'),source=sourceName(record.adapterId),c=record.counts;
  return english?'Last import: '+date+' · '+source+' official export · Added '+c.added+' · Already saved '+c.duplicates+' · Times completed '+(c.timeEnriched||0)+' · Issues '+c.issues+(record.phase==='partial'?' · Some inputs need review':''):'最近补全：'+date+' · '+source+' 官方导出 · 新增 '+c.added+' · 已存在 '+c.duplicates+' · 补全时间 '+(c.timeEnriched||0)+' · 异常 '+c.issues+(record.phase==='partial'?' · 部分输入待确认':'');
 }
+// This is the selected file's temporary preflight range, never Source history.
+export function historyFileTimeRangeText(range){
+ if(range?.conflicted)return '范围无法可靠确定';
+ if(!range?.known||typeof range.from!=='string'||typeof range.to!=='string'||!Number.isFinite(Date.parse(range.from))||!Number.isFinite(Date.parse(range.to)))return '发送时间未知';
+ const date=value=>new Date(value).toISOString().slice(0,10).replaceAll('-','.');
+ const start=date(range.from),end=date(range.to),period=start===end?start:start+'–'+end;
+ return period+(range.unknown?' · '+range.unknown+' 条发送时间未知':'');
+}
 export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},onNavigate=()=>{},onRead=()=>onNavigate('library')}={}){
- let resumeTaskId,processing=false,port=null;
+ let resumeTaskId,processing=false,port=null,selectedFileName='';
  const controller=new OfficialExportProvider().createSession({transport:(method,q)=>send('IMPORT_'+method.toUpperCase(),q),onProgress:paint});
  function paint(s){setProductState($('history-dialog'),({selected:'ready',checking:'loading',importing:'updating',completed:'saved',unsupported:'failed',cancelled:'paused',awaiting_file:'paused'})[s.phase]||s.phase);
-  const done=['completed','partial'].includes(s.phase),active=['checking','importing'].includes(s.phase);
+  const done=['completed','partial'].includes(s.phase),active=['checking','importing'].includes(s.phase),ready=s.phase==='ready'&&controller.hasFile;
+  $('history-dialog').dataset.importPhase=s.phase==='ready'&&!controller.hasFile?'awaiting_file':s.phase;
+  setHistoryCopy($('history-title'),ready?'预览历史输入':'补全历史输入');
+  setHistoryCopy($('history-commit'),ready?'确认导入':'开始补全');setHistoryCopy($('history-cancel'),ready?'取消':'取消本次补全');
+  $('history-ready-preview').hidden=!ready;
+  if(ready){$('history-selected-name').textContent=selectedFileName;setHistoryCopy($('history-preview-range'),historyFileTimeRangeText(s.fileTimeRange));for(const [id,key]of [['history-preview-added','added'],['history-preview-existing','duplicates'],['history-preview-review','review']])$(id).textContent=String(s.preview?.[key]??0);}
+
   setHistoryCopy($('history-status'),phases[s.phase]||'正在处理…');const storageShort=s.phase==='ready'&&s.storagePreflight?.state==='insufficient';setHistoryCopy($('history-error'),s.reason?errorText(s.reason):storageShort?'本机可用空间低于预计新增正文大小；请释放空间后重新选择原文件。此检查只是写入下限，不保证剩余空间足够。':'');
   const c=s.phase==='ready'||s.phase==='checking'?s.preview:s.counts;
   $('history-counts').replaceChildren();
@@ -29,6 +43,9 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
    const row=document.createElement('div'),n=document.createElement('strong'),name=document.createElement('span');n.textContent=String(value||0);setHistoryCopy(name,label);row.append(n,name);$('history-counts').append(row);
   }
   const d=s.detection,inspection=s.inspection||d;setHistoryCopy($('history-format'),d?(d.container==='zip'?'ZIP':'JSON')+' · '+sourceName(d.adapterId||d.profileId)+' · '+(d.fileBytes/1048576).toFixed(1)+' MB · '+(d.support==='partial'?'已识别可处理的部分内容':'已识别聊天记录')+' · '+d.conversations+' 个窗口 · '+d.userMessages+' 条用户文字'+(c?.unknownTime?' · '+c.unknownTime+' 条发送时间未知':'')+(d.fileBytes>=100*1048576?' · 文件较大，检查和补全可能需要几分钟；可以暂停后重选继续。':''):'');
+  const skipped=inspection?.skippedMessages||inspection?.skippedConversations;
+  $('history-ready-issues').hidden=!ready||!skipped;
+  setHistoryCopy($('history-ready-issues'),skipped?' · 跳过不支持的 '+(inspection.skippedConversations||0)+' 个窗口 / '+(inspection.skippedMessages||0)+' 条内容':'');
   if(inspection?.skippedMessages||inspection?.skippedConversations)appendHistoryCopy($('history-format'),' · 跳过不支持的 '+(inspection.skippedConversations||0)+' 个窗口 / '+(inspection.skippedMessages||0)+' 条内容');
   if(c?.metadataEnriched)appendHistoryCopy($('history-format'),' · 补全 '+c.metadataEnriched+' 条已有来源信息');
   $('history-progress').hidden=!active;if(s.phase==='importing'&&d?.userMessages){const processed=(c?.added||0)+(c?.duplicates||0)+(c?.ignored||0);$('history-progress').max=d.userMessages;$('history-progress').value=processed;appendHistoryCopy($('history-status'),' 已处理 '+processed+' / '+d.userMessages+' 条。');}else $('history-progress').removeAttribute('value');
@@ -64,21 +81,21 @@ export function initHistoryCompletion({beforeOpen=async()=>true,onChange=()=>{},
   try{port?.disconnect();port=chrome.runtime.connect({name:'official-export-session'});}catch{}
   refreshHistoryCopy($('history-dialog'));$('history-dialog').showModal();paint(controller.summary);await tasks();
  }
- async function close(){await controller.pause();port?.disconnect();port=null;$('history-file').value='';$('history-file-consent').checked=false;$('history-dialog').close();}
+ async function close(){await controller.pause();port?.disconnect();port=null;selectedFileName='';$('history-selected-name').textContent='';$('history-file').value='';$('history-file-consent').checked=false;$('history-dialog').close();}
  for(const id of ['empty-sync','settings-history'])$(id).addEventListener('click',()=>void open());
  $('history-close').addEventListener('click',()=>void close());$('history-dialog').addEventListener('cancel',e=>{e.preventDefault();void close();});
  $('history-file-consent').addEventListener('change',()=>paint(controller.summary));
  $('history-choose').addEventListener('click',e=>{if(e.isTrusted&&$('history-file-consent').checked&&!processing)$('history-file').click();});
  $('history-file').addEventListener('change',async e=>{
   const file=e.target.files?.[0],consent=$('history-file-consent').checked===true;e.target.value='';$('history-file-consent').checked=false;if(!file||!consent)return;
-  processing=true;try{await controller.select(file,{consent,taskId:resumeTaskId});await controller.preflight();}catch(error){if(controller.summary.phase==='failed'&&controller.summary.taskId)resumeTaskId=controller.summary.taskId;setHistoryCopy($('history-error'),errorText(safeImportError(error)));}finally{processing=false;paint(controller.summary);}
+  selectedFileName=file.name;processing=true;try{await controller.select(file,{consent,taskId:resumeTaskId});await controller.preflight();}catch(error){if(controller.summary.phase==='failed'&&controller.summary.taskId)resumeTaskId=controller.summary.taskId;setHistoryCopy($('history-error'),errorText(safeImportError(error)));}finally{processing=false;paint(controller.summary);}
  });
  $('history-commit').addEventListener('click',async e=>{
   if(!e.isTrusted||processing)return;processing=true;paint({...controller.summary,phase:'importing'});
   try{await controller.commit();resumeTaskId=undefined;onChange();void latest();void tasks();}catch(error){if(controller.summary.phase==='failed'&&controller.summary.taskId)resumeTaskId=controller.summary.taskId;setHistoryCopy($('history-error'),errorText(safeImportError(error)));void tasks();}finally{processing=false;paint(controller.summary);}
  });
  $('history-pause').addEventListener('click',()=>void controller.pause().then(()=>{resumeTaskId=controller.summary.taskId||resumeTaskId;$('history-file-consent').checked=false;paint(controller.summary);void tasks();}).catch(()=>{setHistoryCopy($('history-error'),'暂停尚未完成。请保持页面打开后再试；已经补全的输入保留。');}));
- $('history-cancel').addEventListener('click',async()=>{try{await controller.cancel();resumeTaskId=undefined;paint(controller.summary);void tasks();onChange();}catch{setHistoryCopy($('history-error'),'暂时无法取消，请再试一次。');}});
+ $('history-cancel').addEventListener('click',async()=>{try{const cancellation=controller.cancel();selectedFileName='';$('history-selected-name').textContent='';paint(controller.summary);await cancellation;resumeTaskId=undefined;paint(controller.summary);void tasks();onChange();}catch{selectedFileName='';$('history-selected-name').textContent='';paint(controller.summary);setHistoryCopy($('history-error'),'暂时无法取消，请再试一次。');}});
  $('history-read').addEventListener('click',async()=>{await close();await onRead();});
  $('history-thoughts').addEventListener('click',async()=>{await close();await onNavigate('thoughts');});
  $('history-review').addEventListener('click',async()=>{await close();await onNavigate('excluded');});

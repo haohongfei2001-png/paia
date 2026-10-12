@@ -7,6 +7,19 @@ import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
 const offset=160;
+// Observe native completion, never substitute RPC/restore results or wait for geometry success.
+function observeTopicCompletion(TopicController){
+ const state=globalThis.__topicCompletion={sequence:0,current:null,events:[]};
+ const record=(kind,data={})=>{state.events.push({kind,...data});if(state.events.length>80)state.events.shift();};
+ const track=(promise,scope,kind,done=()=>{})=>{scope.pending++;record(kind+'-start',{sequence:scope.sequence});promise.then(value=>{scope.pending--;done(value);record(kind+'-end',{sequence:scope.sequence});},error=>{scope.pending--;scope.failed=true;record(kind+'-error',{sequence:scope.sequence,name:error?.name||'Error'});});return promise;};
+ const open=TopicController.prototype.open,restore=TopicController.prototype.restorePosition;
+ TopicController.prototype.open=function(id){const scope={sequence:++state.sequence,topicId:id,intent:null,pending:0,completed:false,failed:false};state.current=scope;const promise=open.call(this,id);scope.intent=this.openIntent;return track(promise,scope,'open',intent=>{scope.completed=intent===scope.intent&&this.openIntent===scope.intent&&this.id===id;});};
+ TopicController.prototype.restorePosition=function(anchor){const scope=state.current,promise=restore.call(this,anchor);return scope&&scope.intent===this.openIntent?track(promise,scope,'restore'):promise;};
+ const send=chrome.runtime.sendMessage;
+ chrome.runtime.sendMessage=function(message,...args){const scope=state.current,promise=send.call(this,message,...args);return scope&&message?.type==='THOUGHT_POSITION'&&message.position?.topicId===scope.topicId&&!message.position?.entryId?track(promise,scope,'position-read'):promise;};
+ for(const name of ['scrollTo','scrollBy']){const original=window[name];window[name]=function(...args){record(name,{args,scrollY});return original.apply(this,args);};}
+}
+
 async function fixture(){
  const h=await FakeChatGPT.start({headless:true}),p=h.archive;
  p.on('console',message=>{const text=message.text();if(text.startsWith('SECTION_FIXTURE_ACQUISITIONS '))console.log(text);});
@@ -22,6 +35,7 @@ async function fixture(){
   }finally{s.run=originalRun;console.log('SECTION_FIXTURE_ACQUISITIONS '+JSON.stringify(events));s.repository.close();}
  })()`);
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+ const observerScript='import("../ui/topic-workspace.js").then(({TopicController})=>('+observeTopicCompletion.toString()+')(TopicController))';await p.addInitScript(observerScript);await p.evaluate(observerScript);
  return {h,p,seed};
  }catch(error){try{await h.close();}catch(cleanup){console.error('SECTION_FIXTURE_CLEANUP',cleanup?.name||'Error');}throw error;}
 }
@@ -36,9 +50,11 @@ async function geometry(p,id,at){return p.evaluate(({id,at})=>{
  },{id,at});}
 async function settled(p){await p.evaluate(()=>document.fonts.ready);await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
 async function exact(p,s,entry=s.target,at=offset){
- await field(p,entry.id).waitFor();await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert,s.topicId,{timeout:14000});await settled(p);const saved=await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId}}),row=await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id});
+ try{
+ await field(p,entry.id).waitFor();await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert&&globalThis.__topicCompletion?.current?.topicId===id&&__topicCompletion.current.completed&&!__topicCompletion.current.failed&&__topicCompletion.current.pending===0,s.topicId,{timeout:14000});await settled(p);const saved=await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId}}),row=await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id});
  assert.equal(saved.entryId,entry.id);assert.equal(saved.revision,row.revision);assert.equal(saved.offset,at);const place=await geometry(p,entry.id,at);assert.ok(place&&Number.isFinite(place.top));assert.equal(place.sectionId,s.sectionId);
  assert.ok(Math.abs(place.top-140)<=2||(Math.abs(place.scrollY-place.maxScroll)<=2&&place.top>=140&&place.top<place.viewport),'exact text offset aligns to reading edge unless bounded by remaining scroll range: '+JSON.stringify(place));return {saved,place};
+ }catch(error){try{await mkdir('work/topic-return-position',{recursive:true});const trace=await p.locator('html').evaluate(()=>({completion:globalThis.__topicCompletion,scrollY,route:history.state?.paiaReader?.topicId}),null,{timeout:1000});await writeFile('work/topic-return-position/exact-failure-'+Date.now()+'.json',JSON.stringify({trace,error:error.message},null,2));}catch(diagnostic){console.error('TOPIC_EXACT_DIAGNOSTIC_UNAVAILABLE',diagnostic?.name||'Error');}throw error;}
 }
 async function evidence(f,name,data){assert.equal(f.h.externalRequests,0);assert.equal(f.h.extensionNetworkRequests,0);assert.equal(f.h.deepSeekRequests.length,0);assert.deepEqual(f.h.errors,[]);await mkdir('work/topic-return-position',{recursive:true});await writeFile('work/topic-return-position/'+name+'.json',JSON.stringify(data,null,2));}
 async function delayedPositionCannotOverrideUser(p,s){

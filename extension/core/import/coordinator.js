@@ -1,7 +1,7 @@
 import {allowed,checkStop,fail,LIMITS,safeImportError,ImportError} from './errors.js';
 import {inspectFile,fingerprintFile} from './reader.js';
 import {detectHistoryFile,detectHistoryFileForAdapter} from './detector.js';
-import {validateRows} from './contract.js';
+import {validateRows,timestamp} from './contract.js';
 // File/decoded strings belong only to this page session, never to task storage.
 export class ImportCoordinator {
  constructor({transport,adapter=null,resolveAdapter=null,onProgress=()=>{},estimateStorage=()=>globalThis.navigator?.storage?.estimate?.()??null}={}){this.transport=transport;this.adapter=adapter;this.resolveAdapter=resolveAdapter;this.onProgress=onProgress;this.estimateStorage=estimateStorage;this.session=null;this.summary={phase:'idle'};this.busy=false;}
@@ -15,23 +15,36 @@ export class ImportCoordinator {
   const freeBytes=Math.max(0,Math.floor(quota-usage));
   return {state:freeBytes<minimumNewTextBytes?'insufficient':'lower_bound_met',minimumNewTextBytes,freeBytes};
  }
- publish(value,s=this.session){if(s===this.session){this.summary={...(s?.detection?{detection:s.detection}:{}),...value};this.onProgress(this.summary);}return this.summary;}
+ publish(value,s=this.session){if(s===this.session){this.summary={...(s?.detection?{detection:s.detection}:{}),...value};if(this.summary.phase!=='ready')delete this.summary.fileTimeRange;this.onProgress(this.summary);}return this.summary;}
  async select(file,{consent=false,taskId}={}){await this.pause();allowed(file,{consent});this.session={file,consent,taskId,abort:new AbortController(),grant:null,fingerprint:null,adapter:null};return this.publish({phase:'selected'});}
  current(){const s=this.session;if(!s?.file||!s.consent)fail('CONSENT_REQUIRED');checkStop({signal:s.abort.signal});return s;}
  progress(s,phase,detail={}){const now=Date.now();if(!s.lastProgress||now-s.lastProgress>150){s.lastProgress=now;this.publish({...this.summary,...detail,phase,taskId:s.taskId},s);}}
  async projectedPass(s,method){
   const adapter=s.adapter||this.adapter;if(!adapter)fail('SCHEMA_UNVERIFIED');let sequence=0,rows=[],bytes=0,projection=null,issues=0;
+  // File-projected user-input times only, not admitted or persisted Source times.
+  const fileTimeRange=method==='preflight'?{from:null,to:null,known:0,unknown:0,conflicted:false}:null,times=fileTimeRange?new Map():null;
   const send=async()=>{
    if(!rows.length)return;checkStop({signal:s.abort.signal});const batch=rows;rows=[];bytes=0;
    const r=await this.transport(method,{taskId:s.taskId,grant:s.grant,sequence,rows:batch});sequence++;
    this.publish({...r,counts:r.cumulativeCounts||r.counts,phase:method==='preflight'?'checking':'importing',taskId:s.taskId},s);
   };
-  const emit=async raw=>{const r=validateRows([raw])[0],size=new TextEncoder().encode(r.text+r.title).length;if(rows.length>=LIMITS.batchRows||bytes+size>LIMITS.batchBytes)await send();rows.push(r);bytes+=size;};
+  const emit=async raw=>{const r=validateRows([raw])[0],size=new TextEncoder().encode(r.text+r.title).length;if(rows.length>=LIMITS.batchRows||bytes+size>LIMITS.batchBytes)await send();rows.push(r);bytes+=size;
+   if(fileTimeRange&&fileTimeRange.known+fileTimeRange.unknown<LIMITS.rows){
+    const time=timestamp(r.createTime);
+    if(time){
+     fileTimeRange.known++;const key=JSON.stringify([r.platform,r.chatId,r.messageId]),prior=times.get(key);
+     if(prior&&prior!==time)fileTimeRange.conflicted=true;else times.set(key,time);
+     if(fileTimeRange.from===null||time<fileTimeRange.from)fileTimeRange.from=time;
+     if(fileTimeRange.to===null||time>fileTimeRange.to)fileTimeRange.to=time;
+    }else fileTimeRange.unknown++;
+   }else if(fileTimeRange)fileTimeRange.conflicted=true;
+  };
   const integrity=await inspectFile(s.file,{consent:s.consent,signal:s.abort.signal,...(adapter.profile?{candidateMode:'structural'}:{}),
    selectString:path=>projection?.selectString(path)===true,onEntry:()=>{projection=adapter.createProjection();},
    onEvent:e=>projection.event(e,emit),onEntryEnd:()=>{const r=projection.finish();issues+=r?.issues||0;if(r?.support==='unknown')issues++;projection=null;},
    onProgress:p=>this.progress(s,method==='preflight'?'checking':'importing',{processedBytes:p.bytes})});
-  await send();return {batches:sequence,issues,integrity};
+  await send();if(fileTimeRange?.conflicted){fileTimeRange.from=null;fileTimeRange.to=null;}
+  return {batches:sequence,issues,integrity,...(fileTimeRange?{fileTimeRange}:{})};
  }
  async preflight(){
   const s=this.current();if(this.busy)fail('IMPORT_STATE');this.busy=true;
@@ -54,7 +67,7 @@ export class ImportCoordinator {
    s.grant=begun.grant;s.taskId=begun.taskId;checkStop({signal:s.abort.signal});
    const result=await this.projectedPass(s,'preflight');checkStop({signal:s.abort.signal});
    const ready=await this.transport('ready',{taskId:s.taskId,grant:s.grant,batches:result.batches,issues:result.issues,...(s.detection?{inspection:Object.fromEntries(['skippedConversations','skippedMessages','invalidTimes','unknownEntries'].map(k=>[k,s.detection[k]||0]))}:{})});
-   s.preflightComplete=true;const storagePreflight=await this.storagePreflight(ready.preview);checkStop({signal:s.abort.signal});return this.publish({...ready,storagePreflight,phase:'ready'},s);
+   s.preflightComplete=true;const storagePreflight=await this.storagePreflight(ready.preview);checkStop({signal:s.abort.signal});return this.publish({...ready,storagePreflight,fileTimeRange:result.fileTimeRange,phase:'ready'},s);
   }catch(e){await this.failed(e,s);throw new ImportError(safeImportError(e));}finally{this.busy=false;}
  }
  async commit(){
@@ -67,18 +80,19 @@ export class ImportCoordinator {
    const r=await this.transport('complete',{taskId:s.taskId,grant:s.grant});s.file=null;s.consent=false;s.grant=null;return this.publish(r,s);
   }catch(e){await this.failed(e,s);throw new ImportError(safeImportError(e));}finally{this.busy=false;}
  }
+ clearFileTimeRange(s){if(s===this.session)delete this.summary.fileTimeRange;}
  async failed(e,s){
-  s.abort.abort();if(s.grant)try{await this.transport(s.cancelled?'cancel':'pause',{taskId:s.taskId,grant:s.grant});}catch{}
+  s.abort.abort();this.clearFileTimeRange(s);if(s.grant)try{await this.transport(s.cancelled?'cancel':'pause',{taskId:s.taskId,grant:s.grant});}catch{}
   s.file=null;s.consent=false;s.grant=null;
   this.publish({phase:s.cancelled?'cancelled':safeImportError(e)==='CANCELLED'?'paused':'failed',reason:safeImportError(e),taskId:s.taskId},s);
  }
  async pause(){
-  const s=this.session;if(!s||!s.file&&!s.grant)return;s.abort.abort();s.file=null;s.consent=false;
+  const s=this.session;if(!s||!s.file&&!s.grant)return;s.abort.abort();s.file=null;s.consent=false;this.clearFileTimeRange(s);
   if(s.grant)try{await this.transport('pause',{taskId:s.taskId,grant:s.grant});}catch{}s.grant=null;
   return this.publish({phase:'paused',taskId:s.taskId},s);
  }
  async cancel(){
-  const s=this.session;if(!s)return;s.cancelled=true;s.abort.abort();s.file=null;s.consent=false;
+  const s=this.session;if(!s)return;s.cancelled=true;s.abort.abort();s.file=null;s.consent=false;this.clearFileTimeRange(s);
   if(s.grant){const result=await this.transport('cancel',{taskId:s.taskId,grant:s.grant});s.grant=null;return this.publish(result,s);}
   if(s.taskId){const result=await this.transport('cancel',{taskId:s.taskId});return this.publish(result,s);}
   return this.publish({phase:'cancelled'},s);

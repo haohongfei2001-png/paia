@@ -342,3 +342,32 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-backup-dialog #backup-preview>label:has(>#backup-mode){flex-direction:column;align-items:flex-start;gap:4px;min-width:0;margin-top:24px}
 #settings-backup-dialog #backup-preview>label:has(>#backup-mode)>span{color:var(--muted);font-size:12px;line-height:1.5}
 #settings-backup-dialog #backup-mode{min-width:0;max-width:100%;min-height:44px;padding:8px;border:1px solid var(--control);border-radius:6px;background:var(--bg);color:var(--text)}
+
+/* Approved Settings 19: temporary checked-file preview, original action owners. */
+#history-dialog[data-import-phase="ready"]{box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-width:560px;max-height:calc(100dvh - 32px);padding:28px 32px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+#history-dialog[data-import-phase="ready"]>*{margin-inline:0}
+#history-dialog[data-import-phase="ready"]>header{position:static;top:auto;z-index:auto;gap:12px;margin:0 0 20px;padding:0;border:0}
+#history-dialog[data-import-phase="ready"] #history-title{margin:0;font:500 22px/1.455 var(--title-font)}
+#history-dialog[data-import-phase="ready"] #history-close{min-width:44px;min-height:44px;max-width:90px;margin:0;padding:8px;line-height:1.6}
+#history-dialog[data-import-phase="ready"]>:is(.history-steps,.history-consent,#history-choose,#history-format,#history-counts,#history-details,#history-tasks,#manage-excluded),#history-dialog[data-import-phase="ready"]>p:not(#history-error){display:none}
+#history-ready-preview[hidden],#history-ready-issues[hidden]{display:none}
+#history-ready-preview #history-selected-name{font-size:12px;color:var(--muted);margin:0 0 16px;overflow-wrap:anywhere}
+#history-ready-preview .history-preview-lines{margin:20px 0}
+#history-ready-preview .history-preview-lines>div{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-top:1px solid var(--line);padding:12px 0;font:400 13px/1.8 var(--font)}
+#history-ready-preview .history-preview-lines>div:last-child{border-bottom:1px solid var(--line)}
+#history-ready-preview .history-preview-lines>div>span:last-child{max-width:65%;text-align:right;color:var(--muted);overflow-wrap:anywhere}
+#history-ready-preview>p:last-child{font-size:12px;line-height:1.8;color:var(--muted);margin:0}
+#history-dialog[data-import-phase="ready"] #history-error:empty{display:none}
+#history-dialog[data-import-phase="ready"] #history-pause{display:none}
+#history-dialog[data-import-phase="ready"] .history-actions{position:static;bottom:auto;z-index:auto;order:0;display:flex;justify-content:flex-end;gap:8px;margin:28px 0 0;padding:0;border:0}
+#history-dialog[data-import-phase="ready"] .history-actions button{font:400 13px/1.7 var(--font);min-height:44px;padding:8px 16px;border-radius:6px;border:1px solid var(--control);background:var(--bg);color:var(--text)}
+#history-dialog[data-import-phase="ready"] #history-cancel{order:-1}
+#history-dialog[data-import-phase="ready"] #history-commit{background:var(--text);border-color:var(--text);color:var(--bg)}
+
+#history-ready-issues{font-size:12px;line-height:1.8;color:var(--muted);margin:12px 0}
+
+/* Directory feedback is a full-width row, never a second title-column item. */
+#settings-panel .ux-settings-header>#ux-settings-feedback{grid-column:1 / -1;grid-row:2;min-width:0;margin-top:8px}
+#settings-panel .ux-settings-header>#settings-read-retry{grid-column:1 / -1;grid-row:3;justify-self:start}
+
+@media(max-width:767px){#history-dialog[data-import-phase="ready"]{padding:20px}}
