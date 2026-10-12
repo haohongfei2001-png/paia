@@ -91,3 +91,47 @@ test('PR263 pending-history keeps every original optional/current placement and 
   assert.throws(()=>validateBrowserManifest(m),/LEGACY_INVALID/);
  }
 });
+
+test('UIR-02 separate lifetimes cannot reset the original combined timeout',async()=>{
+ const {mkdtempSync,writeFileSync,rmSync}=await import('node:fs');
+ const {tmpdir}=await import('node:os');
+ const {join}=await import('node:path');
+ const {spawnSync}=await import('node:child_process');
+ const code=readFileSync(new URL('./uir-02-archive-search-reader-chrome-e2e.test.mjs',import.meta.url),'utf8');
+ const at=code.indexOf('const sourceAndReleaseDeadline=');
+ assert.ok(at>=0,'shared monotonic deadline must exist');
+ const launcher=code.slice(at);
+ assert.match(launcher,/sourceAndReleaseDeadline=performance\.now\(\)\+300000;/);
+ assert.equal((launcher.match(/await test\(/g)||[]).length,2,'case completion precedes calculating the next timeout');
+ assert.equal((launcher.match(/timeout:remainingJourneyBudget\(\)/g)||[]).length,2);
+ // Execute the actual two registration/callback bodies under node:test. Only
+ // their browser/IO collaborators and the 300s wall-clock scale are substituted;
+ // no product behavior or native browser acceptance is claimed by this unit test.
+ const dir=mkdtempSync(join(tmpdir(),'paia-uir02-budget-'));
+ try{
+  for(const [label,delayMs,expectedExit]of [['within',5,0],['over',650,1]]){
+   const file=join(dir,label+'.test.mjs');
+   writeFileSync(file,`import test from 'node:test';
+import {performance} from 'node:perf_hooks';
+import {setTimeout as delay} from 'node:timers/promises';
+const FakeChatGPT={async start(){return {async close(){}}}};
+const prepare=async()=>({});
+const sourceJourney=async()=>delay(${delayMs});
+const releaseJourney=async()=>delay(${delayMs});
+const mkdtemp=async()=>'/synthetic-isolated-release';
+const rm=async()=>{},execFileAsync=async()=>{};
+const tmpdir=()=>'/synthetic',join=(...parts)=>parts.join('/');
+`+launcher.replace('performance.now()+300000;','performance.now()+1000;'));
+   const env={...process.env};delete env.NODE_TEST_CONTEXT;
+   const result=spawnSync(process.execPath,['--test',file],{encoding:'utf8',timeout:8000,env});
+   assert.ifError(result.error);
+   assert.equal(result.status,expectedExit,label+' '+result.stdout+' '+result.stderr);
+   assert.match(result.stdout,/# tests 2/);
+   assert.match(result.stdout,/ok 1 - UIR-02 .*\(source\)/);
+   if(label==='over'){
+    assert.match(result.stdout,/not ok 2 - UIR-02 .*\(release\)/);
+    assert.match(result.stdout,/testTimeoutFailure/);
+   }else assert.match(result.stdout,/# pass 2/);
+  }
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
