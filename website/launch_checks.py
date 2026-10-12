@@ -40,7 +40,7 @@ def verify_static_publication(root,check):
             check(actual==expected,relative+': original expressions/value statement retained '+selector)
     for relative,sha in original['unmodified_runtime'].items():
         check(hashlib.sha256((root/relative).read_bytes()).hexdigest()==sha,relative+': existing geometry/motion/data owner unchanged')
-    forbidden=re.compile(r'邀请制|申请内测|测试版|规划能力|同步规划|连接体验 · 规划中|仍在开发|计划中的|当前开发状态|PRIVATE BETA|Private Beta|private beta|PLANNED ·|CONNECTIONS · PLANNED')
+    forbidden=re.compile(r'邀请制|申请内测|测试版|规划能力|同步规划|连接体验 · 规划中|仍在开发|计划中的|当前开发状态|当前计划|current plan|PRIVATE BETA|Private Beta|private beta|PLANNED ·|CONNECTIONS · PLANNED')
     for relative in (root/'website/generated-paths.txt').read_text().splitlines():
         if not relative.endswith('.html'):continue
         parsed=Fragments((root/relative).read_text())

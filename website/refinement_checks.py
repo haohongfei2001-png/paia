@@ -112,6 +112,9 @@ try:
                 check(page.locator('.nr-scene-prompt').get_attribute('data-preview-mode')==mode,locale+': interior '+mode)
                 check(page.locator('.pf-how-toggle').evaluate('e=>[e.offsetLeft,e.offsetTop]')==anchor,locale+': interior anchor unchanged')
             page.set_viewport_size({'width':390,'height':844})
+            # matchMedia publishes its change after viewport resizing; wait
+            # for that existing responsive owner, then retain the same test.
+            page.wait_for_function("matchMedia('(max-width:640px)').matches && !document.querySelector('.pf-how-reader').open",timeout=5000)
             check(not page.locator('.pf-how-reader').evaluate('e=>e.open'),locale+': secondary mobile reader is folded')
             page.locator('.nr-section-links a').first.click()
             check(page.locator('.pf-how-reader').evaluate('e=>e.open'),locale+': chapter link opens the same reader')

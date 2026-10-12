@@ -528,6 +528,12 @@
       "source_en": "1. Beta status",
       "zh": "1. 使用前",
       "en": "1. Before using PAIA"
+    },
+    {
+      "source_zh": "用户对自己输入、编辑和导入的内容保留相应权利。PAIA 的产品目标是让这些内容保持可查看、可编辑和可管理；当前计划不提供内容导出或新备份生成。",
+      "source_en": "Users retain the relevant rights in content they enter, edit and import. PAIA aims to make this material viewable, editable and manageable. The current plan does not provide content exports or generation of new backups.",
+      "zh": "用户对自己输入、编辑和导入的内容保留相应权利。PAIA 提供内容查看、编辑与管理；不提供内容导出或生成新备份。",
+      "en": "Users retain the relevant rights in content they enter, edit and import. PAIA provides viewing, editing and management, not content exports or generation of new backups."
     }
   ]
 }
