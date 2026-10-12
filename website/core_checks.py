@@ -28,6 +28,23 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     def back(key):
         page.locator(f'[data-card-detail="{key}"] [data-context-back]').click()
         test(page.locator(f'[data-card-open="{key}"]').evaluate('e=>e===document.activeElement'), 'Back restores card focus')
+    def choose_prompt(control):
+        # Actual one-line truncation now requires an explicit whole-text check.
+        # Retain all original draft/caret/order assertions after this new step.
+        prior = page.locator('#pc-composer').input_value()
+        value = control.evaluate("""e=>{
+            const row=e.closest('[data-prompt-row]');
+            return row ? row.querySelector('[data-prompt-text]').value : e.textContent.trim();
+        }""")
+        control.click()
+        panel = page.locator('.art-directed .ad-check')
+        if panel.count() and panel.is_visible():
+            test(page.locator('#pc-composer').input_value() == prior, 'checking an abbreviated expression never changes the draft')
+            test(panel.locator('p').inner_text() == value, 'checking reveals the exact complete expression')
+            test(page.locator('#pc-prompt-card').bounding_box()['width'] <= 336.1, 'checking never widens the narrow board')
+            test(panel.locator('p').bounding_box()['height'] <= 150.1, 'complete-text checking remains bounded rather than becoming a reader')
+            panel.locator('button').last.click()
+
     def manage_prompt(key):
         control = page.locator(f'[data-prompt-manage="{key}"]')
         if control.get_attribute('aria-expanded') != 'true':
@@ -88,7 +105,11 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.on('request', observe_request)
 
     test(page.locator('[data-core-preview]').count() == 1, 'one shared product illustration')
-    test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
+    if page.locator('.art-directed').count():
+        test(page.locator('.pc-nav').count() == 0, 'the rejected secondary navigation is absent on the homepage')
+        test(set(page.locator('.art-directed .pc-section[id]').evaluate_all('els=>els.map(e=>"#"+e.id)')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all four working examples remain in the page')
+    else:
+        test(set(page.locator('.pc-nav a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))')) == {'#input-library', '#prompt-reuse', '#thought-library', '#personal-context'}, 'all approved example destinations remain reachable')
     test(page.locator('[data-core-preview] img[src*="/brand/paia-logo-v1.webp"]').count() == 0, 'brand artwork is not repeated through the product scenes')
     expected_close = 0 if page.locator('body').get_attribute('data-page') == 'demo.html' else 1
     test(page.locator('.core-close img[src*="/brand/paia-logo-v1.webp"]').count() == expected_close, 'original closing brand usage retained')
@@ -185,6 +206,16 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.locator('[data-sort]').click()
     test(page.locator('[data-records]>article').first.get_attribute('data-input') == 'a', 'time order restores')
 
+    # The scroll narrative does not own actual prompt insertion. Open the
+    # usable narrow board via the sole explicit progressive control first.
+    if page.locator('[data-scroll-story="prompt"]').count():
+        advance = page.locator('[data-story-advance]')
+        if advance.is_visible():
+            for _ in range(2):
+                if not page.locator('#pc-prompt-card').is_visible():
+                    advance.click()
+        test(page.locator('#pc-prompt-card').is_visible(), 'the same board remains reachable through deliberate interaction')
+
     # Ordinary rows stay quiet. Their contextual controls retain all prior edits,
     # ordering and keyboard Pin tests without exposing management by default.
     test(page.locator('[data-prompt-pick]').count() == 3, 'personal prompts are ordinary selectable rows')
@@ -196,11 +227,11 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.locator('#pc-prompt-0').fill(prompt)
     test(page.locator('[data-prompt-pick="0"]').inner_text() == prompt, 'ordinary prompt row follows the user wording')
     close_prompt('0')
-    page.locator('[data-prompt-pick="0"]').click()
+    choose_prompt(page.locator('[data-prompt-pick="0"]'))
     test(page.locator('#pc-composer').input_value() == prompt, 'empty composer receives the edited prompt from its row')
     row = manage_prompt('0')
     page.locator('#pc-composer').fill('An existing draft must survive.')
-    row.locator('[data-insert]').click()
+    choose_prompt(row.locator('[data-insert]'))
     test(page.locator('#pc-composer').input_value() == 'An existing draft must survive.\n\n' + prompt, 'insertion preserves existing draft')
     composer = page.locator('#pc-composer')
     preserved_draft = composer.input_value()
@@ -211,7 +242,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         el.setSelectionRange(position,position);
         el.dispatchEvent(new Event('select',{bubbles:true}));
     }""", len(before))
-    row.locator('[data-insert]').click()
+    choose_prompt(row.locator('[data-insert]'))
     test(composer.input_value() == before + '\n\n' + prompt + '\n\n' + after, 'a reliable middle caret inserts the prompt between the intact draft parts')
     insertion_end = len(before) + 2 + len(prompt)
     test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'middle insertion leaves the caret at the new prompt end before the remaining draft')
@@ -222,7 +253,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
         el.setSelectionRange(range.start,range.end);
         el.dispatchEvent(new Event('select',{bubbles:true}));
     }""", {'start': len(before), 'end': len(before + selected)})
-    row.locator('[data-insert]').click()
+    choose_prompt(row.locator('[data-insert]'))
     test(composer.input_value() == before + selected + '\n\n' + prompt + '\n\n' + after, 'a selected range is preserved and insertion occurs after selectionEnd')
     insertion_end = len(before + selected) + 2 + len(prompt)
     test(composer.evaluate('(el,end)=>el.selectionStart===end&&el.selectionEnd===end', insertion_end), 'selection-based insertion collapses the caret after the new prompt without replacing selected words')
@@ -247,7 +278,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(page.locator('[data-prompt-list]>div').first.get_attribute('data-prompt-row') == '2', 'pin moves above unpinned prompts')
     test(row.locator('[data-move="1"]').is_disabled(), 'ordering cannot silently unpin')
     prior_draft = page.locator('#pc-composer').input_value()
-    row.locator('[data-insert]').click()
+    choose_prompt(row.locator('[data-insert]'))
     test(page.locator('#pc-composer').input_value() == prior_draft + '\n\n' + page.locator('#pc-prompt-2').input_value(), 'pinned prompt preserves the draft without sending')
     pin.click()
     test(pin.get_attribute('aria-pressed') == 'false', 'unpin is reversible')
@@ -256,7 +287,7 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     test(page.locator('#pc-local-suggestion').is_visible() and page.locator('[data-suggestion-toggle]').get_attribute('aria-expanded') == 'true', 'the separate suggestion opens only when requested')
     test(page.locator('[data-suggestion]').inner_text() == prompt, 'suggestion refers to saved wording rather than an invented generated candidate')
     draft = page.locator('#pc-composer').input_value()
-    page.locator('[data-suggestion]').click()
+    choose_prompt(page.locator('[data-suggestion]'))
     test(page.locator('#pc-composer').input_value() == draft + '\n\n' + prompt, 'optional preset preserves the prior draft without sending')
     page.locator('[data-suggestion-toggle]').click()
     test(not page.locator('#pc-local-suggestion').is_visible(), 'the separate suggestion can be hidden again')
@@ -305,6 +336,11 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     # in the extension or real AI service is asserted by this local scenario.
     test(page.locator('[data-context-card]').count() == 4, 'exactly four independent Context cards')
     test(page.locator('[data-context-overview] textarea, [data-context-overview] input').count() == 0, 'overview has no personal body or checkbox matrix')
+    if page.locator('.ad-context-disclosure').count():
+        disclosure = page.locator('.ad-context-disclosure')
+        if not disclosure.evaluate('e=>e.open'):
+            disclosure.locator(':scope > summary').click()
+        test(disclosure.evaluate('e=>e.open'), 'Context permission tools remain reachable on request')
     page.locator('[data-context-clear]').click()
     test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'withdrawing the example grants closes every independent scope')
     permission_names()
@@ -353,6 +389,11 @@ def verify_core(page, check, en=True, download_dir=None, offline=False):
     page.locator('[data-context-undo="rules"]').click()
     test(page.locator('[data-context-text="rules"]').input_value() == rule, 'undo restores the exact local item')
     back('rules')
+    if page.locator('.ad-context-disclosure').count():
+        disclosure = page.locator('.ad-context-disclosure')
+        if not disclosure.evaluate('e=>e.open'):
+            disclosure.locator(':scope > summary').click()
+        test(disclosure.evaluate('e=>e.open'), 'Context permission tools remain reachable on request')
     page.locator('[data-context-clear]').click()
     test(page.locator('[data-card-allow][aria-pressed=true], [data-topic-allow][aria-pressed=true]').count() == 0 and not on('[data-context-global]'), 'withdraw clears permissions')
     test(page.locator('[data-context-text="rules"]').input_value() == rule, 'withdraw does not delete content')

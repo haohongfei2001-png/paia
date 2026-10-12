@@ -5,8 +5,29 @@ import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
+// Fixture-only acquisition: never replay an initialized callback or whole mutation.
+async function seedRootTopics(s,preDispatch,{from,to,sections=false},events){
+ const originalRun=s.run;let stage='initialize',failure=null,call=0;
+ const add=event=>{events.push(event);if(events.length>128)events.shift();return event;};
+ try{
+  const initialized=add({stage,call:++call,attempt:1,entered:false});
+  try{await originalRun.call(s,()=>{initialized.entered=true;});}catch(error){initialized.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;}
+  if(!s.loaded)throw Error('Fixture store initialization did not complete');
+  s.run=callback=>{const identity=++call;let attempt=0;return preDispatch(work=>{const event=add({stage,call:identity,attempt:++attempt,entered:false,initialized:s.loaded===true});return originalRun.call(s,()=>{event.entered=true;return work();}).catch(error=>{event.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);};
+  stage='foundation';await s.finishFoundation();const items=[];
+  for(let i=from;i<to;i++){
+   stage='create-topic-'+i;const a=await s.createTopic({name:`SYNTHETIC ${String(i).padStart(3,'0')} 个人主题`,operationId:crypto.randomUUID()}),ids=[];
+   if(sections)for(let j=0;j<i%6;j++){stage='read-topic-'+i+'-'+j;const topic=await s.topic(a.id);stage='create-section-'+i+'-'+j;const section=await s.createSection({topicId:a.id,expectedTopicRevision:topic.organizationRevision,title:j===2?'中文 Mixed 👩🏽‍💻 é 很长的分区名称 / '.repeat(5):`SYNTHETIC 分区 ${j}`,operationId:crypto.randomUUID()});ids.push(section.sectionId);}
+   items.push(sections?{...a,sections:ids}:a);
+  }return items;
+ }catch(error){failure=error;throw error;}finally{s.run=originalRun;try{await s.repository.close();}catch(error){add({stage:'close',name:error?.name||'Error'});if(!failure)throw error;}}
+}
+async function rootFixture(p,range){
+ return p.evaluate('(async()=>{const {OrganizerStore}=await import("../core/organizer/store.js"),s=new OrganizerStore(chrome.storage.local);globalThis.__rootFixtureAcquisitions=[];return ('+seedRootTopics.toString()+')(s,('+runWithPreDispatchReadRetry.toString()+'),'+JSON.stringify(range)+',__rootFixtureAcquisitions);})()');
+}
 async function rootTypography(p,width){
  const selectors={topic:'.personal-topic-block .personal-topic-link',section:'.personal-topic-block .personal-section-link:not([hidden])'};
  const client=await p.context().newCDPSession(p);
@@ -133,24 +154,18 @@ for(const variant of ['source','release'])test('TOPIC-05.2 unchanged Topic rende
 for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders real durable Section overview and stable144 Topic slots '+variant,{timeout:180000},async()=>{
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-root-section-')):null;
  if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});
+ const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,output='work/qa-topic05-root/'+variant;await mkdir(output,{recursive:true});let failure=null;
  try{
   await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
-  const topics=await p.evaluate(async()=>{
-   const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),items=[];
-   for(let i=0;i<30;i++){
-    const a=await s.createTopic({name:`SYNTHETIC ${String(i).padStart(3,'0')} 个人主题`,operationId:crypto.randomUUID()}),sections=[];
-    for(let j=0;j<i%6;j++){const section=await s.createSection({topicId:a.id,expectedTopicRevision:(await s.topic(a.id)).organizationRevision,title:j===2?'中文 Mixed 👩🏽‍💻 é 很长的分区名称 / '.repeat(5):`SYNTHETIC 分区 ${j}`,operationId:crypto.randomUUID()});sections.push(section.sectionId);}
-    items.push({...a,sections});
-   }return items;
-  });
+  await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent is durably acknowledged before independent Root setup');
+  const topics=await rootFixture(p,{from:0,to:30,sections:true});
   await thoughtPrimary(p,'thoughts');await rootReady(p,30);assert.equal(await p.locator('.personal-topic-block .summary,.personal-topic-block small,.personal-topic-block details').count(),0);
   assert.equal(await p.locator('#thought-root-source > button').isVisible(),true,'existing Add Thought remains reachable');assert.equal(await p.locator('#thought-root-source > .library-actions > summary').isVisible(),true,'existing overflow remains reachable');
   assert.equal(await p.locator('#thought-list').evaluate(node=>getComputedStyle(node).gridTemplateColumns.split(' ').length),4,'wide workspace reaches four columns');
   const titleOnly=p.locator(`.personal-topic-block[data-topic-id="${topics[0].id}"]`);assert.equal(await titleOnly.locator('.personal-section-link').count(),0);assert.equal(await titleOnly.locator('.personal-topic-link').getAttribute('href').then(x=>x.includes('paia-thought?topic=')),true);
   await p.screenshot({path:output+'/30-wide.png',fullPage:true});
   for(const count of [50,100,144]){
-   const extra=await p.evaluate(async({from,to})=>{const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),out=[];for(let i=from;i<to;i++)out.push(await s.createTopic({name:`SYNTHETIC ${String(i).padStart(3,'0')} 个人主题`,operationId:crypto.randomUUID()}));return out;},{from:topics.length,to:count});topics.push(...extra);
+   const extra=await rootFixture(p,{from:topics.length,to:count});topics.push(...extra);
    await p.reload();await rootReady(p,count);await p.screenshot({path:`${output}/${count}-wide.png`,fullPage:true});
   }
   await p.reload();await eventually(()=>p.locator('.personal-topic-block').count().then(n=>n===144),'remembered extent hydrates without scrolling through blank reserved slots',30000);
@@ -185,5 +200,5 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);window.__rootRestore=()=>chrome.runtime.sendMessage=send;chrome.runtime.sendMessage=(message,...args)=>message.type==='GET_LIBRARY_ROOT_PROJECTION'?Promise.resolve({ok:false,error:'MESSAGE_CHANNEL_INTERRUPTED'}):send(message,...args);});await thoughtPrimary(p,'thoughts');await eventually(()=>p.locator('#library-read-retry').isVisible(),'outage exposes retry');assert.equal(await p.locator('.personal-topic-block').count(),144,'ordinary read failure retains current blocks');await p.evaluate(()=>__rootRestore());await p.locator('#library-read-retry').click();await rootReady(p,144);
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   await writeFile(output+'/result.json',JSON.stringify({status:'PASS',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,actualCounts:[30,50,100,144],renameStable:true,deleteBlank:true,newIdentityReusesHole:true,responsiveReturn:true,deleteRestore:true,deepHistory,multipleMatches,activeSearchSameColumnResize:true,nativeSection:true,newTabRefresh:true,backFocus:true,selection:true,sameColumnResize:true,outageRetry:true}));
- }catch(error){await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}))})).catch(()=>{});await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await h.close();if(release)await rm(release,{recursive:true,force:true});}
+ }catch(error){failure=error;try{await writeFile(output+'/failure.json',JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,error:String(error),stack:error.stack,state:await p.locator('html').evaluate(()=>({scrollY,viewport:{width:innerWidth,height:innerHeight},selectionLength:getSelection()?.toString().length||0,selectionTrace:globalThis.__rootSelectionTrace||[],fixtureAcquisitions:globalThis.__rootFixtureAcquisitions||[],search:document.getElementById('thought-search')?.value,status:document.getElementById('thought-continuous-status')?.textContent,history:history.state?.paiaReader}),null,{timeout:1000})}));}catch(diagnostic){console.error('ROOT_FIXTURE_DIAGNOSTIC_UNAVAILABLE',diagnostic?.name||'Error');}await p.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{let cleanupError=null;try{await h.close();}catch(error){cleanupError=error;}try{if(release)await rm(release,{recursive:true,force:true});}catch(error){cleanupError||=error;}if(cleanupError){await writeFile(output+'/cleanup-failure.json',JSON.stringify({variant,name:cleanupError?.name||'Error',originalFailure:!!failure})).catch(()=>{});await rm(output+'/result.json',{force:true}).catch(()=>{});if(!failure)throw cleanupError;console.error('ROOT_FIXTURE_CLEANUP_FAILED',cleanupError?.name||'Error');}}
 });

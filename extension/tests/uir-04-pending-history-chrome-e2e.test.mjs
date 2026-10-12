@@ -17,7 +17,7 @@ for(const variant of ['source','release'])test('UIR-04 independent pending histo
   h=await FakeChatGPT.start({onboarding:true,...(releasePath?{extensionPath:releasePath}:{})});const p=h.archive,consent=p.locator('#enable-consent');await consent.waitFor({state:'visible'});await eventually(async()=>!await consent.isDisabled());await consent.click();await eventually(()=>p.evaluate(async()=>(await chrome.runtime.sendMessage({type:'GET_STATUS'})).data.consented===true));
   const response=await p.evaluate(()=>chrome.runtime.sendMessage({type:'UPDATE_PREFERENCES',changes:{language:'zh-CN',appearance:'light'}}));assert.equal(response.ok,true);
   await h.open({id:'uir04-pending-source',title:'SYNTHETIC pending history Source',base:1609459200,messages:[{id:'uir04-pending-original',text:marker}]});await eventually(async()=>(await h.state()).records.some(row=>row.originalText===marker));await p.bringToFront();await p.setViewportSize({width:1440,height:900});
-  await pendingInputDialogSafety(h);
+  await pendingInputDialogSafety(h,variant);
   assert.ok((await h.state()).records.some(row=>row.originalText===marker),'independent pending operations retain the captured original');assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
   await mkdir('work/ux-r6',{recursive:true});await writeFile('work/ux-r6/uir04-pending-history-'+variant+'.json',JSON.stringify({variant,result:'PASS',fixture:'synthetic-original-source-and-own-six-imports',externalRequests:h.externalRequests,providerRequests:h.deepSeekRequests.length,pageErrors:h.errors})+'\n');
  }finally{await h?.close();if(releasePath)await rm(releasePath,{recursive:true,force:true});}
