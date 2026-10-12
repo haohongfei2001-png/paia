@@ -130,6 +130,22 @@ async function removedInputSafety(h){
  finally{await page.evaluate(()=>{__inputRestore.release?.();chrome.runtime.sendMessage=__inputRestore.original;delete globalThis.__inputRestore;});}
  let restored=await rpc(page,'GET_INPUT',{id:input.id});assert.equal(restored.revision,before.revision+1);assert.equal(restored.libraryText,before.libraryText);assert.equal(restored.note,before.note);
  await rpc(page,'EXCLUDE_LIBRARY',{id:input.id,excluded:true});await show();
+ // A retired-view ACK may still be owned when the new removed list opens.
+ // Review its real receipt before this independent lost-ACK scenario; an old
+ // result cannot authorize a second write or restore the newer removed row.
+ const listStatus=dialog.locator('.ux-settings-removed-content > [role=status]');
+ await eventually(()=>listStatus.textContent().then(value=>value!=='正在读取已移除内容…'),'the original typed removed-list reads finish');
+ await eventually(()=>action.isEnabled());
+ const priorReview=await rpc(page,'GET_INPUT',{id:input.id});assert.equal(priorReview.excluded,true);
+ await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__inputReceiptReview={original,writes:0,outcomes:0};chrome.runtime.sendMessage=message=>{if(message.type==='EDIT_DOCUMENT')__inputReceiptReview.writes++;if(message.type==='PAIA_ARCHIVE_OPERATION_OUTCOME')__inputReceiptReview.outcomes++;return original(message);};});
+ try{
+  if((await action.textContent())==='核对结果或重试'){
+   await action.click();await eventually(()=>listStatus.textContent().then(value=>value==='已核对原恢复结果；当前内容仍保留在列表中。'),'explicit original receipt review preserves the newer removed Input');
+   assert.equal(await row.count(),1);assert.deepEqual(await rpc(page,'GET_INPUT',{id:input.id}),priorReview,'original receipt review cannot change the newer removal, revision, body or note');
+  }
+  await eventually(async()=>await action.isEnabled()&&(await action.textContent())==='恢复到档案','a qualified new restore action is ready');
+  assert.deepEqual(await page.evaluate(()=>({writes:__inputReceiptReview.writes,outcomes:__inputReceiptReview.outcomes})),{writes:0,outcomes:0},'known receipt review never dispatches another original write or unknown-outcome request');
+ }finally{await page.evaluate(()=>{chrome.runtime.sendMessage=__inputReceiptReview.original;delete globalThis.__inputReceiptReview;});}
  await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__inputUnknown={original,writes:[],outcomes:[],lost:false,withholdOutcome:true};chrome.runtime.sendMessage=async message=>{if(message.type==='EDIT_DOCUMENT')__inputUnknown.writes.push(structuredClone(message));if(message.type==='PAIA_ARCHIVE_OPERATION_OUTCOME'){__inputUnknown.outcomes.push(structuredClone(message));if(__inputUnknown.withholdOutcome)throw Error('Synthetic operation outcome channel unavailable');}const result=await original(message);if(message.type==='EDIT_DOCUMENT'&&!__inputUnknown.lost){__inputUnknown.lost=true;throw Error('Synthetic original committed ACK loss');}return result;};});
  try{const removed=await rpc(page,'GET_INPUT',{id:input.id});await action.click();await eventually(()=>page.evaluate(()=>__inputUnknown.lost));await eventually(()=>action.isEnabled());assert.equal((await rpc(page,'GET_INPUT',{id:input.id})).excluded,false);await page.evaluate(()=>{__inputUnknown.withholdOutcome=false;});await action.click();await eventually(()=>row.count().then(n=>n===0));assert.equal(await page.evaluate(()=>__inputUnknown.writes.length),1,'unknown committed original is reconciled without another write');assert.ok(await page.evaluate(()=>__inputUnknown.outcomes.length)>0);restored=await rpc(page,'GET_INPUT',{id:input.id});assert.equal(restored.revision,removed.revision+1);assert.equal(restored.libraryText,removed.libraryText);assert.equal(restored.note,removed.note);}
  finally{await page.evaluate(()=>{chrome.runtime.sendMessage=__inputUnknown.original;delete globalThis.__inputUnknown;});}
