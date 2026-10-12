@@ -92,15 +92,23 @@ test('CPV1-03 historical segmented files authenticate before current staged rest
    'non-empty library restore preview',60000);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
   await page.locator('#backup-mode').selectOption('merge');
-  await eventually(async()=>/存在同一来源/.test(await page.locator('#backup-preview-content').innerText()),
+  await eventually(async()=>await page.locator('#backup-status').isVisible()&&/存在同一来源、项目或状态冲突；未合并任何内容/.test(await page.locator('#backup-status').innerText()),
    'overlapping merge refuses to activate',30000);
+  assert.equal(await page.locator('#backup-settings').getAttribute('data-state'),'failed');
+  assert.equal(await page.locator('#backup-continue').isDisabled(),true);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
   assert.deepEqual(await domainDigest(harness),before);
   await page.locator('#backup-mode').selectOption('replace');
-  await eventually(async()=>/替换会清除当前库内容/.test(await page.locator('#backup-preview-content').innerText()),
+  await eventually(async()=>/替换会清除当前内容和修改/.test(await page.locator('#backup-preview-content').innerText())&&await page.locator('#backup-continue').isEnabled(),
    'explicit replace preview',30000);
   assert.equal(await page.locator('#backup-restore').isDisabled(),true);
-  assert.equal(await page.locator('#backup-confirm-replace').isVisible(),false);await page.locator('#backup-continue').click();assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.deepEqual(await domainDigest(harness),before);
+  assert.equal(await page.locator('#backup-confirm-replace').isVisible(),false);await page.locator('#backup-continue').click();
+  assert.equal(await page.locator('#backup-preview-content').isVisible(),false);
+  assert.equal(await page.locator('#backup-confirmation-content').isVisible(),true);
+  assert.match(await page.locator('#backup-confirmation-content').innerText(),/当前内容和人工修改将被清除，本机永久删除标记和捕获授权保留/);
+  assert.equal(await page.locator('#backup-confirm-replace').isVisible(),true);
+  assert.equal(await page.locator('#backup-confirm-replace').isChecked(),false);
+  assert.equal(await page.locator('#backup-restore').isDisabled(),true);assert.deepEqual(await domainDigest(harness),before);
   await page.locator('#backup-confirm-replace').check();
   assert.equal(await page.locator('#backup-restore').isEnabled(),true);
   await page.locator('#backup-restore').click();

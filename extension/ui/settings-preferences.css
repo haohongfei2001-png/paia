@@ -338,3 +338,7 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #settings-backup-dialog :is(#backup-preview-content,#backup-preview-note,#backup-confirmation-content,#backup-confirm-replace-label)[hidden]{display:none}
 #settings-backup-dialog #backup-preview-note{font-size:12px;line-height:1.8;margin:20px 0 0}
 #settings-backup-dialog #backup-confirmation-content{font-size:13px;line-height:1.8;margin:0 0 20px}
+/* Approved restore preview: a quiet label above the original native selector. */
+#settings-backup-dialog #backup-preview>label:has(>#backup-mode){flex-direction:column;align-items:flex-start;gap:4px;min-width:0;margin-top:24px}
+#settings-backup-dialog #backup-preview>label:has(>#backup-mode)>span{color:var(--muted);font-size:12px;line-height:1.5}
+#settings-backup-dialog #backup-mode{min-width:0;max-width:100%;min-height:44px;padding:8px;border:1px solid var(--control);border-radius:6px;background:var(--bg);color:var(--text)}
