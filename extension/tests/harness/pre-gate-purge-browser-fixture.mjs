@@ -1,12 +1,21 @@
+import {mkdir,writeFile} from 'node:fs/promises';
 import {formPreGatePurgeState} from '../fixtures/pre-b02-purge-state.mjs';
 import {runWithPreDispatchReadRetry} from './pre-dispatch-read-retry.mjs';
 
+// A missing read snapshot is never maintenance success or purge admission.
+export async function samplePreGateFilter(store,originalRun,preDispatch,trace){
+ const priorRun=store.run,attempts=[];let calls=0;
+ store.run=callback=>{calls++;return preDispatch(work=>{const event={attempt:attempts.length+1,entered:false,initialized:store.loaded===true};attempts.push(event);return originalRun.call(store,()=>{event.entered=true;return work();}).catch(error=>{event.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);};
+ try{return {pending:false,filter:await store.filterStatus()};}
+ catch(error){if(error?.code!=='CONTROL_PUBLICATION_CHANGED'||calls!==1||attempts.length!==2||attempts.some((event,index)=>event.attempt!==index+1||event.entered||!event.initialized||event.code!=='CONTROL_PUBLICATION_CHANGED'))throw error;return {pending:true};}
+ finally{store.run=priorRun;trace.push({phase:'filter-status',calls,attempts});if(trace.length>100)trace.shift();}
+}
 // Synthetic historical state admission, ONLY in automation's isolated profile.
 // Current worker denial + whole-database/recovery equality must pass FIRST.
 // The pinned pre-gate body forms the old state; current UI/read/release guards
 // still run on today's production code. Nothing is added to the release/API.
 export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=false}={}){
- return page.evaluate(`(async()=>{
+ try{return await page.evaluate(`(async()=>{
   const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
   const {ArchiveError}=await import(chrome.runtime.getURL('core/constants.js'));
   const {identifySource}=await import(chrome.runtime.getURL('core/dedupe.js'));
@@ -18,15 +27,17 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   const store=new OrganizerStore(chrome.storage.local);
   // This independent fixture instance can race the real worker while acquiring
   // its initial read fence. Never replay an entered callback or the pinned body.
-  const preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=store.run.bind(store);
-  store.run=callback=>preDispatchRead(originalRun,callback);
+  const preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=store.run,sampleFilter=${samplePreGateFilter.toString()},trace=globalThis.__preGateFixtureTrace=[];let failure=null;
+  try{
   const stage=async(label,fn)=>{try{return await fn();}catch(cause){throw new Error('HISTORICAL_FIXTURE_STAGE:'+label+':'+(cause?.code||cause?.message||'UNKNOWN'),{cause});}};
+  const initialization={phase:'initialize',entered:false};trace.push(initialization);await stage('initialize',()=>originalRun.call(store,()=>{initialization.entered=true;}));if(!store.loaded)throw Error('HISTORICAL_FIXTURE_NOT_INITIALIZED');
+  store.run=callback=>preDispatchRead(work=>originalRun.call(store,work),callback);
   await stage('drain-purge',()=>store.drainPurgeCleanup());await stage('drain-invalidations',()=>store.drainInvalidations());await stage('drain-library',()=>store.drainLibraryMaintenance());
   // Navigation read projections do not advance backup-data-generation. Finish
   // their actual pending scopes before freezing the complete refusal oracle;
   // never suppress a reader, discard meta rows, or retry an entered purge.
   let prior=null,stable=0;for(let n=0;n<100&&stable<8;n++){
-   const filter=await store.filterStatus();if(filter.taskState==='failed')throw Error('HISTORICAL_FIXTURE_FILTER_FAILED');
+   const sample=await sampleFilter(store,originalRun,preDispatchRead,trace);if(sample.pending){stable=0;prior=null;await new Promise(resolve=>setTimeout(resolve,25));continue;}const filter=sample.filter;if(filter.taskState==='failed')throw Error('HISTORICAL_FIXTURE_FILTER_FAILED');
    const meta=await store.repository.transaction(false,t=>t.all('meta'),['meta']);
    const scopes=new Map([['providers'],...meta.filter(row=>row.id.startsWith('ans:index-state:v1:scope:')).map(row=>row.scope)].map(scope=>[JSON.stringify(scope),scope]));
    let complete=!filter.pending&&filter.taskState==='idle';
@@ -56,5 +67,6 @@ export async function admitPreGatePurgeBrowserFixture(page,id,{allowCurrentPure=
   const form=${formPreGatePurgeState.toString()};await stage('form-historical-state',()=>form.call(store,id,true));
   await chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'SYNTHETIC_PRE_GATE_FIXTURE'});
   return {evidenceClass:'CURRENT_B02_REFUSAL_PLUS_HISTORICAL_COMPATIBILITY',beforeDigest:before.hash};
- })()`);
+  }catch(error){failure=error;throw error;}finally{store.run=originalRun;try{await store.repository.close();}catch(error){trace.push({phase:'close',name:error?.name||'Error'});if(!failure)throw error;}}
+ })()`);}catch(error){try{const trace=await page.locator('html').evaluate(()=>globalThis.__preGateFixtureTrace||[],null,{timeout:1000});await mkdir('work/pre-gate-fixture',{recursive:true});await writeFile('work/pre-gate-fixture/acquisition-'+Date.now()+'.json',JSON.stringify({trace,errorName:error?.name||'Error'}));}catch(diagnostic){console.error('PRE_GATE_DIAGNOSTIC_UNAVAILABLE',diagnostic?.name||'Error');}throw error;}
 }
