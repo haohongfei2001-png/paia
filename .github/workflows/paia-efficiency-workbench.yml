@@ -53,7 +53,7 @@ jobs:
           }
           for p in changed:assert git('hash-object',p)==updates.get(p,git('rev-parse','95cbcf21:'+p)),p
           assert not git('diff','--cached',base,'--','extension/core','extension/ui','extension/background','extension/content','extension/adapter','extension/manifest.json','extension/package.json','extension/AGENTS.md','extension/docs/consumer-product-v1/AUTHORITY.md','extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md')
-          subprocess.run(['git','diff','--cached','--check'],check=True)
+          subprocess.run(['git','diff','--cached','--check',base],check=True)
           Path('/tmp/paia264-evidence/identity.json').write_text(json.dumps({'base':base,'tree':git('write-tree'),'paths':changed,'newBlobs':updates,'remoteBranchesChanged':False},indent=2)+'\n')
           print('EXACT_RECONCILIATION_PASS',len(changed),git('write-tree'))
           PY
