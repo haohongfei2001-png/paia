@@ -1,3 +1,11 @@
+# Local Chrome cross-owner journey passed; final two corrections — 2026-10-13
+
+PR268 head9185d63989e62d77b0836325e7a40c0ff5154e29 tested merge0f4c5f9c7056a8a414dbc6790c93ccb546d5d4c0 produced an actual passing release journey: original Settings consent, visible synthetic-provider capture, Archive Working edit with immutable Source references, manually saved Thought and Context, exact NIB Fill once with zero Send, and whole-Chrome cold restart readback. All486 emitted file bytes match the bound release vector. This proves the scoped local synthetic journey, not logged-in real provider/model quality or whole product delivery.
+
+Full38290860797 still fails Browser2 because a separate NIB surface Source pointer-menu geometry check failed. The actual probe shows trusted down/up/click reached the same control and the menu opened. Inspection identified that its expected-height calculation omitted real child margins; the original probe did not record dimensions, so the unique observed timing cause is not asserted. The original failure remains, and no safety assertion or timeout is waived.
+
+Current source/release Browser6 screenshots independently confirm the narrow directory error now remains visible below the title and Back. Browser7 has60PASS and actual approved19 four-row preview with real filename, file-time range and counts. Its screenshot still showed16px excess between protection text and footer, caused by the nested paragraph margin; the successor removes that one duplicate margin while preserving the original28px action spacing. New screenshots and changed-head/full/main qualification remain required. Version0.43.29 is one unmerged coherent runtime batch. All seven Canonical plans and final acceptance remain; local-stage delivery must not mark all PAIA complete. Sync new features stay paused and ProPR264/CI ownership is unchanged.
+
 # Local Chrome stage and complete Canonical scope — 2026-10-13
 
 The owner clarified that the current local Chrome delivery Goal is one priority stage only. All seven approved Canonical plans and their final acceptance remain in force. Delivering this stage must not mark the entire PAIA project complete. SYNC-01 new features remain paused at the retained safe checkpoint; later complete Sync convergence and formal AI/Pro goals remain. No new product scope or replanning is introduced.

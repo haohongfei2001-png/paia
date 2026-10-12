@@ -356,7 +356,7 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 #history-ready-preview .history-preview-lines>div{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-top:1px solid var(--line);padding:12px 0;font:400 13px/1.8 var(--font)}
 #history-ready-preview .history-preview-lines>div:last-child{border-bottom:1px solid var(--line)}
 #history-ready-preview .history-preview-lines>div>span:last-child{max-width:65%;text-align:right;color:var(--muted);overflow-wrap:anywhere}
-#history-ready-preview>p:last-child{font-size:12px;line-height:1.8;color:var(--muted);margin:0 0 16px}
+#history-ready-preview>p:last-child{font-size:12px;line-height:1.8;color:var(--muted);margin:0}
 #history-dialog[data-import-phase="ready"] #history-error:empty{display:none}
 #history-dialog[data-import-phase="ready"] #history-pause{display:none}
 #history-dialog[data-import-phase="ready"] .history-actions{position:static;bottom:auto;z-index:auto;order:0;display:flex;justify-content:flex-end;gap:8px;margin:28px 0 0;padding:0;border:0}
