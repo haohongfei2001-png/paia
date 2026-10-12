@@ -1,3 +1,11 @@
+# SET2 approved Next sheet and capsule — final local candidate, 2026-10-12
+
+[Exact bounded evidence](implementation/verification/SET2-NEXT-CAPSULE-04328.md) adds the approved560px native confirmation sheet,22px title,44px Close/Cancel/Confirm and the original hint inside its row. All original trusted consent/session/revoke owners remain. Latest Source/release Next plus NIB Settings-entry26PASS; sixteen paired screenshots and two zero-network summaries pass. Predecessor PR2662cbe Full38251986608 and Prompt38251986558 completed SUCCESS; those gates do not certify this changed successor. Independent review, changed-head qualification and final artifact remain required. Sync new features stay paused; Pro retains PR264/CI. Earlier pending snapshots and failures below remain historical.
+
+# SET2 final approved Next capsule — local candidate, 2026-10-12
+
+[Bounded evidence](implementation/verification/SET2-NEXT-CAPSULE-04328.md) records the real original-design gap, its existing-owner capsule correction and paired Source/release verification. This preserves all Next consent/session/revoke behavior and changes no CI or data boundary. Current local-Chrome delivery priority and Sync feature pause remain; PR2662cbe full gate is pending at this snapshot. Successor review/integration and final qualified artifact remain required; no installed version or complete product is claimed.
+
 # Owner-selected local Chrome delivery priority — 2026-10-12
 
 [Current priority](LOCAL_CHROME_DELIVERY_PRIORITY_2026-10-12.md) supersedes earlier execution pointers: complete the approved local product and self-installable Chrome artifact; pause new SYNC-01 features with a safe R109 checkpoint and retain all safety protections, seven plans and future Sync goals. PR266 continues; Pro exclusively owns PR264/CI infrastructure. Preserve approved originals and truthful unavailable AI states. This is a priority decision, not completed acceptance or an installed build.

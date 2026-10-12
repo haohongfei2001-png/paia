@@ -74,3 +74,5 @@ Full preceding file: [MASTER_PLAN.md at b8a09bbf](https://github.com/haohongfei2
 The complete incoming #263/#265 master history remains at [8e56ab34](https://github.com/haohongfei2001-png/paia/blob/8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb/extension/docs/consumer-product-v1/MASTER_PLAN.md); current task pointers remain solely in STATUS.
 
 The incoming owner priority and complete master history remain at [2cbe2893](https://github.com/haohongfei2001-png/paia/blob/2cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a/extension/docs/consumer-product-v1/MASTER_PLAN.md).
+
+The complete incoming #266 Next consent/capsule implementation history is preserved at [22c27404](https://github.com/haohongfei2001-png/paia/blob/22c274049925e459b5bc67e9c6d187e848e9bca2/extension/docs/consumer-product-v1/MASTER_PLAN.md) and its [owning receipt](implementation/verification/SET2-NEXT-CAPSULE-04328.md). Current tasks remain in STATUS; this history link does not change scope or certify the candidate.

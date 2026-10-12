@@ -1,0 +1,35 @@
+# SET2 Next sheet final follow-up — 2026-10-12
+
+Authoritative main remains8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb/0.43.27. PR266 predecessor2cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a Full38251986608 is now SUCCESS: all21 required components/aggregates pass, including all ten current browser groups; separate Prompt38251986558 SUCCESS. Earlier pending snapshot below keeps its recorded time and is superseded here, not reclassified. Original ac061 Full failure remains FAILED.
+
+Independent finite classification of the approved26 originals and prior actual42 observations confirms two further real Next presentation gaps: the old dialog was1152px wide at1440px with no approved header Close and left actions, and its hint was outside the row separator. Reuse the existing native Settings detail dialog560px bound; scope Next title22px serif, backdrop, spacing and right Cancel/Confirm actions to that dialog only. Add the original Close action using dialog.close(), preserving the existing close-event return focus. Place the existing name and hint in ux-setting-copy with original note id/aria-describedby; the same native checkbox gains aria-labelledby. Existing Prompt heading/hint precede its Next row. No new storage/configuration owner, grant, permission, dependency, provider or CI change.
+
+The native DOM focus order now includes Close, Cancel, Confirm. The original doubled-text keyboard assertions follow this actual approved order; Escape and Cancel still send zero configure writes, explicit Confirm sends exactly one enable, revoke exactly one disable, and restart still clears consent. The original deadlines and all other assertions remain. A new bounded geometry check verifies actual560px/22px serif/44px controls, footer order, close focus and disabled consent; it does not substitute for original session/restart journeys.
+
+Final r3 evidence, on the exact precommit source bytes frozen with this candidate:
+- Two complete affected browser files: original Source/release Next owner and complete NIB Settings-entry26PASS33417.741292ms; zero failure/cancel/skip/todo.
+- The existing state unit file executed in this follow-up5PASS39.477583ms. An accidentally named nonexistent model path in the invocation was not executed and contributes no coverage. The preceding19 owner/state cases retain their original unchanged-code evidence and identity.
+- Standard release485files;15798 guardrails/461runtime resources PASS. Source package audit PASS, without installation or deployment.
+- Final actual headless Chrome154.0.8037.99 Source/release: sixteen screenshots covering desktop, dark, English and320px off row and consent sheet, plus two zero-network summaries. Native geometry proves no horizontal overflow, original hint inside the same row, single native switch owner, and closing never grants consent. This is bounded paired visual evidence, not all26 production states or actual logged-in/external-service acceptance.
+
+Historical probe classification correction: the old r1 probe used checkbox.check before explicit Next confirmation; r2 used AI-style INPUT radio.check before the controlled save ACK, not a second Next consent attempt; r3 waited for a persistent exact saved-text message. Final old r4 instead checked the real PAIA_SETTINGS_AI_STYLE value=original/explicit=true and actual checked/enabled ACK before reload. All old probe failures and immutable packets remain. The older short phrase below is superseded by these facts.
+
+Independent coherent review and one changed-head gate remain before normal integration. Remaining local-product visual/state obligations use existing first-use/pause/index fault/backup/Removed/import owning journeys; unavailable external AI is not simulated. Version stays0.43.28; not yet merged, installed or delivered. Sync pause checkpoint and all seven final product plans remain.
+
+## Preserved previous capsule snapshot
+
+# SET2 — approved Next capsule convergence (2026-10-12)
+
+Current authoritative main remains8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb/0.43.27. Existing PR2662cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a includes the independently reviewed real save/departure fix; its Full38251986608 is pending at this checkpoint, not passed or merged. The frozen standard0.43.28 build stays separate from the successor. Pro owns PR264/CI; no CI infrastructure changes here.
+
+Actual local Settings audit of the prior frozen candidate recorded38 screenshots plus two style acknowledged/reload probes and two zero-network summaries, with708 Source/485release files unchanged before/after. Its final bounded execution succeeded; the author's subsequent final classification was interrupted by model capacity, so it is not final fullSET2/design acceptance. Three probe mistakes (checkbox.check before explicit consent twice; persistent saved-text expectation once) and their original failures remain.
+
+Original approved Settings04.png and Prototype.html require an off/on capsule for Next. The old production control was still a16px checkbox. Reuse the existing shared approved privacy capsule classes around the same native checkbox, set its semantic switch role, and keep its label/state/focus and all trusted event, consent/cancel, configure/revoke, session/restart and focus restoration handlers. The added pill is aria-hidden decoration, not another input/state/writer. Loading and unavailable labels derive solely from the original owner.value/error; unknown/read-error disables the native input through its unchanged editable rule. No CSS, storage, permission, service, dependency or schema change.
+
+Evidence:
+- Initial owning Source/release plus complete NIB Settings-entry files26PASS32970.749709ms. This belongs to r1, before the error-cue refinement.
+- Final r2 whole owning Source/release2PASS13316.314583ms, zero fail/cancel/skip/todo. All original consent/cancel, shared browser-session owner, real restart,320px/English/doubled-text/modal keyboard/revoke and zero-network assertions remain. Added capsule checks prove one native owner, aria-hidden decoration, actual acknowledged on/off labels, shared58x32 capsule/44px effective hit geometry and shape. A bounded presentation read failure after the genuine worker read proves unavailable/disabled/no consent and actual-owner recovery; it is not a claim of an actual backend storage fault.
+- Original two whole owner/state unit files19PASS61.471958ms, preserving unknown ACK/stale-read/cross-window revocation.
+- Eight final paired native Source/standard-release screenshots (desktop, dark, English,320px), plus two zero-network summaries, verify actual capsule rendering and unchanged UI bytes. Local Google Chrome154.0.8037.99, original pinned Node22.23.3. This finite comparison is not all26 Settings states or actual external-service acceptance.
+
+Final coherent independent review and appropriate current-head gate remain before normal integration. Do not cancel/retry unchanged2cbe gates merely to relabel this new UI. Version remains the compatible unmerged0.43.28 batch against main0.43.27. No installed, deployed, complete local-product or fullSET2/SYNC/AI claim.
