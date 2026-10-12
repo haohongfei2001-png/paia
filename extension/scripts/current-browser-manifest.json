@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "shards": 9,
+  "shards": 10,
   "tests": [
     {
       "file": "activation-return-round410-chrome-e2e.test.mjs",
@@ -60,7 +60,7 @@
     },
     {
       "file": "context-cards-chrome-e2e.test.mjs",
-      "shard": 6
+      "shard": 10
     },
     {
       "file": "cpr-00-project-discovery-chrome-e2e.test.mjs",

@@ -43,23 +43,23 @@ const description=async cards=>{
  finally{if(previous)Object.defineProperty(globalThis,'document',previous);else delete globalThis.document;}
 };
 
-test('CTX4-03 home names exactly three of twenty real selections in canonical order with seventeen remaining',()=>fixture(async f=>{
- const expected=f.page.items.slice(0,3).map(row=>row.name),transaction=f.s.repository.transaction.bind(f.s.repository),reads=[];
+test('CTX4-03 home names exactly five of twenty real selections in canonical order with fifteen remaining',()=>fixture(async f=>{
+ const expected=f.page.items.slice(0,5).map(row=>row.name),transaction=f.s.repository.transaction.bind(f.s.repository),reads=[];
  await assertReadOnly(f,async()=>{
   f.s.repository.transaction=(write,run,stores)=>transaction(write,t=>{const get=t.get.bind(t);t.get=(store,...args)=>{reads.push(store);return get(store,...args);};return run(t);},stores);
-  try{expectedSummary(await f.summary(),expected,17,20);const card=await f.cards.snapshot();expectedSummary(card.topicChoices,expected,17,20);assert.equal(card.capabilities.external,false);assert.equal(card.connections,0);}finally{f.s.repository.transaction=transaction;}
+  try{expectedSummary(await f.summary(),expected,15,20);const card=await f.cards.snapshot();expectedSummary(card.topicChoices,expected,15,20);assert.equal(card.capabilities.external,false);assert.equal(card.connections,0);}finally{f.s.repository.transaction=transaction;}
  });
  assert.ok(reads.length>0);assert.equal(reads.some(name=>['thoughts','blocks','placements','dependencies'].includes(name)),false,'the home preview reads names without Thought or Input bodies');
- const rendered=await description(f.cards);for(const name of expected)assert.ok(rendered.summary.includes(name));assert.match(rendered.summary,/17/);for(const row of f.page.items.slice(3))assert.equal(rendered.summary.includes(row.name),false);assert.match(rendered.count,/20/);assert.equal(rendered.summary.includes('SYNTHETIC_PRIVATE'),false);
+ const rendered=await description(f.cards);for(const name of expected)assert.ok(rendered.summary.includes(name));assert.match(rendered.summary,/15/);for(const row of f.page.items.slice(5))assert.equal(rendered.summary.includes(row.name),false);assert.match(rendered.count,/20/);assert.equal(rendered.summary.includes('SYNTHETIC_PRIVATE'),false);
 },{count:20}));
 
 test('CTX4-03 home selected names follow same-ID rename, explicit off and later explicit selection',()=>fixture(async f=>{
  const [first,second,third,fourth]=f.page.items,stored=await raw(f.s,'meta',CONTEXT_TOPIC_ACCESS_ROW);
  await f.s.renameTopic({id:first.topicId,name:'SYNTHETIC Renamed summary',expectedRevision:(await raw(f.s,'topics',first.topicId)).revision,operationId:op()});
- expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',second.name,third.name],1);assert.deepEqual(await raw(f.s,'meta',CONTEXT_TOPIC_ACCESS_ROW),stored);
+ expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',second.name,third.name,fourth.name],0);assert.deepEqual(await raw(f.s,'meta',CONTEXT_TOPIC_ACCESS_ROW),stored);
  await f.selectTopic(second.topicId,false);expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',third.name,fourth.name],0);
  const fresh=await f.s.createTopic({name:'SYNTHETIC Newly created default off',operationId:op()});expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',third.name,fourth.name],0);
- await f.selectTopic(fresh.id);await assertReadOnly(f,async()=>expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',third.name,fourth.name],1));
+ await f.selectTopic(fresh.id);await assertReadOnly(f,async()=>expectedSummary(await f.summary(),['SYNTHETIC Renamed summary',third.name,fourth.name,'SYNTHETIC Newly created default off'],0));
 }));
 
 for(const key of ['global','inputs'])test(`CTX4-03 home ${key} pause retains saved names and selected count`,()=>fixture(async f=>{
@@ -121,7 +121,7 @@ for(const variant of ['version','duplicate','binding','unknown_name'])test(`CTX4
 },{count:1}));
 
 for(const variant of ['no_names','too_many_names','non_string_name','overlong_name','empty_name','whitespace_name','nul_name','sparse_names','extra_name_property','negative_remainder','inconsistent_total','wrong_count','external_grant'])test(`CTX4-03 snapshot rejects malformed ${variant} callback fields without dropping independent Items`,()=>fixture(async f=>{
- const baseline=await f.cards.snapshot(),cards=new ContextCardsService(f.s,{topicSummary:async(t,epoch)=>{const summary=await f.access.summaryInTransaction(t,epoch);if(variant==='no_names')delete summary.selectedNames;if(variant==='too_many_names')summary.selectedNames=Array(4).fill('Synthetic');if(variant==='non_string_name')summary.selectedNames=[{body:'SYNTHETIC_PRIVATE_OBJECT'}];if(variant==='overlong_name')summary.selectedNames=['x'.repeat(301)];if(variant==='empty_name')summary.selectedNames=[''];if(variant==='whitespace_name')summary.selectedNames=[' \t\n '];if(variant==='nul_name')summary.selectedNames=['SYNTHETIC\u0000PRIVATE'];if(variant==='sparse_names')summary.selectedNames=Array(1);if(variant==='extra_name_property')summary.selectedNames.secret='SYNTHETIC_PRIVATE_EXTRA';if(variant==='negative_remainder')summary.remainingSelectedCount=-1;if(variant==='inconsistent_total')summary.remainingSelectedCount=1;if(variant==='wrong_count')summary.selectedCount='1';if(variant==='external_grant')summary.externalAllowed=true;return summary;}});
+ const baseline=await f.cards.snapshot(),cards=new ContextCardsService(f.s,{topicSummary:async(t,epoch)=>{const summary=await f.access.summaryInTransaction(t,epoch);if(variant==='no_names')delete summary.selectedNames;if(variant==='too_many_names'){summary.selectedNames=Array(6).fill('Synthetic');summary.selectedCount=6;summary.remainingSelectedCount=0;}if(variant==='non_string_name')summary.selectedNames=[{body:'SYNTHETIC_PRIVATE_OBJECT'}];if(variant==='overlong_name')summary.selectedNames=['x'.repeat(301)];if(variant==='empty_name')summary.selectedNames=[''];if(variant==='whitespace_name')summary.selectedNames=[' \t\n '];if(variant==='nul_name')summary.selectedNames=['SYNTHETIC\u0000PRIVATE'];if(variant==='sparse_names')summary.selectedNames=Array(1);if(variant==='extra_name_property')summary.selectedNames.secret='SYNTHETIC_PRIVATE_EXTRA';if(variant==='negative_remainder')summary.remainingSelectedCount=-1;if(variant==='inconsistent_total')summary.remainingSelectedCount=1;if(variant==='wrong_count')summary.selectedCount='1';if(variant==='external_grant')summary.externalAllowed=true;return summary;}});
  await assertReadOnly(f,async()=>{const result=await cards.snapshot();assert.equal(result.topicChoices.available,false,variant);assert.equal(result.topicChoices.selectedCount,null);assert.equal(result.topicChoices.externalAllowed,false);assert.deepEqual(result.items,baseline.items);assert.equal(result.capabilities.external,false);assert.equal(result.capabilities.inputs,false);assert.equal(JSON.stringify(result.topicChoices).includes('SYNTHETIC_PRIVATE'),false);});
 },{count:1}));
 

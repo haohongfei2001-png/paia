@@ -13,6 +13,15 @@ export function verifyBrowserCoverage(allFiles, manifest = browserManifest, clas
   if (actual.join('\n') !== expected.join('\n')) throw Error('BROWSER_DISCOVERY_MANIFEST_MISMATCH');
   for (const [name, ...routes] of historicalRouting.rows) {
     if (!allFiles.includes(name) || !actual.includes(name)) throw Error('BROWSER_REQUIRED_BASELINE_MISSING:' + name);
+    // PR266 moves only the complete Context file from six to ten. This is a
+    // frozen reviewed transition, not a second live admission list; future
+    // files remain admitted only by the manifest and independent discovery.
+    if (manifest.shards === 10) {
+      const expected = name === 'context-cards-chrome-e2e.test.mjs' ? 10 :
+        routes[historicalRouting.widths.indexOf(9)];
+      if (browserShard(name, 10, manifest) !== expected)
+        throw Error('BROWSER_BASELINE_ROUTE_CHANGED:' + name);
+    }
     // The migration must preserve every previously exercised partition.
     for (const [index, width] of historicalRouting.widths.entries())
       if (browserShard(name, width, manifest) !== routes[index]) throw Error('BROWSER_BASELINE_ROUTE_CHANGED:' + name);

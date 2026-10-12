@@ -48,5 +48,5 @@ test('full Settings owner shard retains the verified Chrome and original per-job
  const pin=browser.slice(browser.indexOf('      - name: Pin verified full Chrome for Settings native evidence'),browser.indexOf('      - name: Verify the installed Chrome actually launches'));
  assert.match(pin,/if: matrix.index == 6/);assert.match(pin,/155\.0\.8059\.39/);assert.match(pin,/55672d1f392fd3e7b7a08621b6e804e6bcb39d40cf155504abb74b3a021ea8ea/);
  assert.match(pin,/sha256sum --check --status/);assert.match(pin,/PAIA_CHROME=/);assert.match(pin,/CHROME_PATH=/);assert.match(pin,/PAIA_DIAGNOSTIC_BROWSER_SHA256=/);
- assert.match(browser,/timeout-minutes: 18/);assert.equal([...browser.matchAll(/index: \d/g)].length,9);
+ assert.match(browser,/timeout-minutes: 18/);assert.deepEqual([...browser.matchAll(/index: (\d+)/g)].map(row=>Number(row[1])),[1,2,3,4,5,6,7,8,9,10]);
 });

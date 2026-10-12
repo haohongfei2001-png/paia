@@ -43,7 +43,7 @@ export function browserShard(file, total, manifest = browserManifest) {
   if (!Number.isInteger(total) || total < 1 || total > 16) throw Error('BROWSER_SHARD_WIDTH_INVALID');
   const row = manifest === browserManifest ? current.get(name) :
     validateBrowserManifest(manifest).tests.find(row => row.file === name);
-  if (!row) throw Error('CURRENT_NINE_UNADMITTED:' + name);
+  if (!row) throw Error((total === 10 ? 'CURRENT_TEN_UNADMITTED:' : 'CURRENT_NINE_UNADMITTED:') + name);
   if (total === manifest.shards) return row.shard;
   const column = historicalRouting.widths.indexOf(total);
   if (column >= 0 && legacy.has(name)) return legacy.get(name)[column];

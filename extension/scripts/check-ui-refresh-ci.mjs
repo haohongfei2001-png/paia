@@ -184,3 +184,12 @@ console.log(`CURRENT_BROWSER_MANIFEST_PASS files=${liveCurrent.length}; independ
 const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
 for(const width of [4,5,6,7,9])if(!names.has(pendingHistory)||group(pendingHistory)!=='browser E2E'||testShard(pendingHistory,0,width,'browser E2E')!==(width===9?7:3))throw Error('PENDING_HISTORY_CURRENT_NATIVE_NOT_ADMITTED');
 console.log('PENDING_HISTORY_CURRENT_COVERAGE_PASS; original routes preserved');
+
+// PR266's ten-way capacity boundary, over the entire live corpus, not the frozen subset.
+const liveTenNames=verifyDiscoveredBrowserCoverage();
+const ten=Array.from({length:10},(_,slot)=>liveTenNames.filter(name=>testShard(name,0,10,'browser E2E')===slot+1));
+if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==liveTenNames.join('|')||new Set(ten.flat()).size!==liveTenNames.length||ten[9].join('|')!=='context-cards-chrome-e2e.test.mjs')throw Error('CURRENT_TEN_INCOMPLETE');
+// Preserve the previously admitted routes; future files need only their manifest admission.
+const priorTenNames=liveTenNames.filter(name=>historicalBrowserNames.has(name)||name===pendingHistory);
+for(const name of priorTenNames)if(testShard(name,0,10,'browser E2E')!==(name==='context-cards-chrome-e2e.test.mjs'?10:testShard(name,0,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
+console.log('CURRENT_TEN_COVERAGE_PASS total='+liveTenNames.length+' Context whole-file isolated; every prior route preserved');

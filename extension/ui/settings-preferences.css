@@ -29,7 +29,7 @@
 #backup-preview-content>p{overflow-wrap:anywhere}
 /* The Data controls and the existing local import owner share D6.2 controls.
    No global primary/dialog rule or import state/authorization owner changes. */
-#ux-settings-data-group :is(button,select,input:not([type="checkbox"]):not([type="radio"])){font-family:var(--font);font-size:13px;line-height:1.692307692;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#ux-settings-data-group :is(button:not(.ux-setting-row),select,input:not([type="checkbox"]):not([type="radio"])){font-family:var(--font);font-size:13px;line-height:1.692307692;max-width:100%;white-space:normal;overflow-wrap:anywhere}
 #ux-settings-data-group button{min-height:36px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text)}
 #ux-settings-data-group button:hover:not(:disabled){background:var(--soft)}
 #ux-settings-data-group button.primary{border-color:var(--text);background:var(--text);color:var(--bg)}

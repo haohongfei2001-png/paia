@@ -140,7 +140,7 @@ jobs:
   current_browser:
     needs: mode
     if: needs.mode.outputs.full == 'true'
-    name: Current Browser ${{ matrix.index }}/9
+    name: Current Browser ${{ matrix.index }}/10
     runs-on: ubuntu-latest
     timeout-minutes: 18
     strategy:
@@ -148,23 +148,25 @@ jobs:
       matrix:
         include:
           - index: 1
-            shard: '1/9'
+            shard: '1/10'
           - index: 2
-            shard: '2/9'
+            shard: '2/10'
           - index: 3
-            shard: '3/9'
+            shard: '3/10'
           - index: 4
-            shard: '4/9'
+            shard: '4/10'
           - index: 5
-            shard: '5/9'
+            shard: '5/10'
           - index: 6
-            shard: '6/9'
+            shard: '6/10'
           - index: 7
-            shard: '7/9'
+            shard: '7/10'
           - index: 8
-            shard: '8/9'
+            shard: '8/10'
           - index: 9
-            shard: '9/9'
+            shard: '9/10'
+          - index: 10
+            shard: '10/10'
     defaults:
       run:
         working-directory: extension
@@ -260,7 +262,7 @@ jobs:
           retention-days: 14
 
       - name: Upload focused Context source and release evidence
-        if: always() && matrix.index == 6
+        if: always() && matrix.index == 10
         uses: actions/upload-artifact@v4
         with:
           name: context-cards-evidence-${{ github.sha }}
