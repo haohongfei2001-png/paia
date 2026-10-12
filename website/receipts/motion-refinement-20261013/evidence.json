@@ -1,0 +1,198 @@
+{
+  "baseline": "ef6e00951c3b7dd07cf1f5ac290cc65c3799a8b7",
+  "unrelated_sections": [
+    {
+      "page": "index.html",
+      "section": "pc-review",
+      "exact": true,
+      "sha256": "13c4b62a5bcfad2319a04e6a9ee1e1b8628e2b6a17549eb8f6f66c233ab8a4e0"
+    },
+    {
+      "page": "index.html",
+      "section": "pc-context",
+      "exact": true,
+      "sha256": "af19f30ac67117ef9b1e229fea24c29dc519a93ba97be192ed91c599d48c8715"
+    },
+    {
+      "page": "index.html",
+      "section": "pc-sync",
+      "exact": true,
+      "sha256": "8758c54a35b83e0600846755859b514768e1b71b1f856235ac856c8a4a732b9d"
+    },
+    {
+      "page": "index.html",
+      "section": "core-close",
+      "exact": true,
+      "sha256": "b234d21713792e1e9cf2d46583a11270f459757036dec246fced83e43675fd24"
+    },
+    {
+      "page": "index.html",
+      "section": "site-header",
+      "exact": true,
+      "sha256": "2f807472916511c3985f8c42f7ef758173c4df21ec504f0964734b6f469832e3"
+    },
+    {
+      "page": "index.html",
+      "section": "site-footer",
+      "exact": true,
+      "sha256": "13acb7e778f9060bb2b93db7e73dd661aa23955718db791cc93edf3996ccb1c1"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "pc-review",
+      "exact": true,
+      "sha256": "ec5858fa29eeb0aace99071e01485e7e844b971630f056f98f7845db048adb16"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "pc-context",
+      "exact": true,
+      "sha256": "179a1cf956ae7b697c4050f23faab7a65e0165de60834782176c9be345582478"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "pc-sync",
+      "exact": true,
+      "sha256": "e0536200d0d6fabbf58935bc09cb40e64c5f89e1b587d1050e17dcc15b1d47fa"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "core-close",
+      "exact": true,
+      "sha256": "67fbf3eff08557a7ae359d29282265d1b931d4a00322201aa27783f2460b7fe7"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "site-header",
+      "exact": true,
+      "sha256": "89745046fd61b44648fd872306f4f799c0f7ed045d34567022334c6712f22991"
+    },
+    {
+      "page": "zh/index.html",
+      "section": "site-footer",
+      "exact": true,
+      "sha256": "37ea1357da5f325669fa12596c60ad45fefaefa224d5df561ed798f8a7cdec2f"
+    }
+  ],
+  "native_mouse_wheel": [
+    100,
+    200
+  ],
+  "thought_trigger_px": 72,
+  "organization_trigger_px": 248,
+  "prompt_trigger_px": [
+    72,
+    240
+  ],
+  "captures": [
+    {
+      "file": "zh-thought-cards.webp",
+      "phase": "cards",
+      "scroll_travel": "0"
+    },
+    {
+      "file": "zh-thought-open.webp",
+      "phase": "open",
+      "scroll_travel": "100",
+      "frame": {
+        "x": 225.125,
+        "y": 150,
+        "width": 460,
+        "height": 630
+      }
+    },
+    {
+      "file": "zh-thought-organize.webp",
+      "phase": "organize",
+      "scroll_travel": "300",
+      "frame": {
+        "x": 225.125,
+        "y": 150,
+        "width": 460,
+        "height": 630
+      }
+    },
+    {
+      "file": "zh-prompt-orb.webp",
+      "phase": "orb",
+      "scroll_travel": "0",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    },
+    {
+      "file": "zh-prompt-capsule.webp",
+      "phase": "capsule",
+      "scroll_travel": "100",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    },
+    {
+      "file": "zh-prompt-board.webp",
+      "phase": "board",
+      "scroll_travel": "300",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    },
+    {
+      "file": "en-thought-cards.webp",
+      "phase": "cards",
+      "scroll_travel": "0"
+    },
+    {
+      "file": "en-thought-open.webp",
+      "phase": "open",
+      "scroll_travel": "100",
+      "frame": {
+        "x": 225.125,
+        "y": 120,
+        "width": 460,
+        "height": 690
+      }
+    },
+    {
+      "file": "en-thought-organize.webp",
+      "phase": "organize",
+      "scroll_travel": "300",
+      "frame": {
+        "x": 225.125,
+        "y": 120,
+        "width": 460,
+        "height": 690
+      }
+    },
+    {
+      "file": "en-prompt-orb.webp",
+      "phase": "orb",
+      "scroll_travel": "0",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    },
+    {
+      "file": "en-prompt-capsule.webp",
+      "phase": "capsule",
+      "scroll_travel": "100",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    },
+    {
+      "file": "en-prompt-board.webp",
+      "phase": "board",
+      "scroll_travel": "300",
+      "anchor": [
+        687.5,
+        378.515625
+      ]
+    }
+  ],
+  "browser": "153.0.8010.12"
+}

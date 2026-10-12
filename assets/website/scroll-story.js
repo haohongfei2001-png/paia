@@ -14,13 +14,15 @@
   let scheduled = false;
   let manualPrompt = false;
   let manualThought = false;
-  let topicReturnY = null;
 
   const clamp = value => Math.max(0, Math.min(1, value));
   function progressOf(track) {
-    const bounds = track.getBoundingClientRect();
-    const distance = Math.max(1, bounds.height - innerHeight + 100);
-    return clamp((115 - bounds.top) / distance);
+    const sticky = track.querySelector('.ad-scroll-sticky');
+    const stickyTop = parseFloat(getComputedStyle(sticky).top) || 105;
+    const travel = Math.max(0, stickyTop - track.getBoundingClientRect().top);
+    // Fixed, modest wheel travel rather than a percentage of several screens.
+    track.dataset.scrollTravel = String(Math.round(travel));
+    return travel;
   }
   function setPrompt(phase, fromUser = false) {
     if (!fromUser && manualPrompt) return;
@@ -32,9 +34,9 @@
       board.hidden = !shouldShow;
       if (shouldShow && !reduced.matches) {
         board.animate([
-          {opacity:0, transform:'translateY(-18px) scale(.94)'},
-          {opacity:1, transform:'translateY(0) scale(1)'}
-        ], {duration:780, easing:'cubic-bezier(.16,1,.3,1)'});
+          {opacity:.2, clipPath:'inset(100% 0 0 0 round 18px)'},
+          {opacity:1, clipPath:'inset(0 0 0 0 round 18px)'}
+        ], {duration:420, easing:'cubic-bezier(.16,1,.3,1)'});
       }
     }
     // The only draft on scroll is decorative; the real textarea is untouched.
@@ -59,10 +61,10 @@
     }
     const tp = progressOf(thought);
     const pp = progressOf(prompt);
-    thought.style.setProperty('--story-progress', tp.toFixed(4));
-    prompt.style.setProperty('--story-progress', pp.toFixed(4));
-    setThought(tp < .3 ? 'cards' : tp < .63 ? 'open' : 'organize');
-    setPrompt(pp < .3 ? 'orb' : pp < .63 ? 'capsule' : 'board');
+    thought.style.setProperty('--story-progress', clamp(tp / 440).toFixed(4));
+    prompt.style.setProperty('--story-progress', clamp(pp / 440).toFixed(4));
+    setThought(tp < 72 ? 'cards' : tp < 248 ? 'open' : 'organize');
+    setPrompt(pp < 72 ? 'orb' : pp < 240 ? 'capsule' : 'board');
   }
   function schedule() {
     if (!scheduled) {
@@ -97,18 +99,28 @@
     if (event.target.closest('#pc-prompt-card,[data-prompt-toggle],#pc-composer,[data-ad-capsule],[data-suggestion-toggle]'))
       manualPrompt = true;
   });
+  function enterTopicInteraction(target) {
+    if (thought.dataset.userReading === 'true') return;
+    // A real reader can be taller than the marketing frame. Exit pinning
+    // before the click so the original controller owns a normal document.
+    const before = target.getBoundingClientRect().top;
+    manualThought = true;
+    thought.dataset.phase = 'cards';
+    thought.dataset.userReading = 'true';
+    const shift = target.getBoundingClientRect().top - before;
+    if (Math.abs(shift) > .5) scrollBy({top:shift, behavior:'instant'});
+  }
+  for (const type of ['pointerdown', 'focusin']) {
+    thought.addEventListener(type, event => {
+      const target = event.target.closest('[data-topic-open]');
+      if (target) enterTopicInteraction(target);
+    }, {capture:true});
+  }
   thought.addEventListener('click', event => {
-    if (event.target.closest('[data-topic-open]')) topicReturnY = scrollY;
     if (event.target.closest('[data-topic-open],[data-topic-back]')) {
       manualThought = true;
       thought.dataset.phase = 'cards';
       thought.style.setProperty('--story-glow', 0);
-    }
-    if (event.target.closest('[data-topic-back]') && topicReturnY !== null) {
-      // The reader/overview differ in height. Reassert the exact scroll
-      // origin after the original product controller's own Back handler.
-      const origin = topicReturnY;
-      queueMicrotask(() => scrollTo({top:origin, behavior:'instant'}));
     }
   }, {capture:true});
 

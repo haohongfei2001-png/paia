@@ -1,107 +1,104 @@
-"""Scroll-driven, browser-local PAIA homepage illustrations.
+"""Homepage-only, fictional scroll illustrations; never a product data writer.
 
-The original product demos and all copy remain the only interactive/data owners.
-Scroll controls presentation only; it does not authorize AI, mutate an Input,
-send a message, or commit a reader decision.
+The interactive Topic, Prompt and Context controllers remain the sole owners of
+actual edits. A stable reading sheet and fixed companion anchor carry the story.
 """
 from html import escape
 import re
 from art_direction import Fragments
 
+
 def _swap_one(source, cls, replacement):
     parsed = Fragments(source)
     return parsed.swap(parsed.one(cls), replacement)
 
+
 def _snippet(source, key):
-    pattern = r'<p data-thought-text="' + key + r'">(.*?)</p>'
-    match = re.search(pattern, source, re.S)
+    match = re.search(r'<p data-thought-text="' + key + r'">(.*?)</p>', source, re.S)
     if not match:
         raise ValueError("Missing original illustrative Input " + key)
     return match.group(1)
 
+
 def apply_scroll_story(source, t):
-    # Replace the three simultaneous decorative examples with one evolving
-    # control. The existing real prompt board, capsule, draft, and reader
-    # actions are preserved below.
+    # Move the preview control into the real board's positioning wrapper. Its
+    # right/bottom anchor is identical to the existing board toggle in all modes.
     stages = f'''<div class="ad-morph-track" data-morph-track>
 <button class="ad-morph-button" type="button" data-story-advance disabled aria-label="{t('查看下一种悬浮形态','Show the next floating form')}">
-<i class="paia-orb" aria-hidden="true"></i>
-<span data-ad-specimen-text></span><span class="ad-morph-chevron" aria-hidden="true">⌃</span>
+<i class="paia-orb" aria-hidden="true"></i><span data-ad-specimen-text></span><span class="ad-morph-chevron" aria-hidden="true">⌃</span>
 </button><span class="ad-morph-note" aria-hidden="true">{t('滚动查看形态演变','Scroll to see the transformation')}</span></div>'''
-    source = _swap_one(source, 'ad-shapes', stages)
+    source = _swap_one(source, 'ad-shapes', '')
+    parsed = Fragments(source)
+    palette = parsed.one('pc-palette-wrap')
+    source = parsed.swap(palette, parsed.opened(palette) + stages + parsed.inner(palette) + '</div>')
 
-    # This preview is deliberately visual, not another writer into the
-    # ChatGPT composer. A user's actual draft is never overwritten by scroll.
-    draft = t('结合我的实际约束重新分析。','Re-evaluate this using my actual constraints.')
-    source = source.replace(
-        '<div class="pc-composer">',
-        '<div class="pc-composer"><span class="ad-scroll-draft" data-scroll-draft aria-hidden="true">'+escape(draft)+'</span>',
-        1,
-    )
+    # Retain the existing text and composer owner. New chat chrome is decorative
+    # and labelled as a synthetic ChatGPT-shaped setting, never a live account.
+    user_question = escape(t('第一版应该做什么', 'What belongs in v1'))
+    user_bubble = '<div class="ad-chatgpt-user" aria-hidden="true">' + user_question + '</div>'
+    source = source.replace('<div class="pc-answer-body">', user_bubble + '<div class="pc-answer-body">', 1)
+    response_tools = '''<span class="ad-chatgpt-actions" aria-hidden="true"><svg viewBox="0 0 72 20" fill="none" stroke="currentColor" stroke-width="1.15"><rect x="3" y="5" width="9" height="11" rx="2"/><path d="M6 3h7a2 2 0 0 1 2 2v8M28 8l4-5h2v5h5l-2 8h-9zm-3 0h3v8h-3zM54 12l4 5h2v-5h5l-2-8h-9zm-3-8h3v8h-3z"/></svg></span>'''
+    parsed = Fragments(source)
+    answer_body = parsed.one('pc-answer-body')
+    source = parsed.swap(answer_body, parsed.opened(answer_body) + parsed.inner(answer_body) + response_tools + '</div>')
 
-    q = Fragments(source)
-    prompt = q.one('pc-prompts')
-    text = q.outer(prompt)
-    q2 = Fragments(text)
-    body = q2.inner(q2.elements[0])
-    story_marker = (
-        '<div class="ad-scroll-track ad-prompt-scroll" data-scroll-story="prompt" '
-        'data-phase="orb"><div class="ad-scroll-sticky">'
-        + body +
-        '</div><div class="ad-scroll-end" aria-hidden="true"></div></div>'
-    )
-    source = q.swap(prompt, q.opened(prompt) + story_marker + '</section>')
+    draft = t('结合我的实际约束重新分析。', 'Re-evaluate this using my actual constraints.')
+    source = source.replace('<div class="pc-composer">', '<div class="pc-composer"><span class="ad-scroll-draft" data-scroll-draft aria-hidden="true">' + escape(draft) + '</span>', 1)
+    parsed = Fragments(source)
+    prompt = parsed.one('pc-prompts')
+    local = Fragments(parsed.outer(prompt))
+    source = parsed.swap(prompt, local.opened(local.elements[0]) +
+        '<div class="ad-scroll-track ad-prompt-scroll" data-scroll-story="prompt" data-phase="orb"><div class="ad-scroll-sticky">' +
+        local.inner(local.elements[0]) + '</div><div class="ad-scroll-end" aria-hidden="true"></div></div></section>')
 
-    # Preserve the original PT1 Topic/Section navigation and literal source
-    # expression. The added layers are explicitly page-local, fictional
-    # presentation, never a claim of generated knowledge or model execution.
-    q = Fragments(source)
-    topics = q.one('pc-topics')
-    text = q.outer(topics)
-    first = _snippet(text, 'a')
-    second = _snippet(text, 'b')
-    third = _snippet(text, 'c')
-    note = _snippet(text, 'note')
+    # Four complete existing expressions, their timestamps and chapter labels.
+    # Both views occupy this ONE persistent portrait frame; organization only
+    # changes its internal typography, ordering emphasis and glass illumination.
+    parsed = Fragments(source)
+    topics = parsed.one('pc-topics')
+    local = parsed.outer(topics)
+    first, second, third, note = [_snippet(local, key) for key in ('a', 'b', 'c', 'note')]
+    title = t('产品的第一步', 'A product’s first step')
+    explore = t('探索方向', 'Exploring a direction')
+    decisions = t('判断与取舍', 'Decisions and trade-offs')
+    rows = [('12 AUG · 09:42', first), ('26 AUG · 11:18', second), ('10 SEP · 18:03', third), ('24 SEP · 10:26', note)]
+    source_labels = []
+    for key in ('a', 'b', 'c', 'note'):
+        match = re.search(r'<article class="pc-thought" data-thought="' + key + r'">.*?<details class="pc-topic-source">.*?<p>(.*?)</p>', local, re.S)
+        if not match:
+            raise ValueError('Missing original source label ' + key)
+        source_labels.append(match.group(1))
+    raw_rows = ''.join(f'<div class="ad-story-entry"><time>{stamp}</time><p>{words}</p><span class="ad-story-provenance">{source_labels[i]}</span></div>' for i, (stamp, words) in enumerate(rows))
     visual = f'''<div class="ad-thought-scenes" aria-hidden="true">
 <div class="ad-thought-focus ad-thought-scene">
-<div class="ad-thought-small-tag">{t('主题 / 产品的第一步','TOPIC / A PRODUCT’S FIRST STEP')}</div>
-<div class="ad-thought-expanded"><span class="ad-story-date">12 AUG — 10 SEP</span>
-<h3>{t('产品的第一步','A product’s first step')}</h3>
-<div class="ad-story-expressions"><p>{first}</p><p>{second}</p><p>{third}</p></div></div></div>
-<div class="ad-thought-organized ad-thought-scene">
-<span class="ad-ai-cue">{t('AI 整理 · 规划能力 · 预设示意','AI ORGANIZATION · PLANNED · PRESET EXAMPLE')}</span>
-<div class="ad-organized-core"><span class="ad-organized-core-dot"></span>
-<h3>{t('产品的第一步','A product’s first step')}</h3><p>{note}</p></div>
-<div class="ad-organized-path"><div class="ad-organized-branch">
-<span>01</span><h4>{t('探索方向','Exploring a direction')}</h4><p>{first}</p></div>
-<div class="ad-organized-branch"><span>02</span><h4>{t('判断与取舍','Decisions and trade-offs')}</h4><p>{third}</p></div></div>
-</div></div>'''
-    q2 = Fragments(text)
-    stage = q2.one('pc-topic-stage')
-    text = q2.swap(stage, q2.outer(stage) + visual)
-    q2 = Fragments(text)
-    root = q2.elements[0]
-    text = q2.opened(root) + (
-        '<div class="ad-scroll-track ad-thought-scroll" data-scroll-story="thought" data-phase="cards">'
-        '<div class="ad-scroll-sticky">'
-        + q2.inner(root) +
-        '</div><div class="ad-scroll-end" aria-hidden="true"></div></div>'
-    ) + '</section>'
-    source = q.swap(topics, text)
+<div class="ad-thought-expanded" data-story-document>
+<div class="ad-document-glint"></div>
+<header class="ad-document-header"><span class="ad-story-date">12 AUG — 24 SEP 2026</span><h3>{title}</h3>
+<div class="ad-document-mode"><span class="ad-original-cue">{t('原话优先','Original-first')}</span><span class="ad-ai-cue">{t('AI 整理 · 规划能力 · 预设示意','AI ORGANIZATION · PLANNED · PRESET')}</span></div></header>
+<div class="ad-document-pages">
+<div class="ad-story-expressions" data-story-original>{raw_rows}</div>
+<div class="ad-thought-organized" data-story-organized>
+<section class="ad-organized-chapter"><span class="ad-chapter-index">01</span><h4>{explore}</h4><p>{first}</p><p>{second}</p><span class="ad-chapter-source">12 AUG / 26 AUG · ChatGPT</span></section>
+<section class="ad-organized-chapter"><span class="ad-chapter-index">02</span><h4>{decisions}</h4><p>{third}</p><p class="ad-retained-decision">{note}</p><span class="ad-chapter-source">10 SEP / 24 SEP · ChatGPT</span></section>
+</div></div>
+<footer class="ad-document-source">{t('4 条原话 · 2 个对话 · 原始来源保留','4 expressions · 2 conversations · Sources retained')}</footer>
+</div></div></div>'''
+    view = Fragments(local)
+    stage = view.one('pc-topic-stage')
+    local = view.swap(stage, view.outer(stage) + visual)
+    view = Fragments(local)
+    top = view.elements[0]
+    local = view.opened(top) + '<div class="ad-scroll-track ad-thought-scroll" data-scroll-story="thought" data-phase="cards"><div class="ad-scroll-sticky">' + view.inner(top) + '</div><div class="ad-scroll-end" aria-hidden="true"></div></div></section>'
+    source = parsed.swap(topics, local)
 
-    # The unwanted second Context showcase is removed from the default page.
-    # Its scope preview and original working permissions remain available by
-    # explicit disclosure, rather than deleting controls or hiding real state.
-    q = Fragments(source)
-    context = q.one('pc-context')
-    local = q.outer(context)
-    local = _swap_one(
-        local, 'pc-access',
-        f'<details class="ad-context-disclosure"><summary>{t("查看授权范围和说明","Review access and scope")}'
-        '<span aria-hidden="true">⌄</span></summary>'
-        + Fragments(local).outer(Fragments(local).one('pc-access')) +
-        '</details>',
-    )
-    source = q.swap(context, local)
+    # Existing Context disclosure and all of its permission controls unchanged.
+    parsed = Fragments(source)
+    context = parsed.one('pc-context')
+    local = parsed.outer(context)
+    scope = Fragments(local)
+    local = _swap_one(local, 'pc-access',
+        f'<details class="ad-context-disclosure"><summary>{t("查看授权范围和说明","Review access and scope")}<span aria-hidden="true">⌄</span></summary>' +
+        scope.outer(scope.one('pc-access')) + '</details>')
+    source = parsed.swap(context, local)
     Fragments(source)
     return source

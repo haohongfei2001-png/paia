@@ -107,7 +107,8 @@ verify_assets(ROOT, check)
 # This uses a committed exact baseline, not an editable candidate snapshot.
 import subprocess
 art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
-art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), '--static-only'], env=art_env, capture_output=True, text=True)
+art_args = ['--static-only'] if '--static-only' in sys.argv else []
+art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), *art_args], env=art_env, capture_output=True, text=True)
 art_report_path = OUT / 'art-direction-static' / 'report.json'
 check(art_report_path.is_file(), 'homepage art-direction static guard returned evidence')
 for item in json.loads(art_report_path.read_text())['results']:

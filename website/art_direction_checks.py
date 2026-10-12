@@ -34,7 +34,7 @@ def copy_digest(source, candidate=False):
     if candidate:
         # Added fictional scroll captions and their repeated specimen phrases
         # are separate from the original bilingual editorial copy.
-        for cls in ('ad-capsule', 'ad-morph-track', 'ad-scroll-draft', 'ad-thought-scenes'):
+        for cls in ('ad-capsule', 'ad-morph-track', 'ad-scroll-draft', 'ad-thought-scenes', 'ad-chatgpt-user'):
             omit.append(d.one(cls))
         omit.append(d.one('ad-location').children[0])
         omit.append(d.one('ad-context-disclosure').children[0])
@@ -150,7 +150,12 @@ try:
                     # Text enlargement must reflow, not shrink the words.
                     page.add_style_tag(content='html{font-size:200%!important}')
                     page.wait_for_timeout(80)
-                    test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'200% text has no horizontal page overflow')
+                    reflow = page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
+                    if not reflow:
+                        OUT.mkdir(parents=True, exist_ok=True)
+                        diagnostic = page.evaluate("""()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.localName,cls:e.className,id:e.id,left:r.left,right:r.right,width:r.width,text:e.textContent.slice(0,90),font:s.fontSize,whiteSpace:s.whiteSpace}}).filter(e=>e.right>innerWidth+1||e.left< -1).slice(0,35)})""")
+                        (OUT/f'{locale}-{width}-text-200-overflow.json').write_text(json.dumps(diagnostic,ensure_ascii=False,indent=2))
+                    test(reflow,'200% text has no horizontal page overflow')
                     test(page.locator('.pc-review .pc-intro p').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=30,'200% prose is actually enlarged')
                     test(page.locator('[data-prompt-pick]').first.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)')>=26,'200% board text is enlarged without widening the board')
                     # Every card retains an independently reachable hit target.
@@ -158,44 +163,77 @@ try:
                         c=page.locator(f'[data-card-open="{key}"]');test(c.is_visible(),key+': card still visible with enlarged text')
                     test(not errors,'no page script errors');test(not unexpected,'no fetch, XHR, WebSocket or submission')
                     page.close()
-            # True native-scroll animation journey (non-reduced motion).
+            # Real wheel input, rather than merely jumping to a late scroll
+            # percentage. The first 100px notch must produce the next state.
             for locale,path in [('zh','/zh/'),('en','/')]:
-                for width in (1440,390):
+                for width in (1440,768,390):
                     page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='no-preference')
                     errors=[];forbidden=[]
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('request',lambda r:forbidden.append(r.url) if r.method!='GET' or r.resource_type in ('fetch','xhr','websocket') else None)
-                    page.goto(origin+path,wait_until='networkidle')
-                    page.wait_for_timeout(120)
-                    stories = [('thought',['cards','open','organize']),('prompt',['orb','capsule','board'])] if width>640 else [('thought',['cards','cards','cards']),('prompt',['board','board','board'])]
-                    for story,phases in stories:
-                        for portion,expected in zip((.08,.48,.88),phases):
-                            page.evaluate('''([name,f])=>{
-                                const el=document.querySelector('[data-scroll-story="'+name+'"]');
-                                const y=el.getBoundingClientRect().top+scrollY+Math.max(1,el.offsetHeight-innerHeight+100)*f;
-                                scrollTo({top:y,behavior:'instant'});
-                            }''',[story,portion])
-                            page.wait_for_function('([name,phase])=>document.querySelector(`[data-scroll-story="${name}"]`)?.dataset.phase===phase',arg=[story,expected],timeout=4000)
-                            check(page.locator(f'[data-scroll-story="{story}"]').get_attribute('data-phase')==expected,f'{locale}/{width}: {story} scroll phase {expected}')
-                            check(page.locator('#pc-composer').input_value()=='',f'{locale}/{width}: scroll does not insert or send')
-                    check(page.locator('.ad-scroll-draft').count()==1,f'{locale}/{width}: suggested text is a nonwriting visual preview')
-                    check(page.locator('#pc-prompt-card').is_visible(),f'{locale}/{width}: final narrow board is visible')
+                    page.goto(origin+path,wait_until='networkidle');page.evaluate('document.fonts.ready')
+                    prefix=f'{locale}/{width}: '
+                    def anchor(phase):
+                        selector='.pc-orb-button .paia-orb' if phase=='board' else '.ad-morph-button .paia-orb'
+                        return page.locator(selector).evaluate("e=>{const r=e.getBoundingClientRect(),h=e.closest('[data-ad-host]').getBoundingClientRect();return {x:r.x+r.width/2-h.x,y:r.y+r.height/2-h.y};}")
+                    def scroll_start(story):
+                        page.evaluate('''name=>{const t=document.querySelector('[data-scroll-story="'+name+'"]'),s=t.querySelector('.ad-scroll-sticky');scrollTo({top:t.getBoundingClientRect().top+scrollY-(parseFloat(getComputedStyle(s).top)||0),behavior:'instant'});}''',story)
+                        page.mouse.move(width-12,440)
                     if width>640:
-                        page.evaluate('''()=>{
-                            const el=document.querySelector('[data-scroll-story="prompt"]');
-                            scrollTo({top:el.getBoundingClientRect().top+scrollY+100,behavior:'instant'});
-                        }''')
-                        page.wait_for_timeout(85)
+                        check(page.locator('.ad-thought-scroll').evaluate("e=>parseFloat(getComputedStyle(e).getPropertyValue('--story-runway'))")<=440,prefix+'no multi-screen dead scroll before a transition')
+                        document_handle=page.locator('[data-story-document]').element_handle()
+                        for story,phases in [('thought',['cards','open','organize']),('prompt',['orb','capsule','board'])]:
+                            scroll_start(story)
+                            positions=[];frame_before=None
+                            for delta,expected in zip((0,100,200),phases):
+                                if delta:page.mouse.wheel(0,delta)
+                                page.wait_for_function('''([story,phase])=>document.querySelector('[data-scroll-story="'+story+'"]').dataset.phase===phase''',arg=[story,expected],timeout=5000)
+                                page.wait_for_timeout(550)
+                                track=page.locator(f'[data-scroll-story="{story}"]')
+                                check(track.get_attribute('data-phase')==expected,prefix+story+' wheel stage '+expected)
+                                if delta==100:check(float(track.get_attribute('data-scroll-travel'))<=115,prefix+story+' responds to first short wheel input')
+                                check(page.locator('#pc-composer').input_value()=='',prefix+'native scroll never writes or sends')
+                                if story=='thought' and expected in ('open','organize'):
+                                    frame=page.locator('[data-story-document]').bounding_box()
+                                    copy=page.locator('.ad-library-editorial').bounding_box()
+                                    check(frame['height']>frame['width']*1.2,prefix+'expanded reader is a portrait rectangle')
+                                    check(frame['x']+frame['width']<=copy['x']-12,prefix+'reader does not overlap editorial copy')
+                                    last_selector='[data-story-original] .ad-story-entry:last-child' if expected=='open' else '[data-story-organized] .ad-organized-chapter:last-child'
+                                    last=page.locator(last_selector).bounding_box()
+                                    foot=page.locator('.ad-document-source').bounding_box()
+                                    check(last['y']+last['height']<=foot['y']-2,prefix+'all original text and provenance fit above the persistent footer')
+                                    if expected=='open':frame_before=frame
+                                    else:
+                                        check(document_handle.evaluate("e=>e===document.querySelector('[data-story-document]')"),prefix+'AI organization reuses the identical document element')
+                                        check(all(abs(frame[k]-frame_before[k])<=1 for k in ('x','y','width','height')),prefix+'organizing changes no outer frame coordinates or dimensions')
+                                        check(page.locator('.ad-organized-branch,.ad-organized-core').count()==0,prefix+'no split cards replace the reading rectangle')
+                                        check(page.locator('.ad-document-glint').count()==1,prefix+'glass renewal remains inside the persistent frame')
+                                if story=='prompt':positions.append(anchor(expected))
+                            if story=='prompt':
+                                check(max(x['x'] for x in positions)-min(x['x'] for x in positions)<=1.5 and max(x['y'] for x in positions)-min(x['y'] for x in positions)<=1.5,prefix+'orb capsule and board share an invariant host-relative anchor')
+                                check(page.locator('[data-story-advance]').evaluate("e=>!!e.closest('[data-ad-host]')"),prefix+'companion is inside the simulated chat, never above it')
+                        originals=page.locator('[data-story-original] .ad-story-entry p').all_text_contents()
+                        organized=page.locator('[data-story-organized] p').all_text_contents()
+                        check(len(originals)==4 and originals==organized,prefix+'both reading states retain all four complete original expressions')
+                        check(page.locator('[data-story-document]').count()==1,prefix+'exactly one outer reading frame')
+                        check(page.locator('.ad-chatgpt-user').inner_text()==page.locator('.pc-document>h3').inner_text(),prefix+'chat user bubble reuses the existing synthetic question')
+                        scroll_start('prompt');page.wait_for_timeout(100)
                         for expected in ('capsule','board'):
                             page.locator('[data-story-advance]').click()
-                            check(page.locator('[data-scroll-story="prompt"]').get_attribute('data-phase')==expected,f'{locale}/{width}: manual progressive control {expected}')
+                            check(page.locator('[data-scroll-story="prompt"]').get_attribute('data-phase')==expected,prefix+'explicit advance to '+expected)
+                        page.locator('#pc-composer').fill('A user draft that must survive scrolling.')
+                        page.mouse.wheel(0,-220);page.wait_for_timeout(100)
+                        check(page.locator('#pc-composer').input_value()=='A user draft that must survive scrolling.',prefix+'user draft survives reverse wheel input')
+                        check(page.locator('#pc-prompt-card').is_visible(),prefix+'user-owned board never collapses because of later scrolling')
                     else:
-                        check(not page.locator('[data-story-advance]').is_visible(),f'{locale}/{width}: mobile uses the accessible continuous board')
-                    check(page.locator('#pc-prompt-card').is_visible(),f'{locale}/{width}: manual board remains operable')
+                        check(page.locator('#pc-prompt-card').is_visible(),prefix+'mobile has a reachable continuous board')
+                        check(not page.locator('[data-story-advance]').is_visible(),prefix+'mobile has no sticky scroll gate')
+                    check(page.locator('.ad-scroll-draft').count()==1,prefix+'scroll suggestion remains a nonwriting preview')
                     page.locator('[data-context-global]').click()
-                    check(page.locator('[data-context-global]').get_attribute('aria-pressed')=='false',f'{locale}/{width}: real permission remains explicit')
-                    check(not errors,f'{locale}/{width}: scroll script has no page errors')
-                    check(not forbidden,f'{locale}/{width}: scroll makes no API or send requests')
+                    check(page.locator('[data-context-global]').get_attribute('aria-pressed')=='false',prefix+'permissions still require explicit control')
+                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),prefix+'native motion does not widen the page')
+                    check(not errors,prefix+'no native-motion script errors')
+                    check(not forbidden,prefix+'no native-motion API or send requests')
                     page.close()
             # JavaScript is not required to read any product prose or sample.
             for locale,path in [('zh','/zh/'),('en','/')]:
