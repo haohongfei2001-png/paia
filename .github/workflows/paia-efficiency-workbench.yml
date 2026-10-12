@@ -4,30 +4,118 @@ on:
     branches: ['engineering/execution-efficiency-20261012']
     paths: ['.github/workflows/paia-efficiency-workbench.yml']
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: paia-efficiency-integration-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  snapshot:
+  verify:
     if: github.ref == 'refs/heads/engineering/execution-efficiency-20261012'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Preserve exact read-only integration inputs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconcile only the approved isolated candidate
         run: |
           set -euo pipefail
-          mkdir -p /tmp/paia264-input
-          git bundle create /tmp/paia264-input/repository.bundle HEAD refs/remotes/origin/main refs/remotes/origin/codex/main8e-section-fixture-20261012
-          git bundle list-heads /tmp/paia264-input/repository.bundle > /tmp/paia264-input/refs.txt
-          sha256sum /tmp/paia264-input/repository.bundle > /tmp/paia264-input/sha256.txt
+          mkdir -p /tmp/paia264-evidence
+          cp .paia264-integrate.py /tmp/paia264-integrate.py
+          git config user.name 'hongfei hao'
+          git config user.email 'haohongfei2001@gmail.com'
+          git merge --no-commit --no-ff 8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb || test -f .git/MERGE_HEAD
+          python /tmp/paia264-integrate.py
+          git rm .github/workflows/paia-efficiency-workbench.yml .paia264-integrate.py
+          python - <<'PY'
+          import subprocess,json
+          from pathlib import Path
+          base='8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb'
+          def git(*args):return subprocess.check_output(['git',*args],text=True).strip()
+          changed=git('diff','--cached','--name-only',base).splitlines()
+          expected=git('diff','--name-only','b8a09bb','95cbcf21').splitlines()
+          assert changed==expected,(changed,expected)
+          updates={
+            'extension/docs/consumer-product-v1/MASTER_PLAN.md':'ff3c4c3e167ec17fe7d1d7674c8ed99fd8adf45b',
+            'extension/docs/consumer-product-v1/STATUS.md':'9e1c93d1f6a9123769dee0fc10041b6c3e09341b',
+            'extension/scripts/browser-corpus.mjs':'feae3d28ba206b51429f7a05bdf2c5f396dbcc54',
+            'extension/scripts/browser-coverage.mjs':'940fc80ad7f2aeb44b0936b276541baa2d194226',
+            'extension/scripts/check-ui-refresh-ci.mjs':'55f01ce760b7c98dd6fc6051538f08a7f35732e1',
+            'extension/scripts/current-browser-manifest.json':'a8229a6a928ccfbf9f8e0e6fbd52bb1883321a90',
+            'extension/tests/browser-corpus.test.mjs':'7ad5fee6c49f933834441b2d4de1d159c04bc730'
+          }
+          for p in changed:assert git('hash-object',p)==updates.get(p,git('rev-parse','95cbcf21:'+p)),p
+          assert not git('diff','--cached',base,'--','extension/core','extension/ui','extension/background','extension/content','extension/adapter','extension/manifest.json','extension/package.json','extension/AGENTS.md','extension/docs/consumer-product-v1/AUTHORITY.md','extension/docs/consumer-product-v1/EXECUTION_PROTOCOL.md')
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          Path('/tmp/paia264-evidence/identity.json').write_text(json.dumps({'base':base,'tree':git('write-tree'),'paths':changed,'newBlobs':updates,'remoteBranchesChanged':False},indent=2)+'\n')
+          print('EXACT_RECONCILIATION_PASS',len(changed),git('write-tree'))
+          PY
+      - name: Independent admission and retained assertions
+        working-directory: extension
+        run: |
+          set -euo pipefail
+          node scripts/check-ui-refresh-ci.mjs | tee /tmp/paia264-evidence/preflight.log
+          node --test --test-concurrency=1 tests/browser-corpus.test.mjs tests/*admission.test.mjs tests/*partition.test.mjs tests/*-ci.test.mjs | tee /tmp/paia264-evidence/admission.log
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          npm run check
+          node scripts/check_development.mjs
+          npm run build:release
+      - name: Prepare actual hosted Chrome
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "PAIA_CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          sudo python - <<'PY'
+          from pathlib import Path
+          for p in [Path('/etc/apt/sources.list'),*Path('/etc/apt').glob('*mirrors*.txt'),*Path('/etc/apt/sources.list.d').glob('*.list'),*Path('/etc/apt/sources.list.d').glob('*.sources')]:
+            if p.is_file():
+              text=p.read_text();p.write_text(text.replace('http://azure.archive.ubuntu.com/ubuntu','https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu','https://archive.ubuntu.com/ubuntu'))
+          PY
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-wqy-zenhei fonts-noto-color-emoji xvfb
+      - name: Full Prompt surface and original recovery journeys
+        working-directory: extension
+        env:
+          CI: '1'
+          PLAYWRIGHT_MODULE: playwright
+          PAIA_HEADLESS: '1'
+        run: |
+          set -euo pipefail
+          mkdir -p work
+          xvfb-run -a node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs tests/uir-02-archive-search-reader-chrome-e2e.test.mjs tests/uir-04-data-chrome-e2e.test.mjs tests/uir-04-pending-history-chrome-e2e.test.mjs | tee /tmp/paia264-evidence/browser.log
+      - name: Preserve tested immutable blobs without moving any ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os,json,time,hashlib,urllib.request,subprocess
+          from pathlib import Path
+          record=json.loads(Path('/tmp/paia264-evidence/identity.json').read_text())
+          for p,expected in record['newBlobs'].items():
+            raw=Path(p).read_bytes()
+            assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==expected,p
+            req=urllib.request.Request('https://api.github.com/repos/haohongfei2001-png/paia/git/blobs',data=json.dumps({'content':raw.decode(),'encoding':'utf-8'}).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},method='POST')
+            with urllib.request.urlopen(req,timeout=30) as response:created=json.load(response)
+            assert created['sha']==expected,(p,created['sha'])
+            print('EXACT_BLOB',p,expected)
+            time.sleep(0.5)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()==record['tree']
+          print('No ref, main, other branch, PR or deployment mutated.')
+          PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: paia264-integration-input
-          path: /tmp/paia264-input/
-          retention-days: 3
+          name: paia264-integration-validation
+          path: /tmp/paia264-evidence/
+          retention-days: 14
           if-no-files-found: error
