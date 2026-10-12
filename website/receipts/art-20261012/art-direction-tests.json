@@ -1,0 +1,1748 @@
+{
+  "scope": "fictional homepage, local HTTP Chromium; not physical-device or extension certification",
+  "checks": 435,
+  "passed": 435,
+  "failed": [],
+  "results": [
+    {
+      "check": "404.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "about.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "article-beliefs.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "article-context.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "article-reuse.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "beta.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "blog.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "demo.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/404.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/about.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/article-beliefs.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/article-context.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/article-reuse.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/beta.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/blog.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/demo.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/how-it-works.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/index.html: all original text preserved except the removed navigation",
+      "pass": true
+    },
+    {
+      "check": "en/index.html: entire hero markup frozen",
+      "pass": true
+    },
+    {
+      "check": "en/index.html: no duplicate section navigation",
+      "pass": true
+    },
+    {
+      "check": "en/principles.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/privacy-policy.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/status.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/terms.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/thanks.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "en/use-cases.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "how-it-works.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "index.html: all original text preserved except the removed navigation",
+      "pass": true
+    },
+    {
+      "check": "index.html: entire hero markup frozen",
+      "pass": true
+    },
+    {
+      "check": "index.html: no duplicate section navigation",
+      "pass": true
+    },
+    {
+      "check": "principles.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "privacy-policy.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "robots.txt: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "sitemap.xml: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "status.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "terms.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "thanks.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "use-cases.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/404.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/about.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/article-beliefs.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/article-context.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/article-reuse.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/beta.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/blog.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/demo.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/how-it-works.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/index.html: all original text preserved except the removed navigation",
+      "pass": true
+    },
+    {
+      "check": "zh/index.html: entire hero markup frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/index.html: no duplicate section navigation",
+      "pass": true
+    },
+    {
+      "check": "zh/principles.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/privacy-policy.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/status.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/terms.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/thanks.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "zh/use-cases.html: non-homepage bytes frozen",
+      "pass": true
+    },
+    {
+      "check": "assets/website/site.css: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "assets/website/interior.css: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "assets/website/product-experience.css: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "assets/website/home-core-v2.js: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "assets/website/site.js: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "website/product_hero.py: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "website/core.py: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "website/topic_preview.py: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "website/prompt_preview.py: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "website/product_sections.py: shared owner byte-identical",
+      "pass": true
+    },
+    {
+      "check": "English alias remains exact",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "zh/768: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/768: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/768: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/768: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/768: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/768: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/768: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/768: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/768: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "zh/768: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "zh/768: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "zh/768: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "zh/768: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "zh/768: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "zh/768: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "zh/768: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "zh/768: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "zh/768: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "zh/768: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "zh/768: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "zh/768: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "zh/768: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/768: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/768: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/768: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "zh/390: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/390: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/390: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/390: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/390: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/390: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/390: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/390: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/390: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "zh/390: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "zh/390: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "zh/390: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "zh/390: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "zh/390: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "zh/390: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "zh/390: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "zh/390: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "zh/390: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "zh/390: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "zh/390: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "zh/390: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "zh/390: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/390: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/390: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/390: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "zh/320: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/320: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/320: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/320: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/320: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/320: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/320: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/320: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/320: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "zh/320: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "zh/320: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "zh/320: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "zh/320: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "zh/320: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "zh/320: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "zh/320: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "zh/320: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "zh/320: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "zh/320: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "zh/320: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "zh/320: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "zh/320: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/320: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/320: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/320: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "en/1440: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1440: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1440: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1440: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1440: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1440: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1440: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1440: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1440: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "en/1440: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "en/1440: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "en/1440: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "en/1440: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "en/1440: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "en/1440: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "en/1440: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "en/1440: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "en/1440: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "en/1440: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "en/1440: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1440: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1440: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "en/1440: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "en/1440: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1440: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1440: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1440: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "en/1024: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1024: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1024: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1024: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1024: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1024: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1024: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1024: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1024: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "en/1024: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "en/1024: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "en/1024: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "en/1024: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "en/1024: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "en/1024: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "en/1024: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "en/1024: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "en/1024: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "en/1024: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "en/1024: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "en/1024: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1024: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1024: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "en/1024: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "en/1024: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1024: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1024: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1024: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "en/768: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/768: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/768: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/768: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/768: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/768: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/768: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/768: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/768: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "en/768: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "en/768: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/768: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/768: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/768: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/768: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "en/768: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "en/768: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "en/768: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "en/768: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "en/768: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "en/768: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "en/768: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "en/768: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "en/768: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "en/768: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "en/768: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "en/768: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/768: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/768: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "en/768: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "en/768: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/768: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/768: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/768: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/768: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "en/768: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "en/390: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/390: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/390: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/390: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/390: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/390: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/390: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/390: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/390: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "en/390: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "en/390: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/390: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/390: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/390: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/390: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "en/390: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "en/390: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "en/390: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "en/390: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "en/390: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "en/390: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "en/390: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "en/390: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "en/390: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "en/390: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "en/390: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "en/390: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/390: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/390: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "en/390: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "en/390: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/390: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/390: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/390: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/390: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "en/390: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "en/320: orb: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/320: orb: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/320: orb: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/320: orb: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/320: capsule: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/320: capsule: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/320: capsule: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/320: capsule: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/320: capsule opens the same board",
+      "pass": true
+    },
+    {
+      "check": "en/320: collapse returns to the selected capsule",
+      "pass": true
+    },
+    {
+      "check": "en/320: board: deliberate state only",
+      "pass": true
+    },
+    {
+      "check": "en/320: board: one selected visual state",
+      "pass": true
+    },
+    {
+      "check": "en/320: board: selecting a shape never inserts",
+      "pass": true
+    },
+    {
+      "check": "en/320: board: Context permission unchanged",
+      "pass": true
+    },
+    {
+      "check": "en/320: board respects the approved 322/336px width without widening",
+      "pass": true
+    },
+    {
+      "check": "en/320: normal viewport has a usable band",
+      "pass": true
+    },
+    {
+      "check": "en/320: board does not overlap composer or top controls",
+      "pass": true
+    },
+    {
+      "check": "en/320: multiline expression requires visible full-text checking",
+      "pass": true
+    },
+    {
+      "check": "en/320: checking preserves the full existing draft",
+      "pass": true
+    },
+    {
+      "check": "en/320: checking shows exact multiline wording",
+      "pass": true
+    },
+    {
+      "check": "en/320: full-text viewport stays bounded",
+      "pass": true
+    },
+    {
+      "check": "en/320: confirmed insertion preserves the middle caret and suffix",
+      "pass": true
+    },
+    {
+      "check": "en/320: stale confirmation refuses rather than overwrites",
+      "pass": true
+    },
+    {
+      "check": "en/320: IME composition prevents insertion",
+      "pass": true
+    },
+    {
+      "check": "en/320: overflow refusal retains the entire draft",
+      "pass": true
+    },
+    {
+      "check": "en/320: blur and inactivity do not collapse the board",
+      "pass": true
+    },
+    {
+      "check": "en/320: no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/320: 200% text has no horizontal page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/320: 200% prose is actually enlarged",
+      "pass": true
+    },
+    {
+      "check": "en/320: 200% board text is enlarged without widening the board",
+      "pass": true
+    },
+    {
+      "check": "en/320: info: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/320: rules: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/320: now: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/320: inputs: card still visible with enlarged text",
+      "pass": true
+    },
+    {
+      "check": "en/320: no page script errors",
+      "pass": true
+    },
+    {
+      "check": "en/320: no fetch, XHR, WebSocket or submission",
+      "pass": true
+    },
+    {
+      "check": "zh: all original examples retained without JS",
+      "pass": true
+    },
+    {
+      "check": "zh: continuous readers remain in the no-JS document",
+      "pass": true
+    },
+    {
+      "check": "zh: inert specimen controls honestly disabled without JS",
+      "pass": true
+    },
+    {
+      "check": "zh: no-JS mobile reflow",
+      "pass": true
+    },
+    {
+      "check": "en: all original examples retained without JS",
+      "pass": true
+    },
+    {
+      "check": "en: continuous readers remain in the no-JS document",
+      "pass": true
+    },
+    {
+      "check": "en: inert specimen controls honestly disabled without JS",
+      "pass": true
+    },
+    {
+      "check": "en: no-JS mobile reflow",
+      "pass": true
+    }
+  ]
+}

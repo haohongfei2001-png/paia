@@ -1,0 +1,51 @@
+[
+  {
+    "url": "https://inputarchive.com/",
+    "path": "index.html",
+    "live_sha256": "ecea725fa0f5ab5c057fed44e52972e3f262b8bb01607f0ab17a0e1085a95d2d",
+    "main_sha256": "ecea725fa0f5ab5c057fed44e52972e3f262b8bb01607f0ab17a0e1085a95d2d",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/zh/",
+    "path": "zh/index.html",
+    "live_sha256": "76d4e7198e670266096d72cc5eb6290fce5897efad5f2fb6ef91398383445371",
+    "main_sha256": "76d4e7198e670266096d72cc5eb6290fce5897efad5f2fb6ef91398383445371",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/assets/website/site.css?v=20261009b",
+    "path": "assets/website/site.css",
+    "live_sha256": "258f269a118935fb53c5aa72032cf1b54ac795463f6288332007721f623bf67a",
+    "main_sha256": "258f269a118935fb53c5aa72032cf1b54ac795463f6288332007721f623bf67a",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/assets/website/interior.css?v=20261009a",
+    "path": "assets/website/interior.css",
+    "live_sha256": "5009ac6df1e4015117faabfdfccc19d599971d44b833ee5465bb8e04f7262635",
+    "main_sha256": "5009ac6df1e4015117faabfdfccc19d599971d44b833ee5465bb8e04f7262635",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/assets/website/product-experience.css?v=20261009a",
+    "path": "assets/website/product-experience.css",
+    "live_sha256": "79046a68e3971bdb6c94974153daefc74e42137035b48e53e6a4e20b6882d1b5",
+    "main_sha256": "79046a68e3971bdb6c94974153daefc74e42137035b48e53e6a4e20b6882d1b5",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/assets/website/home-core-v2.js?v=20261009a",
+    "path": "assets/website/home-core-v2.js",
+    "live_sha256": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "main_sha256": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "equal": true
+  },
+  {
+    "url": "https://inputarchive.com/assets/website/site.js?v=20261009a",
+    "path": "assets/website/site.js",
+    "live_sha256": "1bd78e14513ed349e50e86ba8e16ab28cf0dbc2250948084ac7230a9d111f36a",
+    "main_sha256": "1bd78e14513ed349e50e86ba8e16ab28cf0dbc2250948084ac7230a9d111f36a",
+    "equal": true
+  }
+]
