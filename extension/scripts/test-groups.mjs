@@ -1,5 +1,6 @@
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
+const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
 const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
@@ -11,7 +12,7 @@ const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
 const CURRENT_NINE=new Map([
  [promotion,4],
  [NIB_BROWSER[0],9],[NIB_BROWSER[1],9],[NIB_BROWSER[2],2],[NIB_BROWSER[3],6],[NIB_BROWSER[4],1],[NIB_BROWSER[5],7],
- [removedPlacement,4],[settingsData,4],
+ [removedPlacement,4],[settingsData,4],[pendingHistory,7],
  ["activation-return-round410-chrome-e2e.test.mjs",9],
  ["ans-01-reader-surfaces-chrome-e2e.test.mjs",9],
  ["ans-02-source-foundation-chrome-e2e.test.mjs",6],
@@ -165,6 +166,8 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ // Independent whole pending-history file; preserve all prior historical positions.
+ const pendingName=file.replaceAll('\\','/').split('/').at(-1);if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(pendingName===pendingHistory)return 3;if(pendingName>pendingHistory)position--;}
  const dataName=file.replaceAll('\\','/').split('/').at(-1);if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(dataName===settingsData)return 4;if(dataName>settingsData)position--;}
  const addedName=file.replaceAll('\\','/').split('/').at(-1);
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===promotion)return 4;if(addedName>promotion)position--;}

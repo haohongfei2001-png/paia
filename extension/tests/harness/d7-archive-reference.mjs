@@ -70,7 +70,7 @@ export async function consentD7Archive(h){
 
 // Capture the normal synthetic text through the real adapter. Only relationship
 // metadata is added with the existing SourceStructureStore fixture API.
-export async function seedD7Archive(h,{readerOnly=false}={}){
+export async function seedD7Archive(h,{readerOnly=false,beforeMetadata=null}={}){
  const prior=await h.state(),priorIds=new Set(prior.records.map(row=>row.id));
  const titles=[D7_READER_FIXTURE.title,'第一次试用之后的想法','路线可以少一点吗','Onboarding: what stays simple','长期使用，而不是一次惊喜','职业方向','学习与写作','日常想法','一次还没命名的讨论'];
  const projects=['河岸散步','河岸散步','河岸散步','河岸散步','河岸散步','职业方向','学习与写作','日常想法',null],fixtures=[];
@@ -82,6 +82,9 @@ export async function seedD7Archive(h,{readerOnly=false}={}){
   await eventually(async()=>{const state=await h.state();return fixture.messages.every(message=>state.records.some(row=>row.sourceMessageId===message.id&&row.originalText===message.text));},'D7 normal fixture captured');
   await capture.close();
  }
+ // Run an optional completion barrier after all original capture checks and
+ // closed synthetic hosts, before the existing SDK metadata operations.
+ if(beforeMetadata)await beforeMetadata();
  await h.archive.evaluate(async fixtures=>{
   const {OrganizerStore}=await import('../core/organizer/store.js'),{SourceStructureStore}=await import('../core/source-structure-store.js'),store=new OrganizerStore(chrome.storage.local),structure=new SourceStructureStore(store);
   try{for(const [i,item]of fixtures.entries()){

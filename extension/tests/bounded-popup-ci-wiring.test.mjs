@@ -43,9 +43,9 @@ test('UI coherence requires complete popup and Settings/import owners within the
  const targeted=workflow.slice(workflow.indexOf('  targeted_browser:'),workflow.indexOf('\n  capture_recovery:'));
  assert.match(targeted.split('    steps:')[0],/PAIA_D7_UI_COHERENCE/);assert.match(targeted,/timeout-minutes: 12/);
  const step=targeted.slice(targeted.indexOf('      - name: D7 UI coherence through'),targeted.indexOf('      - name: Retain D7 UI coherence'));
- assert.match(step,/tests\/uir-04-settings-chrome-e2e.test.mjs tests\/uir-04-data-chrome-e2e.test.mjs scripts\/verify-d7-history-import.mjs/);
+ assert.match(step,/tests\/uir-04-settings-chrome-e2e.test.mjs tests\/uir-04-data-chrome-e2e.test.mjs tests\/uir-04-pending-history-chrome-e2e.test.mjs scripts\/verify-d7-history-import.mjs/);
  assert.doesNotMatch(step,/test-name-pattern|test-skip-pattern|continue-on-error/);
- for(const expected of ['summary.total,7','summary.pass,7','summary.fail,0','summary.skipped,0','report.head,process.env.PAIA_TESTED_HEAD',"report.result,'PASS'",'report.rows.map(row=>row.id),ids','report.invariants.externalRequests,0','report.invariants.providerRequests,0'])assert.ok(step.includes(expected),expected);
+ for(const expected of ['summary.total,9','summary.pass,9','summary.fail,0','summary.skipped,0','report.head,process.env.PAIA_TESTED_HEAD',"report.result,'PASS'",'report.rows.map(row=>row.id),ids','report.invariants.externalRequests,0','report.invariants.providerRequests,0'])assert.ok(step.includes(expected),expected);
  assert.ok(step.includes('git cat-file -e 96832cd7e07db7f9946648c0079d1c49e2dfd6cc^{commit} 2>/dev/null || git fetch --no-tags --depth=1 origin 96832cd7e07db7f9946648c0079d1c49e2dfd6cc'));
  assert.ok(step.includes('test "$(git rev-parse 96832cd7e07db7f9946648c0079d1c49e2dfd6cc^{commit})" = 96832cd7e07db7f9946648c0079d1c49e2dfd6cc'));
  for(const state of ['thought-empty','selection-light','selection-dark','selection-320-text200','selection-coarse','preview-light','preview-320','importing-dark','paused-320-dark','reselect-light','completed-light','partial-dark','cancelled-light','error-320'])assert.ok(step.includes("'"+state+"'"));

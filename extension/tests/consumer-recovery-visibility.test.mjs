@@ -56,3 +56,27 @@ test('actual integrity panel retains detected relation faults until a clean chec
  const pending=panel.run();assert.equal(f.node('product-diagnostics').hidden,false,'an active check retains its controls');await panel.cancel();finish({ok:true,data:{sessionId:'synthetic-late',state:'ready',counts:{orphan_entries:4}}});await pending;
  assert.equal(f.node('product-diagnostics').hidden,true);assert.match(f.node('integrity-status').textContent,/已停止/);
 });
+
+function repairPresentation(t){
+ const f=fixture(t),get=globalThis.document.getElementById,status=new PresentationNode(),warning=new PresentationNode();
+ globalThis.document.getElementById=id=>id==='library-maintenance-status'?status:id==='settings-search-warning'?warning:get(id);
+ f.node('library-rebuild-search').closest=()=>({open:true});return {...f,status,warning};
+}
+test('an actual pending repair settles after a newer still-indexing read without stranding its status',async t=>{
+ const f=repairPresentation(t);f.reply(refused('STORAGE_FAILED'));await assert.rejects(request('SEARCH_LIBRARY'));
+ let finish;f.reply(()=>new Promise(resolve=>finish=resolve));const repair=request('REBUILD_LIBRARY_SEARCH'),failure=assert.rejects(repair,{code:'STORAGE_FAILED'});
+ assert.equal(f.node('library-rebuild-search').disabled,true);assert.match(f.status.textContent,/正在请求/);
+ f.reply(async()=>({ok:true,data:{indexing:true,items:[]}}));await request('SEARCH_LIBRARY');assert.equal(f.warning.hidden,false);
+ finish({ok:false,error:'STORAGE_FAILED'});await failure;
+ assert.equal(f.node('library-rebuild-search').disabled,false);assert.equal(f.status.hidden,false);assert.match(f.status.textContent,/尚未完成/);assert.doesNotMatch(f.status.textContent,/正在请求/);assert.equal(f.warning.hidden,false);
+ assert.equal(f.calls.filter(call=>call.type==='REBUILD_LIBRARY_SEARCH').length,1);
+});
+test('a newer healthy search wins over a late actual repair failure while in-flight work stays honestly visible',async t=>{
+ const f=repairPresentation(t);f.reply(refused('STORAGE_FAILED'));await assert.rejects(request('SEARCH_LIBRARY'));
+ let finish;f.reply(()=>new Promise(resolve=>finish=resolve));const repair=request('REBUILD_LIBRARY_SEARCH'),failure=assert.rejects(repair,{code:'STORAGE_FAILED'});
+ f.reply(async()=>({ok:true,data:{indexing:false,items:[]}}));await request('SEARCH_LIBRARY');
+ assert.equal(f.warning.hidden,true);assert.equal(f.node('library-rebuild-search').disabled,true);assert.equal(f.status.hidden,false);assert.match(f.status.textContent,/正在请求/);
+ finish({ok:false,error:'STORAGE_FAILED'});await failure;
+ assert.equal(f.node('library-rebuild-search').disabled,false);assert.equal(f.warning.hidden,true);assert.equal(f.node('library-rebuild-search').hidden,true);assert.equal(f.status.hidden,true);assert.equal(f.status.textContent,'');
+ assert.equal(f.calls.filter(call=>call.type==='REBUILD_LIBRARY_SEARCH').length,1);
+});

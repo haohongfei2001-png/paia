@@ -1,3 +1,4 @@
+const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
 const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
@@ -12,12 +13,12 @@ test('current Section return journey preserves all 425 accepted whole-file route
  assert.equal(prior.base,'f1963370461f5c5899eddee0bee8cef40712c822');
  assert.deepEqual(prior.widths,[4,5,6,7,9]);assert.equal(prior.rows.length,85);
  const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();
- assert.equal(names.length,95);assert.deepEqual(names.filter(n=>n!==settingsData&&n!==promotion&&!['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'].includes(n)&&n!==preferencePublication&&n!==added),prior.rows.map(r=>r[0]));
+ assert.equal(names.length,96);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'].includes(n)&&n!==preferencePublication&&n!==added),prior.rows.map(r=>r[0]));
  for(const [column,width]of prior.widths.entries()){
   for(const [name,...routes]of prior.rows)assert.equal(testShard(name,names.indexOf(name),width,'browser E2E'),routes[column],width+':'+name);
   assert.equal(testShard(added,names.indexOf(added),width,'browser E2E'),2);
   const partition=Array.from({length:width},(_,i)=>names.filter((name,p)=>testShard(name,p,width,'browser E2E')===i+1)).flat();
-  assert.equal(new Set(partition).size,95);assert.deepEqual(partition.sort(),names);
+  assert.equal(new Set(partition).size,96);assert.deepEqual(partition.sort(),names);
  }
  assert.equal(group('topic-section-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
 });
