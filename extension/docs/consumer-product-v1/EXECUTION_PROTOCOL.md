@@ -1,3 +1,11 @@
+# Current execution — remaining Canonical engineering (2026-10-13)
+
+The local Chrome stage **0.43.29 is delivered**. PRs **#266, #268 and #270 are merged**; their pending/failed candidate snapshots below are historical evidence, not current tasks. Delivery main `51303e8436faa24f445906a6c4a2c278d6d93001` passed Certification `38308057095` and Prompt `38308057140`. Current batch starts from remote main `07d90b715be8a1e0c707abc6a86d873436677b4c`; its later website-only change preserves the qualified extension runtime. Do not repeat that delivery's implementation, build or acceptance.
+
+**Selected next implementation: AI-COST-02 bounded Qwen SSE and normal JSON byte decoding**, feeding the existing usage parser. Root owns integration; the normal JSON author and independent reviewers use isolated scopes; [the scoped record](implementation/ai-usage/AI-COST-02-QWEN-SSE.md) tracks code, tests, independent review and integration separately. This is local engineering within the existing AI_USAGE_PLAN §4/§12 outcome, not a new plan or live AI activation. The seven approved Canonical plans and remaining final gates continue. SYNC-01 new features remain paused at checkpoint `79a883c330c6c1102e58ab556bdd44ff0190c6a8`; Pro retains PR #264 and CI infrastructure. Missing real service/account/paid conditions block only their dependent actions. After this slice, continue the next independently executable Canonical engineering task.
+
+## Historical checkpoints (retained unchanged)
+
 # PR266 parallel local-delivery correction — 2026-10-13
 
 PR2662c8b837 Full38279189280 failed Unit3 and Browser4/9; the original failed logs remain. Unit3 lacked the real Backup mode label parent in its presentation fixture. Browser9 still read conflict text from the old preview block. Both owning tests now use the actual structure/stages while retaining original safety, digest and timeout assertions. Browser1 and Browser8 passed, and current Backup screenshots confirm the two-step hierarchy; the remaining original15 stacked mode-label/native-field styling is corrected in scoped CSS.

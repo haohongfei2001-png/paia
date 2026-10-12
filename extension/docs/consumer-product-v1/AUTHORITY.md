@@ -1,3 +1,11 @@
+# Current execution — remaining Canonical engineering (2026-10-13)
+
+The local Chrome stage **0.43.29 is delivered**. PRs **#266, #268 and #270 are merged**; their pending/failed candidate snapshots below are historical evidence, not current tasks. Delivery main `51303e8436faa24f445906a6c4a2c278d6d93001` passed Certification `38308057095` and Prompt `38308057140`. Current batch starts from remote main `07d90b715be8a1e0c707abc6a86d873436677b4c`; its later website-only change preserves the qualified extension runtime. Do not repeat that delivery's implementation, build or acceptance.
+
+**Selected next implementation: AI-COST-02 bounded Qwen SSE and normal JSON byte decoding**, feeding the existing usage parser. Root owns integration; the normal JSON author and independent reviewers use isolated scopes; [the scoped record](implementation/ai-usage/AI-COST-02-QWEN-SSE.md) tracks code, tests, independent review and integration separately. This is local engineering within the existing AI_USAGE_PLAN §4/§12 outcome, not a new plan or live AI activation. The seven approved Canonical plans and remaining final gates continue. SYNC-01 new features remain paused at checkpoint `79a883c330c6c1102e58ab556bdd44ff0190c6a8`; Pro retains PR #264 and CI infrastructure. Missing real service/account/paid conditions block only their dependent actions. After this slice, continue the next independently executable Canonical engineering task.
+
+## Historical checkpoints (retained unchanged)
+
 # Owner-selected local Chrome delivery priority — 2026-10-12
 
 [Current priority](LOCAL_CHROME_DELIVERY_PRIORITY_2026-10-12.md) supersedes earlier execution pointers: complete the approved local product and self-installable Chrome artifact; pause new SYNC-01 features with a safe R109 checkpoint and retain all safety protections, seven plans and future Sync goals. PR266 continues; Pro exclusively owns PR264/CI infrastructure. Preserve approved originals and truthful unavailable AI states. This is a priority decision, not completed acceptance or an installed build.

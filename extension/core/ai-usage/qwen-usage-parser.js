@@ -1,5 +1,7 @@
-// Pure decoded-response parsing. No service/registry, SSE decoder or authority.
+// Pure response parsing. No service, registry, network or financial authority.
 import {normalizeUsage} from './usage-normalization.js';
+import {createQwenSseDecoder} from './qwen-sse-decoder.js';
+import {createQwenJsonDecoder} from './qwen-json-decoder.js';
 
 const HARD=Object.freeze({maxBytes:1048576,maxFrames:4096,maxDepth:16,maxKeys:16384,maxStringBytes:262144,inputTokens:16000,billableOutputCap:6000});
 const encoder=new TextEncoder();
@@ -177,3 +179,48 @@ function execute(options,stream){
 
 export const parseQwenUsage=options=>execute(options,false);
 export const parseQwenStreamUsage=options=>execute(options,true);
+
+// Incremental wire-byte entry for the existing usage owner. The future trusted
+// transport must supply actual HTTP status and finish only at actual EOF (or
+// cancellation); these inputs are not a service/qualification proof.
+function createQwenByteUsageParser(options,stream){
+ let binding,httpStatus,decoder,frames=[],terminal=null,finished=false;
+ const clear=()=>{decoder?.dispose();decoder=null;frames=[];};
+ const reject=(state,reason)=>{terminal=output(state,reason);clear();};
+ try{
+  const o=snapshot(options,{maxBytes:16384,maxDepth:8,maxKeys:128,maxStringBytes:200});
+  if(!exact(o,['binding','httpStatus'])||!integer(o.httpStatus)||o.httpStatus<100||o.httpStatus>599)reject('INVALID','RESPONSE_SHAPE_INVALID');
+  else{
+   binding=prepareBinding(o.binding);httpStatus=o.httpStatus;
+   if(!binding)reject('UNKNOWN','BINDING_UNAVAILABLE');
+   else if(httpStatus!==200)reject('UNKNOWN','FINAL_USAGE_MISSING');
+   else {
+    const fail=(state,reason)=>state==='UNKNOWN'?unknown(reason):error(reason);
+    decoder=stream?createQwenSseDecoder(binding.limits,frame=>frames.push(frame),fail):createQwenJsonDecoder(binding.limits,fail);
+   }
+  }
+ }catch(e){terminal=failure(e);clear();}
+ return Object.freeze({
+  push(chunk){
+   if(finished||terminal)return false;
+   try{decoder.push(chunk);return true;}catch(e){terminal=failure(e);clear();return false;}
+  },
+  finish(state){
+   if(finished)return structuredClone(terminal||output('UNKNOWN','TRANSPORT_INCOMPLETE'));
+   finished=true;
+   if(!terminal)try{
+    const s=snapshot(state,{maxBytes:256,maxDepth:1,maxKeys:8,maxStringBytes:32});
+    if(!exact(s,['transportComplete','cancelled'])||typeof s.transportComplete!=='boolean'||typeof s.cancelled!=='boolean')reject('INVALID','RESPONSE_SHAPE_INVALID');
+    else if(s.cancelled||!s.transportComplete)reject('UNKNOWN','TRANSPORT_INCOMPLETE');
+    else {
+     const decoded=decoder.finish();
+     terminal=stream?parseQwenStreamUsage({binding,frames,done:decoded,httpStatus,...s}):parseQwenUsage({binding,response:decoded,httpStatus,...s});
+    }
+   }catch(e){terminal=failure(e);}
+   clear();return structuredClone(terminal);
+  }
+ });
+}
+
+export function createQwenSseUsageParser(options){return createQwenByteUsageParser(options,true);}
+export function createQwenJsonUsageParser(options){return createQwenByteUsageParser(options,false);}
