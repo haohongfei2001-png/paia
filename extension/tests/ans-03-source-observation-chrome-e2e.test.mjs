@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 
@@ -20,30 +21,45 @@ async function initializeSourceReader(page){
   // Initialize before the live producer. Only this independent original
   // conversation/history reader may retry one pre-callback publication change.
   const originalRun=s.run.bind(s),retry=${runWithPreDispatchReadRetry.toString()};
-  s.run=callback=>retry(originalRun,callback);
-  globalThis.__ans03SourceReader={store:s,structure:new SourceStructureStore(s)};
+  const trace={phase:null,lastPhase:null,calls:0,attempts:[]};
+  s.run=callback=>{
+   const call=++trace.calls;let attempt=0;
+   return retry(work=>{
+    const row={call,phase:trace.phase,attempt:++attempt,entered:false,outcome:'pending'};
+    trace.attempts.push(row);if(trace.attempts.length>48)trace.attempts.shift();
+    const pending=originalRun(()=>{row.entered=true;return work();});
+    void pending.then(()=>{row.outcome='returned';},error=>{row.outcome='rejected';row.error=typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(error.code)?error.code:'UNCLASSIFIED';}).catch(()=>{});
+    return pending;
+   },callback);
+  };
+  globalThis.__ans03SourceReader={store:s,structure:new SourceStructureStore(s),trace};
  })()`);
 }
 async function sourceRow(page,id){
  return page.evaluate(async id=>{
-  const structure=globalThis.__ans03SourceReader.structure;
-  const ref={platform:'chatgpt',sourceConversationId:id},row=await structure.conversation(ref);
-  const history=await structure.history({kind:'conversation',conversationRef:ref});
-  return {row,history:history.items};
+  const {structure,trace}=globalThis.__ans03SourceReader;
+  try{
+   trace.lastPhase=trace.phase='conversation';
+   const ref={platform:'chatgpt',sourceConversationId:id},row=await structure.conversation(ref);
+   trace.lastPhase=trace.phase='history';
+   const history=await structure.history({kind:'conversation',conversationRef:ref});
+   return {row,history:history.items};
+  }finally{trace.phase=null;}
  },id);
 }
 test('ANS-03 trusted current-route observation settles after capture, respects exclusion/pause, and synthetic lifecycle stays separate',{timeout:240000},async()=>{
  const h=await FakeChatGPT.start({headless:true});
+ let phase='consent-and-reader';
  try{
   const archive=h.archive;await consent(archive);await initializeSourceReader(archive);
   const a={id:'ans03-browser-presence',title:'ANS-03 Presence',base:1609459200,messages:[
    {id:'ans03-browser-message-001',text:'ANS03 SAME SYNTHETIC TEXT'},
    {id:'ans03-browser-message-002',text:'ANS03 SAME SYNTHETIC TEXT'}
   ]};
-  const chat=await h.open(a,{arrival:'dom-first'});
+  phase='initial-source-capture';const chat=await h.open(a,{arrival:'dom-first'});
   await eventually(async()=>(await h.state()).records.filter(r=>r.chatId===a.id).length===2,
     'ANS-03 production capture completes');
-  await eventually(async()=>Boolean((await sourceRow(archive,a.id)).row?.lastObservedAt),
+  phase='initial-route-observation';await eventually(async()=>Boolean((await sourceRow(archive,a.id)).row?.lastObservedAt),
     'ANS-03 production plain-route observation settles after source exists');
   let observed=await sourceRow(archive,a.id);
   assert.equal(observed.row.membership.state,'unassigned');assert.equal(observed.row.sourceStatus,'unknown');
@@ -53,7 +69,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal(new Set(captured.map(r=>r.sourceKey)).size,2,'same text with different IDs remains separate');
   const documentId=(await h.state()).library.documents.find(d=>d.sourceConversationId===a.id)?.id;
   assert.ok(documentId);
-  await rpc(archive,'PAIA_READER_CAPTURE_SCOPE',{options:{documentId,excluded:true}});
+  phase='excluded-reload';await rpc(archive,'PAIA_READER_CAPTURE_SCOPE',{options:{documentId,excluded:true}});
   const lastObservedAt=observed.row.lastObservedAt;
   await chat.reload();await pause(2600);
   observed=await sourceRow(archive,a.id);
@@ -63,11 +79,11 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   const b={id:'ans03-browser-lifecycle',title:'ANS-03 Lifecycle',base:1609469200,messages:[
    {id:'ans03-life-message-001',text:'ANS03 lifecycle source'}
   ]};
-  await h.spa(chat,b);
+  phase='second-source-and-route-observation';await h.spa(chat,b);
   await eventually(async()=>(await h.state()).records.some(r=>r.chatId===b.id),'ANS-03 second source captures');
   await eventually(async()=>Boolean((await sourceRow(archive,b.id)).row?.lastObservedAt),
     'ANS-03 second production plain-route observation settles');
-  const synthetic=await archive.evaluate(async id=>{
+  phase='synthetic-relationship-sequence';const synthetic=await archive.evaluate(async id=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceStructureStore}=await import('../core/source-structure-store.js');
    const {createSourceStructurePolicy,admitSourceStructureDTO}=await import('../core/source-structure-admission.js');
@@ -113,7 +129,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal(synthetic.current.sourceStatus,'observed_active');assert.equal(synthetic.current.relationshipRevision,5);
   assert.equal(synthetic.project.currentName,'Browser B Renamed');assert.equal(synthetic.project.relationshipRevision,2);
   assert.equal(synthetic.history.length,5);
-  await h.restartWorker();
+  phase='worker-restart-and-remount';await h.restartWorker();
   const afterWorkerRestart=await sourceRow(archive,b.id);
   assert.equal(afterWorkerRestart.row.membership.state,'project','worker restart alone does not fabricate a new page observation');
   assert.equal(afterWorkerRestart.row.relationshipRevision,5);
@@ -126,7 +142,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal(afterRestart.row.relationshipRevision,6,'one effective Project → unassigned correction is recorded');
   assert.equal(afterRestart.history.length,6);
 
-  await rpc(archive,'SET_ENABLED',{enabled:false});
+  phase='paused-source';await rpc(archive,'SET_ENABLED',{enabled:false});
   const c={id:'ans03-browser-paused',title:'ANS-03 Paused',base:1609479200,messages:[
    {id:'ans03-paused-message-001',text:'ANS03 paused source must not persist'}
   ]};
@@ -135,5 +151,12 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   assert.equal((await h.state()).records.some(r=>r.chatId===c.id),false);
   assert.equal(h.extensionNetworkRequests,0,'source observation adds no active extension request');
   assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+ }catch(error){
+  try{
+   const reader=await h.archive.locator('html').evaluate(()=>{const r=globalThis.__ans03SourceReader;return r?{trace:structuredClone(r.trace),initialized:['loaded','iaLoaded','filterLoaded','foundationLoaded','bindingsLoaded','documentsLoaded'].every(key=>r.store[key]===true)}:null;},null,{timeout:1000});
+   const diagnostic={phase,reader};console.error('ANS03_SOURCE_READER_DIAGNOSTIC',JSON.stringify(diagnostic));
+   await mkdir('work/ans03-source-observation-diagnostic',{recursive:true});await writeFile('work/ans03-source-observation-diagnostic/failure.json',JSON.stringify(diagnostic,null,2)+'\n');
+  }catch{}
+  throw error;
  }finally{try{await h.archive.evaluate(async()=>{const reader=globalThis.__ans03SourceReader;delete globalThis.__ans03SourceReader;if(reader)await reader.store.repository.close();});}finally{await h.close();}}
 });

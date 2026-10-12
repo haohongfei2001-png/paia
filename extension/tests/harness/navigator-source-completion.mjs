@@ -80,7 +80,8 @@ async function copiedFiles(root,prefix=''){
 
 // Accepts the original source or an already-built standard release. It does not
 // build, inject a provider, introduce an RPC, or change the original test budget.
-export async function startNavigatorSourceFixture({extensionPath=sourceRoot}={}){
+export async function startNavigatorSourceFixture({extensionPath=sourceRoot,launchThroughPort=true}={}){
+ assert.equal(typeof launchThroughPort,'boolean','explicit original browser startup mode');
  const gitRoot=execFileSync('git',['rev-parse','--show-toplevel'],{cwd:sourceRoot,encoding:'utf8'}).trim();
  const head=execFileSync('git',['rev-parse','HEAD'],{cwd:gitRoot,encoding:'utf8'}).trim();
  const tree=execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:gitRoot,encoding:'utf8'}).trim();
@@ -121,7 +122,7 @@ export async function startNavigatorSourceFixture({extensionPath=sourceRoot}={})
    files[path]={bytes:bytes.length,base:sha(bytes),mirror:sha(copied),sourceGit:gitBytes?sha(gitBytes):null};
   }
   const binding={head,tree,extensionPath,mirror,sourceRuntime,files,originalWorker:sha(Buffer.from(original)),instrumentedWorker:sha(Buffer.from(actual)),completionInjection:sha(Buffer.from(completionInjection)),helper:sha(await readFile(fileURLToPath(import.meta.url))),soleRuntimeDifference:'background/service-worker.js',providerInjection:null,fixtureOnly:true,productionInstrumentation:false};
-  harness=await FakeChatGPT.start({extensionPath:mirror,onboarding:true,launchThroughPort:true,headless:true});
+  harness=await FakeChatGPT.start({extensionPath:mirror,onboarding:true,launchThroughPort,headless:true});
   const worker=harness.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${harness.extensionId}/background/service-worker.js`);
   assert.ok(worker,'exact original private-mirror worker is present');
   const initial=await worker.evaluate(()=>globalThis.__navigatorSourceCompletion.read());
