@@ -103,6 +103,17 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
 
 verify_assets(ROOT, check)
 
+# Keep the current production copy/hero and all unrelated generated pages frozen.
+# This uses a committed exact baseline, not an editable candidate snapshot.
+import subprocess
+art_env = dict(os.environ, WEBSITE_ART_OUTPUT=str(OUT / 'art-direction-static'))
+art_result = subprocess.run([sys.executable, str(ROOT / 'website/art_direction_checks.py'), '--static-only'], env=art_env, capture_output=True, text=True)
+art_report_path = OUT / 'art-direction-static' / 'report.json'
+check(art_report_path.is_file(), 'homepage art-direction static guard returned evidence')
+for item in json.loads(art_report_path.read_text())['results']:
+    check(item['pass'], 'homepage frozen baseline: ' + item['check'])
+check(art_result.returncode == 0, 'homepage frozen baseline guard completed without error')
+
 # Selected D6 text/surface pairs. Visual review also inspects the composited
 # translucent layers; token contrast alone is not a full accessibility audit.
 def luminance(color):
@@ -258,13 +269,24 @@ try:
                     check(page.locator('.pc-thought').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e.querySelector(".pc-topic-source")).fontSize)<=parseFloat(getComputedStyle(e.querySelector("[data-thought-text]")).fontSize))'), f'{name}: {width}px provenance stays subordinate to the words')
                     check(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, f'{name}: {width}px default Topic overview is stable')
                     check(page.locator('.pc-prompt-management:visible').count() == 0, f'{name}: {width}px prompt management stays contextual')
+                    # Homepage now opens its board through one progressive
+                    # control, rather than three permanent state buttons.
+                    if page.locator('[data-scroll-story="prompt"]').count():
+                        advance = page.locator('[data-story-advance]')
+                        for _ in range(2):
+                            if not page.locator('#pc-prompt-card').is_visible():
+                                advance.click()
+                        check(page.locator('#pc-prompt-card').is_visible(), f'{name}: {width}px progressive board is reachable')
                     page.locator('[data-prompt-manage="0"]').focus()
                     page.keyboard.press('Enter')
                     check(page.locator('[data-pin]:visible').evaluate_all('els=>els.length===1 && els.every(e=>{const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length===1})'), f'{name}: {width}px disclosed Pin label stays on one line')
                     check(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'), f'{name}: {width}px prompt management does not overflow')
                     page.locator('#pc-prompt-0').press('Escape')
                     if width <= 480:
-                        check(page.locator('.pc-topic-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic overview uses one readable column')
+                        if page.locator('[data-scroll-story="thought"]').count():
+                            check(page.locator('.pc-topic-grid').evaluate("e=>getComputedStyle(e).display==='flex' && getComputedStyle(e).overflowX==='auto' && e.querySelector('[data-topic-block]').getBoundingClientRect().width >= 165"), f'{name}: {width}px rectangular Topics use a reachable horizontal rail')
+                        else:
+                            check(page.locator('.pc-topic-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic overview uses one readable column')
                         check(page.locator('.pc-context-grid').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Context cards stack for reading')
                     check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
                 if path.name == 'index.html':

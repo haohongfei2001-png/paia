@@ -1,0 +1,87 @@
+{
+  "zh-desktop-full": {
+    "width": 1440,
+    "height": 8774,
+    "bytes": 303966
+  },
+  "zh-thought-cards": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 48642
+  },
+  "zh-thought-open": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 49740
+  },
+  "zh-thought-organize": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 49906
+  },
+  "zh-prompt-orb": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 41786
+  },
+  "zh-prompt-capsule": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 45658
+  },
+  "zh-prompt-board": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 50624
+  },
+  "zh-context-collapsed": {
+    "width": 1440,
+    "height": 894,
+    "bytes": 44714
+  },
+  "zh-mobile-full": {
+    "width": 390,
+    "height": 8240,
+    "bytes": 235278
+  },
+  "en-desktop-full": {
+    "width": 1440,
+    "height": 8926,
+    "bytes": 344920
+  },
+  "en-thought-cards": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 56330
+  },
+  "en-thought-open": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 57616
+  },
+  "en-thought-organize": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 57414
+  },
+  "en-prompt-orb": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 49126
+  },
+  "en-prompt-capsule": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 53216
+  },
+  "en-prompt-board": {
+    "width": 1440,
+    "height": 900,
+    "bytes": 59954
+  },
+  "en-context-collapsed": {
+    "width": 1440,
+    "height": 894,
+    "bytes": 50362
+  }
+}
