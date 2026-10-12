@@ -13,7 +13,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 test('CPV1-01.2: a newly opened tab after a version update retains the same archive', { timeout: 120000 }, async t => {
   const release = await mkdtemp(join(tmpdir(), 'paia-cpv1-updated-release-'));
   const profile = await mkdtemp(join(tmpdir(), 'paia-cpv1-update-profile-'));
-  let h,stage='build fixture release';const started=Date.now(),events=[];
+  let h,freshPage,stage='build fixture release';const started=Date.now(),events=[];
   const output=join(root,'work/qa-mac-update-stage');
   const record=(kind,state={})=>{events.push({kind,stage,elapsedMs:Date.now()-started,...state});assert.ok(events.length<=64);mkdirSync(output,{recursive:true});writeFileSync(join(output,'update.json'),JSON.stringify({schema:1,claim:'SYNTHETIC_READ_ONLY_UPDATE_PHASE_DIAGNOSTIC',testedCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,events},null,2)+'\n');};
   const mark=value=>{stage=value;record('stage');};
@@ -51,7 +51,7 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
     assert.equal(h.extensionId, extensionId, 'version update preserves extension identity');
     assert.equal((await h.state()).records.length, 3, 'the existing archive remains after update');
     mark('open updated conversation');
-    const fresh = await h.open(conversation('cpv1-after-update'));
+    const fresh = await h.open(conversation('cpv1-after-update')); freshPage=fresh;
     mark('wait for updated capture bridge');
     await h.ready(fresh);
     mark('confirm six records after update');
@@ -67,7 +67,7 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
           const [status, snapshot] = await Promise.all([
             chrome.runtime.sendMessage({ type: 'GET_STATUS' }), chrome.runtime.sendMessage({ type: 'GET_STATE' }),
           ]);
-          return { statusOK: status?.ok === true, consented: status?.data?.consented === true,
+          return { statusOK: status?.ok === true, enabled: status?.data?.enabled === true, consented: status?.data?.consented === true, statusVersion: typeof status?.data?.version==='string'?status.data.version:null, adapterVersion: typeof status?.data?.adapterVersion==='string'?status.data.adapterVersion:null,
             recordCount: Array.isArray(snapshot?.data?.records) ? snapshot.data.records.length : null,
             consentDisabled: document.querySelector('#enable-consent')?.disabled ?? null };
         }),
@@ -75,6 +75,21 @@ test('CPV1-01.2: a newly opened tab after a version update retains the same arch
       ]));
     } catch { state.snapshotUnavailable = true; }
     finally { clearTimeout(timer); }
+    if(freshPage&&!freshPage.isClosed()){
+      let freshTimer;
+      try{Object.assign(state,await Promise.race([
+        freshPage.locator('html').evaluate(()=>({freshVisibility:document.visibilityState,freshReady:document.readyState,metadataBridgeActive:window.historyGateActive===true,renderedUserMessages:document.querySelectorAll('#messages [data-message-author-role="user"]').length}),null,{timeout:1000}),
+        new Promise(resolve=>{freshTimer=setTimeout(()=>resolve({freshProbeTimedOut:true}),1500);}),
+      ]));}catch{state.freshProbeUnavailable=true;}finally{clearTimeout(freshTimer);}
+    }
+    if(h&&!h.archive.isClosed()&&freshPage&&!freshPage.isClosed()){
+      try{Object.assign(state,await h.archive.locator('html').evaluate(async()=>{
+        const targets=await chrome.tabs.query({url:'https://chatgpt.com/c/cpv1-after-update'}),target=targets.find(tab=>!tab.incognito&&!tab.discarded);if(!target)return {captureProbeTargetMissing:true};
+        const [probe]=await chrome.scripting.executeScript({target:{tabId:target.id,frameIds:[0]},world:'ISOLATED',func:async()=>{const lifecycle=globalThis.PAIACaptureLifecycle,response=await chrome.runtime.sendMessage({type:'GET_STATUS'}),status=response?.data;return {captureActive:lifecycle?.active===true,captureReady:lifecycle?.ready===true,captureVersion:typeof lifecycle?.version==='string'&&/^[0-9.]{1,32}$/.test(lifecycle.version)?lifecycle.version:null,contentStatusOK:response?.ok===true,contentEnabled:status?.enabled===true,contentConsented:status?.consented===true,contentRuntimeVersion:typeof status?.runtimeVersion==='string'&&/^[0-9.]{1,32}$/.test(status.runtimeVersion)?status.runtimeVersion:null};}});return probe?.result??{captureProbeUnavailable:true};
+      },null,{timeout:1500}));}catch{state.captureProbeUnavailable=true;}
+    }
+    state.fixtureHistoryRequests=Number.isSafeInteger(h?.historyRequests)?h.historyRequests:null;state.pageErrorCount=Array.isArray(h?.errors)?h.errors.length:null;
+    record('failure',state);
     throw new Error(`new-tab update lifecycle failed at ${stage}; state=${JSON.stringify(state)}`, { cause: error });
   } finally {
     mark('final cleanup');

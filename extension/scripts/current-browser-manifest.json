@@ -327,6 +327,17 @@
       "shard": 8
     },
     {
+      "file": "uir-04-pending-history-chrome-e2e.test.mjs",
+      "shard": 7,
+      "legacy": [
+        3,
+        3,
+        3,
+        3,
+        7
+      ]
+    },
+    {
       "file": "uir-04-popup-local-tools-chrome-e2e.test.mjs",
       "shard": 9
     },

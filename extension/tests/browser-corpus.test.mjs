@@ -49,7 +49,7 @@ test('duplicate discovery, historical demotion and changed existing route fail i
 
 for(const [label,mutate]of [
  ['duplicate',m=>m.tests.push({...m.tests[0]})],
- ['out-of-range',m=>m.tests[0].shard=10],
+ ['out-of-range',m=>m.tests[0].shard=m.shards+1],
  ['fractional',m=>m.tests[0].shard=1.5],
  ['unsafe path',m=>m.tests[0].file='../escaped.test.mjs'],
  ['unknown field',m=>m.tests[0].skip=true],
@@ -75,4 +75,19 @@ test('existing verification-depth job requires preflight before expensive certif
  }
  const runner=readFileSync(new URL('../scripts/test.mjs',import.meta.url),'utf8');
  assert.ok(runner.indexOf('verifyDiscoveredBrowserCoverage();')<runner.indexOf('const startingDigest='));
+});
+
+test('PR263 pending-history keeps every original optional/current placement and required admission',()=>{
+ const name='uir-04-pending-history-chrome-e2e.test.mjs';
+ assert.ok(verifyDiscoveredBrowserCoverage().includes(name));
+ for(const width of [4,5,6,7,9])for(const position of [-1,0,9999])
+  assert.equal(testShard(name,position,width,'browser E2E'),width===9?7:3);
+ const workflow=readFileSync(new URL('../../.github/workflows/paia-candidate.yml',import.meta.url),'utf8');
+ assert.ok(workflow.includes('tests/'+name),'both relocated source/release scenarios remain selected upstream');
+ const checker=readFileSync(new URL('../scripts/check-ui-refresh-ci.mjs',import.meta.url),'utf8');
+ assert.ok(checker.includes('PENDING_HISTORY_CURRENT_NATIVE_NOT_ADMITTED'));
+ for(const legacy of [[3],[0,3,3,3,7],[3,3,3,3,10],[3,3,3,3,1.5]]){
+  const m=copy();m.tests.find(row=>row.file===name).legacy=legacy;
+  assert.throws(()=>validateBrowserManifest(m),/LEGACY_INVALID/);
+ }
 });

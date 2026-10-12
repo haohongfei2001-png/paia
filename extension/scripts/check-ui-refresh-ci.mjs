@@ -179,3 +179,8 @@ for(const width of [4,5,6,7,9])if(!names.has(settingsData)||group(settingsData)!
 console.log('SETTINGS_DATA_CURRENT_COVERAGE_PASS previous=94 added=1 total=95; original routes preserved');
 
 console.log(`CURRENT_BROWSER_MANIFEST_PASS files=${liveCurrent.length}; independent discovery and historical safety retained`);
+
+// Preserve PR #263's independently required relocated native scenarios.
+const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
+for(const width of [4,5,6,7,9])if(!names.has(pendingHistory)||group(pendingHistory)!=='browser E2E'||testShard(pendingHistory,0,width,'browser E2E')!==(width===9?7:3))throw Error('PENDING_HISTORY_CURRENT_NATIVE_NOT_ADMITTED');
+console.log('PENDING_HISTORY_CURRENT_COVERAGE_PASS; original routes preserved');

@@ -17,7 +17,7 @@ export function verifyBrowserCoverage(allFiles, manifest = browserManifest, clas
     for (const [index, width] of historicalRouting.widths.entries())
       if (browserShard(name, width, manifest) !== routes[index]) throw Error('BROWSER_BASELINE_ROUTE_CHANGED:' + name);
   }
-  for (const width of historicalRouting.widths) {
+  for (const width of new Set([...historicalRouting.widths, manifest.shards])) {
     const buckets = Array.from({length: width}, () => []);
     for (const file of actual) {
       const slot = browserShard(file, width, manifest);
