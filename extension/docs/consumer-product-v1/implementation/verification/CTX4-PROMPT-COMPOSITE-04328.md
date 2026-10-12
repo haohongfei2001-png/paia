@@ -1,3 +1,19 @@
+# PR266 exact991 failures and coherent .28 correction — 2026-10-12
+
+Remote main remains8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb/.27. Published991414f371cabee84bd1bceab0ee53fa23c37807 Full38222777597 FAILED Unit3, Browser2, Browser6 and both required aggregates; other16 required components succeeded. Separate Prompt38222777711 FAILED Unit3, foundation skipped. Neither successful components nor skipped/cancelled checks certify991. Preserve all original failures and preceding main/6a receipts.
+
+Three actual corrections form one successor: version_name now starts with the original required v0.43.28 prefix; the timed Topic reader reuses its already descriptor-checked chronology instead of reopening forty per-entry timestamp reads, while preserving explicit null timestamps and the unsorted legacy path; Context's qualified local name preview now shows at most five names plus the exact remainder, as the original approved prototype requires. The old three-name implementation receipt is not a later design amendment. Stable binding, safe-label masking, paused retained selections, malformed six-name refusal, original capabilities/externalAllowed=false, canonical state, Source/Working permissions and every main outcome remain. No CI, threshold, timeout, dependency, paid/provider/account or schema change.
+
+Fresh stable candidate on991 plus the exact six runtime/test/metadata corrections: ten complete owning unit files318PASS12301.024625ms; complete Context12/Prompt40/Section4 browser combination56PASS131318.167292ms; original whole continuous-reader2PASS11599.824834ms with Topic p95108.6ms and Section43.1ms, unchanged750ms thresholds and original0scan/40descriptor/hydration limits; package15862guards/465resourcesPASS. Zero failures/cancelled/skipped/todo in those executions. The1978 executable/test/build input prelaunch vector remains byte-identical after execution. This is precommit exact-byte evidence, not clean successor or Linux/public main acceptance. Original three-version tests3PASS213.918666ms are separately bound to991+the single label correction.
+
+Both original-reference source/release local20-scene comparisons pass with unchanged oracle and the later approved17px/680px reading override. Connections11/20 remain explicitly unavailable, completeVisualAcceptance=false; this is not whole22/global visual/device/provider approval. Original Linux991 artifact showed only Tablet summary height48→24 and footer automatic margin28.7969→52.7969 from the five-versus-three preview gap. Original991 topic artifact p95840.8ms retains its failed750ms gate; no unique infrastructure cause is invented. Independently reviewed timed-reader direction additionally preserves the purged-source null DTO fields.
+
+A separately attempted historical source-time-integration file failed first by sandbox Chrome launch, then by removed ui/response-time.html (ERR_FILE_NOT_FOUND); it is assigned to historical browser coverage, not the current timed-reader acceptance. Both failures remain failures; the original Section companion4PASS and the current source-time-resolver cases inside318 are scoped evidence. No retired diagnostics are reinstated and no historical assertion is discounted.
+
+Final frozen independent review must qualify the exact successor before one normal PR266 update/new-head Full. Successful local evidence does not authorize merge without fresh required head gates and exact-main qualification. No installed version, deployment, fullCTX4/SET2/SYNC or all-seven completion is claimed. Sync's separate Working4/Human7/Working5 consumer branch is preserved and not consumed by this candidate.
+
+## Preserved preceding evidence
+
 # Context save feedback and original Prompt Back prerequisite — 0.43.28
 
 ## Problem and resulting behavior
