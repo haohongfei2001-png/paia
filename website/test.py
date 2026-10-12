@@ -368,6 +368,13 @@ try:
             page.keyboard.press('Enter')
             check(orb.get_attribute('aria-expanded') == 'true' and page.locator('#pc-prompt-card').is_visible() and orb.evaluate('e=>e===document.activeElement'), f'{locale}: keyboard reopens the prompt card with focus retained')
             page.locator('.pc-prompt-scene').screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-prompt.png'), animations='disabled')
+            # The secondary scope explanation is deliberately collapsed on
+            # this homepage. Explicitly open it before inspecting its real
+            # permission controls; other pages keep their original behavior.
+            if page.locator('.ad-context-disclosure').count():
+                details = page.locator('.ad-context-disclosure')
+                if not details.evaluate('e=>e.open'):
+                    details.locator(':scope > summary').click()
             page.locator('[data-context-clear]').click()
             allowed = page.locator('[data-card-allow="rules"]')
             closed = page.locator('[data-card-allow="info"]')
