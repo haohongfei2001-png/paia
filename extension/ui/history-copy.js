@@ -1,4 +1,7 @@
 const COPY={
+ "预览历史输入":"Preview earlier inputs","确认导入":`Confirm import`,"时间范围":"Period","预计新增输入":"Estimated new inputs","归属待确认":"Needs a destination","发送时间未知":"Send time unknown","范围无法可靠确定":"A reliable period cannot be determined",
+ "保留当前修改和移除状态；永久删除的来源不会重新出现。":"Current edits and removals are preserved. Permanently deleted sources never reappear.",
+
  "选择本次要读取的导出文件。": "Choose the export file to read for this import.",
  "文件已选择。": "File selected.",
  "正在检查文件，尚未写入档案…": "Checking the file. Nothing has been written yet…",
@@ -65,6 +68,7 @@ const COPY={
 };
 export function historyText(value,english=document.documentElement.lang==='en'){
  if(!english)return value;if(Object.hasOwn(COPY,value))return COPY[value];let m;
+ if(/^\d{4}\.\d{2}\.\d{2}/.test(value))return value.replace(/(\d+) 条发送时间未知/g,'$1 inputs with unknown send time').replace(/(\d+) 条时间冲突/g,'$1 inputs with conflicting times');
  if((m=/^继续未完成的补全 · 已新增 (\d+) 条$/.exec(value)))return `Resume unfinished import · ${m[1]} inputs added`;
  if((m=/^正在补全历史输入… 已处理 (\d+) \/ (\d+) 条。$/.exec(value)))return `Importing past inputs… Processed ${m[1]} / ${m[2]} inputs.`;
  if(/^(ZIP|JSON) · (ChatGPT|Claude|AI) · /.test(value)||value.startsWith(' · 跳过不支持的 ')||value.startsWith(' · 补全 '))return value.replace('已识别可处理的部分内容','Recognized supported content').replace('已识别聊天记录','Recognized conversations').replace(/(\d+) 个窗口/g,'$1 conversations').replace(/(\d+) 条用户文字/g,'$1 user inputs').replace(/(\d+) 条发送时间未知/g,'$1 inputs with unknown send time').replace('文件较大，检查和补全可能需要几分钟；可以暂停后重选继续。','Large file: checking and importing may take several minutes. Pause and reselect to resume.').replace(/跳过不支持的 (\d+) conversations \/ (\d+) 条内容/g,'Skipped unsupported content: $1 conversations / $2 messages').replace(/补全 (\d+) 条已有来源信息/g,'Enriched $1 existing source records');

@@ -23,7 +23,7 @@ test('isolated test-only adapter exercises real background IDB batches, paused f
   h=await FakeChatGPT.start({extensionPath:dir});await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await h.archive.locator('#sync-history').waitFor();
   const pick=async()=>{await h.archive.locator('#history-file-consent').check();const c=h.archive.waitForEvent('filechooser');await h.archive.locator('#history-choose').click();await(await c).setFiles({name:'synthetic-only.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(Array.from({length:33},(_,i)=>syntheticRow(i+1))))});await eventually(()=>h.archive.locator('#history-commit').isEnabled());};
   await h.archive.locator('#sync-history').click();await pick();assert.equal((await h.state()).records.length,0);
-  await h.archive.locator('#history-pause').click();
+  await h.archive.locator('#history-close').click();await h.archive.locator('#history-dialog').waitFor({state:'hidden'});assert.equal(JSON.parse(await h.archive.locator('#history-diagnostic').textContent()).state,'paused');assert.equal(await h.archive.locator('#history-file-consent').isChecked(),false);await h.archive.locator('#sync-history').click();await h.archive.locator('#history-dialog').waitFor({state:'visible'});
   await eventually(async()=>(await h.archive.locator('#history-status').textContent())==='已暂停。重新选择同一文件即可继续。');
   await pick();
   const resumed=await h.archive.evaluate(()=>chrome.runtime.sendMessage({type:'IMPORT_TASKS'}));
