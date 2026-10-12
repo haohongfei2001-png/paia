@@ -1,50 +1,52 @@
-# Thought Library PT-1.0 — private visual-reference manifest
+# Thought Library PT-1.0 — current approved visual references
 
-Adoption date: 2026-10-07. Current presentation authority: [THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), TL-PT1-UI-1.0. Identity semantics remain [PT-1.0](TOPIC_ARCHITECTURE.md). This manifest records evidence, not another design or execution queue.
+**Current target: TL-PT1-UI-1.1, owner-approved 2026-10-13.** [Presentation authority](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md) and [existing Topic plan](TOPIC_ARCHITECTURE_PLAN.md) own the final UI and implementation. This manifest is evidence routing, not another plan.
 
-## 1. Owner authorization and fresh source baseline
+## 1. Exact approval
 
-The owner supplied the final overview together with the Final Design Adoption + Development Plan Integration instruction and explicitly requested execution. Authorization is for design adoption, planning and GitHub documentation only. The reviewed direction is approved; implementation and production acceptance are not.
+The owner approved the final interactive Thought Library HTML and requested incorporation into the existing GitHub development plan. Approval covers the restrained blue-white Topic contents cards, natural card heights and sparse-content fallback, plus chapter directory / continuous Reader / on-demand source / contextual operations. It does not approve the two preceding generated dashboard pictures, invent product capabilities, or claim production acceptance.
 
-Fresh read baseline: commit `0093c81300b8dff80b0cf00c4f2cad6130840030`, tree `20fc912862258992ff1485e85412ad9c78ac1a81`. Its predecessor `238d9f9889d0af4aa02b8467f46986a4db5e4d03` adopted Topic semantics; `73f07b3dbe42fdb66f89500efa87513c2da96239` adopted Context Cards v2. Latest Archive PR175 is unrelated retained implementation, not Thought completion.
+The original prototype was read in full and its Home screenshot inspected in this task. The source is a standalone demonstration, not current PAIA runtime, a true connected archive or a live AI call. The six rich example Topics and prose are fictional. The sparse mode reproduces only titles/descriptions visible in the user's original screenshot; it does not contain those Topics' real unseen bodies/Sections.
 
-Read sources for this integration include STATUS, MASTER_PLAN, AUTHORITY, extension/AGENTS, Topic architecture/plan/adoption, Product Intent, UX, Technical Plan, shared D6 design roles and actual Thought presentation source. No installed database, private archive, credential or live model was examined. The supplied current owner instruction is controlling; this round does not claim a new Drive-content audit.
+## 2. Original conversation artifacts — exact byte identity
 
-## 2. Private attachments available to this execution
+Hashes were computed from the actual mounted bytes in this task. Original files remain in the owner's design conversation; these are identifiers, not public download URLs or claims of automatic cross-agent attachment access.
 
-The public repository stores hashes and identity only, not copies of private content or images. Hashes below were computed from the local bytes supplied to this execution; they are not hashes of an invented public download or earlier transcoded copies.
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `PAIA_思想库_交互原型.html` | 73464 | `35e8310dc20545e2867af64755c99448da184c82957f1581f2dd6f9783ee6d57` |
+| `PAIA_思想库_首页.png` | 716223 | `78f40cabc5f85acfebd9d63eef0613f67a3d18423a2f701d32a69333934a36f4` |
+| `PAIA_思想库_阅读.png` | 643261 | `7c77cf97f85d00c23a7c66c692c8974fc7fa5b8c48b16bf25d9201328f6eb7d5` |
+| `PAIA_思想库_截图内容.png` | 553072 | `8d4ab1361ee95c786e0fccb048f8d26364d98c594cc576f88c6099c2325268f2` |
 
-| Artifact | Private conversation reference | Bytes | SHA-256 |
-|---|---|---:|---|
-| Owner adoption instruction, UTF-8 text | file_0000000039e881f8a969f08ee8390c7d | 23005 | 1ef410fc375f893101003d580d4fe6da5450e313316f9a71fefa9122957c834c |
-| Owner-attached PT-1.0 overview, PNG, 1536 x 1024 | file_000000002fd081fb9a3a0f4a6e639a88 | 2043618 | 7beb472906ae3f2c99ef993f4b371209df6b88dc07bd49e239f3211bd0b10a2f |
+The public repository must not receive the user's private browser screenshots or identifiable real archive fixtures. Public design derivatives use synthetic text and no font binaries. Reference/demo controls, fixture storage and dummy AI behavior never become production requirements.
 
-These references identify attachments in the owner's design conversation. They are not public GitHub/Drive URLs or a guarantee that another agent can retrieve them without permission. Obtain the original through the authorized owner-controlled channel and verify bytes before claiming exact-reference reproduction. Do not upload the private attachments, source prose, or font binaries to the repository.
+## 3. Implementation and evidence mapping
 
-## 3. Reference coverage and limitations
-
-The attached overview shows ten labeled panels: Root first view, larger-library representatives, removed slot, Section search, Entry search, phone Root, dark Root, reader without named Section and reader with named Sections. It illustrates composition; it is not ten full-resolution production pages and does not prove that all 30/50/144 objects were rendered, that coordinates persist, or that search/editing works.
-
-The owner's text additionally requires Section rename/create/move, Section-aware writing, AI OFF/ON, ephemeral reading headings, promotion, dense/narrow/dark readers and safe editing states. Those requirements are adopted in the authority and planned in TOPIC-05; this execution has not independently retrieved or mechanically verified a complete 21-screen native master. Do not label unavailable individual states pixel-verified or infer state behavior from the overview.
-
-The screenshot contains incidental content/navigation/color/row details. The written contract and current shared shell prevail: no extra Home/global Search/profile product, ordinary statistics, prepopulated catch-all taxonomy or per-Entry timeline/quote UI is authorized. Sample categories do not become mandatory Topic names. Search focus stays in the shared PAIA token family. No private sample prose is imported as a fixture or claimed to be the user's historical words.
-
-## 4. State-to-plan map
-
-| Required state/behavior | Implementation owner | Evidence needed later |
+| Approved state / interaction | Existing owner | Actual future evidence |
 |---|---|---|
-| Topic blocks + Section overview; no/one/many/long Section names; blank slot | TOPIC-05.1/05.2 | Real domain query, complete fixtures, native Root screenshots and coordinate assertions |
-| 30/50/100/144, desktop/tablet/phone/dark | TOPIC-05.2/05.8 | Actual data cardinalities, normal-scale continuous pages and accessibility/resource checks |
-| Section match and Entry-only excerpt; clear/Back/return | TOPIC-05.3 | Production search across unmounted data, exact target and restored original layout/focus |
-| Untitled/default + named continuous reader, dense content/unknown time | TOPIC-05.4 | Real read model, long-content/IME/selection and time/provenance tests |
-| Section rename/create/reorder/move, contextual targeting/undo | TOPIC-05.5 after foundation | Durable human constraints and native action states, including failures |
-| Add Thought in current/default Section | TOPIC-05.6 | Correct destination/current time, durable save, preserved draft and IME tests |
-| Same durable Sections across AI OFF/ON; ephemeral heading/repeats | TOPIC-05.7 | Identity/body/set comparisons, no durable write or paid retry; separate authorized live quality |
-| Confirmed Section promotion | TOPIC-04 + TOPIC-05.5 | Exact moved scope, no copied body, old anchor mapping and new identity access closed |
-| Production visual and actual downstream closure | TOPIC-06 | Existing verification gates; no static-to-production or synthetic-to-real promotion |
+| Content-sized rounded Topic cards, real Section directory and exact preview | TOPIC-05.1 / 05.2 | Production read model and Home, including sparse data; no fabricated chapters/text/counts |
+| Compact scoped search results | TOPIC-05.3 | Full eligible corpus, precise real target and query/order/focus/anchor restoration |
+| Chapter directory + continuous prose | TOPIC-05.4 | Actual long Reader, narrow selector, text/IME/history/continuation behavior |
+| Contextual edit/copy/move/reorder/remove/undo and source drawer | TOPIC-05.4 / 05.5 / 05.6 | Durable existing body/placement owners, source integrity, focus and failure recovery |
+| Section-aware 接着写 and preserved root/manual creation | TOPIC-05.6 | One EditorSession, actual destination, durable ACK, drafts/conflicts/IME |
+| Same-document Original / AI Organize appearance | TOPIC-05.7 | Qualified existing saved projection and actual service states; all three approved styles retained |
+| Real responsive/dark/accessibility/visual convergence | TOPIC-05.8 / TOPIC-06 | Matched native screenshots and applicable existing verification; no static-to-runtime promotion |
 
-## 5. Historical preservation
+The HTML demonstrates local edits, copy, move, order, removal/undo and source separation with simplified in-browser data. That does not qualify production transactions, multi-placement shared-body effects, B-01/B-02, Source deletion, permissions, deep browser history, large-scale performance or real AI semantics. Preserve those existing implementation owners rather than port the demo store/router.
 
-Immediately preceding STATUS and MASTER_PLAN are preserved at [STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md](STATUS_PRE_THOUGHT_VISUAL_2026-10-07.md) and [MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md](MASTER_PLAN_PRE_THOUGHT_VISUAL_2026-10-07.md), reusing their exact original blobs `522cc6f027f15e7b0d19ddc9e11fbb79ea85825a` and `bb8d48d42023c4c3f175b70389501bc7c013a9ed`.
+The prototype omits some existing required operations, such as the full root/Section creation and promotion inventory. They are retained, not rejected. Its one visual AI switch does not cancel the three-style contract. No dark master or measured accessibility/usability result was supplied. Use current semantic roles for those states and obtain actual production evidence.
 
-Older B2/pre-Section B+/compact-list/Years/candidate experiments remain historical rather than current alternatives. The exact scoped supersession is V8 of the presentation authority. Existing Context four-card private references, D6 assets and historical evidence are unchanged. This adoption does not run tests, certify the installed UI, reactivate the deferred legacy Topic return subcheck or waive its replacement acceptance.
+## 4. Source baseline and historical preservation
+
+This documentation integration read main `7ed72d31064209707bf5eebfca1f74d1da9881b3`, tree `02bda632d4593ca7ce2ed0662e358a02c2474f77`. The current runtime/STATUS pointers were inspected only to preserve ongoing work; this task is not another full engineering or live-service audit.
+
+The immediately preceding three documents are retained using their **exact Git blobs**:
+
+- [Previous Topic plan](TOPIC_ARCHITECTURE_PLAN_PRE_UI_2026-10-13.md): `facda271e607e7b309aea1d5ff7a635103269d2a`.
+- [Previous visual authority](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY_PRE_UI_2026-10-13.md): `24a915b81f586d4138ed2f2da3654a005a644fa3`.
+- [Previous reference manifest](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES_PRE_UI_2026-10-13.md): `8f6721ae319808ebc763aa52cd6dad181462eb5c`.
+
+Their historical source/approval/PASS/FAIL records remain. Nonconflicting requirements are fully incorporated by the current plan/authority; conflicting equal-height/no-preview/no-directory/grid-only-search/blank-slot presentation is explicitly superseded, not silently deleted. Earlier references are not competing final UI. Existing AUTHORITY, MASTER and STATUS still point to the same active plan/visual-authority paths; current scheduling, unrelated owners and all seven plans remain.
+
+Documentation checks establish artifact identity, exact historical preservation, cross-references and scope only. They do not establish a changed installed interface, real browser acceptance, live provider quality or overall product completion.
