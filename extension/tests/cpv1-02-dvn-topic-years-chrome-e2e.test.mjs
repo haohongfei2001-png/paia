@@ -13,7 +13,9 @@ const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.s
 for(const variant of ['source','release'])test(`D2 retired Years successor: Section time facts, full search, return and mutation fences (${variant})`,{timeout:180000},async()=>{
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:release}:{}),p=h.archive;let d5;
  try{
-  await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.locator('#enable-consent').click();
+  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'the original consent publication completes before the independent synthetic Topic writer starts');
+  if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const seed=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),topic=await s.createTopic({name:'SYNTHETIC 多年的表达与不确定性',operationId:op()}),ids=[],chapter=await s.createSection({topicId:topic.id,title:'SYNTHETIC durable chapter',expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:op()}),empty=await s.createSection({topicId:topic.id,title:'SYNTHETIC empty chapter',expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:op()});
    for(let i=0;i<160;i++){s.clock=()=>new Date(Date.UTC(i<100?2021:2023,0,1)+i*1000).toISOString();ids.push((await s.continueThinking({operationId:op(),body:(i===155?'SYNTHETIC_LATE_MATCH ':'SYNTHETIC 表达 '+i+' ')+(i%2?'访谈者说“我不愿意”，我还没做判断。':'我可能更适合消费产品，但现在样本还太少。')+' 👩‍💻 é',topicId:topic.id})).id);const entry=await s.entry(ids.at(-1));await s.placeEntry({entryId:entry.id,topicId:topic.id,sectionId:chapter.sectionId,expectedEntryRevision:entry.revision,expectedPlacementRevision:(await s.libraryPlacement(topic.id,entry.id)).revision,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,operationId:op()});}
