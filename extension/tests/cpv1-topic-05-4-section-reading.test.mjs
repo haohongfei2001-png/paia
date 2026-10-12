@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {IDBFactory} from './vendor/fake-indexeddb/build/esm/index.js';
 import {setup,local,capture,derived,inputEdit} from './harness/thought-m1.mjs';
 import {STORAGE_KEY} from '../core/constants.js';
+import {CONTROL_PUBLICATION_REVISION} from '../core/local-control-publication.js';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {OrganizerRunner} from '../core/organizer/runner.js';
 import {DeterministicFixtureProvider} from './fixtures/organizer/provider.mjs';
@@ -12,6 +13,7 @@ import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';
 
 const op=()=>crypto.randomUUID();
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
+const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
 const raw=(s,table,id)=>s.repository.transaction(false,t=>t.get(table,id));
 const rows=(s,table)=>s.repository.transaction(false,t=>t.all(table));
 const topic=(s,name='SYNTHETIC Personal Topic')=>s.createTopic({name,operationId:op()});
@@ -22,6 +24,36 @@ async function fixture(){const f=await setup(OrganizerStore);await f.s.finishFou
 async function generatedFixture(){const f=await fixture(),input=(await f.s.snapshot()).library.blocks[0];await f.s.enqueueOrganizer({operationId:op(),specs:[{inputId:input.id,role:'primary',selectedFields:['body']}]});await new OrganizerRunner(f.s,{providers:[new DeterministicFixtureProvider()]}).step();return {...f,input,a:(await rows(f.s,'topics'))[0],e:(await rows(f.s,'thoughts'))[0]};}
 async function collect(r,options={}){const out=[],sections=new Map(),pages=[];let cursor=null;for(let n=0;n<2000;n++){const page=await r.page({...options,cursor});assert.equal(page.cursorInvalid,undefined);assert.equal(page.unavailable,undefined);assert.ok(page.items.length<=40);assert.ok(bytes(page)<=256*1024);out.push(...page.items);for(const row of page.sections)sections.set(row.sectionId,row);pages.push(page);if(!page.nextCursor){assert.equal(page.complete,true);return {items:out,sections:[...sections.values()],pages};}assert.equal(page.complete,false);cursor=page.nextCursor;}throw Error('reader never reached real end');}
 async function persisted(s){return s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)]))));}
+
+test('TOPIC-05.4 lexical reads share the original queue with a real control publication',async()=>{
+ const {s,r,storage}=await fixture(),a=await topic(s),e=await entry(s,a,{body:'SYNTHETIC_QUEUE_MATCH exact original expression'});
+ await r.page({topicId:a.id,query:'SYNTHETIC_QUEUE_MATCH'});
+ const before=await persisted(s),run=s.run,set=storage.set,entered=deferred(),release=deferred(),publicationQueued=deferred(),setEntered=deferred(),setRelease=deferred();
+ let first=true,active=0,maximumActive=0,publication=false;
+ s.run=function(work){
+  if(publication)publicationQueued.resolve();
+  return run.call(this,async()=>{
+   active++;maximumActive=Math.max(maximumActive,active);
+   try{if(first){first=false;entered.resolve();await release.promise;}return await work();}finally{active--;}
+  });
+ };
+ storage.set=async function(value){if(publication){setEntered.resolve();await setRelease.promise;}return set.call(this,value);};
+ const query=r.page({topicId:a.id,query:'SYNTHETIC_QUEUE_MATCH',limit:1});
+ // Consume the outcome even on the original unsafe queue so the counter never
+ // leaves a rejected Promise or an unresolved synthetic publisher behind.
+ const outcome=query.then(value=>({value}),error=>({error}));
+ let update;
+ try{
+  await entered.promise;publication=true;update=s.updatePreferences({appearance:'dark'});await publicationQueued.promise;release.resolve();
+  await setEntered.promise;setRelease.resolve();const result=await outcome;await update;
+  assert.equal(maximumActive,1,'a Topic lexical read and the original control publisher cannot run in parallel');
+  assert.equal(result.error,undefined);assert.deepEqual(result.value.items.map(item=>item.entry.id),[e.id]);
+  assert.equal((await storage.get(STORAGE_KEY))[STORAGE_KEY].preferences.appearance,'dark');
+  const after=await persisted(s);
+  const expected={...before,meta:before.meta.map(row=>row.id===CONTROL_PUBLICATION_REVISION?{...row,revision:row.revision+1}:row)};
+  assert.deepEqual(after,expected,'all37 stores differ only in the real publisher\'s single local control revision');
+ }finally{release.resolve();setRelease.resolve();await outcome;await update?.catch(()=>{});s.run=run;storage.set=set;s.repository.db?.close();}
+});
 
 test('TOPIC-05.4 refuses foundation initialization and unsupported modes without body reads',async()=>{
  const s=new OrganizerStore(local(),{indexedDB:new IDBFactory()}),r=new ThoughtSectionReading(new ThoughtLibraryReadModel(s));

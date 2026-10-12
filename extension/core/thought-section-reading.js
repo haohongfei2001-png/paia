@@ -112,6 +112,10 @@ export class ThoughtSectionReading{
   },async result=>{
    if(!result.raw)return result;
    const {raw,topic,recoveryEpoch,prior,tracked,authority}=result,canonical=new Map(),owner=Object.create(s),reader=readOwner(model);
+   // The lexical owner may maintain its original descriptor index. Use the
+   // actual store queue so this adapter cannot fork tail/control publication
+   // state while capture, filtering or preferences use that same store.
+   owner.run=work=>s.run(work);
    // The existing lexical owner alone maintains its derived descriptor index.
    // Retain its <=40 canonical resolutions for match/revision qualification,
    // including large-body placeholders, without hydrating any body twice.
