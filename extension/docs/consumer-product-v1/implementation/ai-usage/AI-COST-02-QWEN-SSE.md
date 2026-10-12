@@ -1,3 +1,5 @@
+> Integration readback (2026-10-13): PR273 merged as main `7ed72d31064209707bf5eebfca1f74d1da9881b3`, preserving website PR274. Exact head `9940ccce245289ba88febe2440f6d167f3c90877` passed ordinary integration `38318501293`: all four unit shards, adapter/privacy, release and aggregate SUCCESS. Local reviewed commit b641d304 and remote9940ccce share exact tree87d50245370dc503ca18e1b8ca5c1a5f17ff85f5; the GitHub interface was used after local Git network failures, with a guarded nonforce ref update. Main Certification38319029538 and Prompt38319029647 are separately pending at this readback. No installation, full AI-COST-02 completion or real-service qualification is claimed. The original failed run and review record below remain unchanged.
+
 # AI-COST-02 — bounded Qwen response bytes
 
 Base: `07d90b715be8a1e0c707abc6a86d873436677b4c`. Ordinary local engineering slice under AI_USAGE_PLAN §4 and §12-02 and the existing QWEN-USAGE-CONTRACT §4. Root owns implementation; independent review is required before integration. This record does not close AI-COST-02 or enable a model/service.

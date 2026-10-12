@@ -1,0 +1,27 @@
+# AI-COST-02 — partial request controls and usage binding
+
+Formal base: main `7ed72d31064209707bf5eebfca1f74d1da9881b3` after PR273. This local engineering slice follows AI_USAGE_PLAN §4/§12-02 and QWEN-USAGE-CONTRACT §2/§3/§4. It does not close AI-COST-02, implement a commercial registry or activate a remote service.
+
+## Implemented behavior
+
+`createQwenRequestProfileCompiler({profile,known})` privately snapshots one explicitly synthetic request profile and its finite known correspondences. `compile({childIdentity,inputTokens,outputCap,stream,now})` derives partial generation controls and the existing usage parser binding. The child identity is the original Foundation childRequest identity projection; bodies, evidence, domain mutation, retries, quota and finance stay with their existing owners. A compile call cannot select another endpoint/model/profile or add a verified flag, body, raw wire override or retry.
+
+The billable completion cap C is the intersection of the original job envelope, declared profile bound and requested cap. The request maximum must be at most C−max(10,declared headroom). Thus C600/H100 refuses590 and permits500, preserving600 as the total including reasoning. Thinking has one explicit bounded policy with answer room. Stream selection is explicit and streaming includes final usage. Exact parser profile/limits are validated by the original usage owner; no permissive defaults or duplicate neutral arithmetic are introduced.
+
+Endpoint/model/resolution/API/tokenizer/decoder/schema/quality correspondence, declared expiry/revocation and finite own-data structure checks fail closed. These are synthetic inputs: matching a digest or receipt name is not proof of an actual schema, tokenizer, service account, model support or human quality. The compiler is not the proposed full QwenRouteQualificationV1 registry. Caller-provided time is not a trusted clock. Accessors, inherited fields, cycles, sparse arrays, symbols and oversized metadata refuse; returned state is detached and dispose refuses further compilation.
+
+Every result explicitly remains `qualification:NOT_ESTABLISHED`, `wireComplete:false`, `inputBoundQualified:false`, `financialAuthority:false`, `dispatchAllowed:false`. Undecided provider-specific thinking and strict response-format wire templates are not invented. No HTTP reader, credential, real provider, new shared writer, worker command, cache authority or subscription behavior is added. Saved/manual local pathways remain unchanged.
+
+## Validation and limits
+
+The independent implementation author passed seven whole related files204/204. Root independently reviewed both complete new files, the original envelope/parser/Foundation dependencies and literal before/after evidence; an independent C600/H100 probe checked exact boundary rejection, private copying, expiry, override refusal and disposal. Root's integrated ten whole files **214 PASS / 0 fail/cancel/skip/todo**, 2020.737667ms, include the27 owning cases, rawJSON/SSE, existing usage arithmetic/ratebook/settlement, original Foundation and both current-version admission suites.
+
+The owning integration uses the real OrganizerStore/AIUsageFoundation implementation over the test FakeIDB adapter: collect/plan creates the original durable job, childRequest supplies its actual identity, and compilation preserves every store byte and write count with zero usage receipts or physical attempts. The derived binding reaches both actual byte parsers and rejects a changed response model. This is original-owner local engineering evidence, not native Chrome IndexedDB or live provider qualification.
+
+The original headroom-gap probe failed because generic preflight does not have the additional Qwen headroom dimension; generic dispatch already remained false. It is retained as a missing profile-aware constraint, not a prior financial-dispatch vulnerability. The repaired path refuses590 and permits only a partial500 control with no authority.
+
+The compatible capability increments product version to0.45.0. Existing portable format/schema are unchanged; producer admission explicitly adds only0.45, retains0.44 and earlier admitted producers, rejects future0.46/0.99/1.0 and malformed0.45, and preserves exact schema/sections/credentials/integrity/Source/Input/retired-export assertions. This necessary compatibility update does not resume Sync features. Independent compatibility/scope review APPROVED; complete owning two files4PASS. Package guard16066 checks/470 runtime resources and official490-file0.45.0 candidate build PASS. Exact-head cloud integration remains pending. No installation or deployment is requested.
+
+## Remaining gates
+
+Trusted registry/signature/revocation, qualified complete request schema and wire template, enforceable tokenizer/overhead, actual privacy/retention/model quality, entitlement, atomic financial service and provider activation remain unqualified. Existing local content and cache owners cannot infer permission from this compiler. Continue other authorized local engineering without turning these missing dependent proofs into a project-wide stop. SYNC new features stay paused and Pro retains PR264/CI ownership.
