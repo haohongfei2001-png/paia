@@ -282,3 +282,15 @@ html:lang(en) #settings-panel .ux-preview-control:has(input[data-loaded="error"]
 }
 
 @media(max-width:440px){#settings-removed-dialog>header{flex-wrap:wrap}#settings-removed-dialog .ux-settings-detail-close{margin-left:auto}}
+
+/* Approved Settings state08: a confirmed search fault, outside ordinary rows. */
+#settings-panel .ux-settings-search-warning{margin:0 0 16px;padding:16px 20px;background:var(--warning-bg);border-left:2px solid var(--warning);border-radius:0;color:var(--warning);overflow-wrap:anywhere}
+#settings-panel .ux-settings-search-warning h3{font:500 14px/1.7 var(--font);margin:0 0 4px}
+#settings-panel .ux-settings-search-warning p{margin:0;color:var(--warning);font-size:12px;line-height:1.8}
+#settings-panel .ux-settings-search-repair{color:var(--warning);margin-top:8px;min-height:44px;font:400 13px/1.7 var(--font);padding:6px 0;border:0;border-radius:0;background:transparent;cursor:pointer}
+#settings-search-repair-dialog .ux-settings-search-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:28px}
+#settings-search-repair-dialog button:not(.ux-settings-detail-close){min-height:44px;max-width:100%;padding:8px 16px;border:1px solid var(--control);border-radius:6px;background:var(--bg);color:var(--text);font:400 13px/1.7 var(--font);white-space:normal;overflow-wrap:anywhere}
+#settings-search-repair-dialog #library-rebuild-search{background:var(--text);border-color:var(--text);color:var(--bg)}
+#settings-search-repair-dialog #library-rebuild-search:hover:not(:disabled){background:var(--muted);border-color:var(--muted)}
+#settings-search-repair-dialog #library-maintenance-status{color:var(--muted);font-size:12px}
+@media(max-width:767px){#settings-panel .ux-settings-search-warning{padding:16px}}

@@ -42,3 +42,8 @@ for(const variant of ['source','release'])test(`SET2-02 ${variant} real import/s
   await writeFile(join(out,variant+'.json'),JSON.stringify({result:'PASS',geometry,zeroPaidOrExternalRequests:true,invalidFileNoStageOrRestore:true,originalLiveControlIdentity:true},null,2)+'\n');
  }catch(error){console.error('SET2_DATA_DIAGNOSTIC',JSON.stringify({variant,errors:h?.errors,actual:await h?.archive.evaluate(()=>({url:location.href,history:history.state,space:document.body.dataset.paiaSpace,trace:globalThis.__dataCloseTrace,backup:document.getElementById('backup-settings')?.dataset,dialog:document.getElementById('settings-backup-dialog')?.open,calls:globalThis.__dataCalls})).catch(()=>null)}));throw error;}finally{await h?.close();if(release)await rm(release,{recursive:true,force:true});}
 });
+
+for(const variant of ['source','release'])test(`SET2-02 ${variant} original confirmed index fault and guarded repair`,{timeout:90000},async()=>{
+ const {settingsIndexFaultEvidence}=await import('./harness/settings-index-fault.mjs');
+ await settingsIndexFaultEvidence(variant);
+});

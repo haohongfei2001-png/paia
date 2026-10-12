@@ -1,3 +1,4 @@
+import {refreshSettingsRecovery} from './maintenance-recovery.js';
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
 import {SettingsRemovedComposite,REMOVED_KINDS} from './settings-removed-composite.js';
@@ -115,6 +116,28 @@ function mountRemovedDetail(language) {
  const observer=new MutationObserver(()=>{if(detail.dialog.open&&(document.getElementById('settings-panel').hidden||document.getElementById('ux-settings-data-group').hidden))detail.dialog.close();});for(const id of ['settings-panel','ux-settings-data-group'])observer.observe(document.getElementById(id),{attributes:true,attributeFilter:['hidden']});
  document.addEventListener('paia:preferences-applied',()=>{detail.sync();if(detail.dialog.open)syncCopy();});return detail;
 }
+function mountSearchRepair(dataGroup,language){
+ const warning=document.createElement('section'),heading=document.createElement('h3'),description=document.createElement('p'),content=document.createElement('div'),intro=document.createElement('p'),actions=document.createElement('footer'),cancel=document.createElement('button');
+ const rebuild=document.getElementById('library-rebuild-search'),status=document.getElementById('library-maintenance-status');
+ warning.id='settings-search-warning';warning.className='ux-settings-search-warning';warning.hidden=true;warning.setAttribute('role','status');
+ // Move the existing identities before retiring their former legacy ancestor.
+ // The original Topic controller remains the sole repair command writer.
+ actions.className='ux-settings-search-actions';actions.append(cancel,rebuild);content.append(intro,status,actions);cancel.type='button';
+ const detail=mountSettingsDetail({id:'settings-search-repair',title:['修复搜索','Repair search'],content,language});
+ detail.row.className='ux-settings-search-repair';detail.row.lastElementChild.remove();detail.row.querySelector('.ux-setting-destination-value').remove();
+ warning.append(heading,description,detail.row);dataGroup.querySelector('h2').after(warning);
+ const sync=()=>{
+  const chinese=language()==='zh-CN';detail.sync();
+  heading.textContent=chinese?'PAIA 检测到搜索索引问题':'PAIA detected a search index issue';
+  description.textContent=chinese?'部分内容可能无法被搜索到；已保存的正文仍可阅读。':'Some content may be missing from search. Saved text is still readable.';
+  intro.textContent=chinese?'根据现有正文重新建立搜索索引，不修改输入、主题或版本历史。':'Rebuild search from existing text without modifying inputs, topics or version history.';
+  cancel.textContent=chinese?'取消':'Cancel';rebuild.textContent=chinese?'开始修复':'Repair';refreshSettingsRecovery();
+ };
+ cancel.addEventListener('click',()=>detail.dialog.close());detail.dialog.addEventListener('close',()=>refreshSettingsRecovery());
+ const observer=new MutationObserver(()=>{if(detail.dialog.open&&(document.getElementById('settings-panel').hidden||dataGroup.hidden))detail.dialog.close();});
+ for(const node of [document.getElementById('settings-panel'),dataGroup])observer.observe(node,{attributes:true,attributeFilter:['hidden']});
+ document.addEventListener('paia:preferences-applied',sync);sync();return {...detail,sync};
+}
 export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;
  const storageWrapper=storage.closest('.ux-settings-detail');let storageState;const storageDetail=mountSettingsDetail({id:'settings-storage',title:['存储空间','Storage space'],content:storage,language,value:chinese=>storageSummaryText(storageState,!chinese),onOpen:refreshStorage});
@@ -134,7 +157,8 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  const removed=document.getElementById('library-management'),pending=document.getElementById('manage-excluded'),removedWrapper=removed.closest('.ux-settings-detail'),removedDetail=mountRemovedDetail(language);
  // The original legacy controllers still bind these identities. Their former
  // nested Settings presentation is retired; import results retain pending review.
+ const searchRepair=mountSearchRepair(dataGroup,language);
  const retired=document.createElement('div');retired.hidden=true;retired.append(removed);document.body.append(retired);pending.removeAttribute('data-settings-zh');pending.removeAttribute('data-settings-en');document.getElementById('history-dialog').append(pending);removedWrapper.replaceWith(removedDetail.row);
  subscribeStorageEstimate(state=>{storageState=state;storageDetail.sync();});
- owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail};return owner;
+ owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail,searchRepair])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail,searchRepair};return owner;
 }

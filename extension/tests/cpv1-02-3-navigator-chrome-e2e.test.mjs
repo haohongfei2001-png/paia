@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {startNavigatorSourceFixture,awaitNavigatorSourceCompletion} from './harness/navigator-source-completion.mjs';
 import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 
 const rpc=async(page,type,fields={})=>{
@@ -11,9 +12,9 @@ const rpc=async(page,type,fields={})=>{
 };
 
 test('CPV1-02.3 Navigator projects a Project move, rename and source deletion without losing the selected Conversation',{timeout:150000},async()=>{
- let harness;
+ let harness,fixture,completion;
  try{
-  harness=await FakeChatGPT.start({onboarding:true,launchThroughPort:true});
+  fixture=await startNavigatorSourceFixture();harness=fixture.harness;
   const page=harness.archive;
   await page.setViewportSize({width:1280,height:800});
   await page.locator('#enable-consent').waitFor({state:'visible'});
@@ -22,8 +23,8 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true);
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'blank Archive keeps optional history introduction in Settings');
   const chatId='cpv1-023-move';
-  await harness.open({id:chatId,title:'Stable Conversation identity',base:1609459200,messages:[{id:'cpv1-023-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
-  await harness.open({id:'cpv1-023-other',title:'Unassigned search control',base:1609459200,messages:[{id:'cpv1-023-other-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
+  const capturedHost=await harness.open({id:chatId,title:'Stable Conversation identity',base:1609459200,messages:[{id:'cpv1-023-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
+  const otherHost=await harness.open({id:'cpv1-023-other',title:'Unassigned search control',base:1609459200,messages:[{id:'cpv1-023-other-input',text:'CPV1_NAV_IDENTITY_BODY'}]});
   await eventually(async()=>(await harness.state()).records.length===2);
   let documentId;
   await eventually(async()=>{const result=await rpc(page,'GET_PAGE',{page:{view:'library'}});documentId=result.documents.find(row=>row.sourceConversationId===chatId)?.id;return !!documentId;});
@@ -45,6 +46,13 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
   await page.locator(`.archive-navigator-window[data-document-id="${documentId}"]`).click();
   await eventually(()=>page.locator('.archive-navigator-window[aria-current="page"]').isVisible());
   assert.match(await page.locator('.library-prose').first().textContent(),/CPV1_NAV_IDENTITY_BODY/);
+  // The two synthetic captures and the selected Reader are established above.
+  // Closing their completed host fixtures prevents further capture diagnostics;
+  // observe actual original worker requests/maintenance, not a FILTER_STATUS poll.
+  await capturedHost.close();await otherHost.close();completion=await awaitNavigatorSourceCompletion(fixture);
+  await mkdir('work/cpv1-023-navigator',{recursive:true});
+  await writeFile('work/cpv1-023-navigator/source-completion.json',JSON.stringify({binding:fixture.binding,completion,fixtureOnly:true,productionInstrumentation:false},null,2));
+
 
   const projectRef=await page.evaluate(`(async()=>{
    const {chatId,documentId}=${JSON.stringify({chatId,documentId})},preDispatchRead=${runWithPreDispatchReadRetry.toString()};
@@ -117,7 +125,7 @@ test('CPV1-02.3 Navigator projects a Project move, rename and source deletion wi
  }catch(error){
   try{const acquisitions=await harness.archive.locator('html').evaluate(()=>globalThis.__navigatorFoundationAcquisitions??[],null,{timeout:1000});await mkdir('work/cpv1-023-navigator',{recursive:true});await writeFile('work/cpv1-023-navigator/foundation-failure.json',JSON.stringify({errorName:error.name,acquisitions},null,2)+'\n');}catch(diagnosticError){console.error('Navigator foundation diagnostic unavailable:',diagnosticError.name);}
   throw error;
- }finally{await harness?.close();}
+ }finally{if(fixture)await fixture.close();else await harness?.close();}
 });
 
 test('Bounded Archive keeps one search above a quiet tree and stable same-title Reader identity',{timeout:90000},async()=>{
