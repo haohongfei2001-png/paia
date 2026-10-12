@@ -76,6 +76,7 @@ export async function compareConsumerSettings(h,variant){
   let directoryStage='open-directory';
   try{
    await page.setViewportSize({width:320,height:900});await chooseConsumerGroup(page,'privacy');await page.locator('#ux-settings-group-back').click();assert.equal(await page.locator('.ux-settings-nav').isVisible(),true);
+   await page.screenshot({path:`${directory}/${variant}-directory-320.png`,fullPage:true});
    directoryStage='reading-heading-focus';await page.locator('[data-settings-group="reading"]').focus();await page.locator('[data-settings-group="reading"]').press('Enter');await eventually(async()=>await page.evaluate(()=>document.activeElement?.id)==='ux-settings-reading-title','Settings directory Enter focuses Reading heading');
    directoryStage='back-directory-visible';await page.evaluate(()=>history.back());await eventually(()=>page.locator('.ux-settings-nav').isVisible(),'Settings history Back restores the directory');
    directoryStage='forward-reading-visible';await page.evaluate(()=>history.forward());await eventually(()=>page.locator('[data-group="reading"]').isVisible(),'Settings history Forward restores Reading');interactions.push({kind:'directory-keyboard-history-focus'});
