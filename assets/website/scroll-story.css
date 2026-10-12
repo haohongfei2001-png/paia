@@ -94,7 +94,7 @@
 .art-refined .ad-prompt-scroll .ad-host .pc-palette{position:absolute;right:0;bottom:60px;left:auto;width:100%;max-width:336px;transform:none;transform-origin:bottom right;border-radius:18px}
 .art-refined .ad-prompt-scroll .ad-host .pc-orb-button{position:absolute;inset:auto 0 0 auto;width:44px;height:44px;min-width:44px;padding:2px;margin:0;transform:none}
 .art-refined .ad-prompt-scroll .ad-host .pc-orb-button .paia-orb{width:40px;height:40px}
-.art-refined .ad-prompt-scroll .ad-host .pc-prompt-caption{position:absolute;inset:auto 56px 0 0;width:auto;margin:0;padding:0;max-height:42px;overflow:visible;pointer-events:none}
+.art-refined .ad-prompt-scroll .ad-host .pc-prompt-caption{display:none;position:absolute;inset:auto 56px 0 0;width:auto;margin:0;padding:0;max-height:42px;overflow:visible;pointer-events:none}
 .art-refined .ad-prompt-scroll .ad-host .pc-prompt-caption span{font-size:.5625rem;line-height:1.7}
 .art-refined .ad-morph-track{position:absolute;right:0;bottom:0;width:100%;height:44px;margin:0;padding:0;pointer-events:none;z-index:6}
 .art-refined .ad-morph-button{position:absolute;right:0;bottom:0;width:44px;height:44px;max-width:100%;padding:0;border:1px solid #ffffffee;border-radius:26px;overflow:hidden;pointer-events:auto;background:linear-gradient(116deg,#fff,#edf5ffdf 60%,#efecf9db);box-shadow:0 10px 25px -14px #467aaf6b;transition:width .48s cubic-bezier(.16,1,.3,1),box-shadow .4s;white-space:nowrap}
