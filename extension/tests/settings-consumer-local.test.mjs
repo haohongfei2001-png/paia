@@ -4,6 +4,20 @@ import {SettingsLocalState,changePreferenceControl,timeDisplayValue,withSettings
 const page=(preferences={},settings={})=>({preferences,settings:{consentVersion:1,enabled:true,...settings}});
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 
+test('first-use acceptance waits for the original durable consent acknowledgement',async()=>{
+ const calls=[],ack=deferred(),state=new SettingsLocalState({send:async(type,payload)=>{calls.push([type,payload]);return type==='GET_PAGE'?page({}, {consentVersion:0,enabled:true}):ack.promise;}});
+ assert.equal(await state.acceptCapture(),false);await state.load();assert.equal(await state.setCapture(true),false);const saving=state.acceptCapture();assert.equal(state.busy,true);assert.equal(state.capture.consented,false);assert.deepEqual(calls.at(-1),['CONSENT',{accepted:true}]);ack.resolve({enabled:true});assert.equal(await saving,true);assert.deepEqual(state.capture,{consented:true,enabled:true});const count=calls.length;assert.equal(await state.acceptCapture(),false);assert.equal(calls.length,count);
+});
+test('lost first-use consent acknowledgement reconciles canonical on without another grant',async()=>{
+ const calls=[];let reads=0;const state=new SettingsLocalState({send:async(type,payload)=>{calls.push([type,payload]);if(type==='GET_PAGE')return page({}, {consentVersion:++reads===1?0:1,enabled:true});throw Error('SYNTHETIC lost acknowledgement after durable grant');}});await state.load();assert.equal(await state.acceptCapture(),false);assert.deepEqual(state.capture,{consented:true,enabled:true});assert.equal(state.feedback,'save-error');assert.equal(await state.acceptCapture(),false);assert.equal(calls.filter(([type])=>type==='CONSENT').length,1);
+});
+test('unconfirmed first-use grant retains canonical refusal and failure',async()=>{
+ const state=new SettingsLocalState({send:async type=>type==='GET_PAGE'?page({}, {consentVersion:0,enabled:false}):{enabled:false}});await state.load();assert.equal(await state.acceptCapture(),false);assert.deepEqual(state.capture,{consented:false,enabled:false});assert.equal(state.feedback,'save-error');
+});
+test('lost grant and failed reconciliation stay unavailable until an explicit successful read',async()=>{
+ let available=true,consented=false,writes=0;const state=new SettingsLocalState({send:async type=>{if(type==='GET_PAGE'){if(!available)throw Error('SYNTHETIC unavailable canonical read');return page({}, {consentVersion:consented?1:0,enabled:consented});}writes++;consented=true;available=false;throw Error('SYNTHETIC lost durable grant acknowledgement');}});await state.load();assert.equal(await state.acceptCapture(),false);assert.equal(state.captureUnknown,true);assert.equal(state.capture.consented,false);assert.equal(await state.acceptCapture(),false);assert.equal(writes,1);available=true;await state.load();assert.equal(state.captureUnknown,false);assert.deepEqual(state.capture,{consented:true,enabled:true});assert.equal(await state.acceptCapture(),false);assert.equal(writes,1);
+});
+
 test('all persisted font/width choices and legacy date-only survive reading without a write',async()=>{
  for(const fontSize of ['small','standard','large','xlarge'])for(const readingWidth of ['narrow','standard','wide']){const calls=[],state=new SettingsLocalState({send:async(...args)=>{calls.push(args);return page({fontSize,readingWidth,timeDisplay:'date_only'});}});await state.load();assert.equal(state.preferences.fontSize,fontSize);assert.equal(state.preferences.readingWidth,readingWidth);assert.equal(state.preferences.timeDisplay,'date_only');assert.equal(timeDisplayValue(state.preferences.timeDisplay),'date_and_time');assert.deepEqual(calls.map(x=>x[0]),['GET_PAGE']);}
 });
@@ -72,7 +86,7 @@ test('Settings locale and reopen leave History labels with their existing owner'
  const read={dataset:{historyCopy:'阅读 Input Archive'},value:'',get textContent(){return this.value;},set textContent(value){writes++;this.value=value;}},editor={value:'SYNTHETIC é 👩🏽‍💻 draft'};
  const host={querySelectorAll:selector=>selector==='[data-history-copy]'?[read]:[]},doc={documentElement:{lang:'zh-CN'},activeElement:editor,querySelector:()=>null};globalThis.document=doc;
  try{for(const language of ['zh-CN','en','zh-CN']){doc.documentElement.lang=language;refreshHistoryCopy(host);const expected=language==='zh-CN'?'阅读 Input Archive':'Read Input Archive';assert.equal(read.textContent,expected);const before=writes;
-  const context={document:doc,syncSettingsCopy(){},style:null,promptPosition:null,promptNext:null,about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
+  const context={document:doc,syncSettingsCopy(){},captureConsent:null,style:null,promptPosition:null,promptNext:null,about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
   // Group changes/reopen invoke this actual production function without always
   // dispatching another History preferences event. History alone owns its copy.
   runInNewContext(source.slice(start,end)+';syncSettingsLocale();syncSettingsLocale();',context);

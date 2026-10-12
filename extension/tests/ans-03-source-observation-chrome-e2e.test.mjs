@@ -24,7 +24,11 @@ async function initializeSourceReader(page){
   const trace={phase:null,lastPhase:null,calls:0,attempts:[]};
   s.run=callback=>{
    const call=++trace.calls;let attempt=0;
-   return retry(work=>{
+   return retry(async work=>{
+    // The retained hosted trace refused both immediate acquisitions before
+    // entry. Let the live publisher settle for one existing poll interval;
+    // retain exactly two attempts and never replay an entered callback.
+    if(attempt>0)await new Promise(resolve=>setTimeout(resolve,100));
     const row={call,phase:trace.phase,attempt:++attempt,entered:false,outcome:'pending'};
     trace.attempts.push(row);if(trace.attempts.length>48)trace.attempts.shift();
     const pending=originalRun(()=>{row.entered=true;return work();});

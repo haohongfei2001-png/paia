@@ -76,3 +76,5 @@ The complete incoming #263/#265 master history remains at [8e56ab34](https://git
 The incoming owner priority and complete master history remain at [2cbe2893](https://github.com/haohongfei2001-png/paia/blob/2cbe2893d3cbbc14ced3e4f61854b7a4c1f4199a/extension/docs/consumer-product-v1/MASTER_PLAN.md).
 
 The complete incoming #266 Next consent/capsule implementation history is preserved at [22c27404](https://github.com/haohongfei2001-png/paia/blob/22c274049925e459b5bc67e9c6d187e848e9bca2/extension/docs/consumer-product-v1/MASTER_PLAN.md) and its [owning receipt](implementation/verification/SET2-NEXT-CAPSULE-04328.md). Current tasks remain in STATUS; this history link does not change scope or certify the candidate.
+
+The subsequent #266 first-use Settings/consent and fixture work is retained at [0d596920](https://github.com/haohongfei2001-png/paia/commit/0d596920cc5be418b47271e6098fb3e0ee01d52c), including its exact historical MASTER_PLAN and [first-use receipt](implementation/verification/SET2-FIRST-USE-04328.md). Prompt38266889521 passed; Full38266889512 failed. These remain candidate evidence, not main integration or whole-product qualification.
