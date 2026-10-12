@@ -12,7 +12,9 @@ for(const variant of ['source','release'])test('TOPIC-05.4 native bounded Sectio
  if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive,dir='work/qa-topic05-section/'+variant;await mkdir(dir,{recursive:true});
  try{
-  await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
+  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'original consent publication completes before the independent Section fixture writer starts');
+  if(await p.locator('#onboarding-skip').isVisible()){await p.locator('#onboarding-skip').click();await eventually(()=>p.locator('#onboarding-history-step').isHidden(),'original onboarding save completes before the independent Section fixture writer starts');}
   const f=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();
    const topic=await s.createTopic({name:'SYNTHETIC continuous Section native',operationId:op()}),sections=[];
@@ -57,7 +59,9 @@ for(const variant of ['source','release'])test('TOPIC-05.4 native late Section r
  if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:release||resolve('.')}),p=h.archive;
  try{
-  await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.locator('#enable-consent').click();
+  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'original consent publication completes before the independent Section fixture writer starts');
+  if(await p.locator('#onboarding-skip').isVisible()){await p.locator('#onboarding-skip').click();await eventually(()=>p.locator('#onboarding-history-step').isHidden(),'original onboarding save completes before the independent Section fixture writer starts');}
   const f=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();
    await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'synthetic-section-purge',url:'https://chatgpt.com/c/synthetic-section-purge',title:'SYNTHETIC purge'},messages:[{sourceMessageId:'synthetic-section-purge-001',pageOrder:1,originalText:'SYNTHETIC source for purge boundary'}]});

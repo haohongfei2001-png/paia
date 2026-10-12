@@ -3,20 +3,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs';
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
 const offset=160;
 async function fixture(){
  const h=await FakeChatGPT.start({headless:true}),p=h.archive;
- await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
- const seed=await p.evaluate(async()=>{
-  const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID();await s.finishFoundation();
-  const topic=await s.createTopic({name:'SYNTHETIC current Section return',operationId:op()}),section=await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'SYNTHETIC durable named Section',operationId:op()}),entries=[];
-  for(let i=0;i<12;i++){const created=await s.continueThinking({topicId:topic.id,sectionId:i<4?topic.defaultSectionId:section.sectionId,body:Array.from({length:20},(_,line)=>'SYNTHETIC Entry '+i+' paragraph '+line+' 中文 é 👩🏽‍💻 precise reading text.').join('\n\n'),operationId:op()});entries.push(await s.entry(created.id));}
-  s.repository.close();return {topicId:topic.id,sectionId:section.sectionId,target:entries[7],next:entries[8]};
- });
+ p.on('console',message=>{const text=message.text();if(text.startsWith('SECTION_FIXTURE_ACQUISITIONS '))console.log(text);});
+ try{await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
+ await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent is durably acknowledged before independent Section setup');
+ const seed=await p.evaluate(`(async()=>{
+  const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),preDispatchRead=${runWithPreDispatchReadRetry.toString()},originalRun=s.run.bind(s),events=[];let stage='foundation';
+  s.run=callback=>preDispatchRead(work=>{const event={stage,entered:false};events.push(event);if(events.length>128)events.shift();return originalRun(()=>{event.entered=true;return work();}).catch(error=>{event.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});},callback);
+  try{await s.finishFoundation();stage='create-topic';
+  const topic=await s.createTopic({name:'SYNTHETIC current Section return',operationId:op()});stage='read-topic';const currentTopic=await s.topic(topic.id);stage='create-section';const section=await s.createSection({topicId:topic.id,expectedTopicRevision:currentTopic.organizationRevision,title:'SYNTHETIC durable named Section',operationId:op()}),entries=[];
+  for(let i=0;i<12;i++){stage='create-entry-'+i;const created=await s.continueThinking({topicId:topic.id,sectionId:i<4?topic.defaultSectionId:section.sectionId,body:Array.from({length:20},(_,line)=>'SYNTHETIC Entry '+i+' paragraph '+line+' 中文 é 👩🏽‍💻 precise reading text.').join('\\n\\n'),operationId:op()});stage='read-entry-'+i;entries.push(await s.entry(created.id));}
+  return {topicId:topic.id,sectionId:section.sectionId,target:entries[7],next:entries[8]};
+  }finally{s.run=originalRun;console.log('SECTION_FIXTURE_ACQUISITIONS '+JSON.stringify(events));s.repository.close();}
+ })()`);
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
  return {h,p,seed};
+ }catch(error){try{await h.close();}catch(cleanup){console.error('SECTION_FIXTURE_CLEANUP',cleanup?.name||'Error');}throw error;}
 }
 const field=(p,id)=>p.locator(`#topic-body [data-entry-id="${id}"] [data-entry-field="body"]`);
 async function seedPosition(p,s,entry=s.target,at=offset){assert.deepEqual(await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId,entryId:entry.id,revision:entry.revision,offset:at,sort:'asc',expanded:[]}}),{saved:true});}
@@ -66,4 +73,22 @@ test('TOPIC-05.4 removed persisted Section Entry restores the canonical nearby t
   const nearby=await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId}});assert.equal(nearby.nearby,true);assert.equal(nearby.entryId,s.next.id);assert.equal(nearby.offset,0);assert.equal((await rpc(p,'GET_LIBRARY_ENTRY',{id:s.target.id})).body,s.target.body);
   await thoughtPrimary(p,'thoughts');await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).click();await p.getByText('原位置已移除，从附近继续。',{exact:true}).waitFor();const restored=await exact(p,s,s.next,0);assert.equal(await field(p,s.target.id).count(),0);await evidence(f,'nearby-return',{nearby,restored});
  }finally{await f.h.close();}
+});
+
+test('TOPIC-05.4 a real pending save ACK cannot start a replacement reader while departure is flushing',{timeout:90000},async()=>{
+ const f=await fixture();try{const {p,seed:s}=f;await seedPosition(p,s);await open(p,s);await exact(p,s);
+  await p.evaluate(async()=>{
+   const {TopicController}=await import('../ui/topic-workspace.js');globalThis.__leaveAckTrace={depth:0,refreshWhileLeaving:0,held:false,released:false};
+   const leave=TopicController.prototype.leaveEditors,refresh=TopicController.prototype.refresh;
+   TopicController.prototype.leaveEditors=function(...args){__leaveAckTrace.depth++;const pending=leave.apply(this,args);pending.then(()=>__leaveAckTrace.depth--,()=>__leaveAckTrace.depth--);return pending;};
+   TopicController.prototype.refresh=function(...args){if(__leaveAckTrace.depth)__leaveAckTrace.refreshWhileLeaving++;return refresh.apply(this,args);};
+   const send=chrome.runtime.sendMessage;globalThis.__leaveAckRestore=()=>chrome.runtime.sendMessage=send;
+   chrome.runtime.sendMessage=async function(message,...args){const result=await send.call(this,message,...args);if(message.type==='EDIT_LIBRARY_BATCH'&&!__leaveAckTrace.held){__leaveAckTrace.held=true;await new Promise(resolve=>globalThis.__releaseLeaveAck=resolve);__leaveAckTrace.released=true;}return result;};
+  });
+  const body=field(p,s.target.id),draft=s.target.body+'\n\nSYNTHETIC held real save ACK';await body.evaluate((n,text)=>{n.textContent=text;n.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:'SYNTHETIC held real save ACK'}));},draft);await p.locator('#topic-heading').evaluate(n=>n.focus({preventScroll:true}));
+  await eventually(()=>p.evaluate(()=>__leaveAckTrace.held),'the original storage commit completes before its actual editor ACK');const saved=await rpc(p,'GET_LIBRARY_ENTRY',{id:s.target.id});assert.equal(saved.body,draft);assert.ok(saved.revision>s.target.revision);await seedPosition(p,s,saved);
+  await p.evaluate(({id,at})=>{const b=document.querySelector(`[data-entry-id="${id}"] [data-entry-field="body"]`),w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,left=at;while(n=w.nextNode()){if(left<=n.length){const r=document.createRange();r.setStart(n,left);r.collapse(true);scrollBy(0,r.getBoundingClientRect().top-140);break;}left-=n.length;}},{id:s.target.id,at:offset});await settled(p);
+  await back(p);await eventually(()=>p.evaluate(()=>__leaveAckTrace.depth>0),'real departure is awaiting the same pending editor save');assert.equal(await p.locator('#thought-document').isVisible(),true);await p.evaluate(()=>__releaseLeaveAck());await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).waitFor();assert.equal(await p.evaluate(()=>__leaveAckTrace.refreshWhileLeaving),0,'save completion must not start a replacement reader during the real departure');
+  await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).click();const returned=await exact(p,s,saved);assert.equal(await field(p,s.target.id).textContent(),draft);await evidence(f,'pending-save-ack-return',{returned,trace:await p.evaluate(()=>__leaveAckTrace)});
+ }finally{await f.p.locator('html').evaluate(()=>{globalThis.__releaseLeaveAck?.();globalThis.__leaveAckRestore?.();},null,{timeout:1000}).catch(()=>{});await f.h.close();}
 });

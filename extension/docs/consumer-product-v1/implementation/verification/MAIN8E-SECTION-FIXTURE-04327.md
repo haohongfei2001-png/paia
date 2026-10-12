@@ -1,0 +1,10 @@
+# main8e Full failure: original Section fixture completion — 2026-10-12
+
+PR #265 is merged as main `8e56ab340f2065b95a909a97b75b6b8eb1ce8bdb`, runtime `0.43.27`, with the reviewed original Topic Store queue fix. Candidate Full `38209520091` passed all21 required jobs. Its actual-main Full `38211457477` FAILED the source Section fixture in Browser5 and both aggregates; other18 required components passed, including original UIS and D2, and Prompt `38211457466` passed. Keep candidate and actual-main outcomes distinct. Pages `38211457297` was cancelled during build before deployment; historical audit skipped is not a pass.
+
+Original cloud Section source failed at its first independent `page.evaluate` writer setup with `CONTROL_PUBLICATION_CHANGED` from indexed-store66; release and both original purge cases passed. Its unique concurrent publisher/inner cause remains UNKNOWN. The test-only successor waits for original trusted consent-click completion via the real worker GET_STATUS, and only after an actually visible skip action waits for its original history-step UI to hide. This does not claim all maintenance or page refresh is drained, adds no retry, and changes no runtime, guard, domain writer, assertion, timeout, SDK permissions, CI or version.
+
+Actual whole owning Section file passes4/4 in18978.434375ms, 0fail/cancel/skip/todo, on main8e plus the exact one-file precommit patch. Standard source/release builds run through the original fixture; package guard passes separately. The earlier unpatched local attempt failed all4 browser launches under sandbox and is retained as environment failure, not a passed runtime counter. Changed-head full qualification and actual-main acceptance still remain. This is a finite fixture correction, not full TOPIC/SET2/Sync/installed/deployed certification.
+
+Context22/Settings26 originals remain accessible through PR258's approved-visuals-2026-10-07 library; later17px/680px/style/NIB/toolbar amendments win. Seven-lane priorities unchanged. Sync original mixed recovery continues separately with preserved C negative-restoration work; no unreviewed C union enters this correction.
+

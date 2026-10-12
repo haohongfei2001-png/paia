@@ -60,7 +60,7 @@ export class ContextTopicAccessService {
    await this.admission(t,epoch);const row=await this.row(t),selectedCount=storedCount(row),selectedNames=[];
    // This is a local preview of retained choices, never an effective read grant.
    // Stale identities stay counted but cannot provide a former identity's label.
-   if(selectedCount){await this.admission(t,epoch,{scope:true});const memory=new MemoryService(this.s),selected=(await this.directory(t,row)).filter(item=>item.choice?.enabled).slice(0,3);
+   if(selectedCount){await this.admission(t,epoch,{scope:true});const memory=new MemoryService(this.s),selected=(await this.directory(t,row)).filter(item=>item.choice?.enabled).slice(0,5);
     for(const {topic,choice}of selected){if(!['active','dormant'].includes(topic.lifecycle)||!sameContextTopicBinding(choice.binding,await this.prospective(t,topic,epoch)))continue;const name=await this.displayName(t,topic,memory);if(name)selectedNames.push(name);}
    }
    return {available:true,selectedCount,selectedNames,remainingSelectedCount:selectedCount-selectedNames.length,reason:'preferences_ready',externalAllowed:false};

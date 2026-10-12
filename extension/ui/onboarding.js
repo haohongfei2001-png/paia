@@ -9,10 +9,10 @@ export class OnboardingUI {
  }
  async load(){try{this.state=await request('GET_ONBOARDING');}catch{this.state={step:'consent',historyState:'not_started'};}}
  async action(action){try{this.state=await request('SET_ONBOARDING',{action});await this.refresh();}catch{$('onboarding-error').textContent='暂时无法保存进度，请再试一次。';}}
- paint(page,{home=true}={}){
+ paint(page,{home=true,settings=false}={}){
   const consented=page.settings.consentVersion===1,step=this.state?.step;
-  $('onboarding-welcome').hidden=consented||step!=='welcome';
-  $('consent-panel').hidden=consented||step==='welcome'||!this.state;
+  $('onboarding-welcome').hidden=settings||consented||step!=='welcome';
+  $('consent-panel').hidden=settings||consented||step==='welcome'||!this.state;
   const showHistory=consented&&home&&step==='history';
   $('onboarding-history-step').hidden=!showHistory;
   if($('history-settings'))$('history-settings').hidden=showHistory;

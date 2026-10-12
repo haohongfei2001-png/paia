@@ -176,6 +176,9 @@ export function testShard(file,position,total,category){
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===preferencePublication)return 3;if(addedName>preferencePublication)position--;}
  // Admit only this new whole file; keep all previously certified positions.
  if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(addedName===topicReturn)return 2;if(addedName>topicReturn)position--;}
+ // Full38228576791 exhausted the unchanged18m budget after all file cases.
+ // Isolate the complete approved Context file; every other nine-route stays fixed.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.

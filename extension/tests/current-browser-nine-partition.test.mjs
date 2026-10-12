@@ -21,5 +21,14 @@ test('nine measured whole-file jobs preserve every legacy route and exact curren
  assert.throws(()=>testShard('new-unadmitted-chrome-e2e.test.mjs',0,9,'browser E2E'),/CURRENT_NINE_UNADMITTED/);
  for(const [file,slot]of [['uir-04-settings-chrome-e2e.test.mjs',6],['context-cards-chrome-e2e.test.mjs',6],['cpv1-02-dvn-topic-content-chrome-e2e.test.mjs',5]])assert.equal(testShard(file,names.indexOf(file),9,'browser E2E'),slot);
  const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0];
- assert.deepEqual([...job.matchAll(/shard: '(\d\/9)'/g)].map(x=>x[1]),Array.from({length:9},(_,i)=>`${i+1}/9`));assert.match(job,/timeout-minutes: 18/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);assert.match(job,/fail-fast: false/);assert.doesNotMatch(job,/test-name-pattern|test-skip-pattern|continue-on-error/);
+ assert.deepEqual([...job.matchAll(/shard: '(\d+\/10)'/g)].map(x=>x[1]),Array.from({length:10},(_,i)=>`${i+1}/10`));assert.match(job,/timeout-minutes: 18/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);assert.match(job,/fail-fast: false/);assert.doesNotMatch(job,/test-name-pattern|test-skip-pattern|continue-on-error/);
+});
+
+test('ten current jobs isolate only the complete Context owner without losing, duplicating or weakening coverage',async()=>{
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();assert.equal(names.length,96);
+ const actual=Array.from({length:10},(_,i)=>names.filter((n,p)=>testShard(n,p,10,'browser E2E')===i+1));assert.deepEqual(actual.flat().sort(),names);assert.equal(new Set(actual.flat()).size,96);assert.ok(actual.every(files=>files.length));assert.deepEqual(actual[9],['context-cards-chrome-e2e.test.mjs']);
+ for(const [position,file]of names.entries())for(const path of [file,'tests/'+file])assert.equal(testShard(path,position,10,'browser E2E'),file==='context-cards-chrome-e2e.test.mjs'?10:testShard(file,position,9,'browser E2E'),path);
+ assert.throws(()=>testShard('new-unadmitted-chrome-e2e.test.mjs',0,10,'browser E2E'),/CURRENT_TEN_UNADMITTED/);
+ const workflow=await readFile(new URL('../../.github/workflows/paia-certification.yml',import.meta.url),'utf8'),job=workflow.split('  current_browser:')[1].split('  full_suite:')[0],setup=job.split('      - name: Pin verified full Chrome for Settings native evidence')[1].split('      - name: Verify the installed Chrome actually launches')[0],artifact=job.split('      - name: Upload focused Context source and release evidence')[1];
+ assert.match(setup,/if: matrix.index == 6/);assert.match(artifact,/if: always\(\) && matrix.index == 10/);assert.match(artifact,/path: extension\/work\/ctx4-01\//);assert.match(job,/timeout-minutes: 18/);assert.match(job,/PAIA_TEST_CONCURRENCY: '1'/);assert.doesNotMatch(job,/continue-on-error|test-name-pattern|test-skip-pattern/);
 });

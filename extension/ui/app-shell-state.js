@@ -25,7 +25,7 @@ export function appShellRoute(current,navigator=null){
 export function presentAppShell(root,route,{consented=false,writing=false}={}){
  const get=id=>root.getElementById(id),view=route.view,documentId=route.documentId;
  for(const button of root.querySelectorAll('[data-view]')){
-  button.disabled=!consented;
+  button.disabled=!consented&&!['library','settings'].includes(button.dataset.view);
   button.setAttribute('aria-current',button.dataset.view===(view==='revisit'?'library':view)?'page':'false');
  }
  const visible={
@@ -35,7 +35,7 @@ export function presentAppShell(root,route,{consented=false,writing=false}={}){
   'thought-root-header':consented&&view==='thoughts'&&!route.topicId,
   'thought-root-source':consented&&view==='thoughts'&&!route.topicId,
   'thought-topic-header':consented&&view==='thoughts'&&!!route.topicId,
-  'settings-panel':consented&&view==='settings',
+  'settings-panel':view==='settings',
   'legacy-panel':consented&&view==='legacy',
   'memory-panel':consented&&view==='memory',
   'revisit-panel':view==='revisit'

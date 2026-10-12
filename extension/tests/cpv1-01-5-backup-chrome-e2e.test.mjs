@@ -83,7 +83,7 @@ test('CPV1-01.5 retired export refuses while historical Backup imports protect c
   await page.locator('#enable-consent').click();
   await openBackup(page);
   await page.locator('#backup-file').setInputFiles(output);
-  await eventually(async()=>await page.locator('#backup-restore').isEnabled(),'empty-library restore preview',60000);
+  await eventually(async()=>await page.locator('#backup-continue').isEnabled(),'empty-library restore preview',60000);assert.equal(await page.locator('#backup-restore').isDisabled(),true);await page.locator('#backup-continue').click();assert.equal(await page.locator('#backup-restore').isEnabled(),true);
   await page.locator('#backup-restore').click();
   await eventually(async()=>/恢复已完成/.test(await page.locator('#backup-status').textContent()),'atomic recovery',60000);
   assert.deepEqual(await libraryDigest(harness),before);

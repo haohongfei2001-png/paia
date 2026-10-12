@@ -25,8 +25,8 @@ export async function* backupSegmentRows(files){
  for(const file of ordered)yield* backupFileRows(file);
 }
 export class BackupPanel {
- constructor(){this.busy=false;this.sessionId=null;this.mode='empty';$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>void this.cancel());$('backup-mode').addEventListener('change',()=>void this.selectMode());$('backup-confirm-replace').addEventListener('change',()=>this.renderPreview());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});this.installInspectionPresentation();this.syncLocale();new MutationObserver(()=>this.syncLocale()).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});}
- syncLocale(){refreshBackupCopy($('backup-settings'));this.presentInspectionFailure($('backup-settings').dataset.inspectionFailure==='true');}
+ constructor(){this.busy=false;this.sessionId=null;this.mode='empty';this.confirmation=null;$('backup-choose').addEventListener('click',()=>$('backup-file').click());$('backup-file').addEventListener('change',()=>void this.inspect(Array.from($('backup-file').files||[])));$('backup-restore').addEventListener('click',()=>void this.restore());$('backup-cancel').addEventListener('click',()=>this.requestCancel());$('backup-mode').addEventListener('change',()=>void this.selectMode());$('backup-confirm-replace').addEventListener('change',()=>this.renderPreview());installR6Settings({isBusy:()=>this.busy,lock:value=>this.lock(value),status:(text,state)=>this.status(text,state)});this.installInspectionPresentation();this.syncLocale();new MutationObserver(()=>this.syncLocale()).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});}
+ syncLocale(){refreshBackupCopy($('backup-settings'));this.presentInspectionFailure($('backup-settings').dataset.inspectionFailure==='true');this.presentStage();}
  installInspectionPresentation(){
   const host=$('backup-settings'),heading=[];
   this.pickerDescription=$('backup-choose').getAttribute('aria-describedby');
@@ -35,7 +35,26 @@ export class BackupPanel {
    ['button','backup-failure-return','返回设置','Back to Settings'],
    ['small','backup-failure-note','当前状态不会自动触发外部请求。','This state does not automatically make external requests.'],
   ]){const node=element(tag);node.id=id;const value=document.documentElement.lang==='en'?en:zh;node.dataset.r6Zh=zh;node.dataset.r6En=en;node.textContent=value;if(tag==='button'){node.type='button';node.addEventListener('click',()=>{const dialog=host.closest('dialog');if(dialog?.open)dialog.dispatchEvent(new Event('paia:request-close',{cancelable:true}));else void this.cancel();});}if(tag==='small')host.append(node);else heading.push(node);}host.prepend(...heading);
-  const actions=element('div','ux-backup-actions');actions.append($('backup-failure-return'),$('backup-choose'));host.append(actions);
+  const next=setBackupCopy(element('button',''),'继续');next.id='backup-continue';next.type='button';next.addEventListener('click',()=>this.confirmPreview());
+  const actions=element('div','ux-backup-actions');actions.append($('backup-failure-return'),$('backup-choose'),$('backup-cancel'),next,$('backup-restore'));host.append(actions);this.modeLabel=$('backup-mode').parentElement;
+  const note=setBackupCopy(element('p','muted'),'恢复只在本机进行，捕获授权保持当前设置。');note.id='backup-preview-note';this.modeLabel.after(note);
+  const confirmation=element('p','');confirmation.id='backup-confirmation-content';$('backup-preview').prepend(confirmation);this.presentStage();
+ }
+ // Presentation never grants restore authority: the original preview and its
+ // exact session/mode must still be the ones the user explicitly reviewed.
+ confirmed(){const c=this.confirmation;return !!c&&c.preview===this.preview&&c.sessionId===this.sessionId&&c.mode===this.mode;}
+ confirmPreview(){if(this.busy||!this.sessionId||!this.preview?.canRestore||this.confirmed())return false;this.confirmation={preview:this.preview,sessionId:this.sessionId,mode:this.mode};this.presentStage();const title=$('settings-backup-title');if(title){title.tabIndex=-1;title.focus({preventScroll:true});}return true;}
+ requestCancel(){if(this.busy)return;const dialog=$('backup-settings').closest?.('dialog');if(dialog?.open)dialog.dispatchEvent(new Event('paia:request-close',{cancelable:true}));else void this.cancel({requireAcknowledgement:true}).catch(error=>this.status(backupMessage(error.code),'failed'));}
+ presentStage(){
+  const host=$('backup-settings'),hasPreview=!!this.preview,confirm=hasPreview&&this.confirmed();
+  const stage=host.dataset.inspectionFailure==='true'?'invalid':hasPreview?(confirm?'confirm':'preview'):'choose';host.dataset.backupStage=stage;
+  for(const id of ['backup-choose','backup-failure-return'])$(id).hidden=hasPreview;
+  $('backup-cancel').hidden=!hasPreview;$('backup-cancel').disabled=this.busy;
+  const next=$('backup-continue');if(next){next.hidden=!hasPreview||confirm;next.disabled=this.busy||!this.preview?.canRestore;}
+  $('backup-restore').hidden=!confirm;$('backup-restore').disabled=this.busy||!confirm||!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked;
+  if(this.modeLabel)this.modeLabel.hidden=confirm;
+  $('backup-preview-content').hidden=confirm;$('backup-preview-note').hidden=confirm;$('backup-confirmation-content').hidden=!confirm;
+  $('backup-confirm-replace-label').hidden=!confirm||this.mode!=='replace';
  }
  presentInspectionFailure(failed){
   const host=$('backup-settings'),choose=$('backup-choose');
@@ -49,42 +68,43 @@ export class BackupPanel {
   else if(this.pickerDescription)choose.setAttribute('aria-describedby',this.pickerDescription);else choose.removeAttribute('aria-describedby');
  }
  status(text,state){setBackupCopy($('backup-status'),text);this.currentState=state||(text.startsWith('正在')?'loading':text.includes('已完成')||text.includes('已生成')?'saved':text?'ready':'idle');setProductState($('backup-settings'),this.currentState);}
- lock(value,{preserveInspectionFailure=false}={}){if(value&&!preserveInspectionFailure)this.presentInspectionFailure(false);this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-choose','backup-failure-return','backup-restore','backup-mode','backup-confirm-replace'])if($(id))$(id).disabled=value;}
- async cancel({requireAcknowledgement=false}={}){if(this.busy)return false;const returnFocus=document.activeElement===$('backup-failure-return')&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false;this.lock(true,{preserveInspectionFailure:requireAcknowledgement});try{return await this.clearSession({requireAcknowledgement});}finally{this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked;if(returnFocus&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false)$('backup-choose').focus();}}
+ lock(value,{preserveInspectionFailure=false}={}){if(value&&!preserveInspectionFailure)this.presentInspectionFailure(false);this.busy=value;setProductState($('backup-settings'),value?'loading':this.currentState||'idle');for(const id of ['backup-choose','backup-failure-return','backup-restore','backup-mode','backup-confirm-replace','backup-continue','backup-cancel'])if($(id))$(id).disabled=value;this.presentStage();}
+ async cancel({requireAcknowledgement=false}={}){if(this.busy)return false;const returnFocus=document.activeElement===$('backup-failure-return')&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false;this.lock(true,{preserveInspectionFailure:requireAcknowledgement});try{return await this.clearSession({requireAcknowledgement});}finally{this.lock(false);this.presentStage();if(returnFocus&&$('settings-panel')?.hidden===false&&$('ux-settings-data-group')?.hidden===false)$('backup-choose').focus();}}
  // Closing a Settings detail cannot conceal an active read/write. An idle
  // staged preview is cancelled through this original owner before leaving.
  async leaveSettings(){if(this.busy)return false;try{if(this.sessionId||this.preview||$('backup-settings').dataset.inspectionFailure==='true')return await this.cancel({requireAcknowledgement:true});return true;}catch(e){this.status(backupMessage(e.code),'failed');return false;}}
- async clearSession({requireAcknowledgement=false}={}){if(!requireAcknowledgement)this.presentInspectionFailure(false);const sessionId=this.sessionId;if(sessionId){const cancellation=request('PAIA_BACKUP_CANCEL',{options:{sessionId}});if(requireAcknowledgement)await cancellation;else await cancellation.catch(()=>{});}if(this.sessionId!==sessionId)return false;this.presentInspectionFailure(false);this.sessionId=null;this.preview=null;$('backup-restore').disabled=true;this.mode='empty';$('backup-mode').value='empty';$('backup-confirm-replace').checked=false;$('backup-preview').hidden=true;$('backup-file').value='';this.status('');return true;}
+ async clearSession({requireAcknowledgement=false}={}){if(!requireAcknowledgement)this.presentInspectionFailure(false);const sessionId=this.sessionId;if(sessionId){const cancellation=request('PAIA_BACKUP_CANCEL',{options:{sessionId}});if(requireAcknowledgement)await cancellation;else await cancellation.catch(()=>{});}if(this.sessionId!==sessionId)return false;this.presentInspectionFailure(false);this.sessionId=null;this.preview=null;this.confirmation=null;this.selectedBackupName=null;$('backup-restore').disabled=true;this.mode='empty';$('backup-mode').value='empty';$('backup-confirm-replace').checked=false;$('backup-preview').hidden=true;$('backup-file').value='';this.status('');this.presentStage();return true;}
  async create(){throw new ArchiveError('FEATURE_UNAVAILABLE');}
  async createSegmented(){throw new ArchiveError('FEATURE_UNAVAILABLE');}
- async inspect(input){const files=Array.isArray(input)?input:[input];if(!files.length||!files[0]||this.busy)return;this.lock(true);try{await this.clearSession();this.status('正在本机校验备份…');const begin=await request('PAIA_BACKUP_BEGIN_RESTORE');this.sessionId=begin.sessionId;const validator=new BackupValidator();let batch=[];for await(const row of files.length===1&&!files[0].name.endsWith('.manifest.paia-backup')?backupFileRows(files[0]):backupSegmentRows(files)){await validator.add(row);batch.push(row);if(batch.length===30){await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});batch=[];this.status(`正在校验 · ${validator.count} 项`);}}validator.preview();if(batch.length)await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});this.preview=await request('PAIA_BACKUP_PREVIEW',{options:{sessionId:this.sessionId,mode:this.mode}});this.renderPreview();}catch(e){if(INSPECTION_REJECTIONS.has(e.code))this.presentInspectionFailure(true);this.status(backupMessage(e.code),'failed');if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;}finally{this.lock(false);this.renderPreview();}}
+ async inspect(input){const files=Array.isArray(input)?input:[input];if(!files.length||!files[0]||this.busy)return;this.confirmation=null;this.lock(true);try{await this.clearSession();this.selectedBackupName=(files.find(file=>file.name.endsWith('.manifest.paia-backup'))||files[0]).name;this.status('正在本机校验备份…');const begin=await request('PAIA_BACKUP_BEGIN_RESTORE');this.sessionId=begin.sessionId;const validator=new BackupValidator();let batch=[];for await(const row of files.length===1&&!files[0].name.endsWith('.manifest.paia-backup')?backupFileRows(files[0]):backupSegmentRows(files)){await validator.add(row);batch.push(row);if(batch.length===30){await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});batch=[];this.status(`正在校验 · ${validator.count} 项`);}}validator.preview();if(batch.length)await request('PAIA_BACKUP_STAGE',{options:{sessionId:this.sessionId,items:batch}});this.preview=await request('PAIA_BACKUP_PREVIEW',{options:{sessionId:this.sessionId,mode:this.mode}});this.renderPreview();}catch(e){if(INSPECTION_REJECTIONS.has(e.code))this.presentInspectionFailure(true);this.status(backupMessage(e.code),'failed');if(this.sessionId)await request('PAIA_BACKUP_CANCEL',{options:{sessionId:this.sessionId}}).catch(()=>{});this.sessionId=null;this.preview=null;}finally{this.lock(false);this.renderPreview();}}
  renderPreview(){
-  const p=this.preview;if(!p){$('backup-restore').disabled=true;return;}
+  const p=this.preview;if(!p){$('backup-preview').hidden=true;this.presentStage();return;}
   const replacing=this.mode==='replace',merging=this.mode==='merge';
-  $('backup-confirm-replace-label').hidden=!replacing;
+  // The same original checkbox is shown only at explicit replacement confirmation.
   setBackupCopy($('backup-restore'),replacing?'确认替换当前库':merging?'确认合并到当前库':'确认恢复到空库');
+  const row=(label,value)=>{const line=element('div','ux-backup-preview-line');line.append(setBackupCopy(element('span',''),label),setBackupCopy(element('span',''),value));return line;};
   $('backup-preview-content').replaceChildren(
-   setBackupCopy(element('p',''),`备份日期：${new Date(p.createdAt).toLocaleString()}`),
-   setBackupCopy(element('p',''),`PAIA ${p.appVersion} · 备份格式 ${p.formatVersion}`),
-   setBackupCopy(element('p',''),`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),
-   setBackupCopy(element('p','muted'),p.canRestore
-    ?replacing?'完整性校验通过。替换会清除当前库内容；本机永久删除标记和捕获授权保留。请勾选确认。'
-     :merging?'完整性校验通过。只合并无冲突的数据，当前设置与现有内容保留。'
-      :'完整性校验通过。确认后将在本机恢复，捕获授权保持当前设置。'
-    :backupMessage(p.reason)));
+   ...(this.selectedBackupName?[element('p','muted',this.selectedBackupName)]:[]),
+   row('备份内容',`${p.counts.inputs} 条 Input · ${p.counts.topics} 个 Topic · ${p.counts.entries} 条思想内容 · ${p.counts.revisions} 个版本`),
+   row('当前的人工修改',replacing?'替换会清除当前内容和修改':merging?'保留，冲突时不写入':'仅恢复到空库'),
+   row('永久删除的来源','永久删除标记优先，包含已删除来源的备份不能恢复'));
+  setBackupCopy($('backup-confirmation-content'),replacing
+   ?'将用备份替换当前库。当前内容和人工修改将被清除，本机永久删除标记和捕获授权保留。'
+   :merging?'将合并互不冲突的数据，保留当前内容、人工修改与设置。若实际写入前发现冲突，本次合并不写入。'
+    :'将在空库中恢复备份内容与版本，仅在本机进行。捕获授权保持当前设置。');
   $('backup-preview').hidden=false;
-  $('backup-restore').disabled=this.busy||!p.canRestore||(replacing&&!$('backup-confirm-replace').checked);
-  this.status(p.canRestore?'请核对备份信息并确认所选恢复方式。':'校验通过，当前库不满足所选恢复方式的安全条件。');
+  this.presentStage();
+  this.status(p.canRestore?'请核对备份信息并确认所选恢复方式。':backupMessage(p.reason),p.canRestore?'ready':'failed');
  }
  async selectMode(){
   if(this.busy||!this.sessionId)return;
-  this.mode=$('backup-mode').value;
+  this.confirmation=null;this.mode=$('backup-mode').value;
   $('backup-confirm-replace').checked=false;
   this.preview=null;$('backup-restore').disabled=true;
-  this.lock(true);
+  this.renderPreview();this.lock(true);
   try{this.preview=await request('PAIA_BACKUP_PREVIEW',{options:{sessionId:this.sessionId,mode:this.mode}});}
   catch(e){this.status(backupMessage(e.code),'failed');}
   finally{this.lock(false);this.renderPreview();}
  }
- async restore(){if(this.busy||!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked)return;this.lock(true);try{this.status('正在恢复，请保持本页打开…');await request('PAIA_BACKUP_RESTORE',{options:{sessionId:this.sessionId,confirmation:this.preview.integrity,mode:this.mode,targetGeneration:this.preview.targetGeneration,confirmReplace:this.mode==='replace'&&$('backup-confirm-replace').checked,confirmMerge:this.mode==='merge'}});await refreshR6Settings();this.sessionId=null;this.preview=null;$('backup-preview').hidden=true;this.status('恢复已完成。内容与版本已保存到本机；本地搜索索引正在更新。');}catch(e){this.status(backupMessage(e.code),'failed');}finally{this.lock(false);$('backup-restore').disabled=!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked;}}
+ async restore(){if(this.busy||!this.confirmed()||!this.preview?.canRestore||this.mode==='replace'&&!$('backup-confirm-replace').checked)return;this.lock(true);try{this.status('正在恢复，请保持本页打开…');await request('PAIA_BACKUP_RESTORE',{options:{sessionId:this.sessionId,confirmation:this.preview.integrity,mode:this.mode,targetGeneration:this.preview.targetGeneration,confirmReplace:this.mode==='replace'&&$('backup-confirm-replace').checked,confirmMerge:this.mode==='merge'}});await refreshR6Settings();this.sessionId=null;this.preview=null;this.confirmation=null;$('backup-preview').hidden=true;this.status('恢复已完成。内容与版本已保存到本机；本地搜索索引正在更新。');}catch(e){this.status(backupMessage(e.code),'failed');}finally{this.lock(false);this.presentStage();}}
 }

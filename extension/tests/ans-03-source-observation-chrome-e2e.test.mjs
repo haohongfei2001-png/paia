@@ -35,17 +35,30 @@ async function initializeSourceReader(page){
   globalThis.__ans03SourceReader={store:s,structure:new SourceStructureStore(s),trace};
  })()`);
 }
-async function sourceRow(page,id){
- return page.evaluate(async id=>{
-  const {structure,trace}=globalThis.__ans03SourceReader;
+async function sourceRow(page,id,{waitForObservation=false}={}){
+ return page.evaluate(async ({id,waitForObservation})=>{
+  const {structure,trace,store}=globalThis.__ans03SourceReader,startCall=trace.calls;
   try{
    trace.lastPhase=trace.phase='conversation';
    const ref={platform:'chatgpt',sourceConversationId:id},row=await structure.conversation(ref);
    trace.lastPhase=trace.phase='history';
    const history=await structure.history({kind:'conversation',conversationRef:ref});
    return {row,history:history.items};
+  }catch(error){
+   const attempts=trace.attempts.filter(row=>row.call>startCall);
+   // Only the existing observation-convergence poll may receive an unavailable
+   // sample. No snapshot was obtained: both original admission attempts failed
+   // before any callback entered. Ordinary assertions and partial reads fail.
+   const pending=waitForObservation===true&&error?.code==='CONTROL_PUBLICATION_CHANGED'
+    &&['loaded','iaLoaded','filterLoaded','foundationLoaded','bindingsLoaded','documentsLoaded'].every(key=>store[key]===true)
+    &&trace.calls===startCall+1&&trace.phase==='conversation'&&attempts.length===2
+    &&attempts.every((row,index)=>row.call===startCall+1&&row.phase==='conversation'&&row.attempt===index+1&&row.entered===false&&row.outcome==='rejected'&&row.error==='CONTROL_PUBLICATION_CHANGED');
+   if(!pending)throw error;
+   trace.pendingSamples=(trace.pendingSamples||0)+1;
+   console.log('ANS03_SOURCE_SAMPLE_PENDING '+JSON.stringify({call:startCall+1,attempts:2,entered:false,sample:trace.pendingSamples}));
+   return {pending:true};
   }finally{trace.phase=null;}
- },id);
+ },{id,waitForObservation});
 }
 test('ANS-03 trusted current-route observation settles after capture, respects exclusion/pause, and synthetic lifecycle stays separate',{timeout:240000},async()=>{
  const h=await FakeChatGPT.start({headless:true});
@@ -59,7 +72,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   phase='initial-source-capture';const chat=await h.open(a,{arrival:'dom-first'});
   await eventually(async()=>(await h.state()).records.filter(r=>r.chatId===a.id).length===2,
     'ANS-03 production capture completes');
-  phase='initial-route-observation';await eventually(async()=>Boolean((await sourceRow(archive,a.id)).row?.lastObservedAt),
+  phase='initial-route-observation';await eventually(async()=>Boolean((await sourceRow(archive,a.id,{waitForObservation:true})).row?.lastObservedAt),
     'ANS-03 production plain-route observation settles after source exists');
   let observed=await sourceRow(archive,a.id);
   assert.equal(observed.row.membership.state,'unassigned');assert.equal(observed.row.sourceStatus,'unknown');
@@ -81,7 +94,7 @@ test('ANS-03 trusted current-route observation settles after capture, respects e
   ]};
   phase='second-source-and-route-observation';await h.spa(chat,b);
   await eventually(async()=>(await h.state()).records.some(r=>r.chatId===b.id),'ANS-03 second source captures');
-  await eventually(async()=>Boolean((await sourceRow(archive,b.id)).row?.lastObservedAt),
+  await eventually(async()=>Boolean((await sourceRow(archive,b.id,{waitForObservation:true})).row?.lastObservedAt),
     'ANS-03 second production plain-route observation settles');
   phase='synthetic-relationship-sequence';const synthetic=await archive.evaluate(async id=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
