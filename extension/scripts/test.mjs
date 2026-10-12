@@ -1,3 +1,4 @@
+import {verifyDiscoveredBrowserCoverage} from './browser-coverage.mjs';
 import {readdir,readFile,writeFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -7,6 +8,7 @@ import {group,testShard} from './test-groups.mjs';
 const require=createRequire(import.meta.url);
 if(!process.env.PLAYWRIGHT_MODULE){try{process.env.PLAYWRIGHT_MODULE=require.resolve('playwright');}catch{}}
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
+verifyDiscoveredBrowserCoverage();
 const startingDigest=await inputDigest();
 const requested=process.argv[2];
 const allowed=['unit','adapter contract','browser E2E','historical browser E2E','privacy/security','experimental'];

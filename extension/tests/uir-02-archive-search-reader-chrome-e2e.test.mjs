@@ -250,7 +250,7 @@ async function releaseJourney(page,h){
   await assertOffline(h);
 }
 
-test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners in source and built release Chrome',{timeout:300000},async()=>{
+test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners (source)',{timeout:300000},async()=>{
   let source;
   try{
     source=await FakeChatGPT.start({onboarding:true});
@@ -260,6 +260,11 @@ test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing 
     await source?.close();
   }
 
+});
+
+// Release has its own isolated profile and fixture, not state recovered from source.
+// Keep both complete journeys and every original action/assertion deadline.
+test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners (release)',{timeout:300000},async()=>{
   const releasePath=await mkdtemp(join(tmpdir(),'paia-uir02-reader-'));
   let release;
   try{

@@ -1,3 +1,7 @@
+import {historicalBrowserNames} from './browser-corpus.mjs';
+import {verifyDiscoveredBrowserCoverage} from './browser-coverage.mjs';
+const liveCurrent=verifyDiscoveredBrowserCoverage();
+// Historical comparisons use the frozen pre-optimization corpus, not future additions.
 const settingsData='settings-data-destinations-chrome-e2e.test.mjs';
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const nib=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
@@ -61,11 +65,11 @@ const archived=[
 for(const name of archived){
  if(!names.has(name)||group(name)!=='experimental')throw Error(`SEMANTIC_ARCHIVE_COVERAGE_MISSING:${name}`);
 }
-const current=[...names].filter(name=>group(name)==='browser E2E').sort();
+const current=liveCurrent.filter(name=>historicalBrowserNames.has(name));
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 if(!current.includes(preferencePublication)||testShard(preferencePublication,current.indexOf(preferencePublication),9,'browser E2E')!==7)throw Error('PREFERENCE_NATIVE_CURRENT_ROUTING_INVALID');
-if(current.length!==95||!current.includes(ai)||!current.includes(topicReturn))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
+if(current.length!==historicalBrowserNames.size||!current.includes(ai)||!current.includes(topicReturn))throw Error('AI_TOPIC_CURRENT_CORPUS_INVALID');
 for(const count of [4,5,6,7])if(testShard(ai,current.indexOf(ai),count,'browser E2E')!==4)throw Error('AI_WHOLE_FILE_ROUTING');
 const sectionActions='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 if(!current.includes(sectionActions))throw Error('SECTION_ACTIONS_NATIVE_MISSING');
@@ -173,3 +177,5 @@ console.log('PROMOTION_CURRENT_COVERAGE_PASS previous=93 added=1 total=94; origi
 
 for(const width of [4,5,6,7,9])if(!names.has(settingsData)||group(settingsData)!=='browser E2E'||testShard(settingsData,current.indexOf(settingsData),width,'browser E2E')!==4)throw Error('SETTINGS_DATA_CURRENT_NATIVE_NOT_ADMITTED');
 console.log('SETTINGS_DATA_CURRENT_COVERAGE_PASS previous=94 added=1 total=95; original routes preserved');
+
+console.log(`CURRENT_BROWSER_MANIFEST_PASS files=${liveCurrent.length}; independent discovery and historical safety retained`);
