@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {performance} from 'node:perf_hooks';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
 import {rememberArchiveDirectory,assertArchiveDirectoryUnchanged,assertBlankArchiveReader} from './harness/d7-archive-reference.mjs';
@@ -250,7 +251,11 @@ async function releaseJourney(page,h){
   await assertOffline(h);
 }
 
-test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners in source and built release Chrome',{timeout:300000},async()=>{
+// The two isolated lifetimes share the original source-plus-release deadline.
+// Await the source case before computing the release's remaining budget.
+const sourceAndReleaseDeadline=performance.now()+300000;
+const remainingJourneyBudget=()=>Math.max(1,Math.floor(sourceAndReleaseDeadline-performance.now()));
+await test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners (source)',{timeout:remainingJourneyBudget()},async()=>{
   let source;
   try{
     source=await FakeChatGPT.start({onboarding:true});
@@ -260,6 +265,11 @@ test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing 
     await source?.close();
   }
 
+});
+
+// Release has its own isolated profile and fixture, not state recovered from source.
+// Keep every action/assertion deadline; this case receives only the shared remainder.
+await test('UIR-02 Archive, Search, Revisit and Reader presentation stays on existing owners (release)',{timeout:remainingJourneyBudget()},async()=>{
   const releasePath=await mkdtemp(join(tmpdir(),'paia-uir02-reader-'));
   let release;
   try{

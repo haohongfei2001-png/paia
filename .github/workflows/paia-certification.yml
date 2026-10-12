@@ -39,6 +39,15 @@ jobs:
     outputs:
       full: ${{ steps.depth.outputs.full }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate admission before scheduling expensive suites
+        working-directory: extension
+        run: node scripts/check-ui-refresh-ci.mjs
       - id: depth
         name: Select round integration or full certification
         env:
