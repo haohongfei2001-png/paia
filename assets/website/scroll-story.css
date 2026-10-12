@@ -195,11 +195,12 @@
 .art-refined .ad-thought-scroll[data-user-reading=true]{height:auto;min-height:0}
 .art-refined .ad-thought-scroll[data-user-reading=true]>.ad-scroll-sticky{position:relative;top:auto;height:auto;min-height:0;display:block}
 .art-refined .ad-thought-scroll[data-user-reading=true] .ad-thought-scenes{display:none}
-/* CI's actual overflow was the existing footer's Data & permissions
-   link at 768px / 200% text (3px), not the story. Keep normal desktop and
-   all text unchanged; permit the narrow footer grid to shrink and reflow. */
+/* CI located pre-existing footer-link overflow at 768px and 390px under
+   200% text. Allow intrinsic grid shrinkage without clipping or smaller text. */
 @media(min-width:761px) and (max-width:1080px){
  body[data-page="index.html"] .footer-main{grid-template-columns:minmax(0,1.4fr) minmax(0,2fr)}
+}
+@media(max-width:1080px){
  body[data-page="index.html"] .site-footer nav{min-width:0;grid-template-columns:repeat(3,minmax(0,1fr))}
  body[data-page="index.html"] .site-footer nav>div{min-width:0}
  body[data-page="index.html"] .site-footer nav a{max-width:100%;overflow-wrap:anywhere}
