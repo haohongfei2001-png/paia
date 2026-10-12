@@ -1,0 +1,37 @@
+name: PAIA isolated efficiency workbench
+on:
+  push:
+    branches: ['engineering/execution-efficiency-20261012']
+    paths: ['.github/workflows/paia-efficiency-workbench.yml']
+permissions:
+  contents: read
+concurrency:
+  group: paia-efficiency-workbench-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    if: github.ref == 'refs/heads/engineering/execution-efficiency-20261012'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Snapshot exact public source and existing dependency graph
+        run: |
+          mkdir -p /tmp/paia-efficiency-input
+          git archive b8a09bbfd4b57447c71f8b18bb1e528c65e0668e | gzip > /tmp/paia-efficiency-input/source.tar.gz
+          git show b8a09bbfd4b57447c71f8b18bb1e528c65e0668e:extension/package.json
+          cd extension
+          npm install --ignore-scripts --no-audit --no-fund --package-lock=false
+          tar -czf /tmp/paia-efficiency-input/dependencies.tar.gz node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paia-efficiency-input
+          path: /tmp/paia-efficiency-input/
+          retention-days: 3
+          if-no-files-found: error
