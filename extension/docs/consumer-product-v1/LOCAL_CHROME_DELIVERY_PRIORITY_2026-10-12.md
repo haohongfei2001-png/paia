@@ -1,3 +1,9 @@
+# Current routing correction — 2026-10-13
+
+This local delivery priority has been fulfilled by 0.43.29 / main `51303e8436faa24f445906a6c4a2c278d6d93001` (Certification `38308057095`, Prompt `38308057140`, both SUCCESS). PR #266/#268/#270 are merged; the pending table and candidate selection below are preserved as the original 2026-10-12 decision, not present-day work. [STATUS](STATUS.md) now selects remaining Canonical engineering, beginning with AI-COST-02 bounded SSE decoding. All seven plans and outstanding final acceptance obligations remain; Sync new features are still paused and Pro owns PR #264/CI. Local-stage completion is not whole-project completion or blanket future installation authority.
+
+## Historical priority decision
+
 # Current execution priority — usable local Chrome product (2026-10-12)
 
 The owner's latest explicit decision changes execution priority, not final scope or approved design. The seven canonical lanes remain TOPIC, CTX4, SET2, SYNC, AI-COST, Prompt/NIB v4 and IAH-1.1. Older execution pointers below are historical where they conflict with this decision.
