@@ -12,7 +12,7 @@
 "extension/tests/d5-full-browser-partition.test.mjs":"d49a9320c1290ed3dfa2b7ed7815138be1e0b0e5000744914c534c336984aab2",
 "extension/tests/iah11-current-browser-admission.test.mjs":"a65f6f7efd9c16778aa98ac988fa4a33f46cda2b7ee839a97221245fce8b41c9",
 "extension/tests/prompt-stage3a-route-admission.test.mjs":"f403d8d8e65ce7a841aba216f8ea90c584a4ead3ee1f7725e6ee13c25a281801",
-"extension/tests/settings-removed-placement-admission.test.mjs":"5a7d1dd6bf984e69c9c6f6f4f13c07d2b314bda1133daa1579b8065ccd1dd20dc2",
+"extension/tests/settings-removed-placement-admission.test.mjs":"5a7d1dd6bf984e69c9f6f4f13c07d2b314bda1133daa1579b8065ccd1dd20dc2",
 "extension/tests/topic-return-position-ci.test.mjs":"075027396e607a4efcab09fdefc340a9e248089d2f8e70025dab3956270cd833",
 "extension/tests/topic-section-actions-ci.test.mjs":"8c2dc40952b2b3b864b4edf85ca1e5ec0c6fa4d337a7f54fe861453e34cea401",
 "extension/tests/topic-writing-ci.test.mjs":"5d0eee391040556870b884be95bfdf268bf0c1c25d22bc43620f4db312361495",
