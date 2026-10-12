@@ -1,0 +1,33 @@
+name: PAIA isolated efficiency workbench
+on:
+  push:
+    branches: ['engineering/execution-efficiency-20261012']
+    paths: ['.github/workflows/paia-efficiency-workbench.yml']
+permissions:
+  contents: read
+concurrency:
+  group: paia-efficiency-integration-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  snapshot:
+    if: github.ref == 'refs/heads/engineering/execution-efficiency-20261012'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Preserve exact read-only integration inputs
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/paia264-input
+          git bundle create /tmp/paia264-input/repository.bundle HEAD refs/remotes/origin/main refs/remotes/origin/codex/main8e-section-fixture-20261012
+          git bundle list-heads /tmp/paia264-input/repository.bundle > /tmp/paia264-input/refs.txt
+          sha256sum /tmp/paia264-input/repository.bundle > /tmp/paia264-input/sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paia264-integration-input
+          path: /tmp/paia264-input/
+          retention-days: 3
+          if-no-files-found: error
