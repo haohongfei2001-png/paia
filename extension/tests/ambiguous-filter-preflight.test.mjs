@@ -157,3 +157,21 @@ test('missing library qualification or malformed restore fence is unavailable; r
 test('temporarily unavailable owner revokes private handles rather than reviving them after readiness returns',async()=>{
  const f=await fixture(),r=await f.reader.prepare(await f.request());f.s.filterLoaded=false;assert.equal((await noWrite(f,()=>f.reader.revalidate(r.capability))).reason,'STORE_NOT_READY');f.s.filterLoaded=true;assert.equal((await noWrite(f,()=>f.reader.revalidate(r.capability))).status,'STALE');
 });
+
+test('explicit release retires only its private handle and immediately frees bounded capacity',async()=>{
+ const f=await fixture(),request=await f.request(),handles=[];
+ for(let i=0;i<8;i++)handles.push((await noWrite(f,()=>f.reader.prepare(request))).capability);
+ assert.equal((await noWrite(f,()=>f.reader.prepare(request))).reason,'CAPABILITY_BOUND');
+ await noWrite(f,async()=>{f.reader.release(handles[0]);f.reader.release(handles[0]);for(const forged of [null,7,'foreign',{},structuredClone(handles[1])])f.reader.release(forged);});
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(handles[0]))).status,'STALE');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(handles[1]))).status,'CURRENT');
+ const replacement=await noWrite(f,()=>f.reader.prepare(request));assert.equal(replacement.status,'CANDIDATE_ONLY');bodyFree(replacement);
+ assert.equal((await noWrite(f,()=>f.reader.prepare(request))).reason,'CAPABILITY_BOUND');
+});
+test('release during revalidation cannot republish a retired capability',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ f.setHook(()=>f.reader.release(initial.capability));const result=await noWrite(f,()=>f.reader.revalidate(initial.capability));
+ assert.equal(result.status,'STALE');assert.equal(result.capability,null);bodyFree(result);f.setHook(null);
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'STALE');
+ assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY');
+});

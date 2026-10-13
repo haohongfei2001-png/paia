@@ -40,6 +40,8 @@ export class AmbiguousFilterPreflight {
  constructor(store,{resolvePermission=null,clock=null}={}){this.#store=store;this.#resolve=resolvePermission;this.#clock=clock;}
  #retire(s){s.proof=null;s.bodies=null;s.active=false;this.#states.delete(s);}
  #clear(){for(const s of this.#states)this.#retire(s);this.#epoch++;}
+ // Retire a completed/cancelled private read without invalidating sibling reads.
+ release(handle){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);}
  dispose(){this.#closed=true;this.#clear();}
  #time(){
   if(typeof this.#clock!=='function')stop('UNAVAILABLE');const now=this.#clock();
