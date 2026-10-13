@@ -5,7 +5,7 @@ import {openArchiveWindow} from './harness/archive-navigator.mjs';
 const rpc=async(page,type,fields={})=>{const reply=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(reply?.ok,true,JSON.stringify(reply));return reply.data;};
 async function fixture(){
  const h=await FakeChatGPT.start(),page=h.archive;
- await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+ await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'D1 receipt consent');
  await h.open({id:'dvn-save-outcome',title:'SYNTHETIC D1 outcome',base:1609459200,messages:[{id:'dvn-save-message',text:'SYNTHETIC original Source'}]});
  await eventually(async()=>(await h.state()).records.length===1,'D1 synthetic Source captured');

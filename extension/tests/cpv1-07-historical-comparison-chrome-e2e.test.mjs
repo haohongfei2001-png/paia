@@ -37,7 +37,7 @@ test('VS07 historical comparison keeps complete originals and current edits dist
  {timeout:180000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;
  try{
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   await h.open({id:'vs07-comparison-known',title:'Synthetic historical comparison',base:1577836800,
    messages:originals.slice(0,3).map((text,i)=>({id:'vs07-compare-'+i,text}))});
   await h.open({id:'vs07-comparison-unknown',title:'Synthetic unknown time',
@@ -150,7 +150,7 @@ test('VS07 historical paging refuses changed generations without mixing old comp
  {timeout:120000},async()=>{
  const h=await FakeChatGPT.start(),p=h.archive;
  try{
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   const texts=Array.from({length:42},(_,i)=>'HISTORY_PAGE 合成独立原文 '+i);
   await h.open({id:'vs07-history-paging',title:'Synthetic history paging',base:1577836800,
    messages:texts.map((text,i)=>({id:'vs07-history-page-'+i,text}))});
@@ -198,7 +198,7 @@ test('VS07 historical paging refuses changed generations without mixing old comp
 async function searchLifetimeFixture(){
  const h=await FakeChatGPT.start(),p=h.archive;
  try{
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   const texts=Array.from({length:42},(_,i)=>'SEARCH_LIFETIME 合成独立原文 '+i+
    (i===41?'\n'+'完整长研究 👩🏽‍💻 <script>原文非指令</script>\n'.repeat(1000)+'LIFETIME_LONG_END':''));
   await h.open({id:'vs07-search-lifetime',title:'Synthetic search lifetime',base:1577836800,

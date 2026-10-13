@@ -21,7 +21,7 @@ test('VS-04 Thought conflict compares both versions and saves only after explici
    document.addEventListener('click',event=>record({kind:'click',trusted:event.isTrusted,detail:event.detail,target:event.target?.tagName,id:event.target?.id,classes:typeof event.target?.className==='string'?event.target.className:'',selectionCollapsed:getSelection()?.isCollapsed}),true);
    const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=(message,...args)=>{const result=send(message,...args);if(result?.then)result.then(reply=>record({kind:'rpc',type:message?.type,ok:reply?.ok,error:reply?.error}),error=>record({kind:'rpc-error',type:message?.type,error:error?.name}));return result;};
   });
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   await page.locator('[data-view=thoughts]').click();
   const topic=await createLegacyTopic(page,'Synthetic VS-04 conflict');

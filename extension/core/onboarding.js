@@ -23,10 +23,11 @@ export class OnboardingService {
  }
  status(){return this.store.write(async t=>dto((await this.row(t)).row));}
  action(action){
-  if(!['start','skip_history','start_history'].includes(action))throw new ArchiveError('INVALID_REQUEST');
+  if(!['start','dismiss_consent','skip_history','start_history'].includes(action))throw new ArchiveError('INVALID_REQUEST');
   return this.store.write(async t=>{
    const {row,consented}=await this.row(t);
    if(action==='start'){if(row.step==='welcome')row.step='consent';}
+   else if(action==='dismiss_consent'){if(!consented&&['welcome','consent'].includes(row.step))row.step='done';}
    else{
     if(!consented)throw new ArchiveError('CONSENT_REQUIRED');row.step='done';
     if(!['completed','partial'].includes(row.historyState))row.historyState=action==='skip_history'?'skipped':'started';

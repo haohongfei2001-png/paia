@@ -11,26 +11,35 @@ const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.run
 async function consent(page){const action=page.locator('#enable-consent');await action.waitFor({state:'visible'});await eventually(async()=>!(await action.isDisabled()),'primary local-save consent is actionable');await action.click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 async function assertNoNetwork(h){assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);}
 
-test('UX-R1 clean install keeps example isolated and the primary action itself grants local-save consent',{timeout:90000},async()=>{
- const h=await FakeChatGPT.start({onboarding:true});
+test('UX-R1 clean install uses one minimal consent surface, preserves decline and acknowledges capture',{timeout:90000},async()=>{
+ for(const variant of ['source','release']){
+ if(variant==='release'){const {execFileSync}=await import('node:child_process');execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});}
+ for(const mode of ['decline','failed','lost']){
+ const h=await FakeChatGPT.start({onboarding:true,headless:true,...(variant==='release'?{extensionPath:join(process.cwd(),'work/current-release')}:{})});
  try{
-  const p=h.archive;
-  await eventually(()=>p.locator('#consent-panel').isVisible(),'consent intro is the first-use surface');
-  assert.equal(await p.locator('#onboarding-welcome').isVisible(),false,'old module-teaching welcome must not precede consent');
-  assert.match(await p.locator('#consent-title').textContent(),/保存你的表达|Save what you share/i);
-  assert.match((await p.locator('#enable-consent').textContent()).trim(),/开始在本机保存|Start saving locally/i);
-  assert.equal(await p.locator('#consent-check').isChecked(),false,'legacy acknowledgement is not a prerequisite');
-  assert.equal(await p.locator('#enable-consent').isDisabled(),false,'primary action itself must be actionable');
-  const before=await rpc(p,'GET_STATUS');assert.equal(before.consented,false);assert.equal(before.enabled,false);
-  await p.locator('#ux-onboarding-example').click();await eventually(()=>p.locator('#ux-example-dialog').evaluate(el=>el.open),'example dialog opens');
-  assert.match(await p.locator('#ux-example-dialog').textContent(),/示例，不会写入你的档案|Example only; not saved/i);
-  await p.locator('#ux-example-dialog button').click();
-  const afterExample=await rpc(p,'GET_STATUS');assert.deepEqual(afterExample,before,'example must not change consent/capture state');
-  assert.equal((await h.state()).records.length,0,'example must not write a real Source record');
-  await consent(p);const afterConsent=await rpc(p,'GET_STATUS');assert.equal(afterConsent.consented,true);assert.equal(afterConsent.enabled,true);
-  assert.equal((await h.state()).records.length,0,'consent itself does not fabricate content');
+  const p=h.archive;await eventually(()=>p.locator('#consent-panel').isVisible(),'minimal consent is the only first-use surface');
+  assert.equal(await p.locator('#onboarding-welcome,#ux-onboarding-example,#ux-example-dialog,#onboarding-history-step,#consent-check').count(),0);
+  assert.match(await p.locator('#consent-title').textContent(),/开始保存 AI 输入|Start saving AI inputs/);
+  assert.match((await p.locator('#enable-consent').textContent()).trim(),/^(开始保存|Start saving)$/);
+  assert.equal(await p.locator('#consent-details').evaluate(node=>node.open),false,'complete boundaries begin collapsed');
+  await p.locator('#consent-details summary').click();const disclosure=await p.locator('#consent-details').textContent();for(const term of [/草稿|drafts/,/凭证|credentials/,/Temporary Chat/,/恢复|resum/,/发送时间未知|unknown/,/卸载|Uninstall/,/聊天标题|conversation title/,/页面顺序|page order/,/首次捕获时间|first capture time/,/内容哈希|content hash/,/漏捕|missed capture/,/不会猜测|never guessed/])assert.match(disclosure,term);
+  await p.locator('#consent-details summary').click();const before=await rpc(p,'GET_STATUS');assert.equal(before.consented,false);assert.equal(before.enabled,false);assert.equal((await h.state()).records.length,0);
+  await p.evaluate(mode=>{const send=chrome.runtime.sendMessage;globalThis.__minimalCapture={send,mode,writes:[]};chrome.runtime.sendMessage=async function(message,...args){if(message.type==='CONSENT'){__minimalCapture.writes.push({...message});if(__minimalCapture.mode==='failed')return {ok:false,error:'STORAGE_FAILED'};const result=await send.call(this,message,...args);if(__minimalCapture.mode==='lost')return {ok:false,error:'SYNTHETIC_LOST_ACK'};return result;}return send.call(this,message,...args);};},mode);
+  if(mode==='decline'){
+   await p.locator('#decline-consent').click();await eventually(()=>p.locator('#consent-panel').isHidden(),'acknowledged Not now closes first-use prompt');assert.deepEqual(await rpc(p,'GET_STATUS'),before);assert.deepEqual(await p.evaluate(()=>__minimalCapture.writes),[]);
+   const decision=await rpc(p,'GET_ONBOARDING');assert.equal(decision.step,'done');assert.equal(decision.historyState,'not_started');await p.reload();assert.equal(await p.locator('#consent-panel').isVisible(),false);
+   await p.locator('.sidebar [data-view="settings"]').click();await p.locator('[data-settings-group="content"]').click();await p.locator('#toggle-capture').click();await p.locator('#settings-capture-consent').waitFor({state:'visible'});assert.equal((await rpc(p,'GET_STATUS')).consented,false);await p.locator('#settings-capture-confirm').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);assert.equal((await rpc(p,'GET_ONBOARDING')).historyState,'not_started');
+  }else{
+   await p.locator('#enable-consent').evaluate(node=>node.click());assert.deepEqual(await p.evaluate(()=>__minimalCapture.writes),[],'untrusted click never grants capture');
+   await p.locator('#enable-consent').click();
+   if(mode==='failed'){await eventually(()=>p.locator('#onboarding-error').textContent().then(text=>/未获确认|not confirmed/.test(text)));assert.deepEqual(await rpc(p,'GET_STATUS'),before);assert.equal(await p.evaluate(()=>__minimalCapture.writes.length),1,'failure does not auto-retry');await p.evaluate(()=>__minimalCapture.mode='normal');await p.locator('#enable-consent').click();}
+   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true&&await p.locator('#consent-panel').isHidden());assert.equal(await p.evaluate(()=>__minimalCapture.writes.length),mode==='failed'?2:1,'lost acknowledgement is reconciled without redispatch');
+  }
+  const after=await rpc(p,'GET_STATUS');assert.equal(after.consented,true);assert.equal(after.enabled,true);assert.equal((await h.state()).records.length,0,'no demonstration or consent action creates Source data');assert.equal((await rpc(p,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);assert.equal(await p.locator('#onboarding-history-step').count(),0,'there is no mandatory history import step');
   await assertNoNetwork(h);assert.deepEqual(h.errors,[]);
  }finally{await h.close();}
+ }
+ }
 });
 
 test('UX-R1 shell uses real recently-captured content, same-URL history, reversible settings and responsive navigation',{timeout:180000},async()=>{

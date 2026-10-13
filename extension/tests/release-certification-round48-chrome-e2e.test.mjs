@@ -7,7 +7,7 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const rawRpc=(page,type,fields={})=>page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});
 
-async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
+async function consent(page){await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await assertContextUnavailable(page);await openRetainedSearchComponent(page,{types:['input','thought','ai']});const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
 
 test('Round 4.8 current release: retained Search component -> Reader and Revisit survive the unavailable Context route',{timeout:120000},async()=>{

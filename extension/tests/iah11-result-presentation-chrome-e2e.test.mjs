@@ -14,7 +14,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
  try{
   // Controlled receiver delivery race only: the worker and IDB remain real.
   await p.addInitScript(()=>{const add=chrome.runtime.onMessage.addListener.bind(chrome.runtime.onMessage);window.__iahHeldNotices=[];window.__iahNoticeTrace=[];window.__iahHoldCause=null;chrome.runtime.onMessage.addListener=listener=>add((...args)=>{const message=args[0];if(message?.type==='ARCHIVE_CHANGED'&&window.__iahHoldCause===message.cause){window.__iahHeldNotices.push(()=>{window.__iahNoticeTrace.push({phase:'delivered',cause:message.cause});return listener(...args);});window.__iahNoticeTrace.push({phase:'held',cause:message.cause});return;}return listener(...args);});});await p.reload();
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   const title='SYNTHETIC_TITLE_ONLY '+ 'LongSyntheticLocation'.repeat(16);
   const text='SYNTHETIC_NEEDLE Do not publish unless approved. 中文 👩‍💻 é. İx ＱＺ';
   const initialSource=await h.open({id:'iah11-results',title,base:1609459200,messages:[{id:'iah11-input',text}]});
@@ -210,7 +210,7 @@ for(const variant of ['source','release'])test(`IAH11 actual Input-first results
 for(const variant of ['source','release'])test(`IAH11 reachable current Project action preserves independent query and qualified namespaces (${variant})`,{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({headless:true,...(variant==='release'?{extensionPath:release}:{})}),p=h.archive;
  try{
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   for(const [index,id] of ['scope-chat-a','scope-chat-b'].entries()){await h.open({id,title:'Synthetic '+id,base:1609459200+index*3600,messages:[{id:id+'-input',text:'SCOPE_NEEDLE synthetic '+id}]});await eventually(async()=>(await h.state()).records.length===index+1,'actual synthetic source captured before the next fixture');}
   await eventually(async()=>(await h.state()).records.length===2);
   await p.evaluate(async()=>{

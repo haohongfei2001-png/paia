@@ -14,7 +14,7 @@ for(const variant of (process.env.NIB_ARRIVAL_VARIANTS||'source,release').split(
  const path=variant==='source'?root:await mkdtemp(join(tmpdir(),'paia-nib-arrival-release-'));if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',path],{cwd:root,stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:path,headless:true,launchThroughPort:true});
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'FILTER_MODE',{mode:'off'});
+  await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'FILTER_MODE',{mode:'off'});
   const c=conversation('nib-arrival-synthetic');c.messages[0].text='NIB_ARRIVAL_QUERY exact synthetic input';const capture=await h.open(c);await eventually(async()=>(await h.state()).records.some(r=>r.originalText===c.messages[0].text),'original capture completed');await capture.close();
   await routeComposer(h.context,root);const host=await h.context.newPage();await host.goto('https://chatgpt.com/c/prompt-insertion-fixture');await host.waitForFunction(()=>!!globalThis.fixture?.view);await host.addStyleTag({content:'body{margin:0;min-height:100vh}form{position:fixed;left:16px;right:16px;bottom:16px;padding:12px}#blur{position:fixed;top:4px}'});
   const orb=host.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});await orb.click();let frame;await eventually(()=>{frame=host.frames().find(f=>f.url().includes('/ui/prompt-surface.html#'));return !!frame;});

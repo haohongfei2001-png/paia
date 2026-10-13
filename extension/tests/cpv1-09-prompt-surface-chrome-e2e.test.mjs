@@ -50,7 +50,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
  // OS/tab visibility belongs to its separate native lifecycle tests.
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+  await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
   const text='请保留引用。\nOnly test.🙂',secret='PRIVATE_LIBRARY_NEVER_IN_HOST';let q=await rpc(engineering,'PAIA_PROMPT_QUERY');
   const a=await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text}});await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:a.revision,text:secret}});

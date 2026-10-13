@@ -14,7 +14,7 @@ const rpc=async(page,type,fields={})=>{
 };
 
 async function consent(page){
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'ANS-01 consent persists');
   const skip=page.locator('#onboarding-skip');

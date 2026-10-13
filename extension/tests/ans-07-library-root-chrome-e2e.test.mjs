@@ -17,7 +17,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
  const h=await FakeChatGPT.start(),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   const seed=await page.evaluate(async()=>{
    const {LibraryDocumentsStore}=await import('../core/library-documents-store.js');
    const s=new LibraryDocumentsStore(chrome.storage.local),topics=[];

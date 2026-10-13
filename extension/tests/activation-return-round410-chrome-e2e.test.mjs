@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
-async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
+async function consent(page){await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 
 async function homeState(page,state){
  await eventually(()=>page.locator('#archive-reader-navigator-slot').isVisible(),'blank Archive keeps its narrow directory');

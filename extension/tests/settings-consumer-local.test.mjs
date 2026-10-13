@@ -89,7 +89,8 @@ test('Settings locale and reopen leave History labels with their existing owner'
   const context={document:doc,syncSettingsCopy(){},captureConsent:null,style:null,promptPosition:null,promptNext:null,about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
   // Group changes/reopen invoke this actual production function without always
   // dispatching another History preferences event. History alone owns its copy.
-  runInNewContext(source.slice(start,end)+';syncSettingsLocale();syncSettingsLocale();',context);
+  const consentStart=source.indexOf('function tuneOnboarding(){'),consentEnd=source.indexOf('\nfunction preferenceSelect',consentStart);assert.ok(consentStart>=0&&consentEnd>consentStart);
+  runInNewContext(source.slice(consentStart,consentEnd)+source.slice(start,end)+';syncSettingsLocale();syncSettingsLocale();',context);
   assert.equal(read.textContent,expected);assert.equal(writes,before,'Settings cannot overwrite History-owned nodes');assert.equal(doc.activeElement,editor);assert.equal(editor.value,'SYNTHETIC é 👩🏽‍💻 draft');assert.equal(rpcs,0);
  }}finally{globalThis.document=previous;}
 });

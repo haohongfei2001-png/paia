@@ -18,7 +18,7 @@ const visibleSearches=page=>page.locator('input[type="search"]:visible').count()
 
 async function ready(h){
   const page=h.archive;
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'UIS-02 consent is durable');
   if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();

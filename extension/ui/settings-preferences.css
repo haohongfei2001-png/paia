@@ -1,18 +1,12 @@
-/* Existing low-frequency Settings/onboarding styles; no shell owner. */
-.consent-panel,.onboarding,.onboarding-history{max-width:720px;margin:36px auto;line-height:1.75}
-.consent-panel h2,.onboarding h2,.onboarding-history h2{font-size:34px;line-height:1.3;margin:8px 0 18px;color:var(--paia-text)}
-.consent-panel>.eyebrow,.onboarding>.eyebrow{font-size:13px;color:var(--paia-meta)}
-.consent-panel details{border-top:1px solid var(--paia-subtle);padding-top:14px}
-.consent-checkbox{margin:22px 0 8px;padding:12px 0}
-.consent-panel .primary,#onboarding-history.primary{background:var(--paia-accent)!important;color:var(--paia-on-accent)!important;padding:10px 14px}
-.ux-onboarding-example{margin-left:8px;border:1px solid var(--paia-subtle)}
-.ux-example-dialog{width:min(620px,calc(100vw - 40px));background:var(--paia-surface);color:var(--paia-text);border:1px solid var(--paia-subtle);border-radius:12px}
-.ux-example-body{margin:18px 0;padding:22px;border-left:2px solid var(--paia-accent);background:var(--paia-canvas)}
-.ux-example-body p{font-size:18px;line-height:1.85}
-.ux-example-dialog::backdrop{background:#10171366}
-.onboarding-history{background:var(--paia-surface)!important;color:var(--paia-text);border:1px solid var(--paia-subtle)}
-.onboarding-history .history-steps{border-color:var(--paia-subtle);color:var(--paia-secondary)}
-.onboarding-history .muted{color:var(--paia-secondary)}
+/* Compact first-use consent reuses the existing app and consent owners. */
+.consent-panel{max-width:560px;margin:24px auto;line-height:1.75}
+.consent-panel h2{font-size:22px;line-height:1.4;margin:0 0 12px;color:var(--paia-text)}
+.consent-panel details{margin:16px 0;border-top:1px solid var(--paia-subtle);padding-top:12px}
+.consent-panel summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.consent-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.consent-actions button{min-height:44px;padding:10px 14px;margin:0}
+#consent-panel #enable-consent{margin:0}
+.consent-panel .primary{background:var(--paia-accent)!important;color:var(--paia-on-accent)!important}
 .ux-backup-failure-title,#backup-failure-page-title,#backup-failure-return,#backup-failure-note{display:none}
 /* Rejected inspection remains inside its owning detail; Settings navigation
    and every other destination retain their normal composition. */
@@ -105,9 +99,8 @@ dialog,#context-menu,.source-panel{background:var(--paia-surface);color:var(--pa
 dialog::backdrop{background:#10171366}
 html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #context-menu{background:var(--paia-surface);border-color:var(--paia-subtle)}
 @media(max-width:767px){
-.ux-onboarding-example{margin:8px 0 0}
-.consent-panel,.onboarding-history{margin-top:12px}
-.consent-panel h2,.onboarding h2,.onboarding-history h2{font-size:28px}
+.consent-panel{margin:12px 0}
+.consent-panel h2{font-size:22px}
 }
 
 /* SETTINGS-CV2-1.0: explicit directory and content, same shared PAIA roles. */

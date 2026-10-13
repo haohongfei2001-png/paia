@@ -10,7 +10,7 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   const seed=await page.evaluate(async()=>{
    const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]);
    const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0'),rank=n=>String(n*1024).padStart(12,'0');

@@ -11,7 +11,7 @@ const digestSources=page=>page.evaluate(async()=>{
 test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/undo state',{timeout:180000},async()=>{
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
-  await page.setViewportSize({width:1280,height:720});await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await page.setViewportSize({width:1280,height:720});await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   await eventually(async()=>{const status=await rpc(page,'GET_STATUS');return status.consented===true&&status.enabled===true;},'ANS-08 consent is durable before capture');
   const capturePage=await h.open({id:'ans08-edit-source',title:'ANS08 synthetic source',base:1609459200,messages:[{id:'ans08-source-message',text:'ANS08 immutable source text'}]});
   await eventually(async()=>{const state=await h.state();return state.records.some(r=>r.chatId==='ans08-edit-source'&&r.sourceMessageId==='ans08-source-message');},'ANS-08 source captured through the real content path',30000);

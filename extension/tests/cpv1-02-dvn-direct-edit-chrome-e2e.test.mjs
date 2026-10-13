@@ -20,7 +20,7 @@ async function fixture(variant,count=2){
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:releaseRoot}:{}),p=h.archive;
  try{
   await p.setViewportSize({width:390,height:844});
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const title='SYNTHETIC direct-edit Conversation',messages=[
    {id:'dvn-direct-message-000',text:'SYNTHETIC 原始表达 👩‍💻 é 保留不确定性。\n第二行保持完整。'},

@@ -3,29 +3,23 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Input Archive · PAIA</title><link rel="icon" href="../icons/icon32.png"><link rel="stylesheet" href="desktop-tokens.css"><link rel="stylesheet" href="icons.css"><link rel="stylesheet" href="archive.css"><link rel="stylesheet" href="experience.css"><link rel="stylesheet" href="reader.css"><link rel="stylesheet" href="scope-search.css"><link rel="stylesheet" href="archive-navigator.css"><script type="module" src="archive.js"></script><link rel="stylesheet" href="thought-reader.css"><link rel="stylesheet" href="personal-topic-root.css"><link rel="stylesheet" href="reuse.css"><link rel="stylesheet" href="settings-preferences.css"><link rel="stylesheet" href="ui-refresh.css"><link rel="stylesheet" href="app-shell.css"><link rel="stylesheet" href="topic-workspace-presentation.css"><link rel="stylesheet" href="thought-compose-workspace.css"><link rel="stylesheet" href="organize-scope-workspace.css"><link rel="stylesheet" href="context-workspace-presentation.css"><link rel="stylesheet" href="desktop-appearance-preview.css"><link rel="stylesheet" href="input-recovery-presentation.css"><link rel="stylesheet" href="context-cards.css"></head>
 <body><div class="app-shell"><aside class="sidebar"><div class="brand" aria-label="PAIA"><img src="assets/paia-logo-32.png" width="32" height="32" alt=""><strong>PAIA</strong></div><nav id="primary-nav" aria-label="资料层"><button data-view="library">Input Archive</button><button data-view="thoughts">Thought Library</button><button data-view="memory">用于 AI</button></nav><div class="sidebar-bottom"><button data-view="settings">Settings</button><span>本机思想档案</span><small id="app-version"></small></div></aside><main class="workspace">
 <div id="archive-reader-navigator-slot"><div id="archive-reader-search-slot"></div></div><nav id="page-breadcrumb" aria-label="当前位置" hidden></nav><header class="workspace-header"><button id="back" hidden>聊天窗口</button><div id="workspace-heading"><h1 id="view-title">Input Archive</h1></div><div id="thought-root-header" hidden></div><div id="thought-topic-header" hidden></div><span id="save-status" role="status"></span><button id="revision-history" hidden>版本历史</button><button id="archive-navigator-toggle" type="button" aria-controls="archive-navigator" aria-expanded="false" hidden>窗口</button><button id="document-menu" aria-label="文档操作" hidden><span class="document-menu-glyph" aria-hidden="true"></span><span class="document-menu-label" aria-hidden="true">文档操作</span></button><nav hidden id="library-view-switch" aria-label="思想库显示"><label class="ai-toggle-label">AI整理 <input id="ai-presentation-toggle" type="checkbox" disabled role="switch" aria-label="AI整理"></label></nav><span id="scope-search-host"></span></header><div id="workspace-error"><p id="error" role="alert" hidden></p><button id="retry" hidden>重试保存</button><button id="reload-document" hidden>重新读取已保存版本</button></div><p id="notice" role="status" hidden></p>
-<section id="onboarding-welcome" class="onboarding" hidden>
-<p class="eyebrow">你的表达，值得留下</p><h2>保存、整理并重新阅读你在 AI 中表达过的信息和想法。</h2>
-<div class="onboarding-ideas"><div><h3>Input Archive</h3><p>先留下原话。按聊天阅读，也能修改自己的整理版。</p></div><div><h3>Thought Library</h3><p>让零散想法逐渐形成主题，随时回看来处。</p></div><div><h3>本机优先</h3><p>捕获、历史补全和阅读都在本机。AI 整理由你另行决定。</p></div></div>
-<button id="onboarding-start" class="primary">开始使用 PAIA</button></section>
-<section id="onboarding-history-step" class="onboarding-history" hidden><h2>把已有的表达也留下来</h2><p>选择你从 ChatGPT 获取的官方导出 ZIP，补全以前的用户输入。文件只在本机处理，无需手动解压。</p><button id="onboarding-history" class="primary">补全历史输入</button><button id="onboarding-skip">稍后再说</button><p class="muted">以后可以从 Input Archive 或 Settings 再次进入。</p></section><p id="onboarding-error" role="status"></p>
       <section id="consent-panel" class="consent-panel" hidden aria-labelledby="consent-title">
-        <p class="eyebrow">由你决定何时开始</p><h2 id="consent-title">由你决定开始保存</h2>
-        <p>这个扩展会将 <strong>ChatGPT 普通聊天中已发送、已显示的用户文字</strong>，连同聊天标题、聊天标识、页面顺序、首次捕获时间、可确认的发送时间与来源及内容哈希，保存在本机的 Chrome 扩展本地存储中。</p>
-        <p>只保存已发送、已显示的用户文字；不读草稿、AI 回复、附件正文或账户凭证。默认跳过 Temporary Chat，随时可以暂停。</p>
-        <p>原文与整理版分开保存。会员 AI 服务尚未上线，当前不会调用云端 AI。</p>
+        <h2 id="consent-title">开始保存 AI 输入</h2>
+        <p id="consent-scope">仅在本机保存普通聊天中已发送、已显示的用户文字；不保存草稿、AI 回复、附件正文或凭证，跳过临时聊天。</p>
         <details id="consent-details"><summary>了解捕获、删除与本机存储的完整说明</summary><ul>
           <li>默认关闭。不会读取未发送的草稿、监听键盘、收集 AI 回复或附件内容。仅记录附件与引用是否存在及可信度，供本机轻度过滤判断。</li>
           <li>不读取 Cookie、凭证、密码、浏览历史、其他网站、Chrome 配置文件、Keychain、剪贴板或其他本地文件。</li>
-          <li>捕获和阅读在本机完成，不使用云同步或分析工具。会员 AI 服务和外部连接尚未开放。</li>
+          <li>捕获和阅读在本机完成，不使用云同步或分析工具。此操作不会开启会员 AI 服务、外部连接、下一句建议、上传或计费。</li>
           <li><strong>Temporary Chat 默认跳过</strong>；没有正式聊天 ID 或无法可靠识别消息的页面也会跳过。</li>
           <li><strong>启用或恢复时会收录当前页面已显示的旧用户消息，包括暂停期间发送、恢复时仍显示的文字。</strong>不自动滚动，也不请求服务器历史。捕获时间不是实际发送时间。</li>
           <li>仅旁路查看页面自身已收到的有限历史响应副本，精确匹配用户消息的 ID 与时间；不提取或保存响应正文。时间来源不可靠时显示“发送时间未知”。</li>
           <li>Source Record 原文不可被编辑覆盖。Input Archive 是可编辑的输入文档，Thought Library 是独立思想库。整条删除输入保留原始来源，可撤销或通过版本历史恢复；永久删除来源不可撤销，相关历史不能恢复原始数据。</li>
           <li>可以随时暂停。已有 PAIA 备份需先校验、预览，再确认恢复；替换会清除当前库，永久删除标记始终优先。卸载扩展会清除本机档案。存储没有应用层加密。</li>
-        </ul></details>
-        <p class="muted">页面结构变化可能造成漏捕或发送时间未知；扩展不会猜测缺失的来源时间。</p>
-        <label class="consent-checkbox"><input id="consent-check" type="checkbox"> 我已了解以上说明，同意在本机保存已发送的用户文字。</label>
-        <button id="enable-consent" class="primary" type="button" disabled>同意并启用捕获</button>
+          <li>合格用户文字连同聊天标题、聊天标识、页面顺序、首次捕获时间、可确认的发送时间与来源及内容哈希保存在 Chrome 扩展本机存储。页面结构变化可能造成漏捕或发送时间未知；不会猜测缺失的来源时间。</li>
+        </ul>
+        </details>
+        <p id="onboarding-error" role="status"></p>
+        <div class="consent-actions"><button id="enable-consent" class="primary" type="button" disabled>开始保存</button><button id="decline-consent" type="button" disabled>暂不开始</button></div>
       </section>
 
       <section id="memory-panel" hidden aria-label="AI Context"></section>

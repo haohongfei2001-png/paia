@@ -42,7 +42,6 @@ export class AppShellController {
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
   installSettingsPreferences({backup:this.settingsBackup,routeChanged:options=>options?.replace?this.routes?.checkpoint():this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.originKey?{originKey:this.settingsReturn.originKey}:{}),...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
-  const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();
  }
@@ -95,7 +94,6 @@ export class AppShellController {
   document.getElementById('ux-skip-main').textContent=labels()?'Skip to main content':'跳到主要内容';
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
-  document.querySelector('.ux-consent-optional').textContent=labels()?' Optional: mark that you read the detailed explanation.':' 可选：用于标记你已阅读上面的完整说明。';
   document.getElementById('thought-root-description').textContent=labels()?'Return to your own expressions, by topic.':'按主题回到自己的表达。';
   document.getElementById('archive-root-description').textContent=labels()?'Return to the places you once expressed yourself.':'回到你曾经表达过的地方。';
   this.archiveCompactLabel.textContent=this.viewLabel(this.route.view)||this.viewLabel('library');

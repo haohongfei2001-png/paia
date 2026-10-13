@@ -32,7 +32,7 @@ test('ANS-04 real Chrome: cold bounded navigation, worker restart, lossless Read
  const copy=await instrumentedExtension();let h;
  try{
   h=await FakeChatGPT.start({extensionPath:copy.path,headless:true});const p=h.archive;
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'ANS04 consent');
   const skip=p.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();
   const chatId='ans04-browser-real',chat=await h.open({id:chatId,title:'ANS-04 Reader',base:1609459200,messages:[{id:'ans04-browser-input',text:'ANS04_REAL_INPUT_BODY'}]});

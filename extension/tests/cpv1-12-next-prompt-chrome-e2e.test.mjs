@@ -18,7 +18,7 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
  const h=await FakeChatGPT.start({extensionPath:releasePath||root,headless:process.env.PAIA_HEADLESS!=='0',launchThroughPort:true,nativeTabVisibility:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[],diagnostics=[];
  const check=async(name,fn)=>{await t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});if(failures)throw Error('Stage3 fixture stopped after failing '+name);};
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+  await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   popup=await h.context.newPage();await popup.goto('chrome-extension://'+h.extensionId+'/ui/popup.html');await popup.locator('#next-enabled').waitFor();
   await routeComposer(h.context,root);page=await h.context.newPage();page.on('pageerror',error=>h.errors.push(error.message));await page.exposeFunction('__traceNextNative',value=>diagnostics.push({at:Date.now(),...value}));page.on('framedetached',f=>diagnostics.push({at:Date.now(),event:'frame-detached',url:f.url()}));await page.goto(url);await page.evaluate(()=>document.addEventListener('visibilitychange',()=>void __traceNextNative({event:'visibility',hidden:document.hidden})));await page.waitForFunction(()=>!!globalThis.fixture?.view);
   // noDefaults keeps native tab visibility and does not resize the native CDP

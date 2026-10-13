@@ -4,7 +4,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,conversation,eventually} from './harness/fake-chatgpt.mjs';
 
 async function consent(page){
- await page.locator('#consent-check').check();
+ await page.locator('#enable-consent').waitFor({state:'visible'});
  await page.locator('#enable-consent').click();
 }
 

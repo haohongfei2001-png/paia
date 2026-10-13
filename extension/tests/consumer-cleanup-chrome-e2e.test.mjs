@@ -12,7 +12,7 @@ const windowButton=p=>p.locator('.archive-navigator-window').filter({hasText:'SY
 for(const variant of ['source','release'])test('consumer retirement: blank Archive, saved edits/history, local search, privacy and responsive '+variant,{timeout:180000},async t=>{
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':'work/current-release'),headless:true}),p=h.archive;t.after(()=>h.close());
- await p.setViewportSize({width:1440,height:900});await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'consent');if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+ await p.setViewportSize({width:1440,height:900});await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'consent');if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  assert.equal(await p.locator('#document-title').textContent(),'');assert.equal(await p.locator('#document-body').textContent(),'');assert.equal(await p.locator('.archive-navigator-window[aria-current]').count(),0);
  await h.open({id:'consumer-synthetic',title:'SYNTHETIC consumer archive',base:1609459200,messages:[{id:'consumer-message',text:'SYNTHETIC 原始长表达：保留输入并在档案中阅读、编辑和复用。'}]},{arrival:'dom-first'});
  await eventually(()=>p.locator('.archive-navigator-group-toggle').count().then(n=>n>0),'navigator groups');

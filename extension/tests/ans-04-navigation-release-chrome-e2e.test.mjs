@@ -26,7 +26,7 @@ test('ANS-04 current release artifact preserves Navigator entry modules and real
   for(const path of ['core/idb-repository.js','core/archive-navigation-query.js','core/archive-navigation-index.js','core/archive-navigation-invalidation.js','core/read-projection-keys.js'])assert.equal(digest(await readFile(join(output,path))),digest(await readFile(join(root,path))),path+' exact release parity');
   assert.equal(digest(await readFile(join(output,'background/service-worker.js'))),digest(expectedReleaseWorker(await readFile(join(root,'background/service-worker.js'),'utf8'))),'entire worker parity after only the current diagnostics dispatch removal');
   h=await FakeChatGPT.start({extensionPath:output,headless:true});const p=h.archive;
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(p,'GET_STATUS')).consented,'release consent');
   const chat=await h.open({id:'ans04-release-chat',title:'Release query title',messages:[{id:'ans04-release-input',text:'RELEASE_SOURCE_BODY_NOT_NAV'}]});
   await eventually(async()=>{const result=await rpc(p,'GET_PAGE',{page:{view:'library'}});return result.documents.length===1;},'release capture');

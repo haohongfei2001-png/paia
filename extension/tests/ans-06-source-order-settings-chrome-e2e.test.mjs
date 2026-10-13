@@ -7,7 +7,7 @@ const rpc=async(page,type,fields={})=>{
  assert.equal(r.ok,true,JSON.stringify(r));return r.data;
 };
 async function consent(p){
- const check=p.locator('#consent-check');if(!await check.isChecked())await check.check();
+ await p.locator('#enable-consent').waitFor({state:'visible'});
  await p.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'ANS-06 consent');
  const skip=p.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();

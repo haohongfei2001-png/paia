@@ -97,7 +97,7 @@ export async function runContextReferenceEquivalence(variant){
   prototype=await harness.context.newPage();
   await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href);await settle(prototype);
   const initial=await prototype.evaluate(()=>structuredClone(window.design.state));
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented);
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented);
   if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',fontSize:'standard',readingWidth:'standard'}});
   await page.locator('.sidebar [data-view="memory"]').click();await page.locator('.context-card').first().waitFor();
