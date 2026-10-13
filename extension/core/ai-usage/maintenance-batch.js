@@ -2,6 +2,17 @@ import {canonical,equal,exact,fail,opaque,unitKey,validateCoverage,CHILD_LIMITS}
 import {DIRTY_PREFIX} from './delta.js';
 const TYPE='AI_MAINTENANCE',LIMIT=100;
 const result=(status,rest={})=>({status,dispatchAllowed:false,financialAuthority:false,...rest});
+// Exact current session capability; this classifies metadata only, never bodies.
+// Human owners require their own mapper and remain semantic obligations.
+export function unsupportedMaintenanceCoverage(items,coverage){
+ const units=validateCoverage(coverage,TYPE),unsupported=[];
+ for(const unit of units){const item=items.find(i=>i.key===unit.key),d=item?.descriptor;
+  if(!d||d.removed||d.fenceOnly)fail('STALE_BASE');
+  if(d.kind==='input'){if(!Array.isArray(d.inputIds)||d.inputIds.length!==1||d.inputIds[0]!==d.entityId)fail();}
+  else if(['library_entry','topic','section','placement','context_item'].includes(d.kind))unsupported.push(unit);
+  else fail();
+ }return unsupported;
+}
 // A current, metadata-only candidate for the existing foundation.plan interface.
 // No alarm, service window, reservation, provider call or new durable queue.
 export async function readMaintenanceBatch(foundation,options){
@@ -37,7 +48,7 @@ export async function readMaintenanceBatch(foundation,options){
    consumed=rowKey;blocked+=rowBlocked;acknowledged+=rowAcknowledged;
    if(units.length){items.push(item);coverage.push(...units);}
   }
-  const boundary={nextCursor,complete:nextCursor===null,blockedUnits:blocked,acknowledgedUnits:acknowledged};
+  const boundary={nextCursor,complete:nextCursor===null,blockedUnits:blocked,acknowledgedUnits:acknowledged,activeDeferredUnits:deferred.rows.length};
   if(!coverage.length)return result(blocked?'DEFERRED':'NO_DELTA',boundary);
   if(coverage.every(u=>u.facet==='filter'))return result('DEFERRED',{...boundary,reason:'FILTER_REQUIRES_MAINTENANCE'});
   const sorted=validateCoverage(coverage,TYPE),children=[];

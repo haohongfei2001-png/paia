@@ -1,3 +1,4 @@
+import {unsupportedMaintenanceCoverage} from './maintenance-batch.js';
 import {assertAssistIntent,validateAssistIntent,validateHistoricalIntent,qualifiedCoverageId} from './assist-intent-binding.js';
 import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX,HUMAN_FENCE,deltaDescription,deltaSignature} from './delta.js';
@@ -29,6 +30,7 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // Only constructor-injected domain owners can commit. There is no production
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
+ #createdMaintenancePlans=new WeakMap();
  constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null}={}){this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
@@ -123,7 +125,7 @@ export class AIUsageFoundation {
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
   const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
-  return this.write(async t=>{
+  let created=false;const result=await this.write(async t=>{
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();
     if(!equal(prior.authority,proposed.authority)&&prior.cancelEpoch===0&&['PLANNED','RESERVED'].includes(prior.state)){
@@ -146,8 +148,9 @@ export class AIUsageFoundation {
    // No coarse checkpoint is advanced: exact incomplete facet/scope units stay.
    if(type==='AI_MAINTENANCE')for(const item of items){let dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(dirty&&dirty.signature!==item.signature)fail('STALE_BASE');if(!dirty)dirty={...(await t.get('meta',KNOWN_PREFIX+item.key)),id:DIRTY_PREFIX+item.key,requirements:[],pendingFacets:[]};const needed=coverage.filter(c=>c.key===item.key&&!allCovered.includes(unitKey(c)));dirty.requirements=[...new Set([...(dirty.requirements||[]),...coverage.filter(c=>c.key===item.key).map(unitKey)])].sort();dirty.pendingFacets=[...new Set([...(dirty.pendingFacets||['topic','context']),...needed.map(c=>c.facet)])].sort();await t.put('meta',dirty);}
    if(atomic&&allCovered.length)fail('STALE_BASE');
-   proposed.committedCoverage=allCovered;await t.put('organizerJobs',proposed);await t.put('meta',{id:flightId,jobId:id});return safeJob(proposed);
+   proposed.committedCoverage=allCovered;await t.put('organizerJobs',proposed);await t.put('meta',{id:flightId,jobId:id});created=true;return safeJob(proposed);
   });
+  if(created&&type==='AI_MAINTENANCE')this.#createdMaintenancePlans.set(result,canonical({id,authority:proposed.authority,coverage:proposed.coverage,childIds:proposed.childIds}));return result;
  }
  async job(t,id){const job=await t.get('organizerJobs',id);if(!knownJob(job))fail();return job;}
  async status(id){if(!opaque(id))fail();return this.read(async t=>{const job=await this.job(t,id),attempts=[];for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt)attempts.push(receipt);}return {...safeJob(job),attempts};});}
@@ -213,10 +216,11 @@ export class AIUsageFoundation {
  }
  async markUnknown(id,childId){return this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt||receipt.jobId!==id||!['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state))fail();receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';job.state='OUTCOME_UNKNOWN';await t.put('organizerUsage',receipt);await t.put('organizerJobs',job);return safeJob(job);});}
  async reconcileInterrupted(id){return this.write(async t=>{const job=await this.job(t,id);let unknown=false;for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.state==='DISPATCHED'){receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';await t.put('organizerUsage',receipt);unknown=true;}}if(unknown){job.state='OUTCOME_UNKNOWN';await t.put('organizerJobs',job);}return safeJob(job);});}
- async cancel(id){return this.write(async t=>{const job=await this.job(t,id);if(terminal.has(job.state))return safeJob(job);job.cancelEpoch++;let dispatched=false,unknown=false;
+ async cancel(id){return this.write(async t=>this.#cancelInTransaction(t,await this.job(t,id)));}
+ async #cancelInTransaction(t,job){if(terminal.has(job.state))return safeJob(job);job.cancelEpoch++;let dispatched=false,unknown=false;
   for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt)continue;if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState='RESERVATION_RETAINED';}else{receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';}await t.put('organizerUsage',receipt);}
   job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;await t.put('organizerJobs',job);return safeJob(job);
- });}
+ }
  async reconcileOutcome(id,childId,proof){
   if(typeof this.verifyOutcome!=='function')fail('UNAVAILABLE');
   const saved=await this.read(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!job.childIds.includes(childId)||!receipt||receipt.jobId!==id||receipt.state!=='OUTCOME_UNKNOWN')fail();return receipt;});
@@ -233,6 +237,40 @@ export class AIUsageFoundation {
   });
  }
 
+ // Local mapping refusal is not a physical response or an effective result.
+ // Only the constructor-local host supplies the final owner/signal fence.
+ async deferMaintenanceBeforeDispatch(id,request={},owner=null){
+  if(!opaque(id))fail();exact(request,['groups']);const groups=structuredClone(request.groups);exact(owner,['signal','isCurrent','plan'],['signal','isCurrent']);
+  if(!(owner.signal instanceof AbortSignal)||typeof owner.isCurrent!=='function')fail('UNAVAILABLE');
+  const assertOwner=()=>{if(owner.signal.aborted||owner.isCurrent()!==true)fail('CANCELLED');};assertOwner();
+  if(!Array.isArray(groups)||!groups.length||groups.length>6)fail();
+  const result=await this.write(async t=>{
+   const abort=()=>{try{t.tx.abort();}catch{}};owner.signal.addEventListener('abort',abort,{once:true});
+   const cleanup=()=>owner.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
+   assertOwner();const job=await this.job(t,id);await this.current(t,job);assertOwner();
+   if(job.kind!==KIND||job.version!==1||job.type!=='AI_MAINTENANCE'||job.state!=='PLANNED'||job.cancelEpoch!==0||job.committedCoverage.length!==0||job.childIds.length>2||(await t.get('meta',job.flightId))?.jobId!==id)fail();assertOwner();
+   for(const childId of job.childIds){if(await t.get('meta',dispatchFenceId(childId))||await t.get('organizerUsage',receiptId(childId)))fail('OUTCOME_UNKNOWN');assertOwner();}
+   const unsupported=unsupportedMaintenanceCoverage(job.items,job.coverage),all=[],seen=new Set();
+   for(const group of groups){exact(group,['childId','facet','units','retryCondition']);const index=job.childIds.indexOf(group.childId),key=canonical([group.childId,group.facet]);
+    if(index<0||seen.has(key)||group.retryCondition!==({topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE',filter:'FILTER_OWNER_UNAVAILABLE'})[group.facet])fail();seen.add(key);
+    const units=validateCoverage(group.units,job.type);if(units.some(u=>u.facet!==group.facet||!job.childCoverage[index].some(v=>equal(u,v))))fail();all.push(...units);
+   }
+   if(!unsupported.length||!equal(all.map(unitKey).sort(),unsupported.map(unitKey).sort()))fail();
+   const pool=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',limit:100});assertOwner();
+   if(pool.next!==null||pool.rows.length+all.length>100){
+    // A capacity race may only close this Foundation instance's own fresh
+    // never-dispatched plan. A caller DTO cannot forge that cleanup identity.
+    if(this.#createdMaintenancePlans.get(owner.plan)!==canonical({id,authority:job.authority,coverage:job.coverage,childIds:job.childIds}))fail('DEFER_SCAN_BOUND');
+    await this.current(t,job);assertOwner();const closed=await this.#cancelInTransaction(t,job);
+    await this.current(t,job,{allowCancelled:true});assertOwner();return {...closed,deferredUnits:0,reason:'DEFER_SCAN_BOUND'};
+   }
+   for(const group of groups){await this.applyFacet(t,job,job.childIds.indexOf(group.childId),{facet:group.facet,units:group.units,outcome:'DEFER',retryCondition:group.retryCondition});assertOwner();}
+   await this.current(t,job);assertOwner();
+   const result=await this.#cancelInTransaction(t,job);
+   await this.current(t,job,{allowCancelled:true});assertOwner();return {...result,deferredUnits:all.length};
+  });
+  if(owner.plan)this.#createdMaintenancePlans.delete(owner.plan);return result;
+ }
  async resolveLocal(id,{facet,units}={}){
   units=structuredClone(units);
   // Validate and commit one local subset atomically. An unresolved sibling (or
