@@ -1,3 +1,7 @@
+# Current candidate — Topic rename/delete route protection
+
+TOPIC original container rename/delete now bind their caller route, target and confirmation through the existing mutation lifecycle. Late reads/ACKs cannot open an old dialog or take over a new reader; valid Home actions and container-only content preservation remain. Author165/independent143 and exact Source/release real headless Chrome pass. See implementation/topic-container-action-route.md; the rejected initial lifecycle guard and all earlier failures are preserved. Candidate remains unmerged/uninstalled; exact-head/full/latest visual gates still apply. Seven Canonical plans, Sync pause and Pro CI ownership remain unchanged.
+
 # Current candidate — exact Entry deletion Undo and regression repair
 
 TOPIC Entry lifecycle deletion Undo now binds the original removal and rechecks recovery epoch atomically before receipt replay, preventing stale controls from restoring a later deletion. Author206/independent149 and exact Source/release native Chrome safety journeys pass; see implementation/topic-entry-removal-undo.md. New guarded requests fail closed under injected Sync journal; old interfaces remain compatible and Sync stays paused. Three older Context DOM test fixtures were repaired after actual cloud failure, with assertions unchanged; local and independent88 PASS plus74 related checks do not replace changed-head CI. Candidate remains unmerged/uninstalled with full/latest visual gates open.

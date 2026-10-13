@@ -767,8 +767,39 @@ export class TopicController {
  async mergeSuggestions(){if(!await this.leave())return;this.closeDialog();$('library-dialog-title').textContent='可能相关的主题';const list=$('library-dialog-content'),result=await request('GET_LIBRARY_MERGE_SUGGESTIONS');list.append(element('p','muted','这些主题可能在讨论同一件事。只有你选择合并后才会改变组织，内容原文保持独立。'));
  for(const item of result.items){const row=element('section','merge-suggestion');row.append(element('p','',item.sourceName+' → '+item.targetName),button('合并到“'+item.targetName+'”',async()=>{this.closeDialog();await this.mutate(async()=>{const source=await request('GET_LIBRARY_TOPIC',{id:item.sourceId}),target=await request('GET_LIBRARY_TOPIC',{id:item.targetId}),r=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'topic_merge',topicId:source.id,survivorId:target.id,expectedTopicRevision:source.organizationRevision,expectedSurvivorRevision:target.organizationRevision,operationId:op()}});await this.waitLayout(r.jobId);this.id=target.id;});}),button('保持分开',async()=>{await request('KEEP_LIBRARY_TOPICS_SEPARATE',{options:{sourceId:item.sourceId,targetId:item.targetId}});row.replaceChildren(element('p','muted','已记住：这两个主题保持分开。'));}));list.append(row);}if(!result.items.length)list.append(element('p','muted','暂未发现需要合并的主题。'));const renames=await request('GET_LIBRARY_RENAME_SUGGESTIONS');for(const item of renames.items){const row=element('section','merge-suggestion');row.append(element('p','','名称建议：'+item.name+' → '+item.suggestedName),button('使用建议名称',async()=>{await this.checked('EDIT_LIBRARY_TOPIC',{edit:{id:item.topicId,expectedRevision:item.revision,changes:{name:item.suggestedName},operationId:op()}});row.replaceChildren(element('p','muted','已按你的确认更新主题名称。'));await this.refresh();}),button('自己命名',()=>this.renameTopic(item.topicId)));list.append(row);}$('library-dialog').showModal();}
  async pinGridTopic(id){const topic=await request('GET_LIBRARY_TOPIC',{id});await this.checked('EDIT_LIBRARY_TOPIC',{edit:{id,expectedRevision:topic.revision,changes:{pinned:topic.pinKey!==0},operationId:op()}});await this.refresh();}
- async renameTopic(id){const topic=await request('GET_LIBRARY_TOPIC',{id}),value=await this.form('主题名称',[{key:'name',label:'主题名称',value:topic.name,required:true}]);if(!value)return;await this.mutate(()=>this.checked('EDIT_LIBRARY_TOPIC',{edit:{id,expectedRevision:topic.revision,changes:{name:value.name},operationId:op()}}));}
- async deleteTopic(id){const topic=await request('GET_LIBRARY_TOPIC',{id}),choice=this.form('删除“'+topic.name+'”',[{key:'confirm',label:'删除范围',options:[['container','仅删除主题容器，保留所有内容']]}]);$('library-dialog-content').append(element('p','muted','内容正文、原始来源和版本不会删除。只属于此主题的内容会出现在“未归入主题”，也可从 Settings 恢复主题。'));$('library-form').querySelector('button[type=submit]').textContent='删除主题';if(!await choice)return;await this.mutate(async()=>{await this.checked('REMOVE_LIBRARY_TOPIC',{edit:{id,expectedRevision:topic.revision,operationId:op()}});if(this.id===id){this.id=null;this.onOpen();}});}
+ renameTopic(id){return this.topicContainerAction(id,'rename');}
+ deleteTopic(id){return this.topicContainerAction(id,'delete');}
+ async topicContainerAction(id,action){
+  if(this.topicContainerPending||this.topicMergePending||this.sectionActionPending||this.mutating||!['rename','delete'].includes(action))return;
+  const route=this.id,intent=this.openIntent,presentation=this.presentationIntent,epoch=this.statusEpoch,view=this.view;let expectedRoute=route,ownMutation=false;
+  // A Home card (or suggestion) targets a Topic distinct from the caller route.
+  const current=()=>this.id===expectedRoute&&this.openIntent===intent&&this.presentationIntent===presentation&&(this.statusEpoch===epoch||ownMutation&&this.statusEpoch===epoch+1)&&this.view===view;
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  if(!id||!current()||composing())return;
+  this.topicContainerPending=true;
+  try{
+   if(!await this.flushEditors()||!current()||composing())return;
+   const topic=await request('GET_LIBRARY_TOPIC',{id});if(!current()||composing())return;
+   if(topic.id!==id||!Number.isInteger(topic.revision)||typeof topic.name!=='string')throw Error('TOPIC_CONTAINER_IDENTITY_CHANGED');
+   let choice;
+   if(action==='rename')choice=this.form('主题名称',[{key:'name',label:'主题名称',value:topic.name,required:true}]);
+   else{
+    choice=this.form('删除“'+topic.name+'”',[{key:'confirm',label:'删除范围',options:[['container','仅删除主题容器，保留所有内容']]}]);
+    $('library-dialog-content').append(element('p','muted','内容正文、原始来源和版本不会删除。只属于此主题的内容会出现在“未归入主题”，也可从 Settings 恢复主题。'));
+    $('library-form').querySelector('button[type=submit]').textContent='删除主题';
+   }
+   const value=await choice;if(!value||!current()||composing())return;
+   if(action==='delete'&&value.confirm!=='container'||action==='rename'&&typeof value.name!=='string')return;
+   ownMutation=true;
+   await this.mutate(async()=>{
+    if(!current()||composing())return;
+    await this.checked(action==='rename'?'EDIT_LIBRARY_TOPIC':'REMOVE_LIBRARY_TOPIC',{edit:{id,expectedRevision:topic.revision,...(action==='rename'?{changes:{name:value.name}}:{}),operationId:op()}},current);
+    if(!current())return;
+    if(action==='delete'&&route===id){expectedRoute=null;this.id=null;this.onOpen();}
+   },{isCurrent:current});
+  }catch(error){if(current())throw error;}
+  finally{this.topicContainerPending=false;}
+ }
  removedList(){return this.settingsRemovedList??=new SettingsRemovedList({host:$('library-management-list'),panel:$('settings-panel'),group:$('ux-settings-data-group'),restore:(type,fields,current)=>this.checked(type,fields,current),history:(...args)=>this.revisions(...args),refresh:()=>this.refresh()});}
  async removedTopics(){return this.removedList().show('topic');}
  async mergeTopic(){
