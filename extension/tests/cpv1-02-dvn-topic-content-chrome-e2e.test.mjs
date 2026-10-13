@@ -29,6 +29,16 @@ function installReturnEvidence({topicId,targetId}){
   if(node)trace.record(name,{id:node.id,topicId:node.dataset.topicId||null,trusted:event.isTrusted,key:event.key||null});
  },true);
  addEventListener('scroll',()=>trace.record('scroll'),{passive:true});
+ addEventListener('scrollend',()=>trace.record('scrollend'),{passive:true});
+ addEventListener('wheel',event=>trace.record('wheel',{deltaY:event.deltaY,trusted:event.isTrusted}),{passive:true});
+ // Read-only call attribution; forward the same receiver/arguments without waits.
+ // Fixed option fields and synthetic node IDs only, never document text.
+ const scrollArgs=args=>args.map(value=>typeof value==='number'?value:value&&typeof value==='object'?Object.fromEntries(['top','left','behavior','block','inline'].filter(key=>Object.hasOwn(value,key)).map(key=>[key,value[key]])):null);
+ for(const name of ['scrollTo','scrollBy']){
+  const original=window[name];window[name]=function(...args){trace.record(name+':call',{args:scrollArgs(args),caller:new Error().stack?.split('\n').slice(2,5)});return original.apply(this,args);};
+ }
+ const originalScrollIntoView=Element.prototype.scrollIntoView;
+ Element.prototype.scrollIntoView=function(...args){trace.record('scrollIntoView:call',{id:this.id||this.dataset.entryId||null,args:scrollArgs(args),caller:new Error().stack?.split('\n').slice(2,5)});return originalScrollIntoView.apply(this,args);};
  for(const name of ['rememberContent','restoreContent','searchContent','open','shiftTopicWindow','resetTopicReader','renderTopicReader']){
   const original=owner[name];owner[name]=function(...args){
    trace.record(name+':start',{argument:typeof args[0]==='string'?args[0]:null});
@@ -46,6 +56,13 @@ async function retainReturnEvidence(p,variant,error=null){
   writeFileSync(`work/qa-dvn-topic-content/${variant}-return-diagnostic.json`,JSON.stringify({kind:'synthetic-read-only-return-diagnostic',head:process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),variant,result:error?'FAIL':'PASS',error:error?{name:error.name,message:error.message,stack:error.stack}:null,evidence},null,2));
   if(error)await p.screenshot({path:`work/qa-dvn-topic-content/${variant}-return-failure.png`,timeout:5000});
  }catch(diagnosticError){console.error('D2_RETURN_DIAGNOSTIC_FAILED',String(diagnosticError));}
+}
+// mouse.wheel resolves after dispatch, not after Chromium completes scrolling.
+// Await the real completion event before issuing a conflicting programmatic scroll.
+async function completedWheel(page,deltaY){
+ await page.evaluate(()=>{const state={moved:false,ended:false,abort:new AbortController()};globalThis.__d2WheelCompletion=state;document.addEventListener('scroll',()=>{state.moved=true;state.ended=false;},{signal:state.abort.signal});document.addEventListener('scrollend',()=>{if(state.moved)state.ended=true;},{signal:state.abort.signal});});
+ try{await page.mouse.wheel(0,deltaY);await eventually(()=>page.evaluate(()=>__d2WheelCompletion.moved&&__d2WheelCompletion.ended),'native wheel reaches its real scrollend before the next scrolling action');}
+ finally{await page.evaluate(()=>{__d2WheelCompletion.abort.abort();delete globalThis.__d2WheelCompletion;});}
 }
 const settleContent=p=>eventually(()=>p.evaluate(async()=>{const ready=()=>{const owner=__d2Content,reader=owner.topicReader;return document.getElementById('thought-document').dataset.state==='ready'&&!document.getElementById('topic-body').inert&&!owner.topicWindowShifting&&!globalThis.__d2PendingRenders&&reader&&!reader.hydrating&&!reader.hydrationPromise&&!reader.loadingNext&&!reader.loadingPrevious;};const layout=()=>JSON.stringify({scroll:scrollY,window:__d2Content.topicReader?.windowStart,rows:[...document.querySelectorAll('#original-reading-body [data-entry-id]')].map(n=>[n.dataset.entryId,n.getBoundingClientRect().top,n.getBoundingClientRect().height])});if(!ready())return false;const before=layout();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));return ready()&&layout()===before;}),'current Section render and reading geometry settle');
 function contentReturnState(targetId){
@@ -105,9 +122,9 @@ for(const variant of ['source','release'])test(`D2 Section durable order and tru
   await p.locator(`.personal-topic-link[data-topic-id="${seed.topicId}"]`).click();await eventually(()=>p.locator(`[data-entry-id="${rapidSaved.snapshot.anchor.id}"]`).count().then(n=>n===1),'rapid pointer return refetches the actual saved anchor');
   const rapidPointer=await assertReturnedWindow(p,{ids:rapidSaved.snapshot.extent,references:rapidSaved.snapshot.references,windowStart:rapidSaved.snapshot.windowStart,generation:rapidSaved.snapshot.generation,target:{id:rapidSaved.snapshot.anchor.id,top:rapidSaved.snapshot.anchor.top},readCount:rapidSaved.readCount},'rapid pointer return');rapidPointer.trustedDeparture=rapidSaved;
   const returnPaths={rapidPointer},retainPaths=()=>writeFileSync(`work/qa-dvn-topic-content/${variant}-return-paths.json`,JSON.stringify(returnPaths,null,2));retainPaths();
-  await p.mouse.wheel(0,1000000);await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'rapid return continues forward to the original deep entry');await settleContent(p);rapidPointer.continuedTo140=true;retainPaths();
-  await p.mouse.wheel(0,-1000000);await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'rapid return continues backward to the first entry');await settleContent(p);rapidPointer.continuedTo0=true;retainPaths();
-  await p.mouse.wheel(0,1000000);await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'deep keyboard departure is reachable through actual paging');await p.locator(`[data-entry-id="${target}"]`).scrollIntoViewIfNeeded();
+  await completedWheel(p,1000000);await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'rapid return continues forward to the original deep entry');await settleContent(p);rapidPointer.continuedTo140=true;retainPaths();
+  await completedWheel(p,-1000000);await eventually(()=>p.locator(`[data-entry-id="${seed.ordered[0]}"]`).count().then(n=>n===1),'rapid return continues backward to the first entry');await settleContent(p);rapidPointer.continuedTo0=true;retainPaths();
+  await completedWheel(p,1000000);await eventually(()=>p.locator(`[data-entry-id="${target}"]`).count().then(n=>n===1),'deep keyboard departure is reachable through actual paging');await p.locator(`[data-entry-id="${target}"]`).scrollIntoViewIfNeeded();
   // Back lives in the page header. Pointer activation of an offscreen locator
   // first scrolls to that header and intentionally changes the reading window.
   // Keep the deep-window contract on a real keyboard activation without scroll.
@@ -211,7 +228,7 @@ async function openSectionReading(h,variant,kind,id){
  async function verifyPreference(label,fontSize,readingWidth){
   const measured=await measure(p,kind,id),n=measured.nodes,available=n.container.width-parseFloat(n.container.paddingLeft)-parseFloat(n.container.paddingRight),expectedWidth=Math.min(available,widths[readingWidth],760),expectedFont=fonts[fontSize];
   preferences.push({label,fontSize,readingWidth,expectedWidth,measured});await persist('PENDING');
-  assert.equal(parseFloat(n.prose.fontSize),expectedFont,label+' saved body size');assert.ok(Math.abs(parseFloat(n.prose.lineHeight)-expectedFont*1.85)<.01,label+' body line height');assert.ok(Math.abs(n.year.width-expectedWidth)<=2,label+' exact saved reading-width formula');
+  assert.equal(parseFloat(n.prose.fontSize),expectedFont,label+' saved body size');assert.ok(Math.abs(parseFloat(n.prose.lineHeight)-expectedFont*(kind==='content'?1.65:1.85))<.01,label+' body line height');assert.ok(Math.abs(n.year.width-expectedWidth)<=2,label+' exact saved reading-width formula');
   const actual=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences;assert.equal(actual.fontSize,fontSize);assert.equal(actual.readingWidth,readingWidth);
  }
  async function overflowTarget(label){

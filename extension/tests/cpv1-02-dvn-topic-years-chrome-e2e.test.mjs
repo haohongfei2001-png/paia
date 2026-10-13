@@ -102,7 +102,7 @@ async function openSectionReading(h,variant,kind,id){
  async function verifyPreference(label,fontSize,readingWidth){
   const measured=await measure(p,kind,id),n=measured.nodes,available=n.container.width-parseFloat(n.container.paddingLeft)-parseFloat(n.container.paddingRight),expectedWidth=Math.min(available,widths[readingWidth],760),expectedFont=fonts[fontSize];
   preferences.push({label,fontSize,readingWidth,expectedWidth,measured});await persist('PENDING');
-  assert.equal(parseFloat(n.prose.fontSize),expectedFont,label+' saved body size');assert.ok(Math.abs(parseFloat(n.prose.lineHeight)-expectedFont*1.85)<.01,label+' body line height');assert.ok(Math.abs(n.year.width-expectedWidth)<=2,label+' exact saved reading-width formula');
+  assert.equal(parseFloat(n.prose.fontSize),expectedFont,label+' saved body size');assert.ok(Math.abs(parseFloat(n.prose.lineHeight)-expectedFont*(kind==='content'?1.65:1.85))<.01,label+' body line height');assert.ok(Math.abs(n.year.width-expectedWidth)<=2,label+' exact saved reading-width formula');
   const actual=(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences;assert.equal(actual.fontSize,fontSize);assert.equal(actual.readingWidth,readingWidth);
  }
  async function overflowTarget(label){
