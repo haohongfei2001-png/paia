@@ -281,7 +281,7 @@ export class LocalMaintenanceSession {
   const results=[];
   try{
    const initial=await this.#foundation.status(state.job.id);this.#current(state);
-   if(initial.state==='COMMITTED')return this.#settled(state);
+   if(initial.state==='COMMITTED'){state.completed=true;this.#retire(state);return this.#settled(state);}
    if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state)))return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});
    await this.#preflightPayloads(state);this.#current(state);
    await this.#foundation.reserve(state.job.id,{reservationId:state.grant.reservationId,executionKind:state.grant.kind});this.#current(state);
@@ -308,17 +308,22 @@ export class LocalMaintenanceSession {
     }
    }
    const final=await this.#foundation.status(state.job.id);this.#current(state);
-   if(final.state==='COMMITTED'){state.completed=true;state.removeRevocation();state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();for(const clean of state.processingCleanup)clean();state.processingCleanup.clear();this.#jobs.delete(state.job.id);}
+   if(final.state==='COMMITTED'){state.completed=true;this.#retire(state);}
    return final.state==='COMMITTED'?this.#settled(state,results):outcome('PARTIAL',{jobId:state.job.id,facets:results,...state.progress,remainingWork:true});
   }catch(e){state.outputs.clear();return outcome(safeError(e),{jobId:state.job.id,facets:results});}
  }
+ // Listener cleanup cannot change an already durable domain outcome.
+ #retire(state){
+  const errors=[],cleanup=fn=>{try{fn();}catch(error){errors.push(error);}};
+  state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();
+  cleanup(state.removeRevocation);for(const clean of state.processingCleanup)cleanup(clean);state.processingCleanup.clear();
+  this.#jobs.delete(state.job.id);return errors;
+ }
  dispose(){
   this.#generation++;this.#preparing?.controller.abort();const errors=[];
-  const cleanup=fn=>{try{fn();}catch(error){errors.push(error);}};
   for(const state of this.#jobs.values()){
    // Physical cancellation and private-data retirement must survive host cleanup errors.
-   state.controller.abort();state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();
-   cleanup(state.removeRevocation);for(const clean of state.processingCleanup)cleanup(clean);state.processingCleanup.clear();
+   state.controller.abort();errors.push(...this.#retire(state));
   }
   this.#jobs.clear();if(errors.length)throw errors[0];
  }

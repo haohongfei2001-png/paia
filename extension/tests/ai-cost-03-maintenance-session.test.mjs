@@ -192,3 +192,18 @@ for(const owner of ['window','processing'])test('dispose aborts physical Mainten
  assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);assert.equal(f.calls.length,1);
  assert.doesNotThrow(()=>f.session.dispose(),'failed cleanup cannot retain live job state');
 });
+
+test('completed durable Maintenance remains committed when final listener cleanup fails',async()=>{
+ const f=await fixture(),signal=f.clock.signal,remove=signal.removeEventListener,add=signal.addEventListener;
+ let retiredListener,cleanupCalls=0;signal.addEventListener=function(type,listener,...args){retiredListener=listener;return add.call(this,type,listener,...args);};
+ let result,handle;try{handle=await f.session.prepare(options);}finally{signal.addEventListener=add;}
+ assert.equal(typeof retiredListener,'function');
+ signal.removeEventListener=function(type,listener,...args){if(listener===retiredListener){cleanupCalls++;throw Error('synthetic final cleanup failure');}return remove.call(this,type,listener,...args);};
+ try{result=await f.session.run(handle);}finally{signal.removeEventListener=remove;}
+ assert.equal(cleanupCalls,1);assert.equal((await ack(f)).length,2);assert.equal((await read(f.s,'organizerUsage'))[0].state,'COMMITTED');
+ assert.equal(result.state,'COMMITTED');nonAuthority(result);
+ const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
+ assert.equal((await f.session.run(handle)).state,'COMMITTED');assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);
+ signal.removeEventListener=()=>{throw Error('completed job was retained');};
+ try{assert.doesNotThrow(()=>f.session.dispose());}finally{signal.removeEventListener=remove;}
+});
