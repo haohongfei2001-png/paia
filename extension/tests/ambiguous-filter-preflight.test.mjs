@@ -175,3 +175,13 @@ test('release during revalidation cannot republish a retired capability',async()
  assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'STALE');
  assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY');
 });
+
+
+test('release during permission revalidation prevents subsequent private body reads',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let released=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(released&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{released=true;f.reader.release(initial.capability);});
+ const result=await f.reader.revalidate(initial.capability);f.s.repository.transaction=transaction;f.setHook(null);
+ assert.equal(result.status,'STALE');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+});

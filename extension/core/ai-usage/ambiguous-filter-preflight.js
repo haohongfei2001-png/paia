@@ -51,26 +51,27 @@ export class AmbiguousFilterPreflight {
  #ready(){const s=this.#store;return !this.#closed&&typeof this.#resolve==='function'&&typeof this.#clock==='function'&&s?.loaded===true&&s.filterLoaded===true&&s.repository?.db&&typeof s.isFiltered==='function'&&typeof s.control==='function'&&(!Object.hasOwn(s,'foundationLoaded')||s.foundationLoaded===true)&&(!Object.hasOwn(s,'bindingsLoaded')||s.bindingsLoaded===true);}
  #active(epoch){if(this.#closed||epoch!==this.#epoch)stop('REVOKED');}
  #failure(e,candidates=[]){return result('UNAVAILABLE',failures.has(e)?e.reason:'READ_FAILED',candidates);}
- async #read(plan,epoch){
+ async #read(plan,epoch,current=()=>true){
+  const active=()=>{this.#active(epoch);if(!current())stop('CAPABILITY_RELEASED');};
   const s=this.#store;
   return s.repository.transaction(false,async t=>{
-   this.#active(epoch);
+   active();
    const gate=await t.get('meta','gate'),control=await s.control(t),filter=await t.get('meta','smart-filter'),library=await t.get('meta','thought-library'),restore=await t.get('meta','recovery-restore-epoch');
    if(gate?.enabled!==true||control.settings?.enabled!==true||control.settings.consentVersion!==CONSENT_VERSION||control.settings.epoch!==gate.epoch||library?.phase!=='active'||library.schemaVersion!==1||library.verified!==true||library.sealed!==0||restore&&!id(restore.value)||!integer(gate.epoch)||!filter||filter.phase!=='active'||filter.mode!=='light'||!integer(filter.policyEpoch)||!Object.entries(FILTER_VERSIONS).every(([k,v])=>filter[k]===v))stop('OWNER_UNAVAILABLE');
-   this.#active(epoch);const authority=permission(await this.#resolve(t,structuredClone(plan.request)),plan.request);this.#active(epoch);
+   active();const authority=permission(await this.#resolve(t,structuredClone(plan.request)),plan.request);active();
    const fence={gate:{epoch:gate.epoch,enabled:gate.enabled},filter:{policyEpoch:filter.policyEpoch,...FILTER_VERSIONS},restore:{present:!!restore,value:restore?.value??null}};
    const cache=new Map();
    const read=async inputId=>{
-    if(cache.has(inputId))return cache.get(inputId);this.#active(epoch);
+    if(cache.has(inputId))return cache.get(inputId);active();
     const b=(await t.get('blocks',inputId))?.value,m=await t.get('inputStates',inputId),f=await t.get('filterInputs',inputId),ix=await t.get('blockIndex',inputId);
-    this.#active(epoch);
+    active();
     if(!b||!m||!f||!ix||!Array.isArray(b.provenance)||b.provenance.length!==1||!id(b.provenance[0]?.sourceRecordId)||b.originalTextReference!==b.provenance[0].sourceRecordId||b.excluded||b.branchStatus||m.removalState!=='active'||m.sourcePurged){cache.set(inputId,null);return null;}
     if(!integer(m.contentRevision)||!integer(m.lastRemovalSequence??0)||!integer(f.evaluationRevision)||!absent(normalizePresence(f.presence))||f.presenceInvalid||!Object.entries(FILTER_VERSIONS).every(([k,v])=>f[k]===v)){cache.set(inputId,null);return null;}
-    const p=await inputProjection(s,t,inputId);this.#active(epoch);
+    const p=await inputProjection(s,t,inputId);active();
     if(!p||p.sourceRecordIds.length!==1||p.identities.length!==1||!id(p.documentId)||ix.id!==inputId||ix.documentId!==p.documentId||ix.excluded||!array(ix.listKey,12)||ix.listKey[0]!==p.documentId||ix.listKey[1]!==0||bytes(JSON.stringify(ix.listKey))>4096||typeof p.body!=='string'){cache.set(inputId,null);return null;}
-    let kept=false;for(const source of p.identities)if(await t.get('filterIntents',source))kept=true;this.#active(epoch);
+    let kept=false;for(const source of p.identities)if(await t.get('filterIntents',source))kept=true;active();
     const row={inputId,documentId:p.documentId,body:p.body,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sources:p.sourceRecordIds,identities:p.identities,position:ix.listKey,filter:{authorship:f.authorship,userEdited:f.userEdited,filterOverride:f.filterOverride,evaluationRevision:f.evaluationRevision,presence:f.presence,presenceInvalid:!!f.presenceInvalid,basedOnContentRevision:f.basedOnContentRevision??null,decision:f.decision??null},kept,edited:b.libraryText!==null||!!b.note||b.editedAt!==null||m.contentRevision>0||b.mergedSourceIds?.length>1,filtered:await s.isFiltered(t,b,filter)};
-    this.#active(epoch);cache.set(inputId,row);return row;
+    active();cache.set(inputId,row);return row;
    };
    const publicRows=[],admitted=[],selected=new Map();
    for(const c of plan.candidates){
@@ -91,14 +92,14 @@ export class AmbiguousFilterPreflight {
      if(await t.count('blockIndex','byList',range)>3){reason='POSITION_UNAVAILABLE';break;}
      neighbors.push(q);
     }
-    this.#active(epoch);
+    active();
     if(reason){publicRows.push(denied(c.inputId,reason,light.decision));continue;}
     admitted.push(c.inputId);selected.set(p.inputId,p);for(const q of neighbors)selected.set(q.inputId,q);
     publicRows.push({inputId:c.inputId,eligibility:'PRIVATE_CANDIDATE',reason:'LOCAL_SCOPE_ONLY',lightDecision:light.decision});
    }
    const uniqueNeighbors=[...selected.values()].filter(p=>plan.request.neighborIds.includes(p.inputId));
    if(uniqueNeighbors.reduce((n,p)=>n+bytes(p.body),0)>4096||[...selected.values()].reduce((n,p)=>n+bytes(p.body),0)>16384)stop('TEXT_BOUND');
-   const currentPermission=permission(await this.#resolve(t,structuredClone(plan.request)),plan.request);this.#active(epoch);
+   const currentPermission=permission(await this.#resolve(t,structuredClone(plan.request)),plan.request);active();
    if(!equal(authority,currentPermission))stop('PERMISSION_CHANGED');
    const proof={scope:plan.request,authority,fence,admitted,inputs:[...selected.values()].sort((a,b)=>a.inputId.localeCompare(b.inputId))};
    if(bytes(JSON.stringify(proof))>65536)stop('PROOF_BOUND');
@@ -119,9 +120,9 @@ export class AmbiguousFilterPreflight {
  async revalidate(handle){
   try{
    if(!this.#ready()){this.#clear();return result('UNAVAILABLE','STORE_NOT_READY');}this.#time();const state=this.#handles.get(handle);
-   if(!state?.active)return result('STALE','CAPABILITY_UNAVAILABLE');const read=await this.#read(state.plan,state.epoch);this.#active(state.epoch);this.#time();
+   if(!state?.active)return result('STALE','CAPABILITY_UNAVAILABLE');const read=await this.#read(state.plan,state.epoch,()=>state.active);this.#active(state.epoch);this.#time();
    if(!state.active||!equal(state.proof,read.proof)){this.#retire(state);return result('STALE','SCOPE_CHANGED',read.publicRows);}
    return result('CURRENT','READ_SNAPSHOT_ONLY',read.publicRows,handle);
-  }catch(e){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);return this.#failure(e);}
+  }catch(e){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);if(failures.has(e)&&e.reason==='CAPABILITY_RELEASED')return result('STALE','CAPABILITY_UNAVAILABLE');return this.#failure(e);}
  }
 }
