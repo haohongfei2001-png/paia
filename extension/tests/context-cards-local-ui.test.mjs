@@ -54,7 +54,7 @@ async function fixture(run,{seed=true}={}){
  globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const dispatch=async message=>{
   switch(message.type){
-   case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot();
+   case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot(message.mode);
    case 'PAIA_CONTEXT_CARDS_CHANGE':return c.change(message.change);
    case 'PAIA_CONTEXT_CARDS_OUTCOME':return c.outcome(message.query);
    case 'PAIA_CONTEXT_CARDS_DRAFTS':return Promise.all((await recovery.list('context_item')).map(item=>recovery.load(item.kind,item.ownerId)));
@@ -633,4 +633,13 @@ for(const card of cards)test(`CTX4 locale refresh preserves the composing ${card
  assert.equal(page.host.querySelector('.maintenance').textContent,'人工修改始终保留；自动补充目前不可用。');
  assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.field,field);assert.equal(editor.local,local);assert.equal(field.textContent,local);assert.equal(editor.composing,true);assert.deepEqual(editor.saved,saved);
  assert.equal(field.getAttribute('aria-label'),{info:'我的信息',rules:'我的规则',now:'我的现在'}[card]);
+}));
+
+ test('CTX4 Home requests only metadata and never synthesizes private or fictional directories',()=>fixture(async({c,makePage,calls,items})=>{
+ const page=makePage();await page.open();assert.deepEqual(page.snapshot.items,[]);assert.equal(calls.find(call=>call.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').mode,'home');
+ for(const item of items){assert.equal(page.host.textContent.includes(item.body),false);assert.equal(page.host.textContent.includes(item.section),false);}
+ assert.equal(page.host.textContent.includes('Background · Experience'),false);
+ await page.open('info');assert.equal([...page.editors.values()][0].field.textContent,items[0].body);
+ await page.open();assert.deepEqual(page.snapshot.items,[]);assert.equal(page.editors.size,0);await page.refresh();assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').at(-1).mode,'home');
+ assert.deepEqual((await c.snapshot()).items.map(item=>item.body),items.map(item=>item.body));
 }));

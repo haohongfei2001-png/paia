@@ -111,6 +111,11 @@ export async function runContextReferenceEquivalence(variant){
    await home(page);await page.setViewportSize(scene.viewport);await prototype.setViewportSize(scene.viewport);
    await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href+'?'+scene.query);await settle(prototype);
    const referenceState=await prototype.evaluate(()=>structuredClone(window.design.state));
+   // CTX4-UI-1.2 PLAN 1.2/4 supersedes first-surface private summaries and
+   // their reserved geometry. Keep immutable originals/hash checks; apply the
+   // finite written refinement only to this synthetic comparison page.
+   if(!card){await prototype.evaluate(()=>{for(const node of document.querySelectorAll('.context-card:not([data-card="inputs"]) .card-summary')){node.replaceChildren();node.hidden=true;}});await prototype.addStyleTag({content:'.context-card{min-height:0}'});}
+
    for(const key of ['global','info','rules','now','inputs'])await access(page,key,empty?false:key==='global'?referenceState.global:referenceState.groups[key]);
    await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:query.get('theme')==='dark'?'dark':'light'}});
    await open(page,card);await page.waitForFunction(theme=>document.documentElement.dataset.paiaTheme===theme,query.get('theme')==='dark'?'dark':'light');
@@ -137,7 +142,7 @@ export async function runContextReferenceEquivalence(variant){
    const snapshot=await read(page);assert.equal(snapshot.capabilities.external,false);assert.equal(snapshot.capabilities.automatic,false);assert.equal(snapshot.connections,0);
    referenceHashes[scene.file]=sha(await readFile(join(reference,scene.file)));
    await prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true});
-   const acceptedVariations={readingFlow:!!card&&['info','rules','now'].includes(card),optionalNewCue:id==='17-New-Topic'&&actual.groups.newMark.length===0,unselectedPausedDataset:id==='14-Inputs-Paused',boundedHomePreview:!card};
+   const acceptedVariations={readingFlow:!!card&&['info','rules','now'].includes(card),optionalNewCue:id==='17-New-Topic'&&actual.groups.newMark.length===0,unselectedPausedDataset:id==='14-Inputs-Paused',categoryOnlyHomeRefinement:!card};
    let canonicalUnsaved=null;
    if(id==='05-Inline-Editing'){
     const before=(await read(page)).items.filter(item=>item.card==='info')[3];

@@ -333,3 +333,11 @@ test('CTX4-02 pending Rules and Now writes cannot retry with legacy omitted-card
   assert.deepEqual(session.pending.change,first);
  }
 });
+
+test('CTX4 Home projection removes private body and free-form section without writes or detail loss',async()=>{
+ const {s,c}=await fixture();for(const card of cards)await c.change(put(card,{body:'SYNTHETIC private school address '+card,section:'SYNTHETIC private heading '+card}));
+ const before=await canonical(s),beforeReceipts=await receipts(s),full=await c.snapshot(),home=await c.snapshot('home');
+ assert.deepEqual(home,{...full,items:[]});assert.equal(JSON.stringify(home).includes('SYNTHETIC private'),false);
+ assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),beforeReceipts);assert.deepEqual(await c.snapshot(),full);
+ for(const mode of [null,false,{},'detail','HOME'])await assert.rejects(c.snapshot(mode),{code:'INVALID_REQUEST'});
+});

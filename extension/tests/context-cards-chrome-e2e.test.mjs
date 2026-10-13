@@ -176,6 +176,10 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
   await p.setViewportSize({width,height:900});await capture(p,`${dir}/07-populated-cards-off-${width}.png`);
   assert.equal(await p.locator('.context-card').count(),4);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   const overview=await p.locator('#memory-panel').innerText();for(const item of allOffBefore.items)assert.equal(overview.includes(item.body),false,'Home never exposes independent Item bodies');
+  const homeProjection=await rpc(p,'PAIA_CONTEXT_CARDS_SNAPSHOT',{mode:'home'});assert.deepEqual(homeProjection.items,[]);assert.deepEqual(homeProjection.counts,allOffBefore.counts);
+  const inspectHome=async()=>{const markup=await p.locator('#memory-panel').evaluate(root=>root.outerHTML);for(const item of allOffBefore.items){assert.equal(markup.includes(item.body),false,'Home attributes and hidden DOM exclude Item body');assert.equal(markup.includes(item.section),false,'Home does not project free-form private headings');}};
+  await inspectHome();for(const card of ['info','rules','now']){const link=p.locator(`.context-card[data-card="${card}"] .card-link`);await link.hover();await link.focus();await inspectHome();}
+  assert.equal(overview.includes('基本信息 · 背景 · 经历'),false,'Home has no invented directory population');
   for(const card of ['info','rules','now','inputs']){const capsule=p.locator(`.context-card[data-card="${card}"] .context-access`);assert.equal(await capsule.isVisible(),true);assert.equal(await capsule.isEnabled(),true);assert.match(await capsule.textContent(),/仅自己/);}
  }
  await p.locator('.context-card[data-card="info"] .context-access').click();await eventually(async()=>(await read(p)).access.info.enabled);assert.equal(await p.locator('.context-card').count(),4,'compact capsule does not open detail');await open('info');assert.equal(await p.locator('.item-text').count(),2);await home();

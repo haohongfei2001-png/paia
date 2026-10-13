@@ -247,7 +247,7 @@ async function handle(request, sender) {
       return readSettingsUpdateStatus(chrome.storage.local,chrome.runtime.getManifest().version);
     }
     case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
-    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {const snapshot=await contextCards.snapshot();if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
+    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
     case 'PAIA_CONTEXT_TOPICS_PAGE':
