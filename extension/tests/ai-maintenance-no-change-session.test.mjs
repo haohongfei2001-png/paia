@@ -139,3 +139,15 @@ for(const mode of ['protected','stale-revision'])test('explicit UPDATE preserves
  assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated').length,0);
  if(mode==='protected')assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='protected').length,1);
 });
+
+for(const stage of ['receipt','ack','usage','job','generation'])test('explicit UPDATE '+stage+' failure rolls back and resumes without another provider call',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='UPDATE';delete group.change.operation;group.change.body='SYNTHETIC atomic update';group.change.section='Atomic update';}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const h=await f.session.prepare(f.batchOptions),row=await read(f.s,'meta',CONTEXT_CARDS_ROW),transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false,before=null;
+ f.s.repository.transaction=async(write,fn,stores)=>{if(write&&f.state.contextOperations>0&&!reached)before=await transaction(false,async t=>Object.fromEntries(await Promise.all(f.s.repository.stores.map(async n=>[n,await t.all(n)]))));return transaction(write,async t=>{if(write&&f.state.contextOperations>0&&!reached){const put=t.put.bind(t);t.put=async(name,r,...args)=>{const value=await put(name,r,...args),hit=stage==='receipt'?name==='operationReceipts'&&r.result?.disposition==='updated':stage==='ack'?name==='organizerWorkItems'&&r.unit?.facet==='context'&&r.state==='ACKNOWLEDGED':stage==='usage'?name==='organizerUsage'&&r.state==='COMMITTED':stage==='job'?name==='organizerJobs'&&r.state==='COMMITTED':name==='meta'&&r.id==='backup-data-generation';if(hit&&!reached){reached=true;throw Error('synthetic explicit update transaction failure');}return value;};}return fn(t);},stores);};
+ const failed=await f.session.run(h);f.s.repository.transaction=transaction;
+ assert.equal(reached,true);assert.equal(failed.state,'PARTIAL');assert.deepEqual(await snapshot(f.s),before);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),row);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);
+ const resumed=await f.session.run(h);assert.equal(resumed.state,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,1);
+ const receipt=(await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated');assert.equal(receipt.length,1);assert.equal(receipt[0].result.revision,2);
+});
