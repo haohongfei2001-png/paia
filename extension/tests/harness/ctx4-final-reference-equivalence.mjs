@@ -43,8 +43,8 @@ function compare(reference,actual,scene){
   for(let index=0;index<expected.length;index++){
    const a=expected[index],b=found[index];
    for(const key of styleKeys){
-    // The sole owner-approved reference override is actual shared reading 17px/680px.
-    const value=name==='item'&&key==='fontSize'?'17px':name==='item'&&key==='lineHeight'?'30.8125px':a.style[key];
+    // The owner-approved reference override is shared reading 17px/680px and UX_CONTRACT §3 rhythm.
+    const value=name==='item'&&key==='fontSize'?'17px':name==='item'&&key==='lineHeight'?'28.05px':a.style[key];
     if(value!==b.style[key])record(selector,index,key,value,b.style[key]);
    }
    // Reading-body vertical flow changes with the explicit 17px/680px override.

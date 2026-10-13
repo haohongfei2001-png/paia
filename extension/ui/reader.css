@@ -134,7 +134,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-search-tools{margin-block:0 28px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin:0 0 48px;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .block-time{margin:0 0 8px;font-size:12px;line-height:20px;color:var(--quiet);font-variant-numeric:normal;opacity:1}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose{font-family:var(--font);font-size:var(--paia-prose-size,16px);line-height:1.8125;min-height:1.8125em;margin:0;padding:0;border:0;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose{font-family:var(--font);font-size:var(--paia-prose-size,16px);line-height:1.65;min-height:1.65em;margin:0;padding:0;border:0;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) .reader-margin-actions{gap:4px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:6px}
