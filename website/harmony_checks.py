@@ -33,8 +33,15 @@ def source_digest(root):
 
 
 def verify_static_harmony(root, check):
-    check(source_digest(root) == BASE_SOURCE_DIGEST,
-          'harmony: all generated copy, privacy directories, original assets/scripts and renderers remain exact')
+    if 'data-home-mode="presentation"' in (root/'index.html').read_text():
+        # Presentation intentionally replaces homepage trial controls. All
+        # other delivered pages, demo controllers and original visual sheets
+        # remain byte-locked to the approved pre-presentation baseline.
+        from presentation_checks import verify_static_presentation
+        verify_static_presentation(root,check)
+    else:
+        check(source_digest(root) == BASE_SOURCE_DIGEST,
+              'harmony: all generated copy, privacy directories, original assets/scripts and renderers remain exact')
     style = (root / 'assets/website/launch.css').read_text()
     check(style.count(MARKER) == 1, 'harmony: one scoped visual layer')
     previous, finish = style.split(MARKER, 1)

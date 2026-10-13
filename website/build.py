@@ -41,9 +41,12 @@ def build(lang):
         url=BASE+link(page)
         zhurl=BASE+'/zh/'+('' if page=='index.html' else page)
         enurl=BASE+'/'+('' if page=='index.html' else page)
-        product_css='<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261009a">\n<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n' if page in ('index.html','demo.html') else ''
+        product_css = '<link rel="stylesheet" href="/assets/website/product-experience.css?v=20261009a">\n' if page in ('index.html','demo.html') else ''
+        if page == 'demo.html':
+            product_css += '<script src="/assets/website/home-core-v2.js?v=20261009a" defer></script>\n'
         if page == 'index.html':
-            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n<script src="/assets/website/home-art.js?v=20261013b" defer></script><script src="/assets/website/scroll-story.js?v=20261013b" defer></script>\n'
+            product_css += '<link rel="stylesheet" href="/assets/website/home-art.css?v=20261013b"><link rel="stylesheet" href="/assets/website/scroll-story.css?v=20261013b">\n'
+        presentation_assets = '\n<link rel="stylesheet" href="/assets/website/home-presentation.css?v=20261013a"><script src="/assets/website/home-presentation.js?v=20261013a" defer></script>' if page == 'index.html' else ''
         return f'''<!doctype html>
 <html lang="{'en' if en else 'zh-CN'}">
 <head>
@@ -78,9 +81,9 @@ def build(lang):
 <link rel="stylesheet" href="/assets/website/interior.css?v=20261009a">
 {product_css}
 <link rel="stylesheet" href="/assets/website/launch.css?v=20261013a">
-<script src="/assets/website/site.js?v=20261013c" defer></script>
+<script src="/assets/website/site.js?v={"20261013p" if page=="index.html" else "20261013c"}" defer></script>{presentation_assets}
 </head>
-<body data-page="{page}" data-language="{lang}">
+<body data-page="{page}" data-language="{lang}"{' data-home-mode="presentation"' if page=='index.html' else ''}>
 <a class="skip-link" href="#main">{t('跳到正文','Skip to content')}</a>'''
     def header(page):
         canonical_page = {'beta.html':'download.html', 'status.html':'help.html'}.get(page,page)
