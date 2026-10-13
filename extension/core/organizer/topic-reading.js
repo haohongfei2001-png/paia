@@ -152,11 +152,21 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
  const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
+ // Keep at most two existing, fully fenced reads in flight. Their result
+ // order remains descriptor order; no body cache survives this request.
+ const readable=descriptorRows.filter(d=>{const p=placements.get(d.entryId);return p&&sectionById.has(p.sectionId)&&(!providerMatches||providerMatches.has(d.entryId));});
+ let readOffset=0,readBatch=[];
  for(const d of descriptorRows){
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
   if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(providerMatches&&!providerMatches.has(d.entryId)){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  let e;try{e=await s.readingEntry(d.entryId);}catch(error){if(expression)throw error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(!readBatch.length){
+   const next=readable.slice(readOffset,readOffset+2);readOffset+=next.length;
+   readBatch=await Promise.all(next.map(async row=>{try{return {entry:await s.readingEntry(row.entryId)};}catch(error){return {error};}}));
+  }
+  const read=readBatch.shift();
+  if(Object.hasOwn(read,'error')){if(expression)throw read.error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  const e=read.entry;
   if(e.lifecycle!=='active'){if(expression){timeMismatch=true;break;}lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(expression){
    const fresh=await s.run(()=>s.repository.transaction(false,async t=>{
