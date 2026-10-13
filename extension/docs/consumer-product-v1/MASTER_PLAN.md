@@ -1,3 +1,7 @@
+# Current candidate — Context home search and conservative Maintenance filter
+
+CTX4 home-space search and AI-COST-04 KEEP/INSUFFICIENT filter participation are implemented through original owners, independently reviewed, and verified on exact Source/standard release in isolated headless Chrome. Home search preserves metadata-only initial loading and current Back/focus intent. Filter uses one existing Maintenance response and atomic exact NO_CHANGE ACK without altering human intent or classifier visibility. See implementation/context-cards/CTX4-01-HOME-SEARCH.md and implementation/ai-usage/AI-COST-04-MAINTENANCE-KEEP.md. Author/independent failures remain recorded. No real provider, new permission, Sync feature or CI change. PR284 remains unmerged; whole-head and latest exact visual gates still apply.
+
 # Current candidate followup — failed Entry draft self-rescue
 
 TOPIC-05.6 now copies the actual current existing Entry draft even when saving failed, without clearing failure/unknown/conflict or dispatching another save. Original current eligibility and epoch are checked before copy; stale routes/IME refuse. Author125/independent72 and exact Source/release Chrome pass. See implementation/topic-entry-draft-copy.md. Full/latest visual/main gates remain open; not merged/installed.

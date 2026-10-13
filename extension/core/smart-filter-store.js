@@ -119,6 +119,33 @@ export class SmartFilterStore extends IAStore {
    await t.put('meta',state);return {processed};
   });
  }
+ // Conservative Maintenance participation uses the existing transaction owner.
+ // It never attributes a model response to the deterministic classifier and
+ // never creates a human keep override. The Foundation records NO_CHANGE.
+ async maintenanceFilterSnapshot(t,inputIds){
+  if(!Array.isArray(inputIds)||!inputIds.length||inputIds.length>20||new Set(inputIds).size!==inputIds.length||inputIds.some(id=>!idOK(id)))invalid();
+  const state=await t.get('meta','smart-filter');
+  if(state?.mode!=='light'||state.phase!=='active'||!Object.entries(FILTER_VERSIONS).every(([k,v])=>state[k]===v))throw new ArchiveError('UNAVAILABLE');
+  const items=[];
+  for(const inputId of [...inputIds].sort()){
+   const p=await inputProjection(this,t,inputId),row=await t.get('filterInputs',inputId);
+   if(!p||!row||row.authorship!=='untouched'||row.userEdited||row.filterOverride!=='none'||authored(p.block,{contentRevision:p.contentRevision})||row.decision!=='uncertain'||row.basedOnContentRevision!==p.contentRevision||row.failed||row.presenceInvalid||!Object.entries(FILTER_VERSIONS).every(([k,v])=>row[k]===v))throw new ArchiveError('STALE_BASE');
+   if(p.body.length>1024||new TextEncoder().encode(p.body).length>4096)throw new ArchiveError('STALE_BASE');
+   const light=decideLight({text:p.body,...row});
+   if(light.decision!=='uncertain'||!['context_insufficient','rule_no_match'].includes(light.reasonCode))throw new ArchiveError('STALE_BASE');
+   for(const key of p.identities)if(await t.get('filterIntents',key))throw new ArchiveError('STALE_BASE');
+   items.push({inputId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,identities:p.identities,row});
+  }
+  return {policyEpoch:state.policyEpoch,items};
+ }
+ async noChangeMaintenanceFilter(t,expected,decisions){
+  if(!expected||!Array.isArray(expected.items)||!Array.isArray(decisions)||decisions.length!==expected.items.length)invalid();
+  if(decisions.some(d=>!d||Object.keys(d).sort().join(',')!=='decision,inputId'||!['KEEP','INSUFFICIENT'].includes(d.decision))||new Set(decisions.map(d=>d.inputId)).size!==decisions.length)invalid();
+  if(JSON.stringify(decisions.map(d=>d.inputId).sort())!==JSON.stringify(expected.items.map(d=>d.inputId).sort()))invalid();
+  const actual=await this.maintenanceFilterSnapshot(t,expected.items.map(d=>d.inputId));
+  if(JSON.stringify(actual)!==JSON.stringify(expected))throw new ArchiveError('STALE_BASE');
+  return {ok:true,disposition:'no_change',inputIds:actual.items.map(d=>d.inputId)};
+ }
  async protect(t,b,reason,userEdited=false,prepared=null){
   prepared??=this.inputWorkingJournal?.protectionFor(t,b,reason,userEdited)??null;
   const portableAt=this.filterIntentJournal?await this.filterIntentJournal.authorize(t,prepared,b,reason,userEdited):null;

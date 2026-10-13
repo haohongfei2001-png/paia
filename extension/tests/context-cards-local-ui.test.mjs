@@ -51,7 +51,7 @@ async function fixture(run,{seed=true}={}){
  const items=seed?cards.map(card=>put(card)):[];
  for(const item of items)await c.change(item);
  const body=new Node('body'),documentListeners=new Map();
- globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,[]);documentListeners.get(type).push(listener);},removeEventListener(type,listener){const listeners=documentListeners.get(type)||[];documentListeners.set(type,listeners.filter(value=>value!==listener));},dispatchEvent(event){for(const listener of documentListeners.get(event.type)||[])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const dispatch=async message=>{
   switch(message.type){
    case 'PAIA_CONTEXT_CARDS_SNAPSHOT':return c.snapshot(message.mode);
@@ -827,4 +827,11 @@ test('CTX4 move unknown acknowledgement retries original operation and preserves
 
 test('CTX4 move refuses IME and failed edits and localizes only target menu labels',()=>fixture(async({makePage,calls})=>{
  const page=makePage();await page.open('info');const editor=[...page.editors.values()][0];editor.surface.composing=true;assert.equal(await page.move(editor,'now'),false);editor.surface.composing=false;editor.local='SYNTHETIC unsaved';editor.field.textContent=editor.local;editor.failed=true;assert.equal(await page.move(editor,'now'),false);assert.equal(calls.filter(x=>x.change?.kind==='move').length,0);document.documentElement.lang='zh';page.localizeEditable();assert.match(editor.moveTargets[0].textContent,/移动到我的规则/);assert.equal(editor.field.textContent,'SYNTHETIC unsaved');
+}));
+
+test('Context Home explicit search navigates exact Item and Back requalifies without retaining bodies',()=>fixture(async({makePage,c,items,transport,dispatch,calls})=>{
+ const page=makePage();page.onNavigate=async card=>{if(await page.leave())await page.open(card);};await page.open();const initial=calls.length;assert.deepEqual(page.snapshot.items,[]);
+ transport.dispatch=message=>message.type==='PAIA_CONTEXT_TOPICS_PAGE'?{available:true,version:1,externalAllowed:false,epoch:'initial',authority:'test-topics',items:[],nextCursor:null,complete:true}:message.type==='GET_LIBRARY_ROOT_SEARCH'?{version:1,kind:'search',authority:'test-search',items:[],nextCursor:null,complete:true,coverage:{complete:true}}:dispatch(message);
+ await page.homeSearch.search('saved body');assert.equal(page.homeSearch.matches.length,3);assert.ok(calls.length>initial);const item=page.homeSearch.matches.find(x=>x.card==='rules');assert.equal(await page.homeSearch.activate(item),true);assert.equal(page.card,'rules');assert.equal(document.activeElement,page.editors.get(item.id).field);assert.equal(JSON.stringify(page.homeSearchState).includes(items[0].body),false);
+ await page.onNavigate(null);assert.equal(page.card,null);assert.equal(page.homeSearch.query,'saved body');assert.equal(page.homeSearch.matches.length,3);assert.equal(document.activeElement.dataset.contextSearchOpen,item.id);assert.deepEqual(page.snapshot.items,[]);page.homeSearch.clear();assert.equal(page.host.querySelector('.context-cards').hidden,false);await page.close();assert.equal(page.homeSearchState,null);
 }));
