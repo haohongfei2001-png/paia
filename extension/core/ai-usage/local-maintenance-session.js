@@ -97,7 +97,16 @@ export class LocalMaintenanceSession {
  }
  async #prepare(options,signal){
   const generation=this.#generation;let batch=await readMaintenanceBatch(this.#foundation,options),deferredUnits=0;
-  if(generation!==this.#generation)fail('UNAVAILABLE');
+  if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+  // A configured local original-domain mapper resolves only its explicit old
+  // retry condition. At most one mapper pass, distinct from obsolete cleanup.
+  const mappingReady=this.#service?.responseAdapter&&this.#provider&&typeof this.#window?.acquire==='function'&&typeof this.#window?.isCurrent==='function';
+  if(mappingReady&&(batch.blockedUnits>0||batch.reason==='DEFER_SCAN_BOUND')){
+   localProviderDescriptor(this.#provider);
+   const cleanup=await this.#foundation.archiveObsoleteDeferred({limit:100,reconsiderEntryTopics:true},{signal,isCurrent:()=>generation===this.#generation&&!signal.aborted});
+   if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+   if(cleanup.archived){batch=await readMaintenanceBatch(this.#foundation,options);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');}
+  }
   if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
   if(!this.#service?.responseAdapter||!this.#provider||typeof this.#window?.acquire!=='function'||typeof this.#window?.isCurrent!=='function')fail('UNAVAILABLE');
   const descriptor=localProviderDescriptor(this.#provider);

@@ -275,3 +275,57 @@ for(const defect of ['input-unit','context-unit','foreign-unit','duplicate','sha
  await ai.read(async t=>{const saved=await ai.job(t,job.id);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=unsupported.filter(u=>u.facet===facet&&saved.childCoverage[i].some(v=>JSON.stringify(v)===JSON.stringify(u)));if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
  const before=await snapshot(f.s);await assert.rejects(ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:new AbortController().signal,isCurrent:()=>true,plan:job}));assert.deepEqual(await snapshot(f.s),before);
 });
+
+async function historicallyDeferredEntry(){
+ const f=await restoredEntryFixture(),ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority}),batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),groups=[];
+ await ai.read(async t=>{const saved=await ai.job(t,job.id),unsupported=unsupportedMaintenanceCoverage(saved.items,saved.coverage);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=unsupported.filter(u=>u.facet===facet&&saved.childCoverage[i].some(v=>JSON.stringify(v)===JSON.stringify(u)));if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
+ await ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:new AbortController().signal,isCurrent:()=>true,plan:job});
+ return {...f,oldAI:ai,oldRows:(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED')};
+}
+
+test('verified Entry mapper reconsiders old unchanged Topic mapping DEFER once and retains exact history',async()=>{
+ const f=await historicallyDeferredEntry(),before=await snapshot(f.s);assert.equal(f.oldRows.length,2);
+ const ordinary=await f.oldAI.archiveObsoleteDeferred();assert.equal(ordinary.archived,0);assert.deepEqual(await snapshot(f.s),before,'default original owner does not reinterpret retry conditions');
+ const session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options);
+ assert.equal(f.calls.length,0,'reconsideration and prepare never dispatch');assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+ const rows=await read(f.s,'organizerWorkItems'),oldTopic=f.oldRows.find(r=>r.unit.facet==='topic'),oldContext=f.oldRows.find(r=>r.unit.facet==='context'),history=rows.find(r=>r.originalId===oldTopic.id);
+ assert.deepEqual(history,{...oldTopic,id:'aiu:defer-history:'+oldTopic.id.slice('aiu:defer:'.length),originalId:oldTopic.id,reconsideredBecause:'RESTORED_ENTRY_TOPIC_MAPPER_V1'});
+ assert.deepEqual(rows.find(r=>r.id===oldContext.id),oldContext);assert.equal(rows.some(r=>r.id===oldTopic.id),false);
+ const result=await session.run(h);assert.equal(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,3);
+ const final=await snapshot(f.s),passive=await session.prepare(options);assert.equal(passive.state,'DEFERRED');assert.deepEqual(await snapshot(f.s),final);assert.equal(f.calls.length,1);
+});
+
+for(const variant of ['other-reason','edited','missing-owner','history-collision','abort'])test('Entry mapping reconsideration '+variant+' preserves unresolved obligations or rolls back',async()=>{
+ const f=await historicallyDeferredEntry(),old=f.oldRows.find(r=>r.unit.facet==='topic');
+ if(variant==='other-reason')await f.s.repository.transaction(true,async t=>{const row=await t.get('organizerWorkItems',old.id);row.retryCondition='SEMANTIC_EVIDENCE_REQUIRED';await t.put('organizerWorkItems',row);});
+ if(variant==='edited')await f.s.editEntry({id:f.entry.id,expectedRevision:f.entry.revision,changes:{note:'Synthetic protected note'},operationId:op()});
+ if(variant==='missing-owner')await f.s.repository.transaction(true,t=>t.delete('thoughts',f.entry.id));
+ if(variant==='history-collision')await f.s.repository.transaction(true,t=>t.put('organizerWorkItems',{...old,id:'aiu:defer-history:'+old.id.slice('aiu:defer:'.length),originalId:old.id,reconsideredBecause:'unrelated-reason'}));
+ const session=new LocalMaintenanceSession(f.s,f.constructor),transaction=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ if(variant==='abort')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(...args)=>{const value=await put(...args);if(args[0]==='organizerWorkItems'&&args[1].reconsideredBecause){hit=true;session.dispose();}return value;};return fn(t);},stores);
+ const before=await snapshot(f.s);
+ if(['history-collision','abort'].includes(variant)){await assert.rejects(session.prepare(options));assert.deepEqual(await snapshot(f.s),before);if(variant==='abort')assert.equal(hit,true);}
+ else{await session.prepare(options);const rows=await read(f.s,'organizerWorkItems');assert.equal(rows.some(r=>r.originalId===old.id&&r.reconsideredBecause==='RESTORED_ENTRY_TOPIC_MAPPER_V1'),false);if(variant==='other-reason')assert.equal(rows.find(r=>r.id===old.id).retryCondition,'SEMANTIC_EVIDENCE_REQUIRED');}
+ assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);f.s.repository.transaction=transaction;
+});
+
+for(const defect of ['foreign','duplicate','shape','write-failure'])test('reconsideration '+defect+' cannot retire original scheduling evidence',async()=>{
+ const f=await historicallyDeferredEntry(),owner={signal:new AbortController().signal,isCurrent:()=>true};
+ const ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority,qualifyMaintenanceEntries:async(_t,r)=>defect==='foreign'?[{...r.coverage[0],scope:'other-scope'}]:defect==='duplicate'?[r.coverage[0],r.coverage[0]]:defect==='shape'?{}:r.coverage});
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ if(defect==='write-failure')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(...args)=>{const value=await put(...args);if(args[0]==='organizerWorkItems'&&args[1].reconsideredBecause){hit=true;throw Error('Synthetic history write failure');}return value;};return fn(t);},stores);
+ const before=await snapshot(f.s);await assert.rejects(ai.archiveObsoleteDeferred({reconsiderEntryTopics:true},owner));assert.deepEqual(await snapshot(f.s),before);if(defect==='write-failure')assert.equal(hit,true);assert.equal(f.calls.length,0);f.s.repository.transaction=transaction;
+});
+
+test('reconsideration is one bounded archive page and default Foundation cannot opt itself in',async()=>{
+ const f=await historicallyDeferredEntry(),owner={signal:new AbortController().signal,isCurrent:()=>true},before=await snapshot(f.s);
+ await assert.rejects(f.oldAI.archiveObsoleteDeferred({reconsiderEntryTopics:true},owner),{code:'UNAVAILABLE'});assert.deepEqual(await snapshot(f.s),before);
+ const ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority,qualifyMaintenanceEntries:async(_t,r)=>r.coverage});
+ await assert.rejects(ai.archiveObsoleteDeferred({limit:101,reconsiderEntryTopics:true},owner),{code:'INVALID_REQUEST'});
+ const page=await ai.archiveObsoleteDeferred({limit:1,reconsiderEntryTopics:true},owner);assert.equal(page.scanned,1);assert.notEqual(page.nextCursor,null);assert.ok(page.archived<=1);assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+});
+
+test('default-denied local session preserves historical mapping DEFER without service activation',async()=>{
+ const f=await historicallyDeferredEntry(),session=new LocalMaintenanceSession(f.s),before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
+ await assert.rejects(session.prepare(options),{code:'UNAVAILABLE'});assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,0);
+});
