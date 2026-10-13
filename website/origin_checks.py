@@ -31,6 +31,8 @@ def verify_typography(page, check, label='site'):
     # assertions above are weakened or replaced.
     from editorial_checks import verify_editorial
     verify_editorial(page, check, label)
+    from harmony_checks import verify_harmony
+    verify_harmony(page, check, label)
 
 
 def verify_origin(page, check, en=True):
@@ -163,3 +165,5 @@ def verify_assets(root, check):
 
     from editorial_checks import verify_static_editorial
     verify_static_editorial(root, check)
+    from harmony_checks import verify_static_harmony
+    verify_static_harmony(root, check)

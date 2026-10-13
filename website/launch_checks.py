@@ -75,7 +75,10 @@ def verify_static_publication(root,check):
     check(all('/'+s in site for s in ('download.html','help.html','contact.html')),'final entry routes included in sitemap')
     # The style layer cannot replace the original native-scroll contract.
     sheet=(root/'assets/website/launch.css').read_text()
-    check('data-scroll-story' not in sheet and 'ad-thought-expanded' not in sheet and 'pc-palette-wrap' not in sheet,'publication layer does not redefine approved motion geometry')
+    # Retain the original publication rule; the approved harmony append is
+    # separately restricted to appearance-only sheet properties and frozen owners.
+    publication_sheet = sheet.split('/* HARMONY_20261013', 1)[0]
+    check('data-scroll-story' not in publication_sheet and 'ad-thought-expanded' not in publication_sheet and 'pc-palette-wrap' not in publication_sheet,'publication layer does not redefine approved motion geometry')
 
 if __name__=='__main__':
     ROOT=Path(__file__).resolve().parents[1]

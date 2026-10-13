@@ -215,3 +215,190 @@ body.ed-ready[data-page='how-it-works.html'] .nr-process-index{border-top:0;padd
  body.ed-ready .header-actions>.ed-mobile-primary,body.ed-ready .hero-actions>.hero-secondary{background:ButtonFace;border:1px solid ButtonText;color:ButtonText}
  .nr-editorial-art .nr-art-sheet::before,.nr-about-strata>span::before{background:CanvasText;box-shadow:none}
 }
+
+/* HARMONY_20261013 — visual orchestration, not a new product or motion owner.
+   Three material roles: stable paper, one supporting plane, lifted glass.
+   Copy, layout order, private directories, controls and story geometry are fixed. */
+:root {
+  --harmony-paper:#ffffff;
+  --harmony-ground:#fbfdff;
+  --harmony-line:#dfe8f3;
+  --harmony-close:0 9px 22px -19px #3857794d;
+  --harmony-lift:0 25px 48px -29px #375f8c52;
+  --harmony-glass:linear-gradient(135deg,#fffffff5,#edf5ffec 72%,#f0f1f9eb);
+}
+/* Opening: the application, one backing plane and its real companion. The
+   ambient light still follows the original scroll transform, without a slab. */
+body[data-page="index.html"] .optical-field {
+  background:linear-gradient(118deg,#fcfdff 8%,#f8fbff 56%,#eff5fc);
+}
+body[data-page="index.html"] .optical-field::before { opacity:.22; }
+body[data-page="index.html"] .optical-sheet {
+  border:0;border-radius:50%;box-shadow:none;
+  background:radial-gradient(ellipse,#d8e6f6ad,transparent 70%);
+  backdrop-filter:none;-webkit-backdrop-filter:none;filter:blur(18px);
+}
+body[data-page="index.html"] .optical-rule { opacity:0; }
+body[data-page="index.html"] .hero-stack { inset:36px 6px 137px; }
+body[data-page="index.html"] .hero-stack i {
+  transform:translate(10px,13px) rotate(-.7deg);
+  border:1px solid #ffffffd9;background:#eaf1fa99;box-shadow:none;
+}
+body[data-page="index.html"] .hero-stack i+i { display:none; }
+body[data-page="index.html"] .hero-product-glass {
+  background:linear-gradient(135deg,#fffffff0,#edf4fbd9);
+  border-color:#ffffffed;box-shadow:var(--harmony-lift);
+}
+body[data-page="index.html"] .pv-shell { border-color:var(--harmony-line); }
+body[data-page="index.html"] .pv-rail { background:#f7faff;border-color:#e7eef7; }
+body[data-page="index.html"] .pv-navigator { background:#fdfefe;border-color:#edf2f8; }
+body[data-page="index.html"] .hero-prompt-capsule {
+  background:var(--harmony-glass);border-color:#ffffffed;
+  box-shadow:0 15px 31px -20px #345e8b66;
+}
+body[data-page="index.html"] .hero-eyebrow { margin-bottom:25px; }
+body[data-page="index.html"] .hero-actions { margin-top:30px; }
+body[data-page="index.html"] .hero-explore { margin-top:32px; }
+body[data-page="index.html"] .hero-continuity { border-top-color:#e3ebf5; }
+/* Do not desaturate the words to make the page calm. Simplify the surfaces
+   behind them, using a shared light direction and restrained contact shadow. */
+body .art-directed { background:var(--harmony-ground); }
+body .art-refined .pc-review { padding-block:76px; }
+body .art-refined .pc-editor-stage::before {
+  opacity:.45;transform:translateY(5px) rotate(-1deg);box-shadow:none;
+  background:linear-gradient(135deg,#eef5fdc2,#f9fcff);
+}
+body .art-refined .pc-record {
+  background:var(--harmony-paper);border-color:#e7eef7;
+  box-shadow:var(--harmony-close);
+}
+body .art-refined .pc-record:nth-child(2) { background:var(--harmony-paper); }
+body .art-refined .pc-instruction { margin-top:19px; }
+body .art-refined .pc-review>.pc-section-foot { padding-top:23px; }
+body .art-refined .pc-version-chip .pc-check {
+  background:#f8fbff;border-color:#d8e5f4;box-shadow:none;
+}
+body .art-refined .pc-topics { padding-block:88px 92px; }
+body .art-refined .pc-topics::before {
+  background:linear-gradient(#fbfdff,#f3f8ff 48%,#fbfdff);
+  border-block-color:#edf2f9;
+}
+body .art-refined .ad-library-content::before { opacity:.3; }
+body .art-refined .ad-library-content { border-color:#dfe8f4; }
+body .art-refined .ad-thought-scroll .pc-topic-block {
+  background:linear-gradient(140deg,#fff,#fbfdff);
+  border-color:var(--harmony-line);box-shadow:var(--harmony-close);
+}
+body .art-refined .ad-thought-scroll .pc-topic-block:hover,
+body .art-refined .ad-thought-scroll .pc-topic-block:focus-within {
+  border-color:#bcd1eb;box-shadow:0 16px 29px -23px #385f945c;
+}
+body .art-refined .ad-thought-expanded {
+  background:var(--harmony-paper);border-color:var(--harmony-line);
+  box-shadow:var(--harmony-lift);
+}
+body .art-refined .ad-thought-scroll[data-phase=organize] .ad-thought-expanded {
+  background:#fcfdff;border-color:#c9dcf3;box-shadow:var(--harmony-lift);
+}
+body .art-refined .ad-thought-expanded::after {
+  background:radial-gradient(ellipse at 12% 3%,#d8ecffc2,transparent 60%),
+    linear-gradient(145deg,#ffffff00,#edf4ff91);
+}
+body .art-refined .ad-thought-scroll[data-phase=organize] .ad-thought-expanded::after {
+  opacity:.38;
+}
+/* A finite highlight settles back to readable paper. The original glint,
+   phase thresholds, in-frame content transitions and anchors are unmodified. */
+@media(prefers-reduced-motion:no-preference) {
+  body .art-refined .ad-thought-scroll[data-phase=organize] .ad-thought-expanded::after {
+    animation:harmony-light-settle 1050ms cubic-bezier(.22,.61,.36,1) both;
+  }
+  @keyframes harmony-light-settle {
+    0% { opacity:.3; }
+    28% { opacity:.85; }
+    100% { opacity:.38; }
+  }
+}
+/* The host remains neutral ChatGPT-like UI; only PAIA owns the blue glass.
+   Neither these rules nor this layer changes any control's size or location. */
+body .art-refined .pc-prompts { padding-block:86px 88px;background:#fbfdff; }
+body .art-refined .pc-prompts::before {
+  background:radial-gradient(ellipse at 24% 51%,#e8f1fc70,transparent 65%);
+}
+body .art-refined .ad-prompt-scroll .ad-host {
+  background:#fff;border-color:#e1e6ee;box-shadow:var(--harmony-close);
+}
+body .art-refined .ad-host .pc-palette,
+body .art-refined .ad-morph-button,
+body .art-refined .ad-capsule {
+  background:var(--harmony-glass);border-color:#ffffffed;
+  box-shadow:0 17px 33px -21px #365f9166;
+}
+body .art-refined .ad-prompt-scroll .pc-prompt-mechanics>div { border-color:#e2eaf5; }
+/* Context is the quiet landing: four private directories, clear independent
+   boundaries, no preview text and no ornamental glow behind each directory. */
+body .art-refined .pc-context { padding-block:88px;background:#fbfdff;border-top-color:#eaf0f8; }
+body .art-refined .ad-card-deck::before {
+  opacity:.4;transform:translateY(7px) rotate(.7deg);
+  background:linear-gradient(145deg,#eaf2fc,#f7faff);box-shadow:none;
+}
+body .art-refined .pc-context-card {
+  background:var(--harmony-paper);border-color:var(--harmony-line);
+  box-shadow:var(--harmony-close);
+}
+body .art-refined .pc-context-card:hover { border-color:#bcd1eb;box-shadow:var(--harmony-close); }
+body .art-refined .pc-context .pc-section-foot { padding-top:22px; }
+body .art-refined .ad-context-disclosure { border-color:#e2eaf5; }
+body .art-refined .pc-sync { padding-block:50px;background:#fbfdff; }
+body .core-close { padding-block:66px;background:linear-gradient(115deg,#edf4fc,#f5f9fe); }
+body .core-close-mark::before { opacity:.3;box-shadow:none; }
+body .site-footer { padding-top:40px;border-top-color:#e2eaf4; }
+/* Carry the same material logic into secondary pages without duplicating the
+   homepage performance or redesigning the editorial compositions. */
+body .nr-window,
+body .nr-reader-window { border-color:var(--harmony-line);box-shadow:var(--harmony-close); }
+body.pf-ready .nr-thought-window,
+body.pf-ready .nr-topic-overview,
+body.pf-ready .nr-context-card { box-shadow:var(--harmony-close); }
+body.pf-ready .nr-prompt-palette { background:var(--harmony-glass);box-shadow:0 17px 33px -21px #365f9166; }
+body .invitation { background:linear-gradient(115deg,#eef4fd,#f5f8fd);border:1px solid #e7eef8;box-shadow:none; }
+body .nr-case-scene { box-shadow:none; }
+body .nr-process-step { border-color:#e3ebf5; }
+body .release-download { box-shadow:var(--harmony-close);background:linear-gradient(135deg,#fff,#f8fbff); }
+@media(max-width:1080px) {
+  body[data-page="index.html"] .hero-stack i { transform:translate(7px,10px) rotate(-.7deg); }
+  body .art-refined .pc-review { padding-block:66px; }
+  body .art-refined .pc-topics { padding-block:76px; }
+  body .art-refined .pc-prompts { padding-block:72px; }
+  body .art-refined .pc-context { padding-block:72px; }
+}
+@media(max-width:760px) {
+  body[data-page="index.html"] .hero-eyebrow { margin-bottom:21px; }
+  body[data-page="index.html"] .hero-actions { margin-top:26px; }
+  body[data-page="index.html"] .hero-explore { margin-top:30px; }
+  body[data-page="index.html"] .hero-stack { inset:30px 8px 120px;opacity:.65; }
+  body[data-page="index.html"] .hero-stack i { transform:translate(4px,7px) rotate(0); }
+  body .art-refined .pc-review,body .art-refined .pc-topics,
+  body .art-refined .pc-prompts,body .art-refined .pc-context { padding-block:58px; }
+  body .art-refined .pc-sync { padding-block:40px; }
+  body .core-close { padding-block:46px; }
+  body .site-footer { padding-top:32px; }
+  body .art-refined .pc-instruction { margin-top:17px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  body .art-refined .ad-thought-expanded::after { animation:none!important; }
+}
+@media(forced-colors:active) {
+  :root { --harmony-paper:Canvas;--harmony-ground:Canvas;--harmony-line:CanvasText;
+    --harmony-close:none;--harmony-lift:none;--harmony-glass:none; }
+  body[data-page="index.html"] .optical-sheet,
+  body[data-page="index.html"] .hero-stack,
+  body .art-refined .ad-thought-expanded::after { display:none; }
+  body[data-page="index.html"] .hero-product-glass,
+  body[data-page="index.html"] .hero-prompt-capsule,
+  body .art-refined .ad-host .pc-palette,body .art-refined .ad-morph-button,
+  body .art-refined .ad-thought-expanded,body .art-refined .pc-context-card,
+  body .art-refined .ad-prompt-scroll .ad-host { background:Canvas;border-color:CanvasText;box-shadow:none; }
+  body .art-refined .ad-thought-scroll[data-phase=organize] .ad-thought-expanded { background:Canvas;border-color:CanvasText;box-shadow:none; }
+  body .invitation,body .release-download,body .core-close { background:Canvas; }
+}
