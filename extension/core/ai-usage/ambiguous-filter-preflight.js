@@ -124,12 +124,22 @@ export class AmbiguousFilterPreflight {
    this.#handles.set(handle,state);this.#states.add(state);return result('CANDIDATE_ONLY','LOCAL_SCOPE_ONLY',read.publicRows,handle);
   }catch(e){return this.#failure(e);}finally{if(reserved)this.#preparing--;}
  }
- async revalidate(handle){
+ revalidate(handle){
   try{
-   if(!this.#ready()){this.#clear();return result('UNAVAILABLE','STORE_NOT_READY');}this.#time();const state=this.#handles.get(handle);
-   if(!state?.active)return result('STALE','CAPABILITY_UNAVAILABLE');const read=await this.#read(state.plan,state.epoch,()=>{this.#time();return state.active;});this.#active(state.epoch);this.#time();
+   // Every caller still checks readiness/time before joining an existing read.
+   // Coalescing cannot hide revocation or keep an expired capability alive.
+   if(!this.#ready()){this.#clear();return Promise.resolve(result('UNAVAILABLE','STORE_NOT_READY'));}this.#time();const state=this.#handles.get(handle);
+   if(!state?.active)return Promise.resolve(result('STALE','CAPABILITY_UNAVAILABLE'));
+   if(state.revalidating)return state.revalidating;
+   const pending=this.#revalidate(handle,state).finally(()=>{if(state.revalidating===pending)state.revalidating=null;});state.revalidating=pending;return pending;
+  }catch(e){return Promise.resolve(this.#revalidationFailure(handle,e));}
+ }
+ #revalidationFailure(handle,e){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);if(failures.has(e)&&e.reason==='CAPABILITY_RELEASED')return result('STALE','CAPABILITY_UNAVAILABLE');return this.#failure(e);}
+ async #revalidate(handle,state){
+  try{
+   const read=await this.#read(state.plan,state.epoch,()=>{this.#time();return state.active;});this.#active(state.epoch);this.#time();
    if(!state.active||!equal(state.proof,read.proof)){this.#retire(state);return result('STALE','SCOPE_CHANGED',read.publicRows);}
    return result('CURRENT','READ_SNAPSHOT_ONLY',read.publicRows,handle);
-  }catch(e){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);if(failures.has(e)&&e.reason==='CAPABILITY_RELEASED')return result('STALE','CAPABILITY_UNAVAILABLE');return this.#failure(e);}
+  }catch(e){return this.#revalidationFailure(handle,e);}
  }
 }

@@ -245,3 +245,25 @@ for(const change of ['release','expiry','dispose'])test('nested projection stops
  assert.ok(recovered.every(r=>r.status==='CANDIDATE_ONLY'),'failed reads release every reserved slot');
  f.reader.dispose();
 });
+
+
+test('concurrent revalidation of one private handle shares a single current read and retires the in-flight slot',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request()),before=f.calls();
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:20},()=>f.reader.revalidate(initial.capability))));
+ assert.ok(results.every(r=>r.status==='CURRENT'&&r.capability===initial.capability));results.forEach(bodyFree);
+ assert.equal(f.calls()-before,2,'twenty consumers perform one two-fence permission read');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'CURRENT');assert.equal(f.calls()-before,4,'a settled read is revalidated afresh, not cached');
+ const other=await f.reader.prepare(await f.request()),twoBefore=f.calls();
+ await noWrite(f,()=>Promise.all([f.reader.revalidate(initial.capability),f.reader.revalidate(other.capability)]));assert.equal(f.calls()-twoBefore,4,'different capability owners remain independent');
+ f.setPatch({allowed:false});assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).reason,'PERMISSION_UNAVAILABLE','settled success cannot cache prior permission');
+});
+
+for(const stop of ['release','expiry','dispose','owner-unavailable','permission-failure'])test('coalesced revalidation '+stop+' cannot revive capability or continue private reads',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request()),before=f.calls(),transaction=f.s.repository.transaction.bind(f.s.repository);let stopped=false,laterReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(stopped&&['blocks','records'].includes(name))laterReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{if(stopped)return;stopped=true;if(stop==='release')f.reader.release(initial.capability);if(stop==='expiry')f.setNow(301000);if(stop==='dispose')f.reader.dispose();if(stop==='owner-unavailable'){f.s.filterLoaded=false;void f.reader.revalidate(initial.capability);}if(stop==='permission-failure')throw Error('Synthetic permission read failure');});
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:20},()=>f.reader.revalidate(initial.capability))));
+ assert.equal(f.calls()-before,1);assert.equal(laterReads,0);assert.ok(results.every(r=>r.capability===null&&r.status!=='CURRENT'));results.forEach(bodyFree);
+ f.setHook(null);f.s.filterLoaded=true;assert.notEqual((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'CURRENT');
+ if(stop!=='dispose')assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY','fresh explicit preparation works after the failed shared read');
+});
