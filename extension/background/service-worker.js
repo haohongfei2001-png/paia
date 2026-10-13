@@ -7,6 +7,7 @@ import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
 import {isAIStyleOnlyRequest} from '../core/ai-organize-style-preference.js';
 import {ContextCardsService} from '../core/context-cards.js';
 import {ThoughtLibraryReadModel} from '../core/thought-library-read-model.js';
+import {prepareTopicRootActivity} from '../core/organizer/topic-root-activity.js';
 import {ThoughtSectionReading} from '../core/thought-section-reading.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {ContextTopicAccessService} from '../core/context-topic-access.js';
@@ -366,7 +367,11 @@ async function handle(request, sender) {
     case 'GET_INPUT': return recoverySnapshot(()=>store.input(request.id));
     case 'RECORD_TOPIC_READ': return store.recordTopicRead(request.id);
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
-    case 'GET_LIBRARY_ROOT_PROJECTION': return thoughtLibraryRead.rootPage(request.options);
+    case 'GET_LIBRARY_ROOT_PROJECTION': {
+      thoughtLibraryRead.validateRootOptions(request.options);
+      if(!request.options?.cursor)await prepareTopicRootActivity(store);
+      return thoughtLibraryRead.rootPage(request.options);
+    }
     case 'GET_LIBRARY_SECTION_PROJECTION': return thoughtLibraryRead.sectionPage(request.options);
     case 'GET_LIBRARY_TOPIC_READING_METADATA': {
       if(Object.keys(request).some(key=>!['type','id'].includes(key)))throw new ArchiveError('INVALID_REQUEST');

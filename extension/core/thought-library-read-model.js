@@ -2,6 +2,7 @@ import {ArchiveError,CONSENT_VERSION,STORAGE_KEY} from './constants.js';
 import {idOK,prefix} from './thought-model.js';
 import {safeOrganization} from './organizer/metadata.js';
 import {rootReadAuthority} from './organizer/root-read.js';
+import {topicActivitySnapshot} from './organizer/topic-root-activity.js';
 import {expressionTime} from './organizer/expression-time.js';
 import {inputProjection,readDependencyInputs,dependencyLifecycle,dependencyState} from './thought-evidence.js';
 import {AI_FIELDS} from './organizer/ai-contract.js';
@@ -222,23 +223,27 @@ export class ThoughtLibraryReadModel{
   const nextCursor=more?this.issue({kind:'sections',topicId:topic.id,namedOnly},consumed,authority):null;
   return {items,nextCursor,complete:!nextCursor,coverage:{complete:!nextCursor}};
  }
- rootPage(options={}){
+ validateRootOptions(options={}){
   if(!exact(options,['cursor','limit','sectionLimit']))invalid();
   const {cursor=null,limit=30,sectionLimit=4}=options;
-  if(!limitOK(limit,50)||!limitOK(sectionLimit,10))invalid();
-  // Primary identity enumeration is stable under name/body updates. This is
-  // not the future Root visual-slot owner (05.2), recency ranking or a new order
-  // preference. Human pin/order references remain available without rewriting.
+  if(!cursorOK(cursor)||!limitOK(limit,50)||!limitOK(sectionLimit,10))invalid();
+  return {cursor,limit,sectionLimit};
+ }
+ rootPage(options={}){
+  const {cursor,limit,sectionLimit}=this.validateRootOptions(options);
   return this.read({kind:'root'},cursor,async(t,key,authority)=>{
-   const page=await t.page('topics',{after:key??undefined,limit}),items=[];
-   for(const {value:row}of page.rows){
-    const topic=await topicMetadata(this.s,t,row);if(!topic)continue;
+   const snapshot=topicActivitySnapshot(this.s,authority);
+   if(!snapshot)return empty('root',{indexing:true});
+   const start=key?.offset||0,items=[];
+   for(const {id}of snapshot.items.slice(start,start+limit)){
+    const row=await t.get('topics',id),topic=await topicMetadata(this.s,t,row);if(!topic)continue;
     items.push({...topic,sectionOverview:await this.sections(t,row,null,sectionLimit,true,authority)});
    }
-   const nextCursor=page.next?this.issue({kind:'root'},page.next,authority):null;
+   const offset=start+limit,nextCursor=offset<snapshot.items.length?this.issue({kind:'root'},{offset},authority):null;
    return {version:1,kind:'root',items,nextCursor,complete:!nextCursor,coverage:{complete:!nextCursor},readingStructure:derived()};
   });
  }
+
  sectionPage(options={}){
   if(!exact(options,['topicId','cursor','limit','namedOnly']))invalid();
   const {topicId,cursor=null,limit=40,namedOnly=false}=options;

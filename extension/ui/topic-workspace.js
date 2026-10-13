@@ -409,6 +409,9 @@ export class TopicController {
   if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return;}
   const page={...base,items:[...base.items]};
   if(query){this.paintRootSearch(page,query);return;}
+  // A bounded ordering preparation is not an empty-directory result. Keep
+  // the current metadata slots until the admitted replacement is complete.
+  if(page.indexing&&!page.items.length){$('library-search-status').textContent=tc('正在准备思想列表…');return;}
   this.personalRoot.render(page.items,{complete:page.complete===true});
   $('library-search-status').textContent=page.coverage?.complete===false?'继续向下读取全部主题。':'';
   setProductState($('thought-collection'),page.items.length?'ready':page.complete?'empty':'loading');

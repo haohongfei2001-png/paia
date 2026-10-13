@@ -1,6 +1,7 @@
 import {prefix,fail,idOK} from '../thought-model.js';
 import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
 import {expressionTime} from './expression-time.js';
+import {readTopicActivity} from './topic-activity.js';
 import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
@@ -11,7 +12,7 @@ const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 const activePlacement=p=>p?.lifecycle==='active';
 const sectionCursorOK=(cursor,topic)=>!cursor||(cursor.topicId===topic.id&&cursor.generation===topic.activeLayoutGeneration&&cursor.organizationRevision===topic.organizationRevision);
 
-async function describePlacement(s,t,topic,p){
+async function describePlacement(s,t,topic,p,activity={}){
  if(!activePlacement(p))return null;
  const row=await t.get('thoughts',p.entryId);
  if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
@@ -26,7 +27,10 @@ async function describePlacement(s,t,topic,p){
  const descriptor=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
  descriptor.next();
  descriptor.next(await expressionTime(s,t,row));
- return descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+ const result=descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+ const proof=p.excludedByUser===true||row.quarantineSealed?{at:null}:await readTopicActivity(t,row,result.expressionTime,activity);
+ if(proof.pending)return {activityPending:true,cursor:proof.cursor};
+ result.activityAt=proof.at;return result;
 }
 // Original descriptor construction only. The two suspension points retain
 // property observation across the original expression/provider awaits.
@@ -41,7 +45,7 @@ export function* planHumanPlacementDescriptor(topic,p,row,time,effectiveTime){
   timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
  };
 }
-export const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
+export const descriptorReader=s=>(t,topic,p,activity)=>describePlacement(s,t,topic,p,activity);
 const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
 const wrapCursor=(topicId,query,providerKey,cursor)=>cursor?{topicId,query,providerKey,...cursor}:null;
 
