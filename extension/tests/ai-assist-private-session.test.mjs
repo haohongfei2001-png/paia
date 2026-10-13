@@ -4,6 +4,7 @@ import {setup} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {AssistReplyLease} from '../background/assist-reply-lease.js';
 import {LocalAssistSession} from '../core/ai-usage/local-assist-session.js';
+import {AssistResultController} from '../content/assist-result.js';
 import {validateAssistResponse} from '../core/ai-usage/assist-response.js';
 import {ContextCardsService} from '../core/context-cards.js';
 import {readDomainCommitEvidence} from '../core/ai-usage/domain-commit-evidence.js';
@@ -115,4 +116,51 @@ test('revocation aborts actual Assist even if an earlier observer unsubscribes t
  try{await ready;f.lease.configure({replyAccess:false,remoteProcessing:false});assert.equal(signal.aborted,true);}
  finally{release(suggestion);assert.ok(await settled instanceof Error);await assert.rejects(f.session.result(handle),{code:'STALE_BASE'});}
  assert.equal((await all(f.s)).organizerWorkItems.length,0);
+});
+
+// Use the actual private content owner at the delayed transport boundary.
+function insertionOwner(binding,onInsert){
+ const document={documentElement:{},defaultView:{addEventListener(){},removeEventListener(){}}};
+ class Observer{observe(){} takeRecords(){return [];} disconnect(){}}
+ const reader={current:null,reset(){},observe(){return {ready:true,binding};}};
+ const owner=new AssistResultController({reader,document,Observer,composer:{insert:r=>onInsert(r),dispose(){}}});owner.configure(true);return owner;
+}
+test('final actual Assist insertion handoff rejects relevant Context revocation and edit',async()=>{
+ for(const change of ['revoke','edit']){
+  const f=await fixture(),cards=new ContextCardsService(f.s),id=crypto.randomUUID();
+  await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'Synthetic selected insertion context',section:'Synthetic'});
+  for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
+  f.ids.push(id);const handle=await f.session.prepare({lease:f.cap});await f.session.run(handle);let writes=0;
+  const owner=insertionOwner(f.live.binding,()=>{writes++;return {status:'inserted'};});
+  const result=await f.session.insert(handle,{operationId:crypto.randomUUID(),controller:{async insert(request){
+   if(change==='revoke')await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'info',expectedRevision:1,enabled:false});
+   else await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:1,body:'Synthetic changed selected context',section:'Synthetic'});
+   return owner.insert(request);
+  }}});
+  assert.equal(result.status,'failed',change);assert.equal(writes,0,change+' cannot reach composer');assert.equal(f.calls(),1);await assert.rejects(f.session.result(handle));owner.dispose();f.session.dispose();
+ }
+});
+
+test('actual content owner awaits strict final qualification and rechecks lifecycle before composer',async()=>{
+ for(const stop of ['ttl','dispose','dismiss','reply']){
+  const f=await fixture(),handle=await f.session.prepare({lease:f.cap});await f.session.run(handle);let entered,release,writes=0;
+  const begun=new Promise(r=>entered=r),hold=new Promise(r=>release=r),owner=insertionOwner(f.live.binding,()=>{writes++;return {status:'inserted'};});
+  const pending=f.session.insert(handle,{operationId:crypto.randomUUID(),controller:{insert(request){const qualify=request.qualify;return owner.insert({...request,qualify:async()=>{const allowed=await qualify();entered();await hold;return allowed;}});}}});
+  await begun;assert.equal(writes,0,'pending Promise is not true');
+  if(stop==='ttl')f.time(301001);else if(stop==='dispose')f.session.dispose();else if(stop==='dismiss')f.session.dismiss(handle);else f.live.binding={...f.live.binding,revision:2};
+  release();assert.equal((await pending).status,'failed',stop);assert.equal(writes,0);assert.equal(f.calls(),1);owner.dispose();f.session.dispose();
+ }
+});
+test('private content insertion fails closed for absent false or nonboolean qualification and keeps final sync guard',async()=>{
+ const binding={url:'https://chatgpt.com/c/synthetic'};let writes=0,live=true;
+ const owner=insertionOwner(binding,request=>{live=false;assert.equal(request.guard(),false,'native transaction final guard sees synchronous invalidation');writes++;return {status:'failed',reason:'draft_changed'};});
+ const base={binding,text:'Synthetic',condition:'',operationId:crypto.randomUUID(),isCurrent:()=>live};
+ for(const qualify of [undefined,async()=>false,async()=>({allowed:true}),async()=>{throw Error('unavailable')}]){assert.equal((await owner.insert({...base,qualify})).status,'failed');assert.equal(writes,0);}
+ assert.equal((await owner.insert({...base,qualify:async()=>true})).reason,'draft_changed');assert.equal(writes,1);owner.dispose();
+});
+test('unchanged and irrelevant Context allow actual insertion with one generation and no redispatch',async()=>{
+ const f=await fixture(),cards=new ContextCardsService(f.s),handle=await f.session.prepare({lease:f.cap});await f.session.run(handle);let writes=0;
+ const owner=insertionOwner(f.live.binding,request=>{assert.equal(request.guard(),true);writes++;return {status:'inserted'};});
+ const result=await f.session.insert(handle,{operationId:crypto.randomUUID(),controller:{async insert(request){await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:crypto.randomUUID(),expectedRevision:0,body:'Synthetic unrelated manual context',section:'Synthetic'});return owner.insert(request);}}});
+ assert.equal(result.status,'inserted');assert.equal(writes,1);assert.equal(f.calls(),1);assert.equal((await all(f.s)).organizerUsage[0].attemptCount,1);owner.dispose();f.session.dispose();
 });

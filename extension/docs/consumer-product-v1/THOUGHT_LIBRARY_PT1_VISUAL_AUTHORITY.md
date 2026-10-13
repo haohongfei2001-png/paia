@@ -1,53 +1,19 @@
-# Thought Library — current final UI: TL-PT1-UI-1.2
+# Thought Library — current final UI TL-PT1-UI-1.3
 
-**OWNER_APPROVED / 2026-10-13 / refinement after the blue-white prototype.** Current final target is the approved visual family **with [shared UX §1 and §3](UX_CONTRACT.md) applied**, not an unchanged copy of the original HTML. [TOPIC_ARCHITECTURE_PLAN.md](TOPIC_ARCHITECTURE_PLAN.md) remains the only Topic implementation plan; TOPIC_ARCHITECTURE.md still owns identity/formation/placement semantics. STATUS schedules work.
+**OWNER_APPROVED / 2026-10-13 / PAIA-WHITE-UI-1.0.** The final target is `PAIA_思想库_白色精修.html`, its unified viewer and applicable package screenshots, under [shared UX](UX_CONTRACT.md). [Topic plan](TOPIC_ARCHITECTURE_PLAN.md) remains the implementation owner; TOPIC_ARCHITECTURE.md retains identity/formation/placement authority. [References](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) identifies exact bytes.
 
-## V1. Scope and complete retained reference
+The complete preceding authority is preserved in [PRE_WHITE](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY_PRE_WHITE_2026-10-13.md), exact blob `0c14d9fcd8c8a0b06364a8125b7cfc2ed86db030`. **All V1–V10 and incorporated nonconflicting product, interaction, safety, typography, source, human-order and evidence requirements remain normative.** This amendment changes the final color/depth/reference target, not those functions or the existing task IDs.
 
-Retain the blue-white three-column wide Home, responsive two/one columns, content-sized cards, real chapter direct links, eligible exact short expression previews, current-Topic directory and continuous Reader. No dashboard, hero, extra navigation, permanent source/AI column or brand change. The two rejected generated dashboards remain rejected.
+## Final presentation
 
-The full immediately preceding authority is preserved in [PRE_REFINEMENT](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY_PRE_REFINEMENT_2026-10-13.md), exact blob `5b9791b80ede6e48b4abb244cb9cfbed71ab42fd`. All its nonconflicting V1–V10 requirements, incorporated older baseline, interaction/safety details and visual parameters remain normative. The following sections replace only the specified conflicts. Original artifacts/hashes in [REFERENCES](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) are unchanged; their count/time/order/spacing pixels are superseded, not newly approved.
+Preserve three-column wide content-sized Topic cards, real chapter direct links, eligible short original-expression preview, sparse compact cards and current-Topic directory plus continuous editable prose. Use white surfaces, deep near-neutral text, fine neutral/cool boundaries and restrained blue actions/selection. Keep the established font roles, shape/proportion and light depth; neither old empty equal-height boxes nor the generated six-panel collage's fixed category list is adopted.
 
-## V2. Home and directory: no counts or update badges
+No Topic/Section decorative counts, update/Today labels, activity scores or root manual-sort UI. Keep one qualified human-activity order, complete-set stable paging, deterministic ties, safe reconciliation and actual Back snapshot. Preserve scientific/technical subjects, authored numbers, human Section/Entry order and negative intent. Original-source timestamps remain attributable.
 
-Show Topic title, actual chapter labels and the previously approved short eligible excerpt; keep quiet open/contextual actions. Remove theme totals, all UI-added counts after chapter names, card chapter/item totals and relative/absolute update badges such as 今天/几章/最近更新. Reader chapter directory also has no trailing count. Do not hide them in a normal menu or replace them with scores. Human-written numbers in titles and technical/scientific subject matter are not removed. Internal query coverage and source-time evidence remain.
+Correct ordinary line/paragraph/Input rhythm as shared UX §3: about 28px leading at 17px, without removing authored whitespace or changing stored/copy text. Retain real long reading, existing editor/drafts/IME/conflicts, direct writing, source/history, create/rename/promotion, move/removal/undo, all three AI reading styles and actual permission/service gates. Design simplification is not capability retirement.
 
-Use content-driven compact heights and real links. Preserve empty named Sections, lawful default Sections and sparse Topics without filler or fabricated headings. The Context category-only privacy correction does not remove Thought's separately approved expression previews; the existing hide-preview preference still applies.
+## Finite replacement and evidence
 
-## V2.1 Exactly one stable activity order
+Prior V1/V7 and older references requiring blue-tinted canvas/prose, blue shadows or all-blue surfaces yield only to shared UX §0 and these exact refined files. The prior no-count/activity/privacy/reading decisions remain in force. The viewer's old-blue toggle and screenshot 12 are comparison-only; no extra production theme option. Dark remains the corresponding accessible role translation, not forced light mode.
 
-Root uses only the automatic meaningful-user-activity order specified in shared UX §1. No 最近更新/我的顺序 selection, root drag order, pin-as-a-second-sort or alternative sorting menu. Derive last qualified actual expression/continuation/substantive human edit from existing owners, not generic updatedAt, AI/index/sync/import completion, view telemetry or size. Old imported data uses original evidence; unknown time has no invented freshness. Tie order is deterministic.
-
-Preserve old root ordering metadata for compatibility without making it an active mode. Human Section/Entry/Placement order and negative intent remain protected. Order the complete eligible set before bounded rendering, not each page independently. Stable view snapshots, delayed safe reconciliation and exact Back/focus/anchor restoration prevent moving targets during user work.
-
-## V3. Search and return
-
-Retain full eligible local scope, real result paths/excerpts/targets and existing scoped search/history owners. Search does not generate AI work or change permissions. Returning from a result/Reader restores the actual prior root snapshot and identity-relative anchor before adopting a newer order. No data-count dashboard is added to explain coverage; necessary error/continuation feedback remains honest.
-
-## V4. Continuous Reader
-
-Retain actual chapter navigation, unboxed named headings and complete eligible prose, with narrow chapter selection and on-demand source drawer. Use shared UX §3: approximately 27–29px ordinary line height at 17px as a tuning start; modest within-Input paragraph spacing, larger between-Input spacing. Do not use the original mock's approximately 2.06 line-height as an immutable requirement. Remove duplicate renderer spacing without changing stored text/newlines, code/verse, source facts, revisions or copy output. Preserve saved width/size, selection/IME and bounded reading anchors.
-
-## V5. Editing and organization
-
-Preserve prior V5 in full except the now-retired root manual-order UI. Existing editor/body owner, durable ACK, source-versus-working semantics, conflicts/drafts, Section-aware writing, create/rename, Section/Entry ordering, move/remove/undo, promotion and restrictive intent all remain. Opening or resorting is not an edit. No body/schema/router replacement is authorized by presentation changes.
-
-## V6. Original and AI Organize
-
-Prior V6 remains fully effective: same document, all three styles, derivative-only transformations, inspectable provenance, stable protected IDs/placements, current revision/permission revalidation and honest actual service states. AI changes do not raise Topic activity. No service/budget consent is created here.
-
-## V7. Visual roles
-
-Retain the original blue-white colors, typography roles, fine boundaries, restrained depth, card radius and directory/reader composition for unaffected elements. Apply current saved preferences and accessible roles. Only decorative metadata/order controls and the excessive same-Input spacing are removed. Card height follows remaining content, not the old footer reserve.
-
-## V8. Production boundaries
-
-No sample data, clocks, counters, prototype footer, localStorage/iframe architecture, analytics collector or fake AI outcomes. Real source dates stay attributable; the ban is on decorative overview updates, not provenance. No search/hover or background activity collection to manufacture ranking.
-
-## V9. Finite supersession
-
-TL-PT1-UI-1.1 V2 counts/footer updates, V2.1 dual-mode root sorting, V5 root manual-order exposure, V7 excessive fixed leading and matching old visual assertions are superseded by this contract and shared UX §§1/3. All unrelated requirements survive. Lower-level references to old permitted counts or manual order do not override this latest owner decision.
-
-## V10. Acceptance
-
-Use existing TOPIC-05.1–05.8. Check no counts/update labels/order controls; real activity order including historical import/unknown time/background maintenance negatives; complete-set deterministic paging; no in-interaction jump; root Back restoration; compact sparse data; proper multiline/code/verse rendering and unchanged serialized text. Preserve all previous safety, long-reader, search, accessibility and AI-quality gates. Old screenshots remain useful only for unchanged composition; no newly corrected screenshot/runtime/installed result is claimed by this documentation task.
+Implement through current semantic tokens and scoped production components, never demo iframe/localStorage/CSS overrides. Compare actual source/release with screens 01/02/15 and shared white/dark roles while retaining every original state, accessibility, full-corpus, editing, source/permission and AI-quality obligation. Existing references/test histories remain unaltered. Documentation approval neither ships the UI nor recertifies earlier results; STATUS and all seven plans remain unchanged.

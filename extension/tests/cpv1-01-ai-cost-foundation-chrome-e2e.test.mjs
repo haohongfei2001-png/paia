@@ -1,4 +1,4 @@
-import {verifyOrganizeProviderNative} from './harness/ai-organize-provider-native.mjs';
+import './harness/ai-cost-session-lifecycle-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
@@ -7,8 +7,6 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT} from './harness/fake-chatgpt.mjs';
-import {verifyPrivateAssistNative} from './harness/ai-assist-native.mjs';
-import {verifyOrganizeLifecycleNative} from './harness/ai-organize-lifecycle-native.mjs';
 const source=fileURLToPath(new URL('..',import.meta.url));
 async function attach(page){return page.evaluate(async()=>{
  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
@@ -291,19 +289,4 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
   }catch(error){try{record('cleanup','failed');}catch{}throw error;
   }finally{t.signal.removeEventListener('abort',aborted);}
  }
-});
-
-// These suites create their own native stores and do not use __aiu or its
-// preceding ledger. Give the independent lifecycle boundary its own browser,
-// preserving the original deadline and all source/release/network assertions.
-for(const label of ['source','release'])test(`AI-COST native independent Organize and private Assist lifecycle (${label})`,{timeout:120000},async()=>{
- let release=null,h;
- try{
-  if(label==='release'){release=mkdtempSync(join(tmpdir(),'paia-ai-cost-lifecycle-'));execFileSync('python3',['scripts/build_current_release.py',release],{cwd:source,stdio:'pipe'});}
-  h=await FakeChatGPT.start({extensionPath:release||source,onboarding:true});
-  await verifyOrganizeLifecycleNative(h.archive,label);
-  await verifyOrganizeProviderNative(h.archive,label);
-  await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
-  assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
 });

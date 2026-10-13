@@ -1,3 +1,11 @@
+# Current execution — PR284 reconciled with merged Assist authority fix (2026-10-14)
+
+Formal main81b41ddca1d28f7935bba63b3eab01b8678e4120 includes reviewed PR283 and preserves website updates. Its Full38439353598 and Prompt38439353651 qualification remain pending. This0.49.0 draft combines both Assist safety paths and all tests, retaining main-only website/design content. PR284 remains unmerged/not installed, with known CI-owner receipt-count and unit-capacity blockers preserved.
+
+Restored Input-bound Entry Topic units now use original owner processing and exact ACK. Verified mapper availability can reconsider only unchanged TOPIC_MAPPING_UNAVAILABLE records through the original bounded archival transaction with history retained; other facets/reasons remain pending. Private Filter preflight bounds concurrent preparation and coalesces only in-flight same-handle revalidation; later calls recheck current permission. Scoped tests and independent reviews are recorded in the coordinator checkpoint; they do not replace full certification. Sync new features remain paused; Pro264/CI ownership, all Canonical plans and external acceptance remain unchanged.
+
+## Preserved preceding execution evidence
+
 # Current execution — PR284 local engineering and qualification (2026-10-14)
 
 Formal main was freshly verified as `fb90d4406dfdacf6873dd0d0dadb7bf00b13b177`; its changes after extension baseline `bb7a19f4` are website-only and must be preserved on integration. PR284 remains Draft, unmerged and not installed. The delivered0.43.29 stage and PR266/268/270 are complete historical work, not pending tasks.
@@ -41,6 +49,14 @@ Formal main remains6a55fa7a; PR282 ef68 is unmerged after Full38341608747 failed
 Formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 passed exact-main Certification38339093871 and Prompt38339094038. PR282 mixed Maintenance remains unmerged: prior7bf76cc5 failed strict runtime-inventory preflight; reviewed correction published exact tree4ea2f99f as ef68bb37 and requires new qualification. Preserve original failure evidence.
 
 The next0.49.0 candidate actually implements approved Context Home metadata privacy, Settings sample removal, content-sized three/two/one Thought cards and minimal explicit first-use consent. [Scoped combination receipt](implementation/verification/LOCAL-PRESENTATION-049.md) distinguishes component review, current whole-file results, repaired failures and remaining full gates. No installed-user or whole-plan completion is claimed. Activity ordering, IAH1.3 source interaction and shared reading rhythm continue through separate original owners. Retain all seven Canonical plans, paused Sync checkpoint and Pro264/CI ownership.
+
+## Preserved main-side checkpoint
+
+# Current execution — final local Assist insertion qualification (2026-10-13)
+
+PR282 is merged as formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after independently reviewed head374807c5 passed Full38344601851. Earlier failed/cancelled candidates remain evidence, not active work pointers. Exact merged-main Full38346197411 failed the original ANS08 Topic p95 bound (791.7ms >750ms); Prompt38346197434 passed. This failure remains separate and unresolved.
+
+Current0.48.1 reliability slice requalifies selected Context and authority at the final private Assist insertion handoff, then preserves original synchronous reply/draft/IME guards. [Owning receipt](implementation/ai-usage/AI-COST-06-FINAL-INSERT-AUTHORITY.md) distinguishes old whole native evidence, final corrected helper evidence, independent review and exact-head/main gates. Fresh main combination owning/version47PASS1683.882583ms. PR283 de14 Full38350221653 failed cumulative Foundation Source/release120-second deadlines; its phase evidence and complete independent-case isolation are in the owning receipt. No failed head is eligible to merge. No real AI activation or new data writer. Approved0.49 presentation refinement and saved-history lifecycle work continue independently. Sync new features remain paused; Pro264/CI and all seven Canonical goals are preserved. No installed-user or whole-plan completion claim.
 
 ## Preserved preceding checkpoints
 

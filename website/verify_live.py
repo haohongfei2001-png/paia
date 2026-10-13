@@ -6,6 +6,7 @@ from playwright.sync_api import sync_playwright
 import hashlib, json, os
 from core_checks import verify_core
 from origin_checks import verify_hero, verify_origin, verify_typography
+from presentation_checks import verify_presentation
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get('WEBSITE_TEST_OUTPUT', ROOT/'website-test-artifacts'))
@@ -15,6 +16,7 @@ generated = (ROOT/'website/generated-paths.txt').read_text().splitlines()
 paths = list(generated)
 paths += ['assets/website/product-experience.css', 'assets/website/interior.css', 'assets/website/home-core-v2.js', 'assets/website/site.css', 'assets/website/site.js', 'assets/website/favicon.svg', 'assets/website/og-zh.png', 'assets/website/og-en.png']
 paths += ['assets/website/refinement.css', 'assets/website/refinement.js', 'assets/website/launch.css', 'assets/website/home-art.css', 'assets/website/home-art.js', 'assets/website/scroll-story.css', 'assets/website/scroll-story.js']
+paths += ['assets/website/home-presentation.css', 'assets/website/home-presentation.js']
 paths += ['assets/website/asset-lock.json'] + list(json.loads((ROOT/'assets/website/asset-lock.json').read_text()))
 paths = list(dict.fromkeys(paths))
 checks = []
@@ -49,7 +51,9 @@ try:
                 response=page.goto(BASE+'/'+relative,wait_until='load',timeout=45000)
                 assert response and (response.ok or (Path(relative).name == '404.html' and response.status == 404))
                 page.evaluate('document.fonts.ready')
-                if Path(relative).name in ('index.html','how-it-works.html','contact.html'):
+                if Path(relative).name == 'index.html':
+                    page.wait_for_selector('body.hp-ready', timeout=10000)
+                elif Path(relative).name in ('how-it-works.html','contact.html'):
                     page.wait_for_selector('body.pf-ready', timeout=10000)
                 assert page.locator('h1').is_visible()
                 assert page.locator('html').get_attribute('lang') == ('zh-CN' if relative.startswith('zh/') else 'en')
@@ -61,7 +65,9 @@ try:
                     verify_hero(page, live_check, en=not relative.startswith('zh/'), motion=width == 1440)
                     page.evaluate("scrollTo({top:0,behavior:'instant'})")
                     page.screenshot(path=str(OUT / f'live-{relative.replace("/", "-")}-{width}-hero.png'), animations='disabled')
-                if relative in ('index.html','zh/index.html','demo.html','zh/demo.html'):
+                if Path(relative).name == 'index.html':
+                    verify_presentation(page,live_check,relative,motion=True)
+                if relative in ('demo.html','zh/demo.html'):
                     verify_core(page, live_check, en=not relative.startswith('zh/'), download_dir=OUT)
                     verify_origin(page, live_check, en=not relative.startswith('zh/'))
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')

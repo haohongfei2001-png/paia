@@ -14,6 +14,12 @@ from art_direction import Fragments
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+# The Owner retired the homepage simulator. Keep the historical routine below
+# for old snapshots; current home is validated as scroll presentation, while
+# the untouched independent demo runs the complete original core suite.
+if 'data-home-mode="presentation"' in (ROOT/'index.html').read_text():
+    from presentation_checks import main as check_presentation
+    raise SystemExit(check_presentation())
 FIXTURE = Path(__file__).with_name('launch_baseline.json')
 OUT = Path(os.environ.get('WEBSITE_ART_OUTPUT', ROOT / 'website-art-test-artifacts'))
 

@@ -98,7 +98,7 @@ export class LocalAssistSession {
   s.published=Object.freeze({...s.validated.value});return structuredClone(s.published);
  }
  async result(handle){const s=this.#get(handle);await this.#qualified(s);if(!s.published)fail('UNAVAILABLE');return structuredClone(s.published);}
- async insert(handle,{controller,operationId,conditionPresented=false}={}){const s=this.#get(handle),value=await this.result(handle);if(value.kind!=='SUGGESTION')fail('UNAVAILABLE');if(typeof operationId!=='string'||!operationId||operationId.length>200)fail();return controller.insert({binding:s.replyBinding,text:value.text,condition:value.condition,operationId,conditionPresented,isCurrent:()=>this.#valid(s)&&s.published?.text===value.text});}
+ async insert(handle,{controller,operationId,conditionPresented=false}={}){const s=this.#get(handle),value=await this.result(handle);if(value.kind!=='SUGGESTION')fail('UNAVAILABLE');if(typeof operationId!=='string'||!operationId||operationId.length>200)fail();return controller.insert({binding:s.replyBinding,text:value.text,condition:value.condition,operationId,conditionPresented,qualify:async()=>{await this.#qualified(s);return this.#valid(s)&&s.published?.text===value.text;},isCurrent:()=>this.#valid(s)&&s.published?.text===value.text});}
  dismiss(handle){const s=this.#handles.get(handle);if(s){s.controller.abort();s.published=null;s.validated=null;s.snapshot=null;s.payload=null;this.#states.delete(s.key);this.#handles.delete(handle);}}
  dispose(){this.#disposed=true;try{this.#unsubscribe?.();}finally{this.#invalidate();}}
 }

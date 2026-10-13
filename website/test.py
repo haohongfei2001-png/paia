@@ -13,6 +13,7 @@ import json, os, re, sys, struct, hashlib, traceback
 from core_checks import verify_core
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
+from presentation_checks import verify_presentation
 
 ROOT = Path(__file__).resolve().parents[1]
 OFFLINE = '--offline-render' in sys.argv
@@ -92,7 +93,7 @@ for relative in ('index.html', 'zh/index.html'):
     doc = Document(source)
     check('Watch the film' not in source and 'A PAIA user' not in source, f'{relative}: no invented film or testimonial')
     check(sum('data-product-hero' in attrs for _, attrs in doc.tags) == 1, f'{relative}: current product-led opening exists')
-    check([attrs['data-preview-tab'] for _, attrs in doc.tags if 'data-preview-tab' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
+    check([attrs['data-hero-space'] for _, attrs in doc.tags if 'data-hero-space' in attrs] == ['archive', 'thought', 'context'], f'{relative}: three approved product spaces')
     check('data-hero-sequence' not in source and 'data-scroll-collection' not in source, f'{relative}: retired opening is not a second visual owner')
     check(sum('/brand/paia-logo-v1.webp' in attrs.get('src', '') for attrs in doc.all('img')) == 1, f'{relative}: original artwork remains confined to its closing use')
 for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
@@ -219,11 +220,12 @@ def capture_scenes(page, name, width):
     page.evaluate('document.fonts.ready')
     settle_capture_top(page)
     if name in ('index.html', 'zh/index.html'):
+        page.wait_for_selector('body.hp-static')
         page.screenshot(path=str(OUT / f'{prefix}-hero.png'), animations='disabled')
-        for key in ('archive', 'thought', 'context'):
-            page.locator(f'[data-preview-tab="{key}"]').click()
-            page.locator('[data-hero-product]').screenshot(path=str(OUT / f'{prefix}-hero-{key}.png'), animations='disabled')
-        page.locator('[data-preview-tab="archive"]').click()
+        page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
+        for key, selector in [('archive','.pc-editor-stage'),('thought','.ad-reading-spread'),('prompt','.pc-prompt-scene'),('context','.pc-context-stage')]:
+            page.locator(selector).screenshot(path=str(OUT / f'{prefix}-{key}.png'),animations='disabled')
+        return
     settle_capture_top(page)
     page.screenshot(path=str(OUT / f'{prefix}.png'), full_page=True, animations='disabled')
     if name not in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
@@ -269,7 +271,7 @@ try:
                 check(page.evaluate('Array.from(document.images).every(i=>i.complete && i.naturalWidth>0 || i.loading==="lazy")'), f'{name}: {width}px image assets available')
                 check_reflow(page, f'{name}: {width}px reflow', name, width, 'layout')
                 verify_typography(page, check, f'{name}: {width}px')
-                if path.name in ('index.html', 'demo.html'):
+                if path.name == 'demo.html':
                     check(page.locator('[data-thought-text]').evaluate_all('els=>els.length===4 && els.every(e=>parseFloat(getComputedStyle(e).fontSize)>=14)'), f'{name}: {width}px Topic body remains readable')
                     check(page.locator('.pc-thought').evaluate_all('els=>els.every(e=>parseFloat(getComputedStyle(e.querySelector(".pc-topic-source")).fontSize)<=parseFloat(getComputedStyle(e.querySelector("[data-thought-text]")).fontSize))'), f'{name}: {width}px provenance stays subordinate to the words')
                     check(page.locator('[data-topic-overview]').is_visible() and page.locator('[data-topic-reader]:visible').count() == 0, f'{name}: {width}px default Topic overview is stable')
@@ -296,7 +298,8 @@ try:
                     check(page.locator('[data-topic-reader="product"] .pc-thoughts').evaluate('e=>getComputedStyle(e).gridTemplateColumns.split(" ").length===1'), f'{name}: {width}px Topic reading remains one continuous column')
                 if path.name == 'index.html':
                     check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-preview-panel]:visible').count() == 1, f'{name}: {width}px product preview is visible from the start')
-                    check(page.locator('[data-preview-tab][aria-selected=true]').get_attribute('data-preview-tab') == 'archive', f'{name}: {width}px Archive is the initial preview')
+                    check(page.locator('[data-hero-space].hp-current-space').get_attribute('data-hero-space') == 'archive', f'{name}: {width}px Archive is the initial presentation')
+                    verify_presentation(page,check,f'{name}/{width}')
                 if width == 320 and name in ('index.html', 'zh/index.html'):
                     page.evaluate("scrollTo({top:0,behavior:'instant'})")
                     page.screenshot(path=str(OUT / f'{name.replace("/", "-")}-320-header.png'), animations='disabled')
@@ -343,7 +346,7 @@ try:
             page = browser.new_page(viewport={'width': 390, 'height': 844})
             load(page, locale + 'index.html')
             verify_hero(page, check, en=en)
-            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+            verify_presentation(page, check, locale+'homepage', motion=True)
             verify_origin(page, check, en=en)
             menu = page.locator('.mobile-menu')
             menu.locator('summary').click()
@@ -363,6 +366,10 @@ try:
             check(title.is_visible() and title.evaluate("e=>{const s=getComputedStyle(e);return s.backgroundImage==='none'&&s.webkitTextFillColor===s.color&&!['transparent','rgba(0,0,0,0)'].includes(s.webkitTextFillColor.replaceAll(' ',''));}"), f'{locale}: high-contrast title uses visible text instead of transparent gradient fill')
             settle_capture_top(page)
             page.screenshot(path=str(OUT / f'{contrast_locale}-390-forced-colors-hero.png'), animations='disabled')
+            # Full interaction/keyboard/permission checks continue on the
+            # unchanged demo rather than turning the homepage into a test app.
+            load(page, locale + 'demo.html')
+            page.evaluate('document.fonts.ready')
             orb = page.locator('[data-prompt-toggle]')
             check(orb.locator('.paia-orb').evaluate("e=>getComputedStyle(e).display==='none'"), f'{locale}: high-contrast mode hides only the decorative Orb')
             check(orb.is_visible() and orb.evaluate("e=>{const s=getComputedStyle(e);return parseFloat(s.borderTopWidth)>=1&&s.borderTopStyle!=='none'&&s.borderTopColor===s.color&&s.color!==s.backgroundColor;}"), f'{locale}: Orb control retains a contrasting visible button boundary')
@@ -390,6 +397,13 @@ try:
             # Engines may retain a computed medium outline width with style
             # `none`; test the visible distinction, not that inert default.
             check(allowed.evaluate("e=>parseFloat(getComputedStyle(e).outlineWidth)>=2&&getComputedStyle(e).outlineStyle!=='none'") and closed.evaluate("e=>getComputedStyle(e).outlineStyle==='none'||parseFloat(getComputedStyle(e).outlineWidth)===0"), f'{locale}: chosen Context permission keeps a visible non-color state outline')
+            page.close()
+            # The full small-screen trial journey moved with the simulator.
+            # Do not drop editing/IME/privacy coverage when removing home UI.
+            page = browser.new_page(viewport={'width': 390, 'height': 844})
+            load(page, locale + 'demo.html')
+            verify_core(page, check, en=en, download_dir=OUT, offline=OFFLINE)
+            verify_origin(page, check, en=en)
             page.close()
             page = browser.new_page(viewport={'width': 1280, 'height': 900})
             errors = []
@@ -427,7 +441,7 @@ try:
             load(page, locale + 'index.html', scripts=False)
             check(page.locator('h1').is_visible() and page.locator('#input-library').is_visible() and page.locator('#personal-context').is_visible(), f'{locale}: static core content without JS')
             check(page.locator('[data-preview-panel="archive"]').is_visible() and page.locator('[data-hero-glass]').is_visible(), f'{locale}: product-led first view works without JavaScript')
-            check(page.locator('[data-topic-reader="product"]').is_visible(), f'{locale}: native Topic anchors still reach readable content without JavaScript')
+            check(page.locator('[data-story-organized]').is_visible(), f'{locale}: complete topic presentation without JavaScript')
             page.close()
             context.close()
         browser.close()

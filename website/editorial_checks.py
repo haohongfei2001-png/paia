@@ -89,7 +89,7 @@ if __name__ == '__main__':
         def script(m): scripts.append((ROOT/m[1].split('?')[0].lstrip('/')).read_text()); return ''
         html=re.sub(r'<script src="([^"]+)"[^>]*></script>',script,html)
         html=re.sub(r'((?:src|href)=")(/assets/website/[^"?]+)"',lambda m:m[1]+uri(m[2])+'"',html)
-        if name.endswith(('index.html','how-it-works.html','contact.html')):
+        if name.endswith(('how-it-works.html','contact.html')):
             html=html.replace('</head>','<link data-paia-refinement rel="stylesheet" href="'+uri('/assets/website/refinement.css')+'"></head>')
             scripts.append((ROOT/'assets/website/refinement.js').read_text())
         return html.replace('</body>',''.join('<script>'+s.replace('</script','<\\/script')+'</script>' for s in scripts)+'</body>')
@@ -115,14 +115,10 @@ if __name__ == '__main__':
                         label=f'{prefix}{name}/{width}'
                         verify_editorial(page,check,label)
                         if name=='index.html':
-                            # Explicit detail edits must not leak on returning
-                            # to the overview, regardless of viewport.
-                            page.locator('[data-card-open="info"]').click()
-                            field=page.locator('[data-context-text="info"]');field.fill('SYNTHETIC_PRIVATE_BODY_DO_NOT_PREVIEW')
-                            page.locator('[data-card-detail="info"] [data-context-back]').click()
-                            overview=page.locator('[data-context-overview]')
-                            check('SYNTHETIC_PRIVATE_BODY_DO_NOT_PREVIEW' not in overview.inner_text(),label+': edited body remains private on return')
-                            check(not field.is_visible(),label+': detail is closed, not rendered in overview')
+                            # Presentation home contains no private detail DOM.
+                            # The unchanged demo retains explicit edit/return tests.
+                            check(page.locator('[data-context-text],[data-card-detail]').count()==0,label+': no hidden personal bodies in homepage')
+                            check(page.locator('[data-context-overview]').count()==1,label+': safe directory retained')
                             if width<=640:
                                 page.evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async u=>{window.edCopied=u}}})")
                                 page.locator('.ed-desktop-link').click()

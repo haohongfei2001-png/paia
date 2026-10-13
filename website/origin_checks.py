@@ -31,9 +31,16 @@ def verify_typography(page, check, label='site'):
     # assertions above are weakened or replaced.
     from editorial_checks import verify_editorial
     verify_editorial(page, check, label)
+    from harmony_checks import verify_harmony
+    verify_harmony(page, check, label)
 
 
 def verify_origin(page, check, en=True):
+    if page.locator('body').get_attribute('data-home-mode') == 'presentation':
+        from presentation_checks import verify_presentation
+        verify_typography(page,check,('EN' if en else 'ZH')+' homepage')
+        verify_presentation(page,check,('EN' if en else 'ZH')+' homepage')
+        return
     def test(ok, label):
         check(ok, ('EN' if en else 'ZH') + ' product design: ' + label)
     verify_typography(page, check, ('EN' if en else 'ZH') + ' product design')
@@ -63,6 +70,9 @@ def verify_origin(page, check, en=True):
 
 def verify_hero(page, check, en=True, motion=False):
     """Real preview tabs and optional native-motion checks on a fresh homepage."""
+    if page.locator('body').get_attribute('data-home-mode') == 'presentation':
+        from presentation_checks import verify_home_hero
+        return verify_home_hero(page,check,en,motion)
     prefix = 'EN' if en else 'ZH'
     def test(ok, label):
         check(ok, f'{prefix} hero: {label}')
@@ -163,3 +173,5 @@ def verify_assets(root, check):
 
     from editorial_checks import verify_static_editorial
     verify_static_editorial(root, check)
+    from harmony_checks import verify_static_harmony
+    verify_static_harmony(root, check)
