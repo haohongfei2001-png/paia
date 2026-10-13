@@ -390,3 +390,59 @@ test('CTX4-02 original maintenance Items reordered by human retain provenance an
  for(let index=0;index<2;index++){assert.equal(after.items[index].origin,'automatic');assert.equal(after.items[index].protected,true);assert.equal(after.items[index].userEdited,true);assert.equal(after.items[index].revision,2);assert.deepEqual(after.items[index].maintenance,before.items[index].maintenance);assert.equal(after.items[index].body,before.items[index].body);}
  for(const source of [one,two]){const result=await service.maintain(caller,{...source,operationId:operationId(),expectedRevision:1,body:'SYNTHETIC forbidden old candidate'});assert.equal(result.disposition,'protected');assert.equal(result.revision,2);}assert.deepEqual(await canonical(s),after);
 });
+
+const moveChange=(snapshot,item,toCard,extra={})=>({kind:'move',operationId:operationId(),epoch:snapshot.epoch,itemId:item.id,expectedRevision:item.revision,fromCard:item.card,toCard,expectedAccess:Object.fromEntries(['global',item.card,toCard].map(key=>[key,structuredClone(snapshot.access[key])])),...extra});
+for(const from of cards)for(const to of cards.filter(x=>x!==from))test(`CTX4 move ${from} to ${to} preserves identity and uses original receipt for undo`,async()=>{
+ const {s,c}=await fixture();await c.change(put(from));await c.change(put(to));const snapshot=await c.snapshot(),item=snapshot.items.find(x=>x.card===from),before=await canonical(s),change=moveChange(snapshot,item,to),result=await c.change(change);
+ assert.equal(result.ok,true);assert.deepEqual(await c.change(change),result);let row=await canonical(s),moved=row.items.find(x=>x.id===item.id);assert.equal(moved.card,to);assert.equal(moved.body,item.body);assert.equal(moved.section,item.section);assert.equal(moved.revision,item.revision+1);assert.equal(moved.order,2);assert.deepEqual(row.access,before.access);assert.equal((await receipts(s)).filter(x=>x.id==='context:'+change.operationId).length,1);
+ const undo=moveChange(await c.snapshot(),moved,from,{undoOf:change.operationId}),undone=await c.change(undo);assert.equal(undone.ok,true);row=await canonical(s);assert.equal(row.items.find(x=>x.id===item.id).order,item.order);assert.equal(row.items.find(x=>x.id===item.id).card,from);assert.deepEqual(row.access,before.access);
+});
+
+test('CTX4 move checks current permission revisions and item CAS without changing any grant',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));let snapshot=await c.snapshot(),change=moveChange(snapshot,snapshot.items[0],'rules');
+ for(const enabled of [true,false])await c.change({kind:'access',operationId:operationId(),epoch:'initial',key:'rules',enabled,expectedRevision:(await c.snapshot()).access.rules.revision});
+ let before=await canonical(s),rs=await receipts(s);assert.equal((await c.change(change)).conflict,true);assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),rs);
+ snapshot=await c.snapshot();change=moveChange(snapshot,snapshot.items[0],'rules');await c.change(put('info',{itemId:change.itemId,expectedRevision:1,body:'later human edit'}));before=await canonical(s);assert.equal((await c.change(change)).conflict,true);assert.deepEqual(await canonical(s),before);
+});
+
+test('CTX4 move allocates above restored and removed orders; safe integer exhaustion refuses zero writes',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));await c.change(put('rules'));await s.write(async t=>{const row=await t.get('meta',CONTEXT_CARDS_ROW);row.sequence=0;row.items[1].order=900;row.items[1].lifecycle='removed';row.items[1].deletedBy=operationId();await t.put('meta',row);});
+ let snapshot=await c.snapshot();assert.equal((await c.change(moveChange(snapshot,snapshot.items[0],'rules'))).order,901);
+ await s.write(async t=>{const row=await t.get('meta',CONTEXT_CARDS_ROW);row.items[1].order=Number.MAX_SAFE_INTEGER;await t.put('meta',row);});snapshot=await c.snapshot();const before=await canonical(s),rs=await receipts(s);await assert.rejects(c.change(moveChange(snapshot,snapshot.items[0],'now')),e=>e.code==='CONTEXT_LIMIT');assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),rs);
+});
+
+test('CTX4 move undo refuses forged receipt, later edit and occupied original order',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));await c.change(put('info'));let snapshot=await c.snapshot();const original=snapshot.items[0],change=moveChange(snapshot,original,'rules');await c.change(change);snapshot=await c.snapshot();let item=snapshot.items.find(x=>x.id===original.id);const undo=moveChange(snapshot,item,'info',{undoOf:change.operationId}),before=await canonical(s);
+ assert.equal((await c.change({...undo,operationId:operationId(),undoOf:operationId()})).conflict,true);assert.deepEqual(await canonical(s),before);
+ await s.write(async t=>{const row=await t.get('meta',CONTEXT_CARDS_ROW);row.items[1].order=original.order;await t.put('meta',row);});const occupied=await canonical(s);assert.equal((await c.change(undo)).conflict,true);assert.deepEqual(await canonical(s),occupied);
+ await c.change(put('rules',{itemId:item.id,expectedRevision:item.revision,body:'newer protected edit'}));const edited=await canonical(s);assert.equal((await c.change({...undo,operationId:operationId()})).conflict,true);assert.deepEqual(await canonical(s),edited);
+});
+
+test('CTX4 move refuses journal before preparation and rolls back receipt failure atomically',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));const snapshot=await c.snapshot(),change=moveChange(snapshot,snapshot.items[0],'now'),before=await canonical(s),rs=await receipts(s);let prepare=0;const journal=new ContextCardsService(s,{syncJournal:{prepare(){prepare++;},commit(){throw Error('unexpected');}}});await assert.rejects(journal.change(change),e=>e.code==='FEATURE_UNAVAILABLE');assert.equal(prepare,0);
+ const original=s.repository.transaction.bind(s.repository);s.repository.transaction=(write,run)=>original(write,t=>run(new Proxy(t,{get(target,key){if(key==='put')return async(store,value)=>{if(store==='operationReceipts')throw Error('synthetic receipt failure');return target.put(store,value);};const value=target[key];return typeof value==='function'?value.bind(target):value;}})));
+ await assert.rejects(c.change(change));s.repository.transaction=original;assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),rs);
+});
+
+test('CTX4 move of original automatic Items preserves provenance and rejects old automatic replacement',async()=>{
+ const {s,c}=await fixture();await s.setFilterMode('off');const input=(await s.snapshot()).library.blocks[0],topic=await s.createTopic({operationId:operationId(),name:'SYNTHETIC reorder provenance'});await inputEdit(s,input.id,{libraryText:'SYNTHETIC qualified input',note:''});const current=await s.input(input.id);await s.addToTopics({operationId:operationId(),kind:'input',id:input.id,expectedRevision:current.revision,topicIds:[topic.id]});
+ const caller={},service=new ContextMaintenanceService(s,{processingVerifier:{async verify(actual,store,scope){return actual===caller&&store===s?{version:1,store:s,accountId:'synthetic',processorId:'synthetic',authorizationGeneration:1,scope,processing:true,expiresAt:Date.now()+60000,revocationSignal:new AbortController().signal}:null;},isCurrent(actual){return actual===caller;}}}),scope=await readContextTopicScope(s,{topicId:topic.id}),projection=await s.repository.transaction(false,t=>inputProjection(s,t,input.id));
+ const request=()=>({operationId:operationId(),epoch:scope.binding.epoch,itemId:operationId(),card:'info',expectedRevision:0,body:'SYNTHETIC automatic Item',section:'SYNTHETIC section',associationIds:[operationId()],evidence:[{topicId:topic.id,inputId:input.id,selectedFields:['body'],fieldDigests:{body:awaitHash},expectedTopicBinding:scope.binding,expectedRemovalSequence:projection.lastRemovalSequence}]});
+ const awaitHash=await hashText(projection.body),one=request(),two=request();assert.equal((await service.maintain(caller,one)).ok,true);assert.equal((await service.maintain(caller,two)).ok,true);const before=await canonical(s),[a,b]=before.items;const snap=await c.snapshot();await c.change(moveChange(snap,a,'rules'));await c.change(moveChange(await c.snapshot(),b,'now'));const after=await canonical(s);
+ for(let index=0;index<2;index++){assert.equal(after.items[index].origin,'automatic');assert.equal(after.items[index].protected,true);assert.equal(after.items[index].userEdited,true);assert.equal(after.items[index].revision,2);assert.deepEqual(after.items[index].maintenance,before.items[index].maintenance);assert.equal(after.items[index].body,before.items[index].body);}
+ for(const source of [one,two]){const result=await service.maintain(caller,{...source,operationId:operationId(),expectedRevision:1,body:'SYNTHETIC forbidden old candidate'});assert.deepEqual(result,{ok:false,conflict:true,externalAllowed:false});}assert.deepEqual(await canonical(s),after);
+});
+
+test('CTX4 move validates exact permissions and does not accept source/body/order or invalid card overrides',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));const snapshot=await c.snapshot(),change=moveChange(snapshot,snapshot.items[0],'rules'),before=await canonical(s);
+ for(const altered of [{body:'forged'}, {order:0}, {fromCard:'inputs'}, {toCard:'info'}, {expectedAccess:{global:{enabled:false,revision:0},info:{enabled:false,revision:0}}}, {expectedAccess:{...change.expectedAccess,rules:{enabled:0,revision:0}}}, {undoOf:'bad'}])await assert.rejects(c.change({...change,...altered}),e=>e.code==='INVALID_REQUEST');assert.deepEqual(await canonical(s),before);
+});
+
+for(const enabled of [false,true])for(const source of [false,true])for(const target of [false,true])test(`CTX4 move explicit current grant matrix ${enabled}/${source}/${target} preserves all access`,async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));for(const [key,value]of [['global',enabled],['info',source],['rules',target]])await c.change({kind:'access',operationId:operationId(),epoch:'initial',key,enabled:value,expectedRevision:0});const snapshot=await c.snapshot();assert.equal((await c.change(moveChange(snapshot,snapshot.items[0],'rules'))).ok,true);assert.deepEqual((await c.snapshot()).access,snapshot.access);
+});
+
+test('CTX4 undo rechecks current grant revisions and original epoch without restoring historic grants',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));let snapshot=await c.snapshot();const change=moveChange(snapshot,snapshot.items[0],'rules');await c.change(change);snapshot=await c.snapshot();let undo=moveChange(snapshot,snapshot.items[0],'info',{undoOf:change.operationId});await c.change({kind:'access',operationId:operationId(),epoch:'initial',key:'info',enabled:true,expectedRevision:0});const changed=await canonical(s);assert.equal((await c.change(undo)).conflict,true);assert.deepEqual(await canonical(s),changed);snapshot=await c.snapshot();undo=moveChange(snapshot,snapshot.items[0],'info',{undoOf:change.operationId});assert.equal((await c.change(undo)).ok,true);assert.deepEqual((await canonical(s)).access,changed.access);
+ await s.write(t=>t.put('meta',{id:'recovery-restore-epoch',value:'later-epoch'}));const before=await canonical(s);await assert.rejects(c.change(change),e=>e.code==='CONTEXT_INVALIDATED');assert.deepEqual(await canonical(s),before);
+});
