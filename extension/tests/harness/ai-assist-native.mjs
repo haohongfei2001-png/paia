@@ -135,12 +135,14 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   const retainedDraft=await page.evaluate(()=>fixture.text());
   const finalAuthority=await h.archive.evaluate(async()=>{
    const {ContextCardsService}=await import(chrome.runtime.getURL('core/context-cards.js')),
-    {LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js'));
-   const f=__assistNative,cards=new ContextCardsService(f.s),results=[];let calls=0;
+    {LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js')),
+    {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
+   const f=__assistNative,local={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},isolatedStore=new OrganizerStore(local,{name:'assist-final-authority-'+crypto.randomUUID()});await isolatedStore.consent(true);
+   const cards=new ContextCardsService(isolatedStore),results=[];let calls=0;
    for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
    for(const change of ['edit','revoke']){
     const id=crypto.randomUUID();await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
-    const session=new LocalAssistSession(f.s,{lease:f.lease,contextSelector:()=>[id],contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+    const session=new LocalAssistSession(isolatedStore,{lease:f.lease,contextSelector:()=>[id],contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
     try{const lease=await f.lease.observe(f.sender),handle=await session.prepare({lease});await session.run(handle);
      const result=await session.insert(handle,{operationId:crypto.randomUUID(),controller:{insert:async request=>{
       const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
@@ -156,8 +158,9 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   });
   assert.equal(finalAuthority.calls,2);for(const entry of finalAuthority.results)assert.deepEqual(entry.result,{status:'failed',reason:'stale_assist'},entry.change);
   assert.equal(await page.evaluate(()=>fixture.text()),retainedDraft);assert.equal(await page.evaluate(()=>fixture.send),0);console.log('AI_NATIVE_FINAL_INSERT_AUTHORITY',label,JSON.stringify(finalAuthority));
+  assert.equal((await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle))).kind,'SUGGESTION','independent selected Context tests did not invalidate the original zero-Context session');
   // Live current-node mutation must invalidate immediately in the isolated owner.
-  const latestStale=await world.run(`(()=>{const state=privateAssist.probe();privateAssist.reader.current.querySelector('.markdown').append(document.createTextNode('changed'));return privateAssist.insert({binding:state.binding,text:'UNQUALIFIED',condition:'',operationId:crypto.randomUUID(),isCurrent:()=>true});})()`);
+  const latestStale=await world.run(`(()=>{const state=privateAssist.probe();privateAssist.reader.current.querySelector('.markdown').append(document.createTextNode('changed'));return privateAssist.insert({binding:state.binding,text:'UNQUALIFIED',condition:'',operationId:crypto.randomUUID(),isCurrent:()=>true,qualify:async()=>true});})()`);
   assert.equal(latestStale.status,'failed');assert.equal(latestStale.reason,'stale_assist');
   assert.equal(await page.evaluate(()=>fixture.send),0);
   let revoked=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{revoked=true;}assert.equal(revoked,true);
