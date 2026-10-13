@@ -22,4 +22,6 @@ Production SHA256:6cb65339bdecdfc84553a5915dd8c855a4fe7870d6ca3d4004da279aa1b336
 
 Under the existing ordinary-round protocol, affected native evidence, unit/regression tests, independent review and light integration precede merge. This is private waiting/lifecycle behavior, not a new durable transaction boundary. No complete AI-COST-05, real model quality, installed-user upgrade or entire PAIA completion is claimed. Sync new features remain paused, Pro264 owns its CI infrastructure, all Canonical final gates remain.
 
-This is a follow-on ordinary engineering correction with the existing0.46.1 candidate identity, not a new release/distribution event. Original whole native run built and exercised its exact release bytes. Cloud integration and merge remain pending.
+The owning workflow requires delivered-runtime fixes to increment PATCH, so the integration identity is0.46.2. The first native result above was the0.46.1 engineering candidate; its original record is retained, and the complete native journey is rerun once against the corrected final version. No installation or distribution is performed. Cloud integration and merge remain pending.
+
+Final0.46.2 validation: complete original headless Source/release native file2 PASS/zero failure,skip,cancel; ℹ duration_ms 85329.980459. All40 new provider scenarios and preceding native cases passed. Backup/version4 PASS215.911958ms; package16099/471 PASS. Final manifest/package identity is0.46.2;0.46.1 logs remain historical candidate evidence.
