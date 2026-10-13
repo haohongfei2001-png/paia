@@ -1,3 +1,13 @@
+## Current connection auxiliary presentation — owner-approved 2026-10-13
+
+The owner additionally approved the Settings/auxiliary unified design **SET2-UI-1.1**. Its **18-AI连接管理.png / 33-未连接AI.png** and connection interactions now supplement the earlier explanatory no-connection dialog. Read [Settings ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md) §3–4, [Settings PLAN](SETTINGS_CONSUMER_V2_PLAN.md) §5/§7 and [exact reference identity](SETTINGS_CONSUMER_V2_REFERENCES.md). The actual implementation remains in **CTX4-06/07 and the current Context connection owner**; Settings has one route/status destination, not another permission system.
+
+The connection page belongs in 用于 AI, with Context-origin Back and no Settings group rail. Preserve one shared allowed scope, actual caller/connection/revision/generation enforcement, default-off policy, independent pause/revoke/reconnect and the real external read/revoke acceptance. No connected-looking example is live capability; no credential, paid call or service activation is authorized here. The prior **CTX4-UI-1.1 four-card Home, Item editor, Topic permissions and allowed-scope drawer remain unchanged**, as do all underlying semantics and current STATUS scheduling. The new integration uses real application navigation/shared preferences, never the unified prototype's iframe bridge or independently seeded state.
+
+The complete preceding adoption follows unchanged (pre-addendum blob `27b1f4afb91112e4a55539ecd54537b1ef630647`); its dated task/evidence statements retain their original scope. Only the stated connection presentation is supplemented. New screenshots do not reduce the retained Context state or security/quality requirements.
+
+---
+
 # AI Context Cards v2 — current approved UI adoption
 
 **Current scoped presentation: CTX4-UI-1.1, OWNER_APPROVED, 2026-10-13.**

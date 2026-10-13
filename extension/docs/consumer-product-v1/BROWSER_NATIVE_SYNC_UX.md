@@ -1,3 +1,13 @@
+## Current auxiliary presentation — owner-approved 2026-10-13
+
+**SET2-UI-1.1** now supplies the final blue-white Settings/auxiliary composition for the newly depicted Sync detail, offline/account-change, cloud-object confirmation and human-conflict states. Read [Settings ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md) §3–4, [Settings PLAN](SETTINGS_CONSUMER_V2_PLAN.md) §4/§7 and [the exact new references](SETTINGS_CONSUMER_V2_REFERENCES.md), especially screenshots 10/11/16/17/26/29/30. Implement these through the existing BNS owner, not a Settings-owned sync engine. The current Settings target is 22 rows after AIOS; the 21-row count below is its historical BNS-only amendment.
+
+All BNS functional semantics, three-adapter goals, complete state coverage, automatic new-device recovery, account/identity/publication/retirement/deletion/conflict safety, qualified availability and real-provider verification below remain unchanged. The smaller new demo does not cancel older unpictured states or make a provider usable. Only conflicting old colors/geometry and absolute no-gradient/no-paper presentation clauses yield to the new scoped visual target. Content, danger disclosure, shared reading preferences and accessibility outrank incidental sample pixels; cloud deletion must not turn a retired dataset into blank-cloud auto-create. Settings PLAN adds owner-specific convergence, not a second Sync plan. Current STATUS, paused feature checkpoint and separate live-account permissions are not changed; this adoption performs no runtime, login, transfer or deletion.
+
+The full original BNS UX text follows unchanged (pre-addendum blob `7e7ca9ea8f21f99dcb6aff9d0e805729eeec26fe`). Its original private-package tests/visuals retain their dates and evidence limits; newer presentation does not retroactively recertify them.
+
+---
+
 # Browser-Native Sync — user journeys and scoped Settings amendment
 
 BNS-1.0 · 2026-10-07. Normative interaction: [CONTRACT](BROWSER_NATIVE_SYNC_CONTRACT.md). Exact private visuals: [REFERENCES](BROWSER_NATIVE_SYNC_REFERENCES.md). These designs are synthetic target states, not provider login implementations or production acceptance.

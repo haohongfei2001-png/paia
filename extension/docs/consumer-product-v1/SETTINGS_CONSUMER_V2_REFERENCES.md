@@ -1,89 +1,108 @@
-# Settings Consumer v2 — frozen visual references
+# Settings Consumer v2 — SET2-UI-1.1 approved reference manifest
 
-## Original approved design files now in this repository — 2026-10-11
+**OWNER_APPROVED / 2026-10-13.** [ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md) owns scope and finite supersession; [PLAN](SETTINGS_CONSUMER_V2_PLAN.md) remains the sole Settings implementation plan. Auxiliary work stays with the mapped BNS/Context/capture/recovery owners. This is evidence routing, not another design or execution queue.
 
-The owner explicitly authorized storing the previously private, synthetic **Settings v2 visual reference files in the existing public PAIA repository**. Development agents can now inspect the exact original artifacts without accessing a separate ChatGPT account or Mac:
+## 1. Approved source and preservation
 
-- [Original Settings v2 design ZIP](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2.zip) — SHA-256 `c9d53e2ba34cc29a46124c7cada6de77ac9c2ee24704069beedfb44189b22f7c`.
-- [26 full-size Settings state screenshots](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/screens/), [26-page Visual-Review.pdf](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/Visual-Review.pdf), [interactive Review.html](design/approved-visuals-2026-10-07/PAIA-Settings-Design-v2/Review.html).
-- [Source package index and compatibility rules](design/approved-visuals-2026-10-07/README.md).
+The owner approved the delivered `PAIA_设置与辅助页面_交互原型.html` and `PAIA_设置与辅助页面_统一设计包.zip` and requested direct GitHub planning integration. The original design notes/manifest still say DESIGN_CANDIDATE / NOT_WRITTEN_TO_GITHUB: those describe the preceding task, and this later explicit adoption supersedes the status without editing original bytes.
 
-The earlier **Access and disclosure** paragraph below records the private-asset location *at adoption time* and is superseded only for the availability of the original visual files. Subsequent Settings AI Organize style and Sync adjustments continue to supersede incompatible sample rows. These are synthetic, static design references, not proof of active services, user-installation parity, or production tests.
+The package contains 40 files: the unified HTML, design notes, prototype report, 33 new PNGs, three exact earlier primary-page HTMLs and artifacts.json. This task checked ZIP CRC and **all 39 manifest-listed payload identities**; the manifest itself is separately hashed. The standalone HTML and nine standalone Settings PNGs matched their package copies. Relevant main prototype source and all 33 screenshot compositions were inspected; the supplied synthetic test report was read, not rerun.
 
-Decision: owner-directed final correction and design freeze, 2026-10-07. Contract SETTINGS-CV2-1.0. Initial design audit main `29940a921e4797c463a5e7e8436bafe6125f9f1d`; final integration read main `288e17fb7adaf05b63a4af72458c1d6787488e0d`, tree `550aab987b33196ea05ed5fec06e93771670b35e`. The latter preserves the intervening Topic-01 integration and 0.13.0 identity. Settings and shared UI source stayed unchanged; the About reference now shows 0.13.0.
+The three bundled original HTMLs exactly matched the mounted earlier originals. They remain the approved Thought/Context/Archive references, not new designs. The unified viewer only bridges navigation and hides duplicate demo toolbars at runtime. Its independent preferences, iframe/base64 sources and postMessage bridge are never the production integration architecture.
 
-This is the exact private handoff manifest, not production implementation or a replacement for opening the images. The owner retained the first review's overall language and directed the finite final simplifications recorded in [ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md). No separate later owner pixel review of the corrected artifacts is asserted.
+All sample inputs, provider/account labels, files, storage sizes, dates, conflicts, connections and success states are synthetic. No image provides evidence of a real installed app, account, upload, permission or AI/cloud capability. The package contains no font binaries.
 
-## Private artifact identity
+## 2. Exact original artifact identity
 
-Final package: `PAIA-Settings-Design-v2.zip`, 2742577 bytes, SHA-256 `c9d53e2ba34cc29a46124c7cada6de77ac9c2ee24704069beedfb44189b22f7c`.
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `PAIA_设置与辅助页面_统一设计包.zip` | 10095230 | `38f7e3d147fe1bfe6e22bd460d842e477ff27629ac8760f96d67e6c52b97c097` |
+| `PAIA_设置与辅助页面_交互原型.html` | 490677 | `9f07bc97cacb090bc82bb19cdb3f33e91f2a29346f7a0ff5e897d8b17efef914` |
+| `PAIA_设置与辅助页面_设计说明.md` | 8959 | `8b1b3be6a6ad5c978bc8a1ae59c62b81ac410481aa066079a478fb5d7a787b0c` |
+| `prototype_checks.json` | 4159 | `5111032c33ea220dd5ee978412fff9ce50c1293623e28294e32202c934ae5fd5` |
+| `artifacts.json` | 8453 | `73d5293e56cabe9308f44b4298028b89becfab4558d8406f215ce249668a825b` |
+| `原有三页原型/PAIA_思想库_交互原型.html` | 73464 | `35e8310dc20545e2867af64755c99448da184c82957f1581f2dd6f9783ee6d57` |
+| `原有三页原型/PAIA_AI上下文_交互原型.html` | 83491 | `410f6ac04f34c04146c966abcca76f7daae5ed9547ce487054d156dae9d754b7` |
+| `原有三页原型/PAIA_输入档案_交互原型.html` | 127602 | `5d9e888dea3bfcaab74266cad4eca1edf314a41bb52faecb9b9c18686a6291a2` |
 
-Prior review retained unchanged: `PAIA-Settings-Design.zip`, SHA-256 `d018a3fa4aa37379becc81d72bd04de4fe22ebd70b0b1974534cffbda8d5edbb`. Its old row count, duplicate/privacy/history/general-purge compositions and prior prototype results are historical, not current acceptance.
+Original conversation provenance: unified HTML `file_000000009e6c81f5bf196143454e2c64`; ZIP `file_000000007c5481f89054e4fa743540cb`. These are identifiers, not public URLs or assurance that another agent can read the bytes. Original files remain in this owner-controlled conversation and are **not publicly uploaded by this adoption**. Obtain the exact package through an authorized attachment/Library handoff and verify hashes for exact visual comparison. Another session's sandbox URL is not a repository asset. The prior explicit publication of October-7 references is not silently extended to these new files.
 
-All following names are relative to `PAIA-Settings-Design-v2/`.
+PLAN §2 supplies concrete layout/behavior anchors for independent implementation preparation. Text and hashes alone do not certify screenshot fidelity. Missing bytes block the affected exact-reference comparison, not every domain task; do not substitute old Settings or regenerate a similar-looking design.
 
-| File | Role | SHA-256 |
+## 3. All new screenshot masters
+
+Paths below are relative to `screens/` in the exact ZIP. Dimensions are original PNG pixels, not a promise that full-page image height equals viewport height. Match actual viewport, content, theme, locale, text scale and saved preferences at production comparison.
+
+| File | Bytes | Pixels | SHA-256 |
+|---|---:|---|---|
+| `01-设置首页.png` | 281089 | 1560×960 | `b7dafad862dcf8bbf8bf2d9cadd2f8ce586eefbbbd7772badeab2cdb13e32269` |
+| `02-阅读与外观.png` | 687895 | 1560×1005 | `cc33284d17862688ea9d64e56a41fc1e50e3993bc067d1a93d75e47c44eb0f5f` |
+| `03-AI与提示词.png` | 289039 | 1560×960 | `ce0777736a09cd0983b1a11ff9b4668d3de766fdf7faccfaf4540e3dd71bca08` |
+| `04-隐私与访问.png` | 279470 | 1560×960 | `61764c7d4aa486bb14237b287472697c1f555c6622b5701ccb80253a0d571587` |
+| `05-数据与恢复.png` | 286788 | 1560×971 | `9cd7ef7e0cc521e992436d4f732ecfaf4f81a49f9fbff1a0ae466cc28430c5c2` |
+| `06-关于PAIA.png` | 265253 | 1560×960 | `fab076886f8afced5ccfa6db12710d56daa7b4e226a259c462ff649270b1ef29` |
+| `07-整理方式选择.png` | 162490 | 1560×960 | `88c3c4e26bf0270d05a7371be34fe23c2e3ba4aa1f624473527c5a870db60008` |
+| `08-收录许可.png` | 182426 | 1560×960 | `8104e11dcb21910a33c51b508998fedb4431f1f9f4c61bd3ece525aa4d7a366e` |
+| `09-首次使用.png` | 303010 | 1560×960 | `f541ee7d6da736975fa72dbb1940872516f051278c0ec0c1d0a4af08b9872856` |
+| `10-同步未连接.png` | 307565 | 1560×960 | `75f51074cea62db02f3062ed2fda7097b660171a4eaf0187ac545d70c957f1b5` |
+| `11-修改冲突.png` | 297045 | 1560×960 | `1b7850462dbbcaa544806dad261c5cc9bd5cafbb3393b06a0a4d0aef1c2363f4` |
+| `12-已移除的内容.png` | 284774 | 1560×960 | `0e6ff3c931ef94fe1617de824761bcda54bd54f9ba5edb264e34f936e7cdd013` |
+| `13-原始来源.png` | 271010 | 1560×960 | `28d3daaaab1d555fc1b8b3dff5feb2484b671219f66259c57b91e96ade817d54` |
+| `14-导入入口.png` | 286701 | 1560×960 | `57314e1a16bd31a20f09376e7c1faee80e3f72a002eb0ea27c69f287dbb1122c` |
+| `15-导入预览.png` | 610018 | 1560×1011 | `50f79e841d323d8972228d75961c9361e25853c546ba19f20deab595b97295ab` |
+| `16-同步状态演示.png` | 307653 | 1560×1011 | `8e0410418862b87bc3a8bc548e42ea6eef491dbf3a454aa248904f7d8b612882` |
+| `17-对象删除确认.png` | 178935 | 1560×960 | `694b924afb3f2ba102725df6fa9464dd8d50f9a64c40de150947b938dcc33a15` |
+| `18-AI连接管理.png` | 250717 | 1560×960 | `1bf03ded273b1b7c9a358c55657db29c66c6bdf4922e1845e30016a2c560ac5f` |
+| `19-帮助.png` | 283335 | 1560×960 | `8ebcba1236274d81b504acdae2b3dfbfa66baf7b59533914710568eacf4166f5` |
+| `20-反馈.png` | 145212 | 1560×960 | `8f9109a2f4b04e38868b8ab04cd785000552bd139aa326e0642a9386def73ffd` |
+| `21-外观选择.png` | 214061 | 1560×960 | `7d9c4151ccf6155471ee321496efa0cd1dbef2c87010e53bc0d4700402a2df2d` |
+| `22-深色设置.png` | 447725 | 1560×1005 | `8d9d9024ddaa8b1bb06d88c9c9e3f068f733e2af36ddca7f625735c29afbcfa5` |
+| `23-设置保存失败.png` | 703175 | 1560×1071 | `2a41bd1cb897e83c513920aaf7b86f5a6a175ef07dfc5f13db4456d1d48e3130` |
+| `24-手机设置目录.png` | 100741 | 390×844 | `c707085ed9de2e2cf69854d5c0ccc061e9b923018b009847da425827c6f3a278` |
+| `25-手机阅读设置.png` | 146511 | 390×986 | `4e6b90cac84114bd991210e115a2e8d60c6336083dc8580301bc65bbfdfdb6a6` |
+| `26-手机修改冲突.png` | 137450 | 390×969 | `72cf44c59533d97f400a4a7ecdf588c7097374e8022512c0f1e016de41dd01fa` |
+| `27-来源核对面板.png` | 187615 | 1560×960 | `0d90bef8e492b012c1b2d0ec08ada00599ad2cb6d50e9a899c57863555dbc888` |
+| `28-已有备份恢复预览.png` | 613832 | 1560×1011 | `b407a3e4eb980eb07855dbc33ade2196136d718ca7ca2de426dcc3db85e5dbdf` |
+| `29-同步离线状态.png` | 313960 | 1560×960 | `b69ec96be553a0a8d320029d0282015bd31f11f912693a88aefb6cbca9cc9378` |
+| `30-账号变化状态.png` | 289846 | 1560×960 | `1bd0d553bdc4a73f39ace3b7a52a7f7bced36b88d588fdd5f50e8c6b0e245945` |
+| `31-空白状态.png` | 271790 | 1560×960 | `ea175349a099a8724b92c5530f76607a68b2b728e2ef3c3f6a0a9cc9e77db33a` |
+| `32-故障恢复状态.png` | 317486 | 1560×960 | `0f4456087dff5cf4864310710fa6fbc56083811777c91c66c00915033f46b976` |
+| `33-未连接AI.png` | 246402 | 1560×960 | `f89609b97e10d3347b4ed502db0b9e176e89de8e5d8f7477b9223a4e4b627574` |
+
+## 4. State-to-owner acceptance mapping
+
+| Reference states | Existing delivery owner | Required future evidence |
 |---|---|---|
-| `Review.html` | 25 interactive review scenarios, same PAIA language | `1e06714bd979afe799744ae11c91cf71491a4d828dfc7290c493f2f8328f3701` |
-| `Prototype.html` | Independent final target prototype; not production runtime | `64f574ad29df5abdc619dc1227e2f9592e2d97c283e9fb2b8864060ee11eecb9` |
-| `Design-Specification.html` | Audit, final IA, ownership, supersession, verification and development plan | `29945723a128943d33e517688fdca83b3e77c5c4930e66ff7e1f54b4f3d48e1e` |
-| `Visual-Review.pdf` | 26 pages of actual browser-rendered design artboards | `1d638fb1e8287cde616631fb5353448c05c11d206f44fb271b24ab662906b585` |
-| `states.json` | 25 viewer scenario definitions | `da9713ab974dc2eeab1a0ab778b39913c006f10d05ab30e2b776cfe9f48d1fac` |
-| `screens.json` | 26 screenshot/viewport/state mappings | `989406b0589fe687783577caabb7bf62daabee3bb7d0bec22343fe8cfba1bd3f` |
-| `prototype-checks.json` | Current independent-prototype results and negative history | `6aadb8a8a3350a4f0fd5a4e0f8f211bfe436886b980834809adbd3bd60f0f84d` |
-| `checksums.json` | Complete package file digest index; excludes itself | `9eeb373f3732512ecf59fbc5e10b0fd84bdb192bb8f95a22bcbc55a3b48783e0` |
-| `docs/B-New-Settings-IA.md` | Final 20-row plus one secondary-action inventory | `22be31b0232b7800a19c3c59246eadacac8224e33af9f0b6ca510aaaefe5b474` |
-| `docs/C-Ownership-Map.md` | Single-owner responsibilities | `261672442b65a96240d1d2f25467fcf149f363ca1f64edc00029b91866f3bfe6` |
-| `docs/D-Supersession-Map.md` | Complete old-control migration map | `b05b2bebeb340ab763dcccc349ec018157291168f6f0697176ce837317610cb1` |
-| `docs/F-Settings-Development-Plan.md` | Development plan handoff copy | `d751db9da5c2f8ec00923ccc670265c2e5d4cc7c1597ac067dd8e14eca37c3a1` |
+| 01–06 | SET2-01/02/03/04 | Actual six groups/22 operations, real values, shared shell and lawful destinations |
+| 02/07/21/23 | SET2-01 and AI style preference owner | Shared acknowledged preferences, real reading preview, safe choice/failure/retry and zero AI call |
+| 08/09 | Existing onboarding/capture owner, SET2-01 presentation | Explicit consent and cancellation, no broadened scope or normal-Archive welcome replacement |
+| 12–15/27/28/31/32 | SET2-02 and original Data/Source/recovery owners | Typed full coverage, validation/staging/preview/activation, failure/recovery and provenance; no invented data |
+| 10/11/16/17/26/29/30 | BNS through the Settings entry | Actual provider/account/canonical cut, complete original state matrix, entity conflict and scoped deletion safety |
+| 18/33 | CTX4-06/07; SET2-03 navigation | Context-owned connection states, trusted read/revoke and no duplicate Settings access scope |
+| 06/19/20 and other long-form/help states | SET2-04 | Verified version/content/channel, readable documents, guarded feedback draft and explicit copy/send distinction |
+| 22/24/25/26 plus all affected narrow/dark cases | SET2-05 and each domain's acceptance | Actual responsive/keyboard/theme/locale/contrast/IME/focus/200%/320px evidence, not just page-overflow checks |
+| Three embedded primary originals | Existing TOPIC/CTX4/IAH owners | No primary-page redesign; actual shared route/preferences integration instead of mock iframe coupling |
 
-## Access and disclosure
+Retain all nonconflicting older Settings 26-state coverage, the BNS full state matrix and Context connection obligations. The new 33 pictures do not cancel unpictured corrupt/unsupported/replace/interrupted restore, privacy masking, typed Topic/Entry recovery, new-device automatic Sync recovery, provider-specific states or manual-merge eligibility.
 
-The public repository contains only necessary adopted contracts, implementation planning and this manifest. Private screenshots, full owner instructions, original Drive text, prototype source and identifying user records are not copied here. Obtain the exact package through the owner's authorized conversation/file handoff, verify its hash, and open the relevant full screenshots. A sandbox path from another session is not a durable repository URL. Missing bytes are VISUAL_REFERENCE_MISSING for affected visual work, not permission to redraw a different design. Independent domain work can proceed where its own prerequisites exist. No font files are distributed.
+## 5. Prototype report and limitations
 
-## Screenshot mapping
+`prototype_checks.json` reports **36/36 synthetic checks**, including 136 state × viewport × theme renders and a separate 320px enlarged-text check, no recorded page errors or external requests. These belong to the preceding prototype task; this adoption did not rerun them. The design notes additionally report supplemental Context routing and preview-mask checks; do not silently add them to the JSON's 36-test count.
 
-Match actual extension source/release screens at equivalent viewport, locale, theme, text scale, data and saved preferences. All records, sizes, connections, imports and faults in these design images are illustrative. Connected and suggestion-on scenes do not certify live capability. A scrollable list has eight actual demo items; not every item is simultaneously visible in its first viewport.
+The reported environment used Chromium `set_content` because file/test-origin navigation was blocked, so persistent-origin behavior was not certified. The prototype demonstrated session-only fallback; its optional localStorage branch is not real extension persistence, migration, authorization, cloud or recovery evidence. No physical IME, screen-reader, complete contrast or production-performance certification is claimed.
 
-| File | Scenario | Viewport / text / theme | SHA-256 |
-|---|---|---|---|
-| `screens/01.png` | 01 · 总入口 / 输入档案 | 1440×900; 100%; light | `16d428c48e549648ff2ad0f41f2243c28525e2b12155591c59c513d8f41d3480` |
-| `screens/02.png` | 02 · 输入已暂停 | 1440×900; 100%; light | `e2fb39e401851bc9601d868e60806ebdd9680ac0b1a7e316a80322e7e8360104` |
-| `screens/03.png` | 03 · 阅读与外观 | 1440×900; 100%; light | `122860d4a291b022d2015510c685e85233035718942c2d61ccf05b023e9f0a33` |
-| `screens/04.png` | 04 · AI 与提示词 / 未连接 / 建议关闭 | 1440×900; 100%; light | `c141c2805ac0bd627ad41093192771935e3608cdad077ee739a19277407b942c` |
-| `screens/05.png` | 05 · 隐私与访问 | 1440×900; 100%; light | `3e358421f60b3216d62197587e1c96dcac906ca9eb422a58a55fd4c8beecfc3d` |
-| `screens/06.png` | 06 · 数据与恢复 / 有导入和移除内容 | 1440×900; 100%; light | `7e9fdcd8e051bba5c7c5b6f22f2c5fd68b9bfb3972b366f3c40e2d7bfbb0e6ae` |
-| `screens/07.png` | 07 · 关于 PAIA | 1440×900; 100%; light | `7ae163094ff07286a4c7b5f847e67bbe75c297c798945525a86838cb6d78bae8` |
-| `screens/08.png` | 08 · 确认的索引故障（合成） | 1440×900; 100%; light | `3eb3e5940a35123d97c237669997e7a6062a9b56883dba0eadb69abe52a261de` |
-| `screens/09.png` | 09 · 窄屏设置目录 | 320×850; 100%; light | `f026da9e750079536703009da8ae1c09a769ec2ec0b1ec2f4a6b5aaebbc77bf3` |
-| `screens/10.png` | 10 · 320px / AI 与提示词 | 320×850; 100%; light | `f31e1f6ecea4ea7ec8ec8d5c8f338b777eb59942c73e693d10f36a6456623b6e` |
-| `screens/11.png` | 11 · 深色 / 阅读与外观 | 1440×900; 100%; dark | `4e4df39da0c9cb8b8f0c5831791403967199d8a0f244ac7d463ef0d7466d1da3` |
-| `screens/12.png` | 12 · 200% 文字 / 数据与恢复 | 1440×900; 200%; light | `4dfe891f67a42165a325e96263787510b84b199c3f4d328a771a8ccc13aa844e` |
-| `screens/13.png` | 13 · 320px + 200% 文字 | 320×850; 200%; light | `1ac2a8a2316adfc0ebb6a9c0743f01c0976240bfa717ac3fe23b5eee9089295d` |
-| `screens/14.png` | 14 · 从已有备份恢复 / 选择 | 1440×900; 100%; light | `065a5488f4e02830280cd5ba51532462f1d834313cf0e097398726be57d74f6b` |
-| `screens/15.png` | 15 · 从已有备份恢复 / 预览 | 1440×900; 100%; light | `530153cbaa8dde4edc24612d17c2eccdb619538a5172817b2d400889dee2b97c` |
-| `screens/16.png` | 16 · 备份校验失败 | 1440×900; 100%; light | `f349594e3b923073d45a1b5f29bfdf9f8343ee270764444d668f2cbbec257634` |
-| `screens/17.png` | 17 · 下一句建议 / 显式开启 | 1440×900; 100%; light | `e260d6ffaa92f13bf2d2c133b95dff22176a710c71d570d0051cb2948df2bdb5` |
-| `screens/18.png` | 18 · 已移除内容 / 8 项可滚动列表 | 1440×900; 100%; light | `c5d848add5d8eb76e0428c848ed539f4e45191512d6f51ae72cde4ab196eb411` |
-| `screens/19.png` | 19 · 历史输入 / 预览与待确认 | 1440×900; 100%; light | `e21fac2722f705524937c12ea7fb247b65913f628a4935734277c05156df888d` |
-| `screens/20.png` | 20 · 保存失败 / 请点击任意开关 | 1440×900; 100%; light | `b6d443ebc958cb838d1645071b5ada97d45d978071815d237f30715b996f1982` |
-| `screens/21.png` | 21 · 访问已开启且连接 2 个 AI（目标示例） | 1440×900; 100%; light | `bed825c6bdfc986542f28431c4693c7c4bd4d5f67cab2a8c085f841657457572` |
-| `screens/22.png` | 22 · 存储空间 / 详情 | 1440×900; 100%; light | `758373ff854de53c01eb3117745b8a902f657f7d3c6f3ab32c0b7ff00abcf7af` |
-| `screens/23.png` | 23 · 首次使用 / 尚未同意保存 | 1440×900; 100%; light | `e2fb39e401851bc9601d868e60806ebdd9680ac0b1a7e316a80322e7e8360104` |
-| `screens/24.png` | 24 · 下一句建议 / 已显式开启（示例） | 1440×900; 100%; light | `28405f4863d012e9f2e9929117cda5287458b2e0ddf7702a53cf29f86482f0fb` |
-| `screens/25.png` | 25 · 依赖尚未接通 / 真实不可用 | 1440×900; 100%; light | `8ed98f4f21289297aaf92b79a2216d9fe0d76cf94f780c9b9a860f8a4cb41dcf` |
-| `screens/26.png` | 26 · English / Reading & appearance | 1440×900; 100%; light | `158b84c3686e2531c85c69e53078d66d18b09e033e1c14256c2fa70b7ee16c87` |
+Do not port the mock schema/keys, whole-array undo, sequential consent writes, unqualified cloud/connection assignments, shortened copy-source sample, simplified popstate/feedback guard or fixed file/measurement results. PLAN identifies the production-safe owner adaptation. Demo UI can explain intended presentation without qualifying those mechanics. The three original pages' independent demo preferences are not the actual shared preference contract.
 
-## Evidence limits and retained negative history
+## 6. Exact historical and repository evidence
 
-The corrected standalone prototype was rerun in container Chromium 144.0.7559.96. The exact browser version in `prototype-checks.json` controls if this prose differs. Results: **144/144 layout configurations**, six groups × six widths (320/390/768/1024/1280/1440) × light/dark × 100%/200% text; **41/41 demo-interaction checks**; zero JavaScript page errors. Checks cover row inventory, overflow, basic within-row overlap, native choices/focus, explicit consent, failed demo writes, independent capture/suggestions, position-only reset, typed recovery discovery, restore confirmation/failure, import and conditional repair.
+| Preserved path | Exact predecessor Git blob |
+|---|---|
+| `SETTINGS_CONSUMER_V2_ADOPTION_PRE_UI_2026-10-13.md` | `1ea77174a804176c0fa750a5e131258113b20782` |
+| `SETTINGS_CONSUMER_V2_PLAN_PRE_UI_2026-10-13.md` | `aa02db6a4d9185698816244ac78a1aa3c754e15a` |
+| `SETTINGS_CONSUMER_V2_REFERENCES_PRE_UI_2026-10-13.md` | `dcedd437b883530ef03e1f04cc912249ce965043` |
 
-The first complete corrected-design run had 144/144 layout and 40/41 interaction checks: initial choice-dialog focus caused the keyboard End test to fail. The prototype was corrected to focus the current option, then the complete matrix was rerun. Consent failure rollback and reset focus return were also corrected before the final run. These failures/corrections are retained, not rewritten as uninterrupted success. Previous review's 144/144 and 35/35 are not substituted for these new results.
+Their full earlier baselines, negative histories and original public October-7 reference assets remain intact. Nonconflicting semantics remain incorporated; old pixel masters and original 20/21-row snapshots are no longer the final Settings target. The current three filenames still resolve from existing AUTHORITY/MASTER links. BNS UX and Context ADOPTION receive explicit narrow routing additions, not replacement semantics or competing plans.
 
-Environment policy blocked file-URL navigation; tests loaded the same independent HTML with `set_content` and explicit query parameters, on fresh pages. Review.html's embedded viewer was also loaded and its 25 cases/navigation checked. Browser screenshots were visually inspected; the generated 26-page PDF was re-rendered for representative desktop, narrow, 200%, failure and unavailable pages. No new production certification follows.
+Source/design integration baseline is `03aecaff42998945d181b3d458fd0c92d1b65680`, tree `69805fcce8812ed5e650e6e97abbdc4b47cac91f`. Original BNS UX blob `7e7ca9ea8f21f99dcb6aff9d0e805729eeec26fe` and Context ADOPTION blob `27b1f4afb91112e4a55539ecd54537b1ef630647` are preserved beneath their additive visual routing notes. The integrating commit and parent supply final identity; no self-referential SHA is invented in this file.
 
-This task ran no production npm test/check/build, read no installed personal database and made no real migration, restore, purge, AI call, external grant, deployment or release. Prototype state is in-memory; it cannot prove durable preferences, real backup integrity, security, live ChatGPT behavior, physical IME, screen readers, performance or usability. Corresponding evidence remains required by PLAN and VERIFICATION.
-
-## Exact canonical snapshots
-
-Pre-adoption STATUS is retained as `STATUS_PRE_SETTINGS_V2_2026-10-07.md` using original Git blob `d696ca599b67f1941ea3cd9acfffc289512eea92`. Pre-adoption MASTER is retained as `MASTER_PLAN_PRE_SETTINGS_V2_2026-10-07.md` using original blob `92dac19a1b60dcd83f02bff124387e18a8bc4ec2`. Referencing the existing blobs preserves the original bytes; these are not hand-rewritten historical summaries. D6/D7 and older snapshots remain unchanged.
+Performed here: source/plan/reference inspection, artifact integrity and bounded presentation/owner/evidence alignment. Not performed: production runtime/browser/source-release tests, real files or credentials, live AI/cloud/client requests, migrations, service spending, installation or deployment. Preserve current STATUS/AGENTS task selection and all unrelated runtime/website/CI/version files. Main integration uses a fresh guarded non-forced update and exact readback, not merely a local document.
