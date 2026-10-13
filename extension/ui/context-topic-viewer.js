@@ -7,8 +7,8 @@ const button=(text,run)=>{const node=element('button','standard-button',text);no
 // Explicit local viewing only. No selection mutation, external Context reader,
 // lexical query, read-history write or persistent body/cache is introduced.
 export class ContextTopicViewer {
- constructor({host,send,topicId,name,onClose=()=>{}}){
-  this.send=send;this.topicId=topicId;this.active=true;this.busy=false;this.generation=0;this.onClose=onClose;
+ constructor({host,send,topicId,name,sectionId=null,anchorId=null,onClose=()=>{}}){
+  this.send=send;this.topicId=topicId;this.start={topicId,sectionId,anchorId};this.active=true;this.busy=false;this.generation=0;this.onClose=onClose;
   this.root=element('dialog','topic-action-dialog context-topic-viewer');this.root.setAttribute('aria-label',copy('查看主题','View Topic'));
   this.title=element('h2','',name);this.back=button(copy('返回','Back'),()=>this.close());
   this.status=element('p','context-topic-viewer-status');this.status.setAttribute('role','status');
@@ -20,7 +20,7 @@ export class ContextTopicViewer {
   this.changed=message=>{if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED'].includes(message?.type))this.invalidate();};
   this.visibility=()=>{if(document.hidden)this.invalidate();};
   globalThis.chrome?.runtime?.onMessage?.addListener(this.changed);document.addEventListener('visibilitychange',this.visibility);
-  this.reader=new ContinuousTopicReader({chunk:40,windowChunks:1,maxReferences:400,loadEntry:id=>this.fullEntry(id),load:options=>this.load(options)});this.reader.reset({topicId});
+  this.reader=new ContinuousTopicReader({chunk:40,windowChunks:1,maxReferences:400,loadEntry:id=>this.fullEntry(id),load:options=>this.load(options)});this.reader.reset(this.start);
   this.root.showModal();this.back.focus();
  }
  async load(options){
@@ -32,7 +32,7 @@ export class ContextTopicViewer {
   if(this.authority&&this.authority!==page.authority){this.invalidate();throw Error('TOPIC_VIEW_STALE');}this.authority=page.authority;
   return page;
  }
- async restart(){if(!this.active||this.busy)return false;this.invalidated=false;this.authority=null;this.reader.reset({topicId:this.topicId});this.body.replaceChildren();return this.read('initial');}
+ async restart(){if(!this.active||this.busy)return false;this.invalidated=false;this.authority=null;this.reader.reset(this.start);this.body.replaceChildren();return this.read('initial');}
  async read(direction='initial'){
   if(!this.active||this.busy||this.invalidated)return false;
   const generation=this.generation;this.busy=true;this.paintControls();
@@ -70,6 +70,6 @@ export class ContextTopicViewer {
    this.status.textContent=items.some(item=>item.entry.large)?copy('含未完整读取的条目。','Some items have not been fully loaded.'):state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length?copy('已到主题末尾。','End of Topic.'):copy('后面还有内容。','More content follows.');
  }
  paintControls(){const state=this.reader.state();this.previous.disabled=this.busy||this.invalidated||state.windowStart===0&&state.terminalPrevious;this.next.disabled=this.busy||this.invalidated||state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length;this.retry.hidden=!this.invalidated;this.retry.disabled=this.busy;this.root.setAttribute('aria-busy',String(this.busy));}
- invalidate(text=copy('内容已变化，请重新读取。','Content changed. Reload to continue.')){if(!this.active)return;this.generation++;this.invalidated=true;this.busy=false;this.reader.reset({topicId:this.topicId});this.body.replaceChildren();this.status.textContent=text;this.paintControls();}
+ invalidate(text=copy('内容已变化，请重新读取。','Content changed. Reload to continue.')){if(!this.active)return;this.generation++;this.invalidated=true;this.busy=false;this.reader.reset(this.start);this.body.replaceChildren();this.status.textContent=text;this.paintControls();}
  close(){if(!this.active)return;this.active=false;this.generation++;this.reader.reset({});this.body.replaceChildren();globalThis.chrome?.runtime?.onMessage?.removeListener(this.changed);document.removeEventListener?.('visibilitychange',this.visibility);this.root.close();this.root.remove();this.onClose();}
 }

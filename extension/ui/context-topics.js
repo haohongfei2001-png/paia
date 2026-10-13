@@ -1,4 +1,5 @@
 import {request,element} from './common.js';
+import {ContextTopicSearch} from './context-topic-search.js';
 import {ContextTopicViewer} from './context-topic-viewer.js';
 import {ContextTopicCommitSession} from './context-topic-commit.js';
 
@@ -29,24 +30,35 @@ export class ContextTopicInputs {
   host.addEventListener('focusin',this.cancelMovedFocus);host.addEventListener('pointerdown',this.cancelMovedFocus);this.setAccess(access);
  }
  createFilters(){
-  this.filters=element('form','context-search');this.searchField=element('input');this.searchField.type='search';this.searchField.autocomplete='off';this.searchField.spellcheck=false;this.searchField.placeholder=copy('搜索主题名称','Search Topic names');this.searchField.setAttribute('aria-label',copy('搜索主题名称','Search Topic names'));
+  this.filters=element('form','context-search');this.searchField=element('input');this.searchField.type='search';this.searchField.autocomplete='off';this.searchField.spellcheck=false;this.searchField.placeholder=copy('搜索主题、章节和正文','Search Topics, sections and content');this.searchField.setAttribute('aria-label',copy('搜索主题、章节和正文','Search Topics, sections and content'));this.searchField.maxLength=300;
   this.searchSubmit=button(copy('搜索','Search'),()=>{});this.searchSubmit.type='submit';this.clearFilter=button(copy('清空','Clear'),()=>{if(this.filter(this.selectedOnly,''))this.searchField.value='';});
   this.allFilter=button(copy('全部','All'),()=>this.filter(false,this.query));this.selectedFilter=button(copy('已选','Selected'),()=>this.filter(true,this.query));
   for(const node of [this.allFilter,this.selectedFilter])node.className='context-topic-filter';
   this.filterStatus=element('p','topics-note context-topic-filter-status');this.filterStatus.setAttribute('role','status');
   this.searchField.addEventListener('compositionstart',()=>{this.composing=true;});this.searchField.addEventListener('compositionend',()=>{this.composing=false;});
-  this.filters.addEventListener('submit',event=>{event.preventDefault();if(!event.isComposing)this.filter(this.selectedOnly,this.searchField.value);});
+  this.filters.addEventListener('submit',event=>{event.preventDefault();if(!event.isComposing)void this.searchContent(this.searchField.value);});
   this.filters.append(this.searchField,this.searchSubmit,this.clearFilter,this.allFilter,this.selectedFilter);
  }
  filter(selectedOnly,query){
   if(!this.active||this.composing||this.loading||this.busy||this.failedRead)return false;
   if(this.pending){this.unconfirmed();return false;}
-  this.selectedOnly=selectedOnly===true;this.query=String(query??'');this.focusIntent=null;this.paint();return true;
+  this.selectedOnly=selectedOnly===true;this.query=String(query??'');if(!this.query.trim()){this.search?.close();this.search=null;}this.focusIntent=null;this.paint();this.search?.paint();return true;
  }
  visibleIds(){const query=this.query.toLowerCase();return this.order.filter(id=>{const row=this.rows.get(id);return row&&(!this.selectedOnly||row.enabled)&&row.name.toLowerCase().includes(query);});}
+ async searchContent(query){
+  if(typeof query!=='string'||query.length>300||!this.filter(this.selectedOnly,query))return false;
+  this.viewer?.close();this.search?.close();this.search=null;
+  if(!query.trim()){this.paint();return true;}
+  this.search=new ContextTopicSearch({host:this.root,send:this.send,query:query.trim(),choices:()=>this.rows,selectedOnly:()=>this.selectedOnly,open:(target,node)=>this.openSearchTarget(target,node)});this.paint();return this.search.read();
+ }
+ async openSearchTarget(target,node){
+  if(!this.active||this.loading||this.busy||this.failedRead||this.pending||this.composing||!this.search||this.search.invalidated||!this.search.allowed(target.topicId))return false;
+  this.viewer?.close();this.viewer=new ContextTopicViewer({host:this.root,send:this.send,...target,onClose:()=>{this.viewer=null;if(this.active&&node.isConnected!==false&&!node.disabled)node.focus({preventScroll:true});}});return this.viewer.read();
+ }
  get pending(){return !!this.commit.pending;}
  setAccess(access){this.access=access;this.note.textContent=!access.inputs.enabled?copy('此类内容仅自己可见，主题选择已保留。','This category is private. Topic choices are retained.'):!access.global.enabled?copy('AI 访问已暂停，主题选择已保留。','AI access is paused. Topic choices are retained.'):copy('选择可以开放的主题。外部读取目前不可用。','Choose Topics to make available. External reading is unavailable.');this.paint();}
  paint(){
+  this.field.hidden=!!this.search;this.filterStatus.hidden=!!this.search;
   this.root.setAttribute('aria-busy',String(this.loading||this.busy));
   const visible=this.visibleIds(),shown=new Set(visible);
   for(const [node,on]of [[this.allFilter,!this.selectedOnly],[this.selectedFilter,this.selectedOnly]]){node.setAttribute('aria-pressed',String(on));node.dataset.on=String(on);}
@@ -70,7 +82,7 @@ export class ContextTopicInputs {
  }
  async refresh(){
   if(!this.active||this.busy||this.pending)return false;
-  this.viewer?.invalidate();this.rememberFocus();const generation=++this.generation;this.loading=true;this.failedRead=false;this.paint();
+  this.viewer?.invalidate();this.search?.invalidate();this.rememberFocus();const generation=++this.generation;this.loading=true;this.failedRead=false;this.paint();
   try{
    const rows=[],ids=new Set(),cursors=new Set();let cursor=null,epoch=null,authority=null,selectedCount=null;
    do{
@@ -142,6 +154,6 @@ export class ContextTopicInputs {
  }
  unconfirmed(){this.notify(copy('选择尚未确认，请核对上次操作。','The choice is unconfirmed. Check the previous operation.'),{text:copy('核对上次操作','Check previous operation'),run:()=>{const change=this.commit.pending?.change||this.lastAttempt;if(change)void this.save(change);else void this.refresh();}});}
  leave(){if(this.busy||this.pending){this.unconfirmed();return false;}this.suspend();return true;}
- suspend(){this.viewer?.close();++this.generation;this.loading=false;this.focusIntent=null;}
- close(){this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
+ suspend(){this.search?.close();this.search=null;this.viewer?.close();++this.generation;this.loading=false;this.focusIntent=null;}
+ close(){this.search?.close();this.search=null;this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
 }

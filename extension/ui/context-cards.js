@@ -1,3 +1,4 @@
+import {ContextScopePreview} from './context-scope-preview.js';
 import {request,element} from './common.js';
 import {createIcon} from './icons.js';
 import {PlainTextSurface,AutosaveSession,RevisionSession,UndoJournal} from './editor-primitives.js';
@@ -131,10 +132,20 @@ export class ContextCardsPage {
  paintInputSummary(node){const value=this.snapshot.topicChoices;if(value?.available&&value.selectedNames?.length){node.replaceChildren(element('span','',value.selectedNames.join(' · ')));if(value.remainingSelectedCount)node.append(element('span','more-topics',` +${value.remainingSelectedCount}`));}else node.textContent=this.inputDescription();}
  paintAccess(){for(const b of this.host.querySelectorAll('.context-access')){const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&!this.snapshot.access.global.enabled;b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+(value.enabled?copy('已开放','Enabled'):copy('仅自己','Only me')));b.title=copy('仅保存开放设置；外部 AI 连接尚不可用。','Saves access preferences only. External AI connections are unavailable.');b.replaceChildren(element('span','state-dot'),element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('已开放','Enabled'):copy('AI 可读','AI readable')):copy('仅自己','Only me')));b.disabled=this.busy;}
   if(this.globalNote&&this.card!=='connections'){this.globalNote.hidden=!!this.inputs||this.snapshot.access.global.enabled;this.globalNote.textContent=Object.values(this.snapshot.access).some(x=>x.enabled)?copy('AI 访问已暂停，开放设置已保留。','AI access is paused. Your choices are retained.'):copy('AI 访问尚未开启。','AI access is off.');}}
+ async openScopePreview(){
+  if(this.scopePreview||this.previewOpening||!this.active)return false;
+  const generation=this.openGeneration;this.previewOpening=true;
+  try{if(!await this.flush()||!this.active||generation!==this.openGeneration||document.hidden)return false;
+   this.scopePreview=new ContextScopePreview({host:this.host,send:request,onClose:()=>{this.scopePreview=null;}});
+   await this.scopePreview.restart();return true;
+  }finally{this.previewOpening=false;}
+ }
  render(){
+  this.scopePreview?.close();
   this.inputs?.close();this.inputs=null;this.renderedCard=this.card;this.searchQuery='';++this.searchGeneration;this.searchComposing=false;this.searchForm=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=element('section','context-page'+(this.card?' context-detail':''));this.host.replaceChildren(this.page);
   if(this.card){const back=button('',()=>void this.onNavigate(null),'context-back');back.append(createIcon('back'),element('span','',copy('AI 上下文','AI Context')));this.page.append(back);}
   const head=element('header','context-head'),title=element('h1','',this.card?label(this.card):copy('AI 上下文','AI Context'));title.tabIndex=-1;head.append(title);if(this.card!=='connections')head.append(this.access(this.card||'global'));this.page.append(head);
+  const preview=button(copy('预览 AI 可读内容','Preview AI-readable content'),()=>void this.openScopePreview(),'context-scope-preview-open');this.page.append(preview);
   if(editable(this.card))this.page.append(element('p','maintenance',copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.')));
   this.globalNote=element('p','global-note');this.page.append(this.globalNote);
   this.message=element('div','context-notice');this.message.setAttribute('role','status');
@@ -321,5 +332,5 @@ export class ContextCardsPage {
   }catch{this.unconfirmed(copy('上次操作仍未确认，请稍后重试。','The previous operation is still unconfirmed. Retry later.'));return false;}finally{this.busy=false;this.paintAccess();this.paintReorder();}
  }
  async leave(){if(this.movePreparing)return false;if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}if(this.accessCommit.pending||this.deleteCommit.pending||this.reorderCommit.pending||this.moveCommit?.pending){this.unconfirmed(copy('请先核对尚未确认的操作。','Check the unconfirmed operation before leaving.'));return false;}if(!await this.flush()){if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}this.leaveBlocked=true;this.notice(copy('文字尚未保存，已保留在当前页。','Unsaved text is retained on this page.'));return false;}if(this.inputs&&!this.inputs.leave())return false;++this.readGeneration;++this.openGeneration;if(this.page)this.page.inert=true;return true;}
- close(){this.searchQuery='';this.searchForm=null;++this.searchGeneration;this.active=false;++this.readGeneration;++this.openGeneration;this.renderedCard=this.card;this.inputs?.close();this.inputs=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=null;}
+ close(){this.scopePreview?.close();this.searchQuery='';this.searchForm=null;++this.searchGeneration;this.active=false;++this.readGeneration;++this.openGeneration;this.renderedCard=this.card;this.inputs?.close();this.inputs=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=null;}
 }

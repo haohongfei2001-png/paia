@@ -83,3 +83,6 @@ test('Topic content and access use bounded independent roving keyboard stops',()
  assert.equal([...inputs.openNodes.values()].filter(node=>node.tabIndex===0).length,1);assert.equal([...inputs.nodes.values()].filter(node=>node.tabIndex===0).length,0);let prevented=false;
  inputs.move({target:inputs.openNodes.get(topic.id),key:'ArrowRight',preventDefault(){prevented=true;}});assert.equal(prevented,true);assert.equal(document.activeElement,inputs.openNodes.get('another'));assert.equal(inputs.openNodes.get('another').tabIndex,0);assert.equal(inputs.openNodes.get(topic.id).tabIndex,-1);assert.ok([...inputs.rows.values()].every(row=>!row.enabled));inputs.close();
 }));
+test('explicit search Entry opens its exact current Section placement rather than Topic beginning',()=>fixture(async({s,viewer,topic,entries,calls})=>{
+ const sectionId=(await s.repository.transaction(false,t=>t.get('topics',topic.id))).defaultSectionId;viewer.start={topicId:topic.id,sectionId,anchorId:entries[80].id};assert.equal(await viewer.restart(),true);assert.equal(calls[0].options.anchorId,entries[80].id);assert.equal(calls[0].options.sectionId,sectionId);assert.ok(viewer.reader.layout().some(x=>x.kind==='item'&&x.item.entry.id===entries[80].id));assert.equal(viewer.reader.layout().some(x=>x.kind==='item'&&x.item.entry.id===entries[0].id),false);
+},{count:81}));

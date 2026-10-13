@@ -1,3 +1,13 @@
+# Current execution — human search, feedback drafts and local scope preview (2026-10-14)
+
+Formal main remains `81b41ddca1d28f7935bba63b3eab01b8678e4120`. PR284 is an unmerged, uninstalled candidate. CTX4-03 now uses the original qualified root search for explicit human Topic/Section/unmounted-body queries and exact read-only result targets, independent of AI choices. SET2-04 provides a source-free feedback draft through the original recovery owner with exact CAS, unknown-ACK reconciliation, IME/navigation protection and explicit copy only. CTX4-04 adds a worker-private local preview capability through the original Context read owner; external verification stays closed, revoked scope clears, and complete copy freshly traverses and rechecks authority. No provider, new writer, grant or sending is introduced.
+
+The frozen combined eight owning test files pass116 tests; original external Context tests remain separately qualified by the unchanged external-contract regression. Standard release passes500-file guard. All three exact release journeys pass in isolated headless Chrome; final source confirmation is recorded in the implementation receipt. Independent reviews repaired Back/native-close late-copy cleanup and pending-draft departure protection. Historical failures remain preserved. PR284 predecessor15137 Candidate unit was CANCELLED (run38453470138/job115490203983), Candidate gate failed; Prompt1–4/contracts/privacy/release pass, skipped Full/browser are not acceptance. Exact final candidate gates, latest approved visual comparison and main qualification remain required. Preserve seven plans, delivered0.43.29, paused Sync and Pro264 CI ownership.
+
+See `implementation/context-cards/CTX4-03-04-LOCAL-SEARCH-PREVIEW.md` and `implementation/settings-feedback-local.md`.
+
+## Preserved preceding execution evidence
+
 # Current execution — Context interactions and Topic merge safety (2026-10-14)
 
 Formal main remains81b41ddca1d28f7935bba63b3eab01b8678e4120, qualified by exact Full38439353598 and Prompt38439353651. PR284 is an unmerged, uninstalled0.49.0 draft. CTX4-02 now implements group-local adjacent up/down through the original transaction: complete-group dual revision checks, atomic receipt/retry, unchanged identity/body/provenance and automatic-Item human protection. Search-hidden neighbors remain part of the group. Ambiguous duplicate order and injected Sync journal refuse safely; no Sync protocol is relaxed.

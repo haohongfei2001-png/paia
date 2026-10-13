@@ -4,17 +4,26 @@ const DEFAULT_TTL_MS=7*24*60*60*1000;
 const DEFAULT_MAX_BYTES=1250*1024;
 const DEFAULT_MAX_DRAFTS=32;
 const DEFAULT_MAX_TOTAL_BYTES=4*1024*1024;
-const KINDS=new Set(['document','library_entry','topic_metadata','section_metadata','ai_presentation','context_item']);
+const KINDS=new Set(['document','library_entry','topic_metadata','section_metadata','ai_presentation','context_item','settings_feedback']);
 const plain=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const validId=value=>typeof value==='string'&&value.length>0&&value.length<=512;
 const clone=value=>JSON.parse(JSON.stringify(value));
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 const key=(kind,ownerId)=>PREFIX+kind+':'+ownerId;
 
+export const FEEDBACK_DRAFT_OWNER='settings-feedback';
+export function validFeedbackDraft(draft){
+ const op=draft?.operation;
+ return draft?.kind==='settings_feedback'&&draft.ownerId===FEEDBACK_DRAFT_OWNER&&validId(draft.token)&&validId(draft.epoch)&&
+  Array.isArray(draft.sourceRecordIds)&&draft.sourceRecordIds.length===0&&plain(op)&&
+  Object.keys(op).length===3&&op.type==='SETTINGS_FEEDBACK_DRAFT'&&typeof op.body==='string'&&
+  bytes(op.body)<=1024*1024&&Object.hasOwn(op,'expectedToken')&&(op.expectedToken===null||validId(op.expectedToken));
+}
+
 function rowValid(row){
  return plain(row)&&row.version===VERSION&&KINDS.has(row.kind)&&validId(row.ownerId)&&validId(row.token)&&
   Array.isArray(row.sourceRecordIds)&&row.sourceRecordIds.length<=2000&&row.sourceRecordIds.every(validId)&&
-  Number.isFinite(row.updatedAt)&&Number.isFinite(row.expiresAt)&&plain(row.operation);
+  (row.kind!=='settings_feedback'||validFeedbackDraft(row))&&Number.isFinite(row.updatedAt)&&Number.isFinite(row.expiresAt)&&plain(row.operation);
 }
 
 export class RecoveryDraftStore{
@@ -25,9 +34,15 @@ export class RecoveryDraftStore{
  async save({kind,ownerId,token,operation,sourceRecordIds=[],epoch}){
   if(!KINDS.has(kind)||!validId(ownerId)||!validId(token)||!plain(operation)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>2000||sourceRecordIds.some(id=>!validId(id)))throw new TypeError('invalid recovery draft');
   if(epoch!==undefined&&!validId(epoch))throw new TypeError('invalid recovery epoch');
+  if(kind==='settings_feedback'&&!validFeedbackDraft({kind,ownerId,token,operation,sourceRecordIds,epoch}))throw Object.assign(new Error('INVALID_REQUEST'),{code:'INVALID_REQUEST'});
   const now=this.clock(),row={version:VERSION,kind,ownerId,token,...(epoch===undefined?{}:{epoch}),operation:clone(operation),sourceRecordIds:[...new Set(sourceRecordIds)],updatedAt:now,expiresAt:now+this.ttlMs};
   const rowBytes=bytes(row);if(rowBytes>this.maxBytes||rowBytes>this.maxTotalBytes)throw Object.assign(new Error('RECOVERY_DRAFT_TOO_LARGE'),{code:'RECOVERY_DRAFT_TOO_LARGE'});
   const ownKey=key(kind,ownerId),all=await this.local.get(null),existing=[],remove=[];
+  if(kind==='settings_feedback'){
+   const prior=all?.[ownKey],current=rowValid(prior)&&prior.expiresAt>now&&prior.epoch===epoch?prior:null;
+   if(current?.token===token){if(JSON.stringify(current.operation)===JSON.stringify(operation))return clone(current);throw Object.assign(new Error('CONFLICT'),{code:'CONFLICT'});}
+   if((current?.token??null)!==operation.expectedToken)throw Object.assign(new Error('CONFLICT'),{code:'CONFLICT'});
+  }
   for(const [k,value]of Object.entries(all||{})){if(!k.startsWith(PREFIX)||k===ownKey)continue;if(!rowValid(value)||value.expiresAt<=now){remove.push(k);continue;}existing.push([k,value,bytes(value)]);}
   existing.sort((a,b)=>b[1].updatedAt-a[1].updatedAt);let total=rowBytes,kept=1;
   for(const [k,,size]of existing){if(kept<this.maxDrafts&&total+size<=this.maxTotalBytes){total+=size;kept++;}else remove.push(k);}
@@ -46,6 +61,7 @@ export class RecoveryDraftStore{
   return Object.values(rows||{}).filter(row=>rowValid(row)&&row.kind===kind&&row.expiresAt>this.clock()).slice(0,this.maxDrafts).map(row=>({kind:row.kind,ownerId:row.ownerId,epoch:row.epoch}));
  }
  async clear(kind,ownerId,expectedToken=null){
+  if(kind==='settings_feedback'&&(ownerId!==FEEDBACK_DRAFT_OWNER||!validId(expectedToken)))return false;
   if(!KINDS.has(kind)||!validId(ownerId))return false;const k=key(kind,ownerId);
   if(expectedToken!==null){const value=(await this.local.get(k))?.[k];if(!rowValid(value)||value.token!==expectedToken)return false;}
   await this.local.remove(k);return true;

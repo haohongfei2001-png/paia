@@ -83,6 +83,7 @@ function rememberPosition(){if(!settingsVisible||group===null)return;const focus
 export function captureSettingsView(){return {settingsGroup:group||'index',settingsPosition:positions.get(group)||{scrollTop:0,focus:null}};}
 export function restoreSettingsView(value={}){const key=value.settingsGroup==='index'?'index':SETTINGS_LABELS[value.settingsGroup]?value.settingsGroup:null;if(key===null)return;restoring=true;try{if(value.settingsPosition)positions.set(key,value.settingsPosition);activateGroup(key,{history:false,focus:true});}finally{restoring=false;}}
 function activateGroup(key,{history=true,focus=false}={}){
+ if(key!=='about'&&about?.feedback?.dialog.open){const expected=groupFocusSerial,visible=settingsVisible;void about.leave().then(ok=>{if(ok&&groupFocusSerial===expected&&settingsVisible===visible)activateGroup(key,{history,focus});});return;}
  if(key!=='index'&&!groups.has(key))return;const serial=++groupFocusSerial;if(history)rememberPosition();const changed=group!==key;group=key;const index=key==='index';$('ux-settings-shell').dataset.settingsIndex=String(index);
  for(const [name,section]of groups)section.hidden=index||name!==key;for(const [name,tab]of tabs)tab.setAttribute('aria-current',name===key?'page':'false');
  const feedback=$('ux-settings-feedback');if(feedback){const host=groups.get(key);if(host)host.insertBefore(feedback,host.children[1]||null);else $('ux-settings-header')?.append(feedback);const retry=$('settings-read-retry');if(retry)feedback.after(retry);}
@@ -110,7 +111,7 @@ function setupSettingsShell(backup){
  const backupFailure=copyNode('h3','ux-backup-failure-title','这份备份未通过校验','This backup could not be validated');backupFailure.id='ux-backup-failure-title';$('backup-status')?.before(backupFailure);
  move('history-settings','data');const data=groups.get('data');data.append(detail('存储空间','Storage space',[$('r6-data-status')]),detail('从已有 PAIA 备份恢复','Restore an existing PAIA backup',[$('backup-settings')]),detail('已移除的内容','Removed content',[$('manage-excluded'),$('library-management')]));move('r6-source-records','data');move('legacy-entry','data');move('product-diagnostics','data');
  settingsDetails=installSettingsDetails({dataGroup:groups.get('data'),language,backup});
- about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language,readUpdateStatus:()=>request('PAIA_SETTINGS_UPDATE_STATUS'),checkForUpdate:typeof chrome.runtime.requestUpdateCheck==='function'?()=>checkInstallationUpdate(chrome.runtime,chrome.storage.local):undefined});
+ about=mountSettingsAbout(groups.get('about'),{version:chrome.runtime.getManifest().version,language,send:request,readUpdateStatus:()=>request('PAIA_SETTINGS_UPDATE_STATUS'),checkForUpdate:typeof chrome.runtime.requestUpdateCheck==='function'?()=>checkInstallationUpdate(chrome.runtime,chrome.storage.local):undefined});
  const orderHost=$('archive-order-host');if(orderHost)orderHost.append(archiveOrderSettings.element());activateGroup(compact()?'index':'content',{history:false});
 }
 export function syncSettingsCopy(root=document){for(const el of root.querySelectorAll('[data-settings-zh]')){const text=copy(el.dataset.settingsZh,el.dataset.settingsEn);if(el.textContent!==text)el.textContent=text;}}
@@ -125,3 +126,6 @@ export function presentSettingsPreferences({visible=false}={}){const opening=vis
 export {presentSettingsRecovery} from './maintenance-recovery.js';
 
 export function canLeaveSettingsCapture(){return captureConsent?.canLeave()!==false;}
+
+export function leaveSettingsFeedback(){return about?.leave()??Promise.resolve(true);}
+export function settingsFeedbackEditor(){return about?.feedback?.session??null;}

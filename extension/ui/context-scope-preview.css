@@ -1,0 +1,4 @@
+.context-scope-preview{margin:0 0 0 auto;inset:0;max-height:100dvh;height:100dvh;width:min(42rem,100%);max-width:100%;box-sizing:border-box;overflow:auto;}
+.context-scope-preview header{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.context-scope-preview-body{display:grid;gap:1rem;min-width:0;}
+.context-scope-preview-body .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;}

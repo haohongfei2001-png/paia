@@ -1,3 +1,4 @@
+import {validFeedbackDraft} from '../recovery-draft.js';
 import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {rootReadAuthority,invalidRootRead,validateRootRead,compactTopic,compactSearchResult} from './root-read.js';
 import {thoughtTopicGenerationMatches} from '../thought-read-index.js';
@@ -99,6 +100,7 @@ export class OrganizerStore extends LibraryDocumentsStore {
  async setOrganizerControls(changes){return setOrganizerControls(this,changes);}
  async recoveryDraftEpoch(){return this.run(()=>this.repository.transaction(false,async t=>(await t.get('meta','recovery-restore-epoch'))?.value||'initial',['meta']));}
  async recoveryDraftSourceIds(draft={}){
+  if(draft.kind==='settings_feedback'){if(!validFeedbackDraft(draft)||Object.keys(draft).some(key=>!['kind','ownerId','token','operation','sourceRecordIds','epoch','version','updatedAt','expiresAt'].includes(key)))reject('INVALID_REQUEST');return [];}
   const {kind,operation={},ownerId,sourceRecordIds=[]}=draft,edit=operation.edit;
   if(!idOK(ownerId)||!Array.isArray(sourceRecordIds)||sourceRecordIds.length>2000||sourceRecordIds.some(id=>!idOK(id)))reject('INVALID_REQUEST');
   return this.run(()=>this.repository.transaction(true,async t=>{

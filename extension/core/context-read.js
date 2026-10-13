@@ -68,14 +68,19 @@ function boundedReader(transaction,compare){
  * cover whole-bound user Inputs only, not AI Thought prose or Archive tails.
  */
 export class ContextReadService {
- #s;#cards;#access;#verifier;#cursors=new Map();
- constructor(store,{connectionVerifier=null}={}){
-  this.#s=store;this.#cards=new ContextCardsService(store);this.#access=new ContextTopicAccessService(store);this.#verifier=connectionVerifier;
+ #s;#cards;#access;#verifier;#previewCapability;#cursors=new Map();
+ constructor(store,{connectionVerifier=null,localPreviewCapability=null}={}){
+  this.#s=store;this.#cards=new ContextCardsService(store);this.#access=new ContextTopicAccessService(store);this.#verifier=connectionVerifier;this.#previewCapability=plain(localPreviewCapability)?localPreviewCapability:null;
  }
  shallow(caller,options={}){return this.#run('shallow',caller,options);}
  topics(caller,options={}){return this.#run('topics',caller,options);}
  searchTopic(caller,options={}){return this.#run('searchTopic',caller,options);}
  readTopic(caller,options={}){return this.#run('readTopic',caller,options);}
+ async preview(capability,request){
+  const local=result=>({...result,mode:'local_scope_preview',externalAllowed:false,sent:false});
+  if(!this.#previewCapability||capability!==this.#previewCapability||!exact(request,['kind','options'])||!['shallow','topics','searchTopic','readTopic'].includes(request.kind))return local(unavailable('invalid_request'));
+  return local(await this.#run(request.kind,capability,request.options,true));
+ }
  async #verify(caller){
   const verifier=this.#verifier;
   need(plain(caller)&&typeof verifier?.verify==='function'&&typeof verifier?.isCurrent==='function','connection_unavailable');
@@ -104,9 +109,9 @@ export class ContextReadService {
   need(this.#access.ready(),'not_ready');
   return this.#s.repository.transaction(false,fn,stores);
  }
- async #snapshot(deep,t){
+ async #snapshot(deep,t,preview=false){
   need(this.#access.ready(),'not_ready');
-  const admission=await this.#access.admission(t,undefined,{scope:deep}),cards=await this.#cards.row(t),choices=deep?await this.#access.row(t):null;
+  const admission=await this.#access.admission(t,undefined,{scope:deep}),cards=await this.#cards.row(t),choices=deep||preview?await this.#access.row(t):null;
   const authority=deep?admission.authority:await rootReadAuthority(t);
   // Only body-free canonical revisions are retained by cursors. Every ordinary
   // content/source/legacy write also advances rootReadAuthority's generation.
@@ -161,21 +166,21 @@ export class ContextReadService {
    return [...inputs.values()];
   });
  }
- async #run(kind,caller,input){
+ async #run(kind,caller,input,preview=false){
   let timer;const attempt={expired:false};
-  try{return await Promise.race([this.#execute(kind,caller,input,attempt),new Promise(resolve=>{timer=setTimeout(()=>{attempt.expired=true;resolve(unavailable('timeout'));},CONTEXT_READ_LIMITS.requestMs);})]);}
+  try{return await Promise.race([this.#execute(kind,caller,input,attempt,preview),new Promise(resolve=>{timer=setTimeout(()=>{attempt.expired=true;resolve(unavailable('timeout'));},CONTEXT_READ_LIMITS.requestMs);})]);}
   catch(error){return failure(error);}
   finally{clearTimeout(timer);}
  }
- async #execute(kind,caller,input,attempt){
-  const o=this.#options(kind,input),deep=kind!=='shallow',signature=JSON.stringify([kind,o.topicId,o.query,o.chunkSize]);
+ async #execute(kind,caller,input,attempt,preview){
+  const o=this.#options(kind,input),deep=kind!=='shallow',signature=JSON.stringify([preview?'local_scope_preview':'external',kind,o.topicId,o.query,o.chunkSize]);
   const now=Date.now();for(const [key,value]of this.#cursors)if(value.expiresAt<=now)this.#cursors.delete(key);
   const previous=o.cursor?this.#cursors.get(o.cursor):null;
   if(o.cursor)need(previous&&previous.caller===caller&&previous.signature===signature,'stale_cursor');
-  const receipt=await this.#verify(caller);this.#current(caller,receipt);
-  if(previous)need(previous.connection===identity(receipt),'stale_cursor');
+  const receipt=preview?null:await this.#verify(caller);if(!preview)this.#current(caller,receipt);
+  if(previous)need(previous.connection===(preview?'local_scope_preview':identity(receipt)),'stale_cursor');
   need(this.#access.ready(),'not_ready');
-  const captured=await this.#read(t=>this.#snapshot(deep,t),['meta']);
+  const captured=await this.#read(t=>this.#snapshot(deep,t,preview),['meta']);
   if(previous)need(previous.fence===captured.fence,'stale_cursor');
   need(captured.cards.access.global.enabled,'global_off');
   if(deep)need(captured.cards.access.inputs.enabled,'inputs_off');
@@ -232,14 +237,15 @@ export class ContextReadService {
   // Reverify connection after all async material work; then read local state
   // after that await, and perform the synchronous host fence immediately before
   // return. Late verifier callbacks cannot release a timed-out attempt.
-  const current=await this.#verify(caller);need(identity(current)===identity(receipt),'connection_changed');
-  const latest=await this.#read(t=>this.#snapshot(deep,t),['meta']);
-  need(latest.fence===captured.fence,'stale_authority');need(!attempt.expired,'timeout');this.#current(caller,current);
+  const scopeVersion=preview?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(captured.fence))),x=>x.toString(16).padStart(2,'0')).join(''):null;
+  const current=preview?null:await this.#verify(caller);if(!preview)need(identity(current)===identity(receipt),'connection_changed');
+  const latest=await this.#read(t=>this.#snapshot(deep,t,preview),['meta']);
+  need(latest.fence===captured.fence,'stale_authority');need(!attempt.expired,'timeout');if(!preview)this.#current(caller,current);
   let nextCursor=null;
   if(!complete){
    while(this.#cursors.size>=CONTEXT_READ_LIMITS.cursors)this.#cursors.delete(this.#cursors.keys().next().value);
-   nextCursor=crypto.randomUUID();this.#cursors.set(nextCursor,{caller,signature,connection:identity(current),fence:captured.fence,position,expiresAt:Math.min(Date.now()+CONTEXT_READ_LIMITS.cursorMs,current.expiresAt)});
+   nextCursor=crypto.randomUUID();this.#cursors.set(nextCursor,{caller,signature,connection:preview?'local_scope_preview':identity(current),fence:captured.fence,position,expiresAt:Math.min(Date.now()+CONTEXT_READ_LIMITS.cursorMs,preview?Infinity:current.expiresAt)});
   }
-  return {available:true,reason:'read_ready',items,nextCursor,complete,coverage:kind==='readTopic'?'whole_bound_user_inputs':kind==='searchTopic'?'whole_bound_user_input_matches':kind==='topics'?'permitted_topics':'open_context_items',externalAllowed:true};
+  return {available:true,reason:'read_ready',items,nextCursor,complete,coverage:kind==='readTopic'?'whole_bound_user_inputs':kind==='searchTopic'?'whole_bound_user_input_matches':kind==='topics'?'permitted_topics':'open_context_items',externalAllowed:!preview,...(preview?{scopeVersion}:{} )};
  }
 }
