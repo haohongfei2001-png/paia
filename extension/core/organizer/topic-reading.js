@@ -132,6 +132,8 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   topicId,sort,cursor:cursorView(cursor),limit,direction,
   anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
  });
+ // Fence tracked material and layout reads as well as paired body hydration.
+ const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
  if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
@@ -152,7 +154,6 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  }));
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
- const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
  const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
  // Keep at most two existing, fully fenced reads in flight. Their result
  // order remains descriptor order; no body cache survives this request.

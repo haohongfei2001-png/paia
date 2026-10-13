@@ -48,3 +48,11 @@ test('a real synthetic Source purge during paired hydration cannot return cached
  f.s.readingEntry=async id=>{const entry=await original(id);if(!purged&&id===target){purged=true;await f.s.permanentDelete(sourceId);}return entry;};
  const result=await topicReadingPage(f.s,options);assert.equal(purged,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);assert.equal(await f.s.repository.transaction(false,t=>t.get('records',sourceId)),undefined);
 });
+
+test('a real edit after tracked material is read invalidates the entire reading response',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const target=before.items[0].entry.id,original=f.s.trackedLibraryEntries.bind(f.s);let edited=false;
+ f.s.trackedLibraryEntries=async args=>{const tracked=await original(args);const current=await f.s.entry(target);const result=await f.s.editLibraryFields({id:target,expectedRevision:current.revision,expectedFieldRevisions:current.fieldRevisions,changes:{note:'SYNTHETIC tracked boundary edit'},operationId:crypto.randomUUID()});assert.notEqual(result.conflict,true);edited=true;return tracked;};
+ const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(edited,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);assert.equal((await f.s.entry(target)).note,'SYNTHETIC tracked boundary edit');
+});
