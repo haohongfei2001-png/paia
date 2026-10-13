@@ -1,4 +1,5 @@
 import {request,element} from './common.js';
+import {ContextTopicViewer} from './context-topic-viewer.js';
 import {ContextTopicCommitSession} from './context-topic-commit.js';
 
 const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
@@ -20,7 +21,7 @@ function pageValid(page){
 // connection here. Saved selection and present eligibility remain separate.
 export class ContextTopicInputs {
  constructor({host,access,send=request,onStateChange=()=>{}}){
-  this.send=send;this.access=access;this.onStateChange=onStateChange;this.active=true;this.generation=0;this.rows=new Map();this.nodes=new Map();this.order=[];this.focusId=null;this.focusIntent=null;this.busy=false;this.loading=false;this.failedRead=false;this.lastAttempt=null;this.commit=new ContextTopicCommitSession(send);this.query='';this.selectedOnly=false;this.composing=false;
+  this.send=send;this.access=access;this.onStateChange=onStateChange;this.active=true;this.generation=0;this.rows=new Map();this.nodes=new Map();this.openNodes=new Map();this.rowNodes=new Map();this.viewer=null;this.order=[];this.focusId=null;this.openFocusId=null;this.focusIntent=null;this.busy=false;this.loading=false;this.failedRead=false;this.lastAttempt=null;this.commit=new ContextTopicCommitSession(send);this.query='';this.selectedOnly=false;this.composing=false;
   this.root=element('div','context-inputs');this.note=element('p','topics-note');this.field=element('div','topic-field');this.field.setAttribute('role','group');this.field.setAttribute('aria-label',copy('思想库主题','Thought Library Topics'));
   this.footnote=element('p','topics-note',copy('新主题默认仅自己可见。','New Topics are private by default.'));this.status=element('div','context-notice');this.status.setAttribute('role','status');this.createFilters();this.root.append(this.note,this.filters,this.filterStatus,this.field,this.footnote,this.status);host.append(this.root);
   this.field.addEventListener('keydown',event=>this.move(event));
@@ -52,7 +53,8 @@ export class ContextTopicInputs {
   for(const node of [this.searchField,this.searchSubmit,this.clearFilter,this.allFilter,this.selectedFilter])node.disabled=this.loading||this.busy||this.failedRead||this.pending;
   this.filterStatus.textContent=this.failedRead?copy('主题名称暂不可用，请重试读取。','Topic names are unavailable. Retry loading.'):(this.query||this.selectedOnly)&&!visible.length?copy('没有匹配的主题。仅搜索主题名称。','No matching Topics. Search covers Topic names only.'):this.query?copy('仅搜索主题名称，不搜索正文。','Search covers Topic names, not content.'):'';
   if(!this.loading&&!this.busy&&!this.failedRead){const row=this.rows.get(this.focusId);if(!row||!shown.has(this.focusId)||(row.enabled?!row.canDisable:!row.canEnable))this.focusId=visible.find(id=>{const value=this.rows.get(id);return value.enabled?value.canDisable:value.canEnable;})||null;}
-  for(const [id,node]of this.nodes){const row=this.rows.get(id);if(!row)continue;node.hidden=!shown.has(id);node.dataset.on=String(row.enabled);node.dataset.paused=String(row.enabled&&(!row.policyAllowed||!this.access.global.enabled||!this.access.inputs.enabled));node.setAttribute('aria-pressed',String(row.enabled));node.tabIndex=id===this.focusId?0:-1;node.disabled=this.loading||this.busy||this.failedRead||(row.enabled?!row.canDisable:!row.canEnable);node.title=row.enabled&&!row.policyAllowed?explain(row.reason):copy('仅保存主题选择；外部读取目前不可用。','Saves the Topic choice only. External reading is unavailable.');}
+  if(!shown.has(this.openFocusId))this.openFocusId=this.focusId||visible[0]||null;
+  for(const [id,node]of this.nodes){const row=this.rows.get(id);if(!row)continue;node.hidden=!shown.has(id);this.rowNodes.get(id).hidden=node.hidden;this.openNodes.get(id).tabIndex=id===this.openFocusId?0:-1;this.openNodes.get(id).disabled=this.loading||this.busy||this.failedRead||this.pending;node.dataset.on=String(row.enabled);node.dataset.paused=String(row.enabled&&(!row.policyAllowed||!this.access.global.enabled||!this.access.inputs.enabled));node.setAttribute('aria-pressed',String(row.enabled));node.tabIndex=id===this.focusId?0:-1;node.disabled=this.loading||this.busy||this.failedRead||(row.enabled?!row.canDisable:!row.canEnable);node.title=row.enabled&&!row.policyAllowed?explain(row.reason):copy('仅保存主题选择；外部读取目前不可用。','Saves the Topic choice only. External reading is unavailable.');}
  }
  notify(text,action=null){this.status.replaceChildren(element('span','',text));if(action)this.status.append(button(action.text,action.run));}
  rememberFocus(topicId=null){
@@ -68,7 +70,7 @@ export class ContextTopicInputs {
  }
  async refresh(){
   if(!this.active||this.busy||this.pending)return false;
-  this.rememberFocus();const generation=++this.generation;this.loading=true;this.failedRead=false;this.paint();
+  this.viewer?.invalidate();this.rememberFocus();const generation=++this.generation;this.loading=true;this.failedRead=false;this.paint();
   try{
    const rows=[],ids=new Set(),cursors=new Set();let cursor=null,epoch=null,authority=null,selectedCount=null;
    do{
@@ -89,25 +91,32 @@ export class ContextTopicInputs {
  }
  receive(rows,previousFocus=null){
   const focused=document.activeElement?.dataset?.topicId||previousFocus,oldIndex=this.order.indexOf(focused);this.rows=new Map(rows.map(row=>[row.topicId,row]));this.order=rows.map(row=>row.topicId);
-  for(const [id,node]of this.nodes)if(!this.rows.has(id)){node.remove();this.nodes.delete(id);}
+  for(const [id,node]of this.nodes)if(!this.rows.has(id)){this.rowNodes.get(id)?.remove();this.rowNodes.delete(id);this.openNodes.delete(id);this.nodes.delete(id);}
   for(const [index,row]of rows.entries()){
    let node=this.nodes.get(row.topicId);
-   if(!node){node=button('',()=>void this.toggle(row.topicId));node.className='topic-access';node.dataset.topicId=row.topicId;node.addEventListener('focus',()=>{this.focusId=row.topicId;this.paint();});node.append(element('span','topic-name'),element('span','state-dot'));this.nodes.set(row.topicId,node);}
-   node.querySelector('.topic-name').textContent=row.name;
-   if(this.field.children[index]!==node)this.field.insertBefore(node,this.field.children[index]||null);
+   if(!node){node=button('',()=>void this.toggle(row.topicId));node.className='topic-access';node.dataset.topicId=row.topicId;node.addEventListener('focus',()=>{this.focusId=row.topicId;this.openFocusId=row.topicId;this.paint();});node.append(element('span','topic-name'),element('span','state-dot'));this.nodes.set(row.topicId,node);const line=element('div','context-topic-row'),open=button('',()=>void this.openTopic(row.topicId));open.className='context-topic-open';open.dataset.topicId=row.topicId;open.addEventListener('focus',()=>{this.openFocusId=row.topicId;this.paint();});line.append(open,node);this.openNodes.set(row.topicId,open);this.rowNodes.set(row.topicId,line);}
+   node.querySelector('.topic-name').textContent=row.name;this.openNodes.get(row.topicId).textContent=row.name;
+   const line=this.rowNodes.get(row.topicId);if(this.field.children[index]!==line)this.field.insertBefore(line,this.field.children[index]||null);
   }
   this.empty?.remove();this.empty=null;
   if(!rows.length){this.empty=element('p','empty-detail',copy('思想库还没有可选择的主题。','There are no Topics to choose yet.'));this.field.append(this.empty);}
   if(!this.rows.has(this.focusId))this.focusId=this.order[Math.max(0,Math.min(oldIndex,this.order.length-1))]||null;
   this.paint();
  }
+ async openTopic(topicId){
+  if(!this.active||this.loading||this.busy||this.failedRead||this.pending||this.composing||!this.rows.has(topicId)||!this.visibleIds().includes(topicId))return false;
+  this.viewer?.close();const row=this.rows.get(topicId);
+  this.viewer=new ContextTopicViewer({host:this.root,send:this.send,topicId,name:row.name,onClose:()=>{this.viewer=null;const target=this.openNodes.get(topicId);if(this.active&&target&&!target.disabled&&!this.rowNodes.get(topicId)?.hidden)target.focus({preventScroll:true});}});
+  return this.viewer.read();
+ }
  move(event){
+  const reading=event.target?.classList?.contains('context-topic-open');
   const order=this.visibleIds(),id=event.target?.closest?.('[data-topic-id]')?.dataset.topicId,index=order.indexOf(id);if(index<0||this.loading||this.busy||event.isComposing||event.keyCode===229||event.altKey||event.ctrlKey||event.metaKey)return;
   let next;
   if(event.key==='Home')next=0;else if(event.key==='End')next=order.length-1;else if(['ArrowLeft','ArrowUp'].includes(event.key))next=Math.max(0,index-1);else if(['ArrowRight','ArrowDown'].includes(event.key))next=Math.min(order.length-1,index+1);else return;
   event.preventDefault();const step=event.key==='Home'?1:event.key==='End'?-1:next>=index?1:-1;
-  while(next>=0&&next<order.length&&this.nodes.get(order[next])?.disabled)next+=step;
-  const target=this.nodes.get(order[next]);if(target&&!target.disabled){this.focusId=order[next];this.paint();target.focus();target.scrollIntoView({block:'nearest'});}
+  const nodes=reading?this.openNodes:this.nodes;while(next>=0&&next<order.length&&nodes.get(order[next])?.disabled)next+=step;
+  const target=nodes.get(order[next]);if(target&&!target.disabled){if(reading)this.openFocusId=order[next];else this.focusId=order[next];this.paint();target.focus();target.scrollIntoView({block:'nearest'});}
  }
  async toggle(id){
   if(!this.active||this.busy||this.loading||this.failedRead)return false;
@@ -133,6 +142,6 @@ export class ContextTopicInputs {
  }
  unconfirmed(){this.notify(copy('选择尚未确认，请核对上次操作。','The choice is unconfirmed. Check the previous operation.'),{text:copy('核对上次操作','Check previous operation'),run:()=>{const change=this.commit.pending?.change||this.lastAttempt;if(change)void this.save(change);else void this.refresh();}});}
  leave(){if(this.busy||this.pending){this.unconfirmed();return false;}this.suspend();return true;}
- suspend(){++this.generation;this.loading=false;this.focusIntent=null;}
- close(){this.active=false;++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
+ suspend(){this.viewer?.close();++this.generation;this.loading=false;this.focusIntent=null;}
+ close(){this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
 }

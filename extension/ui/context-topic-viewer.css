@@ -1,0 +1,12 @@
+/* CTX4 PRE_REFINEMENT §2: 530px drawer; retained topic-action-dialog
+   padding/backdrop and Context connect-consent h2 role, current semantic palette. */
+.context-topic-row{display:flex;align-items:center;gap:8px;max-width:100%}
+.context-topic-open{border:0;background:transparent;color:var(--text);text-align:left;overflow-wrap:anywhere;font:inherit;cursor:pointer}
+.context-topic-row .topic-access .topic-name{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
+.context-topic-row .topic-access{gap:0;flex:none;min-width:44px}
+.context-topic-row[hidden]{display:none!important}
+.context-topic-viewer{position:fixed;inset:0 0 0 auto;margin:0;width:min(530px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;box-sizing:border-box;border-radius:0;background:var(--bg);color:var(--text);border:0;border-left:1px solid var(--line);overflow:auto}
+.context-topic-viewer>header,.context-topic-viewer-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.context-topic-viewer h2{font:500 23px/32px var(--title-font);overflow-wrap:anywhere}
+.context-topic-viewer .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--prose-ink,var(--text));font-size:var(--paia-prose-size,17px);line-height:1.65;max-width:var(--paia-prose-width,680px)}
+.context-topic-viewer-status{color:var(--muted);font:12px/20px var(--font)}
