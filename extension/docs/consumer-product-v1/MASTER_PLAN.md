@@ -1,3 +1,11 @@
+# Current execution — local presentation completion (2026-10-13)
+
+PR282 is merged into formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after exact head374807c5 passed Full38344601851 and independent review. Earlier ef68 failures/cancellation are retained below, not current unqualified pointers. Exact merged-main gates remain separate. Candidate0.49 implements the approved Context/Settings/Thought/IAH refinements and Source/History rhythm; actual primary-navigation six cases and Source/History four cases pass. Original Topic Content release deepDeparture currently fails during continuing scroll and is under actual-call diagnosis; no assertion or timeout waiver. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md).
+
+Continue that existing combination plus independently scoped AI-COST06 insertion requalification and saved-AI-history lifecycle work. No new product queue or scope. Sync new features remain paused, Pro264/CI independently owned; all seven plans, historical evidence and external final acceptance remain. No new user installation or overall completion is claimed.
+
+## Preserved preceding checkpoints
+
 # Current combined local product candidate — 2026-10-13
 
 Formal main remains6a55fa7a; PR282 ef68 is unmerged after Full38341608747 failed Browser3 (two original AI-COST foundation case timeouts) and cancelled Sync native. Preserve failures; independent diagnosis/repair is active and no cancelled gate is passed. UI0.49 candidate integrates approved compact Context/Settings/Root, minimal consent, shared reading rhythm, IAH1.3 single browse-source navigation and complete meaningful Topic activity ordering. Independent scoped code reviews pass; real primary-navigation combination acceptance and exact-head/main gates remain pending. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md). This is not an installed update, an overall seven-plan completion or a new product plan. Sync new features remain paused; Pro264/CI untouched.
