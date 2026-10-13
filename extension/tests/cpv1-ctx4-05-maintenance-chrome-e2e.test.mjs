@@ -559,12 +559,9 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
  const verifier={async verify(actual,store,scope){return actual===caller&&store===f.s?{version:1,store:f.s,accountId:'synthetic-account',processorId:'synthetic-processor',authorizationGeneration:state.generation,scope,processing:state.processing,expiresAt:state.expiresAt,revocationSignal:contextAbort.signal}:null;},isCurrent(actual,r,store){return actual===caller&&store===f.s&&r.authorizationGeneration===state.generation;}};
  let acquired=null;
  const window={async acquire(r){state.acquires++;if(acquired&&acquired.requestDigest!==r.requestDigest)throw Object.assign(Error('window consumed'),{code:'UNAVAILABLE'});return acquired??=Object.freeze({version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-window',reservationId:'synthetic-reservation',tier,requestDigest:r.requestDigest,revocationSignal:clock.signal});},isCurrent(r){return state.windowCurrent&&r===acquired;}};
- const provider={describe:()=>({providerId:'synthetic-maintenance',version:'1',executionKind:'fixture'}),async execute(r){calls.push(structuredClone(r));assert.equal(r.type,'AI_MAINTENANCE');assert.equal(r.automaticRetries,0);assert.ok(r.coverage.length<=50);assert.ok(!JSON.stringify(r).includes('working input'));
+ const provider={describe:()=>({providerId:'synthetic-maintenance',version:'1',executionKind:'fixture'}),async execute(r){calls.push(structuredClone(r));assert.equal(r.type,'AI_MAINTENANCE');assert.equal(r.automaticRetries,0);assert.ok(r.coverage.length<=50);assert.equal(r.material?.purpose,'AI_MAINTENANCE');assert.equal(r.material.version,1);assert.ok(r.material.inputs.length<=20);for(const i of r.material.inputs)assert.deepEqual(Object.keys(i).sort(),['body','inputId','ref','revision']);assert.deepEqual([...new Set(r.coverage.map(u=>JSON.parse(u.key)[1]))].sort(),r.material.inputs.map(i=>i.inputId).sort());
   if(state.held)await state.held;if(providerMode==='throw')throw Error('PRIVATE_PROVIDER_BODY');if(providerMode==='empty')return {accepted:false};
-  const scope=r.coverage.filter(u=>u.facet==='topic').map(u=>({inputId:JSON.parse(u.key)[1],role:'primary',selectedFields:['body']}));
-  const retrieval=new TopicIdentityRetrieval(f.s,{resolveProcessing:async(_t,q)=>({...processing,inputIds:[...q.inputIds],topicIds:[...q.topicIds]})}),prepared=await retrieval.guard.prepare(scope),material=await f.s.repository.transaction(false,t=>readFormationEvidence(f.s,t,prepared)),identities=[];let cursor=null;
-  do{const page=await retrieval.page({scope,cursor});identities.push(...page.items.filter(i=>i.kind==='identity'));cursor=page.nextCursor;}while(cursor);
-  const view={inputs:material.inputs,identities,sections:[]};
+  const view={inputs:r.material.inputs.map(i=>({id:i.inputId,role:'primary',revision:i.revision,fields:{body:i.body}})),identities:r.material.identities,sections:r.material.sections};
   const proposed=assessment(view,{name:'Synthetic maintenance object '+calls.length,evidence:view.inputs.map(i=>citation(i)),entries:view.inputs.map(i=>({span:citation(i),type:'idea',additional:[]}))});
   const response={accepted:true,operationReceiptId:'synthetic-physical-'+r.childOperationId,fixture:{binding:{logicalJobId:r.logicalJobId,childOperationId:r.childOperationId,operationReceiptId:'synthetic-physical-'+r.childOperationId},topicAssessment:proposed,contextProposal:{operation:'ADD',card:'info',body:'PRIVATE_CONTEXT_BODY '+calls.length,section:'Synthetic maintenance',inputIds:r.coverage.filter(u=>u.facet==='context').map(u=>JSON.parse(u.key)[1])},token:'PRIVATE_PROVIDER_BODY '+calls.length}};const actual=JSON.parse(JSON.stringify(response));responses.push(actual);return actual;
  }};
@@ -587,11 +584,42 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
    return {binding:adapterMode==='swap-context'?{...response.fixture.binding,childOperationId:'unrelated-child'}:response.fixture.binding,value:groups};
   }
  }};
- const constructor={provider,service,window,authority},session=new LocalMaintenanceSession(f.s,constructor);
+ const materialExpiry=Date.now()+600000,materialProcessing={resolve:async(_t,scope)=>({version:1,store:f.s,caller,scope,epoch:'synthetic-processing-v1',processing:state.processing&&processing.allowed,expiresAt:materialExpiry,revocationSignal:contextAbort.signal}),isCurrent:(receipt,store)=>store===f.s&&receipt.caller===caller&&state.processing&&processing.allowed&&!contextAbort.signal.aborted};
+ const constructor={provider,service,window,authority,processing:materialProcessing},session=new LocalMaintenanceSession(f.s,constructor);
  return {...f,session,constructor,provider,service,window,authority,verifier,caller,clock,contextAbort,permission,processing,state,calls,responses,decoded};
 }
 
 
+  globalThis.__maintenanceMaterialDenied=async mode=>{
+   const f=await maintenanceFixture();try{
+    if(mode==='material-missing'||mode==='material-expired'){
+     f.session.dispose();const original=f.constructor.processing;
+     f.session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:mode==='material-missing'?null:{...original,resolve:async(t,q)=>({...await original.resolve(t,q),expiresAt:Date.now()-1})}});
+    }
+    const handle=await f.session.prepare(options);
+    if(mode==='processing')f.processing.allowed=false;
+    else if(mode==='context-processing')f.state.processing=false;
+    else if(mode==='context-revoke')f.contextAbort.abort();
+    else if(mode==='exclusion'){const first=(await f.s.snapshot()).library.blocks[0],b=await f.s.input(first.id);await f.s.editDocument({operationId:op(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:b.libraryText,note:b.note,excluded:true}]});}
+    let result,code;try{result=await f.session.run(handle);}catch(e){code=e.code;}
+    assert.equal(code??result?.state,mode==='exclusion'?'CANCELLED':'UNAVAILABLE','explicit processing denial for '+mode);assert.equal(f.calls.length,0);assert.equal((await read(f.s,'organizerUsage')).filter(r=>r.attemptCount>0).length,0);assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED').length,0);assert.equal((await read(f.s,'topics')).length,0);
+    return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,mode,physicalAttempts:0,acks:0};
+   }finally{f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('fixture cleanup blocked'));});}
+  };
+  globalThis.__maintenanceMaterialNative=async()=>{
+   const f=await maintenanceFixture();
+   try{
+    const first=(await f.s.snapshot()).library.blocks[0],working='CURRENT native Working é😀 final sentence';
+    const b=await f.s.input(first.id);await f.s.editDocument({operationId:op(),documentId:b.documentId,blocks:[{id:b.id,expectedRevision:b.revision,libraryText:working,note:'PRIVATE NOTE NOT IN MATERIAL',excluded:b.excluded}]});
+    await f.s.capture({epoch:(await f.s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'second-native-conversation',url:'https://chatgpt.com/c/second-native-conversation',title:'Not an outgoing title'},messages:[{sourceMessageId:'second-native-message',pageOrder:1,originalText:'Second conversation complete Working input'}]});
+    const before=await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),handle=await f.session.prepare(options),result=await f.session.run(handle);
+    assert.equal(result.state,'COMMITTED');assert.equal(f.calls.length,1);const request=f.calls[0];assert.equal(request.material.inputs.length,2);assert.equal(request.material.inputs.find(i=>i.inputId===first.id).body,working);assert.ok(request.material.inputs.some(i=>i.body==='Second conversation complete Working input'));
+    const wire=JSON.stringify(request);assert.ok(!wire.includes('Synthetic explicit working input'));assert.ok(!wire.includes('PRIVATE NOTE NOT IN MATERIAL'));assert.ok(!wire.includes('https://chatgpt.com/c/'));assert.ok(!wire.includes('Not an outgoing title'));
+    assert.deepEqual(await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),before);const ack=(await read(f.s,'organizerWorkItems')).filter(x=>x.state==='ACKNOWLEDGED');assert.equal(ack.length,4);assert.equal((await read(f.s,'topics')).length,1);assert.equal((await read(f.s,'thoughts')).length,2);
+    for(const n of ['organizerJobs','organizerUsage','organizerWorkItems'])assert.ok(!JSON.stringify(await read(f.s,n)).includes(working));
+    return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,currentWorking:true,conversations:2,physicalAttempts:1,acks:4,sourceUnchanged:true,noBodyInUsage:true};
+   }finally{f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('fixture cleanup blocked'));});}
+  };
   globalThis.__maintenanceNative=async ({phase,mode='storage',adapterMode='valid',denied=false})=>{
    assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
    const f=await maintenanceFixture({adapterMode}),original=f.s.repository.transaction.bind(f.s.repository);let reached=false,rolledBack=false,transactionCompleted=false;
@@ -645,6 +673,8 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    await record(await page.evaluate(name=>globalThis.__ctx4Native.run(name),name));
   });
   await installMaintenanceSession(page);
+  for(const mode of ['processing','context-processing','context-revoke','exclusion','material-missing','material-expired'])await t.test('unified-maintenance-material-denied-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__maintenanceMaterialDenied(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-material-denied-'+mode+'.json'),JSON.stringify(report,null,2));});
+  await t.test('unified-maintenance-current-working-cross-conversation',{timeout:20000},async()=>{const report=await page.evaluate(()=>globalThis.__maintenanceMaterialNative());assert.equal(report.passed,true);await writeFile(join(output,'maintenance-material.json'),JSON.stringify(report,null,2));});
   for(const scenario of [{denied:true},{}, {adapterMode:'swap'}, ...['item','receipt','ack','job','generation'].map(phase=>({phase})), {phase:'generation',mode:'revoke'},{phase:'generation',mode:'cancel'},{phase:'generation',mode:'expiry'},{phase:'topic-domain'},{phase:'topic-ack'}])await t.test('unified-maintenance-'+JSON.stringify(scenario),{timeout:20000},async()=>{
    const report=await page.evaluate(scenario=>globalThis.__maintenanceNative(scenario),scenario);assert.equal(report.passed,true);
    await writeFile(join(output,'maintenance-'+(scenario.denied?'denied':scenario.phase||scenario.adapterMode||'complete')+'-'+(scenario.mode||'storage')+'.json'),JSON.stringify(report,null,2));
