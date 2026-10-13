@@ -46,10 +46,10 @@ async function sourceJourney(h){
  await page.locator('#ux-language').selectOption('en');await eventually(()=>page.evaluate(()=>document.documentElement.lang==='en'));assert.deepEqual(await page.locator('.ux-settings-nav button span').allTextContents(),['Input Archive','Reading & appearance','AI & prompts','Privacy & access','Data & recovery','About PAIA']);await page.locator('#ux-language').selectOption('zh-CN');await eventually(()=>page.evaluate(()=>document.documentElement.lang==='zh-CN'));
  await rpc(page,'SET_ENABLED',{enabled:false});await page.reload();await page.locator('#settings-panel').waitFor();assert.equal((await rpc(page,'GET_STATUS')).enabled,false);await chooseGroup(page,'content');assert.equal(await page.locator('#toggle-capture').getAttribute('aria-checked'),'false');
  await page.setViewportSize({width:390,height:844});await chooseGroup(page,'privacy');await page.evaluate(()=>globalThis.__privacyOwner=document.getElementById('r6-hide-content-previews'));await chooseGroup(page,'data');await chooseGroup(page,'privacy');assert.equal(await page.evaluate(()=>__privacyOwner===document.getElementById('r6-hide-content-previews')),true);assert.equal(await page.locator('#ux-settings-group-back').isVisible(),true);assert.equal(await page.locator('.ux-settings-nav').isVisible(),false);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'dark'}});await eventually(()=>page.evaluate(()=>document.documentElement.dataset.paiaTheme==='dark'));await shot(page,'set2-privacy-390-dark');
- await page.setViewportSize({width:1440,height:900});await rpc(page,'SET_ENABLED',{enabled:true});await settingsReadingSafety(h);await assertNoNetwork(h);
+ await page.setViewportSize({width:1440,height:900});await rpc(page,'SET_ENABLED',{enabled:true});await settingsReadingWithoutSample(h);await settingsReadingSafety(h);await assertNoNetwork(h);
 }
 async function releaseJourney(h){
- const page=h.archive;await consentAndRefreshOrder(page);await page.setViewportSize({width:1440,height:900});await openSettings(page);const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-196)<=2&&Math.abs(geometry.body-680)<=2&&Math.abs(geometry.horizontalGap-44)<=2);await assertOwner(page,'#r6-hide-content-previews','privacy');assert.equal(await page.locator('#r6-complete-export,#filter-advanced').count(),0);await page.setViewportSize({width:390,height:844});await chooseGroup(page,'data');assert.equal(await page.locator('#ux-settings-group-back').isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);await shot(page,'set2-release-data-390');await page.setViewportSize({width:1440,height:900});await settingsReadingSafety(h);await assertNoNetwork(h);
+ const page=h.archive;await consentAndRefreshOrder(page);await page.setViewportSize({width:1440,height:900});await openSettings(page);const geometry=await measureSettingsGeometry(page);assert.ok(Math.abs(geometry.nav-196)<=2&&Math.abs(geometry.body-680)<=2&&Math.abs(geometry.horizontalGap-44)<=2);await assertOwner(page,'#r6-hide-content-previews','privacy');assert.equal(await page.locator('#r6-complete-export,#filter-advanced').count(),0);await page.setViewportSize({width:390,height:844});await chooseGroup(page,'data');assert.equal(await page.locator('#ux-settings-group-back').isVisible(),true);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)<=2);await shot(page,'set2-release-data-390');await page.setViewportSize({width:1440,height:900});await settingsReadingWithoutSample(h);await settingsReadingSafety(h);await assertNoNetwork(h);
 }
 
 test('UIR-04 Settings keeps one six-group owner projection with the adopted directory and compact Back flow in source and built release Chrome',{timeout:300000},async()=>{
@@ -93,3 +93,25 @@ for(const variant of ['source','release'])test(`SET2 compact text and Data local
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'en',appearance:'light'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='en'));await page.setViewportSize({width:1440,height:900});await shot(page,`set2-reflow-${variant}-data-1440-light-en-1x`);await assertNoNetwork(h);
  }finally{await h?.close();}
 });
+
+async function settingsReadingWithoutSample(h){
+  const p=h.archive,title='SYNTHETIC SET2 real reading',body='SYNTHETIC retained original\n\nUnchanged paragraph';
+  await h.open({id:'set2-no-sample',title,base:1609459200,messages:[{id:'set2-no-sample-input',text:body}]},{arrival:'dom-first'});
+  await eventually(async()=>(await h.state()).records.some(row=>row.originalText===body));
+  const {openArchiveWindow}=await import('./harness/archive-navigator.mjs');
+  await p.locator('.sidebar [data-view="library"]').click();await openArchiveWindow(p,{text:title});
+  const field=p.locator('.library-prose').first();await field.waitFor();const inputId=await field.getAttribute('data-edit-id'),before=await rpc(p,'GET_INPUT',{id:inputId});
+  for(const [size,pixels]of [['small','16px'],['standard','17px'],['large','19px'],['xlarge','21px']]){
+   await p.locator('.sidebar [data-view="settings"]').click();await p.locator('#settings-panel').waitFor();await chooseGroup(p,'reading');
+   assert.equal(await p.locator('.ux-reading-example').count(),0,'no hidden or relocated reading sample');
+   assert.doesNotMatch(await p.locator('[data-group="reading"]').textContent(),/留下自己的表达|Keep your words|2026 年 9 月 28 日/);
+   assert.equal(await p.locator('[data-group="reading"] select').count(),5,'all actual preference controls remain');
+   const select=p.locator('#ux-font-size');await eventually(async()=>!await select.isDisabled());await select.selectOption(size);
+   await eventually(async()=>(await rpc(p,'GET_PAGE',{page:{view:'settings'}})).preferences.fontSize===size&&!await select.isDisabled());
+   await p.locator('#ux-settings-back').click();await field.waitFor();
+   assert.equal(await field.getAttribute('data-edit-id'),inputId);assert.equal(await field.evaluate(node=>getComputedStyle(node).fontSize),pixels);
+   assert.deepEqual(await rpc(p,'GET_INPUT',{id:inputId}),before,'font preference never rewrites Working or Source metadata');
+  }
+  await p.reload();await field.waitFor();assert.equal(await field.evaluate(node=>getComputedStyle(node).fontSize),'21px');assert.deepEqual(await rpc(p,'GET_INPUT',{id:inputId}),before);
+  assert.ok((await h.state()).records.some(row=>row.originalText===body));await assertNoNetwork(h);
+}

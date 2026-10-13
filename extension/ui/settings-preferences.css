@@ -132,9 +132,6 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
 #settings-panel .ux-setting-switch[data-on="true"]{border-color:transparent;background:var(--selected);color:var(--focus)}
 #settings-panel .ux-preference-setting>span{max-width:none;flex:1}
 #settings-panel .ux-preference-setting select{max-width:52%;width:auto;min-width:112px;min-height:44px;padding:8px 8px;border:0;background-color:transparent;color:var(--muted);text-align:right;font:400 13px/1.7 var(--font)}
-#settings-panel .ux-reading-example{margin-top:28px;padding:0 0 0 20px;border-left:2px solid var(--line)}
-#settings-panel .ux-reading-example small{display:block;margin:0 0 8px;color:var(--muted);font:400 12px/1.8 var(--font)}
-#settings-panel .ux-reading-example p{margin:0;max-width:var(--paia-prose-width);font:400 var(--paia-prose-size)/1.85 var(--font)}
 #settings-panel .ux-settings-feedback{margin:0;padding:0;color:var(--muted);font:400 12px/1.8 var(--font);overflow-wrap:anywhere}
 #settings-panel .ux-settings-feedback:not(:empty){padding:8px 0}
 #settings-panel .ux-settings-feedback[data-kind="error"]{color:var(--danger)}
@@ -173,7 +170,6 @@ html[data-paia-theme="dark"] .library-action-list,html[data-paia-theme="dark"] #
  #settings-panel{padding-top:20px}
  #settings-panel .ux-settings-group>h2{font-size:24px;line-height:1.46}
  #settings-panel .ux-setting-row,#settings-panel .ux-preference-setting{padding-block:18px;min-height:76px}
- #settings-panel .ux-reading-example{padding-left:16px}
 }
 @media(pointer:coarse){#settings-panel .ux-setting-switch,.thought-reverse-edit-disable{min-height:44px}}
 
