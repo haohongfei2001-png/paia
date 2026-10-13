@@ -4,10 +4,16 @@ import {fail,prefix} from '../thought-model.js';
 // Authority tokens contain only existing mutation/recovery metadata, never text.
 // Existing portable-data generation includes filter intents, time and saved-AI
 // eligibility. No new mutation or filtering policy is introduced.
-export async function rootReadAuthority(t,{search=false}={}){
+export function* planRootReadAuthority(){
  const ids=['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','recovery-restore-epoch','backup-data-generation'];
- const values=[];for(const id of ids)values.push((await t.get('meta',id))?.value??null);
- const filter=await t.get('meta','smart-filter');values.push(['mode','phase','policyEpoch','decisionSequence','filterVersion','policyVersion','classifierVersion'].map(key=>filter?.[key]??null));
+ const values=[];for(const id of ids)values.push((yield id)?.value??null);
+ const filter=yield 'smart-filter';values.push(['mode','phase','policyEpoch','decisionSequence','filterVersion','policyVersion','classifierVersion'].map(key=>filter?.[key]??null));
+ return values;
+}
+export async function rootReadAuthority(t,{search=false}={}){
+ const plan=planRootReadAuthority();let step=plan.next();
+ while(!step.done)step=plan.next(await t.get('meta',step.value));
+ const values=step.value;
  // Partial index pages may be displayed but never certified complete after
  // an in-place rebuild advances behind an already issued cursor.
  if(search){const rebuild=await t.get('meta','library-search-rebuild'),pending=await t.count('libraryMigrationItems','byStatus',prefix([0,'search']));values.push(rebuild?.complete===true&&pending===0);}

@@ -22,6 +22,8 @@ import {inspectHumanUnindexedSearch,prepareOriginalMixedNativeSearch,originalMix
 import {planSearchQueueLocator,planSearchPostingRow,searchOwnerFields} from '../library-search.js';
 import {deltaDescription} from '../ai-usage/delta.js';
 import {planHumanPlacementDescriptor} from '../organizer/topic-reading.js';
+import {qualifiedTopicActivity} from '../organizer/topic-activity.js';
+import {planRootReadAuthority} from '../organizer/root-read.js';
 import {planIndependentExpressionTime,unknownExpressionTime} from '../organizer/expression-time.js';
 import {planThoughtRootProjection,liveTopicKey,planThoughtTopicBuild,planThoughtTopicDescriptorRows,accumulateThoughtTopicDescriptor,completeThoughtTopicProjection} from '../thought-read-index.js';
 import {beginHumanQualificationWork,resizeHumanQualificationLease,retainHumanQualificationLease,releaseHumanQualificationLease} from './human-qualification-budget.js';
@@ -936,7 +938,7 @@ const projectionGeneratorNext=Object.getPrototypeOf(Object.getPrototypeOf((funct
 const projectionCompare=globalThis.IDBFactory?.prototype.cmp,projectionFactory=globalThis.indexedDB;
 const projectionTables=Object.freeze([...humanTables,'libraryMigrationItems','librarySearchTerms','provenance','dependencies']);
 const projectionPrefixes=Object.freeze(['personalTopicName:','topicKeepSeparate:','thought-read-index:','memory:topic:','memory:section:']);
-const projectionPoints=Object.freeze([CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,CONSUMER_PUBLICATION_PENDING_ID,'gate','recovery-restore-epoch','thought-suppression-key','revision-sequence','thought-sequence','thought-library','thought-epoch','library-search-rebuild']);
+const projectionPoints=Object.freeze([CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION,CONSUMER_PUBLICATION_PENDING_ID,'gate','recovery-restore-epoch','thought-suppression-key','revision-sequence','thought-sequence','thought-library','thought-epoch','library-search-rebuild','input-delta-sequence','backup-data-generation','smart-filter']);
 const projectionRequired=()=>fail('BNS_HUMAN_PROJECTION_REQUIRED');
 const projectionUint8=globalThis.Uint8Array,projectionTypedPrototype=Object.getPrototypeOf(projectionUint8.prototype);
 const projectionByteLength=Object.getOwnPropertyDescriptor(projectionTypedPrototype,'byteLength').get,projectionByteTag=Object.getOwnPropertyDescriptor(projectionTypedPrototype,Symbol.toStringTag).get;
@@ -1253,6 +1255,9 @@ function projectionQualify(r,mixed=false){
   const key=liveTopicKey(topic,epoch,actual.timeRevision);
   const seed={id,version:THOUGHT_TOPIC_INDEX_VERSION,timeRevision:actual.timeRevision,activeGeneration:null,activeKey:null,buildingGeneration:null,buildingKey:null,sourceCursor:null,scanned:0,indexed:0};
   const expected=planThoughtTopicBuild(seed,key,actual.activeGeneration),generations=new Set([actual.activeGeneration]);
+  const authority=planRootReadAuthority();let authorityStep=projectionGeneratorNext.call(authority);
+  while(!authorityStep.done)authorityStep=projectionGeneratorNext.call(authority,points[authorityStep.value]);
+  expected.buildingActivityAuthority=JSON.stringify(authorityStep.value);
   // The original reader retains old generations when only its global epoch
   // changes. Qualify them conservatively using the complete SAME current
   // semantic constructors, never by ignoring a prefix or deleting a cache.
@@ -1271,6 +1276,9 @@ function projectionQualify(r,mixed=false){
    const time={sourceSentAt:null,capturedAt:null},rawTime=row.createdAt||null,effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
    const iterator=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
    projectionGeneratorNext.call(iterator);projectionGeneratorNext.call(iterator,expression);const descriptor=projectionGeneratorNext.call(iterator,[]).value;
+   // Reconstruct the current reader's activity from the already pinned native
+   // revision rows; never trust the cached descriptor's activity as evidence.
+   descriptor.activityAt=p.excludedByUser===true||row.quarantineSealed?null:qualifiedTopicActivity(row,expression,rows.revisions);
    if(++descriptors>128)fail('BNS_HUMAN_GRAPH_LIMIT');expected.indexed++;
    for(const generation of generations){const rowIterator=planThoughtTopicDescriptorRows(descriptor,generation);
     for(let item=projectionGeneratorNext.call(rowIterator);!item.done;item=projectionGeneratorNext.call(rowIterator))match(item.value);}
