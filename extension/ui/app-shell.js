@@ -75,7 +75,7 @@ export class AppShellController {
   move(get('archive-root-header'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?(get('archive-root-tools')?.parentElement===get('archive-reader-navigator-slot')?get('archive-root-tools'):get('archive-reader-search-slot')):get('archive-root-tools'));
   move(get('archive-root-tools'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
   move(get('archive-root-overflow'),get(active?'archive-root-header-actions':'archive-root-tools'));
-  move(get('archive-source-scope-label'),active?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
+  move(get('archive-source-scope-label'),get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);
   move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
   this.archiveCompactMenu.hidden=!compact;
