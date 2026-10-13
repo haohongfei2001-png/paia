@@ -1,8 +1,18 @@
+# Current candidate — qualified immediate undo (2026-10-14)
+
+PR284 remains draft, unmerged and uninstalled. TOPIC-05.5 now offers receipt-qualified immediate placement undo; IAH-08 Archive removal undo binds the original journal patch so it cannot undo a later edit. Both use original writers and retain unknown-result, epoch and CAS protections. Independent Topic28+61 and Archive65 tests pass. Exact Source/standard release headless Chrome journeys pass both undo paths, lost acknowledgement reconciliation, later-edit refusal and Context basis navigation. See implementation/topic-placement-immediate-undo.md and implementation/archive-removal-undo.md.
+
+Formal main81b41ddca1d28f7935bba63b3eab01b8678e4120 is unchanged. Published predecessor b5445145 Candidate and Prompt checks pass; skipped Full/browser are not acceptance for this new batch. Preserve earlier cancellation/failure evidence, latest visual gate, all seven plans, delivered0.43.29, paused Sync and Pro264 ownership.
+
+## Preserved prior evidence
+
 # Current execution — human search, feedback drafts and local scope preview (2026-10-14)
 
 Formal main remains `81b41ddca1d28f7935bba63b3eab01b8678e4120`. PR284 is an unmerged, uninstalled candidate. CTX4-03 now uses the original qualified root search for explicit human Topic/Section/unmounted-body queries and exact read-only result targets, independent of AI choices. SET2-04 provides a source-free feedback draft through the original recovery owner with exact CAS, unknown-ACK reconciliation, IME/navigation protection and explicit copy only. CTX4-04 adds a worker-private local preview capability through the original Context read owner; external verification stays closed, revoked scope clears, and complete copy freshly traverses and rechecks authority. No provider, new writer, grant or sending is introduced.
 
 The frozen combined eight owning test files pass116 tests; original external Context tests remain separately qualified by the unchanged external-contract regression. Standard release passes500-file guard. All three exact release journeys pass in isolated headless Chrome; final source confirmation is recorded in the implementation receipt. Independent reviews repaired Back/native-close late-copy cleanup and pending-draft departure protection. Historical failures remain preserved. PR284 predecessor15137 Candidate unit was CANCELLED (run38453470138/job115490203983), Candidate gate failed; Prompt1–4/contracts/privacy/release pass, skipped Full/browser are not acceptance. Exact final candidate gates, latest approved visual comparison and main qualification remain required. Preserve seven plans, delivered0.43.29, paused Sync and Pro264 CI ownership.
+
+CTX4-02 real Item basis is also implemented through original lineage/final authority checks and existing Input navigation. Author and independent159PASS; exact Source/release automatic-vs-manual/excerpt/Input/Back journeys pass with unchanged Context permissions. See `implementation/context-cards/CTX4-02-ITEM-BASIS.md`. This is candidate code, not a completed whole plan.
 
 See `implementation/context-cards/CTX4-03-04-LOCAL-SEARCH-PREVIEW.md` and `implementation/settings-feedback-local.md`.
 

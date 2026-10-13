@@ -252,6 +252,11 @@ async function handle(request, sender) {
       if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');
       return readSettingsUpdateStatus(chrome.storage.local,chrome.runtime.getManifest().version);
     }
+    case 'PAIA_CONTEXT_ITEM_BASIS': {
+      if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return contextCards.basis(request.options);
+    }
     case 'PAIA_CONTEXT_SCOPE_PREVIEW': {
       if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
       if(Object.keys(request).some(key=>!['type','kind','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');

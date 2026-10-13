@@ -1,6 +1,8 @@
 import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {hashText} from './dedupe.js';
 import {rootReadAuthority} from './organizer/root-read.js';
+import {inputProjection} from './thought-evidence.js';
+import {MemoryService} from './memory/service.js';
 import {validContextMaintenance,readableContextItems,contextLineageSourceIds,contextLineageRead,lineageArray,lineageExact} from './context-item-lineage.js';
 
 // Independent bounded Context Items in the existing meta transaction. Manual
@@ -95,6 +97,25 @@ export class ContextCardsService {
   // Home has no trusted category classification for free-form Item sections.
   // Preserve qualification/counts, but never project private Items into Home.
   if(mode==='home')snapshot.items=[];return snapshot;}
+ async basis(options){
+  if(!lineageExact(options,['itemId','expectedRevision','epoch'])||!uuid(options.itemId)||!revision(options.expectedRevision)||options.expectedRevision<1||!bounded(options.epoch,512)||!options.epoch)fail('INVALID_REQUEST');
+  const captured=await contextLineageRead(this.s,async t=>{const epoch=await this.admitted(t,options.epoch),row=await this.row(t),item=row.items.find(x=>x.id===options.itemId&&x.lifecycle==='active');if(!item||item.revision!==options.expectedRevision)fail('CONTEXT_INVALIDATED');return {epoch,item,rowSerialized:JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW)),authority:await rootReadAuthority(t)};},['meta']);
+  const readable=await readableContextItems(this.s,[captured.item],{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:captured.rowSerialized});
+  if(readable.automaticEvaluation||readable.items.length!==1)fail('CONTEXT_INVALIDATED');
+  const {item}=captured,result={version:1,itemId:item.id,revision:item.revision,epoch:captured.epoch,origin:item.origin,protected:item.protected,userEdited:item.userEdited,evidence:[]};
+  await contextLineageRead(this.s,async t=>{
+   const current=await this.admitted(t,captured.epoch);if(current!==captured.epoch||await rootReadAuthority(t)!==captured.authority||JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW))!==captured.rowSerialized)fail('CONTEXT_INVALIDATED');
+   if(item.origin==='automatic')for(const evidence of item.maintenance.provenance.evidence){
+    const projection=await inputProjection(this.s,t,evidence.inputId),topic=await t.get('topics',evidence.topicId);if(!projection||!topic)fail('CONTEXT_INVALIDATED');
+    const fields=evidence.selectedFields.map(field=>{const text=projection[field];if(typeof text!=='string')fail('CONTEXT_INVALIDATED');const excerpt=Array.from(text.slice(0,480)).slice(0,240).join('');return {field,excerpt,truncated:excerpt.length<text.length};});
+    result.evidence.push({topicId:evidence.topicId,topicName:await new MemoryService(this.s).safeLabel(t,topic,'name'),inputId:evidence.inputId,contentRevision:projection.contentRevision,fields});
+   }
+  });
+  // No async work follows the final read fence. A provenance lookup is not a
+  // permission to return bytes captured before an edit, purge or restore.
+  await contextLineageRead(this.s,async t=>{await this.admitted(t,captured.epoch);if(await rootReadAuthority(t)!==captured.authority||JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW))!==captured.rowSerialized)fail('CONTEXT_INVALIDATED');},['meta']);
+  return result;
+ }
  async change(input){
   const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
   // The existing journal proves only single-Item immutable-order chains.
