@@ -56,3 +56,12 @@ test('a real edit after tracked material is read invalidates the entire reading 
  f.s.trackedLibraryEntries=async args=>{const tracked=await original(args);const current=await f.s.entry(target);const result=await f.s.editLibraryFields({id:target,expectedRevision:current.revision,expectedFieldRevisions:current.fieldRevisions,changes:{note:'SYNTHETIC tracked boundary edit'},operationId:crypto.randomUUID()});assert.notEqual(result.conflict,true);edited=true;return tracked;};
  const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(edited,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);assert.equal((await f.s.entry(target)).note,'SYNTHETIC tracked boundary edit');
 });
+
+test('expression invalidation after Source purge never returns previously tracked active state',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,chronology:'expression',sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const target=before.items[0].entry.id,sourceId=await f.s.repository.transaction(false,async t=>(await t.get('thoughts',target)).sourceRecordIds[0]);assert.ok(sourceId);
+ const original=f.s.readingEntry.bind(f.s);let purged=false;
+ f.s.readingEntry=async id=>{if(!purged){purged=true;await f.s.permanentDelete(sourceId);}return original(id);};
+ const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(purged,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);
+});
