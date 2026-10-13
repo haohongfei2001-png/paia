@@ -21,6 +21,7 @@ const publicReport=plan=>({outcome:plan.outcome,reason:plan.reason,policyVersion
 // the truth or quality of the semantic judgments themselves.
 export class TopicFormationService {
  #plans=new WeakMap();
+ #materials=new WeakMap();
  #decision;
  #parameters;
  #writeTransaction;
@@ -35,18 +36,13 @@ export class TopicFormationService {
  }
  async read(prepared,fn){return this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.retrieval.guard.check(t,prepared);return fn(t);}));}
  async authorizeTopics(t,prepared,ids){for(let i=0;i<ids.length;i+=100)if(await this.retrieval.guard.processing(t,prepared.evidence,ids.slice(i,i+100))!==prepared.authority.processingEpoch)fail();}
- async prepare(request,{signal=null}={}){
-  keys(request,['scope','operationId','entryIds','candidateId','expectedCandidateRevision'],['scope','operationId']);
-  if(!idOK(request.operationId)||request.operationId.length<8||!this.#decision||!this.#parameters||request.entryIds!==undefined&&(!Array.isArray(request.entryIds)||request.entryIds.length>FORMATION_WORK_LIMITS.entries||new Set(request.entryIds).size!==request.entryIds.length||request.entryIds.some(x=>!idOK(x))))fail();
-  if(request.candidateId!==undefined&&(!idOK(request.candidateId)||!Number.isSafeInteger(request.expectedCandidateRevision)||request.expectedCandidateRevision<0)||request.candidateId===undefined&&request.expectedCandidateRevision!==undefined)fail();
-  assertActive(signal);request=structuredClone(request);
-  const operation={kind:'personal-topic-formation',...request,decisionVersion:this.#decision.version,parameters:this.#parameters};
-  const initial=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
-  if(prior){await this.read(initial,t=>this.authorizeTopics(t,initial,prior.topicIds||[]));assertActive(signal);const handle=freeze({...prior,replayed:true});this.#plans.set(handle,{request,operation,signal,prior});return handle;}
+ // Local constructor-owned material seam. Opaque handles cannot mint
+ // processing permission, a provider decision, or domain mutation authority.
+ async #collectMaterial(scope,entryIds,signal){
   const identities=[],constraints=[];let cursor=null,last;
-  do{assertActive(signal);last=await this.retrieval.page({scope:request.scope,cursor});for(const item of last.items)(item.kind==='identity'?identities:constraints).push(item);cursor=last.nextCursor;}while(cursor);
-  const prepared=await this.retrieval.prepareCoverage({scope:request.scope,coverage:last.coverage}),topicIds=unique(identities.flatMap(x=>[x.id,x.canonicalId])),sections=[];
-  const snapshot=await this.read(prepared,t=>readFormationEvidence(this.store,t,prepared,request.entryIds||[]));await validateFormationSources(snapshot);
+  do{assertActive(signal);last=await this.retrieval.page({scope:scope,cursor});for(const item of last.items)(item.kind==='identity'?identities:constraints).push(item);cursor=last.nextCursor;}while(cursor);
+  const prepared=await this.retrieval.prepareCoverage({scope:scope,coverage:last.coverage}),topicIds=unique(identities.flatMap(x=>[x.id,x.canonicalId])),sections=[];
+  const snapshot=await this.read(prepared,t=>readFormationEvidence(this.store,t,prepared,entryIds));await validateFormationSources(snapshot);
   for(const topicId of unique(identities.filter(x=>x.available).map(x=>x.canonicalId))){
    let after=null;do{assertActive(signal);const page=await this.read(prepared,async t=>{await this.authorizeTopics(t,prepared,[topicId]);const topic=await resolveTopicIdentity(t,topicId);const page=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),after,100);for(const item of page.rows)item.value=await readableFormationSection(this.store,t,item.value);return page;});
     for(const {value:section}of page.rows)if(section.lifecycle==='active'&&!section.redirectTo)sections.push({id:section.id,topicId:section.topicId,sectionId:section.sectionId,title:section.title,isDefault:!!section.isDefault,lifecycle:section.lifecycle,revision:section.revision,layoutGeneration:section.layoutGeneration});after=page.next;
@@ -55,6 +51,36 @@ export class TopicFormationService {
   const decisionInput=freeze(structuredClone({version:1,inputs:snapshot.inputs.map(({sourceIds,...input})=>input),entries:snapshot.entries.map(entry=>formationEntryDescriptor(entry,snapshot.inputs)),identities,sections,constraints,parameters:this.#parameters}));
   const limits=this.store.organizerBudget?.limits;
   if(limits&&(new TextEncoder().encode(JSON.stringify(decisionInput.inputs)).length>limits.maxContentBytes||new TextEncoder().encode(JSON.stringify(decisionInput)).length>limits.maxRequestBytes))fail();
+  return {prepared,topicIds,snapshot,identities,sections,constraints,decisionInput};
+ }
+ async prepareMaterial({scope,entryIds=[]}={}, {signal=null}={}){
+  if(!this.#parameters||!Array.isArray(entryIds)||entryIds.length>FORMATION_WORK_LIMITS.entries||new Set(entryIds).size!==entryIds.length||entryIds.some(id=>!idOK(id)))fail();
+  const selected=structuredClone(scope),entries=structuredClone(entryIds);assertActive(signal);
+  const material=await this.#collectMaterial(selected,entries,signal);assertActive(signal);
+  const handle=Object.freeze({});this.#materials.set(handle,{...material,signal});return handle;
+ }
+ async checkMaterial(handle){
+  const m=this.#materials.get(handle);if(!m)fail();assertActive(m.signal);
+  const current=await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,m.topicIds);return readFormationEvidence(this.store,t,m.prepared,m.snapshot.entries.map(e=>e.id));});
+  if(!same(current,m.snapshot))fail();await validateFormationSources(current);assertActive(m.signal);
+  // Hashes complete outside IDB, then the original authority/identity/restore
+  // generation is checked again before releasing any selected Working bytes.
+  await this.read(m.prepared,t=>this.authorizeTopics(t,m.prepared,m.topicIds));assertActive(m.signal);
+ }
+ async readMaterial(handle){
+  await this.checkMaterial(handle);const m=this.#materials.get(handle);assertActive(m.signal);
+  return {view:structuredClone(m.decisionInput),sourceCount:new Set(m.snapshot.inputs.flatMap(i=>i.sourceIds)).size};
+ }
+ releaseMaterial(handle){this.#materials.delete(handle);}
+ async prepare(request,{signal=null}={}){
+  keys(request,['scope','operationId','entryIds','candidateId','expectedCandidateRevision'],['scope','operationId']);
+  if(!idOK(request.operationId)||request.operationId.length<8||!this.#decision||!this.#parameters||request.entryIds!==undefined&&(!Array.isArray(request.entryIds)||request.entryIds.length>FORMATION_WORK_LIMITS.entries||new Set(request.entryIds).size!==request.entryIds.length||request.entryIds.some(x=>!idOK(x))))fail();
+  if(request.candidateId!==undefined&&(!idOK(request.candidateId)||!Number.isSafeInteger(request.expectedCandidateRevision)||request.expectedCandidateRevision<0)||request.candidateId===undefined&&request.expectedCandidateRevision!==undefined)fail();
+  assertActive(signal);request=structuredClone(request);
+  const operation={kind:'personal-topic-formation',...request,decisionVersion:this.#decision.version,parameters:this.#parameters};
+  const initial=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
+  if(prior){await this.read(initial,t=>this.authorizeTopics(t,initial,prior.topicIds||[]));assertActive(signal);const handle=freeze({...prior,replayed:true});this.#plans.set(handle,{request,operation,signal,prior});return handle;}
+  const {prepared,topicIds,snapshot,identities,sections,constraints,decisionInput}=await this.#collectMaterial(request.scope,request.entryIds||[],signal);
   assertActive(signal);let assessment;try{assessment=freeze(structuredClone(await this.#decision.assess(decisionInput)));}catch{fail();}assertActive(signal);
   const plan=evaluateTopicFormation(assessment,snapshot,identities,sections,this.#parameters);
   const nameTokens=['create','candidate'].includes(plan.outcome)&&plan.name?[await keyedHash(prepared.authority.secret,['personal-topic-name-v1',plan.name.normalize('NFKC').toLocaleLowerCase().trim()])]:[];

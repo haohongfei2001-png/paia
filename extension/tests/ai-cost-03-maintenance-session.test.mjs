@@ -27,12 +27,9 @@ async function fixture({inputs=1,tier='free',providerMode='valid',adapterMode='v
  const verifier={async verify(actual,store,scope){return actual===caller&&store===f.s?{version:1,store:f.s,accountId:'synthetic-account',processorId:'synthetic-processor',authorizationGeneration:state.generation,scope,processing:state.processing,expiresAt:Date.now()+600000,revocationSignal:contextAbort.signal}:null;},isCurrent(actual,r,store){return actual===caller&&store===f.s&&r.authorizationGeneration===state.generation;}};
  let acquired=null;
  const window={async acquire(r){state.acquires++;if(acquired&&acquired.requestDigest!==r.requestDigest)throw Object.assign(Error('window consumed'),{code:'UNAVAILABLE'});return acquired??=Object.freeze({version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-window',reservationId:'synthetic-reservation',tier,requestDigest:r.requestDigest,revocationSignal:clock.signal});},isCurrent(r){return state.windowCurrent&&r===acquired;}};
- const provider={describe:()=>({providerId:'synthetic-maintenance',version:'1',executionKind:'fixture'}),async execute(r){calls.push(structuredClone(r));assert.equal(r.type,'AI_MAINTENANCE');assert.equal(r.automaticRetries,0);assert.ok(r.coverage.length<=50);assert.ok(!JSON.stringify(r).includes('working input'));
+ const provider={describe:()=>({providerId:'synthetic-maintenance',version:'1',executionKind:'fixture'}),async execute(r){calls.push(structuredClone(r));assert.equal(r.type,'AI_MAINTENANCE');assert.equal(r.automaticRetries,0);assert.ok(r.coverage.length<=50);assert.equal(r.material.purpose,'AI_MAINTENANCE');assert.ok(r.material.inputs.every(i=>Object.keys(i).sort().join(',')==='body,inputId,ref,revision'));assert.equal(Object.hasOwn(r.material,'sources'),false);
   if(state.held)await state.held;if(providerMode==='throw')throw Error('PRIVATE_PROVIDER_BODY');if(providerMode==='empty')return {accepted:false};
-  const scope=r.coverage.filter(u=>u.facet==='topic').map(u=>({inputId:JSON.parse(u.key)[1],role:'primary',selectedFields:['body']}));
-  const retrieval=new TopicIdentityRetrieval(f.s,{resolveProcessing:async(_t,q)=>({...processing,inputIds:[...q.inputIds],topicIds:[...q.topicIds]})}),prepared=await retrieval.guard.prepare(scope),material=await f.s.repository.transaction(false,t=>readFormationEvidence(f.s,t,prepared)),identities=[];let cursor=null;
-  do{const page=await retrieval.page({scope,cursor});identities.push(...page.items.filter(i=>i.kind==='identity'));cursor=page.nextCursor;}while(cursor);
-  const view={inputs:material.inputs,identities,sections:[]};
+  const view={...r.material,inputs:r.material.inputs.map(i=>({id:i.inputId,role:'primary',fields:{body:i.body},revision:i.revision})),entries:[]};
   const proposed=assessment(view,{name:'Synthetic maintenance object '+calls.length,evidence:view.inputs.map(i=>citation(i)),entries:view.inputs.map(i=>({span:citation(i),type:'idea',additional:[]}))});
   const response={accepted:true,operationReceiptId:'synthetic-physical-'+r.childOperationId,fixture:{binding:{logicalJobId:r.logicalJobId,childOperationId:r.childOperationId,operationReceiptId:'synthetic-physical-'+r.childOperationId},topicAssessment:proposed,contextProposal:{operation:'ADD',card:'info',body:'PRIVATE_CONTEXT_BODY '+calls.length,section:'Synthetic maintenance',inputIds:r.coverage.filter(u=>u.facet==='context').map(u=>JSON.parse(u.key)[1])},token:'PRIVATE_PROVIDER_BODY '+calls.length}};const actual=JSON.parse(JSON.stringify(response));responses.push(actual);return actual;
  }};
@@ -56,8 +53,9 @@ async function fixture({inputs=1,tier='free',providerMode='valid',adapterMode='v
   }
  }};
  await f.s.finishFoundation();
- const constructor={provider,service,window,authority},session=new LocalMaintenanceSession(f.s,constructor);
- return {...f,session,constructor,provider,service,window,authority,verifier,caller,clock,contextAbort,permission,processing,state,calls,responses,decoded};
+ const processingExpiry=Date.now()+600000;const materialProcessing={resolve:async(_t,scope)=>({version:1,store:f.s,caller,scope,epoch:'synthetic-processing-v1',processing:state.processing&&processing.allowed,expiresAt:processingExpiry,revocationSignal:contextAbort.signal}),isCurrent:(receipt,store)=>store===f.s&&receipt.caller===caller&&state.processing&&processing.allowed&&!contextAbort.signal.aborted};
+ const constructor={provider,service,window,authority,processing:materialProcessing},session=new LocalMaintenanceSession(f.s,constructor);
+ return {...f,session,constructor,provider,service,window,authority,materialProcessing,verifier,caller,clock,contextAbort,permission,processing,state,calls,responses,decoded};
 }
 
 for(const tier of ['free','pro'])test('actual '+tier+' typed domain commit shares each original-owner transaction with its exact ACK',async()=>{
@@ -117,7 +115,7 @@ test('opaque host opportunity cannot be changed or requalified by matching body 
 });
 
 test('processing revocation after physical response creates no domain publication or retry',async()=>{
- const f=await fixture(),h=await f.session.prepare(options);f.state.topicHook=()=>{f.processing.allowed=false;};const r=await f.session.run(h);assert.equal(r.state,'PARTIAL');assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'topics')).length,0);assert.equal(f.calls.length,1);f.processing.allowed=true;await f.session.run(h);assert.equal((await ack(f)).length,0);assert.equal(f.calls.length,1);
+ const f=await fixture(),h=await f.session.prepare(options);f.state.topicHook=()=>{f.processing.allowed=false;};const r=await f.session.run(h);assert.equal(r.state,'UNAVAILABLE');assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'topics')).length,0);assert.equal(f.calls.length,1);f.processing.allowed=true;assert.equal((await f.session.run(h)).state,'UNAVAILABLE');assert.equal((await ack(f)).length,0);assert.equal(f.calls.length,1);
 });
 
 function corruptWrite(f,predicate,action,{contextOnly=true}={}){
