@@ -219,6 +219,7 @@ function restoreArchiveOrigin(snapshot){
  searchProject=snapshot?.searchProject||null;archiveNavigator.sourceScope=snapshot?.sourceScope||null;archiveNavigator.sourceSelect.value=archiveNavigator.sourceScope||'';
  archiveNavigator.state.select(null);
  if(snapshot?.navigator)archiveNavigator.restoreNavigation(snapshot.navigator);
+ else if(snapshot){archiveNavigator.sourceInitialized=true;if(archiveNavigator.sourceScope)archiveNavigator.browseSource=archiveNavigator.sourceScope;archiveNavigator.lastPaintSignature=null;}
  $('search-date-start').value=snapshot?.dateStart||'';$('search-date-end').value=snapshot?.dateEnd||'';$('search-include-filtered').checked=snapshot?snapshot.includeFiltered:true;
 }
 function focusArchiveOrigin(snapshot){
