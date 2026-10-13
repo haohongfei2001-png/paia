@@ -658,7 +658,64 @@ export class TopicController {
   owner.pendingQualification=null;owner.qualifiedAuthority=fresh.authority||null;owner.row=fresh;owner.saved=Object.fromEntries(owner.fields.map(field=>[field,fresh[field]]));owner.local=decision.decision==='current'?{...owner.saved}:draft;owner.failed=false;owner.conflicted=false;owner.conflictBaseRevision=null;owner.recoveryAttempt=null;owner.recoveryUnacknowledged=false;owner.paint();
   if(decision.decision==='mine')await owner.flush();
  }
- async createTopic(){const value=await this.form(tc('新建主题'),[{key:'name',label:'主题名称',required:true}]);if(!value)return;try{const r=await this.checked('CREATE_LIBRARY_TOPIC',{topic:{...value,operationId:op()}});await this.open(r.id);}catch{}}
+ async createTopic(){
+  if(this.topicCreationPending||this.topicContainerPending||this.topicMergePending||this.sectionActionPending||this.mutating)return;
+  const route=this.id,intent=this.openIntent,presentation=this.presentationIntent,epoch=this.statusEpoch,view=this.view;let ownMutation=false;
+  const current=()=>this.id===route&&this.openIntent===intent&&this.presentationIntent===presentation&&(this.statusEpoch===epoch||ownMutation&&this.statusEpoch===epoch+1)&&this.view===view;
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  if(composing())return;
+  this.topicCreationPending=true;
+  let draft=this.topicCreationDraft;
+  try{
+   if(!await this.flushEditors()||!current()||composing())return;
+   const status=await request('GET_LIBRARY_FOUNDATION_STATUS');if(!current()||composing())return;
+   if(typeof status.recoveryEpoch!=='string'||!status.recoveryEpoch)throw Error('BACKUP_CHANGED');
+   // An unresolved create owns its immutable name and operation. Opening the
+   // action again reconciles it, rather than minting a duplicate Topic.
+   if(draft?.attempt&&draft.attempt.expectedRecoveryEpoch!==status.recoveryEpoch){
+    draft.attempt=null;draft.result=null;
+    this.onStatus(tc('资料库已恢复，旧创建请求不会重放。名称仍保留，请重新确认。'),'conflict');return;
+   }
+   if(!draft?.attempt){
+    const value=await this.form(tc('新建主题'),[{key:'name',label:'主题名称',required:true,maxLength:300,value:draft?.name||''}]);
+    if(!current()||composing())return;
+    if(!value){this.topicCreationDraft=null;return;}
+    if(typeof value.name!=='string'||!value.name.trim()||value.name.length>300)return;
+    draft={name:value.name,attempt:null,result:null};this.topicCreationDraft=draft;
+    draft.attempt=Object.freeze({name:draft.name,operationId:op(),expectedRecoveryEpoch:status.recoveryEpoch});
+   }
+   ownMutation=true;
+   const saved=await this.mutate(async()=>{
+    if(!current()||composing())return;
+    const result=draft.result||await this.checked('CREATE_LIBRARY_TOPIC',{topic:draft.attempt},current);
+    if(typeof result?.id!=='string'||!result.id)throw Error('OUTCOME_UNKNOWN');
+    draft.result=result;
+    if(!current()||composing())return;
+   },{isCurrent:current});
+   if(saved&&draft.result&&current()&&!composing()){
+    // Qualify after mutate's own refresh as well as after the receipt. A
+    // different window may have removed/merged it or restored the library.
+    let topic;
+    try{topic=await request('GET_LIBRARY_TOPIC',{id:draft.result.id});}
+    catch(error){
+     if(current()&&error.code==='INVALID_REQUEST'){
+      draft.attempt=null;draft.result=null;
+      this.onStatus(tc('原创建已确认，但主题已不可用。名称仍保留，再次添加前请重新确认。'),'conflict');return;
+     }
+     throw error;
+    }
+    if(!current()||composing())return;
+    if(topic.id!==draft.result.id||topic.lifecycle!=='active'||topic.recoveryEpoch!==draft.attempt.expectedRecoveryEpoch){
+     draft.attempt=null;draft.result=null;
+     this.onStatus(tc('原创建已确认，但主题已变化。名称仍保留，再次添加前请重新确认。'),'conflict');return;
+    }
+    if(this.topicCreationDraft===draft)this.topicCreationDraft=null;
+    await this.open(draft.result.id);
+   }else if(current())this.onStatus(tc('主题创建结果尚未确认，名称仍保留。再次选择添加主题会先核对原请求。'),'error');
+  }catch(error){if(current())this.onStatus(tc('主题创建尚未完成，名称仍保留。请再次选择添加主题核对或重试。'),'error');}
+  finally{this.topicCreationPending=false;}
+ }
+
  updateSectionActionControls(menu,busy=!!(this.sectionActionPending||this.mutating)){
   menu.setAttribute('aria-busy',String(busy));
   const trigger=menu.querySelector('summary');trigger.setAttribute('aria-disabled',String(busy));trigger.tabIndex=busy?-1:0;trigger.inert=busy;

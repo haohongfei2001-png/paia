@@ -1,3 +1,7 @@
+# Current candidate — recoverable exact Topic creation
+
+Home Add Topic now retains one immutable request and name after an unknown acknowledgement; retries use the original receipt instead of creating a duplicate. Current-route qualification preserves reading, and original CREATE plus its compatibility owner atomically fence recovery epochs. Author256/independent184 and exact Source/release native Chrome pass. See implementation/topic-create-session.md. No new writer/RPC/schema, Sync feature, CI change, provider activation or installation. PR284 remains a candidate with full/latest visual gates open; all seven Canonical plans remain.
+
 # Current candidate — Topic rename/delete route protection
 
 TOPIC original container rename/delete now bind their caller route, target and confirmation through the existing mutation lifecycle. Late reads/ACKs cannot open an old dialog or take over a new reader; valid Home actions and container-only content preservation remain. Author165/independent143 and exact Source/release real headless Chrome pass. See implementation/topic-container-action-route.md; the rejected initial lifecycle guard and all earlier failures are preserved. Candidate remains unmerged/uninstalled; exact-head/full/latest visual gates still apply. Seven Canonical plans, Sync pause and Pro CI ownership remain unchanged.

@@ -70,7 +70,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  thoughtLayout(layout){return thoughtLayout(this,layout);}
  reverseEditSetting(enabled){return reverseSetting(this,enabled);}
  async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}
- async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),bindingMigration:await this.bindingMigrationStatus(t),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
+ async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),recoveryEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',bindingMigration:await this.bindingMigrationStatus(t),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
  async snapshot(){await this.finishFoundation();return super.snapshot();}
  evidenceFor(specs,options) {return evidenceFor(this,specs,options);}
  invalidate(t,inputId,reason,revision) {return enqueueInvalidation(this,t,inputId,reason,revision);}
@@ -242,8 +242,10 @@ export class LibraryFoundationStore extends SmartFilterStore {
  refreshThought() {return Promise.reject(new ArchiveError('INVALID_REQUEST'));}
  async editThought({id,operationId,expectedRevision,changes}={}) {keys(changes,['thoughtText','title','note','topics','types']);if(changes.topics||changes.types)fail();return this.editEntry({id,operationId,expectedRevision,changes:Object.fromEntries(Object.entries(changes).map(([k,v])=>[k==='thoughtText'?'body':k,v]))});}
  async createTopic(request) {
+  if(request?.expectedRecoveryEpoch!==undefined&&(typeof request.expectedRecoveryEpoch!=='string'||!request.expectedRecoveryEpoch.length||request.expectedRecoveryEpoch.length>200))fail();
+  if(this.humanLibraryJournal&&request?.expectedRecoveryEpoch!==undefined)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'topic',request);
-  keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
+  keys(request,['name','operationId','expectedRecoveryEpoch'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const nameIdentity=await prepareTopicName(this,request.name);
   return this.operation(request,t=>this.createTopicInTransaction(t,request,nameIdentity));
  }
