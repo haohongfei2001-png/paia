@@ -175,3 +175,20 @@ test('41 actual independent Source Inputs require a third partition and refuse w
  const f=await fixture({inputs:41}),before=await snapshot(f.s);assert.equal(before.records.length,41);assert.equal(before.blocks.length,41);
  await assert.rejects(f.session.prepare({...options,limit:50}),{code:'BUDGET_EXCEEDED'});assert.equal(f.state.acquires,0);assert.equal(f.calls.length,0);assert.deepEqual(await snapshot(f.s),before);assert.equal((await read(f.s,'organizerJobs')).length,0);assert.equal((await ack(f)).length,0);
 });
+
+for(const owner of ['window','processing'])test('dispose aborts physical Maintenance even when '+owner+' listener cleanup throws',async()=>{
+ const f=await fixture();let release,entered,controls,physical;
+ const admitted=new Promise(resolve=>{entered=resolve;});f.state.held=new Promise(resolve=>{release=resolve;});
+ const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
+ const handle=await f.session.prepare(options),running=f.session.run(handle);
+ await Promise.race([admitted,running.then(result=>assert.fail('Maintenance settled before entry: '+result.state))]);
+ const signal=(owner==='window'?f.clock:f.contextAbort).signal,remove=signal.removeEventListener,problem=Error('synthetic cleanup failure');
+ signal.removeEventListener=()=>{throw problem;};
+ try{
+  assert.throws(()=>f.session.dispose(),error=>error===problem);
+  assert.equal(controls.signal.aborted,true,'physical work must be aborted before cleanup failure escapes');
+ }finally{signal.removeEventListener=remove;release();await physical;await running;}
+ assert.equal((await f.session.run(handle)).state,'UNAVAILABLE');assert.equal((await ack(f)).length,0);
+ assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);assert.equal(f.calls.length,1);
+ assert.doesNotThrow(()=>f.session.dispose(),'failed cleanup cannot retain live job state');
+});
