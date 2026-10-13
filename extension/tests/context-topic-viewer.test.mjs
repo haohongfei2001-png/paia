@@ -34,7 +34,7 @@ test('explicit private Topic reading uses original read owner, exact prose and z
 test('bounded continuous reader reaches true end, evicts prior bodies and reads back',()=>fixture(async({viewer})=>{
  assert.equal(await viewer.read(),true);assert.equal(viewer.reader.items.length,40);assert.equal(viewer.next.disabled,false);
  assert.equal(await viewer.read('next'),true);assert.equal(viewer.reader.state().retainedBodies,40);assert.equal(await viewer.read('next'),true);assert.equal(viewer.reader.state().retainedBodies,40);assert.equal(viewer.status.textContent,'End of Topic.');assert.equal(viewer.next.disabled,true);assert.equal(viewer.previous.disabled,false);
- assert.equal(await viewer.read('previous'),true);assert.equal(viewer.status.textContent,'More content follows.');assert.equal(viewer.next.disabled,false);assert.match(viewer.body.textContent,/ 1\b/);assert.ok(viewer.reader.state().retainedBodies<=40);
+ assert.equal(await viewer.read('previous'),true);assert.equal(viewer.status.textContent,'More content follows.');assert.equal(viewer.next.disabled,false);assert.match(viewer.body.querySelectorAll('.entry-prose').map(node=>node.textContent).join('\n'),/ 1\b/);assert.ok(viewer.reader.state().retainedBodies<=40);
 },{count:81}));
 test('in-flight close discards delayed bodies and removes listeners',()=>fixture(async({viewer,dispatch,setSender,messages,events})=>{
  let finish;setSender(async(...args)=>{const result=await dispatch(...args);await new Promise(resolve=>{finish=resolve;});return result;});const task=viewer.read();while(!finish)await new Promise(r=>setImmediate(r));viewer.close();finish();assert.equal(await task,false);assert.equal(viewer.body.textContent,'');assert.equal(messages.size,0);assert.equal(events.size,0);
@@ -65,15 +65,15 @@ test('oversized or malformed owner response is refused without rendering',()=>fi
 test('large item explicitly expands through original owner with post-read qualification and zero writes',()=>fixture(async({s,viewer,setSender,dispatch,calls})=>{
  setSender(async(type,payload)=>{calls.push({type,...payload});return dispatch(type,payload);});
  const original=s.repository.transaction.bind(s.repository),writes=[];s.repository.transaction=(write,...args)=>{if(write)writes.push(true);return original(write,...args);};
- assert.equal(await viewer.read(),true);const item=viewer.reader.items[0];assert.equal(item.entry.large,true);assert.equal(await viewer.expand(item),true);assert.equal(viewer.body.querySelector('.entry-prose').textContent,'界'.repeat(50000)+' 0');assert.equal(viewer.body.querySelector('button'),null);assert.equal(viewer.status.textContent,'End of Topic.');assert.deepEqual(writes,[]);assert.deepEqual(calls.map(c=>c.type),['GET_LIBRARY_SECTION_READING','GET_LIBRARY_ENTRY','GET_LIBRARY_SECTION_READING']);
+ assert.equal(await viewer.read(),true);const item=viewer.reader.items[0];assert.equal(item.entry.large,true);assert.equal(await viewer.expand(item),true);assert.equal(viewer.body.querySelector('.entry-prose').textContent,'界'.repeat(50000)+' 0');assert.equal(viewer.body.querySelector('.context-topic-expand'),null);assert.ok(viewer.body.querySelector('.context-topic-copy'));assert.equal(viewer.status.textContent,'End of Topic.');assert.deepEqual(writes,[]);assert.deepEqual(calls.map(c=>c.type),['GET_LIBRARY_SECTION_READING','GET_LIBRARY_ENTRY','GET_LIBRARY_SECTION_READING']);
 },{body:'界'.repeat(50000)}));
 test('large body awaiting read cannot leak after invalidation and a new read',()=>fixture(async({viewer,setSender,dispatch})=>{
  let release;setSender(async(type,payload)=>{const result=await dispatch(type,payload);if(type==='GET_LIBRARY_ENTRY')await new Promise(resolve=>{release=resolve;});return result;});assert.equal(await viewer.read(),true);const task=viewer.expand(viewer.reader.items[0]);while(!release)await new Promise(r=>setImmediate(r));viewer.invalidate();assert.equal(await viewer.restart(),true);release();assert.equal(await task,false);assert.match(viewer.body.textContent,/full text has not been loaded/);
 },{body:'界'.repeat(50000)}));
 test('bounded reference eviction retains both directions across more than 400 entries',()=>fixture(async({viewer})=>{
  assert.equal(await viewer.read(),true);let reads=0;while(!viewer.next.disabled){assert.equal(await viewer.read('next'),true);assert.ok(viewer.reader.items.length<=440);assert.ok(viewer.reader.state().retainedBodies<=40);assert.ok(++reads<20);}
- assert.equal(viewer.status.textContent,'End of Topic.');assert.match(viewer.body.textContent,/ 440\b/);reads=0;while(!viewer.previous.disabled){assert.equal(await viewer.read('previous'),true);assert.ok(viewer.reader.state().retainedBodies<=40);assert.ok(++reads<20);}
- assert.match(viewer.body.textContent,/ 0\b/);
+ assert.equal(viewer.status.textContent,'End of Topic.');assert.match(viewer.body.querySelectorAll('.entry-prose').map(node=>node.textContent).join('\n'),/ 440\b/);reads=0;while(!viewer.previous.disabled){assert.equal(await viewer.read('previous'),true);assert.ok(viewer.reader.state().retainedBodies<=40);assert.ok(++reads<20);}
+ assert.match(viewer.body.querySelectorAll('.entry-prose').map(node=>node.textContent).join('\n'),/ 0\b/);
 },{count:441}));
 test('empty Topic reaches actual end without inventing bodies',()=>fixture(async({viewer})=>{assert.equal(await viewer.read(),true);assert.equal(viewer.body.textContent,'');assert.equal(viewer.status.textContent,'End of Topic.');assert.equal(viewer.next.disabled,true);},{count:0}));
 
@@ -86,3 +86,28 @@ test('Topic content and access use bounded independent roving keyboard stops',()
 test('explicit search Entry opens its exact current Section placement rather than Topic beginning',()=>fixture(async({s,viewer,topic,entries,calls})=>{
  const sectionId=(await s.repository.transaction(false,t=>t.get('topics',topic.id))).defaultSectionId;viewer.start={topicId:topic.id,sectionId,anchorId:entries[80].id};assert.equal(await viewer.restart(),true);assert.equal(calls[0].options.anchorId,entries[80].id);assert.equal(calls[0].options.sectionId,sectionId);assert.ok(viewer.reader.layout().some(x=>x.kind==='item'&&x.item.entry.id===entries[80].id));assert.equal(viewer.reader.layout().some(x=>x.kind==='item'&&x.item.entry.id===entries[0].id),false);
 },{count:81}));
+
+async function clipboard(run,{reject=false}={}){
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'navigator'),copied=[];
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>{if(reject)throw Error('NotAllowedError');copied.push(text);}}}});
+ try{await run(copied);}finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
+}
+for(const body of ['精确原文\n\n  code <script>\n🙂','界'.repeat(50000)])test('explicit copy requalifies complete original text '+body.length,()=>fixture(async({s,viewer,dispatch,setSender})=>clipboard(async copied=>{
+ setSender(dispatch);assert.equal(await viewer.read(),true);const original=s.repository.transaction.bind(s.repository),writes=[];s.repository.transaction=(write,...args)=>{if(write)writes.push(true);return original(write,...args);};
+ const item=viewer.reader.items[0];assert.ok(viewer.body.querySelector('.context-topic-copy'));assert.equal(await viewer.copyItem(item),true);assert.deepEqual(copied,[body+' 0']);assert.deepEqual(writes,[]);assert.equal(viewer.status.textContent,'Full original text copied.');
+}),{body}));
+for(const mode of ['back','native-close','hidden','changed-authority','removed-placement'])test('copy final qualification refuses '+mode,()=>fixture(async({viewer,dispatch,setSender,events,messages})=>clipboard(async copied=>{
+ let release;setSender(async(type,payload)=>{const value=await dispatch(type,payload);if(type==='GET_LIBRARY_ENTRY')await new Promise(resolve=>{release=resolve;});else if(release&&mode==='changed-authority')value.authority='different';else if(release&&mode==='removed-placement')value.items=[];return value;});
+ assert.equal(await viewer.read(),true);const task=viewer.copyItem(viewer.reader.items[0]);while(!release)await new Promise(resolve=>setImmediate(resolve));
+ if(mode==='back'){let prevented=false;viewer.root.listeners.get('paia:request-close')({preventDefault(){prevented=true;}});assert.equal(prevented,true);}
+ if(mode==='native-close'){viewer.root.close();viewer.root.listeners.get('close')();}
+ if(mode==='hidden'){document.hidden=true;events.get('visibilitychange')();}
+ release();assert.equal(await task,false);assert.deepEqual(copied,[]);assert.equal(viewer.body.textContent,'');
+ if(mode==='back'||mode==='native-close'){assert.equal(viewer.active,false);assert.equal(messages.size,0);assert.equal(events.size,0);}
+})));
+test('clipboard rejection does not claim success or create a fallback text dialog',()=>fixture(async({viewer,dispatch,setSender})=>clipboard(async copied=>{
+ setSender(dispatch);assert.equal(await viewer.read(),true);const children=document.body.children.length;assert.equal(await viewer.copyItem(viewer.reader.items[0]),false);assert.deepEqual(copied,[]);assert.equal(document.body.children.length,children);assert.match(viewer.status.textContent,/did not allow/);assert.equal(viewer.busy,false);
+},{reject:true})));
+test('native close cleanup is idempotent and permits parent to reopen viewer',()=>fixture(async({viewer,messages,events})=>{
+ let closes=0;viewer.onClose=()=>closes++;viewer.root.close();viewer.root.listeners.get('close')();viewer.close();viewer.root.listeners.get('close')();assert.equal(closes,1);assert.equal(messages.size,0);assert.equal(events.size,0);assert.equal(viewer.body.textContent,'');
+}));

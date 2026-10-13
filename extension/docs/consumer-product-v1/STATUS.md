@@ -1,3 +1,11 @@
+# Current candidate followup — truthful supported-site details
+
+SET2 now fills the existing Supported websites page with actual capture capabilities, exclusions and the separation from external AI authorization. Author/independent6PASS and exact Source/release Chrome bilingual/Back/focus/narrow-layout checks pass. See implementation/settings-supported-sites.md. No new sites, permissions, network or writers; candidate remains unmerged with full/visual gates open.
+
+# Current candidate followup — My Inputs single original-text copy
+
+CTX4-03 now supports explicit complete original human text copying in the local Topic verification panel, with fresh original-reader qualification and Back/native-close late-response fencing. Author91/independent77 and exact Source/release real headless Chrome pass; no AI permission change. See implementation/context-cards/CTX4-03-VIEWER-COPY.md. This is candidate engineering, not merged/installed or whole-plan acceptance. Prior evidence and remaining gates below remain applicable.
+
 # Current candidate — qualified immediate undo (2026-10-14)
 
 PR284 remains draft, unmerged and uninstalled. TOPIC-05.5 now offers receipt-qualified immediate placement undo; IAH-08 Archive removal undo binds the original journal patch so it cannot undo a later edit. Both use original writers and retain unknown-result, epoch and CAS protections. Independent Topic28+61 and Archive65 tests pass. Exact Source/standard release headless Chrome journeys pass both undo paths, lost acknowledgement reconciliation, later-edit refusal and Context basis navigation. See implementation/topic-placement-immediate-undo.md and implementation/archive-removal-undo.md.

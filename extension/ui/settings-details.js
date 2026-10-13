@@ -1,3 +1,4 @@
+import {createSettingsSupportedSites} from './settings-supported-sites.js';
 import {refreshSettingsRecovery} from './maintenance-recovery.js';
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
@@ -152,8 +153,8 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;
  const storageWrapper=storage.closest('.ux-settings-detail');let storageState;const storageDetail=mountSettingsDetail({id:'settings-storage',title:['存储空间','Storage space'],content:storage,language,value:chinese=>storageSummaryText(storageState,!chinese),onOpen:refreshStorage});
  if(storageWrapper)storageWrapper.replaceWith(storageDetail.row);else dataGroup.append(storageDetail.row);
- const siteContent=document.createElement('div');siteContent.className='ux-settings-site-facts';for(const child of [...sites.children])if(child.tagName!=='SUMMARY')siteContent.append(child);
- const siteDetail=mountSettingsDetail({id:'settings-supported-sites-open',title:['支持的网站','Supported websites'],content:siteContent,language,value:()=> 'ChatGPT'});sites.replaceWith(siteDetail.row);
+ const siteFacts=createSettingsSupportedSites({language});
+ const siteDetail=mountSettingsDetail({id:'settings-supported-sites-open',title:['支持的网站','Supported websites'],content:siteFacts.content,language,value:()=> 'ChatGPT',onOpen:siteFacts.sync});const syncSiteDetail=siteDetail.sync;siteDetail.sync=()=>{siteFacts.sync();syncSiteDetail();};sites.replaceWith(siteDetail.row);
  const history=document.getElementById('history-settings'),historyButton=document.getElementById('settings-history'),latest=document.getElementById('history-latest');
  const importDetail=mountSettingsDestination(historyButton,{title:['导入历史输入','Import earlier inputs'],description:latest,language,dialogId:'history-dialog'});history.replaceWith(importDetail.row);
  const source=document.getElementById('r6-source-records'),sourceButton=source.querySelector('[data-view="archive"]');
