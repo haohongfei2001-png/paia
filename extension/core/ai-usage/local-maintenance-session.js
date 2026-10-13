@@ -98,7 +98,7 @@ export class LocalMaintenanceSession {
    if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
    if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage).length)fail('UNAVAILABLE');
   }
-  const request=batch.request,progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:(batch.blockedUnits??0)>0};
+  const request=batch.request,progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
   // Reuse the current Topic identity owner's 20-distinct-Source admission
   // boundary. Keep all remaining facets of each Input in the same child.
   // More than two required partitions is unavailable, never lost coverage.
@@ -128,10 +128,15 @@ export class LocalMaintenanceSession {
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
  #passiveHandle(batch,generation,deferredUnits=0){
-  const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.status==='DEFERRED'||batch.reason==='DEFER_SCAN_BOUND'||(batch.blockedUnits??0)>0};
+  const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.complete!==true||batch.status==='DEFERRED'||batch.reason==='DEFER_SCAN_BOUND'||(batch.blockedUnits??0)>0};
   const handle=Object.freeze(outcome(batch.status,{jobId:null,nextCursor:batch.nextCursor??null,complete:batch.complete??false,...(batch.reason?{reason:batch.reason}:{}),...progress}));this.#passive.set(handle,{generation,state:batch.status,...progress});return handle;
  }
- #settled(state,facets=[]){return outcome(state.progress.remainingWork?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,nextCursor:state.handle.nextCursor,complete:state.handle.complete,...state.progress,...(state.progress.remainingWork?{processedState:'COMMITTED'}:{})});}
+ #settled(state,facets=[]){
+  // Job settlement and scan completion are separate: a committed page may
+  // still have a continuation, while deferred facets remain a partial job.
+  const partial=state.progress.deferredUnits>0||state.progress.blockedUnits>0;
+  return outcome(partial?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,nextCursor:state.handle.nextCursor,complete:state.handle.complete,...state.progress,...(partial?{processedState:'COMMITTED'}:{})});
+ }
  #response(a){
   this.#processingCurrent(a.state,a.state.processing.get(a.childId));const saved=a.state.outputs.get(a.childId);
   if(!saved||saved.childId!==a.childId||saved.jobId!==a.state.job.id||saved.operationReceiptId!==a.receipt.operationReceiptId||!['RESPONSE_RECORDED','VALIDATED'].includes(a.receipt.state))fail('UNAVAILABLE');return saved;

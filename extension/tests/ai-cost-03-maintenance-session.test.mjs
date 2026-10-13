@@ -207,3 +207,12 @@ test('completed durable Maintenance remains committed when final listener cleanu
  signal.removeEventListener=()=>{throw Error('completed job was retained');};
  try{assert.doesNotThrow(()=>f.session.dispose());}finally{signal.removeEventListener=remove;}
 });
+
+test('bounded Maintenance completion retains outstanding next-page work without redispatch',async()=>{
+ const f=await fixture({inputs:2}),handle=await f.session.prepare({...options,limit:1});
+ assert.equal(handle.complete,false);assert.ok(handle.nextCursor);assert.equal(handle.remainingWork,true);
+ const result=await f.session.run(handle);assert.equal(result.state,'COMMITTED');assert.equal(result.remainingWork,true);assert.equal(result.complete,false);assert.equal(result.nextCursor,handle.nextCursor);
+ assert.equal((await ack(f)).length,2);assert.equal(f.calls.length,1);
+ const before=await snapshot(f.s);assert.deepEqual(await f.session.run(handle),{...result,facets:[]});assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
+
+});
