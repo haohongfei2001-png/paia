@@ -106,3 +106,22 @@ test('standalone no-change historical replay is not an atomic job ACK and cold o
  const f=await unchangedFixture({historical:true}),h=await f.session.prepare(f.batchOptions),r=await f.session.run(h);assert.equal(r.state,'PARTIAL');assert.ok(r.facets.some(x=>x.reason==='DOMAIN_REPLAY_UNACKNOWLEDGED'));assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.equal((await read(f.s,'operationReceipts')).filter(x=>x.result?.disposition==='no_change').length,1);const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
  f.session.dispose();const cold=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});await assert.rejects(cold.prepare(f.batchOptions),{code:'UNAVAILABLE'},'original host opportunity cannot authorize a new narrowed job after output loss');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.equal(f.calls.length,1);assert.equal(f.s.repository.metrics.writes,writes);assert.deepEqual(await snapshot(f.s),before);
 });
+
+for(const operation of ['ADD','UPDATE'])test('explicit Context '+operation+' uses original atomic Maintenance owner',async()=>{
+ const f=operation==='ADD'?await fixture():await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation=operation;if(operation==='UPDATE'){delete group.change.operation;group.change.body='SYNTHETIC updated fact';group.change.section='Updated fact';}}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const handle=await f.session.prepare(f.batchOptions??options),result=await f.session.run(handle);
+ assert.equal(result.state,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);
+ const contextAck=(await ack(f)).filter(a=>a.unit.facet==='context');assert.equal(contextAck.length,1);assert.equal(contextAck[0].outcome,'COMMITTED');
+ const receipts=(await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition===(operation==='ADD'?'created':'updated'));assert.ok(receipts.length>0);
+ if(operation==='UPDATE'){assert.equal(receipts.at(-1).result.itemId,f.original.itemId);assert.equal(receipts.at(-1).result.revision,2);}
+ const before=await snapshot(f.s);await f.session.run(handle);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
+});
+for(const operation of ['ADD','UPDATE','REMOVE_CANDIDATE'])test('explicit Context '+operation+' refuses incompatible revision or unsupported operation',async()=>{
+ const f=operation==='ADD'?await unchangedFixture():await fixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation=operation;if(operation==='ADD'){delete group.change.operation;group.change.body='SYNTHETIC forbidden replacement';group.change.section='Forbidden';}}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.batchOptions??options));
+ assert.equal(result.state,'PARTIAL');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
+});
