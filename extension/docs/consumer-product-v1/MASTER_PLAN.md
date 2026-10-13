@@ -1,3 +1,11 @@
+# Current local presentation candidate — 2026-10-13
+
+Formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 passed exact-main Certification38339093871 and Prompt38339094038. PR282 mixed Maintenance remains unmerged: prior7bf76cc5 failed strict runtime-inventory preflight; reviewed correction published exact tree4ea2f99f as ef68bb37 and requires new qualification. Preserve original failure evidence.
+
+The next0.49.0 candidate actually implements approved Context Home metadata privacy, Settings sample removal, content-sized three/two/one Thought cards and minimal explicit first-use consent. [Scoped combination receipt](implementation/verification/LOCAL-PRESENTATION-049.md) distinguishes component review, current whole-file results, repaired failures and remaining full gates. No installed-user or whole-plan completion is claimed. Activity ordering, IAH1.3 source interaction and shared reading rhythm continue through separate original owners. Retain all seven Canonical plans, paused Sync checkpoint and Pro264/CI ownership.
+
+## Preserved preceding checkpoints
+
 # Current candidate — complete local Maintenance batch (2026-10-13)
 
 PR280 is now merged as formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8; its exact final head0f36b2d passed Full38337300223 and independent final review. Normal merge tree e4f8d990 was verified to preserve latest main04f2cad2. Merged-main qualification remains separate. This preserves the latest CTX4-UI-1.2, SET2-UI-1.2, TL-PT1-UI-1.2 and IAH-1.3 refinements.  Its earlier failed runs remain evidence, not active uncorrected pointers. This isolated next candidate combines the reviewed explicit Context NO_CHANGE and bounded mixed-delta DEFER through their original owners, without false ACK, lost pending obligations or new permissions. It is local code under integration, not an installed version or completed AI-COST/CTX4 plan.
