@@ -1,3 +1,9 @@
+# Current combined local product candidate — 2026-10-13
+
+Formal main remains6a55fa7a; PR282 ef68 is unmerged after Full38341608747 failed Browser3 (two original AI-COST foundation case timeouts) and cancelled Sync native. Preserve failures; independent diagnosis/repair is active and no cancelled gate is passed. UI0.49 candidate integrates approved compact Context/Settings/Root, minimal consent, shared reading rhythm, IAH1.3 single browse-source navigation and complete meaningful Topic activity ordering. Independent scoped code reviews pass; real primary-navigation combination acceptance and exact-head/main gates remain pending. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md). This is not an installed update, an overall seven-plan completion or a new product plan. Sync new features remain paused; Pro264/CI untouched.
+
+## Retained earlier checkpoints
+
 # Current local presentation candidate — 2026-10-13
 
 Formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 passed exact-main Certification38339093871 and Prompt38339094038. PR282 mixed Maintenance remains unmerged: prior7bf76cc5 failed strict runtime-inventory preflight; reviewed correction published exact tree4ea2f99f as ef68bb37 and requires new qualification. Preserve original failure evidence.
