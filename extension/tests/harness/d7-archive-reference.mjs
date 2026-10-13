@@ -329,6 +329,9 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
  const persist=()=>writeFile(`${directory}/${variant}-${matrix}.json`,JSON.stringify({...receipt,elapsedMs:Date.now()-started},null,2));
  try{
   await persist();await page.setViewportSize({width:1440,height:1000});await selectArchive(page);await page.locator('#scope-search').fill('');
+  // This historical comparison explicitly exercises all-source search.
+  await page.locator('#archive-source-scope').selectOption('');
+  await eventually(()=>page.locator('#scope-search').getAttribute('placeholder').then(value=>value==='搜索全部档案'),'explicit all-source scenario is ready');
   if(matrix==='full'){
    await waitArchiveWindow(page,{text:D7_READER_FIXTURE.title});
    // Discovery can finish while another expanded scope is still repainting.

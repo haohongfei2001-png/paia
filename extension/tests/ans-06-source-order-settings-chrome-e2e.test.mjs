@@ -76,9 +76,11 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
    return {providerKey,namespace,alpha,beta};
   });
   await p.locator('[data-view="library"]').first().click();await p.evaluate(()=>document.dispatchEvent(new Event('paia:navigator-refresh')));
+  await eventually(()=>p.locator('#archive-source-scope option').evaluateAll((nodes,key)=>nodes.some(node=>node.value===key),seeded.providerKey),'synthetic source becomes selectable');
+  await p.locator('#archive-source-scope').selectOption(seeded.providerKey);
   await eventually(()=>groupBox(p,'BETA').isVisible(),'synthetic beta group visible',30000);
   await eventually(async()=>{
-   const provider=p.locator('.archive-navigator-provider').filter({has:p.locator('.archive-navigator-provider-title').filter({hasText:seeded.providerKey})}).first();
+   const provider=p.locator(`.archive-navigator-provider[data-provider-key="${seeded.providerKey}"]`);
    const texts=await provider.locator('.archive-navigator-group-toggle').allTextContents();
    return texts.indexOf('BETA')>=0&&texts.indexOf('ALPHA')>=0&&texts.indexOf('BETA')<texts.indexOf('ALPHA');
   },'synthetic project source order',30000);
@@ -107,7 +109,7 @@ test('ANS-06 production setting, honest ChatGPT fallback and synthetic provider 
   await p.evaluate(async({providerKey,namespace,alpha})=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
    const {SourceOrderRegistry,SourceOrderStore}=await import('../core/source-ordering.js');
-   const s=new OrganizerStore(chrome.storage.local),now=Date.now();
+   const s=new OrganizerStore(chrome.storage.local),now=Date.now();await s.finishFoundation();
    const provider={getOrder:async q=>({availability:'available',providerKey:q.providerKey,namespace:q.namespace,scopeKind:'windows',scopeRef:q.scopeRef,orderedRefs:[{providerKey,namespace,sourceConversationId:'ans06-source-1'},{providerKey,namespace,sourceConversationId:'ans06-source-2'},{providerKey,namespace,sourceConversationId:'ans06-source-3'}],contractId:'ans06.browser.order',contractVersion:1,evidenceKind:'synthetic_fixture',observationId:'alpha-v2',observedAt:new Date(now).toISOString(),expiresAt:new Date(now+60*60*1000).toISOString(),completeness:'complete_scope',generation:'v2'})};
    const registry=new SourceOrderRegistry([[providerKey,provider]]),orders=new SourceOrderStore(s);
    await orders.observe(await registry.getOrder({providerKey,namespace,scopeKind:'windows',scopeRef:alpha,now}),{now});

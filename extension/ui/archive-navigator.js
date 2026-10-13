@@ -147,7 +147,7 @@ export class ArchiveNavigator{
   const token=++this.serial;if(hard){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;}
   let root=await this.readScope({groupKind:'providers'});if(token!==this.serial)return;
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
-  if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}this.lastPaintSignature=null;}
+  if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}}
   this.updateSourceOptions(root.items);
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}

@@ -87,6 +87,9 @@ async function sourceJourney(page,h){
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
 
   assert.equal(await page.locator('h1:visible').count(),0,'Archive root has no duplicate title above its persistent directory');await assertBlankArchiveReader(page);
+  // Preserve this all-source scenario through the real current Source control.
+  await page.locator('#archive-source-scope').selectOption('');
+  await eventually(()=>page.locator('#scope-search').getAttribute('placeholder').then(value=>value==='搜索全部档案'),'explicit all-source scenario is ready');
   assert.deepEqual(await page.locator('#scope-search,#reader-scope-search').evaluateAll(nodes=>nodes.map(node=>node.placeholder)),['搜索全部档案','在此对话中查找'],'IAH-1.1 neutral Archive and Reader retain truthful independent scope hints');
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive evidence is not dominated by optional onboarding');
   assert.equal(await page.locator('.conversation-document .summary').first().evaluate(el=>getComputedStyle(el).display),'none','generic Archive subtitle is not presented');

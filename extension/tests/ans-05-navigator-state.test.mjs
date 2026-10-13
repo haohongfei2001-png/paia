@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ArchiveNavigatorState,navigatorGroupKey,navigatorScopeKey,navigatorInvalidationMessage} from '../ui/archive-navigator.js';
+import {ArchiveNavigator,ArchiveNavigatorState,navigatorGroupKey,navigatorScopeKey,navigatorInvalidationMessage} from '../ui/archive-navigator.js';
 
 test('ANS-05 Navigator session state keeps unknown/unassigned distinct and deep-link expands only its parent',()=>{
  const state=new ArchiveNavigatorState(),project={providerKey:'chatgpt',namespace:'fixture',projectId:'p1'};
@@ -33,4 +33,14 @@ test('CPR-02 Navigator invalidation reacts to source-structure changes without t
  assert.equal(navigatorInvalidationMessage({type:'ARCHIVE_CHANGED'}),false);
  assert.equal(navigatorInvalidationMessage({type:'PAIA_READER_POLICY_CHANGED'}),false);
  assert.equal(navigatorInvalidationMessage(null),false);
+});
+
+
+test('unchanged complete source refresh preserves the cached directory signature',async()=>{
+ const state=new ArchiveNavigatorState(),root=state.scope({groupKind:'providers'});root.items=[{providerKey:'chatgpt'}];root.coverage={state:'complete'};
+ const groups=state.scope({providerKey:'chatgpt',groupKind:'groups'});groups.items=[];groups.coverage={state:'complete'};
+ const paints=[],owner=Object.assign(Object.create(ArchiveNavigator.prototype),{state,active:true,host:{hidden:false},serial:0,browseSource:'chatgpt',sourceScope:'chatgpt',sourceInitialized:true,mode:'paia',lastPaintSignature:'retained-tree',readScope:async options=>state.scope(options),updateSourceOptions(){},reconcileUnknownExpansion(){},setStatus(){},schedule(){},paint(){paints.push(this.lastPaintSignature);}});
+ await owner.refresh(false);assert.deepEqual(paints,['retained-tree'],'selection-only refresh must not force directory replacement');
+ owner.sourceInitialized=false;owner.browseSource=null;owner.sourceScope=null;owner.query='';let initialized=0;owner.onSourceInitialized=()=>initialized++;
+ await owner.refresh(false);assert.equal(initialized,1);assert.equal(owner.sourceScope,'chatgpt','actual first source still initializes and changes the normal computed signature');
 });
