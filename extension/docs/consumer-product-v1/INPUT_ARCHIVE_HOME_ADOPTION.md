@@ -1,78 +1,55 @@
-# PAIA Archive Existing UI — Minimal Optimization adoption
+# Input Archive — approved blue-white UI adoption
 
-> Execution update: the owner's later explicit seven-lane instruction selects
-> IAH-1.1 runtime development. It supersedes earlier documentation-only /
-> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
-> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
-> Implementation, tests, exact-main acceptance and user availability remain
-> separate claims; none is established by this authorization.
+**IAH-1.2 / OWNER_APPROVED / 2026-10-13.**
+State of this adoption: **DESIGN_APPROVED / PLAN_UPDATED / DOCUMENTATION_ONLY**. New production UI and visual acceptance are not established by this task.
 
+The owner approved this conversation's `PAIA_输入档案_交互原型.html` and the accompanying `PAIA_输入档案_设计原型包.zip`, and explicitly requested that the development plan be updated directly on GitHub. The ZIP contains the same HTML, design notes and ten screenshots. The original notes' DESIGN_CANDIDATE label is historical; this owner decision approves the design without rewriting those original bytes or upgrading prototype tests to production evidence.
 
-**IAH-1.1 / owner-approved scoped visual correction / 2026-10-08.**
-State: **SELECTED_VISUAL_SCOPE_ADOPTED / PLAN_ALIGNED / RUNTIME_NOT_STARTED_BY_THIS_TASK**.
+This is an **in-place revision of the existing Archive plan**, not a second product programme. The five unsuffixed paths remain authoritative: this ADOPTION owns approval and exact supersession; [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns behavior; [UX](INPUT_ARCHIVE_HOME_UX.md) owns final presentation; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds exact artifacts and evidence limits. Keep existing ARCHIVE-HOME-01–06 identifiers. STATUS alone schedules the current batch. The legacy HOME filenames do not imply a welcome dashboard.
 
-This corrects IAH-1.0 in place. It is not adoption of a new Archive UI or of the entire B prototype. The five existing Archive canonical paths remain the only active set: this adoption owns the decision/supersession ledger; [CONTRACT](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns interaction; [UX](INPUT_ARCHIVE_HOME_UX.md) owns the selected visual rules; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation alignment; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) identifies exact private evidence. Their legacy HOME filenames do not require a welcome/search-home page.
+## 1. Approved target and retained product
 
-> Historical adoption-time statement below; superseded by the execution update at the top.
+The new final target is the blue-white three-column Archive, in the visual family of Thought Library TL-PT1-UI-1.1 and Context CTX4-UI-1.1. Those two pages are not being redesigned again. Archive remains Source → Project → Conversation → user Input; a source Project is not a Personal Topic. Do not turn Archive into a Topic card wall, AI summary feed or another Context permission surface.
 
-The current owner explicitly authorizes documentation and development-plan correction, not production code, schema, UI, manifest changes or an Archive runtime start. The existing coordinated-execution exclusion of Archive remains effective. Current [STATUS](STATUS.md), not an old single-next-task paragraph, controls scheduling of other lanes.
+On desktop, preserve the three roles while adopting the new geometry and styling: primary PAIA navigation; Archive heading/search/source tree; continuous reading or flat search results. Ordinary primary Archive still has **blank unselected Main**, all search scope and empty query. The new Input Archive title belongs in the middle navigator, not a welcome panel in Main. Expanding a Project does not select content or narrow search. No first/latest/host Conversation is automatically opened.
 
-## 1. Final authority and bounded approval
+Adopt the refined navigator indentation/selected row/spacing, rounded light search fields, quiet source path and date hierarchy, continuous directly editable working prose, contextual Input actions, on-demand original-source and edit-history drawers, actual date navigation, shared reading preferences, and narrow single-pane/overlay behavior. Do not make every Input a card, keep a permanent fourth source column, or add a sticky Back bar.
 
-Visual precedence for Archive is: this explicit selected/rejected decision -> the actual current PAIA UI for unchanged regions -> compatible selected B details -> other nonconflicting shared PAIA rules. Actual implementation does not override approved behavior changes or data/privacy safeguards. A reference pixel, prototype event handler or previous DESIGN_ADOPTED label cannot expand this scope.
+The middle Archive Search and current-Conversation Find remain independent. Results foreground current eligible Working Input text; activation reaches the actual Input/occurrence. Return restores the actual saved query/scope/result or tree context. Source, time, text and permission truth remain stronger than incidental mock implementation details.
 
-The supplied Existing UI Optimization review remains historical evidence. A is a source-informed synthetic reconstruction, not a fresh installed-product screenshot. B is a mixed candidate; C is a comparison, not an alternative active authority. Private production screenshots distinguish browser chrome from PAIA: the far-left dark browser sidebar is not product navigation and must never be implemented in PAIA.
+## 2. Exact supersession of IAH-1.1 presentation
 
-## 2. Selected changes and KEEP decisions
-
-| Review item | Final disposition | Exact boundary |
+| Previous constraint or interpretation | IAH-1.2 final requirement | Retained invariant |
 |---|---|---|
-| K1: brand and primary navigation | KEEP | Existing Logo/brand, light primary rail, 档案 / 思想库 / 用于 AI and Settings placement. No new primary destination. |
-| K2: unselected Archive | KEEP | Ordinary primary Archive opens all scope, empty query, no selected Conversation or previous Reader. Main stays blank. No P1 hint. |
-| K3: source tree and geometry | KEEP | Existing Source/Project/Conversation structure, column relationships, whole-row disclosure, selection, row spacing and correct long-name wrapping. |
-| K4: Reader body | KEEP | Existing title, time, prose width/size preference, typography, Input spacing, sort/menu location and continuous editing/reading. |
-| M1: visible search scope | ADOPT | Archive Search remains at the middle-column top with 搜索全部档案 when unrestricted. Existing Reader Find remains in Reader with 在此对话中查找. Preserve control size/style and independent queries. |
-| M2: Input-first results | ADOPT | Actual eligible Input text is primary; real send time, Source, Project and Conversation are secondary. Flat presentation, no AI summaries or result cards. |
-| M3: accurate return | ADOPT | Existing normal-flow Back location/style; labels 返回搜索结果 / 返回项目浏览 / 返回档案 resolve an actual saved origin and restore its query, scope, result/tree position and applicable reading state. |
-| M4: precise arrival | ADOPT ONLY the exact Input/range landing and lightweight temporary highlight | Revalidate current text/identity; viewing is not editing or Smart Filter Keep. Sticky return, a mandatory margin stripe and extra permanent arrival UI are not adopted. |
-| M5: split Project name/arrow | NOT ADOPTED | Project name and arrow retain the current single disclosure action. Expansion never silently chooses search scope, clears a query, opens a Browse page or selects a Conversation. |
-| M6: additional membership-label rewrite | NOT SELECTED BY THIS APPROVAL | Preserve current copy and the unknown/unassigned distinction. Do not infer approval of every B wording change or enforce the old 项目待确认 replacement. |
-| P1 / P2 / P3 | NOT ADOPTED | No persistent Home hint, Main-search C layout, or new Project Main hint. |
+| Actual old UI + selected October-8 A/B details are final pixel authority | This approved October-13 HTML and ten screenshots supply the final Archive composition; old A/B/C remain history | No rejected split-click, P1/P3, Main-search C, sticky return or dashboard |
+| All old colors/fonts/radii/column coordinates/row spacing are KEEP and may not be redesigned | Apply the new restrained blue-white surfaces, type hierarchy, line icons, navigator rhythm and reference geometry through existing roles | Three primary spaces, existing brand/Logo identity, lawful data and navigation owners; no unrelated global restyling |
+| No Archive heading interpreted as a ban everywhere | Middle navigator may show INPUT ARCHIVE / 输入档案 as in the approved reference | Unselected Main still contains no Home title, welcome, search block or hint |
+| Preserve old Reader title/years/time grouping/Input spacing/sort-menu positions exactly | Adopt the new continuous document, quiet real date groups, per-Input time gutter and compact local Find/order/date/appearance/contextual controls | Reliable time and source distinctions, existing ordering semantics, full eligible reading and saved preferences |
+| Reuse existing scope callbacks but leave a missing reachable Project action as an unapproved follow-up | The approved low-frequency Source/Project menu actions and conditional truthful scope/clear indicator are within this UI task | Whole-row disclosure still only expands; no permanent scope console, inferred narrowing or DOM-only filtering |
+| Preserve only the old return/source action coordinates | Refine normal-flow Back and contextual source/history presentation to the approved page/drawer | Actual origin restoration, verified separate original-site action, no sticky/floating return |
+| No new Archive glow/glass/color translation at all | Adopt restrained blue-white depth and the supplied dark translation; blur only on temporary layer backdrop where readable | Contrast, reduced motion, native focus, no perpetual animation or inaccessible text |
+| No Reader redesign accepted as a reason to omit new source/history/inline-edit states | Existing editor, source and revision capabilities must appear in the approved composition and be verified | No new body store, immutable Source, revision/CAS, human protection and recovery |
+| Old geometry tests or previous delivery prove final visual completion | Replace obsolete geometry expectations with new-reference comparison plus equivalent or stronger behavior/safety coverage | Preserve prior exact-version PASS/FAIL; no test weakening or retroactive success |
+| Historical EXECUTION_NOT_SELECTED / Archive exclusion / initial PLANNED pointers govern new work | Those describe original adoption tasks; current STATUS and actual authorization remain controlling | No restart of completed work, no competing next-task pointer or interference with current owners |
 
-All unchanged colors, fonts, backgrounds, borders, radii, blue selection and shared light/dark roles are affirmative KEEP decisions. The review's 17px/680px comparison setting is not a new default and never overwrites a saved preference or changes current fallback behavior.
+This finite ledger replaces only conflicting Archive presentation transcriptions in AUTHORITY, AGENTS, Product Intent, UX, Technical Plan, Master, old D6/D7/ANS records and tests. Their existing links to these five current files continue to resolve this adoption. It is **not** authority to delete nonconflicting functionality or to change other lanes. In particular, prior no-redesign/geometry KEEP wording cannot be used to build the old UI instead of the newly approved final target.
 
-## 3. Exact ordinary UI behavior
+The mock's PAIA wordmark is not a new Logo approval. Keep the separately authoritative brand. Its example Source brands, Projects, dates, attachment flags and messages are fictional and do not authorize new provider support, real capture, network requests or credentials. The original 17px/680px comparison values are a reference rendering setting, not permission to overwrite saved preferences or unilaterally change existing fallback policy.
 
-**Home:** existing PAIA shell + middle-column Archive search/tree + blank unselected Main. No title, welcome, large/centered search, illustration, recent Input, Recently viewed, recommendation, statistic or dashboard is added. Actual loading, empty-data, failed-search and recovery states remain distinct and reachable; the normal blank state is not used to hide a real failure.
+## 3. Complete preserved contracts
 
-**Search:** desktop may correctly show two fields with different scopes. Middle-column Archive Search is not implicitly restricted by whichever Project was expanded or Conversation is being read. Reader Find is local to that Conversation. No second global field is added to Main. Explicit Source/Project search-scope operations preserve the intended query; reuse existing low-frequency scope facilities. A new permanently visible scope control is an unapproved follow-up, not a release prerequisite.
+The complete preceding [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION_PRE_UI_2026-10-13.md), [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT_PRE_UI_2026-10-13.md), [UX](INPUT_ARCHIVE_HOME_UX_PRE_UI_2026-10-13.md), [PLAN](INPUT_ARCHIVE_HOME_PLAN_PRE_UI_2026-10-13.md) and [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES_PRE_UI_2026-10-13.md) are preserved using their exact Git blobs. Every nonconflicting requirement remains incorporated, including the detailed state/lifetime/return/eligibility matrices, full search/read coverage, generation/revision revalidation, Source/Working ownership, human intent, explicit removal, all-generation purge, recovery, keyboard/IME, migration and external caller fences. Their historical scope/status observations retain their original dates, not current completion status.
 
-**Browse:** retain one click target for each Project row. Name/arrow clicks expand or collapse its children. A Project is a possible scope identity, but disclosure is not scope selection. The four logical states remain; BROWSE_SCOPE can represent explicitly selected scope or restored scoped browsing without requiring a separate visible Main page. Ordinary disclosure may remain local tree metadata in any route.
+Keep exactly one trusted route/history/search/editor system, stable provider-qualified source identities, lawful unknown/unassigned/last-known/deleted distinctions and original-safe Unicode handling. Search/show/highlight never creates a Keep/protect or permission grant. Explicit editing, Keep, removal and restoration retain their existing separate semantics and current B-01/B-02 outcomes; the mock cannot choose a different Working/Thought binding policy.
 
-**Read and return:** explicit Conversation or Input activation opens Reader. Results land on the actual Input, not just its Conversation top. Back restores the recorded origin with the existing non-sticky button; external original-site opening stays a distinct, verified secondary action. Generic PAIA opening never infers a target from the host tab.
+Do not shrink the seven Canonical plans. Thought, Context, Settings, Narrow Input Board/Prompt, Sync and AI usage remain as currently approved, including new Thought and Context UI revisions. Preserve existing supported handoffs, including qualified NIB-to-Archive search/Input handoff and strict Topic/Section targets. Generic opening is still neutral; no new host action or public route grammar is implied. A missing real AI/cloud/client service blocks its dependent action only, not local Archive reading/search/editing.
 
-## 4. Scoped supersession ledger
+## 4. Execution and evidence boundary
 
-| Prior requirement/evidence | IAH-1.1 correction | Preserved |
-|---|---|---|
-| IAH-05 and UX U2: exactly one field, Main-only search; remove navigator search | Two different scoped fields in their existing desktop locations; no duplicate field for the same scope | Shared component/query owners, clear scope, cancellation and keyboard/IME safety |
-| IAH Home/UX U1: fixed 查找你的输入 heading and primary Main search | Existing blank Main is the approved ordinary Home | No content selection, zero-model search, no feed/recommendations |
-| IAH-01/05/09, UX U4: Project label enters BROWSE_SCOPE and arrow only expands | Whole Project row remains disclosure. Only a distinct explicit search-scope action changes search scope | Four states, stable source identities, chosen Conversation only, recorded origin |
-| UX U4 / B P3: Main Project heading/search/hint | No required Project Main page or hint; no duplicate Conversation list | Navigation tree and scoped-query semantics |
-| B M4: sticky search-origin return line | Normal-flow existing Back only; deep-return convenience is future usability evidence | Accurate origin, precise landing, applicable reading/selection guards |
-| B M6 / old mandatory membership copy | No additional wording change selected; keep source-state truth and current copy | Unknown is not confirmed unassigned; source deletion is not PAIA purge |
-> Historical adoption-time statement below; superseded by the execution update at the top.
+Continue the existing Archive lane under STATUS. Reuse completed domain and navigation work; implement only the new presentation and demonstrated integration gaps. Do not first finish the superseded visual target, recreate six independent projects, or run a full re-audit before each subtask.
 
-| B prototype and PNGs as a complete implementation target | Component/behavior allowlist in section 2; exclusions apply to every artboard, including dark/narrow/deep states | Compatible visual comparison and historical prototype evidence |
-| Older poster and pre-review Home mock precedence | Historical/rejected evidence only, never final pixel authority | Nonconflicting safety and provenance requirements |
-| Old six-stage Home rebuild / exact-one-search / split-label / sticky acceptance | Smaller gap-closure plan with KEEP coverage and selected-change acceptance | Necessary navigation, query, deletion, recovery, accessibility and exact-source verification |
+This request authorizes documentation/design-plan integration only. It changes no runtime code, schema, test, CI workflow, package version, website, installed build or user data. It does not activate AI, a source adapter, sync, account access, uploads, billing, deployment or irreversible deletion. Existing separately granted engineering authorization is neither cancelled nor broadened.
 
-This ledger also corrects conflicting Archive wording incorporated from Product Intent, UX, Technical Plan, Master, AGENTS, older ANS/Consumer Cleanup/D6/D7 and their snapshots. It does not reopen or supersede Thought/Context/Settings/Sync/AI/Prompt designs. Historical PASS/FAIL, receipts and frozen artifacts are not edited. The five immediately preceding Archive files are preserved as exact PRE_MINIMAL snapshots identified in REFERENCES; they are history, not a second active contract set.
+Exact artifact identity and historical preservation are checked in this task. Production/browser/source-release/real-provider/performance/physical-device tests are not run here. The original notes report prototype checks; their limited evidence is retained as a report, not rerun or production certification. New visual convergence remains open until the actual PAIA runtime and its applicable interaction evidence match the new contract.
 
-## 5. Implementation and evidence boundary
-
-The approved subset is design-ready for a separately selected bounded implementation. Readiness is not current execution authorization, merged runtime, production visual acceptance, actual-user usability evidence or installed availability. Archive remains excluded from the current coordinated runtime programme until separately selected. No global CPV1-TOPIC-02 pointer is restored.
-
-Keep the existing ARCHIVE-HOME-01–06 identifiers for traceability, not as six mandatory new projects. PLAN combines necessary 01/02/03 work, 04/05 gap closure and 06 acceptance into three coherent batches; correct existing pieces are reused. New permanent scope widgets, sticky return, M6 copy changes and a new host-context entry are not smuggled into this approval. Existing direct/contextual entry safety remains mandatory wherever those paths already exist or are separately authorized.
-
-This adoption reviews supplied package bytes and sources, records selective approval, corrects canonical Markdown and aligns the plan. No new prototype is claimed. Prior prototype checks are neither rerun production tests nor blanket approval of rejected B behavior. Source/Working Input/human edits, original time, CAS/revisions, tombstones, lawful recovery, paid-call gates and B-01/B-02 remain unchanged.
+Original HTML/ZIP/screenshots stay in the owner-controlled conversation in this adoption; REFERENCES records their hashes and necessary public design derivations. No private source content, font binaries or real archive samples are published.

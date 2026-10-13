@@ -1,73 +1,88 @@
-# PAIA Archive Existing UI — Minimal Optimization visual specification
+# Input Archive — approved final visual specification
 
-> Execution update: the owner's later explicit seven-lane instruction selects
-> IAH-1.1 runtime development. It supersedes earlier documentation-only /
-> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
-> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
-> Implementation, tests, exact-main acceptance and user availability remain
-> separate claims; none is established by this authorization.
+**IAH-1.2 / OWNER_APPROVED / 2026-10-13.** The approved `PAIA_输入档案_交互原型.html` and its ten packaged screenshots are the final visual reference. [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) defines finite supersession; [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) preserves behavior/data safety; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) records exact bytes.
 
+This replaces the old minimal-optimization geometry in the same file. The complete [prior UX](INPUT_ARCHIVE_HOME_UX_PRE_UI_2026-10-13.md), blob `55ba9142c455658d3c8bf1009ec9af8ed22ce7e5`, remains preserved with all nonconflicting obligations incorporated. Approval changes the target, not the installed application or production acceptance.
 
-**IAH-1.1 / selected visual scope approved 2026-10-08.** This is the sole current Archive presentation contract, correcting IAH-1.0 in place. [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) controls the allowlist/exclusions; [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) owns behavior; [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) owns implementation; [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) binds the unmodified review assets. Approval is not a production acceptance claim.
+## U1. Three spaces, one visual family, different structures
 
-## U1. Baseline and unchanged regions
+Continue the refined blue-white language of Thought TL-PT1-UI-1.1 and Context CTX4-UI-1.1: near-white canvas, pale-blue boundaries, navy headings, restrained hierarchy, thin line icons and quiet contextual controls. Do not copy their card layouts into Archive. Source → Project → Conversation belongs to the navigator; real user Working Inputs form continuous prose in Main.
 
-Use actual PAIA, not a newly invented Archive design system. Preserve Logo/brand, light primary navigation, 档案 / 思想库 / 用于 AI, bottom Settings, three-column relationships, Source/Project/Conversation tree, current blue selection, backgrounds, borders, radii, icons and fonts. The dark browser sidebar visible outside PAIA in private screenshots is browser chrome, not a fourth PAIA rail.
+Desktop retains primary rail | Archive navigator | Main. No extra browser/chat rail or fourth permanent source column. Keep the three primary destinations 档案 / 思想库 / 用于 AI, Settings secondary and the actual approved brand/Logo. The prototype wordmark is not a separate brand redesign. Scope new styles to Archive or map to existing shared semantic roles; do not change other approved pages merely by modifying a global selector.
 
-Preserve current Reader title/time/prose hierarchy, width and size preference logic, Input spacing, sort/menu placement and continuous reading/editing. Reuse final computed shared styles, including later app-shell.css overrides, rather than copying an earlier token declaration or prototype stylesheet wholesale.
+Apply the reference's new proportions and spacing, not a recolor of old layout. Preserve the actual scroll/route/editor owners: geometry must integrate with them, not an iframe or a second application shell. Inspect final computed styles including late overrides.
 
-The review used 1440x960 A/B with 184px primary rail and 272px Archive column; its 17px/680px standard prose setting was a comparison preference, not a new product default. Actual saved preferences and current 16px/800px fallback behavior where applicable remain. Keep present responsive breakpoints/geometry unless an approved content change exposes a real defect. Source weight and current long-name wrapping are KEEP, not redesign tasks.
+## U2. Neutral Archive and the navigator
 
-## U2. Neutral Archive: blank Main is the final decision
+The middle navigator has a restrained INPUT ARCHIVE label, 输入档案 heading, compact overflow, one Archive Search, conditional active-scope indication, then the Source/Project/Conversation tree. Source names are quiet; Project controls use a chevron and folder line icon; Conversation rows have clear indentation and a pale-blue rounded selected state. Long and duplicate names must remain identifiable using real metadata.
 
-Ordinary primary 档案 displays existing primary navigation, middle-column search/tree and an unselected blank Main. No selected Source/Project/Conversation/Input, previous Reader title/year/body, Home title, description, Welcome, large/centered search, icon, P1 hint or P3 Project hint.
+Project name and arrow are one disclosure target. The separate low-frequency menu can explicitly search that Project; Source overflow can explicitly search that Source. Menu targets must not steal disclosure clicks. Scope is not inferred from expansion, selection color or a Reader path. The conditional scope/clear line is shown only for meaningful explicit scope, not a permanent search administration strip.
 
-No Recently viewed, default Input feed, recommendations, suggestions, counts or dashboard. Expanding a Project leaves Main blank if already blank and does not replace a visible Reader/results state. Empty local data, actual loading/search failure and fault recovery retain their existing distinct truthful presentation; this rule is not permission to disguise failures as a normal blank page.
+Ordinary entry leaves Main truly unselected: no title, welcome, center search, recents, cards, illustrations, statistics or automatic Reader. The new navigator heading does not authorize a Main Home banner. Existing tree expansion defaults remain; the sample's selected/expanded fixture is not production initialization.
 
-## U3. Search in two existing locations, with different meanings
+An empty archive shows compact truthful guidance in the navigator, reusing existing capture/settings capability. Loading/incomplete/error source states remain distinct, with retry where supported. Do not hide a failure behind neutral blankness or show a fake connected provider.
 
-Desktop middle-column Archive Search remains exactly in its current position and visual role. Its unrestricted visible hint is 搜索全部档案. Reader's existing field remains with 在此对话中查找. Keep size/background/radius/icon and actual accessible labels. No duplicate global search is added to Main and no current different-scope field is removed merely to satisfy a numerical one-field assertion.
+## U3. Search and flat results
 
-Archive query/scope and Reader Find are independent. Opening a search hit does not seed Reader Find with the global query; returning restores the original Archive search. Expanded Project/current Reader does not silently restrict Archive Search. Explicit narrowing must be visibly truthful through existing scope wording/conditional affordances and applied by the query owner. Reuse existing low-frequency scope facilities; do not add a new permanently visible selector or copy B's scope strip unconditionally.
+Keep the blue-white rounded Archive field in the middle navigator, with actual scope wording. Reader Find remains a separate compact field within Reader and searches only the current Conversation. Labels and accessible names retain their meaning when query text is present. No duplicate global field in Main.
 
-When a query occupies the field, existing scope presentation and accessible naming must still reflect its real scope. Long scope names/query text remain usable without enlarging columns. Preserve input/caret through debounced updates and IME. Narrow states retain one logical field for each available scope using current navigation/result placement, not focusable off-screen duplicates.
+Results use a modest query heading, truthful scope/coverage, and flat exact Working Input excerpts separated by quiet spacing/rules. Source/Project/Conversation and qualified sending time are secondary. The excerpt is neither a generated summary nor a new content card. Title-only hits are labeled. Known partial coverage/counts are not advertised as global totals or a trustworthy empty result.
 
-## U4. Input-first flat results
+Selection must not navigate; native activation should resolve the actual Input/occurrence and surrounding context. Use lightweight non-editing highlights with safe original-text offsets. Return restores the actual query/scope/result viewport and focus. Narrow results can expose 修改搜索 to reopen/focus the same navigator field, not introduce another query owner.
 
-Use exact eligible current Input wording as the principal readable text. Time, Source, Project and Conversation path follow in existing secondary metadata roles. A title-only match must say it matches location/title and cannot pretend the body matched. No AI summary, invented citation, thumbnail, raised card, avatar or per-hit permanent toolbar.
+## U4. Continuous Reader
 
-The compatible part of B results is content hierarchy, flat spacing/separation, readable attribution and lightweight lexical emphasis. Sample counts/text and incidental header metrics are not new requirements. Preserve negation and conditions around a match, Unicode-safe excerpts, honest continuation and access to the full Input. Unknown send time remains explicit. A partial loaded count is not a corpus total.
+Place normal-flow origin-aware Back above the document; appearance and document overflow remain compact secondary controls. Source path introduces the actual Conversation title and qualified time range. Then a quiet working-text status and current-Conversation Find, chronological order and relevant date navigation lead into continuous prose.
 
-Activation reaches the actual Input, with native keyboard/focus semantics and text-selection protection; selecting an excerpt must not accidentally navigate. Hover/focus reuse existing PAIA roles. Coverage states distinguish loading, incomplete, error and trustworthy no-result. Reuse existing status/retry roles; no explanatory Home page or scope dashboard is added to solve results feedback.
+The approved reading hierarchy includes subtle verified date-group headings/rules and per-Input time in a quiet left gutter on wide screens. On compact screens, time can move above the corresponding prose. Never hide time truth for aesthetics, put fully unknown time under a known date, or invent a date/range. Preserve known date versus unknown clock-time precision and source ordering. A date picker is a small current-Conversation navigation aid, not a calendar, taxonomy or whole-library timeline product.
 
-## U5. Project navigation: no split click or separate Main page
+Inputs are unboxed paragraphs, not chat bubbles, raised cards, per-Input provider banners or reconstructed assistant exchanges. Preserve full text, original paragraphs, long/code/mixed-script content and reading to the qualified eligible end through existing safe incremental/windowed rendering. The demo renders a finite corpus all at once; that is not a scale implementation.
 
-Keep current whole-row Project disclosure, including the name and arrow. It only expands/collapses children. Preserve row targets, selected Conversation treatment, source-label weight, indentation, long/same-title behavior and scroll. Do not give the Project name a second scope-selection action or introduce selected-Project styling merely to imitate B.
+Reader end/coverage wording must describe actual completeness and hidden/ineligible content honestly. Read to end cannot be inferred from the currently mounted nodes. Sorting, additions, font changes and navigation preserve the relevant Input/revision/text-offset anchor, dirty editing and selection. Back is not sticky in any theme or viewport.
 
-A separate explicit search-scope action can use an existing low-frequency surface. A new permanent visible control is outside approval. BROWSE_SCOPE is a logical scope/return state and has no compulsory Main heading, search field, hint or repeated Conversation list. Keep Main blank before content selection; maintain current content if only the tree is disclosed.
+## U5. Editing, source and history
 
-Do not adopt B M6 consumer-copy edits by implication. Current labels remain, with unknown/unassigned/last-known/deleted/detached source facts correctly distinct. Actual empty/loading/unavailable groups use existing qualified states, never invented Conversation content.
+Clicking Working prose directly enters the existing inline editor. Resting text remains visually open; the active edit alone receives restrained border/focus emphasis. Enter creates a paragraph. Compact edit/copy/overflow actions appear on hover/focus, and remain reachable on touch/keyboard. Do not show an always-visible tool row under every short Input.
 
-## U6. Reader: preserve the page; improve return and arrival only
+A genuine edited Input may show 已修改 · 原文保留; the label requires retained source evidence. Save pending/failure/retry/safe-copy and truthful durable acknowledgement remain visible where relevant. Do not sacrifice draft/caret/IME protection to produce a smooth mock animation. Use existing editor and source-binding semantics, not the demo serializer or localStorage.
 
-Existing normal-flow Back position/style is retained. Use 返回搜索结果, 返回项目浏览 or 返回档案 according to the actual recorded origin, not the current tree highlight. Restore real query/scope/result or tree focus/position; it is not a copy-only change. The button is not sticky/floating, including search-origin, deep, dark and narrow variants.
+Original-source inspection opens a temporary right drawer. It distinguishes source path/time/type, initial retained original and current Working text when changed. It does not remain a fourth column during normal reading. Version history is likewise on-demand, with real versions and explicit guarded replacement into a new Working revision. Missing source, partial evidence or purged history stay honest; current text cannot be relabeled as original.
 
-The original-site action stays separate and secondary in an existing contextual/overflow surface when its source URL is qualified. It never replaces internal Back or reserves a new permanent toolbar slot. Synthetic prototype links are not production URLs.
+Keep contextual explicit copy, removal/undo, lawful recovery and qualified original-site opening through their existing owners. Copy preserves only the intended current/original text and line breaks, without time labels or highlight markup. No clipboard read, automatic external sending, bulk export workflow or deletion of the original platform. The sample's absent real source link is an example, not removal of the product's supported original-site action.
 
-Result activation scrolls to the real eligible Input/range after loading, with a lightweight temporary text highlight using current shared roles. No editable markup mutation, body revision, automatic Keep or durable selection. A permanent margin stripe, persistent arrival strip and the prototype's sticky header are not prescribed. Relevant exceptional states can use existing local feedback. Changed/removed/purged/source-unavailable targets follow INTERACTION, never stale-body replay.
+## U6. Dark, narrow and reading preferences
 
-Reader Find continues within the same Conversation; close restores its pre-Find anchor without replacing Archive origin. Keep current title, years/time, prose width/size/spacing, sort and menu. No date-group redesign, hidden per-Input time, card/bubble or reconstructed AI response.
+Use the supplied dark Reader as a real reference for the new Archive dark translation, while preserving the existing shared theme preference owner. Dark gets the same hierarchy, contrast and functionality; no unrelated dark palette or global theme reset.
 
-## U7. Dark, narrow and accessible continuity
+At narrow width, initial Archive shows the navigator; choosing a Conversation shows a single usable reading pane. Opening the same navigator uses the existing overlay lifecycle and returns focus correctly. Do not squeeze primary navigation, source tree and prose into three narrow strips, duplicate hidden search controls or discard state during resize.
 
-Map the same existing palette, selection/highlight/metadata/focus roles in dark mode. No new Archive theme, glow/glass or navigation color scheme. Retain saved font/width choices and current responsive shell. Narrow Archive can directly present its existing search/tree; results/Reader occupy the usable content pane or current overlay model without a new welcome step.
+The rendering baseline uses 17px/680px, but actual saved reading font/width/theme preferences and current default/fallback policy prevail. Existing controls/ranges are not reduced to the mock's example options. Reference numerical changes must not silently override another page's settings. Keep explicit zoom/text enlargement, 320 CSS px reflow, coarse targets, keyboard/heading semantics, accessible focus and reduced motion. Where the mock's small controls or low-contrast metadata fail an existing requirement, use the closest accessible semantic role rather than reproducing an inaccessible pixel.
 
-Retain existing keyboard order, accessible names, effective desktop/coarse targets, text enlargement, 320-CSS-pixel equivalent reflow, focus return, IME/selection and reduced motion. No software-keyboard auto-open or late-query focus theft. Changes to result content/Back labels must be checked at desktop, narrow and dark sizes using the same data and preferences. This task does not certify those production tests.
+## U7. Concrete starting values and reference-only details
 
-## U8. Reference application and acceptance
+Values below are read from the original HTML. They anchor implementation; they are not a license to clip content, hardcode device breakpoints or replace shared preferences.
 
-Use A for source-informed visual comparison of unchanged regions; apply only ADOPTION's selected B changes. Relevant evidence includes B blank Home/search labels, flat Input-first results and ordinary Reader text; every B image/HTML interaction is overridden by the rejected-item ledger. In particular, figures showing Project scope-on-label, P1/P3, C, a sticky return, M6 or extra target chrome are not whole-screen production masters.
+| Role | Reference starting value |
+|---|---|
+| Primary rail / Archive navigator at 1560px reference | 184px / 282px |
+| Main document container | max 1000px; 30px top and 55px horizontal padding |
+| Main ink / working text / accent / divider | #20334d / #435e80 / #3769c9 / #dfe9f6 |
+| Canvas / fine selected surfaces | #fbfdff with broad restrained #eaf2ff / #edf5ff tints; selected #e8f1ff |
+| Navigator heading / Conversation heading | 25px serif / 29px serif starting roles |
+| Navigator search | about 40px height, 10px radius; independent Reader field about 34px before target adaptations |
+| Wide prose reference | 17px, 680px preferred measure, line-height 2; saved choices take precedence |
+| Wide time + text separation | 45px time column + 23px gutter; 68px document heading/date alignment |
+| Navigator rows / selected boundaries | Project about 42px before coarse-target adaptation; Conversation padded content-sized rows, 8px radius |
+| Source drawer | 470px starting width, capped to available viewport; narrow becomes full available width |
+| Narrow layout | reference switches to directory-or-reader around 700px; current shell integration and usable width govern |
+| Motion | brief focus/layer transitions; all nonessential transitions disabled for reduced motion |
 
-The existing review packages/report/prototype are preserved unchanged as private evidence, not edited into fictitious final assets. There is no new approved composite bitmap purporting to implement the corrected subset. At runtime implementation compare actual source/release rendering against the actual baseline plus this explicit change/exclusion list, not against all B pixels. A missing reference is not permission to invent a new design.
+Use system font roles/fallbacks; no font binaries are shipped. The actual brand asset remains separately authoritative. Reference selectors include `.navigator`, `.nav-search`, `.scope-hint`, `.project-toggle`, `.conversation-link`, `.main`, `.reader-head`, `.record`, `.input-body`, `.record-time`, `.find-box`, `.result-content`, `.drawer` and `.preference-panel`.
 
-The prior IAH-1.0 Main-only/Home mock rules, pre-review poster and old compatible-mock precedence are superseded only as ADOPTION specifies. Unrelated shared/Thought/Context/Settings/Prompt/Sync rules and safety requirements remain. Full production visual acceptance needs evidence from the selected implementation; prior synthetic checks are historical, including checks of now-rejected prototype behavior.
+Do not ship prototype controls 初始页/阅读示例/搜索示例/更多状态/说明/重置, fail toggles, inspection hooks, sample source labels, fixture corpus/URLs, fake counts or sample dates. The documented 80-Input fixture, 12-result display window, 12-revision history and sample font choices are not product capacities/policies. Preserve real settings/capture/import/recovery and existing low-frequency operations that the illustrative mock does not implement.
+
+## U8. Acceptance and precedence
+
+Compare actual native PAIA source/release rendering against the ten new-reference states at equivalent viewport, content roles, theme, locale, font/zoom and saved reading preferences. Match composition, information hierarchy, spacing, contextual states and behavior, not merely blue colors. The original diagrams are not runtime or installed-build evidence. The old A/B/C screenshots and their exact-pixel requirements are historical; previously rejected behaviors remain rejected.
+
+Keep all nonconflicting old behavioral/error/coverage/accessibility/performance expectations, including states not pictured in the new package. Screenshots do not prove storage, permissions, genuine source/clock precision, complete traversal, deep history or physical IME. Do not trade these away for visual similarity, or run unrelated whole-product redesign/recertification merely because a scoped UI changed. PLAN and existing verification rules specify the actual changed-boundary checks.

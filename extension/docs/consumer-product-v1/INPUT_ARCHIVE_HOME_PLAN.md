@@ -1,108 +1,99 @@
-# Input Archive — minimal optimization development alignment
+# Input Archive — final UI development alignment
 
-> Execution update: the owner's later explicit seven-lane instruction selects
-> IAH-1.1 runtime development. It supersedes earlier documentation-only /
-> NOT_SELECTED / exclusion statements in this adoption record, not the confirmed
-> minimal design. See [current execution](SEVEN_PLAN_EXECUTION_2026-10-08.md).
-> Implementation, tests, exact-main acceptance and user availability remain
-> separate claims; none is established by this authorization.
+**IAH-1.2 / OWNER_APPROVED / 2026-10-13.** Workstream: existing Archive lane inside PAIA Consumer Product v1. **Final target is the approved `PAIA_输入档案_交互原型.html` and its ten packaged screenshots.** This updates the existing plan in place; it creates no parallel plan or additional product lane.
 
+[ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) records the finite supersession, [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) the behavior, [UX](INPUT_ARCHIVE_HOME_UX.md) the new composition, and [REFERENCES](INPUT_ARCHIVE_HOME_REFERENCES.md) the exact artifacts. Current STATUS alone selects execution. This task is **PLAN_UPDATED / DOCUMENTATION_ONLY**, not production UI implementation, installation or visual acceptance.
 
-> Historical adoption-time statement below; superseded by the execution update at the top.
+## P1. Current source, preservation and minimum necessary work
 
-**IAH-1.1 / 2026-10-08 / DESIGN_SCOPE_READY / EXECUTION_NOT_SELECTED.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md), [INTERACTION](INPUT_ARCHIVE_INTERACTION_CONTRACT.md) and [UX](INPUT_ARCHIVE_HOME_UX.md) control the selected subset. Current STATUS retains coordinated non-Archive work and Archive exclusion. This plan aligns future work; it does not acquire a writer or change production files.
+Documentation baseline: remote main `bb1366dc3f8348cbdfe0ef4fa402cf766c27ac19`, tree `2df635fbfdc167dd997f61bb37c4226566b50d87`. The prototype's own design-read baseline was `6f1108c247c728c8911febe969c33653082cd267`. These are source identities, not new runtime tests. Preserve current website work, AI-COST/maintenance work, Thought TL-PT1-UI-1.1, Context CTX4-UI-1.1 and every other active owner.
 
-## P1. Source and minimum-change rule
+The entire preceding [plan](INPUT_ARCHIVE_HOME_PLAN_PRE_UI_2026-10-13.md), blob `63f6f9cbe734896423957905d25320f00274d802`, remains byte-preserved. All nonconflicting P1–P8 domain, identity, query, return, safety, recovery, reliability and gate requirements remain incorporated. The old no-redesign/unchanged-geometry/A-B-comparison restrictions are replaced by the new UX and ADOPTION §2. Old source observations, initial PLANNED/Archive-exclusion/next pointers are historical, not a request to redo completed work.
 
-Initial review source: main 99bb95ed114c166347520b58e3216d0e63519379, tree 9438fb92d215833cdf8cd9d01047ad6ae804ea31. Its comparison with the visual-review base dc594f047cf44e92bd2e93a463746622b065f548 contains coordination/Context evidence Markdown only. Current implementations and partial helpers are not missing solely because their end-to-end acceptance is unproven.
+At the next scheduled Archive batch, inspect the actual current owning code and evidence briefly, then reuse qualified foundations. Do not restart ARCHIVE-HOME-01, implement the superseded UI first, or turn six traceability IDs into six new projects. No new router, canonical body store, source catalogue, search engine, editor, permission system or public URL protocol is justified by visual changes.
 
-Before integration, main advanced to daf180762e2fe7718dfcddcf345c6a11749aad8e, tree cf179b2a0662af33f6ea6c93fa373f7fc27e5f2c, integrating Personal Topic Root 0.19. Its changes include shared archive.html/js, Reader navigation, search keyboard helper and worker admission as well as Topic implementation/tests/workflows/version. Preserve all of them; they are not part of this documentation diff. In particular retain Topic-root slots/target restoration, the shared keyboard selector option and strictly validated Topic/Section fragments. Initial exact-entry-only worker notes do not describe this newer source. None of this requires reopening Archive visual design or certifies its selected implementation.
+One writer owns each shared route/editor/query/storage boundary. Current batch scheduling, seven Canonical goals, paused Sync checkpoint and other owners remain unchanged. Missing paid AI, cloud/account/client conditions do not block independently valid local Archive reading/search/editing. The new UI does not certify those external capabilities.
 
-Re-read main and actual shared-file ownership before any future batch. One writer owns each affected boundary; do not race Topic/Settings/Context/AppShell or recreate already-integrated owners. Design approval is not an instruction to restore CPV1-TOPIC-02 as a global pointer. Source/capture, original/working identity, save/IME/recovery, permission and deletion invariants remain prerequisites, not products to rebuild. No paid-model or production-Sync dependency is needed for ordinary Archive Find.
+## P2. Reuse map and actual UI delta
 
-## P2. Actual implementation, KEEP and bounded gaps
+Paths are locations to recheck against fresh main, not new assertions that old inspected implementations are still identical.
 
-| Current owner | KEEP / existing fact | Necessary work only if not already satisfied |
+| Existing owner/boundary | Reuse unchanged semantics | Work for approved final UI |
 |---|---|---|
-| ui/archive.html; app-shell.js/.css; desktop-tokens.css; reader.css | Blank root, middle Archive field plus Reader field, existing brand/rail/tree geometry, dark/responsive and preference-aware prose | Preserve slots/geometry and newer Topic integration. No Home construction, Main-search move, primary-nav or Reader redesign. Conditional markup/style changes only for approved result/label/reflow needs. |
-| ui/archive.js presentScopeSearch/renderDocumentSearch; components/scope-search.js | Two scoped instances and native accessible labels already exist; presentation currently resets both placeholders to empty | Visible truthful scope hints; prevent render from erasing them; retain independent queries/IME/focus. |
-| ui/archive-navigator.js toggleGroup/paint | Whole Project row discloses; explicit openWindow selects content; stable IDs, wrapping, duplicate disambiguation and snapshots already exist | KEEP click semantics and source copy. Test no automatic scope/content transition; extend snapshot metadata only if return correctness needs it. No name/arrow split. |
-| ui/archive.js onProjectSearch/updateSearchProjectScope; navigator Source selector | Source selector and conditional Project-clear/control plumbing exist; inspected Project paint has no name-to-scope action | Do not claim a callback proves reachable Project search. Reuse a supported explicit low-frequency scope entry; document actual gap. No new permanent scope widget or Project disclosure side effect. |
-| ui/smart-filter.js renderResults | Current title-first result renderer; existing Input activation and local search | Input-first text hierarchy and quiet genuine path/time; preserve text selection/native activation and truthful coverage. |
-| ui/search-experience.js; ui/input-search.js; ui/archive.js Reader stream | Existing revealSearchResult/highlightReading and bounded Input handoff/windowing; newer shared keyboard selector support | Prove exact off-screen occurrence, current-revision offsets and restore behavior; repair gaps only, preserving other consumers. |
-| ui/reader-navigation.js; route-history.js; view-session.js; document-search-sessions.js | One route/history owner, safe projections and bounded memory sessions; current Topic-root slot/target restoration | Explicit primary-vs-return action, typed origin/result/tree metadata, independent Archive/Reader queries and identity-relative position/focus restore. Preserve Topic behavior; qualify reload checkpoint only for claimed restoration. |
-| ui/library.js; reader-experience.js; ReaderStateService | Direct editing, save/recovery, selection, continuous reading and anchors | Preserve and run affected regressions; no new editor, body copy or sticky return. |
-| Existing SEARCH_INPUTS/store.searchInputs; ArchiveNavigationQuery/SourceStructureStore and shared lexical helpers | Trusted query/identity/coverage boundaries, not a UI-owned corpus | Necessary scope, revision/path, include-smart-filtered and narrow temporary-reveal fields; current eligibility enforced before read/activation. Inspect actual inherited implementation before touching its owning file. |
-| ui/original-surface.js; popup.js; background/service-worker.js | Existing original/source action, generic open and current strict exact-entry/qualified-Topic-fragment sender boundary | Reuse actual supported entries. New host-context button or Archive fragment grammar is separately scheduled; worker edits only if a proven selected-query/sender gap requires them. Never expand permissions or undo new Topic support. |
+| archive.html, AppShell/shared semantic tokens, Archive navigator and Reader styles | One shell, three destinations, brand, logical state and preferences | New blue-white three-role geometry, middle title/search/tree, scoped typography/spacing, narrow composition; no global collateral restyle |
+| Archive navigator / SourceStructureStore / ArchiveNavigationQuery | Stable provider-qualified identities, whole-row disclosure, order/coverage, long/same-name truth | Refined indentation/selection/rows, separate reachable low-frequency Source/Project search actions and conditional scope indication |
+| Archive/Conversation search components and sessions | Independent query scopes, IME, cancellation, eligibility, bounded search and lexical ranking | New field styling and flat Input-first results; truthful counts/partial states; no model or DOM-only filter |
+| Current search-result reveal/highlight and safe Reader windowing | Exact Input/revision/original-safe offsets, eligible surrounding Inputs, no durable Keep on viewing | Bind exact arrival to the new document/scroller; native visible highlight/focus without body mutation |
+| Reader navigation, RouteHistory, ViewSessions, DocumentSearchSessions | Typed origins, result/tree/Find/reading anchors, lifetime limits, supported handoffs | Origin-aware normal-flow Back in new composition; inner-scroller and responsive return/focus integration |
+| Working Input save / current editor / ReaderStateService / revision and recovery owners | Immutable Source, current Working bindings, durable ACK, revisions/CAS, draft/IME/selection/undo | Direct prose edit state and contextual actions; source/history drawers and failure/retry/copy states without replacing editor technology |
+| Source/original-site/strict sender owners | Verified source URLs, no-opener, caller validation, lawful local reading and purge | On-demand source inspection and separate contextual external action; no new provider/host control/caller grammar |
+| Shared reading preferences and qualified source-time/order | Saved width/size/theme; actual precision/timezone/provenance and unknown-time policy | New date/time hierarchy, compact qualified date navigation and dark translation; no default reset or mock-based time inference |
 
-Unknown/unassigned distinctions, full-name wrap, source-label weight, title/time/prose spacing and current dark tokens are KEEP. KEEP means no redesign/reimplementation; it is not a new full production-certification claim.
+Maintain current source-state distinctions and existing nonconflicting capture/import/recovery/ordinary low-frequency actions not implemented in the sample. The illustrative no-link/capture-help dialogs are not substitutes for real supported functionality. Any change to a domain interface must solve a demonstrated integration gap in that owner, not import the prototype's whole-object storage or corpus.
 
-## P3. Simplification without renumbering or false completion
+## P3. Preserve six IDs; deliver coherent outcomes
 
-Keep six legacy identifiers for traceability, but remove the artificial six-new-project chain. Three coherent batches are sufficient planning units; these are descriptive batches, not another queue or a requirement for exactly three PRs.
-
-| Retained ID | IAH-1.1 scope | Disposition |
+| Retained ID | New final-UI responsibility | Completion boundary |
 |---|---|---|
-| ARCHIVE-HOME-01 | Minimum state/origin/query/tree-return extensions in the existing owner | NARROWED / PLANNED. No new router, canonical schema or mandatory URL protocol. |
-| ARCHIVE-HOME-02 | Scope wording in existing fields, flat Input-first results, coverage and result-state capture | RE-SCOPED / PLANNED. New Home/Main-only/search relocation removed. |
-| ARCHIVE-HOME-03 | Existing tree disclosure and explicit scope correctness | KEEP + GAP CHECKS ABSORBED INTO 01/02. No independent Browse page or split-click implementation; not falsely marked COMPLETE. |
-| ARCHIVE-HOME-04 | Existing handoff/highlight gap closure, exact Input/revision and narrow temporary reveal | REUSE / PLANNED GAP CLOSURE. No body rewrite or mandatory stripe. |
-| ARCHIVE-HOME-05 | Real origin-aware normal-flow Back, state restore and separation from original-site action | NARROWED / PLANNED. No sticky return or new host-entry rollout requirement. |
-| ARCHIVE-HOME-06 | Affected visual/safety/accessibility/reliability/resource acceptance | CONSOLIDATED / PLANNED. No unrelated whole-product recertification merely for copy changes. |
+| ARCHIVE-HOME-01 | Existing neutral/scope/results/Reader state and three-role shell integration | Reuse qualified state/identity work; bind actual new layout without another router or content selection on entry |
+| ARCHIVE-HOME-02 | Independent visible search scopes and flat Input-first result composition | Full eligible corpus, truthful coverage and current exact text; preserve rank and query owners |
+| ARCHIVE-HOME-03 | Source/Project/Conversation navigator presentation and explicit scope actions | Name/arrow remain disclosure; menu is reachable and separate; stable identity/order/coverage/focus |
+| ARCHIVE-HOME-04 | Continuous Reader, precise landing, contextual Working editing and source/history presentation | Existing safe reader/editor/source/revision owners; full content and non-editing reveal; no copied bodies |
+| ARCHIVE-HOME-05 | Actual Back/Find/date/order/appearance/narrow continuity and recovery | Correct result/tree/Entry-relative anchors, guarded drafts/IME and non-sticky return; no new host rollout |
+| ARCHIVE-HOME-06 | Integrated visual/behavior/accessibility/reliability acceptance | Match new references on actual source/release; retain all current safety/state obligations and honest remaining gaps |
 
-Recommended order when explicitly scheduled:
+These are outcomes inside the same Archive lane, not six mandatory PRs or new next-task pointers. Prior implementation/evidence remains valid for unchanged boundaries; new presentation is not automatically covered by old visual PASS.
 
-1. Existing 01 + 02 with only the necessary 03 scope/return checks: search wording, result hierarchy, state foundations.
-2. Existing 04 + 05: verify/repair exact landing, temporary reveal and true Back restoration using those foundations.
-3. Existing 06: selected-scope acceptance and unchanged-region comparison.
+Suggested coherent batching when STATUS schedules it: combine necessary 01/02/03 presentation and scope work; then 04/05 Reader/edit/source/return integration; then 06 convergence. Already-correct pieces are reused and independent preparation can proceed without blanket serialized re-audits. One combined suitable verification per coherent batch is preferable to a full certification loop per identifier, subject to the existing risk rules.
 
-Dependencies are actual route/query/editor behavior, not a demand for a new Project page before precise search can work. Batch together compatible work rather than running a full certification loop per legacy number.
+## P4. Home, navigator and search implementation
 
-## P4. First coherent batch — existing fields, results and state
+Adopt UX U1–U3 and U7 using existing semantic roles/scoped styles. Neutral Main remains blank; the Archive title lives in the middle navigator. Use the approved Source tree rhythm, qualified labels, long-name wrapping, explicit Conversation selection and independent scrolling where supported. Preserve current initialization instead of automatically expanding/choosing the sample's first Project.
 
-Preserve blank Home and current search coordinates. Add 搜索全部档案 / 在此对话中查找 with truthful narrowing, visible scope and accessible labels/localization. Keep the middle field while reading on desktop and prevent same-scope duplicate fields. The existing Reader field remains current-Conversation-only.
+Expose actual separate Source/Project search menu actions. Apply full trusted scope across query/results/continuation and display the active scope conditionally; do not narrow on Project disclosure or selected Reader. Clearing scope preserves query; clearing query retains deliberate scope; primary entry resets both. Preserve the distinct Reader Find owner while it is mounted.
 
-Extend the one current route/session owner only for needed four-state discrimination, typed explicit scope, origin, result-window/focus and tree snapshot. Project disclosure remains local metadata with no scope/query/content change. Returning from a tree-origin Reader restores the actual earlier Home/Browse route and expansion/focus; BROWSE_SCOPE never requires a rendered Project Main page.
+Render exact current Working Input excerpts with quiet path/time, title-only labeling, safe Unicode/negation/condition boundaries, readable continuation and correct failure/partial/no-result distinctions. The mock's fixed corpus/order/counts are not production query truth. Keep selecting result text independent from activation and support keyboard/touch without persistent toolbars.
 
-Convert the current result renderer to Input-first presentation with reliable metadata, Unicode-safe exact excerpt and no AI summary. Do not silently change ranking just to match a picture. Reuse paging/coverage and distinguish empty/intermediate/building/error/end states. Keep query while explicitly broadening/narrowing its supported scope. Identify whether Project-scope selection is truly reachable; use existing low-frequency facilities where possible. Any proposed new permanent control is recorded unapproved and does not block all-scope/Reader Find.
+Required affected checks: no first/latest/host auto-open; Project disclosure in Home/Search/Reader has zero scope/content side effect; all/Source/Project scope and clear; two fields keep independent query/caret/IME; same-label distinct source identities; unmounted/full-corpus and title-only hits; long/code/mixed-script/unknown-time input; complete versus partial counts, empty continuation, failed index and safe retry; zero model calls/jobs and no permission writes. Include a real native Home → search → result journey, not only static markup.
 
-Affected tests: both independent fields and labels survive render, query/caret/IME; primary reset versus Back/reload; no first/latest/host auto-selection; whole-row Project disclosure during Home/Search/Reader; correct scoped full-corpus search rather than DOM filtering; body-only/title-only/long/Unicode/unknown-time results; partial counts and no-result truth; no remote calls/AI jobs. Native text selection must not cause result activation.
+## P5. Reader, editor, source and accurate return
 
-## P5. Second coherent batch — exact hit and accurate Back
+Apply UX U4–U6 with the existing continuous Reader and save/history owners. Use qualified date groups and per-Input time, actual provenance and truthful end-of-content. Preserve original newline/code/text structure, unknown precision, source ordering and long-content windowing. Compact date navigation depends on real current-Conversation date facts, not a new calendar store or full-library scan.
 
-Exercise actual current helpers before changing them. A result must resolve the correct document/Input, current revision and original-safe occurrence beyond mounted pages, show the target in its real context and apply only a temporary non-editing highlight. Ordinary smart-filtered text is discoverable; a narrow route/Input reveal is not FILTER_KEEP/FILTER_PROTECT, automatic restore or a global mode change.
+Bind result landing to the new actual scrolling element and original-safe current occurrence, including unmounted and eligible filtered Inputs. Revalidate changed text/path/scope and never resurrect removal/purge. Reader Find stepping/close, sorting, new captures and appearance changes preserve their proper anchor and do not rewrite text or human intent.
 
-Use current Back position/style in normal flow, with 返回搜索结果 / 返回项目浏览 / 返回档案. Restore saved query/scope, result order/window/viewport-relative anchor/focus, tree expansion/extent and appropriate Reader/Find anchor through the actual owner; labels alone are insufficient. Handle sibling opening, cross-space explicit Back, native history, eviction, changed/moved content, save failure and cancellation without loops or stale result replay.
+Keep inline edit and contextual copy/source/history/removal/undo through current trusted commands. Source drawer is on demand and never a permanent fourth column. It must not falsely display current text as original or claim retained source after purge. Restoring a historical Working version is explicit and revision/deletion guarded; previous work remains recoverable within current policy. Preserve Source facts and current B-01/B-02 effects rather than infer new bindings from the mock.
 
-Keep separate verified original-site action in its existing low-frequency location. Existing supported direct/contextual paths retain their safety contract; a new host-site button, new fragment protocol and their live rollout are parked outside this bounded implementation, not cancelled as long-term possibilities. They are not invented blockers for normal all-scope search and tree browsing.
+Save failure retains draft, caret and recovery. Guard navigation, scope, sort and layer changes; no partial IME commit, draft loss, fake durable success or last-write-wins cross-tab overwrite. Copy current/original text only when deliberately selected, excluding interface labels/highlights, with an honest manual-copy fallback. Do not restore bulk exports/backup generation.
 
-Affected tests: deep/long/Unicode hit in both sorts; modified-but-matching and changed-away phrase; temporary filter exception without durable writes; explicit removal and tombstone defeating cached result; source unavailable but lawful local reading; return to the exact result/tree state; wrong-title/body prevention; no sticky return in any theme/viewport; editor/IME/selection and pending save preserved. Shared Topic-root state/links and its newer keyboard behavior must not regress.
+Back restores actual search query/scope/result window/viewport anchor/focus, or real tree expansion/scroll and prior Home/BROWSE_SCOPE. No-origin, sibling, cross-space, browser Back/Forward and explicit-route reload keep their existing distinctions. Never import the prototype's simplified origin/session history or force a new fragment grammar. Retain qualified NIB/Topic handoffs and strict caller validation.
 
-## P6. Consolidated acceptance — existing 06
+Required affected checks: long/deep/multi-occurrence hit in both sorts; current matching revision versus changed-away phrase; temporary reveal without Keep; explicit Keep/removal/undo and source purge during layers/navigation; unknown sending date/time; inline multiline/code and IME; failed saves/retry/safe copy/conflict; source/current/history distinction; correct inner-scroller restoration; source unavailable but lawful local reading; narrow directory-overlay focus return and 320px reflow; dark and saved preferences; no sticky Back; no source/Working duplication or privilege expansion.
 
-Compare actual source/release rendering at like-for-like viewports/data/reading preferences with the baseline plus the selected-change ledger, not the entire B screenshot. Unchanged primary rail, brand, geometry, blank Main, title/time/prose width and spacing must remain unchanged except ordinary responsive/saved-preference reflow. Reject accidental C/P1/P3, split click, sticky return, extra permanent scope widgets or blanket M6 copy adoption.
+## P6. Consolidated visual and production acceptance
 
-Check affected dark/narrow/320-CSS-pixel reflow, text enlargement, keyboard/focus/accessible labels/coarse targets, reduced motion, IME, long-name/list/continuous Reader behavior, failed saves, index coverage, offline and changed/deleted data. Restore metadata across the claimed lifetimes with existing bounds; missing checkpoints produce truthful degradation, not a new global history store. No query/body analytics, new performance dashboard or model dependency.
+Use the new HTML/ten screenshots, not old A/B/C geometry or the screenshot colors alone. REFERENCES supplies exact artifact identity and state mapping. Compare actual source and emitted release at matched viewport, theme, locale, typography/zoom, data roles and reading preferences. The production brand and existing saved preferences are explicit reference adaptations, not an excuse to reproduce the old layout. Record any necessary accessible-target/contrast adaptation precisely.
 
-Measure affected query/deep-arrival/return/resource regressions only against a recorded actual baseline and existing limits at relevant synthetic scales. Do not invent timing improvements from screenshots. Reuse valid evidence for unchanged code. Apply current VERIFICATION/EXECUTION_PROTOCOL targeted/affected/light gates; escalate real caller/privacy/storage/deletion/identity/migration changes to the existing appropriate full boundary. No test weakening, timeout inflation or documentation PASS in place of runtime evidence.
+New-reference states: initial neutral desktop; desktop Reader; flat search; exact arrival; active direct edit; original/current source drawer; unknown sending time; dark Reader; phone navigator; phone Reader. Also retain nonpictured existing requirements: genuinely empty data, incomplete/failed search, read/save failure, retry/cancel, source unavailable/purged, edit history/replacement, selection/copy failure, explicit scope, long/duplicate names, long conversations, filtered reveal/Keep, removal/undo, native history and current supported handoffs. Ten images do not reduce the larger state/behavior matrix.
 
-Close the selected subset only when applicable actual tests and source/release comparison pass. Design approval, local mechanics, visual conformance, live-provider support, real-user usability and installed delivery stay separate. No new implementation/test/migration/build/install/release is performed in this adoption.
+Preserve existing relevant synthetic scale and resource budgets. The package's 80-Input example and reported prototype checks are not substitutes for production large-library/long-reader tests, memory bounds, completeness or physical IME evidence. Reuse valid unchanged-code results; measure changed query/arrival/return/scroll regressions against a real recorded baseline. Do not manufacture performance gains from screenshots.
 
-## P7. Explicitly removed acceptance and deferred choices
+Run current VERIFICATION/EXECUTION_PROTOCOL targeted, affected and suitable integration gates; escalate actual caller/privacy/schema/deletion/identity/migration changes through existing higher-risk gates. Replace only superseded visual assertions with the new UI contract, retaining or strengthening identity/coverage/editor/source/permission/recovery checks. No lower safety threshold, increased timeout merely to pass, skipped difficult case, synthetic-to-real promotion or retroactive change of historical failures.
 
-Removed from this selected work: constructing a Find welcome Home; moving Archive Search to Main; deleting the middle field; enforcing exactly one field across different scopes; Project name-to-scope/arrow split; separate Project Main content/P3; P1; C; sticky Back; importing all B UI/copy; manufacturing six independent implementation rounds.
+Final UI is complete only with actual integrated runtime and relevant source/release visual/interaction evidence. Plan commit, standalone HTML, old delivery, packaged screenshots and original reported prototype results do not establish installation, whole-product completion, real provider quality or production service activation.
 
-Not selected follow-ups: a newly permanent Project-scope selector, membership copy M6, sticky/deep-return convenience and new host-context/public route entry. A need for one must be stated precisely and separately approved where it changes product scope. Preserve already-supported explicit scope/direct-entry semantics and their safety.
+## P7. Scope lock, exclusions and remaining external dependencies
 
-## P8. Task traces and readiness
+No Main welcome/search dashboard, recent feed/statistics, Topic-card Archive, generated summaries/AI replies, Project name-versus-arrow split, sticky return, permanent source column, new permission manager, global scope console, archive-to-Context permission fallback or automatic original-site opening. Older rejected P1/P3/C/M6 decisions remain outside adoption except the finite new geometry explicitly stated in ADOPTION.
 
-| Journey | Required trace | Evidence status in this adoption |
-|---|---|---|
-| Find | Neutral blank Archive -> middle field -> exact Input result -> actual Reader occurrence -> normal Back -> original results | Design selected; production journey NOT_RUN |
-| Browse | Neutral Archive -> whole Project-row expansion -> explicitly chosen Conversation -> 返回项目浏览 -> original tree/route, still no inferred search scope | Design selected; existing disclosure KEEP; return closure NOT_RUN |
-| Explicit scope | Separate supported scope action -> same query in narrower/all trusted scope -> result -> Back | Reuse/gap verification planned; no new permanent selector approved |
-| Existing explicit direct/contextual entry | Intended saved target only; generic open remains neutral; missing local target does not capture/import/select another | Retain safety; new entry rollout outside selected subset |
+The approved low-frequency scope/conditional indicator, contextual source/history, date/appearance controls are now within the UI target; do not keep them forever unimplemented by citing old no-redesign language. They must use existing safe owners. New host actions, public URL/caller grammar, new provider adapters, data model/retention policy, account/cloud/billing and unrelated feature expansion are not implied.
 
-> Historical adoption-time statement below; superseded by the execution update at the top.
+Old functional promises and existing supported actions missing from the demonstration remain in their original scope. Preserve existing consent, source/capture/Working/Thought/Context boundaries, recovery/import, deletion fences and broader seven-plan delivery. A unavailable original URL blocks that external action only; a missing live model/cloud/client does not block local browsing. Missing exact visual bytes blocks exact-reference qualification, not independent safe domain preparation; never fill that gap with another design or an old screenshot.
 
-The selected minimal scope is design-ready, not execution-selected or production-complete. Current coordinated STATUS/exclusion remains; no new global next task, writer, schema, runtime, UI, manifest or user-data action follows from this plan correction.
+## P8. Evidence status and execution routing
+
+This documentation integration inspected the current Archive plan/contracts, current coordination instructions and actual approved artifact bytes. It verified ZIP integrity, the twelve packaged checksum entries and equality of the available standalone files; computed original image sizes/hashes; and reviewed the supplied visual states. Those checks establish reference identity and plan alignment only. Production runtime/browser/service/quality/performance/device tests are **NOT_RUN_BY_THIS_TASK**.
+
+The five preceding Archive files are retained as exact PRE_UI_2026-10-13 Git blobs. Their nonconflicting detailed requirements remain incorporated; their old adoption-time status is not a fresh runtime finding. Current STATUS scheduling and actual current authorizations are unchanged. Do not mark all PAIA complete or reset already qualified implementation because the final visual target has changed.
+
+Only documentation is written in this task: no runtime, schema, tests, CI, version, website, user data, local Mac, installation, service, payment or deployment change. The integrating commit/parent and main readback identify publication; no invented self-referential SHA is embedded here.
