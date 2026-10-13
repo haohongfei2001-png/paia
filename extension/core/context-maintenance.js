@@ -23,8 +23,13 @@ export function validateContextMaintenanceChange(c){
  need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence'])&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,80)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
  need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
 }
+// A declared local-domain outcome, not an inferred equality or model wire.
+export function validateContextMaintenanceNoChange(c){
+ need(exact(c,['operation','operationId','epoch','itemId','card','expectedRevision','associationIds','evidence'])&&c.operation==='NO_CHANGE'&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&c.expectedRevision>0&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
+ need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
+}
 function validResult(x){
- return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed'].includes(x.disposition)&&x.externalAllowed===false;
+ return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change'].includes(x.disposition)&&x.externalAllowed===false;
 }
 function validReceipt(r){
  return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','accountId','processorId','authorizationGeneration','scopeDigest','requestItemId','card','expectedRevision','associationId','associationDigest','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&uuid(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&uuid(r.ownerId)&&stamp(r.createdAt)&&digestOK(r.digest)&&epochOK(r.epoch)&&opaque(r.accountId)&&opaque(r.processorId)&&revisionOK(r.authorizationGeneration)&&digestOK(r.scopeDigest)&&uuid(r.requestItemId)&&CONTEXT_ITEM_CARDS.includes(r.card)&&revisionOK(r.expectedRevision)&&uuid(r.associationId)&&digestOK(r.associationDigest)&&validResult(r.result)&&r.result.itemId===r.ownerId;
@@ -75,16 +80,19 @@ export class ContextMaintenanceService {
   const item=(await this.#cards.row(t)).items.find(x=>x.id===r.ownerId);
   need(item?.origin==='automatic'&&item.card===r.card&&item.revision>=r.result.revision&&item.maintenance.associationIds.includes(r.associationId),'INVALID_REQUEST');
   if(['created','updated'].includes(r.result.disposition))need(r.requestItemId===r.ownerId&&r.result.revision===r.expectedRevision+1&&(r.result.disposition==='created'?r.expectedRevision===0:r.expectedRevision>0),'INVALID_REQUEST');
+  if(r.result.disposition==='no_change')need(r.requestItemId===r.ownerId&&r.expectedRevision>0&&r.result.revision===r.expectedRevision,'INVALID_REQUEST');
   if(r.result.disposition==='duplicate')need(r.requestItemId!==r.ownerId,'INVALID_REQUEST');
   if(['protected','removed'].includes(r.result.disposition))need(item.protected===true,'INVALID_REQUEST');
   if(request)need(r.requestItemId===request.itemId&&r.card===request.card&&r.expectedRevision===request.expectedRevision&&request.associationIds.includes(r.associationId)&&r.associationDigest===query.associationDigest,'INVALID_REQUEST');
   return r.result;
  }
- maintain(caller,input,{signal=null}={}){
+ maintain(caller,input,options={}){return this.#maintain(caller,input,options,false);}
+ noChange(caller,input,options={}){return this.#maintain(caller,input,options,true);}
+ #maintain(caller,input,{signal=null}={},unchanged){
   try{
    need(typeof this.#verifier?.verify==='function'&&typeof this.#verifier?.isCurrent==='function');
    need(signal===null||signalOK(signal),'INVALID_REQUEST');
-   const c=structuredClone(validateContextMaintenanceChange(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
+   const c=structuredClone(unchanged?validateContextMaintenanceNoChange(input):validateContextMaintenanceChange(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
    if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
    need(this.#attempts.size<CONTEXT_MAINTENANCE_LIMITS.pending,'CONTEXT_LIMIT');
    const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
@@ -131,7 +139,16 @@ export class ContextMaintenanceService {
    const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];let item=associated||target,outcome;
    if(associated&&target&&associated.id!==target.id)return conflict();
    if(item?.origin==='manual'||item&&(item.card!==c.card||!associated))return conflict();
-   if(item&&(item.lifecycle==='removed'||item.protected))outcome=result(item,item.lifecycle==='removed'?'removed':'protected');
+   if(c.operation==='NO_CHANGE'){
+    if(!item||item.id!==c.itemId||item.card!==c.card||item.lifecycle!=='active'||item.protected||item.revision!==c.expectedRevision||!c.associationIds.every(id=>item.maintenance.associationIds.includes(id)))return conflict();
+    // Every checked Input/field must belong to this Item's actual registered
+    // Source closure. Mere Source overlap or a copied association cannot ACK
+    // unrelated evidence. Checking a proper subset never claims full coverage.
+    for(const actual of captured.provenance.evidence){const prior=item.maintenance.provenance.evidence.find(e=>e.inputId===actual.inputId&&e.topicId===actual.topicId);
+     if(!prior||!actual.selectedFields.every(field=>prior.selectedFields.includes(field))||!same(actual.sourceRecordIds,prior.sourceRecordIds)||!same(actual.sourceIdentityTokens,prior.sourceIdentityTokens))return conflict();
+    }
+    outcome=result(item,'no_change');
+   }else if(item&&(item.lifecycle==='removed'||item.protected))outcome=result(item,item.lifecycle==='removed'?'removed':'protected');
    else if(associated&&associated.id!==c.itemId)outcome=result(associated,'duplicate');
    else{
     if((item?.revision||0)!==c.expectedRevision||item&&(!associated||item.card!==c.card))return conflict();

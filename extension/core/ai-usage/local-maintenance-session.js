@@ -3,7 +3,7 @@ import {readMaintenanceBatch} from './maintenance-batch.js';
 import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService} from '../topic-formation.js';
-import {ContextMaintenanceService,validateContextMaintenanceChange} from '../context-maintenance.js';
+import {ContextMaintenanceService,validateContextMaintenanceChange,validateContextMaintenanceNoChange} from '../context-maintenance.js';
 
 const TYPE='AI_MAINTENANCE';
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
@@ -197,24 +197,24 @@ export class LocalMaintenanceSession {
  async #writeDomain(fn,facet){
   const a=this.#active;this.#processingCurrent(a?.state,a?.state.processing.get(a.childId));if(!a||a.facet!==facet||a.callback!==null||typeof fn!=='function')fail('UNAVAILABLE');
   a.callback=fn;
-  await this.#foundation.commitFacet(a.state.job.id,a.childId,{facet,units:a.units});this.#current(a.state);
+  await this.#foundation.commitFacet(a.state.job.id,a.childId,{facet,units:a.units,outcome:a.outcome});this.#current(a.state);
   if(!a.entered||a.result===null)fail('DOMAIN_REPLAY_UNACKNOWLEDGED');return a.result;
  }
  async #commit(t,r,facet){
   const a=this.#active;this.#processingCurrent(a?.state,a?.state.processing.get(a.childId));
-  if(a?.facet!==facet||typeof a.callback!=='function'||a.entered||r.logicalJobId!==a.state.job.id||r.childOperationId!==a.childId||!equal(r.units,a.units))fail('STALE_BASE');
+  if(a?.facet!==facet||typeof a.callback!=='function'||a.entered||r.logicalJobId!==a.state.job.id||r.childOperationId!==a.childId||r.outcome!==a.outcome||!equal(r.units,a.units))fail('STALE_BASE');
   a.entered=true;const abort=()=>{try{t.tx.abort();}catch{}},signals=[a.state.controller.signal,a.state.grant.revocationSignal,a.state.processing.get(a.childId).revocationSignal];
   for(const s of signals)s.addEventListener('abort',abort);
   const cleanup=()=>{for(const s of signals)s.removeEventListener('abort',abort);};t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
   const put=t.put.bind(t);t.put=async(...args)=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));const value=await put(...args);this.#processingCurrent(a.state,a.state.processing.get(a.childId));return value;};
   const result=await a.callback(t);this.#current(a.state);
-  if(facet==='context'?result?.ok!==true||result.conflict===true:!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
+  if(facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!=='no_change':!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
   a.result=result;return {committed:true,coverage:r.units,isCurrent:()=>{try{this.#processingCurrent(a.state,a.state.processing.get(a.childId));return this.#active===a;}catch{return false;}}};
  }
- async #invoke(state,childId,receipt,facet,units,work){
+ async #invoke(state,childId,receipt,facet,units,work,outcome='COMMITTED'){
   this.#current(state);if(this.#active)fail('REQUEST_ALREADY_IN_FLIGHT');
-  const a={state,childId,receipt,facet,units,callback:null,entered:false,result:null};this.#active=a;
-  try{await work();this.#current(state);if(!a.entered)fail('DOMAIN_REPLAY_UNACKNOWLEDGED');return {facet,units:units.length,state:'COMMITTED'};}
+  const a={state,childId,receipt,facet,units,outcome,callback:null,entered:false,result:null};this.#active=a;
+  try{await work();this.#current(state);if(!a.entered)fail('DOMAIN_REPLAY_UNACKNOWLEDGED');return {facet,units:units.length,state:'COMMITTED',...(outcome==='NO_CHANGE'?{outcome}:{})};}
   finally{if(this.#active===a)this.#active=null;}
  }
  async #topicFacet(state,childId,receipt,units){
@@ -231,8 +231,8 @@ export class LocalMaintenanceSession {
   if(!groups){
    groups=await this.#decode({state,childId,receipt},'context',Object.freeze({units:structuredClone(units),inputIds:[...inputIds]}));this.#current(state);
    if(!Array.isArray(groups)||!groups.length||groups.length>units.length)fail('STALE_BASE');
-   const all=[];for(const group of groups){exact(group,['units','change']);group.units=validateCoverage(group.units,TYPE);if(group.units.some(u=>u.facet!=='context'||!units.some(v=>unitKey(u)===unitKey(v))))fail('STALE_BASE');
-    validateContextMaintenanceChange(group.change);const ids=this.#inputs(state,group.units);
+   const all=[];for(const group of groups){exact(group,['units','change','operation'],['units','change']);if(Object.hasOwn(group,'operation')&&group.operation!=='NO_CHANGE')fail('STALE_BASE');group.units=validateCoverage(group.units,TYPE);if(group.units.some(u=>u.facet!=='context'||!units.some(v=>unitKey(u)===unitKey(v))))fail('STALE_BASE');
+    if(group.operation==='NO_CHANGE')validateContextMaintenanceNoChange(group.change);else validateContextMaintenanceChange(group.change);const ids=this.#inputs(state,group.units);
     if(!ids||!equal(ids,[...new Set(group.change.evidence.map(e=>e.inputId))].sort()))fail('STALE_BASE');all.push(...group.units);
    }
    if(!equal(all.map(unitKey).sort(),units.map(unitKey).sort()))fail('STALE_BASE');state.groups.set(key,groups);state.outputs.delete(childId);
@@ -240,7 +240,7 @@ export class LocalMaintenanceSession {
   const results=[];for(const group of groups){
    const current=await this.#foundation.status(state.job.id);this.#current(state);const remaining=group.units.filter(u=>!current.committedCoverage.includes(unitKey(u)));
    if(!remaining.length)continue;if(remaining.length!==group.units.length)fail('STALE_BASE');
-   try{results.push(await this.#invoke(state,childId,receipt,'context',group.units,()=>this.#context.maintain(this.#service.context.caller,group.change,{signal:state.controller.signal})));}
+   try{results.push(await this.#invoke(state,childId,receipt,'context',group.units,()=>group.operation==='NO_CHANGE'?this.#context.noChange(this.#service.context.caller,group.change,{signal:state.controller.signal}):this.#context.maintain(this.#service.context.caller,group.change,{signal:state.controller.signal}),group.operation==='NO_CHANGE'?'NO_CHANGE':'COMMITTED'));}
    catch(e){this.#current(state);results.push({facet:'context',units:group.units.length,state:'FAILED',reason:safeError(e)});break;}
   }return results;
  }
