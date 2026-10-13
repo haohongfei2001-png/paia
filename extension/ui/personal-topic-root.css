@@ -25,4 +25,4 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 @media(max-width:1279px){#thought-list.personal-topic-grid{--topic-root-columns:3}}
 @media(max-width:1023px){#thought-list.personal-topic-grid{--topic-root-columns:2}}
 @media(max-width:639px){#thought-list.personal-topic-grid{--topic-root-columns:1;gap:12px}.personal-topic-block{padding:16px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
-@media(pointer:coarse){#thought-list.personal-topic-grid{--topic-root-block-size:21rem}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
+@media(pointer:coarse){.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
