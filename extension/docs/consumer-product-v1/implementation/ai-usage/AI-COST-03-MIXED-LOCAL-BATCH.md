@@ -1,0 +1,31 @@
+# AI-COST-03 / CTX4-05 local mixed Maintenance batch
+
+## Actual behavior
+
+A qualified existing automatic Context Item can return explicit NO_CHANGE through the original Context transaction and exact subset ACK. Its body, provenance and revision are preserved; effective results remain zero. This is a typed local-domain outcome, not a model equality heuristic or active paid service.
+
+A mixed dirty queue previously blocked all supported Inputs when it also contained unsupported human Topic/Section/Entry/Placement/Context units. The existing Foundation now records bounded metadata-only DEFER for those exact units and closes only its own never-dispatched planning job in one original transaction. One fresh qualification can process supported Inputs through existing provider/body/domain/ACK controls. Unsupported obligations remain pending, with no ACK, provider attempt or financial effect. PARTIAL is honest even when the supported subset commits.
+
+The active DEFER pool remains bounded at100. Ordinary98+6 overflow refuses before creating a plan. A racing refusal can close only the exact fresh plan bound to this instance by an in-memory proof; cloned, foreign, restarted, dispatched or reused plans cannot acquire that authority. Abort rolls back DEFER/close together and preserves the proof for legitimate cleanup. This adds no durable entity, schema, shared writer, permission, model activation or automatic retry.
+
+## Evidence identities
+
+Original NO_CHANGE ad8fb6cd3b793983d7e09c8b9eeb8157745b8adf and mixed3d5623beea33363ee634da6046abbdeab1139fb8 have separate author and independent review bindings. The independent mixed reviewer reran43 owning plus50 Foundation tests:93/93PASS5249.336375ms; original mixed whole Source/release112/112PASS23980.510833ms remains bound to its development identity. Earlier capacity104 erroneous oracle and native fixture failures are preserved, not waived.
+
+The local combination0e0654d3 preserves formalmain04f2cad2, PR280 final0f36b2d and its reading repair, plus the latest approved canonical/website changes using normal three-way integration. Only routing-document and version conflicts required resolution; both prior histories were retained and version0.48.0 kept. Mixed runtime/native and Context-maintenance bytes exactly equal their reviewed versions.
+
+Fresh combination: five complete owning/version files126/126PASS6586.815417ms; whole existing Source/release maintenance browser112/112PASS26866.74425ms; package16126guards/472runtime resourcesPASS. No fail/cancel/skip/todo in these executions. The source/release test uses isolated synthetic data and original storage owners, not the user's installed extension or archive.
+
+Final exact-head certification and merged-main qualification are still required. This is not all AI-COST03/CTX405 completion, real-provider/model-quality evidence, Sync delivery or an installed-user update. SYNC new features remain paused and Pro264/CI remains independently owned. All seven Canonical plans and their remaining obligations survive.
+
+Predecessor PR280 has now merged safely as main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 after exact-head Full38337300223 and final independent review passed. The verified merge tree e4f8d990 is identical to this combination's predecessor integration tree; all latest main files are retained. New batch certification remains separate.
+# Exact-head qualification correction — 2026-10-13
+
+Full38339330187 at7bf76cc5 failed Sync-native preflight: original731 owning cases had729PASS/2FAIL, both strictly rejecting the missing `core/ai-usage/maintenance-batch.js` dependency in the retention runtime inventory. Native execution did not start; the missing later artifact was consequential, not a second runtime diagnosis. Artifact11786552313 retains original evidence (ZIP SHA256 bbfbbecc53d1f7d46f0a6a45a50c9d865f1781fd4b018f428b382af07101aeb4). The original dynamic closure recomputation remains unchanged. Add only that real statically imported module to the explicit inventory so all its bytes are covered by runtime hashes; no guard, assertion, CI file, or Sync capability changes. Five whole related contract files13/13PASS234.296125ms and independent six cases pass; independent binding is retained in the coordinator workspace. Changed-head qualification is required; the failed prior run is not acceptance.
+
+
+## Exact-head cloud timeout diagnosis
+
+Full38341608747 at ef68bb37 (tree4ea2f99f; localbfe58876 identical) did not qualify. Browser3 original foundation Source/release cases timed out at120000ms,49other cases passed; Syncnative was cancelled. Full aggregate and integration gate failed. Artifact11787213923 SHA256fa393693c025e92971757a9443c2eb487b301ee9c7a7515ee26100241400df03 and original logs preserved in coordinator review directory. Reporter suppressed phase stdout, so the internal stall is not established.
+
+Owning test now persists static synthetic phase/status/timing JSONL to the existing work artifact directory, including abort and cleanup. No body/RPC/error text, runtime, assertion, timeout, case-count or CI change. Independent Root mechanically verified127 assertion calls and original120000ms deadline. Author whole Source/release2PASS64909ms did not reproduce cloud failure; final cleanup-only instrumentation has syntax/structural review and retains separate tested/final hashes. This is diagnosability, not a claimed runtime repair. Exact changed-head cloud qualification is required; cancelled/skipped jobs remain unqualified.

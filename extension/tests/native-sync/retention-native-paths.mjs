@@ -16,6 +16,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/ai-usage/foundation.js",
   "core/ai-usage/historical-candidate-contract.js",
   "core/ai-usage/historical-candidate-session.js",
+  "core/ai-usage/maintenance-batch.js",
   "core/ai-usage/organize-style-binding.js",
   "core/ai-usage/semantic-invalidation.js",
   "core/archive-navigation-index.js",

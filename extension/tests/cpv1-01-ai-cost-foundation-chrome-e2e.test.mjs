@@ -2,7 +2,7 @@ import {verifyOrganizeProviderNative} from './harness/ai-organize-provider-nativ
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,mkdirSync,appendFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -19,13 +19,20 @@ async function attach(page){return page.evaluate(async()=>{
  globalThis.__aiu={s,ai:new AIUsageFoundation(s,options),options};
  return {defaultDenied:s.aiUsageFoundation.resolveAuthority===null};
 });}
-for(const label of ['source','release'])test(`AI-COST-01 ${label} native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence`,{timeout:120000},async()=>{
+for(const label of ['source','release'])test(`AI-COST-01 ${label} native IndexedDB atomic delta, facet holes and page-reload unknown-attempt fence`,{timeout:120000},async(t)=>{
+ // Persist only synthetic phase labels and timings: the CI reporter omits stdout.
+ const journalDir=join(source,'work','ai-cost-foundation-phases');mkdirSync(journalDir,{recursive:true});
+ const journal=join(journalDir,`${label}-${process.pid}-${Date.now()}.jsonl`),started=performance.now();let active=null,phaseStarted=started;
+ const record=(phase,status)=>appendFileSync(journal,JSON.stringify({variant:label,phase,status,elapsedMs:Math.round(performance.now()-started),phaseMs:Math.round(performance.now()-phaseStarted)})+'\n');
+ const phase=name=>{if(active)record(active,'end');active=name;phaseStarted=performance.now();record(name,'start');};
+ const aborted=()=>{if(active)record(active,'aborted');};t.signal.addEventListener('abort',aborted,{once:true});
  let release=null,h;
+ phase('build');
  try{
   if(label==='release'){release=mkdtempSync(join(tmpdir(),'paia-ai-cost-foundation-'));execFileSync('python3',['scripts/build_current_release.py',release],{cwd:source,stdio:'pipe'});}
-  h=await FakeChatGPT.start({extensionPath:release||source,onboarding:true});const p=h.archive;
-  assert.deepEqual(await attach(p),{defaultDenied:true});
-  const initial=await p.evaluate(async()=>{
+  phase('browser-start');h=await FakeChatGPT.start({extensionPath:release||source,onboarding:true});const p=h.archive;
+  phase('attach');assert.deepEqual(await attach(p),{defaultDenied:true});
+  phase('initial');const initial=await p.evaluate(async()=>{
    const {s,ai}=__aiu;await s.consent(true);const epoch=(await s.status()).epoch;
    for(let i=0;i<100;i++)await s.capture({epoch,adapterVersion:'0.3.0',chat:{id:'aiu-native-chat',url:'https://chatgpt.com/c/aiu-native-chat',title:'Synthetic'},messages:[{sourceMessageId:'aiu-native-'+i,pageOrder:i+1,originalText:'NATIVE_PRIVATE_BODY_'+i}]});
    const pages=[];let cursor=null;do{const result=await ai.collect({cursor,limit:19});pages.push(...result.items);cursor=result.nextCursor;}while(cursor);
@@ -43,15 +50,15 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {captured:pages.length,partialState:partial.state,partialCount:partial.committedCoverage.length,pending:pending.items.length,remaining:remaining.items.length,queue:JSON.stringify(queue),attempts:(await ai.counters()).physicalAttempt};
   });
   assert.equal(initial.captured,100);assert.equal(initial.partialState,'VALIDATED');assert.equal(initial.partialCount,2);assert.equal(initial.pending,100);assert.equal(initial.remaining,98);assert.equal(initial.attempts,2);assert.doesNotMatch(initial.queue,/NATIVE_PRIVATE_BODY|DO_NOT_PERSIST_RESPONSE/);
-  await p.reload();await attach(p);
-  const after=await p.evaluate(async()=>{
+  phase('reload-attach');await p.reload();await attach(p);
+  phase('after');const after=await p.evaluate(async()=>{
    const {s,ai}=__aiu,{unknownRequest,job}=JSON.parse(sessionStorage.getItem('aiu-synthetic-job'));await ai.reconcileInterrupted(job.id);let calls=0;const same=await ai.plan(unknownRequest),outcome=await ai.dispatch(job.id,job.childIds[0],{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;}});
    const item=unknownRequest.items[0],before=await s.repository.transaction(false,t=>t.get('inputStates',item.descriptor.entityId));let rolledBack=false;
    try{await s.foundationWrite(async t=>{const put=t.put.bind(t);t.put=async(name,row,...args)=>{if(name==='meta'&&row.id.startsWith('aiu:delta:pending:'))throw Error('synthetic write failure');return put(name,row,...args);};await t.put('inputStates',{...before,contentRevision:99});});}catch{rolledBack=true;}
    const current=await s.repository.transaction(false,t=>t.get('inputStates',before.id));return {sameId:same.id===job.id,outcome:outcome.state,calls,rolledBack,revisionUnchanged:current.contentRevision===before.contentRevision,attempts:(await ai.counters()).physicalAttempt};
   });
   assert.deepEqual(after,{sameId:true,outcome:'OUTCOME_UNKNOWN',calls:0,rolledBack:true,revisionUnchanged:true,attempts:2});
-  const invalidation=await p.evaluate(async()=>{
+  phase('invalidation');const invalidation=await p.evaluate(async()=>{
    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{AIUsageFoundation}=await import(chrome.runtime.getURL('core/ai-usage/foundation.js')),{invalidateSemanticJobs}=await import(chrome.runtime.getURL('core/ai-usage/semantic-invalidation.js'));
    const read=(s,name)=>s.repository.transaction(false,t=>t.all(name));
    const edit=async(s,id,text)=>{const input=await s.input(id);return s.editDocument({operationId:crypto.randomUUID(),documentId:input.documentId,blocks:[{id,expectedRevision:input.revision,libraryText:text,note:input.note,excluded:input.excluded}]});};
@@ -74,7 +81,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {unknownState:unknown.state,unknownSpend:unknown.attempts[0].spendState,unknownAttempts:unknown.attempts[0].attemptCount,completedExists:!!completed,completedUnchanged:JSON.stringify(cancelled.attempts.find(r=>r.id===completed?.id))===JSON.stringify(completed),cancelledState:cancelled.state,localAttempts:(await local.ai.counters()).physicalAttempt,rolledBack:refused&&unchanged,overflowUnchanged:allUnchanged,bound,staleCode};
   });
   assert.deepEqual(invalidation,{unknownState:'OUTCOME_UNKNOWN',unknownSpend:'RESERVATION_RETAINED',unknownAttempts:1,completedExists:true,completedUnchanged:true,cancelledState:'CANCELLED_BEFORE_DISPATCH',localAttempts:0,rolledBack:true,overflowUnchanged:true,bound:{status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0},staleCode:'STALE_BASE'});
-  const boundedCost=await p.evaluate(async()=>{
+  phase('boundedCost');const boundedCost=await p.evaluate(async()=>{
  const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js');
  const local={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},s=new OrganizerStore(local,{name:'ai-invalidation-cost-synthetic'});await s.consent(true);const epoch=(await s.status()).epoch;
  const capture=(i)=>s.capture({epoch,adapterVersion:'0.3.0',chat:{id:'synthetic-cost',url:'https://chatgpt.com/c/synthetic-cost',title:'Synthetic'},messages:[{sourceMessageId:'synthetic-cost-'+i,pageOrder:i+1,originalText:'SYNTHETIC performance evidence '+i}]});
@@ -89,7 +96,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
  return {cardinality,zero,captureCost,edit,cancelled:await s.repository.transaction(false,async t=>(await t.all('organizerJobs')).filter(j=>j.state==='CANCELLED_BEFORE_DISPATCH').length),defaultAuthorityMissing:s.aiUsageFoundation.resolveAuthority===null};
   });
   assert.deepEqual(boundedCost.cardinality,{jobs:100,items:10000,attempts:0});assert.equal(boundedCost.defaultAuthorityMissing,true);assert.ok(boundedCost.captureCost.reads<500,'bounded capture avoids per-job unchanged-evidence reads');assert.ok(boundedCost.edit.reads<1000,'one changed key cancels all affected scopes without rereading the corpus');assert.equal(boundedCost.cancelled,100);console.log('AI_NATIVE_BOUNDED_COST',label,JSON.stringify(boundedCost));
-  const deferredHistory=await p.evaluate(async()=>{
+  phase('deferredHistory');const deferredHistory=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{readMaintenanceBatch}=await import('../core/ai-usage/maintenance-batch.js');
    const storage={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(storage,{name:'aiu-native-defer-history'}),ai=new AIUsageFoundation(s,__aiu.options);
    await s.consent(true);await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'defer-history',url:'https://chatgpt.com/c/defer-history',title:'Synthetic'},messages:[{sourceMessageId:'defer-one',pageOrder:1,originalText:'SYNTHETIC DEFER unchanged Source'}]});
@@ -115,7 +122,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,activeBefore:before.organizerWorkItems.filter(row=>row.id.startsWith('aiu:defer:')).length,error,removed,abortUnchanged,status:result.status,cleanup:result.cleanup,historyCount:histories.length,preserved,jobsUnchanged:JSON.stringify(before.organizerJobs)===JSON.stringify(after.organizerJobs),usageUnchanged:JSON.stringify(before.organizerUsage)===JSON.stringify(after.organizerUsage),recordsUnchanged:JSON.stringify(before.records)===JSON.stringify(after.records),inputsUnchanged:JSON.stringify(before.inputStates)===JSON.stringify(after.inputStates),malformedReason:malformed.reason,malformedUnchanged};
   });
   assert.equal(deferredHistory.nativeFactory,true);assert.equal(deferredHistory.activeBefore,102);assert.equal(deferredHistory.error,'STORAGE_FAILED');assert.equal(deferredHistory.removed,2);assert.equal(deferredHistory.abortUnchanged,true);assert.equal(deferredHistory.status,'CANDIDATE_ONLY');assert.equal(deferredHistory.cleanup.scanned,100);assert.equal(deferredHistory.cleanup.archived,100);assert.equal(deferredHistory.historyCount,100);assert.equal(deferredHistory.preserved,true);for(const key of ['jobsUnchanged','usageUnchanged','recordsUnchanged','inputsUnchanged','malformedUnchanged'])assert.equal(deferredHistory[key],true,key);assert.equal(deferredHistory.malformedReason,'DEFER_SCAN_BOUND');console.log('AI_NATIVE_DEFER_HISTORY',label,JSON.stringify(deferredHistory));
-  const styles=await p.evaluate(async()=>{
+  phase('styles');const styles=await p.evaluate(async()=>{
    const {AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{STORAGE_KEY}=await import('../core/constants.js'),{s}=__aiu;
    const ai=new AIUsageFoundation(s,{resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic-style',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ORGANIZE'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),committers:{organize:async(_t,r)=>({committed:true,coverage:r.units})}});
    const rows=table=>s.repository.transaction(false,t=>t.all(table));
@@ -132,7 +139,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,aState:a.state,bState:b.state,ackDelta:ackB.length-ackA.length,ackAPreserved:ackA.every(row=>JSON.stringify(ackB.find(r=>r.id===row.id))===JSON.stringify(row)),stale,newJob:old.id!==next.id,sameSemantic:jobs.find(j=>j.id===old.id).organizeSemanticKey===jobs.find(j=>j.id===next.id).organizeSemanticKey,failure,preferenceUnchanged:JSON.stringify(await s.aiStylePreference())===JSON.stringify(beforePreference),controlUnchanged:JSON.stringify(await s.local.get(STORAGE_KEY))===beforeControl,coverageUnchanged:JSON.stringify(await rows('organizerWorkItems'))===JSON.stringify(beforeAck),domainAbsent:!(await rows('meta')).some(r=>r.id==='synthetic-style-rollback'),attempts:(await ai.status(rollback.id)).attempts.length};
   });
   assert.deepEqual(styles,{nativeFactory:true,aState:'PLANNED',bState:'PLANNED',ackDelta:1,ackAPreserved:true,stale:'STALE_BASE',newJob:true,sameSemantic:true,failure:'STALE_BASE',preferenceUnchanged:true,controlUnchanged:true,coverageUnchanged:true,domainAbsent:true,attempts:0});console.log('AI_NATIVE_STYLE_BINDING',label,JSON.stringify(styles));
-  const assist=await p.evaluate(async()=>{
+  phase('assist');const assist=await p.evaluate(async()=>{
    const {AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{s}=__aiu,rows=table=>s.repository.transaction(false,t=>t.all(table));
    const state={enabled:true,binding:{version:1,sessionId:'synthetic-native',leaseId:'synthetic-one',replyId:'synthetic-A',replyGeneration:1,consentEpoch:'synthetic-remote-only',permissionEpoch:'synthetic-permission'}};
    const ai=new AIUsageFoundation(s,{resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic-assist',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),resolveAssistIntent:async(_t,r)=>({allowed:state.enabled,remoteProcessing:true,binding:structuredClone(state.binding),scope:r.scope}),committers:{assist:async(_t,r)=>({committed:true,coverage:r.units})}});
@@ -146,7 +153,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,singleJob:new Set(ids).size===1,a:a.state,b:b.state,c:c.state,distinct:new Set([a.id,b.id,c.id]).size,ackDelta:ackB.length-ackA.length,oldAckPreserved:ackA.every(row=>JSON.stringify(ackB.find(r=>r.id===row.id))===JSON.stringify(row)),stale,failure,rollback:before===JSON.stringify(await Promise.all(['organizerJobs','organizerUsage','organizerWorkItems'].map(rows))),domainAbsent:!(await rows('meta')).some(r=>r.id==='synthetic-assist-rollback')};
   });
   assert.deepEqual(assist,{nativeFactory:true,singleJob:true,a:'PLANNED',b:'PLANNED',c:'PLANNED',distinct:3,ackDelta:1,oldAckPreserved:true,stale:'STALE_BASE',failure:'UNAVAILABLE',rollback:true,domainAbsent:true});console.log('AI_NATIVE_ASSIST_INTENT',label,JSON.stringify(assist));
-  const childScope=await p.evaluate(async()=>{
+  phase('childScope');const childScope=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{AIUsageFoundation}=await import('../core/ai-usage/foundation.js'),{readMaintenanceBatch}=await import('../core/ai-usage/maintenance-batch.js');const results=[];
    for(const partial of [false,true]){
     const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-child-scope-'+partial}),ai=new AIUsageFoundation(s,__aiu.options);await s.consent(true);
@@ -160,7 +167,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(childScope.nativeFactory,true);for(const result of childScope.results){for(const r of result.requests){assert.deepEqual(r.evidence,r.keys);assert.equal(r.completedAbsent,true);}assert.equal(result.attempts,result.partial?1:2);assert.deepEqual(result.requests.map(r=>r.evidence.length).sort((a,b)=>a-b),result.partial?[1]:[12,25]);}console.log('AI_NATIVE_CHILD_SCOPE',label,JSON.stringify(childScope));
-  const localOrganize=await p.evaluate(async()=>{
+  phase('localOrganize');const localOrganize=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{LocalOrganizeSession}=await import('../core/organizer/local-organize-session.js'),{aiCandidateKey}=await import('../core/organizer/ai-candidate.js'),{aiPresentationStatus}=await import('../core/organizer/ai-presentation.js');const results=[];
    for(const abort of [false,true]){
     const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-organize-local-'+abort});await s.consent(true);await s.capture({epoch:(await s.status()).epoch,adapterVersion:'0.3.0',chat:{id:'local-organize',url:'https://chatgpt.com/c/local-organize',title:'Synthetic'},messages:[{sourceMessageId:'local-organize',pageOrder:1,originalText:'SYNTHETIC source unchanged'}]});
@@ -184,7 +191,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(localOrganize.nativeFactory,true);for(const r of localOrganize.results){assert.equal(r.calls,1);assert.equal(r.state,'COMMITTED');assert.equal(r.repeated,'COMMITTED');assert.equal(r.acks,1);assert.equal(r.candidateOnly,true);assert.equal(r.saved,true);assert.equal(r.hasHistory,true);assert.equal(r.protectedUnchanged,true);assert.deepEqual(r.cacheStates,Array(20).fill('exact'));assert.equal(r.publicProfile,'profile_unavailable');assert.equal(r.usageUnchanged,true);assert.deepEqual(r.reentered,Array.from({length:20},()=>['CACHED','CACHED','SYNTHETIC e\u0301😀 native Organize']));if(r.abort){assert.equal(r.error,'STORAGE_FAILED');assert.equal(r.rollback,true);assert.equal(r.adoptionAbort,'STORAGE_FAILED');assert.equal(r.adoptionRollback,true);}else{assert.equal(r.error,null);assert.equal(r.rollback,null);assert.equal(r.adoptionAbort,null);assert.equal(r.adoptionRollback,null);}}console.log('AI_NATIVE_LOCAL_ORGANIZE',label,JSON.stringify(localOrganize));
-  const incremental=await p.evaluate(async()=>{
+  phase('incremental');const incremental=await p.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js'),{LocalOrganizeSession}=await import('../core/organizer/local-organize-session.js'),{aiCandidateKey}=await import('../core/organizer/ai-candidate.js');const results=[];
    for(const batches of [[20,20,20,20,20,20,20,20,20,20,5],[20,20,7,3]]){
     const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-incremental-'+batches.length});await s.consent(true);const topic=await s.createTopic({name:'Synthetic incremental',operationId:crypto.randomUUID()}),style=await s.aiStylePreference();await s.updatePreferences({aiOrganizeStyle:{version:1,value:'original',expectedRevision:style.revision,expectedEpoch:style.epoch}});
@@ -207,7 +214,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(incremental.nativeFactory,true);for(const [index,r]of incremental.results.entries()){assert.deepEqual(r.payloadSizes,index===0?[20,20,20,20,20,20,20,20,20,20,5]:[20,20,7,3]);assert.equal(r.calls,r.payloadSizes.length);assert.equal(r.retained,true);assert.equal(r.unchanged,true);assert.equal(r.rollback,true);assert.equal(r.abortCode,'STORAGE_FAILED');assert.equal(r.refs,index===0?205:50);assert.equal(r.lines,r.refs);assert.equal(r.noDelta,'NO_DELTA');assert.equal(r.history,true);assert.deepEqual(r.styleRoundtrip,{state:'NO_DELTA',writes:0,unchanged:true,calls:index===0?10:3});}console.log('AI_NATIVE_INCREMENTAL_V2',label,JSON.stringify(incremental));
-  const multi=await p.evaluate(async()=>{
+  phase('multi');const multi=await p.evaluate(async()=>{
    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{LocalOrganizeSession}=await import(chrome.runtime.getURL('core/organizer/local-organize-session.js')),{aiCandidateKey}=await import(chrome.runtime.getURL('core/organizer/ai-candidate.js')),results=[];
    for(const n of [60,80]){
     const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-atomic-'+n});await s.consent(true);const topic=await s.createTopic({name:'Synthetic atomic closure',operationId:crypto.randomUUID()});
@@ -226,7 +233,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(multi.nativeFactory,true);for(const r of multi.results){assert.deepEqual(r.sizes,Array(r.n/20).fill(20));assert.equal(r.unique,r.n);assert.equal(r.rejectedFifth,'INVALID_REQUEST');assert.equal(r.beforeAttempts,0);assert.equal(r.abortCode,'STORAGE_FAILED');assert.equal(r.rollback,true);assert.equal(r.state,'COMMITTED');assert.equal(r.refs,r.n);assert.deepEqual(r.attempts,Array(r.n/20).fill(1));assert.deepEqual(r.receiptStates,Array(r.n/20).fill('COMMITTED'));assert.equal(r.ackCount,r.n);assert.equal(r.unchanged,true);assert.equal(r.cacheExact,false);}console.log('AI_NATIVE_MULTICHILD_V2',label,JSON.stringify(multi));
-  const styleV3=await p.evaluate(async()=>{
+  phase('styleV3');const styleV3=await p.evaluate(async()=>{
    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{LocalOrganizeSession}=await import(chrome.runtime.getURL('core/organizer/local-organize-session.js')),{aiCandidateKey}=await import(chrome.runtime.getURL('core/organizer/ai-candidate.js'));
    const local={values:{},async get(k){return {[k]:this.values[k]};},async set(v){Object.assign(this.values,v);}},s=new OrganizerStore(local,{name:'aiu-native-style-v3'});await s.consent(true);const topic=await s.createTopic({name:'Synthetic style transition',operationId:crypto.randomUUID()}),ids=[],sizes=[];
    const options={resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ORGANIZE'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),profile:{contractVersion:'native-v3',modelVersion:'synthetic',promptVersion:'synthetic'},routeVersion:'synthetic'},read=()=>s.run(()=>s.repository.transaction(false,t=>t.get('meta','aiPresentation:'+topic.id))),setStyle=async value=>{const p=await s.aiStylePreference();await s.updatePreferences({aiOrganizeStyle:{version:1,value,expectedRevision:p.revision,expectedEpoch:p.epoch}});};
@@ -242,7 +249,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    return {nativeFactory:indexedDB instanceof IDBFactory,disposed,disposedCode,disposedRollback,identical,changed,mixed:[mixed.manifest.fields.currentView.style,mixed.manifest.fields.blockSummary.style],mixedStale:mixed.needsUpdate,abortCode,rollback,sizes,sameBlocks,refs:delta.evidenceEntryIds.length,generations:gens.length,allCommitted,noDelta:noDelta.state,cacheExact:(await s.aiPresentationStatus({topicId:topic.id})).topics[0].cacheQualification.reusable};
   });
   assert.equal(styleV3.nativeFactory,true);assert.equal(styleV3.identical,true);assert.equal(styleV3.changed,8);assert.deepEqual(styleV3.mixed,['original','concise']);assert.equal(styleV3.mixedStale,true);assert.equal(styleV3.abortCode,'STORAGE_FAILED');assert.equal(styleV3.rollback,true);assert.deepEqual(styleV3.sizes,[2,2,2,1,1]);assert.equal(styleV3.disposed,true);assert.equal(styleV3.disposedCode,'STALE_BASE');assert.equal(styleV3.disposedRollback,true);assert.equal(styleV3.sameBlocks,true);assert.equal(styleV3.refs,3);assert.equal(styleV3.generations,2);assert.equal(styleV3.allCommitted,true);assert.equal(styleV3.noDelta,'NO_DELTA');assert.equal(styleV3.cacheExact,false);console.log('AI_NATIVE_STYLE_V3',label,JSON.stringify(styleV3));
-  const exactMultiCache=await p.evaluate(async()=>{
+  phase('exactMultiCache');const exactMultiCache=await p.evaluate(async()=>{
    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{LocalOrganizeSession}=await import(chrome.runtime.getURL('core/organizer/local-organize-session.js')),{aiCandidateKey}=await import(chrome.runtime.getURL('core/organizer/ai-candidate.js')),{aiPresentationStatus}=await import(chrome.runtime.getURL('core/organizer/ai-presentation.js')),{qualifiedCoverageId}=await import(chrome.runtime.getURL('core/ai-usage/assist-intent-binding.js')),{applyPreferenceChanges}=await import(chrome.runtime.getURL('core/workspace.js')),{readAIStyle}=await import(chrome.runtime.getURL('core/ai-organize-style-preference.js'));
    const results=[];
    for(const [children,style,fault,completion]of [[2,'original','ack-hole','dispose'],[3,'balanced','unknown','style'],[4,'concise','malformed',null]]){
@@ -273,8 +280,17 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(exactMultiCache.nativeFactory,true);assert.equal(exactMultiCache.results.length,3);assert.deepEqual(exactMultiCache.results.map(r=>[r.children,r.style,r.fault,r.completion]),[[2,'original','ack-hole','dispose'],[3,'balanced','unknown','style'],[4,'concise','malformed',null]]);for(const r of exactMultiCache.results){assert.equal(r.state,'COMMITTED');assert.equal(r.schema,4);assert.equal(r.base,'none');assert.equal(r.generations,1);assert.equal(r.exact,'exact');assert.deepEqual(r.sizes,Array(r.children).fill(20));assert.deepEqual(r.cached,Array.from({length:20},()=>['CACHED','CACHED',true,true]));assert.equal(r.writes,0);assert.equal(r.unchanged,true);assert.equal(r.faultCode,'STORAGE_FAILED');assert.equal(r.sawCandidateWrite,true);assert.equal(r.faultStamped,false);assert.equal(r.faultRollback,true);assert.deepEqual(r.attempts,Array(r.children).fill(1));assert.deepEqual(r.receiptStates,Array(r.children).fill('COMMITTED'));assert.equal(r.acks,r.children*20);if(r.completion){assert.equal(r.completionChanged,true);assert.equal(r.completionUnchanged,true);assert.equal(r.completionCode,r.completion==='dispose'?'UNAVAILABLE':'STALE_BASE');}else{assert.equal(r.completionCode,null);assert.equal(r.completionChanged,false);assert.equal(r.completionUnchanged,null);}}console.log('AI_NATIVE_EXACT_MULTICHILD_CACHE',label,JSON.stringify(exactMultiCache));
-  await verifyOrganizeLifecycleNative(p,label);await verifyOrganizeProviderNative(p,label);
-  await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
-  assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}
+  phase('organize-lifecycle');await verifyOrganizeLifecycleNative(p,label);phase('organize-provider');await verifyOrganizeProviderNative(p,label);
+  phase('private-assist');await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
+  phase('network-invariants');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+  record(active,'end');active=null;record('body','verified');
+ }catch(error){try{if(active)record(active,'failed');}catch{}active=null;throw error;
+ }finally{
+  // Diagnostics must not prevent cleanup or replace the original cleanup error.
+  try{phase('cleanup');}catch{}
+  try{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}
+   try{record('cleanup','end');}catch{}active=null;
+  }catch(error){try{record('cleanup','failed');}catch{}throw error;
+  }finally{t.signal.removeEventListener('abort',aborted);}
+ }
 });

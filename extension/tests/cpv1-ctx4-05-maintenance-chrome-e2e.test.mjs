@@ -9,6 +9,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 const root=fileURLToPath(new URL('..',import.meta.url));
 const cases=[
+ ...['complete','stale','protected','excluded','revoked','receipt-abort','generation-abort'].map(x=>'no-change-'+x),
  'deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
  ...['maintain','snapshot','shallow','recovery'].map(path=>path+'-hash-race'),
  ...['item','receipt','post-callback'].flatMap(phase=>['cancel','revoke'].map(kind=>phase+'-'+kind)),
@@ -164,7 +165,34 @@ async function install(page){
    const events=[],f=await fixture();let p=null,result={name,passed:false,events};
    try{
     const c=await f.request();
-    if(name==='deep-read-pagination-and-revocation'){
+    if(name.startsWith('no-change-')){
+     const seed=await f.put(c);check(seed.ok&&seed.revision===1,'Real original owner seeds automatic Item');
+     const {body:omittedBody,section:omittedSection,...identity}=c;
+     const change={...identity,operation:'NO_CHANGE',operationId:op(),expectedRevision:1};
+     const mode=name.slice('no-change-'.length);
+     if(mode==='stale')change.expectedRevision=2;
+     if(mode==='protected')await f.cards.change(f.manual(c));
+     if(mode==='excluded')await f.edit({excluded:true});
+     if(mode==='revoked')f.revocation.abort();
+     const before=await f.snapshot(),row=await f.row();let aborted=false;
+     if(mode.endsWith('-abort')){p=probe(f,events);p.putHook=event=>{
+      if(!aborted&&event.phase===(mode==='receipt-abort'?'receipt':'post-callback')){aborted=true;event.tx.abort();}
+     };}
+     const actual=await settled(f.service.noChange(f.caller,change));
+     if(mode==='complete'){
+      check(actual.fulfilled&&actual.value.ok&&actual.value.disposition==='no_change'&&actual.value.revision===1,'Explicit no-change succeeds without revision increment');
+      equal(await f.row(),row,'Entire Context row unchanged including provenance and sequence');
+      const after=await f.snapshot();equal(protectedOwners(after),protectedOwners(before),'Source/Working/Thought owners unchanged');
+      const receipts=after.operationReceipts.filter(r=>r.id==='context-maintenance:'+change.operationId);
+      check(receipts.length===1&&bodyFree(receipts[0]),'One original body-free no-change receipt');
+      const replayBefore=await f.snapshot(),replay=await f.service.noChange(f.caller,change);
+      equal(replay,actual.value,'Same operation replay returns original result');equal(await f.snapshot(),replayBefore,'Replay writes nothing');
+     }else{
+      check(actual.fulfilled?actual.value?.conflict===true:actual.code===(mode.endsWith('-abort')?'STORAGE_FAILED':'CONTEXT_INVALIDATED'),'Unsafe no-change returns the expected refusal: '+JSON.stringify(actual));
+      if(mode.endsWith('-abort'))check(aborted,'Injected real native transaction abort reached');
+      equal(await f.snapshot(),before,'Refusal or native abort preserves every durable owner');
+     }
+    }else if(name==='deep-read-pagination-and-revocation'){
      const access=new ContextTopicAccessService(f.s),expected=new Map();
      const text='SYNTHETIC 多字节🙂e\u0301 '+('尾部🙂 '.repeat(9))+' EXACT_TAIL';
      await f.edit({libraryText:text,note:'SYNTHETIC_NOTE_尾🙂'});
@@ -590,6 +618,43 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
 }
 
 
+  globalThis.__maintenanceMixedNative=async phase=>{
+   assert.ok(indexedDB instanceof IDBFactory,'native IndexedDB');
+   const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository);let hit=false,rollback=false;
+   try{
+    await f.s.createTopic({name:'Synthetic retained human topic',operationId:op()});
+    if(phase==='capacity'){
+     for(let i=0;i<25;i++)await f.s.createTopic({name:'Synthetic capacity topic '+i,operationId:op()});
+     const first=await f.session.prepare({...options,limit:50});assert.equal(first.deferredUnits,98);assert.equal(first.complete,false);assert.ok(first.nextCursor);assert.equal((await f.session.run(first)).state,'PARTIAL');
+     const before=await snapshot(f.s),blocked=await f.session.prepare({...options,limit:50,cursor:first.nextCursor});assert.equal(blocked.state,'UNAVAILABLE');assert.equal(blocked.reason,'DEFER_SCAN_BOUND');assert.equal(blocked.deferredUnits,0);assert.equal(blocked.remainingWork,true);assert.deepEqual(await snapshot(f.s),before,'capacity refusal preserves every store and creates no planned flight');assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED').length,98);assert.equal(f.calls.length,1);assert.equal(f.state.acquires,1);
+     return {passed:true,nativeFactory:true,phase,activeDeferred:98,physicalAttempts:1};
+    }
+    const sources=await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n)));
+    const pending=(await read(f.s,'meta')).filter(r=>r.id.startsWith('aiu:delta:pending:')&&r.descriptor.kind!=='input');assert.ok(pending.length>0);
+    if(phase!=='complete')f.s.repository.transaction=async(write,fn,stores)=>{
+     const before=write?await snapshot(f.s):null;let selected=false,localDefer=false;
+     try{return await original(write,async t=>{
+      if(write){const put=t.put.bind(t);t.put=async(n,v,...rest)=>{const value=await put(n,v,...rest);if(n==='organizerWorkItems'&&v.state==='DEFERRED')localDefer=true;
+       const match=localDefer&&(phase==='defer'&&n==='organizerWorkItems'||['close','dispose'].includes(phase)&&n==='organizerJobs'&&v.state==='CANCELLED_BEFORE_DISPATCH');
+       if(match&&!hit){hit=selected=true;if(phase==='dispose')f.session.dispose();else throw Error('Synthetic local defer transaction failure');}return value;};}
+      const result=await fn(t);if(write&&localDefer&&phase==='post-callback'&&!hit){hit=selected=true;t.tx.abort();}return result;
+     },stores);}catch(e){if(selected){assert.deepEqual(await snapshot(f.s),before,'all original stores roll back');rollback=true;}throw e;}
+    };
+    let handle,code;try{handle=await f.session.prepare(options);}catch(e){code=e.code;}
+    f.s.repository.transaction=original;
+    if(phase!=='complete'){
+     assert.equal(code,'STORAGE_FAILED');assert.ok(hit&&rollback);assert.equal(f.calls.length,0);assert.equal(f.state.acquires,0);assert.equal((await read(f.s,'organizerWorkItems')).length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+    }else{
+     assert.ok(handle.deferredUnits>0);assert.equal(handle.remainingWork,true);const plannedPending=[];for(const row of pending){const current=await read(f.s,'meta',row.id);assert.deepEqual(current.descriptor,row.descriptor);assert.equal(current.signature,row.signature);assert.deepEqual([...current.pendingFacets].sort(),[...(row.pendingFacets||['topic','context'])].sort(),'original pending facet set unchanged');assert.ok((row.requirements||[]).every(x=>current.requirements.includes(x)));plannedPending.push(current);}const result=await f.session.run(handle);assert.equal(result.state,'PARTIAL');assert.equal(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.state.acquires,1);
+     const work=await read(f.s,'organizerWorkItems'),deferred=work.filter(r=>r.state==='DEFERRED'),ack=work.filter(r=>r.state==='ACKNOWLEDGED');assert.equal(deferred.length,handle.deferredUnits);assert.equal(ack.length,2);assert.ok(ack.every(r=>JSON.parse(r.unit.key)[0]==='input'));
+     for(const row of plannedPending)assert.deepEqual(await read(f.s,'meta',row.id),row,'unsupported dirty record preserved');
+     const before=await snapshot(f.s);f.session.dispose();f.session=new LocalMaintenanceSession(f.s,f.constructor);const again=await f.session.prepare(options);assert.equal(again.state,'DEFERRED');assert.equal((await f.session.run(again)).state,'DEFERRED');assert.deepEqual(await snapshot(f.s),before,'unchanged deferred queue has no new jobs or writes');assert.equal(f.calls.length,1);
+    }
+    assert.deepEqual(await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),sources);
+    return {passed:true,nativeFactory:true,phase,rollback,physicalAttempts:f.calls.length};
+   }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
+  };
+
   globalThis.__maintenanceMaterialDenied=async mode=>{
    const f=await maintenanceFixture();try{
     if(mode==='material-missing'||mode==='material-expired'){
@@ -619,6 +684,43 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
     for(const n of ['organizerJobs','organizerUsage','organizerWorkItems'])assert.ok(!JSON.stringify(await read(f.s,n)).includes(working));
     return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,currentWorking:true,conversations:2,physicalAttempts:1,acks:4,sourceUnchanged:true,noBodyInUsage:true};
    }finally{f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('fixture cleanup'));r.onblocked=()=>reject(Error('fixture cleanup blocked'));});}
+  };
+  globalThis.__maintenanceNoChangeNative=async phase=>{
+   const f=await maintenanceFixture(),original=f.s.repository.transaction.bind(f.s.repository);let reached=false,rolledBack=false;
+   try{
+    const {ContextMaintenanceService}=await import(chrome.runtime.getURL('core/context-maintenance.js'));
+    const input=(await f.s.snapshot()).library.blocks[0],current=await f.s.input(input.id),topic=await f.s.createTopic({operationId:op(),name:'Synthetic existing Context evidence'});
+    assert.ok(!(await f.s.addToTopics({operationId:op(),kind:'input',id:input.id,expectedRevision:current.revision,topicIds:[topic.id]})).conflict);
+    const scope=await readContextTopicScope(f.s,{topicId:topic.id}),projection=await original(false,t=>inputProjection(f.s,t,input.id));
+    const evidence=[{topicId:topic.id,inputId:input.id,selectedFields:['body'],fieldDigests:{body:await hashText(projection.body)},expectedTopicBinding:scope.binding,expectedRemovalSequence:projection.lastRemovalSequence}];
+    const seed={operationId:op(),epoch:scope.binding.epoch,itemId:op(),card:'info',expectedRevision:0,body:'Existing synthetic automatic card',section:'Synthetic',associationIds:[op()],evidence};
+    assert.equal((await new ContextMaintenanceService(f.s,{processingVerifier:f.verifier}).maintain(f.caller,seed)).revision,1);
+    const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),source=await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),execute=f.provider.execute.bind(f.provider);
+    f.provider.execute=async request=>{const response=await execute(request);response.fixture.contextProposal={operation:'NO_CHANGE',itemId:seed.itemId,card:seed.card,expectedRevision:1,associationIds:seed.associationIds,inputIds:[input.id]};return response;};
+    f.service.responseAdapter.context=async(response,metadata,binding)=>{
+     const proposal=response.fixture.contextProposal;assert.equal(proposal.operation,'NO_CHANGE');assert.deepEqual(response.fixture.binding,binding);assert.deepEqual(metadata.inputIds,proposal.inputIds);
+     const fresh=await readContextTopicScope(f.s,{topicId:topic.id}),p=await original(false,t=>inputProjection(f.s,t,input.id));
+     return {binding:response.fixture.binding,value:[{units:metadata.units,operation:'NO_CHANGE',change:{operation:'NO_CHANGE',operationId:op(),epoch:fresh.binding.epoch,itemId:proposal.itemId,card:proposal.card,expectedRevision:proposal.expectedRevision,associationIds:proposal.associationIds,evidence:[{topicId:topic.id,inputId:input.id,selectedFields:['body'],fieldDigests:{body:await hashText(p.body)},expectedTopicBinding:fresh.binding,expectedRemovalSequence:p.lastRemovalSequence}]}}]};
+    };
+    f.session.dispose();f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+    const {DIRTY_PREFIX}=await import(chrome.runtime.getURL('core/ai-usage/delta.js'));
+    const pending=await original(false,t=>t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,after:null,limit:100}));
+    assert.equal(pending.next,null,'Bounded synthetic pending inventory');const at=pending.rows.findIndex(r=>r.value.descriptor.kind==='input'&&r.value.descriptor.entityId===input.id);assert.ok(at>=0,'Real Input dirty row');
+    const retained=pending.rows.filter((_,i)=>i!==at).map(r=>r.value);
+    const handle=await f.session.prepare({...options,limit:1,cursor:at?pending.rows[at-1].key:null});assert.equal(handle.complete,false,'Only the selected Input page is checked');assert.ok(handle.nextCursor,'Remaining pending work has a real continuation');
+    f.s.repository.transaction=async(write,fn,stores)=>{const baseline=write?await snapshot(f.s):null;let selected=false,context=false;try{return await original(write,async t=>{
+     if(write){const put=t.put.bind(t);t.put=async(n,v,...rest)=>{const r=await put(n,v,...rest);if(n==='operationReceipts'&&v.namespace==='context-maintenance'&&v.result?.disposition==='no_change')context=true;
+      const hit=context&&(phase==='receipt'&&n==='operationReceipts'||phase==='ack'&&n==='organizerWorkItems'&&v.state==='ACKNOWLEDGED'||phase==='generation'&&n==='meta'&&v.id==='backup-data-generation');
+      if(hit&&!reached){selected=reached=true;throw Error('Synthetic no-change transaction fault');}return r;};}return fn(t);
+    },stores);}catch(e){if(selected){assert.deepEqual(await snapshot(f.s),baseline,'Entire no-change transaction rolled back');rolledBack=true;}throw e;}};
+    const first=await f.session.run(handle);f.s.repository.transaction=original;
+    if(phase){assert.ok(reached&&rolledBack,'NO_CHANGE fault phase reached: '+JSON.stringify(first));assert.equal((await read(f.s,'organizerWorkItems')).filter(w=>w.state==='ACKNOWLEDGED'&&w.unit.facet==='context').length,0);assert.equal((await f.session.run(handle)).state,'COMMITTED');}else assert.equal(first.state,'COMMITTED','NO_CHANGE result: '+JSON.stringify(first));
+    assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before,'NO_CHANGE preserves complete Context row');assert.deepEqual(await Promise.all(['records','blocks','inputStates'].map(n=>read(f.s,n))),source);assert.equal(f.calls.length,1,'No repeated physical call');
+    const ack=(await read(f.s,'organizerWorkItems')).filter(w=>w.state==='ACKNOWLEDGED'&&w.unit.facet==='context');assert.equal(ack.length,1);assert.equal(ack[0].outcome,'NO_CHANGE');
+    assert.ok((await read(f.s,'organizerUsage')).every(r=>r.effectiveResultCount===0));
+    for(const pending of retained)assert.deepEqual(await read(f.s,'meta',pending.id),pending,'Unselected non-Input pending work retained');
+    return {passed:true,nativeFactory:indexedDB instanceof IDBFactory,phase:phase??'complete',rolledBack,contextUnchanged:true,physicalAttempts:1};
+   }finally{f.s.repository.transaction=original;f.session.dispose();await f.s.repository.close();await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(f.name);r.onsuccess=resolve;r.onerror=()=>reject(Error('cleanup'));r.onblocked=()=>reject(Error('blocked cleanup'));});}
   };
   globalThis.__maintenanceNative=async ({phase,mode='storage',adapterMode='valid',denied=false})=>{
    assert.ok(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'native IndexedDB');
@@ -673,6 +775,8 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    await record(await page.evaluate(name=>globalThis.__ctx4Native.run(name),name));
   });
   await installMaintenanceSession(page);
+  for(const phase of ['complete','defer','close','post-callback','dispose','capacity'])await t.test('unified-maintenance-mixed-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceMixedNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-mixed-'+phase+'.json'),JSON.stringify(report,null,2));});
+  for(const phase of [null,'receipt','ack','generation'])await t.test('unified-maintenance-no-change-'+(phase??'complete'),{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceNoChangeNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-no-change-'+(phase??'complete')+'.json'),JSON.stringify(report,null,2));});
   for(const mode of ['processing','context-processing','context-revoke','exclusion','material-missing','material-expired'])await t.test('unified-maintenance-material-denied-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__maintenanceMaterialDenied(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-material-denied-'+mode+'.json'),JSON.stringify(report,null,2));});
   await t.test('unified-maintenance-current-working-cross-conversation',{timeout:20000},async()=>{const report=await page.evaluate(()=>globalThis.__maintenanceMaterialNative());assert.equal(report.passed,true);await writeFile(join(output,'maintenance-material.json'),JSON.stringify(report,null,2));});
   for(const scenario of [{denied:true},{}, {adapterMode:'swap'}, ...['item','receipt','ack','job','generation'].map(phase=>({phase})), {phase:'generation',mode:'revoke'},{phase:'generation',mode:'cancel'},{phase:'generation',mode:'expiry'},{phase:'topic-domain'},{phase:'topic-ack'}])await t.test('unified-maintenance-'+JSON.stringify(scenario),{timeout:20000},async()=>{

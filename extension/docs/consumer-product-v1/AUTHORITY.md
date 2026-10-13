@@ -1,8 +1,26 @@
+# Current candidate — complete local Maintenance batch (2026-10-13)
+
+PR280 is now merged as formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8; its exact final head0f36b2d passed Full38337300223 and independent final review. Normal merge tree e4f8d990 was verified to preserve latest main04f2cad2. Merged-main qualification remains separate. This preserves the latest CTX4-UI-1.2, SET2-UI-1.2, TL-PT1-UI-1.2 and IAH-1.3 refinements.  Its earlier failed runs remain evidence, not active uncorrected pointers. This isolated next candidate combines the reviewed explicit Context NO_CHANGE and bounded mixed-delta DEFER through their original owners, without false ACK, lost pending obligations or new permissions. It is local code under integration, not an installed version or completed AI-COST/CTX4 plan.
+
+Retain the delivered0.43.29 stage, all seven Canonical plans, paused Sync checkpoint and Pro264/CI ownership. Required combination, independent review and exact-head/main gates precede integration; external service conditions do not suspend independent local engineering.
+
+## Preserved prior checkpoints
+
 # Current candidate repair — 2026-10-13
 
 Formal main remains05449ee3b8da610e16a9479ce4a750903065f216. PR280 head e4992a0363b7788202df33dfcb25544c209fb039 Full38333610971 failed the original saved-edit reading-return journey in Browser2/10; its aggregate is failed and it is not merged. Preserve that evidence. Candidate0.47.1 repairs actual same-session reading-position fallback through the existing Topic owner and requires independent review, related browser verification and changed-head Full before integration. AI Working-payload runtime remains unchanged. Continue frozen Context NO_CHANGE and independent bounded mixed-delta implementation without rewriting history or repeating delivered0.43.29. Sync new features remain paused; Pro264/CI remain separately owned.
 
 ## Earlier execution evidence
+
+# Current engineering — explicit Context NO_CHANGE (2026-10-13)
+
+PR279 merged into main05449ee3b8da610e16a9479ce4a750903065f216 after exact-head Certification38333028006 passed; exact-main Certification38333519164 passed. Prior maina866 Prompt38332566042 was cancelled after newer main, not passed. PR280 candidatee4992a0363b7788202df33dfcb25544c209fb039 implements authorized bounded Working payload and is awaiting Full38333610971; it is not yet certified or merged at this checkpoint.
+
+**Selected implementation: AI-COST-03 / CTX4-05 explicit Context NO_CHANGE**, already required by AI_USAGE_PLAN section5 and AI_USAGE_ARCHITECTURE sections4/5. Add authenticated checked existing-Item no-change through the original Context transaction and exact subset ACK, with no Item/provenance/revision mutation or effective result. Independent reviews,294 related tests, final affected Source/release100 tests and0.48 version checks are recorded in implementation/ai-usage/AI-COST-03-CONTEXT-NO-CHANGE.md. Full exact-head/main certification remains required before closure. Non-Input mixed-delta mapping, real service qualification and other Context operation types remain separate open work.
+
+Retain all approved latest Canonical plans and designs. No repeated0.43.29 delivery, UI redesign, Sync new features or Pro264/CI changes. Existing Sync checkpoint and all historical evidence remain. Continue independent actual engineering while cloud gates run; external service limits block only their dependent claims.
+
+## Retained earlier execution evidence
 
 # Current engineering — bounded Maintenance Working payload (2026-10-13)
 
