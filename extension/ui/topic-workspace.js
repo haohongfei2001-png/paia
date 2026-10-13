@@ -449,7 +449,23 @@ export class TopicController {
  form(title,fields,{submitLabel='确定',closeLabel}={}){this.closeDialog();if(closeLabel!==undefined){this.formCloseLabel=$('library-dialog-close').textContent;$('library-dialog-close').textContent=closeLabel;}$('library-dialog-title').textContent=title;const form=$('library-form');const controls={};for(const f of fields){const label=element('label','',f.label);const input=element(f.options?'select':f.multiline?'textarea':'input');input.name=f.key;input.setAttribute('aria-label',f.label);if(f.options)for(const [value,text]of f.options){const option=element('option','',text);option.value=value;input.append(option);}if(f.value!==undefined)input.value=f.value;input.required=!!f.required;if(Number.isInteger(f.maxLength))input.maxLength=f.maxLength;label.append(input);form.append(label);controls[f.key]=input;}const submit=element('button','',submitLabel);submit.type='submit';form.append(submit);$('library-dialog').showModal();return new Promise(resolve=>{this.dialogResolve=resolve;form.onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,v.value]));this.dialogResolve=null;this.closeDialog();resolve(data);};});}
  async checked(type,data={},isCurrent=()=>true){try{const r=await request(type,data);if(r?.conflict){if(isCurrent())this.onStatus('内容或组织已更新，请重读后再试。','conflict');throw Object.assign(new Error('CONFLICT'),{handled:true});}return r;}catch(e){if(e.handled)throw e;if(isCurrent())this.onStatus('操作尚未完成，当前内容保留。请重试。','error');throw e;}}
  setBusy(value){for(const b of document.querySelectorAll('#topic-toolbar button,#topic-body button'))b.disabled=value;this.syncSectionActionControls(value||this.sectionActionPending);}
- async mutate(run,{isCurrent=()=>true,historyIntent=null}={}){if(this.mutating||!isCurrent())return;const wasHome=!this.id;this.mutating=true;this.setBusy(true);if(!await this.leave({historyIntent})){this.mutating=false;this.setBusy(false);return;}try{if(!isCurrent())return;await run();if(!isCurrent())return;this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}catch{if(isCurrent())showLocalFailure();return false;}finally{this.mutating=false;if(isCurrent()){this.history=null;if(wasHome)this.resetHomeCollection();await this.refresh();}this.setBusy(false);}}
+ async mutate(run,{isCurrent=()=>true,historyIntent=null}={}){
+  if(this.mutating||!isCurrent())return;
+  const wasHome=!this.id;this.mutationDeferredRead=null;this.mutating=true;this.setBusy(true);
+  if(!await this.leave({historyIntent})){this.mutating=false;this.setBusy(false);return;}
+  try{if(!isCurrent())return;await run();if(!isCurrent())return;this.cursor=null;this.pages=[];this.onStatus('更改已保存到本机');return true;}
+  catch{if(isCurrent())showLocalFailure();return false;}
+  finally{
+   const deferred=this.mutationDeferredRead;this.mutationDeferredRead=null;this.mutating=false;
+   try{
+    if(isCurrent()){this.history=null;if(wasHome)this.resetHomeCollection();await this.refresh();}
+    // Navigation may have requested its own read while the old mutation held
+    // the lock. Resume only that still-current request, without old-route resets.
+    else if(deferred&&deferred.key===this.readKey()&&deferred.intent===this.openIntent&&deferred.presentation===this.presentationIntent&&deferred.epoch===this.statusEpoch&&!$('thought-panel')?.hidden&&!this.actions?.surface?.workspace)await this.refresh();
+   }finally{this.setBusy(false);}
+  }
+ }
+
  readFailure(){clearTimeout(this.refreshTimer);this.readFailed=true;this.readRetry.hidden=false;const retained=this.snapshotKey===this.readKey()&&(this.id?$('topic-body').children.length>0:$('thought-list').children.length>0);if(!retained&&!this.id)$('thought-empty').hidden=true;this.onStatus(libraryReadFailureText(retained),'read_error');}
  organizerSettingsVisible(){const panel=$('settings-panel'),group=$('ux-settings-ai-group');return !!panel&&!panel.hidden&&!!group&&!group.hidden;}
  queueOptionalStatus(){
@@ -666,14 +682,14 @@ export class TopicController {
   }
   this.updateSectionActionControls(menu);
  }
- async sectionContextAction(section,action){
+ async sectionContextAction(section,action,{allowDefault=false}={}){
   if(action==='promote')return promoteTopicSection(this,section);
-  if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault)return;
+  if(this.sectionActionPending||!['rename','up','down'].includes(action)||section.isDefault&&!allowDefault)return;
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
   const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
-  const guard=()=>{if(!current())throw Error('TOPIC_SECTION_ROUTE_CHANGED');};
+  const guard=()=>{if(!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))throw Error('TOPIC_SECTION_ROUTE_CHANGED');};
   const read=async()=>{const rows=await this.topicSectionRows();guard();const row=rows.find(row=>row.sectionId===section.sectionId);
-   if(!row||row.isDefault||row.revision!==section.revision||row.layoutGeneration!==section.layoutGeneration||row.title!==section.title)throw Error('TOPIC_SECTION_CHANGED');return row;};
+   if(!row||row.isDefault&&!allowDefault||row.revision!==section.revision||row.layoutGeneration!==section.layoutGeneration||row.title!==section.title)throw Error('TOPIC_SECTION_CHANGED');return row;};
   if(!topicId||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
   this.sectionActionPending=true;this.syncSectionActionControls();
   try{
@@ -683,14 +699,14 @@ export class TopicController {
    if(action!=='rename'){const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();if(!adjacent.id){announce(tc(action==='up'?'已经是第一个章节。':'已经是最后一个章节。'));return;}}
    await this.mutate(async()=>{
     guard();await read();
-    if(action==='rename'){await this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}});return;}
+    if(action==='rename'){await this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}},current);return;}
     const topic=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
     const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'section',id:section.sectionId,direction:action}});guard();
     await read();
     if(!adjacent.id)throw Error('TOPIC_SECTION_CHANGED');
-    const result=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'section_order',topicId,sectionId:section.sectionId,targetSectionId:adjacent.id,expectedTopicRevision:topic.organizationRevision,operationId:op()}});
-    await this.waitLayout(result.jobId);
-   });
+    const result=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'section_order',topicId,sectionId:section.sectionId,targetSectionId:adjacent.id,expectedTopicRevision:topic.organizationRevision,operationId:op()}},current);
+    await this.waitLayout(result.jobId,current);
+   },{isCurrent:current});
    if(current())await this.focusSection(section.sectionId,{isCurrent:current});
   }finally{this.sectionActionPending=false;this.syncSectionActionControls();}
  }
@@ -784,10 +800,40 @@ export class TopicController {
  }
 
  async waitLayout(id,isCurrent=()=>true){for(;;){const r=await request('GET_LIBRARY_LAYOUT',{id});if(r.state==='complete')return;if(r.state==='paused'){if(isCurrent())this.onStatus('组织准备已暂停，当前文档保留，可重试。','error');throw new Error('LAYOUT_PAUSED');}if(isCurrent())this.onStatus('正在整理文档顺序…');await new Promise(resolve=>setTimeout(resolve,200));}}
- async sectionActions(section,action=null){const options=[['rename','重命名'],['merge','合并到另一章节'],['up','向上移动'],['down','向下移动'],['revisions','版本历史']];const value=action?{action}:await this.form('章节操作',[{key:'action',label:'操作',options}]);if(!value)return;if(value.action==='revisions')return this.revisions('section',section.sectionId,this.id);if(value.action==='rename'){const name=await this.form(tc('章节名称'),[{key:'title',label:tc('章节名称'),value:section.title}]);if(name)await this.mutate(()=>this.checked('EDIT_LIBRARY_SECTION',{edit:{topicId:this.id,sectionId:section.sectionId,expectedRevision:section.revision,title:name.title,operationId:op()}}));return;}
-  const sections=await this.topicSectionRows();let other;if(value.action==='merge'){const v=await this.form('合并章节',[{key:'targetSectionId',label:'保留章节',options:sections.filter(s=>s.sectionId!==section.sectionId).map(s=>[s.sectionId,s.title||'正文'])}]);if(!v)return;other=v.targetSectionId;}else{const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId:this.id,kind:'section',id:section.sectionId,direction:value.action==='up'?'up':'down'}});other=adjacent.id;if(!other){announce(value.action==='up'?'已经是第一个章节。':'已经是最后一个章节。');return;}}
-  await this.mutate(async()=>{const t=await request('GET_LIBRARY_TOPIC',{id:this.id});const r=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:value.action==='merge'?'section_merge':'section_order',topicId:this.id,sectionId:section.sectionId,targetSectionId:other,expectedTopicRevision:t.organizationRevision,operationId:op()}});await this.waitLayout(r.jobId);});
+ async sectionActions(section,action=null){
+  if(this.sectionManagementPending||this.sectionActionPending||this.mutating)return;
+  section={...section};const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===presentation;
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const guard=()=>{if(!current()||composing())throw Error('TOPIC_SECTION_ROUTE_CHANGED');};
+  if(!topicId||!current()||composing())return;
+  this.sectionManagementPending=true;let mergeBusy=false;
+  try{
+   if(!await this.flushEditors()||!current()||composing())return;
+   const options=[['rename','重命名'],['merge','合并到另一章节'],['up','向上移动'],['down','向下移动'],['revisions','版本历史']];
+   const value=action?{action}:await this.form('章节操作',[{key:'action',label:'操作',options}]);
+   if(!value||!current()||composing()||!options.some(([key])=>key===value.action))return;
+   if(value.action==='revisions')return this.revisions('section',section.sectionId,topicId,{isCurrent:current});
+   // Management retains default-Section operations; visible chapter menus still
+   // use their original named-only contract and the same checked owner.
+   if(value.action!=='merge')return await this.sectionContextAction(section,value.action,{allowDefault:true});
+   this.sectionActionPending=true;mergeBusy=true;this.syncSectionActionControls();
+   const same=(a,b)=>a&&a.sectionId===b.sectionId&&a.revision===b.revision&&a.layoutGeneration===b.layoutGeneration&&a.title===b.title;
+   const sections=await this.topicSectionRows();if(!current()||composing())return;
+   if(!same(sections.find(row=>row.sectionId===section.sectionId),section))throw Error('TOPIC_SECTION_CHANGED');
+   const selected=await this.form('合并章节',[{key:'targetSectionId',label:'保留章节',options:sections.filter(row=>row.sectionId!==section.sectionId).map(row=>[row.sectionId,row.title||'正文'])}]);
+   if(!selected||!current()||composing())return;
+   const target=sections.find(row=>row.sectionId===selected.targetSectionId&&row.sectionId!==section.sectionId);if(!target)return;
+   await this.mutate(async()=>{
+    guard();const topic=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
+    const rows=await this.topicSectionRows();guard();
+    if(topic.id!==topicId||topic.activeLayoutGeneration!==undefined&&topic.activeLayoutGeneration!==section.layoutGeneration||!same(rows.find(row=>row.sectionId===section.sectionId),section)||!same(rows.find(row=>row.sectionId===target.sectionId),target))throw Error('TOPIC_SECTION_CHANGED');
+    const result=await this.checked('START_LIBRARY_LAYOUT',{layout:{kind:'section_merge',topicId,sectionId:section.sectionId,targetSectionId:target.sectionId,expectedTopicRevision:topic.organizationRevision,operationId:op()}},current);
+    await this.waitLayout(result.jobId,current);
+   },{isCurrent:current});
+  }finally{this.sectionManagementPending=false;if(mergeBusy){this.sectionActionPending=false;this.syncSectionActionControls();}}
  }
+
  async moveEntryToSection(id,placement){
   if(this.entryMovePending||this.sectionActionPending||this.mutating)return;
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
@@ -915,7 +961,7 @@ export class TopicController {
   if(!available&&reportFailure)this.onStatus('后台消息通道暂时中断；当前内容保留。','error');
   if(strict&&!available)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};return available?state:null;
  }
- async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.mutating)return false;const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
+ async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
   if(!this.id){
    this.ensureContinuousRoot();this.rootProviderKey=null;const query=$('thought-search').value.trim(),scope=this.homeCollectionScope(query);$('thought-source-scope').value='';if(query&&this.personalRoot)void this.loadRootSearchBase();
    if(!this.homeCollection||this.homeCollection.scope!==scope||this.homeCollection.query!==query)this.homeCollection=this.createHomeCollection(query);
