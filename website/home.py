@@ -19,8 +19,5 @@ def icon(name, cls='art-icon'):
     return f'<svg class="{cls}" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{paths[name]}</svg>'
 
 def render(t, a, button, statusmini):
-    from product_hero import render_hero
-    from core import render as render_core
-    from art_direction import recompose
-    from scroll_story import apply_scroll_story
-    return render_hero(t, a, button, icon) + apply_scroll_story(recompose(render_core(t, a, button, icon), t), t)
+    from presentation_home import render as render_presentation
+    return render_presentation(t, a, button, icon)

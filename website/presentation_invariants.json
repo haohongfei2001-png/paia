@@ -1,0 +1,355 @@
+{
+  "base": "8021be46e51d23812aa4d0b725e601afdf335df2",
+  "intent": "Owner explicitly separates a scroll-first homepage from the unchanged interactive demo",
+  "unchanged": {
+    "404.html": "1f5b6031eab9eecfefab8d450f92248fd7ee7522a1eae3fb3df4399bbba6f815",
+    "about.html": "4c17c4355f1ac0b2f6e4918e8e746a6371dc504c3120f63e78b520be822cd30d",
+    "article-beliefs.html": "e12f6bb84e4750342311d813222c1fdc17d68894f591fcc3116ef7417fa6e17c",
+    "article-context.html": "8971cd7d6039169b0aaa913539cc28c4fb06a25b55cb62b7c109d60e2dc1754c",
+    "article-reuse.html": "bd6627d8bb300c93a70cdfd5ba2892b8504bc1973ccc8189dcba64bb1c4163b4",
+    "assets/website/demo.js": "447610004d6f476e4a15edc298526817a8fef6537fea9b6447fd9dab8a6b5c65",
+    "assets/website/home-art.css": "876ba5c7a72b63405960ff19c265ace275673ccae89931e5fb9401c257513e51",
+    "assets/website/home-art.js": "1157207d230a9d27bf6aa0fe637a86603555e7f76eef07ebc287b4fd39aba3b3",
+    "assets/website/home-core-v1.css": "3eb8a3c9f8e83258bc9d75289b632169f65c630cb82bb8bb9627084a5fe58e98",
+    "assets/website/home-core-v2.js": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "assets/website/home-origin-v7.css": "c9076b268f930be475e83e18d50f8cbd71b47ae762afcf4420b448c72184eef7",
+    "assets/website/interior.css": "5009ac6df1e4015117faabfdfccc19d599971d44b833ee5465bb8e04f7262635",
+    "assets/website/launch.css": "5c256e180daca7710b0debcaeefe196143ec66db8330bb32ebf6166f9dd17a50",
+    "assets/website/product-consistency.css": "bac79a7cc73b11f61c878336b58757943fd93badb442a2d809cf6bb04cce60c5",
+    "assets/website/product-experience.css": "79046a68e3971bdb6c94974153daefc74e42137035b48e53e6a4e20b6882d1b5",
+    "assets/website/refinement.css": "0886ca529e320e930d40353ef09f7acadb5ea6348314cb5287bfba98704033e0",
+    "assets/website/refinement.js": "7fee2cb48bb40573d575c091ca6d18fff7346bfd688e04ad365c9c8207ff72a0",
+    "assets/website/scroll-story.css": "1aba655d2c55758c5c65537a54de056c8897c92646fe48a0f32010ae721cf6f7",
+    "assets/website/scroll-story.js": "9e15c3b30ec974e950164a51f5935a1f6bb699f3e6482b4dd0498a69b1a60f89",
+    "assets/website/site.css": "258f269a118935fb53c5aa72032cf1b54ac795463f6288332007721f623bf67a",
+    "beta.html": "f8fa2272c283a11362d5fb4d4c2988ba91fca9263874b418acef9716fd9bb4a8",
+    "blog.html": "e83e8993511c73db7ba126baaabe2720f210cd662ad0253c017bf6d2b10a1c59",
+    "contact.html": "2e90977b4bf359865d75d94655772ddbac9eb583df1a26ca59c6d4d8089ff207",
+    "demo.html": "d542299a3e207642235436bc32054576b34ca8661b7eed25d20f489422b03c9e",
+    "download.html": "afbcd67dc12a6b258ac265fae1a7550a548ca32e145546bdf9bd73d32dbaf0bd",
+    "en/404.html": "1f5b6031eab9eecfefab8d450f92248fd7ee7522a1eae3fb3df4399bbba6f815",
+    "en/about.html": "4c17c4355f1ac0b2f6e4918e8e746a6371dc504c3120f63e78b520be822cd30d",
+    "en/article-beliefs.html": "e12f6bb84e4750342311d813222c1fdc17d68894f591fcc3116ef7417fa6e17c",
+    "en/article-context.html": "8971cd7d6039169b0aaa913539cc28c4fb06a25b55cb62b7c109d60e2dc1754c",
+    "en/article-reuse.html": "bd6627d8bb300c93a70cdfd5ba2892b8504bc1973ccc8189dcba64bb1c4163b4",
+    "en/beta.html": "f8fa2272c283a11362d5fb4d4c2988ba91fca9263874b418acef9716fd9bb4a8",
+    "en/blog.html": "e83e8993511c73db7ba126baaabe2720f210cd662ad0253c017bf6d2b10a1c59",
+    "en/contact.html": "2e90977b4bf359865d75d94655772ddbac9eb583df1a26ca59c6d4d8089ff207",
+    "en/demo.html": "d542299a3e207642235436bc32054576b34ca8661b7eed25d20f489422b03c9e",
+    "en/download.html": "afbcd67dc12a6b258ac265fae1a7550a548ca32e145546bdf9bd73d32dbaf0bd",
+    "en/help.html": "9f4c265a7637d7b6a1690a43f51185c11d118309bf265dac0dbe486756043fd7",
+    "en/how-it-works.html": "3977009f0c8e3bdde2a8cbd717f14f001913a10d2164d82bb632ec1f5f6ec3aa",
+    "en/principles.html": "6992a6be511a83c09163d8983a0687d480c2884c87d58a302deaf874ee002f60",
+    "en/privacy-policy.html": "0c0bef9824aae50145d9ce2205f6042f5ea83d427522f8bcf238d020bfd9ee4c",
+    "en/status.html": "7aa66afb3b3a6ec397b303ca388077bde1af6aaa5ad8f177af3d03976458c278",
+    "en/terms.html": "e07c0e6b28d8afff88a751968682071957243a88f591f8babdf46bd30ffa01da",
+    "en/thanks.html": "292ce3dd18d423d2d5684e3591b9ef7a75b87e0cb81aa009c3c9ecd315836e7a",
+    "en/use-cases.html": "42db53da85028ff2c4c294a0b78793be7a68dfa92d5c1787c129dd9d49cf3c2b",
+    "help.html": "9f4c265a7637d7b6a1690a43f51185c11d118309bf265dac0dbe486756043fd7",
+    "how-it-works.html": "3977009f0c8e3bdde2a8cbd717f14f001913a10d2164d82bb632ec1f5f6ec3aa",
+    "principles.html": "6992a6be511a83c09163d8983a0687d480c2884c87d58a302deaf874ee002f60",
+    "privacy-policy.html": "0c0bef9824aae50145d9ce2205f6042f5ea83d427522f8bcf238d020bfd9ee4c",
+    "robots.txt": "1d12c71cd6187fe4413f8c2145c92efa8356c1587e40036b8f03e48dccd27c2e",
+    "sitemap.xml": "61701abad710c523f05b656eac14cc2490b9bdb953d2cdb6facea1d8e69014ac",
+    "status.html": "7aa66afb3b3a6ec397b303ca388077bde1af6aaa5ad8f177af3d03976458c278",
+    "terms.html": "e07c0e6b28d8afff88a751968682071957243a88f591f8babdf46bd30ffa01da",
+    "thanks.html": "292ce3dd18d423d2d5684e3591b9ef7a75b87e0cb81aa009c3c9ecd315836e7a",
+    "use-cases.html": "42db53da85028ff2c4c294a0b78793be7a68dfa92d5c1787c129dd9d49cf3c2b",
+    "website/art_direction.py": "54d361fc013c981caa16be1b836fcbd8cfa0dbe00bef55a27778ee2f1af7ec10",
+    "website/core.py": "33c784ef0371b433021105cf820108c5cc7d10260b3901fd3e79a49cb2ebe9c3",
+    "website/core_checks.py": "c2d932387b50b4dcb44f016dca447a01a6a78db57cf7d1711b1269d9486f49ce",
+    "website/launch_copy.json": "0b4ac2c30a5d073ec3191866e873f0f5749924cb435565109097c9f0e98e09d2",
+    "website/launch_copy.py": "6b1c26d07097d1082610d21ea442f1710dcd7056650c75fc4e741efca574f5cb",
+    "website/launch_invariants.json": "fe583b97f231e0ff6d6f803433d6e6790a3efe23715c96c5ccd01a53fe5d06cf",
+    "website/launch_manifest.json": "000da498a194e4f22d986e4e4949e1484b7682c50ebcd5977d3a0346454ef169",
+    "website/launch_pages.py": "b61de7cabb8f4af3e9e2f7fbd6cb5fe11a2a9c800794a2e6752e3a72f6d46d42",
+    "website/pages.py": "5a413a929c0cf6254502ba4162b36732928f73bad0eb48846d957ab15d78a3f4",
+    "website/product_hero.py": "df95a7b3cfa3a3d0aacea88626c92b331335115b2c815a20d1efac34c5d4d536",
+    "website/product_pages.py": "4a4320d0cad222cb3722fdb86550d31bff6aab4f5f4ab2b9056ed992c445f22e",
+    "website/product_sections.py": "5766693a703ed5bdc196dc1328f98666fd829c75aa3a74b1cd8387188f6ca18d",
+    "website/prompt_preview.py": "65b3ab9be426af1ae993f0a34ce2c4013ef0aa1b56f01956917e62ef4489c967",
+    "website/scroll_story.py": "861b3714050224606a2765310d4830f4c2824b916ad3f5d547a8062e4a38ebeb",
+    "website/topic_preview.py": "5d94fefc1ab76ee826eff168284dac1427c8c3f57e83627945efe079edd16f18",
+    "zh/404.html": "927c4cc2c6153667e1e7c1456cc798fd33ff8db29c44b7cd085b50e0a6798bff",
+    "zh/about.html": "25a82faa2b1593cbfcbe06d8651851b1cbd129bd77857ecb606884471487e879",
+    "zh/article-beliefs.html": "782c9efbac01d2b035a0fcdc3c4757623e622db36c3901337d9b5b301ef66c10",
+    "zh/article-context.html": "6eebaf45e0067b945d570f274e6e98f848f542b079a9fd75bc0fc8618ab9ebc1",
+    "zh/article-reuse.html": "717a13b4a9b6dcc757f260aed27e8c04359be6b887fb6ac97a425fc48abbfd1a",
+    "zh/beta.html": "4f5b00a1d7c0b620e500dd646907805907abb2e229cf81074e6ad57c3028592c",
+    "zh/blog.html": "9045755a719ccea4a5e474fa99aa7d6f3f890050417178fe89ce1feb84169c7c",
+    "zh/contact.html": "8ab093479b747271c6cc9151877563df0ef9de5a6a1712e0acafc447821d35db",
+    "zh/demo.html": "5cb6e73d696a484700715cf72e2c9ff6cc1d4c46e95d232991444bd3fa36cebe",
+    "zh/download.html": "fa5af00c3d76af3e908e50107a475d7f709a9cea959107d2a9f7c7b040083b83",
+    "zh/help.html": "fe4c045013dddf69efbbac4aec3681f61dbbbeef1358eda51fffa87aa3edb0e5",
+    "zh/how-it-works.html": "3c7897e857f2eb9a4967ff416718d1594686b1d246b2efd93874dbecd0176826",
+    "zh/principles.html": "e9482e65d93aa965b5f522ef1260331c211422307628f4e6ea4da7b55b98b255",
+    "zh/privacy-policy.html": "57424f67fc141cb0e74e6037d43b3350dde0bcb71cd5243df4fbec9b4fdd36a2",
+    "zh/status.html": "232c9fc5a5ee313ad966e596f72bfa28e50ea8cfa5c2683e6ac61c7d1cb3b495",
+    "zh/terms.html": "98d8e59064c89e73f4ef5f282a135b2013311320431c2dc22a7021229ca5b055",
+    "zh/thanks.html": "62c251fa8b41593f79e096bdc7f1490f0def9b3c4cc651e6e5036ac713b83538",
+    "zh/use-cases.html": "813383f46de683529a89df458f3e74c42aae3b44218bcb1be45b2c21b3eef761"
+  },
+  "home_text": {
+    "index.html": {
+      "#hero-title": [
+        "Your words.Beyond the chat."
+      ],
+      ".hero-description": [
+        "Keep what you tell AI.Find it. Connect it. Reuse it.Begin with what you already know."
+      ],
+      ".hero-scope": [
+        "For Chrome · Works with ChatGPT Web"
+      ],
+      ".pv-expression p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ],
+      ".pc-heading h2": [
+        "Find your words.Pick up the thought.",
+        "Scattered ideas.A thread of your own.",
+        "More understanding.On your terms."
+      ],
+      ".pc-intro p": [
+        "Find a past sentence and return to where it belongs. Read, revise and always check the original.",
+        "Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.",
+        "Manage your background, rules, current work and topics in four cards. You decide what AI may read. Edit the content, pause access or withdraw permission at any time."
+      ],
+      ".pc-body-copy": [
+        "Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send."
+      ],
+      ".pc-plan-note": [
+        "OPTIONAL LOCAL SUGGESTIONSAfter you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send."
+      ],
+      ".pc-card-description": [
+        "Background you want AI to know.",
+        "How you want it to respond.",
+        "What you are working on, and what has changed.",
+        "Personal topics open for in-depth reading."
+      ],
+      "[data-context-card] strong": [
+        "My Information",
+        "My Rules",
+        "My Now",
+        "My Inputs"
+      ],
+      "[data-story-original] .ad-story-entry p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      "[data-story-organized] p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      ".pc-prompt-pick": [
+        "Re-evaluate this using my actual constraints.",
+        "Give the strongest counterexample and missing variables.",
+        "Turn the conclusion into three specific next steps."
+      ],
+      ".ad-story-entry time": [
+        "12 AUG · 09:42",
+        "26 AUG · 11:18",
+        "10 SEP · 18:03",
+        "24 SEP · 10:26"
+      ],
+      ".ad-story-provenance": [
+        "ChatGPT · What belongs in v1 · First question",
+        "ChatGPT · What belongs in v1 · Narrowing the scope",
+        "ChatGPT · What belongs in v1 · Decision criterion",
+        "ChatGPT · User research · Decision retained"
+      ],
+      ".ad-document-source": [
+        "4 expressions · 2 conversations · Sources retained"
+      ],
+      ".pc-sync h2": [
+        "Your archive.Room to carry on."
+      ],
+      ".core-close h2": [
+        "Keep what you tell AI.Decide what AI can use next."
+      ],
+      ".hp-input-text": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ]
+    },
+    "en/index.html": {
+      "#hero-title": [
+        "Your words.Beyond the chat."
+      ],
+      ".hero-description": [
+        "Keep what you tell AI.Find it. Connect it. Reuse it.Begin with what you already know."
+      ],
+      ".hero-scope": [
+        "For Chrome · Works with ChatGPT Web"
+      ],
+      ".pv-expression p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ],
+      ".pc-heading h2": [
+        "Find your words.Pick up the thought.",
+        "Scattered ideas.A thread of your own.",
+        "More understanding.On your terms."
+      ],
+      ".pc-intro p": [
+        "Find a past sentence and return to where it belongs. Read, revise and always check the original.",
+        "Bring expressions from different conversations together in your own topics and sections. Read continuously, or choose a more concise view. Your sources and decisions stay with you.",
+        "Manage your background, rules, current work and topics in four cards. You decide what AI may read. Edit the content, pause access or withdraw permission at any time."
+      ],
+      ".pc-body-copy": [
+        "Keep the phrases that help you close at hand. Open the light, translucent panel and choose a line to fill the composer. Edit, reorder or pin it when needed. You always decide when to send."
+      ],
+      ".pc-plan-note": [
+        "OPTIONAL LOCAL SUGGESTIONSAfter you opt in, use the latest reply to find a useful expression among your saved prompts. You review it and decide when to send."
+      ],
+      ".pc-card-description": [
+        "Background you want AI to know.",
+        "How you want it to respond.",
+        "What you are working on, and what has changed.",
+        "Personal topics open for in-depth reading."
+      ],
+      "[data-context-card] strong": [
+        "My Information",
+        "My Rules",
+        "My Now",
+        "My Inputs"
+      ],
+      "[data-story-original] .ad-story-entry p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      "[data-story-organized] p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      ".pc-prompt-pick": [
+        "Re-evaluate this using my actual constraints.",
+        "Give the strongest counterexample and missing variables.",
+        "Turn the conclusion into three specific next steps."
+      ],
+      ".ad-story-entry time": [
+        "12 AUG · 09:42",
+        "26 AUG · 11:18",
+        "10 SEP · 18:03",
+        "24 SEP · 10:26"
+      ],
+      ".ad-story-provenance": [
+        "ChatGPT · What belongs in v1 · First question",
+        "ChatGPT · What belongs in v1 · Narrowing the scope",
+        "ChatGPT · What belongs in v1 · Decision criterion",
+        "ChatGPT · User research · Decision retained"
+      ],
+      ".ad-document-source": [
+        "4 expressions · 2 conversations · Sources retained"
+      ],
+      ".pc-sync h2": [
+        "Your archive.Room to carry on."
+      ],
+      ".core-close h2": [
+        "Keep what you tell AI.Decide what AI can use next."
+      ],
+      ".hp-input-text": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ]
+    },
+    "zh/index.html": {
+      "#hero-title": [
+        "你的表达，不止于对话。"
+      ],
+      ".hero-description": [
+        "保存你对 AI 说过的话。找回、串联、复用，让下一次从这里开始。"
+      ],
+      ".hero-scope": [
+        "适用于 Chrome · 支持 ChatGPT 网页版"
+      ],
+      ".pv-expression p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。"
+      ],
+      ".pc-heading h2": [
+        "你说过的，都可以再找到。",
+        "散落的想法，有了自己的脉络。",
+        "让 AI 更懂你，边界由你定义。"
+      ],
+      ".pc-intro p": [
+        "找到过去的一句话，回到它原本的位置。连续阅读，直接修改，原始来源始终可核对。",
+        "用你自己的主题和章节，把不同对话里的表达放在一起。打开一个主题，沿着原话连续读下去；用不同详略的整理方式，保留来源和你的决定。",
+        "用四张卡片管理背景、规则、近况与主题。由你决定 AI 可以读取什么，随时修改内容、暂停访问或撤回允许。"
+      ],
+      ".pc-body-copy": [
+        "那些反复帮到你的表达，不必再从旧对话里翻找。打开轻透的小面板，点一行填入；需要时再修改、排序或固定。什么时候发送，始终由你决定。"
+      ],
+      ".pc-plan-note": [
+        "可选本地建议主动开启后，参考刚完成的回复，从已有提示词中选择适合接着用的表达。始终由你检查并发送。"
+      ],
+      ".pc-card-description": [
+        "你希望 AI 了解的背景。",
+        "你希望它如何回应。",
+        "眼下在做什么，哪些条件变了。",
+        "允许深入读取的个人主题。"
+      ],
+      "[data-context-card] strong": [
+        "我的信息",
+        "我的规则",
+        "我的现在",
+        "我的输入"
+      ],
+      "[data-story-original] .ad-story-entry p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+        "保留这个取舍：先找回，再决定是否创造更多。"
+      ],
+      "[data-story-organized] p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+        "保留这个取舍：先找回，再决定是否创造更多。"
+      ],
+      ".pc-prompt-pick": [
+        "结合我的实际约束重新分析。",
+        "给出最强的反例和遗漏变量。",
+        "把结论转成三个具体的下一步。"
+      ],
+      ".ad-story-entry time": [
+        "12 AUG · 09:42",
+        "26 AUG · 11:18",
+        "10 SEP · 18:03",
+        "24 SEP · 10:26"
+      ],
+      ".ad-story-provenance": [
+        "ChatGPT · 第一版应该做什么 · 最初的问题",
+        "ChatGPT · 第一版应该做什么 · 缩小范围",
+        "ChatGPT · 第一版应该做什么 · 判断标准",
+        "ChatGPT · 用户研究 · 保留的决定"
+      ],
+      ".ad-document-source": [
+        "4 条原话 · 2 个对话 · 原始来源保留"
+      ],
+      ".pc-sync h2": [
+        "换一台设备，继续自己的积累。"
+      ],
+      ".core-close h2": [
+        "保存你对 AI 说过的话。决定下一次 AI 可以使用什么。"
+      ],
+      ".hp-input-text": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。"
+      ]
+    }
+  }
+}

@@ -36,7 +36,10 @@ def verify_static_publication(root,check):
     for relative,entries in original['home'].items():
         parsed=Fragments((root/relative).read_text())
         for selector,expected in entries.items():
-            actual=[Text(parsed.outer(n)).value() for n in find(parsed,selector)]
+            mapped = selector
+            if 'data-home-mode="presentation"' in parsed.source:
+                mapped = {'.pc-record textarea':'.hp-input-text', '[data-thought-text]':'[data-story-original] .ad-story-entry p'}.get(selector,selector)
+            actual=[Text(parsed.outer(n)).value() for n in find(parsed,mapped)]
             check(actual==expected,relative+': original expressions/value statement retained '+selector)
     for relative,sha in original['unmodified_runtime'].items():
         check(hashlib.sha256((root/relative).read_bytes()).hexdigest()==sha,relative+': existing geometry/motion/data owner unchanged')

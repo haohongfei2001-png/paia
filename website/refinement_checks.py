@@ -11,6 +11,7 @@ from functools import partial
 from threading import Thread
 import os, sys, json, re, base64, mimetypes, traceback
 from playwright.sync_api import sync_playwright
+from presentation_checks import verify_presentation
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get('WEBSITE_REFINEMENT_OUTPUT', ROOT/'website-refinement-artifacts'))
@@ -39,7 +40,7 @@ def inline_source(name):
         return '<style>'+css+'</style>'
     html=re.sub(r'<link rel="stylesheet" href="([^"]+)"[^>]*>',style,html)
     html=re.sub(r'((?:src|href)=")(/assets/website/[^"?]+)"',lambda m:m[1]+data_url(m[2])+'"',html)
-    if name.endswith(('index.html','how-it-works.html','contact.html')):
+    if name.endswith(('how-it-works.html','contact.html')):
         css=data_url('/assets/website/refinement.css')
         html=html.replace('</head>','<link data-paia-refinement rel="stylesheet" href="'+css+'"></head>')
         scripts.append((ROOT/'assets/website/refinement.js').read_text())
@@ -57,7 +58,7 @@ try:
             if OFFLINE: page.set_content(inline_source(name),wait_until='load')
             else: page.goto(origin+'/'+name,wait_until='networkidle')
             page.evaluate('document.fonts.ready')
-            page.wait_for_selector('body.pf-ready',timeout=5000)
+            page.wait_for_selector('body.hp-ready' if name.endswith('index.html') else 'body.pf-ready',timeout=5000)
         for locale,prefix in [('zh','zh/'),('en','')]:
             for width in [1440,768,390,320]:
                 page=browser.new_page(viewport={'width':width,'height':1000},reduced_motion='reduce')
@@ -66,41 +67,9 @@ try:
                 page.on('request',lambda r:requests.append(r.url) if r.method!='GET' or r.resource_type in ('fetch','xhr','websocket') else None)
                 load(page,prefix+'index.html')
                 def test(ok,label):check(ok,f'{locale}/{width}: '+label)
-                test(page.locator('.pc-suggestion-wrap').count()==1,'one suggestion implementation')
-                test(page.locator('.ad-host .pc-suggestion-wrap').count()==1,'suggestion belongs to the host conversation')
-                test(page.locator('#pc-composer').evaluate('e=>getComputedStyle(e).resize')=='none','composer has no native resize handle')
-                test(not page.locator('.pc-prompt-caption').is_visible(),'removed caption remains absent')
-                composer=page.locator('#pc-composer');composer.fill('BeforeAfter')
-                composer.evaluate("e=>{e.setSelectionRange(6,6);e.dispatchEvent(new Event('select',{bubbles:true}));}")
-                phrase=page.locator('#pc-prompt-0').input_value()
-                page.locator('[data-prompt-pick="0"]').click()
-                if page.locator('.ad-check').is_visible():page.locator('.ad-check-actions button').last.click()
-                test(composer.input_value()=='Before\n\n'+phrase+'\n\nAfter','original controller still preserves the complete draft and caret')
-                test(page.locator('.pf-picked').count()==1,'only an acknowledged insert marks a row')
-                test(page.locator('.pf-inserted').count()==1,'input is visibly acknowledged, no extra writer')
-                page.wait_for_timeout(950)
-                test(page.locator('.pf-picked').count()==0,'feedback clears without permanent highlight')
-                page.locator('[data-suggestion-toggle]').click()
-                test(page.locator('[data-suggestion]').is_visible(),'existing optional suggestion remains accessible')
-                test(composer.input_value().startswith('Before\n\n'),'opening a suggestion does not write or send')
-                if width<=640:
-                    test(not page.locator('.pf-mobile-details').evaluate('e=>e.open'),'mobile operations start folded')
-                    page.locator('.pf-mobile-details>summary').click()
-                    test(page.locator('.pc-prompt-mechanics').is_visible(),'mobile operation detail is reachable')
-                    for mode in ['open','organize','cards']:
-                        page.locator(f'.pf-mobile-views button[data-view="{mode}"]').click()
-                        test(page.locator('.pf-mobile-views button[aria-pressed=true]').count()==1,mode+': one selected view')
-                        if mode!='cards':
-                            test(page.locator('.ad-thought-scenes').is_visible(),mode+': mobile scene visible by choice')
-                            test(page.locator('.ad-thought-scenes').get_attribute('aria-hidden')=='false',mode+': preview accessible to assistive technology')
-                            test(page.locator('[data-topic-overview]').evaluate('e=>e.inert'),mode+': hidden links do not capture focus')
-                        else:test(page.locator('[data-topic-overview]').is_visible(),'return to topics keeps real links usable')
-                else:
-                    test(not page.locator('.pf-mobile-views').is_visible(),'desktop gets no new state selector')
-                    test(page.locator('.pc-prompt-mechanics').is_visible(),'desktop explanatory composition preserved')
-                test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'normal-size viewport does not overflow')
-                page.add_style_tag(content='html{font-size:200%!important}')
-                test(page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),'200% text reflows without page overflow')
+                # Retired homepage manipulation is replaced by a full native-
+                # scroll journey. Core draft/permission tests remain on demo.
+                verify_presentation(page,check,f'{locale}/{width}',motion=True)
                 test(not requests,'no runtime requests on product examples')
                 test(not errors,'no script errors')
                 page.close()

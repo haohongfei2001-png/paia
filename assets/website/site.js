@@ -49,7 +49,7 @@
     });
   });
   if (hero) hero.dataset.activeSpace = 'archive';
-  const tabDirection = () => document.querySelector('.pv-tabs')?.setAttribute('aria-orientation', narrow.matches ? 'horizontal' : 'vertical');
+  const tabDirection = () => tabs.length && document.querySelector('.pv-tabs')?.setAttribute('aria-orientation', narrow.matches ? 'horizontal' : 'vertical');
   tabDirection(); narrow.addEventListener('change', tabDirection);
 
   // One frame per scroll event, and none at rest. Text is never gated by motion.
@@ -118,6 +118,7 @@
 (() => {
   const page = document.body.dataset.page;
   if (document.querySelector('[data-paia-refinement]')) return;
+  if (document.body.dataset.homeMode === 'presentation') return;
   if (!['index.html', 'how-it-works.html', 'contact.html'].includes(page)) return;
   const style = document.createElement('link');
   style.rel = 'stylesheet'; style.href = '/assets/website/refinement.css?v=20261013c';
