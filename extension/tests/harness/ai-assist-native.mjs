@@ -9,7 +9,7 @@ import {eventually} from './fake-chatgpt.mjs';
 // The bridge is not a production RPC or a cross-process atomicity claim.
 export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,label}) {
  await routeComposer(h.context,dependencyRoot,{signature:'current'});
- const page=await h.context.newPage();let world;
+ const page=await h.context.newPage();let world,qualifyBinding;
  try {
   await page.goto('https://chatgpt.com/c/prompt-insertion-fixture');
   await page.waitForFunction(()=>!!globalThis.fixture?.view);
@@ -32,7 +32,16 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
    fixture.finish=()=>{document.querySelector('[data-testid="stop-button"]')?.remove();const b=document.createElement('button');b.dataset.testid='copy-turn-action-button';b.textContent='Copy';fixture.latest.append(b);};
   });
   await h.archive.exposeFunction('__privateAssistProbe',async request=>world.run(`privateAssist.probe(${JSON.stringify(request)})`));
-  await h.archive.exposeFunction('__privateAssistInsert',async request=>world.run(`privateAssist.insert({...${JSON.stringify(request)},isCurrent:()=>true})`));
+  // Explicit test-only, context-bound bridge: final content qualification
+  // invokes the original session callback, never a constant authorization.
+  await world.cdp.send('Runtime.addBinding',{name:'__privateAssistQualify',executionContextId:world.id});
+  await world.run(`globalThis.__assistQualifications=new Map();globalThis.__askAssistQualification=key=>new Promise(resolve=>{__assistQualifications.set(key,resolve);__privateAssistQualify(key);});`);
+  qualifyBinding=async event=>{
+   if(event.name!=='__privateAssistQualify'||event.executionContextId!==world.id)return;
+   let allowed=false;try{allowed=await h.archive.evaluate(async key=>{const request=globalThis.__assistInsertCapabilities?.get(key);return !!request&&await request.qualify()===true&&request.isCurrent()===true;},event.payload);}catch{}
+   await world.run(`(()=>{const key=${JSON.stringify(event.payload)},resolve=__assistQualifications.get(key);__assistQualifications.delete(key);resolve?.(${JSON.stringify(allowed)});})()`).catch(()=>{});
+  };world.cdp.on('Runtime.bindingCalled',qualifyBinding);
+  await h.archive.exposeFunction('__privateAssistInsert',async request=>world.run(`(async()=>{const request=${JSON.stringify(request)},generation=assistInvalidations;let qualified=null;try{return await privateAssist.insert({...request,qualify:async()=>{qualified=await __askAssistQualification(request.capability)===true;return qualified;},isCurrent:()=>qualified!==false&&assistInvalidations===generation});}finally{qualified=false;}})()`));
   // Actual Chrome tab metadata qualifies the offline actor. The documentId
   // and host transport remain private fixture capabilities, not worker auth.
   // Synthetic financial authority is explicit and fixture-only; production
@@ -91,7 +100,9 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   const insert=async(operationId,conditionPresented)=>h.archive.evaluate(async({operationId,conditionPresented})=>{
    const f=__assistNative;return f.session.insert(f.handle,{operationId,conditionPresented,controller:{insert:async request=>{
     if(request.isCurrent()!==true)return {status:'failed',reason:'stale_assist'};
-    const {isCurrent,...transport}=request;return __privateAssistInsert(transport);
+    const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
+    globalThis.__assistInsertCapabilities??=new Map();__assistInsertCapabilities.set(capability,{isCurrent,qualify});
+    try{return await __privateAssistInsert({...transport,capability});}finally{__assistInsertCapabilities.delete(capability);}
    }}});
   },{operationId,conditionPresented});
   await page.evaluate(()=>fixture.set('ABCDE',1,4));
@@ -119,6 +130,32 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   const uncertainOp=await h.archive.evaluate(()=>crypto.randomUUID()),uncertain=await insert(uncertainOp,true);assert.equal(uncertain.status,'uncertain');
   const uncertainDraft=await page.evaluate(()=>fixture.text());await world.run('document.execCommand=originalAssistExec;');
   assert.equal((await insert(uncertainOp,true)).replayed,true);assert.equal(await page.evaluate(()=>fixture.text()),uncertainDraft,'uncertain operation replay never inserts twice');
+  // Selected Context changes after session.result() but before the actual
+  // isolated content owner's qualification must never enter the composer.
+  const retainedDraft=await page.evaluate(()=>fixture.text());
+  const finalAuthority=await h.archive.evaluate(async()=>{
+   const {ContextCardsService}=await import(chrome.runtime.getURL('core/context-cards.js')),
+    {LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js'));
+   const f=__assistNative,cards=new ContextCardsService(f.s),results=[];let calls=0;
+   for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
+   for(const change of ['edit','revoke']){
+    const id=crypto.randomUUID();await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
+    const session=new LocalAssistSession(f.s,{lease:f.lease,contextSelector:()=>[id],contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+    try{const lease=await f.lease.observe(f.sender),handle=await session.prepare({lease});await session.run(handle);
+     const result=await session.insert(handle,{operationId:crypto.randomUUID(),controller:{insert:async request=>{
+      const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
+      __assistInsertCapabilities.set(capability,{isCurrent,qualify:async()=>{
+       if(change==='edit')await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:1,body:'SYNTHETIC changed selected Context',section:'Synthetic'});
+       else await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'info',expectedRevision:1,enabled:false});
+       return qualify();
+      }});
+      try{return await __privateAssistInsert({...transport,capability});}finally{__assistInsertCapabilities.delete(capability);}
+     }}});results.push({change,result});
+    }finally{session.dispose();}
+   }return {results,calls};
+  });
+  assert.equal(finalAuthority.calls,2);for(const entry of finalAuthority.results)assert.deepEqual(entry.result,{status:'failed',reason:'stale_assist'},entry.change);
+  assert.equal(await page.evaluate(()=>fixture.text()),retainedDraft);assert.equal(await page.evaluate(()=>fixture.send),0);console.log('AI_NATIVE_FINAL_INSERT_AUTHORITY',label,JSON.stringify(finalAuthority));
   // Live current-node mutation must invalidate immediately in the isolated owner.
   const latestStale=await world.run(`(()=>{const state=privateAssist.probe();privateAssist.reader.current.querySelector('.markdown').append(document.createTextNode('changed'));return privateAssist.insert({binding:state.binding,text:'UNQUALIFIED',condition:'',operationId:crypto.randomUUID(),isCurrent:()=>true});})()`);
   assert.equal(latestStale.status,'failed');assert.equal(latestStale.reason,'stale_assist');
@@ -129,5 +166,5 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   await h.archive.evaluate(()=>__assistNative.lease.configure({replyAccess:true,remoteProcessing:false}));
   let consentDenied=false;try{await h.archive.evaluate(()=>__assistNative.session.result(__assistNative.handle));}catch{consentDenied=true;}assert.equal(consentDenied,true);
   console.log('AI_NATIVE_PRIVATE_ASSIST',label,JSON.stringify({native:true,zeroContext:true,oneAttempt:true,bodyFree:true,conditionGuard:true,selection:true,imeReplayDenied:true,draftChangedDenied:true,uncertainReplayDenied:true,latestMutationDenied:true,pagehide:true,consentDenied:true,send:0}));
- } finally {await h.archive.evaluate(()=>{__assistNative?.session.dispose();__assistNative?.lease.dispose();}).catch(()=>{});await world?.run('privateAssist.dispose()').catch(()=>{});await page.close();}
+ } finally {if(world&&qualifyBinding)world.cdp.off('Runtime.bindingCalled',qualifyBinding);await h.archive.evaluate(()=>{__assistNative?.session.dispose();__assistNative?.lease.dispose();}).catch(()=>{});await world?.run('privateAssist.dispose()').catch(()=>{});await page.close();}
 }
