@@ -75,3 +75,14 @@ for(const removeSource of [false,true])test(`indexing response preserves stable 
  f.s.trackedLibraryEntries=async args=>{const value=await tracked(args);if(removeSource){purged=true;await f.s.permanentDelete(sourceId);}return value;};
  const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(invalidated,true);assert.equal(purged,removeSource);assert.deepEqual(result.items,[]);if(removeSource){assert.equal(result.cursorInvalid,true);assert.deepEqual(result.tracked,[]);}else{assert.equal(result.indexing,true);assert.equal(result.cursorInvalid,undefined);assert.equal(result.tracked.length,1);assert.equal(result.tracked[0].id,target);}
 });
+
+for(const chronology of ['placement','expression'])test('Source purge during '+chronology+' hydration returns no cached Topic metadata',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,chronology};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ assert.ok(before.topic.name);const original=f.s.readingEntry.bind(f.s);let purged=false;
+ f.s.readingEntry=async id=>{const entry=await original(id);if(!purged){purged=true;for(const row of await rows(f.s,'records'))await f.s.permanentDelete(row.value.id);}return entry;};
+ const result=await topicReadingPage(f.s,options);
+ assert.equal(purged,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);
+ assert.equal(Object.hasOwn(result,'topic'),false,'invalid page must not expose cached name, summary or organization');
+ assert.equal((await rows(f.s,'records')).length,0);assert.equal((await f.s.topic(f.topic.id)).sourceUnavailable,true);
+});

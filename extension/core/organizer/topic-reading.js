@@ -132,14 +132,16 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   topicId,sort,cursor:cursorView(cursor),limit,direction,
   anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
  });
+ // Invalid responses omit cached Topic metadata as well as bodies: Source
+ // eligibility may have changed after its name and summary were read.
  // Fence tracked material and layout reads as well as paired body hydration.
  const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
- if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  if(descriptor.indexing){
   const authority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
-  if(authority!==bodyAuthority)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+  if(authority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
   return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
  }
 
@@ -151,7 +153,7 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   }
   return rows;
  }));
- if(placements.size!==descriptor.items.length)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(placements.size!==descriptor.items.length)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
 
  const providerMatches=providerKey===null?null:await s.run(()=>s.repository.transaction(false,async t=>{
   const matches=new Set();for(const d of descriptor.items)if(await entryMatchesProvider(s,t,d.entryId,providerKey))matches.add(d.entryId);return matches;
@@ -191,19 +193,19 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
  }
  if(direction==='prev')items.reverse();
- if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
+ if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
 
  const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
- if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(sectionPage.cursorInvalid)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
  if(expression){
   const fresh=await thoughtTopicExpressionPage(s,{topicId,sort,limit:1,providerKey,query:needle,expectedReadGeneration:descriptor.coverage.activeGeneration,describe:descriptorReader(s)});
-  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:fresh.coverage};
+  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,tracked:[],items:[],coverage:fresh.coverage};
  }
  // A companion may finish before an earlier entry. Reject the whole body
  // page if any existing mutation/recovery authority changed during hydration.
  const finalAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
- if(finalAuthority!==bodyAuthority)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(finalAuthority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey,...(expression?{year:null,providerKey,query:needle}:{})}:null;
  const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
  const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);
