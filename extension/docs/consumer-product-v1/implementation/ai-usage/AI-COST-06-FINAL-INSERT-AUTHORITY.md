@@ -11,3 +11,13 @@ Author aeac23ca, final fixture correction d5233065:44 owning and73 related pure 
 Fresh integration starts on formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b with the same four reviewed file hashes; version0.48.1 is a compatible reliability fix. Existing0.48 backup compatibility and schema remain unchanged. Final exact-head qualification is required before merge; merged-main proof remains separate. No user-installed update, full AI-COST06 or all-Canonical completion is claimed. A never-resolving trusted qualifier cannot insert; host transport liveness is not silently certified by this patch.
 
 Fresh main combination original owning/version files47PASS1683.882583ms, zero failures/skips/cancellations; final product0.48.1 identity and existing-file restore Source/Input preservation pass.
+
+## Preserved CI timeout and complete case isolation (2026-10-13)
+
+PR283 head de14ae04244e255cc04079d342981c3643315a4e Full38350221653 failed Browser3 job115140713031; Prompt38350221650 passed. The failed Full remains failed. Artifact11790598366 SHA256 67fd6d7621b70fd585840c1016261656158d1310f10e30d21d1da66c43c17d46 contains Source/release phase journals: all bodies eventually verified at128.0/130.4 seconds, after their unchanged120-second deadline. The lifecycle/provider/Assist journeys were accumulated after the independent Foundation corpus; this is measured accumulated work, not proof of a production deadlock.
+
+The original CI-selected Foundation file now registers two additional isolated Source/release cases through a harness module. All three unchanged lifecycle helpers run completely in fresh synthetic Chrome profiles with the same120-second case deadline and four network/error assertions. All original inline Foundation assertions remain. The CI file inventory, shard mapping, job limits, workflow and production code are unchanged. This preserves admission by the current explicit CI routing instead of introducing an unadmitted browser file.
+
+The first local split experiment preserved2PASS/2FAIL: both lifecycle cases lacked the worktree's existing prosemirror-model dependency. Reusing the pinned dependency directory repairs that environment; no dependency versions changed. The failed log is retained separately. Final independent review of this test isolation and exact successor qualification remain required before merge. Prior production-code review applies only to its unchanged bytes.
+
+Final complete original CI entry:4PASS,0FAIL,0SKIP,0CANCEL in66189.382959ms; lifecycle Source8520ms/release9076ms, Foundation Source23773ms/release24681ms. Headless synthetic Chrome, no paid calls or user-profile operations.
