@@ -36,10 +36,11 @@ async function fixture(run){
   await run({owner,nodes,home,nav,bottom,buttons,search,actions});
  }finally{for(const [key,value]of prior)if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
 }
-test('Archive root keeps the same search and source controls in its quiet header disclosure',()=>fixture(({owner,nodes,search,actions})=>{
+test('Archive root keeps search identity and the approved visible source control',()=>fixture(({owner,nodes,search,actions})=>{
  owner.presentArchiveComposition({consented:true});
  assert.equal(nodes.get('scope-search-host').parentElement,nodes.get('archive-root-header-actions'));
- assert.equal(nodes.get('archive-source-scope-label').parentElement,actions);
+ assert.equal(nodes.get('archive-source-scope-label').parentElement,nodes.get('archive-root-tools'));
+ assert.equal(actions.contains(nodes.get('archive-source-scope-label')),false);
  assert.equal(nodes.get('scope-search-host').children[0],search);assert.equal(search.value,'SYNTHETIC 还没有结束的查询');
 }));
 test('Reader selection preserves the directory search identity, text and focus in its original header',()=>fixture(({owner,nodes,search})=>{

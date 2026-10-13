@@ -39,5 +39,5 @@ test('UX-R6 Settings retains exactly the six governed groups and honest storage 
 
 test('UX-R6 preview mask and data-exit copy state their real privacy boundary without hiding Reader/Thought bodies',async()=>{
  const css=await readFile(new URL('../ui/r6.css',import.meta.url),'utf8');assert.match(css,/universal-open p/);assert.match(css,/revisit-card-open p/);assert.match(css,/topic-index-row/);assert.doesNotMatch(css,/document-body/);assert.doesNotMatch(css,/library-prose/);assert.doesNotMatch(css,/original-prose/);assert.doesNotMatch(css,/#topic-body\s*\{/);
- const ui=await readFile(new URL('../ui/r6-settings.js',import.meta.url),'utf8'),shell=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8');assert.match(ui,/not encryption|不是加密/);assert.match(shell,/sync and external connections are not available|同步和外部连接尚未开放/);assert.doesNotMatch(ui,/File generated and download started|文件已生成并开始下载|backup-create|exportOpen/);
+ const ui=await readFile(new URL('../ui/r6-settings.js',import.meta.url),'utf8'),shell=await readFile(new URL('../ui/archive.html',import.meta.url),'utf8');assert.match(ui,/not encryption|不是加密/);assert.match(shell,/External connections are not available\./);assert.match(shell,/外部连接尚未开放。/);assert.doesNotMatch(ui,/File generated and download started|文件已生成并开始下载|backup-create|exportOpen/);
 });
