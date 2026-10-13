@@ -65,3 +65,13 @@ test('expression invalidation after Source purge never returns previously tracke
  f.s.readingEntry=async id=>{if(!purged){purged=true;await f.s.permanentDelete(sourceId);}return original(id);};
  const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(purged,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);
 });
+
+for(const removeSource of [false,true])test(`indexing response preserves stable tracked state and fences Source removal (${removeSource})`,async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),{invalidateThoughtTopicIndex}=await import('../core/thought-read-index.js'),options={topicId:f.topic.id,sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const target=before.items[0].entry.id,sourceId=await f.s.repository.transaction(false,async t=>(await t.get('thoughts',target)).sourceRecordIds[0]);
+ const run=f.s.run.bind(f.s),tracked=f.s.trackedLibraryEntries.bind(f.s);let invalidated=false,purged=false;
+ f.s.run=async task=>{const value=await run(task);if(!invalidated&&value?.pending===false&&value?.activeGeneration&&value?.key){invalidated=true;await f.s.foundationWrite(t=>invalidateThoughtTopicIndex(f.s,t,f.topic.id,{sourceTime:true}));}return value;};
+ f.s.trackedLibraryEntries=async args=>{const value=await tracked(args);if(removeSource){purged=true;await f.s.permanentDelete(sourceId);}return value;};
+ const result=await topicReadingPage(f.s,{...options,trackedEntryIds:[target]});assert.equal(invalidated,true);assert.equal(purged,removeSource);assert.deepEqual(result.items,[]);if(removeSource){assert.equal(result.cursorInvalid,true);assert.deepEqual(result.tracked,[]);}else{assert.equal(result.indexing,true);assert.equal(result.cursorInvalid,undefined);assert.equal(result.tracked.length,1);assert.equal(result.tracked[0].id,target);}
+});

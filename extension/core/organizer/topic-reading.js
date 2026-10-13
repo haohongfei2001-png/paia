@@ -137,7 +137,11 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
  if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
- if(descriptor.indexing)return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+ if(descriptor.indexing){
+  const authority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+  if(authority!==bodyAuthority)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+  return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+ }
 
  const placements=await s.run(()=>s.repository.transaction(false,async t=>{
   const rows=new Map();
