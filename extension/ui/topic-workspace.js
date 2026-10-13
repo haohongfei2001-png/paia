@@ -311,6 +311,14 @@ export class TopicController {
  previousHomeAnchor(){const r=this.homeCollection,p=this.homeReadingPosition;return r&&p&&p.scope===r.scope&&p.authority===r.authority&&r.keys.has(p.anchor.key)?p.anchor:null;}
  restoreHomeAnchor(anchor){if(!anchor)return;const collection=this.homeCollection,serial=this.serial,token=this.homeRestoreToken=(this.homeRestoreToken||0)+1,finish=()=>{if(this.homeRestoreToken===token){this.homeRestoring=false;this.topicScrollDirection=null;}};this.homeRestoring=true;requestAnimationFrame(()=>{if(token!==this.homeRestoreToken)return;if(this.actions?.surface?.workspace||this.id||collection!==this.homeCollection||serial!==this.serial){finish();return;}const node=[...$('thought-list').querySelectorAll('[data-root-key]')].find(x=>x.dataset.rootKey===anchor.key||anchor.id&&x.querySelector('[data-topic-id]')?.dataset.topicId===anchor.id);if(node){this.rememberHomeAnchor(anchor);if(anchor.focusRef)this.personalRoot.restoreFocus(anchor.focusRef);else if(anchor.focus)(node.matches('button,a')?node:node.querySelector('a,button'))?.focus({preventScroll:true});scrollBy(0,node.getBoundingClientRect().top-anchor.top);}requestAnimationFrame(finish);});}
  rootPins(){const keys=new Set(),root=$('thought-list'),active=document.activeElement,selection=getSelection();for(const node of root.querySelectorAll('[data-root-key]')){if(node.contains(active)||node.querySelector('details[open]')||selection?.rangeCount&&!selection.isCollapsed&&selection.getRangeAt(0).intersectsNode(node))keys.add(node.dataset.rootKey);}return keys;}
+ // Only the primary navigation owner calls this after its leave/IME guard.
+ // Back and route restoration deliberately keep their recorded collection and
+ // slots; ordinary background refreshes never opt into a new activity order.
+ beginRootEntry(){
+  this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
+  this.homePositions.delete('home');this.rootInvalidationAnchor=null;this.rootPreSearch=null;this.rootBaseCollection=null;this.preserveHomeRefresh=false;
+  $('thought-search').value='';this.rootProviderKey=null;
+ }
  resetHomeCollection(){clearTimeout(this.continuousTimer);this.homeWindowShift=null;this.homeWindowShifting=false;this.homePage=null;this.homeHydrationAnchor=null;this.homeWindowReveal=null;this.homeCollection?.releaseBodies?.();this.homeCollection=null;this.homeDesiredCount=Math.max(40,this.personalRoot.slots.extent());this.homeRestoring=false;}
  invalidateHomeSnapshot({cause}={}){
   this.invalidateTimeline?.();this.rootPreSearch=null;this.rootBaseCollection?.releaseBodies();this.rootBaseCollection=null;

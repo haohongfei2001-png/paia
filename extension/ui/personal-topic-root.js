@@ -1,6 +1,6 @@
 import {element} from './common.js';
 import {placeChildren} from './retained-dom.js';
-import {readTopicRootSlots,saveTopicRootSlots} from './topic-root-slots.js';
+import {TopicRootSlots,readTopicRootSlots,saveTopicRootSlots} from './topic-root-slots.js';
 import {topicRootURL} from './topic-root-target.js';
 import {continuousItemKey} from './continuous-collection.js';
 import {highlightText} from './search-experience.js';
@@ -100,6 +100,7 @@ export class PersonalTopicRoot {
    }else{delete node.dataset.searchHitKind;delete node.dataset.searchHitKey;this.fit?.(node);}
   }
  }
+ beginOrder(){this.clear();this.slots=new TopicRootSlots();}
  clear(){this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.host.replaceChildren();}
  dispose(){this.resize?.disconnect();this.clear();}
 }
