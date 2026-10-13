@@ -27,6 +27,10 @@ def verify_typography(page, check, label='site'):
     test(page.locator('.site-header').evaluate("e=>getComputedStyle(e).position==='sticky' && getComputedStyle(e).pointerEvents==='none'"), 'floating header leaves its surrounding space pointer transparent')
     test(page.locator('.header-inner').evaluate("e=>getComputedStyle(e).pointerEvents==='auto'"), 'visible navigation panel remains operable')
     test(page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--focus').trim().length>0"), 'shared focus token is available across routes')
+    # The new finish adds checks; none of the original typography or data
+    # assertions above are weakened or replaced.
+    from editorial_checks import verify_editorial
+    verify_editorial(page, check, label)
 
 
 def verify_origin(page, check, en=True):
@@ -156,3 +160,6 @@ def verify_assets(root, check):
     }
     for name, digest in expected.items():
         check(hashlib.sha256((root / 'assets/website/brand' / name).read_bytes()).hexdigest() == digest, 'owner brand byte identity: ' + name)
+
+    from editorial_checks import verify_static_editorial
+    verify_static_editorial(root, check)

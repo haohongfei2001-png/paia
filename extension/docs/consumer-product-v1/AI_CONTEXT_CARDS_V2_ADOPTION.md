@@ -1,51 +1,39 @@
-## Current connection auxiliary presentation — owner-approved 2026-10-13
+# AI Context Cards v2 — private-directory Home refinement
 
-The owner additionally approved the Settings/auxiliary unified design **SET2-UI-1.1**. Its **18-AI连接管理.png / 33-未连接AI.png** and connection interactions now supplement the earlier explanatory no-connection dialog. Read [Settings ADOPTION](SETTINGS_CONSUMER_V2_ADOPTION.md) §3–4, [Settings PLAN](SETTINGS_CONSUMER_V2_PLAN.md) §5/§7 and [exact reference identity](SETTINGS_CONSUMER_V2_REFERENCES.md). The actual implementation remains in **CTX4-06/07 and the current Context connection owner**; Settings has one route/status destination, not another permission system.
+**CTX4-UI-1.2 / OWNER_APPROVED / 2026-10-13.** The owner accepted the post-prototype correction and requested changes to the existing development plan. [PLAN](AI_CONTEXT_CARDS_V2_PLAN.md) and [shared UX §§2/3](UX_CONTRACT.md) now control the final Home and reading rhythm. This is not a new product plan or service activation.
 
-The connection page belongs in 用于 AI, with Context-origin Back and no Settings group rail. Preserve one shared allowed scope, actual caller/connection/revision/generation enforcement, default-off policy, independent pause/revoke/reconnect and the real external read/revoke acceptance. No connected-looking example is live capability; no credential, paid call or service activation is authorized here. The prior **CTX4-UI-1.1 four-card Home, Item editor, Topic permissions and allowed-scope drawer remain unchanged**, as do all underlying semantics and current STATUS scheduling. The new integration uses real application navigation/shared preferences, never the unified prototype's iframe bridge or independently seeded state.
+## 1. Current composition
 
-The complete preceding adoption follows unchanged (pre-addendum blob `27b1f4afb91112e4a55539ecd54537b1ef630647`); its dated task/evidence statements retain their original scope. Only the stated connection presentation is supplemented. New screenshots do not reduce the retained Context state or security/quality requirements.
+Keep four blue-white cards, the approved primary shell, independent bottom permission controls, normal detail pages and compact responsive layout. **Home shows category-level titles/directories, not personal facts or Item text.** 我的信息 can show labels at the granularity of 个人资料/教育经历/兴趣爱好; 我的规则 can use 回答方式/表达偏好/协作习惯; 我的现在 can use 当前重点/正在进行/近期变化. These are label examples, not compulsory seeded groups. Use actual safe directory structure or a generic card entry; do not invent empty categories or mislabel a destination.
 
----
+No school/degree/location/private plan or concrete thought in a Home snippet, generated summary or overly specific synthesized heading. Do not hide those values in title/tooltip, aria text, CSS-hidden DOM or hover previews. Merely opening Home must not expose them. A private Card access state does not satisfy local first-surface privacy by itself.
 
-# AI Context Cards v2 — current approved UI adoption
+我的输入 retains authentic Topic titles/directory cues, not original Input excerpts or summaries. Preserve existing preview masking and truthful permissions. Compact heights follow the smaller directory content; retire the original large body-preview reserve. Neither reverting to the old pre-blue-white UI nor filling blank cards with personal sentences is acceptable.
 
-**Current scoped presentation: CTX4-UI-1.1, OWNER_APPROVED, 2026-10-13.**
+Explicitly opening a card/real directory or submitting a local content search can reveal the intended detail. Default Home does not automatically reopen old private content or search. Opening, hover and local inspection never grant external access. Existing intentional Back/history and guarded editing remain.
 
-The owner approved `PAIA_AI上下文_交互原型.html` and its Home, direct-editing, Topic-permission and allowed-scope-preview screenshots, and requested incorporation into GitHub's development plan. The existing [AI_CONTEXT_CARDS_V2_PLAN.md](AI_CONTEXT_CARDS_V2_PLAN.md) is revised in place. [REFERENCES](AI_CONTEXT_CARDS_V2_REFERENCES.md) binds the exact five artifacts and the retained state coverage.
+## 2. Preserved data, editing and permission contract
 
-This is not another product programme or a second execution plan. Existing CTX4-01–07 identifiers, the broader seven-plan scope, current STATUS scheduling, qualified foundations and independent active writers remain. Do not restart CTX4-01 or finish the superseded presentation before implementing the new final target.
+My Information, My Rules and My Now remain independent canonical Context Items; changes do not reverse-write Source/Working/Thought. My Inputs retains stable Topic references/permissions, never duplicated Topic bodies. Human edits/removals, identity/revision/CAS, provenance, eligibility, tombstones, lawful migration and current B-01/B-02 constraints remain.
 
-## Adopted changes
+All-default-off/no connection for new users remains. Global/Card/Topic/Connection choices and their effective state stay independent; pausing preserves subordinate choices. External shallow/deep reads still require the current global, valid caller/connection, Card, applicable Topic and content qualification. Stronger denials/deletion prevail, including indexes/caches/cursors/in-flight output. No Archive fallback, per-client permission matrix or permission from Rules text.
 
-The four existing objects remain My Information / My Rules / My Now / My Inputs. The approved Home is a restrained blue-white 2×2 card composition, single-column when narrow, with bounded real Item-text previews and separate bottom permission controls. Topic-selected names/counts are real, not seeded personal information. Opening content does not grant access.
+Retain detail direct editing/autosave/durable ACK, section/group organization, add/copy/inspect/reorder/move/remove/undo, safe cross-card permission confirmation, local scoped search, My Inputs All/Selected view and source/scope drawers. Correct leading and paragraph/Input spacing through shared UX §3 without modifying authored text/newlines, copy output, stored preferences or current editor technology.
 
-The first three cards open ordinary detail pages with lightweight groups and directly editable prose, reliable autosave, contextual add/copy/evidence/edit-undo/order/remove/undo and explicitly confirmed moves between those three cards. My Inputs uses actual Topic rows with Section cues, local search, All/Selected filtering, a separate permission switch and on-demand local read-only Topic inspection. A closed external Topic may still be inspected by its lawful local owner; this never creates an external bypass.
+## 3. Connection auxiliary page remains Context-owned
 
-The approved on-demand allowed-scope drawer and explicit clipboard copy are optional local tools, not a Package/Ready/Export or material-selection prerequisite. It shows the current configured scope, not proof of a connection or prior external delivery. Current permissions, revisions and stronger denials must be revalidated at read/copy time. Unknown/incomplete content is not called complete; no Archive fallback or unbounded whole-library assembly. Generic export files, sharing and backup-generation products remain retired.
+The previously approved connection page and no-connection state remain in 用于 AI with Context-origin Back, not a Settings group rail. CTX4-06/07 keep one genuine client/transport/identity read-and-revoke journey, shared scope, independent pause/revoke/reconnect, acknowledged failures and no implicit reopening of permissions. Settings supplies only its one route/status entry. The simplified Home is not an excuse to cancel connection/maintenance goals or to imply service readiness.
 
-Preserve the real distinction between permission selection, upper-level pause, connection state and actual read access. New users retain all-default-off and no connection; the prototype's preauthorized sample is not production defaults. Opening subordinate controls does not enable ancestors. Disabling a card/global access preserves subordinate choices.
+The on-demand AI-readable-scope preview remains an explicit local inspection, not a delivered-to-AI receipt, permanent Home column or required package/clipboard workflow. Revalidate permissions/revisions/qualification at read and copy. No new credentials, network, service budget, membership console or upload is authorized.
 
-## Retained semantics and necessary boundaries
+## 4. Exact replacement and retained reference
 
-Independent Info/Rules/Now Items remain independent of Source, Working Input and Thought bodies. My Inputs stores stable Topic references/permissions rather than copies. Preserve human edits/removals, provenance, revision/CAS, tombstones, eligibility, migration/recovery, full qualified Input traversal, restrictive identity/merge rules and trustworthy external caller/connection enforcement.
+This reverses CTX4-UI-1.1 PLAN §1.2's required first-Item body previews and associated body-bearing Home geometry/acceptance. The **category-only privacy rule is mandatory by default**, not merely an optional Hide preview setting. It also supersedes excess ordinary body leading through shared UX §3. Other approved Home shape, details, Topic list, permission actions, source/scope preview and connection composition remain, subject to current shared simplification.
 
-A cross-card move retains identity and human protection without body duplication; its target-card permission effect is explicitly confirmed and revalidated before commit. No silent private-to-readable move, automatic permission union or new per-AI matrix is authorized.
+The full predecessor is preserved as [PRE_REFINEMENT](AI_CONTEXT_CARDS_V2_ADOPTION_PRE_REFINEMENT_2026-10-13.md), exact blob `a804cf39a2370a05624c62724e9c231fe3857571`, including its connection addendum. All nonconflicting requirements and incorporated earlier records remain normative. [REFERENCES](AI_CONTEXT_CARDS_V2_REFERENCES.md) retains the original artifact identities; concrete personal snippets in those older screenshots are superseded pixels, not current instructions. No artifact, source text or hash was changed to pretend a new drawing exists.
 
-The existing shared reading standard **17px/680px**, and actual saved user reading preferences, remain. The new mock's typography defaults do not silently override that earlier explicit decision. Existing dark/narrow/accessibility coverage survives despite the new master being light-mode only. Preserve the three main PAIA navigation entries; no brand/Logo redesign or unrelated-page change follows from this approval.
+## 5. Evidence and execution
 
-CTX4-05 still requires real authorized incremental maintenance, information fidelity and human protection; the mock's explanatory dialog is not an AI implementation. CTX4-06 still requires one actual client/transport/identity and real read/revoke journey without opening PAIA to assemble material. Paid services, credentials, wider permissions, real uploads, deployment and installation are not authorized by this documentation request. Existing live-service and execution authorization comes from its actual current owner, not this prototype.
+Continue CTX4-01–07, reuse completed foundations and add first-surface privacy plus corrected-reader checks. Preserve all previous state/behavior/safety/quality coverage, including the original 22 state classes, real maintenance fidelity, actual full read/revoke and current accessibility rules. A metadata-only Home test must inspect visible text, DOM attributes/accessibility names and hover/focus paths using synthetic fact-bearing fixtures; absence of a visible paragraph alone is insufficient.
 
-## Exact replacement and history
-
-PLAN §6 is the finite supersession ledger. It replaces conflicting old no-body-preview Home rules, top-right capsule geometry, search/filter-free Topic capsule field, blanket prohibitions on local inspection/preview layers, old exact-pixel targets and historical next-task pointers. It does not reduce the full old state/behavior/safety/quality obligations. The original **22 state classes remain**, mapped to the new UI and augmented by approved search/preview/move behaviors; four screenshots do not replace twenty-two-state coverage.
-
-The prior adoption is preserved with exact Git blob `031b053bb9326d61be74b8ec43bc7f4e18186c84` in [AI_CONTEXT_CARDS_V2_ADOPTION_PRE_UI_2026-10-13.md](AI_CONTEXT_CARDS_V2_ADOPTION_PRE_UI_2026-10-13.md). The complete preceding plan and reference manifest also remain byte-for-byte. Their source dates, 0.12.1 status and initial NOT_STARTED/next-01 declarations are historical, not instructions to reset current engineering. Their nonconflicting requirements remain incorporated by the current plan.
-
-The existing AUTHORITY map already routes Context to these same three filenames. Their current scoped owner-approved content overrides conflicting lower-order Context presentation transcriptions only. Thought Library TL-PT1-UI-1.1 and all other domain authorities remain untouched.
-
-## Evidence boundary
-
-State of this adoption: **DESIGN_APPROVED / PLAN_UPDATED; NEW_UI_RUNTIME_NOT_IMPLEMENTED_BY_THIS_TASK; PRODUCTION_VISUAL_ACCEPTANCE_NOT_CLAIMED.**
-
-This task reads the current repository and the actual conversation artifacts, computes their byte hashes and records the approved design. It does not run production/browser/service/quality tests, claim all existing capabilities absent, alter a release, install anything or publish private artifacts. Original synthetic October-7 assets previously authorized for public storage remain public historical references; that authorization is not silently extended to republish this new conversation's files.
+STATUS still schedules the existing seven lanes. This task modifies documentation only, not runtime, schema, tests, CI, package versions, website, actual data/consent, installed app, AI/cloud/billing or deployment. Prior prototype/production evidence keeps its exact original scope; refined runtime acceptance is not claimed.

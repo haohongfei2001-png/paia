@@ -126,3 +126,101 @@
   script.src = '/assets/website/refinement.js?v=20261013c'; script.defer = true;
   document.head.append(style, script);
 })();
+
+/* EDITORIAL_FINISH_20261013: task/navigation presentation only.
+   Context directories and all source/draft/permission/motion owners are untouched. */
+(() => {
+  'use strict';
+  const body = document.body;
+  if (body.classList.contains('ed-ready')) return;
+  const zh = document.documentElement.lang.startsWith('zh');
+  const t = (a, b) => zh ? a : b;
+  const local = name => (zh ? '/zh/' : '/') + name;
+  const page = body.dataset.page;
+  // Remove only identical destinations, keeping first order and the active link.
+  const menu = document.querySelector('.mobile-menu nav');
+  if (menu) {
+    const seen = new Set();
+    for (const link of [...menu.children]) {
+      const href = link.getAttribute('href');
+      if (!href) continue;
+      if (seen.has(href)) link.remove();
+      else seen.add(href);
+    }
+  }
+  if (['help.html', 'status.html', 'contact.html'].includes(page)) {
+    const heading = document.querySelector('main h1');
+    if (heading) heading.textContent = page === 'contact.html'
+      ? t('联系 PAIA', 'Contact PAIA') : t('帮助中心', 'Help');
+  }
+  if (page === 'how-it-works.html') {
+    const target = document.querySelector('.nr-process-top');
+    if (target) {
+      const section = document.createElement('section');
+      section.className = 'ed-start'; section.setAttribute('aria-labelledby', 'ed-start-title');
+      const heading = document.createElement('h2'); heading.id = 'ed-start-title';
+      heading.textContent = t('第一次使用', 'Your first use');
+      const steps = [
+        [t('1. 添加到浏览器', '1. Add to your browser'), local('download.html'), t('从获取页进入官方安装地址，核对浏览器与所需权限。', 'Use Get PAIA for the official installation address. Check the browser and required permissions.')],
+        [t('2. 主动开启保存', '2. Turn on capture'), '#capture', t('在 ChatGPT 中开启保存后，再发送一条非私人内容。未发送的草稿不会被保存。', 'Turn on capture in ChatGPT, then send a non-private example. Unsent drafts are not captured.')],
+        [t('3. 回到档案核对', '3. Check your archive'), '#archive', t('打开档案，找到刚才的表达，查看原话、时间与来源。', 'Find that expression in your archive. Check its original text, time and source.')]
+      ];
+      const list = document.createElement('ol');
+      for (const [label, href, detail] of steps) {
+        const item = document.createElement('li');
+        const link = document.createElement('a'); link.href = href;
+        link.textContent = label.replace(/^\d\. /, '');
+        const text = document.createElement('p'); text.textContent = detail;
+        item.append(link, text); list.append(item);
+      }
+      section.append(heading, list); target.prepend(section);
+    }
+  }
+  // The desktop Get destination remains unchanged. On phones, show an action
+  // that works here and offer an explicit, local-only link handoff.
+  const header = document.querySelector('.header-actions');
+  if (header) {
+    const demo = document.createElement('a'); demo.className = 'ed-mobile-primary';
+    demo.href = local('demo.html'); demo.textContent = t('查看演示', 'View demo');
+    header.append(demo);
+  }
+  if (page === 'index.html') {
+    const actions = document.querySelector('.hero-actions');
+    if (actions) {
+      const button = document.createElement('button'); button.type = 'button';
+      button.className = 'ed-desktop-link';
+      button.textContent = t('在电脑上使用', 'Use on desktop');
+      button.setAttribute('aria-controls', 'ed-link-feedback');
+      const feedback = document.createElement('div'); feedback.id = 'ed-link-feedback';
+      feedback.className = 'ed-copy-feedback'; feedback.hidden = true;
+      feedback.setAttribute('role', 'status');
+      let busy = false;
+      button.addEventListener('click', async () => {
+        if (busy) return;
+        busy = true;
+        // Fixed public route, not location.href (which can contain user data).
+        const url = 'https://inputarchive.com' + local('download.html');
+        feedback.replaceChildren();
+        try {
+          if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+          await navigator.clipboard.writeText(url);
+          feedback.textContent = t('已复制获取链接，可在电脑上打开。', 'Get link copied. Open it on your computer.');
+        } catch (_) {
+          const label = document.createElement('label');
+          label.textContent = t('复制此链接，在电脑上打开：', 'Copy this link and open it on your computer:');
+          const input = document.createElement('input');
+          input.type = 'text'; input.readOnly = true; input.value = url;
+          input.setAttribute('aria-label', t('PAIA 获取链接', 'PAIA Get link'));
+          label.append(input); feedback.append(label);
+          feedback.hidden = false; input.focus({preventScroll:true}); input.select();
+        } finally {
+          feedback.hidden = false; busy = false;
+        }
+      });
+      actions.append(button); actions.after(feedback);
+    }
+  }
+  // Late enhancement is limited to labels and secondary actions. The existing
+  // static product demo and all native links work without this block.
+  body.classList.add('ed-ready');
+})();
