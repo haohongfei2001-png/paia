@@ -125,3 +125,17 @@ for(const operation of ['ADD','UPDATE','REMOVE_CANDIDATE'])test('explicit Contex
  const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.batchOptions??options));
  assert.equal(result.state,'PARTIAL');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
 });
+
+for(const mode of ['protected','stale-revision'])test('explicit UPDATE preserves '+mode+' Context through original owner',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ if(mode==='protected')await new ContextCardsService(f.s).change({kind:'put',operationId:op(),epoch:'initial',itemId:f.original.itemId,card:'info',expectedRevision:1,body:'SYNTHETIC human-owned fact',section:'Human'});
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='UPDATE';delete group.change.operation;group.change.body='SYNTHETIC model replacement';group.change.section='Model';if(mode==='stale-revision')group.change.expectedRevision=9;}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const page=await f.s.repository.transaction(false,t=>t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,limit:100})),at=page.rows.findIndex(r=>r.value.descriptor.kind==='input');assert.ok(at>=0);
+ const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare({...options,cursor:at?page.rows[at-1].key:null,limit:1}));
+ assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
+ assert.equal(result.state,mode==='protected'?'COMMITTED':'PARTIAL');
+ assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,mode==='protected'?1:0);
+ assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated').length,0);
+ if(mode==='protected')assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='protected').length,1);
+});
