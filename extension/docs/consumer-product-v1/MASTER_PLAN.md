@@ -1,3 +1,7 @@
+# Current candidate — removed-content preview privacy
+
+SET2 now applies the existing hidden-preview preference to actual removed Input/Entry/placement excerpts, preserving names, recovery controls and original data. Author/independent46PASS and exact Source/release native Chrome pass; see implementation/settings-removed-preview-mask.md. PR284 remains unmerged/uninstalled; full/latest visual gates remain. No new preference/data writer, CI change, Sync feature or paid activation. All Canonical plans remain.
+
 # Current candidate — one recoverable Entry ordering intent
 
 TOPIC Entry up/down now retries the original neighbor and operation after unknown acknowledgement, avoiding a second unintended move. Original recovery-epoch fencing covers both direct swaps and tied-rank jobs; real departure to Archive prevents a hidden Topic write. Author189/independent189 and exact Source/release native Chrome pass. See implementation/topic-entry-reorder-session.md. PR284 remains unmerged/uninstalled, with full/latest visual gates open. No Sync new feature, CI change or provider activation; seven Canonical plans remain.

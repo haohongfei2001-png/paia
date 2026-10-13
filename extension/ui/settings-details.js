@@ -62,7 +62,7 @@ function mountRemovedDetail(language) {
   intro.textContent=text('移除不等于永久删除。这里只列出当前仍可恢复的内容。','Removal is not permanent deletion. Only currently restorable items are listed here.');footer.textContent=text('恢复不会重新开放 AI 权限。','Restoring never re-opens AI access.');
   for(const row of cached.values()){
    const {kind,item}=row.record;row.feedback.textContent=row.error?failure(row.error):'';
-   row.title.textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');
+   (row.preview||row.title).textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');
    row.description.textContent=row.unknown?text('上次恢复结果尚未核对；这不是新的恢复请求。','The previous recovery result is unconfirmed; this is the original request.'):kind==='placement'?text('内容仍保留 · 从「'+item.topicName+'」中移除',`Content retained · Removed from ${item.topicName}`)+(item.sectionName?' · '+item.sectionName:''):text(...labels[kind]);
    row.action.textContent=row.unconfirmed?text('核对结果或重试','Check result or retry'):text(...actions[kind]);
    if(row.history)row.history.textContent=kind==='topic'?text('版本历史','Version history'):text('版本','Versions');
@@ -92,7 +92,7 @@ function mountRemovedDetail(language) {
      catch(error) {failed=true;if(current(serial))row.error=error;}
      finally {if(current(serial)){render();if(failed&&focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body))action.focus({preventScroll:true});}if(focused)document.removeEventListener('focusin',trackFocus);}
     });action.dataset.recoveryKind=kind;node.append(title,description,action);let history=null;
-    if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';row={node,title,description,action,history,feedback};cached.set(key,row);
+    if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';let preview=null;if(kind!=='topic'){preview=document.createElement('span');preview.className='paia-removed-preview';const mask=document.createElement('span');mask.className='paia-removed-preview-mask';title.append(preview,mask);}row={node,title,preview,description,action,history,feedback};cached.set(key,row);
    }
    row.record=record;const attempt=model.attempts.get(key);row.unconfirmed=!!attempt?.edit;row.unknown=!!attempt?.edit&&!model.rows.has(key);row.action.disabled=!!attempt?.busy||!model.rows.has(key)&&!attempt;
    if(row.history)row.history.disabled=!!attempt?.busy||!model.rows.has(key);
