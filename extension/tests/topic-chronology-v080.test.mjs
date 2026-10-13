@@ -23,3 +23,28 @@ test('expression failure retains its exact error and drains its bounded companio
  f.s.readingEntry=async id=>{reads++;active++;try{if(id===baseline.items[0].entry.id)throw failure;await new Promise(resolve=>setTimeout(resolve,10));return await original(id);}finally{active--;}};
  await assert.rejects(topicReadingPage(f.s,options),error=>error===failure);assert.equal(active,0);assert.equal(reads,2,'failure never starts another pair');
 });
+
+test('a mutation after a companion body read refuses the entire prefetched page',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const original=f.s.readingEntry.bind(f.s);let changed=false;
+ f.s.readingEntry=async id=>{const entry=await original(id);if(!changed&&id===before.items[1].entry.id){changed=true;await f.s.foundationWrite(async t=>{const epoch=await t.get('meta','thought-epoch');await t.put('meta',{id:'thought-epoch',value:(epoch?.value||0)+1});});}return entry;};
+ const result=await topicReadingPage(f.s,options);assert.equal(changed,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);
+});
+
+test('a real manual note edit during paired hydration invalidates all returned bodies',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const original=f.s.readingEntry.bind(f.s),target=before.items[1].entry.id;let edited=false;
+ f.s.readingEntry=async id=>{const entry=await original(id);if(!edited&&id===target){edited=true;const current=await f.s.entry(id);const result=await f.s.editLibraryFields({id,expectedRevision:current.revision,expectedFieldRevisions:current.fieldRevisions,changes:{note:'SYNTHETIC concurrent manual note'},operationId:crypto.randomUUID()});assert.notEqual(result.conflict,true);}return entry;};
+ const result=await topicReadingPage(f.s,options);assert.equal(edited,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);assert.equal((await f.s.entry(target)).note,'SYNTHETIC concurrent manual note');
+});
+
+test('a real synthetic Source purge during paired hydration cannot return cached bodies',async()=>{
+ const f=await fixture(),{topicReadingPage}=await import('../core/organizer/topic-reading.js'),options={topicId:f.topic.id,sort:'asc',limit:40};
+ let before;do{before=await topicReadingPage(f.s,options);}while(before.indexing);
+ const original=f.s.readingEntry.bind(f.s),target=before.items[1].entry.id;
+ const sourceId=await f.s.repository.transaction(false,async t=>(await t.get('thoughts',target)).sourceRecordIds[0]);assert.ok(sourceId);let purged=false;
+ f.s.readingEntry=async id=>{const entry=await original(id);if(!purged&&id===target){purged=true;await f.s.permanentDelete(sourceId);}return entry;};
+ const result=await topicReadingPage(f.s,options);assert.equal(purged,true);assert.equal(result.cursorInvalid,true);assert.deepEqual(result.items,[]);assert.deepEqual(result.tracked,[]);assert.equal(await f.s.repository.transaction(false,t=>t.get('records',sourceId)),undefined);
+});

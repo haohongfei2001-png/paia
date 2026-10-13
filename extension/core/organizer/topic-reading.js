@@ -2,6 +2,7 @@ import {prefix,fail,idOK} from '../thought-model.js';
 import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
 import {expressionTime} from './expression-time.js';
 import {readTopicActivity} from './topic-activity.js';
+import {rootReadAuthority} from './root-read.js';
 import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
@@ -151,6 +152,7 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  }));
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
+ const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
  const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
  // Keep at most two existing, fully fenced reads in flight. Their result
  // order remains descriptor order; no body cache survives this request.
@@ -193,6 +195,10 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   const fresh=await thoughtTopicExpressionPage(s,{topicId,sort,limit:1,providerKey,query:needle,expectedReadGeneration:descriptor.coverage.activeGeneration,describe:descriptorReader(s)});
   if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:fresh.coverage};
  }
+ // A companion may finish before an earlier entry. Reject the whole body
+ // page if any existing mutation/recovery authority changed during hydration.
+ const finalAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+ if(finalAuthority!==bodyAuthority)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey,...(expression?{year:null,providerKey,query:needle}:{})}:null;
  const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
  const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);
