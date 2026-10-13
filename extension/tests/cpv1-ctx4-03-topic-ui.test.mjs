@@ -379,3 +379,34 @@ test('CTX4-03 a refused choice stays explained across automatic directory refres
  const notice=inputs.status.textContent;assert.match(notice,/not saved/);await inputs.refresh();assert.equal(inputs.status.textContent,notice,'background reread cannot erase the refused-action explanation');
  assert.equal(await inputs.toggle(id),true,'a later explicit choice uses the freshly read identity');assert.match(inputs.status.textContent,/Choice saved/);await inputs.refresh();assert.equal(inputs.status.textContent,'','success does not leave a stale refusal');
 }));
+
+test('CTX4-03 name search reaches the final metadata page without writing choices or reordering',()=>fixture(async({s,makeInputs,calls})=>{
+ const inputs=await makeInputs();assert.equal(await inputs.refresh(),true);const order=[...inputs.order],nodes=new Map(inputs.nodes),before=await protectedRows(s),choices=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),reads=calls.filter(row=>row.type==='PAIA_CONTEXT_TOPICS_PAGE').length;
+ assert.equal(reads,2);assert.equal(inputs.filter(false,'Topic 143'),true);assert.equal(inputs.visibleIds().length,1);const id=inputs.visibleIds()[0];assert.equal(inputs.rows.get(id).name,'SYNTHETIC Topic 143');assert.equal(inputs.nodes.get(id).hidden,false);
+ assert.equal(inputs.filter(false,'不存在𠮷🙂'),true);assert.equal(inputs.visibleIds().length,0);assert.match(inputs.filterStatus.textContent,/names only/);
+ assert.equal(inputs.filter(false,''),true);assert.deepEqual(inputs.visibleIds(),order);assert.deepEqual(inputs.order,order);for(const [key,node]of nodes)assert.equal(inputs.nodes.get(key),node);
+ assert.equal(calls.filter(row=>row.type==='PAIA_CONTEXT_TOPICS_PAGE').length,reads);assert.equal(calls.some(row=>row.type==='PAIA_CONTEXT_TOPICS_CHANGE'),false);assert.deepEqual(await protectedRows(s),before);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),choices);
+},{count:144}));
+
+test('CTX4-03 selected filter follows durable enabled choice even when access is paused and unselect restores focus',()=>fixture(async({makeInputs,cards})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0],node=inputs.nodes.get(id);assert.equal(inputs.filter(true,''),true);assert.equal(inputs.visibleIds().length,0);
+ inputs.filter(false,'');assert.equal(await inputs.toggle(id),true);assert.equal(inputs.filter(true,''),true);assert.deepEqual(inputs.visibleIds(),[id]);
+ const snapshot=await cards.snapshot();await cards.change({kind:'access',key:'global',enabled:false,expectedRevision:snapshot.access.global.revision,operationId:op(),epoch:'initial'});inputs.setAccess((await cards.snapshot()).access);assert.deepEqual(inputs.visibleIds(),[id]);
+ node.focus();assert.equal(await inputs.toggle(id),true);assert.equal(node.hidden,true);assert.equal(inputs.visibleIds().length,0);assert.equal(document.activeElement,inputs.searchField);assert.equal(inputs.selectedFilter.getAttribute('aria-pressed'),'true');
+}));
+
+test('CTX4-03 filtered roving navigation skips hidden rows and preserves full original order',()=>fixture(async({s,topics,entry,makeInputs})=>{
+ await s.placeEntry({entryId:entry.id,topicId:topics[2].id,operationId:op(),expectedEntryRevision:(await raw(s,'thoughts',entry.id)).revision,expectedTopicRevision:(await raw(s,'topics',topics[2].id)).organizationRevision});
+ for(const index of [0,2]){const row=await raw(s,'topics',topics[index].id);await s.renameTopic({id:row.id,name:`𠮷🙂 match ${index}`,expectedRevision:row.revision,operationId:op()});}
+ const inputs=await makeInputs();await inputs.refresh();const order=[...inputs.order];inputs.filter(false,'𠮷🙂');const visible=inputs.visibleIds();assert.equal(visible.length,2);
+ const first=inputs.nodes.get(visible[0]),last=inputs.nodes.get(visible[1]);first.focus();inputs.move({target:first,key:'End',preventDefault(){}});assert.equal(document.activeElement,last);inputs.move({target:last,key:'Home',preventDefault(){}});assert.equal(document.activeElement,first);assert.deepEqual(inputs.order,order);
+ assert.ok([...inputs.nodes.values()].filter(node=>node.hidden).every(node=>node.tabIndex===-1));
+}));
+
+test('CTX4-03 search retains its scope after rename but refuses stale refresh and unknown save',()=>fixture(async({s,makeInputs,transport,dispatch})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0];inputs.filter(false,'renamed');assert.equal(inputs.visibleIds().length,0);
+ const row=await raw(s,'topics',id);await s.renameTopic({id,name:'renamed 𠮷🙂',expectedRevision:row.revision,operationId:op()});await inputs.refresh();assert.deepEqual(inputs.visibleIds(),[id]);
+ inputs.composing=true;assert.equal(inputs.filter(true,''),false);assert.equal(inputs.query,'renamed');inputs.composing=false;
+ transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_PAGE')throw Error('read failed');return dispatch(message);};assert.equal(await inputs.refresh(),false);assert.equal(inputs.filter(false,'other'),false);assert.equal(inputs.query,'renamed');assert.match(inputs.filterStatus.textContent,/unavailable/);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));
+ transport.dispatch=dispatch;await inputs.refresh();transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'||message.type==='PAIA_CONTEXT_TOPICS_OUTCOME')throw Error('unknown');return dispatch(message);};assert.equal(await inputs.toggle(id),false);assert.equal(inputs.pending,true);assert.equal(inputs.filter(true,''),false);assert.equal(inputs.selectedOnly,false);assert.equal(inputs.query,'renamed');assert.match(inputs.status.textContent,/unconfirmed/);
+}));

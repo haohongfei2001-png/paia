@@ -643,3 +643,101 @@ for(const card of cards)test(`CTX4 locale refresh preserves the composing ${card
  await page.open();assert.deepEqual(page.snapshot.items,[]);assert.equal(page.editors.size,0);await page.refresh();assert.equal(calls.filter(call=>call.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').at(-1).mode,'home');
  assert.deepEqual((await c.snapshot()).items.map(item=>item.body),items.map(item=>item.body));
 }));
+
+for(const card of cards)test(`CTX4 current-card search covers ${card} body and groups without rebuilding editors`,()=>fixture(async({c,makePage,items})=>{
+ const extra=put(card,{body:'精确Ａ  A\n𠮷🙂 café',section:'特别分组'});await c.change(extra);
+ const page=makePage();await page.open(card);await tick();
+ const original=new Map(page.editors),target=page.editors.get(extra.itemId);
+ assert.ok(page.searchForm);assert.equal(await page.search('𠮷🙂'),true);
+ assert.equal(target.root.hidden,false);assert.equal(page.editors.get(items.find(item=>item.card===card).itemId).root.hidden,true);
+ for(const [id,editor]of original)assert.equal(page.editors.get(id),editor);
+ assert.equal(await page.search('特别分组'),true);assert.equal(target.root.hidden,false);
+ assert.equal(await page.search('Ａ  A\n'),true);assert.equal(target.root.hidden,false);
+ assert.equal(await page.search('missing'),true);assert.equal(target.root.hidden,true);assert.match(page.searchStatus.textContent,/没有匹配|No matches/);
+ assert.equal(await page.search(''),true);assert.ok([...page.editors.values()].every(editor=>!editor.root.hidden));
+ await page.open(null);assert.equal(page.searchForm,null);assert.equal(page.searchQuery,'');assert.equal(page.editors.size,0);
+ await page.open(card);assert.equal(page.searchQuery,'');assert.ok([...page.editors.values()].every(editor=>!editor.root.hidden));
+}));
+
+test('CTX4 search blocks composition and failed draft, retains dirty editors, and reapplies after current refresh',()=>fixture(async({c,makePage,items})=>{
+ const page=makePage();await page.open('info');await tick();const editor=page.editors.get(items[0].itemId);
+ assert.equal(await page.search('info saved body'),true);
+ editor.surface.composing=true;editor.field.textContent='正在组合';
+ assert.equal(await page.search('absent'),false);assert.equal(page.searchQuery,'info saved body');assert.equal(editor.root.hidden,false);
+ editor.surface.composing=false;editor.local='unfinished';editor.field.textContent=editor.local;editor.failed=true;page.applySearch();
+ assert.equal(editor.root.hidden,false);assert.equal(await page.search('absent'),false);assert.equal(page.searchQuery,'info saved body');
+ editor.failed=false;assert.equal(await editor.flush(true),true);page.applySearch();assert.equal(editor.root.hidden,true);
+ const row=(await c.snapshot()).items.find(item=>item.id===editor.id);await c.change({...put('info'),itemId:row.id,expectedRevision:row.revision,body:'remote info saved body',section:row.section});
+ await page.refresh();assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.root.hidden,false);
+}));
+
+test('CTX4 search does not apply a delayed flush after navigation and never persists its query',()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open('rules');await tick();const held=deferred(),flush=page.flush.bind(page);page.flush=()=>held.promise;
+ const pending=page.search('PRIVATE QUERY');await page.open('now');held.resolve(true);assert.equal(await pending,false);assert.equal(page.searchQuery,'');
+ page.flush=flush;assert.ok(!JSON.stringify(calls).includes('PRIVATE QUERY'));
+ page.searchComposing=true;assert.equal(await page.search('compose'),false);page.searchComposing=false;
+}));
+
+test('CTX4 current-card search last submission wins and locale refresh keeps the query and node identity',()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open('info');await tick();const first=deferred(),second=deferred();let n=0;page.flush=()=>++n===1?first.promise:second.promise;
+ const earlier=page.search('earlier'),later=page.search('later');second.resolve(true);assert.equal(await later,true);first.resolve(true);assert.equal(await earlier,false);assert.equal(page.searchQuery,'later');
+ const field=page.searchField,editors=[...page.editors.values()];document.documentElement.lang='en';page.localizeEditable();assert.equal(page.searchField,field);assert.equal(field.getAttribute('aria-label'),'Search this card');assert.equal(page.searchQuery,'later');for(const editor of editors)assert.equal(page.editors.get(editor.id),editor);
+}));
+
+test('CTX4 search reconciles removal and recovery, keeps new drafts visible, and never searches sibling cards',()=>fixture(async({c,makePage,items,recovery})=>{
+ const page=makePage();await page.open('rules');await tick();const id=items[1].itemId,editor=page.editors.get(id);
+ assert.equal(await page.search('info saved body'),true);assert.ok([...page.editors.values()].every(value=>value.root.hidden));
+ assert.equal(await page.search('rules saved body'),true);assert.equal(editor.root.hidden,false);
+ const row=(await c.snapshot()).items.find(value=>value.id===id);await c.change({kind:'delete',operationId:op(),epoch:'initial',itemId:id,expectedRevision:row.revision});await page.refresh();assert.equal(page.editors.has(id),false);assert.match(page.searchStatus.textContent,/没有匹配|No matches/);
+ await page.addItem();const fresh=[...page.editors.values()].find(value=>value.fresh);assert.ok(fresh);page.applySearch();assert.equal(fresh.root.hidden,false);
+ const extra=put('rules',{body:'original unmatched',section:'Group'});await c.change(extra);await page.refresh();const recovered=page.editors.get(extra.itemId);assert.equal(recovered.root.hidden,true);
+ const change={...extra,operationId:op(),expectedRevision:1,body:'restored unsaved text'};await recovery.save(draft(change));await recovered.recover();assert.equal(recovered.local,'restored unsaved text');assert.equal(recovered.root.hidden,false);assert.equal(recovered.dirty(),true);
+}));
+
+test('CTX4 successful search removes only its own previous blocked notice after retry',()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open('info');await tick();const editor=[...page.editors.values()][0];
+ editor.local='updated expression';editor.field.textContent=editor.local;editor.failed=true;
+ assert.equal(await page.search('updated'),false);assert.match(page.message.textContent,/搜索不会|Search will not/);
+ assert.equal(await editor.flush(true),true);assert.equal(await page.search('updated'),true);assert.equal(page.message.textContent,'');
+ assert.equal(await page.search(''),true);assert.equal(page.message.textContent,'');
+ editor.local='second expression';editor.field.textContent=editor.local;editor.failed=true;assert.equal(await page.search('second'),false);
+ const other=page.notice('SYNTHETIC unrelated permission failure');
+ assert.equal(await editor.flush(true),true);assert.equal(await page.search('second'),true);
+ assert.equal(page.message.textContent,'SYNTHETIC unrelated permission failure');assert.equal(page.message.children[0],other);
+}));
+
+async function clipboardFixture(writeText,run){
+ const prior=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText}}});
+ try{await run();}finally{if(prior)Object.defineProperty(globalThis,'navigator',prior);else delete globalThis.navigator;}
+}
+test('CTX4-02 explicit Copy preserves exact failed draft and creates no persistence or permission operation',()=>fixture(async({makePage,calls,c})=>{
+ const page=makePage();await page.open('info');const editor=[...page.editors.values()][0],text='  Synthetic 😀\n\n代码\n  exact  ';
+ assert.deepEqual(editor.root.querySelectorAll('.item-feedback'),[editor.feedback],'one original save-feedback node per Item');assert.deepEqual(editor.root.querySelectorAll('.item-copy-feedback'),[editor.copyFeedback]);
+ editor.field.innerText=text;editor.local=text;editor.failed=true;editor.feedbackFailure();const feedback=editor.feedback.textContent,before=await c.snapshot(),count=calls.length,writes=[];
+ await clipboardFixture(async value=>writes.push(value),async()=>{
+  const action=editor.menu.querySelectorAll('button')[0];assert.equal(action.textContent,'Copy');action.onclick();await tick();
+ });
+ assert.deepEqual(writes,[text]);assert.match(editor.copyFeedback.textContent,/Current text copied/);assert.equal(editor.feedback.textContent,feedback);assert.equal(editor.failed,true);assert.equal(calls.length,count);assert.deepEqual(await c.snapshot(),before);
+ document.documentElement.lang='zh-CN';page.localizeEditable();assert.equal(editor.menu.querySelectorAll('button')[0].textContent,'复制');
+}));
+test('CTX4-02 Copy refusal retains draft and never creates a private-body fallback dialog',()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open('rules');const editor=[...page.editors.values()][0],count=calls.length;
+ editor.field.innerText='Synthetic retained draft';editor.failed=true;editor.feedbackFailure();const feedback=editor.feedback.textContent;
+ await clipboardFixture(async()=>{throw Error('Synthetic denied');},async()=>assert.equal(await editor.copyBody(),false));
+ assert.match(editor.copyFeedback.textContent,/Could not copy/);assert.equal(editor.field.innerText,'Synthetic retained draft');assert.equal(editor.feedback.textContent,feedback);assert.equal(document.body.querySelector('dialog'),null);assert.equal(calls.length,count);
+}));
+test('CTX4-02 Copy waits for composition completion without saving or copying partial text',()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open('now');const editor=[...page.editors.values()][0],count=calls.length,writes=[];
+ editor.surface.composing=true;
+ await clipboardFixture(async text=>writes.push(text),async()=>{assert.equal(await editor.copyBody(),false);editor.surface.composing=false;assert.equal(await editor.copyBody(),true);});
+ assert.deepEqual(writes,[editor.field.innerText]);assert.equal(calls.length,count);
+}));
+for(const invalidation of ['close','dispose','new-text','composition'])test(`CTX4-02 pending Copy ignores stale completion after ${invalidation}`,()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open('info');const editor=[...page.editors.values()][0],gate=deferred();let writes=0;
+ await clipboardFixture(async()=>{writes++;await gate.promise;},async()=>{
+  const pending=editor.copyBody();assert.equal(await editor.copyBody(),false);assert.equal(writes,1);
+  if(invalidation==='close')page.close();else if(invalidation==='dispose')editor.dispose();else if(invalidation==='composition')editor.surface.composing=true;else editor.field.innerText='Synthetic newer draft';
+  gate.resolve();assert.equal(await pending,false);assert.equal(editor.copyFeedback.textContent,'');assert.equal(document.body.querySelector('dialog'),null);
+ });
+}));

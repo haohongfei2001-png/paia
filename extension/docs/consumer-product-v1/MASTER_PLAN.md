@@ -1,3 +1,21 @@
+# Current execution — Context local interaction batch (2026-10-14)
+
+Formal main `81b41ddca1d28f7935bba63b3eab01b8678e4120` is qualified by exact Full38439353598 and Prompt38439353651. PR2840.49.0 remains unmerged and not installed. Current candidate implements approved CTX4-02 edit-safe opened-card search and exact visible-text copying, plus CTX4-03 All/Selected and complete-directory Topic-name filtering. Names-only search does not claim Section/body search or read-only Topic inspection. Copying a failed draft does not save it or change AI access. Original writers and all privacy/ACK protections remain in place.
+
+Scoped independent reviews and owning tests passed. Actual Source/release journeys cover search/clear/Unicode, durable choice state, failed-save recovery, untouched Home privacy, filtered native keyboard and synthetic clipboard adapter. Initial combined browser10PASS2FAIL exposed copy/save feedback class collision; the production feedback identity is corrected without weakening the original visual-state assertions or timeouts. Final whole native result is10PASS2FAIL: the two unchanged October7 prototype comparisons report1519 differences against later approved white roles and new controls. They remain failed/pending latest-reference qualification, not skipped or passed. Exact candidate certification remains mandatory and separate. Known PR284 CI receipt-count and capacity failures are retained under Pro264 infrastructure ownership. No user installation, real provider activation or whole-plan completion is claimed.
+
+Continue remaining approved local functions through their original owners; group order, cross-card permission-safe movement and broader read-only discovery remain open. Sync new functions stay paused; all seven Canonical plans, safety checkpoints and external acceptance are retained.
+
+## Preserved preceding execution evidence
+
+# Current execution — CTX4 local search and My Inputs continuation (2026-10-14)
+
+Formal main `81b41ddca1d28f7935bba63b3eab01b8678e4120` exact Full38439353598 and Prompt38439353651 passed. PR284 remains an unmerged0.49.0 draft, not an installed version. Approved white semantic roles and CTX4-02 current-card search are implemented in the candidate; search preserves editor nodes and failed/unfinished edits, uses only the opened qualified card, and never persists queries or adds a writer. Its four whole files83PASS, independent owning54PASS and isolated actual Source/release Chrome journeys passed, including failed-save recovery and Home privacy. Precise final visual acceptance and whole-candidate certification remain separate.
+
+Next implementation is the retained CTX4-03 My Inputs All/Selected and local Topic-name search through the existing complete metadata directory and original permission owner. Sync new features remain paused. Pro264 retains CI infrastructure ownership; known receipt-count and candidate-capacity qualification blockers remain, with original failures preserved. All Canonical plans and external-service acceptance obligations remain active.
+
+## Preserved preceding execution evidence
+
 # Current execution — PR284 reconciled with merged Assist authority fix (2026-10-14)
 
 Formal main81b41ddca1d28f7935bba63b3eab01b8678e4120 includes reviewed PR283 and preserves website updates. Its Full38439353598 and Prompt38439353651 qualification remain pending. This0.49.0 draft combines both Assist safety paths and all tests, retaining main-only website/design content. PR284 remains unmerged/not installed, with known CI-owner receipt-count and unit-capacity blockers preserved.
