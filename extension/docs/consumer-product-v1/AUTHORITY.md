@@ -1,3 +1,9 @@
+# Current candidate repair — 2026-10-13
+
+Formal main remains05449ee3b8da610e16a9479ce4a750903065f216. PR280 head e4992a0363b7788202df33dfcb25544c209fb039 Full38333610971 failed the original saved-edit reading-return journey in Browser2/10; its aggregate is failed and it is not merged. Preserve that evidence. Candidate0.47.1 repairs actual same-session reading-position fallback through the existing Topic owner and requires independent review, related browser verification and changed-head Full before integration. AI Working-payload runtime remains unchanged. Continue frozen Context NO_CHANGE and independent bounded mixed-delta implementation without rewriting history or repeating delivered0.43.29. Sync new features remain paused; Pro264/CI remain separately owned.
+
+## Earlier execution evidence
+
 # Current engineering — bounded Maintenance Working payload (2026-10-13)
 
 PR278 merged AI-COST-05/06 lifecycle into main `a8666320977c23cbd05490166b7560194970c896`; exact-head Certification38331443609 and Prompt38331443613 passed. Exact-main Certification38332566029 passed; main Prompt38332566042 remains separately pending at this checkpoint. PR279 merged the independently reviewed Organize provider timeout/disposal correction into main `05449ee3b8da610e16a9479ce4a750903065f216` /0.46.2 after exact-head Certification38333028006 passed. Earlier-head run38332731937 remains cancelled; exact merged-main gates are separate.
