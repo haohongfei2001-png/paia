@@ -3,7 +3,7 @@ import {readMaintenanceBatch,unsupportedMaintenanceCoverage} from './maintenance
 import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService} from '../topic-formation.js';
-import {ContextMaintenanceService,validateContextMaintenanceChange,validateContextMaintenanceNoChange} from '../context-maintenance.js';
+import {ContextMaintenanceService,validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation} from '../context-maintenance.js';
 
 const TYPE='AI_MAINTENANCE';
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
@@ -268,11 +268,12 @@ export class LocalMaintenanceSession {
   const put=t.put.bind(t);t.put=async(...args)=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));const value=await put(...args);this.#processingCurrent(a.state,a.state.processing.get(a.childId));return value;};
   const result=await a.callback(t);this.#current(a.state);
   if(facet==='filter'?result?.ok!==true||result.disposition!=='no_change':facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!=='no_change':!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
+  if(a.expectedDisposition!==null&&result?.disposition!==a.expectedDisposition)fail('STALE_BASE');
   a.result=result;return {committed:true,coverage:r.units,isCurrent:()=>{try{this.#processingCurrent(a.state,a.state.processing.get(a.childId));return this.#active===a;}catch{return false;}}};
  }
- async #invoke(state,childId,receipt,facet,units,work,outcome='COMMITTED'){
+ async #invoke(state,childId,receipt,facet,units,work,outcome='COMMITTED',expectedDisposition=null){
   this.#current(state);if(this.#active)fail('REQUEST_ALREADY_IN_FLIGHT');
-  const a={state,childId,receipt,facet,units,outcome,callback:null,entered:false,result:null};this.#active=a;
+  const a={state,childId,receipt,facet,units,outcome,expectedDisposition,callback:null,entered:false,result:null};this.#active=a;
   try{await work();this.#current(state);if(!a.entered)fail('DOMAIN_REPLAY_UNACKNOWLEDGED');return {facet,units:units.length,state:'COMMITTED',...(outcome==='NO_CHANGE'?{outcome}:{})};}
   finally{if(this.#active===a)this.#active=null;}
  }
@@ -290,8 +291,8 @@ export class LocalMaintenanceSession {
   if(!groups){
    groups=await this.#decode({state,childId,receipt},'context',Object.freeze({units:structuredClone(units),inputIds:[...inputIds]}));this.#current(state);
    if(!Array.isArray(groups)||!groups.length||groups.length>units.length)fail('STALE_BASE');
-   const all=[];for(const group of groups){exact(group,['units','change','operation'],['units','change']);if(Object.hasOwn(group,'operation')&&!['ADD','UPDATE','NO_CHANGE'].includes(group.operation))fail('STALE_BASE');group.units=validateCoverage(group.units,TYPE);if(group.units.some(u=>u.facet!=='context'||!units.some(v=>unitKey(u)===unitKey(v))))fail('STALE_BASE');
-    if(group.operation==='NO_CHANGE')validateContextMaintenanceNoChange(group.change);else validateContextMaintenanceChange(group.change);
+   const all=[];for(const group of groups){exact(group,['units','change','operation'],['units','change']);if(Object.hasOwn(group,'operation')&&!['ADD','UPDATE','REMOVE_CANDIDATE','NO_CHANGE'].includes(group.operation))fail('STALE_BASE');group.units=validateCoverage(group.units,TYPE);if(group.units.some(u=>u.facet!=='context'||!units.some(v=>unitKey(u)===unitKey(v))))fail('STALE_BASE');
+    if(group.operation==='NO_CHANGE')validateContextMaintenanceNoChange(group.change);else if(group.operation==='REMOVE_CANDIDATE')validateContextMaintenanceInvalidation(group.change);else validateContextMaintenanceChange(group.change);
     // Explicit adapter intent must agree with the original owner's revision contract.
     if(group.operation==='ADD'&&group.change.expectedRevision!==0||group.operation==='UPDATE'&&group.change.expectedRevision===0)fail('STALE_BASE');const ids=this.#inputs(state,group.units);
     if(!ids||!equal(ids,[...new Set(group.change.evidence.map(e=>e.inputId))].sort()))fail('STALE_BASE');all.push(...group.units);
@@ -301,7 +302,7 @@ export class LocalMaintenanceSession {
   const results=[];for(const group of groups){
    const current=await this.#foundation.status(state.job.id);this.#current(state);const remaining=group.units.filter(u=>!current.committedCoverage.includes(unitKey(u)));
    if(!remaining.length)continue;if(remaining.length!==group.units.length)fail('STALE_BASE');
-   try{results.push(await this.#invoke(state,childId,receipt,'context',group.units,()=>group.operation==='NO_CHANGE'?this.#context.noChange(this.#service.context.caller,group.change,{signal:state.controller.signal}):this.#context.maintain(this.#service.context.caller,group.change,{signal:state.controller.signal}),group.operation==='NO_CHANGE'?'NO_CHANGE':'COMMITTED'));}
+   try{results.push(await this.#invoke(state,childId,receipt,'context',group.units,()=>group.operation==='NO_CHANGE'?this.#context.noChange(this.#service.context.caller,group.change,{signal:state.controller.signal}):group.operation==='REMOVE_CANDIDATE'?this.#context.invalidate(this.#service.context.caller,group.change,{signal:state.controller.signal}):this.#context.maintain(this.#service.context.caller,group.change,{signal:state.controller.signal}),group.operation==='NO_CHANGE'?'NO_CHANGE':'COMMITTED',group.operation==='REMOVE_CANDIDATE'?'invalidated':null));}
    catch(e){this.#current(state);results.push({facet:'context',units:group.units.length,state:'FAILED',reason:safeError(e)});break;}
   }return results;
  }

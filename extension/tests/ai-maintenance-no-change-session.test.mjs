@@ -151,3 +151,25 @@ for(const stage of ['receipt','ack','usage','job','generation'])test('explicit U
  const resumed=await f.session.run(h);assert.equal(resumed.state,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,1);
  const receipt=(await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated');assert.equal(receipt.length,1);assert.equal(receipt[0].result.revision,2);
 });
+
+for(const mode of ['success','protected','rollback','epoch'])test('REMOVE_CANDIDATE exact Context facet '+mode+' through original owner',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ if(mode==='protected')await new ContextCardsService(f.s).change({kind:'put',operationId:op(),epoch:'initial',itemId:f.original.itemId,card:'info',expectedRevision:1,body:'SYNTHETIC protected human fact',section:'Human'});
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='REMOVE_CANDIDATE';group.change.operation='REMOVE_CANDIDATE';}if(mode==='epoch')await f.s.repository.transaction(true,t=>t.put('meta',{id:'recovery-restore-epoch',value:'replacement'}));return result;};
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ if(mode==='rollback')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const original=t.put.bind(t);t.put=async(name,row,...args)=>{const r=await original(name,row,...args);if(name==='operationReceipts'&&row.result?.disposition==='invalidated'){reached=true;throw Error('synthetic invalidation receipt abort');}return r;};}return fn(t);},stores);
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),handle=await f.session.prepare(f.batchOptions),r=await f.session.run(handle);f.s.repository.transaction=transaction;
+ const contextAck=(await ack(f)).filter(a=>a.unit.facet==='context');
+ if(mode==='success'){assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.equal(contextAck.length,1);assert.equal(contextAck[0].outcome,'COMMITTED');const item=(await read(f.s,'meta',CONTEXT_CARDS_ROW)).items[0];assert.equal(item.lifecycle,'invalidated');assert.equal(item.body,before.items[0].body);const all=await snapshot(f.s);await f.session.run(handle);assert.deepEqual(await snapshot(f.s),all);assert.equal(f.calls.length,1);}
+ else{assert.notEqual(r.state,'COMMITTED');assert.equal(contextAck.length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);if(mode==='rollback')assert.equal(reached,true);}
+});
+
+
+test('REMOVE_CANDIDATE committed transaction with lost ACK resumes exact receipt without invalidating twice',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='REMOVE_CANDIDATE';group.change.operation='REMOVE_CANDIDATE';}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const handle=await f.session.prepare(f.batchOptions),transaction=f.s.repository.transaction.bind(f.s.repository);let lost=false;
+ f.s.repository.transaction=async(write,fn,stores)=>{let commitsInvalidation=false;const result=await transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...args)=>{if(name==='operationReceipts'&&row.result?.disposition==='invalidated')commitsInvalidation=true;return put(name,row,...args);};}return fn(t);},stores);if(commitsInvalidation&&!lost){lost=true;throw Error('synthetic postcommit ACK lost');}return result;};
+ const first=await f.session.run(handle);f.s.repository.transaction=transaction;assert.equal(lost,true);assert.equal(first.state,'COMMITTED');const committed=await snapshot(f.s);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,1);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items[0].revision,2);
+ const resumed=await f.session.run(handle);assert.equal(resumed.state,'COMMITTED');assert.deepEqual(await snapshot(f.s),committed);assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);
+});

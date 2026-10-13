@@ -5,6 +5,12 @@ Owner requested product/AI architecture, cost calculation, Organize styles, deve
 
 **Later scoped owner decision, AIU-QWEN-1.0, 2026-10-08:** adopt Qwen as the current primary production candidate family and qwen3.8-max as the core high-quality candidate, while retaining the provider-neutral architecture, all entitlements and AIOS-1.0. Section 7 records the amendment. Sections 1–6 preserve the original adoption's dates, baselines and historical execution pointers; they do not roll current STATUS back to Topic-01 or claim fresh model acceptance.
 
+## Owner clarification — automatic candidate invalidation, 2026-10-14
+
+The owner explicitly approved the existing AI-COST-03 / CTX4-05 REMOVE_CANDIDATE behavior: only an unprotected automatically maintained Item may become invalid; its original text and provenance remain retained, it stops being supplied externally, and newly qualified evidence may cause re-evaluation. Human-edited/manual Items and human-removal fences remain protected. This is not a human deletion and adds no approval interface.
+
+Implementation must use the original Context owner, current processing authority, transactional revision/epoch/receipt checks and exact facet acknowledgement. Re-evaluation is not a replay of unchanged evidence. The clarification does not enable a real provider, broaden permissions, add Sync functionality, or change the existing backup inclusion contract. Engineering, compatibility and actual browser acceptance remain separately required.
+
 ## 1. Authority, initial read and fresh-main reconciliation
 
 Initial source read: main **4a3cb4e663d8ae745f8385c5c854d5b060e26309**, tree **a4270eb95b848c5406b7efd6e881e2dbaafd3727**, the Browser-Native Sync documentation adoption. Connected Google Drive's latest visible matching PAIA设计想法 was read as private design intent. The latest explicit owner instruction controls its scope.

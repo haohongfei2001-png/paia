@@ -1,3 +1,7 @@
+# Current candidate — automatic Context candidate invalidation
+
+Owner-approved AI-COST-03 / CTX4-05 REMOVE_CANDIDATE now invalidates only unprotected automatic Items through the original owner, retaining body and both provenance closures while stopping external reads. New qualified evidence may reactivate the same identity; human protection, original processing authority and transactional exact ACK remain. Source-purge admission retains both source closures, and original backup exclusions remain. Author255/independent182 and exact Source/release native Chrome pass; failures are retained. See implementation/ai-usage/AI-COST-03-CONTEXT-INVALIDATION.md. PR284 remains unmerged/uninstalled with full/latest visual gates open; no real AI activation, Sync feature or CI change. All seven plans remain.
+
 # Current candidate — recoverable exact Topic creation
 
 Home Add Topic now retains one immutable request and name after an unknown acknowledgement; retries use the original receipt instead of creating a duplicate. Current-route qualification preserves reading, and original CREATE plus its compatibility owner atomically fence recovery epochs. Author256/independent184 and exact Source/release native Chrome pass. See implementation/topic-create-session.md. No new writer/RPC/schema, Sync feature, CI change, provider activation or installation. PR284 remains a candidate with full/latest visual gates open; all seven Canonical plans remain.

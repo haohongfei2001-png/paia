@@ -3,7 +3,7 @@ import {hashText} from './dedupe.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
-import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,fenceContextLineage,CONTEXT_LINEAGE_LIMITS} from './context-item-lineage.js';
+import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,fenceContextLineage,CONTEXT_LINEAGE_LIMITS,contextEvidenceIdentity} from './context-item-lineage.js';
 
 // Structural owner only. No runtime instantiation, caller authentication,
 // extractor, provider, transport, background job, worker route or processing grant exists.
@@ -24,12 +24,14 @@ export function validateContextMaintenanceChange(c){
  need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
 }
 // A declared local-domain outcome, not an inferred equality or model wire.
-export function validateContextMaintenanceNoChange(c){
- need(exact(c,['operation','operationId','epoch','itemId','card','expectedRevision','associationIds','evidence'])&&c.operation==='NO_CHANGE'&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&c.expectedRevision>0&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
+export function validateContextMaintenanceNoChange(c){return validateContextMaintenanceOutcome(c,'NO_CHANGE');}
+export function validateContextMaintenanceInvalidation(c){return validateContextMaintenanceOutcome(c,'REMOVE_CANDIDATE');}
+function validateContextMaintenanceOutcome(c,operation){
+ need(exact(c,['operation','operationId','epoch','itemId','card','expectedRevision','associationIds','evidence'])&&c.operation===operation&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&c.expectedRevision>0&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
  need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
 }
 function validResult(x){
- return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change'].includes(x.disposition)&&x.externalAllowed===false;
+ return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change','invalidated'].includes(x.disposition)&&x.externalAllowed===false;
 }
 function validReceipt(r){
  return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','accountId','processorId','authorizationGeneration','scopeDigest','requestItemId','card','expectedRevision','associationId','associationDigest','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&uuid(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&uuid(r.ownerId)&&stamp(r.createdAt)&&digestOK(r.digest)&&epochOK(r.epoch)&&opaque(r.accountId)&&opaque(r.processorId)&&revisionOK(r.authorizationGeneration)&&digestOK(r.scopeDigest)&&uuid(r.requestItemId)&&CONTEXT_ITEM_CARDS.includes(r.card)&&revisionOK(r.expectedRevision)&&uuid(r.associationId)&&digestOK(r.associationDigest)&&validResult(r.result)&&r.result.itemId===r.ownerId;
@@ -79,20 +81,21 @@ export class ContextMaintenanceService {
   need(r.card===authority.scope.card,'INVALID_REQUEST');
   const item=(await this.#cards.row(t)).items.find(x=>x.id===r.ownerId);
   need(item?.origin==='automatic'&&item.card===r.card&&item.revision>=r.result.revision&&item.maintenance.associationIds.includes(r.associationId),'INVALID_REQUEST');
-  if(['created','updated'].includes(r.result.disposition))need(r.requestItemId===r.ownerId&&r.result.revision===r.expectedRevision+1&&(r.result.disposition==='created'?r.expectedRevision===0:r.expectedRevision>0),'INVALID_REQUEST');
+  if(['created','updated','invalidated'].includes(r.result.disposition))need(r.requestItemId===r.ownerId&&r.result.revision===r.expectedRevision+1&&(r.result.disposition==='created'?r.expectedRevision===0:r.expectedRevision>0),'INVALID_REQUEST');
   if(r.result.disposition==='no_change')need(r.requestItemId===r.ownerId&&r.expectedRevision>0&&r.result.revision===r.expectedRevision,'INVALID_REQUEST');
   if(r.result.disposition==='duplicate')need(r.requestItemId!==r.ownerId,'INVALID_REQUEST');
   if(['protected','removed'].includes(r.result.disposition))need(item.protected===true,'INVALID_REQUEST');
   if(request)need(r.requestItemId===request.itemId&&r.card===request.card&&r.expectedRevision===request.expectedRevision&&request.associationIds.includes(r.associationId)&&r.associationDigest===query.associationDigest,'INVALID_REQUEST');
   return r.result;
  }
- maintain(caller,input,options={}){return this.#maintain(caller,input,options,false);}
- noChange(caller,input,options={}){return this.#maintain(caller,input,options,true);}
- #maintain(caller,input,{signal=null}={},unchanged){
+ maintain(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceChange);}
+ noChange(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceNoChange);}
+ invalidate(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceInvalidation);}
+ #maintain(caller,input,{signal=null}={},validate){
   try{
    need(typeof this.#verifier?.verify==='function'&&typeof this.#verifier?.isCurrent==='function');
    need(signal===null||signalOK(signal),'INVALID_REQUEST');
-   const c=structuredClone(unchanged?validateContextMaintenanceNoChange(input):validateContextMaintenanceChange(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
+   const c=structuredClone(validate(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
    if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
    need(this.#attempts.size<CONTEXT_MAINTENANCE_LIMITS.pending,'CONTEXT_LIMIT');
    const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
@@ -139,7 +142,23 @@ export class ContextMaintenanceService {
    const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];let item=associated||target,outcome;
    if(associated&&target&&associated.id!==target.id)return conflict();
    if(item?.origin==='manual'||item&&(item.card!==c.card||!associated))return conflict();
-   if(c.operation==='NO_CHANGE'){
+   if(item&&(c.operation==='REMOVE_CANDIDATE'||item.lifecycle==='invalidated')){
+    // A known association/revision is not processing authority. The explicit
+    // verified request must cover the target's entire old lineage as well as
+    // any newly supplied correction; no hidden whole-profile read is added.
+    for(const provenance of [item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean))for(const old of provenance.evidence){
+     const scoped=current.scope.inputs.find(x=>x.inputId===old.inputId),live=captured.provenance.evidence.find(x=>x.inputId===old.inputId&&x.topicId===old.topicId);
+     if(!current.scope.topics.includes(old.topicId)||!scoped||!old.selectedFields.every(f=>scoped.selectedFields.includes(f))||!live||!old.selectedFields.every(f=>live.selectedFields.includes(f))||!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id)))return conflict();
+    }
+   }
+   if(c.operation==='REMOVE_CANDIDATE'){
+    if(!item||item.id!==c.itemId||item.card!==c.card||item.lifecycle!=='active'||item.protected||item.userEdited||item.revision!==c.expectedRevision||!c.associationIds.every(id=>item.maintenance.associationIds.includes(id)))return conflict();
+    // Keep the exact original body and its lineage. This is automatic
+    // invalidation, never a human tombstone or permission change.
+    item.lifecycle='invalidated';item.maintenance.invalidation=captured.provenance;
+    item.revision++;item.updatedAt=this.#s.clock();need(validContextCards(row),'CONTEXT_LIMIT');
+    await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,'invalidated');
+   }else if(c.operation==='NO_CHANGE'){
     if(!item||item.id!==c.itemId||item.card!==c.card||item.lifecycle!=='active'||item.protected||item.revision!==c.expectedRevision||!c.associationIds.every(id=>item.maintenance.associationIds.includes(id)))return conflict();
     // Every checked Input/field must belong to this Item's actual registered
     // Source closure. Mere Source overlap or a copied association cannot ACK
@@ -153,6 +172,10 @@ export class ContextMaintenanceService {
    else{
     if((item?.revision||0)!==c.expectedRevision||item&&(!associated||item.card!==c.card))return conflict();
     if(!item){need(row.items.length<CONTEXT_LIMITS.items,'CONTEXT_LIMIT');item={id:c.itemId,card:c.card,body:c.body,section:c.section,revision:0,order:row.sequence++,origin:'automatic',protected:false,userEdited:false,lifecycle:'active',createdAt:this.#s.clock(),updatedAt:this.#s.clock(),deletedBy:null,maintenance:{version:1,associationIds:[],provenance:captured.provenance}};row.items.push(item);}
+    if(item.lifecycle==='invalidated'){
+     if(contextEvidenceIdentity(captured.provenance)===contextEvidenceIdentity(item.maintenance.invalidation))return conflict();
+     item.lifecycle='active';
+    }
     const associationIds=[...new Set([...item.maintenance.associationIds,...c.associationIds])];need(associationIds.length<=CONTEXT_LINEAGE_LIMITS.associations,'CONTEXT_LIMIT');
     item.body=c.body;item.section=c.section;item.maintenance={version:1,associationIds,provenance:captured.provenance};item.revision++;item.updatedAt=this.#s.clock();
     need(validContextCards(row),'CONTEXT_LIMIT');this.#current(caller,current,phase.signal);
