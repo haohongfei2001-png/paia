@@ -16,6 +16,7 @@ const op=()=>crypto.randomUUID(),rows=(s,table)=>s.repository.transaction(false,
 function searchDOM(topicId){
  const attach=node=>{node.querySelectorAll=selector=>{const selectors=selector.split(','),matches=child=>selectors.some(raw=>{const s=raw.trim();if(s.startsWith('.'))return s.slice(1).split('.').every(name=>child.classList.contains(name));if(s.startsWith('[data-'))return child.getAttribute(s.slice(1,-1))!==null;return child.tagName===s.toUpperCase();});return node.children.flatMap(child=>[...(matches(child)?[child]:[]),...child.querySelectorAll(selector)]);};node.querySelector=selector=>node.querySelectorAll(selector)[0]||null;return node;};
  const create=tag=>attach(new PresentationNode(tag)),host=create('div'),tile=create('article'),title=create('a'),overview=create('div'),more=create('a');
+ tile.style={removeProperty(name){delete this[name];}};tile.getBoundingClientRect=()=>({height:322});
  title.className='personal-topic-link';title.title='SYNTHETIC NEEDLE Topic';title.dataset.topicId=topicId;overview.className='personal-topic-sections';more.className='personal-topic-more';tile.dataset.topicId=topicId;tile.append(title,overview,more);host.append(tile);
  const owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{host,nodes:new Map([[topicId,tile]]),open:()=>{}});
  return {owner,host,tile,overview,create};
@@ -28,6 +29,10 @@ test('TOPIC-05.3 every qualified Topic Section and Entry match stays navigable i
  globalThis.document={documentElement:{lang:'en'},body:dom.host,createElement:dom.create,createTextNode:presentationText};globalThis.location={href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'};globalThis.getSelection=()=>({isCollapsed:true});dom.owner.open=(...args)=>links.push(args);
  try{
   dom.owner.search(page.items,'NEEDLE',{open:(...args)=>opened.push(args),complete:true});
+  assert.equal(dom.tile.style.height,'322px','search locks the ordinary measured rectangle');
+  dom.tile.getBoundingClientRect=()=>({height:999});
+  dom.owner.search(page.items,'NEEDLE',{open:(...args)=>opened.push(args),complete:true});
+  assert.equal(dom.tile.style.height,'322px','result continuation does not measure its own projected height');
   assert.equal(dom.tile.querySelectorAll('[data-root-match-step]').length,2,'all four qualified hits need an explicit reachable step path');
   const kinds=[],step=()=>dom.tile.querySelector('[data-root-match-step]').listeners.get('click')();
   for(let i=0;i<4;i++){
@@ -89,7 +94,7 @@ test('TOPIC-05.2 saved-AI matches retain the actual eligible identity/field cont
  await s.setFilterMode('light');assert.equal((await m.qualifySearchPage(page,options.query)).cursorInvalid,true);const current=await s.libraryIndexPage(options);assert.deepEqual((await m.qualifySearchPage(current,options.query)).items,[]);
 });
 test('TOPIC-05.2 Root search keeps body previews in the existing privacy mask and a body-free open action',async()=>{
- const prior=globalThis.document,topicId='synthetic-topic',overview=new PresentationNode('div'),tile=new PresentationNode('article'),label=new PresentationNode('a'),host=new PresentationNode('div');tile.append(label,overview);host.append(tile);label.title='SYNTHETIC Topic';tile.querySelectorAll=selector=>selector==='.personal-root-search-extra'?[]:[label];tile.querySelector=()=>overview;let opened;
+ const prior=globalThis.document,topicId='synthetic-topic',overview=new PresentationNode('div'),tile=new PresentationNode('article'),label=new PresentationNode('a'),host=new PresentationNode('div');tile.append(label,overview);host.append(tile);tile.style={};tile.getBoundingClientRect=()=>({height:322});label.title='SYNTHETIC Topic';tile.querySelectorAll=selector=>selector==='.personal-root-search-extra'?[]:[label];tile.querySelector=()=>overview;let opened;
  globalThis.document={documentElement:{lang:'en'},body:host,createElement:tag=>new PresentationNode(tag),createTextNode:presentationText};
  try{
   const item={kind:'entry',entryId:'synthetic-entry',snippet:'SYNTHETIC_PRIVATE_NEEDLE',paths:[{topicId}]};PersonalTopicRoot.prototype.search.call({host,nodes:new Map([[topicId,tile]])},[item],'NEEDLE',{open:(...args)=>{opened=args;}});
@@ -190,4 +195,10 @@ test('TOPIC-05.3 actual Root search owner retains complete partial indexing and 
   [{items:[hit],complete:true},'匹配的主题已保留在原位置。'],[{items:[hit],complete:false},'继续读取其余匹配；主题位置保持不变。'],[{items:[],complete:false,indexing:true},'搜索索引正在准备，匹配尚未完整。'],[{items:[],complete:true},'当前没有匹配内容。'],[{items:[{kind:'entry',entryId:'synthetic-unplaced',paths:[]}],complete:true},'匹配位于单独写下的内容，可从更多操作打开。']
  ];
  try{for(const [page,text]of cases){owner.paintRootSearch(page,'SYNTHETIC');assert.equal(status.textContent,text);assert.equal(empty.hidden,true);assert.equal(searches.at(-1).items,page.items);assert.equal(searches.at(-1).complete,page.complete===true);}}finally{globalThis.document=prior;}
+});
+
+test('Root remembers occupied row geometry before deletion without freezing natural card heights',()=>{
+ const prior=globalThis.getComputedStyle,owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{layoutWidth:1000,host:{clientWidth:1000,getClientRects:()=>[{}]}});
+ globalThis.getComputedStyle=()=>({gridTemplateRows:'322px 78px 110px'});
+ try{owner.rememberRows();assert.deepEqual(owner.rowHeights.get(1000),[322,78,110]);owner.host.clientWidth=900;globalThis.getComputedStyle=()=>{throw Error('Do not record old-width rows after resize');};owner.rememberRows();assert.equal(owner.rowHeights.size,1);owner.clear=()=>{};owner.beginOrder();assert.equal(owner.rowHeights.size,0,'explicit fresh entry releases prior order geometry');}finally{globalThis.getComputedStyle=prior;}
 });

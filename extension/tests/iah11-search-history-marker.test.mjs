@@ -43,3 +43,14 @@ test('Settings focus checkpoint before navigation completion cannot replace the 
  await f.history.back();assert.equal(f.current().view,'library','focus/scroll during arrival preserves the real departure route');
  await f.history.forward();assert.equal(f.current().view,'settings','the final navigation still pushes exactly one Settings entry');
 });
+
+test('automatic initial Source metadata keeps the same root Search entry only with explicit initialization ownership',()=>{
+ const f=fixture();f.history.replaceState({...f.history.state,paiaSearch:true});f.set({view:'library',documentId:null,sourceKey:'chatgpt'});f.routes.commit({replace:true,sourceInitialization:true});assert.equal(f.history.state.paiaSearch,true);
+});
+for(const [name,before,after,options]of [
+ ['ordinary source selection',{view:'library'},{view:'library',sourceKey:'chatgpt'},{replace:true}],
+ ['different source',{view:'library',sourceKey:'chatgpt'},{view:'library',sourceKey:'claude'},{replace:true,sourceInitialization:true}],
+ ['Reader arrival',{view:'library'},{view:'library',documentId:'reader',sourceKey:'chatgpt'},{replace:true,sourceInitialization:true}],
+ ['different project',{view:'library'},{view:'library',sourceKey:'chatgpt',projectRef:{providerKey:'chatgpt',namespace:'synthetic',projectId:'p'}},{replace:true,sourceInitialization:true}],
+ ['new entry',{view:'library'},{view:'library',sourceKey:'chatgpt'},{sourceInitialization:true}]
+])test('initial Source exception cannot retain Search across '+name,()=>{const f=fixture();f.set(before);f.routes.commit({replace:true});f.history.replaceState({...f.history.state,paiaSearch:true});f.set(after);f.routes.commit(options);assert.equal(f.history.state.paiaSearch,undefined);});

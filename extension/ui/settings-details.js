@@ -78,7 +78,16 @@ function mountRemovedDetail(language) {
     const node=document.createElement('div'),title=document.createElement('p'),description=document.createElement('p'),feedback=document.createElement('p');node.className='ux-settings-recovery-entry';description.className='ux-settings-removed-note';feedback.className='ux-settings-recovery-feedback';feedback.setAttribute('role','status');
     const action=button('',async()=>{
      const serial=viewSerial,focused=document.activeElement===action,index=[...list.querySelectorAll('[data-recovery-kind]')].indexOf(action);let focusMoved=false,failed=false;const trackFocus=event=>{if(event.target!==action)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);action.disabled=true;row.error=null;feedback.textContent='';
-     try {await model.restore(kind,item.id);if(!current(serial))return;const next=await open(true);if(!current(next)||statusError)return;statusState=model.rows.has(key)?'retained':'restored';statusError=null;status.textContent=statusCopy();if(focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body)){const actions=[...list.querySelectorAll('[data-recovery-kind]')];(actions[Math.min(Math.max(0,index),actions.length-1)]||detail.dialog.querySelector('.ux-settings-detail-close')).focus({preventScroll:true});}}
+     // Transfer keyboard ownership in the same render that removes the
+     // restored row, rather than leaving focus on body until unrelated pages finish.
+     const transferFocus=next=>{
+      if(!current(next)||statusError||!focused||focusMoved||action.isConnected||document.activeElement!==document.body)return;
+      const available=[...list.querySelectorAll('[data-recovery-kind]')].filter(node=>!node.disabled);
+      const target=available[Math.min(Math.max(0,index),available.length-1)];
+      if(target)target.focus({preventScroll:true});
+      else if([...model.pages.values()].every(page=>page.done))detail.dialog.querySelector('.ux-settings-detail-close').focus({preventScroll:true});
+     };
+     try {await model.restore(kind,item.id);if(!current(serial))return;const next=await open(true,transferFocus);if(!current(next)||statusError)return;statusState=model.rows.has(key)?'retained':'restored';statusError=null;status.textContent=statusCopy();if(focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body)){const actions=[...list.querySelectorAll('[data-recovery-kind]')];(actions[Math.min(Math.max(0,index),actions.length-1)]||detail.dialog.querySelector('.ux-settings-detail-close')).focus({preventScroll:true});}}
      catch(error) {failed=true;if(current(serial))row.error=error;}
      finally {if(current(serial)){render();if(failed&&focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body))action.focus({preventScroll:true});}if(focused)document.removeEventListener('focusin',trackFocus);}
     });action.dataset.recoveryKind=kind;node.append(title,description,action);let history=null;
@@ -94,16 +103,17 @@ function mountRemovedDetail(language) {
   let reload=moreControls.get('reload');if(!reload){reload=button('',()=>open());moreControls.set('reload',reload);}reload.textContent=text('重新加载列表','Reload list');if(statusError||model.attempts.size||[...model.pages.values()].some(page=>page.error))controls.push(reload);let position=more.firstChild;for(const node of controls){if(position!==node)more.insertBefore(node,position);position=node.nextSibling;}for(const node of [...more.children])if(!controls.includes(node))node.remove();
   if(model.fence&&[...model.pages.values()].every(page=>page.done)&&!wanted.length&&(statusState==='reading'||statusState==='partial-empty'||statusState===null)&&!statusError)statusState='empty';if(statusState==='partial-empty'&&wanted.length)statusState=null;syncCopy();
  };
- const open=async(preserve=false)=>{
+ const open=async(preserve=false,afterRender=()=>{})=>{
   const serial=++viewSerial,focused=preserve&&list.contains(document.activeElement)?document.activeElement:null;let focusMoved=false;
   const trackFocus=event=>{if(event.target!==focused&&event.target!==document.body)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);
   keepRows=preserve;statusState='reading';statusError=null;status.textContent=statusCopy();if(!preserve){cached.clear();list.replaceChildren();}
+  const refresh=()=>{render();afterRender(serial);};
   try{
-   if(!await model.open()||!current(serial))return;render();
-   const reads=REMOVED_KINDS.map(async kind=>{try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))render();});await Promise.allSettled(reads);
+   if(!await model.open()||!current(serial))return;refresh();
+   const reads=REMOVED_KINDS.map(async kind=>{try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))refresh();});await Promise.allSettled(reads);
    if(current(serial)&&![...model.pages.values()].some(page=>page.error)){statusState=model.rows.size?null:[...model.pages.values()].every(page=>page.done)?'empty':'partial-empty';status.textContent=statusCopy();}
    return current(serial)?serial:null;
-  }catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();render();}return current(serial)?serial:null;}
+  }catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();refresh();}return current(serial)?serial:null;}
   finally{
    // A bounded refresh disables unqualified old rows while it reads. Return
    // focus only to the same newly qualified node if no newer intent took over.

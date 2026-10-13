@@ -52,7 +52,7 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
  const audit=(label,check)=>{try{check();}catch(error){failures.push({label,error:error.message});}};
  try{
   await mkdir(directory,{recursive:true});await p.setViewportSize({width:1440,height:900});
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const selectionRef=await openD5Reference(h,'selection');refs.push(selectionRef);
   const canonical=await selectionRef.evaluate(()=>({title:document.querySelector('.main h1').textContent,body:document.querySelector('.input-entry .prose').innerText}));
   const selectionRefs={};for(const theme of ['light','dark']){selectionRefs[theme]=await openSelectionReference(h,theme);refs.push(selectionRefs[theme].page);}await p.bringToFront();

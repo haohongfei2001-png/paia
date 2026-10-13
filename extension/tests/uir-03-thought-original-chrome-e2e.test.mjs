@@ -330,7 +330,8 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'grid');
   const rootRows=page.locator('#thought-list article.personal-topic-block'),geometry=await rootRows.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width,height:r.height,id:node.dataset.topicId,slot:node.dataset.rootSlot};}));
   assert.equal(new Set(geometry.map(row=>row.left)).size,3,'three actual identities occupy separate stable blocks in the wide grid');
-  assert.ok(geometry.every(row=>Math.abs(row.width-geometry[0].width)<=2&&Math.abs(row.height-geometry[0].height)<=2),'independent Root blocks share the fixed footprint');
+  assert.ok(geometry.every(row=>Math.abs(row.width-geometry[0].width)<=2),'independent Root blocks retain equal track widths');
+  assert.ok(Math.max(...geometry.map(row=>row.height))-Math.min(...geometry.map(row=>row.height))>12,'approved content-sized blocks distinguish wrapped and short titles without fixed-height padding');
   const title=page.locator(`.personal-topic-link[data-topic-id="${topics[0].id}"]`),canonical=(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name;
   assert.equal(await title.textContent(),canonical);assert.equal(await title.getAttribute('title'),canonical,'bounded title presentation retains the full canonical name');
   const rootCue=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}})).items.find(item=>item.id===topics[0].id).rootCue;
@@ -348,7 +349,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   }
 
   await page.setViewportSize({width:1200,height:800});
-  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(4,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
+  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(3,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
   const cardWidth=await page.locator('#thought-list article.personal-topic-block').first().evaluate(el=>el.getBoundingClientRect().width);
   assert.ok(cardWidth>=224,`Topic blocks keep the current minimum readable track width; got ${cardWidth}`);
   assert.equal(await title.evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','Root title previews have the adopted two-line limit and retain their complete accessible name');

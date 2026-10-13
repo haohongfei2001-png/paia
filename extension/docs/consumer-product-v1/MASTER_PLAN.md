@@ -1,3 +1,11 @@
+# Current execution — PR284 qualification repair (2026-10-13)
+
+Formal main is `bb7a19f48984cc6dacca30b5e57a3aff47aa393b`; PR284 remains a draft, not an installed release. Exact remote candidate `324f4f00` failed Full `38359185250`; retain its failures. Local follow-ups fix restored-row keyboard focus and loss of Search return during automatic initial Source discovery through the original UI/history owners. Their targeted native and unit tests passed; final independent review and coherent changed-head certification remain required. Thought Root follow-ups repair the stalled visible continuation sentinel, preserve search rectangles, and restore the already-read extent after indexing refresh. The complete Root/approved-layout native combination passes 5/5; related unit and contract batches pass 92/92, and package checks pass. These are scoped local evidence, not final independent review or complete changed-head certification. Original count, terminal, geometry, privacy and selection assertions remain; ordinary refresh outage now exercises refresh rather than the deliberately fresh primary entry.
+
+PR283's exact `93210c3d` Full and Prompt passed; its follow-up test-isolation review remains pending. Do not repeat the delivered0.43.29 stage or merged PR266/268/270. Sync new features remain paused, Pro264/CI remain separately owned, and all approved Canonical goals and later acceptance obligations remain unchanged. Earlier checkpoints below are historical evidence, not competing current pointers.
+
+## Preserved prior execution evidence
+
 # Current execution — local presentation completion (2026-10-13)
 
 PR282 is merged into formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after exact head374807c5 passed Full38344601851 and independent review. Earlier ef68 failures/cancellation are retained below, not current unqualified pointers. Exact merged-main gates remain separate. Candidate0.49 implements the approved Context/Settings/Thought/IAH refinements and Source/History rhythm; actual primary-navigation six cases and Source/History four cases pass. Original Topic Content release deepDeparture currently fails during continuing scroll and is under actual-call diagnosis; no assertion or timeout waiver. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md).

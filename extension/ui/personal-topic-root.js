@@ -35,12 +35,13 @@ export class PersonalTopicRoot {
   return tile;
  }
  render(items,{complete=false}={}){
+  this.rememberRows();
   const focus=this.focusRef();
   this.items=items;this.complete=complete;this.host.classList.remove('topic-compact-list');this.host.classList.add('personal-topic-grid');
   const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){this.observeTitle(node,false);node.remove();this.nodes.delete(id);}
   for(const item of items){
    const signature=JSON.stringify([document.documentElement.lang,item.name,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete]),prior=this.nodes.get(item.id);
-   if(prior?.dataset.searchState){for(const extra of prior.querySelectorAll('.personal-root-search-extra'))extra.remove();for(const link of prior.querySelectorAll('.personal-topic-link,.personal-section-link'))link.textContent=link.title;prior.classList.remove('personal-topic-nonmatch');delete prior.dataset.searchState;}
+   if(prior?.dataset.searchState){for(const extra of prior.querySelectorAll('.personal-root-search-extra'))extra.remove();for(const link of prior.querySelectorAll('.personal-topic-link,.personal-section-link'))link.textContent=link.title;prior.classList.remove('personal-topic-nonmatch');delete prior.dataset.searchState;prior.style.removeProperty('height');}
    if(prior?.dataset.signature===signature)continue;
    // Keep an active selection/focus attached through unrelated refreshes.
    const node=this.tile(item);node.dataset.signature=signature;
@@ -49,10 +50,16 @@ export class PersonalTopicRoot {
   }
   this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';
  }
+ rememberRows(){
+  if(!this.layoutWidth||this.host.clientWidth!==this.layoutWidth||!this.host.getClientRects().length)return;
+  this.rowHeights??=new Map();const heights=getComputedStyle(this.host).gridTemplateRows.split(' ').map(parseFloat);
+  if(heights.every(Number.isFinite)){this.rowHeights.set(this.layoutWidth,heights);while(this.rowHeights.size>10)this.rowHeights.delete(this.rowHeights.keys().next().value);}
+ }
  layout(){
   const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
   this.host.style.setProperty('--topic-root-columns',String(columns));
-  this.host.style.gridTemplateRows=`repeat(${Math.ceil(this.slots.extent(columns)/columns)},auto)`;
+  const rows=Math.ceil(this.slots.extent(columns)/columns),heights=this.rowHeights?.get(this.layoutWidth)||[];
+  this.host.style.gridTemplateRows=Array.from({length:rows},(_,index)=>heights[index]?`minmax(${heights[index]}px,auto)`:'auto').join(' ');
   for(const {id,slot,column,row}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(column);node.style.gridRow=String(row);node.dataset.rootSlot=String(slot);nodes.push(node);}
   placeChildren(this.host,nodes);for(const node of nodes)this.fit(node);saveTopicRootSlots(this.slots);
  }
@@ -69,6 +76,9 @@ export class PersonalTopicRoot {
   const token=this.searchRevision=(this.searchRevision||0)+1;
   for(const item of results)for(const path of item.paths||[item]){const id=path.topicId||item.topicId;if(!id)continue;const key=JSON.stringify([item.kind,item.entryId||null,path.sectionId||item.sectionId||null,item.aiField||null]),group=matches.get(id)||{hits:[],keys:new Set()};if(!group.keys.has(key)){group.hits.push({item,path,key});group.keys.add(key);}matches.set(id,group);}
   for(const id of this.searchPositions.keys())if(!matches.has(id))this.searchPositions.delete(id);
+  // Measure every ordinary card before any search projection changes a grid row.
+  // The lock is transient: normal render restores content-sized approved cards.
+  for(const node of this.nodes.values())if(node.dataset.searchState!=='true')node.style.height=`${node.getBoundingClientRect().height}px`;
   for(const [id,node]of this.nodes){
    node.dataset.searchState='true';
    for(const extra of node.querySelectorAll('.personal-root-search-extra'))extra.remove();
@@ -100,7 +110,7 @@ export class PersonalTopicRoot {
    }else{delete node.dataset.searchHitKind;delete node.dataset.searchHitKey;this.fit?.(node);}
   }
  }
- beginOrder(){this.clear();this.slots=new TopicRootSlots();}
+ beginOrder(){this.clear();this.rowHeights?.clear();this.slots=new TopicRootSlots();}
  clear(){this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.host.replaceChildren();}
  dispose(){this.resize?.disconnect();this.clear();}
 }

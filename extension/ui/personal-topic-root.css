@@ -26,3 +26,8 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 @media(max-width:1023px){#thought-list.personal-topic-grid{--topic-root-columns:2}}
 @media(max-width:639px){#thought-list.personal-topic-grid{--topic-root-columns:1;gap:12px}.personal-topic-block{padding:16px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
 @media(pointer:coarse){.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
+
+/* Search reuses the measured ordinary rectangle without displacing other Topics. */
+.personal-topic-block[data-search-state="true"]{box-sizing:border-box;overflow:auto}
+.personal-topic-block[data-search-state="true"] .personal-topic-title{flex-shrink:0}
+.personal-topic-block[data-search-state="true"] .personal-topic-sections{flex-shrink:0;overflow:auto}
