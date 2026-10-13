@@ -1,3 +1,7 @@
+# Current candidate followup — failed Entry draft self-rescue
+
+TOPIC-05.6 now copies the actual current existing Entry draft even when saving failed, without clearing failure/unknown/conflict or dispatching another save. Original current eligibility and epoch are checked before copy; stale routes/IME refuse. Author125/independent72 and exact Source/release Chrome pass. See implementation/topic-entry-draft-copy.md. Full/latest visual/main gates remain open; not merged/installed.
+
 # Current candidate followup — truthful supported-site details
 
 SET2 now fills the existing Supported websites page with actual capture capabilities, exclusions and the separation from external AI authorization. Author/independent6PASS and exact Source/release Chrome bilingual/Back/focus/narrow-layout checks pass. See implementation/settings-supported-sites.md. No new sites, permissions, network or writers; candidate remains unmerged with full/visual gates open.
