@@ -54,7 +54,11 @@ export class AmbiguousFilterPreflight {
  async #read(plan,epoch,current=()=>true){
   const active=()=>{this.#active(epoch);if(!current())stop('CAPABILITY_RELEASED');};
   const s=this.#store;
-  return s.repository.transaction(false,async t=>{
+  return s.repository.transaction(false,async transaction=>{
+   // Keep nested owner projections inside the same lifetime fence as this reader.
+   // Check after each await too, before a returned row can authorize another read.
+   const guarded=method=>async(...args)=>{active();const value=await transaction[method](...args);active();return value;};
+   const t=Object.freeze({get:guarded('get'),count:guarded('count')});
    active();
    const gate=await t.get('meta','gate'),control=await s.control(t),filter=await t.get('meta','smart-filter'),library=await t.get('meta','thought-library'),restore=await t.get('meta','recovery-restore-epoch');
    if(gate?.enabled!==true||control.settings?.enabled!==true||control.settings.consentVersion!==CONSENT_VERSION||control.settings.epoch!==gate.epoch||library?.phase!=='active'||library.schemaVersion!==1||library.verified!==true||library.sealed!==0||restore&&!id(restore.value)||!integer(gate.epoch)||!filter||filter.phase!=='active'||filter.mode!=='light'||!integer(filter.policyEpoch)||!Object.entries(FILTER_VERSIONS).every(([k,v])=>filter[k]===v))stop('OWNER_UNAVAILABLE');

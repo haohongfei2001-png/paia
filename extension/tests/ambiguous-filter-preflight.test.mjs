@@ -203,3 +203,24 @@ for(const change of ['expiry','rollback'])test('preparation '+change+' during pe
  f.setHook(()=>{changed=true;f.setNow(change==='expiry'?301000:999);});const result=await f.reader.prepare(request);
  f.s.repository.transaction=transaction;assert.equal(result.status,'UNAVAILABLE');assert.equal(result.reason,change==='expiry'?'CAPABILITY_EXPIRED':'CLOCK_INVALID');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
 });
+
+for(const change of ['release','expiry','dispose'])test('nested projection stops all reads after '+change+' at record metadata boundary',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request());
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let changed=false,laterReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{
+  const get=t.get.bind(t);t.get=async(name,...args)=>{
+   if(changed)laterReads++;
+   const row=await get(name,...args);
+   if(!changed&&name==='recordIndex'){
+    changed=true;
+    if(change==='release')f.reader.release(initial.capability);
+    else if(change==='expiry')f.setNow(301000);
+    else f.reader.dispose();
+   }
+   return row;
+  };return fn(t);
+ },stores);
+ let result;try{result=await f.reader.revalidate(initial.capability);}finally{f.s.repository.transaction=transaction;}
+ assert.equal(changed,true);assert.equal(laterReads,0);assert.equal(result.capability,null);
+ assert.equal(result.status,change==='dispose'?'UNAVAILABLE':'STALE');bodyFree(result);
+});
