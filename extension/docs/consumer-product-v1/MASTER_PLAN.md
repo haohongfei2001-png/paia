@@ -1,3 +1,13 @@
+# Current execution — Context group ordering (2026-10-14)
+
+Formal main remains81b41ddca1d28f7935bba63b3eab01b8678e4120, qualified by exact Full38439353598 and Prompt38439353651. PR284 is an unmerged, uninstalled0.49.0 draft. CTX4-02 now implements group-local adjacent up/down through the original transaction: complete-group dual revision checks, atomic receipt/retry, unchanged identity/body/provenance and automatic-Item human protection. Search-hidden neighbors remain part of the group. Ambiguous duplicate order and injected Sync journal refuse safely; no Sync protocol is relaxed.
+
+Final independent owning107 PASS; original standard package/release build and isolated Source/release headless Chrome passed selection preservation, later-user-focus priority, write rollback, lost-ACK reconciliation and reload. Historical native selection and package guard failures are retained and repaired without weakening assertions/guards. The preceding visual correction removes empty filter-note spacing and restores paused muted roles; exact latest-reference visual qualification remains open. The old full Context file10PASS2FAIL is not a current passing certificate. Exact candidate certification is still required; latest published Prompt unit4 and Candidate gate failures remain unresolved pending log access. No merge, installation or whole-plan completion is claimed.
+
+Next actual independent implementation: CTX4-03本人Topic只读核对 through existing qualified reading owners, with permission selection separate from reading. Cross-card movement and broader discovery remain open. Preserve all seven Canonical plans, paused Sync safety checkpoint and Pro264 CI ownership.
+
+## Preserved preceding execution evidence
+
 # Current execution — Context local interaction batch (2026-10-14)
 
 Formal main `81b41ddca1d28f7935bba63b3eab01b8678e4120` is qualified by exact Full38439353598 and Prompt38439353651. PR2840.49.0 remains unmerged and not installed. Current candidate implements approved CTX4-02 edit-safe opened-card search and exact visible-text copying, plus CTX4-03 All/Selected and complete-directory Topic-name filtering. Names-only search does not claim Section/body search or read-only Topic inspection. Copying a failed draft does not save it or change AI access. Original writers and all privacy/ACK protections remain in place.

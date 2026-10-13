@@ -36,3 +36,5 @@ body[data-paia-space="memory"] .workspace:has(.context-page){padding-bottom:64px
 /* CTX4-03 metadata-only Topic filters do not share access-control ownership. */
 .context-inputs .topic-access[hidden]{display:none!important}
 .context-inputs .context-topic-filter[aria-pressed="true"]{background:var(--selected);color:var(--selected-ink);border-color:var(--selected)}
+
+.context-inputs .context-topic-filter-status:empty{display:none}

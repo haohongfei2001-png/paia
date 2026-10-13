@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {setup,inputEdit,derived} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,validContextCards} from '../core/context-cards.js';
+import {ContextMaintenanceService} from '../core/context-maintenance.js';
+import {readContextTopicScope} from '../core/context-topic-scope.js';
+import {inputProjection} from '../core/thought-evidence.js';
 import {hashText} from '../core/dedupe.js';
 import {ContextCommitSession} from '../ui/context-commit.js';
 
@@ -340,4 +343,50 @@ test('CTX4 Home projection removes private body and free-form section without wr
  assert.deepEqual(home,{...full,items:[]});assert.equal(JSON.stringify(home).includes('SYNTHETIC private'),false);
  assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),beforeReceipts);assert.deepEqual(await c.snapshot(),full);
  for(const mode of [null,false,{},'detail','HOME'])await assert.rejects(c.snapshot(mode),{code:'INVALID_REQUEST'});
+});
+
+const reorder=(item,adjacent,direction='down',extra={})=>({kind:'reorder',operationId:operationId(),epoch:'initial',itemId:item.id,expectedRevision:item.revision,adjacentId:adjacent.id,adjacentRevision:adjacent.revision,direction,card:item.card,section:item.section,...extra});
+for(const card of cards)test(`CTX4-02 ${card} adjacent reorder commits both revisions once and preserves every body/access/identity`,async()=>{
+ const {s,c}=await fixture();for(const current of [put(card),put(card),put(card),put(card,{section:'another group'}),put(cards.find(x=>x!==card))])await c.change(current);
+ const before=await canonical(s),[first,second]=before.items,change=reorder(first,second),ack=await c.change(change),after=await canonical(s);
+ assert.deepEqual(ack,{ok:true,itemId:first.id,revision:2,adjacentId:second.id,adjacentRevision:2});
+ assert.deepEqual(after.access,before.access);assert.equal(after.sequence,before.sequence);assert.deepEqual(after.items.slice(2),before.items.slice(2));
+ for(let i=0;i<2;i++){const {order,revision,updatedAt,...identity}=after.items[i],{order:oldOrder,revision:oldRevision,updatedAt:oldTime,...original}=before.items[i];assert.deepEqual(identity,original);assert.equal(order,before.items[1-i].order);assert.equal(revision,2);}
+ assert.deepEqual(await c.change(change),ack);assert.deepEqual(await canonical(s),after);
+ const outcome=await c.outcome({operationId:change.operationId,digest:await hashText(JSON.stringify(change)),epoch:change.epoch});assert.deepEqual(outcome,{state:'committed',result:ack});assert.ok(!JSON.stringify(outcome).includes(first.body));
+ const [left,right]=after.items;await c.change(reorder(left,right,'up'));assert.deepEqual((await canonical(s)).items.map(x=>x.order),before.items.map(x=>x.order));
+});
+
+test('CTX4-02 reorder rejects stale target/neighbor, skipped/foreign neighbor, boundary and tied restored order without writes',async()=>{
+ const {s,c}=await fixture();for(const p of [put('info'),put('info'),put('info'),put('rules'),put('info',{section:'another'})])await c.change(p);
+ const before=await canonical(s),[a,b,d,foreign,section]=before.items,prior=await receipts(s);
+ for(const change of [reorder(a,b,'up'),reorder(a,d),reorder(a,foreign),reorder(a,section),reorder(a,b,'down',{expectedRevision:0}),reorder(a,b,'down',{adjacentRevision:0}),reorder(a,b,'down',{section:'another'}),reorder(a,b,'down',{card:'rules'})])assert.deepEqual(await c.change(change),{ok:false,conflict:true});
+ assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),prior);
+ for(const extra of [{direction:'sideways'},{card:'inputs'},{body:'not allowed'},{adjacentId:a.id},{adjacentRevision:-1}])await assert.rejects(c.change(reorder(a,b,'down',extra)),{code:'INVALID_REQUEST'});
+ await s.write(async t=>{const row=await t.get('meta',CONTEXT_CARDS_ROW);row.items[2].order=b.order;await t.put('meta',row);});const tied=await canonical(s);assert.ok(validContextCards(tied));assert.deepEqual(await c.change(reorder(a,b)),{ok:false,conflict:true});assert.deepEqual(await canonical(s),tied);
+ await s.write(t=>t.put('meta',{id:'recovery-restore-epoch',value:'changed'}));await assert.rejects(c.change(reorder(a,b)),{code:'CONTEXT_INVALIDATED'});
+});
+
+test('CTX4-02 reorder refuses injected journal without prepare, commit, owner write or receipt',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));await c.change(put('info'));const before=await canonical(s),prior=await receipts(s);let touched=0;
+ const journaled=new ContextCardsService(s,{syncJournal:{prepare(){touched++;throw Error('not reached');},commit(){touched++;}}});
+ await assert.rejects(journaled.change(reorder(...before.items)),{code:'FEATURE_UNAVAILABLE'});assert.equal(touched,0);assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),prior);
+});
+
+test('CTX4-02 reorder receipt failure rolls back both items; unknown reply retry preserves exact pair and operation',async()=>{
+ const {s,c}=await fixture();await c.change(put('info'));await c.change(put('info'));const before=await canonical(s),prior=await receipts(s),change=reorder(...before.items),original=s.repository.transaction.bind(s.repository);
+ s.repository.transaction=(write,fn,stores)=>original(write,t=>{const originalPut=t.put.bind(t);t.put=(name,row)=>{if(name==='operationReceipts')throw Error('SYNTHETIC receipt fault');return originalPut(name,row);};return fn(t);},stores);
+ await assert.rejects(c.change(change));assert.deepEqual(await canonical(s),before);assert.deepEqual(await receipts(s),prior);s.repository.transaction=original;
+ let uncertain=true;const dispatched=[];const session=new ContextCommitSession(async(type,value)=>{if(type==='PAIA_CONTEXT_CARDS_OUTCOME'){if(uncertain)throw Error('SYNTHETIC unavailable');return c.outcome(value.query);}dispatched.push(structuredClone(value.change));const result=await c.change(value.change);if(uncertain)throw Error('SYNTHETIC lost ACK');return result;});
+ await assert.rejects(session.save(change));const committed=await canonical(s);assert.ok(session.pending);for(const extra of [{adjacentId:operationId()},{adjacentRevision:2},{direction:'up'},{section:'other'},{card:'rules'}])await assert.rejects(session.save({...change,...extra}),{code:'SAVE_PENDING_OTHER'});
+ uncertain=false;assert.equal((await session.save({...change,operationId:operationId()})).result.ok,true);assert.deepEqual(dispatched,[change,change]);assert.deepEqual(await canonical(s),committed);assert.equal(session.pending,null);
+});
+
+test('CTX4-02 original maintenance Items reordered by human retain provenance and reject old automatic replacement',async()=>{
+ const {s,c}=await fixture();await s.setFilterMode('off');const input=(await s.snapshot()).library.blocks[0],topic=await s.createTopic({operationId:operationId(),name:'SYNTHETIC reorder provenance'});await inputEdit(s,input.id,{libraryText:'SYNTHETIC qualified input',note:''});const current=await s.input(input.id);await s.addToTopics({operationId:operationId(),kind:'input',id:input.id,expectedRevision:current.revision,topicIds:[topic.id]});
+ const caller={},service=new ContextMaintenanceService(s,{processingVerifier:{async verify(actual,store,scope){return actual===caller&&store===s?{version:1,store:s,accountId:'synthetic',processorId:'synthetic',authorizationGeneration:1,scope,processing:true,expiresAt:Date.now()+60000,revocationSignal:new AbortController().signal}:null;},isCurrent(actual){return actual===caller;}}}),scope=await readContextTopicScope(s,{topicId:topic.id}),projection=await s.repository.transaction(false,t=>inputProjection(s,t,input.id));
+ const request=()=>({operationId:operationId(),epoch:scope.binding.epoch,itemId:operationId(),card:'info',expectedRevision:0,body:'SYNTHETIC automatic Item',section:'SYNTHETIC section',associationIds:[operationId()],evidence:[{topicId:topic.id,inputId:input.id,selectedFields:['body'],fieldDigests:{body:awaitHash},expectedTopicBinding:scope.binding,expectedRemovalSequence:projection.lastRemovalSequence}]});
+ const awaitHash=await hashText(projection.body),one=request(),two=request();assert.equal((await service.maintain(caller,one)).ok,true);assert.equal((await service.maintain(caller,two)).ok,true);const before=await canonical(s),[a,b]=before.items;await c.change(reorder(a,b));const after=await canonical(s);
+ for(let index=0;index<2;index++){assert.equal(after.items[index].origin,'automatic');assert.equal(after.items[index].protected,true);assert.equal(after.items[index].userEdited,true);assert.equal(after.items[index].revision,2);assert.deepEqual(after.items[index].maintenance,before.items[index].maintenance);assert.equal(after.items[index].body,before.items[index].body);}
+ for(const source of [one,two]){const result=await service.maintain(caller,{...source,operationId:operationId(),expectedRevision:1,body:'SYNTHETIC forbidden old candidate'});assert.equal(result.disposition,'protected');assert.equal(result.revision,2);}assert.deepEqual(await canonical(s),after);
 });

@@ -25,13 +25,14 @@ export function validContextCards(row){
  return exact(row,['id','version','sequence','access','items'])&&row.id===CONTEXT_CARDS_ROW&&row.version===1&&revision(row.sequence)&&exact(row.access,['global',...CONTEXT_CARDS])&&Object.keys(row.access).length===5&&Object.values(row.access).every(a=>exact(a,['enabled','revision'])&&typeof a.enabled==='boolean'&&revision(a.revision))&&Array.isArray(row.items)&&row.items.length<=CONTEXT_LIMITS.items&&row.items.every(itemValid)&&new Set(row.items.map(x=>x.id)).size===row.items.length&&(()=>{const ids=row.items.flatMap(x=>x.origin==='automatic'?x.maintenance.associationIds:[]);return new Set(ids).size===ids.length;})()&&new TextEncoder().encode(JSON.stringify(row)).length<=CONTEXT_LIMITS.bytes;
 }
 export function validateContextChange(c,{draft=false}={}){
- if(!exact(c,['kind','operationId','epoch','itemId','expectedRevision','body','section','card','key','enabled','deletedBy'])||!uuid(c.operationId)||!bounded(c.epoch,128)||!c.epoch||!revision(c.expectedRevision))fail();
+ if(!exact(c,['kind','operationId','epoch','itemId','expectedRevision','body','section','card','key','enabled','deletedBy','adjacentId','adjacentRevision','direction'])||!uuid(c.operationId)||!bounded(c.epoch,128)||!c.epoch||!revision(c.expectedRevision))fail();
  const shared=['kind','operationId','epoch','expectedRevision'];
  if(c.kind==='access'){
   if(!exact(c,[...shared,'key','enabled'])||!['global',...CONTEXT_CARDS].includes(c.key)||typeof c.enabled!=='boolean')fail();
  }else{
   if(!uuid(c.itemId))fail();
-  if(c.kind==='put'){if(!exact(c,[...shared,'itemId','body','section','card'])||c.card!==undefined&&!CONTEXT_ITEM_CARDS.includes(c.card)||!bounded(c.body,CONTEXT_LIMITS.body)||!draft&&!c.body.trim()||!bounded(c.section,80)||!c.section.trim())fail();}
+  if(c.kind==='reorder'){if(!exact(c,[...shared,'itemId','adjacentId','adjacentRevision','direction','card','section'])||!uuid(c.adjacentId)||c.adjacentId===c.itemId||!revision(c.adjacentRevision)||!['up','down'].includes(c.direction)||!CONTEXT_ITEM_CARDS.includes(c.card)||!bounded(c.section,80)||!c.section.trim())fail();}
+  else if(c.kind==='put'){if(!exact(c,[...shared,'itemId','body','section','card'])||c.card!==undefined&&!CONTEXT_ITEM_CARDS.includes(c.card)||!bounded(c.body,CONTEXT_LIMITS.body)||!draft&&!c.body.trim()||!bounded(c.section,80)||!c.section.trim())fail();}
   else if(c.kind==='delete'){if(!exact(c,[...shared,'itemId']))fail();}
   else if(c.kind==='restore'){if(!exact(c,[...shared,'itemId','deletedBy'])||!uuid(c.deletedBy))fail();}
   else fail('FEATURE_UNAVAILABLE');
@@ -41,7 +42,15 @@ export function validateContextChange(c,{draft=false}={}){
 export async function readContextCards(t){const row=await t.get('meta',CONTEXT_CARDS_ROW);if(row&&!validContextCards(row))fail('STORAGE_FAILED');return row||empty();}
 function applyContextChange(row,c,clock){
  let result;
-   if(c.kind==='access'){
+   if(c.kind==='reorder'){
+    // Complete canonical group, never a filtered UI subset. Both current Items
+    // must still be the exact adjacent revisions the gesture addressed.
+    const group=row.items.filter(x=>x.lifecycle==='active'&&x.card===c.card&&x.section===c.section).sort((a,b)=>a.order-b.order),index=group.findIndex(x=>x.id===c.itemId),item=group[index],adjacent=group[index+(c.direction==='up'?-1:1)];
+    if(!item||item.revision!==c.expectedRevision||!adjacent||adjacent.id!==c.adjacentId||adjacent.revision!==c.adjacentRevision||new Set(group.map(current=>current.order)).size!==group.length)return {ok:false,conflict:true};
+    [item.order,adjacent.order]=[adjacent.order,item.order];
+    for(const current of [item,adjacent]){if(current.origin==='automatic'){current.protected=true;current.userEdited=true;}current.revision++;current.updatedAt=clock();}
+    result={ok:true,itemId:item.id,revision:item.revision,adjacentId:adjacent.id,adjacentRevision:adjacent.revision};
+   }else if(c.kind==='access'){
     const value=row.access[c.key];if(value.revision!==c.expectedRevision)return {ok:false,conflict:true,revision:value.revision};
     value.enabled=c.enabled;value.revision++;result={ok:true,key:c.key,revision:value.revision,enabled:value.enabled};
    }else{
@@ -76,6 +85,9 @@ export class ContextCardsService {
   if(mode==='home')snapshot.items=[];return snapshot;}
  async change(input){
   const c=structuredClone(validateContextChange(input)),digest=await hashText(JSON.stringify(c));
+  // The existing journal proves only single-Item immutable-order chains.
+  // Reject before preparing or writing; local ordering cannot weaken restore.
+  if(c.kind==='reorder'&&this.syncJournal)fail('FEATURE_UNAVAILABLE');
   let staged=null;
   if(this.syncJournal){
    const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId)};}));

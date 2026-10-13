@@ -32,7 +32,7 @@ export class ContextTopicInputs {
   this.searchSubmit=button(copy('搜索','Search'),()=>{});this.searchSubmit.type='submit';this.clearFilter=button(copy('清空','Clear'),()=>{if(this.filter(this.selectedOnly,''))this.searchField.value='';});
   this.allFilter=button(copy('全部','All'),()=>this.filter(false,this.query));this.selectedFilter=button(copy('已选','Selected'),()=>this.filter(true,this.query));
   for(const node of [this.allFilter,this.selectedFilter])node.className='context-topic-filter';
-  this.filterStatus=element('p','topics-note');this.filterStatus.setAttribute('role','status');
+  this.filterStatus=element('p','topics-note context-topic-filter-status');this.filterStatus.setAttribute('role','status');
   this.searchField.addEventListener('compositionstart',()=>{this.composing=true;});this.searchField.addEventListener('compositionend',()=>{this.composing=false;});
   this.filters.addEventListener('submit',event=>{event.preventDefault();if(!event.isComposing)this.filter(this.selectedOnly,this.searchField.value);});
   this.filters.append(this.searchField,this.searchSubmit,this.clearFilter,this.allFilter,this.selectedFilter);
