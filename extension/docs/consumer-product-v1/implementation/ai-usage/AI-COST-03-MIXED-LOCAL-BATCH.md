@@ -17,3 +17,5 @@ The local combination0e0654d3 preserves formalmain04f2cad2, PR280 final0f36b2d a
 Fresh combination: five complete owning/version files126/126PASS6586.815417ms; whole existing Source/release maintenance browser112/112PASS26866.74425ms; package16126guards/472runtime resourcesPASS. No fail/cancel/skip/todo in these executions. The source/release test uses isolated synthetic data and original storage owners, not the user's installed extension or archive.
 
 Final exact-head certification and merged-main qualification are still required. This is not all AI-COST03/CTX405 completion, real-provider/model-quality evidence, Sync delivery or an installed-user update. SYNC new features remain paused and Pro264/CI remains independently owned. All seven Canonical plans and their remaining obligations survive.
+
+Predecessor PR280 has now merged safely as main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 after exact-head Full38337300223 and final independent review passed. The verified merge tree e4f8d990 is identical to this combination's predecessor integration tree; all latest main files are retained. New batch certification remains separate.
