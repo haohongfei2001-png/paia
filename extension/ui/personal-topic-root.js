@@ -13,7 +13,7 @@ export class PersonalTopicRoot {
  }
  focusRef(){const active=document.activeElement;if(!this.host.contains(active)||active?.tagName!=='A'&&!active?.dataset.rootMatchKey&&!active?.dataset.rootMatchStep)return null;return {topicId:active.dataset.topicId,sectionId:active.dataset.sectionId||null,more:active.classList.contains('personal-topic-more'),...(active.dataset.rootMatchKey?{matchKey:active.dataset.rootMatchKey}:{}),...(active.dataset.rootMatchStep?{matchStep:active.dataset.rootMatchStep}:{})};}
  restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const match=ref.matchStep?[...node.querySelectorAll('[data-root-match-step]')].find(link=>link.dataset.rootMatchStep===ref.matchStep):ref.matchKey?[...node.querySelectorAll('[data-root-match-key]')].find(link=>link.dataset.rootMatchKey===ref.matchKey):null,section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(match||section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
- columns(){return Math.max(1,Math.min(4,Math.floor((this.host.clientWidth+16)/240)));}
+ columns(){return Math.max(1,Math.min(3,Math.floor((this.host.clientWidth+16)/240)));}
  observeTitle(node,active){const title=node?.querySelector?.('.personal-topic-title');if(title)this.resize?.[active?'observe':'unobserve'](title);}
  link(text,topicId,sectionId=null,className='',isCurrent=()=>true){
   const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.draggable=false;a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
@@ -52,16 +52,16 @@ export class PersonalTopicRoot {
  layout(){
   const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
   this.host.style.setProperty('--topic-root-columns',String(columns));
-  this.host.style.gridTemplateRows=`repeat(${Math.ceil(this.slots.extent(columns)/columns)},var(--topic-root-block-size))`;
+  this.host.style.gridTemplateRows=`repeat(${Math.ceil(this.slots.extent(columns)/columns)},auto)`;
   for(const {id,slot,column,row}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(column);node.style.gridRow=String(row);node.dataset.rootSlot=String(slot);nodes.push(node);}
   placeChildren(this.host,nodes);for(const node of nodes)this.fit(node);saveTopicRootSlots(this.slots);
  }
  fit(node){
   if(node.dataset.searchState==='true'&&['entry','ai','section'].includes(node.dataset.searchHitKind))return;
   const overview=node.querySelector('.personal-topic-sections'),more=node.querySelector('.personal-topic-more'),links=[...overview.children];more.hidden=false;for(const link of links)link.hidden=false;
-  let used=0,truncated=false;const capacity=overview.clientHeight;
-  for(const link of links){const size=link.getBoundingClientRect().height,hidden=used+size>capacity+.5;if(hidden){truncated=true;if(link===document.activeElement)more.focus({preventScroll:true});link.hidden=true;}else used+=size;}
-  more.hidden=!truncated&&node.dataset.overviewComplete==='true';
+  // The qualified bounded overview controls continuation; available pixels do
+  // not hide authentic chapter links. Cards grow with their actual content.
+  more.hidden=node.dataset.overviewComplete==='true';
  }
  search(results,query,{open,complete=false}){
   const matches=new Map();

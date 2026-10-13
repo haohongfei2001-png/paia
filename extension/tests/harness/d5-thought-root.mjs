@@ -30,9 +30,9 @@ export async function openD5ThoughtRoot(h,variant){
   near(production.body.x,layout.rail,'shared workspace axis');near(production.body.width,width-layout.rail,'available workspace');
   exact(production.body.paddingTop,'24px','root top gutter');for(const key of ['paddingLeft','paddingRight'])exact(production.body[key],layout.gutter+'px','root '+key);
   // The adopted grid uses available workspace width; the old 936px compact
-  // list cap is not a limit on the new four-column Root.
+  // list cap is not a limit on the refined three-column Root.
   near(production.list.width,width-layout.rail-layout.gutter*2,'grid available width');near(production.list.x,layout.rail+layout.gutter,'shared left axis');near(production.heading.x,production.list.x,'heading/list alignment');
-  exact(production.grid.columns,Math.max(1,Math.min(4,Math.floor((production.list.width+16)/240))),'responsive columns');
+  exact(production.grid.columns,Math.max(1,Math.min(3,Math.floor((production.list.width+16)/240))),'responsive columns');
   const roles={heading:{fontSize:width<768?'24px':'28px',lineHeight:width<768?'35px':'38px',fontWeight:'500',color:palette.text},title:{fontWeight:'500',color:palette.text},section:{color:palette.muted},continuation:{color:palette.muted}};
   for(const [target,expected]of Object.entries(roles)){
    if(!production[target]){failures.push(`${label} missing ${target} fixture`);continue;}
