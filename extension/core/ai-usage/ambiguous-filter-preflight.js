@@ -36,7 +36,7 @@ function permission(value,request){
 }
 
 export class AmbiguousFilterPreflight {
- #store;#resolve;#clock;#last=null;#closed=false;#epoch=0;#handles=new WeakMap();#states=new Set();
+ #store;#resolve;#clock;#last=null;#closed=false;#epoch=0;#handles=new WeakMap();#states=new Set();#preparing=0;
  constructor(store,{resolvePermission=null,clock=null}={}){this.#store=store;this.#resolve=resolvePermission;this.#clock=clock;}
  #retire(s){s.proof=null;s.bodies=null;s.active=false;this.#states.delete(s);}
  #clear(){for(const s of this.#states)this.#retire(s);this.#epoch++;}
@@ -111,15 +111,18 @@ export class AmbiguousFilterPreflight {
   });
  }
  async prepare(request){
+  let reserved=false;
   try{
    if(!this.#ready()){this.#clear();return result('UNAVAILABLE','STORE_NOT_READY');}const now=this.#time(),epoch=this.#epoch,plan=scope(request);
    if(!integer(now+300000))stop('CLOCK_INVALID');
-   if(this.#states.size>=8)return result('UNAVAILABLE','CAPABILITY_BOUND');const read=await this.#read(plan,epoch,()=>{if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');return true;});this.#active(epoch);if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');
+   if(this.#states.size+this.#preparing>=8)return result('UNAVAILABLE','CAPABILITY_BOUND');
+   // Reserve before the first await, so rejected concurrent work never reads bodies.
+   this.#preparing++;reserved=true;const read=await this.#read(plan,epoch,()=>{if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');return true;});this.#active(epoch);if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');
    if(!read.admitted.length)return result('NO_CAPABILITY','KEEP_OR_LOCAL_ONLY',read.publicRows);
    if(this.#states.size>=8)return result('UNAVAILABLE','CAPABILITY_BOUND',read.publicRows);
    const handle=Object.freeze(Object.create(null)),state={active:true,plan,epoch,expiresAt:now+300000,proof:read.proof,bodies:read.bodies};
    this.#handles.set(handle,state);this.#states.add(state);return result('CANDIDATE_ONLY','LOCAL_SCOPE_ONLY',read.publicRows,handle);
-  }catch(e){return this.#failure(e);}
+  }catch(e){return this.#failure(e);}finally{if(reserved)this.#preparing--;}
  }
  async revalidate(handle){
   try{

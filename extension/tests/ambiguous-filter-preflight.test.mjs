@@ -224,3 +224,24 @@ for(const change of ['release','expiry','dispose'])test('nested projection stops
  assert.equal(changed,true);assert.equal(laterReads,0);assert.equal(result.capability,null);
  assert.equal(result.status,change==='dispose'?'UNAVAILABLE':'STALE');bodyFree(result);
 });
+
+ test('concurrent prepares reserve capacity before private reads and failures release reservations',async()=>{
+ const f=await fixture(),request=await f.request();
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:10},()=>f.reader.prepare(request))));
+ assert.equal(results.filter(r=>r.status==='CANDIDATE_ONLY').length,8);
+ assert.equal(results.filter(r=>r.reason==='CAPABILITY_BOUND').length,2);
+ assert.equal(f.calls(),16,'only eight admitted reads may resolve permission twice');
+ f.reader.release(results.find(r=>r.capability).capability);
+ const shared=await noWrite(f,()=>Promise.all(Array.from({length:3},()=>f.reader.prepare(request))));
+ assert.equal(shared.filter(r=>r.status==='CANDIDATE_ONLY').length,1,'live handles and in-flight reads share the same bound');
+ assert.equal(shared.filter(r=>r.reason==='CAPABILITY_BOUND').length,2);
+ assert.equal(f.calls(),18);
+ for(const r of [...results,...shared]){bodyFree(r);if(r.capability)f.reader.release(r.capability);}
+ f.setPatch({allowed:false});
+ const refused=await noWrite(f,()=>Promise.all(Array.from({length:8},()=>f.reader.prepare(request))));
+ assert.ok(refused.every(r=>r.reason==='PERMISSION_UNAVAILABLE'));
+ f.setPatch({});
+ const recovered=await noWrite(f,()=>Promise.all(Array.from({length:8},()=>f.reader.prepare(request))));
+ assert.ok(recovered.every(r=>r.status==='CANDIDATE_ONLY'),'failed reads release every reserved slot');
+ f.reader.dispose();
+});
