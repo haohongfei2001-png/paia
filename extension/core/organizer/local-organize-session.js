@@ -5,7 +5,7 @@ import {AIUsageFoundation} from '../ai-usage/foundation.js';
 import {localProviderDescriptor,canonical,digest,fail} from '../ai-usage/contracts.js';
 import {KNOWN_PREFIX} from '../ai-usage/delta.js';
 import {validOrganizeCacheProfile} from './organize-cache-qualification.js';
-import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,assertLocalOrganizeCacheControls,localOrganizeCacheControlsCurrent} from './ai-presentation.js';
+import {readLocalOrganizeScopeInTransaction,commitLocalOrganizeCandidateInTransaction,confirmLocalOrganizeCacheProof,releaseLocalOrganizeCacheProof,localOrganizeProofFullyAdopted,confirmLocalOrganizeLifecycle,releaseLocalOrganizeLifecycle,assertLocalOrganizeCacheControls,localOrganizeCacheControlsCurrent} from './ai-presentation.js';
 import {bytes} from './contracts.js';
 import {validateLocalOrganizeResponse} from './ai-contract.js';
 // No production worker creates this explicitly configured local owner. Handles
@@ -17,21 +17,30 @@ export class LocalOrganizeSession {
   this.#store=store;this.#profile=structuredClone(profile);this.#route=routeVersion;
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority,organizeClosure:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.multi||!state.validated||canonical(r.childIds)!==canonical(state.job.childIds)||canonical(r.units)!==canonical(state.coverage)||state.outputs.size!==r.childIds.length)fail('STALE_BASE');
-   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const validated=state.validated,committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{variant:'atomic-v3',jobId:r.logicalJobId,childIds:r.childIds,childCoverage:r.children,coverage:r.units,items:state.items,children:r.childIds.map(id=>state.provenance.get(id)),profile:this.#profile,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.validated===validated&&state.outputs.size===r.childIds.length}});state.cacheProof=committed.cacheProof;
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const validated=state.validated,committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:validated,candidateId:r.logicalJobId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{variant:'atomic-v3',jobId:r.logicalJobId,childIds:r.childIds,childCoverage:r.children,coverage:r.units,items:state.items,children:r.childIds.map(id=>state.provenance.get(id)),profile:this.#profile,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.validated===validated&&state.outputs.size===r.childIds.length}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;
    if(this.#jobs.get(r.logicalJobId)!==state)fail('UNAVAILABLE');return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&state.outputs.size===r.childIds.length};
   },committers:{organize:async(t,r)=>{
    const state=this.#jobs.get(r.logicalJobId);if(!state?.validated||state.job.childIds[0]!==r.childOperationId||canonical(r.units)!==canonical(state.coverage))fail('STALE_BASE');
-   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;
+   await this.#assertProvenance(t,state);releaseLocalOrganizeCacheProof(store,state.cacheProof);const committed=await commitLocalOrganizeCandidateInTransaction(store,t,{prepared:state.prepared,result:state.validated,candidateId:r.childOperationId,manifestDigest:state.manifestDigest,baseGeneration:state.baseGeneration,qualification:{jobId:r.logicalJobId,childId:r.childOperationId,coverage:r.units,profile:this.#profile}});state.cacheProof=committed.cacheProof;state.lifecycleToken=committed.lifecycleToken;state.lifecycleKey=committed.lifecycleKey;
    return {committed:true,coverage:r.units,isCurrent:()=>this.#jobs.get(r.logicalJobId)===state&&!!state.validated};
   }}});
  }
- async #completed(state,result){if(this.#jobs.get(state.job.id)!==state)releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);else if(result.state==='COMMITTED')await confirmLocalOrganizeCacheProof(this.#store,state.cacheProof);return result;}
+ async #completed(state,result){if(this.#jobs.get(state.job.id)!==state){releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);}else if(result.state==='COMMITTED'){await confirmLocalOrganizeCacheProof(this.#store,state.cacheProof);await confirmLocalOrganizeLifecycle(this.#store,state.lifecycleToken,state.lifecycleKey);delete state.lifecycleKey;}return result;}
  #state(handle){const state=this.#handles.get(handle);if(!state)fail('UNAVAILABLE');return state;}
+ async #retireAdopted(){
+  const generation=this.#generation;
+  for(const [id,state]of [...this.#jobs])if(!state.running&&localOrganizeProofFullyAdopted(this.#store,state.lifecycleToken,id)){
+   const job=await this.#foundation.status(id);if(generation!==this.#generation)fail('UNAVAILABLE');if(state.running||this.#jobs.get(id)!==state||job.state!=='COMMITTED')continue;
+   this.#handles.set(state.handle,{retired:true,jobId:id,generation:this.#generation});this.#jobs.delete(id);
+   releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);
+  }
+ }
  async prepare({topicId,children=1,refreshStyle=false}={}){
   const generation=this.#generation;if(typeof refreshStyle!=='boolean'||refreshStyle&&this.#incrementalVersion!==3)fail('INVALID_REQUEST');
   if(this.#incrementalVersion===1&&children!==1)return {state:'DEFER',reason:'multiple_children_not_supported'};
   if(!Number.isInteger(children)||children<1||children>4)fail('INVALID_REQUEST');
   if(!validOrganizeCacheProfile(this.#profile)||typeof this.#route!=='string'||!this.#route.length||this.#route.length>200)fail('UNAVAILABLE');
+  await this.#retireAdopted();if(generation!==this.#generation)fail('UNAVAILABLE');
   if(this.#jobs.size+this.#cached.size>=8&&!this.#cached.has(topicId))fail('UNAVAILABLE');
   await this.#store.aiPresentationStatus({topicId}); // Existing migration/readability owner.
   const data=await this.#foundation.read(async t=>{
@@ -69,7 +78,7 @@ export class LocalOrganizeSession {
   const state={...data,coverage,job,handle,multi:!!partitions,partitions:ordered,outputs:new Map(),provenance:new Map(),validated:null,running:false};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
  }
  async assemble(handle,childId=null){
-  const state=this.#state(handle);if(state.cached)fail('UNAVAILABLE');return this.#foundation.read(async t=>{
+  const state=this.#state(handle);if(state.cached||state.retired)fail('UNAVAILABLE');return this.#foundation.read(async t=>{
    const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);
    const current=await readLocalOrganizeScopeInTransaction(this.#store,t,state.prepared.topic.id,this.#profile,this.#incrementalVersion,state.prepared.physicalChildren,state.prepared.refreshStyle);if(current.proof!==state.prepared.proof)fail('STALE_BASE');
    if((!state.multi&&job.childIds.length!==1)||job.committedCoverage.length)fail('STALE_BASE');
@@ -91,7 +100,9 @@ export class LocalOrganizeSession {
   });
  }
  async run(handle,provider){
-  const state=this.#state(handle);if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
+  const state=this.#state(handle);
+  if(state.retired){const result=await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.jobId);await this.#foundation.current(t,job);if(job.state!=='COMMITTED')fail('STALE_BASE');return {state:'COMMITTED',jobId:state.jobId};});if(state.generation!==this.#generation||this.#handles.get(handle)!==state)fail('UNAVAILABLE');return result;}
+  if(state.running)fail('REQUEST_ALREADY_IN_FLIGHT');state.running=true;
   try{
    if(state.cached){
     const result=await this.#readCached(state);
@@ -158,5 +169,5 @@ export class LocalOrganizeSession {
   for(const id of job.childIds){const receipt=await t.get('organizerUsage','aiu:attempt:'+id),p=state.provenance.get(id);if(receipt?.jobId!==job.id||receipt.childId!==id||receipt.state!=='RESPONSE_RECORDED'||receipt.operationReceiptId!==p?.operationReceiptId)fail('STALE_BASE');}
   if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
  }
- dispose(){this.#generation++;for(const state of this.#jobs.values())releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
+ dispose(){this.#generation++;for(const state of this.#jobs.values()){releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);}this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
 }
