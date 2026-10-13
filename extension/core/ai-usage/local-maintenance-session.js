@@ -131,7 +131,7 @@ export class LocalMaintenanceSession {
   const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.status==='DEFERRED'||batch.reason==='DEFER_SCAN_BOUND'||(batch.blockedUnits??0)>0};
   const handle=Object.freeze(outcome(batch.status,{jobId:null,nextCursor:batch.nextCursor??null,complete:batch.complete??false,...(batch.reason?{reason:batch.reason}:{}),...progress}));this.#passive.set(handle,{generation,state:batch.status,...progress});return handle;
  }
- #settled(state,facets=[]){return outcome(state.progress.remainingWork?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,...state.progress,...(state.progress.remainingWork?{processedState:'COMMITTED'}:{})});}
+ #settled(state,facets=[]){return outcome(state.progress.remainingWork?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,nextCursor:state.handle.nextCursor,complete:state.handle.complete,...state.progress,...(state.progress.remainingWork?{processedState:'COMMITTED'}:{})});}
  #response(a){
   this.#processingCurrent(a.state,a.state.processing.get(a.childId));const saved=a.state.outputs.get(a.childId);
   if(!saved||saved.childId!==a.childId||saved.jobId!==a.state.job.id||saved.operationReceiptId!==a.receipt.operationReceiptId||!['RESPONSE_RECORDED','VALIDATED'].includes(a.receipt.state))fail('UNAVAILABLE');return saved;
@@ -268,7 +268,7 @@ export class LocalMaintenanceSession {
  }
  async #defer(state,childId,facet,units,retryCondition){await this.#foundation.commitFacet(state.job.id,childId,{facet,units,outcome:'DEFER',retryCondition});this.#current(state);return {facet,units:units.length,state:'DEFERRED'};}
  run(handle){
-  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(outcome(passive.generation===this.#generation?passive.state:'UNAVAILABLE',{jobId:null,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork}));
+  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork}));
   const state=this.#handles.get(handle);if(!state)return Promise.resolve(outcome('UNAVAILABLE'));
   if(state.completed)return Promise.resolve(state.generation===this.#generation?this.#settled(state):outcome('UNAVAILABLE',{jobId:state.job.id,facets:[]}));
   try{this.#current(state);}catch(e){return Promise.resolve(outcome(safeError(e)));}

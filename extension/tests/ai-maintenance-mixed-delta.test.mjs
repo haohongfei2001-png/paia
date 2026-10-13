@@ -66,7 +66,7 @@ import {readMaintenanceBatch} from '../core/ai-usage/maintenance-batch.js';
 async function mixedFixture(extra={}){const f=await fixture(extra);await f.s.createTopic({operationId:op(),name:'Synthetic pending human Topic'});return f;}
 test('mixed current page locally defers unsupported units while the actual Input closes once',async()=>{
  const f=await mixedFixture(),h=await f.session.prepare(options),r=await f.session.run(h);assert.equal(r.state,'PARTIAL',JSON.stringify(r));assert.equal(r.processedState,'COMMITTED');assert.equal(r.remainingWork,true);assert.equal(h.deferredUnits,4);assert.equal(h.blockedUnits,4);assert.equal(h.complete,true);assert.equal(f.calls.length,1);assert.equal(f.state.acquires,1);const a=await ack(f);assert.equal(a.length,2);assert.ok(a.every(x=>JSON.parse(x.unit.key)[0]==='input'));assert.equal((await read(f.s,'organizerWorkItems')).filter(x=>x.state==='DEFERRED').length,4);
- const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;assert.equal((await f.session.run(h)).state,'PARTIAL');assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);const passive=await f.session.prepare(options);assert.equal(passive.state,'DEFERRED');assert.equal(passive.remainingWork,true);assert.equal(passive.blockedUnits,4);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);assert.equal(f.state.acquires,1);
+ const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;assert.equal((await f.session.run(h)).state,'PARTIAL');assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);const passive=await f.session.prepare(options);assert.equal(passive.state,'DEFERRED');assert.equal(passive.remainingWork,true);assert.equal(passive.blockedUnits,4);const passiveResult=await f.session.run(passive);assert.equal(passiveResult.nextCursor,passive.nextCursor);assert.equal(passiveResult.complete,passive.complete);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);assert.equal(f.state.acquires,1);
 });
 
 import {unsupportedMaintenanceCoverage} from '../core/ai-usage/maintenance-batch.js';
@@ -146,4 +146,11 @@ for(const proof of ['none','cloned','reused','restarted'])test('capacity cleanup
 });
 test('capacity-close abort preserves all prior98 and original new plan so an actual owner can safely retry cleanup',async()=>{
  const {f,ai,target}=await capacityRace(),transaction=f.s.repository.transaction.bind(f.s.repository),before=await snapshot(f.s);let reached=false;f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const result=await put(n,r,...rest);if(n==='organizerJobs'&&r.id===target.job.id&&r.state==='CANCELLED_BEFORE_DISPATCH'){reached=true;throw Error('Synthetic capacity-close abort');}return result;};}return fn(t);},stores);await assert.rejects(ai.deferMaintenanceBeforeDispatch(target.job.id,{groups:target.groups},target.owner),{code:'STORAGE_FAILED'});f.s.repository.transaction=transaction;assert.equal(reached,true);assert.deepEqual(await snapshot(f.s),before);assert.equal((await ai.deferMaintenanceBeforeDispatch(target.job.id,{groups:target.groups},target.owner)).reason,'DEFER_SCAN_BOUND');assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED').length,98);
+});
+
+test('disposed passive Maintenance result does not expose a reusable continuation',async()=>{
+ const f=await mixedFixture(),active=await f.session.prepare(options);await f.session.run(active);
+ const passive=await f.session.prepare(options);assert.equal(passive.state,'DEFERRED');
+ const before=await snapshot(f.s);f.session.dispose();const result=await f.session.run(passive);
+ assert.equal(result.state,'UNAVAILABLE');assert.equal(Object.hasOwn(result,'nextCursor'),false);assert.equal(Object.hasOwn(result,'complete'),false);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
 });
