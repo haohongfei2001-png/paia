@@ -68,6 +68,26 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
    return {native:indexedDB instanceof IDBFactory,same:new Set(handles).size,calls:f.calls(),result:results[0],jobs:rows.organizerJobs.length,children:rows.organizerJobs[0].childIds.length,dependencies:rows.organizerJobs[0].items.length,state:rows.organizerJobs[0].state,attempts:rows.organizerUsage.map(x=>x.attemptCount),bodyFree:!JSON.stringify(rows).includes('ASSIST_NATIVE_CURRENT_ONLY')&&!JSON.stringify(rows).includes('Explain next.'),exactReply:f.payload().reply.trim()==='ASSIST_NATIVE_CURRENT_ONLY',context:f.payload().context};
   });
   assert.deepEqual(pipeline,{native:true,same:1,calls:1,result:{version:1,kind:'SUGGESTION',text:'Explain next.',condition:'After checking the prerequisite'},jobs:1,children:1,dependencies:0,state:'COMMITTED',attempts:[1],bodyFree:true,exactReply:true,context:[]});
+  const bounded=await h.archive.evaluate(async label=>{
+   const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{AssistReplyLease}=await import(chrome.runtime.getURL('background/assist-reply-lease.js')),{LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js'));
+   const results=[];
+   for(const stop of ['timeout','dispose','dismiss','revoke'])for(const late of ['resolve','reject']){
+    const storage={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},s=new OrganizerStore(storage,{name:'assist-bounded-'+label+'-'+stop+'-'+late});await s.consent(true);s.organizerBudget.limits={...s.organizerBudget.limits,timeoutMs:25};
+    let mirror=null,calls=0,signal,finish,started,physical;const entered=new Promise(r=>started=r);
+    const lease=new AssistReplyLease({runtimeId:chrome.runtime.id,tabs:{get:id=>chrome.tabs.get(id)},probe:async(_host,request)=>{const result=await __privateAssistProbe(request);mirror=result?.binding;return result;},current:(_host,b)=>JSON.stringify(mirror)===JSON.stringify(b)});lease.configure({replyAccess:true,remoteProcessing:true});
+    const session=new LocalAssistSession(s,{lease,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async(_payload,options)=>{calls++;signal=options?.signal;started();physical=new Promise((resolve,reject)=>{finish=()=>late==='resolve'?resolve(JSON.stringify({version:1,kind:'SUGGESTION',text:'LATE_MUST_NOT_PUBLISH',condition:''})):reject(Error('synthetic late rejection'));});return physical;}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+    try{
+     const cap=await lease.observe(__assistNative.sender),handle=await session.prepare({lease:cap}),run=session.run(handle).then(()=>({published:true}),e=>({code:e.code}));await entered;
+     if(stop==='dispose')session.dispose();if(stop==='dismiss')session.dismiss(handle);if(stop==='revoke')lease.configure({replyAccess:true,remoteProcessing:false});
+     const outcome=await run,all=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)])))),before=await all();finish();await physical.catch(()=>{});const after=await all();
+     let resultDenied=false,inserts=0;try{await session.result(handle);}catch{resultDenied=true;}try{await session.insert(handle,{controller:{insert:()=>{inserts++;}},operationId:'synthetic-late-operation',conditionPresented:true});}catch{}
+     results.push({stop,late,calls,aborted:signal instanceof AbortSignal&&signal.aborted,published:outcome.published===true,code:outcome.code,resultDenied,inserts,unchanged:JSON.stringify(before)===JSON.stringify(after),jobs:after.organizerJobs.map(j=>j.state),attempts:after.organizerUsage.map(r=>[r.state,r.attemptCount,r.spendState]),acks:after.organizerWorkItems.filter(r=>r.state==='ACKNOWLEDGED').length,bodyFree:!JSON.stringify(after).includes('LATE_MUST_NOT_PUBLISH')});
+    }finally{session.dispose();lease.dispose();await s.repository.close();}
+   }return {nativeFactory:indexedDB instanceof IDBFactory,results};
+  },label);
+  assert.equal(bounded.nativeFactory,true);assert.equal(bounded.results.length,8);
+  for(const r of bounded.results){assert.equal(r.calls,1);assert.equal(r.aborted,true);assert.equal(r.published,false);assert.equal(r.code,r.stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(r.resultDenied,true);assert.equal(r.inserts,0);assert.equal(r.unchanged,true);assert.deepEqual(r.jobs,['OUTCOME_UNKNOWN']);assert.deepEqual(r.attempts,[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']]);assert.equal(r.acks,0);assert.equal(r.bodyFree,true);}
+  console.log('AI_NATIVE_BOUNDED_ASSIST',label,JSON.stringify(bounded));
   const insert=async(operationId,conditionPresented)=>h.archive.evaluate(async({operationId,conditionPresented})=>{
    const f=__assistNative;return f.session.insert(f.handle,{operationId,conditionPresented,controller:{insert:async request=>{
     if(request.isCurrent()!==true)return {status:'failed',reason:'stale_assist'};
