@@ -1,3 +1,11 @@
+# Current execution — final local Assist insertion qualification (2026-10-13)
+
+PR282 is merged as formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after independently reviewed head374807c5 passed Full38344601851. Earlier failed/cancelled candidates remain evidence, not active work pointers. Exact merged-main qualification is separate.
+
+Current0.48.1 reliability slice requalifies selected Context and authority at the final private Assist insertion handoff, then preserves original synchronous reply/draft/IME guards. [Owning receipt](implementation/ai-usage/AI-COST-06-FINAL-INSERT-AUTHORITY.md) distinguishes old whole native evidence, final corrected helper evidence, independent review and exact-head/main gates. Fresh main combination owning/version47PASS1683.882583ms. No real AI activation or new data writer. Approved0.49 presentation refinement and saved-history lifecycle work continue independently. Sync new features remain paused; Pro264/CI and all seven Canonical goals are preserved. No installed-user or whole-plan completion claim.
+
+## Preserved preceding checkpoints
+
 # Current candidate — complete local Maintenance batch (2026-10-13)
 
 PR280 is now merged as formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8; its exact final head0f36b2d passed Full38337300223 and independent final review. Normal merge tree e4f8d990 was verified to preserve latest main04f2cad2. Merged-main qualification remains separate. This preserves the latest CTX4-UI-1.2, SET2-UI-1.2, TL-PT1-UI-1.2 and IAH-1.3 refinements.  Its earlier failed runs remain evidence, not active uncorrected pointers. This isolated next candidate combines the reviewed explicit Context NO_CHANGE and bounded mixed-delta DEFER through their original owners, without false ACK, lost pending obligations or new permissions. It is local code under integration, not an installed version or completed AI-COST/CTX4 plan.
