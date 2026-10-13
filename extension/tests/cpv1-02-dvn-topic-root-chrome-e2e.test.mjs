@@ -151,7 +151,10 @@ for(const variant of ['source','release'])test(`D2 actual300 metadata-only Topic
   const recentTopic=seed.ids.at(-1),beforeActivity=await addresses();
   await rpc(p,'CONTINUE_THINKING',{thought:{topicId:recentTopic,operationId:op(),body:'SYNTHETIC new meaningful Root activity'}});
   await eventually(()=>p.locator(blocks).count().then(n=>n===300));await settleRoot(p);assert.deepEqual(await addresses(),beforeActivity,'background human activity does not jump the open Root');
-  await p.evaluate(async()=>{await __d5RootOwner.leave();__d5RootOwner.beginRootEntry();await __d5RootOwner.open(null);});
+  await p.locator('#primary-nav [data-view="library"]').click();
+  await eventually(()=>p.locator('#thought-panel').isHidden(),'actual Archive navigation leaves Thoughts');
+  await p.locator('#primary-nav [data-view="thoughts"]').click();
+  await eventually(()=>p.locator('#thought-panel').isVisible(),'actual Thoughts primary navigation reenters Root');
   await eventually(()=>p.locator(blocks).first().getAttribute('data-topic-id').then(id=>id===recentTopic),'fresh entry adopts complete-set meaningful activity order');
   const recent=p.locator(`${blocks}[data-topic-id="${recentTopic}"]`),newSlot=await recent.getAttribute('data-root-slot');assert.equal(newSlot,'0');
   await recent.locator('.personal-topic-link').click();await eventually(()=>p.locator('#thought-document').isVisible());await p.locator('#back').click();
