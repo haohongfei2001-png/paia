@@ -1,15 +1,15 @@
-import {thoughtHistoryAction,thoughtPrimary} from './harness/current-thought-navigation.mjs';
+import {thoughtHistoryAction,thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture as baseFixture,rpc,authority,savedRow,editSaved,refusedAI,setAIView as rawSetAIView,openTopic,noApproval,quiet,screenshotMatrix} from './harness/consumer-ai-browser.mjs';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 
 async function verifyAIHistoryLifecycle(p,topic){
- await thoughtHistoryAction(p,'revision-history');await eventually(()=>p.locator('#library-dialog').isVisible(),'current saved AI history opens');assert.ok(await p.locator('#library-dialog .revision-row').count()>0);await p.locator('#library-dialog-close').click();
+ await openThoughtReadingOptions(p);await p.locator('#revision-history').click();await eventually(()=>p.locator('#library-dialog').isVisible(),'current saved AI history opens');assert.ok(await p.locator('#library-dialog .revision-row').count()>0);await p.locator('#library-dialog-close').click();
  for(const fail of [false,true]){
   await openTopic(p,topic);await setAIView(p,true);
   await p.evaluate(fail=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__historyOriginalSend=send;globalThis.__historyHeld=null;globalThis.__historyReturned=false;chrome.runtime.sendMessage=async(message,...args)=>{const reply=await send(message,...args);if(message.type==='GET_AI_PRESENTATION_REVISIONS'){await new Promise(resolve=>globalThis.__historyHeld=resolve);globalThis.__historyReturned=true;if(fail)throw Error('synthetic obsolete history read failure');}return reply;};},fail);
-  await thoughtHistoryAction(p,'revision-history');await eventually(()=>p.evaluate(()=>typeof __historyHeld==='function'),'real AI history response is held');
+  await openThoughtReadingOptions(p);await p.locator('#revision-history').click();await eventually(()=>p.evaluate(()=>typeof __historyHeld==='function'),'real AI history response is held');
   await thoughtPrimary(p,'library');await eventually(()=>p.locator('#thought-panel').isHidden(),'real Archive navigation wins before historical reply');
   await p.evaluate(()=>{chrome.runtime.sendMessage=__historyOriginalSend;__historyHeld();});await eventually(()=>p.evaluate(()=>__historyReturned));await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   assert.equal(await p.locator('#library-dialog').isVisible(),false,'late historical read cannot reopen a different route');assert.equal(await p.locator('#library-dialog-content').textContent(),'','late AI body never enters hidden dialog');
