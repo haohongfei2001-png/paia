@@ -43,7 +43,7 @@ async function fixture(run,{count=3}={}){
  if(topics.length)await s.placeEntry({entryId:entry.id,topicId:topics[0].id,operationId:op(),expectedEntryRevision:(await raw(s,'thoughts',entry.id)).revision,expectedTopicRevision:(await raw(s,'topics',topics[0].id)).organizationRevision});
  const access=new ContextTopicAccessService(s),cards=new ContextCardsService(s,{topicSummary:(t,epoch)=>access.summaryInTransaction(t,epoch)});
  for(const key of ['global','inputs'])await cards.change({kind:'access',operationId:op(),epoch:'initial',key,enabled:true,expectedRevision:0});
- const body=new Node('body');globalThis.document={addEventListener(){},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ const body=new Node('body');const documentListeners=new Map();globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,new Set());documentListeners.get(type).add(listener);},removeEventListener(type,listener){documentListeners.get(type)?.delete(listener);},dispatchEvent(event){for(const listener of [...documentListeners.get(event.type)||[]])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const calls=[],pages=[],standalones=[],navigations=[];
  const dispatch=async message=>{
   switch(message.type){
