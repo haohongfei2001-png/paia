@@ -80,5 +80,5 @@ export class HistoricalCandidateSession{
  }
  async read(handle){const s=this.#get(handle);await this.#qualified(s,this.#deliveries.get(handle));if(!s.published)fail('UNAVAILABLE');return s.published.kind==='DEFER'?structuredClone(s.published):{version:1,kind:'CANDIDATES',refs:s.published.ids.map(id=>structuredClone(s.selected.find(x=>x.ref.id===id).ref))};}
  invalidate(){this.#serial++;for(const s of this.#states.values()){s.controller?.abort();s.published=null;s.validated=null;s.payload=null;}this.#handles=new WeakMap();this.#deliveries=new WeakMap();}
- dispose(){this.#disposed=true;this.#unsubscribe?.();this.invalidate();}
+ dispose(){this.#disposed=true;try{this.#unsubscribe?.();}finally{this.invalidate();}}
 }
