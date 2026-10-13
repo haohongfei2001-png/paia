@@ -1,7 +1,9 @@
 import {assertMemoryTopicTransitionAllowed} from './memory/organization-guard.js';
 import {assertTopicMergeAllowed,setTopicLifecycle,prepareTopicIdentityName,assertTopicIdentityBase,registerTopicName} from './topic-identity.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,rankBetween} from './thought-model.js';
-import {journal,nextSequence} from './thought-journal.js';
+import {hashText} from './dedupe.js';
+import {ArchiveError} from './constants.js';
+import {receipt,journal,nextSequence} from './thought-journal.js';
 import {queueSearch} from './library-search.js';
 const sectionKey=(t,g,s)=>JSON.stringify([t,g,s]);
 const placementKey=(t,g,e)=>JSON.stringify([t,g,e]);
@@ -61,8 +63,11 @@ export async function layoutBatch(store){
  });
 }
 export async function reorderPlacement(store,r){
- keys(r,['topicId','entryId','otherEntryId','expectedTopicRevision','operationId'],['topicId','entryId','otherEntryId','expectedTopicRevision','operationId']);if(!idOK(r.entryId)||!idOK(r.otherEntryId)||r.entryId===r.otherEntryId||!revisionOK(r.expectedTopicRevision))fail();
- const prior=await store.priorOperation(r);if(prior)return prior;const pair=await store.run(()=>store.repository.transaction(false,async t=>{const topic=await t.get('topics',r.topicId);if(!topic)fail();const a=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.entryId)),b=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.otherEntryId));const tied=a&&b&&(await t.count('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,a.sectionId,0,a.rank]))>1||await t.count('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,b.sectionId,0,b.rank]))>1);return {tied};}));if(pair.tied)return startLayout(store,{kind:'entry_order',topicId:r.topicId,entryId:r.entryId,otherEntryId:r.otherEntryId,expectedTopicRevision:r.expectedTopicRevision,operationId:r.operationId},r);
+ keys(r,['topicId','entryId','otherEntryId','expectedTopicRevision','operationId','expectedRecoveryEpoch'],['topicId','entryId','otherEntryId','expectedTopicRevision','operationId']);if(!idOK(r.entryId)||!idOK(r.otherEntryId)||r.entryId===r.otherEntryId||!revisionOK(r.expectedTopicRevision))fail();
+ if(r.expectedRecoveryEpoch!==undefined&&(typeof r.expectedRecoveryEpoch!=='string'||!r.expectedRecoveryEpoch.length||r.expectedRecoveryEpoch.length>200))fail();
+ if(r.expectedRecoveryEpoch!==undefined&&store.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
+ const digest=r.expectedRecoveryEpoch!==undefined?await hashText(JSON.stringify(r)):null;
+ const prior=digest?await store.run(()=>store.repository.transaction(false,async t=>{if(((await t.get('meta','recovery-restore-epoch'))?.value??'initial')!==r.expectedRecoveryEpoch)throw new ArchiveError('BACKUP_CHANGED');return receipt(t,r,digest);},['meta','operationReceipts'])):await store.priorOperation(r);if(prior)return prior;const pair=await store.run(()=>store.repository.transaction(false,async t=>{const topic=await t.get('topics',r.topicId);if(!topic)fail();const a=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.entryId)),b=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.otherEntryId));const tied=a&&b&&(await t.count('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,a.sectionId,0,a.rank]))>1||await t.count('placements','bySectionOrder',prefix([topic.id,topic.activeLayoutGeneration,b.sectionId,0,b.rank]))>1);return {tied};}));if(pair.tied)return startLayout(store,{kind:'entry_order',topicId:r.topicId,entryId:r.entryId,otherEntryId:r.otherEntryId,expectedTopicRevision:r.expectedTopicRevision,operationId:r.operationId},r);
  return store.operation(r,async t=>{const topic=await t.get('topics',r.topicId);if(!topic||topic.redirectTo)fail();if(topic.organizationRevision!==r.expectedTopicRevision)return {conflict:true};const a=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.entryId)),b=await t.get('placements',placementKey(topic.id,topic.activeLayoutGeneration,r.otherEntryId));if(!a||!b||a.lifecycle!=='active'||b.lifecycle!=='active'||a.sectionId!==b.sectionId)fail();
   // Stable key ties are legal. Generate an explicit distinct pair when imported ranks tie.
   const ranks=a.rank===b.rank?[rankBetween(null,a.rank),rankBetween(a.rank,null)]:[b.rank,a.rank];

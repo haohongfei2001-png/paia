@@ -887,7 +887,7 @@ export class TopicController {
   }finally{this.topicMergePending=false;}
  }
 
- async waitLayout(id,isCurrent=()=>true){for(;;){const r=await request('GET_LIBRARY_LAYOUT',{id});if(r.state==='complete')return;if(r.state==='paused'){if(isCurrent())this.onStatus('组织准备已暂停，当前文档保留，可重试。','error');throw new Error('LAYOUT_PAUSED');}if(isCurrent())this.onStatus('正在整理文档顺序…');await new Promise(resolve=>setTimeout(resolve,200));}}
+ async waitLayout(id,isCurrent=()=>true,{stopWhenStale=false}={}){for(;;){if(stopWhenStale&&!isCurrent())throw Error('LAYOUT_ROUTE_CHANGED');const r=await request('GET_LIBRARY_LAYOUT',{id});if(stopWhenStale&&!isCurrent())throw Error('LAYOUT_ROUTE_CHANGED');if(r.state==='complete')return;if(r.state==='paused'){if(isCurrent())this.onStatus('组织准备已暂停，当前文档保留，可重试。','error');throw new Error('LAYOUT_PAUSED');}if(isCurrent())this.onStatus('正在整理文档顺序…');await new Promise(resolve=>setTimeout(resolve,200));}}
  async sectionActions(section,action=null){
   if(this.sectionManagementPending||this.sectionActionPending||this.mutating)return;
   section={...section};const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent;
@@ -1087,9 +1087,45 @@ export class TopicController {
    if(attempt&&current()){if(attempt.result&&this.dialogEntryId===id)this.closeDialog();this.entryRemovalNotice(attempt,current);}
   }finally{this.entryRemovalPending=false;}
  }
- async entryActions(id,placement,action=null){if(action==='delete')return this.removeEntryWithUndo(id);if(action==='removeTopic')return this.removeTopicPlacement(id,placement);if(action==='section')return this.moveEntryToSection(id,placement);if(this.dialogEditor){this.dialogEditor.collect();if(!await this.dialogEditor.flush())return;this.dialogEditor.dispose();this.dialogEditor=null;}const v=action?{action}:await this.form('内容操作',[{key:'action',label:'操作',options:[['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>placement?.topicId||['add','delete'].includes(key))}]);if(!v)return;if(v.action==='delete')return this.removeEntryWithUndo(id);if(v.action==='removeTopic')return this.removeTopicPlacement(id,placement);if(v.action==='section')return this.moveEntryToSection(id,placement);if(v.action==='placementVersions')return this.revisions('placement',placement.id,this.id);
+ async reorderEntry(id,placement,direction){
+  if(this.entryReorderPending||this.mutating||!['up','down'].includes(direction))return;
+  const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,epoch=this.statusEpoch;let ownMutation=false;
+  const current=()=>this.id===topicId&&this.openIntent===intent&&this.presentationIntent===presentation&&(this.statusEpoch===epoch||ownMutation&&this.statusEpoch===epoch+1)&&this.view==='original';
+  const guard=()=>{if(!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))throw Error('ENTRY_REORDER_ROUTE_CHANGED');};
+  if(!topicId||placement?.topicId!==topicId||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;
+  const attempts=this.entryReorderAttempts??=new Map(),key=JSON.stringify([topicId,id]);let attempt=attempts.get(key);
+  if(!attempt&&attempts.size>=8){this.onStatus(tc('已有八项顺序结果待核对，请先重试原操作。'));return;}
+  this.entryReorderPending=true;
+  try{
+   if(!await this.flushEditors()||!current())return;
+   ownMutation=true;
+   await this.mutate(async()=>{
+    guard();
+    if(!attempt){
+     const status=await request('GET_LIBRARY_FOUNDATION_STATUS');guard();
+     const topic=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
+     const live=await request('GET_LIBRARY_PLACEMENT',{topicId,entryId:id});guard();
+     if(topic.id!==topicId||!status.recoveryEpoch||live?.lifecycle!=='active'||live.id!==placement.id||live.revision!==placement.revision||live.sectionId!==placement.sectionId||live.layoutGeneration!==placement.layoutGeneration)throw Error('ENTRY_REORDER_CHANGED');
+     const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId,kind:'entry',id,sectionId:live.sectionId,direction}});guard();
+     if(!adjacent.id){this.onStatus(tc(direction==='up'?'已经是本章节第一条。':'已经是本章节最后一条。'));return;}
+     attempt={request:{topicId,entryId:id,otherEntryId:adjacent.id,expectedTopicRevision:topic.organizationRevision,expectedRecoveryEpoch:status.recoveryEpoch,operationId:op()}};attempts.set(key,attempt);
+    }
+    const status=await request('GET_LIBRARY_FOUNDATION_STATUS');guard();
+    if(status.recoveryEpoch!==attempt.request.expectedRecoveryEpoch){attempts.delete(key);throw Error('BACKUP_CHANGED');}
+    if(!attempt.result){try{attempt.result=await this.checked('REORDER_LIBRARY_ENTRY',{placement:attempt.request},current);}catch(error){if(['CONFLICT','INVALID_REQUEST','BACKUP_CHANGED','BNS_HUMAN_UNSUPPORTED_MUTATION'].includes(error?.code||error?.message))attempts.delete(key);throw error;}}
+    guard();
+    if(attempt.result?.jobId){await this.waitLayout(attempt.result.jobId,current,{stopWhenStale:true});guard();}
+    const afterStatus=await request('GET_LIBRARY_FOUNDATION_STATUS');guard();
+    const after=await request('GET_LIBRARY_TOPIC',{id:topicId});guard();
+    if(afterStatus.recoveryEpoch!==attempt.request.expectedRecoveryEpoch){attempts.delete(key);throw Error('BACKUP_CHANGED');}
+    if(!attempt.result?.jobId&&(attempt.result?.id!==id||after.organizationRevision!==attempt.result.topicRevision)){attempts.delete(key);throw Error('ENTRY_REORDER_CHANGED');}
+    attempts.delete(key);this.onStatus(tc('手动顺序已保存。'));
+   },{isCurrent:current});
+  }finally{this.entryReorderPending=false;}
+ }
+ async entryActions(id,placement,action=null){if(action==='up'||action==='down')return this.reorderEntry(id,placement,action);if(action==='delete')return this.removeEntryWithUndo(id);if(action==='removeTopic')return this.removeTopicPlacement(id,placement);if(action==='section')return this.moveEntryToSection(id,placement);if(this.dialogEditor){this.dialogEditor.collect();if(!await this.dialogEditor.flush())return;this.dialogEditor.dispose();this.dialogEditor=null;}const v=action?{action}:await this.form('内容操作',[{key:'action',label:'操作',options:[['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>placement?.topicId||['add','delete'].includes(key))}]);if(!v)return;if(v.action==='up'||v.action==='down')return this.reorderEntry(id,placement,v.action);if(v.action==='delete')return this.removeEntryWithUndo(id);if(v.action==='removeTopic')return this.removeTopicPlacement(id,placement);if(v.action==='section')return this.moveEntryToSection(id,placement);if(v.action==='placementVersions')return this.revisions('placement',placement.id,this.id);
   let targetTopic=this.id,sectionId=placement?.sectionId;if(v.action==='add'){if(!await this.flushEditors())return;const row=await request('GET_LIBRARY_ENTRY',{id});return this.actions.add({kind:'thought',id,expectedRevision:row.revision},row.body);}
-  const changed=await this.mutate(async()=>{const e=await request('GET_LIBRARY_ENTRY',{id});const t=await request('GET_LIBRARY_TOPIC',{id:targetTopic});if(v.action==='up'||v.action==='down'){const adjacent=await request('GET_LIBRARY_TOPIC_ADJACENCY',{options:{topicId:this.id,kind:'entry',id,sectionId:placement.sectionId,direction:v.action==='up'?'up':'down'}});if(!adjacent.id){announce(v.action==='up'?'已经是本章节第一条。':'已经是本章节最后一条。');return;}const result=await this.checked('REORDER_LIBRARY_ENTRY',{placement:{topicId:this.id,entryId:id,otherEntryId:adjacent.id,expectedTopicRevision:t.organizationRevision,operationId:op()}});if(result.jobId)await this.waitLayout(result.jobId);this.onStatus('手动顺序已保存。');return;}const paths=await request('GET_LIBRARY_PATHS',{id}),old=paths.find(p=>p.topicId===targetTopic)?.placement;await this.checked('PLACE_LIBRARY_ENTRY',{placement:{entryId:id,topicId:targetTopic,...(sectionId?{sectionId}:{}),expectedEntryRevision:e.revision,expectedTopicRevision:t.organizationRevision,...(old?{expectedPlacementRevision:old.revision}:{}),remove:v.action==='removeTopic',operationId:op()}});});
+  const changed=await this.mutate(async()=>{const e=await request('GET_LIBRARY_ENTRY',{id});const t=await request('GET_LIBRARY_TOPIC',{id:targetTopic});const paths=await request('GET_LIBRARY_PATHS',{id}),old=paths.find(p=>p.topicId===targetTopic)?.placement;await this.checked('PLACE_LIBRARY_ENTRY',{placement:{entryId:id,topicId:targetTopic,...(sectionId?{sectionId}:{}),expectedEntryRevision:e.revision,expectedTopicRevision:t.organizationRevision,...(old?{expectedPlacementRevision:old.revision}:{}),remove:v.action==='removeTopic',operationId:op()}});});
  }
  async copyEntryText(id,node){
   const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,dialogIntent=this.dialogOpenIntent;

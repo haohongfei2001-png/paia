@@ -1,3 +1,7 @@
+# Current candidate — one recoverable Entry ordering intent
+
+TOPIC Entry up/down now retries the original neighbor and operation after unknown acknowledgement, avoiding a second unintended move. Original recovery-epoch fencing covers both direct swaps and tied-rank jobs; real departure to Archive prevents a hidden Topic write. Author189/independent189 and exact Source/release native Chrome pass. See implementation/topic-entry-reorder-session.md. PR284 remains unmerged/uninstalled, with full/latest visual gates open. No Sync new feature, CI change or provider activation; seven Canonical plans remain.
+
 # Current candidate — automatic Context candidate invalidation
 
 Owner-approved AI-COST-03 / CTX4-05 REMOVE_CANDIDATE now invalidates only unprotected automatic Items through the original owner, retaining body and both provenance closures while stopping external reads. New qualified evidence may reactivate the same identity; human protection, original processing authority and transactional exact ACK remain. Source-purge admission retains both source closures, and original backup exclusions remain. Author255/independent182 and exact Source/release native Chrome pass; failures are retained. See implementation/ai-usage/AI-COST-03-CONTEXT-INVALIDATION.md. PR284 remains unmerged/uninstalled with full/latest visual gates open; no real AI activation, Sync feature or CI change. All seven plans remain.
