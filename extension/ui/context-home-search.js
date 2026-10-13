@@ -30,21 +30,21 @@ export class ContextHomeSearch {
   if(!this.active||this.composing||document.hidden)return false;query=String(query??'').trim();if(!query)return this.clear();
   if(query.length>500){this.status.textContent=text('查询过长，请缩短后重试。','Query is too long. Shorten it and retry.');return false;}
   const generation=++this.generation;this.release();this.busy=true;this.query=query;this.field.value=query;this.offset=0;this.anchor=null;this.results.hidden=false;this.onResults(true);this.save();this.status.textContent=text('正在搜索本机上下文…','Searching local Context…');
-  const focusAtStart=document.activeElement;let focusMoved=false;const moved=()=>{focusMoved=true;};
+  const focusAtStart=document.activeElement;let focusMoved=false,restoreControl=null;const moved=()=>{focusMoved=true;};
   if(restore){document.addEventListener('focusin',moved);document.addEventListener('pointerdown',moved);}
   const restoreFocusCurrent=()=>!!restore&&!focusMoved&&this.current(generation)&&document.activeElement===focusAtStart;
   try{
    if(!await this.beforeSearch()){if(this.current(generation))this.status.textContent=text('请先完成并保存当前编辑。','Finish and save the current edit first.');return false;}if(!this.current(generation))return false;
    const snapshot=await this.send('PAIA_CONTEXT_CARDS_SNAPSHOT',{});if(!this.current(generation))return false;if(!validSnapshot(snapshot))throw Error('CONTEXT_SEARCH_UNAVAILABLE');this.epoch=snapshot.epoch;
    const needle=query.toLocaleLowerCase();this.matches=snapshot.items.filter(item=>[item.body,item.section].some(value=>value.toLocaleLowerCase().includes(needle))).map(item=>{const at=Math.max(0,item.body.toLocaleLowerCase().indexOf(needle)),start=Math.max(0,at-60);return {...ref(item),snippet:item.body.slice(start,start+240),partial:start>0||item.body.length>start+240};});
-   this.offset=restore?Math.min(Math.floor((restore.offset||0)/40)*40,Math.max(0,Math.floor((this.matches.length-1)/40)*40)):0;this.anchor=restore?.anchor||null;this.paintItems(restoreFocusCurrent);
+   this.offset=restore?Math.min(Math.floor((restore.offset||0)/40)*40,Math.max(0,Math.floor((this.matches.length-1)/40)*40)):0;this.anchor=restore?.anchor||null;restoreControl=this.paintItems(restoreFocusCurrent);
    this.status.textContent=snapshot.automaticEvaluation?text('部分自动内容资格暂不可核对，结果可能不全。','Some automatic content could not be qualified; results may be incomplete.'):text(`三卡找到 ${this.matches.length} 项。`,`Found ${this.matches.length} items across the three cards.`);
    try{await this.loadTopics(generation);if(!this.current(generation))return false;
     this.topics=new ContextTopicSearch({host:this.topicHost,send:(...args)=>this.send(...args),query,choices:()=>this.rows,selectedOnly:()=>false,open:(target,node)=>this.openTopic(target,node,generation)});await this.topics.read();
    }catch{if(this.current(generation))this.topicHost.replaceChildren(element('p','topics-note',text('我的输入暂时无法完整搜索；三卡结果仍可使用。','My Inputs search is unavailable or incomplete; card results remain available.')));}
    if(!this.current(generation))return false;this.save();return true;
   }catch{if(this.current(generation)){this.release();this.status.textContent=text('无法读取当前上下文，请重新搜索。','Current Context could not be read. Search again.');}return false;}
-  finally{if(restore){document.removeEventListener('focusin',moved);document.removeEventListener('pointerdown',moved);}if(this.current(generation))this.busy=false;}
+  finally{if(restore){document.removeEventListener('focusin',moved);document.removeEventListener('pointerdown',moved);}if(this.current(generation)){this.busy=false;this.setItemBusy();if(restoreControl&&restoreFocusCurrent()){restoreControl.focus({preventScroll:true});restoreControl.scrollIntoView?.({block:'nearest'});}}}
  }
  async loadTopics(generation){
   let cursor=null,epoch=null,authority=null;const cursors=new Set();
@@ -55,15 +55,16 @@ export class ContextHomeSearch {
   }while(cursor!==null);
  }
  paintItems(restoreFocusCurrent=()=>false){
-  this.itemResults.replaceChildren();for(const item of this.matches.slice(this.offset,this.offset+40)){const row=element('article','context-topic-search-result');row.dataset.contextSearchItem=item.id;const path=[text(...names[item.card]),item.section].filter(Boolean).join(' · '),control=button(path,()=>this.activate(item));control.dataset.contextSearchOpen=item.id;row.append(control,element('p','entry-prose',item.snippet+(item.partial?'…':'')));this.itemResults.append(row);if(this.anchor&&same(ref(item),this.anchor)&&restoreFocusCurrent()){control.focus({preventScroll:true});control.scrollIntoView?.({block:'nearest'});}}
-  this.previous.disabled=this.offset===0;this.next.disabled=this.offset+40>=this.matches.length;
+  let restoreControl=null;this.itemResults.replaceChildren();for(const item of this.matches.slice(this.offset,this.offset+40)){const row=element('article','context-topic-search-result');row.dataset.contextSearchItem=item.id;const path=[text(...names[item.card]),item.section].filter(Boolean).join(' · '),control=button(path,()=>this.activate(item));control.dataset.contextSearchOpen=item.id;row.append(control,element('p','entry-prose paia-search-preview',item.snippet+(item.partial?'…':'')),element('span','paia-search-preview-mask'));this.itemResults.append(row);if(this.anchor&&same(ref(item),this.anchor)&&restoreFocusCurrent()){restoreControl=control;}}
+  this.setItemBusy();return restoreControl;
  }
+ setItemBusy(){for(const control of this.itemResults.querySelectorAll('button'))control.disabled=this.busy;this.previous.disabled=this.busy||this.offset===0;this.next.disabled=this.busy||this.offset+40>=this.matches.length;}
  page(direction){if(!this.active||this.busy)return;this.offset=Math.max(0,Math.min(this.offset+40*direction,Math.floor(Math.max(0,this.matches.length-1)/40)*40));this.anchor=null;this.paintItems();this.save();}
  async activate(item){
-  if(!this.active||this.busy||!this.matches.some(row=>same(ref(row),ref(item))))return false;const generation=this.generation;this.busy=true;
+  if(!this.active||this.busy||!this.matches.some(row=>same(ref(row),ref(item))))return false;const generation=this.generation;this.busy=true;this.setItemBusy();
   try{const snapshot=await this.send('PAIA_CONTEXT_CARDS_SNAPSHOT',{});if(!this.current(generation))return false;if(!validSnapshot(snapshot)||snapshot.epoch!==this.epoch||!snapshot.items.some(row=>same(ref(row),ref(item)))){this.invalidate();return false;}
    this.anchor=ref(item);this.save();return await this.openItem({...this.anchor,epoch:this.epoch},()=>this.current(generation));
-  }catch{if(this.current(generation))this.invalidate();return false;}finally{if(this.current(generation))this.busy=false;}
+  }catch{if(this.current(generation))this.invalidate();return false;}finally{if(this.current(generation)){this.busy=false;this.setItemBusy();}}
  }
  async openTopic(target,node,generation){
   if(!this.current(generation)||this.viewer||!this.rows.has(target.topicId))return false;

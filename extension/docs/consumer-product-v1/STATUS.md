@@ -1,3 +1,7 @@
+# Current candidate — qualified search previews and usable pending controls
+
+Context Home, My Inputs and Archive conversation search snippets now follow the existing hidden-preview preference; explicit original bodies remain readable. Home visible matches stay disabled while qualification is pending and retain original Back/focus guards when enabled. Author/independent49PASS and final Source/release three real Chrome journeys pass; see implementation/settings-search-preview-mask.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. Original invalidation, permissions and all Canonical plans remain; no CI/Sync/service activation.
+
 # Current candidate — removed-content preview privacy
 
 SET2 now applies the existing hidden-preview preference to actual removed Input/Entry/placement excerpts, preserving names, recovery controls and original data. Author/independent46PASS and exact Source/release native Chrome pass; see implementation/settings-removed-preview-mask.md. PR284 remains unmerged/uninstalled; full/latest visual gates remain. No new preference/data writer, CI change, Sync feature or paid activation. All Canonical plans remain.

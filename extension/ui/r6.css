@@ -32,3 +32,10 @@ html.paia-hide-content-previews .paia-removed-preview{display:none!important}
 html.paia-hide-content-previews .paia-removed-preview-mask{display:inline;color:var(--muted);font-size:12px}
 html.paia-hide-content-previews .paia-removed-preview-mask::after{content:'内容预览已隐藏'}
 html[lang="en"].paia-hide-content-previews .paia-removed-preview-mask::after{content:'Content preview hidden'}
+
+/* Explicit search results are previews; opening a result keeps lawful reading. */
+.paia-search-preview-mask{display:none}
+html.paia-hide-content-previews .paia-search-preview{display:none!important}
+html.paia-hide-content-previews .paia-search-preview-mask{display:block;color:var(--muted);font-size:12px}
+html.paia-hide-content-previews .paia-search-preview-mask::after{content:'内容预览已隐藏'}
+html[lang="en"].paia-hide-content-previews .paia-search-preview-mask::after{content:'Content preview hidden'}

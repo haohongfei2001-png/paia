@@ -50,7 +50,7 @@ export class ContextTopicSearch {
   this.body.replaceChildren();const state=this.reader.state();let count=0;
   if(!this.invalidated)for(const part of this.reader.layout())if(part.kind==='item'){
    const item=part.item,targets=this.targets(item);if(!targets.length)continue;const row=element('article','context-topic-search-result');
-   if(item.kind==='entry')row.append(element('p','entry-prose',item.snippet));
+   if(item.kind==='entry')row.append(element('p','entry-prose paia-search-preview',item.snippet),element('span','paia-search-preview-mask'));
    for(const target of targets){const node=button([target.name,target.label].filter(Boolean).join(' · '),()=>this.activate(item,target,node));node.disabled=this.busy;row.append(node);}
    this.body.append(row);count++;
   }
