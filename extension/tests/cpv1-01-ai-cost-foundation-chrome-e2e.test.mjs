@@ -1,3 +1,4 @@
+import {verifyOrganizeProviderNative} from './harness/ai-organize-provider-native.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
@@ -272,7 +273,7 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(exactMultiCache.nativeFactory,true);assert.equal(exactMultiCache.results.length,3);assert.deepEqual(exactMultiCache.results.map(r=>[r.children,r.style,r.fault,r.completion]),[[2,'original','ack-hole','dispose'],[3,'balanced','unknown','style'],[4,'concise','malformed',null]]);for(const r of exactMultiCache.results){assert.equal(r.state,'COMMITTED');assert.equal(r.schema,4);assert.equal(r.base,'none');assert.equal(r.generations,1);assert.equal(r.exact,'exact');assert.deepEqual(r.sizes,Array(r.children).fill(20));assert.deepEqual(r.cached,Array.from({length:20},()=>['CACHED','CACHED',true,true]));assert.equal(r.writes,0);assert.equal(r.unchanged,true);assert.equal(r.faultCode,'STORAGE_FAILED');assert.equal(r.sawCandidateWrite,true);assert.equal(r.faultStamped,false);assert.equal(r.faultRollback,true);assert.deepEqual(r.attempts,Array(r.children).fill(1));assert.deepEqual(r.receiptStates,Array(r.children).fill('COMMITTED'));assert.equal(r.acks,r.children*20);if(r.completion){assert.equal(r.completionChanged,true);assert.equal(r.completionUnchanged,true);assert.equal(r.completionCode,r.completion==='dispose'?'UNAVAILABLE':'STALE_BASE');}else{assert.equal(r.completionCode,null);assert.equal(r.completionChanged,false);assert.equal(r.completionUnchanged,null);}}console.log('AI_NATIVE_EXACT_MULTICHILD_CACHE',label,JSON.stringify(exactMultiCache));
-  await verifyOrganizeLifecycleNative(p,label);
+  await verifyOrganizeLifecycleNative(p,label);await verifyOrganizeProviderNative(p,label);
   await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
   assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
  }finally{try{await h?.close();}finally{if(release)rmSync(release,{recursive:true,force:true});}}

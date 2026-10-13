@@ -75,7 +75,7 @@ export class LocalOrganizeSession {
   if(this.#generation!==generation)fail('UNAVAILABLE');
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   if(this.#jobs.size+this.#cached.size>=8)fail('UNAVAILABLE');
-  const state={...data,coverage,job,handle,multi:!!partitions,partitions:ordered,outputs:new Map(),provenance:new Map(),validated:null,running:false};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
+  const state={...data,coverage,job,handle,multi:!!partitions,partitions:ordered,outputs:new Map(),provenance:new Map(),validated:null,running:false,controller:new AbortController()};this.#handles.set(handle,state);this.#jobs.set(job.id,state);return handle;
  }
  async assemble(handle,childId=null){
   const state=this.#state(handle);if(state.cached||state.retired)fail('UNAVAILABLE');return this.#foundation.read(async t=>{
@@ -121,13 +121,30 @@ export class LocalOrganizeSession {
    const dispatched=await this.#foundation.dispatch(state.job.id,state.job.childIds[0],{describe:()=>descriptor,execute:async metadata=>{
     if(canonical(metadata.coverage)!==canonical(state.coverage))fail('STALE_BASE');
     const request=await this.assemble(handle),payload={...request,usage:metadata};if(bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
-    const response=await provider.execute(Object.freeze(structuredClone(payload)));
+    const response=await this.#executeBounded(state,provider,payload);
     if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');if(this.#incrementalVersion===3){const blocks=validateIncrementalChild(response,request,state.prepared);state.outputs.set(state.job.childIds[0],blocks);state.provenance.set(state.job.childIds[0],{childId:state.job.childIds[0],operationReceiptId:state.job.childIds[0],payloadDigest:await digest(payload),validatedOutputDigest:await digest(blocks)});await this.#finishV3(state);}else{state.validated=this.#incrementalVersion===2?validateIncrementalResponse(response,request,state.prepared):validateLocalOrganizeResponse(response,request);if(this.#incrementalVersion===2)state.manifestDigest=await digest(state.validated);}
     return {accepted:true,operationReceiptId:state.job.childIds[0]};
    }});
    if(dispatched.state!=='RESPONSE_RECORDED')return dispatched;
    return await this.#completed(state,await this.#foundation.commitFacet(state.job.id,state.job.childIds[0],{facet:'organize',units:state.coverage}));
   }finally{state.running=false;}
+ }
+ // Stop only the physical provider await; Foundation owns durable UNKNOWN
+ // accounting. A late response has no path back into validation or adoption.
+ async #executeBounded(state,provider,payload){
+  if(this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted)fail('UNAVAILABLE');
+  const timeoutMs=this.#store.organizerBudget.limits.timeoutMs;
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1)fail('UNAVAILABLE');
+  const controller=new AbortController();let timer,abort;
+  const stopped=new Promise((_,reject)=>{abort=()=>{controller.abort();reject(Object.assign(Error('ORGANIZE_STOPPED'),{code:'OUTCOME_UNKNOWN'}));};});
+  state.controller.signal.addEventListener('abort',abort,{once:true});
+  if(state.controller.signal.aborted)abort();timer=setTimeout(abort,timeoutMs);
+  try{
+   const work=Promise.resolve().then(()=>{if(this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted)fail('UNAVAILABLE');return provider.execute(Object.freeze(structuredClone(payload)),Object.freeze({signal:controller.signal,timeoutMs}));});
+   const value=await Promise.race([work,stopped]);
+   if(this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted)fail('UNAVAILABLE');
+   return value;
+  }finally{clearTimeout(timer);state.controller.signal.removeEventListener('abort',abort);}
  }
  async #runMulti(state,provider){
   const status=await this.#foundation.status(state.job.id);
@@ -145,7 +162,7 @@ export class LocalOrganizeSession {
    const dispatched=await this.#foundation.dispatch(state.job.id,childId,{describe:()=>descriptor,execute:async metadata=>{
     if(canonical(metadata.coverage)!==canonical(state.partitions[i].coverage))fail('STALE_BASE');
     const request=await this.assemble(state.handle,childId),payload={...request,usage:metadata};if(bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
-    const response=await provider.execute(Object.freeze(structuredClone(payload)));if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');
+    const response=await this.#executeBounded(state,provider,payload);if(bytes(response)>this.#store.organizerBudget.limits.maxOutputBytes)fail('BUDGET_EXCEEDED');
     const blocks=validateIncrementalChild(response,request,state.prepared);if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');state.outputs.set(childId,blocks);if(this.#incrementalVersion===3)state.provenance.set(childId,{childId,operationReceiptId:childId,payloadDigest:await digest(payload),validatedOutputDigest:await digest(blocks)});
     return {accepted:true,operationReceiptId:childId};
    }});
@@ -169,5 +186,5 @@ export class LocalOrganizeSession {
   for(const id of job.childIds){const receipt=await t.get('organizerUsage','aiu:attempt:'+id),p=state.provenance.get(id);if(receipt?.jobId!==job.id||receipt.childId!==id||receipt.state!=='RESPONSE_RECORDED'||receipt.operationReceiptId!==p?.operationReceiptId)fail('STALE_BASE');}
   if(this.#jobs.get(state.job.id)!==state)fail('UNAVAILABLE');
  }
- dispose(){this.#generation++;for(const state of this.#jobs.values()){releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);}this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
+ dispose(){this.#generation++;for(const state of this.#jobs.values()){state.controller.abort();releaseLocalOrganizeCacheProof(this.#store,state.cacheProof);releaseLocalOrganizeLifecycle(this.#store,state.lifecycleToken);}this.#handles=new WeakMap();this.#jobs.clear();this.#cached.clear();}
 }
