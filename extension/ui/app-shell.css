@@ -84,27 +84,33 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 
 @media(min-width:1440px){#primary-nav button,.sidebar-bottom>[data-view="settings"]{gap:8px;padding-left:10px;padding-right:10px}}
 
-/* D6.2 Archive, Thought, display-only Context and Settings shell. Page-specific geometry remains scoped below. */
+/* PAIA-WHITE-UI-1.0 shared application roles; existing page geometry and owners stay scoped below. */
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]){
- --bg:#fff;--rail:#fafbfd;--text:#17233c;--muted:#63728a;--quiet:#68778e;
- --line:#e6ebf2;--control:#68778e;--soft:#f4f6fa;--selected:#eaf1ff;
- --brand:#a34f46;--brand-soft:#eaf1ff;--focus:#235dd3;--selection:#ddeaff;
+ --bg:#ffffff;--surface:#ffffff;--rail:#fcfdff;--text:#222832;--muted:#687381;--quiet:#687381;
+ --prose-ink:#343b45;--title-ink:#242d3b;--heading-ink:#2b3543;--directory-ink:#525e6d;
+ --action:#3566b6;--selected-ink:#305eac;--subtle-line:#edf0f3;--rail-line:#e5eaf0;
+ --card-shadow:0 5px 13px -10px #192f572c;
+ --line:#e1e6ec;--control:#687381;--soft:#fcfdff;--selected:#edf3ff;
+ --brand:#3769c9;--brand-soft:#edf3ff;--focus:#5a85ca;--selection:#ddeaff;
  --danger:#b03549;--danger-bg:#fcf0f2;--warning:#785a20;--warning-bg:#faf5e9;--success:#28694f;
  --font:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
  --title-font:Georgia,"Songti SC","Noto Serif CJK SC",SimSun,serif;
  --rail-width:184px;--nav-width:312px;--prose:800px;--archive-gutter:44px;
  --radius:6px;--modal-radius:10px;--shadow:0 4px 18px rgba(23,35,60,.10);
  /* Rebind inherited aliases here so they resolve against this space's palette. */
- --paia-canvas:var(--bg);--paia-surface:var(--bg);--paia-sidebar:var(--rail);
+ --paia-canvas:var(--bg);--paia-surface:var(--surface);--paia-sidebar:var(--rail);
  --paia-text:var(--text);--paia-ink:var(--text);--paia-secondary:var(--muted);--paia-muted:var(--muted);--paia-meta:var(--quiet);
- --paia-accent:var(--focus);--paia-on-accent:#fff;--paia-hover:var(--soft);--paia-selected:var(--selected);
- --paia-line:var(--line);--paia-subtle:var(--line);--paia-control:var(--control);--paia-focus:var(--focus);
+ --paia-accent:var(--brand);--paia-on-accent:#fff;--paia-hover:var(--soft);--paia-selected:var(--selected);
+ --paia-line:var(--line);--paia-subtle:var(--subtle-line);--paia-control:var(--control);--paia-focus:var(--focus);
  --paia-danger:var(--danger);--paia-warning:var(--warning);
 }
 html[data-paia-theme="dark"] body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]){
- --bg:#171d28;--rail:#121823;--text:#e8edf7;--muted:#b0bdd0;--quiet:#a5b4cb;
+ --bg:#1a2028;--surface:#202731;--rail:#202731;--text:#d7dde5;--muted:#b0bdd0;--quiet:#a5b4cb;
+ --prose-ink:#d7dde5;--title-ink:#e8edf7;--heading-ink:#d7dde5;--directory-ink:#b0bdd0;
+ --action:#94baff;--selected-ink:#b5ceff;--subtle-line:#303b4c;--rail-line:#303b4c;
+ --card-shadow:0 5px 13px -10px #00000066;
  --line:#303b4c;--control:#a5b4cb;--soft:#202939;--selected:#263b5b;
- --brand:#e2a295;--brand-soft:#263b5b;--focus:#94baff;--selection:#314d79;
+ --brand:#94baff;--brand-soft:#263b5b;--focus:#94baff;--selection:#314d79;
  --danger:#f4a2b1;--danger-bg:#38242d;--warning:#e4c387;--warning-bg:#332c20;--success:#96d7b9;
 }
 /* Saved preferences are inline on html, including an explicitly saved standard. */
@@ -245,3 +251,16 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-
  body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #archive-navigator.is-sheet{position:relative;inset:auto;width:100%;height:auto;max-height:none;min-height:0;flex:1;padding:0 16px 24px;border:0;border-radius:0;box-shadow:none}
 }
 @media(max-width:767px){body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #archive-reader-navigator-slot{inset:74px 16px 16px}}
+
+/* Final role bindings for real application elements, not the reference viewer. */
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.sidebar,#archive-navigator){border-color:var(--rail-line)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.library-prose,.original-prose,.excluded-prose,.entry-prose,.thought-prose,.context-item .item-text){color:var(--prose-ink);line-height:1.65}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#workspace-heading,#archive-root-heading h1,.context-head h1,.ux-settings-header h1,#thought-document #topic-heading h1){color:var(--title-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-topic-title,.card-title,.context-section h2,.topic-root-section-anchor h2){color:var(--heading-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-section-link,.archive-navigator-window-title){color:var(--directory-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-topic-block,.context-card){background:var(--surface);box-shadow:var(--card-shadow)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#primary-nav button[aria-current="page"],.sidebar-bottom>[aria-current="page"],#archive-compact-nav-items [aria-current="page"],#archive-navigator .archive-navigator-window[aria-current="page"]){color:var(--selected-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.context-back:hover,.connections-link:hover,.personal-topic-more:hover){color:var(--action)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#document-body .library-prose,#original-reading-body .entry-prose,#ai-reading-body .entry-prose,#topic-body .entry-prose){color:var(--prose-ink);line-height:1.65}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.context-access[data-on="true"],.topic-access[data-on="true"],#settings-panel .ux-settings-nav>button[aria-current="page"],#settings-panel .ux-setting-switch[data-on="true"],#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill){color:var(--selected-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.context-notice button,#settings-panel .ux-about-link:hover,#settings-removed-dialog button:hover){color:var(--action)}
