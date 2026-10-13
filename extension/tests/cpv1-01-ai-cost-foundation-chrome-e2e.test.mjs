@@ -1,4 +1,4 @@
-import {verifyOrganizeProviderNative} from './harness/ai-organize-provider-native.mjs';
+import './harness/ai-cost-session-lifecycle-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
@@ -7,8 +7,6 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {FakeChatGPT} from './harness/fake-chatgpt.mjs';
-import {verifyPrivateAssistNative} from './harness/ai-assist-native.mjs';
-import {verifyOrganizeLifecycleNative} from './harness/ai-organize-lifecycle-native.mjs';
 const source=fileURLToPath(new URL('..',import.meta.url));
 async function attach(page){return page.evaluate(async()=>{
  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
@@ -280,8 +278,6 @@ for(const label of ['source','release'])test(`AI-COST-01 ${label} native Indexed
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   });
   assert.equal(exactMultiCache.nativeFactory,true);assert.equal(exactMultiCache.results.length,3);assert.deepEqual(exactMultiCache.results.map(r=>[r.children,r.style,r.fault,r.completion]),[[2,'original','ack-hole','dispose'],[3,'balanced','unknown','style'],[4,'concise','malformed',null]]);for(const r of exactMultiCache.results){assert.equal(r.state,'COMMITTED');assert.equal(r.schema,4);assert.equal(r.base,'none');assert.equal(r.generations,1);assert.equal(r.exact,'exact');assert.deepEqual(r.sizes,Array(r.children).fill(20));assert.deepEqual(r.cached,Array.from({length:20},()=>['CACHED','CACHED',true,true]));assert.equal(r.writes,0);assert.equal(r.unchanged,true);assert.equal(r.faultCode,'STORAGE_FAILED');assert.equal(r.sawCandidateWrite,true);assert.equal(r.faultStamped,false);assert.equal(r.faultRollback,true);assert.deepEqual(r.attempts,Array(r.children).fill(1));assert.deepEqual(r.receiptStates,Array(r.children).fill('COMMITTED'));assert.equal(r.acks,r.children*20);if(r.completion){assert.equal(r.completionChanged,true);assert.equal(r.completionUnchanged,true);assert.equal(r.completionCode,r.completion==='dispose'?'UNAVAILABLE':'STALE_BASE');}else{assert.equal(r.completionCode,null);assert.equal(r.completionChanged,false);assert.equal(r.completionUnchanged,null);}}console.log('AI_NATIVE_EXACT_MULTICHILD_CACHE',label,JSON.stringify(exactMultiCache));
-  phase('organize-lifecycle');await verifyOrganizeLifecycleNative(p,label);phase('organize-provider');await verifyOrganizeProviderNative(p,label);
-  phase('private-assist');await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
   phase('network-invariants');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   record(active,'end');active=null;record('body','verified');
  }catch(error){try{if(active)record(active,'failed');}catch{}active=null;throw error;
