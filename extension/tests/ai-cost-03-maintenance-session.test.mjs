@@ -160,7 +160,7 @@ for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' s
  const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
  let release,entered,physical,controls;const admitted=new Promise(r=>{entered=r;});f.state.held=new Promise(r=>{release=r;});
  const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
- const h=await f.session.prepare(options),running=f.session.run(h);await admitted;
+ const h=await f.session.prepare(options),running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
  assert.equal(controls.timeoutMs,25);assert.ok(controls.signal instanceof AbortSignal);assert.equal(controls.signal.aborted,false);
  if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();
  const result=await running;assert.equal(result.state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');nonAuthority(result);assert.equal(controls.signal.aborted,true);

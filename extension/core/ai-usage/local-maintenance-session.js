@@ -309,7 +309,7 @@ export class LocalMaintenanceSession {
    }
    const final=await this.#foundation.status(state.job.id);this.#current(state);
    if(final.state==='COMMITTED'){state.completed=true;state.removeRevocation();state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();for(const clean of state.processingCleanup)clean();state.processingCleanup.clear();this.#jobs.delete(state.job.id);}
-   return final.state==='COMMITTED'?this.#settled(state,results):outcome('PARTIAL',{jobId:state.job.id,facets:results,...state.progress});
+   return final.state==='COMMITTED'?this.#settled(state,results):outcome('PARTIAL',{jobId:state.job.id,facets:results,...state.progress,remainingWork:true});
   }catch(e){state.outputs.clear();return outcome(safeError(e),{jobId:state.job.id,facets:results});}
  }
  dispose(){this.#generation++;this.#preparing?.controller.abort();for(const state of this.#jobs.values()){state.removeRevocation();state.controller.abort();state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();for(const clean of state.processingCleanup)clean();state.processingCleanup.clear();}this.#jobs.clear();}
