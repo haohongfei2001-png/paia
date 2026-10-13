@@ -6,8 +6,8 @@ const id=x=>typeof x==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(x);
 export class AssistReplyLease {
  #listeners=new Set();#leases=new Map();#caps=new WeakMap();#epoch=0;#access=false;#remote=false;#session=crypto.randomUUID();#accessEpoch=crypto.randomUUID();#remoteEpoch=crypto.randomUUID();#disposed=false;#last=0;
  constructor({runtimeId,tabs,probe,current,clock=()=>performance.now()}={}){this.runtimeId=runtimeId;this.tabs=tabs;this.probe=probe;this.current=current;this.clock=clock;}
- configure({replyAccess,remoteProcessing}){if(typeof replyAccess!=='boolean'||typeof remoteProcessing!=='boolean')fail();if(this.#access!==replyAccess||this.#remote!==remoteProcessing){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of this.#listeners){try{fn();}catch{}}if(this.#access!==replyAccess)this.#accessEpoch=crypto.randomUUID();if(this.#remote!==remoteProcessing)this.#remoteEpoch=crypto.randomUUID();}this.#access=replyAccess;this.#remote=remoteProcessing;}
- invalidate(){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of this.#listeners){try{fn();}catch{}}}
+ configure({replyAccess,remoteProcessing}){if(typeof replyAccess!=='boolean'||typeof remoteProcessing!=='boolean')fail();if(this.#access!==replyAccess||this.#remote!==remoteProcessing){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of [...this.#listeners]){try{fn();}catch{}}if(this.#access!==replyAccess)this.#accessEpoch=crypto.randomUUID();if(this.#remote!==remoteProcessing)this.#remoteEpoch=crypto.randomUUID();}this.#access=replyAccess;this.#remote=remoteProcessing;}
+ invalidate(){this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();for(const fn of [...this.#listeners]){try{fn();}catch{}}}
  onInvalidate(fn){if(typeof fn!=='function'||this.#listeners.size>=8)fail('RESOURCE_LIMIT');this.#listeners.add(fn);return ()=>this.#listeners.delete(fn);}
  #now(){const n=this.clock();if(!Number.isFinite(n)||n<0||n<this.#last){this.dispose();fail('UNAVAILABLE');}this.#last=n;return n;}
  #allowed(){if(this.#disposed||!this.#access||!this.#remote)fail('UNAVAILABLE');}
@@ -26,5 +26,5 @@ export class AssistReplyLease {
  metadata(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');return {binding:structuredClone(r.binding),host:structuredClone(r.host),replyBinding:structuredClone(r.b)};}
  async snapshot(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const tab=await this.tabs.get(r.host.tabId);if(!this.#valid(r))fail('STALE_BASE');if(tab?.active!==true||tab?.incognito||tab?.url!==r.host.url)fail('STALE_BASE');const result=await this.probe(r.host,{snapshot:true});if(!this.#valid(r)||result?.ready!==true||!equal(result.binding,r.b))fail('STALE_BASE');return structuredClone(result.snapshot);}
  async evaluationKey(cap,dependencies,contractVersion,routeVersion){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const key=await digest([this.#session,r.host,r.b,this.#accessEpoch,this.#remoteEpoch,dependencies,contractVersion,routeVersion]);if(!this.#valid(r))fail('STALE_BASE');return key;}
- dispose(){this.#disposed=true;for(const fn of this.#listeners){try{fn();}catch{}}this.#listeners.clear();this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();}
+ dispose(){this.#disposed=true;for(const fn of [...this.#listeners]){try{fn();}catch{}}this.#listeners.clear();this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();}
 }
