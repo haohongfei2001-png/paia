@@ -77,13 +77,14 @@ for path in PAGES:
     check('i18n.js' not in text and 'polish.css' not in text, f'{name}: no legacy UI owners')
 
 # English is the default; old /en links stay readable with a canonical root URL.
-for relative in ('index.html','beta.html','demo.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html'):
+for relative in ('index.html','download.html','help.html','contact.html','beta.html','demo.html','principles.html','status.html','about.html','privacy-policy.html','terms.html','thanks.html','404.html','how-it-works.html','use-cases.html','blog.html','article-context.html','article-beliefs.html','article-reuse.html'):
+    canonical_relative = {'beta.html':'download.html','status.html':'help.html'}.get(relative,relative)
     root_doc = Document((ROOT/relative).read_text())
     zh_doc = Document((ROOT/'zh'/relative).read_text())
     check((ROOT/relative).read_bytes() == (ROOT/'en'/relative).read_bytes(), f'{relative}: legacy English alias matches canonical page')
-    check(next(a['href'] for a in root_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English root canonical')
-    check(next(a['href'] for a in zh_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/zh/'+('' if relative=='index.html' else relative), f'{relative}: Chinese canonical')
-    check(next(a['href'] for a in root_doc.all('link') if a.get('hreflang')=='x-default') == 'https://inputarchive.com/'+('' if relative=='index.html' else relative), f'{relative}: English default metadata')
+    check(next(a['href'] for a in root_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/'+('' if canonical_relative=='index.html' else canonical_relative), f'{relative}: English root canonical')
+    check(next(a['href'] for a in zh_doc.all('link') if a.get('rel')=='canonical') == 'https://inputarchive.com/zh/'+('' if canonical_relative=='index.html' else canonical_relative), f'{relative}: Chinese canonical')
+    check(next(a['href'] for a in root_doc.all('link') if a.get('hreflang')=='x-default') == 'https://inputarchive.com/'+('' if canonical_relative=='index.html' else canonical_relative), f'{relative}: English default metadata')
 # The current Owner direction is product-led. Preserve the brand identity and
 # claims, not the old photograph count, typography-only frame or frozen CSS.
 for relative in ('index.html', 'zh/index.html'):
@@ -102,6 +103,9 @@ for relative in ('index.html', 'zh/index.html', 'demo.html', 'zh/demo.html'):
     check(not any(name in source for name in ('home-core-v1.css', 'home-origin-v7.css', 'product-consistency.css', '/assets/website/demo.js')), f'{relative}: no retired stylesheet or demo cascade')
 
 verify_assets(ROOT, check)
+from launch_checks import verify_static_publication
+verify_static_publication(ROOT,check)
+
 
 # Keep the current production copy/hero and all unrelated generated pages frozen.
 # This uses a committed exact baseline, not an editable candidate snapshot.
@@ -406,8 +410,8 @@ try:
             check(not errors, f'{locale}: interactive demo no JS errors')
             page.close()
             page = browser.new_page()
-            load(page, locale + 'beta.html')
-            check(page.locator('form').get_attribute('action') == 'https://formsubmit.co/haohongfei2001@gmail.com', f'{locale}: existing beta destination retained')
+            load(page, locale + 'contact.html')
+            check(page.locator('form').get_attribute('action') == 'https://formsubmit.co/haohongfei2001@gmail.com', f'{locale}: existing consented contact destination retained')
             check(not page.locator('[name=contact_consent]').is_checked(), f'{locale}: forwarding consent starts unchecked')
             check(not page.locator('form').evaluate('el=>el.checkValidity()'), f'{locale}: empty form blocked')
             page.locator('#beta-email').fill('not-an-email')

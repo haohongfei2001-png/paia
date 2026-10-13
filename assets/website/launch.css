@@ -1,0 +1,67 @@
+/* Final-product entry paths. The approved homepage composition/motion stays
+   with its existing owners; this layer styles only publication-level details. */
+.release-platform{font-size:.8125rem;color:#617b9b;margin-top:24px}
+.release-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.75fr);gap:90px;align-items:start;padding-bottom:100px}
+.release-download{padding:42px;border:1px solid #dce6f3;border-radius:22px;background:linear-gradient(140deg,#fff,#f4f8ff);box-shadow:0 25px 55px -40px #55789e55}
+.release-app-wordmark{font:400 2.1rem/1.2 'PAIA Display',Georgia,serif;display:block;margin-bottom:30px;color:#1b3655}
+.release-download h2{font-size:1.6rem;letter-spacing:-.035em;line-height:1.4;margin-bottom:16px}
+.release-download>p{font-size:.9375rem;line-height:1.9;max-width:38ch}
+.release-install-actions{margin:28px 0 17px}
+.release-install:disabled{opacity:1;background:#e7eef9;border-color:#d6e1f0;color:#687e99;cursor:not-allowed;box-shadow:none}
+.release-availability{font-size:.8125rem!important;line-height:1.8;max-width:48ch!important;color:#596f8e}
+.release-alternatives{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;margin-top:23px}
+.release-permission-link{border-top:1px solid #dce7f5;padding-top:23px;margin-top:30px!important}
+.release-first-steps{padding-top:27px}
+.release-first-steps ol{list-style:none;counter-reset:steps;padding:0;margin:28px 0 0}
+.release-first-steps li{position:relative;padding:0 0 27px 44px;counter-increment:steps}
+.release-first-steps li::before{content:'0'counter(steps);position:absolute;left:0;top:2px;font-size:.6875rem;letter-spacing:.06em;color:#8a9fba}
+.release-first-steps h3{font-size:1.02rem;font-weight:500;margin:0 0 11px;line-height:1.6}
+.release-first-steps p{font-size:.875rem;line-height:1.85}
+.release-help-link{margin:8px 0 0 44px;padding-top:23px;border-top:1px solid #dce7f4}
+.release-help-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:80px;padding-bottom:90px;align-items:start}
+.release-help-index{display:flex;flex-direction:column;gap:14px;position:sticky;top:130px;font-size:.8125rem;line-height:1.8;color:#6680a0;padding-top:10px}
+.release-help-index a{padding:6px 0}
+.release-help-content{min-width:0;max-width:780px}
+.release-help-content>section{margin-bottom:46px;scroll-margin-top:130px}
+.release-help-content h2{font-size:1.55rem;margin:0 0 21px;line-height:1.5;letter-spacing:-.035em}
+.release-help-content .nr-details{margin:0;border:0;border-bottom:1px solid #dce6f3;border-radius:0;background:transparent;padding:0}
+.release-help-content .nr-details>summary{padding:18px 2px;font-size:1rem;line-height:1.65;min-height:56px;gap:18px;color:#385779}
+.release-help-content .nr-details>summary span{margin-left:auto;flex:none}
+.release-help-content .nr-details>div{padding:0 2px 21px}
+.release-help-content .nr-details p{font-size:.9375rem;line-height:1.9}
+.release-help-end{padding:30px 0 0;border-top:1px solid #dce6f3}
+.release-help-end .text-link{margin-top:20px;margin-right:25px}
+.release-contact .beta-aside>p{font-size:.9375rem;line-height:1.9;margin:20px 0}
+.release-contact .beta-form textarea{resize:none;min-height:140px}
+.release-contact .beta-aside .aside-note h3{font-size:1.08rem}
+/* The demo has one readable boundary note, not a development caption on
+   each product plane. Detailed data instructions remain explicitly available. */
+.hero-preview-caption{font-size:.6875rem}
+.pc-disclosure summary{font-size:.6875rem}
+.pc-reading-demo .pc-local-tag{font-size:.625rem}
+body[data-page='help.html'] .nr-intro h1,body[data-page='status.html'] .nr-intro h1{font-family:var(--display-font)}
+html[lang='zh-CN'] body[data-page='help.html'] .nr-intro h1,html[lang='zh-CN'] body[data-page='status.html'] .nr-intro h1{font-family:var(--sans)}
+@media(max-width:1080px){
+ .release-layout{gap:45px}
+ .release-download{padding:32px}
+ .release-help-layout{grid-template-columns:190px minmax(0,1fr);gap:36px}
+ .site-footer nav{min-width:0;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .site-footer nav>div{min-width:0}
+ .site-footer nav a{max-width:100%;overflow-wrap:anywhere}
+}
+@media(max-width:760px){
+ .release-layout{grid-template-columns:1fr;gap:20px;padding-bottom:65px}
+ .release-download{padding:28px 24px;border-radius:18px}
+ .release-first-steps{padding:28px 3px 0}
+ .release-help-layout{display:block}
+ .release-help-index{position:static;flex-direction:row;flex-wrap:wrap;gap:8px 22px;margin:0 0 30px;padding:0 0 19px;border-bottom:1px solid #dce6f3}
+ .release-help-content .nr-details>summary{font-size:.9375rem}
+ .release-help-content .nr-details p{font-size:.875rem}
+ .release-contact .beta-form textarea{font-size:1rem}
+ .hero-actions a{max-width:100%}
+}
+@media(forced-colors:active){
+ .release-download{background:Canvas;border:1px solid CanvasText;box-shadow:none}
+ .release-install:disabled{background:Canvas;color:GrayText;border-color:GrayText}
+ .release-help-content .nr-details{border-color:CanvasText}
+}

@@ -1,0 +1,86 @@
+{
+  "base_sha": "d6e6dfe73ffd78913a674ed299628b7c903581ce",
+  "home": {
+    "index.html": {
+      "#hero-title": [
+        "Your words.Beyond the chat."
+      ],
+      ".hero-description": [
+        "Keep what you tell AI.Find it. Connect it. Reuse it.Begin with what you already know."
+      ],
+      ".pv-expression p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ],
+      ".pc-record textarea": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one."
+      ],
+      "[data-thought-text]": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      "[data-story-original] .ad-story-entry p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ],
+      "[data-story-organized] p": [
+        "Compare material retrieval with content generation. Find out what creators need most.",
+        "Solve one recurring problem in the first release. Leave collaboration for later.",
+        "Success is not more features. It is whether the next task can build on this one.",
+        "Keep this trade-off: recover first, then decide whether to create more."
+      ]
+    },
+    "zh/index.html": {
+      "#hero-title": [
+        "你的表达，不止于对话。"
+      ],
+      ".hero-description": [
+        "保存你对 AI 说过的话。找回、串联、复用，让下一次从这里开始。"
+      ],
+      ".pv-expression p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。"
+      ],
+      ".pc-record textarea": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。"
+      ],
+      "[data-thought-text]": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+        "保留这个取舍：先找回，再决定是否创造更多。"
+      ],
+      "[data-story-original] .ad-story-entry p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+        "保留这个取舍：先找回，再决定是否创造更多。"
+      ],
+      "[data-story-organized] p": [
+        "先比较素材找回和内容生成，看看创作者更需要什么。",
+        "第一版只解决一个反复发生的问题，不做多人协作。",
+        "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+        "保留这个取舍：先找回，再决定是否创造更多。"
+      ]
+    }
+  },
+  "unmodified_runtime": {
+    "assets/website/home-core-v2.js": "6caf50fce2651c5649fc06ca830db73fd79935bedb3ca223a10bcb3c46090524",
+    "assets/website/home-art.js": "1157207d230a9d27bf6aa0fe637a86603555e7f76eef07ebc287b4fd39aba3b3",
+    "assets/website/scroll-story.js": "9e15c3b30ec974e950164a51f5935a1f6bb699f3e6482b4dd0498a69b1a60f89",
+    "assets/website/home-art.css": "876ba5c7a72b63405960ff19c265ace275673ccae89931e5fb9401c257513e51",
+    "assets/website/scroll-story.css": "1aba655d2c55758c5c65537a54de056c8897c92646fe48a0f32010ae721cf6f7",
+    "assets/website/product-experience.css": "79046a68e3971bdb6c94974153daefc74e42137035b48e53e6a4e20b6882d1b5",
+    "assets/website/refinement.css": "0886ca529e320e930d40353ef09f7acadb5ea6348314cb5287bfba98704033e0"
+  }
+}

@@ -98,3 +98,16 @@ Older files in `receipts/` remain historical evidence. Their frozen-hero rules,
 old export/task-package examples and former browser-environment limitations are
 superseded where they conflict with the current Owner direction and product map.
 They are not instructions to restore retired UI or services.
+
+
+## Final-product publication copy (2026-10-13)
+
+`launch_copy.json` is the explicitly approved bilingual publication wording;
+`launch_pages.py` owns Get/Help/Contact and the beta/status legacy aliases.
+`launch_manifest.json` separately gates the exact official install URL: a null
+target keeps installation honestly unavailable without development banners.
+The original sample expressions, headline and motion/data owners are protected
+by `launch_invariants.json`; the historical art-direction baseline remains
+unchanged, and the newly approved wording is frozen in `launch_baseline.json`.
+`launch_checks.py` joins the existing website browser suite; contact transport
+uses intercepted responses during tests, never actual user mail.

@@ -15,7 +15,7 @@ def verify_typography(page, check, label='site'):
     # headings and Chinese titles retain the readable UI face. Brand marks and
     # product Reader typography are separate roles, verified below.
     editorial_pages = {'about.html', 'how-it-works.html', 'use-cases.html',
-                       'blog.html', 'article-beliefs.html', 'article-context.html',
+                       'help.html', 'blog.html', 'article-beliefs.html', 'article-context.html',
                        'article-reuse.html', 'principles.html', 'status.html'}
     editorial = (page.locator('html').get_attribute('lang') == 'en' and
                  page.locator('body').get_attribute('data-page') in editorial_pages)
@@ -53,8 +53,8 @@ def verify_origin(page, check, en=True):
     test(stamps == ['12 AUG 09:42', '26 AUG 11:18', '10 SEP 18:03', '24 SEP 10:26'], 'topic preserves the chronological trail')
     test(page.locator('[data-context-card]').count() == 4, 'four independent Context cards remain identifiable')
     test(page.locator('[data-context-overview] textarea').count() == 0, 'overview keeps personal bodies in their details')
-    test(('not available yet' if en else '尚未开放') in page.locator('.pc-access-boundary').inner_text(), 'real connection availability is honest')
-    test(('EXAMPLE' if en else '示例') in page.locator('.pc-prompts').inner_text(), 'personal prompts remain a fictional example')
+    test(('live AI' if en else 'AI') in page.locator('.pc-disclosure').text_content() and ('clear on reload' if en else '刷新即清除') in page.locator('.pc-disclosure').text_content(), 'one demo boundary preserves nonconnection and transient-edit truth')
+    test(('sample' if en else '示例') in page.locator('.pc-disclosure').text_content(), 'shared demo explanation identifies sample content without repeated captions')
 
 
 def verify_hero(page, check, en=True, motion=False):
@@ -93,8 +93,8 @@ def verify_hero(page, check, en=True, motion=False):
     test(page.locator('[data-hero-glass]').evaluate("e=>getComputedStyle(e).backdropFilter.includes('blur(')"), 'preview is framed in optical glass')
     test(page.locator('.optical-field').get_attribute('aria-hidden') == 'true' and page.locator('.optical-field').evaluate("e=>getComputedStyle(e).pointerEvents==='none'"), 'decorative optical layers cannot capture clicks or speech focus')
     locale = '' if en else 'zh/'
-    test(page.locator('.hero-actions a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))') == [f'/{locale}demo.html', f'/{locale}beta.html'], 'both hero CTAs reach actual destinations')
-    test(('No personal archive or AI connection' if en else '不连接你的档案或 AI') in page.locator('.hero-preview-caption').inner_text(), 'preview availability is explicit')
+    test(page.locator('.hero-actions a').evaluate_all('els=>els.map(e=>e.getAttribute("href"))') == [f'/{locale}download.html', f'/{locale}demo.html'], 'both hero CTAs reach actual destinations')
+    test(('NOT SAVED' if en else '不保存你的输入') in page.locator('.hero-preview-caption').inner_text(), 'preview availability is explicit')
     page.locator('[data-preview-tab="archive"]').focus()
     for key, expected in [('ArrowRight', 'thought'), ('ArrowDown', 'context'), ('ArrowUp', 'thought'), ('End', 'context'), ('Home', 'archive'), ('ArrowLeft', 'context'), ('ArrowRight', 'archive')]:
         page.keyboard.press(key)
