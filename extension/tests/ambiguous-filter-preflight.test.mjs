@@ -185,3 +185,21 @@ test('release during permission revalidation prevents subsequent private body re
  const result=await f.reader.revalidate(initial.capability);f.s.repository.transaction=transaction;f.setHook(null);
  assert.equal(result.status,'STALE');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
 });
+
+
+test('expiry during permission revalidation stops subsequent private reads and frees capacity',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let expired=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(expired&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{expired=true;f.setNow(301000);});const result=await f.reader.revalidate(initial.capability);
+ f.s.repository.transaction=transaction;f.setHook(null);assert.equal(result.status,'STALE');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+ assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'STALE');
+});
+
+for(const change of ['expiry','rollback'])test('preparation '+change+' during permission check stops private reads before a handle exists',async()=>{
+ const f=await fixture(),request=await f.request(),transaction=f.s.repository.transaction.bind(f.s.repository);let changed=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(changed&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{changed=true;f.setNow(change==='expiry'?301000:999);});const result=await f.reader.prepare(request);
+ f.s.repository.transaction=transaction;assert.equal(result.status,'UNAVAILABLE');assert.equal(result.reason,change==='expiry'?'CAPABILITY_EXPIRED':'CLOCK_INVALID');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+});

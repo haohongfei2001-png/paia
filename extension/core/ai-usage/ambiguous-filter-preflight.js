@@ -110,7 +110,7 @@ export class AmbiguousFilterPreflight {
   try{
    if(!this.#ready()){this.#clear();return result('UNAVAILABLE','STORE_NOT_READY');}const now=this.#time(),epoch=this.#epoch,plan=scope(request);
    if(!integer(now+300000))stop('CLOCK_INVALID');
-   if(this.#states.size>=8)return result('UNAVAILABLE','CAPABILITY_BOUND');const read=await this.#read(plan,epoch);this.#active(epoch);if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');
+   if(this.#states.size>=8)return result('UNAVAILABLE','CAPABILITY_BOUND');const read=await this.#read(plan,epoch,()=>{if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');return true;});this.#active(epoch);if(this.#time()>=now+300000)stop('CAPABILITY_EXPIRED');
    if(!read.admitted.length)return result('NO_CAPABILITY','KEEP_OR_LOCAL_ONLY',read.publicRows);
    if(this.#states.size>=8)return result('UNAVAILABLE','CAPABILITY_BOUND',read.publicRows);
    const handle=Object.freeze(Object.create(null)),state={active:true,plan,epoch,expiresAt:now+300000,proof:read.proof,bodies:read.bodies};
@@ -120,7 +120,7 @@ export class AmbiguousFilterPreflight {
  async revalidate(handle){
   try{
    if(!this.#ready()){this.#clear();return result('UNAVAILABLE','STORE_NOT_READY');}this.#time();const state=this.#handles.get(handle);
-   if(!state?.active)return result('STALE','CAPABILITY_UNAVAILABLE');const read=await this.#read(state.plan,state.epoch,()=>state.active);this.#active(state.epoch);this.#time();
+   if(!state?.active)return result('STALE','CAPABILITY_UNAVAILABLE');const read=await this.#read(state.plan,state.epoch,()=>{this.#time();return state.active;});this.#active(state.epoch);this.#time();
    if(!state.active||!equal(state.proof,read.proof)){this.#retire(state);return result('STALE','SCOPE_CHANGED',read.publicRows);}
    return result('CURRENT','READ_SNAPSHOT_ONLY',read.publicRows,handle);
   }catch(e){const state=this.#handles.get(handle);if(state?.active)this.#retire(state);if(failures.has(e)&&e.reason==='CAPABILITY_RELEASED')return result('STALE','CAPABILITY_UNAVAILABLE');return this.#failure(e);}
