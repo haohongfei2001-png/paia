@@ -39,7 +39,7 @@ export class LocalMaintenanceSession {
  #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;
  constructor(store,{provider=null,service=null,window=null,authority=null,processing=null}={}){
   this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
-  this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context')}});
+  this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,qualifyMaintenanceEntries:async(t,request)=>{const entries=await this.#entryMapping(request,t);return request.coverage.filter(u=>u.facet==='topic'&&entries.has(u.key));},committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context')}});
   if(service!==null){
    exact(service,['version','topic','context','responseAdapter']);if(service.version!==1)fail();
    exact(service.topic,['resolveProcessing','decisionVersion','parameters']);exact(service.context,['processingVerifier','caller']);
@@ -50,7 +50,11 @@ export class LocalMaintenanceSession {
     // Schema/citations still belong to the original formation owner. This adds
     // the exact Input closure necessary before ACKing every selected delta unit.
     const cited=new Set(assessed?.evidence?.map(c=>c.inputId));
-    if(!equal([...cited].sort(),view.inputs.map(i=>i.id).sort()))fail('STALE_BASE');return assessed;
+    if(!equal([...cited].sort(),view.inputs.map(i=>i.id).sort()))fail('STALE_BASE');
+    const selectedEntries=this.#entries(a.state,a.units);
+    if(selectedEntries.some(e=>!view.entries.some(v=>v.id===e.entryId&&v.revision===e.revision)))fail('STALE_BASE');
+    const selected=selectedEntries.map(e=>e.entryId).sort(),accounted=assessed?.entries?.filter(e=>e.entryId!==undefined).map(e=>e.entryId).sort();
+    if(selected.length&&!equal(selected,accounted))fail('STALE_BASE');return assessed;
    }},writeTransaction:fn=>this.#writeDomain(fn,'topic')});
    this.#context=new ContextMaintenanceService(store,{processingVerifier:service.context.processingVerifier,writeTransaction:fn=>this.#writeDomain(fn,'context')});
   }
@@ -61,12 +65,27 @@ export class LocalMaintenanceSession {
   for(const receipt of state.processing.values())try{this.#assertProcessing(receipt);}catch(error){state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();throw error;}
  }
  #correlation(a){return {logicalJobId:a.state.job.id,childOperationId:a.childId,operationReceiptId:a.receipt.operationReceiptId};}
+ // Only restoration of a current Input-bound Entry is admitted in this slice.
+ // Metadata qualification never substitutes authored text or manufactures lineage.
+ async #entryMapping(request,transaction=null){
+  const qualify=async t=>{
+   const found=new Map();
+   for(const {key,descriptor:d}of request.items){
+    if(d.kind!=='library_entry'||d.independent)continue;
+    const row=await t.get('thoughts',d.recordId||d.entityId),journal=await t.get('revisions',d.journalId);
+    if(!row||row.id!==d.entityId||row.lifecycle!=='active'||row.revision!==d.revision||row.bodyBinding!=='input'||row.inputRefs?.length!==1||row.workingInputId!==row.inputRefs[0].inputBlockId||row.note||row.title)continue;
+    if(journal?.actor!=='user'||journal.kind!=='library_entry'||journal.entityId!==row.id||journal.afterRevision!==row.revision||journal.reason!=='restore'||!equal(journal.fieldMask,['lifecycle']))continue;
+    if(!equal([...(row.sourceRecordIds||[])].sort(),[...d.sourceRecordIds].sort()))continue;
+    found.set(key,{entryId:row.id,revision:row.revision,inputIds:[row.workingInputId]});
+   }return found;
+  };return transaction?qualify(transaction):this.#foundation.read(qualify);
+ }
+ #entries(state,units){return units.filter(u=>u.facet==='topic'&&state.entryMapping?.has(u.key)).map(u=>state.entryMapping.get(u.key));}
  #inputs(state,units){
-  const ids=new Set();for(const u of units){const item=state.request.items.find(i=>i.key===u.key);
-   // Existing non-Input/human deltas need their own exact domain mapper. Never
-   // turn absent canonical lineage into a synthetic Source or successful ACK.
-   if(item?.descriptor.kind!=='input'||item.descriptor.inputIds.length!==1||item.descriptor.inputIds[0]!==item.descriptor.entityId)return null;
-   ids.add(item.descriptor.entityId);
+  const ids=new Set();for(const u of units){const item=state.request.items.find(i=>i.key===u.key),d=item?.descriptor;
+   if(d?.kind==='input'&&d.inputIds.length===1&&d.inputIds[0]===d.entityId)ids.add(d.entityId);
+   else if(d?.kind==='library_entry'&&u.facet==='topic'&&state.entryMapping?.has(u.key)){for(const id of state.entryMapping.get(u.key).inputIds)ids.add(id);}
+   else return null;
   }return [...ids].sort();
  }
  async prepare(options){
@@ -82,7 +101,8 @@ export class LocalMaintenanceSession {
   if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
   if(!this.#service?.responseAdapter||!this.#provider||typeof this.#window?.acquire!=='function'||typeof this.#window?.isCurrent!=='function')fail('UNAVAILABLE');
   const descriptor=localProviderDescriptor(this.#provider);
-  const unsupported=unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage);
+  let entryMapping=await this.#entryMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+  const unsupported=unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()));
   if(unsupported.length){
    if(batch.activeDeferredUnits+unsupported.length>100)return this.#passiveHandle({...batch,status:'UNAVAILABLE',reason:'DEFER_SCAN_BOUND'},generation);
    const job=await this.#foundation.plan(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
@@ -96,7 +116,8 @@ export class LocalMaintenanceSession {
    // One fresh original qualification; no loop or guessed retry condition.
    batch=await readMaintenanceBatch(this.#foundation,options);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
    if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
-   if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage).length)fail('UNAVAILABLE');
+   entryMapping=await this.#entryMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+   if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys())).length)fail('UNAVAILABLE');
   }
   const request=batch.request,progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
   // Reuse the current Topic identity owner's 20-distinct-Source admission
@@ -105,9 +126,9 @@ export class LocalMaintenanceSession {
   const partitions=[];let partition=null;
   for(const item of request.items){const units=request.coverage.filter(u=>u.key===item.key),sources=item.descriptor.sourceRecordIds;
    if(sources.length>20)fail('BUDGET_EXCEEDED');
-   const combined=new Set([...(partition?.sources||[]),...sources]);
-   if(!partition||partition.units.length+units.length>50||partition.inputs>=Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:0};partitions.push(partition);}
-   for(const id of sources)partition.sources.add(id);partition.units.push(...units);partition.inputs++;
+   const combined=new Set([...(partition?.sources||[]),...sources]),inputIds=this.#inputs({request,entryMapping},units),combinedInputs=new Set([...(partition?.inputs||[]),...inputIds]);
+   if(!partition||partition.units.length+units.length>50||combinedInputs.size>Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:new Set()};partitions.push(partition);}
+   for(const id of sources)partition.sources.add(id);partition.units.push(...units);for(const id of inputIds)partition.inputs.add(id);
   }
   if(partitions.length>2)fail('BUDGET_EXCEEDED');request.children=partitions.map(p=>validateCoverage(p.units,TYPE));
   const requestDigest=await digest(request);
@@ -123,7 +144,7 @@ export class LocalMaintenanceSession {
   if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const handle=Object.freeze(outcome(job.state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));this.#passive.set(handle,{generation,state:job.state,...progress});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
-  const state={progress,request,job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
+  const state={progress,request,entryMapping,job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
   const revoked=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
@@ -158,10 +179,11 @@ export class LocalMaintenanceSession {
  #processingCurrent(state,receipt){this.#current(state);this.#assertProcessing(receipt);}
  async #processingReceipt(state,metadata){
   this.#current(state);if(!this.#processing)fail('UNAVAILABLE');
-  const inputIds=this.#inputs(state,metadata.coverage);if(!inputIds?.length)fail('UNAVAILABLE');
+  const inputIds=this.#inputs(state,metadata.coverage),entries=this.#entries(state,metadata.coverage);if(!inputIds?.length)fail('UNAVAILABLE');
+  if(entries.length){const currentEntries=await this.#entryMapping(state.request);this.#current(state);for(const entry of entries)if(!equal(currentEntries.get(state.request.items.find(i=>i.descriptor.entityId===entry.entryId).key),entry))fail('STALE_BASE');}
   const receipt=await this.#foundation.read(async t=>{
    const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);this.#current(state);
-   const request={purpose:'ai-maintenance-payload',logicalJobId:job.id,childOperationId:metadata.childOperationId,principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,inputs:inputIds.map(inputId=>({inputId,selectedFields:['body']})),facets:[...new Set(metadata.coverage.map(u=>u.facet))].sort(),coverage:structuredClone(metadata.coverage)};
+   const request={purpose:'ai-maintenance-payload',logicalJobId:job.id,childOperationId:metadata.childOperationId,principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,inputs:inputIds.map(inputId=>({inputId,selectedFields:['body']})),...(entries.length?{entries:entries.map(({entryId,revision})=>({entryId,revision,selectedFields:['body']}))}:{}),facets:[...new Set(metadata.coverage.map(u=>u.facet))].sort(),coverage:structuredClone(metadata.coverage)};
    const raw=await this.#processing.resolve(t,frozen(structuredClone(request)));this.#current(state);
    exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
    if(Reflect.ownKeys(raw).some(k=>!Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))||raw.version!==1||raw.store!==this.#store||raw.caller!==this.#service.context.caller||!Object.isFrozen(raw.caller)||!opaque(raw.epoch)||raw.processing!==true||!Number.isSafeInteger(raw.expiresAt)||raw.expiresAt<=Date.now()||!(raw.revocationSignal instanceof AbortSignal)||raw.revocationSignal.aborted)fail('UNAVAILABLE');
@@ -176,7 +198,7 @@ export class LocalMaintenanceSession {
  async #preparePayload(state,metadata){
   this.#current(state);const processing=await this.#processingReceipt(state,metadata);const inputIds=this.#inputs(state,metadata.coverage);
   if(!inputIds?.length)fail('UNAVAILABLE');if(inputIds.length>Math.min(20,this.#store.organizerBudget.limits.maxInputs))fail('BUDGET_EXCEEDED');
-  const handle=await this.#topic.prepareMaterial({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']}))},{signal:state.controller.signal});
+  const handle=await this.#topic.prepareMaterial({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,metadata.coverage).map(e=>e.entryId)},{signal:state.controller.signal});
   try{this.#current(state);const material=await this.#topic.readMaterial(handle);this.#current(state);
    const payload=createMaintenancePayload(metadata,material,this.#store.organizerBudget.limits);
    return {handle,payload,processing};
@@ -248,7 +270,7 @@ export class LocalMaintenanceSession {
   const inputIds=this.#inputs(state,units);if(!inputIds)return this.#defer(state,childId,'topic',units,'TOPIC_MAPPING_UNAVAILABLE');
   const key=canonical([childId,'topic',units]);let prepared=state.prepared.get(key);
   return this.#invoke(state,childId,receipt,'topic',units,async()=>{
-   if(!prepared){prepared=await this.#topic.prepare({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),operationId:this.#store.uuid()},{signal:state.controller.signal});this.#current(state);state.prepared.set(key,prepared);}
+   if(!prepared){prepared=await this.#topic.prepare({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,units).map(e=>e.entryId),operationId:this.#store.uuid()},{signal:state.controller.signal});this.#current(state);state.prepared.set(key,prepared);}
    await this.#topic.commit(prepared);
   });
  }

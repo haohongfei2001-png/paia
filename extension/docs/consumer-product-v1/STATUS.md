@@ -4,6 +4,8 @@ Formal main was freshly verified as `fb90d4406dfdacf6873dd0d0dadb7bf00b13b177`; 
 
 Current runtime follow-ups preserve Maintenance per-page COMMITTED semantics with truthful remaining-page progress, remove cached Topic metadata from invalid internal reading responses, and reserve the existing AI-COST04 private-preflight capacity before concurrent reads. Exact evidence and local/remote tree identities are retained in the coordinator checkpoint and PR284 review packets. Reader, AI, presentation and compatibility scoped reviews do not substitute for coherent final Full/main certification. The known Full native receipt-count mismatch and Candidate unit cancellation remain unresolved qualification evidence; Pro retains CI ownership. Do not repeat failed Full while its known infrastructure prerequisite is unchanged.
 
+The current additional AI-COST03 slice admits genuine restored Input-bound Entry Topic units through the original Formation owner, exact Entry/revision processing permission and atomic original-key ACK. Entry Context, authored/other mutation kinds and unchanged historical DEFER remain pending. This is an unmerged implementation, not completed general non-Input support.
+
 Continue remaining authorized local Canonical engineering; non-Input Maintenance semantic mapping and further accepted operations remain open, not completed by these safety repairs. Real AI/Pro activation stays unavailable without its required capabilities. Sync new features remain paused, all seven plans and safety checkpoints remain, and user installation/visual acceptance are separate. Preserve all preceding history below.
 
 # Current execution — bounded Reader performance repair (2026-10-13)

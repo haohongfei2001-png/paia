@@ -31,7 +31,8 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
  #createdMaintenancePlans=new WeakMap();
- constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null}={}){this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ #qualifyMaintenanceEntries;
+ constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope){
@@ -250,7 +251,15 @@ export class AIUsageFoundation {
    assertOwner();const job=await this.job(t,id);await this.current(t,job);assertOwner();
    if(job.kind!==KIND||job.version!==1||job.type!=='AI_MAINTENANCE'||job.state!=='PLANNED'||job.cancelEpoch!==0||job.committedCoverage.length!==0||job.childIds.length>2||(await t.get('meta',job.flightId))?.jobId!==id)fail();assertOwner();
    for(const childId of job.childIds){if(await t.get('meta',dispatchFenceId(childId))||await t.get('organizerUsage',receiptId(childId)))fail('OUTCOME_UNKNOWN');assertOwner();}
-   const unsupported=unsupportedMaintenanceCoverage(job.items,job.coverage),all=[],seen=new Set();
+   let unsupported=unsupportedMaintenanceCoverage(job.items,job.coverage);const all=[],seen=new Set();
+   if(this.#qualifyMaintenanceEntries){
+    const admitted=await this.#qualifyMaintenanceEntries(t,structuredClone({items:job.items,coverage:job.coverage}));assertOwner();
+    if(!Array.isArray(admitted))fail();
+    if(admitted.length){const checked=validateCoverage(admitted,job.type);
+     if(checked.some(u=>u.facet!=='topic'||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='library_entry'))fail();
+     unsupported=unsupported.filter(u=>!checked.some(v=>equal(u,v)));
+    }
+   }
    for(const group of groups){exact(group,['childId','facet','units','retryCondition']);const index=job.childIds.indexOf(group.childId),key=canonical([group.childId,group.facet]);
     if(index<0||seen.has(key)||group.retryCondition!==({topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE',filter:'FILTER_OWNER_UNAVAILABLE'})[group.facet])fail();seen.add(key);
     const units=validateCoverage(group.units,job.type);if(units.some(u=>u.facet!==group.facet||!job.childCoverage[index].some(v=>equal(u,v))))fail();all.push(...units);
