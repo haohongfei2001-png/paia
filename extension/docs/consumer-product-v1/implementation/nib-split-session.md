@@ -9,3 +9,9 @@ Final native Source and standard release each pass the complete 19-case CPV1-09 
 Frozen runtime blob b819ddffd02ed5133f621a5289061b8222d17fd5; unit test 656d8ad490d462abf53dcf6c93d98805a0713b23; native test 002fa52f84f07a397cb1e61f9081d73bdb9d373c. Snapshot paia-split-native-n760f954, evidence commit cb2be8722a04b9e981b09ccb929deabbca1e3776.
 
 PR284 remains an unmerged/uninstalled candidate. Exact-head full and latest approved visual gates remain open, independently of this fix. All Canonical scope, paused Sync functionality and Pro CI ownership remain. Follow-up focused review found no further confirmed defect in representative selection or hide/delete confirmation; this is not exhaustive project acceptance.
+
+## Exact-head CI follow-up
+
+Prompt38649642462 at f66aead failed shard2 because the search-display test extracts the production notification listener but omitted its new invalidateSplit dependency. The fixture now loads the actual production invalidator and supplies null splitChoice, retaining every draft/display assertion; no stub or runtime rollback. All11 NIBv4 non-Chrome whole test files pass107, zero fail/cancel/skip. This corrects a verification gap in the prior targeted selection; the original cloud failure remains failed.
+
+Visual38649642541 independently failed before capture at capture-prompt-convergence.mjs:27 waiting for the obsolete consent-check selector. The capture script now uses the current visible enable-consent action and waits for the original GET_STATE owner to confirm consentVersion=1 and enabled=true. Source/release state01 capture both pass; this validates startup, not full visual comparison. Workflow, routing and Pro PR264 files are untouched. No timeout or assertion relaxation. Existing Source/release native runtime evidence remains exact because this follow-up changes only the fixture/documentation.
