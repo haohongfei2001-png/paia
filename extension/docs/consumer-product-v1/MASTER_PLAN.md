@@ -1,3 +1,7 @@
+# Current candidate — feedback copy lifetime
+
+SET2-04 late clipboard results cannot change closed/reopened feedback or interrupt newer IME/copy operations. Original drafts/CAS and exact-copy departure protection remain. Related33PASS and independent13PASS overlap; Source/release native recovery/copy/conflict paths pass. See implementation/settings-feedback-copy-session.md. Candidate only: full/latest visual gates remain, all Canonical plans preserved, no CI/Sync/service activation.
+
 # Current candidate — split original-expression lifetime
 
 NIBv4 S2 split now fences cancelled, invalidated and destroyed member reads, immediately clears stale original bodies and preserves original owner membership/CAS plus manual work. Related78 PASS and independent10 PASS overlap; exact Source and standard release complete CPV1-09 native suites pass, with initial Source receipt-writer failure retained. See implementation/nib-split-session.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. No CI, Sync or service activation changes; all Canonical plans remain.

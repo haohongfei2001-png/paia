@@ -28,3 +28,29 @@ test('dialog IME/failed-save leave stays open; explicit copy uses current text a
 
 
 test('unknown save remains lifecycle-dirty when user returns to previously saved text',async()=>{const h=service(),s=new SettingsFeedbackSession(h);await s.load();s.edit('original');await s.flush();let fail=true;h.state.after=()=>{if(fail){fail=false;throw Error('lost acknowledgement');}};s.edit('changed');assert.equal(await s.flush(),false);s.edit('original');assert.equal(s.body,s.savedBody);assert.equal(s.dirty(),true,'pending outcome still needs original lifecycle protection');assert.equal(await s.flush(),true);assert.equal(s.dirty(),false);assert.equal((await h.store.load('settings_feedback',FEEDBACK_DRAFT_OWNER)).operation.body,'original');});
+
+async function feedbackCopyFixture(run){
+ const prior=new Map(['document','navigator'].map(k=>[k,Object.getOwnPropertyDescriptor(globalThis,k)])),nodes=[],copies=[];
+ class Node extends PresentationNode{showModal(){this.open=true;}close(){this.open=false;}select(){this.selected=(this.selected||0)+1;}}
+ const document={documentElement:{lang:'en'},body:new Node(),createElement(tag){const n=new Node(tag);nodes.push(n);return n;}};
+ Object.defineProperty(globalThis,'document',{configurable:true,value:document});Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText(text){const hold=deferred();copies.push({text,...hold});return hold.promise.then(ok=>{if(!ok)throw Error('clipboard denied');});}}}});
+ try{const h=service(),owner=mountSettingsFeedback(document.body,{send:h.send});await owner.show();const get=id=>nodes.find(n=>n.id===id),field=get('settings-feedback-body');field.value='SYNTHETIC unchanged feedback';field.listeners.get('input')();await owner.session.saving;await run({h,owner,document,field,get,copies,copy:()=>get('settings-feedback-copy').listeners.get('click')()});}finally{for(const [k,d]of prior)if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}
+}
+test('late feedback copy failure cannot focus or select a closed dialog',async()=>feedbackCopyFixture(async({owner,document,field,get,copies,copy})=>{
+ const pending=copy();assert.equal(await owner.leave(),true);document.activeElement=document.body;const status=get('settings-feedback-status').textContent;copies[0].resolve(false);await pending;assert.equal(document.activeElement,document.body);assert.equal(field.selected,undefined);assert.equal(get('settings-feedback-status').textContent,status);assert.equal(owner.session.body,field.value);
+}));
+test('late feedback copy completion cannot replace a reopened same-body dialog status',async()=>{
+ for(const ok of [true,false])await feedbackCopyFixture(async({owner,document,field,get,copies,copy})=>{const pending=copy();assert.equal(await owner.leave(),true);await owner.show();document.activeElement=get('settings-feedback-close');const status=get('settings-feedback-status').textContent;copies[0].resolve(ok);await pending;assert.equal(get('settings-feedback-status').textContent,status);assert.equal(document.activeElement,get('settings-feedback-close'));assert.equal(field.selected,undefined);});
+});
+test('an older feedback copy failure cannot replace a newer successful copy',async()=>feedbackCopyFixture(async({field,get,copies,copy})=>{
+ const old=copy(),latest=copy();copies[1].resolve(true);await latest;assert.match(get('settings-feedback-status').textContent,/copied/);copies[0].resolve(false);await old;assert.match(get('settings-feedback-status').textContent,/copied/);assert.equal(field.selected,undefined);
+}));
+
+test('feedback copy completions cannot interrupt a newer IME composition or authorize failed-save departure',async()=>{
+ for(const ok of [false,true])await feedbackCopyFixture(async({h,owner,document,field,get,copies,copy})=>{
+  h.state.before=()=>{throw Error('disk');};field.value='SYNTHETIC unsaved composition body';field.listeners.get('input')();await owner.session.saving;
+  const pending=copy();field.listeners.get('compositionstart')();const status=get('settings-feedback-status').textContent;document.activeElement=field;copies[0].resolve(ok);await pending;
+  assert.equal(owner.session.composing,true);assert.equal(field.selected,undefined);assert.equal(document.activeElement,field);assert.equal(get('settings-feedback-status').textContent,status);assert.equal(get('settings-feedback-copy').disabled,true);assert.equal(await owner.leave(),false);
+  field.listeners.get('compositionend')();await owner.session.saving;assert.equal(await owner.leave(),false,'a superseded copy does not authorize failed-save departure');assert.equal(owner.dialog.open,true);assert.equal(owner.session.body,field.value);
+ });
+});
