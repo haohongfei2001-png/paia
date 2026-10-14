@@ -1,3 +1,7 @@
+# Current candidate — split original-expression lifetime
+
+NIBv4 S2 split now fences cancelled, invalidated and destroyed member reads, immediately clears stale original bodies and preserves original owner membership/CAS plus manual work. Related78 PASS and independent10 PASS overlap; exact Source and standard release complete CPV1-09 native suites pass, with initial Source receipt-writer failure retained. See implementation/nib-split-session.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. No CI, Sync or service activation changes; all Canonical plans remain.
+
 # Current candidate — qualified search previews and usable pending controls
 
 Context Home, My Inputs and Archive conversation search snippets now follow the existing hidden-preview preference; explicit original bodies remain readable. Home visible matches stay disabled while qualification is pending and retain original Back/focus guards when enabled. Author/independent49PASS and final Source/release three real Chrome journeys pass; see implementation/settings-search-preview-mask.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. Original invalidation, permissions and all Canonical plans remain; no CI/Sync/service activation.

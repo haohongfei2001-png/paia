@@ -8,7 +8,7 @@ const checkText=document.getElementById('check-text'),searchInput=document.getEl
 let candidateTarget=null,candidateReady=false,candidateRequest=0;
 let mode='candidates',projectionGeneration=0,searchComposing=false,searchLoading=false,historyFailure=false,searchTimer=null;
 let checking=null,checkingRequest=null,copyRequest=null,layoutScheduled=false,lastMeasuredHeight=0,lastMinimumHeight=0,lastAppearance=null,lastLanguage=null,layoutPending=false,layoutDirty=false,pointerGesture=false,layoutTicket=0,disposed=false;
-let representativeChoice=null,historyReturnView=null,pendingListReturn=null,historyFocusedRow=null,returnIntent=0;
+let representativeChoice=null,splitChoice=null,historyReturnView=null,pendingListReturn=null,historyFocusedRow=null,returnIntent=0;
 let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
 
@@ -115,7 +115,7 @@ function focusRow(id){list.querySelector(`[data-id="${id}"] .more`)?.focus();}
 async function change(action,id,extra={}){
  const result=await rpc({type:'PAIA_PROMPT_CHANGE',change:{action,id,revision,...extra}});revision=result.revision;return result;
 }
-async function manage(action,item,extra={}){if(busy||composing)return;pending(true);try{await change(action,item.id,extra);representativeChoice=null;editing=false;editor.hidden=true;list.hidden=false;await refresh(true);focusRow(item.id);}catch{if(action==='representative')invalidateRepresentative();tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}finally{pending(false);}}
+async function manage(action,item,extra={}){if(busy||composing)return;pending(true);try{await change(action,item.id,extra);representativeChoice=null;splitChoice=null;editing=false;editor.hidden=true;list.hidden=false;await refresh(true);focusRow(item.id);}catch{if(action==='representative')invalidateRepresentative();if(action==='split')invalidateSplit();tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}finally{pending(false);}}
 async function insert(item,b,reviewed=false){
  if(!reviewed){const text=list.querySelector(`[data-id="${item.id}"] .text`);if(text&&clipped(item,text)){await checkWhole(item);return;}}
  if(editing||busy||drag||composing||attempted.has(item.id))return;
@@ -147,13 +147,21 @@ async function chooseRepresentative(item){
   members.querySelector('input')?.focus();scheduleLayout();
  }catch{if(representativeChoice===choice)invalidateRepresentative();}
 }
-async function split(item){
- if(busy)return;parkEditor();editing=true;++epoch;editor.hidden=false;list.hidden=true;editor.replaceChildren();
- try{const members=await rpc({type:'members',id:item.id}),title=document.createElement('p');bindCopy(title,'选择要独立保留、不再自动合并的原表达。');editor.append(title);
- const chosen=new Set();for(const m of members){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.addEventListener('change',()=>{if(box.checked)chosen.add(m.id);else chosen.delete(m.id);});label.append(box,document.createTextNode(m.text));editor.append(label);}
- editor.append(button('拆分',()=>{if(!chosen.size||chosen.size===members.length){tell('请选择一部分表达。');return;}void manage('split',item,{inputIds:[...chosen]});}),button('取消',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));
- }catch{tell('表达已变化，取消后刷新。');editor.append(button('返回',()=>{editing=false;editor.hidden=true;list.hidden=false;void refresh();}));}
+function invalidateSplit(){
+ const choice=splitChoice;if(!choice)return;choice.invalid=true;choice.chosen.clear();choice.members.replaceChildren();choice.save.disabled=true;if('pendingDisabled'in choice.save.dataset)choice.save.dataset.pendingDisabled='1';bindCopy(choice.note,'原文已变化，请取消后重新选择。');
 }
+async function split(item){
+ if(busy||drag||editing||checking||composing||disposed)return;parkEditor();editing=true;const ticket=++epoch;editor.hidden=false;list.hidden=true;editor.replaceChildren();
+ const title=document.createElement('p');bindCopy(title,'选择要独立保留、不再自动合并的原表达。');const note=document.createElement('p');bindCopy(note,'正在读取当前原文…');const members=document.createElement('div');
+ const choice={item,ticket,note,members,chosen:new Set(),count:0,invalid:false,save:null};splitChoice=choice;
+ const save=button('拆分',()=>{if(disposed||splitChoice!==choice||choice.invalid||busy||composing)return;if(!choice.chosen.size||choice.chosen.size===choice.count){tell('请选择一部分表达。');return;}void manage('split',item,{inputIds:[...choice.chosen]});});save.disabled=true;choice.save=save;
+ const cancel=button('取消',()=>{if(busy||composing)return;invalidateSplit();splitChoice=null;++epoch;editing=false;editor.hidden=true;list.hidden=false;void refresh();});const actions=document.createElement('div');actions.className='actions';actions.append(save,cancel);editor.append(title,note,members,actions);
+ try{const current=await rpc({type:'members',id:item.id});
+  if(disposed||splitChoice!==choice||ticket!==epoch||choice.invalid||!currentItems().some(x=>x.id===item.id&&x.text===item.text)){if(splitChoice===choice)invalidateSplit();return;}
+  choice.count=current.length;note.replaceChildren();for(const member of current){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.addEventListener('change',()=>{if(disposed||splitChoice!==choice||choice.invalid)return;if(box.checked)choice.chosen.add(member.id);else choice.chosen.delete(member.id);});label.append(box,document.createTextNode(member.text));members.append(label);}save.disabled=false;members.querySelector('input')?.focus();scheduleLayout();
+ }catch{if(splitChoice===choice)invalidateSplit();}
+}
+
 function order(item,beforeId=null){if(beforeId===item.id)return [...manualOrder];const pins=manualOrder.filter(id=>id!==item.id);const index=pins.indexOf(beforeId);pins.splice(index<0?pins.length:index,0,item.id);return pins;}
 // Presentation helpers reuse the same edit and reorder commands and guards.
 function parkEditor(){document.getElementById('card').insertBefore(editor,status);editor.className='';for(const row of list.querySelectorAll('.editing-row'))row.classList.remove('editing-row');}
@@ -256,7 +264,7 @@ document.getElementById('search-previous').addEventListener('click',()=>{if(!sea
 document.getElementById('open-paia').addEventListener('click',async()=>{if(busy||editing||drag||composing||searchLoading)return;pending(true);try{const result=await rpc({type:'history_open_paia',query:mode==='search'?history.query:'',searchSnapshot:mode==='search'?history.snapshot:null,ref:mode==='search'&&checking?.ref?.kind==='history_input'?checking.ref:null,range:mode==='search'?checking?.range??null:null});if(result?.status!=='opened')tell('暂时不可用。请在 PAIA 启用授权后刷新。');}catch{if(checking)leaveCheck(false);tell('此表达已变化，请刷新。');}finally{pending(false);}});
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
-chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing)revision=q.revision;session.reconcile(q);if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing)revision=q.revision;session.reconcile(q);if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 const next=document.createElement('button');next.id='next-reopen';bindCopy(next,'本轮建议');next.hidden=true;document.getElementById('surface-tools').append(next);
 let nextAvailabilityEpoch=0;
@@ -266,7 +274,7 @@ chrome.runtime.onMessage.addListener((r,s)=>{if(s.id===chrome.runtime.id&&!s.tab
 
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.
 const reflectFocus=()=>document.documentElement.toggleAttribute('data-focused',document.hasFocus());
-window.addEventListener('pagehide',()=>{disposed=true;++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
+window.addEventListener('pagehide',()=>{disposed=true;invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
 window.addEventListener('focus',reflectFocus);window.addEventListener('blur',reflectFocus);reflectFocus();
 
 }

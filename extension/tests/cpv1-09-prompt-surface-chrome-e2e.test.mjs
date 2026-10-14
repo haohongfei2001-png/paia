@@ -172,6 +172,24 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    // Direct fixture capture runs outside the worker's queue. Establish the complete
    // production projection before the explicit UI snapshot refresh.
    let ready;await eventually(async()=>{const r=await engineering.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_QUERY'}));if(!r.ok){assert.equal(r.error,'MEMORY_STALE','only a concurrent fixture projection may delay readiness');return false;}ready=r.data;return ready.items.find(x=>x.text.includes('解释这个算法'))?.members.length===2;},'both captured inputs must be in the production family before refreshing the card');const family=ready.items.find(x=>x.text.includes('解释这个算法'));assert.equal(family.members.length,2);
+   // Hold a real owner reply after reading qualified members, then invalidate
+   // the open chooser through the production message listener. Late bodies
+   // must remain absent; cancellation must also work before any reply arrives.
+   const splitFrame=card();await surfaceClick(splitFrame,'#refresh');
+   for(const action of ['invalidate','cancel']){
+    await splitFrame.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.restoreSplitSend=()=>{chrome.runtime.sendMessage=send;};chrome.runtime.sendMessage=async request=>{const result=await send(request);if(request?.command?.type==='members')return new Promise(resolve=>{globalThis.releaseSplitMembers=()=>resolve(result);});return result;};});
+    await clickSurface(splitFrame,splitFrame.locator('.row').filter({hasText:'解释这个算法'}).locator('.more'));await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'拆分',exact:true}));
+    await splitFrame.waitForFunction(()=>typeof globalThis.releaseSplitMembers==='function');
+    assert.equal(await splitFrame.getByRole('button',{name:'取消',exact:true}).isEnabled(),true);assert.equal(await splitFrame.locator('#editor input[type=checkbox]').count(),0);
+    if(action==='invalidate'){
+     await engineering.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}));
+     await eventually(()=>splitFrame.locator('#editor').textContent().then(text=>text.includes('原文已变化')),'original split listener invalidated the current choice');
+    }else await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'取消',exact:true}));
+    await splitFrame.evaluate(async()=>{globalThis.releaseSplitMembers();delete globalThis.releaseSplitMembers;globalThis.restoreSplitSend();await new Promise(resolve=>setTimeout(resolve,0));});
+    assert.equal(await splitFrame.locator('#editor input[type=checkbox]').count(),0);assert.doesNotMatch(await splitFrame.locator('#editor').textContent(),/解释这个算法/);
+    if(action==='invalidate'){assert.equal(await splitFrame.getByRole('button',{name:'拆分',exact:true}).isDisabled(),true);await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'取消',exact:true}));}
+    await surfaceReady(splitFrame);
+   }
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('.row').filter({hasText:'解释这个算法'}).count(),1,JSON.stringify({status:await f.locator('#status').textContent(),rows:await f.locator('.row').allTextContents()}));await clickSurface(f,f.locator('.row').filter({hasText:'解释这个算法'}).locator('.more'));await clickSurface(f,f.getByRole('button',{name:'拆分',exact:true}));await f.locator('#editor input[type=checkbox]').first().waitFor({state:'visible'});await surfaceReady(f);await f.locator('#editor input[type=checkbox]').first().check();await clickSurface(f,f.getByRole('button',{name:'拆分',exact:true}));await eventually(()=>f.locator('#editor').isHidden());await surfaceReady(f);assert.equal((await rpc(engineering,'PAIA_PROMPT_QUERY')).items.filter(x=>x.text.includes('解释这个算法')).length,2);assert.deepEqual((await h.state()).records,before);
   });
   await check('worker restart, SPA and page reload preserve durable templates without duplicate surface',async()=>{
