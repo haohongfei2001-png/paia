@@ -95,3 +95,27 @@ test('native readiness qualifies the current viewport instead of accepting the p
  for(const key of ['loading','hydration']){controller.homeCollection[key]=true;assert.equal(rootViewportSettled(),false);controller.homeCollection[key]=false;}
  controller.readFailed=true;assert.equal(rootViewportSettled(),false);controller.readFailed=false;retry.hidden=false;assert.equal(rootViewportSettled(),false);
 });
+
+test('same presentation preferences reapplication revokes text without collapsing an offscreen measured shell',async t=>{
+ const f=fixture(t);f.owner.update(f.items);f.respond();await settle();const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');
+ p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});node.rect.top=1000;void f.owner.refresh();assert.equal(p.style.minHeight,'40px');
+ f.owner.preferences();assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px','unchanged presentation is not a geometry invalidation');
+ assert.equal(f.host.dataset.retainedPreviewBodies,'0');
+ f.owner.changed({type:'ARCHIVE_CHANGED',cause:'REMOVE_LIBRARY_TOPIC'});assert.equal(p.style.minHeight,'','canonical qualification changes still retire the numeric shell');
+});
+for(const change of ['mask','locale','theme','width','style','hidden'])test('real '+change+' preference change retires measured geometry',async t=>{
+ const f=fixture(t);f.owner.update(f.items);f.respond();await settle();const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');
+ p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});node.rect.top=1000;void f.owner.refresh();assert.equal(p.style.minHeight,'40px');
+ if(change==='theme')f.doc.documentElement.dataset={paiaTheme:'dark'};if(change==='mask')f.doc.documentElement.classList={contains:()=>true};if(change==='locale')f.doc.documentElement.lang='zh-CN';if(change==='width')f.host.clientWidth=500;if(change==='style')f.doc.documentElement.getAttribute=()=> '--paia-prose-size:19px';if(change==='hidden')f.doc.hidden=true;
+ f.owner.preferences();assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'');
+});
+
+test('actual settings applyPreferences publication of unchanged DOM presentation preserves only numeric offscreen geometry',async t=>{
+ const f=fixture(t),{readFile}=await import('node:fs/promises'),source=await readFile(new URL('../ui/settings-preferences.js',import.meta.url),'utf8'),body=source.slice(source.indexOf('function applyPreferences(){'),source.indexOf('\nasync function loadPreferences'));
+ const styles=new Map(),root=f.doc.documentElement;root.dataset={};root.style={setProperty:(key,value)=>styles.set(key,value)};root.getAttribute=()=>JSON.stringify([...styles]);f.doc.dispatchEvent=()=>f.owner.preferences();
+ const local={preferences:{appearance:'light',fontSize:'standard',readingWidth:'standard'}};
+ const apply=new Function('local',"let uxPreferences;const FONT_PX={standard:17},WIDTH_PX={standard:680},language=()=> 'en',resolveAppearance=value=>value,syncPreferenceControls=()=>{},syncSettingsLocale=()=>{};"+body+';return applyPreferences;')(local);
+ apply();f.owner.update(f.items);f.respond();await settle();const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});node.rect.top=1000;void f.owner.refresh();
+ apply();assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px');assert.equal(f.host.dataset.retainedPreviewBodies,'0');
+ local.preferences.appearance='dark';apply();assert.equal(p.style.minHeight,'','actual changed theme identity invalidates the old geometry');
+});

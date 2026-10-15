@@ -1,5 +1,6 @@
 // Synthetic visual acceptance only. No connector, automatic producer, or provider grant.
 import assert from 'node:assert/strict';
+import {runContextReferencePair} from './context-reference-pair.mjs';
 import {closeContextReferencePages,finalizeContextReference} from './context-reference-cleanup.mjs';
 import {assertContextReadingPreferences} from './context-reading-preferences.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
@@ -90,7 +91,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs','tests/harness/context-reference-cleanup.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs','tests/harness/context-reference-cleanup.mjs','tests/harness/context-reference-pair.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});
@@ -108,8 +109,9 @@ export async function runContextReferenceEquivalence(variant){
    const rows=await directory(page);for(let index=0;index<Math.min(13,count);index++){const row=rows.find(row=>row.topicId===topics[index].id);if(!row.enabled){const result=await rpc(page,'PAIA_CONTEXT_TOPICS_CHANGE',{change:{topicId:row.topicId,enabled:true,expectedRevision:row.revision,expectedBinding:row.expectedBinding,epoch:(await read(page)).epoch,operationId:randomUUID()}});assert.equal(result.ok,true,JSON.stringify({reason:result.reason}));}}
   };
   const capture=async id=>{
+   const captureStarted=performance.now();
    const scene=screens.find(item=>item.id===id),query=new URLSearchParams(scene.query),card=query.get('page'),empty=query.get('state')==='empty';
-   await home(page);await page.setViewportSize(scene.viewport);await prototype.setViewportSize(scene.viewport);
+   await home(page);await runContextReferencePair(()=>prototype.setViewportSize(scene.viewport),()=>page.setViewportSize(scene.viewport));
    await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href+'?'+scene.query);await settle(prototype);
    const referenceState=await prototype.evaluate(()=>structuredClone(window.design.state));
    await refineWhiteReference(prototype);
@@ -134,14 +136,14 @@ export async function runContextReferenceEquivalence(variant){
     restore=async()=>{await worker.evaluate(()=>{IDBObjectStore.prototype.put=globalThis.__ctx4FinalPut;delete globalThis.__ctx4FinalPut;});};
    }
    if(card==='inputs')await page.waitForFunction(count=>document.querySelector('.context-inputs')?.getAttribute('aria-busy')==='false'&&document.querySelectorAll('.topic-access').length===count&&[...document.querySelectorAll('.topic-access')].every(node=>!node.disabled),referenceState.topics.length);
-   await settle(prototype);await settle(page);
-   const expected=await metrics(prototype,'reference'),actual=await metrics(page,'actual'),mismatches=compare(expected,actual,scene);
+   await runContextReferencePair(()=>settle(prototype),()=>settle(page));
+   const [expected,actual]=await runContextReferencePair(()=>metrics(prototype,'reference'),()=>metrics(page,'actual'));const mismatches=compare(expected,actual,scene);
    // Persist this frame before any invariant can abort the remaining scenes.
    await writeFile(join(out,'current-capture.json'),JSON.stringify({binding,id,reference:expected,actual,mismatches},null,2));
    if(['info','rules','now'].includes(card))await assertContextReadingPreferences(page,referenceState.items[card]);
    const snapshot=await read(page);assert.equal(snapshot.capabilities.external,false);assert.equal(snapshot.capabilities.automatic,false);assert.equal(snapshot.connections,0);
    referenceHashes[scene.file]=sha(await readFile(join(reference,scene.file)));
-   await prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true});
+   await runContextReferencePair(()=>prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true}),()=>page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true}));
    const acceptedVariations={readingFlow:!!card&&['info','rules','now'].includes(card),optionalNewCue:id==='17-New-Topic'&&actual.groups.newMark.length===0,unselectedPausedDataset:id==='14-Inputs-Paused',categoryOnlyHomeRefinement:!card};
    let canonicalUnsaved=null;
    if(id==='05-Inline-Editing'){
@@ -150,14 +152,15 @@ export async function runContextReferenceEquivalence(variant){
     const retained=(await read(page)).items.find(item=>item.id===before.id);assert.deepEqual(retained,before,'composition retains actual saved owner without false commit');
     assert.equal(await page.locator('.item-text').nth(3).evaluate(el=>el===document.activeElement),true);
     const successMarker=(await page.locator('.item-feedback').nth(3).textContent()).includes('已保存');
-    await settle(prototype);await settle(page);
-    await prototype.screenshot({path:join(out,id+'-unsaved-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-unsaved-'+variant+'.png'),fullPage:true});
-    canonicalUnsaved={sameSavedItem:true,sameRevision:true,focused:true,successMarker,comparison:compare(await metrics(prototype,'reference'),await metrics(page,'actual'),scene)};
+    await runContextReferencePair(()=>settle(prototype),()=>settle(page));
+    await runContextReferencePair(()=>prototype.screenshot({path:join(out,id+'-unsaved-reference.png'),fullPage:true}),()=>page.screenshot({path:join(out,id+'-unsaved-'+variant+'.png'),fullPage:true}));
+    const [unsavedReference,unsavedActual]=await runContextReferencePair(()=>metrics(prototype,'reference'),()=>metrics(page,'actual'));
+    canonicalUnsaved={sameSavedItem:true,sameRevision:true,focused:true,successMarker,comparison:compare(unsavedReference,unsavedActual,scene)};
     if(successMarker)canonicalUnsaved.comparison.push({scene:id+'-new-composition',selector:'.item-feedback',index:3,field:'successMarkerForUncommittedVisibleText',expected:false,actual:true});
     failures.push(...canonicalUnsaved.comparison);
     for(const target of [prototype,page]){const field=target.locator('.item-text').nth(3);await field.fill(before.body);await field.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));}
    }
-   scenes.push({id,referencePngSHA256:referenceHashes[scene.file],viewport:scene.viewport,reference:expected,actual,mismatches,acceptedVariations,canonicalUnsaved,unavailableReferenceFields:{connections:referenceState.connections.length,automaticMaintenance:card&&card!=='inputs'},syntheticOwnerState:{items:snapshot.items.length,topics:(await directory(page)).length,selected:snapshot.topicChoices.selectedCount,access:Object.fromEntries(Object.entries(snapshot.access).map(([key,value])=>[key,value.enabled]))}});
+   scenes.push({id,durationMs:performance.now()-captureStarted,referencePngSHA256:referenceHashes[scene.file],viewport:scene.viewport,reference:expected,actual,mismatches,acceptedVariations,canonicalUnsaved,unavailableReferenceFields:{connections:referenceState.connections.length,automaticMaintenance:card&&card!=='inputs'},syntheticOwnerState:{items:snapshot.items.length,topics:(await directory(page)).length,selected:snapshot.topicChoices.selectedCount,access:Object.fromEntries(Object.entries(snapshot.access).map(([key,value])=>[key,value.enabled]))}});
    failures.push(...mismatches);await writeFile(join(out,'measurements.json'),JSON.stringify({binding,referenceHashes,scenes,failures},null,2));if(restore)await restore();
   };
   await capture('15-Empty');

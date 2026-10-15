@@ -141,3 +141,18 @@ test('Add alone receives approved primary colors across light/dark and mobile wi
  }
  for(const width of [760,530,320])assert.equal(responsiveValue(css,'.add-item','min-height',width),'44px');
 });
+
+
+test('independent reference pages run together but both settle before success or failure',async()=>{
+ const {runContextReferencePair}=await import('./harness/context-reference-pair.mjs');
+ for(const failures of [false,true]){
+  const started=[];let releaseLeft,releaseRight,finished=false;
+  const left=new Promise(resolve=>releaseLeft=resolve),right=new Promise(resolve=>releaseRight=resolve);
+  const first=new Error('reference page failed'),second=new Error('actual page failed');
+  const pending=runContextReferencePair(async()=>{started.push('left');await left;if(failures)throw first;return 'reference';},async()=>{started.push('right');await right;if(failures)throw second;return 'actual';});
+  const observed=pending.then(value=>({value}),error=>({error})).finally(()=>finished=true);
+  await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(started,['left','right']);
+  (failures?releaseRight:releaseLeft)();await new Promise(resolve=>setImmediate(resolve));assert.equal(finished,false,'first rejection cannot race cleanup against other page');
+  (failures?releaseLeft:releaseRight)();const result=await observed;if(failures)assert.equal(result.error,first);else assert.deepEqual(result.value,['reference','actual']);
+ }
+});

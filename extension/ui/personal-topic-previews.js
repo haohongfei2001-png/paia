@@ -6,11 +6,15 @@ export class PersonalTopicPreviews {
  constructor(host,{nodes,open,send=request}){
   Object.assign(this,{host,nodes,open,send});this.items=[];this.generation=0;this.key='';this.active=true;this.nodeIds=new WeakMap();this.nextNodeId=0;
   this.scroll=()=>void this.refresh();this.intersection=globalThis.IntersectionObserver?new IntersectionObserver(this.scroll):null;this.visibility=()=>{if(this.suspended)return;if(document.hidden)this.clear({forget:false});else void this.refresh();};
-  this.preferences=()=>{if(this.suspended)return;this.clear({forget:false});void this.refresh();};
+  this.presentation=this.presentationKey();
+  this.invalidate=()=>{if(this.suspended)return;this.clear({forget:false});void this.refresh();};
+  this.preferences=()=>{if(this.suspended)return;const next=this.presentationKey(),reserve=next===this.presentation&&!document.hidden&&!document.documentElement.classList?.contains('paia-hide-content-previews');this.presentation=next;this.clear({forget:false,reserve});void this.refresh();};
   this.maskObserver=globalThis.MutationObserver?new MutationObserver(this.preferences):null;this.maskObserver?.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){if(this.suspended)return;this.clear({forget:false,reserve:true});this.awaitingMetadata=true;return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.preferences();};
+  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){if(this.suspended)return;this.clear({forget:false,reserve:true});this.awaitingMetadata=true;return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.invalidate();};
   globalThis.addEventListener?.('scroll',this.scroll,true);globalThis.addEventListener?.('resize',this.scroll);document.addEventListener('visibilitychange',this.visibility);document.addEventListener('paia:preferences-applied',this.preferences);globalThis.chrome?.runtime?.onMessage?.addListener(this.changed);
  }
+ // Already-applied presentation identity, never preference payload or body data.
+ presentationKey(){const root=document.documentElement;return JSON.stringify([root.lang,root.dataset?.paiaTheme,root.getAttribute?.('style')||'',this.host.clientWidth,document.hidden,!!root.classList?.contains('paia-hide-content-previews')]);}
  visible(node){const r=node?.getBoundingClientRect();return !!(node?.isConnected&&r&&r.width>0&&r.height>0&&r.bottom>0&&r.top<globalThis.innerHeight&&r.right>0&&r.left<globalThis.innerWidth);}
  update(items){this.awaitingMetadata=false;this.intersection?.disconnect();for(const node of this.nodes().values())this.intersection?.observe(node);this.items=items.map(({id,revision,organizationRevision,layoutGeneration})=>({id,revision,organizationRevision,layoutGeneration}));void this.refresh();}
  release(node,{reserve=false}={}){const container=node?.querySelector('.personal-topic-preview');if(!container)return;if(container.contains(document.activeElement))node.querySelector('.personal-topic-link')?.focus({preventScroll:true});const height=reserve?container.getBoundingClientRect().height:0;container.replaceChildren();container.style.minHeight=height?`${height}px`:'';container.hidden=!height;delete container.dataset.previewSignature;}
