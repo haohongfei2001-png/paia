@@ -49,6 +49,16 @@ test(`D1 explicit Original reads and copies the entire Conversation, then select
   assert.equal(await p.locator('.original-navigation').isVisible(),true,'complete Conversation retains its page coverage/navigation');
   assert.equal(await p.locator('#info-dialog textarea,#info-dialog [contenteditable]').count(),0);assert.equal(await p.locator('#source-time-summary').count(),0);assert.equal(await p.locator('#info-content button.danger').count(),0);assert.match(await p.locator('#info-dialog h2').textContent(),/SYNTHETIC Original Conversation/);
   await p.locator('#original-copy').click();await eventually(async()=>await p.evaluate(()=>globalThis.__copiedOriginal.length)===1,'complete Copy acknowledged');assert.equal(await p.evaluate(()=>globalThis.__copiedOriginal[0]),messages.map(m=>m.text).join('\n\n'));assert.equal(await p.locator('.library-prose').count()<123,true,'Copy includes unmounted tail');
+  // The current pagination intent owns visible rows and copy status even if a
+  // previous clipboard result arrives after the user starts another page/copy.
+  await p.evaluate(()=>{const original=navigator.clipboard.writeText;window.__originalClipboardRestore=()=>{navigator.clipboard.writeText=original;};window.__heldOriginalCopies=[];navigator.clipboard.writeText=text=>new Promise((resolve,reject)=>window.__heldOriginalCopies.push({text,resolve,reject}));});
+  await p.locator('#original-copy').click();await eventually(()=>p.evaluate(()=>__heldOriginalCopies.length===1));
+  await p.locator('.original-navigation').getByRole('button',{name:'下一段',exact:true}).click();await eventually(()=>p.locator('.source-original').first().textContent().then(text=>text===messages[40].text),'next Original page remains current');
+  await p.locator('#original-copy').click();await eventually(()=>p.evaluate(()=>__heldOriginalCopies.length===2));
+  await p.evaluate(()=>__heldOriginalCopies[0].reject(Error('SYNTHETIC old clipboard denied')));await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await p.locator('.original-copy-fallback').count(),0,'older failure cannot replace a newer page');assert.equal(await p.locator('#original-copy').isDisabled(),true,'older completion cannot enable a newer copy');assert.equal(await p.locator('.source-original').first().textContent(),messages[40].text);
+  await p.evaluate(()=>__heldOriginalCopies[1].reject(Error('SYNTHETIC current clipboard denied')));await eventually(()=>p.locator('.original-copy-fallback').isVisible());assert.equal(await p.locator('.original-copy-fallback').inputValue(),messages.map(m=>m.text).join('\n\n'),'current manual copy retains complete exact original');
+  await p.locator('.original-navigation').getByRole('button',{name:'上一段',exact:true}).click();await eventually(()=>p.locator('.source-original').first().textContent().then(text=>text===messages[0].text));assert.equal(await p.locator('.original-copy-fallback').count(),0);await p.evaluate(()=>__originalClipboardRestore());
   // D5: the actual long40-Input page scrolls internally while its same Close
   // control stays reachable at320px. Reopen, then retain the original Escape path.
   await p.setViewportSize({width:320,height:800});await p.locator('#info-content').evaluate(el=>el.scrollTop=el.scrollHeight);
