@@ -16,7 +16,7 @@ export class TopicActions {
   if(owner&&owner!==this.surface)return false;
   if(!force&&(this.composeSession?.composing||this.composeSession?.pending))return false;
   if(!force&&this.draft?.value.trim()&&!confirm(tc('文字尚未保存。放弃这份草稿？取消可保留在此继续写。')))return false;
-  this.beginOpen();const trigger=owner?.trigger||this.trigger;this.surface=null;this.draft=null;this.composeSession=null;this.quotePreview=null;this.comparing=false;if(owner?.workspacePreview||owner?.workspace)owner.content.remove();else{this.dialog.close();this.dialog.replaceChildren();}if(owner?.workspace)this.onWorkspaceChange?.();trigger?.focus({preventScroll:true});return true;
+  owner?.releaseCopy?.();this.beginOpen();const trigger=owner?.trigger||this.trigger;this.surface=null;this.draft=null;this.composeSession=null;this.quotePreview=null;this.comparing=false;if(owner?.workspacePreview||owner?.workspace)owner.content.remove();else{this.dialog.close();this.dialog.replaceChildren();}if(owner?.workspace)this.onWorkspaceChange?.();trigger?.focus({preventScroll:true});return true;
  }
  open(title){
   if(!this.close())return false;
@@ -77,7 +77,12 @@ export class TopicActions {
   const nodes=createThoughtComposeNodes({topicId,quote}),{draft,choices,choiceHost:host}=nodes;this.draft=draft;this.quotePreview=nodes.quotePreview;
   const owner=this.surface,session={draft,feedback:owner.feedback,attempt:null,acknowledged:null,pending:false,uncertain:false,composing:false};this.composeSession=session;
   const current=()=>isCurrent()&&this.currentSurface(owner)&&this.composeSession===session&&this.draft===draft&&draft.isConnected;
-  draft.addEventListener('compositionstart',()=>session.composing=true);draft.addEventListener('compositionend',()=>session.composing=false);
+  const cancelCopy=()=>{session.copyController?.abort();session.copyController=null;};
+  const hidden=()=>{if(document.hidden)cancelCopy();};
+  document.addEventListener?.('visibilitychange',hidden);window.addEventListener('pagehide',cancelCopy);
+  owner.releaseCopy=()=>{cancelCopy();document.removeEventListener?.('visibilitychange',hidden);window.removeEventListener?.('pagehide',cancelCopy);};
+  draft.addEventListener('input',cancelCopy);
+  draft.addEventListener('compositionstart',()=>{cancelCopy();session.composing=true;});draft.addEventListener('compositionend',()=>session.composing=false);
   let selected=topicId?new Set([topicId]):new Set(),destinationSection=sectionId,topicContext=null;
   const choiceChanged=topic=>{if(topicContext)topicContext.textContent=topic?.name||(selected.size?tc('保存到当前主题'):tc('暂不加入主题')); if(selected.size!==1||!selected.has(topicId))destinationSection=undefined;nodes.destination.textContent=destinationSection?(document.documentElement.lang==='en'?'Save to the selected section':'保存到所选章节'):tc(selected.size?'保存到当前主题':'暂不加入主题');};choiceChanged();
   choices.addEventListener('toggle',()=>{if(choices.open&&!choices.dataset.loaded){choices.dataset.loaded='true';void this.topicChoices(host,topicId,{owner,selected,onChange:choiceChanged});}});
@@ -114,7 +119,7 @@ export class TopicActions {
   });
   owner.onChoicePending=()=>{if(current())submit.disabled=owner.workspacePreview||session.pending||owner.pendingChoices>0;};
   draft.onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&!event.isComposing){event.preventDefault();submit.click();}};
-  const copy=button(tc('复制当前文字'),()=>{if(current())return copyReadingText(draft.value);}),cancel=button(tc('取消'),()=>{if(!owner.workspacePreview)this.close(false,owner);});
+  const copy=button(tc('复制当前文字'),()=>{cancelCopy();if(!current()||session.composing||document.hidden)return;const body=draft.value,controller=new AbortController();session.copyController=controller;return copyReadingText(body,{signal:controller.signal,isCurrent:()=>current()&&!session.composing&&!document.hidden&&draft.value===body});}),cancel=button(tc('取消'),()=>{if(!owner.workspacePreview)this.close(false,owner);});
   const presentation=mountThoughtComposePresentation({content:owner.content,feedback:owner.feedback,nodes,submit,copy,cancel,workspacePreview:!!workspacePreview,workspace:!!workspace});
   topicContext=presentation.context;choiceChanged();
   if(workspacePreview||workspace){choices.dataset.loaded='true';await this.topicChoices(host,topicId,{owner,selected,select:presentation.topicSelect,onChange:choiceChanged});}

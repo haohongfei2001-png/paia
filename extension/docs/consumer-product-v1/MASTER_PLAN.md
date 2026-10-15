@@ -1,3 +1,7 @@
+# Current candidate — compose draft clipboard lifetime
+
+Confirmed abandoned Topic drafts cannot return through a late clipboard fallback. Copy cancellation follows the current compose session and original confirmed-close/IME protections. Author54/independent6PASS overlap; exact Source/release native discard/manual-copy/new-input paths pass. See implementation/topic-compose-copy-lifetime.md. Candidate only; all Canonical scope and outstanding gates remain.
+
 # Current candidate — qualified Archive copy fallback
 
 Archive menu, selection and recovery-buffer copies now follow the current Reader lifecycle. Navigation/invalidation/PURGE cannot reopen old-body fallback; an existing invalid fallback is cleared and removed. Valid manual copy remains. Author33/independent5PASS overlap; exact Source/release native route/PURGE paths and503releaseguard pass. See implementation/archive-copy-lifetime.md. Candidate only, no whole-project completion; all Canonical plans and outstanding gates remain.
