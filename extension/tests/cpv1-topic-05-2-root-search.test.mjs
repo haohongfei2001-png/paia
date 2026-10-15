@@ -319,3 +319,52 @@ test('actual metadata invalidation and ordinary Home repaint retain a renamed of
   controller.invalidateHomeSnapshot({cause:'REMOVE_LIBRARY_TOPIC'});assert.equal(dom.owner.nodes.size,0);assert.equal(body.style.minHeight,'');assert.equal(body.textContent,'','removal leaves neither bodies nor permanent blank reservations');
  }finally{previews?.dispose();Object.assign(globalThis,prior);}
 });
+
+test('actual Root capture clear repaint and Back restore the activated identity across independent column geometry',async()=>{
+ const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy'],prior=Object.fromEntries(keys.map(key=>[key,globalThis[key]])),dom=searchDOM('a'),frames=[];
+ let position=0,repaint=false;const create=tag=>{const n=dom.create(tag);n.style={removeProperty(key){delete this[key];}};n.getBoundingClientRect=()=>{const top=(n.dataset.topicId==='b'?(repaint?5100:240):(repaint?5000:180))-position;return {top,bottom:top+100,height:100,width:300,left:0,right:300};};return n;};
+ const input={value:''},unplaced=create('div');unplaced.hidden=true;globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,querySelectorAll:()=>[],getElementById:id=>id==='thought-list'?dom.host:id==='library-unplaced-list'?unplaced:id==='unplaced-continuous-sentinel'?create('div'):input,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),innerWidth:1000,innerHeight:800,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>position+=y});
+ try{
+  dom.owner.nodes.clear();dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[];
+  const items=['a','b'].map(id=>({id,name:id,revision:1,sectionOverview:{items:[],complete:true}}));dom.owner.render(items,{complete:true});
+  const target=dom.owner.nodes.get('b'),link=target.querySelector('.personal-topic-link');link.focus();target.querySelector('.personal-topic-preview').append(create('span'));target.querySelector('.personal-topic-preview').children.at(-1).textContent='SYNTHETIC private';
+  const controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,id:null,serial:1,homePositions:new Map(),thoughtRootVisible:()=>true,homeCollection:{scope:'root',authority:'A',keys:new Set(['item:a','item:b']),reset(){}}});
+  const anchor=controller.captureHomeAnchor();controller.clearHomeRows();assert.equal(dom.owner.nodes.size,0);assert.equal(target.querySelector('.personal-topic-preview').textContent,'','departure releases preview text synchronously');
+  repaint=true;dom.owner.render(items,{complete:true});controller.restoreHomeAnchor(anchor);while(frames.length)frames.shift()();
+  assert.equal(dom.owner.nodes.get('b').getBoundingClientRect().top,240,'activated Topic keeps its own viewport coordinate, not another column anchor');assert.equal(document.activeElement.dataset.topicId,'b');
+  // The same ordinary owner also handles a real delete/restore invalidation,
+  // without retaining nodes, bodies, or reserving the deleted identity's hole.
+  for(const cause of ['REMOVE_LIBRARY_TOPIC','RESTORE_LIBRARY_TOPIC']){
+   const savedTop=dom.owner.nodes.get('b').getBoundingClientRect().top;
+   controller.invalidateHomeSnapshot({cause});assert.equal(dom.owner.nodes.size,0);const restore=controller.rootInvalidationAnchor;assert.equal(restore.id,'b');
+   dom.owner.render(cause==='REMOVE_LIBRARY_TOPIC'?items.slice(1):items,{complete:true});controller.homeCollection={scope:'root',authority:'A',keys:new Set(['item:a','item:b']),reset(){}};controller.restoreHomeAnchor(restore);while(frames.length)frames.shift()();
+   assert.equal(dom.owner.nodes.get('b').getBoundingClientRect().top,savedTop);assert.equal(document.activeElement.dataset.topicId,'b');
+  }
+  // No visible focused Topic: fall back to the actual first visible reading row.
+  position=4900;document.activeElement=input;assert.equal(controller.captureHomeAnchor().id,'a');
+ }finally{dom.owner.previews?.dispose();Object.assign(globalThis,prior);}
+});
+
+test('held preview after Back RAFs uses actual Root resize layout without overriding later reader intent',async()=>{
+ const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
+ const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY','ResizeObserver'],prior=Object.fromEntries(keys.map(k=>[k,globalThis[k]])),dom=searchDOM('a'),frames=[],pending=[];let resized,root,controller;
+ const create=tag=>{const n=dom.create(tag);n.style={removeProperty(k){delete this[k];}};Object.defineProperty(n,'childElementCount',{get:()=>n.children.length});n.closest=()=>n.classList.contains('personal-topic-block')?n:n.parentElement?.closest?.('.personal-topic-block');n.getBoundingClientRect=()=>{const card=n.classList.contains('personal-topic-block'),height=card?100+(n.querySelector('.personal-topic-preview')?.childElementCount?77:0):0,top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return{height,top,bottom:top+height,width:300,left:0,right:300};};return n;};
+ const input={value:''};globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:id=>id==='thought-list'?dom.host:input,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '1'}),innerWidth:1000,innerHeight:800,scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>globalThis.scrollY+=y,ResizeObserver:class{constructor(fn){resized=fn;}observe(){}unobserve(){}disconnect(){}}});
+ try{
+  dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.host.getClientRects=()=>[{}];
+  root=new PersonalTopicRoot(dom.host,{open(){},onResize:()=>controller?.resizeHomeAnchor?.()});root.previews=new PersonalTopicPreviews(dom.host,{nodes:()=>root.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});
+  const items=['a','b'].map(id=>({id,name:id,revision:1,sectionOverview:{items:[],complete:true}}));root.render(items,{complete:true});
+  controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:root,id:null,serial:1,homeCollection:{scope:'root',authority:'A',keys:new Set(['item:a','item:b'])}});
+  root.nodes.get('b').querySelector('.personal-topic-link').focus();const anchor=controller.captureHomeAnchor();controller.restoreHomeAnchor(anchor);while(frames.length)frames.shift()();
+  pending.shift()({kind:'root_previews',items:[{topicId:'a',preview:{text:'SYNTHETIC held original',sectionId:'s',entryId:'e'}}]});await new Promise(resolve=>setImmediate(resolve));
+  resized([{target:root.nodes.get('a')}]);while(frames.length)frames.shift()();assert.equal(root.nodes.get('b').getBoundingClientRect().top,anchor.top,'late qualified body and actual layout preserve the restored identity');assert.equal(document.activeElement.dataset.topicId,'b');
+  for(const fence of ['scroll','input','route','collection','serial','width']){
+   controller.id=null;controller.serial=1;dom.host.clientWidth=1000;controller.homeCollection={scope:'root',authority:'A',keys:new Set(['item:a','item:b'])};controller.restoreHomeAnchor(controller.captureHomeAnchor());while(frames.length)frames.shift()();
+   if(fence==='scroll')globalThis.scrollY+=30;if(fence==='input')controller.cancelHomeFocusScroll();if(fence==='route')controller.id='reader';if(fence==='collection')controller.homeCollection={};if(fence==='serial')controller.serial++;if(fence==='width')dom.host.clientWidth=900;
+   const before=globalThis.scrollY;root.nodes.get('a').querySelector('.personal-topic-preview').replaceChildren();resized([{target:root.nodes.get('a')}]);while(frames.length)frames.shift()();assert.equal(globalThis.scrollY,before,fence+' invalidates delayed correction');
+   root.nodes.get('a').querySelector('.personal-topic-preview').append(create('span'));root.layout();
+  }
+ }finally{root?.previews?.dispose();Object.assign(globalThis,prior);}
+});
