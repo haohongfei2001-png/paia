@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {validArchiveOrigin} from '../ui/route-history.js';
 import {DocumentSearchSessions} from '../ui/document-search-sessions.js';
 import {readDocumentSearchWindow,resetDocumentSearchPage} from '../ui/document-search-page.js';
 const source=readFileSync(new URL('../ui/archive.js',import.meta.url),'utf8');
@@ -44,4 +45,21 @@ test('actual Reader Find activation uses exact-target arrival and a single navig
  await context.openDocumentSearchItem({query:'needle'},{id:'target',documentId:'synthetic-doc',snippet:'current needle',bodyMatched:true,ref:{kind:'input',revision:7}});
  assert.equal(calls[0][3]?.searchArrival?.bodyMatched,true);assert.equal(calls[0][3]?.searchArrival?.knownRevision,7);assert.equal(calls[0][3]?.searchArrival?.query,'needle');assert.equal(calls[0][2],'target');assert.equal(Object.hasOwn(calls[0][3].searchArrival,'searchSnapshot'),false,'Reader scope does not invent Archive Project metadata');
  for(const patch of [{documentId:'another-doc'},{ref:{kind:'source',revision:7}},{ref:{kind:'input',revision:-1}}])await context.openDocumentSearchItem({query:'needle'},{id:'target',documentId:'synthetic-doc',bodyMatched:true,ref:{kind:'input',revision:7},...patch});assert.equal(calls.length,1,'invalid refs cannot activate a result');
+});
+
+
+test('actual compact Archive origin restores explicit source without reconstructing an All browse choice',()=>{
+ const snapshot={originKind:'search-results',readerDocumentId:'synthetic-doc',view:'library',query:'SYNTHETIC',cursor:null,pages:[],scroll:0,searchProject:null,sourceScope:'claude',navigator:null,dateStart:'',dateEnd:'',includeFiltered:true,focus:null};
+ assert.equal(validArchiveOrigin(snapshot),true,'the existing public origin validator actually admits navigator:null');
+ const nodes=new Map(),context={searchProject:null,$:id=>{if(!nodes.has(id))nodes.set(id,{});return nodes.get(id);},archiveNavigator:{sourceScope:'chatgpt',browseSource:'chatgpt',sourceInitialized:false,sourceSelect:{value:'chatgpt'},state:{select(){}},lastPaintSignature:'old',restoreNavigation(){throw Error('no fabricated tree snapshot');}}};
+ vm.createContext(context);vm.runInContext(actual('function restoreArchiveOrigin(', '\nfunction focusArchiveOrigin('),context);context.restoreArchiveOrigin(snapshot);
+ assert.equal(context.archiveNavigator.sourceScope,'claude');assert.equal(context.archiveNavigator.browseSource,'claude');assert.equal(context.archiveNavigator.sourceInitialized,true);assert.equal(context.archiveNavigator.sourceSelect.value,'claude');assert.equal(context.archiveNavigator.lastPaintSignature,null);
+ context.restoreArchiveOrigin({...snapshot,sourceScope:null});assert.equal(context.archiveNavigator.sourceScope,null);assert.equal(context.archiveNavigator.browseSource,'claude','All keeps a real existing browse choice rather than inferring from Reader');assert.equal(context.archiveNavigator.sourceSelect.value,'');
+});
+
+test('actual Reader result keeps maskable excerpt separate from title/time and original open action',async()=>{
+ const {PresentationNode}=await import('./harness/presentation-dom.mjs'),nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new PresentationNode('div'));return nodes.get(id);},input=new PresentationNode('input'),opened=[];
+ const current={query:'needle',items:[{id:'i',title:'Visible title',snippet:'PRIVATE needle exact',sourceSentAt:null}],history:[],nextCursor:null,activeInputId:null};
+ const context={$:get,readerScopeSearch:{input},view:'library',documentId:'d',document:{activeElement:null},documentSearchState:()=>current,readerCopy:(_zh,en)=>en,tc:x=>x,element:(tag,cls='',text='')=>{const n=new PresentationNode(tag);n.className=cls;n.textContent=text;return n;},highlightReading:()=>{},openDocumentSearchItem:async(...args)=>opened.push(args),showLocalFailure:()=>{throw Error('unexpected failure');}};
+ vm.createContext(context);vm.runInContext(actual('function renderDocumentSearch(', '\nfunction invalidateDocumentSearch('),context);context.renderDocumentSearch();const hit=get('document-search-results').children[0],excerpt=hit.children.find(n=>n.className==='paia-search-preview');assert.equal(excerpt.textContent,current.items[0].snippet);assert.equal(hit.children.filter(n=>n.tagName==='P').length,1);assert.ok(hit.children.some(n=>n.className==='paia-search-preview-mask'));assert.equal(hit.children[0].textContent,'Visible title');assert.equal(hit.getAttribute('title'),null);hit.listeners.get('click')();await Promise.resolve();assert.equal(opened.length,1);assert.equal(opened[0][1],current.items[0]);assert.equal(current.query,'needle');
 });

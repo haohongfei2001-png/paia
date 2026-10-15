@@ -49,3 +49,10 @@ test('invalidation clears active/cached pages and generations before a stale bod
 test('over-bound Search extent loses disposable paging instead of blocking leave or retaining bodies',()=>{
  const sessions=new DocumentSearchSessions(2),page=sessions.get('long-conversation');page.query='synthetic query';page.items=[{snippet:'SYNTHETIC transient body'}];page.activeInputId='input-long';page.savedAnchor={inputId:'input-before',offset:6,expanded:['input-before']};page.history=Array.from({length:101},(_,i)=>({after:'input-'+i}));page.cursor={after:'last-page'};sessions.park();assert.deepEqual(page.items,[]);const restored=sessions.get('long-conversation');assert.equal(restored.query,'synthetic query');assert.equal(restored.activeInputId,'input-long');assert.equal(restored.savedAnchor.offset,6);assert.deepEqual(restored.items,[]);assert.deepEqual(restored.history,[]);assert.equal(restored.cursor,null);assert.equal(restored.generation,null);assert.equal(restored.stale,true);
 });
+
+test('IAH13 explicit All query retains independently validated browsing source in the same tab route',()=>{
+ const owner=new RouteHistory(),input={...route('SYNTHETIC all-source query'),sourceKey:null,navigator:{...route().navigator,sourceScope:null,browseSource:'claude',sourceInitialized:true}};
+ assert.equal(validRoute(input),true);const encoded=owner.encode(input);assert.deepEqual(owner.decode(encoded),input);assert.equal(Object.hasOwn(encoded,'navigator'),false,'source browsing remains tab-local metadata');
+ for(const changes of [{sourceScope:'chatgpt',browseSource:'claude'},{browseSource:'https://private.invalid'},{browseSource:{body:'private'}},{sourceInitialized:'yes'},{sourceInitialized:1},{sourceInitialized:null},{body:'private'}])assert.equal(validRoute({...input,navigator:{...input.navigator,...changes}}),false);
+ assert.equal(validRoute(route()),true,'previous snapshots remain accepted');assert.equal(owner.decode({...encoded,view:'memory'}).navigator.sourceScope,null,'unbound cached query does not transfer to a different route owner');
+});

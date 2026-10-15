@@ -36,13 +36,15 @@ export class AppShellController {
   document.querySelector('.workspace-header').insertBefore(document.getElementById('scope-search-host'),document.getElementById('save-status'));
   document.querySelector('.workspace-header').insertBefore(document.getElementById('archive-navigator-toggle'),document.getElementById('scope-search-host'));
   document.querySelector('.workspace-header').insertBefore(document.getElementById('input-time-order'),document.getElementById('document-menu'));
-  document.getElementById('thought-root-header').append(document.getElementById('thought-home-tools'));
+  // Root controls participate in the approved page grid, behind the existing
+  // consent/route visibility boundary; the shared Reader header stays separate.
+  const rootHeader=document.getElementById('thought-root-header'),rootTools=document.getElementById('thought-home-tools');
+  document.getElementById('thought-panel').insertBefore(rootHeader,rootTools);rootHeader.append(rootTools);
   document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'),...document.querySelectorAll('#thought-home-tools > .library-actions,#thought-home-tools > button'));
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
   installSettingsPreferences({backup:this.settingsBackup,routeChanged:options=>options?.replace?this.routes?.checkpoint():this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.originKey?{originKey:this.settingsReturn.originKey}:{}),...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
-  const optional=document.createElement('small');optional.className='ux-consent-optional';document.getElementById('consent-check').closest('.consent-checkbox').append(optional);
   document.addEventListener('paia:preferences-applied',()=>this.localize());
   this.localize();
  }
@@ -76,7 +78,7 @@ export class AppShellController {
   move(get('archive-root-header'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?(get('archive-root-tools')?.parentElement===get('archive-reader-navigator-slot')?get('archive-root-tools'):get('archive-reader-search-slot')):get('archive-root-tools'));
   move(get('archive-root-tools'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
   move(get('archive-root-overflow'),get(active?'archive-root-header-actions':'archive-root-tools'));
-  move(get('archive-source-scope-label'),active?get('archive-root-overflow').querySelector('.archive-root-overflow-actions'):get('archive-root-tools'));
+  move(get('archive-source-scope-label'),get('archive-root-tools'));
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);
   move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
   this.archiveCompactMenu.hidden=!compact;
@@ -95,7 +97,6 @@ export class AppShellController {
   document.getElementById('ux-skip-main').textContent=labels()?'Skip to main content':'跳到主要内容';
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
-  document.querySelector('.ux-consent-optional').textContent=labels()?' Optional: mark that you read the detailed explanation.':' 可选：用于标记你已阅读上面的完整说明。';
   document.getElementById('thought-root-description').textContent=labels()?'Return to your own expressions, by topic.':'按主题回到自己的表达。';
   document.getElementById('archive-root-description').textContent=labels()?'Return to the places you once expressed yourself.':'回到你曾经表达过的地方。';
   this.archiveCompactLabel.textContent=this.viewLabel(this.route.view)||this.viewLabel('library');

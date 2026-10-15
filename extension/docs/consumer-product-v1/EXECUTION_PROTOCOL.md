@@ -1,3 +1,11 @@
+# Current execution — PR284 reviewed local capabilities (2026-10-14)
+
+Current integration candidate is PR284, including the owner-approved AI-COST-03 / CTX4-05 automatic invalidation slice published at 91b63964825a69ae0559f07dad21723b7278dc80. Formal main was freshly verified as 81b41ddca1d28f7935bba63b3eab01b8678e4120. Use current STATUS and MASTER_PLAN plus exact remote facts; preceding PR280 and delivered0.43.29 pointers are historical, not active work.
+
+Independent review and exact Source/release native evidence qualify individual slices only. PR284 remains draft, unmerged and uninstalled; whole-head certification and latest approved visual-reference comparison remain required. Preserve failed, cancelled and skipped evidence. All seven Canonical plans, current human-edit/privacy/data protections, paused Sync features and Pro264/CI ownership remain. Continue actual independently executable local engineering while these gates are resolved; no paid service, account, permission or installation is enabled by this entry.
+
+## Preserved prior checkpoints
+
 # Current candidate — complete local Maintenance batch (2026-10-13)
 
 PR280 is now merged as formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8; its exact final head0f36b2d passed Full38337300223 and independent final review. Normal merge tree e4f8d990 was verified to preserve latest main04f2cad2. Merged-main qualification remains separate. This preserves the latest CTX4-UI-1.2, SET2-UI-1.2, TL-PT1-UI-1.2 and IAH-1.3 refinements.  Its earlier failed runs remain evidence, not active uncorrected pointers. This isolated next candidate combines the reviewed explicit Context NO_CHANGE and bounded mixed-delta DEFER through their original owners, without false ACK, lost pending obligations or new permissions. It is local code under integration, not an installed version or completed AI-COST/CTX4 plan.

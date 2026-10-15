@@ -1,0 +1,11 @@
+# TOPIC-05.6 compose clipboard fallback lifetime
+
+The actual production compose owner allowed an explicitly abandoned draft to return as a manual clipboard fallback. The copy callback checked current surface only before the await. The actual DOM-owner tests fail old runtime; actual headless Chrome via Archive Continue Thinking confirms discard→late denial creates one stale dialog.
+
+Compose now owns one cancellable copy request, qualified by current surface/session/draft body, connection, IME and visibility. New copy/input/compositionstart/hidden/pagehide cancel previous work. Original close checks owner, pending/IME and explicit discard confirmation first; only accepted close cancels/clears fallback and releases listeners. Refused discard retains authored work and current valid fallback. No change to submission identity, unknown acknowledgement retry, data owner, source grant or RecoveryDraft. Source purge does not automatically discard human-authored compose text.
+
+Author four wholefiles54PASS; independent new wholefile6PASS (overlapping, zero fail/cancel/skip). Exact Source and standard release native pass confirmed discard late-denial fencing, current manual fallback exact Unicode/newlines, refused discard preserving draft and newer input retiring old-copy fallback. Zero external/runtime errors,503releaseguardPASS. Clipboard adapter is synthetic; OS clipboard cancellation and physical IME are not claimed.
+
+Preserve initial native harness failures: the old home-tools entry was reparented by the current shell; the actual Archive more→Continue Thinking entry is used. A subsequent broad more-summary selector was ambiguous with nested quote/topic disclosures; final direct-child selector matches the original current control without force click or timeout changes. Frozen old runtime then fails the real stale-body assertion; final fixed runtime passes.
+
+Frozen runtime4279a8040ae55e3961c7b2a21baf62ca6976f4cc; test107ee7fc4a73533b993b51aa4f4092a3fc0e39e9. Packet work/reviews/PR284-COMPOSE-COPY-LIFETIME; snapshot paia-compose-copy-iav4y30v. No CI/Sync/new service change. PR284 remains a candidate with whole-head/full and latest approved visual gates open. Separate metadata/timeline fallback consumers are under read-only review, not asserted fixed by this receipt.

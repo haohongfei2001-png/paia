@@ -70,7 +70,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
  thoughtLayout(layout){return thoughtLayout(this,layout);}
  reverseEditSetting(enabled){return reverseSetting(this,enabled);}
  async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}
- async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),bindingMigration:await this.bindingMigrationStatus(t),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
+ async libraryStatus() {await this.finishFoundation();return this.run(()=>this.repository.transaction(false,async t=>({...await t.get('meta','thought-library'),recoveryEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',bindingMigration:await this.bindingMigrationStatus(t),pendingInvalidations:await t.count('invalidations','byPending',prefix([0])),pendingCleanupJobs:await t.count('organizerJobs','byMaintenance',prefix(['purge_cleanup',0]))}),['meta','invalidations','organizerJobs']));}
  async snapshot(){await this.finishFoundation();return super.snapshot();}
  evidenceFor(specs,options) {return evidenceFor(this,specs,options);}
  invalidate(t,inputId,reason,revision) {return enqueueInvalidation(this,t,inputId,reason,revision);}
@@ -87,7 +87,7 @@ export class LibraryFoundationStore extends SmartFilterStore {
   const digest=await hashText(JSON.stringify(request));
   return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
  }
- async operationInTransaction(t,request,digest,fn){try{await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
+ async operationInTransaction(t,request,digest,fn){try{if(request.expectedRecoveryEpoch!==undefined&&((await t.get('meta','recovery-restore-epoch'))?.value??'initial')!==request.expectedRecoveryEpoch)throw new ArchiveError('BACKUP_CHANGED');await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
  }
  async priorOperation(request) {
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();const digest=await hashText(JSON.stringify(request));
@@ -179,8 +179,10 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async removeEntry(request) {
+  if(request?.expectedRecoveryEpoch!==undefined&&(typeof request.expectedRecoveryEpoch!=='string'||!request.expectedRecoveryEpoch.length||request.expectedRecoveryEpoch.length>200))fail();
+  if(this.humanLibraryJournal&&(request?.expectedRecoveryEpoch!==undefined||request?.originalRemovalOperationId!==undefined))throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'entry-remove',request);
-  keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
+  keys(request,['id','operationId','expectedRevision','expectedRecoveryEpoch'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
   return this.operation(request,t=>this.removeEntryInTransaction(t,request));
  }
  async removeEntryInTransaction(t,request){
@@ -192,12 +194,19 @@ export class LibraryFoundationStore extends SmartFilterStore {
 
  }
  async restoreEntry(request) {
+  if(request?.expectedRecoveryEpoch!==undefined&&(typeof request.expectedRecoveryEpoch!=='string'||!request.expectedRecoveryEpoch.length||request.expectedRecoveryEpoch.length>200))fail();
+  if(this.humanLibraryJournal&&(request?.expectedRecoveryEpoch!==undefined||request?.originalRemovalOperationId!==undefined))throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'entry-restore',request);
-  keys(request,['id','operationId','expectedRevision'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
+  keys(request,['id','operationId','expectedRevision','expectedRecoveryEpoch','originalRemovalOperationId'],['id','operationId','expectedRevision']);if(!idOK(request.id)||!revisionOK(request.expectedRevision))fail();
+  if(request.originalRemovalOperationId!==undefined&&(!idOK(request.originalRemovalOperationId)||request.originalRemovalOperationId.length<8||request.expectedRecoveryEpoch===undefined))fail();
   return this.operation(request,t=>this.restoreEntryInTransaction(t,request));
  }
  async restoreEntryInTransaction(t,request){
    const row=await t.get('thoughts',request.id);if(!row||row.storageSchema!==2||row.lifecycle!=='removed'||!await this.sourcePresent(t,row.sourceRecordIds))fail();if(row.revision!==request.expectedRevision)return {conflict:true};
+   if(request.originalRemovalOperationId!==undefined){
+    const history=await t.edge('revisions','byList',prefix(['library_entry:'+row.id]),'prev');
+    if(!history||history.operationId!==request.originalRemovalOperationId||history.kind!=='library_entry'||history.entityId!==row.id||history.actor!=='user'||history.reason!=='remove'||history.before?.lifecycle!=='active'||history.after?.lifecycle!=='removed'||history.afterRevision!==row.revision||history.baseRevision!==row.revision-1)return {conflict:true};
+   }
    const before=entrySnapshot(row),planned=planHumanEntryRestoration(row,request,ENTRY_FIELDS.map(()=>humanClock(this,t)));Object.assign(row,planned);await t.put('thoughts',row);
    for(const suppression of await t.all('thoughtSuppressions','byEntry',row.id)){suppression.status='restored';await t.put('thoughtSuppressions',suppression);}
    await journal(this,t,{kind:'library_entry',entityId:row.id,before,after:entrySnapshot(row),fieldMask:['lifecycle'],actor:'user',reason:'restore',important:true,operationId:request.operationId,baseRevision:request.expectedRevision,afterRevision:row.revision,sourceRecordIds:row.sourceRecordIds});return {id:row.id,revision:row.revision};
@@ -233,8 +242,10 @@ export class LibraryFoundationStore extends SmartFilterStore {
  refreshThought() {return Promise.reject(new ArchiveError('INVALID_REQUEST'));}
  async editThought({id,operationId,expectedRevision,changes}={}) {keys(changes,['thoughtText','title','note','topics','types']);if(changes.topics||changes.types)fail();return this.editEntry({id,operationId,expectedRevision,changes:Object.fromEntries(Object.entries(changes).map(([k,v])=>[k==='thoughtText'?'body':k,v]))});}
  async createTopic(request) {
+  if(request?.expectedRecoveryEpoch!==undefined&&(typeof request.expectedRecoveryEpoch!=='string'||!request.expectedRecoveryEpoch.length||request.expectedRecoveryEpoch.length>200))fail();
+  if(this.humanLibraryJournal&&request?.expectedRecoveryEpoch!==undefined)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(this.humanLibraryJournal)return this.humanLibraryJournal.execute(this,'topic',request);
-  keys(request,['name','operationId'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
+  keys(request,['name','operationId','expectedRecoveryEpoch'],['name','operationId']);if(typeof request.name!=='string'||!request.name.trim()||request.name.length>300)fail();
   const nameIdentity=await prepareTopicName(this,request.name);
   return this.operation(request,t=>this.createTopicInTransaction(t,request,nameIdentity));
  }

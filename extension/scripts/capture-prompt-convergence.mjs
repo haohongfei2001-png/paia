@@ -24,7 +24,8 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true});
  const receipt={sha,hashes,variant,visualMaster:2,evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',screens:[]};
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
+  await h.archive.locator('#enable-consent').click();
+  await eventually(async()=>{const state=await h.state();return state.settings?.consentVersion===1&&state.settings?.enabled===true;},'original consent owner durably acknowledges explicit acceptance');
   // Frozen Chinese targets use the real saved language preference on every OS.
   await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');

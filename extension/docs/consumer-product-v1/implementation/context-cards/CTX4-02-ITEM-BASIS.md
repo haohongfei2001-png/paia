@@ -1,0 +1,7 @@
+# CTX4-02 real Item basis inspection
+
+Current Canonical PLAN §1 and inherited PRE_REFINEMENT §1.3 require real provenance, not a blanket human attribution. The original ContextCardsService now exposes strict itemId/revision/epoch qualified basis through existing lineage/input projection and final authority/row/epoch recheck. Manual Items explicitly have no Archive source. Automatic Items disclose retained selected-field excerpts and distinguish later human protection; missing/changed/ineligible evidence refuses without stale bytes or fabricated links. No new writer, AI access grant or external verification bypass.
+
+The original item menu awaits normal editor flush and rejects IME/route/revision changes. Its bounded dialog clears on Back/native close/visibility/change, and linked original Input is requalified before the existing GET_INPUT/Archive route with current-owner checks before and after async reads. No raw provenance hashes or internal IDs are rendered as source labels.
+
+Evidence packet PR284-CONTEXT-ITEM-BASIS: author and independent five wholefiles each159PASS. Exact isolated Source and standard501-file release native both pass actual synthetic authenticated automatic maintenance provenance vs manual, real selected-field excerpt, actual original Input navigation, Back/reopen, unchanged complete Context snapshot/AI choices and zero external network/browser errors. Synthetic local processor identity exists only in the test fixture; no real AI was enabled or called. Latest visual reference comparison/full candidate/main gates remain separate.

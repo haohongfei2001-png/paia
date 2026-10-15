@@ -62,9 +62,9 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
   const {bounds}=await session.send('Browser.getWindowBounds',{windowId});assert.equal(bounds.width,1280);assert.equal(bounds.height,900);await session.detach();
   await page.setViewportSize({width:1280,height:900});
   await page.addInitScript(installUpdateFixture);await page.reload();
-  await eventually(()=>page.locator('#onboarding-start').isVisible().then(async visible=>visible||await page.locator('#consent-check').isVisible()),'original onboarding is ready');
+  await eventually(()=>page.locator('#onboarding-start').isVisible().then(async visible=>visible||await page.locator('#enable-consent').isVisible()),'original onboarding is ready');
   if(await page.locator('#onboarding-start').isVisible())await page.locator('#onboarding-start').click();
-  await page.locator('#consent-check').waitFor({state:'visible'});await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'genuine consent is acknowledged');
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>page.evaluate(()=>document.documentElement.lang==='en'));
   await page.locator('.sidebar-bottom [data-view="settings"]').click();await page.locator('#settings-panel').waitFor({state:'visible'});
@@ -193,9 +193,9 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     const cdp=await controls.context.newCDPSession(settings),{windowId}=await cdp.send('Browser.getWindowForTarget');
     await cdp.send('Browser.setWindowBounds',{windowId,bounds:{width:1280,height:900}});
     const {bounds}=await cdp.send('Browser.getWindowBounds',{windowId});assert.equal(bounds.width,1280);assert.equal(bounds.height,900);await cdp.detach();await settings.setViewportSize({width:1280,height:900});
-    await eventually(()=>settings.locator('#onboarding-start').isVisible().then(async visible=>visible||await settings.locator('#consent-check').isVisible()),'independent original onboarding is ready');
+    await eventually(()=>settings.locator('#onboarding-start').isVisible().then(async visible=>visible||await settings.locator('#enable-consent').isVisible()),'independent original onboarding is ready');
     if(await settings.locator('#onboarding-start').isVisible())await settings.locator('#onboarding-start').click();
-    await settings.locator('#consent-check').waitFor({state:'visible'});await settings.locator('#consent-check').check();await settings.locator('#enable-consent').click();
+    await settings.locator('#enable-consent').waitFor({state:'visible'});await settings.locator('#enable-consent').waitFor({state:'visible'});await settings.locator('#enable-consent').click();
     await eventually(async()=>(await rpc(settings,'GET_STATUS')).consented===true,'independent informed capture consent is confirmed');
     await rpc(settings,'UPDATE_PREFERENCES',{changes:{language:'en'}});await eventually(()=>settings.evaluate(()=>document.documentElement.lang==='en'));
     // Create the independent manual Prompt before starting the owned capture producer.

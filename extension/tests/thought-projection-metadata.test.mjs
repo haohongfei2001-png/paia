@@ -8,10 +8,11 @@ const old=runInNewContext(ORIGINAL_SOURCE.replace(/^import .*\n/gm,'').replace(/
 globalThis.IDBKeyRange={bound:(lower,upper,...rest)=>({lower,upper,rest})};
 const fields=['activeGeneration','activeKey','activeCount','earliestDescriptor','latestDescriptor','unknownDescriptor','unknownTimeCount','expressionCounts','buildingExpressionCounts','buildingEarliest','buildingLatest','completedAt','buildingGeneration','buildingKey','sourceCursor','scanned','indexed','buildingUnknownCount'];
 const data=value=>{if(value===null||typeof value!=='object')return value;if(Array.isArray(value))return value.map(data);return Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(value)).filter(([,d])=>'value'in d).map(([k,d])=>[k,data(d.value)]));};
-function fixture(mode){
+const ACTIVITY_AUTHORITY=JSON.stringify([null,0,null,null,null,null,Array(7).fill(null)]);
+function fixture(mode,currentVersion=false){
  const events=[],topic={id:'synthetic-topic',lifecycle:'active',activeLayoutGeneration:1,organizationRevision:2,countVersion:3},key=JSON.stringify([1,2,3,0,0]),counts={all:{known:{},unknown:0,total:0},providers:{}},unknown={asc:null,desc:null};
  const descriptor=(entryId,time='2026-10-01')=>({topicId:topic.id,layoutGeneration:1,entryId,sectionId:'synthetic-section',sectionRank:'000000000003',rank:'000000000010',placementRevision:0,entryRevision:1,effectiveTime:time,expressionTime:{year:2026,at:time},providerKeys:['synthetic-provider']});
- const descriptors=[descriptor('z'),descriptor('a'),descriptor('unknown-z',null),descriptor('unknown-a',null)],meta={id:'thought-read-index:v1:topic:'+topic.id,version:6,timeRevision:0,activeGeneration:null,activeKey:null,buildingGeneration:'synthetic-gen',buildingKey:key,sourceCursor:null,scanned:0,indexed:0,buildingEarliest:null,buildingLatest:null,buildingUnknown:unknown,buildingUnknownCount:0,buildingExpressionCounts:counts};
+ const descriptors=[descriptor('z'),descriptor('a'),descriptor('unknown-z',null),descriptor('unknown-a',null)],meta={id:'thought-read-index:v1:topic:'+topic.id,version:currentVersion?7:6,...(currentVersion?{buildingActivityAuthority:ACTIVITY_AUTHORITY}:{}),timeRevision:0,activeGeneration:null,activeKey:null,buildingGeneration:'synthetic-gen',buildingKey:key,sourceCursor:null,scanned:0,indexed:0,buildingEarliest:null,buildingLatest:null,buildingUnknown:unknown,buildingUnknownCount:0,buildingExpressionCounts:counts};
  const primary=mode==='clock-null'?null:new Error('SYNTHETIC exact original failure');
  if(mode==='generation-observations'){let n=0;Object.defineProperty(meta,'buildingGeneration',{get(){events.push('generation-get-'+(++n));return 'synthetic-generation-'+n;},set(value){events.push('generation-set-'+value);},enumerable:true,configurable:true});}
  if(mode==='counts-change-generation')Object.defineProperty(counts.all,'total',{get(){events.push('count-get');meta.buildingGeneration='synthetic-generation-count';return 0;},set(value){events.push('count-set-'+value);},enumerable:true});
@@ -27,8 +28,25 @@ function fixture(mode){
  const store={run:f=>f(),repository:{transaction:async(_write,f)=>f(t)},canonicalTopic:async()=>topic,clock:()=>{events.push('clock-prefix:'+JSON.stringify(data(Object.fromEntries(fields.map(k=>[k,Object.getOwnPropertyDescriptor(meta,k)?.value])))));assert.equal(meta.unknownDescriptor,unknown);assert.equal(meta.expressionCounts,counts);assert.equal(meta.buildingExpressionCounts,null);if(mode==='clock-error'||mode==='clock-null')throw primary;return 'SYNTHETIC exact clock';},uuid:()=>{throw Error('Unexpected UUID');}};
  return {events,store,meta,descriptors,primary,unknown,counts};
 }
-async function run(writer,mode){const f=fixture(mode);let thrown=false,error,result;try{result=await writer(f.store,{topicId:'synthetic-topic',describe:async(_t,_topic,p)=>p});}catch(e){thrown=true;error=e;}if(thrown)assert.equal(error,f.primary);return {events:f.events,thrown,result:data(result),meta:data(f.meta),aliases:{unknown:f.meta.unknownDescriptor===f.unknown,counts:f.meta.expressionCounts===f.counts,earliest:f.meta.earliestDescriptor===f.descriptors[1],latest:f.meta.latestDescriptor===f.descriptors[0]}};}
-for(const mode of ['normal','pending','put-mutation','generation-observations','counts-change-generation','provider-change-generation','time-change-generation','provider-throw','count-throw','unknown-get-throw','completed-setter-throw','clock-error','clock-null'])test('original actual projection writer metadata/order/aliases '+mode,async()=>assert.deepEqual(await run(current.advanceThoughtTopicIndex,mode),await run(old.advanceThoughtTopicIndex,mode)));
+async function run(writer,mode){const f=fixture(mode,writer===current.advanceThoughtTopicIndex);let thrown=false,error,result;try{result=await writer(f.store,{topicId:'synthetic-topic',describe:async(_t,_topic,p)=>p});}catch(e){thrown=true;error=e;}if(thrown)assert.equal(error,f.primary);return {events:f.events,thrown,result:data(result),meta:data(f.meta),aliases:{unknown:f.meta.unknownDescriptor===f.unknown,counts:f.meta.expressionCounts===f.counts,earliest:f.meta.earliestDescriptor===f.descriptors[1],latest:f.meta.latestDescriptor===f.descriptors[0]}};}
+// The immutable v6 oracle remains byte-for-byte above. Compare every original
+// field, event and alias after checking only the explicitly added v7 metadata.
+function originalProjection(result){
+ const meta=row=>{
+  if(row.version!==undefined){assert.equal(row.version,7);row.version=6;}
+  for(const key of ['activityAt','buildingActivityAt','activityProof'])if(Object.hasOwn(row,key)){assert.equal(row[key],null);delete row[key];}
+  for(const key of ['activityAuthority','buildingActivityAuthority'])if(Object.hasOwn(row,key)){assert.ok(row[key]===null||row[key]===ACTIVITY_AUTHORITY);delete row[key];}
+  return row;
+ };
+ result.meta=meta(result.meta);
+ if(result.result){assert.equal(result.result.version,7);result.result.version=6;}
+ result.events=result.events.map(event=>{
+  if(event.startsWith('put-meta:'))return 'put-meta:'+JSON.stringify(meta(JSON.parse(event.slice(9))));
+  if(event.startsWith('put-libraryMigrationItems:')){const row=JSON.parse(event.slice(26));if(Object.hasOwn(row,'activityAt')){assert.equal(row.activityAt,null);delete row.activityAt;}return 'put-libraryMigrationItems:'+JSON.stringify(row);}
+  return event;
+ });return result;
+}
+for(const mode of ['normal','pending','put-mutation','generation-observations','counts-change-generation','provider-change-generation','time-change-generation','provider-throw','count-throw','unknown-get-throw','completed-setter-throw','clock-error','clock-null'])test('original actual projection writer metadata/order/aliases '+mode,async()=>assert.deepEqual(originalProjection(await run(current.advanceThoughtTopicIndex,mode)),await run(old.advanceThoughtTopicIndex,mode)));
 test('frozen original live key preserves default/coercion/property observation order',()=>{
  for(const values of [[1,2,3,4,5],[null,0,'',undefined,undefined]]){const trace=[],topic={get activeLayoutGeneration(){trace.push('layout');return values[0];},get organizationRevision(){trace.push('organization');return values[1];},get countVersion(){trace.push('count');return values[2];}},actual=old.liveTopicKey(topic,values[3],values[4]);assert.deepEqual(trace,['layout','organization','count']);assert.equal(actual,JSON.stringify([values[0],values[1]||0,values[2]||0,values[3]||0,values[4]||0]));if(current.liveTopicKey){trace.length=0;assert.equal(current.liveTopicKey(topic,values[3],values[4]),actual);assert.deepEqual(trace,['layout','organization','count']);}}
 });

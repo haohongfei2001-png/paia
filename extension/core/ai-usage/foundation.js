@@ -31,7 +31,8 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // financial service, registry entry, SDK, HTTP path or automatic paid retry.
 export class AIUsageFoundation {
  #createdMaintenancePlans=new WeakMap();
- constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null}={}){this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
+ #qualifyMaintenanceEntries;
+ constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
  async authority(t,type,scope){
@@ -53,10 +54,14 @@ export class AIUsageFoundation {
  }
  // Bounded scheduling-index maintenance, not job/receipt deletion or a retry.
  // Preserve every original DEFER field under a non-scheduling history key.
- async archiveObsoleteDeferred({cursor=null,limit=100}={}){
+ async archiveObsoleteDeferred({cursor=null,limit=100,reconsiderEntryTopics=false}={},owner=null){
   if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith('aiu:defer:')||cursor.length>2000))fail();
+  if(typeof reconsiderEntryTopics!=='boolean')fail();
+  if(reconsiderEntryTopics){exact(owner,['signal','isCurrent']);if(!this.#qualifyMaintenanceEntries||!(owner.signal instanceof AbortSignal)||typeof owner.isCurrent!=='function')fail('UNAVAILABLE');}
+  const assertOwner=()=>{if(reconsiderEntryTopics&&(owner.signal.aborted||owner.isCurrent()!==true))fail('CANCELLED');};assertOwner();
   return this.write(async t=>{
-   const page=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',after:cursor,limit});let archived=0;
+   if(reconsiderEntryTopics){const abort=()=>{try{t.tx.abort();}catch{}};owner.signal.addEventListener('abort',abort,{once:true});const cleanup=()=>owner.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});}assertOwner();
+   const page=await t.primaryRangePage('organizerWorkItems',{prefix:'aiu:defer:',after:cursor,limit});let archived=0,reconsidered=0;
    for(const {value:row}of page.rows){
     let job;
     try{
@@ -69,13 +74,22 @@ export class AIUsageFoundation {
     const known=await t.get('meta',KNOWN_PREFIX+row.unit.key),ack=await t.get('organizerWorkItems',qualifiedCoverageId(row.unit,job));
     const changed=known?.descriptor?.key===row.unit.key&&typeof known.signature==='string'&&(known.signature!==row.signature||known.descriptor.removed===true);
     const acknowledged=ack?.kind===KIND&&ack.state==='ACKNOWLEDGED'&&ack.signature===row.signature&&equal(ack.unit,row.unit);
-    if(!changed&&!acknowledged)continue;
-    const history={...row,id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    let mappingAvailable=false;
+    if(reconsiderEntryTopics&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&row.unit.facet==='topic'&&row.retryCondition==='TOPIC_MAPPING_UNAVAILABLE'&&known?.signature===row.signature&&known.descriptor?.kind==='library_entry'&&!known.descriptor.removed&&!known.descriptor.fenceOnly&&await this.s.sourcePresent(t,known.descriptor.sourceRecordIds)){
+     const dirty=await t.get('meta',DIRTY_PREFIX+row.unit.key);
+     if(dirty?.signature===row.signature&&(dirty.pendingFacets||['topic','context']).includes('topic')){
+      const admitted=await this.#qualifyMaintenanceEntries(t,{items:[{key:known.descriptor.key,signature:known.signature,descriptor:structuredClone(known.descriptor)}],coverage:[structuredClone(row.unit)]});assertOwner();
+      if(!Array.isArray(admitted)||admitted.length>1||admitted.length===1&&!equal(validateCoverage(admitted,job.type),[row.unit]))fail('INVALID_REQUEST');
+      mappingAvailable=admitted.length===1;
+     }
+    }
+    if(!changed&&!acknowledged&&!mappingAvailable)continue;assertOwner();
+    const history={...row,...(mappingAvailable?{reconsideredBecause:'RESTORED_ENTRY_TOPIC_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
     if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
     if(!prior)await t.put('organizerWorkItems',history);
-    await t.delete('organizerWorkItems',row.id);archived++;
+    await t.delete('organizerWorkItems',row.id);archived++;if(mappingAvailable)reconsidered++;assertOwner();
    }
-   return {scanned:page.rows.length,archived,nextCursor:page.next};
+   assertOwner();return {scanned:page.rows.length,archived,nextCursor:page.next,...(reconsiderEntryTopics?{reconsidered}:{} )};
   });
  }
  async counters(){return this.read(async t=>await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0});}
@@ -250,7 +264,15 @@ export class AIUsageFoundation {
    assertOwner();const job=await this.job(t,id);await this.current(t,job);assertOwner();
    if(job.kind!==KIND||job.version!==1||job.type!=='AI_MAINTENANCE'||job.state!=='PLANNED'||job.cancelEpoch!==0||job.committedCoverage.length!==0||job.childIds.length>2||(await t.get('meta',job.flightId))?.jobId!==id)fail();assertOwner();
    for(const childId of job.childIds){if(await t.get('meta',dispatchFenceId(childId))||await t.get('organizerUsage',receiptId(childId)))fail('OUTCOME_UNKNOWN');assertOwner();}
-   const unsupported=unsupportedMaintenanceCoverage(job.items,job.coverage),all=[],seen=new Set();
+   let unsupported=unsupportedMaintenanceCoverage(job.items,job.coverage);const all=[],seen=new Set();
+   if(this.#qualifyMaintenanceEntries){
+    const admitted=await this.#qualifyMaintenanceEntries(t,structuredClone({items:job.items,coverage:job.coverage}));assertOwner();
+    if(!Array.isArray(admitted))fail();
+    if(admitted.length){const checked=validateCoverage(admitted,job.type);
+     if(checked.some(u=>u.facet!=='topic'||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='library_entry'))fail();
+     unsupported=unsupported.filter(u=>!checked.some(v=>equal(u,v)));
+    }
+   }
    for(const group of groups){exact(group,['childId','facet','units','retryCondition']);const index=job.childIds.indexOf(group.childId),key=canonical([group.childId,group.facet]);
     if(index<0||seen.has(key)||group.retryCondition!==({topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE',filter:'FILTER_OWNER_UNAVAILABLE'})[group.facet])fail();seen.add(key);
     const units=validateCoverage(group.units,job.type);if(units.some(u=>u.facet!==group.facet||!job.childCoverage[index].some(v=>equal(u,v))))fail();all.push(...units);

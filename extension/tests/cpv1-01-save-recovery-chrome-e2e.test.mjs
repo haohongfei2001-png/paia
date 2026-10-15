@@ -19,7 +19,7 @@ const op=()=>crypto.randomUUID();
 
 async function fixture({launchThroughPort=false,messages=[{id:'cpv1-save-message',text:'CPV1 original source text'}]}={}){
  const h=await FakeChatGPT.start({launchThroughPort,extensionPath}),page=h.archive;
- await page.locator('#consent-check').check();
+ await page.locator('#enable-consent').waitFor({state:'visible'});
  await page.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consumer recovery consent');
  await h.open({id:'cpv1-save-recovery',title:'CPV1 save recovery',base:1609459200,messages});

@@ -10,10 +10,10 @@ import {historicalCandidateSafe,validateHistoricalResponse,assembleHistoricalPay
 import {invalidateSemanticJobs} from '../core/ai-usage/semantic-invalidation.js';
 const authority=async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'fixture',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}});
 const all=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async n=>[n,await t.all(n)]))));
-async function fixture({texts=['SYNTHETIC garden observation alpha','SYNTHETIC garden observation beta'],output=null,admitted=true}={}){
+async function fixture({texts=['SYNTHETIC garden observation alpha','SYNTHETIC garden observation beta'],output=null,admitted=true,onInvalidate=null}={}){
  const f=await completeFixture({texts});await f.s.finishFoundation();let calls=0,now=1000,live=true;const payloads=[];
  const provider={describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async p=>{calls++;payloads.push(structuredClone(p));return typeof output==='function'?output(p):output??JSON.stringify({version:1,kind:'CANDIDATES',ids:p.candidates.map(x=>x.id).reverse()});}};
- const session=new HistoricalCandidateSession(f.s,{provider,resolveAuthority:authority,resolveIntent:async(_t,scope)=>({allowed:admitted,remoteProcessing:admitted,entitlement:admitted?'pro':'free',serviceAvailable:true,consentEpoch:'fixture',permissionEpoch:'fixture',scope}),isCurrentIntent:()=>live,clock:()=>now});
+ const session=new HistoricalCandidateSession(f.s,{provider,onInvalidate,resolveAuthority:authority,resolveIntent:async(_t,scope)=>({allowed:admitted,remoteProcessing:admitted,entitlement:admitted?'pro':'free',serviceAvailable:true,consentEpoch:'fixture',permissionEpoch:'fixture',scope}),isCurrentIntent:()=>live,clock:()=>now});
  const service=new PromptReuseService(f.s,{historyCandidates:session});return {...f,session,service,provider,payloads,calls:()=>calls,revoke:()=>{live=false;session.invalidate();},time:n=>now=n};
 }
 const selected=f=>f.session.prepare({query:'SYNTHETIC garden'});
@@ -134,4 +134,15 @@ test('cold original Store/session cannot dispatch another query over persistent 
  const {OrganizerStore}=await import('../core/organizer/store.js'),f=await fixture();let physical=0,entered,release;const started=new Promise(r=>entered=r),hold=new Promise(r=>release=r);f.provider.execute=async p=>{physical++;entered();await hold;return JSON.stringify({version:1,kind:'CANDIDATES',ids:p.candidates.map(x=>x.id)});};const first=await selected(f);t.mock.timers.enable({apis:['setTimeout']});const pending=f.session.run(first).catch(e=>e);try{
   await started;t.mock.timers.tick(30000);assert.equal((await pending).code,'OUTCOME_UNKNOWN');await f.s.repository.close();const store=new OrganizerStore(f.storage,{indexedDB:f.indexedDB});await store.finishFoundation();const cold=new HistoricalCandidateSession(store,{provider:f.provider,resolveAuthority:authority,resolveIntent:async(_t,scope)=>({allowed:true,remoteProcessing:true,entitlement:'pro',serviceAvailable:true,consentEpoch:'fixture',permissionEpoch:'fixture',scope}),isCurrentIntent:()=>true,clock:()=>1000});new PromptReuseService(store,{historyCandidates:cold});const before=await all(store);const same=await cold.prepare({query:'SYNTHETIC garden'},{identity:'fresh-worker-document',assertCurrent:async()=>{}});await assert.rejects(cold.run(same),{code:'OUTCOME_UNKNOWN'});await assert.rejects(cold.prepare({query:'SYNTHETIC'},{identity:'other-new-document',assertCurrent:async()=>{}}),{code:'REQUEST_ALREADY_IN_FLIGHT'});assert.equal(physical,1);assert.deepEqual(await all(store),before,'cold queries cannot overwrite flight or any persistent UNKNOWN/reservation');assert.equal(before.organizerUsage[0].attemptCount,1);assert.equal(before.organizerUsage[0].spendState,'RESERVATION_RETAINED');release();await new Promise(r=>setImmediate(r));assert.deepEqual(await all(store),before);assert.equal(physical,1);
  }finally{release();await pending;t.mock.timers.reset();}
+});
+
+
+test('a throwing invalidation unsubscribe still aborts the in-flight historical transport',async()=>{
+ const cleanupError=new Error('SYNTHETIC unsubscribe failed');
+ const f=await fixture({onInvalidate:()=>()=>{throw cleanupError;}});let entered,finish,signal;
+ const ready=new Promise(r=>entered=r),physical=new Promise(r=>finish=r);
+ f.provider.execute=(_request,options)=>{signal=options.signal;entered();return physical;};
+ const handle=await selected(f),running=f.session.run(handle);const settled=running.catch(error=>error);
+ try{await ready;assert.equal(signal.aborted,false);assert.throws(()=>f.session.dispose(),error=>error===cleanupError);assert.equal(signal.aborted,true);assert.equal(f.session.available(),false);}
+ finally{finish(JSON.stringify({version:1,kind:'DEFER',reason:'insufficient_evidence'}));const error=await settled;assert.ok(error instanceof Error);await assert.rejects(f.session.read(handle),{code:'STALE_BASE'});}
 });

@@ -1,3 +1,4 @@
+import {ContextReadService} from '../core/context-read.js';
 import {TopicSectionPromotionCommands} from './topic-section-promotion-commands.js';
 import {installToolbarEntry} from './toolbar-entry.js';
 import {HistoricalCandidateSession} from '../core/ai-usage/historical-candidate-session.js';
@@ -7,6 +8,7 @@ import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
 import {isAIStyleOnlyRequest} from '../core/ai-organize-style-preference.js';
 import {ContextCardsService} from '../core/context-cards.js';
 import {ThoughtLibraryReadModel} from '../core/thought-library-read-model.js';
+import {prepareTopicRootActivity} from '../core/organizer/topic-root-activity.js';
 import {ThoughtSectionReading} from '../core/thought-section-reading.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {ContextTopicAccessService} from '../core/context-topic-access.js';
@@ -45,6 +47,8 @@ import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.j
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const store = new IndexedArchiveStore(chrome.storage.local);
+const localScopePreviewCapability=Object.freeze({});
+const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 const sectionPromotion=new TopicSectionPromotionCommands(store,chrome);
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
@@ -72,12 +76,14 @@ const recoveryDraftStore=()=>recoveryDrafts??=new RecoveryDraftStore(chrome.stor
 let recoveryTail=Promise.resolve();
 function withRecoveryFence(work){const result=recoveryTail.then(work);recoveryTail=result.catch(()=>{});return result;}
 async function saveRecoveryDraft(draft){
+ if(draft.kind==='settings_feedback'&&Object.keys(draft).some(key=>!['kind','ownerId','token','operation','sourceRecordIds','epoch'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
  if(!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
  if(draft.epoch!==await store.recoveryDraftEpoch())throw new ArchiveError('INVALID_REQUEST');
  const sourceRecordIds=await (draft.kind==='context_item'?contextCards.recoverySources(draft):store.recoveryDraftSourceIds(draft));
  return recoveryDraftStore().save({...draft,sourceRecordIds});
 }
 async function loadRecoveryDraft({kind,ownerId,epoch}={}){
+ if(kind==='settings_feedback'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
  const current=await store.recoveryDraftEpoch();if(epoch!==current)throw new ArchiveError('INVALID_REQUEST');
  const draft=await recoveryDraftStore().load(kind,ownerId);if(!draft)return null;
  try{if((draft.epoch||'initial')!==current)throw new ArchiveError('INVALID_REQUEST');if(draft.kind==='context_item'&&await contextCards.recoveryCommitted(draft)){await recoveryDraftStore().clear(kind,ownerId,draft.token);return null;}await (draft.kind==='context_item'?contextCards.recoverySources(draft,{stored:true}):store.recoveryDraftSourceIds(draft));return draft;}
@@ -246,8 +252,18 @@ async function handle(request, sender) {
       if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');
       return readSettingsUpdateStatus(chrome.storage.local,chrome.runtime.getManifest().version);
     }
+    case 'PAIA_CONTEXT_ITEM_BASIS': {
+      if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return contextCards.basis(request.options);
+    }
+    case 'PAIA_CONTEXT_SCOPE_PREVIEW': {
+      if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
+      if(Object.keys(request).some(key=>!['type','kind','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return contextScopePreview.preview(localScopePreviewCapability,{kind:request.kind,options:request.options});
+    }
     case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
-    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {const snapshot=await contextCards.snapshot();if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
+    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
     case 'PAIA_CONTEXT_TOPICS_PAGE':
@@ -366,7 +382,15 @@ async function handle(request, sender) {
     case 'GET_INPUT': return recoverySnapshot(()=>store.input(request.id));
     case 'RECORD_TOPIC_READ': return store.recordTopicRead(request.id);
     case 'LIBRARY_INDEX_PAGE': return store.libraryIndexPage(request.options);
-    case 'GET_LIBRARY_ROOT_PROJECTION': return thoughtLibraryRead.rootPage(request.options);
+    case 'GET_LIBRARY_ROOT_PROJECTION': {
+      thoughtLibraryRead.validateRootOptions(request.options);
+      if(!request.options?.cursor)await prepareTopicRootActivity(store);
+      return thoughtLibraryRead.rootPage(request.options);
+    }
+    case 'GET_LIBRARY_ROOT_PREVIEWS': {
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return thoughtLibraryRead.rootPreviews(request.options);
+    }
     case 'GET_LIBRARY_SECTION_PROJECTION': return thoughtLibraryRead.sectionPage(request.options);
     case 'GET_LIBRARY_TOPIC_READING_METADATA': {
       if(Object.keys(request).some(key=>!['type','id'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
@@ -473,7 +497,7 @@ const libraryRunner=new LibraryRunner(store);
 // Original Organizer is cost-gated: capture, startup, timers, and rerenders may
 // maintain local state but can never dispatch its remote provider.
 const scheduleFilter=(options)=>{void safety.wake(options);void libraryRunner.wake(options);return runner.wake(options);};
-const localToolRequest=type=>type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 runtime.onStartup?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});
 // Startup may reconcile an unknown prior outcome, but it never dispatches Original.

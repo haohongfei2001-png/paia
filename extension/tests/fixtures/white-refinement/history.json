@@ -1,0 +1,66 @@
+{
+  "baseline": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52",
+  "preservation": "Original files remain retrievable byte-for-byte from these committed objects. Original D6.2 design masters are untouched. Failed Full38678327953 remains FAIL.",
+  "files": [
+    {
+      "path": "extension/tests/harness/d5-thought-root.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/harness/d5-thought-root.mjs",
+      "sha256": "e17223c17d859095405bfc2bdf4783150017abf5a238207ec5345394ffe9c0be",
+      "bytes": 18486
+    },
+    {
+      "path": "extension/tests/harness/d7-thought-reference.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/harness/d7-thought-reference.mjs",
+      "sha256": "b33f0dcc0a639608be0d4f71d0a0267e8bde407b629473f6c4f3dbe7217310ac",
+      "bytes": 1220
+    },
+    {
+      "path": "extension/tests/harness/d5-reading-surfaces.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/harness/d5-reading-surfaces.mjs",
+      "sha256": "a5ff0b5888f824d1555e9992eda9296220b8a2c69903ef1a2d1d88acc629da96",
+      "bytes": 22025
+    },
+    {
+      "path": "extension/tests/harness/d7-reader-dialog-reference.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/harness/d7-reader-dialog-reference.mjs",
+      "sha256": "e91b21221b530ccfcf72e74c5b2bdb1836a7d08b6e8698fbf2ca469e3dff3add",
+      "bytes": 2589
+    },
+    {
+      "path": "extension/tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/cpv1-02-dvn-topic-root-chrome-e2e.test.mjs",
+      "sha256": "6efc6728f416d90da1419e2c79ddcfbb733e9997596f2bc352ca6103434465cb",
+      "bytes": 34775
+    },
+    {
+      "path": "extension/tests/cpv1-topic-05-2-root-slots.test.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/cpv1-topic-05-2-root-slots.test.mjs",
+      "sha256": "2f3fde6f7187fc04a2cdd2162e1533253bfde586e225faa8b144aebb1977a767",
+      "bytes": 6349
+    },
+    {
+      "path": "extension/tests/topic-root-white-reference.test.mjs",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/tests/topic-root-white-reference.test.mjs",
+      "sha256": "7d8d8c009c646f1dddfe1430fac0d7c19751e024448f7951681ee5412f327594",
+      "bytes": 6324
+    },
+    {
+      "path": "extension/ui/thought-reader.css",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/ui/thought-reader.css",
+      "sha256": "2d55f5b7c446f8d39370f4751548cdb647de18dbb04ce231d4cf3648de48bbec",
+      "bytes": 35863
+    },
+    {
+      "path": "extension/ui/personal-topic-root.css",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/ui/personal-topic-root.css",
+      "sha256": "23d2dbda6a2a7969d83c36fe25d52e32aa7b89783488dd5299398964e97d1087",
+      "bytes": 5093
+    },
+    {
+      "path": "extension/ui/personal-topic-root.js",
+      "gitObject": "6b2fbcbf1364ff2625469ac0c46ed4e78b257e52:extension/ui/personal-topic-root.js",
+      "sha256": "8c7839462ed3d663c3b21e19dfd8958ff06ce493b62f44c84e61a087cf20ba80",
+      "bytes": 13510
+    }
+  ]
+}

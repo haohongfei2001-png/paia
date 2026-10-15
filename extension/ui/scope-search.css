@@ -12,7 +12,7 @@
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search-host,#reader-scope-search-host){display:block;flex:1 1 250px;min-width:0;max-width:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search-host,#reader-scope-search-host):not(:has(.scope-search:not([hidden]))){display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) .scope-search{position:relative;isolation:isolate;gap:8px}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search,#reader-scope-search){min-height:38px;padding:8px 12px 8px 37px;border:0;border-radius:7px;background:var(--soft);color:var(--text);font:400 12px/22px var(--font)}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search,#reader-scope-search){min-height:38px;padding:8px 12px 8px 37px;border:0;border-radius:7px;background:var(--search-surface,var(--soft));color:var(--search-ink,var(--text));font:400 12px/22px var(--font)}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search,#reader-scope-search)::placeholder{opacity:1;color:var(--muted)}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#scope-search,#reader-scope-search):focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 @media(max-width:767px),(pointer:coarse){

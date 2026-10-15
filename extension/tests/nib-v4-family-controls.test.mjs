@@ -54,3 +54,29 @@ test('the original manual textarea and canonical work survive an actual original
  try{await x.state.editor.children[1].children[0].fn();}finally{f.s.repository.transaction=transaction;}
  assert.equal(aborts,1);assert.equal(x.state.editing,true);assert.equal(x.state.editor,originalEditor);assert.equal(x.state.editor.hidden,false);assert.equal(x.state.editor.children[0].children[1],originalArea);assert.equal(area.value,'SYNTHETIC unsaved original manual draft 中文');assert.deepEqual(await all(),before);assert.equal((await f.service.query()).items.find(x=>x.id===item.id).text,item.text);
 });
+
+const splitFunctions=source.slice(source.indexOf('function invalidateSplit('),source.indexOf('function order('));
+function splitChooser(item,read){const x=chooser(item,read);x.state.splitChoice=null;x.state.tell=()=>{};vm.runInContext(splitFunctions,x.context);return {...x,run:()=>vm.runInContext('split(item)',x.context),invalidate:()=>vm.runInContext('++epoch;invalidateSplit()',x.context)};}
+test('split member loading can cancel and never revives originals after invalidation or disposal',async()=>{
+ const f=await fixture(),item=(await f.service.query()).items[0],members=await f.service.members(item.id);
+ for(const reason of ['cancel','invalidate','dispose','replacement']){let release;const x=splitChooser(item,()=>new Promise(resolve=>{release=resolve;})),pending=x.run(),choice=x.state.splitChoice;
+  assert.equal(choice.save.disabled,true);assert.equal(x.state.editor.children.at(-1).children[1].label,'取消');
+  if(reason==='cancel')x.state.editor.children.at(-1).children[1].fn();
+  else if(reason==='invalidate')x.invalidate();
+  else if(reason==='dispose')x.state.disposed=true;
+  else x.state.currentItems=()=>[];
+  release(members);await pending;assert.equal(choice.members.children.length,0);assert.equal(choice.save.disabled,true);assert.deepEqual(x.effects,[]);assert.equal(x.state.editing,reason!=='cancel');
+ }
+});
+test('split invalidation immediately clears rendered originals and detached controls cannot submit',async()=>{
+ const f=await fixture(),item=(await f.service.query()).items[0],members=await f.service.members(item.id),x=splitChooser(item,async()=>members);await x.run();const choice=x.state.splitChoice,box=choice.members.children[0].children[0];box.checked=true;box.handlers.change();assert.equal(choice.chosen.size,1);x.invalidate();box.handlers.change();choice.save.fn();assert.equal(choice.chosen.size,0);assert.equal(choice.members.children.length,0);assert.equal(choice.save.disabled,true);assert.deepEqual(x.effects,[]);
+ assert.match(source,/invalidateRepresentative\(\);invalidateSplit\(\);if\(mode/);assert.match(source,/disposed=true;invalidateSplit\(\)/);
+});
+test('split uses the original owner for valid subsets without mutating Source or Working',async()=>{
+ const f=await fixture(),q=await f.service.query(),item=q.items[0],members=await f.service.members(item.id),x=splitChooser(item,async()=>members),before=await sameAuthority(f.s);await x.run();const choice=x.state.splitChoice,box=choice.members.children[0].children[0];box.checked=true;box.handlers.change();choice.save.fn();assert.equal(x.effects.length,1);assert.equal(x.effects[0][0],'split');assert.deepEqual(Array.from(x.effects[0][2].inputIds),[members[0].id]);await f.service.change({action:'split',id:item.id,revision:q.revision,inputIds:Array.from(x.effects[0][2].inputIds)});assert.deepEqual(await sameAuthority(f.s),before);const prefs=(await rows(f.s,'meta')).find(x=>x.id===PROMPT_REUSE_ROW);assert.ok(JSON.stringify(prefs).includes(members[0].id));
+});
+test('split owner refusal clears originals even when an exclusion notification is lost and retains manual override',async()=>{
+ const f=await fixture();let q=await f.service.query();const id=q.items[0].id;await f.service.change({action:'edit',id,revision:q.revision,text:'SYNTHETIC independent override retained'});q=await f.service.query();const item=q.items.find(x=>x.id===id),x=splitChooser(item,async()=>f.service.members(id));await x.run();const choice=x.state.splitChoice,box=choice.members.children[0].children[0];box.checked=true;box.handlers.change();const selected=[...choice.chosen][0],input=await f.s.input(selected);await f.s.editDocument({operationId:crypto.randomUUID(),documentId:input.documentId,blocks:[{id:input.id,expectedRevision:input.revision,libraryText:input.libraryText,note:input.note,excluded:true}]});
+ const before=await sameAuthority(f.s),prefs=await rows(f.s,'meta');let refusal;x.state.pending=v=>{x.state.busy=v;};x.state.focusRow=()=>{};x.state.change=async(action,id,extra)=>{try{return await f.service.change({action,id,revision:q.revision,...extra,inputIds:Array.from(extra.inputIds)});}catch(e){refusal=e.code;throw e;}};vm.runInContext(source.slice(source.indexOf('async function manage('),source.indexOf('async function insert(')),x.context);await vm.runInContext("manage('split',item,{inputIds:[...splitChoice.chosen]})",x.context);
+ assert.equal(refusal,'INVALID_REQUEST');assert.equal(choice.members.children.length,0);assert.equal(choice.save.disabled,true);assert.equal(x.state.editing,true);assert.equal(x.state.busy,false);assert.deepEqual(await sameAuthority(f.s),before);assert.deepEqual(await rows(f.s,'meta'),prefs);assert.equal((await f.service.query()).items.find(x=>x.id===id).text,'SYNTHETIC independent override retained');
+});

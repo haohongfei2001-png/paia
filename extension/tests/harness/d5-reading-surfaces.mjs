@@ -1,4 +1,5 @@
 // Paired canonical/production evidence. Documentation stays offline and outside runtime.
+import {whitePalette,whiteReference} from './white-refinement-reference.mjs';
 import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
@@ -18,7 +19,7 @@ async function settle(p,ref,width,theme){
  await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await ref.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
  await p.emulateMedia({reducedMotion:'reduce'});await ref.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
-// D6.2 originals supply the visual reference; Selection retains its native owner.
+// D6.2 originals supply retained geometry only; final white palette/depth is independent.
 // A compact production derivative is never presented as a new compact artboard.
 async function settleModal(p,width,theme){
  await p.setViewportSize({width,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:theme}});await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme));await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
@@ -39,12 +40,12 @@ async function openSelectionReference(h,theme){
  assert.deepEqual(master,{width:350,height:40,radius:8,fontSize:12,background:theme==='dark'?'rgb(23, 29, 40)':'rgb(255, 255, 255)',borderColor:theme==='dark'?'rgb(48, 59, 76)':'rgb(230, 235, 242)'},'unchanged A03 geometry and approved light/dark palette');
  const base=new URL('../../docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/',import.meta.url),[tokens,design]=await Promise.all([readFile(new URL('tokens.css',base),'utf8'),readFile(new URL('DESIGN_SYSTEM.md',base),'utf8')]);
  const token=name=>{const value=tokens.match(new RegExp(`--d6-${name}:([^;}]+)`));assert.ok(value,'approved D6 token '+name);return value[1];};
- assert.ok(design.includes('`0 4px 18px rgba(23,35,60,.10)` for menus'),'approved transient elevation remains the oracle');
- return {...reference,master,borderRadius:token('modal-radius'),fontSize:token('ui'),boxShadow:'rgba(23, 35, 60, 0.1) 0px 4px 18px 0px'};
+ assert.ok(design.includes('`0 4px 18px rgba(23,35,60,.10)` for menus'),'historical transient elevation evidence remains unchanged');
+ return {...reference,master,currentPalette:{background:whitePalette(theme).surface,borderColor:theme==='dark'?whitePalette(theme).line:'rgb(223, 229, 237)'},borderRadius:token('modal-radius'),fontSize:token('ui'),boxShadow:theme==='dark'?'none':'rgba(23, 42, 69, 0.125) 0px 18px 65px 0px'};
 }
 function selectionContract(reference,owner){
- return {...owner,authority:'D6.2 A03 original + DESIGN_SYSTEM/tokens; retained native selection geometry',name:reference.name,sha256:reference.sha256,paletteDerived:reference.paletteDerived,referenceWidth:1440,master:reference.master,
-  surface:{...owner.surface,borderColor:reference.master.borderColor,borderRadius:reference.borderRadius,background:reference.master.background,boxShadow:reference.boxShadow},control:{...owner.control,fontSize:reference.fontSize},
+ return {...owner,authority:'D6.2 A03 retained geometry + PAIA-WHITE-UI-1.0 neutral planes',whiteOriginal:whiteReference.original,name:reference.name,sha256:reference.sha256,paletteDerived:reference.paletteDerived,referenceWidth:1440,master:reference.master,
+  surface:{...owner.surface,borderColor:reference.currentPalette.borderColor,borderRadius:reference.borderRadius,background:reference.currentPalette.background,boxShadow:reference.boxShadow},control:{...owner.control,fontSize:reference.fontSize},
   retainedOwnerDifferences:['The native owner retains its 4px padding, 1px border, zero gap, 36px/44px hit targets and 13px/19.5px action type; the drawing has a 40px face and 12px labels.','The existing owner uses the shared D6.2 10px modal-radius token; the unchanged A03 face has an 8px radius. This discrepancy is retained, not full A03 visual acceptance.','The toolbar anchors to the exact native range and clamps/reflows to the viewport. Compact/dark derivatives do not replace the unchanged 1440px light master.']};
 }
 export async function compareD5ReadingSurfaces({variant,extensionPath}){
@@ -52,7 +53,7 @@ export async function compareD5ReadingSurfaces({variant,extensionPath}){
  const audit=(label,check)=>{try{check();}catch(error){failures.push({label,error:error.message});}};
  try{
   await mkdir(directory,{recursive:true});await p.setViewportSize({width:1440,height:900});
-  await p.locator('#consent-check').check();await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
   const selectionRef=await openD5Reference(h,'selection');refs.push(selectionRef);
   const canonical=await selectionRef.evaluate(()=>({title:document.querySelector('.main h1').textContent,body:document.querySelector('.input-entry .prose').innerText}));
   const selectionRefs={};for(const theme of ['light','dark']){selectionRefs[theme]=await openSelectionReference(h,theme);refs.push(selectionRefs[theme].page);}await p.bringToFront();

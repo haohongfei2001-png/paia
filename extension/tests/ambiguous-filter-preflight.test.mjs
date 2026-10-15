@@ -157,3 +157,113 @@ test('missing library qualification or malformed restore fence is unavailable; r
 test('temporarily unavailable owner revokes private handles rather than reviving them after readiness returns',async()=>{
  const f=await fixture(),r=await f.reader.prepare(await f.request());f.s.filterLoaded=false;assert.equal((await noWrite(f,()=>f.reader.revalidate(r.capability))).reason,'STORE_NOT_READY');f.s.filterLoaded=true;assert.equal((await noWrite(f,()=>f.reader.revalidate(r.capability))).status,'STALE');
 });
+
+test('explicit release retires only its private handle and immediately frees bounded capacity',async()=>{
+ const f=await fixture(),request=await f.request(),handles=[];
+ for(let i=0;i<8;i++)handles.push((await noWrite(f,()=>f.reader.prepare(request))).capability);
+ assert.equal((await noWrite(f,()=>f.reader.prepare(request))).reason,'CAPABILITY_BOUND');
+ await noWrite(f,async()=>{f.reader.release(handles[0]);f.reader.release(handles[0]);for(const forged of [null,7,'foreign',{},structuredClone(handles[1])])f.reader.release(forged);});
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(handles[0]))).status,'STALE');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(handles[1]))).status,'CURRENT');
+ const replacement=await noWrite(f,()=>f.reader.prepare(request));assert.equal(replacement.status,'CANDIDATE_ONLY');bodyFree(replacement);
+ assert.equal((await noWrite(f,()=>f.reader.prepare(request))).reason,'CAPABILITY_BOUND');
+});
+test('release during revalidation cannot republish a retired capability',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ f.setHook(()=>f.reader.release(initial.capability));const result=await noWrite(f,()=>f.reader.revalidate(initial.capability));
+ assert.equal(result.status,'STALE');assert.equal(result.capability,null);bodyFree(result);f.setHook(null);
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'STALE');
+ assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY');
+});
+
+
+test('release during permission revalidation prevents subsequent private body reads',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let released=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(released&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{released=true;f.reader.release(initial.capability);});
+ const result=await f.reader.revalidate(initial.capability);f.s.repository.transaction=transaction;f.setHook(null);
+ assert.equal(result.status,'STALE');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+});
+
+
+test('expiry during permission revalidation stops subsequent private reads and frees capacity',async()=>{
+ const f=await fixture(),initial=await noWrite(f,async()=>f.reader.prepare(await f.request()));
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let expired=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(expired&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{expired=true;f.setNow(301000);});const result=await f.reader.revalidate(initial.capability);
+ f.s.repository.transaction=transaction;f.setHook(null);assert.equal(result.status,'STALE');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+ assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'STALE');
+});
+
+for(const change of ['expiry','rollback'])test('preparation '+change+' during permission check stops private reads before a handle exists',async()=>{
+ const f=await fixture(),request=await f.request(),transaction=f.s.repository.transaction.bind(f.s.repository);let changed=false,privateReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(changed&&['blocks','records'].includes(name))privateReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{changed=true;f.setNow(change==='expiry'?301000:999);});const result=await f.reader.prepare(request);
+ f.s.repository.transaction=transaction;assert.equal(result.status,'UNAVAILABLE');assert.equal(result.reason,change==='expiry'?'CAPABILITY_EXPIRED':'CLOCK_INVALID');assert.equal(result.capability,null);assert.equal(privateReads,0);bodyFree(result);
+});
+
+for(const change of ['release','expiry','dispose'])test('nested projection stops all reads after '+change+' at record metadata boundary',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request());
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let changed=false,laterReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{
+  const get=t.get.bind(t);t.get=async(name,...args)=>{
+   if(changed)laterReads++;
+   const row=await get(name,...args);
+   if(!changed&&name==='recordIndex'){
+    changed=true;
+    if(change==='release')f.reader.release(initial.capability);
+    else if(change==='expiry')f.setNow(301000);
+    else f.reader.dispose();
+   }
+   return row;
+  };return fn(t);
+ },stores);
+ let result;try{result=await f.reader.revalidate(initial.capability);}finally{f.s.repository.transaction=transaction;}
+ assert.equal(changed,true);assert.equal(laterReads,0);assert.equal(result.capability,null);
+ assert.equal(result.status,change==='dispose'?'UNAVAILABLE':'STALE');bodyFree(result);
+});
+
+ test('concurrent prepares reserve capacity before private reads and failures release reservations',async()=>{
+ const f=await fixture(),request=await f.request();
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:10},()=>f.reader.prepare(request))));
+ assert.equal(results.filter(r=>r.status==='CANDIDATE_ONLY').length,8);
+ assert.equal(results.filter(r=>r.reason==='CAPABILITY_BOUND').length,2);
+ assert.equal(f.calls(),16,'only eight admitted reads may resolve permission twice');
+ f.reader.release(results.find(r=>r.capability).capability);
+ const shared=await noWrite(f,()=>Promise.all(Array.from({length:3},()=>f.reader.prepare(request))));
+ assert.equal(shared.filter(r=>r.status==='CANDIDATE_ONLY').length,1,'live handles and in-flight reads share the same bound');
+ assert.equal(shared.filter(r=>r.reason==='CAPABILITY_BOUND').length,2);
+ assert.equal(f.calls(),18);
+ for(const r of [...results,...shared]){bodyFree(r);if(r.capability)f.reader.release(r.capability);}
+ f.setPatch({allowed:false});
+ const refused=await noWrite(f,()=>Promise.all(Array.from({length:8},()=>f.reader.prepare(request))));
+ assert.ok(refused.every(r=>r.reason==='PERMISSION_UNAVAILABLE'));
+ f.setPatch({});
+ const recovered=await noWrite(f,()=>Promise.all(Array.from({length:8},()=>f.reader.prepare(request))));
+ assert.ok(recovered.every(r=>r.status==='CANDIDATE_ONLY'),'failed reads release every reserved slot');
+ f.reader.dispose();
+});
+
+
+test('concurrent revalidation of one private handle shares a single current read and retires the in-flight slot',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request()),before=f.calls();
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:20},()=>f.reader.revalidate(initial.capability))));
+ assert.ok(results.every(r=>r.status==='CURRENT'&&r.capability===initial.capability));results.forEach(bodyFree);
+ assert.equal(f.calls()-before,2,'twenty consumers perform one two-fence permission read');
+ assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'CURRENT');assert.equal(f.calls()-before,4,'a settled read is revalidated afresh, not cached');
+ const other=await f.reader.prepare(await f.request()),twoBefore=f.calls();
+ await noWrite(f,()=>Promise.all([f.reader.revalidate(initial.capability),f.reader.revalidate(other.capability)]));assert.equal(f.calls()-twoBefore,4,'different capability owners remain independent');
+ f.setPatch({allowed:false});assert.equal((await noWrite(f,()=>f.reader.revalidate(initial.capability))).reason,'PERMISSION_UNAVAILABLE','settled success cannot cache prior permission');
+});
+
+for(const stop of ['release','expiry','dispose','owner-unavailable','permission-failure'])test('coalesced revalidation '+stop+' cannot revive capability or continue private reads',async()=>{
+ const f=await fixture(),initial=await f.reader.prepare(await f.request()),before=f.calls(),transaction=f.s.repository.transaction.bind(f.s.repository);let stopped=false,laterReads=0;
+ f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const get=t.get.bind(t);t.get=async(name,...args)=>{if(stopped&&['blocks','records'].includes(name))laterReads++;return get(name,...args);};return fn(t);},stores);
+ f.setHook(()=>{if(stopped)return;stopped=true;if(stop==='release')f.reader.release(initial.capability);if(stop==='expiry')f.setNow(301000);if(stop==='dispose')f.reader.dispose();if(stop==='owner-unavailable'){f.s.filterLoaded=false;void f.reader.revalidate(initial.capability);}if(stop==='permission-failure')throw Error('Synthetic permission read failure');});
+ const results=await noWrite(f,()=>Promise.all(Array.from({length:20},()=>f.reader.revalidate(initial.capability))));
+ assert.equal(f.calls()-before,1);assert.equal(laterReads,0);assert.ok(results.every(r=>r.capability===null&&r.status!=='CURRENT'));results.forEach(bodyFree);
+ f.setHook(null);f.s.filterLoaded=true;assert.notEqual((await noWrite(f,()=>f.reader.revalidate(initial.capability))).status,'CURRENT');
+ if(stop!=='dispose')assert.equal((await noWrite(f,async()=>f.reader.prepare(await f.request()))).status,'CANDIDATE_ONLY','fresh explicit preparation works after the failed shared read');
+});

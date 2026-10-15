@@ -15,11 +15,11 @@ function navigationFixture(accepted=true){
 }
 
 function freshFixture(accepted=true){const f=navigationFixture(accepted);f.context.searchProject={ref:{providerKey:'chatgpt',projectId:'synthetic'}};f.context.archiveNavigator={sourceScope:'chatgpt',sourceSelect:{value:'chatgpt'},lastPaintSignature:'old',state:{selectedPath:{documentId:'synthetic-doc'},select(path){this.selectedPath=path;}}};return f;}
-test('primary Archive clears scope, target, query and pagination after accepted leave; Back retains them',async()=>{
+test('primary Archive retains valid Source but clears Project, target, query and pagination after accepted leave; Back retains them',async()=>{
  for(const fresh of [false,true]){const {context,seen}=freshFixture(),origin=context.routeStates.get('library:');origin.scroll=420;const scrolls=[];context.window.scrollTo=(...args)=>scrolls.push(args);await context.navigate('library',null,null,fresh?{freshArchiveEntry:true}:{});
  assert.deepEqual(seen,[fresh?{query:'',cursor:null,history:[]}:{query:'ARCHIVE_A',cursor:'ARCHIVE_A_PAGE_2',history:[null]}]);assert.equal(context.routes.beginnings,1,'explicit primary navigation enters the current route owner exactly once');
  assert.equal(context.routeStates.get('library:'),origin,'fresh entry retains the existing origin snapshot');assert.deepEqual(scrolls,[[0,fresh?0:420]]);
- assert.equal(context.archiveNavigator.sourceScope,fresh?null:'chatgpt');assert.equal(context.archiveNavigator.state.selectedPath===null,fresh);assert.equal(context.searchProject===null,fresh);assert.equal(context.documentId,null);if(fresh)assert.equal(context.$('search-include-filtered').checked,true);if(fresh)assert.equal(context.queries.get('library'),'');
+ assert.equal(context.archiveNavigator.sourceScope,'chatgpt','IAH1.3 retains the current valid Source');assert.equal(context.archiveNavigator.state.selectedPath===null,fresh);assert.equal(context.searchProject===null,fresh);assert.equal(context.documentId,null);if(fresh)assert.equal(context.$('search-include-filtered').checked,true);if(fresh)assert.equal(context.queries.get('library'),'');
  }
 });
 test('refused save or composition leave does not reset any Archive state',async()=>{
@@ -31,7 +31,8 @@ test('held leave keeps scope intact and superseded navigation cannot commit the 
  assert.equal(context.archiveNavigator.sourceScope,'chatgpt');context.navigationIntent++;release(true);assert.equal(await pending,false);assert.equal(context.archiveNavigator.sourceScope,'chatgpt');assert.equal(context.query,'ARCHIVE_A');
 });
 test('only explicit primary Archive passes fresh intent; Back retains the common navigation owner',()=>{
- assert.ok(source.includes("b.dataset.view==='library'?{freshArchiveEntry:true}:{}"));assert.ok(source.includes("navigate(returnTo|| (documentId?view:view==='legacy'?'settings':'library'))"));
+ const code=actual("for(const b of document.querySelectorAll('[data-view]'))", "$('back').addEventListener('click',");
+ for(const view of ['library','thoughts','memory','settings']){let click,seen;vm.runInNewContext(code,{document:{querySelectorAll:()=>[{dataset:{view},addEventListener:(_type,fn)=>click=fn}]},navigate:(...args)=>seen=args});click();assert.equal(seen[0],view);assert.equal(seen[3].freshArchiveEntry===true,view==='library');assert.equal(seen[3].freshThoughtEntry===true,view==='thoughts');}assert.ok(source.includes("navigate(returnTo|| (documentId?view:view==='legacy'?'settings':'library'))"));
 });
 
 test('fresh entry leaves the saved query and page available to the existing return path',async()=>{

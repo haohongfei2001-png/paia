@@ -77,8 +77,8 @@ async function unchangedFixture({inputs=1,groupSize=16,hole=false,forged=false,o
 }
 
 test('actual declared provider NO_CHANGE preserves whole Context row and publishes exact body-free ACK without effective generation',async()=>{
- const f=await unchangedFixture(),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),handle=await f.session.prepare(f.batchOptions),r=await f.session.run(handle);assert.equal(handle.complete,false);assert.ok(handle.nextCursor);assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);assert.ok(r.facets.some(x=>x.outcome==='NO_CHANGE'));const a=await ack(f);assert.equal(a.length,2);assert.equal(a.find(x=>x.unit.facet==='context').outcome,'NO_CHANGE');assert.equal((await read(f.s,'organizerUsage'))[0].effectiveResultCount,0);
- const receipts=(await read(f.s,'operationReceipts')).filter(x=>x.result?.disposition==='no_change');assert.equal(receipts.length,1);assert.ok(!JSON.stringify(receipts).includes('SYNTHETIC existing stable fact'));const all=await snapshot(f.s),writes=f.s.repository.metrics.writes;assert.equal((await f.session.run(handle)).state,'COMMITTED');assert.deepEqual(await snapshot(f.s),all);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);assert.deepEqual((await read(f.s,'meta')).filter(r=>r.id.startsWith(DIRTY_PREFIX)&&r.descriptor.kind!=='input'),f.pendingNonInputs);
+ const f=await unchangedFixture(),before=await read(f.s,'meta',CONTEXT_CARDS_ROW),handle=await f.session.prepare(f.batchOptions),r=await f.session.run(handle);assert.equal(handle.complete,false);assert.ok(handle.nextCursor);assert.equal(r.complete,false);assert.equal(r.nextCursor,handle.nextCursor);assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);assert.ok(r.facets.some(x=>x.outcome==='NO_CHANGE'));const a=await ack(f);assert.equal(a.length,2);assert.equal(a.find(x=>x.unit.facet==='context').outcome,'NO_CHANGE');assert.equal((await read(f.s,'organizerUsage'))[0].effectiveResultCount,0);
+ const receipts=(await read(f.s,'operationReceipts')).filter(x=>x.result?.disposition==='no_change');assert.equal(receipts.length,1);assert.ok(!JSON.stringify(receipts).includes('SYNTHETIC existing stable fact'));const all=await snapshot(f.s),writes=f.s.repository.metrics.writes;const replay=await f.session.run(handle);assert.equal(replay.state,'COMMITTED');assert.equal(replay.nextCursor,handle.nextCursor);assert.equal(replay.complete,false);assert.deepEqual(await snapshot(f.s),all);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);assert.deepEqual((await read(f.s,'meta')).filter(r=>r.id.startsWith(DIRTY_PREFIX)&&r.descriptor.kind!=='input'),f.pendingNonInputs);
 });
 
 for(const mode of ['hole','forged'])test('same-child no-change '+mode+' never ACKs unchecked Context evidence',async()=>{
@@ -105,4 +105,71 @@ test('two claimed Context units cannot receive ACK from one checked Source/Input
 test('standalone no-change historical replay is not an atomic job ACK and cold output loss never redispatches',async()=>{
  const f=await unchangedFixture({historical:true}),h=await f.session.prepare(f.batchOptions),r=await f.session.run(h);assert.equal(r.state,'PARTIAL');assert.ok(r.facets.some(x=>x.reason==='DOMAIN_REPLAY_UNACKNOWLEDGED'));assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.equal((await read(f.s,'operationReceipts')).filter(x=>x.result?.disposition==='no_change').length,1);const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
  f.session.dispose();const cold=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});await assert.rejects(cold.prepare(f.batchOptions),{code:'UNAVAILABLE'},'original host opportunity cannot authorize a new narrowed job after output loss');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.equal(f.calls.length,1);assert.equal(f.s.repository.metrics.writes,writes);assert.deepEqual(await snapshot(f.s),before);
+});
+
+for(const operation of ['ADD','UPDATE'])test('explicit Context '+operation+' uses original atomic Maintenance owner',async()=>{
+ const f=operation==='ADD'?await fixture():await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation=operation;if(operation==='UPDATE'){delete group.change.operation;group.change.body='SYNTHETIC updated fact';group.change.section='Updated fact';}}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const handle=await f.session.prepare(f.batchOptions??options),result=await f.session.run(handle);
+ assert.equal(result.state,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);
+ const contextAck=(await ack(f)).filter(a=>a.unit.facet==='context');assert.equal(contextAck.length,1);assert.equal(contextAck[0].outcome,'COMMITTED');
+ const receipts=(await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition===(operation==='ADD'?'created':'updated'));assert.ok(receipts.length>0);
+ if(operation==='UPDATE'){assert.equal(receipts.at(-1).result.itemId,f.original.itemId);assert.equal(receipts.at(-1).result.revision,2);}
+ const before=await snapshot(f.s);await f.session.run(handle);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
+});
+for(const operation of ['ADD','UPDATE','REMOVE_CANDIDATE'])test('explicit Context '+operation+' refuses incompatible revision or unsupported operation',async()=>{
+ const f=operation==='ADD'?await unchangedFixture():await fixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation=operation;if(operation==='ADD'){delete group.change.operation;group.change.body='SYNTHETIC forbidden replacement';group.change.section='Forbidden';}}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.batchOptions??options));
+ assert.equal(result.state,'PARTIAL');assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
+});
+
+for(const mode of ['protected','stale-revision'])test('explicit UPDATE preserves '+mode+' Context through original owner',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ if(mode==='protected')await new ContextCardsService(f.s).change({kind:'put',operationId:op(),epoch:'initial',itemId:f.original.itemId,card:'info',expectedRevision:1,body:'SYNTHETIC human-owned fact',section:'Human'});
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='UPDATE';delete group.change.operation;group.change.body='SYNTHETIC model replacement';group.change.section='Model';if(mode==='stale-revision')group.change.expectedRevision=9;}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const page=await f.s.repository.transaction(false,t=>t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,limit:100})),at=page.rows.findIndex(r=>r.value.descriptor.kind==='input');assert.ok(at>=0);
+ const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare({...options,cursor:at?page.rows[at-1].key:null,limit:1}));
+ assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal(f.calls.length,1);
+ assert.equal(result.state,mode==='protected'?'COMMITTED':'PARTIAL');
+ assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,mode==='protected'?1:0);
+ assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated').length,0);
+ if(mode==='protected')assert.equal((await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='protected').length,1);
+});
+
+for(const stage of ['receipt','ack','usage','job','generation'])test('explicit UPDATE '+stage+' failure rolls back and resumes without another provider call',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='UPDATE';delete group.change.operation;group.change.body='SYNTHETIC atomic update';group.change.section='Atomic update';}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});
+ const h=await f.session.prepare(f.batchOptions),row=await read(f.s,'meta',CONTEXT_CARDS_ROW),transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false,before=null;
+ f.s.repository.transaction=async(write,fn,stores)=>{if(write&&f.state.contextOperations>0&&!reached)before=await transaction(false,async t=>Object.fromEntries(await Promise.all(f.s.repository.stores.map(async n=>[n,await t.all(n)]))));return transaction(write,async t=>{if(write&&f.state.contextOperations>0&&!reached){const put=t.put.bind(t);t.put=async(name,r,...args)=>{const value=await put(name,r,...args),hit=stage==='receipt'?name==='operationReceipts'&&r.result?.disposition==='updated':stage==='ack'?name==='organizerWorkItems'&&r.unit?.facet==='context'&&r.state==='ACKNOWLEDGED':stage==='usage'?name==='organizerUsage'&&r.state==='COMMITTED':stage==='job'?name==='organizerJobs'&&r.state==='COMMITTED':name==='meta'&&r.id==='backup-data-generation';if(hit&&!reached){reached=true;throw Error('synthetic explicit update transaction failure');}return value;};}return fn(t);},stores);};
+ const failed=await f.session.run(h);f.s.repository.transaction=transaction;
+ assert.equal(reached,true);assert.equal(failed.state,'PARTIAL');assert.equal(failed.remainingWork,true);assert.deepEqual(await snapshot(f.s),before);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),row);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,0);
+ const resumed=await f.session.run(h);assert.equal(resumed.state,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,1);
+ const receipt=(await read(f.s,'operationReceipts')).filter(r=>r.result?.disposition==='updated');assert.equal(receipt.length,1);assert.equal(receipt[0].result.revision,2);
+});
+
+for(const mode of ['success','protected','rollback','epoch'])test('REMOVE_CANDIDATE exact Context facet '+mode+' through original owner',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ if(mode==='protected')await new ContextCardsService(f.s).change({kind:'put',operationId:op(),epoch:'initial',itemId:f.original.itemId,card:'info',expectedRevision:1,body:'SYNTHETIC protected human fact',section:'Human'});
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='REMOVE_CANDIDATE';group.change.operation='REMOVE_CANDIDATE';}if(mode==='epoch')await f.s.repository.transaction(true,t=>t.put('meta',{id:'recovery-restore-epoch',value:'replacement'}));return result;};
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ if(mode==='rollback')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{if(write){const original=t.put.bind(t);t.put=async(name,row,...args)=>{const r=await original(name,row,...args);if(name==='operationReceipts'&&row.result?.disposition==='invalidated'){reached=true;throw Error('synthetic invalidation receipt abort');}return r;};}return fn(t);},stores);
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),handle=await f.session.prepare(f.batchOptions),r=await f.session.run(handle);f.s.repository.transaction=transaction;
+ const contextAck=(await ack(f)).filter(a=>a.unit.facet==='context');
+ if(mode==='success'){assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.equal(contextAck.length,1);assert.equal(contextAck[0].outcome,'COMMITTED');const item=(await read(f.s,'meta',CONTEXT_CARDS_ROW)).items[0];assert.equal(item.lifecycle,'invalidated');assert.equal(item.body,before.items[0].body);const all=await snapshot(f.s);await f.session.run(handle);assert.deepEqual(await snapshot(f.s),all);assert.equal(f.calls.length,1);}
+ else{assert.notEqual(r.state,'COMMITTED');assert.equal(contextAck.length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);if(mode==='rollback')assert.equal(reached,true);}
+});
+
+
+test('REMOVE_CANDIDATE committed transaction with lost ACK resumes exact receipt without invalidating twice',async()=>{
+ const f=await unchangedFixture(),adapt=f.service.responseAdapter.context;
+ f.service.responseAdapter.context=async(...args)=>{const result=await adapt(...args);for(const group of result.value){group.operation='REMOVE_CANDIDATE';group.change.operation='REMOVE_CANDIDATE';}return result;};
+ f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const handle=await f.session.prepare(f.batchOptions),transaction=f.s.repository.transaction.bind(f.s.repository);let lost=false;
+ f.s.repository.transaction=async(write,fn,stores)=>{let commitsInvalidation=false;const result=await transaction(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...args)=>{if(name==='operationReceipts'&&row.result?.disposition==='invalidated')commitsInvalidation=true;return put(name,row,...args);};}return fn(t);},stores);if(commitsInvalidation&&!lost){lost=true;throw Error('synthetic postcommit ACK lost');}return result;};
+ const first=await f.session.run(handle);f.s.repository.transaction=transaction;assert.equal(lost,true);assert.equal(first.state,'COMMITTED');const committed=await snapshot(f.s);assert.equal((await ack(f)).filter(a=>a.unit.facet==='context').length,1);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items[0].revision,2);
+ const resumed=await f.session.run(handle);assert.equal(resumed.state,'COMMITTED');assert.deepEqual(await snapshot(f.s),committed);assert.equal(f.calls.length,1);assert.equal(f.state.contextOperations,1);
 });

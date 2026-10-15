@@ -81,3 +81,29 @@ test('D2 frozen compact root migrates a saved grid preference without rewriting 
  assert.equal((await f.s.topic(topic.id)).name,'Synthetic full Topic name');
  assert.equal((await rows(f.s,'records'))[0].value.originalText,'Synthetic untouched source');
 });
+
+test('retired layout requests preserve Root replay authority; only a stored legacy grid migrates once',async()=>{
+ const {ThoughtLibraryReadModel}=await import('../core/thought-library-read-model.js');
+ const {prepareTopicRootActivity}=await import('../core/organizer/topic-root-activity.js');
+ const {rootReadAuthority}=await import('../core/organizer/root-read.js');
+ const {ContinuousRootReader}=await import('../ui/continuous-root-reader.js');
+ const {s}=await completeFixture({texts:[]});
+ const ids=[];for(let i=0;i<45;i++)ids.push((await s.createTopic({name:'SYNTHETIC layout replay '+i,operationId:op()})).id);
+ await s.drainLibraryMaintenance();const model=new ThoughtLibraryReadModel(s);
+ const load=async({cursor})=>{if(!cursor)await prepareTopicRootActivity(s);return model.rootPage({cursor,limit:40,sectionLimit:4});};
+ const authority=()=>s.repository.transaction(false,t=>rootReadAuthority(t));
+ const row=()=>s.repository.transaction(false,t=>t.get('meta','thought-layout:v1'));
+ for(const stored of [null,{id:'thought-layout:v1',version:1,layout:'list'},{id:'thought-layout:v1',version:2,layout:'list',previousLayout:'grid',migration:'desktop-vnext-compact',migratedAt:'2026-01-01T00:00:00.000Z'}]){
+  await s.foundationWrite(t=>stored?t.put('meta',stored):t.delete('meta','thought-layout:v1'));
+  const reader=new ContinuousRootReader({scope:'root',windowSize:100,load});for(let n=0;n<10&&!reader.terminal;n++)await reader.loadUntil({minItems:45});assert.equal(reader.items.length,45);
+  const saved=reader.snapshot(),before=await authority(),beforeRow=await row();reader.releaseBodies();
+  for(const receipt of await Promise.all([s.thoughtLayout('grid'),s.thoughtLayout('grid'),s.thoughtLayout('grid')]))assert.deepEqual(receipt,{layout:'list',deprecated:true});
+  assert.equal(await authority(),before,'deprecated input must not advance canonical authority');assert.deepEqual(await row(),beforeRow,'new requests must not manufacture or rewrite a historical migration');
+  const returned=new ContinuousRootReader({scope:'root',windowSize:100,load});returned.restore(saved);assert.equal(await returned.hydrateWindow(),true);assert.equal(returned.stale,false);assert.equal(returned.bodies.size,45);assert.deepEqual(returned.items,saved.items);
+ }
+ await s.foundationWrite(t=>t.put('meta',{id:'thought-layout:v1',version:1,layout:'grid'}));const legacyAuthority=await authority();
+ const receipts=await Promise.all([s.thoughtLayout('grid'),s.thoughtLayout(),s.thoughtLayout('list'),s.thoughtLayout('grid')]);assert.deepEqual(receipts,[{layout:'list',deprecated:true},{layout:'list'},{layout:'list'},{layout:'list',deprecated:true}]);const migrated=await row(),migratedAuthority=await authority();const oldParts=JSON.parse(legacyAuthority),newParts=JSON.parse(migratedAuthority);assert.equal(newParts[5],oldParts[5]+1,'concurrent legacy migration advances portable generation exactly once');newParts[5]=oldParts[5];assert.deepEqual(newParts,oldParts);assert.equal(migrated.version,2);assert.equal(migrated.previousLayout,'grid');assert.equal(migrated.migration,'desktop-vnext-compact');
+ for(const value of [undefined,'grid','list'])await s.thoughtLayout(value);assert.deepEqual(await row(),migrated);assert.equal(await authority(),migratedAuthority,'completed migration is idempotent');
+ await assert.rejects(s.thoughtLayout('unknown'));assert.equal(await authority(),migratedAuthority);assert.deepEqual(await row(),migrated);
+ const reader=new ContinuousRootReader({scope:'root',windowSize:100,load});for(let n=0;n<10&&!reader.terminal;n++)await reader.loadUntil({minItems:45});const saved=reader.snapshot();const topic=await s.topic(ids[0]);await s.editTopic({id:topic.id,expectedRevision:topic.revision,changes:{name:'SYNTHETIC actual metadata change'},operationId:op()});const stale=new ContinuousRootReader({scope:'root',windowSize:100,load});stale.restore(saved);assert.equal(await stale.hydrateWindow(),false);assert.equal(stale.stale,true,'real metadata changes still retire replay');assert.equal(stale.bodies.size,0);
+});

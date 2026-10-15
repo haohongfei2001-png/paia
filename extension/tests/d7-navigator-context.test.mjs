@@ -19,7 +19,7 @@ async function fixture(run){
   scope({groupKind:'providers'},[{providerKey:'other'},{providerKey:'chatgpt'}]);scope({providerKey:'other',groupKind:'groups'},[]);scope({providerKey:'chatgpt',groupKind:'groups'},groups);
   for(const g of groups)scope({providerKey:g.providerKey,groupKind:g.groupKind,projectRef:g.projectRef},[{documentId:g.title==='current'?'selected':g.title,title:g.title,providerKey:g.providerKey,groupKind:g.groupKind,projectRef:g.projectRef}]);
   state.select({available:true,documentId:'selected',providerKey:'chatgpt',groupKind:'project',projectRef:groups[2].projectRef});
-  const owner=Object.assign(Object.create(ArchiveNavigator.prototype),{active:true,reader:true,selectedDocumentId:'selected',state,host,tree,media:{matches:false},duplicateLabels:new Map(),mode:'paia',sourceScope:null,sheetOpen:false,onRouteChange(){},syncLegacy(){}});
+  const owner=Object.assign(Object.create(ArchiveNavigator.prototype),{active:true,reader:true,selectedDocumentId:'selected',state,host,tree,media:{matches:false},duplicateLabels:new Map(),mode:'paia',sourceScope:null,browseSource:'chatgpt',sourceInitialized:true,sheetOpen:false,onRouteChange(){},syncLegacy(){}});
   await run({owner,state,groups,home,slot,back,host,tree,reader});
  }finally{for(const [k,v]of prior)if(v)Object.defineProperty(globalThis,k,v);else delete globalThis[k];}
 }
@@ -32,7 +32,7 @@ function membershipScopes(state,kinds=['unassigned']){
 }
 test('actual Back restore paints a verified migrated open group immediately, without changing cached scopes or overriding a following close',()=>fixture(async({owner,state,tree})=>{
  const [group]=membershipScopes(state);let changes=0;owner.onRouteChange=()=>changes++;
- const before=structuredClone([...state.scopes]);owner.restoreNavigation({expanded:[navigatorGroupKey('chatgpt','unknown')],loaded:[],scrollTop:0,narrowCollapsed:false,sourceScope:null});
+ const before=structuredClone([...state.scopes]);owner.restoreNavigation({expanded:[navigatorGroupKey('chatgpt','unknown')],loaded:[],scrollTop:0,narrowCollapsed:false,sourceScope:null,browseSource:'chatgpt',sourceInitialized:true});
  assert.equal(tree.querySelector('.archive-navigator-group-toggle').getAttribute('aria-expanded'),'true','first restore paint preserves the previously open group');
  assert.equal(tree.querySelectorAll('.archive-navigator-window').length,1);
  assert.deepEqual([...state.expanded],[navigatorGroupKey('chatgpt','unassigned')]);assert.equal(changes,1);
@@ -53,7 +53,7 @@ test('actual paint refuses migration from incomplete root or group evidence, the
  groups.coverage.state='complete';owner.paint();assert.equal(tree.querySelector('.archive-navigator-group-toggle').getAttribute('aria-expanded'),'true');assert.equal(changes,1);
 }));
 test('Reader keeps provider/group DOM order while every source scope/order/cursor stays intact',()=>fixture(({owner,state,tree,groups,slot,reader})=>{
- const before=structuredClone([...state.scopes]);owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(tree.children[0].dataset.providerKey,'other');assert.equal(slot.parentElement,reader);assert.deepEqual([...state.scopes],before);assert.deepEqual(state.scope({providerKey:'chatgpt',groupKind:'groups'}).items,groups);
+ const before=structuredClone([...state.scopes]);owner.paint();assert.deepEqual(titles(tree),['first','second','current']);assert.equal(tree.children[0].dataset.providerKey,'chatgpt');assert.equal(tree.children.some(node=>node.dataset.providerKey==='other'),false,'IAH1.3 paints only the selected Source without deleting its cached peers');assert.equal(slot.parentElement,reader);assert.deepEqual([...state.scopes],before);assert.deepEqual(state.scope({providerKey:'chatgpt',groupKind:'groups'}).items,groups);
 }));
 test('Collapsed or not-yet-loaded selected window keeps its real group header and collapse handler',()=>fixture(async({owner,state,groups,tree})=>{
  owner.paint();await owner.toggleGroup(groups[2]);assert.equal(state.expanded.has(navigatorGroupKey('chatgpt','project',groups[2].projectRef)),false);assert.equal(titles(tree)[2],'current');const button=tree.querySelectorAll('.archive-navigator-group-toggle')[2];assert.equal(button.getAttribute('aria-expanded'),'false');assert.equal(typeof button.handlers.click,'function');

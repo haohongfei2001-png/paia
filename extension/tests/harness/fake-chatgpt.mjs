@@ -126,7 +126,7 @@ export class FakeChatGPT {
    if(!onboarding){
     const start=h.archive.locator('#onboarding-start');
     if(await start.count()&&await start.isVisible())await start.click();
-    await h.archive.locator('#consent-check').waitFor({state:'visible'});
+    await h.archive.locator('#enable-consent').waitFor({state:'visible'});
    }
    return h;
   }catch(e){await h.close();throw e;}

@@ -68,3 +68,11 @@ test('CPV1-01.1 permanent Source deletion clears only recovery drafts linked to 
  assert.ok(await store.load('ai_presentation','topic:unrelated'));
  assert.ok(await store.load('topic_metadata','topic:2'));
 });
+
+test('SET2-04 original recovery owner persists source-free feedback with compare-and-swap and immutable retry',async()=>{
+ const local=new MemoryArea(),store=new RecoveryDraftStore(local),first={kind:'settings_feedback',ownerId:'settings-feedback',token:'feedback-token-one',epoch:'initial',sourceRecordIds:[],operation:{type:'SETTINGS_FEEDBACK_DRAFT',body:'Original feedback\n精确正文',expectedToken:null}};
+ const saved=await store.save(first);assert.equal(saved.operation.body,first.operation.body);assert.deepEqual(await store.save(first),saved);
+ await assert.rejects(()=>store.save({...first,token:'feedback-token-two',operation:{...first.operation,body:'Concurrent stale editor'}}),{code:'CONFLICT'});
+ await assert.rejects(()=>store.save({...first,operation:{...first.operation,body:'Same token overwrite',expectedToken:first.token}}),{code:'CONFLICT'});
+ assert.equal(await store.clear(first.kind,first.ownerId),false);assert.deepEqual(await store.load(first.kind,first.ownerId),saved);
+});

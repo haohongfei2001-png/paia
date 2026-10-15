@@ -12,7 +12,7 @@ for(const runtime of ['source','release'])for(const signature of ['legacy','curr
  if(runtime==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'pipe'});
  const h=await FakeChatGPT.start({extensionPath,headless:true});let world;
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();
+  await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();
   await routeComposer(h.context,root,{signature});const chat=await h.context.newPage();await chat.goto(url);await chat.waitForFunction(()=>globalThis.fixture?.view);
   world=await isolated(chat,h.extensionId);
   const ui=await h.context.newPage();await ui.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');

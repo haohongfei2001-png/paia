@@ -38,11 +38,20 @@ export function validContextEvidenceSpec(x){
 }
 export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&unique(xs.map(x=>x.inputId))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
 export function validContextMaintenance(x){
- if(!lineageExact(x,['version','associationIds','provenance'])||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
- const p=x.provenance;
+ if(!lineageExact(x,['version','associationIds','provenance',...(Object.hasOwn(x||{},'invalidation')?['invalidation']:[])])||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
+ return validContextProvenance(x.provenance)&&(!Object.hasOwn(x,'invalidation')||validContextProvenance(x.invalidation));
+}
+function validContextProvenance(p){
  return lineageExact(p,['epoch','evidence'])&&contextTopicEpoch(p.epoch)&&lineageArray(p.evidence,CONTEXT_LINEAGE_LIMITS.inputs,1)&&unique(p.evidence.map(e=>e?.inputId))&&new Set(p.evidence.map(e=>e?.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics&&p.evidence.every(e=>lineageExact(e,[...specKeys,'contentRevision','sourceRecordIds','sourceIdentityTokens'])&&validContextEvidenceSpec(Object.fromEntries(specKeys.map(k=>[k,e[k]])))&&e.expectedTopicBinding.epoch===p.epoch&&revisionOK(e.contentRevision)&&ids(e.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds));
 }
-export const contextLineageSourceIds=item=>[...new Set(item.maintenance.provenance.evidence.flatMap(e=>e.sourceRecordIds))].sort();
+export const contextLineageSourceIds=item=>[...new Set([item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence.flatMap(e=>e.sourceRecordIds)))].sort();
+// Evidence identity ignores ordering and ambient grant/operation/time changes.
+// Re-evaluation needs changed material or source/Topic identity, not another
+// delivery of the same qualified facts. Renames/layout/access epochs and
+// revisions of unselected fields do not make unchanged selected text novel.
+export function contextEvidenceIdentity(p){
+ return JSON.stringify(p.evidence.map(e=>({topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)||a.topicId.localeCompare(b.topicId)));
+}
 export function contextLineageReady(store){return !!store?.repository?.db&&!!store.controlCache&&typeof store.readableEntry==='function'&&typeof store.isFiltered==='function';}
 export async function contextLineageRead(store,fn,stores,database=store?.repository?.db){
  need(database&&contextLineageReady(store)&&store.repository.db===database);
@@ -125,6 +134,7 @@ export async function captureContextEvidence(store,evidence,{epoch,expectedAutho
  return {captured:result.captured,provenance:{epoch,evidence:result.results[0].evidence}};
 }
 export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null}={}){
+ items=items.filter(item=>item.lifecycle==='active');
  const automatic=items.filter(x=>x.origin==='automatic'&&x.maintenance.provenance.epoch===epoch),manual=items.filter(x=>x.origin!=='automatic');
  if(!automatic.length)return {items:manual,captured:null};
  need(automatic.every(x=>validContextMaintenance(x.maintenance)));

@@ -142,6 +142,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/organizer/expression-time.js',
   'core/organizer/organize-cache-qualification.js',
   'core/organizer/root-read.js',
+  'core/organizer/topic-activity.js',
   'core/organizer/topic-chronology.js',
   'core/organizer/topic-reading.js',
   'core/prompt-family.js',

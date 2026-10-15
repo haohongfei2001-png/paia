@@ -1,0 +1,15 @@
+# CTX4 local home-space search
+
+Approved Context v2 inherited PRE_REFINEMENT section 1.7 requires homepage search across three independent Item cards and qualified My Inputs. Existing per-card and My Inputs searches did not provide that homepage workflow.
+
+The existing Context page now owns a bounded, explicit local query. Initial Home remains metadata-only; submitted queries use the original Context snapshot and qualified Topic directory/search/read owners. Results contain bounded snippets and current references. Item activation rechecks epoch, revision, card and section before opening the original editor. Back re-reads and restores the query and still-valid anchor; later user focus or pointer intent cancels delayed focus restoration. Leaving Context clears the session. No new store, AI grant, network request or shared data writer.
+
+Frozen runtime: context-cards.js 0d6624c2fe8a596215ebf8b34bbe19e56fe37a5b; context-home-search.js 19bcbceb8510ab5757bf21fd378a896c558a56a9. Tests 5b3fae26291bf3d7b1423ddcd0c8f5004c703fd6 and dc8d4521d882eae84d8e74fdf4a36f53922b048e.
+
+Author initial four whole files 130 PASS; independent review found and reproduced delayed focus theft. The independent reviewer implemented that correction; non-author Root reviewed the correction and ran two final whole files: 101 PASS, zero failures/cancellations/skips. Initial failing counterexample remains in PR284-CONTEXT-HOME-SEARCH. Exact frozen Source and standard release real headless Chrome both pass: cross-card results, exact target navigation, browser Back query restoration, clear to body-free Home, private 61st Entry search/read, unchanged AI access and zero outbound requests/runtime errors. Synthetic private data only. Initial native failure was premature Back before original history commit; the runner now waits for the exact original rules history state, within the existing timeout; no production navigation or assertion relaxation. Failure log retained. Build: 503 files, package guardrails PASS.
+
+This is candidate engineering only. Latest-design exact visual acceptance, whole changed-head certification, safe merge and installed-user acceptance remain separate. No complete CTX4 or all-project claim.
+
+## Related fixture correction after actual cloud failure
+
+Prompt38464234983 shards1/4 and4/4 failed on c9ed: three older document doubles lacked removeEventListener and broke legitimate Home disposal plus subsequent owner assertions. The unchanged original assertions now run against paired add/remove/dispatch event behavior in those fixtures. Local/independent three whole files88 PASS and five additional owner files74 PASS. Production Home bytes remain unchanged. Original cloud and local-before failures remain; this does not claim the failed cloud run passed or replace qualification on the repaired head.

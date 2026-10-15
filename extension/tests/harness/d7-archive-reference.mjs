@@ -8,6 +8,8 @@ import {eventually} from './fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './archive-navigator.mjs';
 import {assertTitleVisibility} from './d7-title-visibility.mjs';
 import {renderedTypography} from './rendered-typography.mjs';
+import {whitePalette} from './white-refinement-reference.mjs';
+import {archiveWhiteReference} from './archive-white-reference.mjs';
 
 const masters=new URL('../../docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/screens/',import.meta.url);
 import {D7_ARCHIVE_MATRIX,D7_FULL_MATRIX} from './d7-archive-matrix.mjs';
@@ -24,6 +26,7 @@ export const D7_READER_FIXTURE=Object.freeze({
  ]
 });
 const qualifications=[
+ 'PAIA-WHITE-UI-1.0 / IAH-1.4 replaces historical D6.2 palette only. Current exact light/dark color assertions use the independently transcribed final approved refinement; historical master bytes, geometry, keyboard, source and interaction coverage remain unchanged.',
  'The owner October 7 decision replaces A01 full-width directory with a narrow directory and an empty reading area, The implementation uses 272px for the widest narrow directory. Original D6.2 images remain historical references; their replaced geometry is not a current acceptance target. Unchanged Reader geometry, themes, typography and reachability retain their exact assertions.',
  'Existing preference normalization resolves both new and saved standard reading settings to 17px/680px. The approved 16px/29px/800px drawing is retained unchanged; this comparison never invents an unset preference or changes the standard mappings.',
  'The Source model has no project description and the navigator has no window-date field. The original A01 descriptions and A02 navigator dates remain in canonical images; actual content does not fabricate them.',
@@ -150,8 +153,9 @@ function assertLayout(actual,row){
  if(reader){near(actual.title.x,titleX,row.id+' title reading axis');assert.match(actual.title.fontFamily,/Georgia.*Noto Serif CJK SC/,'Reader title retains the approved serif role');assert.equal(actual.title.fontWeight,'500');assert.equal(parseFloat(actual.title.fontSize),row.geometryContract.titleSize);}
  else assert.equal(actual.title.visible,false,'directory has no duplicate Archive heading');
  assert.equal(actual.searchHost,'archive-root-header-actions','Archive search keeps its persistent directory owner');assert.equal(actual.readerSearchHost,'reader-search-slot','Reader query keeps its independent right-column owner');
- assert.equal(actual.rail.backgroundColor,theme==='dark'?'rgb(18, 24, 35)':'rgb(250, 251, 253)');if(reader)assert.equal(actual.title.color,theme==='dark'?'rgb(232, 237, 247)':'rgb(23, 35, 60)');
- assert.equal(actual.search.backgroundColor,theme==='dark'?'rgb(32, 41, 57)':'rgb(244, 246, 250)');
+ const palette=whitePalette(theme);
+ assert.equal(actual.rail.backgroundColor,palette.rail,'approved white/dark primary rail');if(reader)assert.equal(actual.title.color,palette.heading,'approved white/dark Archive Reader title');
+ assert.equal(actual.search.backgroundColor,palette.search,'approved white/dark search surface');
  assert.ok(actual.search.visible&&actual.search.width>0&&actual.search.x>=0&&actual.search.right<=width+2,'the active scope search is visible and horizontally reachable');
  if(reader){
   assert.equal(actual.documentTitleInsidePage,true);assert.equal(actual.backHost,'archive-reader-back-slot');
@@ -325,10 +329,13 @@ export async function verifyD7ArchiveBehavior(h,seed,{directory,variant,observat
 export async function compareD7Archive(h,variant,{matrix='full',directory='work/d7-archive-reader',head=process.env.PAIA_TESTED_HEAD||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),seed=null}={}){
  assert.ok(['archive','reader-compat','full'].includes(matrix));const page=h.archive,declared=matrix==='archive'?D7_ARCHIVE_MATRIX:matrix==='reader-compat'?D7_FULL_MATRIX.filter(row=>row.screen==='A02'&&!row.stress):D7_FULL_MATRIX,rows=declared.map(row=>({...row,status:'PENDING'})),errors=[],observations=[],references=new Map(),started=Date.now();
  await mkdir(directory,{recursive:true});
- const receipt={head,variant,matrix,expectedRows:declared.length,rows,errors,observations,qualifications,fixture:matrix==='full'?{kind:'D6.2 normal synthetic text through real capture',conversations:9,sources:12,readerTitle:D7_READER_FIXTURE.title,readerTimes:D7_READER_FIXTURE.times,readerBodySha256:D7_READER_FIXTURE.bodies.map(digest)}:{kind:'Existing caller synthetic Archive fixture retained unchanged',comparisonScope:'Root shell and responsive rules; canonical root project content is not claimed equal in this compatibility subset'},result:'PENDING',visualAcceptance:'PENDING_INDEPENDENT_FULL_WINDOW_REVIEW',scope:'Actual normal extension routes, exact literal Source/Working content, original immutable D6.2 historical frames, current owner-approved fixed geometry <=2px. No screenshot-only or pixel-threshold PASS.'};
+ const receipt={head,variant,matrix,paletteAuthority:archiveWhiteReference,expectedRows:declared.length,rows,errors,observations,qualifications,fixture:matrix==='full'?{kind:'D6.2 normal synthetic text through real capture',conversations:9,sources:12,readerTitle:D7_READER_FIXTURE.title,readerTimes:D7_READER_FIXTURE.times,readerBodySha256:D7_READER_FIXTURE.bodies.map(digest)}:{kind:'Existing caller synthetic Archive fixture retained unchanged',comparisonScope:'Root shell and responsive rules; canonical root project content is not claimed equal in this compatibility subset'},result:'PENDING',visualAcceptance:'PENDING_INDEPENDENT_FULL_WINDOW_REVIEW',scope:'Actual normal extension routes, exact literal Source/Working content, original immutable D6.2 historical frames, current owner-approved fixed geometry <=2px. No screenshot-only or pixel-threshold PASS.'};
  const persist=()=>writeFile(`${directory}/${variant}-${matrix}.json`,JSON.stringify({...receipt,elapsedMs:Date.now()-started},null,2));
  try{
   await persist();await page.setViewportSize({width:1440,height:1000});await selectArchive(page);await page.locator('#scope-search').fill('');
+  // This historical comparison explicitly exercises all-source search.
+  await page.locator('#archive-source-scope').selectOption('');
+  await eventually(()=>page.locator('#scope-search').getAttribute('placeholder').then(value=>value==='搜索全部档案'),'explicit all-source scenario is ready');
   if(matrix==='full'){
    await waitArchiveWindow(page,{text:D7_READER_FIXTURE.title});
    // Discovery can finish while another expanded scope is still repainting.

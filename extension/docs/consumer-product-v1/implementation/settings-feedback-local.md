@@ -1,0 +1,9 @@
+# SET2-04 local feedback draft
+
+Approved Settings feedback dialog is implemented with one body, explicit copy and existing contact mailto. No automatic sending, attachments, source excerpts, diagnostics, body URL or new storage owner. settings_feedback is a source-free typed draft under the original RecoveryDraftStore/withRecoveryFence and epoch. expectedToken is exact CAS; same token/different payload refuses; ambiguous ACK retains original token for retry. No consent allows only explicitly described in-page text, never durable recovery reads/writes or enabling capture.
+
+IME, failed save, other-window invalidation and unknown pending operation block unsafe leave and retain text. Copying allows explicit close while session text remains; it does not claim saved. Restore/epoch and storage changes invalidate stale handles. Reverting text during unknown ACK remains dirty until reconciliation, so original beforeunload protection remains.
+
+Packet work/reviews/PR284-SETTINGS-FEEDBACK holds author31PASS, independent30 before final pending fix, final followup review and exact native evidence. Standard500-file release actual isolated Chrome verifies full reload restoration, exact synthetic clipboard adapter, save failure/close refusal/retry, dual-window no-overwrite and zero outbound network/errors. Initial test required conflict text even though proactive invalidation was correct; its failure is retained, final accepts either truthful path while original body-preservation assertions remain. OS clipboard, real email sending and unavailable refined visual assets are not claimed verified.
+
+Final Source and standard release both pass the same three frozen native journeys. Each owning packet contains `source-final.log` and `release.log`; no skipped/cancelled result is reused. Final feedback/entry independent six-file review34PASS is in PR284-CONTEXT-SCOPE-PREVIEW/paia-feedback-preview-final-review.log.

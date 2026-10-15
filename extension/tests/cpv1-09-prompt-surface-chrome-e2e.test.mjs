@@ -50,7 +50,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
  // OS/tab visibility belongs to its separate native lifecycle tests.
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true}),screens=[];let world,diagnosticCDP;const navigationTrace=[],diagnosticReads=[];await mkdir(receiptDir,{recursive:true});
  try{
-  await h.archive.locator('#consent-check').check();await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
+  await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
   const text='请保留引用。\nOnly test.🙂',secret='PRIVATE_LIBRARY_NEVER_IN_HOST';let q=await rpc(engineering,'PAIA_PROMPT_QUERY');
   const a=await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:q.revision,text}});await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'create',revision:a.revision,text:secret}});
@@ -134,12 +134,26 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await page.evaluate(()=>fixture.set('timer draft',11));await fill(f);await eventually(()=>f.locator('#status').textContent().then(x=>x==='已插入，未发送。'));
    await surfaceClick(f,'#new');await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved timer test');await clickSurface(f,f.locator('#close'));assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');await page.waitForTimeout(1900);assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved timer test');await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());
   });
-  await check('visual master management reveal keeps geometry and editing stays inside the same list',async()=>{
+  await check('approved NIB text axis and action rail retain geometry, reorder and inline editing',async()=>{
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());
    await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),before=await row.boundingBox();
    assert.equal(await f.locator('#list').evaluate(e=>getComputedStyle(e,'::-webkit-scrollbar').width),'3px');
+   const textBefore=await row.locator('.text').boundingBox(),frameBox=await (await f.frameElement()).boundingBox();
+   const axisProbe={variant,global:{text:textBefore,frame:frameBox,delta:textBefore.x-frameBox.x},child:await row.evaluate(node=>{const shape=n=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {rect:r.toJSON(),paddingLeft:s.paddingLeft,borderLeftWidth:s.borderLeftWidth,transform:s.transform,zoom:s.zoom,display:s.display};};return {text:shape(node.querySelector('.text')),insert:shape(node.querySelector('.insert')),row:shape(node),list:shape(node.parentElement),body:shape(document.body),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};}),owner:await (await f.frameElement()).evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {rect:r.toJSON(),clientLeft:node.clientLeft,borderLeftWidth:s.borderLeftWidth,paddingLeft:s.paddingLeft,transform:s.transform,zoom:s.zoom,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};})};
+   await writeFile(join(receiptDir,variant+'-reference-axis.json'),JSON.stringify(axisProbe,null,2));await page.screenshot({path:join(receiptDir,variant+'-reference-axis.png')});
+   // Chromium's cross-frame boundingBox omits the iframe border. Measure
+   // child DOM coordinates from the native content origin, then include the
+   // owner border once. The physical outer-board target/tolerance is unchanged.
+   assert.equal(axisProbe.owner.transform,'none');assert.equal(axisProbe.owner.zoom,'1');
+   assert.ok(Math.abs(axisProbe.child.text.rect.x+axisProbe.owner.clientLeft-18)<0.6,'actual text starts at the approved18px outer-board axis');
+   assert.equal(await f.locator('#open-search [data-paia-icon="search"]').count(),1);assert.equal(await f.locator('#open-search').getAttribute('aria-label'),'搜索全部档案');
+   const rail=await row.locator('.insert,.grip,.copy-shortcut,.edit-shortcut,.more').evaluateAll(nodes=>nodes.map(node=>({kind:node.className,left:node.getBoundingClientRect().left,right:node.getBoundingClientRect().right,width:node.getBoundingClientRect().width})));
+   assert.deepEqual(rail.map(x=>x.kind),['insert','grip','copy-shortcut','edit-shortcut','more']);
+   for(let i=1;i<rail.length;i++)assert.ok(rail[i].left>=rail[i-1].right-0.5,'each existing action keeps its own non-overlapping hit target');
+   assert.ok(rail[1].width>=22,'native reorder handle remains reachable');
+
    assert.equal(await row.locator('.more').evaluate(e=>getComputedStyle(e).opacity),'0');
-   await row.hover();await page.waitForTimeout(160);assert.deepEqual(await row.boundingBox(),before);
+   await row.hover();await page.waitForTimeout(160);assert.deepEqual(await row.boundingBox(),before);assert.deepEqual(await row.locator('.text').boundingBox(),textBefore,'hover never shifts the approved text axis or truncation threshold');
    for(const selector of ['.grip','.edit-shortcut','.more'])assert.equal(await row.locator(selector).evaluate(e=>getComputedStyle(e).opacity),'1');
    await row.locator('.edit-shortcut').focus();await page.keyboard.press('Enter');assert.equal(await f.locator('#list').isVisible(),true);assert.equal(await f.locator('#list > #editor').count(),1);
    assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),text);assert.equal(await f.locator('.row:not(.editing-row)').count(),1);
@@ -172,6 +186,24 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    // Direct fixture capture runs outside the worker's queue. Establish the complete
    // production projection before the explicit UI snapshot refresh.
    let ready;await eventually(async()=>{const r=await engineering.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_QUERY'}));if(!r.ok){assert.equal(r.error,'MEMORY_STALE','only a concurrent fixture projection may delay readiness');return false;}ready=r.data;return ready.items.find(x=>x.text.includes('解释这个算法'))?.members.length===2;},'both captured inputs must be in the production family before refreshing the card');const family=ready.items.find(x=>x.text.includes('解释这个算法'));assert.equal(family.members.length,2);
+   // Hold a real owner reply after reading qualified members, then invalidate
+   // the open chooser through the production message listener. Late bodies
+   // must remain absent; cancellation must also work before any reply arrives.
+   const splitFrame=card();await surfaceClick(splitFrame,'#refresh');
+   for(const action of ['invalidate','cancel']){
+    await splitFrame.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.restoreSplitSend=()=>{chrome.runtime.sendMessage=send;};chrome.runtime.sendMessage=async request=>{const result=await send(request);if(request?.command?.type==='members')return new Promise(resolve=>{globalThis.releaseSplitMembers=()=>resolve(result);});return result;};});
+    await clickSurface(splitFrame,splitFrame.locator('.row').filter({hasText:'解释这个算法'}).locator('.more'));await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'拆分',exact:true}));
+    await splitFrame.waitForFunction(()=>typeof globalThis.releaseSplitMembers==='function');
+    assert.equal(await splitFrame.getByRole('button',{name:'取消',exact:true}).isEnabled(),true);assert.equal(await splitFrame.locator('#editor input[type=checkbox]').count(),0);
+    if(action==='invalidate'){
+     await engineering.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}));
+     await eventually(()=>splitFrame.locator('#editor').textContent().then(text=>text.includes('原文已变化')),'original split listener invalidated the current choice');
+    }else await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'取消',exact:true}));
+    await splitFrame.evaluate(async()=>{globalThis.releaseSplitMembers();delete globalThis.releaseSplitMembers;globalThis.restoreSplitSend();await new Promise(resolve=>setTimeout(resolve,0));});
+    assert.equal(await splitFrame.locator('#editor input[type=checkbox]').count(),0);assert.doesNotMatch(await splitFrame.locator('#editor').textContent(),/解释这个算法/);
+    if(action==='invalidate'){assert.equal(await splitFrame.getByRole('button',{name:'拆分',exact:true}).isDisabled(),true);await clickSurface(splitFrame,splitFrame.getByRole('button',{name:'取消',exact:true}));}
+    await surfaceReady(splitFrame);
+   }
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('.row').filter({hasText:'解释这个算法'}).count(),1,JSON.stringify({status:await f.locator('#status').textContent(),rows:await f.locator('.row').allTextContents()}));await clickSurface(f,f.locator('.row').filter({hasText:'解释这个算法'}).locator('.more'));await clickSurface(f,f.getByRole('button',{name:'拆分',exact:true}));await f.locator('#editor input[type=checkbox]').first().waitFor({state:'visible'});await surfaceReady(f);await f.locator('#editor input[type=checkbox]').first().check();await clickSurface(f,f.getByRole('button',{name:'拆分',exact:true}));await eventually(()=>f.locator('#editor').isHidden());await surfaceReady(f);assert.equal((await rpc(engineering,'PAIA_PROMPT_QUERY')).items.filter(x=>x.text.includes('解释这个算法')).length,2);assert.deepEqual((await h.state()).records,before);
   });
   await check('worker restart, SPA and page reload preserve durable templates without duplicate surface',async()=>{

@@ -14,7 +14,7 @@ const rpc=async(page,type,fields={})=>{
 };
 
 async function consent(page){
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'ANS-01 consent persists');
   const skip=page.locator('#onboarding-skip');
@@ -187,8 +187,15 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
     await eventually(async()=>await p.locator('.universal-hit').count()===1,'internal material search still finds Input');
     await p.locator('.universal-close').click();
 
-    await p.locator('#primary-nav [data-view="thoughts"]').click();
-    await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#scope-search').isEnabled(),'return from Context to the preserved Topic Reader');
+    // The current unavailable-legacy helper never navigates. Exercise a real
+    // local Context visit, then explicit Back to the exact retained Reader.
+    const retainedTopic=await p.evaluate(()=>history.state?.paiaReader?.topicId);
+    assert.ok(retainedTopic);
+    await p.locator('#primary-nav [data-view="memory"]').click();
+    await eventually(()=>p.locator('#thought-panel').isHidden(),'actual Context visit leaves Topic Reader');
+    await p.goBack();
+    await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#topic-search').isEnabled(),'return from Context to the preserved Topic Reader');
+    assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),retainedTopic,'Back restores the exact same Topic');
     await p.locator('#back').click();
     await eventually(()=>p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');
     await p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).click();

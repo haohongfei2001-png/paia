@@ -15,7 +15,7 @@ async function openBackup(page){
 }
 
 async function enableConsent(page){
- const welcome=page.locator('#onboarding-start'),consent=page.locator('#consent-check');
+ const welcome=page.locator('#onboarding-start'),consent=page.locator('#enable-consent');
  const consented=async()=>{
   try{
    const response=await page.evaluate(()=>chrome.runtime.sendMessage({type:'GET_STATE'}));
@@ -27,7 +27,6 @@ async function enableConsent(page){
  if(await welcome.isVisible())await welcome.click();
  if(!await consented()){
   await consent.waitFor({state:'visible'});
-  await consent.check();
   await page.locator('#enable-consent').click();
   await eventually(consented,'durable local consent',30000);
  }

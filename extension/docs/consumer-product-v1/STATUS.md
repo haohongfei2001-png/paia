@@ -1,3 +1,169 @@
+# Current candidate — Topic note clipboard lifetime
+
+Current Topic note copies now follow the original MetadataEditor lifecycle; old callback/fallback cannot cross route departure, edited text, replaced note or IME. Dirty failed drafts remain explicitly copyable through the original owner. Author168/independent8 and combined32PASS overlap; exact Source/release4nativepaths and503guardPASS. See implementation/topic-note-copy-lifetime.md. Candidate only; all Canonical goals and outstanding gates remain.
+
+# Current candidate — compose draft clipboard lifetime
+
+Confirmed abandoned Topic drafts cannot return through a late clipboard fallback. Copy cancellation follows the current compose session and original confirmed-close/IME protections. Author54/independent6PASS overlap; exact Source/release native discard/manual-copy/new-input paths pass. See implementation/topic-compose-copy-lifetime.md. Candidate only; all Canonical scope and outstanding gates remain.
+
+# Current candidate — qualified Archive copy fallback
+
+Archive menu, selection and recovery-buffer copies now follow the current Reader lifecycle. Navigation/invalidation/PURGE cannot reopen old-body fallback; an existing invalid fallback is cleared and removed. Valid manual copy remains. Author33/independent5PASS overlap; exact Source/release native route/PURGE paths and503releaseguard pass. See implementation/archive-copy-lifetime.md. Candidate only, no whole-project completion; all Canonical plans and outstanding gates remain.
+
+# Current candidate — feedback copy lifetime
+
+SET2-04 late clipboard results cannot change closed/reopened feedback or interrupt newer IME/copy operations. Original drafts/CAS and exact-copy departure protection remain. Related33PASS and independent13PASS overlap; Source/release native recovery/copy/conflict paths pass. See implementation/settings-feedback-copy-session.md. Candidate only: full/latest visual gates remain, all Canonical plans preserved, no CI/Sync/service activation.
+
+# Current candidate — split original-expression lifetime
+
+NIBv4 S2 split now fences cancelled, invalidated and destroyed member reads, immediately clears stale original bodies and preserves original owner membership/CAS plus manual work. Related78 PASS and independent10 PASS overlap; exact Source and standard release complete CPV1-09 native suites pass, with initial Source receipt-writer failure retained. See implementation/nib-split-session.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. No CI, Sync or service activation changes; all Canonical plans remain.
+
+# Current candidate — qualified search previews and usable pending controls
+
+Context Home, My Inputs and Archive conversation search snippets now follow the existing hidden-preview preference; explicit original bodies remain readable. Home visible matches stay disabled while qualification is pending and retain original Back/focus guards when enabled. Author/independent49PASS and final Source/release three real Chrome journeys pass; see implementation/settings-search-preview-mask.md. PR284 remains unmerged/uninstalled with full/latest visual gates open. Original invalidation, permissions and all Canonical plans remain; no CI/Sync/service activation.
+
+# Current candidate — removed-content preview privacy
+
+SET2 now applies the existing hidden-preview preference to actual removed Input/Entry/placement excerpts, preserving names, recovery controls and original data. Author/independent46PASS and exact Source/release native Chrome pass; see implementation/settings-removed-preview-mask.md. PR284 remains unmerged/uninstalled; full/latest visual gates remain. No new preference/data writer, CI change, Sync feature or paid activation. All Canonical plans remain.
+
+# Current candidate — one recoverable Entry ordering intent
+
+TOPIC Entry up/down now retries the original neighbor and operation after unknown acknowledgement, avoiding a second unintended move. Original recovery-epoch fencing covers both direct swaps and tied-rank jobs; real departure to Archive prevents a hidden Topic write. Author189/independent189 and exact Source/release native Chrome pass. See implementation/topic-entry-reorder-session.md. PR284 remains unmerged/uninstalled, with full/latest visual gates open. No Sync new feature, CI change or provider activation; seven Canonical plans remain.
+
+# Current candidate — automatic Context candidate invalidation
+
+Owner-approved AI-COST-03 / CTX4-05 REMOVE_CANDIDATE now invalidates only unprotected automatic Items through the original owner, retaining body and both provenance closures while stopping external reads. New qualified evidence may reactivate the same identity; human protection, original processing authority and transactional exact ACK remain. Source-purge admission retains both source closures, and original backup exclusions remain. Author255/independent182 and exact Source/release native Chrome pass; failures are retained. See implementation/ai-usage/AI-COST-03-CONTEXT-INVALIDATION.md. PR284 remains unmerged/uninstalled with full/latest visual gates open; no real AI activation, Sync feature or CI change. All seven plans remain.
+
+# Current candidate — recoverable exact Topic creation
+
+Home Add Topic now retains one immutable request and name after an unknown acknowledgement; retries use the original receipt instead of creating a duplicate. Current-route qualification preserves reading, and original CREATE plus its compatibility owner atomically fence recovery epochs. Author256/independent184 and exact Source/release native Chrome pass. See implementation/topic-create-session.md. No new writer/RPC/schema, Sync feature, CI change, provider activation or installation. PR284 remains a candidate with full/latest visual gates open; all seven Canonical plans remain.
+
+# Current candidate — Topic rename/delete route protection
+
+TOPIC original container rename/delete now bind their caller route, target and confirmation through the existing mutation lifecycle. Late reads/ACKs cannot open an old dialog or take over a new reader; valid Home actions and container-only content preservation remain. Author165/independent143 and exact Source/release real headless Chrome pass. See implementation/topic-container-action-route.md; the rejected initial lifecycle guard and all earlier failures are preserved. Candidate remains unmerged/uninstalled; exact-head/full/latest visual gates still apply. Seven Canonical plans, Sync pause and Pro CI ownership remain unchanged.
+
+# Current candidate — exact Entry deletion Undo and regression repair
+
+TOPIC Entry lifecycle deletion Undo now binds the original removal and rechecks recovery epoch atomically before receipt replay, preventing stale controls from restoring a later deletion. Author206/independent149 and exact Source/release native Chrome safety journeys pass; see implementation/topic-entry-removal-undo.md. New guarded requests fail closed under injected Sync journal; old interfaces remain compatible and Sync stays paused. Three older Context DOM test fixtures were repaired after actual cloud failure, with assertions unchanged; local and independent88 PASS plus74 related checks do not replace changed-head CI. Candidate remains unmerged/uninstalled with full/latest visual gates open.
+
+# Current candidate — Context home search and conservative Maintenance filter
+
+CTX4 home-space search and AI-COST-04 KEEP/INSUFFICIENT filter participation are implemented through original owners, independently reviewed, and verified on exact Source/standard release in isolated headless Chrome. Home search preserves metadata-only initial loading and current Back/focus intent. Filter uses one existing Maintenance response and atomic exact NO_CHANGE ACK without altering human intent or classifier visibility. See implementation/context-cards/CTX4-01-HOME-SEARCH.md and implementation/ai-usage/AI-COST-04-MAINTENANCE-KEEP.md. Author/independent failures remain recorded. No real provider, new permission, Sync feature or CI change. PR284 remains unmerged; whole-head and latest exact visual gates still apply.
+
+# Current candidate followup — failed Entry draft self-rescue
+
+TOPIC-05.6 now copies the actual current existing Entry draft even when saving failed, without clearing failure/unknown/conflict or dispatching another save. Original current eligibility and epoch are checked before copy; stale routes/IME refuse. Author125/independent72 and exact Source/release Chrome pass. See implementation/topic-entry-draft-copy.md. Full/latest visual/main gates remain open; not merged/installed.
+
+# Current candidate followup — truthful supported-site details
+
+SET2 now fills the existing Supported websites page with actual capture capabilities, exclusions and the separation from external AI authorization. Author/independent6PASS and exact Source/release Chrome bilingual/Back/focus/narrow-layout checks pass. See implementation/settings-supported-sites.md. No new sites, permissions, network or writers; candidate remains unmerged with full/visual gates open.
+
+# Current candidate followup — My Inputs single original-text copy
+
+CTX4-03 now supports explicit complete original human text copying in the local Topic verification panel, with fresh original-reader qualification and Back/native-close late-response fencing. Author91/independent77 and exact Source/release real headless Chrome pass; no AI permission change. See implementation/context-cards/CTX4-03-VIEWER-COPY.md. This is candidate engineering, not merged/installed or whole-plan acceptance. Prior evidence and remaining gates below remain applicable.
+
+# Current candidate — qualified immediate undo (2026-10-14)
+
+PR284 remains draft, unmerged and uninstalled. TOPIC-05.5 now offers receipt-qualified immediate placement undo; IAH-08 Archive removal undo binds the original journal patch so it cannot undo a later edit. Both use original writers and retain unknown-result, epoch and CAS protections. Independent Topic28+61 and Archive65 tests pass. Exact Source/standard release headless Chrome journeys pass both undo paths, lost acknowledgement reconciliation, later-edit refusal and Context basis navigation. See implementation/topic-placement-immediate-undo.md and implementation/archive-removal-undo.md.
+
+Formal main81b41ddca1d28f7935bba63b3eab01b8678e4120 is unchanged. Published predecessor b5445145 Candidate and Prompt checks pass; skipped Full/browser are not acceptance for this new batch. Preserve earlier cancellation/failure evidence, latest visual gate, all seven plans, delivered0.43.29, paused Sync and Pro264 ownership.
+
+## Preserved prior evidence
+
+# Current execution — human search, feedback drafts and local scope preview (2026-10-14)
+
+Formal main remains `81b41ddca1d28f7935bba63b3eab01b8678e4120`. PR284 is an unmerged, uninstalled candidate. CTX4-03 now uses the original qualified root search for explicit human Topic/Section/unmounted-body queries and exact read-only result targets, independent of AI choices. SET2-04 provides a source-free feedback draft through the original recovery owner with exact CAS, unknown-ACK reconciliation, IME/navigation protection and explicit copy only. CTX4-04 adds a worker-private local preview capability through the original Context read owner; external verification stays closed, revoked scope clears, and complete copy freshly traverses and rechecks authority. No provider, new writer, grant or sending is introduced.
+
+The frozen combined eight owning test files pass116 tests; original external Context tests remain separately qualified by the unchanged external-contract regression. Standard release passes500-file guard. All three exact release journeys pass in isolated headless Chrome; final source confirmation is recorded in the implementation receipt. Independent reviews repaired Back/native-close late-copy cleanup and pending-draft departure protection. Historical failures remain preserved. PR284 predecessor15137 Candidate unit was CANCELLED (run38453470138/job115490203983), Candidate gate failed; Prompt1–4/contracts/privacy/release pass, skipped Full/browser are not acceptance. Exact final candidate gates, latest approved visual comparison and main qualification remain required. Preserve seven plans, delivered0.43.29, paused Sync and Pro264 CI ownership.
+
+CTX4-02 real Item basis is also implemented through original lineage/final authority checks and existing Input navigation. Author and independent159PASS; exact Source/release automatic-vs-manual/excerpt/Input/Back journeys pass with unchanged Context permissions. See `implementation/context-cards/CTX4-02-ITEM-BASIS.md`. This is candidate code, not a completed whole plan.
+
+See `implementation/context-cards/CTX4-03-04-LOCAL-SEARCH-PREVIEW.md` and `implementation/settings-feedback-local.md`.
+
+## Preserved preceding execution evidence
+
+# Current execution — Context interactions and Topic merge safety (2026-10-14)
+
+Formal main remains81b41ddca1d28f7935bba63b3eab01b8678e4120, qualified by exact Full38439353598 and Prompt38439353651. PR284 is an unmerged, uninstalled0.49.0 draft. CTX4-02 now implements group-local adjacent up/down through the original transaction: complete-group dual revision checks, atomic receipt/retry, unchanged identity/body/provenance and automatic-Item human protection. Search-hidden neighbors remain part of the group. Ambiguous duplicate order and injected Sync journal refuse safely; no Sync protocol is relaxed.
+
+Final independent owning107 PASS; original standard package/release build and isolated Source/release headless Chrome passed selection preservation, later-user-focus priority, write rollback, lost-ACK reconciliation and reload. Historical native selection and package guard failures are retained and repaired without weakening assertions/guards. The preceding visual correction removes empty filter-note spacing and restores paused muted roles; exact latest-reference visual qualification remains open. The old full Context file10PASS2FAIL is not a current passing certificate. The published predecessor7048bb62 now passes Candidate unit/contracts/privacy/release/gate and Prompt1–4. Historical failures remain recorded; skipped Full/browser jobs do not certify this new local batch. No merge, installation or whole-plan completion is claimed.
+
+CTX4-03本人Topic只读核对 is now implemented through original qualified reading owners, separately from AI choice: bounded continuous pages, explicit large-entry expansion, close/epoch fencing and independent keyboard entry. Independent viewer14 tests and root combined86 tests pass; final Source/release82-item large-body/late-response journeys and original affected Source/release choice cases2 PASS. The preceding Prompt unit4 fixture failure is repaired without production or assertion changes; fresh exact-head CI for subsequent changes remains required. See implementation/context-cards/CTX4-03-LOCAL-READONLY-VIEWER.md. Permission-confirmed cross-card movement and receipt-bound undo are now implemented and independently reviewed:257 owning tests, exact Source/release native, six original editor cases and group-order release combination passed. See implementation/context-cards/CTX4-02-CROSS-CARD-MOVE.md. Published predecessor7048bb62 Prompt Unit4 now passes after fixture repair; whole-candidate qualification remains separate. TOPIC-05.5 merge navigation/source identity is repaired through the original writer: author72PASS, independent21PASS and actual Source/release original-layout journeys pass, including late directory and ACK route isolation. See implementation/topic-merge-route-safety.md. The management Section stale-dialog path is also repaired. Enhanced native testing exposed and repaired a separate new-route blank-reader handoff in the original mutation owner. Author95 and independent76 whole tests pass; exact enhanced Source/release verifies real B heading/body, both original merge writers and retained authored content with zero external network/errors. Predecessor failures remain recorded. See implementation/topic-section-action-route-safety.md. Broader discovery remains open. Preserve all seven Canonical plans, paused Sync safety checkpoint and Pro264 CI ownership.
+
+## Preserved preceding execution evidence
+
+# Current execution — Context local interaction batch (2026-10-14)
+
+Formal main `81b41ddca1d28f7935bba63b3eab01b8678e4120` is qualified by exact Full38439353598 and Prompt38439353651. PR2840.49.0 remains unmerged and not installed. Current candidate implements approved CTX4-02 edit-safe opened-card search and exact visible-text copying, plus CTX4-03 All/Selected and complete-directory Topic-name filtering. Names-only search does not claim Section/body search or read-only Topic inspection. Copying a failed draft does not save it or change AI access. Original writers and all privacy/ACK protections remain in place.
+
+Scoped independent reviews and owning tests passed. Actual Source/release journeys cover search/clear/Unicode, durable choice state, failed-save recovery, untouched Home privacy, filtered native keyboard and synthetic clipboard adapter. Initial combined browser10PASS2FAIL exposed copy/save feedback class collision; the production feedback identity is corrected without weakening the original visual-state assertions or timeouts. Final whole native result is10PASS2FAIL: the two unchanged October7 prototype comparisons report1519 differences against later approved white roles and new controls. They remain failed/pending latest-reference qualification, not skipped or passed. Exact candidate certification remains mandatory and separate. Known PR284 CI receipt-count and capacity failures are retained under Pro264 infrastructure ownership. No user installation, real provider activation or whole-plan completion is claimed.
+
+Continue remaining approved local functions through their original owners; group order, cross-card permission-safe movement and broader read-only discovery remain open. Sync new functions stay paused; all seven Canonical plans, safety checkpoints and external acceptance are retained.
+
+## Preserved preceding execution evidence
+
+# Current execution — CTX4 local search and My Inputs continuation (2026-10-14)
+
+Formal main `81b41ddca1d28f7935bba63b3eab01b8678e4120` exact Full38439353598 and Prompt38439353651 passed. PR284 remains an unmerged0.49.0 draft, not an installed version. Approved white semantic roles and CTX4-02 current-card search are implemented in the candidate; search preserves editor nodes and failed/unfinished edits, uses only the opened qualified card, and never persists queries or adds a writer. Its four whole files83PASS, independent owning54PASS and isolated actual Source/release Chrome journeys passed, including failed-save recovery and Home privacy. Precise final visual acceptance and whole-candidate certification remain separate.
+
+Next implementation is the retained CTX4-03 My Inputs All/Selected and local Topic-name search through the existing complete metadata directory and original permission owner. Sync new features remain paused. Pro264 retains CI infrastructure ownership; known receipt-count and candidate-capacity qualification blockers remain, with original failures preserved. All Canonical plans and external-service acceptance obligations remain active.
+
+## Preserved preceding execution evidence
+
+# Current execution — PR284 reconciled with merged Assist authority fix (2026-10-14)
+
+Formal main81b41ddca1d28f7935bba63b3eab01b8678e4120 includes reviewed PR283 and preserves website updates. Its Full38439353598 and Prompt38439353651 qualification remain pending. This0.49.0 draft combines both Assist safety paths and all tests, retaining main-only website/design content. PR284 remains unmerged/not installed, with known CI-owner receipt-count and unit-capacity blockers preserved.
+
+Restored Input-bound Entry Topic units now use original owner processing and exact ACK. Verified mapper availability can reconsider only unchanged TOPIC_MAPPING_UNAVAILABLE records through the original bounded archival transaction with history retained; other facets/reasons remain pending. Private Filter preflight bounds concurrent preparation and coalesces only in-flight same-handle revalidation; later calls recheck current permission. Scoped tests and independent reviews are recorded in the coordinator checkpoint; they do not replace full certification. Sync new features remain paused; Pro264/CI ownership, all Canonical plans and external acceptance remain unchanged.
+
+## Preserved preceding execution evidence
+
+# Current execution — PR284 local engineering and qualification (2026-10-14)
+
+Formal main was freshly verified as `fb90d4406dfdacf6873dd0d0dadb7bf00b13b177`; its changes after extension baseline `bb7a19f4` are website-only and must be preserved on integration. PR284 remains Draft, unmerged and not installed. The delivered0.43.29 stage and PR266/268/270 are complete historical work, not pending tasks.
+
+Current runtime follow-ups preserve Maintenance per-page COMMITTED semantics with truthful remaining-page progress, remove cached Topic metadata from invalid internal reading responses, and reserve the existing AI-COST04 private-preflight capacity before concurrent reads. Exact evidence and local/remote tree identities are retained in the coordinator checkpoint and PR284 review packets. Reader, AI, presentation and compatibility scoped reviews do not substitute for coherent final Full/main certification. The known Full native receipt-count mismatch and Candidate unit cancellation remain unresolved qualification evidence; Pro retains CI ownership. Do not repeat failed Full while its known infrastructure prerequisite is unchanged.
+
+The current additional AI-COST03 slice admits genuine restored Input-bound Entry Topic units through the original Formation owner, exact Entry/revision processing permission and atomic original-key ACK. Entry Context, authored/other mutation kinds and unchanged historical DEFER remain pending. This is an unmerged implementation, not completed general non-Input support.
+
+Continue remaining authorized local Canonical engineering; non-Input Maintenance semantic mapping and further accepted operations remain open, not completed by these safety repairs. Real AI/Pro activation stays unavailable without its required capabilities. Sync new features remain paused, all seven plans and safety checkpoints remain, and user installation/visual acceptance are separate. Preserve all preceding history below.
+
+# Current execution — bounded Reader performance repair (2026-10-13)
+
+PR284 remains Draft on formal main `bb7a19f48984cc6dacca30b5e57a3aff47aa393b`. Its `38911529` Full `38372919198` failed; retain the original failures. Follow-up `63c589ff` preserves current activity proof in native recovery qualification, with targeted Source/release evidence; it is not merged or installed. Current production follow-up bounds Topic body reading to two simultaneous existing fenced reads, preserving descriptor order, per-entry evidence/epoch checks, payload limits and original errors. A final whole-page mutation/recovery authority check refuses any body or tracked result if authority changed while companions were in flight. Related 72 tests plus added order/error-drain and reading-race tests pass; the complete ANS08 local headless journey covers all440 entries with p95 117.5ms. This local measurement does not waive the earlier cloud778.1ms failure against750ms or certify the new head in CI. Independent review and exact coherent certification remain required. The preceding94844d42 cloud Browser2/4 passed performance and native drag; historical audit failures remain recorded but nonblocking. That Full still failed native receipt counting and AI cumulative test timeout. The latter is isolated into independent native suites at492a96a0 with all4 local cases passing. A further actual tracked-material edit race now moves the existing authority capture before tracked/layout reads; old-runtime regression fails and52 related tests pass. Final-head independent review and coherent certification remain open.
+
+Sync new features stay paused; no Pro264/CI ownership change, new product scope, user installation or all-plan completion. Previous current pointers below are preserved as historical evidence.
+
+# Current execution — PR284 qualification repair (2026-10-13)
+
+Formal main is `bb7a19f48984cc6dacca30b5e57a3aff47aa393b`; PR284 remains a draft, not an installed release. Exact remote candidate `324f4f00` failed Full `38359185250`; retain its failures. Local follow-ups fix restored-row keyboard focus and loss of Search return during automatic initial Source discovery through the original UI/history owners. Their targeted native and unit tests passed; final independent review and coherent changed-head certification remain required. Thought Root follow-ups repair the stalled visible continuation sentinel, preserve search rectangles, and restore the already-read extent after indexing refresh. The complete Root/approved-layout native combination passes 5/5; related unit and contract batches pass 92/92, and package checks pass. These are scoped local evidence, not final independent review or complete changed-head certification. Original count, terminal, geometry, privacy and selection assertions remain; ordinary refresh outage now exercises refresh rather than the deliberately fresh primary entry.
+
+PR283's exact `93210c3d` Full and Prompt passed; its follow-up test-isolation review remains pending. Do not repeat the delivered0.43.29 stage or merged PR266/268/270. Sync new features remain paused, Pro264/CI remain separately owned, and all approved Canonical goals and later acceptance obligations remain unchanged. Earlier checkpoints below are historical evidence, not competing current pointers.
+
+## Preserved prior execution evidence
+
+# Current execution — local presentation completion (2026-10-13)
+
+PR282 is merged into formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after exact head374807c5 passed Full38344601851 and independent review. Earlier ef68 failures/cancellation are retained below, not current unqualified pointers. Exact merged-main gates remain separate. Candidate0.49 implements the approved Context/Settings/Thought/IAH refinements and Source/History rhythm; actual primary-navigation six cases and Source/History four cases pass. Original Topic Content release deepDeparture currently fails during continuing scroll and is under actual-call diagnosis; no assertion or timeout waiver. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md).
+
+Continue that existing combination plus independently scoped AI-COST06 insertion requalification and saved-AI-history lifecycle work. No new product queue or scope. Sync new features remain paused, Pro264/CI independently owned; all seven plans, historical evidence and external final acceptance remain. No new user installation or overall completion is claimed.
+
+## Preserved preceding checkpoints
+
+# Current combined local product candidate — 2026-10-13
+
+Formal main remains6a55fa7a; PR282 ef68 is unmerged after Full38341608747 failed Browser3 (two original AI-COST foundation case timeouts) and cancelled Sync native. Preserve failures; independent diagnosis/repair is active and no cancelled gate is passed. UI0.49 candidate integrates approved compact Context/Settings/Root, minimal consent, shared reading rhythm, IAH1.3 single browse-source navigation and complete meaningful Topic activity ordering. Independent scoped code reviews pass; real primary-navigation combination acceptance and exact-head/main gates remain pending. See [owning receipt](implementation/verification/LOCAL-PRESENTATION-049.md). This is not an installed update, an overall seven-plan completion or a new product plan. Sync new features remain paused; Pro264/CI untouched.
+
+## Retained earlier checkpoints
+
+# Current local presentation candidate — 2026-10-13
+
+Formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8 passed exact-main Certification38339093871 and Prompt38339094038. PR282 mixed Maintenance remains unmerged: prior7bf76cc5 failed strict runtime-inventory preflight; reviewed correction published exact tree4ea2f99f as ef68bb37 and requires new qualification. Preserve original failure evidence.
+
+The next0.49.0 candidate actually implements approved Context Home metadata privacy, Settings sample removal, content-sized three/two/one Thought cards and minimal explicit first-use consent. [Scoped combination receipt](implementation/verification/LOCAL-PRESENTATION-049.md) distinguishes component review, current whole-file results, repaired failures and remaining full gates. No installed-user or whole-plan completion is claimed. Activity ordering, IAH1.3 source interaction and shared reading rhythm continue through separate original owners. Retain all seven Canonical plans, paused Sync checkpoint and Pro264/CI ownership.
+
+## Preserved main-side checkpoint
+
 # Current execution — final local Assist insertion qualification (2026-10-13)
 
 PR282 is merged as formal mainbb7a19f48984cc6dacca30b5e57a3aff47aa393b after independently reviewed head374807c5 passed Full38344601851. Earlier failed/cancelled candidates remain evidence, not active work pointers. Exact merged-main Full38346197411 failed the original ANS08 Topic p95 bound (791.7ms >750ms); Prompt38346197434 passed. This failure remains separate and unresolved.

@@ -1,3 +1,4 @@
+import {createSettingsSupportedSites} from './settings-supported-sites.js';
 import {refreshSettingsRecovery} from './maintenance-recovery.js';
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
@@ -61,7 +62,7 @@ function mountRemovedDetail(language) {
   intro.textContent=text('移除不等于永久删除。这里只列出当前仍可恢复的内容。','Removal is not permanent deletion. Only currently restorable items are listed here.');footer.textContent=text('恢复不会重新开放 AI 权限。','Restoring never re-opens AI access.');
   for(const row of cached.values()){
    const {kind,item}=row.record;row.feedback.textContent=row.error?failure(row.error):'';
-   row.title.textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');
+   (row.preview||row.title).textContent=kind==='topic'?item.name:kind==='placement'?(item.label||text('空内容','Empty content')):item.label||item.title||item.body?.slice(0,80)||text('空内容','Empty content');
    row.description.textContent=row.unknown?text('上次恢复结果尚未核对；这不是新的恢复请求。','The previous recovery result is unconfirmed; this is the original request.'):kind==='placement'?text('内容仍保留 · 从「'+item.topicName+'」中移除',`Content retained · Removed from ${item.topicName}`)+(item.sectionName?' · '+item.sectionName:''):text(...labels[kind]);
    row.action.textContent=row.unconfirmed?text('核对结果或重试','Check result or retry'):text(...actions[kind]);
    if(row.history)row.history.textContent=kind==='topic'?text('版本历史','Version history'):text('版本','Versions');
@@ -78,11 +79,20 @@ function mountRemovedDetail(language) {
     const node=document.createElement('div'),title=document.createElement('p'),description=document.createElement('p'),feedback=document.createElement('p');node.className='ux-settings-recovery-entry';description.className='ux-settings-removed-note';feedback.className='ux-settings-recovery-feedback';feedback.setAttribute('role','status');
     const action=button('',async()=>{
      const serial=viewSerial,focused=document.activeElement===action,index=[...list.querySelectorAll('[data-recovery-kind]')].indexOf(action);let focusMoved=false,failed=false;const trackFocus=event=>{if(event.target!==action)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);action.disabled=true;row.error=null;feedback.textContent='';
-     try {await model.restore(kind,item.id);if(!current(serial))return;const next=await open(true);if(!current(next)||statusError)return;statusState=model.rows.has(key)?'retained':'restored';statusError=null;status.textContent=statusCopy();if(focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body)){const actions=[...list.querySelectorAll('[data-recovery-kind]')];(actions[Math.min(Math.max(0,index),actions.length-1)]||detail.dialog.querySelector('.ux-settings-detail-close')).focus({preventScroll:true});}}
+     // Transfer keyboard ownership in the same render that removes the
+     // restored row, rather than leaving focus on body until unrelated pages finish.
+     const transferFocus=next=>{
+      if(!current(next)||statusError||!focused||focusMoved||action.isConnected||document.activeElement!==document.body)return;
+      const available=[...list.querySelectorAll('[data-recovery-kind]')].filter(node=>!node.disabled);
+      const target=available[Math.min(Math.max(0,index),available.length-1)];
+      if(target)target.focus({preventScroll:true});
+      else if([...model.pages.values()].every(page=>page.done))detail.dialog.querySelector('.ux-settings-detail-close').focus({preventScroll:true});
+     };
+     try {await model.restore(kind,item.id);if(!current(serial))return;const next=await open(true,transferFocus);if(!current(next)||statusError)return;statusState=model.rows.has(key)?'retained':'restored';statusError=null;status.textContent=statusCopy();if(focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body)){const actions=[...list.querySelectorAll('[data-recovery-kind]')];(actions[Math.min(Math.max(0,index),actions.length-1)]||detail.dialog.querySelector('.ux-settings-detail-close')).focus({preventScroll:true});}}
      catch(error) {failed=true;if(current(serial))row.error=error;}
      finally {if(current(serial)){render();if(failed&&focused&&!focusMoved&&(document.activeElement===action||document.activeElement===document.body))action.focus({preventScroll:true});}if(focused)document.removeEventListener('focusin',trackFocus);}
     });action.dataset.recoveryKind=kind;node.append(title,description,action);let history=null;
-    if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';row={node,title,description,action,history,feedback};cached.set(key,row);
+    if(kind==='topic'||kind==='entry'){history=button('',async()=>{const serial=viewSerial,isCurrent=()=>current(serial)&&model.rows.has(key);if(isCurrent())document.dispatchEvent(new CustomEvent('paia:removed-history',{detail:{kind,id:item.id,isCurrent}}));});node.append(history);}node.append(feedback);title.dataset.removedLabel='';let preview=null;if(kind!=='topic'){preview=document.createElement('span');preview.className='paia-removed-preview';const mask=document.createElement('span');mask.className='paia-removed-preview-mask';title.append(preview,mask);}row={node,title,preview,description,action,history,feedback};cached.set(key,row);
    }
    row.record=record;const attempt=model.attempts.get(key);row.unconfirmed=!!attempt?.edit;row.unknown=!!attempt?.edit&&!model.rows.has(key);row.action.disabled=!!attempt?.busy||!model.rows.has(key)&&!attempt;
    if(row.history)row.history.disabled=!!attempt?.busy||!model.rows.has(key);
@@ -94,16 +104,17 @@ function mountRemovedDetail(language) {
   let reload=moreControls.get('reload');if(!reload){reload=button('',()=>open());moreControls.set('reload',reload);}reload.textContent=text('重新加载列表','Reload list');if(statusError||model.attempts.size||[...model.pages.values()].some(page=>page.error))controls.push(reload);let position=more.firstChild;for(const node of controls){if(position!==node)more.insertBefore(node,position);position=node.nextSibling;}for(const node of [...more.children])if(!controls.includes(node))node.remove();
   if(model.fence&&[...model.pages.values()].every(page=>page.done)&&!wanted.length&&(statusState==='reading'||statusState==='partial-empty'||statusState===null)&&!statusError)statusState='empty';if(statusState==='partial-empty'&&wanted.length)statusState=null;syncCopy();
  };
- const open=async(preserve=false)=>{
+ const open=async(preserve=false,afterRender=()=>{})=>{
   const serial=++viewSerial,focused=preserve&&list.contains(document.activeElement)?document.activeElement:null;let focusMoved=false;
   const trackFocus=event=>{if(event.target!==focused&&event.target!==document.body)focusMoved=true;};if(focused)document.addEventListener('focusin',trackFocus);
   keepRows=preserve;statusState='reading';statusError=null;status.textContent=statusCopy();if(!preserve){cached.clear();list.replaceChildren();}
+  const refresh=()=>{render();afterRender(serial);};
   try{
-   if(!await model.open()||!current(serial))return;render();
-   const reads=REMOVED_KINDS.map(async kind=>{try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))render();});await Promise.allSettled(reads);
+   if(!await model.open()||!current(serial))return;refresh();
+   const reads=REMOVED_KINDS.map(async kind=>{try{await model.load(kind);}catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();}}if(current(serial))refresh();});await Promise.allSettled(reads);
    if(current(serial)&&![...model.pages.values()].some(page=>page.error)){statusState=model.rows.size?null:[...model.pages.values()].every(page=>page.done)?'empty':'partial-empty';status.textContent=statusCopy();}
    return current(serial)?serial:null;
-  }catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();render();}return current(serial)?serial:null;}
+  }catch(error){if(current(serial)){statusError=error;status.textContent=statusCopy();refresh();}return current(serial)?serial:null;}
   finally{
    // A bounded refresh disables unqualified old rows while it reads. Return
    // focus only to the same newly qualified node if no newer intent took over.
@@ -142,8 +153,8 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;
  const storageWrapper=storage.closest('.ux-settings-detail');let storageState;const storageDetail=mountSettingsDetail({id:'settings-storage',title:['存储空间','Storage space'],content:storage,language,value:chinese=>storageSummaryText(storageState,!chinese),onOpen:refreshStorage});
  if(storageWrapper)storageWrapper.replaceWith(storageDetail.row);else dataGroup.append(storageDetail.row);
- const siteContent=document.createElement('div');siteContent.className='ux-settings-site-facts';for(const child of [...sites.children])if(child.tagName!=='SUMMARY')siteContent.append(child);
- const siteDetail=mountSettingsDetail({id:'settings-supported-sites-open',title:['支持的网站','Supported websites'],content:siteContent,language,value:()=> 'ChatGPT'});sites.replaceWith(siteDetail.row);
+ const siteFacts=createSettingsSupportedSites({language});
+ const siteDetail=mountSettingsDetail({id:'settings-supported-sites-open',title:['支持的网站','Supported websites'],content:siteFacts.content,language,value:()=> 'ChatGPT',onOpen:siteFacts.sync});const syncSiteDetail=siteDetail.sync;siteDetail.sync=()=>{siteFacts.sync();syncSiteDetail();};sites.replaceWith(siteDetail.row);
  const history=document.getElementById('history-settings'),historyButton=document.getElementById('settings-history'),latest=document.getElementById('history-latest');
  const importDetail=mountSettingsDestination(historyButton,{title:['导入历史输入','Import earlier inputs'],description:latest,language,dialogId:'history-dialog'});history.replaceWith(importDetail.row);
  const source=document.getElementById('r6-source-records'),sourceButton=source.querySelector('[data-view="archive"]');

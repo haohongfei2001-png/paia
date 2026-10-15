@@ -9,7 +9,7 @@ const rpc=async(page,type,fields={})=>{
  assert.equal(response.ok,true,JSON.stringify(response));return response.data;
 };
 async function consent(page){
- await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+ await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'ANS-03 consent persists');
  const skip=page.locator('#onboarding-skip');if(await skip.isVisible().catch(()=>false))await skip.click();
 }

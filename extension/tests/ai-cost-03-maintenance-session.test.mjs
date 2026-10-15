@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LocalMaintenanceSession} from '../core/ai-usage/local-maintenance-session.js';
+import {readMaintenanceBatch,unsupportedMaintenanceCoverage} from '../core/ai-usage/maintenance-batch.js';
+import {TopicFormationService} from '../core/topic-formation.js';
 import {AIUsageFoundation} from '../core/ai-usage/foundation.js';
 import {ContextMaintenanceService} from '../core/context-maintenance.js';
 import {CONTEXT_CARDS_ROW,ContextCardsService} from '../core/context-cards.js';
@@ -160,7 +162,7 @@ for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' s
  const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
  let release,entered,physical,controls;const admitted=new Promise(r=>{entered=r;});f.state.held=new Promise(r=>{release=r;});
  const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
- const h=await f.session.prepare(options),running=f.session.run(h);await admitted;
+ const h=await f.session.prepare(options),running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
  assert.equal(controls.timeoutMs,25);assert.ok(controls.signal instanceof AbortSignal);assert.equal(controls.signal.aborted,false);
  if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();
  const result=await running;assert.equal(result.state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');nonAuthority(result);assert.equal(controls.signal.aborted,true);
@@ -175,3 +177,178 @@ test('41 actual independent Source Inputs require a third partition and refuse w
  const f=await fixture({inputs:41}),before=await snapshot(f.s);assert.equal(before.records.length,41);assert.equal(before.blocks.length,41);
  await assert.rejects(f.session.prepare({...options,limit:50}),{code:'BUDGET_EXCEEDED'});assert.equal(f.state.acquires,0);assert.equal(f.calls.length,0);assert.deepEqual(await snapshot(f.s),before);assert.equal((await read(f.s,'organizerJobs')).length,0);assert.equal((await ack(f)).length,0);
 });
+
+for(const owner of ['window','processing'])test('dispose aborts physical Maintenance even when '+owner+' listener cleanup throws',async()=>{
+ const f=await fixture();let release,entered,controls,physical;
+ const admitted=new Promise(resolve=>{entered=resolve;});f.state.held=new Promise(resolve=>{release=resolve;});
+ const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
+ const handle=await f.session.prepare(options),running=f.session.run(handle);
+ await Promise.race([admitted,running.then(result=>assert.fail('Maintenance settled before entry: '+result.state))]);
+ const signal=(owner==='window'?f.clock:f.contextAbort).signal,remove=signal.removeEventListener,problem=Error('synthetic cleanup failure');
+ signal.removeEventListener=()=>{throw problem;};
+ try{
+  assert.throws(()=>f.session.dispose(),error=>error===problem);
+  assert.equal(controls.signal.aborted,true,'physical work must be aborted before cleanup failure escapes');
+ }finally{signal.removeEventListener=remove;release();await physical;await running;}
+ assert.equal((await f.session.run(handle)).state,'UNAVAILABLE');assert.equal((await ack(f)).length,0);
+ assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);assert.equal(f.calls.length,1);
+ assert.doesNotThrow(()=>f.session.dispose(),'failed cleanup cannot retain live job state');
+});
+
+test('completed durable Maintenance remains committed when final listener cleanup fails',async()=>{
+ const f=await fixture(),signal=f.clock.signal,remove=signal.removeEventListener,add=signal.addEventListener;
+ let retiredListener,cleanupCalls=0;signal.addEventListener=function(type,listener,...args){retiredListener=listener;return add.call(this,type,listener,...args);};
+ let result,handle;try{handle=await f.session.prepare(options);}finally{signal.addEventListener=add;}
+ assert.equal(typeof retiredListener,'function');
+ signal.removeEventListener=function(type,listener,...args){if(listener===retiredListener){cleanupCalls++;throw Error('synthetic final cleanup failure');}return remove.call(this,type,listener,...args);};
+ try{result=await f.session.run(handle);}finally{signal.removeEventListener=remove;}
+ assert.equal(cleanupCalls,1);assert.equal((await ack(f)).length,2);assert.equal((await read(f.s,'organizerUsage'))[0].state,'COMMITTED');
+ assert.equal(result.state,'COMMITTED');nonAuthority(result);
+ const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
+ assert.equal((await f.session.run(handle)).state,'COMMITTED');assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);
+ signal.removeEventListener=()=>{throw Error('completed job was retained');};
+ try{assert.doesNotThrow(()=>f.session.dispose());}finally{signal.removeEventListener=remove;}
+});
+
+test('bounded Maintenance completion retains outstanding next-page work without redispatch',async()=>{
+ const f=await fixture({inputs:2}),handle=await f.session.prepare({...options,limit:1});
+ assert.equal(handle.complete,false);assert.ok(handle.nextCursor);assert.equal(handle.remainingWork,true);
+ const result=await f.session.run(handle);assert.equal(result.state,'COMMITTED');assert.equal(result.remainingWork,true);assert.equal(result.complete,false);assert.equal(result.nextCursor,handle.nextCursor);
+ assert.equal((await ack(f)).length,2);assert.equal(f.calls.length,1);
+ const before=await snapshot(f.s);assert.deepEqual(await f.session.run(handle),{...result,facets:[]});assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
+
+});
+
+async function restoredEntryFixture(){
+ const f=await fixture(),input=(await f.s.snapshot()).library.blocks[0],scope=[{inputId:input.id,role:'primary',selectedFields:['body']}];
+ const owner=new TopicFormationService(f.s,{resolveProcessing:f.service.topic.resolveProcessing,parameters,decision:{version:'synthetic-entry-setup',assess:view=>assessment(view)}});
+ const made=await owner.commit(await owner.prepare({scope,operationId:op()})),id=made.entryIds[0];
+ const current=await f.s.entry(id);await f.s.removeEntry({id,expectedRevision:current.revision,operationId:op()});
+ const removed=await read(f.s,'thoughts',id);await f.s.restoreEntry({id,expectedRevision:removed.revision,operationId:op()});
+ const entry=await read(f.s,'thoughts',id),execute=f.provider.execute;
+ f.provider.execute=async request=>{const response=await execute(request),value=response.fixture.topicAssessment;
+  value.entries=[{span:{inputId:input.id,field:'body',start:0,end:request.material.inputs[0].body.length},entryId:id,type:'idea',additional:[]}];
+  for(const relation of value.relations)if(relation.topicId===made.topicIds[0])relation.relation='same';
+  return response;
+ };
+ return {...f,entry,input};
+}
+
+test('restored Input-bound Entry Topic facet uses exact Entry authority and original owner without Context ACK',async()=>{
+ const f=await restoredEntryFixture(),scopes=[],resolve=f.materialProcessing.resolve;
+ f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));return resolve(t,scope);};
+ const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),r=await session.run(h);
+ assert.equal(r.state,'PARTIAL',JSON.stringify(r));assert.equal(r.processedState,'COMMITTED');assert.equal(f.calls.length,1);
+ const key=JSON.stringify(['library_entry',f.entry.id]),entryAcks=(await ack(f)).filter(a=>a.unit.key===key);
+ assert.deepEqual(entryAcks.map(a=>a.unit.facet),['topic']);assert.equal(h.deferredUnits,1);assert.equal((await ack(f)).length,3,'two Input facets and one original Entry Topic key only');assert.equal(f.calls[0].material.inputs.length,1,'shared Input is not duplicated');
+ assert.deepEqual(f.calls[0].material.entries,[{entryId:f.entry.id,revision:f.entry.revision,body:'Synthetic explicit working input',bodyBinding:'input',workingInputId:f.input.id}]);
+ assert.ok(scopes.length>0&&scopes.every(s=>s.entries?.some(e=>e.entryId===f.entry.id&&e.revision===f.entry.revision&&e.selectedFields.join()==='body')));
+ assert.deepEqual(await read(f.s,'thoughts',f.entry.id),f.entry);assert.equal((await read(f.s,'thoughts')).length,1);
+ const before=await snapshot(f.s);await session.run(h);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);
+});
+
+for(const defect of ['missing-entry-authority','wrong-entry-revision','missing-entry-assessment','foreign-entry-assessment','entry-edit','entry-remove','unjournaled-revision'])test('restored Entry '+defect+' cannot ACK its Topic delta',async()=>{
+ const f=await restoredEntryFixture(),execute=f.provider.execute,resolve=f.materialProcessing.resolve;
+ f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);if(defect==='missing-entry-authority'){const {entries,...rest}=r.scope;r.scope=rest;}if(defect==='wrong-entry-revision')r.scope={...r.scope,entries:r.scope.entries.map(e=>({...e,revision:e.revision-1}))};return r;};
+ f.provider.execute=async request=>{const r=await execute(request);if(defect==='missing-entry-assessment')delete r.fixture.topicAssessment.entries[0].entryId;if(defect==='foreign-entry-assessment')r.fixture.topicAssessment.entries[0].entryId=op();if(defect==='unjournaled-revision')await f.s.repository.transaction(true,async t=>{const row=await t.get('thoughts',f.entry.id);row.revision++;await t.put('thoughts',row);});if(defect==='entry-remove')await f.s.removeEntry({id:f.entry.id,expectedRevision:f.entry.revision,operationId:op()});if(defect==='entry-edit')await f.s.editEntry({id:f.entry.id,expectedRevision:f.entry.revision,changes:{note:'Synthetic later note'},operationId:op()});return r;};
+ const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),r=await session.run(await session.prepare(options));
+ assert.notEqual(r.processedState,'COMMITTED');const key=JSON.stringify(['library_entry',f.entry.id]);assert.equal((await ack(f)).filter(a=>a.unit.key===key).length,0);
+ assert.equal(f.calls.length,['missing-entry-authority','wrong-entry-revision'].includes(defect)?0:1);
+});
+
+for(const kind of ['edit','remove'])test('restored Entry '+kind+' after prepare prevents private dispatch',async()=>{
+ const f=await restoredEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options);
+ if(kind==='edit')await f.s.editEntry({id:f.entry.id,expectedRevision:f.entry.revision,changes:{note:'Synthetic prepared change'},operationId:op()});
+ else await f.s.removeEntry({id:f.entry.id,expectedRevision:f.entry.revision,operationId:op()});
+ const r=await session.run(h);assert.notEqual(r.state,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);
+});
+
+for(const defect of ['input-unit','context-unit','foreign-unit','duplicate','shape','throw'])test('Foundation private Entry qualifier '+defect+' cannot weaken deferral coverage',async()=>{
+ const f=await restoredEntryFixture();
+ const ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority,qualifyMaintenanceEntries:async(_t,r)=>{
+  const entry=r.coverage.find(u=>u.facet==='topic'&&JSON.parse(u.key)[0]==='library_entry');
+  if(defect==='input-unit')return [r.coverage.find(u=>JSON.parse(u.key)[0]==='input')];
+  if(defect==='context-unit')return [{...entry,facet:'context'}];if(defect==='foreign-unit')return [{...entry,key:JSON.stringify(['library_entry',op()])}];
+  if(defect==='duplicate')return [entry,entry];if(defect==='shape')return {};throw Error('Synthetic qualifier refused');
+ }});
+ const batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),unsupported=unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage),groups=[];
+ await ai.read(async t=>{const saved=await ai.job(t,job.id);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=unsupported.filter(u=>u.facet===facet&&saved.childCoverage[i].some(v=>JSON.stringify(v)===JSON.stringify(u)));if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
+ const before=await snapshot(f.s);await assert.rejects(ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:new AbortController().signal,isCurrent:()=>true,plan:job}));assert.deepEqual(await snapshot(f.s),before);
+});
+
+async function historicallyDeferredEntry(){
+ const f=await restoredEntryFixture(),ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority}),batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),groups=[];
+ await ai.read(async t=>{const saved=await ai.job(t,job.id),unsupported=unsupportedMaintenanceCoverage(saved.items,saved.coverage);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=unsupported.filter(u=>u.facet===facet&&saved.childCoverage[i].some(v=>JSON.stringify(v)===JSON.stringify(u)));if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
+ await ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:new AbortController().signal,isCurrent:()=>true,plan:job});
+ return {...f,oldAI:ai,oldRows:(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED')};
+}
+
+test('verified Entry mapper reconsiders old unchanged Topic mapping DEFER once and retains exact history',async()=>{
+ const f=await historicallyDeferredEntry(),before=await snapshot(f.s);assert.equal(f.oldRows.length,2);
+ const ordinary=await f.oldAI.archiveObsoleteDeferred();assert.equal(ordinary.archived,0);assert.deepEqual(await snapshot(f.s),before,'default original owner does not reinterpret retry conditions');
+ const session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options);
+ assert.equal(f.calls.length,0,'reconsideration and prepare never dispatch');assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+ const rows=await read(f.s,'organizerWorkItems'),oldTopic=f.oldRows.find(r=>r.unit.facet==='topic'),oldContext=f.oldRows.find(r=>r.unit.facet==='context'),history=rows.find(r=>r.originalId===oldTopic.id);
+ assert.deepEqual(history,{...oldTopic,id:'aiu:defer-history:'+oldTopic.id.slice('aiu:defer:'.length),originalId:oldTopic.id,reconsideredBecause:'RESTORED_ENTRY_TOPIC_MAPPER_V1'});
+ assert.deepEqual(rows.find(r=>r.id===oldContext.id),oldContext);assert.equal(rows.some(r=>r.id===oldTopic.id),false);
+ const result=await session.run(h);assert.equal(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,3);
+ const final=await snapshot(f.s),passive=await session.prepare(options);assert.equal(passive.state,'DEFERRED');assert.deepEqual(await snapshot(f.s),final);assert.equal(f.calls.length,1);
+});
+
+for(const variant of ['other-reason','edited','missing-owner','history-collision','abort'])test('Entry mapping reconsideration '+variant+' preserves unresolved obligations or rolls back',async()=>{
+ const f=await historicallyDeferredEntry(),old=f.oldRows.find(r=>r.unit.facet==='topic');
+ if(variant==='other-reason')await f.s.repository.transaction(true,async t=>{const row=await t.get('organizerWorkItems',old.id);row.retryCondition='SEMANTIC_EVIDENCE_REQUIRED';await t.put('organizerWorkItems',row);});
+ if(variant==='edited')await f.s.editEntry({id:f.entry.id,expectedRevision:f.entry.revision,changes:{note:'Synthetic protected note'},operationId:op()});
+ if(variant==='missing-owner')await f.s.repository.transaction(true,t=>t.delete('thoughts',f.entry.id));
+ if(variant==='history-collision')await f.s.repository.transaction(true,t=>t.put('organizerWorkItems',{...old,id:'aiu:defer-history:'+old.id.slice('aiu:defer:'.length),originalId:old.id,reconsideredBecause:'unrelated-reason'}));
+ const session=new LocalMaintenanceSession(f.s,f.constructor),transaction=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ if(variant==='abort')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(...args)=>{const value=await put(...args);if(args[0]==='organizerWorkItems'&&args[1].reconsideredBecause){hit=true;session.dispose();}return value;};return fn(t);},stores);
+ const before=await snapshot(f.s);
+ if(['history-collision','abort'].includes(variant)){await assert.rejects(session.prepare(options));assert.deepEqual(await snapshot(f.s),before);if(variant==='abort')assert.equal(hit,true);}
+ else{await session.prepare(options);const rows=await read(f.s,'organizerWorkItems');assert.equal(rows.some(r=>r.originalId===old.id&&r.reconsideredBecause==='RESTORED_ENTRY_TOPIC_MAPPER_V1'),false);if(variant==='other-reason')assert.equal(rows.find(r=>r.id===old.id).retryCondition,'SEMANTIC_EVIDENCE_REQUIRED');}
+ assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);f.s.repository.transaction=transaction;
+});
+
+for(const defect of ['foreign','duplicate','shape','write-failure'])test('reconsideration '+defect+' cannot retire original scheduling evidence',async()=>{
+ const f=await historicallyDeferredEntry(),owner={signal:new AbortController().signal,isCurrent:()=>true};
+ const ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority,qualifyMaintenanceEntries:async(_t,r)=>defect==='foreign'?[{...r.coverage[0],scope:'other-scope'}]:defect==='duplicate'?[r.coverage[0],r.coverage[0]]:defect==='shape'?{}:r.coverage});
+ const transaction=f.s.repository.transaction.bind(f.s.repository);let hit=false;
+ if(defect==='write-failure')f.s.repository.transaction=(write,fn,stores)=>transaction(write,async t=>{const put=t.put.bind(t);t.put=async(...args)=>{const value=await put(...args);if(args[0]==='organizerWorkItems'&&args[1].reconsideredBecause){hit=true;throw Error('Synthetic history write failure');}return value;};return fn(t);},stores);
+ const before=await snapshot(f.s);await assert.rejects(ai.archiveObsoleteDeferred({reconsiderEntryTopics:true},owner));assert.deepEqual(await snapshot(f.s),before);if(defect==='write-failure')assert.equal(hit,true);assert.equal(f.calls.length,0);f.s.repository.transaction=transaction;
+});
+
+test('reconsideration is one bounded archive page and default Foundation cannot opt itself in',async()=>{
+ const f=await historicallyDeferredEntry(),owner={signal:new AbortController().signal,isCurrent:()=>true},before=await snapshot(f.s);
+ await assert.rejects(f.oldAI.archiveObsoleteDeferred({reconsiderEntryTopics:true},owner),{code:'UNAVAILABLE'});assert.deepEqual(await snapshot(f.s),before);
+ const ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority,qualifyMaintenanceEntries:async(_t,r)=>r.coverage});
+ await assert.rejects(ai.archiveObsoleteDeferred({limit:101,reconsiderEntryTopics:true},owner),{code:'INVALID_REQUEST'});
+ const page=await ai.archiveObsoleteDeferred({limit:1,reconsiderEntryTopics:true},owner);assert.equal(page.scanned,1);assert.notEqual(page.nextCursor,null);assert.ok(page.archived<=1);assert.equal(f.calls.length,0);assert.equal((await ack(f)).length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+});
+
+test('default-denied local session preserves historical mapping DEFER without service activation',async()=>{
+ const f=await historicallyDeferredEntry(),session=new LocalMaintenanceSession(f.s),before=await snapshot(f.s),writes=f.s.repository.metrics.writes;
+ await assert.rejects(session.prepare(options),{code:'UNAVAILABLE'});assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,0);
+});
+
+async function filterFixture({decision='KEEP',tier='pro',enabled=true}={}){
+ const f=await fixture({tier});await f.s.setFilterMode('light');await f.s.evaluateFilters();
+ await f.s.foundationWrite(async t=>{for(const row of await t.all('meta'))if(row.id.startsWith('aiu:delta:pending:'))await t.put('meta',{...row,pendingFacets:['topic','context','filter']});});
+ f.service.filter={enabled:true};f.state.filterOperations=0;
+ f.service.responseAdapter.filter=async(response,metadata,binding)=>{f.state.filterOperations++;if(f.state.filterHook)await f.state.filterHook();return {binding:response.fixture.binding,value:metadata.inputIds.map(inputId=>({inputId,decision}))};};
+ if(!enabled){delete f.service.filter;delete f.service.responseAdapter.filter;}
+ f.session.dispose();f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});return f;
+}
+for(const decision of ['KEEP','INSUFFICIENT'])test('Maintenance filter '+decision+' keeps original visible classifier row and atomically ACKs exact NO_CHANGE with same response',async()=>{
+ const f=await filterFixture({decision}),before=await read(f.s,'filterInputs'),r=await f.session.run(await f.session.prepare(options));assert.equal(r.state,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,1);assert.equal(f.state.filterOperations,1);assert.equal(f.state.topicAssessments,1);assert.equal(f.state.contextOperations,1);assert.equal((await ack(f)).length,3);assert.equal((await ack(f)).find(a=>a.unit.facet==='filter').outcome,'NO_CHANGE');assert.deepEqual(await read(f.s,'filterInputs'),before);assert.equal((await read(f.s,'filterIntents')).length,0);assert.equal((await read(f.s,'topics')).length,1);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,1);assert.equal((await read(f.s,'organizerUsage'))[0].attemptCount,1);
+});
+for(const decision of ['FILTER','keep','UNCERTAIN'])test('Maintenance filter refuses unsupported decision '+decision,async()=>{const f=await filterFixture({decision}),before=await read(f.s,'filterInputs'),r=await f.session.run(await f.session.prepare(options));assert.equal(r.state,'PARTIAL');assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.deepEqual(await read(f.s,'filterInputs'),before);assert.equal(f.calls.length,1);});
+for(const gates of [{enabled:false},{tier:'free'}])test('Maintenance filter missing original host capability remains DEFER '+JSON.stringify(gates),async()=>{const f=await filterFixture(gates),r=await f.session.run(await f.session.prepare(options));assert.equal(r.state,'PARTIAL');assert.equal(f.state.filterOperations,0);assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.ok((await read(f.s,'organizerWorkItems')).some(r=>r.retryCondition==='FILTER_OWNER_UNAVAILABLE'));});
+for(const action of ['keep','mode','edit'])test('Maintenance filter rechecks original '+action+' before NO_CHANGE ACK',async()=>{const f=await filterFixture(),id=(await read(f.s,'inputStates'))[0].id;f.state.filterHook=async()=>{if(action==='keep')await f.s.keepInput(id);if(action==='mode')await f.s.setFilterMode('off');if(action==='edit')await inputEdit(f.s,id,{libraryText:'New human text'});};const r=await f.session.run(await f.session.prepare(options));assert.notEqual(r.state,'COMMITTED');assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.equal(f.calls.length,1);});
+test('Maintenance filter ACK storage failure rolls back exact original transaction and resumes same response',async()=>{const f=await filterFixture(),h=await f.session.prepare(options),hook=corruptWrite(f,(name,row)=>name==='organizerWorkItems'&&row.unit?.facet==='filter'&&row.state==='ACKNOWLEDGED',()=>{throw Error('synthetic filter ACK failure');});const r=await f.session.run(h);hook.restore();assert.equal(hook.record.reached,true);assert.equal(r.state,'PARTIAL');assert.deepEqual(await snapshot(f.s),hook.record.before);assert.equal((await ack(f)).length,2);assert.equal((await f.session.run(h)).state,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.state.filterOperations,1);assert.equal(f.state.contextOperations,1);});
+for(const action of ['excluded','purged','legacy','protected'])test('Maintenance filter never qualifies '+action+' Input for ACK',async()=>{const f=await filterFixture(),id=(await read(f.s,'inputStates'))[0].id;if(action==='excluded')await inputEdit(f.s,id,{excluded:true});if(action==='purged'){const b=(await f.s.input(id));await f.s.permanentDelete(b.sourceRecordId);}if(action==='protected')await f.s.keepInput(id);if(action==='legacy')await f.s.foundationWrite(async t=>{const row=await t.get('filterInputs',id);await t.put('filterInputs',{...row,authorship:'legacy_unknown'});});const before=await read(f.s,'filterInputs');try{await f.session.run(await f.session.prepare(options));}catch(error){assert.ok(['STALE_BASE','UNAVAILABLE'].includes(error.code));}assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.deepEqual(await read(f.s,'filterInputs'),before);});
+for(const fault of ['missing','duplicate','extra','wrong-binding'])test('Maintenance filter exact response closure rejects '+fault,async()=>{const f=await filterFixture();f.service.responseAdapter.filter=async(response,metadata)=>({binding:fault==='wrong-binding'?{...response.fixture.binding,childOperationId:'foreign'}:response.fixture.binding,value:fault==='missing'?[]:fault==='duplicate'?metadata.inputIds.flatMap(inputId=>[{inputId,decision:'KEEP'},{inputId,decision:'KEEP'}]):metadata.inputIds.map(inputId=>({inputId,decision:'KEEP',...(fault==='extra'?{reason:'unbounded external'}:{})}))});f.session.dispose();f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const r=await f.session.run(await f.session.prepare(options));assert.equal(r.state,'PARTIAL');assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.equal(f.calls.length,1);});
+test('Maintenance filter original processing revocation during adapter cannot ACK',async()=>{const f=await filterFixture();f.state.filterHook=()=>{f.processing.allowed=false;};const r=await f.session.run(await f.session.prepare(options));assert.equal(r.state,'UNAVAILABLE');assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.equal(f.calls.length,1);});
+test('Maintenance filter filter-only remaining delta never opens another provider opportunity',async()=>{const f=await filterFixture({enabled:false});await f.session.run(await f.session.prepare(options));const before=f.calls.length,r=await f.session.prepare(options);assert.equal(r.state,'DEFERRED');assert.equal(f.calls.length,before);});
+test('Maintenance filter window revoke after ACK put rolls back and cannot resume',async()=>{const f=await filterFixture(),h=await f.session.prepare(options),hook=corruptWrite(f,(name,row)=>name==='organizerWorkItems'&&row.unit?.facet==='filter'&&row.state==='ACKNOWLEDGED',()=>f.clock.abort());const r=await f.session.run(h);hook.restore();assert.equal(hook.record.reached,true);assert.equal(r.state,'UNAVAILABLE');assert.deepEqual(await snapshot(f.s),hook.record.before);assert.equal((await ack(f)).length,2);assert.equal((await f.session.run(h)).state,'UNAVAILABLE');assert.equal(f.calls.length,1);});
+test('Maintenance filter lost commit acknowledgement recovers the original receipt without a second provider or owner call',async()=>{const f=await filterFixture(),h=await f.session.prepare(options),original=f.s.repository.transaction.bind(f.s.repository);let dropped=false;f.s.repository.transaction=async(write,fn,stores)=>{let filterAck=false;const value=await original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(name,row,...args)=>{const result=await put(name,row,...args);if(name==='organizerWorkItems'&&row.unit?.facet==='filter'&&row.state==='ACKNOWLEDGED')filterAck=true;return result;};}return fn(t);},stores);if(filterAck&&!dropped){dropped=true;throw Object.assign(Error('synthetic lost acknowledgement'),{code:'STORAGE_FAILED'});}return value;};await f.session.run(h);f.s.repository.transaction=original;assert.equal(dropped,true);const before=await snapshot(f.s);assert.equal((await f.session.run(h)).state,'COMMITTED');assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,1);assert.equal(f.state.filterOperations,1);assert.equal((await ack(f)).length,3);});
+test('Maintenance filter cannot bypass the original in-flight Source purge owner gate',async()=>{const f=await filterFixture(),id=(await read(f.s,'inputStates'))[0].id,b=await f.s.input(id),before=await read(f.s,'filterInputs');let gate;f.state.filterHook=async()=>{try{await f.s.permanentDelete(b.sourceRecordId);}catch(error){gate=error.code;throw error;}};const r=await f.session.run(await f.session.prepare(options));assert.equal(gate,'SOURCE_PURGE_OWNER_GATE');assert.notEqual(r.state,'COMMITTED');assert.equal((await ack(f)).filter(a=>a.unit.facet==='filter').length,0);assert.deepEqual(await read(f.s,'filterInputs'),before);assert.equal((await read(f.s,'records')).length,1);assert.equal(f.calls.length,1);});

@@ -1,6 +1,8 @@
 import {prefix,fail,idOK} from '../thought-model.js';
 import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
 import {expressionTime} from './expression-time.js';
+import {readTopicActivity} from './topic-activity.js';
+import {rootReadAuthority} from './root-read.js';
 import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
 import {validProvider} from '../read-projection-keys.js';
 import {entryTime} from './topic-chronology.js';
@@ -11,7 +13,7 @@ const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 const activePlacement=p=>p?.lifecycle==='active';
 const sectionCursorOK=(cursor,topic)=>!cursor||(cursor.topicId===topic.id&&cursor.generation===topic.activeLayoutGeneration&&cursor.organizationRevision===topic.organizationRevision);
 
-async function describePlacement(s,t,topic,p){
+async function describePlacement(s,t,topic,p,activity={}){
  if(!activePlacement(p))return null;
  const row=await t.get('thoughts',p.entryId);
  if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
@@ -26,7 +28,10 @@ async function describePlacement(s,t,topic,p){
  const descriptor=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
  descriptor.next();
  descriptor.next(await expressionTime(s,t,row));
- return descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+ const result=descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+ const proof=p.excludedByUser===true||row.quarantineSealed?{at:null}:await readTopicActivity(t,row,result.expressionTime,activity);
+ if(proof.pending)return {activityPending:true,cursor:proof.cursor};
+ result.activityAt=proof.at;return result;
 }
 // Original descriptor construction only. The two suspension points retain
 // property observation across the original expression/provider awaits.
@@ -41,7 +46,7 @@ export function* planHumanPlacementDescriptor(topic,p,row,time,effectiveTime){
   timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
  };
 }
-export const descriptorReader=s=>(t,topic,p)=>describePlacement(s,t,topic,p);
+export const descriptorReader=s=>(t,topic,p,activity)=>describePlacement(s,t,topic,p,activity);
 const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
 const wrapCursor=(topicId,query,providerKey,cursor)=>cursor?{topicId,query,providerKey,...cursor}:null;
 
@@ -127,10 +132,18 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   topicId,sort,cursor:cursorView(cursor),limit,direction,
   anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
  });
+ // Invalid responses omit cached Topic metadata as well as bodies: Source
+ // eligibility may have changed after its name and summary were read.
+ // Fence tracked material and layout reads as well as paired body hydration.
+ const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
  const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
  const topic=await s.topic(topicId);
- if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
- if(descriptor.indexing)return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+ if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(descriptor.indexing){
+  const authority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+  if(authority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+  return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+ }
 
  const placements=await s.run(()=>s.repository.transaction(false,async t=>{
   const rows=new Map();
@@ -140,7 +153,7 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   }
   return rows;
  }));
- if(placements.size!==descriptor.items.length)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(placements.size!==descriptor.items.length)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
 
  const providerMatches=providerKey===null?null:await s.run(()=>s.repository.transaction(false,async t=>{
   const matches=new Set();for(const d of descriptor.items)if(await entryMatchesProvider(s,t,d.entryId,providerKey))matches.add(d.entryId);return matches;
@@ -148,11 +161,21 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
  const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
  const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
  const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
+ // Keep at most two existing, fully fenced reads in flight. Their result
+ // order remains descriptor order; no body cache survives this request.
+ const readable=descriptorRows.filter(d=>{const p=placements.get(d.entryId);return p&&sectionById.has(p.sectionId)&&(!providerMatches||providerMatches.has(d.entryId));});
+ let readOffset=0,readBatch=[];
  for(const d of descriptorRows){
   const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
   if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(providerMatches&&!providerMatches.has(d.entryId)){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
-  let e;try{e=await s.readingEntry(d.entryId);}catch(error){if(expression)throw error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(!readBatch.length){
+   const next=readable.slice(readOffset,readOffset+2);readOffset+=next.length;
+   readBatch=await Promise.all(next.map(async row=>{try{return {entry:await s.readingEntry(row.entryId)};}catch(error){return {error};}}));
+  }
+  const read=readBatch.shift();
+  if(Object.hasOwn(read,'error')){if(expression)throw read.error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  const e=read.entry;
   if(e.lifecycle!=='active'){if(expression){timeMismatch=true;break;}lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
   if(expression){
    const fresh=await s.run(()=>s.repository.transaction(false,async t=>{
@@ -170,15 +193,19 @@ export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=nul
   items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
  }
  if(direction==='prev')items.reverse();
- if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
+ if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
 
  const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
- if(sectionPage.cursorInvalid)return {cursorInvalid:true,topic,tracked,items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(sectionPage.cursorInvalid)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
  if(expression){
   const fresh=await thoughtTopicExpressionPage(s,{topicId,sort,limit:1,providerKey,query:needle,expectedReadGeneration:descriptor.coverage.activeGeneration,describe:descriptorReader(s)});
-  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,topic,tracked:[],items:[],coverage:fresh.coverage};
+  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,tracked:[],items:[],coverage:fresh.coverage};
  }
+ // A companion may finish before an earlier entry. Reject the whole body
+ // page if any existing mutation/recovery authority changed during hydration.
+ const finalAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+ if(finalAuthority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
  const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey,...(expression?{year:null,providerKey,query:needle}:{})}:null;
  const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
  const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);

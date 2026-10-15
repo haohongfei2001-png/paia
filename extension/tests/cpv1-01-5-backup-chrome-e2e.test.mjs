@@ -59,7 +59,7 @@ test('CPV1-01.5 retired export refuses while historical Backup imports protect c
  try{
   harness=await FakeChatGPT.start({headless,extensionPath:dir});
   let page=harness.archive;
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   const worker=harness.context.serviceWorkers().find(item=>item.url().includes('/background/service-worker.js'));
   await worker.evaluate(()=>globalThis.cpv1015.seed({inputCount:120,entryCount:90}));
@@ -79,7 +79,7 @@ test('CPV1-01.5 retired export refuses while historical Backup imports protect c
 
   harness=await FakeChatGPT.start({headless,extensionPath:dir});
   page=harness.archive;
-  await page.locator('#consent-check').check();
+  await page.locator('#enable-consent').waitFor({state:'visible'});
   await page.locator('#enable-consent').click();
   await openBackup(page);
   await page.locator('#backup-file').setInputFiles(output);

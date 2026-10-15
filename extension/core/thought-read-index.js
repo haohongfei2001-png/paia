@@ -1,4 +1,5 @@
 import {prefix} from './thought-model.js';
+import {rootReadAuthority} from './organizer/root-read.js';
 
 export const THOUGHT_ROOT_INDEX_VERSION=1;
 export const THOUGHT_ROOT_BUILD_BATCH=100;
@@ -114,7 +115,7 @@ export async function thoughtRootIndexPage(store,{cursor=null,limit=40}={}){
 // ANS-08 Topic Reader projection. Projection rows intentionally contain only
 // ordering / placement / time descriptors. Thought body/title/note remain in
 // the canonical Thought store and are resolved only for the visible response.
-export const THOUGHT_TOPIC_INDEX_VERSION=6;
+export const THOUGHT_TOPIC_INDEX_VERSION=7;
 export const THOUGHT_TOPIC_BUILD_BATCH=100;
 export const THOUGHT_TOPIC_STATUS_KEY=3;
 export const THOUGHT_TOPIC_MAX_BUILD_BATCHES=100;
@@ -169,11 +170,11 @@ export const liveTopicKey=(topic,epoch,timeRevision=0)=>JSON.stringify([
 // Original-owner complete pure metadata transition. The allocation remains
 // lazy at its existing caller; no domain semantics or projection query changes.
 export function planThoughtTopicBuild(meta,key,generationId){
- return {...meta,buildingGeneration:generationId,buildingKey:key,sourceCursor:null,scanned:0,indexed:0,buildingEarliest:null,buildingLatest:null,buildingUnknown:{asc:null,desc:null},buildingUnknownCount:0,buildingExpressionCounts:{all:{known:{},unknown:0,total:0},providers:{}}};
+ return {...meta,buildingGeneration:generationId,buildingKey:key,sourceCursor:null,scanned:0,indexed:0,buildingEarliest:null,buildingLatest:null,buildingUnknown:{asc:null,desc:null},buildingUnknownCount:0,activityProof:null,buildingActivityAt:null,buildingExpressionCounts:{all:{known:{},unknown:0,total:0},providers:{}}};
 }
 function startTopicBuild(store,meta,key,preparedGeneration){Object.assign(meta,planThoughtTopicBuild(meta,key,generation(store,preparedGeneration)));}
 export function planThoughtTopicInvalidation(meta,topic,epoch,{sourceTime=false,allocateGeneration}={}){
- if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION||!activeTopic(topic))return {changed:false,meta};
+ if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION||!topic||!['active','dormant'].includes(topic.lifecycle)||topic.redirectTo)return {changed:false,meta};
  let next={...meta};if(sourceTime)next.timeRevision=(next.timeRevision||0)+1;const key=liveTopicKey(topic,epoch,next.timeRevision||0);
  if(next.activeKey!==key||next.buildingKey!==key)next=planThoughtTopicBuild(next,key,allocateGeneration());return {changed:true,meta:next};
 }
@@ -191,7 +192,7 @@ export async function invalidateThoughtTopicIndex(store,t,topicId,{sourceTime=fa
  const id=topicMetaId(topicId),meta=await t.get('meta',id);
  if(!meta||meta.version!==THOUGHT_TOPIC_INDEX_VERSION)return false;
  const topic=await t.get('topics',topicId);
- if(!activeTopic(topic))return false;
+ if(!topic||!['active','dormant'].includes(topic.lifecycle)||topic.redirectTo)return false;
  const epoch=(await t.get('meta','thought-epoch'))?.value||0,planned=planThoughtTopicInvalidation(meta,topic,epoch,{sourceTime,allocateGeneration:()=>generation(store,preparedGeneration)});
  await t.put('meta',planned.meta);
  return true;
@@ -206,7 +207,7 @@ export function* planThoughtTopicDescriptorRows(descriptor,generationId){
    sectionRank:descriptor.sectionRank,rank:descriptor.rank,
    placementRevision:descriptor.placementRevision,
    entryRevision:descriptor.entryRevision,
-   expressionTime:descriptor.expressionTime,providerKeys:descriptor.providerKeys||[],
+   expressionTime:descriptor.expressionTime,activityAt:descriptor.activityAt||null,providerKeys:descriptor.providerKeys||[],
    sourceSentAt:descriptor.sourceSentAt||null,
    capturedAt:descriptor.capturedAt||null,
    effectiveTime:descriptor.effectiveTime||null,
@@ -223,6 +224,7 @@ async function writeTopicDescriptor(t,generationId,descriptor){
  for(const row of planThoughtTopicDescriptorRows(descriptor,generationId))await t.put('libraryMigrationItems',row);
 }
 export function accumulateThoughtTopicDescriptor(meta,descriptor){
+    if(descriptor.activityAt&&(!meta.buildingActivityAt||descriptor.activityAt>meta.buildingActivityAt))meta.buildingActivityAt=descriptor.activityAt;
     const count=stats=>{stats.total++;const year=descriptor.expressionTime?.year;if(Number.isInteger(year))stats.known[year]=(stats.known[year]||0)+1;else stats.unknown++;};
     count(meta.buildingExpressionCounts.all);
     for(const provider of descriptor.providerKeys||[]){const key='provider:'+provider;meta.buildingExpressionCounts.providers[key]??={known:{},unknown:0,total:0};count(meta.buildingExpressionCounts.providers[key]);}
@@ -244,6 +246,8 @@ export function* completeThoughtTopicProjection(meta){
    meta.activeGeneration=meta.buildingGeneration;
    meta.activeKey=meta.buildingKey;
    meta.activeCount=meta.indexed;
+   meta.activityAuthority=meta.buildingActivityAuthority;meta.buildingActivityAuthority=null;
+   meta.activityAt=meta.buildingActivityAt||null;meta.buildingActivityAt=null;
    meta.earliestDescriptor=meta.buildingEarliest;meta.latestDescriptor=meta.buildingLatest;
    meta.unknownDescriptor=meta.buildingUnknown;meta.unknownTimeCount=meta.buildingUnknownCount;
    meta.expressionCounts=meta.buildingExpressionCounts;meta.buildingExpressionCounts=null;
@@ -254,21 +258,25 @@ export function* completeThoughtTopicProjection(meta){
 export async function advanceThoughtTopicIndex(store,{topicId,describe}){
  return store.run(()=>store.repository.transaction(true,async t=>{
   const topic=await store.canonicalTopic(t,topicId);
-  if(!activeTopic(topic))throw new Error('INVALID_TOPIC');
-  const {meta,key}=await topicMeta(store,t,topic);
+  if(!topic||!['active','dormant'].includes(topic.lifecycle)||topic.redirectTo)throw new Error('INVALID_TOPIC');
+  const {meta,key}=await topicMeta(store,t,topic),activityAuthority=await rootReadAuthority(t);
+  if(meta.activityAuthority!==activityAuthority&&meta.buildingActivityAuthority!==activityAuthority){startTopicBuild(store,meta,key);meta.buildingActivityAuthority=activityAuthority;}
   if(meta.activeKey===key&&!meta.buildingGeneration)return {...topicSnapshot(meta),pending:false,processed:0,key};
   if(meta.buildingKey!==key)startTopicBuild(store,meta,key);
+  meta.buildingActivityAuthority=activityAuthority;
   const page=await t.rangePage('placements','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),meta.sourceCursor??null,THOUGHT_TOPIC_BUILD_BATCH);
-  let added=0;
-  for(const {value:placement} of page.rows){
-   const descriptor=await describe(t,topic,placement);
+  let added=0,activityPending=false,consumed=meta.sourceCursor;const activityBudget={remaining:100};
+  for(const {key:placementKey,value:placement} of page.rows){
+   const descriptor=await describe(t,topic,placement,{cursor:meta.activityProof&&meta.activityProof.placementId===placement.id?meta.activityProof.cursor:null,budget:activityBudget});
+   if(descriptor?.activityPending){meta.activityProof={placementId:placement.id,cursor:descriptor.cursor};activityPending=true;break;}
+   meta.activityProof=null;consumed=placementKey;
    meta.scanned++;
    if(descriptor){await writeTopicDescriptor(t,meta.buildingGeneration,descriptor);meta.indexed++;added++;
     accumulateThoughtTopicDescriptor(meta,descriptor);
    }
   }
-  meta.sourceCursor=page.next;
-  if(!page.next){
+  meta.sourceCursor=activityPending?consumed:page.next;
+  if(!page.next&&!activityPending){
    const completion=completeThoughtTopicProjection(meta);completion.next();completion.next(store.clock());
   }
   await t.put('meta',meta);

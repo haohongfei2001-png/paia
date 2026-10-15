@@ -357,3 +357,13 @@ test('CTX4-04 actual complete Input scope reports selected-field hash budget exh
  const before=f.s.repository.metrics.writes;
  refused(await f.service.readTopic(f.caller,{topicId:f.topic.id}),'scope_budget');refused(await f.service.topics(f.caller),'scope_budget');assert.equal(f.s.repository.metrics.writes,before);
 });
+
+test('CTX4 move invalidates existing shallow continuation and reads only current target permissions',async()=>{
+ const f=await fixture(),id=await item(f,'info','SYNTHETIC_MOVE_PRIVATE');await item(f,'info','SYNTHETIC_SECOND');const page=await f.service.shallow(f.caller,{limit:1});assert.ok(page.nextCursor);await access(f,'rules',false);
+ const snapshot=await f.cards.snapshot(),current=snapshot.items.find(x=>x.id===id);await f.cards.change({kind:'move',operationId:op(),epoch:snapshot.epoch,itemId:id,expectedRevision:current.revision,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(key=>[key,snapshot.access[key]]))});
+ refused(await f.service.shallow(f.caller,{limit:1,cursor:page.nextCursor}),'stale_cursor');let next=await f.service.shallow(f.caller);assert.equal(next.available,true);assert.ok(!JSON.stringify(next).includes('SYNTHETIC_MOVE_PRIVATE'));await access(f,'rules',true);next=await f.service.shallow(f.caller);assert.equal(next.items.find(x=>x.itemId===id)?.card,'rules');
+});
+
+test('CTX4 move during shallow final authorization withholds captured old-card body',async()=>{
+ const f=await fixture(),id=await item(f,'info','SYNTHETIC_MOVED_DURING_READ');f.state.verifyHook=async n=>{if(n!==2)return;const snapshot=await f.cards.snapshot(),current=snapshot.items.find(x=>x.id===id);await f.cards.change({kind:'move',operationId:op(),epoch:snapshot.epoch,itemId:id,expectedRevision:current.revision,fromCard:'info',toCard:'now',expectedAccess:Object.fromEntries(['global','info','now'].map(key=>[key,snapshot.access[key]]))});};refused(await f.service.shallow(f.caller),'stale_authority');
+});

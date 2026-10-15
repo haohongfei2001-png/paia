@@ -8,7 +8,7 @@ const rpc=async(page,type,fields={})=>{if(type==='PAIA_RECOVERY_DRAFT_LOAD'&&fie
 const op=()=>crypto.randomUUID();
 
 async function ready(h){
- const p=h.archive;await p.locator('#consent-check').check();await p.locator('#enable-consent').click();
+ const p=h.archive;await p.locator('#enable-consent').waitFor({state:'visible'});await p.locator('#enable-consent').click();
  await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true,'consent ready');
  if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  return p;

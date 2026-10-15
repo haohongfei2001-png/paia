@@ -49,10 +49,10 @@ export class ArchiveNavigatorState{
 }
 
 export class ArchiveNavigator{
- constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{}}={}){
-  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;
+ constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{},onSourceInitialized=()=>{},canInitializeSource=()=>true}={}){
+  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.onSourceInitialized=onSourceInitialized;this.canInitializeSource=canInitializeSource;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;this.browseSource=null;this.sourceInitialized=false;
   this.duplicateLabels=new Map();
-  this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{this.sourceScope=this.sourceSelect.value||null;this.lastPaintSignature=null;this.paint();this.onRouteChange();this.onScopeChange();});
+  this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{const requested=this.sourceSelect.value||null;this.sourceSelect.value=this.sourceScope||'';void this.onScopeChange(requested);});
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
   const head=element('header','archive-navigator-header'),title=element('h2','',copy('档案窗口','Archive windows'));this.status=element('p','archive-navigator-status','');this.status.setAttribute('role','status');this.status.setAttribute('aria-live','polite');this.applyOrder=element('button','archive-navigator-apply-order',copy('应用','Apply'));this.applyOrder.type='button';this.applyOrder.hidden=true;this.close=element('button','archive-navigator-close',copy('关闭','Close'));this.close.type='button';head.append(title,this.status,this.applyOrder,this.close);
   this.tree=element('div','archive-navigator-tree');this.host.append(head,this.tree);
@@ -62,8 +62,8 @@ export class ArchiveNavigator{
   this.media=matchMedia('(max-width:1023px)');this.media.addEventListener?.('change',()=>this.layout());
   window.addEventListener('resize',()=>this.layout(),{passive:true});
  }
- navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed,sourceScope:this.sourceScope};}
- restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();this.host.scrollTop=this.state.scrollTop;}
+ navigationSnapshot(){const loaded=[];for(const scope of this.state.scopes.values()){const kind=scope.options?.groupKind;if(!['project','unassigned','unknown','deleted','detached'].includes(kind))continue;const groupKey=navigatorGroupKey(scope.options.providerKey,kind,scope.options.projectRef);if(this.state.expanded.has(groupKey)&&scope.items.length)loaded.push([scope.key,Math.min(10000,scope.items.length)]);}return {expanded:[...this.state.expanded].slice(0,100),loaded:loaded.slice(0,100),scrollTop:Math.max(0,Math.round(this.state.scrollTop||0)),narrowCollapsed:!!this.narrowCollapsed,sourceScope:this.sourceScope,browseSource:this.browseSource,sourceInitialized:this.sourceInitialized};}
+ restoreNavigation(snapshot){if(!snapshot)return;this.state.expanded=new Set(snapshot.expanded||[]);this.restoreDepth=new Map(snapshot.loaded||[]);this.state.scrollTop=Math.max(0,snapshot.scrollTop||0);this.narrowCollapsed=!!snapshot.narrowCollapsed;this.sourceScope=snapshot.sourceScope||null;this.browseSource=snapshot.browseSource||this.sourceScope;this.sourceInitialized=snapshot.sourceInitialized!==undefined?snapshot.sourceInitialized:true;if(this.sourceSelect)this.sourceSelect.value=this.sourceScope||'';this.layout();this.paint();this.host.scrollTop=this.state.scrollTop;}
  isMobile(){return this.media.matches;}
  isNarrow(){return false;}
  groupOptions(item){return {providerKey:item.providerKey,groupKind:item.groupKind,...(item.groupKind==='project'?{projectRef:item.projectRef}:{})};}
@@ -147,6 +147,9 @@ export class ArchiveNavigator{
   const token=++this.serial;if(hard){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;}
   let root=await this.readScope({groupKind:'providers'});if(token!==this.serial)return;
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
+  // A delayed provider read must consult the live route/query owner, not the
+  // last painted query: Search may already hold a qualified snapshot.
+  if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()&&this.canInitializeSource()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}}
   this.updateSourceOptions(root.items);
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
@@ -199,7 +202,7 @@ export class ArchiveNavigator{
   this.sourceSelect.value=current||'';
  }
  detail(subject,trigger){this.onSourceDetail?.(subject,trigger);}
- paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
+ paintSignature(){return JSON.stringify({mode:this.mode,sourceScope:this.sourceScope,browseSource:this.browseSource,expanded:[...this.state.expanded].sort(),scopes:[...this.state.scopes].sort(([a],[b])=>a.localeCompare(b)).map(([key,scope])=>[key,scope.coverage?.state||null,scope.generation,scope.effectiveOrdering,scope.unavailableReason,scope.nextCursor,scope.error,scope.loading,scope.items.map(item=>[item.kind,item.id,item.title,item.providerKey,item.groupKind,item.projectRef,item.sourceStatus,item.parentSourceStatus])])});}
  syncSelection(){for(const button of this.host.querySelectorAll('.archive-navigator-window')){if(button.dataset.documentId===this.selectedDocumentId)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}}
  paint(){
   if(!this.active)return;this.reconcileUnknownExpansion();const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
@@ -208,9 +211,10 @@ export class ArchiveNavigator{
   if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
 
   if(!root.items.length)this.tree.append(element('p','archive-navigator-empty',copy('还没有可导航的窗口。','No archive windows yet.')));
+  else if(this.browseSource&&!root.items.some(item=>item.providerKey===this.browseSource))this.tree.append(element('p','archive-navigator-error',copy('来源暂不可用','Source unavailable')));
   for(const provider of root.items){
-   if(this.sourceScope&&provider.providerKey!==this.sourceScope)continue;
-   const section=element('section','archive-navigator-provider'),heading=element('h3','archive-navigator-provider-title',providerName(provider.providerKey));section.dataset.providerKey=provider.providerKey;section.append(heading);
+   if(provider.providerKey!==this.browseSource)continue;
+   const section=element('section','archive-navigator-provider'),heading=element('h3','archive-navigator-provider-title',providerName(provider.providerKey));section.dataset.providerKey=provider.providerKey;if(!this.sourceScope)section.append(heading);
    const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});
    if(groups.coverage.state!=='complete'){section.append(element('p','archive-navigator-loading',copy('正在读取来源分组…','Loading source groups…')));this.tree.append(section);continue;}
    for(const group of groups.items){

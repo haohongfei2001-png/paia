@@ -7,7 +7,7 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 const rawRpc=(page,type,fields={})=>page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});
 
-async function consent(page){await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
+async function consent(page){await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented===true,'consent becomes durable');}
 async function openUniversal(page,query){assert.equal(await page.locator('#universal-search-open').isVisible(),false,'normal pages expose no global Search launcher');assert.equal(await page.locator('#archive-select-materials').count(),0,'Archive root has no duplicate material-selection launcher');await assertContextUnavailable(page);await openRetainedSearchComponent(page,{types:['input','thought','ai']});const box=page.getByRole('searchbox',{name:'全局搜索'});await box.fill(query);await eventually(async()=>await page.locator('#universal-search-dialog .universal-hit').count()>0,'internal material Search returns a current-runtime result');return page.locator('#universal-search-dialog .universal-hit').first();}
 
 test('Round 4.8 current release: retained Search component -> Reader and Revisit survive the unavailable Context route',{timeout:120000},async()=>{
@@ -15,6 +15,7 @@ test('Round 4.8 current release: retained Search component -> Reader and Revisit
  try{
   const p=h.archive,first='ROUND48_SEARCH_TARGET 我决定把 PAIA 做成长期可阅读的个人输入档案。',second='ROUND48_REVISIT_NEW 我后来补充：回访应该只提示真正新增的本机内容。';
   await consent(p);
+  await p.evaluate(()=>{globalThis.__round48Routes=[];for(const kind of ['pushState','replaceState']){const original=history[kind].bind(history);history[kind]=(...args)=>{__round48Routes.push({kind,state:structuredClone(args[0]),stack:new Error().stack});if(__round48Routes.length>40)__round48Routes.shift();return original(...args);};}window.addEventListener('popstate',event=>__round48Routes.push({kind:'popstate',state:event.state}));});
   await h.open({id:'round48-current',title:'Round 4.8 Current Release',base:1609459200,messages:[{id:'round48-one',text:first}]});
   await eventually(async()=>(await h.state()).records.length===1,'first Input is captured');
 
@@ -49,7 +50,7 @@ test('Round 4.8 current release: retained Search component -> Reader and Revisit
   const newCard=p.locator('.revisit-card').filter({hasText:'ROUND48_REVISIT_NEW'});await eventually(async()=>await newCard.count()===1,'Revisit UI renders the service-visible new Input');await newCard.locator('.revisit-card-open').evaluate(el=>{globalThis.__round48StableRevisit=el;});const worker=h.context.serviceWorkers()[0];await worker.evaluate(()=>{void chrome.runtime.sendMessage({type:'ARCHIVE_CHANGED',cause:'CAPTURE'}).catch(()=>{});});await pause(250);assert.equal(await newCard.locator('.revisit-card-open').evaluate(el=>el===globalThis.__round48StableRevisit),true,'duplicate capture refresh keeps the same Revisit action node');await newCard.locator('.revisit-card-open').click();
   await eventually(async()=>await p.locator('#document-panel').isVisible()&&(await p.locator('#document-body').textContent()).includes('ROUND48_REVISIT_NEW'),'Revisit item opens canonical Input reader');
   await pause(100);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+ }catch(error){try{console.error('ROUND48_ROUTE_DIAGNOSTIC',JSON.stringify(await h.archive.evaluate(()=>({routes:globalThis.__round48Routes,hidden:document.getElementById('universal-search-dialog')?.hidden,display:getComputedStyle(document.getElementById('universal-search-dialog')).display,classes:document.body.className}))));}catch{}throw error;}finally{await h.close();}
 });
 
 test('Round 4.8 current release: Context requests remain retired while saved Passport grants can be revoked without releasing content',{timeout:60000},async()=>{

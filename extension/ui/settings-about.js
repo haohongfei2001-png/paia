@@ -1,3 +1,4 @@
+import {mountSettingsFeedback} from './settings-feedback.js';
 import {createIcon} from './icons.js';
 import {recoveryGuidance} from './recovery-guidance.js';
 const SITE='https://inputarchive.com';
@@ -21,7 +22,7 @@ export function aboutUpdateText(state,chinese){
  return chinese?'尚无可确认的更新状态。':'No confirmed update status is available.';
 }
 const owners=new WeakMap();
-export function mountSettingsAbout(host,{version,language=()=>document.documentElement.lang,readUpdateStatus,checkForUpdate}={}){
+export function mountSettingsAbout(host,{version,language=()=>document.documentElement.lang,readUpdateStatus,checkForUpdate,send}={}){
  if(owners.has(host))return owners.get(host);
  let updateState={state:'unknown'},readEpoch=0,checking=false;
  const root=document.createElement('div');root.className='ux-settings-about';
@@ -32,7 +33,7 @@ export function mountSettingsAbout(host,{version,language=()=>document.documentE
  const check=typeof checkForUpdate==='function'?document.createElement('button'):null;
  if(check){check.id='settings-check-update';check.type='button';check.className='ux-settings-secondary';check.setAttribute('aria-describedby',update.id);check.addEventListener('click',event=>{if(event.isTrusted)void performCheck();});}
  root.append(installed,update);if(check)root.append(check);root.append(links);host.append(root);
- const sync=()=>{const locale=language(),chinese=locale==='zh-CN';update.textContent=aboutUpdateText(updateState,chinese);update.setAttribute('aria-busy',String(updateState.state==='loading'||checking));if(check){check.disabled=checking;check.textContent=updateState.state==='check-unavailable'?(chinese?'重试检查':'Retry check'):(chinese?'检查此安装的更新':'Check this installation for updates');}links.setAttribute('aria-label',chinese?'关于 PAIA 的链接':'About PAIA links');for(const item of aboutDestinations(locale)){const {link,label}=nodes.get(item.key);label.textContent=item.label;link.href=item.href;link.setAttribute('aria-label',item.label+(item.external?(chinese?'（在新标签页打开）':' (opens in a new tab)'):(chinese?'（打开邮件应用）':' (opens your mail app)')));if(item.external){link.target='_blank';link.rel='noopener noreferrer';}else{link.removeAttribute('target');link.removeAttribute('rel');}}};
+ const sync=()=>{const locale=language(),chinese=locale==='zh-CN';update.textContent=aboutUpdateText(updateState,chinese);update.setAttribute('aria-busy',String(updateState.state==='loading'||checking));if(check){check.disabled=checking;check.textContent=updateState.state==='check-unavailable'?(chinese?'重试检查':'Retry check'):(chinese?'检查此安装的更新':'Check this installation for updates');}links.setAttribute('aria-label',chinese?'关于 PAIA 的链接':'About PAIA links');for(const item of aboutDestinations(locale)){const {link,label}=nodes.get(item.key);label.textContent=item.label;link.href=item.href;if(item.key==='feedback'&&send)link.setAttribute('aria-haspopup','dialog');link.setAttribute('aria-label',item.label+(item.key==='feedback'&&send?(chinese?'（打开反馈草稿）':' (opens feedback draft)'):item.external?(chinese?'（在新标签页打开）':' (opens in a new tab)'):(chinese?'（打开邮件应用）':' (opens your mail app)')));if(item.external){link.target='_blank';link.rel='noopener noreferrer';}else{link.removeAttribute('target');link.removeAttribute('rel');}}};
  const refresh=async()=>{if(!readUpdateStatus||checking)return;const epoch=++readEpoch;updateState={state:'loading'};sync();try{const value=await readUpdateStatus();if(epoch!==readEpoch)return;updateState=value?.version===version&&['available','installed','unknown'].includes(value.state)?value:{state:'unknown'};}catch{if(epoch!==readEpoch)return;updateState={state:'error'};}sync();};
  const retainCheckFocus=()=>{
   const doc=check?.ownerDocument||document,view=doc.defaultView;
@@ -50,5 +51,6 @@ export function mountSettingsAbout(host,{version,language=()=>document.documentE
   };
  };
  async function performCheck(){if(checking||!checkForUpdate)return;const finishFocus=retainCheckFocus();checking=true;const epoch=++readEpoch;updateState={state:'checking'};sync();try{const value=await checkForUpdate();if(epoch===readEpoch)updateState=value?.version===version&&['available','checked-none','check-unavailable'].includes(value.state)?value:{state:'check-unavailable'};}catch{if(epoch===readEpoch)updateState={state:'check-unavailable'};}finally{checking=false;sync();finishFocus();}}
- const owner={sync,refresh,root};owners.set(host,owner);sync();return owner;
+ let feedback=null;if(send)nodes.get('feedback').link.addEventListener('click',event=>{event.preventDefault();feedback??=mountSettingsFeedback(root,{send,language,control:nodes.get('feedback').link});void feedback.show();});
+ const owner={sync(){sync();feedback?.sync();},refresh,root,get feedback(){return feedback;},leave:()=>feedback?.leave()??Promise.resolve(true)};owners.set(host,owner);sync();return owner;
 }

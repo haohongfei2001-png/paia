@@ -312,13 +312,13 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#thought-recent').count(),0,'Thought root no longer renders 最近阅读');
   const index=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}});
   assert.ok(index.recent?.some(item=>item.id===topics[1].id),'recent-read metadata remains available behind the removed root section');
-  const homeMenu=page.locator('#thought-root-source .library-actions').first();
+  const homeMenu=page.locator('#thought-home-tools .thought-root-actions .library-actions').first();
   await homeMenu.locator('summary').click();
   assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
   assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'current Personal Topic layout has no competing layout switch');
   assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
   await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#thought-root-source').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
+  assert.equal(await page.locator('#thought-home-tools .thought-root-actions').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
 
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
@@ -330,7 +330,8 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.equal(await page.locator('#thought-list').evaluate(el=>getComputedStyle(el).display),'grid');
   const rootRows=page.locator('#thought-list article.personal-topic-block'),geometry=await rootRows.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {left:r.left,width:r.width,height:r.height,id:node.dataset.topicId,slot:node.dataset.rootSlot};}));
   assert.equal(new Set(geometry.map(row=>row.left)).size,3,'three actual identities occupy separate stable blocks in the wide grid');
-  assert.ok(geometry.every(row=>Math.abs(row.width-geometry[0].width)<=2&&Math.abs(row.height-geometry[0].height)<=2),'independent Root blocks share the fixed footprint');
+  assert.ok(geometry.every(row=>Math.abs(row.width-geometry[0].width)<=2),'independent Root blocks retain equal track widths');
+  assert.ok(Math.max(...geometry.map(row=>row.height))-Math.min(...geometry.map(row=>row.height))>12,'approved content-sized blocks distinguish wrapped and short titles without fixed-height padding');
   const title=page.locator(`.personal-topic-link[data-topic-id="${topics[0].id}"]`),canonical=(await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id})).name;
   assert.equal(await title.textContent(),canonical);assert.equal(await title.getAttribute('title'),canonical,'bounded title presentation retains the full canonical name');
   const rootCue=(await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable'}})).items.find(item=>item.id===topics[0].id).rootCue;
@@ -348,7 +349,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   }
 
   await page.setViewportSize({width:1200,height:800});
-  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(4,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
+  await eventually(()=>page.locator('#thought-list').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length===Math.max(1,Math.min(3,Math.floor((el.clientWidth+16)/240)))),'1200px Root refits to the actual remaining workspace width');
   const cardWidth=await page.locator('#thought-list article.personal-topic-block').first().evaluate(el=>el.getBoundingClientRect().width);
   assert.ok(cardWidth>=224,`Topic blocks keep the current minimum readable track width; got ${cardWidth}`);
   assert.equal(await title.evaluate(el=>getComputedStyle(el).webkitLineClamp),'2','Root title previews have the adopted two-line limit and retain their complete accessible name');

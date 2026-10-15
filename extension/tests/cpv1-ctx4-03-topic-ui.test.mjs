@@ -43,7 +43,7 @@ async function fixture(run,{count=3}={}){
  if(topics.length)await s.placeEntry({entryId:entry.id,topicId:topics[0].id,operationId:op(),expectedEntryRevision:(await raw(s,'thoughts',entry.id)).revision,expectedTopicRevision:(await raw(s,'topics',topics[0].id)).organizationRevision});
  const access=new ContextTopicAccessService(s),cards=new ContextCardsService(s,{topicSummary:(t,epoch)=>access.summaryInTransaction(t,epoch)});
  for(const key of ['global','inputs'])await cards.change({kind:'access',operationId:op(),epoch:'initial',key,enabled:true,expectedRevision:0});
- const body=new Node('body');globalThis.document={addEventListener(){},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
+ const body=new Node('body');const documentListeners=new Map();globalThis.document={addEventListener(type,listener){if(!documentListeners.has(type))documentListeners.set(type,new Set());documentListeners.get(type).add(listener);},removeEventListener(type,listener){documentListeners.get(type)?.delete(listener);},dispatchEvent(event){for(const listener of [...documentListeners.get(event.type)||[]])listener(event);},body,documentElement:{lang:'en'},activeElement:null,createElement:tag=>new Node(tag),createElementNS:(namespace,tag)=>new Node(tag,namespace)};
  const calls=[],pages=[],standalones=[],navigations=[];
  const dispatch=async message=>{
   switch(message.type){
@@ -68,12 +68,12 @@ async function fixture(run,{count=3}={}){
 
 for(const count of [20,50,144])test(`CTX4-03 actual My Inputs traverses all ${count} Topics and preserves identity, order, focus and saved state`,()=>fixture(async({s,access,makePage,calls})=>{
  const before=await protectedRows(s),page=makePage();await page.open('inputs');const inputs=page.inputs;
- assert.ok(inputs instanceof ContextTopicInputs);assert.equal(inputs.order.length,count);assert.equal(inputs.nodes.size,count);assert.equal(new Set(inputs.order).size,count);
+ assert.ok(inputs instanceof ContextTopicInputs);assert.equal(inputs.filters.parentElement,page.host.querySelector('.context-back-row'));assert.equal(inputs.allFilter.parentElement,inputs.toolbar);for(const [id,gate]of inputs.nodes){const row=inputs.rowNodes.get(id);assert.equal(inputs.openNodes.get(id).parentElement,row);assert.equal(gate.parentElement,row);assert.equal(gate.querySelector('.context-switch').getAttribute('aria-hidden'),'true');assert.equal(gate.querySelector('.context-topic-state').textContent,'Only me');}assert.equal(inputs.order.length,count);assert.equal(inputs.nodes.size,count);assert.equal(new Set(inputs.order).size,count);
  const reads=calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_PAGE');assert.equal(reads.length,Math.ceil(count/100));assert.equal(reads[0].options.cursor,null);if(count>100)assert.equal(reads[1].options.cursor.offset,100);
  const expected=(await s.repository.transaction(false,t=>t.all('topics'))).sort((a,b)=>s.repository.factory.cmp(JSON.stringify([a.createdAt,a.id]),JSON.stringify([b.createdAt,b.id]))).map(row=>row.id);
  assert.deepEqual(inputs.order,expected);assert.ok([...inputs.rows.values()].every(row=>!row.enabled));assert.equal(inputs.selectedCount,0);
  const id=inputs.order.at(-1),node=inputs.nodes.get(id);node.focus();assert.equal(await inputs.toggle(id),true);
- assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);assert.equal(node.getAttribute('aria-pressed'),'true');assert.equal(inputs.selectedCount,1);
+ assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);assert.equal(node.getAttribute('aria-pressed'),'true');assert.equal(inputs.selectedCount,1);assert.equal(node.querySelector('.context-topic-state').textContent,'Readable');
  assert.equal(await inputs.toggle(id),true);assert.equal(await inputs.toggle(id),true);assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);
  assert.ok(!page.host.textContent.includes('SYNTHETIC_PRIVATE'));assert.equal(page.host.querySelectorAll('textarea').length,0);assert.equal(page.editors.size,0);assert.equal(page.host.querySelector('h1').textContent,'My Inputs');
  assert.deepEqual(await protectedRows(s),before);
@@ -81,11 +81,11 @@ for(const count of [20,50,144])test(`CTX4-03 actual My Inputs traverses all ${co
  assert.deepEqual(reopened.inputs.order,expected);assert.equal(reopened.inputs.rows.get(id).enabled,true);assert.equal(reopened.inputs.rows.get(id).revision,3);assert.equal((await access.page()).externalAllowed,false);
 },{count}));
 
-test('CTX4-03 home uses actual selected count while global and Inputs pause retain exact choices',()=>fixture(async({s,cards,makePage})=>{
+test('CTX4-03 home preserves actual selected choices without a count badge while global and Inputs pause',()=>fixture(async({s,cards,makePage})=>{
  const page=makePage();await page.open('inputs');const id=page.inputs.order[0];await page.inputs.toggle(id);const saved=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW);
  for(const key of ['global','inputs']){const access=(await cards.snapshot()).access[key];await cards.change({kind:'access',key,enabled:false,expectedRevision:access.revision,operationId:op(),epoch:'initial'});await page.refresh();assert.equal(page.inputs.rows.get(id).enabled,true);assert.equal(page.inputs.nodes.get(id).dataset.paused,'true');assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);}
  assert.match(page.inputs.note.textContent,/private.*retained/);assert.equal(await page.leave(),true);await page.open(null);
- assert.equal(page.host.querySelector('[data-count="inputs"]').textContent,'1 topics selected');assert.equal(page.host.querySelector('.input-summary').textContent,page.snapshot.topicChoices.selectedNames.join(' · '));assert.equal(page.snapshot.topicChoices.remainingSelectedCount,0);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
+ assert.equal(page.host.querySelector('[data-count="inputs"]'),null);assert.equal(page.snapshot.topicChoices.selectedCount,1);assert.equal(page.host.querySelector('.input-summary').textContent,page.snapshot.topicChoices.selectedNames.join(' · '));assert.equal(page.snapshot.topicChoices.remainingSelectedCount,0);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
 }));
 
 test('CTX4-03 malformed Topic preferences show unavailable on home while all independent card Items survive',()=>fixture(async({s,cards,access,makePage,calls})=>{
@@ -93,7 +93,7 @@ test('CTX4-03 malformed Topic preferences show unavailable on home while all ind
  const directory=await access.page();assert.equal((await access.change(choice(directory.items[0],directory.epoch))).ok,true);
  const savedItems=structuredClone((await cards.snapshot()).items),malformed={...await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),version:2};await s.repository.transaction(true,t=>t.put('meta',malformed));const bodies=await protectedRows(s);
  const page=makePage();await page.open(null);assert.deepEqual(page.snapshot.topicChoices,{available:false,selectedCount:null,externalAllowed:false});assert.equal(page.snapshot.capabilities.inputs,false);assert.deepEqual(page.snapshot.items,savedItems);
- const count=page.host.querySelector('[data-count="inputs"]'),summary=page.host.querySelector('.input-summary');assert.equal(count.textContent,'Topic choices unavailable');assert.equal(summary.textContent,'Topic choices cannot be read right now. Existing settings are retained.');assert.doesNotMatch(count.textContent,/^0\b/);assert.doesNotMatch(summary.textContent,/No open topics|0 topics/i);
+ const count=page.host.querySelector('[data-count="inputs"]'),summary=page.host.querySelector('.input-summary');assert.equal(count,null,'white Home has no count badge, including unavailable state');assert.equal(summary.textContent,'Topic choices cannot be read right now. Existing settings are retained.');assert.equal(page.snapshot.topicChoices.selectedCount,null);assert.doesNotMatch(summary.textContent,/No open topics|0 topics/i);
  for(const card of ['info','rules','now']){assert.equal(page.snapshot.counts[card],1);assert.equal(page.snapshot.capabilities[card],true);assert.equal(await page.leave(),true);await page.open(card);assert.equal(page.editors.size,1);const editor=[...page.editors.values()][0];assert.equal(editor.saved.card,card);assert.equal(editor.field.textContent,`SYNTHETIC protected ${card} Item`);}
  assert.deepEqual((await cards.snapshot()).items,savedItems);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),malformed);assert.deepEqual(await protectedRows(s),bodies);assert.equal(calls.some(call=>call.type==='PAIA_CONTEXT_CARDS_CHANGE'||call.type==='PAIA_CONTEXT_TOPICS_CHANGE'),false);
 }));
@@ -378,4 +378,41 @@ test('CTX4-03 a refused choice stays explained across automatic directory refres
  assert.equal(await inputs.toggle(id),false,'stale revision is refused rather than silently retried');
  const notice=inputs.status.textContent;assert.match(notice,/not saved/);await inputs.refresh();assert.equal(inputs.status.textContent,notice,'background reread cannot erase the refused-action explanation');
  assert.equal(await inputs.toggle(id),true,'a later explicit choice uses the freshly read identity');assert.match(inputs.status.textContent,/Choice saved/);await inputs.refresh();assert.equal(inputs.status.textContent,'','success does not leave a stale refusal');
+}));
+
+test('CTX4-03 name search reaches the final metadata page without writing choices or reordering',()=>fixture(async({s,makeInputs,calls})=>{
+ const inputs=await makeInputs();assert.equal(await inputs.refresh(),true);const order=[...inputs.order],nodes=new Map(inputs.nodes),before=await protectedRows(s),choices=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),reads=calls.filter(row=>row.type==='PAIA_CONTEXT_TOPICS_PAGE').length;
+ assert.equal(reads,2);assert.equal(inputs.filter(false,'Topic 143'),true);assert.equal(inputs.visibleIds().length,1);const id=inputs.visibleIds()[0];assert.equal(inputs.rows.get(id).name,'SYNTHETIC Topic 143');assert.equal(inputs.nodes.get(id).hidden,false);
+ assert.equal(inputs.filter(false,'不存在𠮷🙂'),true);assert.equal(inputs.visibleIds().length,0);assert.match(inputs.filterStatus.textContent,/names only/);
+ assert.equal(inputs.filter(false,''),true);assert.deepEqual(inputs.visibleIds(),order);assert.deepEqual(inputs.order,order);for(const [key,node]of nodes)assert.equal(inputs.nodes.get(key),node);
+ assert.equal(calls.filter(row=>row.type==='PAIA_CONTEXT_TOPICS_PAGE').length,reads);assert.equal(calls.some(row=>row.type==='PAIA_CONTEXT_TOPICS_CHANGE'),false);assert.deepEqual(await protectedRows(s),before);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),choices);
+},{count:144}));
+
+test('CTX4-03 selected filter follows durable enabled choice even when access is paused and unselect restores focus',()=>fixture(async({makeInputs,cards})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0],node=inputs.nodes.get(id);assert.equal(inputs.filter(true,''),true);assert.equal(inputs.visibleIds().length,0);
+ inputs.filter(false,'');assert.equal(await inputs.toggle(id),true);assert.equal(inputs.filter(true,''),true);assert.deepEqual(inputs.visibleIds(),[id]);
+ const snapshot=await cards.snapshot();await cards.change({kind:'access',key:'global',enabled:false,expectedRevision:snapshot.access.global.revision,operationId:op(),epoch:'initial'});inputs.setAccess((await cards.snapshot()).access);assert.deepEqual(inputs.visibleIds(),[id]);
+ node.focus();assert.equal(await inputs.toggle(id),true);assert.equal(node.hidden,true);assert.equal(inputs.visibleIds().length,0);assert.equal(document.activeElement,inputs.searchField);assert.equal(inputs.selectedFilter.getAttribute('aria-pressed'),'true');
+}));
+
+test('CTX4-03 filtered roving navigation skips hidden rows and preserves full original order',()=>fixture(async({s,topics,entry,makeInputs})=>{
+ await s.placeEntry({entryId:entry.id,topicId:topics[2].id,operationId:op(),expectedEntryRevision:(await raw(s,'thoughts',entry.id)).revision,expectedTopicRevision:(await raw(s,'topics',topics[2].id)).organizationRevision});
+ for(const index of [0,2]){const row=await raw(s,'topics',topics[index].id);await s.renameTopic({id:row.id,name:`𠮷🙂 match ${index}`,expectedRevision:row.revision,operationId:op()});}
+ const inputs=await makeInputs();await inputs.refresh();const order=[...inputs.order];inputs.filter(false,'𠮷🙂');const visible=inputs.visibleIds();assert.equal(visible.length,2);
+ const first=inputs.nodes.get(visible[0]),last=inputs.nodes.get(visible[1]);first.focus();inputs.move({target:first,key:'End',preventDefault(){}});assert.equal(document.activeElement,last);inputs.move({target:last,key:'Home',preventDefault(){}});assert.equal(document.activeElement,first);assert.deepEqual(inputs.order,order);
+ assert.ok([...inputs.nodes.values()].filter(node=>node.hidden).every(node=>node.tabIndex===-1));
+}));
+
+test('CTX4-03 search retains its scope after rename but refuses stale refresh and unknown save',()=>fixture(async({s,makeInputs,transport,dispatch})=>{
+ const inputs=await makeInputs();await inputs.refresh();const id=inputs.order[0];inputs.filter(false,'renamed');assert.equal(inputs.visibleIds().length,0);
+ const row=await raw(s,'topics',id);await s.renameTopic({id,name:'renamed 𠮷🙂',expectedRevision:row.revision,operationId:op()});await inputs.refresh();assert.deepEqual(inputs.visibleIds(),[id]);
+ inputs.composing=true;assert.equal(inputs.filter(true,''),false);assert.equal(inputs.query,'renamed');inputs.composing=false;
+ transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_PAGE')throw Error('read failed');return dispatch(message);};assert.equal(await inputs.refresh(),false);assert.equal(inputs.filter(false,'other'),false);assert.equal(inputs.query,'renamed');assert.match(inputs.filterStatus.textContent,/unavailable/);assert.ok([...inputs.nodes.values()].every(node=>node.disabled));
+ transport.dispatch=dispatch;await inputs.refresh();transport.dispatch=async message=>{if(message.type==='PAIA_CONTEXT_TOPICS_CHANGE'||message.type==='PAIA_CONTEXT_TOPICS_OUTCOME')throw Error('unknown');return dispatch(message);};assert.equal(await inputs.toggle(id),false);assert.equal(inputs.pending,true);assert.equal(inputs.filter(true,''),false);assert.equal(inputs.selectedOnly,false);assert.equal(inputs.query,'renamed');assert.match(inputs.status.textContent,/unconfirmed/);
+}));
+test('explicit My Inputs content search clears pending snippets on Clear and navigation',()=>fixture(async({makeInputs,transport,dispatch,topics,calls})=>{
+ const inputs=await makeInputs();await inputs.refresh();let release;
+ transport.dispatch=async message=>{if(message.type!=='GET_LIBRARY_ROOT_SEARCH')return dispatch(message);await new Promise(resolve=>{release=resolve;});return {version:1,kind:'search',authority:'synthetic-search',items:[{kind:'entry',entryId:'synthetic-entry',snippet:'private matching text',paths:[{topicId:topics[0].id,topicName:topics[0].name,sectionId:'synthetic-section',sectionTitle:'Section'}],readRef:{kind:'entry',id:'synthetic-entry'}}],nextCursor:null,complete:true,coverage:{complete:true}};};
+ const searching=inputs.searchContent('private');assert.equal(inputs.field.hidden,true);const pending=inputs.search;assert.equal(inputs.filter(false,''),true);release();assert.equal(await searching,false);assert.equal(inputs.search,null);assert.equal(pending.body.textContent,'');assert.equal(inputs.field.hidden,false);
+ const again=inputs.searchContent('private');release();assert.equal(await again,true);const shown=inputs.search;assert.match(shown.body.textContent,/private matching text/);inputs.suspend();assert.equal(shown.body.textContent,'');assert.equal(inputs.search,null);assert.equal(calls.filter(x=>x.type==='PAIA_CONTEXT_TOPICS_CHANGE').length,0);
 }));

@@ -1,14 +1,15 @@
 // Explicit user-initiated text copying only. Never reads the clipboard.
-export async function copyReadingText(text,{fallback=true}={}){
+export async function copyReadingText(text,{fallback=true,signal=null,isCurrent=()=>true}={}){
  if(typeof text!=='string')return;
- try{await navigator.clipboard.writeText(text);return true;}
+ const current=()=>!signal?.aborted&&isCurrent();if(!current())return false;
+ try{await navigator.clipboard.writeText(text);return current();}
  catch{
-  if(!fallback)return false;
+  if(!fallback||!current())return false;
   const dialog=document.createElement('dialog');dialog.className='reading-copy-dialog';
   const title=document.createElement('h2');title.textContent='复制内容';
   const help=document.createElement('p');help.textContent='浏览器未允许直接复制。选中文字后使用系统复制。';
   const body=document.createElement('textarea');body.value=text;body.readOnly=true;body.setAttribute('aria-label','待复制正文');
-  const close=document.createElement('button');close.type='button';close.textContent='完成';close.addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.append(title,help,body,close);document.body.append(dialog);dialog.showModal();body.focus();body.select();return false;
+  const close=document.createElement('button');close.type='button';close.textContent='完成';const cleanup=()=>{body.value='';signal?.removeEventListener('abort',cleanup);if(dialog.open)dialog.close();dialog.remove();};close.addEventListener('click',cleanup);dialog.addEventListener('close',cleanup,{once:true});signal?.addEventListener('abort',cleanup,{once:true});dialog.append(title,help,body,close);document.body.append(dialog);dialog.showModal();body.focus();body.select();return false;
  }
 }
 export function readingCopyButton(readText,onError=()=>{}){

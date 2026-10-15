@@ -1,11 +1,15 @@
 // Synthetic visual acceptance only. No connector, automatic producer, or provider grant.
 import assert from 'node:assert/strict';
+import {runContextReferencePair} from './context-reference-pair.mjs';
+import {closeContextReferencePages,finalizeContextReference} from './context-reference-cleanup.mjs';
+import {assertContextReadingPreferences} from './context-reading-preferences.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createHash,randomUUID} from 'node:crypto';
+import {refineWhiteReference,whiteReferenceIdentity} from './context-white-reference.mjs';
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 
 const defaultReference=fileURLToPath(new URL('../../docs/consumer-product-v1/design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2/',import.meta.url));
@@ -13,22 +17,22 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const rpc=async(page,type,fields={})=>{const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result.ok,true,JSON.stringify({type,error:result.error}));return result.data;};
 const read=page=>rpc(page,'PAIA_CONTEXT_CARDS_SNAPSHOT');
 const selectorPairs=[
- ['page','.context-page','.context-page'],['heading','.context-head h1','.context-head h1'],
- ['back','.context-back','.context-back'],['global','.access.global','.context-access.global'],
+ ['page','.context-page','.context-page'],['accessBar','.context-access-bar','.context-access-bar'],['switch','.context-switch','.context-switch'],['heading','.context-head h1','.context-head h1'],
+ ['back','.context-back','.context-back'],['placedSearch','.context-head>.context-search,.context-back-row>.context-search','.context-head>.context-search,.context-back-row>.context-search'],['homeEnd','.context-home-end','.context-home-end'],['global','.access.global','.context-access.global'],
  ['card','.context-card','.context-card'],['cardTitle','.card-title','.card-title'],
- ['cardAccess','.context-card>.access','.context-card>.context-access'],
- ['summary','.card-summary','.card-summary'],['footer','.card-footer','.card-footer'],
+ ['cardAccess','.context-card .card-footer>.access','.context-card .card-footer>.context-access'],
+ ['summary','.input-summary','.input-summary'],['cardDescription','.card-description','.card-description'],['directory','.context-directory-link','.context-directory-link'],['symbol','.card-symbol','.card-symbol'],['footer','.card-footer','.card-footer'],
  ['connections','.connections-link','.connections-link'],['maintenance','.maintenance','.maintenance'],
  ['section','.context-section','.context-section'],['sectionTitle','.context-section h2','.context-section h2'],
  ['item','.item-text','.item-text'],['add','.add-item','.add-item'],
  ['topics','.topic-field','.topic-field'],['topic','.topic-access','.topic-access'],
  ['topicNote','.topics-note','.topics-note'],['newMark','.new-topic-mark','.new-topic-mark'],
- ['feedback','.item-feedback.error','.item-feedback.error']
+ ['detailFooter','.context-detail-footer','.context-detail-footer'],['detailToolbar','.context-editor-toolbar','.context-editor-toolbar'],['groupItems','.context-group-items','.context-group-items'],['itemFooter','.context-item-footer','.context-item-footer'],['topicRow','.context-topic-row','.context-topic-row'],['topicRead','.context-topic-open','.context-topic-open'],['inputsToolbar','.context-inputs-toolbar','.context-inputs-toolbar'],['detailCaption','.context-gate-caption','.context-gate-caption'],['detailSubtitle','.context-detail .context-subtitle','.context-detail .context-subtitle'],['detailEyebrow','.context-detail .context-eyebrow','.context-detail .context-eyebrow'],['feedback','.item-feedback.error','.item-feedback.error']
 ];
 const styleKeys=['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor','borderTopWidth','borderTopColor','borderRadius','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginBottom','gap','minHeight'];
 async function metrics(page,side){return page.evaluate(({pairs,keys,side})=>{
  const result={viewport:{width:innerWidth,height:innerHeight,ratio:devicePixelRatio},theme:document.documentElement.dataset.paiaTheme,overflow:document.documentElement.scrollWidth>innerWidth,groups:{}};
- for(const [name,reference,actual]of pairs)result.groups[name]=[...document.querySelectorAll(side==='reference'?reference:actual)].filter(el=>el.getClientRects().length).map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,rect[key]+(key==='y'?scrollY:0)])),style:Object.fromEntries(keys.map(key=>[key,style[key]])),textLength:el.textContent.length,pressed:el.getAttribute('aria-pressed'),on:el.dataset.on??null,paused:el.dataset.paused??null};});
+ for(const [name,reference,actual]of pairs)result.groups[name]=[...document.querySelectorAll(side==='reference'?reference:actual)].filter(el=>el.getClientRects().length).map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,rect[key]+(key==='y'?scrollY:0)])),style:Object.fromEntries(keys.map(key=>[key,style[key]])),textLength:el.textContent.length,disabled:el.disabled===true,pressed:el.getAttribute('aria-pressed'),on:el.dataset.on??null,paused:el.dataset.paused??null};});
  return result;
 },{pairs:selectorPairs,keys:styleKeys,side});}
 function compare(reference,actual,scene){
@@ -43,21 +47,19 @@ function compare(reference,actual,scene){
   for(let index=0;index<expected.length;index++){
    const a=expected[index],b=found[index];
    for(const key of styleKeys){
-    // The sole owner-approved reference override is actual shared reading 17px/680px.
-    const value=name==='item'&&key==='fontSize'?'17px':name==='item'&&key==='lineHeight'?'30.8125px':a.style[key];
+    // Independent reference layout already applies shared reading 17px/680px and UX_CONTRACT §3 rhythm.
+    const value=a.style[key];
     if(value!==b.style[key])record(selector,index,key,value,b.style[key]);
    }
-   // Reading-body vertical flow changes with the explicit 17px/680px override.
-   // Its typography, padding, colors and hierarchy above remain strict.
-   const positional=['page','heading','back','global','card','cardTitle','cardAccess','summary','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
+   // Both layouts use the explicit fixture reading settings before strict comparison.
+   const positional=['detailFooter','detailToolbar','groupItems','itemFooter','topicRow','topicRead','inputsToolbar','detailCaption','detailSubtitle','detailEyebrow','section','sectionTitle','item','add','placedSearch','homeEnd','page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
    if(positional)for(const key of ['x','y','width','height']){
-    // Whole detail height accumulates the explicitly accepted reading override;
-    // independent shell/header positions and all remaining styles stay exact.
-    if(name==='page'&&key==='height'&&['info','rules','now'].includes(new URLSearchParams(scene.query).get('page')))continue;
+    // Detail reference now applies the approved reading setting before layout;
+    // page height and every editor/group/footer box can be compared directly.
     if(name==='topic'&&key==='width'&&scene.id==='17-New-Topic'&&index===expected.length-1&&actual.groups.newMark.length===0)continue;
     if(Math.abs(a.rect[key]-b.rect[key])>.1)record(selector,index,'rect.'+key,a.rect[key],b.rect[key]);
    }
-   if(['global','cardAccess','topic'].includes(name))for(const key of ['on','paused']){
+   if(['global','cardAccess','topic'].includes(name))for(const key of ['on','paused','disabled']){
     // Unselected Topics have no read grant; their data-paused implementation
     // differs while colors, geometry and actual selected/default-off states do
     // not. Selected paused Topics remain an exact visual/state comparison.
@@ -78,9 +80,9 @@ export async function runContextReferenceEquivalence(variant){
  const reference=resolve(process.env.PAIA_CONTEXT_REFERENCE_DIR||defaultReference),screens=JSON.parse(await readFile(join(reference,'Screens.json'))),out=resolve('work/ctx4-final-reference-equivalence-r3',variant);
  await mkdir(out,{recursive:true});
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-ctx4-final-release-')):null;
- let harness,prototype;
+ let primaryError;let harness,prototype;
  const scenes=[],failures=[],referenceHashes={};
- const binding={head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),variant,readingOverride:{fontSize:17,width:680},externalUnavailable:['11-Connections','20-Connect'],globalAcceptance:false};
+ const binding={whiteReference:whiteReferenceIdentity,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),variant,readingOverride:{fontSize:17,width:680},externalUnavailable:['11-Connections','20-Connect'],globalAcceptance:false};
  try{
   const manifestBytes=await readFile(join(reference,'Artifact-Manifest.json'));
   referenceHashes['Artifact-Manifest.json']=sha(manifestBytes);
@@ -89,7 +91,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs','tests/harness/context-reference-cleanup.mjs','tests/harness/context-reference-pair.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});
@@ -97,7 +99,7 @@ export async function runContextReferenceEquivalence(variant){
   prototype=await harness.context.newPage();
   await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href);await settle(prototype);
   const initial=await prototype.evaluate(()=>structuredClone(window.design.state));
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented);
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();await eventually(async()=>(await rpc(page,'GET_STATUS')).consented);
   if(await page.locator('#onboarding-skip').isVisible())await page.locator('#onboarding-skip').click();
   await rpc(page,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light',fontSize:'standard',readingWidth:'standard'}});
   await page.locator('.sidebar [data-view="memory"]').click();await page.locator('.context-card').first().waitFor();
@@ -107,10 +109,13 @@ export async function runContextReferenceEquivalence(variant){
    const rows=await directory(page);for(let index=0;index<Math.min(13,count);index++){const row=rows.find(row=>row.topicId===topics[index].id);if(!row.enabled){const result=await rpc(page,'PAIA_CONTEXT_TOPICS_CHANGE',{change:{topicId:row.topicId,enabled:true,expectedRevision:row.revision,expectedBinding:row.expectedBinding,epoch:(await read(page)).epoch,operationId:randomUUID()}});assert.equal(result.ok,true,JSON.stringify({reason:result.reason}));}}
   };
   const capture=async id=>{
+   const captureStarted=performance.now();
    const scene=screens.find(item=>item.id===id),query=new URLSearchParams(scene.query),card=query.get('page'),empty=query.get('state')==='empty';
-   await home(page);await page.setViewportSize(scene.viewport);await prototype.setViewportSize(scene.viewport);
+   await home(page);await runContextReferencePair(()=>prototype.setViewportSize(scene.viewport),()=>page.setViewportSize(scene.viewport));
    await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href+'?'+scene.query);await settle(prototype);
    const referenceState=await prototype.evaluate(()=>structuredClone(window.design.state));
+   await refineWhiteReference(prototype);
+
    for(const key of ['global','info','rules','now','inputs'])await access(page,key,empty?false:key==='global'?referenceState.global:referenceState.groups[key]);
    await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:query.get('theme')==='dark'?'dark':'light'}});
    await open(page,card);await page.waitForFunction(theme=>document.documentElement.dataset.paiaTheme===theme,query.get('theme')==='dark'?'dark':'light');
@@ -131,13 +136,15 @@ export async function runContextReferenceEquivalence(variant){
     restore=async()=>{await worker.evaluate(()=>{IDBObjectStore.prototype.put=globalThis.__ctx4FinalPut;delete globalThis.__ctx4FinalPut;});};
    }
    if(card==='inputs')await page.waitForFunction(count=>document.querySelector('.context-inputs')?.getAttribute('aria-busy')==='false'&&document.querySelectorAll('.topic-access').length===count&&[...document.querySelectorAll('.topic-access')].every(node=>!node.disabled),referenceState.topics.length);
-   await settle(prototype);await settle(page);
-   const expected=await metrics(prototype,'reference'),actual=await metrics(page,'actual'),mismatches=compare(expected,actual,scene);
-   if(card&&card!=='inputs')assert.equal(await page.locator('.detail-content').evaluate(el=>getComputedStyle(el).maxWidth),'680px');
+   await runContextReferencePair(()=>settle(prototype),()=>settle(page));
+   const [expected,actual]=await runContextReferencePair(()=>metrics(prototype,'reference'),()=>metrics(page,'actual'));const mismatches=compare(expected,actual,scene);
+   // Persist this frame before any invariant can abort the remaining scenes.
+   await writeFile(join(out,'current-capture.json'),JSON.stringify({binding,id,reference:expected,actual,mismatches},null,2));
+   if(['info','rules','now'].includes(card))await assertContextReadingPreferences(page,referenceState.items[card]);
    const snapshot=await read(page);assert.equal(snapshot.capabilities.external,false);assert.equal(snapshot.capabilities.automatic,false);assert.equal(snapshot.connections,0);
    referenceHashes[scene.file]=sha(await readFile(join(reference,scene.file)));
-   await prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true});
-   const acceptedVariations={readingFlow:!!card&&['info','rules','now'].includes(card),optionalNewCue:id==='17-New-Topic'&&actual.groups.newMark.length===0,unselectedPausedDataset:id==='14-Inputs-Paused',boundedHomePreview:!card};
+   await runContextReferencePair(()=>prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true}),()=>page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true}));
+   const acceptedVariations={readingFlow:!!card&&['info','rules','now'].includes(card),optionalNewCue:id==='17-New-Topic'&&actual.groups.newMark.length===0,unselectedPausedDataset:id==='14-Inputs-Paused',categoryOnlyHomeRefinement:!card};
    let canonicalUnsaved=null;
    if(id==='05-Inline-Editing'){
     const before=(await read(page)).items.filter(item=>item.card==='info')[3];
@@ -145,14 +152,15 @@ export async function runContextReferenceEquivalence(variant){
     const retained=(await read(page)).items.find(item=>item.id===before.id);assert.deepEqual(retained,before,'composition retains actual saved owner without false commit');
     assert.equal(await page.locator('.item-text').nth(3).evaluate(el=>el===document.activeElement),true);
     const successMarker=(await page.locator('.item-feedback').nth(3).textContent()).includes('已保存');
-    await settle(prototype);await settle(page);
-    await prototype.screenshot({path:join(out,id+'-unsaved-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-unsaved-'+variant+'.png'),fullPage:true});
-    canonicalUnsaved={sameSavedItem:true,sameRevision:true,focused:true,successMarker,comparison:compare(await metrics(prototype,'reference'),await metrics(page,'actual'),scene)};
+    await runContextReferencePair(()=>settle(prototype),()=>settle(page));
+    await runContextReferencePair(()=>prototype.screenshot({path:join(out,id+'-unsaved-reference.png'),fullPage:true}),()=>page.screenshot({path:join(out,id+'-unsaved-'+variant+'.png'),fullPage:true}));
+    const [unsavedReference,unsavedActual]=await runContextReferencePair(()=>metrics(prototype,'reference'),()=>metrics(page,'actual'));
+    canonicalUnsaved={sameSavedItem:true,sameRevision:true,focused:true,successMarker,comparison:compare(unsavedReference,unsavedActual,scene)};
     if(successMarker)canonicalUnsaved.comparison.push({scene:id+'-new-composition',selector:'.item-feedback',index:3,field:'successMarkerForUncommittedVisibleText',expected:false,actual:true});
     failures.push(...canonicalUnsaved.comparison);
     for(const target of [prototype,page]){const field=target.locator('.item-text').nth(3);await field.fill(before.body);await field.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true})));}
    }
-   scenes.push({id,referencePngSHA256:referenceHashes[scene.file],viewport:scene.viewport,reference:expected,actual,mismatches,acceptedVariations,canonicalUnsaved,unavailableReferenceFields:{connections:referenceState.connections.length,automaticMaintenance:card&&card!=='inputs'},syntheticOwnerState:{items:snapshot.items.length,topics:(await directory(page)).length,selected:snapshot.topicChoices.selectedCount,access:Object.fromEntries(Object.entries(snapshot.access).map(([key,value])=>[key,value.enabled]))}});
+   scenes.push({id,durationMs:performance.now()-captureStarted,referencePngSHA256:referenceHashes[scene.file],viewport:scene.viewport,reference:expected,actual,mismatches,acceptedVariations,canonicalUnsaved,unavailableReferenceFields:{connections:referenceState.connections.length,automaticMaintenance:card&&card!=='inputs'},syntheticOwnerState:{items:snapshot.items.length,topics:(await directory(page)).length,selected:snapshot.topicChoices.selectedCount,access:Object.fromEntries(Object.entries(snapshot.access).map(([key,value])=>[key,value.enabled]))}});
    failures.push(...mismatches);await writeFile(join(out,'measurements.json'),JSON.stringify({binding,referenceHashes,scenes,failures},null,2));if(restore)await restore();
   };
   await capture('15-Empty');
@@ -168,8 +176,12 @@ export async function runContextReferenceEquivalence(variant){
   assert.equal(scenes.length,20);assert.equal(harness.externalRequests,0);assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.deepSeekRequests.length,0);assert.deepEqual(harness.errors,[]);
   await writeFile(join(out,'summary.json'),JSON.stringify({binding,referenceHashes,localScenes:20,mismatches:failures.length,zeroExternalHTTP:true,realSystemOrCloudVerified:false,localVisualMetricsAccepted:failures.length===0,completeVisualAcceptance:false},null,2));
   assert.equal(failures.length,0,JSON.stringify(failures.slice(0,12)));
- }finally{
-  await writeFile(join(out,'execution.json'),JSON.stringify({binding,referenceHashes,completedScenes:scenes.length,mismatches:failures.length},null,2));
-  await prototype?.close().catch(()=>{});await harness?.close();if(release)await rm(release,{recursive:true,force:true});
+ }catch(error){primaryError=error;throw error;}finally{
+  await finalizeContextReference({primaryError,
+   writeExecution:()=>writeFile(join(out,'execution.json'),JSON.stringify({binding,referenceHashes,completedScenes:scenes.length,mismatches:failures.length},null,2)),
+   closePages:()=>closeContextReferencePages({prototype,harness,record:async owner=>writeFile(join(out,'cleanup.json'),JSON.stringify({binding,owner},null,2))}),
+   removeRelease:async()=>{if(release)await rm(release,{recursive:true,force:true});},
+   reportError:error=>writeFile(join(out,'cleanup-error.json'),JSON.stringify({message:error.message,primaryFailure:primaryError?.message},null,2))
+  });
  }
 }

@@ -12,7 +12,7 @@ import {invalidateSemanticJobs} from '../core/ai-usage/semantic-invalidation.js'
 const authority=async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}});
 const suggestion=JSON.stringify({version:1,kind:'SUGGESTION',text:'Explain the next step.',condition:''});
 const all=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)]))));
-async function fixture({ids=[],output=suggestion}={}){
+async function fixture({ids=[],output=suggestion,unsubscribeError=null,interferingSubscriber=false}={}){
  const {s}=await setup(OrganizerStore);await s.finishFoundation();let now=1000,calls=0;
  const sender={id:'synthetic-extension',tab:{id:1},frameId:0,documentId:'synthetic-document',documentLifecycle:'active',url:'https://chatgpt.com/c/synthetic'};
  const binding={url:sender.url,conversation:'/c/synthetic',cycle:1,replyId:'reply-one',revision:1};
@@ -21,6 +21,8 @@ async function fixture({ids=[],output=suggestion}={}){
  const lease=new AssistReplyLease({runtimeId:sender.id,tabs:{get:async()=>({url:sender.url,incognito:false,active:true})},probe:async(_host,{snapshot:read})=>({ready:true,binding:structuredClone(live.binding),...(read?{snapshot:structuredClone(live.snapshot)}:{})}),current:(_host,b)=>JSON.stringify(b)===JSON.stringify(live.binding),clock:()=>now});
  lease.configure({replyAccess:true,remoteProcessing:true});
  const provider={describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return output;}};
+ if(interferingSubscriber){const subscribe=lease.onInvalidate.bind(lease);let removeSession;subscribe(()=>removeSession?.());lease.onInvalidate=fn=>{removeSession=subscribe(fn);return removeSession;};}
+ if(unsubscribeError){const subscribe=lease.onInvalidate.bind(lease);lease.onInvalidate=fn=>{const remove=subscribe(fn);return ()=>{remove();throw unsubscribeError;};};}
  const session=new LocalAssistSession(s,{lease,provider,resolveAuthority:authority,contextSelector:()=>ids,clock:()=>now});
  const cap=await lease.observe(sender);return {s,lease,session,cap,sender,live,provider,ids,calls:()=>calls,time:x=>now=x};
 }
@@ -83,6 +85,37 @@ for(const stop of ['timeout','dismiss','dispose','lease-revoke'])for(const late 
  await Promise.resolve();assert.deepEqual(await all(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(physicalCalls,1);
  await assert.rejects(async()=>f.session.run(handle));await assert.rejects(async()=>f.session.result(handle));let inserts=0;await assert.rejects(f.session.insert(handle,{controller:{insert(){inserts++;}},operationId:crypto.randomUUID()}));assert.equal(inserts,0);assert.equal(physicalCalls,1);
  if(stop==='timeout'||stop==='dismiss'){const cold=new LocalAssistSession(f.s,{lease:f.lease,provider:f.provider,resolveAuthority:authority,clock:()=>1000}),retry=await cold.prepare({lease:f.cap});await assert.rejects(cold.run(retry),{code:'OUTCOME_UNKNOWN'});assert.equal(physicalCalls,1);assert.deepEqual(await all(f.s),before);}
+});
+
+
+test('Assist disposal aborts transport even when lease unsubscribe throws',async()=>{
+ const cleanupError=new Error('SYNTHETIC lease cleanup failed'),f=await fixture({unsubscribeError:cleanupError});let entered,release,signal;
+ const ready=new Promise(r=>entered=r),physical=new Promise(r=>release=r);
+ f.provider.execute=(_payload,controls)=>{signal=controls.signal;entered();return physical;};
+ const handle=await f.session.prepare({lease:f.cap}),running=f.session.run(handle),settled=running.catch(error=>error);
+ try{await ready;assert.equal(signal.aborted,false);assert.throws(()=>f.session.dispose(),error=>error===cleanupError);assert.equal(signal.aborted,true);}
+ finally{release(suggestion);const error=await settled;assert.ok(error instanceof Error);await assert.rejects(f.session.result(handle),{code:'STALE_BASE'});}
+ assert.equal((await all(f.s)).organizerWorkItems.length,0);
+});
+
+for(const action of ['configure','invalidate','dispose'])test(`lease ${action} notifies every boundary subscriber despite unsubscribe during notification`,()=>{
+ const lease=new AssistReplyLease(),calls=[];let removeSecond;
+ lease.onInvalidate(()=>{calls.push('first');removeSecond();throw Error('SYNTHETIC subscriber failure');});
+ removeSecond=lease.onInvalidate(()=>calls.push('second'));
+ lease.onInvalidate(()=>calls.push('third'));
+ if(action==='configure')lease.configure({replyAccess:true,remoteProcessing:true});else lease[action]();
+ assert.deepEqual(calls,['first','second','third']);
+});
+
+
+test('revocation aborts actual Assist even if an earlier observer unsubscribes the session',async()=>{
+ const f=await fixture({interferingSubscriber:true});let entered,release,signal;
+ const ready=new Promise(r=>entered=r),physical=new Promise(r=>release=r);
+ f.provider.execute=(_payload,controls)=>{signal=controls.signal;entered();return physical;};
+ const handle=await f.session.prepare({lease:f.cap}),running=f.session.run(handle),settled=running.catch(error=>error);
+ try{await ready;f.lease.configure({replyAccess:false,remoteProcessing:false});assert.equal(signal.aborted,true);}
+ finally{release(suggestion);assert.ok(await settled instanceof Error);await assert.rejects(f.session.result(handle),{code:'STALE_BASE'});}
+ assert.equal((await all(f.s)).organizerWorkItems.length,0);
 });
 
 // Use the actual private content owner at the delayed transport boundary.

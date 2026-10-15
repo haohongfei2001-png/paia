@@ -1,3 +1,4 @@
+import {applyArchiveWhiteRoles} from './harness/archive-white-reference.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -38,10 +39,27 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   await waitArchiveWindow(p);await p.bringToFront();await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});await frame(p);assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),false,'baseline neutral measured with fine pointer');
   assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#collection-panel h1:visible').count(),0);
   data.neutral=await shape(p,['.sidebar','#archive-root-header','#archive-navigator']);await shot(p,variant+'-neutral-wide');
+  if(variant!=='baseline'){
+   const source=p.locator('#archive-source-scope');assert.equal(await source.count(),1);assert.equal(await source.isVisible(),true);assert.equal(await source.inputValue(),'chatgpt');
+   data.source=await shape(p,['#archive-source-scope']);assert.equal(data.source['#archive-source-scope'].height,44,'approved source control retains 44px target');
+   assert.equal(await source.evaluate(n=>n.closest('#archive-root-tools')!==null),true,'single source name stays outside the tree');
+   assert.equal(await p.locator('.archive-navigator-provider').count(),1);assert.equal(await p.locator('.archive-navigator-provider').getAttribute('data-provider-key'),'chatgpt');
+   assert.equal(await p.locator('.archive-navigator-provider-title:visible').count(),0,'specific-source tree has no duplicate provider heading');
+  }
   await openArchiveWindow(p);await eventually(()=>p.locator('#document-panel').isVisible());await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});await frame(p);assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),false,'baseline Reader measured with fine pointer');
   data.reader=await shape(p,['.sidebar','#document-page','#document-body','.library-prose']);await shot(p,variant+'-reader-wide');
-  if(variant!=='baseline'){same(data.neutral,evidence.variants.baseline.neutral);same(data.reader,evidence.variants.baseline.reader);}
+  if(variant!=='baseline'){
+   // IAH-1.3 U2/7/8 moves the existing 44px source control outside the tree;
+   // UX §3 replaces old prose leading; IAH-1.4 replaces only color roles.
+   // The old baseline remains captured unchanged; all unaffected values stay exact.
+   const neutral=applyArchiveWhiteRoles(evidence.variants.baseline.neutral),reader=applyArchiveWhiteRoles(evidence.variants.baseline.reader);
+   neutral['#archive-navigator'].y+=44;neutral['#archive-navigator'].height-=44;
+   const font=parseFloat(reader['.library-prose'].size);assert.equal(font,17,'fixed baseline comparison font');
+   reader['.library-prose'].line='28.05px';assert.ok(parseFloat(data.reader['.library-prose'].line)>=27&&parseFloat(data.reader['.library-prose'].line)<=29,'approved ordinary17px leading');
+   same(data.neutral,neutral);same(data.reader,reader);
+  }
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
+  if(variant!=='baseline')await p.locator('#archive-source-scope').selectOption(''); // Explicit All preserves this original all-archive journey.
   const start=performance.now();await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');const row=p.locator('.search-input').first();await eventually(()=>row.isVisible());data.queryMs=performance.now()-start;
   if(variant==='baseline'){await shot(p,variant+'-results-wide');return;}
   assert.match(await p.locator('#scope-search').getAttribute('aria-label'),/搜索全部档案/);

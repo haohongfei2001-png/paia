@@ -11,7 +11,10 @@ export function createMaintenancePayload(metadata,material,limits){
   return {ref:'i'+index,inputId:input.id,revision:input.revision,body:input.fields.body};
  });
  if(new Set(inputs.map(i=>i.inputId)).size!==inputs.length)fail('UNAVAILABLE');
- const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
+ // Entry descriptors come from the original formation owner after exact Entry authority.
+ const entries=(view.entries||[]).map(entry=>{const {id,body,bodyBinding,workingInputId,revision}=entry;if(typeof id!=='string'||typeof body!=='string'||bodyBinding!=='input'||!inputs.some(i=>i.inputId===workingInputId&&i.body===body)||!Number.isSafeInteger(revision)||revision<0)fail('UNAVAILABLE');return {entryId:id,revision,body,bodyBinding,workingInputId};});
+ if(entries.length>100||new Set(entries.map(e=>e.entryId)).size!==entries.length)fail('BUDGET_EXCEEDED');
+ const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
  const payload={...structuredClone(metadata),material:bounded};
  if(bytes(bounded)>limits.maxContentBytes||bytes(payload)>limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
  return payload;

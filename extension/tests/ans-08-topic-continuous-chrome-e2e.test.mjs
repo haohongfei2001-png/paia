@@ -6,11 +6,82 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const visibleAnchor=page=>page.evaluate(()=>{const rows=[...document.querySelectorAll('#topic-body [data-entry-id]')],node=rows.find(x=>{const r=x.getBoundingClientRect();return r.bottom>140&&r.top<innerHeight;})||rows[0];return node?{id:node.dataset.entryId,top:node.getBoundingClientRect().top,scrollY}:null;});
 
+// Fixture-only worker observation: no module imports, RPC responses, business
+// reads or storage.get wrapping. This records observed transaction windows,
+// not method phases, store queue wait, or a performance acceptance substitute.
+function installAns08PerformanceDiagnostics({topicId}){
+ const report={schema:2,status:'UNAVAILABLE',instrumented:false,probeOverheadMs:'UNKNOWN',sampleLimit:30,pendingLimit:128,
+  scope:'OBSERVED_READONLY_TRANSACTION_WINDOWS_NOT_AUTHORITY_OR_ACCEPTANCE',observationErrors:0,
+  timingCaveats:['Probe overhead is included in the original RPC timings.','Original listeners may start transactions before this observer; those are not counted.','Other worker work within a request-start window may be included; this does not prove causality.','Transaction durations can overlap and are not additive page time.','The last window closes at diagnostic collection, not at the original RPC response.'],samples:[]};
+ const prototype=globalThis.IDBDatabase?.prototype,descriptor=prototype&&Object.getOwnPropertyDescriptor(prototype,'transaction'),messages=globalThis.chrome?.runtime?.onMessage;
+ if(globalThis.__ans08PerformanceDiagnostics){report.reason='ALREADY_INSTALLED';return report;}
+ if(typeof descriptor?.value!=='function'||!descriptor.configurable||typeof messages?.addListener!=='function'||typeof messages?.removeListener!=='function'||typeof globalThis.IDBTransaction?.prototype?.addEventListener!=='function'||typeof globalThis.IDBTransaction?.prototype?.removeEventListener!=='function'){report.reason='CAPABILITY_UNAVAILABLE';return report;}
+ const original=descriptor.value,pending=new Set(),now=()=>performance.now();let active=null,windowStart=0,wrapped=false,enabled=true;
+ const finishWindow=()=>{if(active)active.observedWindowMs=now()-windowStart;};
+ const observe=message=>{
+  try{
+   const options=message?.options;
+   if(message?.type==='TOPIC_DOCUMENT_PAGE'&&options?.topicId===topicId&&options.cursor&&options.sort==='asc'&&options.limit===40){
+    finishWindow();active=null;
+    if(report.samples.length<30){windowStart=now();active={index:report.samples.length,readonlyTransactions:0,completed:0,aborted:0,pending:0,droppedObservations:0,otherMessages:0,transactionTotalMs:0,transactionMaxMs:0,firstTransactionOffsetMs:null,lastSettlementOffsetMs:null};report.samples.push(active);}
+   }else if(active)active.otherMessages++;
+  }catch{report.observationErrors++;}
+  return false; // Never a Promise, response, or claim on the message channel.
+ };
+ const restore=()=>{
+  enabled=false;finishWindow();active=null;let failed=false;
+  try{messages.removeListener(observe);}catch{failed=true;}
+  if(wrapped)try{Object.defineProperty(prototype,'transaction',descriptor);wrapped=false;}catch{failed=true;}
+  for(const remove of pending)try{remove();}catch{failed=true;}
+  pending.clear();report.cleanup=failed?'FAILED':'RESTORED';if(failed)report.status='CLEANUP_FAILED';
+ };
+ try{
+  Object.defineProperty(prototype,'transaction',{...descriptor,value:function(...args){
+   const transaction=Reflect.apply(original,this,args); // Preserve native this, args, return and throw.
+   const sample=enabled&&active;
+   if(sample)try{
+    if(transaction.mode==='readonly'){
+     sample.readonlyTransactions++;
+     if(pending.size>=128){sample.droppedObservations++;return transaction;}
+     const at=now();sample.firstTransactionOffsetMs??=at-windowStart;let settled=false;
+     const remove=()=>{transaction.removeEventListener('complete',complete);transaction.removeEventListener('abort',abort);pending.delete(remove);};
+     const settle=aborted=>{if(settled)return;settled=true;try{const elapsed=now()-at;sample.pending--;sample[aborted?'aborted':'completed']++;sample.transactionTotalMs+=elapsed;sample.transactionMaxMs=Math.max(sample.transactionMaxMs,elapsed);sample.lastSettlementOffsetMs=now()-sampleStart;}catch{report.observationErrors++;}finally{try{remove();}catch{report.observationErrors++;}}};
+     const sampleStart=windowStart,complete=()=>settle(false),abort=()=>settle(true);
+     pending.add(remove);sample.pending++;
+     try{transaction.addEventListener('complete',complete);transaction.addEventListener('abort',abort);}catch{sample.pending--;sample.droppedObservations++;try{remove();}catch{}report.observationErrors++;}
+    }
+   }catch{report.observationErrors++;}
+   return transaction;
+  }});wrapped=true;
+  messages.addListener(observe);
+  report.status='INSTALLED';report.instrumented=true;
+  globalThis.__ans08PerformanceDiagnostics={report,restore};
+ }catch{report.reason='SETUP_FAILED';restore();}
+ return {status:report.status,instrumented:report.instrumented,reason:report.reason,cleanup:report.cleanup};
+}
+
+
+// A transaction window can contain background work after the measured RPC.
+// Stop admission and restore immediately: never wait for unrelated transactions
+// or call a censored duration complete. Original RPC/performance gates are separate.
+function collectAns08PerformanceDiagnostics(setup){
+ const state=globalThis.__ans08PerformanceDiagnostics;
+ if(!state)return {...setup,status:'UNAVAILABLE',reason:setup.reason??'OBSERVER_LOST',samples:[]};
+ try{
+  state.restore();const report=state.report;
+  report.pendingAtCutoff=report.samples.reduce((sum,sample)=>sum+sample.pending,0);
+  report.collectionBoundary='AFTER_ORIGINAL_RPC_SAMPLES_STOP_AND_RESTORE';
+  for(const sample of report.samples)sample.censoredTransactions=sample.pending;
+  report.status=report.cleanup!=='RESTORED'?'CLEANUP_FAILED':report.observationErrors||report.samples.length!==30||report.samples.some(sample=>sample.readonlyTransactions===0||sample.droppedObservations)?'INCOMPLETE':report.pendingAtCutoff?'OBSERVED_CENSORED':'OBSERVED';
+  return report;
+ }finally{delete globalThis.__ans08PerformanceDiagnostics;}
+}
+
 test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async t=>{
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
-  await page.locator('#consent-check').check();await page.locator('#enable-consent').click();
+  await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   const seed=await page.evaluate(async()=>{
    const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]);
    const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0'),rank=n=>String(n*1024).padStart(12,'0');
@@ -80,10 +151,29 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeBack.id+'"]').count()===1,'topic return anchor',30000);
   });
 
-  const perf=await page.evaluate(async topicId=>{
-   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,sort:'asc',limit:40}),cursor=first.nextCursor,samples=[];let operations=null;
-   if(!cursor)throw Error('NO_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
+  // Keep the original one warmup RPC, then install observers before the same 30 calls.
+  const warmedCursor=await page.evaluate(async topicId=>{
+   const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options:{topicId,sort:'asc',limit:40}});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');
+   if(!r.data.nextCursor)throw Error('NO_CURSOR');return r.data.nextCursor;
   },seed.topicId);
+  const performanceWorker=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);
+  let diagnosticSetup={status:'UNAVAILABLE',reason:'WORKER_UNAVAILABLE'},diagnosticError;
+  try{if(performanceWorker)diagnosticSetup=await performanceWorker.evaluate(installAns08PerformanceDiagnostics,{topicId:seed.topicId});}
+  catch{diagnosticSetup={status:'UNAVAILABLE',reason:'SETUP_EVALUATION_FAILED'};}
+  if(diagnosticSetup.status!=='INSTALLED')diagnosticError=new Error('ANS08_DIAGNOSTICS_SETUP_UNAVAILABLE');
+  let perf,perfError;
+  try{perf=await page.evaluate(async({topicId,cursor})=>{
+   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},samples=[];let operations=null;
+   for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
+  },{topicId:seed.topicId,cursor:warmedCursor});}catch(error){perfError=error;}finally{
+   try{
+    const diagnostics=performanceWorker?await performanceWorker.evaluate(collectAns08PerformanceDiagnostics,diagnosticSetup):{...diagnosticSetup,samples:[]};
+    if(!['OBSERVED','OBSERVED_CENSORED'].includes(diagnostics.status))diagnosticError=new Error('ANS08_DIAGNOSTICS_NOT_COMPLETE');
+    await mkdir('work/ans-08',{recursive:true});
+    await writeFile('work/ans-08/topic-performance-worker.json',JSON.stringify(diagnostics,null,2));
+   }catch(error){diagnosticError=error;try{await mkdir('work/ans-08',{recursive:true});await writeFile('work/ans-08/topic-performance-worker.json',JSON.stringify({status:'UNAVAILABLE',reason:'COLLECTION_FAILED',setup:diagnosticSetup,samples:[]},null,2));}catch{}if(perfError)console.error('ANS08_DIAGNOSTIC_COLLECTION_FAILED; original RPC error preserved');}
+  }
+  if(perfError)throw perfError;
   await mkdir('work/ans-08',{recursive:true});
   await writeFile('work/ans-08/topic-performance.json',JSON.stringify(perf,null,2));
   console.log('ANS08_TOPIC_PERFORMANCE '+JSON.stringify(perf));
@@ -101,5 +191,6 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:beforeBack.id,readableAfterReturn:true,deferredChecks:[],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
+  if(diagnosticError)throw diagnosticError;
  }finally{await page.evaluate(()=>window.ans08RestoreSend?.()).catch(()=>{});await h.close();}
 });

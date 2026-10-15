@@ -9,13 +9,17 @@ export function installReaderNavigation({navigate,current,captureNavigator=()=>n
  let applying=false,ready=false,popIntent=0,pendingTarget=null;
  const route=()=>{const next=appShellRoute(current(),captureNavigator());return next.view==='settings'?{...next,...captureSettings()}:next;};
  const valid=validRoute,historyRoutes=new RouteHistory();let lastRoute=null,committedState=null;
- const commit=({replace=false,anchor,originKey,checkpoint=false}={})=>{
+ const commit=({replace=false,anchor,originKey,checkpoint=false,sourceInitialization=false}={})=>{
   if(applying||pendingTarget?.current())return;const next=route(),old=history.state?.paiaReader;if(anchor!==undefined)next.anchor=anchor;if(originKey!==undefined)next.originKey=originKey;
   if(ready&&!checkpoint&&lastRoute===JSON.stringify(next))return;lastRoute=JSON.stringify(next);
   const previous=historyRoutes.decode(old);
   // Updating the same history entry must retain its existing Search owner.
   // A Reader push or a different owner never inherits this marker.
-  const searchOwner=replace&&history.state?.paiaSearch===true&&previous&&['view','documentId','topicId','contextCard','contextInputId','sourceKey','projectRef'].every(key=>JSON.stringify(previous[key]??null)===JSON.stringify(next[key]??null));
+  // Automatic Source discovery adds metadata to the same Archive root. Only
+  // that explicit callback may preserve Search across null -> initial Source;
+  // user scope changes, Reader arrivals and new history entries remain distinct.
+  const initialSource=sourceInitialization===true&&previous?.view==='library'&&next.view==='library'&&!previous.documentId&&!next.documentId&&previous.sourceKey==null&&typeof next.sourceKey==='string'&&next.sourceKey.length>0;
+  const searchOwner=replace&&history.state?.paiaSearch===true&&previous&&['view','documentId','topicId','contextCard','contextInputId','sourceKey','projectRef'].every(key=>key==='sourceKey'&&initialSource||JSON.stringify(previous[key]??null)===JSON.stringify(next[key]??null));
   const state={...(searchOwner?{paiaSearch:true}:{}),...(history.state?.paiaTopicRootSlots?{paiaTopicRootSlots:readTopicRootSlots().snapshot()}:{}),...(history.state?.paiaRevisitWindow?{paiaRevisitWindow:history.state.paiaRevisitWindow}:{}),paiaReader:historyRoutes.encode(next,{reuseKey:!ready||replace?old?.sessionKey:null}),paiaShell:{version:2,view:next.view,returnTo:old?.view||history.state?.paiaShell?.returnTo||null}};
   history[!ready||replace?'replaceState':'pushState'](state,'',location.href);committedState=structuredClone(state);ready=true;
  };
