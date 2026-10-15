@@ -1,3 +1,4 @@
+import {createIcon} from './icons.js';
 import {PromptHistorySession} from './prompt-history-session.js';
 import {PromptListSession} from '../core/prompt-family.js';
 import {copyPrompt} from '../core/prompt-clipboard.js';
@@ -38,7 +39,8 @@ function applyDisplay(preferences=displayPreferences){
  for(const [node,entries]of copyBindings){if(!node.isConnected){copyBindings.delete(node);continue;}for(const [attribute,value]of entries){if(attribute)node.setAttribute(attribute,localize(value));else node.textContent=localize(value);}}
  document.title=localize('PAIA 常用输入');scheduleLayout();
 }
-for(const [selector,label,attribute]of [['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#open-search','搜索'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['nav','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+for(const [selector,label,attribute]of [['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['nav','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+document.getElementById('open-search').replaceChildren(createIcon('search'));
 systemAppearance.addEventListener('change',()=>applyDisplay());
 
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}

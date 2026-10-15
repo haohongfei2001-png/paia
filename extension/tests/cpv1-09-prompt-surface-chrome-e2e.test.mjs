@@ -134,12 +134,20 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await page.evaluate(()=>fixture.set('timer draft',11));await fill(f);await eventually(()=>f.locator('#status').textContent().then(x=>x==='已插入，未发送。'));
    await surfaceClick(f,'#new');await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved timer test');await clickSurface(f,f.locator('#close'));assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');await page.waitForTimeout(1900);assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved timer test');await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());
   });
-  await check('visual master management reveal keeps geometry and editing stays inside the same list',async()=>{
+  await check('approved NIB text axis and action rail retain geometry, reorder and inline editing',async()=>{
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());
    await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),before=await row.boundingBox();
    assert.equal(await f.locator('#list').evaluate(e=>getComputedStyle(e,'::-webkit-scrollbar').width),'3px');
+   const textBefore=await row.locator('.text').boundingBox(),frameBox=await (await f.frameElement()).boundingBox();
+   assert.ok(Math.abs(textBefore.x-frameBox.x-18)<0.6,'actual text starts at the approved18px outer-board axis');
+   assert.equal(await f.locator('#open-search [data-paia-icon="search"]').count(),1);assert.equal(await f.locator('#open-search').getAttribute('aria-label'),'搜索全部档案');
+   const rail=await row.locator('.insert,.grip,.copy-shortcut,.edit-shortcut,.more').evaluateAll(nodes=>nodes.map(node=>({kind:node.className,left:node.getBoundingClientRect().left,right:node.getBoundingClientRect().right,width:node.getBoundingClientRect().width})));
+   assert.deepEqual(rail.map(x=>x.kind),['insert','grip','copy-shortcut','edit-shortcut','more']);
+   for(let i=1;i<rail.length;i++)assert.ok(rail[i].left>=rail[i-1].right-0.5,'each existing action keeps its own non-overlapping hit target');
+   assert.ok(rail[1].width>=22,'native reorder handle remains reachable');
+
    assert.equal(await row.locator('.more').evaluate(e=>getComputedStyle(e).opacity),'0');
-   await row.hover();await page.waitForTimeout(160);assert.deepEqual(await row.boundingBox(),before);
+   await row.hover();await page.waitForTimeout(160);assert.deepEqual(await row.boundingBox(),before);assert.deepEqual(await row.locator('.text').boundingBox(),textBefore,'hover never shifts the approved text axis or truncation threshold');
    for(const selector of ['.grip','.edit-shortcut','.more'])assert.equal(await row.locator(selector).evaluate(e=>getComputedStyle(e).opacity),'1');
    await row.locator('.edit-shortcut').focus();await page.keyboard.press('Enter');assert.equal(await f.locator('#list').isVisible(),true);assert.equal(await f.locator('#list > #editor').count(),1);
    assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),text);assert.equal(await f.locator('.row:not(.editing-row)').count(),1);
