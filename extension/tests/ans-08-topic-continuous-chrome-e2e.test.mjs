@@ -60,6 +60,23 @@ function installAns08PerformanceDiagnostics({topicId}){
  return {status:report.status,instrumented:report.instrumented,reason:report.reason,cleanup:report.cleanup};
 }
 
+
+// A transaction window can contain background work after the measured RPC.
+// Stop admission and restore immediately: never wait for unrelated transactions
+// or call a censored duration complete. Original RPC/performance gates are separate.
+function collectAns08PerformanceDiagnostics(setup){
+ const state=globalThis.__ans08PerformanceDiagnostics;
+ if(!state)return {...setup,status:'UNAVAILABLE',reason:setup.reason??'OBSERVER_LOST',samples:[]};
+ try{
+  state.restore();const report=state.report;
+  report.pendingAtCutoff=report.samples.reduce((sum,sample)=>sum+sample.pending,0);
+  report.collectionBoundary='AFTER_ORIGINAL_RPC_SAMPLES_STOP_AND_RESTORE';
+  for(const sample of report.samples)sample.censoredTransactions=sample.pending;
+  report.status=report.cleanup!=='RESTORED'?'CLEANUP_FAILED':report.observationErrors||report.samples.length!==30||report.samples.some(sample=>sample.readonlyTransactions===0||sample.droppedObservations)?'INCOMPLETE':report.pendingAtCutoff?'OBSERVED_CENSORED':'OBSERVED';
+  return report;
+ }finally{delete globalThis.__ans08PerformanceDiagnostics;}
+}
+
 test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async t=>{
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
@@ -150,13 +167,8 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
   },{topicId:seed.topicId,cursor:warmedCursor});}catch(error){perfError=error;}finally{
    try{
-    const diagnostics=performanceWorker?await performanceWorker.evaluate(setup=>{
-     const state=globalThis.__ans08PerformanceDiagnostics;
-     if(!state)return {...setup,status:'UNAVAILABLE',reason:setup.reason??'OBSERVER_LOST',samples:[]};
-     try{state.restore();const report=state.report;report.status=report.cleanup!=='RESTORED'?'CLEANUP_FAILED':report.observationErrors||report.samples.length!==30||report.samples.some(sample=>sample.readonlyTransactions===0||sample.droppedObservations||sample.pending)?'INCOMPLETE':'OBSERVED';return report;}
-     finally{delete globalThis.__ans08PerformanceDiagnostics;}
-    },diagnosticSetup):{...diagnosticSetup,samples:[]};
-    if(diagnostics.status!=='OBSERVED')diagnosticError=new Error('ANS08_DIAGNOSTICS_NOT_COMPLETE');
+    const diagnostics=performanceWorker?await performanceWorker.evaluate(collectAns08PerformanceDiagnostics,diagnosticSetup):{...diagnosticSetup,samples:[]};
+    if(!['OBSERVED','OBSERVED_CENSORED'].includes(diagnostics.status))diagnosticError=new Error('ANS08_DIAGNOSTICS_NOT_COMPLETE');
     await mkdir('work/ans-08',{recursive:true});
     await writeFile('work/ans-08/topic-performance-worker.json',JSON.stringify(diagnostics,null,2));
    }catch(error){diagnosticError=error;try{await mkdir('work/ans-08',{recursive:true});await writeFile('work/ans-08/topic-performance-worker.json',JSON.stringify({status:'UNAVAILABLE',reason:'COLLECTION_FAILED',setup:diagnosticSetup,samples:[]},null,2));}catch{}if(perfError)console.error('ANS08_DIAGNOSTIC_COLLECTION_FAILED; original RPC error preserved');}

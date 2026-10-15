@@ -1,5 +1,6 @@
 // Synthetic visual acceptance only. No connector, automatic producer, or provider grant.
 import assert from 'node:assert/strict';
+import {closeContextReferencePages,finalizeContextReference} from './context-reference-cleanup.mjs';
 import {assertContextReadingPreferences} from './context-reading-preferences.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
@@ -78,7 +79,7 @@ export async function runContextReferenceEquivalence(variant){
  const reference=resolve(process.env.PAIA_CONTEXT_REFERENCE_DIR||defaultReference),screens=JSON.parse(await readFile(join(reference,'Screens.json'))),out=resolve('work/ctx4-final-reference-equivalence-r3',variant);
  await mkdir(out,{recursive:true});
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-ctx4-final-release-')):null;
- let harness,prototype;
+ let primaryError;let harness,prototype;
  const scenes=[],failures=[],referenceHashes={};
  const binding={whiteReference:whiteReferenceIdentity,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),variant,readingOverride:{fontSize:17,width:680},externalUnavailable:['11-Connections','20-Connect'],globalAcceptance:false};
  try{
@@ -89,7 +90,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs','tests/harness/context-reference-cleanup.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});
@@ -172,8 +173,12 @@ export async function runContextReferenceEquivalence(variant){
   assert.equal(scenes.length,20);assert.equal(harness.externalRequests,0);assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.deepSeekRequests.length,0);assert.deepEqual(harness.errors,[]);
   await writeFile(join(out,'summary.json'),JSON.stringify({binding,referenceHashes,localScenes:20,mismatches:failures.length,zeroExternalHTTP:true,realSystemOrCloudVerified:false,localVisualMetricsAccepted:failures.length===0,completeVisualAcceptance:false},null,2));
   assert.equal(failures.length,0,JSON.stringify(failures.slice(0,12)));
- }finally{
-  await writeFile(join(out,'execution.json'),JSON.stringify({binding,referenceHashes,completedScenes:scenes.length,mismatches:failures.length},null,2));
-  await prototype?.close().catch(()=>{});await harness?.close();if(release)await rm(release,{recursive:true,force:true});
+ }catch(error){primaryError=error;throw error;}finally{
+  await finalizeContextReference({primaryError,
+   writeExecution:()=>writeFile(join(out,'execution.json'),JSON.stringify({binding,referenceHashes,completedScenes:scenes.length,mismatches:failures.length},null,2)),
+   closePages:()=>closeContextReferencePages({prototype,harness,record:async owner=>writeFile(join(out,'cleanup.json'),JSON.stringify({binding,owner},null,2))}),
+   removeRelease:async()=>{if(release)await rm(release,{recursive:true,force:true});},
+   reportError:error=>writeFile(join(out,'cleanup-error.json'),JSON.stringify({message:error.message,primaryFailure:primaryError?.message},null,2))
+  });
  }
 }

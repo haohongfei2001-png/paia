@@ -93,3 +93,40 @@ test('native reading gate checks independent expected counts including genuine e
   await assert.rejects(()=>assertContextReadingPreferences(page(),[]),/reading column count/);
  }finally{if(prior===undefined)delete globalThis.getComputedStyle;else globalThis.getComputedStyle=prior;}
 });
+
+
+test('detail group labels use final original palette and paused switches require selection',async()=>{
+ const css=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
+ for(const text of [css,detailReferenceCSS]){
+  assert.match(text,/\.context-page\.context-detail \.detail-content \.context-section>h2\{color:#525e6d\}/);
+  assert.match(text,/html\[data-paia-theme=.?dark.?\] \.context-page\.context-detail \.detail-content \.context-section>h2\{color:#a9b6c7\}/);
+ }
+ assert.match(detailReferenceCSS,/\.topic-access\[data-on=true\]\[data-paused=true\] \.context-switch\{background:#aebed7\}/);
+});
+
+
+test('reference cleanup explicitly closes failed synthetic pages before transport and reports errors',async()=>{
+ const {closeContextReferencePages}=await import('./harness/context-reference-cleanup.mjs');const calls=[];
+ const page=owner=>({close:async options=>{assert.deepEqual(options,{runBeforeUnload:false});calls.push(owner);}});
+ await closeContextReferencePages({prototype:page('prototype'),harness:{archive:page('archive'),close:async()=>calls.push('harness')}});
+ assert.deepEqual(calls,['prototype','archive','harness']);
+ const error=new Error('synthetic close failed');await assert.rejects(()=>closeContextReferencePages({harness:{archive:{close:async()=>{throw error;}}}}),value=>value===error);
+ const source=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');assert.match(source,/catch\(error\)\{primaryError=error;throw error;/);assert.match(source,/finalizeContextReference/);
+});
+
+
+test('reference cleanup attempts every owner after recording and page failures',async()=>{
+ const {closeContextReferencePages}=await import('./harness/context-reference-cleanup.mjs');const calls=[];const first=new Error('record failed');
+ await assert.rejects(()=>closeContextReferencePages({record:async owner=>{calls.push('record:'+owner);throw first;},prototype:{close:async()=>{calls.push('prototype');throw new Error('page failed');}},harness:{archive:{close:async()=>{calls.push('archive');throw new Error('archive failed');}},close:async()=>{calls.push('harness');throw new Error('transport failed');}}}),error=>error===first);
+ assert.deepEqual(calls,['record:prototype','prototype','record:archive','archive','record:harness','harness','record:complete']);
+});
+
+test('reference finalization retains primary failure despite all evidence and disposal failures',async()=>{
+ const {finalizeContextReference}=await import('./harness/context-reference-cleanup.mjs');
+ for(const primaryError of [new Error('original acceptance failure'),undefined]){
+  const calls=[];const first=new Error('execution write failed');
+  const fail=(name,error)=>async()=>{calls.push(name);throw error;};
+  await assert.rejects(()=>finalizeContextReference({primaryError,writeExecution:fail('execution',first),closePages:fail('close',new Error('close failed')),removeRelease:fail('release',new Error('rm failed')),reportError:fail('report',new Error('error write failed'))}),error=>error===(primaryError||first));
+  assert.deepEqual(calls,['execution','close','release','report']);
+ }
+});

@@ -63,3 +63,21 @@ test('held qualified preview response cannot collapse a card that scrolled out a
  assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px','loss of viewport eligibility drops text, not the measured layout');
  node.rect.top=10;void f.owner.refresh();f.pending.at(-1).resolve({kind:'root_previews',items:[]});await settle();assert.equal(p.style.minHeight,'','a fresh visible ineligibility result retires the reservation');
 });
+
+test('metadata publication waits for refreshed references before requesting the all-or-nothing preview batch',async t=>{
+ const f=fixture(t);f.owner.update(f.items);f.respond();await settle();
+ const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');
+ p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});
+ // The real read model rejects the whole batch if even one old revision is sent.
+ f.owner.changed({type:'ARCHIVE_CHANGED',cause:'EDIT_LIBRARY_TOPIC'});
+ assert.equal(p.textContent,'','publication revokes text synchronously');
+ assert.equal(p.style.minHeight,'40px');
+ void f.owner.refresh();
+ assert.equal(f.pending.length,1,'scroll cannot issue a stale-revision batch before directory hydration');
+ node.rect.top=1000;f.items[0].revision++;
+ f.owner.update(f.items);assert.equal(f.pending.length,2);
+ assert.ok(f.pending[1].args.options.topics.every(ref=>ref.id!=='0'));
+ f.respond(1);await settle();assert.equal(p.style.minHeight,'40px');
+ f.owner.changed({type:'ARCHIVE_CHANGED',cause:'REMOVE_LIBRARY_TOPIC'});
+ assert.equal(p.style.minHeight,'','real qualification change still drops reservations');
+});

@@ -14,7 +14,7 @@ const names={info:['我的信息','My Information'],rules:['我的规则','My Ru
 const routes={...names,connections:['已连接的 AI','Connected AI']};
 const label=key=>copy(...routes[key]);
 const editable=card=>['info','rules','now'].includes(card);
-const itemCopy={info:{add:['＋ 添加信息','＋ Add information'],placeholder:['写下一条信息…','Write some information…'],section:['补充信息','Additional information']},rules:{add:['＋ 添加规则','＋ Add rule'],placeholder:['写下一条规则…','Write a rule…'],section:['工作方式','Ways of working']},now:{add:['＋ 添加当前状态','＋ Add current focus'],placeholder:['写下当前的重点…','Write your current focus…'],section:['阶段重点','Current priorities']}};
+const itemCopy={info:{add:['添加信息','Add information'],placeholder:['写下一条信息…','Write some information…'],section:['补充信息','Additional information']},rules:{add:['添加规则','Add rule'],placeholder:['写下一条规则…','Write a rule…'],section:['工作方式','Ways of working']},now:{add:['添加当前状态','Add current focus'],placeholder:['写下当前的重点…','Write your current focus…'],section:['阶段重点','Current priorities']}};
 const button=(text,fn,className='')=>{const b=element('button',className,text);b.type='button';b.onclick=fn;return b;};
 
 // Fixed presentation copy and decorative paths from the approved white Context original.

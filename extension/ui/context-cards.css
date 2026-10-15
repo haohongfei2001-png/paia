@@ -145,3 +145,7 @@ html[data-paia-theme="dark"] .context-page :is(.context-access,.topic-access)[da
 @media(max-width:530px){.context-detail .context-eyebrow,.context-crumb-current{display:none}.context-detail .context-head{flex-wrap:wrap}.context-detail-right{padding-top:0;align-items:flex-start}.context-gate-caption{text-align:left}.context-home-end{display:block}.context-home-end .context-local-boundary{display:block}.context-inputs .context-topic-row{gap:9px}.context-inputs .context-topic-row .topic-access{min-width:96px;font-size:10px;padding:6px 8px}.context-inputs .context-topic-open{font-size:13px}}
 
 .context-toolbar-copy{min-width:0}.context-editor-toolbar .maintenance{margin:3px 0 0;font:11px/1.8 var(--font)}
+
+/* Final approved palette: content-group > group-label (not a heading role). */
+.context-page.context-detail .detail-content .context-section>h2{color:#525e6d}
+html[data-paia-theme=dark] .context-page.context-detail .detail-content .context-section>h2{color:#a9b6c7}

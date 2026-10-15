@@ -8,18 +8,18 @@ export class PersonalTopicPreviews {
   this.scroll=()=>void this.refresh();this.intersection=globalThis.IntersectionObserver?new IntersectionObserver(this.scroll):null;this.visibility=()=>{if(this.suspended)return;if(document.hidden)this.clear({forget:false});else void this.refresh();};
   this.preferences=()=>{if(this.suspended)return;this.clear({forget:false});void this.refresh();};
   this.maskObserver=globalThis.MutationObserver?new MutationObserver(this.preferences):null;this.maskObserver?.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){if(this.suspended)return;this.clear({forget:false,reserve:true});void this.refresh();return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.preferences();};
+  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){if(this.suspended)return;this.clear({forget:false,reserve:true});this.awaitingMetadata=true;return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.preferences();};
   globalThis.addEventListener?.('scroll',this.scroll,true);globalThis.addEventListener?.('resize',this.scroll);document.addEventListener('visibilitychange',this.visibility);document.addEventListener('paia:preferences-applied',this.preferences);globalThis.chrome?.runtime?.onMessage?.addListener(this.changed);
  }
  visible(node){const r=node?.getBoundingClientRect();return !!(node?.isConnected&&r&&r.width>0&&r.height>0&&r.bottom>0&&r.top<globalThis.innerHeight&&r.right>0&&r.left<globalThis.innerWidth);}
- update(items){this.intersection?.disconnect();for(const node of this.nodes().values())this.intersection?.observe(node);this.items=items.map(({id,revision,organizationRevision,layoutGeneration})=>({id,revision,organizationRevision,layoutGeneration}));void this.refresh();}
+ update(items){this.awaitingMetadata=false;this.intersection?.disconnect();for(const node of this.nodes().values())this.intersection?.observe(node);this.items=items.map(({id,revision,organizationRevision,layoutGeneration})=>({id,revision,organizationRevision,layoutGeneration}));void this.refresh();}
  release(node,{reserve=false}={}){const container=node?.querySelector('.personal-topic-preview');if(!container)return;if(container.contains(document.activeElement))node.querySelector('.personal-topic-link')?.focus({preventScroll:true});const height=reserve?container.getBoundingClientRect().height:0;container.replaceChildren();container.style.minHeight=height?`${height}px`:'';container.hidden=!height;delete container.dataset.previewSignature;}
  counts(){let count=0,chars=0;for(const node of this.nodes().values()){const p=node.querySelector('.personal-topic-preview');if(p?.childElementCount){count++;chars+=p.textContent.length;}}this.host.dataset.retainedPreviewBodies=String(count);this.host.dataset.retainedPreviewChars=String(chars);}
- clear({forget=true,reserve=false}={}){this.generation++;this.key='';if(forget){this.items=[];this.intersection?.disconnect();}this.host.dataset.previewState='off';for(const node of this.nodes().values())this.release(node,{reserve});this.counts();}
+ clear({forget=true,reserve=false}={}){this.generation++;this.key='';if(forget){this.awaitingMetadata=false;this.items=[];this.intersection?.disconnect();}this.host.dataset.previewState='off';for(const node of this.nodes().values())this.release(node,{reserve});this.counts();}
  suspend(){if(this.suspended)return;this.suspended=true;this.clear({forget:false});}
  resume(){if(!this.suspended)return;this.suspended=false;void this.refresh();}
  async refresh(){
-  if(!this.active||this.suspended)return;
+  if(!this.active||this.suspended||this.awaitingMetadata)return;
   const nodes=this.nodes(),visible=[];
   if(!document.hidden&&!document.documentElement.classList?.contains('paia-hide-content-previews')&&this.host.isConnected)for(const item of this.items){const node=nodes.get(item.id);if(this.visible(node)){visible.push(item);if(visible.length===12)break;}}
   const ids=new Set(visible.map(x=>x.id));for(const [id,node]of nodes)if(!ids.has(id))this.release(node,{reserve:true});this.counts();
