@@ -412,7 +412,7 @@ test('actual outer leave then open keeps the Root departure identity for repeate
 test('ordinary Back restores both independent-column anchors using only qualified measured preview heights',async()=>{
  const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
  const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY'],prior=Object.fromEntries(keys.map(k=>[k,globalThis[k]])),dom=searchDOM('a'),frames=[],pending=[];let previews,columns=2;
- const create=tag=>{const n=dom.create(tag);n.style={removeProperty(k){delete this[k];}};Object.defineProperty(n,'childElementCount',{get:()=>n.children.length});n.getBoundingClientRect=()=>{const preview=n.classList.contains('personal-topic-preview'),ph=preview?(n.children.length?61:Number.parseFloat(n.style.minHeight)||0):0,p=n.querySelector('.personal-topic-preview'),height=preview?ph:94+(p?.getBoundingClientRect().height? p.getBoundingClientRect().height+16:0),top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return {top,bottom:top+height,height,width:300,left:0,right:300};};return n;};
+ const create=tag=>{const n=dom.create(tag);n.replaceWith=other=>{n.parentElement?.insertBefore(other,n);n.remove();};n.style={removeProperty(k){delete this[k];}};Object.defineProperty(n,'childElementCount',{get:()=>n.children.length});n.getBoundingClientRect=()=>{const preview=n.classList.contains('personal-topic-preview'),ph=preview?(n.children.length?61:Number.parseFloat(n.style.minHeight)||0):0,p=n.querySelector('.personal-topic-preview'),height=preview?ph:94+(p?.getBoundingClientRect().height? p.getBoundingClientRect().height+16:0),top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return {top,bottom:top+height,height,width:300,left:0,right:300};};return n;};
  const controls=new Map(),get=id=>{if(id==='thought-list')return dom.host;if(!controls.has(id)){const n=create('div');n.value='';controls.set(id,n);}return controls.get(id);};
  globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:get,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
  Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=>String(columns)}),innerWidth:1000,innerHeight:720,scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>globalThis.scrollY+=y});
@@ -430,9 +430,37 @@ test('ordinary Back restores both independent-column anchors using only qualifie
    controller.rootReturnGeometry={...returned,intent:controller.openIntent,inputEpoch:controller.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0};controller.paintHome({items,complete:true},'');controller.restoreHomeAnchor(saved.rootAnchor);while(frames.length)frames.shift()();
    assert.equal(first().dataset.topicId,before.first);assert.equal(controller.rootReturnGeometry,null,'first real paint consumes the return exactly once');assert.equal(first().getBoundingClientRect().top,before.firstTop,'original first-visible anchor retains its offset');assert.equal(returned.geometry.rows.length,1,'only one measured nonzero shell is retained');assert.equal(dom.owner.nodes.get('j').getBoundingClientRect().top,before.clickedTop,'activated anchor also retains its offset');assert.equal(document.activeElement.dataset.topicId,'j');assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'');
   }
+  // Search starts from the real returned multi-column viewport, then clears
+  // through the controller and hydration owner, rather than root.render alone.
+  Object.assign(collection,{query:'',terminal:true,releaseBodies(){},restore(){},state:()=>({}),hydrateWindow:async()=>true});
+  controller.createHomeCollection=()=>({...collection});controller.homePageState=()=>({items,complete:true});controller.updateHomeContinuous=()=>{};controller.readKey=()=> 'root';
+  for(let round=0;round<3;round++){
+  controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);
+  assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'','search releases ordinary preview text immediately');
+  controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');
+  get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);await controller.renderHomeReader(controller.rootInvalidationAnchor);while(frames.length)frames.shift()();
+  assert.equal(first().dataset.topicId,before.first,'clearing search restores the original first-visible identity');assert.equal(first().getBoundingClientRect().top,before.firstTop,'clearing search preserves the original independent-column offset');assert.equal(dom.owner.nodes.get('j').getBoundingClientRect().top,before.clickedTop);
+  assert.equal(controller.rootPreSearch,null,'clear consumes the sole pre-search snapshot');assert.equal(dom.owner.searchQuery,'','ordinary mode has no stale search identity');
+  }
+  // A genuine later wheel/input wins over an in-flight clear-search restore.
+  controller.homeCollection=collection;controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);
+  let releaseClear;controller.homeCollection.hydrateWindow=()=>new Promise(resolve=>releaseClear=resolve);const clearing=controller.renderHomeReader(controller.rootInvalidationAnchor);globalThis.scrollY+=30;const userScroll=globalThis.scrollY;controller.topicRestoring=()=>false;controller.topicRestoreInput({type:'wheel',isTrusted:true});controller.cancelHomeAnchor();releaseClear(true);await clearing;while(frames.length)frames.shift()();assert.equal(globalThis.scrollY,userScroll,'late clear hydration cannot override a subsequent user scroll');globalThis.scrollY-=30;
   const geometry=dom.owner.captureReturnGeometry();
+  for(const mismatch of ['authority','source','session','width','columns','revision','preference']){
+   dom.owner.clear();dom.owner.render(items,{complete:true,returnGeometry:geometry});controller.homeCollection=collection;controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');
+   if(mismatch==='authority')controller.rootPreSearch.returnGeometry.authority='different';
+   if(mismatch==='source')controller.rootProviderKey='different';
+   if(mismatch==='session')controller.rootGeometrySession=(controller.rootGeometrySession||0)+1;
+   if(mismatch==='width')dom.host.clientWidth--;
+   if(mismatch==='columns')columns=3;
+   if(mismatch==='revision')controller.rootPreSearch.items=items.map(item=>item.id==='a'?{...item,revision:2}:item);
+   if(mismatch==='preference'){document.documentElement.lang='zh-CN';previews.preferences();}
+   get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight||'','',mismatch+' cannot revive a search-exit shell');assert.equal(controller.rootPreSearch,null);
+   controller.rootProviderKey=null;dom.host.clientWidth=1000;columns=2;document.documentElement.lang='en';
+  }
+
   for(const mismatch of ['revision','count','width','columns','presentation','epoch','cap']){
-   dom.owner.clear();let rows=items,saved=structuredClone(geometry);if(mismatch==='revision')rows=items.map(x=>x.id==='a'?{...x,revision:2}:x);if(mismatch==='count')rows=items.slice(1);if(mismatch==='width')saved.width--;if(mismatch==='columns')saved.columns=3;if(mismatch==='presentation')saved.presentation='different';if(mismatch==='epoch')saved.epoch++;if(mismatch==='cap')saved.rows=Array(50001).fill(saved.rows[0]);dom.owner.render(rows,{complete:true,returnGeometry:saved});assert.ok(!dom.owner.nodes.get('a')?.querySelector('.personal-topic-preview').style.minHeight,mismatch+' cannot revive a shell');
+   dom.owner.clear();let rows=items,saved=structuredClone(geometry);if(mismatch==='revision')rows=items.map(x=>x.id==='a'?{...x,revision:2}:x);if(mismatch==='count')rows=items.slice(1);if(mismatch==='width')saved.width--;if(mismatch==='columns')saved.columns=3;if(mismatch==='presentation')saved.presentation='different';if(mismatch==='epoch')saved.epoch=(previews.geometryEpoch||0)+1;if(mismatch==='cap')saved.rows=Array(50001).fill(saved.rows[0]);dom.owner.render(rows,{complete:true,returnGeometry:saved});assert.ok(!dom.owner.nodes.get('a')?.querySelector('.personal-topic-preview').style.minHeight,mismatch+' cannot revive a shell');
   }
   for(const mismatch of ['source','session','intent','input','authority','scroll','pending-input']){
    dom.owner.clear();controller.rootReturnGeometry={geometry,source:null,session:controller.rootGeometrySession||0,intent:controller.openIntent,inputEpoch:controller.homeAnchorInputEpoch||0,authority:collection.authority,scroll:globalThis.scrollY||0};

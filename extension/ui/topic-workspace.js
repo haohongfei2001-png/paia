@@ -396,10 +396,13 @@ export class TopicController {
  searchRoot(){
   const query=$('thought-search').value.trim(),prior=this.homeCollection?.query||'';
   this.rootSearchSession={};
+  // Capture only qualified numbers before beginSearch synchronously releases
+  // preview text and its shell. Search keeps one original reading viewport.
+  const returnGeometry=query&&!prior&&this.homeCollection?{authority:this.homeCollection.authority,source:this.rootProviderKey||null,session:this.rootGeometrySession||0,geometry:this.personalRoot?.captureReturnGeometry?.()||null}:null;
   if(query)this.personalRoot?.beginSearch();
-  if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.previousHomeAnchor()||this.captureHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
+  if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,returnGeometry,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.previousHomeAnchor()||this.captureHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
   this.serial++;this.cursor=null;if(this.homeCollection)this.homeCollection.releaseBodies();this.homeCollection=null;this.homePage=null;
-  if(!query){const saved=this.rootBaseCollection?.snapshot()||this.rootPreSearch?.snapshot;if(saved){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved);this.homeDesiredCount=Math.max(40,saved.items.length);}this.rootBaseCollection=null;this.rootInvalidationAnchor=this.rootPreSearch?.anchor||null;if(this.rootPreSearch?.items)this.personalRoot?.render(this.rootPreSearch.items,{complete:this.rootPreSearch.complete});this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootPreSearch=null;}
+  if(!query){const saved=this.rootBaseCollection?.snapshot()||this.rootPreSearch?.snapshot;if(saved){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved);this.homeDesiredCount=Math.max(40,saved.items.length);}this.rootBaseCollection=null;this.rootInvalidationAnchor=this.rootPreSearch?.anchor||null;const returned=this.rootPreSearch?.returnGeometry;const geometry=returned&&returned.authority===this.homeCollection?.authority&&returned.source===(this.rootProviderKey||null)&&returned.session===(this.rootGeometrySession||0)?returned.geometry:null;if(this.rootPreSearch?.items)this.personalRoot?.render(this.rootPreSearch.items,{complete:this.rootPreSearch.complete,returnGeometry:geometry});this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootPreSearch=null;}
   clearTimeout(this.searchTimer);this.searchTimer=setTimeout(()=>void this.refresh(),180);
  }
  async loadRootSearchBase(){
