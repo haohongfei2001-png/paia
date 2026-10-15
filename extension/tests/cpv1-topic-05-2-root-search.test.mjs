@@ -239,9 +239,9 @@ test('real Root controller freezes input geometry through held qualification, ba
  const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
  const prior=Object.fromEntries(['document','location','getSelection','getComputedStyle','scrollY','innerHeight','innerWidth'].map(key=>[key,globalThis[key]]));
  const dom=searchDOM('topic'),style=()=>({removeProperty(key){delete this[key];}}),pending=[];
- const create=tag=>{const node=dom.create(tag);node.style=style();node.getBoundingClientRect=()=>({height:120});node.replaceWith=next=>{node.parentElement.insertBefore(next,node);node.remove();};return node;};
- const query={value:'NEEDLE'},status={},empty={},errors=[];
- globalThis.document={documentElement:{lang:'en'},body:dom.host,hidden:false,createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){},getElementById:id=>({'thought-search':query,'library-search-status':status,'thought-empty':empty}[id])};
+ const create=tag=>{const node=dom.create(tag);node.style=style();node.getBoundingClientRect=()=>({height:Number.parseFloat(node.style.height)||120});node.replaceWith=next=>{node.parentElement.insertBefore(next,node);node.remove();};return node;};
+ const query={value:'NEEDLE'},status={},empty={},unplaced={setAttribute(){}},errors=[];
+ globalThis.document={documentElement:{lang:'en'},body:dom.host,hidden:false,createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){},getElementById:id=>({'thought-search':query,'library-search-status':status,'thought-empty':empty,'thought-list':dom.host,'library-unplaced-list':unplaced,'library-unplaced':unplaced}[id])};
  Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),scrollY:0,innerHeight:800,innerWidth:1000});
  let controller,previews;
  try{
@@ -259,7 +259,42 @@ test('real Root controller freezes input geometry through held qualification, ba
   assert.equal(dom.tile.style.gridRow,'263 / span 443','base hydration before the first result preserves original row');assert.equal(dom.tile.style.height,'443px');assert.equal(pending.length,1,'base hydration cannot restart ordinary body reads');
   const hits=[{kind:'topic',topicId:'topic'},{kind:'entry',topicId:'topic',entryId:'entry',snippet:'SYNTHETIC NEEDLE'}];
   for(const complete of [false,true]){controller.paintRootSearch({items:hits,complete},'NEEDLE');assert.equal(dom.tile.style.gridRow,'263 / span 443');assert.equal(dom.tile.style.height,'443px');assert.equal(body.textContent,'');}
-  controller.homeCollection={query:'NEEDLE',releaseBodies(){}};query.value='NEW';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.tile.style.height,'443px');assert.equal(body.textContent,'');
-  collection.stale=true;const invalidated=controller.loadRootSearchBase();await invalidated;assert.deepEqual(errors,[['主题目录已变化，请重试读取。','read_error']]);assert.equal(dom.owner.nodes.size,0,'stale metadata clears the real root');assert.equal(dom.owner.searchGeometry,null);assert.equal(body.textContent,'');
+  const readerBoundary=Symbol('reader installation');
+  Object.assign(controller,{id:null,view:'original',rememberTimeline(){},rememberView(){},saveHomePosition(){},clearActionFeedback(){},timelinePositions:{get(){throw readerBoundary;}},leaveEditors:async()=>true});
+  const originalGeometry=dom.owner.searchGeometry;controller.leaveEditors=async()=>false;assert.equal(await controller.open('topic'),undefined);assert.equal(dom.owner.searchGeometry,originalGeometry,'blocked departure preserves the live geometry and nodes');assert.equal(dom.owner.nodes.size,1);controller.leaveEditors=async()=>true;
+  for(let visit=0;visit<5;visit++){
+   const current=dom.owner.nodes.get('topic'),key=current.dataset.searchHitKey;
+   await assert.rejects(controller.open('topic'),error=>error===readerBoundary);assert.equal(dom.owner.nodes.size,0,'actual open and successful leave release every card');assert.equal(dom.host.textContent,'','successful leave releases all result and preview text');assert.equal(previews.items.length,0);
+   controller.id='topic';controller.id=null;controller.paintRootSearch({items:hits,complete:true},'NEEDLE');
+   const returned=dom.owner.nodes.get('topic');assert.notEqual(returned,current);assert.equal(returned.style.height,'443px','Back reuses only qualified search geometry on fresh nodes');assert.equal(returned.style.gridRow,'263 / span 443');assert.equal(returned.dataset.searchHitKey,key);
+   returned.querySelectorAll('[data-root-match-step]')[1].listeners.get('click')();assert.equal(returned.style.height,'443px','next match after each Back retains the original rectangle');
+  }
+  // Each mismatch starts from the same captured numeric fixture. None may
+  // transfer a previous search rectangle onto newly admitted metadata.
+  const geometry=dom.owner.searchGeometry,session=controller.rootSearchSession;
+  for(const mismatch of ['query','session','metadata','width','columns','normal','clear','primary']){
+   dom.owner.items=[item];dom.owner.searchQuery='NEEDLE';dom.owner.searchGeometry=geometry;dom.owner.columnCount=3;dom.host.clientWidth=1000;
+   dom.owner.clear({searchSession:session});assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
+   let items=[item],options={preserveSearch:true,searchSession:session,query:'NEEDLE'};
+   if(mismatch==='query')options.query='different';if(mismatch==='session')options.searchSession={};if(mismatch==='metadata')items=[{...item,revision:2}];if(mismatch==='width')dom.host.clientWidth=980;
+   if(mismatch==='columns')dom.owner.suspendedSearchGeometry.columns=2;
+   if(mismatch==='normal')options={};if(mismatch==='clear')dom.owner.clear();
+   if(mismatch==='primary'){controller.homePositions=new Map();controller.resetHomeCollection=()=>{};controller.beginRootEntry();assert.equal(controller.rootSearchSession,null);}
+   dom.owner.render(items,options);assert.notEqual(dom.owner.nodes.get('topic').style.height,'443px',mismatch+' cannot restore an obsolete rectangle');assert.equal(dom.owner.suspendedSearchGeometry,null);
+  }
+  dom.host.clientWidth=1000;controller.rootSearchSession=session;query.value='NEEDLE';dom.owner.render([item]);dom.owner.search(hits,'NEEDLE',{open(){}});
+  controller.homeCollection={query:'NEEDLE',releaseBodies(){}};query.value='NEW';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.owner.nodes.get('topic').style.height,'120px');assert.equal(body.textContent,'');
+  controller.rootBaseCollection=collection;collection.stale=true;const invalidated=controller.loadRootSearchBase();await invalidated;assert.deepEqual(errors,[['主题目录已变化，请重试读取。','read_error']]);assert.equal(dom.owner.nodes.size,0,'stale metadata clears the real root');assert.equal(dom.owner.searchGeometry,null);assert.equal(body.textContent,'');
+  // A real source-scope change retires both an old Back reservation and an
+  // already-held base hydration, even if the next source has identical metadata.
+  query.value='NEEDLE';controller.id=null;controller.rootProviderKey='chatgpt';controller.rootSearchSession=session;controller.rootPreSearch={items:[item],complete:true};
+  dom.owner.items=[item];dom.owner.searchQuery='NEEDLE';dom.owner.searchGeometry=geometry;dom.owner.columnCount=3;dom.owner.clear({searchSession:session});
+  let releaseHydration,released=0,refreshed=0;const oldBase={terminal:true,releaseBodies(){released++;},hydrateWindow:()=>new Promise(resolve=>{releaseHydration=resolve;}),layout:()=>[{kind:'item',item}]};
+  controller.rootBaseCollection=oldBase;controller.refresh=async()=>{refreshed++;};
+  const oldRead=controller.loadRootSearchBase();assert.equal(typeof releaseHydration,'function');await controller.changeRootSourceScope('claude');
+  assert.equal(controller.rootSearchSession,null,'source change retires the tab-local search identity');assert.equal(dom.owner.suspendedSearchGeometry,null,'source change drops old numeric Back geometry');assert.equal(controller.rootBaseCollection,null);assert.equal(released,1);assert.equal(refreshed,1);
+  releaseHydration(true);await oldRead;assert.equal(controller.rootPreSearch,null,'old source hydration cannot refill metadata');assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
+  dom.owner.render([item],{preserveSearch:true,searchSession:session,query:'NEEDLE'});assert.notEqual(dom.owner.nodes.get('topic').style.height,'443px','same metadata in a different source does not revive old geometry');
+
  }finally{clearTimeout(controller?.searchTimer);previews?.dispose();Object.assign(globalThis,prior);}
 });

@@ -4,8 +4,8 @@ const button=(text,fn)=>{const b=element('button','standard-button',text);b.type
 export class ContextItemBasis {
  constructor({host,send,identity,isCurrent=()=>true,onInput=null,onClose=()=>{}}){
   this.send=send;this.identity=identity;this.isCurrent=isCurrent;this.onInput=onInput;this.onClose=onClose;this.active=true;this.generation=0;this.busy=false;
-  this.root=element('dialog','topic-action-dialog context-item-basis');this.root.setAttribute('aria-label',copy('查看依据','View basis'));this.body=element('div','context-item-basis-body');this.status=element('p','topics-note');this.status.setAttribute('role','status');this.back=button(copy('返回','Back'),()=>this.close());this.retry=button(copy('重新核对','Check again'),()=>this.read());
-  this.root.append(element('h2','',copy('查看依据','View basis')),this.back,this.body,this.status,this.retry);host.append(this.root);
+  this.root=element('dialog','topic-action-dialog context-drawer context-item-basis');this.root.setAttribute('aria-label',copy('查看依据','View basis'));this.body=element('div','context-item-basis-body');this.status=element('p','topics-note');this.status.setAttribute('role','status');this.back=button(copy('返回','Back'),()=>this.close());this.retry=button(copy('重新核对','Check again'),()=>this.read());
+  const header=element('header','context-drawer-head'),content=element('div','context-drawer-content'),footer=element('footer','context-drawer-footer');header.append(element('h2','',copy('查看依据','View basis')),this.back);content.append(this.body,this.status);footer.append(this.retry);this.root.append(header,content,footer);host.append(this.root);
   for(const type of ['cancel','paia:request-close'])this.root.addEventListener(type,e=>{e.preventDefault();this.close();});this.root.addEventListener('close',()=>this.close());
   this.changed=m=>{if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED'].includes(m?.type))this.invalidate();};this.visibility=()=>{if(document.hidden)this.invalidate();};globalThis.chrome?.runtime?.onMessage?.addListener(this.changed);document.addEventListener('visibilitychange',this.visibility);this.root.showModal();this.back.focus();
  }

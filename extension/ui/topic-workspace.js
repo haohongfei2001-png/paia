@@ -324,7 +324,7 @@ export class TopicController {
  // Back and route restoration deliberately keep their recorded collection and
  // slots; ordinary background refreshes never opt into a new activity order.
  beginRootEntry(){
-  this.freshRootEntry=true;this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
+  this.rootSearchSession=null;this.freshRootEntry=true;this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
   this.homePositions.delete('home');this.rootInvalidationAnchor=null;this.rootPreSearch=null;this.rootBaseCollection=null;this.preserveHomeRefresh=false;
   $('thought-search').value='';this.rootProviderKey=null;
  }
@@ -345,7 +345,8 @@ export class TopicController {
   if(!canRetainRootMetadata(cause)||$('thought-search').value.trim())this.clearHomeRows();
   if(!canRetainRootMetadata(cause))for(const node of document.querySelectorAll('.topic-root-section-anchor'))node.remove();
  }
- clearHomeRows(){this.homePaintAnchor=null;this.homePage=null;this.personalRoot?.clear();}
+ rootSearchReturnSession(){if(!this.rootPreSearch||!this.rootSearchSession)return null;const query=$('thought-search')?.value.trim();return query&&this.rootPreSearch&&this.personalRoot?.searchQuery===query?this.rootSearchSession:null;}
+ clearHomeRows({preserveSearch=false}={}){this.homePaintAnchor=null;this.homePage=null;this.personalRoot?.clear({searchSession:preserveSearch?this.rootSearchReturnSession():null});}
  homeCollectionScope(query){return this.rootProviderKey?JSON.stringify(['source',this.rootProviderKey,query?'search':'root']):query?'search':'root';}
  createHomeCollection(query){const scope=this.homeCollectionScope(query),providerKey=this.rootProviderKey;return new ContinuousRootReader({scope,query,windowSize:Number.MAX_SAFE_INTEGER,pins:()=>this.rootPins(),load:async({cursor,authority})=>{
   if(query)return request('GET_LIBRARY_ROOT_SEARCH',{options:{query,cursor,authority,limit:40}});
@@ -377,6 +378,7 @@ export class TopicController {
  }
  searchRoot(){
   const query=$('thought-search').value.trim(),prior=this.homeCollection?.query||'';
+  this.rootSearchSession={};
   if(query)this.personalRoot?.beginSearch();
   if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.previousHomeAnchor()||this.captureHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
   this.serial++;this.cursor=null;if(this.homeCollection)this.homeCollection.releaseBodies();this.homeCollection=null;this.homePage=null;
@@ -395,7 +397,7 @@ export class TopicController {
     if(collection.error){this.onStatus('主题目录尚未读完，已显示的位置保留；请重试。','read_error');return;}
     const hydrated=await collection.hydrateWindow();if(!this.thoughtRootVisible()||!$('thought-search').value.trim()||collection!==this.rootBaseCollection)return;if(!hydrated||collection.stale||collection.error){if(collection.stale){this.rootBaseCollection=null;this.rootPreSearch={...(this.rootPreSearch||{}),items:[],complete:false};this.personalRoot.clear();}this.onStatus('主题目录尚未重新核对，请重试；原有位置仍保留。','read_error');return;}
     this.rootPreSearch={...(this.rootPreSearch||{}),items:collection.layout().filter(x=>x.kind==='item').map(x=>x.item),complete:collection.terminal};
-    const query=$('thought-search').value.trim();if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal,preserveSearch:true});
+    const query=$('thought-search').value.trim();if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal,preserveSearch:true,searchSession:this.rootSearchSession,query});
     if(collection.terminal)return;await new Promise(resolve=>setTimeout(resolve,0));
    }while(collection===this.rootBaseCollection);
   }finally{if(this.rootBaseLoading===collection)this.rootBaseLoading=null;}
@@ -445,7 +447,7 @@ export class TopicController {
   // Search uses the existing bounded lexical owner; presentation never creates
   // a second directory or changes the established Topic addresses.
   const prior=this.rootPreSearch,focus=this.personalRoot.focusRef();
-  if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete,preserveSearch:true});
+  if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete,preserveSearch:true,searchSession:this.rootSearchSession,query});
   const matches=new Set(page.items.flatMap(item=>(item.paths||[item]).map(path=>path.topicId||item.topicId)).filter(Boolean));
   this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path),complete:page.complete===true});
   if(focus?.matchKey||focus?.matchStep)this.personalRoot.restoreFocus(focus);
@@ -618,7 +620,7 @@ export class TopicController {
  updateRootSourceOptions(serial=this.serial,state={}){return this.updateSourceOptions(serial,true,state);}
  async changeRootSourceScope(next=$('thought-source-scope').value||null){
   if(this.id||next===this.rootProviderKey)return;
-  this.serial++;this.statusEpoch++;this.rootPreSearch=null;this.rootProviderKey=next;this.resetHomeCollection();this.homePage=null;this.homeSignature=null;this.snapshotKey=null;
+  this.serial++;this.statusEpoch++;this.rootSearchSession=null;this.rootBaseCollection?.releaseBodies?.();this.rootBaseCollection=null;this.rootPreSearch=null;this.clearHomeRows();this.rootProviderKey=next;this.resetHomeCollection();this.homePage=null;this.homeSignature=null;this.snapshotKey=null;
   $('library-unplaced-list').hidden=true;$('library-unplaced').setAttribute('aria-expanded','false');
   await this.refresh();
  }
@@ -1367,13 +1369,13 @@ export class TopicController {
   if(this.desktopAppearance)this.enableDesktopPresentation();
   const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;}this.renderCandidate(row);return result;
  }
- async leave({historyIntent=null}={}){this.rememberTimeline();this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;if(!keepOriginal){const ok=await this.leaveEditors({historyIntent});if(ok){this.topicTimeline?.dispose();if(!this.id)this.clearHomeRows();}return ok;}this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}}
+ async leave({historyIntent=null}={}){this.rememberTimeline();this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;if(!keepOriginal){const ok=await this.leaveEditors({historyIntent});if(ok){this.topicTimeline?.dispose();if(!this.id)this.clearHomeRows({preserveSearch:true});}return ok;}this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}}
  async open(id){
   const freshRoot=!id&&this.freshRootEntry===true;if(freshRoot)this.freshRootEntry=false;
   this.rememberView();const currentAnchor=this.id&&this.view==='original'?this.topicAnchor():null;
   if(!freshRoot)this.saveHomePosition(this.id||'home',{scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(currentAnchor?{anchor:currentAnchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor()}: {})});
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
-  const changed=this.id!==id;if(changed){if(!this.id){this.homeCollection?.releaseBodies();this.personalRoot?.clear();this.homePage=null;$('thought-list').replaceChildren();}this.topicTimeline?.dispose();this.topicTimeline=null;this.originalMode=this.timelinePositions.get(id)?.mode||'content';this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;this.topicReader=null;const requested=this.requestedTopicView;this.requestedTopicView=null;this.view=id?(requested||this.aiViewSession.view(id)):'original';if(id&&requested)this.aiViewSession.setView(id,requested);}
+  const changed=this.id!==id;if(changed){if(!this.id){this.homeCollection?.releaseBodies();this.personalRoot?.clear({searchSession:this.rootSearchReturnSession()});this.homePage=null;$('thought-list').replaceChildren();}this.topicTimeline?.dispose();this.topicTimeline=null;this.originalMode=this.timelinePositions.get(id)?.mode||'content';this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;this.topicReader=null;const requested=this.requestedTopicView;this.requestedTopicView=null;this.view=id?(requested||this.aiViewSession.view(id)):'original';if(id&&requested)this.aiViewSession.setView(id,requested);}
   this.id=id;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
   const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=this.view==='original'?(session?.anchor||saved?.anchor||null):null,sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
   if(id&&this.view==='original'&&!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;if(!this.resumeAnchor&&saved?.sort)this.readingSort=saved.sort;

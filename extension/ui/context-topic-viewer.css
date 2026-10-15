@@ -5,9 +5,34 @@
 .context-topic-row .topic-access .topic-name{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}
 .context-topic-row .topic-access{gap:0;flex:none;min-width:44px}
 .context-topic-row[hidden]{display:none!important}
-.context-topic-viewer{position:fixed;inset:0 0 0 auto;margin:0;width:min(530px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;box-sizing:border-box;border-radius:0;background:var(--bg);color:var(--text);border:0;border-left:1px solid var(--line);overflow:auto}
-.context-topic-viewer>header,.context-topic-viewer-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.context-topic-viewer h2{font:500 23px/32px var(--title-font);overflow-wrap:anywhere}
+/* Approved Context original ae103313: right drawer, separate fixed header/footer.
+   Existing dialog top-layer, focus, cancel, invalidation and read owners retained. */
+.context-drawer{position:fixed;inset:0 0 0 auto;margin:0;width:530px;max-width:100%;height:100dvh;max-height:100dvh;box-sizing:border-box;padding:0;border-radius:0;background:var(--bg);color:var(--text);border:0;border-left:1px solid var(--line);overflow:hidden;box-shadow:0 18px 65px #172a4520}
+.context-drawer[open]{display:flex;flex-direction:column}
+.context-drawer .context-drawer-head{padding:27px 29px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid var(--line);flex-shrink:0}
+.context-drawer .context-drawer-head h2{font:500 16px/1.5 var(--title-font);margin:0;color:var(--text);overflow-wrap:anywhere;min-width:0}
+.context-drawer-content{padding:26px 31px 34px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;min-width:0}
+.context-drawer-footer{padding:17px 29px 22px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-shrink:0;flex-wrap:wrap;background:var(--bg)}
+.context-drawer button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.context-drawer .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--prose-ink,var(--text));font-size:var(--paia-prose-size,17px);line-height:1.65;max-width:var(--paia-prose-width,680px)}
+html:not([data-paia-theme="dark"]) .context-drawer{background:#fff;color:#2b3543;border-color:#dfe5ed}
+html:not([data-paia-theme="dark"]) .context-drawer .context-drawer-head h2{color:#2b3543}
+html:not([data-paia-theme="dark"]) .context-drawer :is(.context-drawer-head,.context-drawer-footer){border-color:#e8ecf1}
+html:not([data-paia-theme="dark"]) .context-drawer-footer{background:#fbfdff}
+html:not([data-paia-theme="dark"]) .context-drawer :is(.quiet-footnote,.topics-note,.context-topic-viewer-status){color:#687381}
+html[data-paia-theme="dark"] .context-drawer{background:#202731;border-color:#35414f;box-shadow:none}
+@media(max-width:760px){
+ .context-drawer{width:460px}
+ .context-drawer-content{padding:23px 25px 29px}
+ .context-drawer .context-drawer-head{padding:21px 24px 16px}
+ .context-drawer-footer{padding:15px 24px 20px}
+}
+@media(max-width:530px){
+ .context-drawer{width:100%}
+ .context-drawer .context-drawer-head{padding:19px 20px 16px}
+ .context-drawer-content{padding:21px}
+ .context-drawer-footer{padding:14px 20px 21px;gap:12px}
+}
 .context-topic-viewer .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--prose-ink,var(--text));font-size:var(--paia-prose-size,17px);line-height:1.65;max-width:var(--paia-prose-width,680px)}
 .context-topic-viewer-status{color:var(--muted);font:12px/20px var(--font)}
 .context-topic-search-results .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--prose-ink,var(--text));font-size:var(--paia-prose-size,17px);line-height:1.65;max-width:var(--paia-prose-width,680px)}

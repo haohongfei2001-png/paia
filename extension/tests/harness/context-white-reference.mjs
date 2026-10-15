@@ -1,3 +1,4 @@
+import {applyDetailReference} from './context-detail-reference.mjs';
 // Independent test-only derivation of CTX4-UI-1.3. No production UI imports,
 // computed production styles, screenshots or runtime data become expected values.
 // Source: approved PAIA_AI上下文_白色精修.html SHA256
@@ -78,4 +79,5 @@ export async function refineWhiteReference(page){
   }else if(panel.querySelector('.detail-content')){const back=panel.querySelector('.context-back'),row=create('div','context-back-row');back.before(row);row.append(back,form());}
  });
  await page.addStyleTag({content:whiteReferenceCSS});
+ await applyDetailReference(page);
 }

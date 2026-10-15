@@ -10,13 +10,13 @@ const button=(text,run)=>{const node=element('button','standard-button',text);no
 export class ContextTopicViewer {
  constructor({host,send,topicId,name,sectionId=null,anchorId=null,onClose=()=>{}}){
   this.send=send;this.topicId=topicId;this.start={topicId,sectionId,anchorId};this.active=true;this.busy=false;this.generation=0;this.onClose=onClose;
-  this.root=element('dialog','topic-action-dialog context-topic-viewer');this.root.setAttribute('aria-label',copy('查看主题','View Topic'));
+  this.root=element('dialog','topic-action-dialog context-drawer context-topic-viewer');this.root.setAttribute('aria-label',copy('查看主题','View Topic'));
   this.title=element('h2','',name);this.back=button(copy('返回','Back'),()=>this.close());
   this.status=element('p','context-topic-viewer-status');this.status.setAttribute('role','status');
   this.body=element('div','context-topic-viewer-body');this.previous=button(copy('前面的内容','Earlier content'),()=>void this.read('previous'));
   this.next=button(copy('接着读','Continue reading'),()=>void this.read('next'));this.retry=button(copy('重新读取','Reload content'),()=>void this.restart());
-  const header=element('header'),actions=element('div','context-topic-viewer-actions');header.append(this.title,this.back);actions.append(this.previous,this.next,this.retry);
-  this.root.append(header,element('p','quiet-footnote',copy('仅本人本地查看，不改变 AI 访问选择。','Local viewing only. AI access choices are unchanged.')),this.body,this.status,actions);host.append(this.root);
+  const header=element('header','context-drawer-head'),content=element('div','context-drawer-content'),actions=element('footer','context-drawer-footer context-topic-viewer-actions');header.append(this.title,this.back);actions.append(this.previous,this.next,this.retry);
+  content.append(element('p','quiet-footnote',copy('仅本人本地查看，不改变 AI 访问选择。','Local viewing only. AI access choices are unchanged.')),this.body,this.status);this.root.append(header,content,actions);host.append(this.root);
   this.root.addEventListener('cancel',event=>{event.preventDefault();this.close();});
   this.root.addEventListener('paia:request-close',event=>{event.preventDefault();this.close();});
   this.root.addEventListener('close',()=>this.close());

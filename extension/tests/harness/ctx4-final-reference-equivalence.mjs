@@ -24,7 +24,7 @@ const selectorPairs=[
  ['item','.item-text','.item-text'],['add','.add-item','.add-item'],
  ['topics','.topic-field','.topic-field'],['topic','.topic-access','.topic-access'],
  ['topicNote','.topics-note','.topics-note'],['newMark','.new-topic-mark','.new-topic-mark'],
- ['feedback','.item-feedback.error','.item-feedback.error']
+ ['detailFooter','.context-detail-footer','.context-detail-footer'],['detailToolbar','.context-editor-toolbar','.context-editor-toolbar'],['groupItems','.context-group-items','.context-group-items'],['itemFooter','.context-item-footer','.context-item-footer'],['topicRow','.context-topic-row','.context-topic-row'],['topicRead','.context-topic-open','.context-topic-open'],['inputsToolbar','.context-inputs-toolbar','.context-inputs-toolbar'],['detailCaption','.context-gate-caption','.context-gate-caption'],['detailSubtitle','.context-detail .context-subtitle','.context-detail .context-subtitle'],['detailEyebrow','.context-detail .context-eyebrow','.context-detail .context-eyebrow'],['feedback','.item-feedback.error','.item-feedback.error']
 ];
 const styleKeys=['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor','borderTopWidth','borderTopColor','borderRadius','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginBottom','gap','minHeight'];
 async function metrics(page,side){return page.evaluate(({pairs,keys,side})=>{
@@ -44,17 +44,15 @@ function compare(reference,actual,scene){
   for(let index=0;index<expected.length;index++){
    const a=expected[index],b=found[index];
    for(const key of styleKeys){
-    // The owner-approved reference override is shared reading 17px/680px and UX_CONTRACT §3 rhythm.
-    const value=name==='item'&&key==='fontSize'?'17px':name==='item'&&key==='lineHeight'?'28.05px':a.style[key];
+    // Independent reference layout already applies shared reading 17px/680px and UX_CONTRACT §3 rhythm.
+    const value=a.style[key];
     if(value!==b.style[key])record(selector,index,key,value,b.style[key]);
    }
-   // Reading-body vertical flow changes with the explicit 17px/680px override.
-   // Its typography, padding, colors and hierarchy above remain strict.
-   const positional=['placedSearch','homeEnd','page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
+   // Both layouts use the explicit fixture reading settings before strict comparison.
+   const positional=['detailFooter','detailToolbar','groupItems','itemFooter','topicRow','topicRead','inputsToolbar','detailCaption','detailSubtitle','detailEyebrow','section','sectionTitle','item','add','placedSearch','homeEnd','page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
    if(positional)for(const key of ['x','y','width','height']){
-    // Whole detail height accumulates the explicitly accepted reading override;
-    // independent shell/header positions and all remaining styles stay exact.
-    if(name==='page'&&key==='height'&&['info','rules','now'].includes(new URLSearchParams(scene.query).get('page')))continue;
+    // Detail reference now applies the approved reading setting before layout;
+    // page height and every editor/group/footer box can be compared directly.
     if(name==='topic'&&key==='width'&&scene.id==='17-New-Topic'&&index===expected.length-1&&actual.groups.newMark.length===0)continue;
     if(Math.abs(a.rect[key]-b.rect[key])>.1)record(selector,index,'rect.'+key,a.rect[key],b.rect[key]);
    }
@@ -90,7 +88,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});

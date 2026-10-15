@@ -1,3 +1,4 @@
+import {detailReferenceCSS} from './harness/context-detail-reference.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -59,4 +60,15 @@ test('outer Context cards retain the approved automatic grid minimum at every wi
  const harness=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');
  assert.match(harness,/const styleKeys=\[[^\n]*'minHeight'/);
  assert.match(harness,/\['x','y','width','height'\]/);
+});
+
+
+test('approved detail grid uses the original left-label columns and mobile stack',async()=>{
+ const production=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
+ for(const css of [production,detailReferenceCSS])for(const [width,column,gap]of [[1440,125,30],[1251,125,30],[1250,104,22],[1001,104,22],[1000,85,20],[761,85,20]]){
+  assert.equal(responsiveValue(css,'.context-section','grid-template-columns',width,{detail:true}),column+'px minmax(0,1fr)');assert.equal(responsiveValue(css,'.context-section','gap',width,{detail:true}),gap+'px');
+ }
+ for(const css of [production,detailReferenceCSS])for(const width of [760,531,530,320])assert.equal(responsiveValue(css,'.context-section','display',width,{detail:true}),'block');
+ const adapter=await readFile(new URL('./harness/context-detail-reference.mjs',import.meta.url),'utf8');assert.doesNotMatch(adapter,/from ['"].*ui\/|getComputedStyle|readFile/);
+ const harness=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');for(const key of ['detailFooter','detailToolbar','groupItems','itemFooter','topicRow','topicRead','inputsToolbar','detailCaption'])assert.ok(harness.includes(key));
 });

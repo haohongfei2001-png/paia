@@ -68,12 +68,12 @@ async function fixture(run,{count=3}={}){
 
 for(const count of [20,50,144])test(`CTX4-03 actual My Inputs traverses all ${count} Topics and preserves identity, order, focus and saved state`,()=>fixture(async({s,access,makePage,calls})=>{
  const before=await protectedRows(s),page=makePage();await page.open('inputs');const inputs=page.inputs;
- assert.ok(inputs instanceof ContextTopicInputs);assert.equal(inputs.order.length,count);assert.equal(inputs.nodes.size,count);assert.equal(new Set(inputs.order).size,count);
+ assert.ok(inputs instanceof ContextTopicInputs);assert.equal(inputs.filters.parentElement,page.host.querySelector('.context-back-row'));assert.equal(inputs.allFilter.parentElement,inputs.toolbar);for(const [id,gate]of inputs.nodes){const row=inputs.rowNodes.get(id);assert.equal(inputs.openNodes.get(id).parentElement,row);assert.equal(gate.parentElement,row);assert.equal(gate.querySelector('.context-switch').getAttribute('aria-hidden'),'true');assert.equal(gate.querySelector('.context-topic-state').textContent,'Only me');}assert.equal(inputs.order.length,count);assert.equal(inputs.nodes.size,count);assert.equal(new Set(inputs.order).size,count);
  const reads=calls.filter(call=>call.type==='PAIA_CONTEXT_TOPICS_PAGE');assert.equal(reads.length,Math.ceil(count/100));assert.equal(reads[0].options.cursor,null);if(count>100)assert.equal(reads[1].options.cursor.offset,100);
  const expected=(await s.repository.transaction(false,t=>t.all('topics'))).sort((a,b)=>s.repository.factory.cmp(JSON.stringify([a.createdAt,a.id]),JSON.stringify([b.createdAt,b.id]))).map(row=>row.id);
  assert.deepEqual(inputs.order,expected);assert.ok([...inputs.rows.values()].every(row=>!row.enabled));assert.equal(inputs.selectedCount,0);
  const id=inputs.order.at(-1),node=inputs.nodes.get(id);node.focus();assert.equal(await inputs.toggle(id),true);
- assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);assert.equal(node.getAttribute('aria-pressed'),'true');assert.equal(inputs.selectedCount,1);
+ assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);assert.equal(node.getAttribute('aria-pressed'),'true');assert.equal(inputs.selectedCount,1);assert.equal(node.querySelector('.context-topic-state').textContent,'Readable');
  assert.equal(await inputs.toggle(id),true);assert.equal(await inputs.toggle(id),true);assert.equal(inputs.nodes.get(id),node);assert.equal(document.activeElement,node);assert.deepEqual(inputs.order,expected);
  assert.ok(!page.host.textContent.includes('SYNTHETIC_PRIVATE'));assert.equal(page.host.querySelectorAll('textarea').length,0);assert.equal(page.editors.size,0);assert.equal(page.host.querySelector('h1').textContent,'My Inputs');
  assert.deepEqual(await protectedRows(s),before);

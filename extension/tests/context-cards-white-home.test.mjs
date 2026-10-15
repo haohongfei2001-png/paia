@@ -121,10 +121,21 @@ test('Home keeps the real search form in the heading and preview after cards',()
 }));
 
 test('editable detail keeps the real search owner beside the back control',()=>fixture(async({makePage})=>{
- const page=makePage();await page.open('info');const row=page.host.querySelector('.context-back-row');assert.ok(row);assert.equal(page.searchForm.parentElement,row);assert.equal(row.querySelector('.context-back').parentElement,row);assert.ok(page.page.children.indexOf(row)<page.page.children.indexOf(page.host.querySelector('.context-head')));
+ const page=makePage();await page.open('info');const row=page.host.querySelector('.context-back-row');assert.ok(row);assert.equal(page.searchForm.parentElement,row);assert.equal(row.querySelector('.context-back').parentElement,row.querySelector('.context-breadcrumb'));assert.ok(page.page.children.indexOf(row)<page.page.children.indexOf(page.host.querySelector('.context-head')));
 }));
 
 
-test('noneditable Context pages retain the existing back control without a search row',()=>fixture(async({makePage})=>{
- const page=makePage();for(const card of ['inputs','connections']){await page.open(card);assert.equal(page.host.querySelector('.context-back-row'),null);assert.equal(page.host.querySelector('.context-back').parentElement,page.page);}
+test('Connections retains the existing back control without a search row',()=>fixture(async({makePage})=>{
+ const page=makePage();for(const card of ['connections']){await page.open(card);assert.equal(page.host.querySelector('.context-back-row'),null);assert.equal(page.host.querySelector('.context-back').parentElement,page.page);}
+}));
+
+
+for(const card of ['info','rules','now'])test('approved detail hierarchy preserves retained '+card+' editor owners',()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open(card);const editor=[...page.editors.values()][0],root=editor.root,field=editor.field;
+ assert.ok(page.host.querySelector('.context-eyebrow'));assert.ok(page.host.querySelector('.context-subtitle'));assert.ok(page.host.querySelector('.context-gate-caption'));assert.ok(page.host.querySelector('.context-crumb-current'));
+ assert.equal(page.add.parentElement,page.host.querySelector('.context-editor-toolbar'));assert.equal(root.parentElement.className,'context-group-items');assert.equal(editor.menu.parentElement.className,'context-item-footer');assert.equal(page.host.querySelector('.context-scope-preview-open').parentElement.className,'context-detail-footer');
+ editor.local='SYNTHETIC retained unsaved composition';field.textContent=editor.local;await page.refresh();assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.root,root);assert.equal(editor.field,field);assert.equal(field.textContent,'SYNTHETIC retained unsaved composition');
+}));
+test('Inputs relocates the real search form but retains independent filters and footer',()=>fixture(async({makePage,transport,dispatch})=>{
+ transport.dispatch=async message=>{const result=await dispatch(message);if(message.type==='PAIA_CONTEXT_CARDS_SNAPSHOT')result.capabilities.inputs=true;return result;};const page=makePage();await page.open('inputs');assert.equal(page.host.querySelector('.context-gate-caption').textContent,'Local reading does not change access choices');assert.equal(page.host.querySelector('.context-local-boundary').textContent,'Local reading does not change access choices; each Topic shows its choice.');assert.equal(page.inputs.filters.parentElement,page.host.querySelector('.context-back-row'));assert.equal(page.inputs.allFilter.parentElement,page.inputs.toolbar);assert.equal(page.inputs.selectedFilter.parentElement,page.inputs.toolbar);assert.equal(page.host.querySelector('.context-scope-preview-open').parentElement.className,'context-detail-footer');page.close();assert.equal(page.inputs,null);
 }));

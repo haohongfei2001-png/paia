@@ -47,13 +47,19 @@ export class PersonalTopicRoot {
  }
  beginSearch(){this.lockSearchGeometry();this.previews?.clear();}
  releaseSearchGeometry(){this.searchGeometry=null;for(const node of this.nodes.values())if(node.style?.height)node.style.removeProperty('height');}
- render(items,{complete=false,preserveSearch=false}={}){
+ // Back may retain geometry, never nodes or body text; locale and ordered
+ // metadata qualify it again before a fresh card receives the reservation.
+ searchMetadata(items){return JSON.stringify([document.documentElement.lang,items.map(item=>[item.id,item.revision,item.organizationRevision,item.layoutGeneration,item.name,item.sectionOverview.items.map(section=>[section.id,section.title,section.revision]),item.sectionOverview.complete])]);}
+ render(items,{complete=false,preserveSearch=false,searchSession=null,query=''}={}){
   this.previews??=new PersonalTopicPreviews(this.host,{nodes:()=>this.nodes,open:(topicId,sectionId)=>this.open(topicId,sectionId)});
   this.rememberRows();
   const focus=this.focusRef();
   const signature=item=>JSON.stringify([document.documentElement.lang,item.name,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete]);
   const retained=preserveSearch&&items.length===this.nodes.size&&items.every((item,index)=>this.items?.[index]?.id===item.id&&this.nodes.get(item.id)?.dataset.signature===signature(item));
+  const saved=this.suspendedSearchGeometry;this.suspendedSearchGeometry=null;
+  const restored=preserveSearch&&saved&&saved.session===searchSession&&saved.query===query&&saved.width===this.host.clientWidth&&saved.columns===this.columns()&&saved.metadata===this.searchMetadata(items);
   if(retained)this.lockSearchGeometry();else this.releaseSearchGeometry();
+  if(restored)this.searchGeometry=saved.geometry;
   this.items=items;this.complete=complete;this.host.classList.remove('topic-compact-list');this.host.classList.add('personal-topic-grid');
   const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){this.previews?.release(node);this.observeTitle(node,false);node.remove();this.nodes.delete(id);}
   for(const item of items){
@@ -65,6 +71,7 @@ export class PersonalTopicRoot {
    if(prior){this.previews?.release(prior);this.observeTitle(prior,false);const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}
    this.nodes.set(item.id,node);this.observeTitle(node,true);
   }
+  if(restored)for(const [id,node]of this.nodes)node.style.height=`${this.searchGeometry.rows.get(id).height}px`;
   this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';if(preserveSearch)this.lockSearchGeometry();else this.previews?.update(items);
  }
  rememberRows(){
@@ -132,6 +139,6 @@ export class PersonalTopicRoot {
   }
  }
  beginOrder(){this.clear();this.rowHeights?.clear();this.slots=new TopicRootSlots();}
- clear(){this.releaseSearchGeometry();this.previews?.clear();this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.flowHeights?.clear();this.host.replaceChildren();}
+ clear({searchSession=null}={}){this.suspendedSearchGeometry=searchSession&&this.searchGeometry?{session:searchSession,query:this.searchQuery,width:this.host.clientWidth,columns:this.columnCount,metadata:this.searchMetadata(this.items),geometry:this.searchGeometry}:searchSession&&this.suspendedSearchGeometry?.session===searchSession?this.suspendedSearchGeometry:null;this.releaseSearchGeometry();this.previews?.clear();this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.flowHeights?.clear();this.host.replaceChildren();}
  dispose(){this.previews?.dispose();this.resize?.disconnect();this.clear();}
 }
