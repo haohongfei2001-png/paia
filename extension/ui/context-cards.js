@@ -219,7 +219,11 @@ export class ContextCardsPage {
  orderItems(){
   // Relocate the existing node only: no body replacement, new editor or draft.
   const focus=document.activeElement,selection=globalThis.getSelection?.(),range=selection?.rangeCount&&this.content?.contains(selection.anchorNode)&&this.content?.contains(selection.focusNode)?{anchor:selection.anchorNode,anchorOffset:selection.anchorOffset,focus:selection.focusNode,focusOffset:selection.focusOffset}:null;
-  for(const group of this.content?.querySelectorAll('.context-section')||[]){const ordered=[...this.editors.values()].filter(editor=>editor.root.parentElement===group&&!editor.fresh).sort((a,b)=>(a.saved.order??0)-(b.saved.order??0));if(ordered.some(editor=>editor.dirty()||editor.composing||editor.saving||editor.conflicted))continue;const current=[...group.querySelectorAll('.context-item')];for(let index=0;index<ordered.length;index++){const node=ordered[index].root;if(current[index]===node)continue;group.insertBefore(node,current[index]||null);current.splice(current.indexOf(node),1);current.splice(index,0,node);}}
+  // A put ACK confirms revision/body, but does not contain canonical order.
+  // Freshly saved editors can therefore lack saved.order even after a same-
+  // revision read. Sort only by the admitted snapshot, as mountItem does.
+  const order=new Map((this.snapshot?.items||[]).map(item=>[item.id,item.order]));
+  for(const group of this.content?.querySelectorAll('.context-section')||[]){const ordered=[...this.editors.values()].filter(editor=>editor.root.parentElement===group&&!editor.fresh).sort((a,b)=>(order.get(a.id)??Number.MAX_SAFE_INTEGER)-(order.get(b.id)??Number.MAX_SAFE_INTEGER));if(ordered.some(editor=>editor.dirty()||editor.composing||editor.saving||editor.conflicted))continue;const current=[...group.querySelectorAll('.context-item')];for(let index=0;index<ordered.length;index++){const node=ordered[index].root;if(current[index]===node)continue;group.insertBefore(node,current[index]||null);current.splice(current.indexOf(node),1);current.splice(index,0,node);}}
   if(focus&&this.page?.contains(focus)&&document.activeElement!==focus)focus.focus({preventScroll:true});
   if(range&&this.content?.contains(range.anchor)&&this.content?.contains(range.focus))selection.setBaseAndExtent?.(range.anchor,range.anchorOffset,range.focus,range.focusOffset);
   this.paintReorder();

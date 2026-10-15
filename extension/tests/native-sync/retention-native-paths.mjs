@@ -93,6 +93,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/context-cards.js",
   "core/context-item-lineage.js",
   "core/context-package.js",
+  "core/context-read.js",
   "core/context-topic-access-policy.js",
   "core/context-topic-access.js",
   "core/context-topic-preferences.js",

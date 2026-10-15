@@ -836,3 +836,14 @@ test('Context Home explicit search navigates exact Item and Back requalifies wit
  await page.homeSearch.search('saved body');assert.equal(page.homeSearch.matches.length,3);assert.ok(calls.length>initial);const item=page.homeSearch.matches.find(x=>x.card==='rules');assert.equal(await page.homeSearch.activate(item),true);assert.equal(page.card,'rules');assert.equal(document.activeElement,page.editors.get(item.id).field);assert.equal(JSON.stringify(page.homeSearchState).includes(items[0].body),false);
  await page.onNavigate(null);assert.equal(page.card,null);assert.equal(page.homeSearch.query,'saved body');assert.equal(page.homeSearch.matches.length,3);assert.equal(document.activeElement.dataset.contextSearchOpen,item.id);assert.deepEqual(page.snapshot.items,[]);page.homeSearch.clear();assert.equal(page.host.querySelector('.context-cards').hidden,false);await page.close();assert.equal(page.homeSearchState,null);
 }));
+
+test('CTX4 newly acknowledged editors retain canonical order when middle delete is undone',()=>fixture(async({c,makePage})=>{
+ const page=makePage();await page.open('info');
+ for(const text of ['SYNTHETIC new middle','SYNTHETIC new last']){
+  await page.addItem();const editor=[...page.editors.values()].find(editor=>editor.fresh);editor.field.textContent=text;editor.collect();assert.equal(await editor.flush(),true);
+ }
+ const ordered=(await c.snapshot()).items.filter(item=>item.card==='info').map(item=>item.id);
+ await page.remove(page.editors.get(ordered[1]));assert.equal(page.editors.size,2);await page.undoDelete();
+ assert.deepEqual(page.content.querySelectorAll('.context-item').map(node=>node.dataset.item),ordered);
+ assert.deepEqual((await c.snapshot()).items.filter(item=>item.card==='info').map(item=>item.id),ordered);
+}));

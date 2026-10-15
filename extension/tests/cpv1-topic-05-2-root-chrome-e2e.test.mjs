@@ -162,7 +162,9 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent is durably acknowledged before independent Root setup');
   const topics=await rootFixture(p,{from:0,to:30,sections:true});
   await thoughtPrimary(p,'thoughts');await rootReady(p,30);assert.equal(await p.locator('.personal-topic-block .summary,.personal-topic-block small,.personal-topic-block details').count(),0);
-  assert.equal(await p.locator('#thought-root-source > button').isVisible(),true,'existing Add Thought remains reachable');assert.equal(await p.locator('#thought-root-source > .library-actions > summary').isVisible(),true,'existing overflow remains reachable');
+  const rootActions=p.locator('#thought-home-tools .thought-root-actions');
+  assert.equal(await rootActions.getByRole('button',{name:/^(接着写|Continue thinking)$/}).isVisible(),true,'existing Add Thought remains reachable');assert.equal(await rootActions.locator('.library-actions > summary').isVisible(),true,'existing overflow remains reachable');
+  for(const control of await rootActions.locator(':scope > button,.library-actions > summary').all())assert.equal(await control.evaluate(node=>{const r=node.getBoundingClientRect();return r.width>0&&r.height>=36&&node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}),true,'each actual Root action owns a visible native hit target');
   assert.equal(await p.locator('#thought-list').evaluate(node=>getComputedStyle(node).gridTemplateColumns.split(' ').length),3,'approved wide workspace uses three columns');
   const titleOnly=p.locator(`.personal-topic-block[data-topic-id="${topics[0].id}"]`);assert.equal(await titleOnly.locator('.personal-section-link').count(),0);assert.equal(await titleOnly.locator('.personal-topic-link').getAttribute('href').then(x=>x.includes('paia-thought?topic=')),true);
   await p.screenshot({path:output+'/30-wide.png',fullPage:true});
