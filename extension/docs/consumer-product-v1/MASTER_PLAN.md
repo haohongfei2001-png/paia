@@ -1,3 +1,7 @@
+# Current candidate — Topic note clipboard lifetime
+
+Current Topic note copies now follow the original MetadataEditor lifecycle; old callback/fallback cannot cross route departure, edited text, replaced note or IME. Dirty failed drafts remain explicitly copyable through the original owner. Author168/independent8 and combined32PASS overlap; exact Source/release4nativepaths and503guardPASS. See implementation/topic-note-copy-lifetime.md. Candidate only; all Canonical goals and outstanding gates remain.
+
 # Current candidate — compose draft clipboard lifetime
 
 Confirmed abandoned Topic drafts cannot return through a late clipboard fallback. Copy cancellation follows the current compose session and original confirmed-close/IME protections. Author54/independent6PASS overlap; exact Source/release native discard/manual-copy/new-input paths pass. See implementation/topic-compose-copy-lifetime.md. Candidate only; all Canonical scope and outstanding gates remain.
