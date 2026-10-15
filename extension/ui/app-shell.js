@@ -36,7 +36,10 @@ export class AppShellController {
   document.querySelector('.workspace-header').insertBefore(document.getElementById('scope-search-host'),document.getElementById('save-status'));
   document.querySelector('.workspace-header').insertBefore(document.getElementById('archive-navigator-toggle'),document.getElementById('scope-search-host'));
   document.querySelector('.workspace-header').insertBefore(document.getElementById('input-time-order'),document.getElementById('document-menu'));
-  document.getElementById('thought-root-header').append(document.getElementById('thought-home-tools'));
+  // Root controls participate in the approved page grid, behind the existing
+  // consent/route visibility boundary; the shared Reader header stays separate.
+  const rootHeader=document.getElementById('thought-root-header'),rootTools=document.getElementById('thought-home-tools');
+  document.getElementById('thought-panel').insertBefore(rootHeader,rootTools);rootHeader.append(rootTools);
   document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'),...document.querySelectorAll('#thought-home-tools > .library-actions,#thought-home-tools > button'));
   document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();

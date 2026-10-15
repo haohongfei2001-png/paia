@@ -338,3 +338,10 @@ body[data-paia-space="thoughts"] #original-reading-body .entry-sent-time{color:v
 html[data-paia-theme="dark"] body[data-paia-space="thoughts"] #original-reading-body .entry-sent-time{color:#a9b6c7}
 html[data-paia-theme="dark"] body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{background:#242e3b}
 html[data-paia-theme="dark"] body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-section-label{color:#a9b6c7}
+
+/* The Home slot belongs to its page grid, not the legacy fixed Reader header.
+   Keep hidden route/consent ancestors effective; an empty shared header takes
+   no space, while real status and controls retain their natural height. */
+body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-header:not([hidden]){display:contents}
+body[data-paia-space="thoughts"][data-paia-surface="root"] .workspace-header{position:relative;inset:auto;width:auto;min-height:0;margin:0;padding:0 44px}
+@media(max-width:767px){body[data-paia-space="thoughts"][data-paia-surface="root"] .workspace-header{padding-inline:20px}}

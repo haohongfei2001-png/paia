@@ -31,7 +31,8 @@ body[data-paia-space="memory"] .workspace:has(.context-page){padding-bottom:64px
 .context-search-status{margin:0 0 20px;color:var(--muted);font:12px/20px var(--font)}
 .context-search-status:empty{display:none}
 .context-page :is(.context-section,.context-item,.context-search-clear)[hidden]{display:none!important}
-@media(max-width:767px),(pointer:coarse){.context-search :is(input,button){min-height:44px}}
+/* Outrank the shared input:not(checkbox):not(radio) minimum for real search owners. */
+@media(max-width:767px),(pointer:coarse){.context-page .context-search input[type=search],.context-page .context-search button{min-height:44px}}
 
 /* CTX4-03 metadata-only Topic filters do not share access-control ownership. */
 .context-inputs .topic-access[hidden]{display:none!important}

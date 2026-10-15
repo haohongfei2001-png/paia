@@ -6,6 +6,42 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r?.ok,true,JSON.stringify(r));return r.data;};
 const visibleAnchor=page=>page.evaluate(()=>{const rows=[...document.querySelectorAll('#topic-body [data-entry-id]')],node=rows.find(x=>{const r=x.getBoundingClientRect();return r.bottom>140&&r.top<innerHeight;})||rows[0];return node?{id:node.dataset.entryId,top:node.getBoundingClientRect().top,scrollY}:null;});
 
+// Runs only in this isolated fixture's actual worker. No RPC, business read,
+// authority cache or production source change. Timings include probe overhead.
+async function installAns08PerformanceDiagnostics({topicId}){
+ const [{OrganizerStore},{IndexedArchiveStore}]=await Promise.all([
+  import('../core/organizer/store.js'),import('../core/indexed-store.js')
+ ]);
+ if(globalThis.__ans08PerformanceDiagnostics)throw Error('ANS08_DIAGNOSTICS_ALREADY_INSTALLED');
+ const samples=[],active=new WeakMap(),saved=[],now=()=>performance.now();
+ const replace=(prototype,key,wrap)=>{const descriptor=Object.getOwnPropertyDescriptor(prototype,key);saved.push([prototype,key,descriptor]);Object.defineProperty(prototype,key,{...descriptor,value:wrap(descriptor.value)});};
+ const report={schema:1,instrumented:true,probeOverheadMs:'UNKNOWN',scope:'WORKER_TIMINGS_ONLY_NOT_AUTHORITY_OR_ACCEPTANCE',sampleLimit:30,
+  timingCaveats:['Probe overhead is included in the original RPC samples.','Stage boundaries are method boundaries, not exclusive descriptor or sanitize timings.','Run counters include other work on the same store during the page; overlapping durations are not additive.','Queue wait ends when the existing tail settles; preCallback includes original publication fences and control reads.'],samples};
+ const restore=()=>{for(const [prototype,key,descriptor]of saved.reverse())Object.defineProperty(prototype,key,descriptor);saved.length=0;};
+ try{
+  replace(IndexedArchiveStore.prototype,'run',original=>function(fn){
+   const sample=active.get(this);if(!sample)return original.call(this,fn);
+   const queuedAt=now();let readyAt=queuedAt;sample.runCount++;
+   // Observe the existing serialized tail without replacing it or awaiting more work.
+   this.tail.then(()=>{readyAt=now();},()=>{readyAt=now();});
+   return original.call(this,function(...args){const callbackAt=now();sample.queueWaitMs+=readyAt-queuedAt;sample.preCallbackMs+=callbackAt-readyAt;return fn.apply(this,args);});
+  });
+  replace(OrganizerStore.prototype,'readingEntry',original=>async function(...args){
+   const sample=active.get(this);if(!sample)return original.apply(this,args);
+   const at=now();sample.hydrationCalls++;sample.firstHydrationAt??=at;
+   try{return await original.apply(this,args);}finally{sample.lastHydrationAt=now();sample.hydrationCallTotalMs+=sample.lastHydrationAt-at;}
+  });
+  replace(OrganizerStore.prototype,'topicDocumentPage',original=>async function(...args){
+   const options=args[0]??{};
+   if(options.topicId!==topicId||!options.cursor||options.sort!=='asc'||options.limit!==40||samples.length>=30||active.has(this))return original.apply(this,args);
+   const at=now(),sample={index:samples.length,runCount:0,queueWaitMs:0,preCallbackMs:0,hydrationCalls:0,hydrationCallTotalMs:0};samples.push(sample);active.set(this,sample);
+   try{const result=await original.apply(this,args);sample.returnedItems=result.items?.length??0;sample.cursorInvalid=result.cursorInvalid===true;sample.completed=true;return result;}
+   finally{const end=now();sample.pageMs=end-at;sample.beforeHydrationMs=sample.firstHydrationAt===undefined?null:sample.firstHydrationAt-at;sample.hydrationWindowMs=sample.firstHydrationAt===undefined?null:sample.lastHydrationAt-sample.firstHydrationAt;sample.afterHydrationMs=sample.lastHydrationAt===undefined?null:end-sample.lastHydrationAt;delete sample.firstHydrationAt;delete sample.lastHydrationAt;active.delete(this);}
+  });
+  globalThis.__ans08PerformanceDiagnostics={report,restore};
+ }catch(error){restore();throw error;}
+}
+
 test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async t=>{
  const h=await FakeChatGPT.start({headless:false}),page=h.archive;
  try{
@@ -80,13 +116,30 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
    await eventually(async()=>await page.locator('#topic-body [data-entry-id="'+beforeBack.id+'"]').count()===1,'topic return anchor',30000);
   });
 
-  const perf=await page.evaluate(async topicId=>{
-   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,sort:'asc',limit:40}),cursor=first.nextCursor,samples=[];let operations=null;
-   if(!cursor)throw Error('NO_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
+  // Keep the original one warmup RPC, then install observers before the same 30 calls.
+  const warmedCursor=await page.evaluate(async topicId=>{
+   const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options:{topicId,sort:'asc',limit:40}});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');
+   if(!r.data.nextCursor)throw Error('NO_CURSOR');return r.data.nextCursor;
   },seed.topicId);
+  const performanceWorker=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);
+  assert.ok(performanceWorker,'actual extension worker is available for bounded timing diagnostics');
+  await performanceWorker.evaluate(installAns08PerformanceDiagnostics,{topicId:seed.topicId});
+  let perf,perfError,diagnosticError;
+  try{perf=await page.evaluate(async({topicId,cursor})=>{
+   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'TOPIC_DOCUMENT_PAGE',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},samples=[];let operations=null;
+   for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,sort:'asc',cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples};
+  },{topicId:seed.topicId,cursor:warmedCursor});}catch(error){perfError=error;}finally{
+   try{
+    const diagnostics=await performanceWorker.evaluate(()=>{const state=globalThis.__ans08PerformanceDiagnostics;if(!state)throw Error('ANS08_DIAGNOSTICS_LOST');try{return state.report;}finally{state.restore();delete globalThis.__ans08PerformanceDiagnostics;}});
+    await mkdir('work/ans-08',{recursive:true});
+    await writeFile('work/ans-08/topic-performance-worker.json',JSON.stringify(diagnostics,null,2));
+   }catch(error){diagnosticError=error;if(perfError)console.error('ANS08_DIAGNOSTIC_COLLECTION_FAILED; original RPC error preserved');}
+  }
+  if(perfError)throw perfError;
   await mkdir('work/ans-08',{recursive:true});
   await writeFile('work/ans-08/topic-performance.json',JSON.stringify(perf,null,2));
   console.log('ANS08_TOPIC_PERFORMANCE '+JSON.stringify(perf));
+  if(diagnosticError)throw diagnosticError;
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
   const sectionPerf=await page.evaluate(async topicId=>{
    const call=async options=>{const r=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,limit:40}),cursor=first.nextCursor,samples=[],operationSamples=[];let operations=null;

@@ -377,6 +377,7 @@ export class TopicController {
  }
  searchRoot(){
   const query=$('thought-search').value.trim(),prior=this.homeCollection?.query||'';
+  if(query)this.personalRoot?.beginSearch();
   if(query&&!prior&&this.homeCollection){this.rootBaseCollection=this.homeCollection;this.rootPreSearch={providerKey:null,snapshot:this.homeCollection.snapshot(),items:[...(this.homePage?.page?.items||[])],complete:this.homeCollection.terminal,anchor:this.previousHomeAnchor()||this.captureHomeAnchor(),scroll:scrollY};this.rootBaseCollection.releaseBodies();this.homeCollection=null;}
   this.serial++;this.cursor=null;if(this.homeCollection)this.homeCollection.releaseBodies();this.homeCollection=null;this.homePage=null;
   if(!query){const saved=this.rootBaseCollection?.snapshot()||this.rootPreSearch?.snapshot;if(saved){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved);this.homeDesiredCount=Math.max(40,saved.items.length);}this.rootBaseCollection=null;this.rootInvalidationAnchor=this.rootPreSearch?.anchor||null;if(this.rootPreSearch?.items)this.personalRoot?.render(this.rootPreSearch.items,{complete:this.rootPreSearch.complete});this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootPreSearch=null;}
@@ -394,7 +395,7 @@ export class TopicController {
     if(collection.error){this.onStatus('主题目录尚未读完，已显示的位置保留；请重试。','read_error');return;}
     const hydrated=await collection.hydrateWindow();if(!this.thoughtRootVisible()||!$('thought-search').value.trim()||collection!==this.rootBaseCollection)return;if(!hydrated||collection.stale||collection.error){if(collection.stale){this.rootBaseCollection=null;this.rootPreSearch={...(this.rootPreSearch||{}),items:[],complete:false};this.personalRoot.clear();}this.onStatus('主题目录尚未重新核对，请重试；原有位置仍保留。','read_error');return;}
     this.rootPreSearch={...(this.rootPreSearch||{}),items:collection.layout().filter(x=>x.kind==='item').map(x=>x.item),complete:collection.terminal};
-    const query=$('thought-search').value.trim();if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal});
+    const query=$('thought-search').value.trim();if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal,preserveSearch:true});
     if(collection.terminal)return;await new Promise(resolve=>setTimeout(resolve,0));
    }while(collection===this.rootBaseCollection);
   }finally{if(this.rootBaseLoading===collection)this.rootBaseLoading=null;}

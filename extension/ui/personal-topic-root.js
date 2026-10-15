@@ -45,6 +45,7 @@ export class PersonalTopicRoot {
   this.searchGeometry={columns:this.columnCount,ids:this.items?.map(item=>item.id)||[...this.nodes.keys()],rows};
   for(const [id,node]of this.nodes)node.style.height=`${rows.get(id).height}px`;
  }
+ beginSearch(){this.lockSearchGeometry();this.previews?.clear();}
  releaseSearchGeometry(){this.searchGeometry=null;for(const node of this.nodes.values())if(node.style?.height)node.style.removeProperty('height');}
  render(items,{complete=false,preserveSearch=false}={}){
   this.previews??=new PersonalTopicPreviews(this.host,{nodes:()=>this.nodes,open:(topicId,sectionId)=>this.open(topicId,sectionId)});
@@ -93,7 +94,7 @@ export class PersonalTopicRoot {
   more.hidden=node.dataset.overviewComplete==='true';
  }
  search(results,query,{open,complete=false}){
-  this.lockSearchGeometry();this.previews?.clear();
+  this.beginSearch();
   const matches=new Map();
   if(this.searchQuery!==query){this.searchQuery=query;this.searchPositions=new Map();}this.searchPositions??=new Map();
   const token=this.searchRevision=(this.searchRevision||0)+1;

@@ -234,3 +234,32 @@ test('Root direct search snapshots every card before synchronous preview removal
  dom.tile.getBoundingClientRect=()=>({height:privateBody?443:366});dom.owner.previews={clear(){privateBody=false;}};
  try{dom.owner.search([],'NEEDLE',{open(){}});assert.equal(privateBody,false);assert.equal(dom.tile.style.height,'443px');assert.equal(dom.owner.searchGeometry.rows.get('topic').height,443);}finally{globalThis.document=prior;}
 });
+
+test('real Root controller freezes input geometry through held qualification, base hydration and search pagination',async()=>{
+ const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
+ const prior=Object.fromEntries(['document','location','getSelection','getComputedStyle','scrollY','innerHeight','innerWidth'].map(key=>[key,globalThis[key]]));
+ const dom=searchDOM('topic'),style=()=>({removeProperty(key){delete this[key];}}),pending=[];
+ const create=tag=>{const node=dom.create(tag);node.style=style();node.getBoundingClientRect=()=>({height:120});node.replaceWith=next=>{node.parentElement.insertBefore(next,node);node.remove();};return node;};
+ const query={value:'NEEDLE'},status={},empty={},errors=[];
+ globalThis.document={documentElement:{lang:'en'},body:dom.host,hidden:false,createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){},getElementById:id=>({'thought-search':query,'library-search-status':status,'thought-empty':empty}[id])};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),scrollY:0,innerHeight:800,innerWidth:1000});
+ let controller,previews;
+ try{
+  const item={id:'topic',name:'SYNTHETIC NEEDLE Topic',revision:1,organizationRevision:1,layoutGeneration:1,sectionOverview:{items:[],complete:false}},body=create('p');body.className='personal-topic-preview';Object.defineProperty(body,'childElementCount',{get:()=>body.children.length});dom.tile.append(body);
+  dom.host.style=style();dom.host.clientWidth=1000;dom.tile.style.gridRow='263 / span 443';dom.tile.style.gridColumn='1';dom.tile.dataset.signature=JSON.stringify(['en',item.name,[],false]);dom.tile.dataset.overviewComplete='false';
+  dom.tile.getBoundingClientRect=()=>({height:Number.parseFloat(dom.tile.style.height)||(body.textContent?443:366),width:300,top:100,bottom:543,left:0,right:300});
+  Object.assign(dom.owner,{items:[item],complete:true,slots:new TopicRootSlots(),columnCount:3,layoutWidth:1000});
+  previews=new PersonalTopicPreviews(dom.host,{nodes:()=>dom.owner.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});dom.owner.previews=previews;previews.update([item]);body.append(create('button'));body.firstElementChild.textContent='SYNTHETIC private original';
+  let hydrate;const collection={query:'',terminal:true,releaseBodies(){},snapshot:()=>({items:[{id:item.id}]}),hydrateWindow:()=>new Promise(resolve=>{hydrate=resolve;}),layout:()=>[{kind:'item',item}]};
+  controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,homeCollection:collection,homePage:{page:{items:[item]}},serial:0,previousHomeAnchor:()=>null,captureHomeAnchor:()=>null,thoughtRootVisible:()=>true,onStatus:(...args)=>errors.push(args),refresh:()=>assert.fail('fixture holds the debounce')});
+  controller.searchRoot();clearTimeout(controller.searchTimer);
+  assert.equal(body.textContent,'','input synchronously releases ordinary preview text before the held search');assert.equal(dom.tile.style.height,'443px');assert.equal(dom.owner.searchGeometry.rows.get('topic').row,'263 / span 443');
+  pending[0]({kind:'root_previews',items:[{topicId:'topic',preview:{text:'SYNTHETIC late private original',sectionId:'section',entryId:'entry'}}]});await new Promise(resolve=>setImmediate(resolve));assert.equal(body.textContent,'','late eligibility cannot refill the search card');assert.equal(previews.items.length,0);
+  const loading=controller.loadRootSearchBase();assert.equal(typeof hydrate,'function');assert.equal(dom.tile.style.gridRow,'263 / span 443');hydrate(true);await loading;
+  assert.equal(dom.tile.style.gridRow,'263 / span 443','base hydration before the first result preserves original row');assert.equal(dom.tile.style.height,'443px');assert.equal(pending.length,1,'base hydration cannot restart ordinary body reads');
+  const hits=[{kind:'topic',topicId:'topic'},{kind:'entry',topicId:'topic',entryId:'entry',snippet:'SYNTHETIC NEEDLE'}];
+  for(const complete of [false,true]){controller.paintRootSearch({items:hits,complete},'NEEDLE');assert.equal(dom.tile.style.gridRow,'263 / span 443');assert.equal(dom.tile.style.height,'443px');assert.equal(body.textContent,'');}
+  controller.homeCollection={query:'NEEDLE',releaseBodies(){}};query.value='NEW';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.tile.style.height,'443px');assert.equal(body.textContent,'');
+  collection.stale=true;const invalidated=controller.loadRootSearchBase();await invalidated;assert.deepEqual(errors,[['主题目录已变化，请重试读取。','read_error']]);assert.equal(dom.owner.nodes.size,0,'stale metadata clears the real root');assert.equal(dom.owner.searchGeometry,null);assert.equal(body.textContent,'');
+ }finally{clearTimeout(controller?.searchTimer);previews?.dispose();Object.assign(globalThis,prior);}
+});
