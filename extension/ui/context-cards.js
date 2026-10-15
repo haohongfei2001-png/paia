@@ -17,6 +17,12 @@ const editable=card=>['info','rules','now'].includes(card);
 const itemCopy={info:{add:['＋ 添加信息','＋ Add information'],placeholder:['写下一条信息…','Write some information…'],section:['补充信息','Additional information']},rules:{add:['＋ 添加规则','＋ Add rule'],placeholder:['写下一条规则…','Write a rule…'],section:['工作方式','Ways of working']},now:{add:['＋ 添加当前状态','＋ Add current focus'],placeholder:['写下当前的重点…','Write your current focus…'],section:['阶段重点','Current priorities']}};
 const button=(text,fn,className='')=>{const b=element('button',className,text);b.type='button';b.onclick=fn;return b;};
 
+// Fixed presentation copy and decorative paths from the approved white Context original.
+// These describe cards, never infer categories or facts from private Items.
+const cardDescriptions={info:['身份、背景与长期偏好','Identity, background and lasting preferences'],rules:['回答方式、表达与协作习惯','Responses, expression and collaboration'],now:['当前的目标、项目与关注','Current goals, projects and interests'],inputs:['从思想库中，选择可以读取的主题','Choose readable topics from Thoughts']};
+const cardSymbols={info:[['rect',{x:3.5,y:4,width:17,height:16,rx:2}],['circle',{cx:8.5,cy:10,r:2}],['path',{d:'M5.5 16c.5-3 5.5-3 6 0M14 9h3M14 13h3M14 16h2'}]],rules:[['path',{d:'M4 5h16M4 12h16M4 19h16'}],...[[7,3],[14,10],[6,17]].map(([x,y])=>['rect',{x,y,width:4,height:4,rx:1,fill:'currentColor',stroke:'none'}])],now:[['circle',{cx:12,cy:12,r:8.5}],['path',{d:'M12 7v5l3.5 2M12 1v2M12 21v2M1 12h2M21 12h2'}]],inputs:[['rect',{x:7,y:3,width:13,height:16,rx:1.5}],['path',{d:'M4 6v15h13M10 7h7M10 11h7M10 15h4'}]]};
+function cardSymbol(key){const svg=createIcon('context',{className:'card-symbol'});svg.setAttribute('viewBox','0 0 24 24');svg.replaceChildren();for(const [tag,attributes]of cardSymbols[key]){const node=document.createElementNS(svg.namespaceURI,tag);for(const [name,value]of Object.entries(attributes))node.setAttribute(name,String(value));svg.append(node);}return svg;}
+
 export class ContextItemEditor {
  constructor(page,item,{fresh=false}={}){
   this.page=page;this.epoch=page.snapshot.epoch;this.id=item.id;this.saved=structuredClone(item);this.local=item.body;this.fresh=fresh;this.saving=null;this.conflicted=false;this.failed=false;this.revision=new RevisionSession();this.commit=new ContextCommitSession();this.journal=new UndoJournal();
@@ -116,7 +122,7 @@ export class ContextCardsPage {
   try{const snapshot=await request('PAIA_CONTEXT_CARDS_SNAPSHOT',this.card?{}:{mode:'home'});if(generation!==this.readGeneration||!this.active)return;this.snapshot=snapshot;
    if(rebuild||!this.page||this.renderedCard!==this.card){this.render();if(this.inputs)await this.inputs.refresh();if(this.homeSearch)await this.homeSearch.restore();return;}
    this.localizeEditable();this.paintAccess();
-   if(!this.card){for(const [k,count]of Object.entries(snapshot.counts)){const node=this.host.querySelector(`[data-count="${k}"]`);if(node)node.textContent=k==='inputs'?this.inputCount():`${count} ${copy('项','items')}`;}const summary=this.host.querySelector('.input-summary');if(summary)this.paintInputSummary(summary);}
+   if(!this.card)this.paintHomeEntries();
    else if(editable(this.card)){
     for(const [id,editor]of this.editors){const item=snapshot.items.find(x=>x.id===id&&x.card===this.card);editor.outsideCard=snapshot.items.some(x=>x.id===id&&x.card!==this.card);editor.receive(item,snapshot.epoch);if(!item&&!editor.fresh&&!editor.dirty()&&!editor.composing&&!editor.saving&&!editor.commit.pending&&!editor.recoveryPending){editor.dispose();editor.root.remove();this.editors.delete(id);}}
     for(const item of snapshot.items)if(item.card===this.card&&!this.editors.has(item.id))this.mountItem(item);
@@ -145,6 +151,22 @@ export class ContextCardsPage {
  inputCount(){const value=this.snapshot.topicChoices;return !value?copy('0 个主题开放','0 topics open'):!value.available?copy('主题选择暂不可用','Topic choices unavailable'):`${value.selectedCount} ${copy('个主题已选择','topics selected')}`;}
  inputDescription(){const value=this.snapshot.topicChoices;return value&&!value.available?copy('暂时无法读取主题选择，已有设置仍保留。','Topic choices cannot be read right now. Existing settings are retained.'):value?.available&&value.selectedCount?copy('主题选择已保留，外部读取目前不可用。','Topic choices are retained. External reading is unavailable.'):copy('还没有开放的主题','No open topics yet');}
  paintInputSummary(node){const value=this.snapshot.topicChoices;if(value?.available&&value.selectedNames?.length){node.replaceChildren(element('span','',value.selectedNames.join(' · ')));if(value.remainingSelectedCount)node.append(element('span','more-topics',` +${value.remainingSelectedCount}`));}else node.textContent=this.inputDescription();}
+ homeEntryText(key){return key==='inputs'?copy('选择主题','Choose topics'):this.snapshot.counts[key]===0?copy('添加内容','Add content'):copy('查看内容','View content');}
+ paintHomeEntries(){
+  for(const node of this.host.querySelectorAll('.context-entry-label'))node.textContent=this.homeEntryText(node.dataset.card);
+  const summary=this.host.querySelector('.input-summary');if(summary)this.paintInputSummary(summary);
+ }
+ renderHomeCard(key){
+  const card=element('article','context-card');card.dataset.card=key;
+  const content=element('div','card-open'),heading=button('',()=>void this.onNavigate(key),'card-link card-head-button');heading.setAttribute('aria-label',copy('打开','Open ')+label(key));
+  const title=element('div','card-heading');title.append(element('h2','card-title',label(key)),element('p','card-description',copy(...cardDescriptions[key])));heading.append(title,cardSymbol(key));content.append(heading);
+  const directory=element('div','context-directory');
+  // The admitted Home snapshot has no trusted Item-category or Topic target IDs.
+  // Use the original's real card-entry fallback, never body/section inference.
+  if(key==='inputs'){const summary=element('p','input-summary');this.paintInputSummary(summary);directory.append(summary);}
+  const entry=button('',()=>void this.onNavigate(key),'context-directory-link'),text=element('span','context-entry-label',this.homeEntryText(key));text.dataset.card=key;entry.append(text,createIcon('chevron-right'));directory.append(entry);content.append(directory);
+  const footer=element('div','card-footer');footer.append(this.access(key));card.append(content,footer);return card;
+ }
  paintAccess(){for(const b of this.host.querySelectorAll('.context-access')){const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&!this.snapshot.access.global.enabled;b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+(value.enabled?copy('已开放','Enabled'):copy('仅自己','Only me')));b.title=copy('仅保存开放设置；外部 AI 连接尚不可用。','Saves access preferences only. External AI connections are unavailable.');b.replaceChildren(element('span','state-dot'),element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('已开放','Enabled'):copy('AI 可读','AI readable')):copy('仅自己','Only me')));b.disabled=this.busy;}
   if(this.globalNote&&this.card!=='connections'){this.globalNote.hidden=!!this.inputs||this.snapshot.access.global.enabled;this.globalNote.textContent=Object.values(this.snapshot.access).some(x=>x.enabled)?copy('AI 访问已暂停，开放设置已保留。','AI access is paused. Your choices are retained.'):copy('AI 访问尚未开启。','AI access is off.');}}
  async openScopePreview(){
@@ -166,7 +188,7 @@ export class ContextCardsPage {
   this.globalNote=element('p','global-note');this.page.append(this.globalNote);
   this.message=element('div','context-notice');this.message.setAttribute('role','status');
   if(!this.card){
-   const grid=element('div','context-cards');for(const k of Object.keys(names)){const card=element('article','context-card');card.dataset.card=k;const h=element('h2','card-title',label(k)),summary=element('p','card-summary'+(k==='inputs'?' input-summary':''));if(k==='inputs')this.paintInputSummary(summary);else summary.hidden=true;const footer=element('div','card-footer'),count=element('span','',k==='inputs'?this.inputCount():`${this.snapshot.counts[k]} ${copy('项','items')}`);count.dataset.count=k;footer.append(count,createIcon('forward'));const link=element('a','card-link');link.href='#';link.setAttribute('aria-label',copy('打开','Open ')+label(k));link.onclick=e=>{e.preventDefault();void this.onNavigate(k);};card.append(h,this.access(k),summary,footer,link);grid.append(card);}this.homeSearch=new ContextHomeSearch({host:this.page,send:request,state:this.homeSearchState,beforeSearch:()=>this.flush(),openItem:(target,current)=>this.openHomeSearchItem(target,current),onState:state=>{this.homeSearchState=state;},onResults:active=>{grid.hidden=active;}});this.page.append(grid);
+   const grid=element('div','context-cards');for(const key of Object.keys(names))grid.append(this.renderHomeCard(key));this.homeSearch=new ContextHomeSearch({host:this.page,send:request,state:this.homeSearchState,beforeSearch:()=>this.flush(),openItem:(target,current)=>this.openHomeSearchItem(target,current),onState:state=>{this.homeSearchState=state;},onResults:active=>{grid.hidden=active;}});this.page.append(grid);
    const connections=button('',()=>void this.onNavigate('connections'),'connections-link');connections.append(element('span','',copy('已连接的 AI','Connected AI')),element('span','connection-number',String(this.snapshot.connections)),createIcon('chevron-right'));this.page.append(connections);
   }else if(editable(this.card)){
    this.renderSearch();this.content=element('div','detail-content');this.empty=element('p','empty-detail',copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));this.add=button(copy(...itemCopy[this.card].add),()=>void this.addItem(),'add-item');this.content.append(this.empty,this.add);this.page.append(this.content);for(const item of this.snapshot.items)if(item.card===this.card)this.mountItem(item);this.orderItems();this.paintEmpty();

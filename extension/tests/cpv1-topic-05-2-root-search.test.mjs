@@ -197,8 +197,7 @@ test('TOPIC-05.3 actual Root search owner retains complete partial indexing and 
  try{for(const [page,text]of cases){owner.paintRootSearch(page,'SYNTHETIC');assert.equal(status.textContent,text);assert.equal(empty.hidden,true);assert.equal(searches.at(-1).items,page.items);assert.equal(searches.at(-1).complete,page.complete===true);}}finally{globalThis.document=prior;}
 });
 
-test('Root remembers occupied row geometry before deletion without freezing natural card heights',()=>{
- const prior=globalThis.getComputedStyle,owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{layoutWidth:1000,host:{clientWidth:1000,getClientRects:()=>[{}]}});
- globalThis.getComputedStyle=()=>({gridTemplateRows:'322px 78px 110px'});
- try{owner.rememberRows();assert.deepEqual(owner.rowHeights.get(1000),[322,78,110]);owner.host.clientWidth=900;globalThis.getComputedStyle=()=>{throw Error('Do not record old-width rows after resize');};owner.rememberRows();assert.equal(owner.rowHeights.size,1);owner.clear=()=>{};owner.beginOrder();assert.equal(owner.rowHeights.size,0,'explicit fresh entry releases prior order geometry');}finally{globalThis.getComputedStyle=prior;}
+test('Root releases superseded permanent blank row reservations',()=>{
+ const owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{layoutWidth:1000,host:{clientWidth:1000,getClientRects:()=>[{}]}});
+ owner.rememberRows();assert.equal(owner.rowHeights,undefined,'no old pixel rows are cached across removal');owner.clear=()=>{};owner.beginOrder();assert.equal(owner.rowHeights,undefined);
 });

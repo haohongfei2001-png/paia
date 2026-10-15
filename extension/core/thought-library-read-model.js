@@ -5,10 +5,13 @@ import {rootReadAuthority} from './organizer/root-read.js';
 import {topicActivitySnapshot} from './organizer/topic-root-activity.js';
 import {expressionTime} from './organizer/expression-time.js';
 import {inputProjection,readDependencyInputs,dependencyLifecycle,dependencyState} from './thought-evidence.js';
+import {bindingRead} from './thought-binding.js';
+import {exactExcerpt} from './organizer/topic-excerpt.js';
 import {AI_FIELDS} from './organizer/ai-contract.js';
 
 // TOPIC-05.1 local read facade. No worker/UI integration, external authorization,
-// body store, counts/excerpts, chronology maintenance or AI-heading synthesis.
+// body store, chronology maintenance or AI-heading synthesis. Root metadata
+// stays body-free; the separate bounded original-preview reader is ephemeral.
 // Foundation/compatibility preparation remains the existing owner's explicit
 // responsibility. Reads refuse until it is complete; they never initialize it.
 const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
@@ -242,6 +245,46 @@ export class ThoughtLibraryReadModel{
    const offset=start+limit,nextCursor=offset<snapshot.items.length?this.issue({kind:'root'},{offset},authority):null;
    return {version:1,kind:'root',items,nextCursor,complete:!nextCursor,coverage:{complete:!nextCursor},readingStructure:derived()};
   });
+ }
+
+ // Visible-card previews are a separate bounded read. The complete Root
+ // directory/cursors remain body-free and never retain these transient DTOs.
+ rootPreviews(options={}){
+  if(!exact(options,['topics'])||!Array.isArray(options.topics)||!options.topics.length||options.topics.length>12)invalid();
+  const refs=options.topics;
+  if(new Set(refs.map(ref=>ref?.id)).size!==refs.length||refs.some(ref=>!exact(ref,['id','revision','organizationRevision','layoutGeneration'])||!idOK(ref.id)||!revision(ref.revision)||!revision(ref.organizationRevision)||!Number.isSafeInteger(ref.layoutGeneration)||ref.layoutGeneration<1))invalid();
+  if(!this.ready())return Promise.resolve(empty('root_previews',{unavailable:true,reason:'foundation_not_ready'}));
+  // Enter the existing control-publication reader so an in-flight preference
+  // or recovery publication cannot provide a guessed visibility allowance.
+  return this.s.run(()=>this.read({kind:'root_previews'},null,async(t,_key,authority)=>{
+   const control=await this.s.control(t);
+   if(control.preferences?.hideContentPreviews!==false)return {...empty('root_previews',{masked:true}),authority};
+   const items=[];let candidates=0;
+   for(const ref of refs){
+    const raw=await t.get('topics',ref.id),topic=await topicMetadata(this.s,t,raw);
+    if(!topic||topic.revision!==ref.revision||topic.organizationRevision!==ref.organizationRevision||topic.layoutGeneration!==ref.layoutGeneration)return empty('root_previews',{cursorInvalid:true});
+    const page=await t.rangePage('placements','byTopicOrder',prefix([raw.id,raw.activeLayoutGeneration,0]),null,8);
+    let preview=null;
+    for(const {value:placement}of page.rows){
+     candidates++;
+     const identity=await placementMetadata(this.s,t,raw,placement);if(!identity)continue;
+     const stored=await t.get('thoughts',placement.entryId);
+     if(stored?.bodyBinding==='input'){const input=stored.workingInputId?await inputProjection(this.s,t,stored.workingInputId):null;if(!input||!input.sourceRecordIds.length||await this.s.isFiltered(t,input.block,await t.get('meta','smart-filter')))continue;}
+     const current=await this.s.readableEntry(t,placement.entryId);
+     if(!(current.provenanceType==='input_original'||current.origin==='user'||current.authorship?.body?.actor==='user'))continue;
+     const row=await bindingRead(this.s,t,current),body=row.thoughtText;
+     if(stored?.bodyBinding==='input'&&(row.bodyBinding!=='input'||row.bindingInputId!==stored.workingInputId||row.workingInputId!==stored.workingInputId))continue;
+     if(typeof body!=='string'||!body.trim())continue;
+     preview={entryId:row.id,revision:row.revision,sectionId:identity.section.id,...exactExcerpt(body)};break;
+    }
+    // Exhausting eight candidates means no preview, not an empty Topic claim.
+    items.push({topicId:topic.id,preview});
+   }
+   return {version:1,kind:'root_previews',items,complete:true,operations:{candidates,maxTopics:12,maxCandidatesPerTopic:8,maxExcerptUnits:140}};
+  },async result=>{
+   const local=(await this.s.local.get(STORAGE_KEY))?.[STORAGE_KEY];
+   return local?.preferences?.hideContentPreviews===false?result:{...result,items:[],masked:true};
+  }));
  }
 
  sectionPage(options={}){

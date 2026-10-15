@@ -1,4 +1,6 @@
 import {element} from './common.js';
+import {createIcon} from './icons.js';
+import {PersonalTopicPreviews} from './personal-topic-previews.js';
 import {placeChildren} from './retained-dom.js';
 import {TopicRootSlots,readTopicRootSlots,saveTopicRootSlots} from './topic-root-slots.js';
 import {topicRootURL} from './topic-root-target.js';
@@ -7,14 +9,14 @@ import {highlightText} from './search-experience.js';
 
 export class PersonalTopicRoot {
  constructor(host,{open,onResize=()=>{}}){
-  this.host=host;this.open=open;this.slots=readTopicRootSlots();this.nodes=new Map();this.items=[];this.complete=false;
-  this.resize=globalThis.ResizeObserver?new ResizeObserver(entries=>{if(!this.items.length||!host.getClientRects().length)return;const columns=this.columns();if(columns!==this.columnCount||host.clientWidth!==this.layoutWidth){this.layout();onResize();return;}for(const entry of entries){const node=entry.target.closest?.('.personal-topic-block');if(node&&this.nodes.get(node.dataset.topicId)===node&&!node.dataset.searchState)this.fit(node);}}):null;this.resize?.observe(host);
+  this.host=host;this.open=open;this.slots=readTopicRootSlots();this.nodes=new Map();this.items=[];this.complete=false;this.previews=null;
+  this.resize=globalThis.ResizeObserver?new ResizeObserver(entries=>{if(!this.items.length||!host.getClientRects().length)return;const columns=this.columns();if(columns!==this.columnCount||host.clientWidth!==this.layoutWidth){this.layout();onResize();return;}for(const entry of entries){const node=entry.target.closest?.('.personal-topic-block');if(node&&this.nodes.get(node.dataset.topicId)===node&&!node.dataset.searchState){this.fit(node);if(Math.abs((node.getBoundingClientRect?.().height||0)-(this.flowHeights?.get(node.dataset.topicId)||0))>.5){this.layout();onResize();return;}}}}):null;this.resize?.observe(host);
 
  }
- focusRef(){const active=document.activeElement;if(!this.host.contains(active)||active?.tagName!=='A'&&!active?.dataset.rootMatchKey&&!active?.dataset.rootMatchStep)return null;return {topicId:active.dataset.topicId,sectionId:active.dataset.sectionId||null,more:active.classList.contains('personal-topic-more'),...(active.dataset.rootMatchKey?{matchKey:active.dataset.rootMatchKey}:{}),...(active.dataset.rootMatchStep?{matchStep:active.dataset.rootMatchStep}:{})};}
- restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const match=ref.matchStep?[...node.querySelectorAll('[data-root-match-step]')].find(link=>link.dataset.rootMatchStep===ref.matchStep):ref.matchKey?[...node.querySelectorAll('[data-root-match-key]')].find(link=>link.dataset.rootMatchKey===ref.matchKey):null,section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(match||section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
+ focusRef(){const active=document.activeElement;if(!this.host.contains(active)||active?.tagName!=='A'&&!active?.dataset.rootMatchKey&&!active?.dataset.rootMatchStep&&!active?.dataset.rootPreview)return null;return {topicId:active.dataset.topicId,sectionId:active.dataset.sectionId||null,more:active.classList.contains('personal-topic-more'),...(active.dataset.rootPreview?{preview:true}:{}),...(active.dataset.rootMatchKey?{matchKey:active.dataset.rootMatchKey}:{}),...(active.dataset.rootMatchStep?{matchStep:active.dataset.rootMatchStep}:{})};}
+ restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const preview=ref.preview?node.querySelector('.personal-topic-preview button'):null,match=ref.matchStep?[...node.querySelectorAll('[data-root-match-step]')].find(link=>link.dataset.rootMatchStep===ref.matchStep):ref.matchKey?[...node.querySelectorAll('[data-root-match-key]')].find(link=>link.dataset.rootMatchKey===ref.matchKey):null,section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(preview||match||section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
  columns(){return Math.max(1,Math.min(3,Math.floor((this.host.clientWidth+16)/240)));}
- observeTitle(node,active){const title=node?.querySelector?.('.personal-topic-title');if(title)this.resize?.[active?'observe':'unobserve'](title);}
+ observeTitle(node,active){const title=node?.querySelector?.('.personal-topic-title');if(title)this.resize?.[active?'observe':'unobserve'](title);if(node)this.resize?.[active?'observe':'unobserve'](node);}
  link(text,topicId,sectionId=null,className='',isCurrent=()=>true){
   const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.draggable=false;a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
   a.title=text;
@@ -27,41 +29,48 @@ export class PersonalTopicRoot {
  }
  tile(item){
   const tile=element('article','personal-topic-block');tile.dataset.rootKey=continuousItemKey(item);tile.dataset.topicId=item.id;
-  const title=element('h2','personal-topic-title');title.append(this.link(item.name,item.id,null,'personal-topic-link'));tile.append(title);
+  const title=element('h2','personal-topic-title'),symbol=element('span','personal-topic-symbol');symbol.setAttribute('aria-hidden','true');symbol.append(createIcon('thoughts'));title.append(symbol,this.link(item.name,item.id,null,'personal-topic-link'));tile.append(title);
   const overview=element('div','personal-topic-sections');
   for(const section of item.sectionOverview.items){const a=this.link(section.title,item.id,section.id,'personal-section-link');a.title=section.title;overview.append(a);}
   tile.append(overview);
+  const preview=element('p','personal-topic-preview');preview.hidden=true;tile.append(preview);
   const en=document.documentElement.lang==='en',more=this.link(en?'Continue reading':'继续阅读',item.id,null,'personal-topic-more');more.setAttribute('aria-label',(en?'Continue reading ':'继续阅读 ')+item.name);tile.dataset.overviewComplete=String(item.sectionOverview.complete===true);tile.append(more);
   return tile;
  }
  render(items,{complete=false}={}){
+  this.previews??=new PersonalTopicPreviews(this.host,{nodes:()=>this.nodes,open:(topicId,sectionId)=>this.open(topicId,sectionId)});
   this.rememberRows();
   const focus=this.focusRef();
   this.items=items;this.complete=complete;this.host.classList.remove('topic-compact-list');this.host.classList.add('personal-topic-grid');
-  const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){this.observeTitle(node,false);node.remove();this.nodes.delete(id);}
+  const current=new Set(items.map(item=>item.id));for(const [id,node]of this.nodes)if(!current.has(id)){this.previews?.release(node);this.observeTitle(node,false);node.remove();this.nodes.delete(id);}
   for(const item of items){
    const signature=JSON.stringify([document.documentElement.lang,item.name,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete]),prior=this.nodes.get(item.id);
    if(prior?.dataset.searchState){for(const extra of prior.querySelectorAll('.personal-root-search-extra'))extra.remove();for(const link of prior.querySelectorAll('.personal-topic-link,.personal-section-link'))link.textContent=link.title;prior.classList.remove('personal-topic-nonmatch');delete prior.dataset.searchState;prior.style.removeProperty('height');}
    if(prior?.dataset.signature===signature)continue;
    // Keep an active selection/focus attached through unrelated refreshes.
    const node=this.tile(item);node.dataset.signature=signature;
-   if(prior){this.observeTitle(prior,false);const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}
+   if(prior){this.previews?.release(prior);this.observeTitle(prior,false);const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}
    this.nodes.set(item.id,node);this.observeTitle(node,true);
   }
-  this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';
+  this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';this.previews?.update(items);
  }
  rememberRows(){
-  if(!this.layoutWidth||this.host.clientWidth!==this.layoutWidth||!this.host.getClientRects().length)return;
-  this.rowHeights??=new Map();const heights=getComputedStyle(this.host).gridTemplateRows.split(' ').map(parseFloat);
-  if(heights.every(Number.isFinite)){this.rowHeights.set(this.layoutWidth,heights);while(this.rowHeights.size>10)this.rowHeights.delete(this.rowHeights.keys().next().value);}
+  // Permanent blank row reservations were superseded by TL-PT1-UI-1.1 V2.
+  // Identity history remains metadata-only; actual heights follow content.
  }
  layout(){
-  const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
+  const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;
+  const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
   this.host.style.setProperty('--topic-root-columns',String(columns));
-  const rows=Math.ceil(this.slots.extent(columns)/columns),heights=this.rowHeights?.get(this.layoutWidth)||[];
-  this.host.style.gridTemplateRows=Array.from({length:rows},(_,index)=>heights[index]?`minmax(${heights[index]}px,auto)`:'auto').join(' ');
-  for(const {id,slot,column,row}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(column);node.style.gridRow=String(row);node.dataset.rootSlot=String(slot);nodes.push(node);}
-  placeChildren(this.host,nodes);for(const node of nodes)this.fit(node);saveTopicRootSlots(this.slots);
+  this.host.style.gridTemplateRows='none';
+  for(const {id,slot}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(nodes.length%columns+1);node.dataset.rootSlot=String(slot);nodes.push(node);}
+  placeChildren(this.host,nodes);for(const node of nodes)this.fit(node);
+  // Explicit one-pixel grid tracks give deterministic independent column
+  // stacking without wrappers, random shortest-column packing, or DOM moves.
+  // Keep existing identity/focus/selection nodes and natural card heights.
+  const ends=Array(columns).fill(1),heights=nodes.map(node=>node.getBoundingClientRect().height);this.flowHeights=new Map();
+  nodes.forEach((node,index)=>{const column=index%columns,height=heights[index];this.flowHeights.set(node.dataset.topicId,height);const span=Math.max(1,Math.ceil(height));node.style.gridRow=`${ends[column]} / span ${span}`;ends[column]+=span+20;});
+  saveTopicRootSlots(this.slots);
  }
  fit(node){
   if(node.dataset.searchState==='true'&&['entry','ai','section'].includes(node.dataset.searchHitKind))return;
@@ -71,6 +80,7 @@ export class PersonalTopicRoot {
   more.hidden=node.dataset.overviewComplete==='true';
  }
  search(results,query,{open,complete=false}){
+  this.previews?.clear();
   const matches=new Map();
   if(this.searchQuery!==query){this.searchQuery=query;this.searchPositions=new Map();}this.searchPositions??=new Map();
   const token=this.searchRevision=(this.searchRevision||0)+1;
@@ -111,6 +121,6 @@ export class PersonalTopicRoot {
   }
  }
  beginOrder(){this.clear();this.rowHeights?.clear();this.slots=new TopicRootSlots();}
- clear(){this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.host.replaceChildren();}
- dispose(){this.resize?.disconnect();this.clear();}
+ clear(){this.previews?.clear();this.items=[];this.complete=false;for(const node of this.nodes.values())this.observeTitle(node,false);this.nodes.clear();this.flowHeights?.clear();this.host.replaceChildren();}
+ dispose(){this.previews?.dispose();this.resize?.disconnect();this.clear();}
 }

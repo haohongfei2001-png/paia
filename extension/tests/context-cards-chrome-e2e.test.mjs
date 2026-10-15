@@ -127,7 +127,7 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  for(const card of ['info','rules','now']){
   await open(card);assert.equal(await p.locator('.item-text').count(),0);await p.locator('.add-item').click();const text=`SYNTHETIC ${card} natural-language item`;
   await field(p).fill(text);await field(p).press('Enter');await p.keyboard.insertText('Second line');await field(p).press('Control+Enter');await eventually(async()=>(await items(card))[0]?.body===text+'\nSecond line','Enter retains a real newline and shortcut commits '+card);
-  ids[card]=(await items(card))[0].id;assert.equal(await p.locator('.item-text').count(),1);await home();assert.equal(await p.locator(`[data-count="${card}"]`).textContent(),'1 项');
+  ids[card]=(await items(card))[0].id;assert.equal(await p.locator('.item-text').count(),1);await home();assert.equal(await p.locator(`[data-count="${card}"]`).count(),0);assert.match(await p.locator(`.context-card[data-card="${card}"] .context-directory-link`).innerText(),/查看内容/);
  }
  assert.deepEqual((await read(p)).counts,{info:1,rules:1,now:1,inputs:0});
  // CTX4-07: hold only delivery of a real committed acknowledgement. The
@@ -203,7 +203,7 @@ for(const variant of ['source','release'])test('CTX4-02 all local cards, isolate
  try{
   await coarse(null);
   const capsuleSizes=await p.locator('#memory-panel .context-access').evaluateAll(nodes=>nodes.map(node=>({className:node.className,height:node.getBoundingClientRect().height,minHeight:getComputedStyle(node).minHeight})));await writeFile(`${dir}/07-tablet-coarse-sizes.json`,JSON.stringify(capsuleSizes,null,2));for(const size of capsuleSizes)assert.ok(size.height>=44,JSON.stringify(size));
-  const infoCapsule=p.locator('.context-card[data-card="info"] .context-access');await tap(infoCapsule,{height44:true});await eventually(async()=>!(await read(p)).access.info.enabled);assert.equal(await p.locator('.context-card').count(),4,'tablet capsule does not activate overlaid card link');
+  const infoCapsule=p.locator('.context-card[data-card="info"] .context-access');const separate=await infoCapsule.evaluate(node=>{const card=node.closest('.context-card'),heading=card.querySelector('.card-link'),a=node.getBoundingClientRect(),h=heading.getBoundingClientRect();return {footer:node.parentElement.classList.contains('card-footer'),nested:heading.contains(node),separated:h.bottom<=a.top};});assert.deepEqual(separate,{footer:true,nested:false,separated:true});await tap(infoCapsule,{height44:true});await eventually(async()=>!(await read(p)).access.info.enabled);assert.equal(await p.locator('.context-card').count(),4,'tablet capsule is separate from the content heading');
   for(const card of ['global','rules','now','inputs'])assert.equal((await read(p)).access[card].enabled,touchBefore.access[card].enabled);
   await tap(p.locator('.context-card[data-card="info"] .card-link'),{card:true});await field(p).waitFor();assert.equal(await p.locator('.item-text').count(),2);await coarse('info');
   const summary=p.locator('.item-menu summary').first();await tap(summary,{height44:true,menu:true});await eventually(()=>p.locator('.item-menu').first().getAttribute('open').then(value=>value!==null));await p.screenshot({path:`${dir}/07-tablet-coarse-info-menu.png`,fullPage:true});assert.equal(await p.evaluate(()=>matchMedia('(pointer: coarse)').matches),true);await tap(summary,{height44:true,menu:true});await eventually(()=>p.locator('.item-menu').first().getAttribute('open').then(value=>value===null));

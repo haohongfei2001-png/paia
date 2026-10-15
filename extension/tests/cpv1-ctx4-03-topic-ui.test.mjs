@@ -81,11 +81,11 @@ for(const count of [20,50,144])test(`CTX4-03 actual My Inputs traverses all ${co
  assert.deepEqual(reopened.inputs.order,expected);assert.equal(reopened.inputs.rows.get(id).enabled,true);assert.equal(reopened.inputs.rows.get(id).revision,3);assert.equal((await access.page()).externalAllowed,false);
 },{count}));
 
-test('CTX4-03 home uses actual selected count while global and Inputs pause retain exact choices',()=>fixture(async({s,cards,makePage})=>{
+test('CTX4-03 home preserves actual selected choices without a count badge while global and Inputs pause',()=>fixture(async({s,cards,makePage})=>{
  const page=makePage();await page.open('inputs');const id=page.inputs.order[0];await page.inputs.toggle(id);const saved=await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW);
  for(const key of ['global','inputs']){const access=(await cards.snapshot()).access[key];await cards.change({kind:'access',key,enabled:false,expectedRevision:access.revision,operationId:op(),epoch:'initial'});await page.refresh();assert.equal(page.inputs.rows.get(id).enabled,true);assert.equal(page.inputs.nodes.get(id).dataset.paused,'true');assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),saved);}
  assert.match(page.inputs.note.textContent,/private.*retained/);assert.equal(await page.leave(),true);await page.open(null);
- assert.equal(page.host.querySelector('[data-count="inputs"]').textContent,'1 topics selected');assert.equal(page.host.querySelector('.input-summary').textContent,page.snapshot.topicChoices.selectedNames.join(' · '));assert.equal(page.snapshot.topicChoices.remainingSelectedCount,0);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
+ assert.equal(page.host.querySelector('[data-count="inputs"]'),null);assert.equal(page.snapshot.topicChoices.selectedCount,1);assert.equal(page.host.querySelector('.input-summary').textContent,page.snapshot.topicChoices.selectedNames.join(' · '));assert.equal(page.snapshot.topicChoices.remainingSelectedCount,0);assert.equal(page.snapshot.connections,0);assert.equal(page.snapshot.capabilities.external,false);
 }));
 
 test('CTX4-03 malformed Topic preferences show unavailable on home while all independent card Items survive',()=>fixture(async({s,cards,access,makePage,calls})=>{
@@ -93,7 +93,7 @@ test('CTX4-03 malformed Topic preferences show unavailable on home while all ind
  const directory=await access.page();assert.equal((await access.change(choice(directory.items[0],directory.epoch))).ok,true);
  const savedItems=structuredClone((await cards.snapshot()).items),malformed={...await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),version:2};await s.repository.transaction(true,t=>t.put('meta',malformed));const bodies=await protectedRows(s);
  const page=makePage();await page.open(null);assert.deepEqual(page.snapshot.topicChoices,{available:false,selectedCount:null,externalAllowed:false});assert.equal(page.snapshot.capabilities.inputs,false);assert.deepEqual(page.snapshot.items,savedItems);
- const count=page.host.querySelector('[data-count="inputs"]'),summary=page.host.querySelector('.input-summary');assert.equal(count.textContent,'Topic choices unavailable');assert.equal(summary.textContent,'Topic choices cannot be read right now. Existing settings are retained.');assert.doesNotMatch(count.textContent,/^0\b/);assert.doesNotMatch(summary.textContent,/No open topics|0 topics/i);
+ const count=page.host.querySelector('[data-count="inputs"]'),summary=page.host.querySelector('.input-summary');assert.equal(count,null,'white Home has no count badge, including unavailable state');assert.equal(summary.textContent,'Topic choices cannot be read right now. Existing settings are retained.');assert.equal(page.snapshot.topicChoices.selectedCount,null);assert.doesNotMatch(summary.textContent,/No open topics|0 topics/i);
  for(const card of ['info','rules','now']){assert.equal(page.snapshot.counts[card],1);assert.equal(page.snapshot.capabilities[card],true);assert.equal(await page.leave(),true);await page.open(card);assert.equal(page.editors.size,1);const editor=[...page.editors.values()][0];assert.equal(editor.saved.card,card);assert.equal(editor.field.textContent,`SYNTHETIC protected ${card} Item`);}
  assert.deepEqual((await cards.snapshot()).items,savedItems);assert.deepEqual(await raw(s,'meta',CONTEXT_TOPIC_ACCESS_ROW),malformed);assert.deepEqual(await protectedRows(s),bodies);assert.equal(calls.some(call=>call.type==='PAIA_CONTEXT_CARDS_CHANGE'||call.type==='PAIA_CONTEXT_TOPICS_CHANGE'),false);
 }));

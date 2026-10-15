@@ -474,13 +474,14 @@ for(const outcome of ['success','failure'])test(`CTX4-02 pre-leave refresh ${out
  assert.equal(outgoing.isConnected,false);assert.equal(page.host.querySelector('h1').textContent,'My Now');
 }));
 
-test('CTX4-02 home counts use actual per-card Items and connections navigation stays local',()=>fixture(async({c,makePage,calls,navigations})=>{
+test('CTX4-02 white home keeps real card entries without counts and connections navigation stays local',()=>fixture(async({c,makePage,calls,navigations})=>{
  await c.change(put('rules'));await c.change(put('now'));await c.change(put('now'));
  const page=makePage();await page.open();
- assert.equal(page.host.querySelector('[data-count="info"]').textContent,'1 items');
- assert.equal(page.host.querySelector('[data-count="rules"]').textContent,'2 items');
- assert.equal(page.host.querySelector('[data-count="now"]').textContent,'3 items');
- assert.equal(page.host.querySelector('[data-count="inputs"]').textContent,'0 topics open');
+ assert.deepEqual(page.snapshot.counts,{info:1,rules:2,now:3,inputs:0});
+ for(const card of page.host.querySelectorAll('.context-card')){
+  assert.equal(card.querySelector(`[data-count="${card.dataset.card}"]`),null);
+  assert.match(card.querySelector('.context-directory-link').textContent,card.dataset.card==='inputs'?/Choose topics/:/View content/);
+ }
  const link=page.host.querySelector('.connections-link');
  assert.equal(link.querySelector('.connection-number').textContent,'0');
  link.onclick();
