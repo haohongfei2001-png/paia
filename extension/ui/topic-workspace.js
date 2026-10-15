@@ -316,7 +316,7 @@ export class TopicController {
  // A successful AppShell departure can precede open() and synchronously remove
  // every Root node. Capture before release; a second leave must not overwrite
  // that position with an empty DOM or its browser-clamped scroll offset.
- captureHomePosition(){if(!this.id&&this.personalRoot?.nodes?.size===0)return null;const anchor=this.id&&this.view==='original'?this.topicAnchor():null;return {scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(anchor?{anchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor()}: {})};}
+ captureHomePosition(){if(!this.id&&this.personalRoot?.nodes?.size===0)return null;const anchor=this.id&&this.view==='original'?this.topicAnchor():null;return {scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(anchor?{anchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor(),returnGeometry:{authority:this.homeCollection.authority,source:this.rootProviderKey||null,session:this.rootGeometrySession||0,geometry:this.personalRoot?.captureReturnGeometry?.()||null}}: {})};}
  saveHomePosition(key,value){this.homePositions.delete(key);this.homePositions.set(key,value);while(this.homePositions.size>21){const oldest=[...this.homePositions.keys()].find(k=>k!=='home');this.homePositions.delete(oldest);}}
  captureHomeAnchor(){if(this.id)return null;const rows=[...$('thought-list').querySelectorAll('[data-root-key]')],focusRef=rows.length?this.personalRoot.focusRef():null,visible=x=>{const r=x.getBoundingClientRect();return r.bottom>120&&r.top<(globalThis.innerHeight||Infinity);};
   // Independent content-sized columns need the activated identity's own anchor.
@@ -324,7 +324,7 @@ export class TopicController {
   const focused=focusRef&&rows.find(x=>x.dataset.topicId===focusRef.topicId&&visible(x)),node=focused||rows.find(visible);
   return node?{key:node.dataset.rootKey,id:node.querySelector('[data-topic-id]')?.dataset.topicId||null,top:node.getBoundingClientRect().top,focusRef}:null;}
  beginHomeFocusScroll(){const token=this.homeFocusToken=(this.homeFocusToken||0)+1;this.homeFocusScrolling=true;requestAnimationFrame(()=>requestAnimationFrame(()=>{if(this.homeFocusToken===token)this.homeFocusScrolling=false;}));}
- cancelHomeAnchor(){this.homeResizeAnchor=null;this.homeAnchorInputEpoch=(this.homeAnchorInputEpoch||0)+1;}
+ cancelHomeAnchor(){this.rootReturnGeometry=null;this.homeResizeAnchor=null;this.homeAnchorInputEpoch=(this.homeAnchorInputEpoch||0)+1;}
  cancelHomeFocusScroll(){this.cancelHomeAnchor();this.homeFocusToken=(this.homeFocusToken||0)+1;this.homeFocusScrolling=false;}
  rememberHomeAnchor(anchor=this.captureHomeAnchor()){const r=this.homeCollection;if(anchor&&r&&!r.query&&r.keys?.has(anchor.key))this.homeReadingPosition={scope:r.scope,authority:r.authority,anchor:{key:anchor.key,id:anchor.id||null,top:anchor.top}};}
  previousHomeAnchor(){const r=this.homeCollection,p=this.homeReadingPosition;return r&&p&&p.scope===r.scope&&p.authority===r.authority&&r.keys.has(p.anchor.key)?p.anchor:null;}
@@ -336,14 +336,15 @@ export class TopicController {
  // Only the primary navigation owner calls this after its leave/IME guard.
  // Back and route restoration deliberately keep their recorded collection and
  // slots; ordinary background refreshes never opt into a new activity order.
+ resetRootReturnGeometry(){this.rootGeometrySession=(this.rootGeometrySession||0)+1;this.rootReturnGeometry=null;const saved=this.homePositions?.get('home');if(saved)delete saved.returnGeometry;}
  beginRootEntry(){
-  this.rootSearchSession=null;this.freshRootEntry=true;this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
+  this.resetRootReturnGeometry();  this.rootSearchSession=null;this.freshRootEntry=true;this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
   this.homePositions.delete('home');this.rootInvalidationAnchor=null;this.rootPreSearch=null;this.rootBaseCollection=null;this.preserveHomeRefresh=false;
   $('thought-search').value='';this.rootProviderKey=null;
  }
  resetHomeCollection(){this.homePaintAnchor=null;clearTimeout(this.continuousTimer);this.homeWindowShift=null;this.homeWindowShifting=false;this.homePage=null;this.homeHydrationAnchor=null;this.homeWindowReveal=null;this.homeCollection?.releaseBodies?.();this.homeCollection=null;this.homeDesiredCount=Math.max(40,this.personalRoot.slots.extent());this.homeRestoring=false;}
  invalidateHomeSnapshot({cause}={}){
-  this.invalidateTimeline?.();this.rootPreSearch=null;this.rootBaseCollection?.releaseBodies();this.rootBaseCollection=null;
+  this.resetRootReturnGeometry();  this.invalidateTimeline?.();this.rootPreSearch=null;this.rootBaseCollection?.releaseBodies();this.rootBaseCollection=null;
   this.unplacedCollection=null;
   const unplaced=$('library-unplaced-list'),unplacedExpanded=!unplaced.hidden;
   unplaced.replaceChildren($('unplaced-continuous-sentinel'));
@@ -359,7 +360,7 @@ export class TopicController {
   if(!canRetainRootMetadata(cause))for(const node of document.querySelectorAll('.topic-root-section-anchor'))node.remove();
  }
  rootSearchReturnSession(){if(!this.rootPreSearch||!this.rootSearchSession)return null;const query=$('thought-search')?.value.trim();return query&&this.rootPreSearch&&this.personalRoot?.searchQuery===query?this.rootSearchSession:null;}
- clearHomeRows({preserveSearch=false}={}){this.homeResizeAnchor=null;this.homePaintAnchor=null;this.homePage=null;this.personalRoot?.clear({searchSession:preserveSearch?this.rootSearchReturnSession():null});}
+ clearHomeRows({preserveSearch=false}={}){this.rootReturnGeometry=null;this.homeResizeAnchor=null;this.homePaintAnchor=null;this.homePage=null;this.personalRoot?.clear({searchSession:preserveSearch?this.rootSearchReturnSession():null});}
  homeCollectionScope(query){return this.rootProviderKey?JSON.stringify(['source',this.rootProviderKey,query?'search':'root']):query?'search':'root';}
  createHomeCollection(query){const scope=this.homeCollectionScope(query),providerKey=this.rootProviderKey;return new ContinuousRootReader({scope,query,windowSize:Number.MAX_SAFE_INTEGER,pins:()=>this.rootPins(),load:async({cursor,authority})=>{
   if(query)return request('GET_LIBRARY_ROOT_SEARCH',{options:{query,cursor,authority,limit:40}});
@@ -453,7 +454,8 @@ export class TopicController {
   // A bounded ordering preparation is not an empty-directory result. Keep
   // the current metadata slots until the admitted replacement is complete.
   if(page.indexing&&!page.items.length){$('library-search-status').textContent=tc('正在准备思想列表…');return false;}
-  this.personalRoot.render(page.items,{complete:page.complete===true});
+  const returned=this.rootReturnGeometry;this.rootReturnGeometry=null;const returnGeometry=returned&&returned.intent===this.openIntent&&returned.source===(this.rootProviderKey||null)&&returned.session===(this.rootGeometrySession||0)&&returned.authority===this.homeCollection?.authority&&returned.inputEpoch===(this.homeAnchorInputEpoch||0)&&Math.abs((globalThis.scrollY||0)-returned.scroll)<.5?returned.geometry:null;
+  this.personalRoot.render(page.items,{complete:page.complete===true,returnGeometry});
   $('library-search-status').textContent=page.coverage?.complete===false?'继续向下读取全部主题。':'';
   setProductState($('thought-collection'),page.items.length?'ready':page.complete?'empty':'loading');
   $('thought-empty').hidden=page.items.length>0||!page.complete;
@@ -636,7 +638,7 @@ export class TopicController {
  updateRootSourceOptions(serial=this.serial,state={}){return this.updateSourceOptions(serial,true,state);}
  async changeRootSourceScope(next=$('thought-source-scope').value||null){
   if(this.id||next===this.rootProviderKey)return;
-  this.serial++;this.statusEpoch++;this.rootSearchSession=null;this.rootBaseCollection?.releaseBodies?.();this.rootBaseCollection=null;this.rootPreSearch=null;this.clearHomeRows();this.rootProviderKey=next;this.resetHomeCollection();this.homePage=null;this.homeSignature=null;this.snapshotKey=null;
+  this.resetRootReturnGeometry();this.serial++;this.statusEpoch++;this.rootSearchSession=null;this.rootBaseCollection?.releaseBodies?.();this.rootBaseCollection=null;this.rootPreSearch=null;this.clearHomeRows();this.rootProviderKey=next;this.resetHomeCollection();this.homePage=null;this.homeSignature=null;this.snapshotKey=null;
   $('library-unplaced-list').hidden=true;$('library-unplaced').setAttribute('aria-expanded','false');
   await this.refresh();
  }
@@ -1405,7 +1407,7 @@ export class TopicController {
   this.id=id;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
   const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=this.view==='original'?(session?.anchor||saved?.anchor||null):null,sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
   if(id&&this.view==='original'&&!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;if(!this.resumeAnchor&&saved?.sort)this.readingSort=saved.sort;
-  $('topic-search').value=id?(session?.query??saved?.query??''):'';if(!id){this.rootProviderKey=saved?.rootProviderKey||null;if(saved){$('thought-search').value=saved.query||'';this.rootInvalidationAnchor=saved.rootAnchor||null;if(saved.collection){this.homeCollection=this.createHomeCollection(saved.query||'');this.homeCollection.restore(saved.collection,{scope:this.homeCollectionScope(saved.query||''),query:saved.query||''});this.homeDesiredCount=Math.max(40,saved.collection.items.length);this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootInvalidationAnchor=saved.rootAnchor||null;}}}this.cursor=id?(session?.cursor??saved?.cursor??null):null;this.pages=session?.pages||saved?.pages||[];this.history=null;if(sessionAnchor)this.topicNavigationAnchor={entryId:sessionAnchor.id,top:sessionAnchor.top};
+  $('topic-search').value=id?(session?.query??saved?.query??''):'';if(!id){this.rootProviderKey=saved?.rootProviderKey||null;if(saved){const returned=saved.returnGeometry;delete saved.returnGeometry;this.rootReturnGeometry=returned?{...returned,intent,inputEpoch:this.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0}:null;$('thought-search').value=saved.query||'';this.rootInvalidationAnchor=saved.rootAnchor||null;if(saved.collection){this.homeCollection=this.createHomeCollection(saved.query||'');this.homeCollection.restore(saved.collection,{scope:this.homeCollectionScope(saved.query||''),query:saved.query||''});this.homeDesiredCount=Math.max(40,saved.collection.items.length);this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootInvalidationAnchor=saved.rootAnchor||null;}}}this.cursor=id?(session?.cursor??saved?.cursor??null):null;this.pages=session?.pages||saved?.pages||[];this.history=null;if(sessionAnchor)this.topicNavigationAnchor={entryId:sessionAnchor.id,top:sessionAnchor.top};
   if(id&&this.view==='original')this.restoreContent(id);const restoreInputEpoch=this.topicRestoreInputEpoch||0;await this.refresh();if(intent!==this.openIntent)return;this.onOpen();
   let sessionAnchorRestored=false;
   if((this.topicRestoreInputEpoch||0)===restoreInputEpoch){if(!(this.view==='original'&&(sessionAnchor||this.topicReader?.sectionAnchorRestored||this.topicReader?.sectionRestoreRefused)))scrollTo(0,session?.scroll??saved?.scroll??0);else sessionAnchorRestored=this.topicReader?.restoreAnchor(this.originalPane,sessionAnchor,this.topicAnchorEntry(sessionAnchor?.id))===true;}

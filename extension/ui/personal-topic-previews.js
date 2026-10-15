@@ -4,13 +4,13 @@ const signature=item=>JSON.stringify([item.id,item.revision,item.organizationRev
 // Only visible cards own snippets; no text is kept in history or a backing map.
 export class PersonalTopicPreviews {
  constructor(host,{nodes,open,send=request}){
-  Object.assign(this,{host,nodes,open,send});this.items=[];this.generation=0;this.key='';this.active=true;this.nodeIds=new WeakMap();this.nextNodeId=0;
-  this.scroll=()=>void this.refresh();this.intersection=globalThis.IntersectionObserver?new IntersectionObserver(this.scroll):null;this.visibility=()=>{if(this.suspended)return;if(document.hidden)this.clear({forget:false});else void this.refresh();};
+  Object.assign(this,{host,nodes,open,send});this.items=[];this.generation=0;this.key='';this.active=true;this.geometryEpoch=0;this.nodeIds=new WeakMap();this.nextNodeId=0;
+  this.scroll=()=>void this.refresh();this.intersection=globalThis.IntersectionObserver?new IntersectionObserver(this.scroll):null;this.visibility=()=>{if(document.hidden)this.geometryEpoch++;if(this.suspended)return;if(document.hidden){this.clear({forget:false});}else void this.refresh();};
   this.presentation=this.presentationKey();
-  this.invalidate=()=>{if(this.suspended)return;this.clear({forget:false});void this.refresh();};
-  this.preferences=()=>{if(this.suspended)return;const next=this.presentationKey(),reserve=next===this.presentation&&!document.hidden&&!document.documentElement.classList?.contains('paia-hide-content-previews');this.presentation=next;this.clear({forget:false,reserve});void this.refresh();};
+  this.invalidate=()=>{this.geometryEpoch++;if(this.suspended)return;this.clear({forget:false});void this.refresh();};
+  this.preferences=()=>{const next=this.presentationKey(),same=next===this.presentation;this.presentation=next;if(!same)this.geometryEpoch++;if(this.suspended)return;const reserve=same&&!document.hidden&&!document.documentElement.classList?.contains('paia-hide-content-previews');this.clear({forget:false,reserve});void this.refresh();};
   this.maskObserver=globalThis.MutationObserver?new MutationObserver(this.preferences):null;this.maskObserver?.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
-  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){if(this.suspended)return;this.clear({forget:false,reserve:true});this.awaitingMetadata=true;return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.invalidate();};
+  this.changed=message=>{if(message?.type==='ARCHIVE_CHANGED'&&message.cause==='EDIT_LIBRARY_TOPIC'){this.geometryEpoch++;if(this.suspended)return;this.clear({forget:false,reserve:true});this.awaitingMetadata=true;return;}if(['ARCHIVE_CHANGED','PAIA_CONTEXT_CARDS_CHANGED','PREFERENCES_CHANGED'].includes(message?.type))this.invalidate();};
   globalThis.addEventListener?.('scroll',this.scroll,true);globalThis.addEventListener?.('resize',this.scroll);document.addEventListener('visibilitychange',this.visibility);document.addEventListener('paia:preferences-applied',this.preferences);globalThis.chrome?.runtime?.onMessage?.addListener(this.changed);
  }
  // Already-applied presentation identity, never preference payload or body data.

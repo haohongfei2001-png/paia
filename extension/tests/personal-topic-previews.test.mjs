@@ -119,3 +119,7 @@ test('actual settings applyPreferences publication of unchanged DOM presentation
  apply();assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px');assert.equal(f.host.dataset.retainedPreviewBodies,'0');
  local.preferences.appearance='dark';apply();assert.equal(p.style.minHeight,'','actual changed theme identity invalidates the old geometry');
 });
+
+test('hidden visibility retires parked numeric return qualification even during writing suspension',t=>{
+ const f=fixture(t);f.owner.suspend();const epoch=f.owner.geometryEpoch;f.doc.hidden=true;f.owner.visibility();assert.ok(f.owner.geometryEpoch>epoch);assert.equal(f.host.dataset.retainedPreviewBodies,'0');assert.equal(f.pending.length,0);
+});

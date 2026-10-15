@@ -50,7 +50,20 @@ export class PersonalTopicRoot {
  // Back may retain geometry, never nodes or body text; locale and ordered
  // metadata qualify it again before a fresh card receives the reservation.
  searchMetadata(items){return JSON.stringify([document.documentElement.lang,items.map(item=>[item.id,item.revision,item.organizationRevision,item.layoutGeneration,item.name,item.sectionOverview.items.map(section=>[section.id,section.title,section.revision]),item.sectionOverview.complete])]);}
- render(items,{complete=false,preserveSearch=false,searchSession=null,query=''}={}){
+ // Match the existing bounded identity-address envelope. This is one current
+ // Root departure, not an accumulating body cache or a persistent history field.
+ captureReturnGeometry(){
+  if(this.searchQuery||!this.previews||this.items.length>50000)return null;
+  const rows=[];for(const item of this.items){const height=this.nodes.get(item.id)?.querySelector('.personal-topic-preview')?.getBoundingClientRect().height;if(Number.isFinite(height)&&height>0)rows.push({id:item.id,revision:item.revision??null,organizationRevision:item.organizationRevision??null,layoutGeneration:item.layoutGeneration??null,height});}
+  return {width:this.host.clientWidth,columns:this.columns(),presentation:this.previews.presentationKey(),epoch:this.previews.geometryEpoch||0,count:this.items.length,rows};
+ }
+ restoreReturnGeometry(saved,items){
+  if(!saved||items.length>50000||saved.rows.length>50000||saved.count!==items.length||saved.width!==this.host.clientWidth||saved.columns!==this.columns()||saved.presentation!==this.previews.presentationKey()||saved.epoch!==(this.previews.geometryEpoch||0))return;
+  const refs=new Map(items.map(item=>[item.id,item]));
+  if(saved.rows.some(row=>{const item=refs.get(row.id);return !item||['revision','organizationRevision','layoutGeneration'].some(key=>(item[key]??null)!==row[key]);}))return;
+  for(const {id,height}of saved.rows){const preview=this.nodes.get(id)?.querySelector('.personal-topic-preview');if(preview&&Number.isFinite(height)&&height>0){preview.style.minHeight=`${height}px`;preview.hidden=false;}}
+ }
+ render(items,{complete=false,preserveSearch=false,searchSession=null,query='',returnGeometry=null}={}){
   this.previews??=new PersonalTopicPreviews(this.host,{nodes:()=>this.nodes,open:(topicId,sectionId)=>this.open(topicId,sectionId)});
   this.rememberRows();
   const focus=this.focusRef();
@@ -79,6 +92,7 @@ export class PersonalTopicRoot {
    this.nodes.set(item.id,node);this.observeTitle(node,true);
   }
   if(restored)for(const [id,node]of this.nodes)node.style.height=`${this.searchGeometry.rows.get(id).height}px`;
+  if(!preserveSearch)this.restoreReturnGeometry(returnGeometry,items);
   this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';if(preserveSearch)this.lockSearchGeometry();else this.previews?.update(items);
  }
  rememberRows(){
