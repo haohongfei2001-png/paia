@@ -1,3 +1,4 @@
+import {qualifyRootViewport,rootViewportSettled} from './harness/root-viewport-readiness.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile,mkdtemp,rm,cp,readFile} from 'node:fs/promises';
@@ -54,7 +55,9 @@ async function rootReady(p,count){
  },`all ${count} Personal Topics reach a real end`,30000);
  await p.waitForFunction(()=>history.state?.paiaReader?.view==='thoughts'&&!history.state?.paiaReader?.topicId&&!document.querySelector('.workspace').inert);
  await p.evaluate(()=>{const owner=globalThis.__rootReadOwner?.personalRoot?.previews;if(owner&&!owner.__geometryProbe){owner.__geometryProbe=true;const release=owner.release;owner.release=function(node,options){const p=node?.querySelector('.personal-topic-preview'),before=p?.getBoundingClientRect().height||0,min=p?.style.minHeight;const out=release.call(this,node,options),after=p?.getBoundingClientRect().height||0;if(before>after){const trace=globalThis.__previewGeometryTrace??=[];trace.push({slot:node.dataset.rootSlot,before,after,min,afterMin:p.style.minHeight,reserve:options?.reserve===true,visible:this.visible(node),awaitingMetadata:!!this.awaitingMetadata,stack:new Error().stack.split('\n').slice(2,5)});if(trace.length>40)trace.shift();}return out;};}scrollTo(0,0);});
- await eventually(()=>p.locator('#thought-list').getAttribute('data-preview-state').then(state=>state!=='loading'),'visible exact previews finish before Root geometry measurement');
+ await p.evaluate(qualifyRootViewport);
+ await eventually(()=>p.evaluate(rootViewportSettled),'visible exact previews finish before Root geometry measurement');
+ await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 }
 // The continuous reader owns real Section nodes; the prior temporary Root
 // anchor is intentionally absent. Assert the exact durable target and focus.

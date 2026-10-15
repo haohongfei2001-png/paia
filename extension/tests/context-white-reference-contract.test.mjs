@@ -130,3 +130,14 @@ test('reference finalization retains primary failure despite all evidence and di
   assert.deepEqual(calls,['execution','close','release','report']);
  }
 });
+
+
+test('Add alone receives approved primary colors across light/dark and mobile without reducing touch targets',async()=>{
+ const css=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
+ for(const text of [css,detailReferenceCSS]){
+  assert.match(text,/\.context-editor-toolbar \.add-item,\.context-editor-toolbar \.add-item:hover\{background:#3769c9;border-color:#3769c9;color:#fff\}/);
+  assert.match(text,/html\[data-paia-theme=dark\] \.context-editor-toolbar \.add-item\{background:#4173c7;border-color:#4173c7;color:#fff\}/);
+  assert.match(text,/html\[data-paia-theme=dark\] \.context-editor-toolbar \.add-item:hover\{background:#3465b7;border-color:#3465b7;color:#fff\}/);
+ }
+ for(const width of [760,530,320])assert.equal(responsiveValue(css,'.add-item','min-height',width),'44px');
+});

@@ -25,6 +25,13 @@ export const detailReferenceCSS=`
 /* Final approved palette: content-group > group-label (not a heading role). */
 .context-page.context-detail .detail-content .context-section>h2{color:#525e6d}
 html[data-paia-theme=dark] .context-page.context-detail .detail-content .context-section>h2{color:#a9b6c7}
+
+/* Approved primary Add role: final white palette overrides base hover;
+   dark retains the original base primary/hover. Existing 36/44px hitboxes,
+   typography, geometry and real disabled/dirty handlers remain unchanged. */
+.context-editor-toolbar .add-item,.context-editor-toolbar .add-item:hover{background:#3769c9;border-color:#3769c9;color:#fff}
+html[data-paia-theme=dark] .context-editor-toolbar .add-item{background:#4173c7;border-color:#4173c7;color:#fff}
+html[data-paia-theme=dark] .context-editor-toolbar .add-item:hover{background:#3465b7;border-color:#3465b7;color:#fff}
 `;
 export async function applyDetailReference(page){
  await page.evaluate(()=>{

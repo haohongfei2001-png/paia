@@ -81,3 +81,17 @@ test('metadata publication waits for refreshed references before requesting the 
  f.owner.changed({type:'ARCHIVE_CHANGED',cause:'REMOVE_LIBRARY_TOPIC'});
  assert.equal(p.style.minHeight,'','real qualification change still drops reservations');
 });
+
+test('native readiness qualifies the current viewport instead of accepting the previous viewport settled state',async t=>{
+ const {qualifyRootViewport,rootViewportSettled}=await import('./harness/root-viewport-readiness.mjs'),f=fixture(t),old=globalThis.__rootReadOwner;
+ const controller={personalRoot:{previews:f.owner},homePage:{},homeCollection:{loading:false,hydration:null}};globalThis.__rootReadOwner=controller;t.after(()=>{if(old===undefined)delete globalThis.__rootReadOwner;else globalThis.__rootReadOwner=old;});
+ const collection=new Node(),retry={hidden:true};f.doc.getElementById=id=>id==='thought-list'?f.host:id==='thought-collection'?collection:retry;
+ f.owner.update(f.items);f.respond();await settle();assert.equal(rootViewportSettled(),true);
+ // scrollTo has moved the viewport, but its queued scroll event has not fired.
+ for(const [id,node]of f.nodes){node.rect.top=id==='20'?10:1000;node.rect.bottom=node.rect.top+100;}
+ assert.equal(f.host.dataset.previewState,'settled','old viewport marker remains until its event');
+ qualifyRootViewport();assert.equal(rootViewportSettled(),false,'held current qualification is never ready');assert.deepEqual(f.pending[1].args.options.topics.map(x=>x.id),['20']);
+ f.pending[1].resolve({kind:'root_previews',items:[{topicId:'20',preview:null}]});await settle();assert.equal(rootViewportSettled(),true);assert.equal(f.host.dataset.retainedPreviewBodies,'0','missing eligibility does not manufacture a body or reserved height');
+ for(const key of ['loading','hydration']){controller.homeCollection[key]=true;assert.equal(rootViewportSettled(),false);controller.homeCollection[key]=false;}
+ controller.readFailed=true;assert.equal(rootViewportSettled(),false);controller.readFailed=false;retry.hidden=false;assert.equal(rootViewportSettled(),false);
+});
