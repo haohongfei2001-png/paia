@@ -126,8 +126,9 @@ async function deepRootHistory(p){
   const after=await tile.evaluate(node=>({id:node.dataset.topicId,slot:node.dataset.rootSlot,top:node.getBoundingClientRect().top}));
   assert.equal(after.id,before.id);assert.equal(after.slot,before.slot);assert.ok(Math.abs(after.top-before.top)<=2,'identity-relative Back never substitutes the top of Root or a stale document offset');
  };
- await p.keyboard.press('Enter');await topicReady();await p.goBack();await rootReturned();
- await p.goForward();await topicReady();await p.goBack();await rootReturned();
+ const traceDeparture=phase=>p.evaluate(phase=>{const owner=globalThis.__rootReadOwner,saved=owner?.homePositions?.get('home'),active=document.activeElement,trace=globalThis.__rootHistoryTrace??=[];trace.push({phase,scroll:scrollY,ownerId:owner?.id||null,nodes:owner?.personalRoot?.nodes?.size,activeTopic:active?.dataset.topicId||null,savedScroll:saved?.scroll,rootAnchor:saved?.rootAnchor||null});if(trace.length>30)trace.splice(1,1);},phase);
+ await p.keyboard.press('Enter');await topicReady();await traceDeparture('before-first-back');await p.goBack();await rootReturned();
+ await traceDeparture('before-forward');await p.goForward();await topicReady();await traceDeparture('before-second-back');await p.goBack();await rootReturned();
  return {topicId:before.id,slot:before.slot,viewportTop:before.top,back:true,forward:true,secondBack:true};
 }
 async function traceSelection(target){

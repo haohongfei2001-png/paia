@@ -313,6 +313,10 @@ export class TopicController {
   }while(cursor);
   return rows;
  }
+ // A successful AppShell departure can precede open() and synchronously remove
+ // every Root node. Capture before release; a second leave must not overwrite
+ // that position with an empty DOM or its browser-clamped scroll offset.
+ captureHomePosition(){if(!this.id&&this.personalRoot?.nodes?.size===0)return null;const anchor=this.id&&this.view==='original'?this.topicAnchor():null;return {scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(anchor?{anchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor()}: {})};}
  saveHomePosition(key,value){this.homePositions.delete(key);this.homePositions.set(key,value);while(this.homePositions.size>21){const oldest=[...this.homePositions.keys()].find(k=>k!=='home');this.homePositions.delete(oldest);}}
  captureHomeAnchor(){if(this.id)return null;const rows=[...$('thought-list').querySelectorAll('[data-root-key]')],focusRef=rows.length?this.personalRoot.focusRef():null,visible=x=>{const r=x.getBoundingClientRect();return r.bottom>120&&r.top<(globalThis.innerHeight||Infinity);};
   // Independent content-sized columns need the activated identity's own anchor.
@@ -1381,11 +1385,21 @@ export class TopicController {
   if(this.desktopAppearance)this.enableDesktopPresentation();
   const row=this.aiTopics.get(this.id);if(!row?.presentation){this.originalPane.hidden=false;this.aiPane.hidden=false;}this.renderCandidate(row);return result;
  }
- async leave({historyIntent=null}={}){this.rememberTimeline();this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;if(!keepOriginal){const ok=await this.leaveEditors({historyIntent});if(ok){this.topicTimeline?.dispose();if(!this.id)this.clearHomeRows({preserveSearch:true});}return ok;}this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}}
+ async leave({historyIntent=null}={}){
+  const token=this.homeDepartureToken=(this.homeDepartureToken||0)+1,id=this.id,source=this.rootProviderKey,collection=this.homeCollection,intent=this.openIntent;
+  const current=()=>token===this.homeDepartureToken&&id===this.id&&intent===this.openIntent&&(!!id||source===this.rootProviderKey&&collection===this.homeCollection);
+  this.rememberTimeline();this.rememberView();const keepOriginal=this.view==='ai'&&this.aiPending&&!this.aiTopics.get(this.id)?.presentation;
+  if(!keepOriginal){const ok=await this.leaveEditors({historyIntent});if(!ok||!current())return false;this.topicTimeline?.dispose();if(!this.id){
+   // A flush may await user interaction. Read the still-live DOM only after it
+   // succeeds, so current scroll/focus wins over an obsolete entry-time anchor.
+   const departure=this.personalRoot?.nodes?.size?this.captureHomePosition():null;if(departure)this.saveHomePosition('home',departure);this.clearHomeRows({preserveSearch:true});
+  }return true;}
+  this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}
+ }
  async open(id){
   const freshRoot=!id&&this.freshRootEntry===true;if(freshRoot)this.freshRootEntry=false;
-  this.rememberView();const currentAnchor=this.id&&this.view==='original'?this.topicAnchor():null;
-  if(!freshRoot)this.saveHomePosition(this.id||'home',{scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(currentAnchor?{anchor:currentAnchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor()}: {})});
+  this.rememberView();const departure=this.id?this.captureHomePosition():null;
+  if(!freshRoot&&departure)this.saveHomePosition(this.id||'home',departure);
   const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
   const changed=this.id!==id;if(changed){if(!this.id){this.homeCollection?.releaseBodies();this.personalRoot?.clear({searchSession:this.rootSearchReturnSession()});this.homePage=null;$('thought-list').replaceChildren();}this.topicTimeline?.dispose();this.topicTimeline=null;this.originalMode=this.timelinePositions.get(id)?.mode||'content';this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;this.topicReader=null;const requested=this.requestedTopicView;this.requestedTopicView=null;this.view=id?(requested||this.aiViewSession.view(id)):'original';if(id&&requested)this.aiViewSession.setView(id,requested);}
   this.id=id;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();

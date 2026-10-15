@@ -368,3 +368,43 @@ test('held preview after Back RAFs uses actual Root resize layout without overri
   }
  }finally{root?.previews?.dispose();Object.assign(globalThis,prior);}
 });
+
+test('actual outer leave then open keeps the Root departure identity for repeated Forward and Back',async()=>{
+ const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY','scrollTo','chrome','window'],prior=Object.fromEntries(keys.map(k=>[k,globalThis[k]])),dom=searchDOM('a'),frames=[];
+ const create=tag=>{const n=dom.create(tag);n.style={removeProperty(k){delete this[k];}};n.getBoundingClientRect=()=>({top:5240-globalThis.scrollY,bottom:5340-globalThis.scrollY,height:100,width:300,left:0,right:300});return n;};
+ const nodes=new Map(),get=id=>{if(id==='thought-list')return dom.host;if(!nodes.has(id)){const n=create('div');n.value='';nodes.set(id,n);}return nodes.get(id);};
+ globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:get,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),innerWidth:1000,innerHeight:800,scrollY:5000,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>globalThis.scrollY+=y,scrollTo:(_,y)=>globalThis.scrollY=y,chrome:{runtime:{sendMessage:async()=>({ok:true,data:null})}},window:globalThis});
+ let controller;
+ try{
+  dom.owner.nodes.clear();dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[];
+  const items=[{id:'a',name:'SYNTHETIC identity',revision:1,sectionOverview:{items:[],complete:true}}];
+  const collection=()=>({scope:'root',authority:'A',keys:new Set(['item:a']),items:[{key:'item:a',id:'a'}],snapshot:()=>({items:[{key:'item:a',id:'a'}]}),restore(){},releaseBodies(){}});
+  controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,id:null,serial:1,view:'original',homePositions:new Map(),homeCollection:collection(),rememberTimeline(){},rememberView(){},leaveEditors:async()=>{controller.serial++;return true;},clearActionFeedback(){},timelinePositions:{get:()=>null},aiTopics:new Map(),aiViewSession:{view:()=> 'original',position:()=>null},onOpen(){},restoreContent(){},topicAnchor:()=>null,schedulePosition(){},createHomeCollection:collection,homeCollectionScope:()=> 'root',async refresh(){if(!this.id){dom.owner.render(items,{complete:true});this.restoreHomeAnchor(this.rootInvalidationAnchor);}return true;}});
+  const {default:vm}=await import('node:vm'),source=await readFile(new URL('../ui/archive.js',import.meta.url),'utf8'),leaveSource=source.slice(source.indexOf('async function leave('),source.indexOf('\nlet navigationIntent=')),outer={thoughts:controller,view:'thoughts',topicActions:{leave:()=>true},serial:0,partHistory:null,editor:null,documentId:null,routeStates:new Map(),query:'',pageCursor:null,pageHistory:[],window:globalThis};vm.createContext(outer);vm.runInContext(leaveSource+';this.leave=leave;',outer);
+  for(let trip=0;trip<3;trip++){
+   dom.owner.render(items,{complete:true});globalThis.scrollY=5000+trip*10;dom.owner.nodes.get('a').querySelector('.personal-topic-link').focus();const top=dom.owner.nodes.get('a').getBoundingClientRect().top;
+   // Actual AppShell navigation calls leave before TopicController.open. Its
+   // synchronous release also removes the native focused link and clamps scroll.
+   await outer.leave();assert.equal(dom.owner.nodes.size,0);document.activeElement=dom.host;globalThis.scrollY=0;
+   await controller.open('a');assert.equal(controller.id,'a');
+   const saved=controller.homePositions.get('home');assert.equal(saved.rootAnchor?.id,'a','double departure cannot replace the live anchor with null');assert.equal(saved.scroll,5000+trip*10);assert.equal(saved.rootAnchor.focusRef.topicId,'a');
+   await outer.leave();await controller.open(null);while(frames.length)frames.shift()();assert.equal(dom.owner.nodes.get('a').getBoundingClientRect().top,top);assert.equal(document.activeElement.dataset.topicId,'a');
+  }
+  const saved=controller.homePositions.get('home');controller.leaveEditors=async()=>false;await controller.leave();assert.equal(controller.homePositions.get('home'),saved,'blocked departure cannot replace the committed position');assert.equal(dom.owner.nodes.size,1);
+  for(const change of ['source','collection','intent','id','newer-leave','open-source']){
+   controller.id=null;controller.homeCollection=collection();controller.rootProviderKey='old';dom.owner.render(items,{complete:true});dom.owner.nodes.get('a').querySelector('.personal-topic-link').focus();
+   const committed=controller.homePositions.get('home');let release;controller.leaveEditors=()=>new Promise(resolve=>release=resolve);const pending=change==='open-source'?controller.open('a'):controller.leave();
+   if(change==='source'||change==='open-source')controller.rootProviderKey='new';if(change==='collection')controller.homeCollection=collection();if(change==='id')controller.id='different';if(change==='intent')controller.openIntent=(controller.openIntent||0)+1;if(change==='newer-leave'){controller.leaveEditors=async()=>false;await controller.leave();}
+   release(true);await pending;assert.equal(dom.owner.nodes.size,1,change+' obsolete departure cannot clear the current Root');assert.equal(controller.homePositions.get('home'),committed,change+' cannot overwrite the committed departure');assert.equal(controller.id,change==='id'?'different':null);
+  }
+  controller.id=null;controller.homeCollection=collection();dom.owner.render(items,{complete:true});dom.owner.nodes.get('a').querySelector('.personal-topic-link').focus();
+  const releases=[];controller.leaveEditors=()=>new Promise(resolve=>releases.push(resolve));const earlier=controller.open('a'),latest=controller.open('newer');releases[0](true);await earlier;assert.equal(controller.id,null);assert.equal(dom.owner.nodes.size,1,'obsolete concurrent open cannot clear before current flush succeeds');releases[1](true);await latest;assert.equal(controller.id,'newer');assert.equal(dom.owner.nodes.size,0);
+  for(const change of ['scroll','input']){
+   controller.id=null;
+   controller.homeCollection=collection();dom.owner.render(items,{complete:true});globalThis.scrollY=5000;dom.owner.nodes.get('a').querySelector('.personal-topic-link').focus();let release;controller.leaveEditors=()=>new Promise(resolve=>release=resolve);const pending=controller.leave();
+   globalThis.scrollY=5070;if(change==='input')controller.cancelHomeAnchor();const currentTop=dom.owner.nodes.get('a').getBoundingClientRect().top;release(true);assert.equal(await pending,true);const latest=controller.homePositions.get('home');assert.equal(latest.scroll,5070);assert.equal(latest.rootAnchor.top,currentTop,change+' captures current intent after awaited flush');assert.equal(dom.owner.nodes.size,0);
+  }
+  controller.beginRootEntry();assert.equal(controller.homePositions.has('home'),false,'ordinary Home starts a fresh route, not a saved Forward return');
+ }finally{dom.owner.previews?.dispose();Object.assign(globalThis,prior);}
+});
