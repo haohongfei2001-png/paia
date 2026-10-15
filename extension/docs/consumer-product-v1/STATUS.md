@@ -1,3 +1,7 @@
+# Current candidate — qualified Archive copy fallback
+
+Archive menu, selection and recovery-buffer copies now follow the current Reader lifecycle. Navigation/invalidation/PURGE cannot reopen old-body fallback; an existing invalid fallback is cleared and removed. Valid manual copy remains. Author33/independent5PASS overlap; exact Source/release native route/PURGE paths and503releaseguard pass. See implementation/archive-copy-lifetime.md. Candidate only, no whole-project completion; all Canonical plans and outstanding gates remain.
+
 # Current candidate — feedback copy lifetime
 
 SET2-04 late clipboard results cannot change closed/reopened feedback or interrupt newer IME/copy operations. Original drafts/CAS and exact-copy departure protection remain. Related33PASS and independent13PASS overlap; Source/release native recovery/copy/conflict paths pass. See implementation/settings-feedback-copy-session.md. Candidate only: full/latest visual gates remain, all Canonical plans preserved, no CI/Sync/service activation.

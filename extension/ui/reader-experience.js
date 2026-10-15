@@ -26,16 +26,25 @@ function textPoint(el,offset){const logical=editableTextSnapshot(el).point(offse
 export class ReaderExperience {
  constructor({read,notify,menu,reload}){
   this.read=read;this.notify=notify;this.menu=menu;this.reload=reload;this.timer=null;this.expanded=new Set();this.active=false;this.lastInput=null;
-  this.onScroll=()=>{this.schedule();this.positionSelection();};window.addEventListener('scroll',this.onScroll,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)this.cancel();else this.schedule();});
+  this.onScroll=()=>{this.schedule();this.positionSelection();};window.addEventListener('scroll',this.onScroll,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){this.cancel();this.cancelCopy();}else this.schedule();});
   $('document-body').addEventListener('focusin',e=>{const el=e.target.closest('[data-edit-id]');if(el){this.lastInput=el.dataset.editId;this.expand(el);}});
-  $('document-body').addEventListener('input',()=>this.schedule());
+  $('document-body').addEventListener('input',()=>{this.cancelCopy();this.schedule();});
+  $('document-body').addEventListener('compositionstart',()=>this.cancelCopy());
+  window.addEventListener('pagehide',()=>this.cancelCopy());
   document.addEventListener('selectionchange',()=>this.selection());
   window.addEventListener('resize',()=>this.positionSelection(),{passive:true});
   window.visualViewport?.addEventListener('resize',()=>this.positionSelection(),{passive:true});
   window.visualViewport?.addEventListener('scroll',()=>this.positionSelection(),{passive:true});
-  this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));this.toolbar.setAttribute('aria-keyshortcuts','Alt+S');const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>{if(this.selected)void copyReadingText(this.selected.text);});this.toolbar.append(copy);$('document-panel').append(this.toolbar);
-  const recovery=element('button','',readerCopy('复制当前文字','Copy current text'));recovery.id='reader-copy-buffer';recovery.hidden=true;recovery.addEventListener('click',()=>{const {editor}=this.read();if(!editor)return;editor.collect();void copyReadingText([...editor.entries.values()].filter(e=>!e.local.excluded).map(e=>editor.text(e)).join('\n\n'));});$('retry').after(recovery);
+  this.toolbar=element('div','reader-selection');this.toolbar.hidden=true;this.toolbar.setAttribute('role','toolbar');this.toolbar.setAttribute('aria-label',readerCopy('所选文字','Selected text'));this.toolbar.setAttribute('aria-keyshortcuts','Alt+S');const copy=element('button','',readerCopy('复制所选文字','Copy selection'));copy.addEventListener('pointerdown',e=>e.preventDefault());copy.addEventListener('click',()=>{if(this.selected)void this.copyText(this.selected.text);});this.toolbar.append(copy);$('document-panel').append(this.toolbar);
+  const recovery=element('button','',readerCopy('复制当前文字','Copy current text'));recovery.id='reader-copy-buffer';recovery.hidden=true;recovery.addEventListener('click',()=>{const {editor}=this.read();if(!editor)return;editor.collect();void this.copyText([...editor.entries.values()].filter(e=>!e.local.excluded).map(e=>editor.text(e)).join('\n\n'));});$('retry').after(recovery);
   new MutationObserver(()=>{recovery.hidden=$('retry').hidden&&$('reload-document').hidden;}).observe($('save-status'),{childList:true,subtree:true});
+ }
+ cancelCopy(){this.copyController?.abort();this.copyController=null;}
+ copyText(text){
+  this.cancelCopy();const {editor,view,documentId}=this.read();
+  if(!this.active||!editor||editor.composing||view!=='library'||!documentId||document.hidden)return Promise.resolve(false);
+  const controller=new AbortController();this.copyController=controller;
+  return copyReadingText(text,{signal:controller.signal,isCurrent:()=>{const current=this.read();return this.active&&!document.hidden&&!editor.composing&&current.editor===editor&&current.view===view&&current.documentId===documentId;}});
  }
  cancel(){clearTimeout(this.timer);this.timer=null;}
  schedule(){this.cancel();const {editor,view,documentId}=this.read();if(!this.active||view!=='library'||!documentId||!editor||document.hidden||document.querySelector('dialog[open]'))return;this.timer=setTimeout(()=>void this.remember(false),3000);}
@@ -75,8 +84,8 @@ export class ReaderExperience {
   }
  }
  expand(prose){this.expanded.add(prose.dataset.editId);prose.classList.remove('reader-collapsed');prose.closest('.library-block')?.querySelector('.reader-expand')?.remove();}
- invalidateInputs(ids){this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
- unmount(){this.cancel();this.active=false;this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';}
+ invalidateInputs(ids){this.cancelCopy();this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';for(const id of ids)this.expanded.delete(id);if(ids.includes(this.lastInput))this.lastInput=null;}
+ unmount(){this.cancelCopy();this.cancel();this.active=false;this.toolbar.hidden=true;this.selected=null;this.dismissed=null;this.selectedText='';}
  positionSelection(){
   if(!this.active||!this.selected||this.dismissed)return;
   if(document.querySelector('dialog[open]')){this.toolbar.hidden=true;return;}
