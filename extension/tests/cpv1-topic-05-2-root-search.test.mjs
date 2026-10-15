@@ -298,3 +298,25 @@ test('real Root controller freezes input geometry through held qualification, ba
 
  }finally{clearTimeout(controller?.searchTimer);previews?.dispose();Object.assign(globalThis,prior);}
 });
+
+test('actual metadata invalidation and ordinary Home repaint retain a renamed offscreen card without retaining its body',async()=>{
+ const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
+ const prior=Object.fromEntries(['document','location','getSelection','getComputedStyle','innerWidth','innerHeight'].map(key=>[key,globalThis[key]])),dom=searchDOM('topic'),pending=[],ids=new Map();
+ const create=tag=>{const n=dom.create(tag);n.style={removeProperty(key){delete this[key];}};n.getBoundingClientRect=()=>({height:0});return n;};
+ for(const id of ['thought-search','library-search-status','thought-collection','thought-empty','thought-empty-settings','library-unplaced-list','unplaced-continuous-sentinel'])ids.set(id,create('div'));ids.get('thought-search').value='';ids.get('library-unplaced-list').hidden=true;
+ globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:id=>ids.get(id),querySelectorAll:()=>[],createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),innerWidth:1000,innerHeight:800});
+ let previews;
+ try{
+  let top=10;const body=create('p');body.className='personal-topic-preview';Object.defineProperty(body,'childElementCount',{get:()=>body.children.length});body.getBoundingClientRect=()=>({height:body.childElementCount?77.375:Number.parseFloat(body.style.minHeight)||0});dom.tile.append(body);
+  dom.tile.getBoundingClientRect=()=>({height:365.5625+body.getBoundingClientRect().height,width:300,top,bottom:top+443,left:0,right:300});dom.host.style={};dom.host.clientWidth=1000;
+  const item={id:'topic',name:'SYNTHETIC NEEDLE Topic',revision:1,sectionOverview:{items:[],complete:false}};dom.tile.dataset.signature=JSON.stringify(['en',item.name,[],false]);
+  Object.assign(dom.owner,{items:[item],slots:new TopicRootSlots(),columnCount:3,layoutWidth:1000});previews=new PersonalTopicPreviews(dom.host,{nodes:()=>dom.owner.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});dom.owner.previews=previews;
+  previews.update([item]);pending[0]({kind:'root_previews',items:[{topicId:'topic',preview:{text:'SYNTHETIC original',sectionId:'section',entryId:'entry'}}]});await new Promise(resolve=>setImmediate(resolve));dom.owner.layout();const before=dom.tile.getBoundingClientRect().height;
+  top=1000;void previews.refresh();assert.equal(body.textContent,'');assert.equal(dom.tile.getBoundingClientRect().height,before);
+  const controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,homePositions:new Map(),thoughtRootVisible:()=>true,captureHomeAnchor:()=>null});
+  controller.invalidateHomeSnapshot({cause:'EDIT_LIBRARY_TOPIC'});previews.changed({type:'ARCHIVE_CHANGED',cause:'EDIT_LIBRARY_TOPIC'});assert.equal(body.textContent,'');
+  controller.paintHome({items:[{...item,name:'SYNTHETIC renamed 中文',revision:2}],complete:true},'');assert.equal(dom.owner.nodes.get('topic'),dom.tile,'name-only rename preserves the identity DOM');assert.equal(dom.tile.querySelector('.personal-topic-link').title,'SYNTHETIC renamed 中文');assert.equal(dom.tile.getBoundingClientRect().height,before,'ordinary repaint retains the previously measured preview shell');assert.equal(body.textContent,'');
+  controller.invalidateHomeSnapshot({cause:'REMOVE_LIBRARY_TOPIC'});assert.equal(dom.owner.nodes.size,0);assert.equal(body.style.minHeight,'');assert.equal(body.textContent,'','removal leaves neither bodies nor permanent blank reservations');
+ }finally{previews?.dispose();Object.assign(globalThis,prior);}
+});

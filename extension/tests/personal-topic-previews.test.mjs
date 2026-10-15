@@ -47,3 +47,19 @@ test('actual archive writing transition suspends Root previews before render and
  new Function('topicActions','thoughts','routes','render','refresh','scrollTo','scrollY',"const view='thoughts',documentId=null,navigationIntent=1;let writingReturn=null,writingRefreshPending=false;"+body)(actions,thoughts,{checkpoint(){}},()=>{renders++;if(actions.surface)assert.equal(f.host.dataset.retainedPreviewBodies,'0','synchronous privacy release precedes hiding the Root');},()=>Promise.resolve(),()=>{},0);
  actions.onWorkspaceChange();assert.equal(f.owner.suspended,true);assert.equal(renders,1);actions.surface=null;actions.onWorkspaceChange();assert.equal(f.owner.suspended,false);assert.equal(f.pending.length,2);f.respond(1);await settle();assert.equal(f.host.dataset.retainedPreviewBodies,'12');
 });
+
+test('metadata-only invalidation retains measured offscreen geometry while revoking all text',async t=>{
+ const f=fixture(t);f.owner.update(f.items);f.respond();await settle();const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');
+ p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});
+ node.rect.top=1000;void f.owner.refresh();assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px');
+ f.owner.changed({type:'ARCHIVE_CHANGED',cause:'EDIT_LIBRARY_TOPIC'});assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px','rename cannot collapse another offscreen card');
+ f.owner.clear();assert.equal(p.style.minHeight,'','route/privacy clear still retires every measured reservation');
+});
+
+test('held qualified preview response cannot collapse a card that scrolled out after the request',async t=>{
+ const f=fixture(t);f.owner.update(f.items);f.respond();await settle();const node=f.nodes.get('0'),p=node.querySelector('.personal-topic-preview');
+ p.getBoundingClientRect=()=>({height:p.childElementCount?40:Number.parseFloat(p.style.minHeight)||0});
+ f.items[0].revision=1;f.owner.update(f.items);const held=f.pending.length-1;node.rect.top=1000;f.respond(held);await settle();
+ assert.equal(p.textContent,'');assert.equal(p.style.minHeight,'40px','loss of viewport eligibility drops text, not the measured layout');
+ node.rect.top=10;void f.owner.refresh();f.pending.at(-1).resolve({kind:'root_previews',items:[]});await settle();assert.equal(p.style.minHeight,'','a fresh visible ineligibility result retires the reservation');
+});

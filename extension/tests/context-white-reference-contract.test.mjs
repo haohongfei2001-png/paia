@@ -72,3 +72,24 @@ test('approved detail grid uses the original left-label columns and mobile stack
  const adapter=await readFile(new URL('./harness/context-detail-reference.mjs',import.meta.url),'utf8');assert.doesNotMatch(adapter,/from ['"].*ui\/|getComputedStyle|readFile/);
  const harness=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');for(const key of ['detailFooter','detailToolbar','groupItems','itemFooter','topicRow','topicRead','inputsToolbar','detailCaption'])assert.ok(harness.includes(key));
 });
+
+test('native reading gate checks independent expected counts including genuine empty scenes',async()=>{
+ const {assertContextReadingPreferences}=await import('./harness/context-reading-preferences.mjs');
+ const items=[{section:'one'},{section:'one'}];
+ const page=({width='680px',font='17px',bodies=2,groups=1,emptyVisible=false}={})=>({locator(selector){
+  if(selector==='.detail-content>.empty-detail')return {count:async()=>1,isVisible:async()=>emptyVisible};
+  assert.ok(['.context-group-items','.context-item .item-text'].includes(selector),'gate measures reading owners');
+  return {evaluateAll(fn){return fn(Array.from({length:selector==='.context-group-items'?groups:bodies},()=>({style:{maxWidth:width,fontSize:font}})));}};
+ }});
+ const prior=globalThis.getComputedStyle;globalThis.getComputedStyle=node=>node.style;
+ try{
+  await assertContextReadingPreferences(page(),items);
+  await assertContextReadingPreferences(page({bodies:0,groups:0,emptyVisible:true}),[]);
+  await assert.rejects(()=>assertContextReadingPreferences(page({width:'none'}),items),/680px/);
+  await assert.rejects(()=>assertContextReadingPreferences(page({font:'16px'}),items),/17px/);
+  await assert.rejects(()=>assertContextReadingPreferences(page({bodies:1}),items),/reading text count/);
+  await assert.rejects(()=>assertContextReadingPreferences(page({groups:0}),items),/reading column count/);
+  await assert.rejects(()=>assertContextReadingPreferences(page({bodies:0,groups:0}),[]),/empty owner/);
+  await assert.rejects(()=>assertContextReadingPreferences(page(),[]),/reading column count/);
+ }finally{if(prior===undefined)delete globalThis.getComputedStyle;else globalThis.getComputedStyle=prior;}
+});

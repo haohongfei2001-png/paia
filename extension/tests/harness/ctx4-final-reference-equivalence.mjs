@@ -1,5 +1,6 @@
 // Synthetic visual acceptance only. No connector, automatic producer, or provider grant.
 import assert from 'node:assert/strict';
+import {assertContextReadingPreferences} from './context-reading-preferences.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -88,7 +89,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs','tests/harness/context-detail-reference.mjs','tests/harness/context-reading-preferences.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});
@@ -134,7 +135,9 @@ export async function runContextReferenceEquivalence(variant){
    if(card==='inputs')await page.waitForFunction(count=>document.querySelector('.context-inputs')?.getAttribute('aria-busy')==='false'&&document.querySelectorAll('.topic-access').length===count&&[...document.querySelectorAll('.topic-access')].every(node=>!node.disabled),referenceState.topics.length);
    await settle(prototype);await settle(page);
    const expected=await metrics(prototype,'reference'),actual=await metrics(page,'actual'),mismatches=compare(expected,actual,scene);
-   if(card&&card!=='inputs')assert.equal(await page.locator('.detail-content').evaluate(el=>getComputedStyle(el).maxWidth),'680px');
+   // Persist this frame before any invariant can abort the remaining scenes.
+   await writeFile(join(out,'current-capture.json'),JSON.stringify({binding,id,reference:expected,actual,mismatches},null,2));
+   if(['info','rules','now'].includes(card))await assertContextReadingPreferences(page,referenceState.items[card]);
    const snapshot=await read(page);assert.equal(snapshot.capabilities.external,false);assert.equal(snapshot.capabilities.automatic,false);assert.equal(snapshot.connections,0);
    referenceHashes[scene.file]=sha(await readFile(join(reference,scene.file)));
    await prototype.screenshot({path:join(out,id+'-reference.png'),fullPage:true});await page.screenshot({path:join(out,id+'-'+variant+'.png'),fullPage:true});

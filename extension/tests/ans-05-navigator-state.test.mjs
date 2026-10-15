@@ -41,6 +41,6 @@ test('unchanged complete source refresh preserves the cached directory signature
  const groups=state.scope({providerKey:'chatgpt',groupKind:'groups'});groups.items=[];groups.coverage={state:'complete'};
  const paints=[],owner=Object.assign(Object.create(ArchiveNavigator.prototype),{state,active:true,host:{hidden:false},serial:0,browseSource:'chatgpt',sourceScope:'chatgpt',sourceInitialized:true,mode:'paia',lastPaintSignature:'retained-tree',readScope:async options=>state.scope(options),updateSourceOptions(){},reconcileUnknownExpansion(){},setStatus(){},schedule(){},paint(){paints.push(this.lastPaintSignature);}});
  await owner.refresh(false);assert.deepEqual(paints,['retained-tree'],'selection-only refresh must not force directory replacement');
- owner.sourceInitialized=false;owner.browseSource=null;owner.sourceScope=null;owner.query='';let initialized=0;owner.onSourceInitialized=()=>initialized++;
+ owner.canInitializeSource=()=>true;owner.sourceInitialized=false;owner.browseSource=null;owner.sourceScope=null;owner.query='';let initialized=0;owner.onSourceInitialized=()=>initialized++;
  await owner.refresh(false);assert.equal(initialized,1);assert.equal(owner.sourceScope,'chatgpt','actual first source still initializes and changes the normal computed signature');
 });

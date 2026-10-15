@@ -66,6 +66,13 @@ export class PersonalTopicRoot {
    const signature=JSON.stringify([document.documentElement.lang,item.name,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete]),prior=this.nodes.get(item.id);
    if(prior?.dataset.searchState&&!retained){for(const extra of prior.querySelectorAll('.personal-root-search-extra'))extra.remove();for(const link of prior.querySelectorAll('.personal-topic-link,.personal-section-link'))link.textContent=link.title;prior.classList.remove('personal-topic-nonmatch');delete prior.dataset.searchState;prior.style.removeProperty('height');}
    if(prior?.dataset.signature===signature)continue;
+   const title=prior?.querySelector('.personal-topic-link');
+   if(!preserveSearch&&title&&prior.dataset.signature===JSON.stringify([document.documentElement.lang,title.title,item.sectionOverview.items.map(x=>[x.id,x.title]),item.sectionOverview.complete])){
+    // A name-only edit retains the identity node and measured preview shell.
+    // The preview owner has already revoked text and requalifies visible rows.
+    title.title=item.name;title.textContent=item.name;prior.dataset.signature=signature;
+    prior.querySelector('.personal-topic-more').setAttribute('aria-label',(document.documentElement.lang==='en'?'Continue reading ':'继续阅读 ')+item.name);continue;
+   }
    // Keep an active selection/focus attached through unrelated refreshes.
    const node=this.tile(item);node.dataset.signature=signature;
    if(prior){this.previews?.release(prior);this.observeTitle(prior,false);const active=document.activeElement,sectionId=prior.contains(active)?active.dataset.sectionId:null,titleFocused=prior.contains(active)&&active.classList.contains('personal-topic-link');prior.replaceWith(node);if(sectionId)[...node.querySelectorAll('[data-section-id]')].find(x=>x.dataset.sectionId===sectionId)?.focus({preventScroll:true});else if(titleFocused)node.querySelector('.personal-topic-link').focus({preventScroll:true});}

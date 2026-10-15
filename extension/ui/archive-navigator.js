@@ -49,8 +49,8 @@ export class ArchiveNavigatorState{
 }
 
 export class ArchiveNavigator{
- constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{},onSourceInitialized=()=>{}}={}){
-  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.onSourceInitialized=onSourceInitialized;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;this.browseSource=null;this.sourceInitialized=false;
+ constructor({onOpenWindow,onSourceDetail,onStatus=()=>{},onRouteChange=()=>{},onScopeChange=()=>{},onSourceInitialized=()=>{},canInitializeSource=()=>true}={}){
+  this.onOpenWindow=onOpenWindow;this.onSourceDetail=onSourceDetail;this.onStatus=onStatus;this.onRouteChange=onRouteChange;this.onScopeChange=onScopeChange;this.onSourceInitialized=onSourceInitialized;this.canInitializeSource=canInitializeSource;this.state=new ArchiveNavigatorState();this.serial=0;this.reader=false;this.active=false;this.query='';this.view='library';this.selectedDocumentId=null;this.sheetOpen=false;this.narrowCollapsed=false;this.refreshTimer=null;this.originFocus=null;this.restoreDepth=new Map();this.mode='paia';this.pointerDown=false;this.pendingInvalidate=false;this.sourceScope=null;this.browseSource=null;this.sourceInitialized=false;
   this.duplicateLabels=new Map();
   this.sourceSelect=$('archive-source-scope');this.sourceLabel=$('archive-source-scope-label');this.sourceSelect?.addEventListener('change',()=>{const requested=this.sourceSelect.value||null;this.sourceSelect.value=this.sourceScope||'';void this.onScopeChange(requested);});
   this.host=element('aside','archive-navigator');this.host.id='archive-navigator';this.host.setAttribute('aria-label',copy('档案窗口导航','Archive window navigator'));this.host.tabIndex=-1;
@@ -147,7 +147,9 @@ export class ArchiveNavigator{
   const token=++this.serial;if(hard){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;}
   let root=await this.readScope({groupKind:'providers'});if(token!==this.serial)return;
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
-  if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}}
+  // A delayed provider read must consult the live route/query owner, not the
+  // last painted query: Search may already hold a qualified snapshot.
+  if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()&&this.canInitializeSource()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}}
   this.updateSourceOptions(root.items);
   let building=false;
   for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
