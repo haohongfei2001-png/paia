@@ -1,3 +1,15 @@
+# Current execution — restored Entry Context maintenance (2026-10-15)
+
+PR284 is merged as main `4c9f3a04a7b0473a5c6987f7dc52e61c5caa11e8`, tree `2e9d2d6559dd82d661e62d8dffdcb23dfb4859ef`. Final candidate `38711ce395017ae3a7b93b3cc6dc0ec80f4725e3` passed Full38745034004 (all ten current browser shards and all required gates), Prompt38745033844 and Visual38745033882; resulting main has the identical tested tree. Latest approved Root and Context A–E visual/state evidence is bounded to the actual synthetic local-product scenarios. Historical failures below remain history, not current candidate status.
+
+Main push Certification38748132620 passed round integration only: the merge message omitted the full marker, so browser/native/macOS jobs were skipped. Exact-main Full remains pending a normal workflow dispatch; skipped jobs are not passes. No installed build or real-provider qualification is claimed. The former CI writer has stopped; the two receipt counts and their exact Candidate/Full parity contract were reconciled without lowering any assertion. Sync new functionality remains paused.
+
+**Selected next local slice: AI-COST-03 restored Input-bound Entry Context mapping.** Reuse the exact restored Entry journal/revision, bounded Working Input material and independent Entry processing authority. Keep original Entry coverage keys and original Context transaction/subset ACK, human protection, source/removal fences and one physical response. Only a different admitted capability route may reconsider the exact old mapping DEFER; old jobs/attempts remain intact. Independent authored Entries and remaining non-Input kinds stay unsupported. See `implementation/ai-usage/AI-COST-03-RESTORED-ENTRY-CONTEXT.md` under the Canonical documentation directory.
+
+This is a separate candidate based on current main, not completion of AI-COST-03 or all Canonical plans. Applicable native, independent review, changed-head and exact-main gates remain. No live provider, new paid service, entitlement, external permission, account, installation or formal release is activated. Preserve all nonconflicting domain contracts and historical evidence below.
+
+## Preserved checkpoints
+
 # Current candidate — Topic note clipboard lifetime
 
 Current Topic note copies now follow the original MetadataEditor lifecycle; old callback/fallback cannot cross route departure, edited text, replaced note or IME. Dirty failed drafts remain explicitly copyable through the original owner. Author168/independent8 and combined32PASS overlap; exact Source/release4nativepaths and503guardPASS. See implementation/topic-note-copy-lifetime.md. Candidate only; all Canonical goals and outstanding gates remain.

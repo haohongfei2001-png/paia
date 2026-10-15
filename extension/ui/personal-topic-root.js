@@ -92,7 +92,7 @@ export class PersonalTopicRoot {
    this.nodes.set(item.id,node);this.observeTitle(node,true);
   }
   if(restored)for(const [id,node]of this.nodes)node.style.height=`${this.searchGeometry.rows.get(id).height}px`;
-  if(!preserveSearch)this.restoreReturnGeometry(returnGeometry,items);
+  if(!preserveSearch){this.searchQuery='';this.searchPositions?.clear();this.restoreReturnGeometry(returnGeometry,items);}
   this.layout();if(focus&&(!this.host.contains(document.activeElement)||document.activeElement.hidden))this.restoreFocus(focus);this.host.dataset.loadedExtent=String(items.length);this.host.dataset.retainedBodies='0';if(preserveSearch)this.lockSearchGeometry();else this.previews?.update(items);
  }
  rememberRows(){

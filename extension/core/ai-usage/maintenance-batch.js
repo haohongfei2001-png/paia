@@ -4,12 +4,12 @@ const TYPE='AI_MAINTENANCE',LIMIT=100;
 const result=(status,rest={})=>({status,dispatchAllowed:false,financialAuthority:false,...rest});
 // Exact current session capability; this classifies metadata only, never bodies.
 // Human owners require their own mapper and remain semantic obligations.
-export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntryTopics=new Set()){
+export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=new Set()){
  const units=validateCoverage(coverage,TYPE),unsupported=[];
  for(const unit of units){const item=items.find(i=>i.key===unit.key),d=item?.descriptor;
   if(!d||d.removed||d.fenceOnly)fail('STALE_BASE');
   if(d.kind==='input'){if(!Array.isArray(d.inputIds)||d.inputIds.length!==1||d.inputIds[0]!==d.entityId)fail();}
-  else if(d.kind==='library_entry'&&unit.facet==='topic'&&qualifiedEntryTopics.has(unit.key))continue;
+  else if(d.kind==='library_entry'&&['topic','context'].includes(unit.facet)&&qualifiedEntries.has(unit.key))continue;
   else if(['library_entry','topic','section','placement','context_item'].includes(d.kind))unsupported.push(unit);
   else fail();
  }return unsupported;

@@ -1,3 +1,15 @@
+# Current execution — restored Entry Context maintenance (2026-10-15)
+
+PR284 is merged as main `4c9f3a04a7b0473a5c6987f7dc52e61c5caa11e8`, tree `2e9d2d6559dd82d661e62d8dffdcb23dfb4859ef`. Final candidate `38711ce395017ae3a7b93b3cc6dc0ec80f4725e3` passed Full38745034004 (all ten current browser shards and all required gates), Prompt38745033844 and Visual38745033882; resulting main has the identical tested tree. Latest approved Root and Context A–E visual/state evidence is bounded to the actual synthetic local-product scenarios. Historical failures below remain history, not current candidate status.
+
+Main push Certification38748132620 passed round integration only: the merge message omitted the full marker, so browser/native/macOS jobs were skipped. Exact-main Full remains pending a normal workflow dispatch; skipped jobs are not passes. No installed build or real-provider qualification is claimed. The former CI writer has stopped; the two receipt counts and their exact Candidate/Full parity contract were reconciled without lowering any assertion. Sync new functionality remains paused.
+
+**Selected next local slice: AI-COST-03 restored Input-bound Entry Context mapping.** Reuse the exact restored Entry journal/revision, bounded Working Input material and independent Entry processing authority. Keep original Entry coverage keys and original Context transaction/subset ACK, human protection, source/removal fences and one physical response. Only a different admitted capability route may reconsider the exact old mapping DEFER; old jobs/attempts remain intact. Independent authored Entries and remaining non-Input kinds stay unsupported. See `implementation/ai-usage/AI-COST-03-RESTORED-ENTRY-CONTEXT.md` under the Canonical documentation directory.
+
+This is a separate candidate based on current main, not completion of AI-COST-03 or all Canonical plans. Applicable native, independent review, changed-head and exact-main gates remain. No live provider, new paid service, entitlement, external permission, account, installation or formal release is activated. Preserve all nonconflicting domain contracts and historical evidence below.
+
+## Preserved checkpoints
+
 # Current candidate — complete local Maintenance batch (2026-10-13)
 
 PR280 is now merged as formal main6a55fa7aee2ff832ec4259bc8ee4a91090d3bbb8; its exact final head0f36b2d passed Full38337300223 and independent final review. Normal merge tree e4f8d990 was verified to preserve latest main04f2cad2. Merged-main qualification remains separate. This preserves the latest CTX4-UI-1.2, SET2-UI-1.2, TL-PT1-UI-1.2 and IAH-1.3 refinements.  Its earlier failed runs remain evidence, not active uncorrected pointers. This isolated next candidate combines the reviewed explicit Context NO_CHANGE and bounded mixed-delta DEFER through their original owners, without false ACK, lost pending obligations or new permissions. It is local code under integration, not an installed version or completed AI-COST/CTX4 plan.

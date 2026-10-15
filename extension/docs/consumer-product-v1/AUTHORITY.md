@@ -1,3 +1,15 @@
+# Current execution — restored Entry Context maintenance (2026-10-15)
+
+PR284 is merged as main `4c9f3a04a7b0473a5c6987f7dc52e61c5caa11e8`, tree `2e9d2d6559dd82d661e62d8dffdcb23dfb4859ef`. Final candidate `38711ce395017ae3a7b93b3cc6dc0ec80f4725e3` passed Full38745034004 (all ten current browser shards and all required gates), Prompt38745033844 and Visual38745033882; resulting main has the identical tested tree. Latest approved Root and Context A–E visual/state evidence is bounded to the actual synthetic local-product scenarios. Historical failures below remain history, not current candidate status.
+
+Main push Certification38748132620 passed round integration only: the merge message omitted the full marker, so browser/native/macOS jobs were skipped. Exact-main Full remains pending a normal workflow dispatch; skipped jobs are not passes. No installed build or real-provider qualification is claimed. The former CI writer has stopped; the two receipt counts and their exact Candidate/Full parity contract were reconciled without lowering any assertion. Sync new functionality remains paused.
+
+**Selected next local slice: AI-COST-03 restored Input-bound Entry Context mapping.** Reuse the exact restored Entry journal/revision, bounded Working Input material and independent Entry processing authority. Keep original Entry coverage keys and original Context transaction/subset ACK, human protection, source/removal fences and one physical response. Only a different admitted capability route may reconsider the exact old mapping DEFER; old jobs/attempts remain intact. Independent authored Entries and remaining non-Input kinds stay unsupported. See `implementation/ai-usage/AI-COST-03-RESTORED-ENTRY-CONTEXT.md` under the Canonical documentation directory.
+
+This is a separate candidate based on current main, not completion of AI-COST-03 or all Canonical plans. Applicable native, independent review, changed-head and exact-main gates remain. No live provider, new paid service, entitlement, external permission, account, installation or formal release is activated. Preserve all nonconflicting domain contracts and historical evidence below.
+
+## Preserved checkpoints
+
 # Current execution — PR284 reviewed local capabilities (2026-10-14)
 
 Current integration candidate is PR284, including the owner-approved AI-COST-03 / CTX4-05 automatic invalidation slice published at 91b63964825a69ae0559f07dad21723b7278dc80. Formal main was freshly verified as 81b41ddca1d28f7935bba63b3eab01b8678e4120. Use current STATUS and MASTER_PLAN plus exact remote facts; preceding PR280 and delivered0.43.29 pointers are historical, not active work.
