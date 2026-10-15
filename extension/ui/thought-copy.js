@@ -156,7 +156,7 @@ const english={
  '档案刚有更新，请核对后再保存。':'The archive changed. Compare again before saving.',
  '已恢复为档案当前文字，并保留旧版本。':'Current archive text restored. The previous version is kept.',
  '恢复尚未完成，请重试。':'Restore did not finish. Try again.',
- '思想库更多':'Thought Library options','添加主题':'Add topic','列表 / 网格':'List / grid','整理新增内容':'Organize new content',
+ '我的主题':'My topics','思想库更多':'Thought Library options','添加主题':'Add topic','列表 / 网格':'List / grid','整理新增内容':'Organize new content',
  '把已有内容归成主题':'Organize existing content into topics','先留下几段表达，主题可以慢慢形成。':'Start with a few expressions. Topics can form over time.',
  '单独写下的想法':'Thoughts without a topic','布局尚未保存，已保留原值。':'Layout was not saved. The previous layout is kept.',
  '同时修改档案中的对应完整内容':'Also edit the matching whole input in the archive',

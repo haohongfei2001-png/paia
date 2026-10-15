@@ -70,5 +70,5 @@ export class ContextHomeSearch {
   if(!this.current(generation)||this.viewer||!this.rows.has(target.topicId))return false;
   this.viewer=new ContextTopicViewer({host:this.root,send:this.send,...target,topicId:target.topicId,onClose:()=>{this.viewer=null;if(this.current(generation)&&node.isConnected)node.focus({preventScroll:true});}});await this.viewer.read();return this.current(generation);
  }
- close(){if(!this.active)return;this.save();this.active=false;this.generation++;this.release();globalThis.chrome?.runtime?.onMessage?.removeListener(this.changed);document.removeEventListener('visibilitychange',this.visibility);this.root.remove();}
+ close(){if(!this.active)return;this.save();this.active=false;this.generation++;this.release();globalThis.chrome?.runtime?.onMessage?.removeListener(this.changed);document.removeEventListener('visibilitychange',this.visibility);this.form.remove();this.root.remove();}
 }

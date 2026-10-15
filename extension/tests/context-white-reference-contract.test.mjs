@@ -45,3 +45,18 @@ test('approved detail heading specificity retains 33px across the 1250 breakpoin
  const production=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
  for(const css of [production,whiteReferenceCSS])for(const [width,size]of [[1440,33],[1251,33],[1250,33],[1001,33],[1000,30],[761,30],[760,28],[531,28],[530,27],[320,27]])assert.equal(responsiveValue(css,'.context-head h1','font-size',width,{detail:true}),size+'px','detail '+width);
 });
+
+// Latest-white structure resets the INNER .context-card .card-open to 0.
+// The outer grid item never receives that reset; its minimum remains auto.
+// Keep this distinction at both retired implementation breakpoints as well.
+test('outer Context cards retain the approved automatic grid minimum at every width',async()=>{
+ const production=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
+ for(const [name,css]of [['production',production],['independent reference',whiteReferenceCSS]]){
+  for(const width of [1440,1250,1024,1023,1000,768,767,760,530,320]){
+   assert.equal(responsiveValue(css,'.context-card','min-height',width)??'auto','auto',`${name} outer card ${width}px`);
+  }
+ }
+ const harness=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');
+ assert.match(harness,/const styleKeys=\[[^\n]*'minHeight'/);
+ assert.match(harness,/\['x','y','width','height'\]/);
+});

@@ -19,7 +19,7 @@ html[data-paia-theme=dark] body[data-paia-space=memory]{--bg:#1a2028;--surface:#
 .context-directory{margin-top:21px;display:flex;flex-direction:column;gap:2px}.context-directory-link{width:100%;min-height:34px;padding:5px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;font:14px/1.7 var(--font);text-align:left;color:var(--directory-ink)}.context-directory-link svg{width:13px;height:13px;flex:0 0 13px;opacity:.7}.context-directory-link span{min-width:0;overflow-wrap:anywhere}.input-summary{margin:0;font:14px/1.7 var(--font);color:var(--directory-ink);overflow-wrap:anywhere}.card-footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:6px 28px 0;margin-top:auto;padding:12px 0 15px;border-top:1px solid var(--line);font:inherit;color:var(--text)}.card-footer .access{position:static}
 .context-search{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 8px;max-width:680px}.context-search input{box-sizing:border-box;flex:1 1 180px;min-width:0;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--text);font:14px/22px var(--font)}.context-search button{min-height:36px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--text);font:13px/22px var(--font)}
 .context-topic-row{display:flex;align-items:center;gap:8px;max-width:100%}.context-topic-open{border:0;background:transparent;color:var(--text);text-align:left;overflow-wrap:anywhere;font:inherit;cursor:pointer}.context-topic-row .topic-access .topic-name{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}.context-topic-row .topic-access{gap:0;flex:none;min-width:44px}
-@media(max-width:767px){.context-cards{gap:23px}.context-card{padding:0;min-height:0}.card-open{padding:23px 22px 9px}.card-footer{margin-inline:22px;padding-top:12px}.context-directory-link{min-height:44px}.card-title{font-size:21px;line-height:1.5}.card-description{font-size:12px}.context-search input,.context-search button{min-height:44px}}
+@media(max-width:767px){.context-cards{gap:23px}.context-card{padding:0}.card-open{padding:23px 22px 9px}.card-footer{margin-inline:22px;padding-top:12px}.context-directory-link{min-height:44px}.card-title{font-size:21px;line-height:1.5}.card-description{font-size:12px}.context-search input,.context-search button{min-height:44px}}
 @media(pointer:coarse){.context-directory-link,.card-head-button,.context-search input,.context-search button{min-height:44px}}
 html:not([data-paia-theme=dark]) .context-card{border-color:#e0e6ee}html:not([data-paia-theme=dark]) .card-footer{border-color:#e8ecf1}html[data-paia-theme=dark] .card-symbol{background:#263449;color:#b4ccec}
 /* The approved dark gate surface is shared; the inherited permission contract
@@ -40,6 +40,19 @@ html[data-paia-theme=dark] .context-page :is(.access,.topic-access)[data-on=true
 @media(max-width:760px){.context-head h1{font-size:29px}.context-detail .context-head h1{font-size:28px}.context-card .card-title{font-size:20px}.context-card .card-description{font-size:12px}.context-access-bar{align-items:flex-start;gap:10px;margin-bottom:16px}.context-access-controls{gap:8px}.context-access-caption{padding-top:12px;font-size:10px}.context-card .access{font-size:11px;padding:6px 11px}.access,.access.global,.context-access-bar .connections-link{min-height:44px}.context-page:not(.context-detail) .context-head{margin-bottom:23px}}
 @media(max-width:530px){.context-head h1{font-size:28px}.context-detail .context-head h1{font-size:27px}.context-eyebrow{font-size:8px;margin-bottom:10px}.context-subtitle{font-size:11px;margin-top:9px}.context-access-bar{display:block}.context-access-caption{display:block;padding:0;margin-bottom:12px;font-size:11px}.context-access-controls{justify-content:space-between}.context-card .card-title{font-size:18px}.context-card .card-symbol{width:33px;height:36px;flex-basis:33px}.context-card .card-description{font-size:12px}.context-card .context-directory-link{font-size:13px}.context-card .access{font-size:10px;gap:6px;padding:6px 8px}}
 @media(pointer:coarse){.access,.access.global,.context-access-bar .connections-link{min-height:44px}}
+
+/* Approved renderHome/header and renderDetail/back-row placement. The real
+   explicit-submit / clear controls occupy the original search slot. */
+.context-heading-copy{min-width:0}
+.context-head>.context-search,.context-back-row>.context-search{flex:0 1 268px;width:268px;max-width:100%;margin:0;flex-wrap:nowrap}
+.context-head>.context-search input,.context-back-row>.context-search input{flex:1 1 0;min-width:0;width:0}
+.context-head>.context-search button,.context-back-row>.context-search button{flex:none;padding-inline:8px}
+.context-back-row{display:flex;align-items:center;justify-content:space-between;gap:22px;margin-bottom:24px}
+.context-back-row>.context-back{margin:0}
+.context-home-end{display:flex;justify-content:flex-end;align-items:center;gap:22px;padding:22px 2px 20px}
+@media(max-width:1000px){.context-head>.context-search,.context-back-row>.context-search{flex-basis:218px;width:218px}}
+@media(max-width:760px){.context-head>.context-search,.context-back-row>.context-search{flex-basis:174px;width:174px;flex-wrap:wrap}.context-head>.context-search input,.context-back-row>.context-search input{flex-basis:100%;min-width:100px}.context-back-row{gap:11px}.context-back-row>.context-back{flex:none}.context-home-end{padding-bottom:13px}}
+@media(max-width:530px){.context-page:not(.context-detail) .context-head{display:block}.context-head>.context-search{width:100%;margin-top:23px}.context-back-row{flex-wrap:wrap}.context-back-row>.context-search{flex:1 1 100%;width:100%}.context-home-end{justify-content:flex-start}}
 `;
 export async function refineWhiteReference(page){
  await page.evaluate(()=>{
@@ -57,12 +70,12 @@ export async function refineWhiteReference(page){
   if(grid){
    const title=head.querySelector('h1'),heading=create('div','context-heading-copy');heading.append(create('p','context-eyebrow','AI CONTEXT'),title,create('p','context-subtitle','让 AI 了解你，也由你决定它能了解多少。'));head.prepend(heading);
    const bar=create('div','context-access-bar'),controls=create('div','context-access-controls');controls.append(panel.querySelector('.connections-link'),head.querySelector('.access.global'));bar.append(create('span','context-access-caption','你提供的上下文'),controls);head.after(bar);
-   const search=form();search.querySelector('input').placeholder='搜索 AI 上下文';grid.before(search);
+   const search=form();search.querySelector('input').placeholder='搜索 AI 上下文';head.append(search);const foot=create('footer','context-home-end');foot.append(preview);grid.after(foot);
    const descriptions={info:'身份、背景与长期偏好',rules:'回答方式、表达与协作习惯',now:'当前的目标、项目与关注',inputs:'从思想库中，选择可以读取的主题'};
    for(const card of grid.children){const key=card.dataset.card,title=card.querySelector('.card-title'),access=card.querySelector('.access'),summary=card.querySelector('.input-summary');const content=create('div','card-open'),heading=create('button','card-head-button'),text=create('div','card-heading'),symbol=create('span','card-symbol');heading.type='button';text.append(title,create('p','card-description',descriptions[key]));symbol.setAttribute('aria-hidden','true');symbol.append(icon(key));heading.append(text,symbol);content.append(heading);const directory=create('div','context-directory');if(summary){summary.className='input-summary';directory.append(summary);}const label=key==='inputs'?'选择主题':window.design.state.items[key].length?'查看内容':'添加内容',entry=create('button','context-directory-link'),entryText=create('span','',label);entry.type='button';entry.append(entryText,icon('chevron'));directory.append(entry);content.append(directory);const footer=create('div','card-footer');footer.append(access);card.replaceChildren(content,footer);}
   }else if(panel.querySelector('.topic-field')){
    const field=panel.querySelector('.topic-field');field.before(form(true));for(const access of [...field.children]){const label=access.firstElementChild;label.className='topic-name';const row=create('div','context-topic-row'),read=create('button','context-topic-open',label.textContent);read.type='button';access.before(row);row.append(read,access);}
-  }else if(panel.querySelector('.detail-content'))panel.querySelector('.detail-content').before(form());
+  }else if(panel.querySelector('.detail-content')){const back=panel.querySelector('.context-back'),row=create('div','context-back-row');back.before(row);row.append(back,form());}
  });
  await page.addStyleTag({content:whiteReferenceCSS});
 }

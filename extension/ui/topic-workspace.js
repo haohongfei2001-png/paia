@@ -152,7 +152,7 @@ export class TopicController {
   document.addEventListener('paia:removed-history',event=>{const {kind,id,isCurrent}=event.detail||{};if(['topic','entry'].includes(kind)&&typeof isCurrent==='function'&&isCurrent())productAction(()=>this.revisions(kind==='topic'?'topic':'library_entry',id,id,{isCurrent}))();});
   $('library-removed-placements').addEventListener('click',productAction(()=>this.removedList().show('placement')));$('library-removed-topics').addEventListener('click',productAction(()=>this.removedTopics()));$('library-removed').addEventListener('click',productAction(()=>this.removed()));$('library-rebuild-search').addEventListener('click',productAction(()=>this.checked('REBUILD_LIBRARY_SEARCH')));
   $('topic-menu').append(actionMenu('主题操作',[["管理结构",()=>this.manageSections()],[tc("主题说明"),()=>this.editTopicCue()],["合并主题",()=>this.mergeTopic()],["重命名",()=>this.renameTopic(this.id)],["删除主题",()=>this.deleteTopic(this.id)],[tc("新建章节"),()=>this.createSection()]]));$('topic-menu').querySelector('button').id='topic-structure';$('topic-menu').querySelectorAll('button')[2].id='topic-merge';$('topic-menu').querySelectorAll('button')[5].id='topic-create-section';
- const homeMenu=actionMenu(tc('思想库更多'),[[tc('添加主题'),()=>this.createTopic()],[tc('单独写下的想法'),()=>{const container=$('library-unplaced').parentElement;container.hidden=false;return this.unplaced();}]]);const rootActions=element('div','thought-root-actions');rootActions.append(button(tc('添加主题'),()=>this.createTopic()),homeMenu,button(tc('接着写'),()=>this.createStandalone()));$('thought-home-tools').append(rootActions);
+ const homeMenu=actionMenu(tc('思想库更多'),[[tc('添加主题'),()=>this.createTopic()],[tc('单独写下的想法'),()=>{const container=$('library-unplaced').parentElement;container.hidden=false;return this.unplaced();}]]);const rootActions=element('div','thought-root-actions');rootActions.append(button(tc('添加主题'),()=>this.createTopic()),homeMenu,button(tc('接着写'),()=>this.createStandalone()));const rootToolbar=element('div','thought-root-toolbar');rootToolbar.append(element('h2','thought-root-section-label',tc('我的主题')),rootActions);$('thought-home-tools').append(rootToolbar);$('thought-root-heading').append(element('div','thought-root-eyebrow','THOUGHT LIBRARY'));
  $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
  $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
  watchThoughtCopy();
@@ -444,7 +444,7 @@ export class TopicController {
   // Search uses the existing bounded lexical owner; presentation never creates
   // a second directory or changes the established Topic addresses.
   const prior=this.rootPreSearch,focus=this.personalRoot.focusRef();
-  if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete});
+  if(prior?.items)this.personalRoot.render(prior.items,{complete:prior.complete,preserveSearch:true});
   const matches=new Set(page.items.flatMap(item=>(item.paths||[item]).map(path=>path.topicId||item.topicId)).filter(Boolean));
   this.personalRoot.search(page.items,query,{open:(item,path)=>this.openSearchResult(item,path),complete:page.complete===true});
   if(focus?.matchKey||focus?.matchStep)this.personalRoot.restoreFocus(focus);

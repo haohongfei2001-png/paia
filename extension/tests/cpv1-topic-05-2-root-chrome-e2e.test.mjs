@@ -176,6 +176,9 @@ for(const variant of ['source','release'])test('TOPIC-05.2 actual Root renders r
   await p.reload();await eventually(()=>p.locator('.personal-topic-block').count().then(n=>n===144),'remembered extent hydrates without scrolling through blank reserved slots',30000);
   await rootReady(p,144);
   await rpc(p,'CONTINUE_THINKING',{thought:{topicId:topics[0].id,operationId:crypto.randomUUID(),body:'SYNTHETIC PRIVATE_ROOT_NEEDLE'}});await rootReady(p,144);
+  // Root order is durable identity order, not fixture creation order. Bring
+  // this actual Topic into the viewport before requiring its bounded snippet.
+  await p.locator(`.personal-topic-block[data-topic-id="${topics[0].id}"]`).scrollIntoViewIfNeeded();
   const ordinaryPreview=p.locator(`.personal-topic-block[data-topic-id="${topics[0].id}"] .personal-topic-preview button`);
   await eventually(()=>ordinaryPreview.count().then(count=>count===1),'a visible actual Topic gets its qualified exact excerpt');assert.equal(await ordinaryPreview.textContent(),'SYNTHETIC PRIVATE_ROOT_NEEDLE');await p.screenshot({path:`${output}/144-qualified-preview-wide.png`,fullPage:true});
   const retained=await p.locator('#thought-list').evaluate(node=>({bodies:Number(node.dataset.retainedPreviewBodies),chars:Number(node.dataset.retainedPreviewChars)}));assert.ok(retained.bodies>0&&retained.bodies<=12);assert.ok(retained.chars<=12*140);

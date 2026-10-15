@@ -133,11 +133,15 @@ export async function verifyD5ThoughtRootTextZoom(page,variant){
   assert.equal(await page.locator('#thought-source-scope').isHidden(),true,'hidden Source control is excluded from native Tab order');
   await page.locator(selectors[0]).click();assert.equal(await page.locator(selectors[0]).evaluate(el=>document.activeElement===el),true,'actual pointer reaches enlarged search');
   for(const selector of selectors.slice(1)){await page.keyboard.press('Tab');assert.equal(await page.locator(selector).evaluate(el=>document.activeElement===el),true,'native Tab reaches enlarged header control: '+selector);}
-  const links=page.locator('article.personal-topic-block').first().locator('a:not([hidden])'),count=await links.count();assert.ok(count>=3,'real Topic, wrapped Section and continuation links remain reachable');
+  await eventually(()=>page.locator('#thought-list').getAttribute('data-preview-state').then(state=>state!=='loading'),'qualified preview control settles before native keyboard traversal');
+  const firstCard=page.locator('article.personal-topic-block').first();assert.ok(await firstCard.locator('a:not([hidden])').count()>=3,'real Topic, wrapped Section and continuation links remain reachable');
+  // The approved qualified original preview is an explicit Section button
+  // between the Section links and continuation. It belongs to native Tab order.
+  const links=firstCard.locator('a:not([hidden]),.personal-topic-preview:not([hidden]) button:visible'),count=await links.count();
   for(let i=0;i<count;i++){
-   const link=links.nth(i);await page.keyboard.press('Tab');assert.equal(await link.evaluate(el=>document.activeElement===el),true,'native Tab reaches each visible Root link');
+   const link=links.nth(i);await page.keyboard.press('Tab');assert.equal(await link.evaluate(el=>document.activeElement===el),true,'native Tab reaches each visible Root reading target');
    await link.scrollIntoViewIfNeeded();const hit=await link.evaluate(el=>{const r=el.getBoundingClientRect(),target=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {height:r.height,width:r.width,hit:!!target&&(target===el||el.contains(target)),focus:getComputedStyle(el).outlineStyle};});
-   assert.ok(hit.height>=44&&hit.width>=44,'enlarged Topic/Section/continuation has a 44px target');assert.equal(hit.hit,true,'enlarged Root link is hit-testable');assert.notEqual(hit.focus,'none','native keyboard focus stays visible');
+   assert.ok(hit.height>=44&&hit.width>=44,'enlarged Topic/Section/preview/continuation has a 44px target');assert.equal(hit.hit,true,'enlarged Root link is hit-testable');assert.notEqual(hit.focus,'none','native keyboard focus stays visible');
   }
   snapshots.push(await sample('pointer and native Tab'));
   const geometry=await textGeometry(page);snapshots.push({label:'actual Range text geometry',...geometry});await page.screenshot({path:path+'-labels.png'});

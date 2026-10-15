@@ -110,3 +110,21 @@ test('Context Home puts only the real global gate in the independent access bar'
  gate.onclick();while(page.busy)await tick();assert.equal((await c.snapshot()).access.global.enabled,true);assert.equal(page.card,null);
  for(const key of ['info','rules','now','inputs'])assert.equal((await c.snapshot()).access[key].enabled,false);
 }));
+
+test('Home keeps the real search form in the heading and preview after cards',()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open();const head=page.host.querySelector('.context-head'),grid=page.host.querySelector('.context-cards'),foot=page.host.querySelector('.context-home-end');
+ assert.equal(page.homeSearch.form.parentElement,head);assert.ok(foot);assert.equal(foot.querySelector('.context-scope-preview-open').parentElement,foot);
+ assert.ok(page.page.children.indexOf(foot)>page.page.children.indexOf(grid));
+ assert.equal(page.homeSearch.results.parentElement,page.homeSearch.root);assert.equal(page.homeSearch.root.parentElement,page.page);
+ page.homeSearch.field.value='';assert.equal(page.homeSearch.clear(),true);assert.equal(grid.hidden,false);
+ assert.ok(calls.filter(call=>call.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').every(call=>call.mode==='home'));
+}));
+
+test('editable detail keeps the real search owner beside the back control',()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open('info');const row=page.host.querySelector('.context-back-row');assert.ok(row);assert.equal(page.searchForm.parentElement,row);assert.equal(row.querySelector('.context-back').parentElement,row);assert.ok(page.page.children.indexOf(row)<page.page.children.indexOf(page.host.querySelector('.context-head')));
+}));
+
+
+test('noneditable Context pages retain the existing back control without a search row',()=>fixture(async({makePage})=>{
+ const page=makePage();for(const card of ['inputs','connections']){await page.open(card);assert.equal(page.host.querySelector('.context-back-row'),null);assert.equal(page.host.querySelector('.context-back').parentElement,page.page);}
+}));

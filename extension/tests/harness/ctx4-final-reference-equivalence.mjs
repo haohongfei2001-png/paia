@@ -15,7 +15,7 @@ const rpc=async(page,type,fields={})=>{const result=await page.evaluate(message=
 const read=page=>rpc(page,'PAIA_CONTEXT_CARDS_SNAPSHOT');
 const selectorPairs=[
  ['page','.context-page','.context-page'],['accessBar','.context-access-bar','.context-access-bar'],['switch','.context-switch','.context-switch'],['heading','.context-head h1','.context-head h1'],
- ['back','.context-back','.context-back'],['global','.access.global','.context-access.global'],
+ ['back','.context-back','.context-back'],['placedSearch','.context-head>.context-search,.context-back-row>.context-search','.context-head>.context-search,.context-back-row>.context-search'],['homeEnd','.context-home-end','.context-home-end'],['global','.access.global','.context-access.global'],
  ['card','.context-card','.context-card'],['cardTitle','.card-title','.card-title'],
  ['cardAccess','.context-card .card-footer>.access','.context-card .card-footer>.context-access'],
  ['summary','.input-summary','.input-summary'],['cardDescription','.card-description','.card-description'],['directory','.context-directory-link','.context-directory-link'],['symbol','.card-symbol','.card-symbol'],['footer','.card-footer','.card-footer'],
@@ -50,7 +50,7 @@ function compare(reference,actual,scene){
    }
    // Reading-body vertical flow changes with the explicit 17px/680px override.
    // Its typography, padding, colors and hierarchy above remain strict.
-   const positional=['page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
+   const positional=['placedSearch','homeEnd','page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
    if(positional)for(const key of ['x','y','width','height']){
     // Whole detail height accumulates the explicitly accepted reading override;
     // independent shell/header positions and all remaining styles stay exact.

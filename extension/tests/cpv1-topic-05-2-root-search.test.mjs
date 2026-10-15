@@ -97,7 +97,7 @@ test('TOPIC-05.2 Root search keeps body previews in the existing privacy mask an
  const prior=globalThis.document,topicId='synthetic-topic',overview=new PresentationNode('div'),tile=new PresentationNode('article'),label=new PresentationNode('a'),host=new PresentationNode('div');tile.append(label,overview);host.append(tile);tile.style={};tile.getBoundingClientRect=()=>({height:322});label.title='SYNTHETIC Topic';tile.querySelectorAll=selector=>selector==='.personal-root-search-extra'?[]:[label];tile.querySelector=()=>overview;let opened;
  globalThis.document={documentElement:{lang:'en'},body:host,createElement:tag=>new PresentationNode(tag),createTextNode:presentationText};
  try{
-  const item={kind:'entry',entryId:'synthetic-entry',snippet:'SYNTHETIC_PRIVATE_NEEDLE',paths:[{topicId}]};PersonalTopicRoot.prototype.search.call({host,nodes:new Map([[topicId,tile]])},[item],'NEEDLE',{open:(...args)=>{opened=args;}});
+  const item={kind:'entry',entryId:'synthetic-entry',snippet:'SYNTHETIC_PRIVATE_NEEDLE',paths:[{topicId}]};PersonalTopicRoot.prototype.search.call(Object.assign(Object.create(PersonalTopicRoot.prototype),{host,nodes:new Map([[topicId,tile]])}),[item],'NEEDLE',{open:(...args)=>{opened=args;}});
   const action=overview.firstElementChild,[preview,masked]=action.children;assert.equal(preview.className,'personal-entry-preview');assert.equal(preview.textContent,item.snippet);assert.equal(masked.className,'personal-entry-mask-label');assert.equal(masked.textContent,'Content preview hidden · Open match');assert.equal(action.getAttribute('title'),null);assert.equal(action.getAttribute('aria-label'),null);assert.equal(label.textContent,label.title);action.listeners.get('click')();assert.deepEqual(opened,[item,item.paths[0]]);
   const css=await readFile(new URL('../ui/personal-topic-root.css',import.meta.url),'utf8');assert.match(css,/html\.paia-hide-content-previews \.personal-entry-preview\{display:none!important\}/);assert.match(css,/html\.paia-hide-content-previews \.personal-entry-mask-label\{display:block\}/);assert.doesNotMatch(css,/paia-hide-content-previews[^{}]*personal-(?:topic-link|section-link)/);
  }finally{globalThis.document=prior;}
@@ -135,7 +135,7 @@ test('TOPIC-05.3 active Entry AI and Section overlays survive same-column width 
   for(const kind of ['entry','ai','section']){
    const dom=searchDOM('topic');globalThis.document={documentElement:{lang:'en'},body:dom.host,createElement:dom.create,createTextNode:presentationText};globalThis.location={href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'};globalThis.getSelection=()=>({isCollapsed:true});
    const ordinary=dom.create('a');ordinary.className='personal-section-link';ordinary.title='SYNTHETIC ordinary Section';ordinary.dataset.sectionId='ordinary';ordinary.getBoundingClientRect=()=>({height:32});dom.overview.append(ordinary);dom.overview.clientHeight=32;
-   dom.host.style={setProperty(){}};dom.tile.style={};dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[{id:'topic'}];dom.owner.complete=true;
+   dom.host.style={setProperty(){}};dom.tile.style={removeProperty(key){delete this[key];}};dom.owner.columnCount=3;dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[{id:'topic'}];dom.owner.complete=true;
    const result={kind,entryId:kind==='entry'?'entry':undefined,aiField:kind==='ai'?'currentView':undefined,snippet:'SYNTHETIC NEEDLE',topicId:'topic',sectionId:kind==='section'?'match':undefined,sectionTitle:kind==='section'?'SYNTHETIC NEEDLE Section':undefined,paths:kind==='entry'?[{topicId:'topic',sectionId:'match'}]:undefined};
    dom.owner.search([result,{kind:'topic',topicId:'topic',topicName:'SYNTHETIC NEEDLE Topic'}],'NEEDLE',{open(){},complete:true});
    const match=dom.overview.querySelector('[data-root-match-key]');match.getBoundingClientRect=()=>({height:32});match.focus();const key=dom.tile.dataset.searchHitKey;
@@ -201,4 +201,36 @@ test('TOPIC-05.3 actual Root search owner retains complete partial indexing and 
 test('Root releases superseded permanent blank row reservations',()=>{
  const owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{layoutWidth:1000,host:{clientWidth:1000,getClientRects:()=>[{}]}});
  owner.rememberRows();assert.equal(owner.rowHeights,undefined,'no old pixel rows are cached across removal');owner.clear=()=>{};owner.beginOrder();assert.equal(owner.rowHeights,undefined);
+});
+
+test('Root search locks displayed geometry before clearing preview text and retains only numeric geometry through paging',()=>{
+ const prior={document:globalThis.document,location:globalThis.location,getSelection:globalThis.getSelection,getComputedStyle:globalThis.getComputedStyle};
+ const dom=searchDOM('topic');let columns=3,updates=0,clears=0,natural=120;
+ const style=()=>({removeProperty(key){delete this[key];}}),create=tag=>{const node=dom.create(tag);node.style=style();node.getBoundingClientRect=()=>({height:Number.parseFloat(node.style.height)||natural});node.replaceWith=next=>{node.parentElement.insertBefore(next,node);node.remove();};return node;};
+ globalThis.document={documentElement:{lang:'en'},body:dom.host,createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText};globalThis.location={href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'};globalThis.getSelection=()=>({isCollapsed:true});globalThis.getComputedStyle=()=>({getPropertyValue:()=>String(columns)});
+ try{
+  const item={id:'topic',name:'SYNTHETIC NEEDLE Topic',sectionOverview:{items:[],complete:false}},body=create('p');body.className='personal-topic-preview';body.textContent='SYNTHETIC private preview';dom.tile.append(body);
+  dom.tile.style.gridRow='263 / span 443';dom.tile.style.gridColumn='1';dom.tile.dataset.signature=JSON.stringify(['en',item.name,[],false]);dom.tile.dataset.overviewComplete='false';dom.tile.getBoundingClientRect=()=>({height:Number.parseFloat(dom.tile.style.height)||(body.textContent?443:natural)});dom.tile.replaceWith=next=>{dom.tile.parentElement.insertBefore(next,dom.tile);dom.tile.remove();};dom.host.style=style();dom.host.clientWidth=1000;
+  Object.assign(dom.owner,{items:[item],complete:false,slots:new TopicRootSlots(),columnCount:3,layoutWidth:1000,previews:{clear(){clears++;body.replaceChildren();},release(){body.replaceChildren();},update(){updates++;}}});
+  const hits=[{kind:'topic',topicId:'topic'},{kind:'entry',topicId:'topic',entryId:'entry',snippet:'SYNTHETIC NEEDLE match'}];
+  dom.owner.render([item],{preserveSearch:true});
+  assert.equal(dom.tile.style.gridRow,'263 / span 443','the first pre-search render preserves the displayed row before fitting');
+  dom.owner.search(hits,'NEEDLE',{open(){}});
+  assert.equal(body.textContent,'','private body is cleared synchronously');assert.equal(clears,1);assert.equal(dom.tile.style.height,'443px','lock precedes preview-driven shrink');
+  dom.owner.render([item],{preserveSearch:true});dom.owner.search(hits,'NEEDLE',{open(){},complete:true});
+  assert.equal(dom.tile.style.gridRow,'263 / span 443','same search page cannot compact the displayed row');assert.equal(dom.tile.style.height,'443px');assert.equal(updates,0,'search pagination cannot restart ordinary preview reads');
+  dom.tile.querySelector('[data-root-match-step]').listeners.get('click')();const selected=dom.tile.dataset.searchHitKey;dom.host.clientWidth=980;dom.owner.layout();assert.equal(dom.tile.dataset.searchHitKey,selected);assert.equal(dom.tile.style.gridRow,'263 / span 443');assert.equal(body.textContent,'');dom.host.clientWidth=1000;dom.owner.layout();assert.equal(dom.tile.style.gridRow,'263 / span 443');assert.equal(dom.tile.style.height,'443px');
+  dom.owner.search(hits,'new query',{open(){}});assert.equal(dom.owner.searchQuery,'new query');assert.equal(dom.tile.style.height,'443px','a new query replaces results without reviving preview text');
+  columns=2;dom.owner.layout();assert.notEqual(dom.tile.style.gridRow,'263 / span 443','a changed column arrangement retires the old position');assert.equal(dom.tile.style.height,'120px','responsive layout measures current safe content afresh');
+  dom.owner.render([{...item,name:'SYNTHETIC renamed'}],{preserveSearch:true});const replacement=dom.owner.nodes.get('topic');assert.notEqual(replacement,dom.tile);assert.equal(replacement.style.height,'120px','changed metadata cannot inherit stale height');assert.equal(dom.owner.searchGeometry.rows.get('topic').height,120);
+  natural=180;dom.owner.render([{...item,name:'SYNTHETIC renamed'}]);assert.equal(replacement.style.height,undefined,'normal content-sized render removes the transient height');assert.equal(dom.owner.searchGeometry,null);assert.equal(updates,1);assert.equal(dom.owner.flowHeights.get('topic'),180,'normal flow grows to current content without permanent holes');
+  dom.owner.search(hits,'again',{open(){}});dom.owner.clear();assert.equal(dom.owner.searchGeometry,null);assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
+ }finally{Object.assign(globalThis,prior);}
+});
+
+test('Root direct search snapshots every card before synchronous preview removal can shrink it',()=>{
+ const prior=globalThis.document,dom=searchDOM('topic');let privateBody=true;
+ globalThis.document={documentElement:{lang:'en'},body:dom.host,createElement:dom.create,createTextNode:presentationText};
+ dom.tile.getBoundingClientRect=()=>({height:privateBody?443:366});dom.owner.previews={clear(){privateBody=false;}};
+ try{dom.owner.search([],'NEEDLE',{open(){}});assert.equal(privateBody,false);assert.equal(dom.tile.style.height,'443px');assert.equal(dom.owner.searchGeometry.rows.get('topic').height,443);}finally{globalThis.document=prior;}
 });

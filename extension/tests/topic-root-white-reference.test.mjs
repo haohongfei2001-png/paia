@@ -53,3 +53,19 @@ test('successful Root departure releases previews for both Topic and sidebar rou
  const calls=[],topic=Object.assign(Object.create(TopicController.prototype),{id:'real-topic',view:'original',rememberTimeline(){},rememberView(){},leaveEditors:async()=>true,clearHomeRows(){calls.push('root');}});
  assert.equal(await topic.leave(),true);assert.deepEqual(calls,[]);
 });
+
+test('approved Thought Home eyebrow and independent toolbar retain functional owners and responsive spacing',async()=>{
+ const reference=JSON.parse(await readFile(new URL('./fixtures/white-refinement/thought-home-shell.json',import.meta.url),'utf8'));
+ const css=await readFile(new URL('../ui/thought-reader.css',import.meta.url),'utf8'),source=await readFile(new URL('../ui/topic-workspace.js',import.meta.url),'utf8');
+ assert.equal(reference.sha256,'d4c99ec834b4af42eba8ece001a9165e644d0ce9b9e18c46e9cc8e9ec6e43541');
+ assert.deepEqual([reference.desktopHeadGap,reference.tabletHeadGap,reference.smallHeadGap,reference.mobileSearchGap,reference.toolbarMinHeight,reference.toolbarBottomGap],[23,29,25,22,33,17]);
+ assert.match(css,/thought-root-eyebrow\{order:-1;margin:0 0 12px;color:var\(--quiet\);font-size:9px;line-height:1.5;font-weight:600;letter-spacing:2.4px\}/);
+ assert.match(css,/thought-root-toolbar\{grid-column:1 \/ -1;grid-row:2;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:33px;margin-bottom:17px;padding:0 2px\}/);
+ assert.match(css,/thought-root-section-label\{margin:0;color:var\(--quiet\);font:500 13px\/1.65 var\(--font\)/);
+ for(const gap of [23,29,25])assert.ok(css.includes(`--root-head-gap:${gap}px`));
+ assert.match(css,/thought-search-row\{grid-column:1;grid-row:2;margin-top:22px\}/);
+ assert.match(source,/rootToolbar\.append\(element\('h2','thought-root-section-label',tc\('我的主题'\)\),rootActions\);\$\('thought-home-tools'\)\.append\(rootToolbar\)/);
+ assert.match(source,/\$\('thought-root-heading'\)\.append\(element\('div','thought-root-eyebrow','THOUGHT LIBRARY'\)\)/);
+ const copy=await import('../ui/thought-copy.js'),prior=globalThis.document;
+ try{globalThis.document={documentElement:{lang:'en'}};assert.equal(copy.thoughtCopy('我的主题'),'My topics');document.documentElement.lang='zh';assert.equal(copy.thoughtCopy('我的主题'),'我的主题');}finally{globalThis.document=prior;}
+});
