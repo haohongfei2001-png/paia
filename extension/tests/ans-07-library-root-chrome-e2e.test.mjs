@@ -96,6 +96,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   const beforeLayout=await visibleAnchor(page);
   await rpc(page,'SET_THOUGHT_LAYOUT',{layout:'grid'});
   assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','retired layout service keeps its compatibility receipt');
+  const afterRetiredLayout=await rpc(page,'GET_LIBRARY_ROOT_PROJECTION',{options:{limit:40,sectionLimit:4}});assert.equal(afterRetiredLayout.authority,rootAudit.snapshot.authority,'retired layout input preserves the current Root replay authority');assert.notEqual(afterRetiredLayout.indexing,true);bodyFree(afterRetiredLayout);
   await eventually(async()=>{
    const node=page.locator('#thought-list article.personal-topic-block[data-topic-id="'+beforeLayout.id+'"]');
    return await node.evaluate((el,before)=>{const r=el.getBoundingClientRect();return r.bottom>120&&r.top<innerHeight&&Math.abs(r.top-before.top)<=2;},beforeLayout);

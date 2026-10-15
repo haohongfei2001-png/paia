@@ -70,7 +70,10 @@ export async function thoughtLayout(store,layout){
  if(layout!==undefined&&!['grid','list'].includes(layout))fail();await store.finishFoundation();
  return store.run(()=>store.repository.transaction(true,async t=>{
   const prior=await t.get('meta',THOUGHT_LAYOUT_ROW),valid=validThoughtLayout(prior);
-  if(valid&&prior.version===1&&prior.layout==='grid'||layout==='grid')await t.put('meta',valid&&prior.version===2?prior:{id:THOUGHT_LAYOUT_ROW,version:2,layout:'list',previousLayout:'grid',migration:'desktop-vnext-compact',migratedAt:store.clock()});
+  // Retired input is a compatibility receipt, not a new portable preference.
+  // Migrate only a real stored legacy grid, once; repeated requests must not
+  // invalidate unchanged Root replay through backup-data-generation.
+  if(valid&&prior.version===1&&prior.layout==='grid')await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:2,layout:'list',previousLayout:'grid',migration:'desktop-vnext-compact',migratedAt:store.clock()});
   else if(layout==='list'&&(!valid||prior.layout!=='list'))await t.put('meta',{id:THOUGHT_LAYOUT_ROW,version:1,layout:'list'});
   return {layout:'list',...(layout==='grid'?{deprecated:true}:{})};
  },['meta']));
