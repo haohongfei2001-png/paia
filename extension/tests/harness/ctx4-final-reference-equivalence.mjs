@@ -6,6 +6,7 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createHash,randomUUID} from 'node:crypto';
+import {refineWhiteReference,whiteReferenceIdentity} from './context-white-reference.mjs';
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
 
 const defaultReference=fileURLToPath(new URL('../../docs/consumer-product-v1/design/approved-visuals-2026-10-07/PAIA-AI-Context-Cards-v2/',import.meta.url));
@@ -13,11 +14,11 @@ const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const rpc=async(page,type,fields={})=>{const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result.ok,true,JSON.stringify({type,error:result.error}));return result.data;};
 const read=page=>rpc(page,'PAIA_CONTEXT_CARDS_SNAPSHOT');
 const selectorPairs=[
- ['page','.context-page','.context-page'],['heading','.context-head h1','.context-head h1'],
+ ['page','.context-page','.context-page'],['accessBar','.context-access-bar','.context-access-bar'],['switch','.context-switch','.context-switch'],['heading','.context-head h1','.context-head h1'],
  ['back','.context-back','.context-back'],['global','.access.global','.context-access.global'],
  ['card','.context-card','.context-card'],['cardTitle','.card-title','.card-title'],
- ['cardAccess','.context-card>.access','.context-card>.context-access'],
- ['summary','.card-summary','.card-summary'],['footer','.card-footer','.card-footer'],
+ ['cardAccess','.context-card .card-footer>.access','.context-card .card-footer>.context-access'],
+ ['summary','.input-summary','.input-summary'],['cardDescription','.card-description','.card-description'],['directory','.context-directory-link','.context-directory-link'],['symbol','.card-symbol','.card-symbol'],['footer','.card-footer','.card-footer'],
  ['connections','.connections-link','.connections-link'],['maintenance','.maintenance','.maintenance'],
  ['section','.context-section','.context-section'],['sectionTitle','.context-section h2','.context-section h2'],
  ['item','.item-text','.item-text'],['add','.add-item','.add-item'],
@@ -28,7 +29,7 @@ const selectorPairs=[
 const styleKeys=['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor','borderTopWidth','borderTopColor','borderRadius','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginBottom','gap','minHeight'];
 async function metrics(page,side){return page.evaluate(({pairs,keys,side})=>{
  const result={viewport:{width:innerWidth,height:innerHeight,ratio:devicePixelRatio},theme:document.documentElement.dataset.paiaTheme,overflow:document.documentElement.scrollWidth>innerWidth,groups:{}};
- for(const [name,reference,actual]of pairs)result.groups[name]=[...document.querySelectorAll(side==='reference'?reference:actual)].filter(el=>el.getClientRects().length).map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,rect[key]+(key==='y'?scrollY:0)])),style:Object.fromEntries(keys.map(key=>[key,style[key]])),textLength:el.textContent.length,pressed:el.getAttribute('aria-pressed'),on:el.dataset.on??null,paused:el.dataset.paused??null};});
+ for(const [name,reference,actual]of pairs)result.groups[name]=[...document.querySelectorAll(side==='reference'?reference:actual)].filter(el=>el.getClientRects().length).map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,rect[key]+(key==='y'?scrollY:0)])),style:Object.fromEntries(keys.map(key=>[key,style[key]])),textLength:el.textContent.length,disabled:el.disabled===true,pressed:el.getAttribute('aria-pressed'),on:el.dataset.on??null,paused:el.dataset.paused??null};});
  return result;
 },{pairs:selectorPairs,keys:styleKeys,side});}
 function compare(reference,actual,scene){
@@ -49,7 +50,7 @@ function compare(reference,actual,scene){
    }
    // Reading-body vertical flow changes with the explicit 17px/680px override.
    // Its typography, padding, colors and hierarchy above remain strict.
-   const positional=['page','heading','back','global','card','cardTitle','cardAccess','summary','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
+   const positional=['page','accessBar','switch','heading','back','global','card','cardTitle','cardAccess','summary','cardDescription','directory','symbol','footer','connections','maintenance','topics','topic','topicNote','newMark'].includes(name);
    if(positional)for(const key of ['x','y','width','height']){
     // Whole detail height accumulates the explicitly accepted reading override;
     // independent shell/header positions and all remaining styles stay exact.
@@ -57,7 +58,7 @@ function compare(reference,actual,scene){
     if(name==='topic'&&key==='width'&&scene.id==='17-New-Topic'&&index===expected.length-1&&actual.groups.newMark.length===0)continue;
     if(Math.abs(a.rect[key]-b.rect[key])>.1)record(selector,index,'rect.'+key,a.rect[key],b.rect[key]);
    }
-   if(['global','cardAccess','topic'].includes(name))for(const key of ['on','paused']){
+   if(['global','cardAccess','topic'].includes(name))for(const key of ['on','paused','disabled']){
     // Unselected Topics have no read grant; their data-paused implementation
     // differs while colors, geometry and actual selected/default-off states do
     // not. Selected paused Topics remain an exact visual/state comparison.
@@ -80,7 +81,7 @@ export async function runContextReferenceEquivalence(variant){
  const release=variant==='release'?await mkdtemp(join(tmpdir(),'paia-ctx4-final-release-')):null;
  let harness,prototype;
  const scenes=[],failures=[],referenceHashes={};
- const binding={head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),variant,readingOverride:{fontSize:17,width:680},externalUnavailable:['11-Connections','20-Connect'],globalAcceptance:false};
+ const binding={whiteReference:whiteReferenceIdentity,head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),tree:execFileSync('git',['rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),variant,readingOverride:{fontSize:17,width:680},externalUnavailable:['11-Connections','20-Connect'],globalAcceptance:false};
  try{
   const manifestBytes=await readFile(join(reference,'Artifact-Manifest.json'));
   referenceHashes['Artifact-Manifest.json']=sha(manifestBytes);
@@ -89,7 +90,7 @@ export async function runContextReferenceEquivalence(variant){
   for(const entry of manifest.files){const bytes=await readFile(join(reference,entry.file));assert.equal(bytes.length,entry.bytes,'original reference size '+entry.file);referenceHashes[entry.file]=sha(bytes);assert.equal(referenceHashes[entry.file],entry.sha256,'original reference bytes '+entry.file);}
   if(release)execFileSync('python3',['scripts/build_current_release.py',release],{stdio:'pipe'});
   const vector=JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;sys.path.insert(0,'scripts');from package_assets import release_files;root=Path('.').resolve();files=release_files(root)+[root/'scripts'/x for x in ['build_current_release.py','build_daily_use.py','package_assets.py']];print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(set(files))]))"],{encoding:'utf8'}));
-  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
+  const testVector=[];for(const file of ['tests/context-cards-chrome-e2e.test.mjs','tests/harness/ctx4-final-reference-equivalence.mjs','tests/harness/context-white-reference.mjs']){const bytes=await readFile(file);testVector.push({path:file,bytes:bytes.length,sha256:sha(bytes)});}
   const releaseVector=release?JSON.parse(execFileSync('python3',['-c',"import sys,json,hashlib;from pathlib import Path;root=Path(sys.argv[1]);print(json.dumps([{'path':str(f.relative_to(root)),'bytes':f.stat().st_size,'sha256':hashlib.sha256(f.read_bytes()).hexdigest()} for f in sorted(root.rglob('*')) if f.is_file()]))",release],{encoding:'utf8'})):null;
   await writeFile(join(out,'prelaunch-binding.json'),JSON.stringify({binding,vector,testVector,releaseVector,referenceHashes},null,2));
   harness=await FakeChatGPT.start({extensionPath:release||resolve('.'),headless:true,viewport:{width:1440,height:900}});
@@ -111,10 +112,7 @@ export async function runContextReferenceEquivalence(variant){
    await home(page);await page.setViewportSize(scene.viewport);await prototype.setViewportSize(scene.viewport);
    await prototype.goto(pathToFileURL(join(reference,'AI-Context.html')).href+'?'+scene.query);await settle(prototype);
    const referenceState=await prototype.evaluate(()=>structuredClone(window.design.state));
-   // CTX4-UI-1.2 PLAN 1.2/4 supersedes first-surface private summaries and
-   // their reserved geometry. Keep immutable originals/hash checks; apply the
-   // finite written refinement only to this synthetic comparison page.
-   if(!card){await prototype.evaluate(()=>{for(const node of document.querySelectorAll('.context-card:not([data-card="inputs"]) .card-summary')){node.replaceChildren();node.hidden=true;}});await prototype.addStyleTag({content:'.context-card{min-height:0}'});}
+   await refineWhiteReference(prototype);
 
    for(const key of ['global','info','rules','now','inputs'])await access(page,key,empty?false:key==='global'?referenceState.global:referenceState.groups[key]);
    await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:query.get('theme')==='dark'?'dark':'light'}});

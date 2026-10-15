@@ -15,7 +15,7 @@ export class PersonalTopicRoot {
  }
  focusRef(){const active=document.activeElement;if(!this.host.contains(active)||active?.tagName!=='A'&&!active?.dataset.rootMatchKey&&!active?.dataset.rootMatchStep&&!active?.dataset.rootPreview)return null;return {topicId:active.dataset.topicId,sectionId:active.dataset.sectionId||null,more:active.classList.contains('personal-topic-more'),...(active.dataset.rootPreview?{preview:true}:{}),...(active.dataset.rootMatchKey?{matchKey:active.dataset.rootMatchKey}:{}),...(active.dataset.rootMatchStep?{matchStep:active.dataset.rootMatchStep}:{})};}
  restoreFocus(ref){const node=this.nodes.get(ref?.topicId);if(!node)return;const preview=ref.preview?node.querySelector('.personal-topic-preview button'):null,match=ref.matchStep?[...node.querySelectorAll('[data-root-match-step]')].find(link=>link.dataset.rootMatchStep===ref.matchStep):ref.matchKey?[...node.querySelectorAll('[data-root-match-key]')].find(link=>link.dataset.rootMatchKey===ref.matchKey):null,section=ref.sectionId?[...node.querySelectorAll('[data-section-id]')].find(link=>link.dataset.sectionId===ref.sectionId&&!link.hidden):null,more=node.querySelector('.personal-topic-more');(preview||match||section||(ref.more||ref.sectionId)&&!more.hidden&&more||node.querySelector('.personal-topic-link'))?.focus({preventScroll:true});}
- columns(){return Math.max(1,Math.min(3,Math.floor((this.host.clientWidth+16)/240)));}
+ columns(){const columns=Number.parseInt(getComputedStyle(this.host).getPropertyValue('--topic-root-columns'),10);return Number.isFinite(columns)?Math.max(1,Math.min(3,columns)):1;}
  observeTitle(node,active){const title=node?.querySelector?.('.personal-topic-title');if(title)this.resize?.[active?'observe':'unobserve'](title);if(node)this.resize?.[active?'observe':'unobserve'](node);}
  link(text,topicId,sectionId=null,className='',isCurrent=()=>true){
   const a=element('a',className,text);a.href=topicRootURL(topicId,sectionId);a.draggable=false;a.dataset.topicId=topicId;if(sectionId)a.dataset.sectionId=sectionId;
@@ -61,7 +61,6 @@ export class PersonalTopicRoot {
  layout(){
   const columns=this.columns();this.columnCount=columns;this.layoutWidth=this.host.clientWidth;
   const layout=this.slots.reconcile(this.items.map(item=>item.id),{columns,complete:this.complete}),nodes=[];
-  this.host.style.setProperty('--topic-root-columns',String(columns));
   this.host.style.gridTemplateRows='none';
   for(const {id,slot}of layout){const node=this.nodes.get(id);if(!node)continue;node.style.gridColumn=String(nodes.length%columns+1);node.dataset.rootSlot=String(slot);nodes.push(node);}
   placeChildren(this.host,nodes);for(const node of nodes)this.fit(node);

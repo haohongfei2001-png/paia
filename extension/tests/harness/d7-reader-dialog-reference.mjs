@@ -1,4 +1,5 @@
 // Approved original SVGs remain offline reference images, never production DOM.
+import {whitePalette,whiteReference} from './white-refinement-reference.mjs';
 import assert from 'node:assert/strict';
 import {openD7Reference} from './d7-archive-reference.mjs';
 export async function openReaderDialogReference(h,screen,theme){
@@ -13,9 +14,9 @@ export async function openReaderDialogReference(h,screen,theme){
 }
 export function readerDialogContract(reference,width){
  const {master,theme}=reference,dark=theme==='dark';
- return {authority:'D6.2 approved A07/A08 SVG + RESPONSIVE + DESIGN_SYSTEM',name:reference.name,sha256:reference.sha256,paletteDerived:reference.paletteDerived,referenceWidth:1440,independentReflow:width===1440,
-  surface:{width:Math.min(master.width,width-32),padding:width<768?'20px 16px':`${master.padding}px`,borderWidth:'1px',borderRadius:`${master.radius}px`,background:dark?'rgb(23, 29, 40)':'rgb(255, 255, 255)',color:dark?'rgb(232, 237, 247)':'rgb(23, 35, 60)',boxShadow:'rgba(23, 35, 60, 0.18) 0px 18px 60px 0px'},
+ return {authority:'D6.2 retained A07/A08 geometry + PAIA-WHITE-UI-1.0 palette',whiteOriginal:whiteReference.original,name:reference.name,sha256:reference.sha256,paletteDerived:reference.paletteDerived,referenceWidth:1440,independentReflow:width===1440,
+  surface:{width:Math.min(master.width,width-32),padding:width<768?'20px 16px':`${master.padding}px`,borderWidth:'1px',borderRadius:`${master.radius}px`,background:whitePalette(theme).surface,color:whitePalette(theme).ink,boxShadow:dark?'none':'rgba(23, 42, 69, 0.125) 0px 18px 65px 0px'},
   heading:{fontSize:`${master.headingSize}px`,fontWeight:master.headingWeight,lineHeight:'32px'},
-  caption:{fontSize:'12px',lineHeight:'18px',color:dark?'rgb(165, 180, 203)':'rgb(104, 119, 142)'},pair:{gap:width<1024?'14px':'40px'},
+  caption:{fontSize:'12px',lineHeight:'18px',color:whitePalette(theme).quiet},pair:{gap:width<1024?'14px':'40px'},
   retainedOwnerDifferences:['Current target, real revision dates, before/after actions and page coverage stay native; no illustrative tabs are fabricated.','Saved 17px standard prose preference remains authoritative. Caption and comparison spacing retain existing owner values.','Long content determines modal height within the existing viewport-minus48px bound; the drawing is not a fixed-height app canvas.','Compact frames derive from RESPONSIVE, not an independently drawn or scaled-down A07/A08 artboard.']};
 }

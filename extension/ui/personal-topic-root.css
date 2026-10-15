@@ -26,9 +26,10 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 .topic-root-section-anchor{margin:24px 0 16px;scroll-margin-top:120px}.topic-root-section-anchor h2{margin:0;font:500 20px/1.45 var(--title-font);overflow-wrap:anywhere}
 #thought-source-scope-label{display:none!important}
 #thought-collection.library-index{max-width:none}
-@media(max-width:1279px){#thought-list.personal-topic-grid{--topic-root-columns:3}}
-@media(max-width:1023px){#thought-list.personal-topic-grid{--topic-root-columns:2}}
-@media(max-width:639px){#thought-list.personal-topic-grid{--topic-root-columns:1}.personal-topic-block{padding:22px 19px 19px}.personal-topic-title{font-size:16px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
+@media(max-width:1250px){.personal-topic-title{font-size:15px}}
+@media(max-width:1000px){#thought-list.personal-topic-grid{--topic-root-columns:2}}
+@media(max-width:760px){.personal-topic-title{font-size:14px}}
+@media(max-width:530px){#thought-list.personal-topic-grid{--topic-root-columns:1}.personal-topic-block{padding:22px 19px 19px}.personal-topic-title{font-size:16px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
 @media(pointer:coarse){.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
 
 /* Search reuses the measured ordinary rectangle without displacing other Topics. */
@@ -42,3 +43,6 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 .personal-topic-preview button{display:block;width:100%;min-height:44px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;white-space:inherit;overflow-wrap:anywhere;user-select:text}
 .personal-topic-preview button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:2px}
 html.paia-hide-content-previews .personal-topic-preview{display:none!important}
+
+/* Final original .card-footer .open-topic is quiet in light, retained #7492b9 in dark. */
+html[data-paia-theme="dark"] body[data-paia-space="thoughts"] .personal-topic-more{color:#7492b9}

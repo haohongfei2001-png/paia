@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
-import {thoughtLayout,thoughtPalette} from './d7-thought-reference.mjs';
+import {thoughtRootLayout,thoughtPalette,thoughtWhiteAuthority} from './d7-thought-reference.mjs';
 import {eventually} from './fake-chatgpt.mjs';
 
 const directory='work/qa-dvn-topic-root/d7';
 const widths=[1440,1280,1024,768,390,320];
 // T01 remains historical compact-list evidence. It is not a TL-PT1 reference,
 // and must never be relabelled as approval of the current Personal Topic grid.
-const authority={contract:'TL-PT1-UI-1.0',sharedRoles:'D6.2 shell/tokens',historicalReference:'T01 compact list superseded',visualApproval:'NOT_CLAIMED',referenceComparison:'Current written contract; no exact private-reference reproduction'};
+const authority=thoughtWhiteAuthority;
 
 async function measure(page){return page.evaluate(()=>{
- const selectors={header:'.workspace-header',body:'#thought-panel',heading:'#thought-root-heading h1',list:'#thought-list',block:'article.personal-topic-block',title:'article.personal-topic-block h2',section:'.personal-section-link:not([hidden])',continuation:'.personal-topic-more:not([hidden])',search:'#thought-search',searchIcon:'.thought-search-icon'};
+ const selectors={header:'#thought-home-tools .thought-search-row',body:'#thought-panel',heading:'#thought-root-heading h1',list:'#thought-list',block:'article.personal-topic-block',title:'article.personal-topic-block h2',section:'.personal-section-link:not([hidden])',continuation:'.personal-topic-more:not([hidden])',search:'#thought-home-tools .thought-search-row',searchInput:'#thought-search',searchIcon:'.thought-search-icon'};
  const metrics=Object.fromEntries(Object.entries(selectors).map(([key,selector])=>{
   const node=document.querySelector(selector);if(!node)return [key,null];
   const r=node.getBoundingClientRect(),c=getComputedStyle(node);
@@ -25,30 +25,32 @@ export async function openD5ThoughtRoot(h,variant){
  const receipt=result=>writeFile(`${directory}/${variant}-root.json`,JSON.stringify({head:process.env.PAIA_TESTED_HEAD,variant,result,authority,rows,failures},null,2));
  return {async capture(width,theme){
   await eventually(()=>p.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,theme),'Root settled theme');
-  const production=await measure(p),label=`${variant}/${width}/${theme}`,layout=thoughtLayout(width),palette=thoughtPalette(theme);
+  const production=await measure(p),label=`${variant}/${width}/${theme}`,layout=thoughtRootLayout(width),palette=thoughtPalette(theme);
   const exact=(a,b,name)=>{if(a!==b)failures.push(`${label} ${name}: ${a} != ${b}`);},near=(a,b,name)=>{if(Math.abs(a-b)>2)failures.push(`${label} ${name}: ${a} != ${b}`);};
   near(production.body.x,layout.rail,'shared workspace axis');near(production.body.width,width-layout.rail,'available workspace');
-  exact(production.body.paddingTop,'24px','root top gutter');for(const key of ['paddingLeft','paddingRight'])exact(production.body[key],layout.gutter+'px','root '+key);
+  exact(production.body.paddingTop,layout.top+'px','root top gutter');for(const key of ['paddingLeft','paddingRight'])exact(production.body[key],layout.gutter+'px','root '+key);
   // The adopted grid uses available workspace width; the old 936px compact
   // list cap is not a limit on the refined three-column Root.
   near(production.list.width,width-layout.rail-layout.gutter*2,'grid available width');near(production.list.x,layout.rail+layout.gutter,'shared left axis');near(production.heading.x,production.list.x,'heading/list alignment');
-  exact(production.grid.columns,Math.max(1,Math.min(3,Math.floor((production.list.width+16)/240))),'responsive columns');
-  const roles={heading:{fontSize:width<768?'24px':'28px',lineHeight:width<768?'35px':'38px',fontWeight:'500',color:palette.text},title:{fontWeight:'500',color:palette.text},section:{color:palette.muted},continuation:{color:palette.muted}};
+  exact(production.grid.columns,layout.columns,'responsive columns');
+  const roles={heading:{fontSize:layout.headingSize+'px',lineHeight:(layout.headingSize*1.2)+'px',fontWeight:'600',color:palette.text},title:{fontSize:layout.titleSize+'px',fontWeight:'600',color:palette.title},section:{color:palette.chapter},continuation:{color:palette.continuation}};
   for(const [target,expected]of Object.entries(roles)){
    if(!production[target]){failures.push(`${label} missing ${target} fixture`);continue;}
    for(const [key,value]of Object.entries(expected))exact(production[target][key],value,target+'.'+key);
   }
   for(const target of ['heading','title']){
    if(!production[target]?.fontSynthesis.split(' ').includes('weight'))failures.push(`${label} ${target} must permit declared CJK weight`);
-   if(!/Georgia/.test(production[target]?.fontFamily||''))failures.push(`${label} ${target} must retain the shared serif role`);
+   if(target==='heading'&&!/Georgia/.test(production[target]?.fontFamily||''))failures.push(`${label} heading must retain the shared serif role`);
+   if(target==='title'&&/Georgia/.test(production[target]?.fontFamily||''))failures.push(`${label} card title must use the approved sans role`);
   }
   assert.ok(parseFloat(production.heading.fontSize)>parseFloat(production.title.fontSize),'Topic h2 remains subordinate to the Root h1');
   assert.ok(parseFloat(production.title.fontSize)>parseFloat(production.section.fontSize),'real Section overview remains subordinate to its Topic');
-  exact(production.search.background,palette.soft,'search surface');
-  if(width>=1024){near(production.header.x,width-294,'shared trailing header');near(production.header.width,250,'scoped search width');exact(production.header.paddingTop,'0px','absolute header top padding');near(production.search.x-production.searchIcon.x-production.searchIcon.width,8,'search icon gap');near(production.heading.y,24,'root heading y');}
+  exact(production.search.background,palette.soft,'search surface');near(production.searchInput.x-production.searchIcon.x-production.searchIcon.width,width<=760?7:11,'original search icon/text gap');
+  near(production.heading.y-production.body.y,layout.top,'heading top content inset');near(production.header.width,width<=530?production.list.width:layout.searchWidth,'approved search width');exact(production.header.borderRadius,'11px','search radius');
+  if(width>530)near(production.header.x+production.header.width,production.list.x+production.list.width,'search/grid right axis');
   assert.equal(await p.locator('.thought-search-icon').textContent(),'');assert.equal(await p.locator('.thought-search-icon > svg[data-paia-icon="search"]').count(),1);assert.equal(await p.locator('.thought-search-icon > svg').getAttribute('aria-hidden'),'true');assert.equal(await p.locator('.thought-search-icon > svg').getAttribute('focusable'),'false');assert.equal(await p.locator('.thought-search-icon').getAttribute('aria-hidden'),'true');
-  assert.equal(await p.evaluate(()=>document.querySelector('#thought-root-header').contains(document.querySelector('#thought-search'))),true,'existing sole search remains in the root header');
-  assert.equal(await p.locator('#thought-source-scope').isHidden(),true,'superseded Source selector is hidden');assert.equal(await p.locator('#thought-root-source > button').isVisible(),true,'same Add Thought owner');assert.equal(await p.locator('#thought-root-source > .library-actions > summary').isVisible(),true,'same overflow owner');assert.equal(await p.locator('#thought-topic-header').isVisible(),false);assert.equal(await p.locator('#thought-search').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth<=2));
+  assert.equal(await p.evaluate(()=>document.querySelector('#thought-home-tools').contains(document.querySelector('#thought-search'))),true,'existing sole search remains in the current Home tools owner');
+  assert.equal(await p.locator('#thought-source-scope').isHidden(),true,'superseded Source selector is hidden');assert.equal(await p.locator('.thought-root-actions > button').last().isVisible(),true,'same Add Thought owner');assert.equal(await p.locator('.thought-root-actions > .library-actions > summary').isVisible(),true,'same overflow owner');assert.equal(await p.locator('#thought-topic-header').isVisible(),false);assert.equal(await p.locator('#thought-search').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-innerWidth<=2));
   const screenshot=`${directory}/${variant}-${width}-${theme}-production.png`;await p.screenshot({path:screenshot,fullPage:false});
   rows.push({width,theme,production,screenshot});await receipt(failures.length?'FAIL':'PENDING');
  },async finish(){
@@ -88,7 +90,7 @@ async function textGeometry(page){return page.evaluate(()=>{
   for(const r of [...rects].sort((a,b)=>(a.top+a.bottom)-(b.top+b.bottom))){const center=(r.top+r.bottom)/2,last=lines.at(-1);if(last&&Math.abs(last.center-center)<Math.max(3,size*.4)){last.top=Math.min(last.top,r.top);last.bottom=Math.max(last.bottom,r.bottom);}else lines.push({top:r.top,bottom:r.bottom,center});}
   return lines;
  };
- const labels=[...document.querySelectorAll('#thought-root-heading h1,.personal-topic-link,.personal-section-link,.personal-topic-more,#thought-root-source>button,#thought-root-source>.library-actions>summary')].filter(visible).map(node=>{
+ const labels=[...document.querySelectorAll('#thought-root-heading h1,.personal-topic-link,.personal-section-link,.personal-topic-more,.thought-root-actions>button,.thought-root-actions>.library-actions>summary')].filter(visible).map(node=>{
   const raw=textRects(node),boundaries=clips(node),paintClips=[...boundaries,{left:0,top:0,right:innerWidth,bottom:innerHeight}],painted=raw.map(r=>paintClips.reduce((value,clip)=>value&&intersect(value,clip),r)).filter(Boolean),size=parseFloat(getComputedStyle(node).fontSize);
   return {node,text:node.textContent,kind:node.className||node.tagName,sectionId:node.dataset.sectionId||null,raw,painted,lines:bands(node.classList.contains('personal-section-link')?raw:painted,size),clipped:raw.some(r=>boundaries.some(c=>r.left<c.left-1||r.right>c.right+1||r.top<c.top-1||r.bottom>c.bottom+1))};
  });
@@ -107,17 +109,17 @@ async function textGeometry(page){return page.evaluate(()=>{
 
 export async function verifyD5ThoughtRootTextZoom(page,variant){
  await page.setViewportSize({width:320,height:900});
- const snapshots=[],path=`work/qa-dvn-topic-root/${variant}-text200-320`,selectors=['#thought-search','#thought-root-source>.library-actions>summary','#thought-root-source>button'];
+ const snapshots=[],path=`work/qa-dvn-topic-root/${variant}-text200-320`,selectors=['#thought-search','.thought-root-actions>button:first-child','.thought-root-actions>.library-actions>summary','.thought-root-actions>button:last-child'];
  const sample=label=>page.evaluate(({label,selectors})=>{
   const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom};},owner=globalThis.__d5RootOwner;
-  return {label,time:performance.now(),scrollY,viewport:{width:innerWidth,height:innerHeight},overflow:document.documentElement.scrollWidth-innerWidth,owner:owner?{restoring:owner.homeRestoring,shifting:owner.homeWindowShifting,loading:!!owner.homeCollection?.loading,hydrating:!!owner.homeCollection?.hydration}:null,rail:rect(document.querySelector('.sidebar')),header:rect(document.querySelector('.workspace-header')),controls:selectors.map(selector=>{const el=document.querySelector(selector),r=rect(el),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {selector,...r,hit:!!hit&&(hit===el||el.contains(hit)),active:document.activeElement===el};}),trace:globalThis.__d5RootScroll};
+  return {label,time:performance.now(),scrollY,viewport:{width:innerWidth,height:innerHeight},overflow:document.documentElement.scrollWidth-innerWidth,owner:owner?{restoring:owner.homeRestoring,shifting:owner.homeWindowShifting,loading:!!owner.homeCollection?.loading,hydrating:!!owner.homeCollection?.hydration}:null,rail:rect(document.querySelector('.sidebar')),header:rect(document.querySelector('#thought-home-tools .thought-search-row')),controls:selectors.map(selector=>{const el=document.querySelector(selector),r=rect(el),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {selector,...r,hit:!!hit&&(hit===el||el.contains(hit)),active:document.activeElement===el};}),trace:globalThis.__d5RootScroll};
  },{label,selectors});
  try{
   await eventually(()=>page.evaluate(()=>!!globalThis.__d5RootOwner&&!!__d5RootOwner.homeCollection&&!__d5RootOwner.homeRestoring&&!__d5RootOwner.homeWindowShifting&&!__d5RootOwner.homeCollection?.loading&&!__d5RootOwner.homeCollection?.hydration),'Root settles before text enlargement');
   snapshots.push(await sample('before zoom'));
   await page.evaluate(()=>{
    // Read every base size first so doubling h2 and its link does not compound.
-   globalThis.__d2ZoomRows=[...document.querySelectorAll('#thought-root-heading h1,#thought-home-tools input,#thought-root-source summary,#thought-root-source button,#thought-root-source label,#thought-root-source select,#thought-panel button,#thought-panel strong,#thought-panel span,#thought-panel small,#thought-panel p,#thought-panel label,#thought-panel select,#thought-list h2,#thought-list .personal-topic-link,#thought-list .personal-section-link,#thought-list .personal-topic-more')].map(node=>({node,size:parseFloat(getComputedStyle(node).fontSize),prior:node.style.fontSize}));
+   globalThis.__d2ZoomRows=[...document.querySelectorAll('#thought-root-heading h1,#thought-home-tools input,.thought-root-actions summary,.thought-root-actions button,#thought-panel button,#thought-panel strong,#thought-panel span,#thought-panel small,#thought-panel p,#thought-panel label,#thought-panel select,#thought-list h2,#thought-list .personal-topic-link,#thought-list .personal-section-link,#thought-list .personal-topic-more')].map(node=>({node,size:parseFloat(getComputedStyle(node).fontSize),prior:node.style.fontSize}));
    for(const row of __d2ZoomRows)row.node.style.fontSize=(row.size*2)+'px';scrollTo(0,0);
   });
   const enlargement=await page.evaluate(()=>__d2ZoomRows.filter(({node})=>node.matches('#thought-root-heading h1,#thought-list h2,.personal-topic-link,.personal-section-link,.personal-topic-more')).map(({node,size})=>({kind:node.tagName==='H1'?'h1':node.tagName==='H2'?'h2':node.className,before:size,after:parseFloat(getComputedStyle(node).fontSize)})));

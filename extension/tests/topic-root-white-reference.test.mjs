@@ -8,7 +8,7 @@ import {TopicRootSlots} from '../ui/topic-root-slots.js';
 test('ordered column stacking closes committed holes without changing identity nodes or imposing equal heights',()=>{
  const host=new Node('div');host.clientWidth=1000;host.style={setProperty(){}};
  const ids=['a','b','c','d','e','f'],heights=[100,200,150,80,120,90],nodes=new Map(ids.map((id,index)=>{const node=new Node('article');node.dataset.topicId=id;node.style={};node.getBoundingClientRect=()=>({height:heights[index]});return [id,node];}));
- const owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{host,nodes,items:ids.map(id=>({id})),slots:new TopicRootSlots(),complete:true,fit(){}});
+ const owner=Object.assign(Object.create(PersonalTopicRoot.prototype),{host,nodes,items:ids.map(id=>({id})),slots:new TopicRootSlots(),complete:true,fit(){},columns:()=>3});
  owner.layout();assert.equal(nodes.get('d').style.gridRow,'121 / span 80');assert.equal(nodes.get('e').style.gridRow,'221 / span 120');assert.equal(nodes.get('f').style.gridRow,'171 / span 90');assert.deepEqual(host.children,ids.map(id=>nodes.get(id)));
  const identity=nodes.get('e');owner.items=ids.filter(id=>id!=='b').map(id=>({id}));owner.layout();assert.equal(nodes.get('e'),identity);assert.equal(identity.dataset.rootSlot,'4');assert.equal(identity.style.gridColumn,'1');assert.equal(identity.style.gridRow,'121 / span 120');assert.equal(nodes.get('f').style.gridRow,'171 / span 90');assert.equal(host.children.length,5);
  heights[0]=135;owner.layout();assert.equal(identity.style.gridRow,'156 / span 120','a genuine content-height change updates only stacking geometry');
@@ -39,6 +39,8 @@ test('white Home shell isolates the approved desktop axis and retains existing c
  const css=await readFile(new URL('../ui/thought-reader.css',import.meta.url),'utf8'),source=await readFile(new URL('../ui/topic-workspace.js',import.meta.url),'utf8');
  assert.match(css,/body\[data-paia-space="thoughts"\]\[data-paia-surface="root"\] #thought-panel\{display:grid;grid-template-columns:minmax\(0,1fr\) 282px/);
  assert.match(css,/max-width:1316px;margin:0 auto;padding:46px 62px 80px/);assert.match(css,/thought-root-heading h1\{font-size:34px/);assert.match(css,/thought-root-actions>button\{min-height:44px;min-width:44px/);
+ assert.match(css,/thought-root-actions>\.library-actions>summary\{min-height:36px;min-width:36px;display:grid/);
+ assert.match(css,/@media\(max-width:767px\),\(pointer:coarse\)\{[^\n]*thought-root-actions>\.library-actions>summary\{min-height:44px;min-width:44px/);
  assert.match(source,/rootActions\.append\(button\(tc\('添加主题'\),\(\)=>this\.createTopic\(\)\),homeMenu,button\(tc\('接着写'\),\(\)=>this\.createStandalone\(\)\)\)/);
 });
 

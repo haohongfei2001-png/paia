@@ -30,13 +30,14 @@ test('TOPIC-05.2 missing, ambiguous, restore, purge and exclusion causes always 
  for(const cause of ['EDIT_LIBRARY_TOPIC','CREATE_LIBRARY_SECTION','EDIT_LIBRARY_FIELDS'])assert.equal(canRetainRootMetadata(cause),true);
 });
 test('TOPIC-05.2 same-column width changes and enlarged titles refit whole Section labels without resetting search overlays',()=>{
- const prior=globalThis.ResizeObserver,observed=new Set();let callback,layouts=0,refits=0;
+ const prior=globalThis.ResizeObserver,priorStyle=globalThis.getComputedStyle,observed=new Set();let callback,layouts=0,refits=0,cssColumns=3;
+ globalThis.getComputedStyle=()=>({getPropertyValue:key=>{assert.equal(key,'--topic-root-columns');return String(cssColumns);}});
  globalThis.ResizeObserver=class{constructor(run){callback=run;}observe(node){observed.add(node);}unobserve(node){observed.delete(node);}disconnect(){observed.clear();}};
  try{
   const host={clientWidth:1000,getClientRects:()=>[{}],replaceChildren(){}},owner=new PersonalTopicRoot(host,{open:()=>{}});owner.items=[{id:'synthetic'}];owner.layout=()=>{layouts++;owner.columnCount=owner.columns();owner.layoutWidth=host.clientWidth;};owner.fit=()=>refits++;
   callback([{target:host}]);assert.equal(layouts,1);assert.equal(owner.columnCount,3);host.clientWidth=980;callback([{target:host}]);assert.equal(owner.columnCount,3);assert.equal(layouts,2,'width changes must refit even within the same three-column view');
-  for(const [width,columns]of [[1440,3],[700,2],[320,1]]){host.clientWidth=width;assert.equal(owner.columns(),columns);}host.clientWidth=980;
+  for(const [width,columns]of [[1440,3],[700,2],[320,1]]){host.clientWidth=width;cssColumns=columns;assert.equal(owner.columns(),columns);}host.clientWidth=980;cssColumns=3;
   const node={dataset:{topicId:'synthetic'},querySelector:()=>title},title={closest:()=>node};owner.nodes.set('synthetic',node);owner.observeTitle(node,true);assert.ok(observed.has(title));callback([{target:title}]);assert.equal(refits,1,'title text enlargement refits content without a fixed Section capacity');node.dataset.searchState='true';callback([{target:title}]);assert.equal(refits,1,'a title observation must not reveal Section labels behind a search match');
   owner.clear();assert.equal(observed.has(title),false);assert.equal(observed.has(host),true);owner.dispose();assert.equal(observed.size,0);
- }finally{if(prior===undefined)delete globalThis.ResizeObserver;else globalThis.ResizeObserver=prior;}
+ }finally{if(prior===undefined)delete globalThis.ResizeObserver;else globalThis.ResizeObserver=prior;if(priorStyle===undefined)delete globalThis.getComputedStyle;else globalThis.getComputedStyle=priorStyle;}
 });

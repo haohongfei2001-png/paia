@@ -1,3 +1,4 @@
+import {applyArchiveWhiteRoles} from './harness/archive-white-reference.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -49,8 +50,9 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   data.reader=await shape(p,['.sidebar','#document-page','#document-body','.library-prose']);await shot(p,variant+'-reader-wide');
   if(variant!=='baseline'){
    // IAH-1.3 U2/7/8 moves the existing 44px source control outside the tree;
-   // UX §3 replaces only the old prose leading. All unaffected values stay exact.
-   const neutral=structuredClone(evidence.variants.baseline.neutral),reader=structuredClone(evidence.variants.baseline.reader);
+   // UX §3 replaces old prose leading; IAH-1.4 replaces only color roles.
+   // The old baseline remains captured unchanged; all unaffected values stay exact.
+   const neutral=applyArchiveWhiteRoles(evidence.variants.baseline.neutral),reader=applyArchiveWhiteRoles(evidence.variants.baseline.reader);
    neutral['#archive-navigator'].y+=44;neutral['#archive-navigator'].height-=44;
    const font=parseFloat(reader['.library-prose'].size);assert.equal(font,17,'fixed baseline comparison font');
    reader['.library-prose'].line='28.05px';assert.ok(parseFloat(data.reader['.library-prose'].line)>=27&&parseFloat(data.reader['.library-prose'].line)<=29,'approved ordinary17px leading');

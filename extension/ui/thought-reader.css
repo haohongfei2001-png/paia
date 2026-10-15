@@ -311,17 +311,25 @@ body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-heading
 body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-heading h1{font-size:34px;line-height:1.2;font-weight:600}
 body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-description{margin-top:12px}
 body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools:not([hidden]){display:contents}
-body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{grid-column:2;grid-row:1;align-self:center;min-width:0;width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px}
+body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{grid-column:2;grid-row:1;align-self:center;min-width:0;width:100%;gap:11px;background:var(--bg);border:1px solid var(--line);border-radius:11px}
 body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-search{background:transparent}
 body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions{grid-column:1 / -1;grid-row:2;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0}
+body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions>.library-actions>summary{min-height:36px;min-width:36px;display:grid;place-items:center;padding:2px 8px}
 body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions>button{min-height:36px;padding:6px 9px;border:0;background:transparent;color:var(--action,var(--focus));font:400 12px/1.65 var(--font)}
 body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-collection{grid-row:3;max-width:none}
-@media(max-width:1279px){body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{padding-inline:36px}}
-@media(max-width:767px){
- body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{grid-template-columns:minmax(0,1fr);padding:28px 20px 56px;row-gap:20px}
- body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-heading h1{font-size:26px}
+/* Original white viewport media rules; retained AppShell rail is not demo chrome. */
+@media(max-width:1250px){body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{padding-inline:34px}}
+@media(max-width:1000px){body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{grid-template-columns:minmax(0,1fr) 220px;padding:36px 28px 74px}body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-heading h1{font-size:30px}}
+@media(max-width:760px){body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{gap:7px}body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{grid-template-columns:minmax(0,1fr) 165px;padding:31px 22px 88px}body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-root-heading h1{font-size:26px}}
+@media(max-width:530px){
+ body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-panel{grid-template-columns:minmax(0,1fr);padding:28px 16px 90px;row-gap:20px}
  body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{grid-column:1;grid-row:2}
  body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions{grid-row:3}
  body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-collection{grid-row:4}
 }
-@media(max-width:767px),(pointer:coarse){body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions>button{min-height:44px;min-width:44px}}
+@media(max-width:767px),(pointer:coarse){body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions>.library-actions>summary{min-height:44px;min-width:44px}body[data-paia-space="thoughts"][data-paia-surface="root"] .thought-root-actions>button{min-height:44px;min-width:44px}}
+
+/* The white reference identifies metadata separately from ordinary prose. */
+body[data-paia-space="thoughts"] #original-reading-body .entry-sent-time{color:var(--quiet)}
+html[data-paia-theme="dark"] body[data-paia-space="thoughts"] #original-reading-body .entry-sent-time{color:#a9b6c7}
+html[data-paia-theme="dark"] body[data-paia-space="thoughts"][data-paia-surface="root"] #thought-home-tools .thought-search-row{background:#242e3b}

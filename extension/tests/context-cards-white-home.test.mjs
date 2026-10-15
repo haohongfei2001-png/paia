@@ -102,3 +102,11 @@ test('white Context Home uses only admitted Home metadata and access never navig
  assert.equal(calls.some(call=>call.type.includes('SEARCH')),false);
  assert.ok(calls.filter(call=>call.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').every(call=>call.mode==='home'));
 }));
+
+test('Context Home puts only the real global gate in the independent access bar',()=>fixture(async({makePage,c})=>{
+ const page=makePage();await page.open();const head=page.host.querySelector('.context-head'),bar=page.host.querySelector('.context-access-bar');
+ assert.ok(bar);assert.equal(head.querySelector('.context-access'),null);const gate=bar.querySelector('.context-access');assert.equal(gate.dataset.key,'global');assert.equal(gate.getAttribute('aria-pressed'),'false');assert.ok(bar.querySelector('.connections-link'));
+ assert.equal(page.host.querySelectorAll('.context-switch').length,5);for(const track of page.host.querySelectorAll('.context-switch'))assert.equal(track.getAttribute('aria-hidden'),'true');
+ gate.onclick();while(page.busy)await tick();assert.equal((await c.snapshot()).access.global.enabled,true);assert.equal(page.card,null);
+ for(const key of ['info','rules','now','inputs'])assert.equal((await c.snapshot()).access[key].enabled,false);
+}));

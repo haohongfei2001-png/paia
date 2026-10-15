@@ -90,8 +90,10 @@ body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space
  --prose-ink:#343b45;--title-ink:#242d3b;--heading-ink:#2b3543;--directory-ink:#525e6d;
  --action:#3566b6;--selected-ink:#305eac;--subtle-line:#edf0f3;--rail-line:#e5eaf0;
  --card-shadow:0 5px 13px -10px #192f572c;
+ --search-surface:#fff;--search-ink:#4f5a69;--search-line:#dfe5ed;
+ --float-shadow:0 18px 65px #172a4520;--float-line:#dfe5ed;
  --line:#e1e6ec;--control:#687381;--soft:#fcfdff;--selected:#edf3ff;
- --brand:#3769c9;--brand-soft:#edf3ff;--focus:#5a85ca;--selection:#ddeaff;
+ --brand:#3769c9;--on-brand:#fff;--brand-soft:#edf3ff;--focus:#5a85ca;--selection:#ddeaff;
  --danger:#b03549;--danger-bg:#fcf0f2;--warning:#785a20;--warning-bg:#faf5e9;--success:#28694f;
  --font:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
  --title-font:Georgia,"Songti SC","Noto Serif CJK SC",SimSun,serif;
@@ -105,12 +107,14 @@ body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space
  --paia-danger:var(--danger);--paia-warning:var(--warning);
 }
 html[data-paia-theme="dark"] body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]){
- --bg:#1a2028;--surface:#202731;--rail:#202731;--text:#d7dde5;--muted:#b0bdd0;--quiet:#a5b4cb;
- --prose-ink:#d7dde5;--title-ink:#e8edf7;--heading-ink:#d7dde5;--directory-ink:#b0bdd0;
- --action:#94baff;--selected-ink:#b5ceff;--subtle-line:#303b4c;--rail-line:#303b4c;
- --card-shadow:0 5px 13px -10px #00000066;
- --line:#303b4c;--control:#a5b4cb;--soft:#202939;--selected:#263b5b;
- --brand:#94baff;--brand-soft:#263b5b;--focus:#94baff;--selection:#314d79;
+ --bg:#1a2028;--surface:#202731;--rail:#1c232d;--text:#edf0f5;--muted:#a9b6c7;--quiet:#a2afc0;
+ --prose-ink:#d7dde5;--title-ink:#edf0f5;--heading-ink:#edf0f5;--directory-ink:#a9b6c7;
+ --action:#92b7f4;--selected-ink:#c2d8fa;--subtle-line:#2d3744;--rail-line:#35414f;
+ --card-shadow:none;
+ --search-surface:#242e3b;--search-ink:#d2deee;--search-line:#3b485b;
+ --float-shadow:none;--float-line:#35414f;
+ --line:#35414f;--control:#a5b4cb;--soft:#2b3542;--selected:#293f5e;
+ --brand:#92b7f4;--on-brand:#1a2028;--brand-soft:#293f5e;--focus:#94baff;--selection:#314d79;
  --danger:#f4a2b1;--danger-bg:#38242d;--warning:#e4c387;--warning-bg:#332c20;--success:#96d7b9;
 }
 /* Saved preferences are inline on html, including an explicitly saved standard. */
@@ -255,7 +259,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-
 /* Final role bindings for real application elements, not the reference viewer. */
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.sidebar,#archive-navigator){border-color:var(--rail-line)}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.library-prose,.original-prose,.excluded-prose,.entry-prose,.thought-prose,.context-item .item-text){color:var(--prose-ink);line-height:1.65}
-body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#workspace-heading,#archive-root-heading h1,.context-head h1,.ux-settings-header h1,#thought-document #topic-heading h1){color:var(--title-ink)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#workspace-heading,#document-title,#archive-root-heading h1,.context-head h1,.ux-settings-header h1,#thought-document #topic-heading h1){color:var(--title-ink)}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-topic-title,.card-title,.context-section h2,.topic-root-section-anchor h2){color:var(--heading-ink)}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-section-link,.archive-navigator-window-title){color:var(--directory-ink)}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.personal-topic-block,.context-card){background:var(--surface);box-shadow:var(--card-shadow)}
@@ -264,3 +268,10 @@ body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(#document-body .library-prose,#original-reading-body .entry-prose,#ai-reading-body .entry-prose,#topic-body .entry-prose){color:var(--prose-ink);line-height:1.65}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.context-access[data-on="true"]:not([data-paused="true"]),.topic-access[data-on="true"]:not([data-paused="true"]),#settings-panel .ux-settings-nav>button[aria-current="page"],#settings-panel .ux-setting-switch[data-on="true"],#settings-panel .ux-preview-control:has(input:checked) .ux-preview-pill){color:var(--selected-ink)}
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.context-notice button,#settings-panel .ux-about-link:hover,#settings-removed-dialog button:hover){color:var(--action)}
+
+/* Final reference rail and floating surfaces share semantic roles, not canvas. */
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#archive-navigator,#archive-reader-navigator-slot){background:var(--rail);border-color:var(--rail-line)}
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.reader-selection,.reader-confirm[data-confirm-surface],#info-dialog,#revision-dialog){background:var(--surface);border-color:var(--float-line);box-shadow:var(--float-shadow)}
+
+/* Primary intent is distinct from dangerous confirmation and paused permission. */
+body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.reader-confirm-actions>button.primary,#settings-search-repair-dialog #library-rebuild-search){background:var(--brand);border-color:var(--brand);color:var(--on-brand)}

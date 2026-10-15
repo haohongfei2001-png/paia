@@ -129,8 +129,9 @@ test('TOPIC-05.2 Root query preserves the validated reading anchor before search
 
 
 test('TOPIC-05.3 active Entry AI and Section overlays survive same-column width layout without exposing original overview',()=>{
- const prior={document:globalThis.document,location:globalThis.location,getSelection:globalThis.getSelection};
+ const prior={document:globalThis.document,location:globalThis.location,getSelection:globalThis.getSelection,getComputedStyle:globalThis.getComputedStyle};
  try{
+  globalThis.getComputedStyle=()=>({getPropertyValue:key=>{assert.equal(key,'--topic-root-columns');return '3';}});
   for(const kind of ['entry','ai','section']){
    const dom=searchDOM('topic');globalThis.document={documentElement:{lang:'en'},body:dom.host,createElement:dom.create,createTextNode:presentationText};globalThis.location={href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'};globalThis.getSelection=()=>({isCollapsed:true});
    const ordinary=dom.create('a');ordinary.className='personal-section-link';ordinary.title='SYNTHETIC ordinary Section';ordinary.dataset.sectionId='ordinary';ordinary.getBoundingClientRect=()=>({height:32});dom.overview.append(ordinary);dom.overview.clientHeight=32;

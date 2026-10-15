@@ -144,6 +144,7 @@ for(const variant of ['source','release'])test('TOPIC-05.2 unchanged Topic rende
   const module=join(dir,'ui/archive.js');await writeFile(module,(await readFile(module,'utf8'))+'\nexport {render as testActualRender};\n');
   h=await FakeChatGPT.start({extensionPath:dir});const p=h.archive;
   await p.locator('#enable-consent').click();if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
+  await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent publication is acknowledged before independent fixture mutation');
   const topic=await p.evaluate(async()=>{const {OrganizerStore}=await import('../core/organizer/store.js');return new OrganizerStore(chrome.storage.local).createTopic({name:'SYNTHETIC keyboard Back',operationId:crypto.randomUUID()});});
   await thoughtPrimary(p,'thoughts');await p.locator('.personal-topic-link').first().click();
   await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert,topic.id);
