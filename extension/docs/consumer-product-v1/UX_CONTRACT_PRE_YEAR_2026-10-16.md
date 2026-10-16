@@ -1,0 +1,69 @@
+# Consumer UX Contract — independent Sections and anchored composition
+
+**PAIA-SECTION-1.0 / OWNER_DIRECTED / 2026-10-16.** Scoped targets: **TL-PT1-UI-1.6 / CTX4-UI-1.6 / IAH-1.7**. Settings retains SET2-UI-1.4 and its inventory; it consumes the shared typography/alignment roles only. The same domain plans and STATUS remain the execution system. [Reference manifest](SECTION_LAYOUT_REFERENCES_2026-10-16.md) identifies the revised existing prototypes. This is a continuation of the owner's design/plan corrections, not a separately approved final pixel review or production implementation.
+
+The complete preceding shared UX is preserved by exact blob `c5a84ebc4fe9060e0b49be4ca49a4f8e78846e2e` in [PRE_SECTION](UX_CONTRACT_PRE_SECTION_2026-10-16.md). **All nonconflicting sections 0–8 and every incorporated domain, editing, provenance, permission, recovery, accessibility, state and verification obligation remain normative.** Only the finite replacements below take precedence. Read the original owning requirements rather than treating this amendment as cancellation of unquoted details.
+
+## 0. Retained product and source of intent
+
+PAIA remains a personal context system for capturing, finding, inspecting, thinking about, editing, organizing and reusing user expression. Keep the three primary spaces and secondary Settings, separate Source/Working/Thought/Context owners, human intent and all seven Canonical goals. The Drive design's readable text, restrained controls, low-frequency provenance and Word-like editing principles remain relevant; its earlier superseded export/Context-package/reverse-binding proposals are not reinstated.
+
+Keep the white-led design, deep near-neutral text and restrained blue accents; no new logo, fixed taxonomy, dashboard, account, theme picker or full-screen tint. No generic New Topic, Home quote/summary/count/date, root manual sort, routine Reader source action, Edit mode, Continue Writing button, large duplicate heading, reading search, Settings sample or onboarding tour returns. Necessary failures, consent, permissions, raw-data access, legitimate editing/organization and recovery remain. NIB and its free search/precise reuse, fixed geometry, manual Families, Pro admission and Stage3A permission are not redesigned or removed here.
+
+## 1. Thought Sections are distinct reading views
+
+A Topic retains stable Section identities and their existing ordered placements. **Selecting a Section shows only that Section's eligible content.** The left directory changes the reading scope; it is no longer merely an anchor list beside one document that concatenates all Sections. For the owner's PAIA example, website design, Thought Library design and Archive design remain three different views. Do not mix siblings in a visible or CSS-hidden combined document, scroll into another Section automatically at the end, or move data to simulate this presentation.
+
+Clicking a card's real Section opens exactly that Topic/Section. Clicking the Topic title uses a valid prior Section in the existing bounded view-session lifetime, otherwise the first lawful Section in the actual human order. An untitled default Section remains valid without inventing a stored name; a title-only Topic is not permission to seed chapters. **An explicitly requested missing/deleted/revoked Section fails honestly rather than silently substituting the first sibling.** Default selection on a Section-less Topic entry is a different operation from resolving an invalid explicit target.
+
+Only the active Section owns the visible reader/editor/end-writing position. Keep its full qualified bounded traversal, revisions, source mappings and original human order; do not mistake the mounted page for the complete Section. Maintain identity-relative reading position and applicable focus/caret through the existing session owner. Before switching Section, returning Home, following a target or changing an incompatible view, apply current durable-save/IME/conflict/leave guards. Failure retains the old Section and draft. Reopening restores the qualified Section position; background updates or layout changes never choose a different Section.
+
+Direct typing at the active Section's document end retains the original writer and creates no item before actual input/acknowledgement. Rendering a Section creates no body, placement or permission. Copy/move/remove/undo and human Section/Entry ordering remain with their existing owners. Explicit current target handoffs can still arrive at an exact Entry/offset within the correct Section.
+
+AI organization keeps the existing real processing scope, three styles, admission and source/revision fences; selecting a Section does not grant a new job or silently change processing permission. A displayed derivative must resolve the active Section's legitimate content, not show an unrelated combined result under its name. This view change neither fragments the canonical data nor limits other authorized full-Topic/external retrieval consumers.
+
+On narrow layouts the same Section selection becomes a compact selector beside Back. Do not squeeze a second navigation column into the prose, duplicate the Section state, or make the mobile selector only scroll a mixed document.
+
+## 2. Thought Library has no application search surface
+
+Remove Thought Home search as well as the already retired Reader search: no field, icon, empty reserved search strip, command-palette replacement, hidden focusable field, keyboard search launcher or active legacy query filter. Root starts directly with the Topic cards. A saved old Thought query cannot silently filter the visible Topics or reopen a result page.
+
+This is a **surface retirement**, not destruction of indexes or qualified backend retrieval. Archive discovery, Context Home/My Inputs discovery, authorized external Context query, existing strict target handoffs and NIB search retain their own capabilities and privacy. Do not delete a shared service to remove one page's search. Browser Ctrl/Cmd+F remains browser-owned and is not promised complete coverage of unmounted content. Existing explicit references resolve to the actual Section/Entry without a recreated local search interface.
+
+## 3. Dates use the reader's language; years integrate into metadata
+
+Month and day are explicit: Chinese uses forms such as **10月8日 · 09:42**, not 10.08 or 1008. English uses the full month name and locale order, such as **October 8 · 09:42** (or 8 October under a supported applicable locale), not ambiguous numeric-only dates. Avoid padded day numbers when unnecessary. Use the existing language/locale owner; no new date-format or region setting. User-authored text is never automatically translated.
+
+Replace standalone year headings and long year rules with a quiet year prefix on the first Input of each known-year segment: **2026年 · 10月8日 · 09:42** / **2026 · October 8 · 09:42**. Subsequent inputs in that segment omit the repeated year; a genuine year transition has only modest additional space. Year distinction remains understandable without turning the page into a timeline dashboard. If a bounded reader window begins within a year, retain sufficient correct year context on its first visible metadata rather than guessing or losing it. Existing deliberate year navigation may target that real Input instead of a retired horizontal-rule element.
+
+Keep default-visible date/time close to its own text, with one metadata row rather than daily headings, monthly groups, clock gutters or date-range banners. Use qualified original send/creation time and its actual precision/timezone. Never derive send time from capture/import/edit/current time or parse a bare civil date through a timezone conversion that changes the day. Unknown or invalid parts remain explicitly unknown; they do not inherit the previous year, disappear, or become current dates. Sorting and formatting change no stored timestamp, body, revision or activity. Independent Context Items still receive no invented dates.
+
+## 4. Navigation is anchored; text width is independently bounded
+
+The previous whole-reader centering is superseded. **Back and secondary navigation align near their workspace's left edge, adjacent to primary navigation; prose starts a stable distance after that navigation.** Growing the viewport must not increase a centred outer gutter and move Back, Section controls and text together toward screen centre. Do not fix the issue by stretching prose to the full monitor width or adding a decorative right column.
+
+Keep an independent readable text measure driven by the actual saved preference. Remaining wide-screen space can stay to the right. A smaller window uses responsive insets/columns, not scaling text down. At narrow width switch to the existing sequential/overlay navigation; retain the same state and guards. Resizing must not rerender an active editor, change selection, reset scroll or reorder cards.
+
+Measured prototype anchors at 1280 and 1920 CSS px: primary rail176px, workspace inset36px; Thought secondary rail184px and gap32px, giving Back x212 and prose x428; Archive navigator252px and reader inset36px, giving Back/prose x464. In both tested desktop widths prose is the current 680px preference. These are implementation anchors, not mandatory overrides of a user's saved width or accessible targets. Use the existing AppShell/session/scroller owners, not another layout-state store.
+
+Archive discovery's search is approximately38px high with12px to the source/tree region. Remove the former excess search/header spacer. During Reader both global and local Archive search remain absent; its source selector remains navigation, not provenance in the text. Discovery/search-return restores the original scope/query/window/focus. Source switch and project disclosure semantics are otherwise unchanged.
+
+## 5. Thought and Context typography, icons and cards
+
+Use the existing system sans roles consistently for Chinese and Latin UI; no fabricated bold or mixed fallback style to imply hierarchy. Refined ordinary role anchors: Topic title16px/500, Context title16.5px/500, Section/directory13.5px/400, metadata11.5px. Body retains its actual saved size, with17px/approximately28px as current default reference. These are tuning values rather than a new global font-size setting. Text, labels and permissions remain legible in light/dark, zoom, forced colors and coarse-input states.
+
+Icons use coherent approximately21px silhouettes and1.4px strokes in content-card headers; remove the old colored backing tiles/pseudo-element decorations. Small blue/cool accents can remain. These are functional UI icons, not a new PAIA logo. Do not restore the malformed vertical card connector. Align Section text with the Topic name using consistent indents and row spacing.
+
+Thought keeps three/two/one columns, independent content-sized cards, approximately1060px maximum workspace,18px gutters,22px interior spacing and16px radius. Context keeps the exact My Information/My Rules/My Now/My Inputs objects, a2×2 wide composition with approximately1000px maximum workspace,20px gaps and17px card radius. Directory and permission regions have distinct alignment; opening content never triggers a grant. Heights follow actual contents/accessible targets, without tall empty reserves, fixed-taxonomy filler or specific private facts on Home. New icon and word choices in fixtures are not instructions to rename user content.
+
+Source/raw-data, exact original/current separation and current edit/data bindings remain in their owners below normal reading. Preserve direct Word-like editing, native undo, composition, failed drafts, CAS and exact multiline text; typography never rewrites newlines, code, poems, hashes or source evidence. There is no new edit button or line-height preference.
+
+## 6. Existing implementation and acceptance
+
+Apply inside TOPIC-05.1/02/03/04/06/07/08, ARCHIVE-HOME-01/03/04/05/06 and CTX4-01/02/03/07, with the existing shared token/editor/navigation owners. No new queue, parallel writer, per-label certification cycle or restart of qualified work. Current STATUS and other active code remain unchanged.
+
+Replace only obsolete UI expectations: Thought overview search, concatenated all-Section Reader, numeric-only dates, full-width year rules and whole-reader centering. Preserve and extend the original complete safety/current-source/full-corpus/long-reader/permission/deletion/migration/recovery/AI quality and live-client gates. Test direct Section entry and sibling exclusion, missing targets, independent positions, same-section editing/undo, dirty-switch refusal, old-query retirement, valid supported exact target handoffs, truthful Chinese/English/mixed-year/unknown-date/asc-desc behavior and unchanged text/time/permissions. Check 0/1/many/wrapped Sections, original large-library scales,1280/1560/1920/wider views,320px reflow,200% text, actual focus/targets/contrast and no outside-viewport action buttons.
+
+The prototype's final51 checks are limited synthetic Chromium evidence. They are not production extension, actual source website, native physical IME, durable reload, full screen-reader, real AI/Sync, installation or final visual approval. See the reference manifest for initial failures and exact artifacts. Current explicit instructions and this contract prevail over older ADOPTION/UX/VISUAL/INTERACTION/REFERENCES pixels only for these finite deltas; all nonconflicting detailed contracts remain incorporated.
+
+Baseline main `ec627cd5d715bcd7b65cf985ee352b6763717848`, tree `a2a450fc466497f500ce98cb3bb36b905d418996`. This task revises design prototypes and documentation only: no production, schema, tests/CI/version, website, private Drive document, user data, permission/service/billing, installation, deployment or scheduler change.

@@ -1,42 +1,50 @@
-# Personal Topic Architecture — independent-Section presentation plan
+# Personal Topic Architecture — independent Sections with progressive years
 
-**TL-PT1-UI-1.6 / PAIA-SECTION-1.0 / OWNER_DIRECTED / 2026-10-16.** Same CPV1-TOPIC, TOPIC-01–06 and TOPIC-05.1–05.8. [Current UX](UX_CONTRACT.md) §§1–6 and [reference manifest](SECTION_LAYOUT_REFERENCES_2026-10-16.md) own this finite refinement. STATUS remains the scheduler; prototypes/plans are not production acceptance.
+**TL-PT1-UI-1.7 / PAIA-YEAR-HARMONY-1.0 / OWNER_DIRECTED / 2026-10-16.** Same CPV1-TOPIC, TOPIC-01–06 and TOPIC-05.1–05.8. [Shared UX](UX_CONTRACT.md) §§1–3/6 owns the annual view; [references](YEAR_HARMONY_REFERENCES_2026-10-16.md) identifies the changed existing prototype. STATUS remains the scheduler.
 
-## 1. Full preserved scope
+## 1. Complete scope retained
 
-The complete immediately preceding plan is preserved by exact blob `9ac02092be09b180b5e35d1c39e33e9b1b1f70e4` in [PRE_SECTION](TOPIC_ARCHITECTURE_PLAN_PRE_SECTION_2026-10-16.md). All its nonconflicting sections1–5, TOPIC-01–06, G01–G15 and incorporated identity/formation/placement/human-intent/quality/migration/recovery/performance/verification requirements remain normative. Only Thought application search, all-Section concatenated reading, numeric-only dates/year rules, whole-reader centering and specified UI type/icon geometry are superseded.
+The full preceding plan is preserved byte-for-byte in [PRE_YEAR](TOPIC_ARCHITECTURE_PLAN_PRE_YEAR_2026-10-16.md), blob `fa9ab0fec5292edd2ada460235620dd02368864b`. All its nonconflicting §§1–5, TOPIC-01–06, G01–G15 and incorporated identity/formation/placement/human-intent/quality/migration/recovery/scale/verification obligations remain normative. Only displaying all years immediately and separated date-label spacing are replaced here. Existing Home typography is refined in the same white family; no product reset.
 
-No new Topic/Section data model, identity, AI grant or taxonomy. Preserve automated qualified formation, human Section order, existing-topic rename/removal/undo, body ownership, multi-placement, negative intent, lawful restore and separately qualified promotion. Generic New Topic, counts/update labels, root manual sort, quotes, source/Edit/Continue controls and reading search stay retired. Use the Drive intent without reviving superseded proposals.
+Keep three/two/one-column real Topic+Section cards, no Home or Reader search, generic New Topic, quotes/counts/update badges/manual root sorting or malformed connector. Preserve genuine automated formation, existing identities, human Section order, body ownership, copy/move/remove/undo, negative intent, lawful restore and separately qualified promotion. Qualified human activity still orders the complete eligible Topic set; neither year expansion nor UI rendering creates activity.
 
 ## 2. Existing TOPIC-05 outcomes
 
-| Slice | Current required work |
+| Slice | Current required outcome |
 |---|---|
-| 05.1 | Reuse qualified Topic/Section metadata and bounded active-Section body query, original time and complete-set human-activity projections. Never group/move records to implement the new view. |
-| 05.2 | Start Home directly with refined three/two/one-column Topic+Section cards; no search/header reserve, quotes, connector, counts or generic creation. Consistent sans type, light functional icons and content-sized geometry. |
-| 05.3 | Retire Thought's app search surface/shortcut/legacy query filtering only. Preserve shared query/index consumers, original strict target resolvers and legitimate external exact-Entry/Section handoffs without recreating local Find. |
-| 05.4 | Clicking a Section replaces the body with that Section only. Keep directory at a stable left anchor, separate readable prose width, compact localized time and integrated year markers. Maintain bounded traversal and independent qualified Section positions. |
-| 05.5 | Existing Topic/Section/Entry organization, copy/move/remove/undo, negative intent, restore and confirmed promotion remain; no new user-facing Topic creation route. |
-| 05.6 | Existing direct document editor and active-Section end writing; guard switch/Back/resize/AI updates with durable ACK, IME, native undo, drafts, CAS and actual body bindings. Rendering creates nothing. |
-| 05.7 | Preserve all three real AI styles, current authorized processing scope, cache/provenance/revision/permission/budget rules. Active-Section presentation may not mix sibling content or fabricate a new AI result; no new scope grant from selection. |
-| 05.8 | Actual source/release convergence on the new Section/date/geometry/type roles plus all nonconflicting safety/state/scale/quality obligations. |
+| 05.1 | Reuse qualified bounded active-Section/time/coverage projections and actual body owners; determine populated years without scanning all bodies on open or adding an annual corpus. |
+| 05.2 | Existing compact real-title/Section-only Home and white type/icon rhythm remain. No search, header reserve or invented preview content. |
+| 05.3 | Thought UI search stays retired; shared backend/external/NIB query and strict exact-target resolution remain. Year folding must not strand a valid explicit older Entry. |
+| 05.4 | One Section at a time; fresh newest-first dated view opens latest populated year only. Oldest-first opens earliest. Current-year traversal remains bounded, with a manual downward next-populated-year action only at its real end. Append, do not replace. |
+| 05.5 | All existing-topic/Section/Entry organization, negative intent and recovery remain. Chronological view sorting does not rewrite saved human order. |
+| 05.6 | Keep direct existing document editing and Section-bound end writing; preserve current dates, durable ACK, native undo, drafts/IME/CAS/leave guards while adding years or changing order. |
+| 05.7 | Three real AI styles and actual authorized job scope remain. Current year/Section visibility does not grant, restrict or reinterpret full-Topic processing. Never label mixed derivative text as one historical dated input. |
+| 05.8 | Actual source/release annual reading, labels, shared UI roles and complete safety/state/scale/quality convergence; 47 mock checks do not qualify production. |
 
-TOPIC-01–04 and06 retain their full deliverables; do not reset previously qualified work. One meaningful complete-set human-activity root order remains; opening/searching/rendering/renaming/AI/index/sync/ingestion never manufacture activity.
+TOPIC-01–04/06 and unfinished live outcomes retain all original deliverables. Reuse completed qualified foundations rather than rebuilding the reader/store to obtain annual composition.
 
-## 3. Section identity and safe navigation
+## 3. Section and year state
 
-Use stable Topic/Section IDs in the existing route/controller/view-session. A direct Section target must match exactly; a missing explicit target reports unavailable, not a sibling substitute. Topic-title opening uses a valid current-session Section, otherwise first lawful human-ordered Section. Untitled default and explicit empty named Sections remain valid without artificial names/data.
+Stable explicit Section resolution, no hidden sibling concatenation, legitimate default entry, independent reading positions and guarded switching remain exactly as previously required. Add opened-year descriptors/order/cursors to the existing bounded Section view session only. No cross-Section annual union, data migration, new identity, private body in URL or persisted global last-query/body cache.
 
-Do not mount every sibling and hide it with CSS; only the active Section owns the visible Reader/editor/terminal writer. Long reading remains complete within that Section. Section buttons and the narrow selector use one state owner. Scroll, resize, backfill and background AI do not switch Sections. Save/IME/conflict failure blocks incompatible navigation and preserves text; each Section has its own valid identity-relative position. New/renamed/moved/deleted content revalidates rather than replaying cached bodies.
+Within original dated reading, order complete qualified timestamps with deterministic ties. Descending opens this year when present, otherwise latest actual populated year; ascending starts earliest actual year. Skip empty years. Unknown dates remain reachable as an explicit undated segment, not guessed current data. Existing human order records and source times are unchanged by this display projection.
 
-No Topic title block, repeated Section headline, per-entry source, Edit mode, Continue button or app search returns. Preserve exact input/paragraph/code/verse/selection/copy text and Source/Working/Thought bindings. Date labels use actual source/creation time with explicit localized month/day; quiet year prefix replaces full-width year rules. No timestamp or body changes from formatting.
+Show the next year only after the current reader proves the last opened year's eligible end. Within-year continuation and cross-year disclosure are distinct. Read/scan failures retain existing text; no false end or empty successful year. Repeated activation is idempotent. User click appends one year, preserves old editor nodes and focus/anchors, and exposes the next legitimate boundary; scrolling alone does not cross years.
 
-## 4. Verification and reference
+Exact older Entry handoffs remain valid through the original bounded target reader without forcing all intervening years to load. Back/reopen restores actual Section/order/open-year/anchor state after current eligibility checks. Explicit order change passes pending-work guards and begins at the opposite chronological endpoint. Background activity, viewport changes or midnight year rollover never silently change scope or lose work.
 
-Use the independent revised Thought HTML and manifest screens01–05/11/12. These are owner-requested design references, not separately approved final pixels. Check three genuinely different Section bodies, direct card-to-Section, sibling absence, missing target refusal, navigation/Back restoration, independent positions, empty/default/many/wrapped Sections, no search via keyboard/old state, no hidden filter, native undo after autosave, dirty/IME switch refusal, exact targeted Entry arrival and no metadata/body/permission mutation from view changes.
+Direct end writing retains actual new-note date and original writer; do not stamp new notes with the older open year. Preserve active caret and truthful temporary placement while reconciling the chronological display at a safe boundary. A blank terminal creates no record; generic New Topic remains retired.
 
-Keep prior0/1/6/16/30/50/100/144 Topic and applicable thousands-of-Entries/full-corpus cases through original owners. Verify full-screen axes stay stable at1280/1920 and larger widths, real saved size/width, locale/unknown/year transitions, dark/narrow320px/200%/keyboard/targets/focus/contrast. Shared backend/NIB/external Context retrieval tests remain; delete only retired UI-specific search expectations. Real AI/quality/integration evidence is still separate from51 limited prototype checks.
+## 4. Date and presentation
 
-## 5. Boundary
+Replace wide span gaps/dots with a single inline `10月8日 09:42` / `October 8 09:42`. First input of an exposed year may include its exact year compactly. No year heading/rule, day grouping, clock gutter, source/Edit/Continue/search control or large reader title returns. The year disclosure is a quiet downward icon plus target year, not a new dashboard.
 
-Four exact PRE_SECTION snapshots preserve preceding contracts. Current UX prevails over conflicting older domain visual/adoption/reference text only for the stated changes. Same seven-plan schedule and one writer per shared boundary. Baseline `ec627cd5d715bcd7b65cf985ee352b6763717848`. No production/schema/tests/CI/version, website, private Drive source, real data, services, credentials, installation, billing or STATUS changes.
+Retain left-anchored Back/Section rail and separate saved prose measure, direct word-like text, about17px/28px ordinary leading and modest paragraph/input rhythm. Formatting changes no original newline/code/verse/copy/hash/revision/time or permission. Necessary status remains legible and truthful.
+
+## 5. Acceptance and boundary
+
+Test descending/ascending with current/no-current/one/multiple/gapped years; more than one within-year page; unknown-only/mixed dates; duplicate timestamps; missing/revoked year or Entry; pending/error/retry/idempotence; passive scroll; exact older target; Back and independent Section snapshots. Verify append preserves editor nodes/native undo, dirty/IME switches refuse safely, new notes retain actual creation time, and order/format changes no stored body/time/permission/human order.
+
+Keep all previous0/1/6/16/30/50/100/144 Topic and applicable thousands-of-Entries tests, strict retrieval, negative intent, deletion/recovery, full external use, dark/narrow320px/200%/contrast/targets and true source/release evidence. Only obsolete all-years-at-once and date-gap UI assertions are replaced. Shared service tests remain.
+
+See reference screens05–11 and original independent Thought HTML. The prototype is small synthetic in-memory data, not a bounded production reader; original failures retain their scope. Existing files/STATUS/owners remain. Baseline `4e1a103c2e8097d7ba2ce925eaa531017278bfe8`; no runtime/tests/CI/version/data/source/permission/website/service/installation/schedule change.
