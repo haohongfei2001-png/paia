@@ -1,44 +1,46 @@
 # Personal Topic Architecture — current development plan
 
-**CPV1-TOPIC / TL-PT1-UI-1.3 / OWNER_APPROVED / 2026-10-13.** The final UI is the **existing-design white refinement**, governed by [visual authority](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md), [shared UX](UX_CONTRACT.md) and [exact references](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md). Same plan path, TOPIC-01–06 and TOPIC-05.1–05.8; STATUS remains the scheduler. This adoption is PLAN_UPDATED, not production UI acceptance.
+**TL-PT1-UI-1.4 / PAIA-CONTENT-FIRST-1.0 / OWNER_DIRECTED / 2026-10-16.** Same CPV1-TOPIC and TOPIC-01–06/05.1–05.8, not a parallel plan. Apply [shared UX](UX_CONTRACT.md) §§1–4 and [visual authority](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md). [References](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) selects the modified existing prototype. STATUS alone schedules work.
 
-## 1. Full retained implementation and product scope
+## 1. Complete retained baseline and finite retirement
 
-The complete immediately preceding plan is preserved byte-for-byte in [PRE_WHITE](TOPIC_ARCHITECTURE_PLAN_PRE_WHITE_2026-10-13.md), blob `26d54266c98001ad33c21b082ad6e34cb78e1f9b`. **All sections 1–5, all eight TOPIC-05 slices, all G01–G15 requirements and their incorporated identity/formation/placement/negative-intent/migration/recovery/quality/scale/downstream/verification contracts remain normative**, except the explicitly superseded full-blue palette and old reference-target declarations. Read the retained full detail for the affected owner; it is not a second execution plan or permission to omit earlier obligations.
+The previous full plan is preserved exactly in [PRE_CONTENT_FIRST](TOPIC_ARCHITECTURE_PLAN_PRE_CONTENT_FIRST_2026-10-16.md), blob `6daccae7383eed5113facdef3e82e4a95a57bb10`. All its nonconflicting §§1–5, G01–G15, original formation/identity/human-intent/negative-placement/migration/recovery/quality/scale/verification details and incorporated histories remain normative. The precise exceptions are generic user New Topic, default Home body excerpts, duplicate chrome and Topic-reader search UI. Do not invoke old blanket creation/search preservation to restore those explicitly retired paths.
 
-Keep the approved three-column content-sized Topic cards and the chapter-directory/continuous Reader. The generated six-panel collage, its single-column taxonomy and earlier dashboards are not references. No new Topic classification, AI result, scope reduction, source/body ownership change or logo follows from this visual adoption. PAIA remains an editable, organizing and reusable personal context system, not just a reader.
+Retain automated qualified formation, existing identities and domain creation primitives, existing-topic editing/rename, human Section creation/order, Entry writing/moves and lawful restore. Existing separately authorized confirmed Section promotion retains its entity-specific contract and is not another generic creation entry. No data deletion, reclassification, taxonomic reset, new index/router or AI activation is authorized. PAIA remains a reusable personal context system, not a static directory.
 
-## 2. Apply the white target within existing TOPIC-05
+## 2. Existing TOPIC-05 implementation
 
-| Existing slice | Current required outcome |
+| Slice | Current required outcome |
 |---|---|
-| 05.1 | Reuse bounded eligible Topic/Section/Entry/Placement projections and qualified human-activity order. No new corpus, timestamps or analytics collector. |
-| 05.2 | White content-sized cards, real titles/chapter links and short attributable eligible expression preview; three/two/one columns, truthful sparse/empty state. No decorative counts, update badges, root manual sort or fixed taxonomy. |
-| 05.3 | Existing full eligible scoped search and exact target/Back restoration, with darker readable result text and restrained blue emphasis. |
-| 05.4 | Real current-Topic directory and continuous full Reader, final white/dark roles, normal within-Input leading, on-demand evidence and exact text/anchor preservation. |
-| 05.5 | Preserve Topic/Section creation, rename/promotion, human Section/Entry order and placements, move/removal/undo and stronger negative intent. Only the competing root manual-order UI stays retired. |
-| 05.6 | Existing direct editor and Section-aware writing, durable ACK, drafts/IME/CAS/undo and current B-01/B-02; saved substantive human text may update activity, styling cannot. |
-| 05.7 | Same-document Original/AI views, all three qualified styles, source mapping, revision/permission checks and actual service/cache/budget rules. No activity from AI presentation or maintenance. |
-| 05.8 | Actual source/release convergence on the refined references and complete retained behavior/state/accessibility/quality coverage, not an old-color or mock-only PASS. |
+| 05.1 | Reuse bounded eligible Topic/Section descriptors and qualified complete-set human-activity order. Home does not fetch body text just to produce a card quote; retain body owners for actual reading/search. |
+| 05.2 | White three/two/one-column cards containing only real Topic title and Section directory with contextual existing-topic actions. No quote/summary/description/footer/count/date, New Topic, empty create tile or manual-root-order mode. Content determines height. |
+| 05.3 | Keep full eligible overview search and precise result references. Discovery query/rank/continuation/anchor survive reader entry and Back; no reader search field/shortcut or hidden filter. |
+| 05.4 | Chapter navigation and continuous eligible Reader without its app Find UI. Preserve exact arrival highlight, real Topic/Section title once, existing source/history and normal readable rhythm. |
+| 05.5 | Retire generic New Topic handlers/dialog/shortcut/menu route, not only its visible button. Preserve legitimate existing-topic organization, Section creation/order, move/remove/undo, negative intent and separately contracted promotion. |
+| 05.6 | Existing canonical editor, Section-aware continuation/default-unassigned writing, durable ACK, drafts/CAS/IME/undo and source/Working ownership. No implicit Topic creation to replace the removed workflow. |
+| 05.7 | Existing Original/AI derivative view, all three styles, source mapping, qualified service/cache/budget and restrictive late-result handling. No effect on human activity from AI. |
+| 05.8 | Actual source/release convergence with the new compact composition and retained complete state, safety and quality coverage. |
 
-TOPIC-01–04 and TOPIC-06 retain every prior deliverable; visual work does not restart them or qualify unfinished semantic formation or external outcomes. Existing completed code/evidence is reused at its actual version.
+Keep meaningful original expression/acknowledged substantive human activity, not ingestion/index/AI/view/rename; stable complete-set ordering, deterministic ties and actual Back snapshot before safe refresh. User targets may not jump. Preserve old root-order data without re-exposing an alternate sort.
 
-## 3. Precise implementation boundaries
+## 3. Recomposition and responsive implementation
 
-Use the later refined palette/structure blocks and shared UX §0: white main/card surfaces; dark near-neutral content text; legible secondary text; blue for selection/actions/focus and small accents. Preserve type roles, card geometry, fine boundaries, understated depth and current saved preferences. Scope styles through the existing token/component owners; do not port demo-wide `.entry` or iframe selectors into unrelated pages.
+Use the existing white palette and shared UX §4 anchors. Overview contains one compact search tool line; remove page-title/English-eyebrow/My Topics duplicates and their spacers. Card padding and Section spacing provide hierarchy without extra prose. Topic names and real chapter links are interactive; no separate open footer. Empty untitled-default Topics remain compact title-only, named empty Sections remain real. Long labels and0/1/many Sections remain accessible without fake labels or fixed tall minimum.
 
-All preceding activity rules remain: actual original expression, explicit writing/continuation and substantive acknowledged human edits; no freshness from opening, renaming, moving a reference, counts, AI, index, sync or import/capture arrival. Historical/unknown times remain honest. Complete-set deterministic order, stable visible snapshots and exact Back before safe reconciliation remain mandatory. The sample's seeded six-card order is not the production algorithm or taxonomy.
+Retain three-column wide ordered flow, not a single-column taxonomy or dashboard. Reference gap20px, padding20/22/19px and radius17px are starts; coarse Section targets grow to44px. Reuse actual token/component/route owners rather than copied mock overrides.
 
-At 17px ordinary text, about 28px leading is the reference, scaled to actual saved sizes. Distinguish wrap, paragraph and independent Input spacing; preserve intentional empty lines, code, verse, Unicode, copy/serialization, body hashes and revisions. Keep long-reader windows, dirty text, IME, caret/selection, source/history eligibility and restrictive deletion/permission fences.
+Reader removes its search controls, handlers and local query filter. Keep full text and exact non-editing arrival from overview/NIB/qualified links; background search state stays in bounded origin sessions, not active Reader filtering. Native browser Find is not intercepted or promised as full virtualized-corpus search. Navigation still guards active editor/IME and restores valid source/Entry/revision/text-offset anchors.
 
-## 4. Acceptance and evidence
+## 4. Acceptance replacing the retired UI only
 
-Use package screens 01/02/15 and shared 13/19 roles plus the independent Thought HTML. Include the original sparse state, 0/1/6/16/30/50/100/144 Topics, full search and long/thousands-of-Entries cases where previously required. Check unnumbered actual directory, no fake quotes, qualified complete-set activity, history imports not becoming today, safe reordering, actual directory/Entry targets and normal/editing multiline text invariance.
+Verify no generic New Topic via header/empty/menu/keyboard/stale UI path, no Home quotes/descriptions/footers/hidden private excerpts, and correct existing-topic/Section direct entry. Source/body counts, identities, original text and permissions remain unchanged by these removals. A retired UI command may not create data; shared domain creation used by qualified automation/restore/promotion remains separately tested.
 
-Retain all existing editing/organization/promotion/negative-intent/recovery/permissions/AI fidelity and real source/release verification. White/light/dark, keyboard/focus/coarse targets, 320px reflow, 200% text, reduced motion, contrast and shared preferences require actual evidence; the reported 79 prototype checks do not establish them for production. Absence of a screenshot for a legitimate operation is not cancellation. Missing live service affects only its dependent claim.
+Preserve0/1/6/16/30/50/100/144 Topic and prior long/thousands-of-Entries coverage where applicable. Test sparse/long/no-named-Section cards, activity negatives/unknowns/ties/paging, exact overview search→unmounted occurrence→Reader→Back with query/snapshot/scroll/focus restored. Reader has no focusable/accessible search, no old local-query filter or app Cmd/Ctrl+F interception. Existing complete query/index/security tests remain.
 
-## 5. Integration and history
+Retain editing/source/history/multiplacement/negative intent/delete/restore/promotion/AI-fidelity/service gates. About1.65 leading uses saved size/width and preserves exact authored newlines/poems/code/copy/hash. Actual narrow/dark/320px/200% text/targets/focus/IME/error validation remains;15 screenshots and44 prototype assertions do not certify production.
 
-[REFERENCES](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES.md) now selects the refined files. Older blue screenshots and their reports remain exact historical records, not competing masters. No new palette selector, review footer, demo data/store, hooks, generated collage or sample grants may ship.
+## 5. Execution and evidence
 
-Continue one coordinated writer per shared boundary and existing risk-based tests; no new queue, per-card certification loop or request to complete obsolete UI first. Baseline main `8021be46e51d23812aa4d0b725e601afdf335df2`. This task changes documentation only, not runtime/tests/versions/CI/website/user data/installation/services/billing. Preserve all seven Canonical goals, current scheduling and concurrent work.
+New reference screens01/02/11/15; [shared manifest](CONTENT_FIRST_REFERENCES_2026-10-16.md) records exact artifacts. Original white images remain historical, not grounds to resurrect excerpts/create/Reader Find. Direction is owner-requested; final new pixels have no separately asserted review. Preserve existing native source/release risk gates and consolidated batches; no new programme or full re-audit per removed label.
+
+Baseline main `ff669b33b3fdb8ef54b0763f95e022209d85c8b3`. This task edits design prototypes and plans only, not production, schemas, tests, CI, versions, website, user data, accounts, services, installation or STATUS. Reuse current qualified foundations without restarting completed slices.

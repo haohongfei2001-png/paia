@@ -1,0 +1,9 @@
+# AI Context — CTX4-UI-1.3 current references
+
+**OWNER_APPROVED / 2026-10-13.** Use the [shared white refinement manifest](WHITE_REFINEMENT_REFERENCES_2026-10-13.md), [current adoption](AI_CONTEXT_CARDS_V2_ADOPTION.md) and [existing plan](AI_CONTEXT_CARDS_V2_PLAN.md).
+
+Current independent original: `PAIA_AI上下文_白色精修.html`, 100943 bytes, SHA-256 `ae103313b9d48ee77631b043360a4a3a7c5ce3011d45ff698f652d84030b46ae`. The unified viewer includes this refined design. Screens 03/04/16/22 cover directory Home, explicit detail/editing, narrow and Context-owned connection. The four object names and privacy rule remain mandatory. The generated six-panel collage with replacement cards is not an accepted artifact.
+
+Complete previous reference manifest is preserved byte-for-byte in [PRE_WHITE](AI_CONTEXT_CARDS_V2_REFERENCES_PRE_WHITE_2026-10-13.md), blob `c414026aedace47afea78461dc9a8592a8ef98fc`. All earlier identities and nonconflicting state/behavior mappings remain evidence. Old specific personal Home snippets, over-spacing and full-blue tint are superseded, not recreated for pixel matching. Preserve all original 22 state classes and subsequent local-search/move/preview/connection cases, including those without a new image.
+
+The shared manifest contains exact package/screenshot hashes and prototype limitations. Original HTML/ZIP/PNGs remain in the owner-controlled conversation, not uploaded by this planning commit; obtain exact bytes through an authorized handoff for visual comparison. The original test report is synthetic, not evidence of actual Context data ownership, effective permissions, full traversal, real maintenance or client read/revoke. Do not ship iframe/state bridges, demo stores, sample grants or the white/blue review toggle. Actual source/release and all existing accessibility/security/quality checks remain required.
