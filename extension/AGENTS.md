@@ -1,3 +1,13 @@
+# Current next slice — complete Input mirror eligibility (2026-10-16)
+
+The next implemented repair is version0.51.1: after a human edits a complete original Input mirror, current Entry/Context eligibility uses the exact current binding for its primary body instead of treating the historical body digest as current authority. Historical evidence remains byte-for-byte intact; derived/partial/detached/unknown-version/context-only and changed-note evidence retain the original checks. Every selected field still hashes under the original budgets, and Source, exclusion and final authority fences remain. See implementation/ai-usage/AI-COST-03-CURRENT-INPUT-MIRROR.md.
+
+The original handoff486f7ba, count fix762e429 and Entry duplicate-read fixb64b1b25 are all included in this local branch. PR289's replacement exact-head Full38856045373 is running on b64b1b25; failed Full38854021635 remains historical failure, not a pass. Current mirror branch was integrated locally with that repair;133 scoped owner/scope/purge/version tests pass. Integrated actual isolated headless Source/release passed126/126 in27717.697416ms. Independent review and final changed-head Full/main gates remain separate requirements for the combined candidate. Nothing is merged or installed yet.
+
+Next unresolved mixed Input/Placement processing must preserve exact human placement qualification; do not refresh request snapshots or ACK stale coverage merely to convert PARTIAL into COMPLETE. Continue approved plans with Sync paused, original input-only capture and no new providers, paid activation or permissions.
+
+## Preserved prior checkpoint
+
 # Current CI repair — 2026-10-16
 
 PR289 head762e429 Full38854021635 FAILED at ANS-08 warmed Topic next-chunk p95:783.9ms versus the unchanged750ms bound; ANS-07 and the other required components passed. Original main Full38759165246 remains failed separately. Hosted worker diagnostics observed roughly538 readonly transactions in stable40-row windows; they do not prove unique causality. Local original ANS-08 passed145.1ms.
