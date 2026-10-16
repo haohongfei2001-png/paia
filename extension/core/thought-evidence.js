@@ -64,6 +64,15 @@ export function dependencyLifecycle(row,items){
  const missing=items.some(({input})=>!input),valid=items.some(({dep,input})=>input&&dep.status!=='version_unknown'&&dep.selectedFields?.length&&dep.roles?.some(role=>role!=='context_only'));
  return missing&&!valid&&!row.hasHumanAction&&row.origin==='ai'&&row.lifecycle==='active'?'invalidated':row.lifecycle;
 }
+// Only a currently classified whole-Input mirror has no historical body of its
+// own. Callers must obtain row from readableEntry in the same material read.
+// All other fields and dependencies still use their original evidence digests.
+export function currentMirrorField(row,dep,input,field){
+ return field==='body'&&row.bodyBinding==='input'&&row.provenanceType==='input_original'
+  &&dep.status==='valid'&&dep.roles?.includes('primary')&&dep.inputId===input?.inputId
+  &&row.workingInputId===input?.inputId&&row.bindingRevision===input?.contentRevision
+  &&typeof input?.body==='string'&&row.bindingLength===input.body.length&&row.thoughtText===input.body;
+}
 export async function dependencyState(store,row,project=async(_store,_t,value)=>value) {
  const read=await store.run(()=>store.repository.transaction(false,async t=>{
   const current=await store.readableEntry(t,row.id);if(!current)return null;
@@ -78,7 +87,7 @@ export async function dependencyState(store,row,project=async(_store,_t,value)=>
  for(const {dep,input}of read.items){
   if(!input){missing++;reasons.add('input_removed');continue;}
   if(dep.status==='version_unknown'||!dep.selectedFields?.length){changed=true;reasons.add('legacy_version_unknown');continue;}
-  let different=false;for(const field of dep.selectedFields)if(await hashText(input[field])!==dep.fieldDigests?.[field])different=true;
+  let different=false;for(const field of dep.selectedFields){const digest=await hashText(input[field]);if(!currentMirrorField(read.row,dep,input,field)&&digest!==dep.fieldDigests?.[field])different=true;}
   if(different){changed=true;reasons.add(dep.roles?.includes('context_only')?'context_updated':'source_updated');}
   if(dep.roles?.some(r=>r!=='context_only'))valid++;
  }

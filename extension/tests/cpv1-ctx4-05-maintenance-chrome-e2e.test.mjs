@@ -10,7 +10,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const cases=[
  ...['complete','stale','protected','excluded','revoked','receipt-abort','generation-abort'].map(x=>'no-change-'+x),
- 'deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
+ 'current-input-mirror','deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
  ...['maintain','snapshot','shallow','recovery'].map(path=>path+'-hash-race'),
  ...['item','receipt','post-callback'].flatMap(phase=>['cancel','revoke'].map(kind=>phase+'-'+kind)),
  'post-callback-expiry','closed-database-before-write','denied-input-before-hash'
@@ -192,6 +192,24 @@ async function install(page){
       if(mode.endsWith('-abort'))check(aborted,'Injected real native transaction abort reached');
       equal(await f.snapshot(),before,'Refusal or native abort preserves every durable owner');
      }
+    }else if(name==='current-input-mirror'){
+     check((await f.put(c)).ok,'Old evidence initially qualifies');
+     const history=await f.snapshot();
+     await f.edit({libraryText:'SYNTHETIC edited complete native Input 👩🏽‍💻'});
+     const before=await f.snapshot(),scope=await readContextTopicScope(f.s,{topicId:f.topic.id});
+     check(scope.available&&scope.scope.eligibility==='eligible','Current complete mirror remains eligible');
+     equal(before.dependencies,history.dependencies,'Input edit preserves historical dependency evidence');
+     equal(before.provenance,history.provenance,'Input edit preserves historical provenance');
+     const {body:oldBody,section:oldSection,...oldIdentity}=c;
+     const old=await settled(f.service.noChange(f.caller,{...oldIdentity,operationId:op(),operation:'NO_CHANGE',expectedRevision:1}));
+     check(!old.fulfilled&&old.code==='CONTEXT_INVALIDATED','Old Context evidence is still refused');
+     equal(await f.snapshot(),before,'Stale Context refusal writes nothing');
+     const fresh=await f.request();check((await f.put(fresh)).ok,'Fresh current Input evidence commits');
+     const after=await f.snapshot();equal(protectedOwners(after),protectedOwners(before),'Maintenance preserves all Source and human owners');
+     await f.edit({excluded:true});const deniedBefore=await f.snapshot();
+     const denied=await settled(f.put({...fresh,operationId:op(),itemId:op()}));
+     check(!denied.fulfilled&&denied.code==='CONTEXT_INVALIDATED','Exclusion still refuses maintenance');
+     equal(await f.snapshot(),deniedBefore,'Excluded mirror refusal writes nothing');
     }else if(name==='deep-read-pagination-and-revocation'){
      const access=new ContextTopicAccessService(f.s),expected=new Map();
      const text='SYNTHETIC 多字节🙂e\u0301 '+('尾部🙂 '.repeat(9))+' EXACT_TAIL';
@@ -647,6 +665,25 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
     const placement=await read(f.s,'placements',placementId),current=await read(f.s,'thoughts',entry.id),key=JSON.stringify(['placement',placementId]),before=await Promise.all(['thoughts','topics','sections','placements'].map(n=>read(f.s,n))),execute=f.provider.execute;
     f.provider.execute=async request=>{const response=await execute(request);response.fixture.contextProposal.inputIds=[input.id];return response;};
     let grant;const window={acquire:async r=>(grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-placement',reservationId:'synthetic-placement',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===grant};session=new LocalMaintenanceSession(f.s,{...f.constructor,window});
+    if(phase==='mixed'||phase==='mixed-race'){
+     const live=await f.s.input(input.id);await f.s.editDocument({operationId:op(),documentId:live.documentId,blocks:[{id:live.id,expectedRevision:live.revision,libraryText:'SYNTHETIC native edited Input with pending Placement',note:live.note,excluded:live.excluded}]});
+     f.provider.execute=async request=>{const response=await execute(request);response.fixture.contextProposal.inputIds=[input.id];response.fixture.topicAssessment.entries=[{span:{inputId:input.id,field:'body',start:0,end:request.material.inputs[0].body.length},type:'idea',additional:[]}];for(const relation of response.fixture.topicAssessment.relations)if(relation.topicId===topic.id)relation.relation='same';return response;};
+     const handle=await session.prepare(options);let result;
+     if(phase==='mixed-race'){
+      let raceGrant;const raceSession=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async r=>{await session.run(handle);return raceGrant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-race',reservationId:'synthetic-race',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal};},isCurrent:r=>r===raceGrant}});
+      const passive=await raceSession.prepare({...options,routeVersion:'synthetic-race-route'}),beforePassive=await snapshot(f.s);result=await raceSession.run(passive);
+      assert.equal(passive.state,'PARTIAL');assert.equal(passive.pendingPlacementUnits,1);assert.equal(result.processedState,'NO_DELTA');assert.deepEqual(await snapshot(f.s),beforePassive);raceSession.dispose();
+     }else{result=await session.run(handle);assert.equal(result.processedState,'COMMITTED');}
+     assert.equal(result.state,'PARTIAL');assert.equal(result.pendingPlacementUnits,1);assert.equal(result.complete,false);assert.equal(result.nextCursor,null);assert.equal(result.remainingWork,true);
+     assert.equal(f.calls.length,2);assert.equal(f.calls[1].material.placements?.length??0,0);
+     assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'),false,'withheld Context has neither ACK nor fake DEFER');
+     await session.run(handle);assert.equal(f.calls.length,2,'no implicit extra dispatch');session.dispose();
+     let freshGrant;const nextWindow={acquire:async r=>(freshGrant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-next-placement',reservationId:'synthetic-next-placement',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===freshGrant};
+     session=new LocalMaintenanceSession(f.s,{...f.constructor,window:nextWindow});const nextResult=await session.run(await session.prepare(options));
+     assert.equal(nextResult.processedState,'COMMITTED');assert.equal(f.calls.length,3);assert.equal(f.calls[2].material.placements.length,1);
+     assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='ACKNOWLEDGED').length,1);
+     return {passed:true,nativeFactory:true,phase,physicalAttempts:3,withheldContextUnits:1,freshOpportunityRequired:true,exactPlacementContextAck:true};
+    }
     if(phase==='stale')f.state.contextHook=async()=>{const latest=await read(f.s,'topics',topic.id);await f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:current.revision,expectedTopicRevision:latest.organizationRevision,expectedPlacementRevision:placement.revision,remove:true,operationId:op()});};
     if(phase==='ack-abort')f.s.repository.transaction=async(write,fn,stores)=>{const saved=write?await snapshot(f.s):null;return original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,v,...rest)=>{if(!hit&&n==='organizerWorkItems'&&v.unit?.key===key&&v.unit?.facet==='context'&&v.state==='ACKNOWLEDGED'){hit=true;rollbackBefore=saved;t.tx.abort();throw Error('Synthetic Placement ACK abort');}return put(n,v,...rest);};}return fn(t);},stores);};
     const handle=await session.prepare(options),result=await session.run(handle);f.s.repository.transaction=original;
@@ -816,7 +853,7 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
   });
   await installMaintenanceSession(page);
   for(const phase of ['complete','stale','ack-abort'])await t.test('unified-maintenance-entry-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceEntryContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-entry-context-'+phase+'.json'),JSON.stringify(report,null,2));});
-  for(const phase of ['complete','stale','ack-abort'])await t.test('unified-maintenance-placement-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenancePlacementContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-placement-context-'+phase+'.json'),JSON.stringify(report,null,2));});
+  for(const phase of ['complete','stale','ack-abort','mixed','mixed-race'])await t.test('unified-maintenance-placement-context-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenancePlacementContextNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-placement-context-'+phase+'.json'),JSON.stringify(report,null,2));});
   for(const phase of ['complete','defer','close','post-callback','dispose','capacity'])await t.test('unified-maintenance-mixed-'+phase,{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceMixedNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-mixed-'+phase+'.json'),JSON.stringify(report,null,2));});
   for(const phase of [null,'receipt','ack','generation'])await t.test('unified-maintenance-no-change-'+(phase??'complete'),{timeout:20000},async()=>{const report=await page.evaluate(phase=>globalThis.__maintenanceNoChangeNative(phase),phase);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-no-change-'+(phase??'complete')+'.json'),JSON.stringify(report,null,2));});
   for(const mode of ['processing','context-processing','context-revoke','exclusion','material-missing','material-expired'])await t.test('unified-maintenance-material-denied-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__maintenanceMaterialDenied(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'maintenance-material-denied-'+mode+'.json'),JSON.stringify(report,null,2));});
