@@ -67,10 +67,13 @@ export function dependencyLifecycle(row,items){
 export async function dependencyState(store,row,project=async(_store,_t,value)=>value) {
  const read=await store.run(()=>store.repository.transaction(false,async t=>{
   const current=await store.readableEntry(t,row.id);if(!current)return null;
+  // Preserve the original canonical purge short-circuit in this same read.
+  // Do not reopen a duplicate material read before resolving dependencies.
+  if(current.staleReasons?.includes('source_purged'))return {row:await project(store,t,current),purged:true};
   const epoch=(await t.get('meta','thought-epoch'))?.value||0,items=await readDependencyInputs(store,t,current);
   return {row:await project(store,t,current),items,epoch};
  }));
- if(!read)return null;
+ if(!read)return null;if(read.purged)return read.row;
  const reasons=new Set(read.row.staleReasons||[]);let valid=0,missing=0,changed=false;
  for(const {dep,input}of read.items){
   if(!input){missing++;reasons.add('input_removed');continue;}

@@ -368,3 +368,31 @@ test('VS-05 source root survives actual reading activity and scoped search round
  assert.deepEqual((await sourceRootItems(f,'claude','no-matching-independent-expression')).items,[]);
  assert.deepEqual((await sourceRootItems(f,'claude')).items.map(x=>x.id),[f.topic.id]);
 });
+
+test('ANS-08 canonical Entry resolves current evidence once and preserves purge sanitization',async()=>{
+ const f=await completeFixture({texts:['SYNTHETIC evidence owner']}),block=(await rows(f.s,'blocks'))[0].value;
+ const evidence=await f.s.evidenceFor([{inputId:block.id,role:'primary',selectedFields:['body']}]);
+ const {derived}=await import('./harness/thought-m1.mjs');
+ const entry=await derived(f.s,[block.id],{body:'SYNTHETIC derived body',evidence});
+ const readable=f.s.readableEntry.bind(f.s);let reads=0;
+ f.s.readableEntry=async(...args)=>{reads++;return readable(...args);};
+ assert.equal((await f.s.entry(entry.id)).body,'SYNTHETIC derived body');assert.equal(reads,1,'one material snapshot, not a discarded preliminary read');
+ await f.s.foundationWrite(t=>t.delete('records',block.originalTextReference));reads=0;
+ const purged=await f.s.entry(entry.id);assert.equal(reads,1);assert.equal(purged.body,'');
+ assert.equal(purged.lifecycle,'invalidated');assert.equal(purged.integrity,'detached');assert.deepEqual(purged.staleReasons,['source_purged']);
+});
+
+test('ANS-08 deduplicated canonical read still refuses an epoch change during evidence hashing',async()=>{
+ const f=await completeFixture({texts:['SYNTHETIC epoch hash target']}),block=(await rows(f.s,'blocks'))[0].value;
+ const {derived}=await import('./harness/thought-m1.mjs'),entry=await derived(f.s,[block.id]);
+ const original=crypto.subtle.digest;let entered=false;
+ try{
+  crypto.subtle.digest=async function(algorithm,data){
+   if(!entered&&new TextDecoder().decode(data)==='SYNTHETIC epoch hash target'){
+    entered=true;await f.s.foundationWrite(async t=>{const row=await t.get('meta','thought-epoch');await t.put('meta',{id:'thought-epoch',value:(row?.value||0)+1});});
+   }
+   return original.call(this,algorithm,data);
+  };
+  await assert.rejects(f.s.entry(entry.id),{code:'INVALID_REQUEST'});assert.equal(entered,true);
+ }finally{crypto.subtle.digest=original;}
+});

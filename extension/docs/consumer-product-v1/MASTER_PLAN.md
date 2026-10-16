@@ -1,3 +1,13 @@
+# Current CI repair — 2026-10-16
+
+PR289 head762e429 Full38854021635 FAILED at ANS-08 warmed Topic next-chunk p95:783.9ms versus the unchanged750ms bound; ANS-07 and the other required components passed. Original main Full38759165246 remains failed separately. Hosted worker diagnostics observed roughly538 readonly transactions in stable40-row windows; they do not prove unique causality. Local original ANS-08 passed145.1ms.
+
+The current repair removes the discarded preliminary canonical Entry read: dependencyState already re-read current material. Source-purge sanitization now short-circuits within that same material read, retaining original binding projection, all nonpurged dependency hashes and final epoch check. No threshold, test skip, concurrency, permission, or persistent cache change. Local Source ANS-08 passed123.5ms; standard release113.9ms. Combined release ANS-08 and Source/release Maintenance passed126/126. Independent owner review passed96/96 with no blocking findings. New purge and hash-epoch regressions passed; changed-head Full is required before merge and exact-main remains separate.
+
+The next complete-Input mirror correction is safely saved on local branch codex/context-current-bound-input-20261016 at a9d90f10 (0.51.1), including independent review and126/126 Source/release tests. It is not merged or installed and must be rebased/merged against the eventual current integration. Keep Sync paused and continue current approved plans.
+
+## Preserved evidence
+
 # Local handoff validation and Root count follow-up — 2026-10-16
 
 The existing local checkout now continues `codex/ai-cost03-placement-context-20261015`, including handoff `486f7ba06fc9db52bf58ace7e4847d3a6fa26369` and current main `ff669b33b3fdb8ef54b0763f95e022209d85c8b3`. No local work was overwritten. The Placement Context unit/version combination passed 299/299 and actual isolated headless Chrome Source/release Maintenance passed 124/124 on the handed-off runtime. This is local synthetic native evidence, not installed or provider qualification.
