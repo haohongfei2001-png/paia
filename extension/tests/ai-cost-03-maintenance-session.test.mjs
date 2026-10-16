@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createMaintenancePayload} from '../core/ai-usage/maintenance-payload.js';
 import {LocalMaintenanceSession} from '../core/ai-usage/local-maintenance-session.js';
 import {readMaintenanceBatch,unsupportedMaintenanceCoverage} from '../core/ai-usage/maintenance-batch.js';
 import {TopicFormationService} from '../core/topic-formation.js';
@@ -403,4 +404,113 @@ test('remaining Entry Context-only coverage still requests Entry processing and 
  const f=await historicallyDeferredEntry(),old=f.oldRows.find(r=>r.unit.facet==='context'),job=await read(f.s,'organizerJobs',old.jobId);
  const session=new LocalMaintenanceSession(f.s,f.constructor);await session.prepare(options);
  for(const row of f.oldRows)assert.deepEqual(await read(f.s,'organizerWorkItems',row.id),row);assert.deepEqual(await read(f.s,'organizerJobs',old.jobId),job);assert.equal(f.calls.length,0);assert.equal((await read(f.s,'organizerUsage')).length,0);
+});
+
+
+async function placedEntryFixture(){
+ const f=await fixture();assert.equal((await f.session.run(await f.session.prepare(options))).state,'COMMITTED');f.session.dispose();
+ const input=(await f.s.snapshot()).library.blocks[0],entryId=(await read(f.s,'thoughts'))[0].id,topicId=(await read(f.s,'topics'))[0].id;
+ const entry=await read(f.s,'thoughts',entryId),topic=await read(f.s,'topics',topicId),placementId=JSON.stringify([topic.id,topic.activeLayoutGeneration,entry.id]),prior=await read(f.s,'placements',placementId);
+ await f.s.placeEntry({entryId,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,expectedPlacementRevision:prior.revision,operationId:op()});
+ const placement=await read(f.s,'placements',placementId),current=await read(f.s,'thoughts',entryId),execute=f.provider.execute,adapter=f.service.responseAdapter.context;
+ f.provider.execute=async request=>{const response=await execute(request),value=response.fixture.topicAssessment;response.fixture.contextProposal.inputIds=[input.id];
+  value.entries=[{span:{inputId:input.id,field:'body',start:0,end:request.material.inputs[0].body.length},type:'idea',additional:[]}];
+  for(const relation of value.relations)if(relation.topicId===topicId)relation.relation='same';return response;
+ };
+ f.service.responseAdapter.context=async(response,metadata,binding)=>{
+  const translated={...metadata,units:metadata.units.map(u=>JSON.parse(u.key)[0]==='placement'?{...u,key:JSON.stringify(['input',metadata.placements.find(p=>p.placementId===JSON.parse(u.key)[1]).inputId])}:u)};
+  // The existing Input adapter creates actual current Topic evidence. Restore
+  // original coverage keys; aliases are not permission to ACK a different unit.
+  const result=await adapter(response,translated,binding);result.value[0].units=structuredClone(metadata.units);return result;
+ };
+ let grant;const window={acquire:async r=>(grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-placement',reservationId:'synthetic-placement',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal}),isCurrent:r=>r===grant};
+ return {...f,constructor:{...f.constructor,window},entry:current,input,placement,topicId};
+}
+
+test('manual Placement Context uses original target and exact key without changing human placement',async()=>{
+ const f=await placedEntryFixture(),scopes=[],resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));return resolve(t,scope);};
+ const before=await Promise.all(['thoughts','topics','sections','placements'].map(n=>read(f.s,n))),session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),r=await session.run(h);
+ assert.equal(r.state,'PARTIAL',JSON.stringify(r));assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(f.calls.length,2);const key=JSON.stringify(['placement',f.placement.id]);
+ assert.deepEqual((await ack(f)).filter(a=>a.unit.key===key).map(a=>a.unit.facet),['context']);assert.equal((await ack(f)).length,3);assert.equal(h.deferredUnits,1);
+ assert.deepEqual(await Promise.all(['thoughts','topics','sections','placements'].map(n=>read(f.s,n))),before);
+ assert.equal(f.calls[1].material.placements.length,1);assert.equal(f.calls[1].material.placements[0].placementId,f.placement.id);assert.equal(f.calls[1].material.placements[0].topicId,f.topicId);assert.equal(f.calls[1].material.entries[0].entryId,f.entry.id);
+ assert.ok(scopes.length&&scopes.every(s=>s.placements?.[0].placementId===f.placement.id&&s.entries?.[0].entryId===f.entry.id));
+ assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,2);assert.equal((await read(f.s,'organizerUsage')).filter(a=>a.attemptCount===1).length,2);
+});
+
+async function placementDelta(f){return (await read(f.s,'meta')).find(x=>x.id==='aiu:delta:known:'+JSON.stringify(['placement',f.placement.id]));}
+async function changePlacementFact(f,defect){
+ if(defect==='remove'){const entry=await read(f.s,'thoughts',f.entry.id),topic=await read(f.s,'topics',f.topicId),p=await read(f.s,'placements',f.placement.id);return f.s.placeEntry({entryId:entry.id,topicId:topic.id,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,expectedPlacementRevision:p.revision,remove:true,operationId:op()});}
+ const delta=await placementDelta(f);return f.s.repository.transaction(true,async t=>{
+  if(defect==='journal'){const row=await t.get('revisions',delta.descriptor.journalId);row.reason='unrelated';return t.put('revisions',row);}
+  if(defect==='target-layout'){const row=await t.get('topics',f.topicId);row.activeLayoutGeneration++;return t.put('topics',row);}
+  if(defect==='target-removed'){const row=await t.get('topics',f.topicId);row.lifecycle='removed';return t.put('topics',row);}
+  if(defect==='section-removed'){const row=await t.get('sections',JSON.stringify([f.topicId,f.placement.layoutGeneration,f.placement.sectionId]));row.lifecycle='removed';return t.put('sections',row);}
+  if(defect==='placement-revision'){const row=await t.get('placements',f.placement.id);row.revision++;return t.put('placements',row);}
+  const row=await t.get('thoughts',f.entry.id);
+  if(defect==='note')row.note='Synthetic independent human note';if(defect==='title')row.title='Synthetic independent human title';if(defect==='binding')row.workingInputId=op();if(defect==='intent')row.organizationIntents.edges[f.topicId].include=false;if(defect==='source')row.sourceRecordIds=[];
+  return t.put('thoughts',row);
+ });
+}
+for(const defect of ['note','title','binding','intent','source','journal','target-layout','target-removed','section-removed','placement-revision'])test('manual Placement '+defect+' cannot qualify private dispatch',async()=>{
+ const f=await placedEntryFixture();await changePlacementFact(f,defect);const session=new LocalMaintenanceSession(f.s,f.constructor);
+ try{const h=await session.prepare(options);await session.run(h);}catch(error){assert.ok(['STALE_BASE','UNAVAILABLE','CANCELLED'].includes(error.code));}
+ assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);
+});
+for(const defect of ['note','binding','journal','target-layout','section-removed','placement-revision','remove'])test('manual Placement '+defect+' after prepare prevents dispatch',async()=>{
+ const f=await placedEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options);await changePlacementFact(f,defect);const r=await session.run(h);
+ assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);
+});
+for(const defect of ['missing-placement','wrong-target','missing-entry'])test('manual Placement '+defect+' processing scope cannot borrow Input authority',async()=>{
+ const f=await placedEntryFixture(),resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{const r=await resolve(t,scope);r.scope=structuredClone(r.scope);if(defect==='missing-placement')delete r.scope.placements;if(defect==='wrong-target')r.scope.placements[0].topicId=op();if(defect==='missing-entry')delete r.scope.entries;return r;};
+ const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),r=await session.run(await session.prepare(options));assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);
+});
+for(const defect of ['note','journal','target-layout','remove','revoke'])test('manual Placement '+defect+' after response cannot publish Context',async()=>{
+ const f=await placedEntryFixture();f.state.contextHook=()=>defect==='revoke'?f.contextAbort.abort():changePlacementFact(f,defect);
+ const session=new LocalMaintenanceSession(f.s,f.constructor),r=await session.run(await session.prepare(options));assert.notEqual(r.processedState,'COMMITTED');assert.equal(f.calls.length,2);assert.equal((await ack(f)).length,2);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,1);
+});
+
+test('manual Placement Context ACK failure rolls back and resumes exact original response',async()=>{
+ const f=await placedEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options),key=JSON.stringify(['placement',f.placement.id]);
+ const hook=corruptWrite(f,(n,r)=>n==='organizerWorkItems'&&r.unit?.key===key&&r.unit.facet==='context'&&r.state==='ACKNOWLEDGED',()=>{throw Error('synthetic placement ACK failure');});
+ const r=await session.run(h);hook.restore();assert.equal(hook.record.reached,true);assert.equal(r.state,'PARTIAL');assert.deepEqual(await snapshot(f.s),hook.record.before);assert.equal((await ack(f)).length,2);
+ assert.equal((await session.run(h)).processedState,'COMMITTED');assert.equal((await ack(f)).length,3);assert.equal(f.calls.length,2);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,2);
+});
+
+test('manual Placement Context cannot substitute another valid Topic for its explicit human target',async()=>{
+ const f=await placedEntryFixture(),created=await f.s.createTopic({name:'Synthetic other eligible target',operationId:op()}),other=await read(f.s,'topics',created.id),entry=await read(f.s,'thoughts',f.entry.id);
+ await f.s.placeEntry({entryId:entry.id,topicId:other.id,expectedEntryRevision:entry.revision,expectedTopicRevision:other.organizationRevision,operationId:op()});
+ const adapter=f.service.responseAdapter.context;f.service.responseAdapter.context=async(...args)=>{const r=await adapter(...args),scope=await readContextTopicScope(f.s,{topicId:other.id});assert.equal(scope.available,true);for(const group of r.value)for(const e of group.change.evidence){e.topicId=other.id;e.expectedTopicBinding=scope.binding;}return r;};
+ const session=new LocalMaintenanceSession(f.s,f.constructor),r=await session.run(await session.prepare(options));assert.equal(r.state,'PARTIAL');assert.equal((await ack(f)).length,2);assert.equal((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.length,1);assert.equal(f.calls.length,2);
+});
+
+async function deferredPlacementFixture(){
+ const f=await placedEntryFixture(),ai=new AIUsageFoundation(f.s,{resolveAuthority:f.authority}),batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),groups=[];
+ await ai.read(async t=>{const saved=await ai.job(t,job.id);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=saved.childCoverage[i].filter(u=>u.facet===facet);if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
+ await ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:new AbortController().signal,isCurrent:()=>true,plan:job});
+ return {...f,oldAI:ai,oldJob:await read(f.s,'organizerJobs',job.id),oldAttempts:await read(f.s,'organizerUsage'),oldRows:(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='DEFERRED')};
+}
+for(const changed of [false,true])test('manual Placement old DEFER '+(changed?'new route reconsiders only Context':'same route preserves both obligations'),async()=>{
+ const f=await deferredPlacementFixture(),session=new LocalMaintenanceSession(f.s,f.constructor),route={...options,...(changed?{routeVersion:'synthetic-placement-context-v1'}:{})},h=await session.prepare(route),r=await session.run(h);
+ const rows=await read(f.s,'organizerWorkItems'),topic=f.oldRows.find(r=>r.unit.facet==='topic'),context=f.oldRows.find(r=>r.unit.facet==='context');assert.deepEqual(rows.find(r=>r.id===topic.id),topic);
+ if(changed){assert.equal(r.processedState,'COMMITTED');assert.equal(rows.some(r=>r.id===context.id),false);assert.deepEqual(rows.find(r=>r.originalId===context.id),{...context,id:'aiu:defer-history:'+context.id.slice('aiu:defer:'.length),originalId:context.id,reconsideredBecause:'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1'});assert.equal(f.calls.length,2);assert.equal((await ack(f)).length,3);}
+ else{assert.equal(r.state,'DEFERRED');assert.deepEqual(rows.find(r=>r.id===context.id),context);assert.equal(f.calls.length,1);assert.equal((await ack(f)).length,2);}
+ assert.deepEqual(await read(f.s,'organizerJobs',f.oldJob.id),f.oldJob);for(const attempt of f.oldAttempts)assert.deepEqual(await read(f.s,'organizerUsage',attempt.id),attempt);
+});
+for(const defect of ['reason','journal','history-collision','abort'])test('manual Placement old DEFER '+defect+' preserves obligations or atomic rollback',async()=>{
+ const f=await deferredPlacementFixture(),context=f.oldRows.find(r=>r.unit.facet==='context');
+ if(defect==='reason')await f.s.repository.transaction(true,t=>t.put('organizerWorkItems',{...context,retryCondition:'SEMANTIC_EVIDENCE_REQUIRED'}));
+ if(defect==='journal')await changePlacementFact(f,'journal');
+ if(defect==='history-collision')await f.s.repository.transaction(true,t=>t.put('organizerWorkItems',{...context,id:'aiu:defer-history:'+context.id.slice('aiu:defer:'.length),originalId:context.id,reconsideredBecause:'other'}));
+ const session=new LocalMaintenanceSession(f.s,f.constructor),before=await snapshot(f.s),hook=defect==='abort'?corruptWrite(f,(name,row)=>name==='organizerWorkItems'&&row.reconsideredBecause==='MANUAL_PLACEMENT_CONTEXT_MAPPER_V1',()=>session.dispose(),{contextOnly:false}):null;
+ if(['history-collision','abort'].includes(defect)){await assert.rejects(session.prepare({...options,routeVersion:'synthetic-placement-context-v1'}));if(hook){hook.restore();assert.equal(hook.record.reached,true);}assert.deepEqual(await snapshot(f.s),before);}
+ else{await session.prepare({...options,routeVersion:'synthetic-placement-context-v1'});assert.ok(await read(f.s,'organizerWorkItems',context.id));}
+ assert.equal(f.calls.length,1);assert.deepEqual(await read(f.s,'organizerJobs',f.oldJob.id),f.oldJob);
+});
+
+test('manual Placement payload rejects incomplete, duplicate, foreign, malformed and over-budget metadata',async()=>{
+ const f=await placedEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor);await session.run(await session.prepare(options));
+ const {material:sent,...metadata}=f.calls[1],material={sourceCount:1,view:{...sent,inputs:sent.inputs.map(i=>({id:i.inputId,revision:i.revision,role:'primary',fields:{body:i.body}})),entries:sent.entries.map(e=>({id:e.entryId,revision:e.revision,body:e.body,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId}))}},limits=f.s.organizerBudget.limits;
+ assert.deepEqual(createMaintenancePayload(metadata,material,limits,sent.placements).material,sent);
+ for(const defect of ['missing','duplicate','extra','entry-revision','target','input','layout','budget']){let ps=structuredClone(sent.placements);if(defect==='missing')ps=[];if(defect==='duplicate')ps.push(ps[0]);if(defect==='extra')ps[0].unapproved='synthetic';if(defect==='entry-revision')ps[0].entryRevision++;if(defect==='target')ps[0].topicId=op();if(defect==='input')ps[0].inputId=op();if(defect==='layout')ps[0].layoutGeneration++;if(defect==='budget')ps[0].sectionId='x'.repeat(limits.maxContentBytes);assert.throws(()=>createMaintenancePayload(metadata,material,limits,ps),undefined,defect);}
 });
