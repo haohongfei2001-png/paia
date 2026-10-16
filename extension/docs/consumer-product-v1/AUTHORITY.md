@@ -1,3 +1,13 @@
+# Local handoff validation and Root count follow-up — 2026-10-16
+
+The existing local checkout now continues `codex/ai-cost03-placement-context-20261015`, including handoff `486f7ba06fc9db52bf58ace7e4847d3a6fa26369` and current main `ff669b33b3fdb8ef54b0763f95e022209d85c8b3`. No local work was overwritten. The Placement Context unit/version combination passed 299/299 and actual isolated headless Chrome Source/release Maintenance passed 124/124 on the handed-off runtime. This is local synthetic native evidence, not installed or provider qualification.
+
+The next concrete repair addresses the existing ANS-07 count read overhead. Original full-run 38759165246 remains FAILED; its 750ms assertion is unchanged. Local original RPC p95 was 75.4ms, so the hosted failure is not reproduced or assigned a unique cause. A separate native production-store profile measured 1,200 Topic count calls across 30 pages, consuming 769.6ms of 1,033.5ms. Count reads now use readonly transactions when the current cache or exact queued task already suffices; a missing/stale task rechecks all original facts in the original strict write transaction. Existing human/source/epoch protections and task progress remain. Failed performance samples are now persisted before assertion.
+
+Final combined validation, independent review, exact-head Full and subsequent exact-main gates remain explicit integration requirements. Sync stays paused; no assistant capture, paid activation, credential/permission change, private browser data or deployment is introduced. Continue the current Canonical plan; neither these local passes nor a commit closes AI-COST-03 or all seven plans.
+
+## Preserved handoff checkpoint
+
 # Current execution — manual Placement Context maintenance (2026-10-15)
 
 PR288 is safely merged as main `ff669b33b3fdb8ef54b0763f95e022209d85c8b3`, tree `5a5e3c997ca32fe563b4b7a145fdcd32c92e1b18`. Final candidate `19845506cefd568cd56c690dab3f1c1f5ba0c940` passed Full38756163819 with all ten current browser shards, four unit shards, both macOS jobs, Sync native storage, adapter/privacy, release and integration gates. Exact restored Entry Context mapping and Root clear-search restoration have actual source/release or owner-native evidence; this is not complete AI-COST-03 or all Canonical plans.

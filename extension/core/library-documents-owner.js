@@ -21,6 +21,23 @@ const originalLibraryDocumentsStores=new WeakSet();
 export function requireOriginalLibraryDocumentsStore(store){if(!originalLibraryDocumentsStores.has(store))fail();}
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
 const bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
+// Count reads do not need a strict durable write when the cache or original
+// queued task already describes this generation. A missing task is requalified
+// in the write transaction; the read result never authorizes a stale enqueue.
+async function topicCountInTransaction(t,topicId,schedule=false){
+ const topic=await t.get('topics',topicId);
+ if(!topic)return {visibleEntryCount:0,countComplete:true,compatibilityUnavailable:true};
+ if(!validTopicGeneration(topic.activeLayoutGeneration)){
+  const ids=new Set((await t.all('placements')).filter(p=>p.topicId===topicId&&p.lifecycle==='active').map(p=>p.entryId));
+  let visibleEntryCount=0;for(const id of ids){const e=await t.get('thoughts',id);if(e?.lifecycle==='active')visibleEntryCount++;}
+  return {visibleEntryCount,countComplete:true,countApproximate:true,compatibilityUnavailable:true};
+ }
+ const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=`reading1:${topic.activeLayoutGeneration}:${topic.countVersion||0}:${epoch}`;
+ if(topic.countCache?.key===key&&topic.countCache.complete)return {visibleEntryCount:topic.countCache.count,countComplete:true};
+ const task={id:JSON.stringify(['count',topicId]),entityKind:'count',statusKey:0,ownerId:topicId,key,cursor:null,count:0,sourceRecordIds:[]},existing=await t.get('libraryMigrationItems',task.id);
+ if(!existing||existing.key!==key){if(!schedule)return null;await t.put('libraryMigrationItems',task);}
+ return {visibleEntryCount:topic.countCache?.key===key?topic.countCache.count:0,countComplete:false};
+}
 // Defined only after the fixed base has initialized; never accepts a caller factory.
 let originalConstructor;
 export function originalLibraryDocumentsConstructor(){
@@ -103,7 +120,10 @@ export function originalLibraryDocumentsConstructor(){
   return {items:items.slice(offset,offset+limit),nextCursor:offset+limit<items.length?{mode:'reading',offset:offset+limit}:null};
  }
  async topicCount(topicId,{cursor=null,limit=200}={}){
-  await this.finishFoundation();return this.run(()=>this.repository.transaction(true,async t=>{const topic=await t.get('topics',topicId);if(!topic)return {visibleEntryCount:0,countComplete:true,compatibilityUnavailable:true};if(!validTopicGeneration(topic.activeLayoutGeneration)){const ids=new Set((await t.all('placements')).filter(p=>p.topicId===topicId&&p.lifecycle==='active').map(p=>p.entryId));let visibleEntryCount=0;for(const id of ids){const e=await t.get('thoughts',id);if(e?.lifecycle==='active')visibleEntryCount++;}return {visibleEntryCount,countComplete:true,countApproximate:true,compatibilityUnavailable:true};}const epoch=(await t.get('meta','thought-epoch'))?.value||0,key=`reading1:${topic.activeLayoutGeneration}:${topic.countVersion||0}:${epoch}`;if(topic.countCache?.key===key&&topic.countCache.complete)return {visibleEntryCount:topic.countCache.count,countComplete:true};const task={id:JSON.stringify(['count',topicId]),entityKind:'count',statusKey:0,ownerId:topicId,key,cursor:null,count:0,sourceRecordIds:[]},existing=await t.get('libraryMigrationItems',task.id);if(!existing||existing.key!==key)await t.put('libraryMigrationItems',task);return {visibleEntryCount:topic.countCache?.key===key?topic.countCache.count:0,countComplete:false};}));
+  await this.finishFoundation();return this.run(async()=>{
+   const current=await this.repository.transaction(false,t=>topicCountInTransaction(t,topicId));
+   return current??this.repository.transaction(true,t=>topicCountInTransaction(t,topicId,true));
+  });
  }
  async topicDocumentPage({topicId,cursor=null,limit=40,sectionCursor=null,trackedEntryIds=[]}={}){
   if(!idOK(topicId)||!limitOK(limit)||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id)))fail();await this.finishFoundation();
