@@ -7,6 +7,7 @@ import {ContextCommitSession} from './context-commit.js';
 import {ContextTopicInputs} from './context-topics.js';
 import {copyReadingText} from './reading-actions.js';
 import {ContextItemBasis} from './context-item-basis.js';
+import {ContextTemporalStatus} from './context-temporal-status.js';
 
 const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const names={info:['我的信息','My Information'],rules:['我的规则','My Rules'],now:['我的现在','My Now'],inputs:['我的输入','My Inputs']};
@@ -34,11 +35,12 @@ export class ContextItemEditor {
   this.menu=element('details','item-menu');const summary=element('summary');summary.setAttribute('aria-label',copy('此条内容的更多操作','More item actions'));summary.append(createIcon('more'));
   const actions=element('div','menu-items');actions.append(button(copy('复制','Copy'),()=>void this.copyBody()),button(copy('撤销上次修改','Undo last edit'),()=>void this.undo()),button(copy('删除','Delete'),()=>void page.remove(this),'danger'));this.moveUp=button(copy('上移','Move up'),()=>void page.reorder(this,'up'));this.moveDown=button(copy('下移','Move down'),()=>void page.reorder(this,'down'));actions.append(this.moveUp,this.moveDown);this.moveTargets=[];for(const target of ['info','rules','now'])if(target!==this.saved.card){const control=button(copy(`移动到${label(target)}`,`Move to ${label(target)}`),()=>void page.move(this,target));control.setAttribute('data-move-target',target);this.moveTargets.push(control);actions.append(control);}this.menu.append(summary,actions);summary.addEventListener('pointerdown',()=>this.captureReorderSelection());this.menu.addEventListener('keydown',e=>{this.page.cancelReorderIntent?.();if(e.target===summary&&(e.key==='Enter'||e.key===' ')&&!this.reorderSelection)this.captureReorderSelection();if(e.key==='Escape'){this.reorderSelection=null;e.preventDefault();this.menu.open=false;summary.focus();}});
   this.copyFeedback=element('div','item-copy-feedback');this.copyFeedback.setAttribute('role','status');
-  this.footer=element('div','context-item-footer');this.footer.append(this.menu);this.root.append(this.field,this.footer,this.feedback,this.copyFeedback);
+  this.footer=element('div','context-item-footer');this.temporalNode=element('span','item-temporal');this.temporalNode.hidden=true;this.footer.append(this.temporalNode,this.menu);this.root.append(this.field,this.footer,this.feedback,this.copyFeedback);
   this.autosave=new AutosaveSession(()=>void this.flush());
-  this.surface=new PlainTextSurface(this.field,{start:()=>{this.basis?.close();this.reorderSelection=null;this.copyEpoch=(this.copyEpoch||0)+1;this.copyFeedback.replaceChildren();this.autosave.cancel();if(!this.failed&&!this.conflicted&&!this.saving)this.feedback.replaceChildren();},end:()=>this.changed(),input:()=>this.changed(),leave:()=>void this.flush()});
+  this.surface=new PlainTextSurface(this.field,{start:()=>{this.basis?.close();this.reorderSelection=null;this.copyEpoch=(this.copyEpoch||0)+1;this.copyFeedback.replaceChildren();this.autosave.cancel();if(!this.failed&&!this.conflicted&&!this.saving)this.feedback.replaceChildren();this.temporalStatus?.refresh();},end:()=>this.changed(),input:()=>this.changed(),leave:()=>void this.flush()});
   this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch:page.snapshot.epoch});
   this.field.addEventListener('keydown',e=>{this.page.cancelReorderIntent?.();if(e.key==='Tab'&&!e.shiftKey)this.captureReorderSelection();if(this.composing||e.isComposing||e.keyCode===229)return;if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){e.preventDefault();void this.flush();}if(e.key==='Escape'){e.preventDefault();void this.flush().then(ok=>{if(ok)this.field.blur();});}});
+  this.temporalStatus=new ContextTemporalStatus({node:this.temporalNode,item:()=>this.saved,isEditing:()=>this.composing||this.dirty()||this.conflicted||this.failed,isCurrent:()=>!this.disposed});
   if(!fresh)void this.recover();
  }
  get composing(){return this.surface.composing;}
@@ -46,12 +48,12 @@ export class ContextItemEditor {
  dirty(){return this.local!==this.saved.body||this.fresh&&!!this.local.trim()||!!this.commit.pending||!!this.saving;}
  collect(){const text=this.field.innerText;this.local=this.fresh&&!this.saving&&!this.commit.pending&&!text.trim()?'':text;}
  operation(){return this.revision.attempt({kind:'put',epoch:this.epoch,itemId:this.id,expectedRevision:this.saved.revision,body:this.local,section:this.saved.section,card:this.saved.card||'info'});}
- changed(){this.basis?.close();this.reorderSelection=null;this.copyEpoch=(this.copyEpoch||0)+1;this.copyFeedback.replaceChildren();this.collect();this.feedback.replaceChildren();this.failed=false;if(this.fresh&&!this.local.trim()&&!this.saving&&!this.commit.pending){this.revision.last=null;void this.clearDraft();return;}if(!this.dirty()){this.revision.last=null;void this.clearDraft();return;}if(this.local.trim()||this.commit.pending||this.saving){const change=this.operation();void this.recovery.protect({type:'PAIA_CONTEXT_CARDS_CHANGE',change},change.operationId).catch(()=>{});}this.autosave.schedule();this.page.applySearch();}
+ changed(){this.basis?.close();this.reorderSelection=null;this.copyEpoch=(this.copyEpoch||0)+1;this.copyFeedback.replaceChildren();this.collect();this.feedback.replaceChildren();this.failed=false;this.temporalStatus?.refresh();if(this.fresh&&!this.local.trim()&&!this.saving&&!this.commit.pending){this.revision.last=null;void this.clearDraft();return;}if(!this.dirty()){this.revision.last=null;void this.clearDraft();return;}if(this.local.trim()||this.commit.pending||this.saving){const change=this.operation();void this.recovery.protect({type:'PAIA_CONTEXT_CARDS_CHANGE',change},change.operationId).catch(()=>{});}this.autosave.schedule();this.page.applySearch();}
  async clearDraft(){
   this.discardRequested={token:this.recovery.currentToken};if(this.discarding)return this.discarding;
   this.discarding=(async()=>{try{while(this.discardRequested){const {token}=this.discardRequested;this.discardRequested=null;await this.recovery.discard(token);}this.draftClearFailed=false;return true;}catch{this.draftClearFailed=true;this.feedbackFailure();return false;}finally{this.discarding=null;}})();return this.discarding;
  }
- async recover(){try{const draft=await this.recovery.load();if(!draft||this.dirty()||this.composing)return;this.recovery.currentToken=draft.token;const c=draft.operation.change;if((c.card??'info')!==(this.saved.card||'info'))return;if(c.body===this.saved.body){await this.recovery.clear(draft.token);return;}this.local=c.body;this.field.textContent=c.body;this.conflicted=c.expectedRevision!==this.saved.revision;this.feedback.textContent=copy('已恢复未保存文字，请核对后重试。','Unsaved text recovered. Review it, then retry.');this.feedback.append(button(copy('重试','Retry'),()=>void this.flush(true)));this.page.applySearch();}catch{}}
+ async recover(){try{const draft=await this.recovery.load();if(!draft||this.dirty()||this.composing)return;this.recovery.currentToken=draft.token;const c=draft.operation.change;if((c.card??'info')!==(this.saved.card||'info'))return;if(c.body===this.saved.body){await this.recovery.clear(draft.token);return;}this.local=c.body;this.field.textContent=c.body;this.conflicted=c.expectedRevision!==this.saved.revision;this.feedback.textContent=copy('已恢复未保存文字，请核对后重试。','Unsaved text recovered. Review it, then retry.');this.feedback.append(button(copy('重试','Retry'),()=>void this.flush(true)));this.page.applySearch();}catch{}finally{this.temporalStatus?.refresh();}}
  feedbackFailure(conflict=false){const kind=(conflict?'conflict':'failed')+':'+document.documentElement.lang;if(this.feedback.dataset.kind===kind&&this.feedback.childElementCount)return;this.feedback.dataset.kind=kind;this.feedback.className='item-feedback error';this.feedback.replaceChildren(element('span','',conflict?copy('其他页面已修改或删除这条内容，当前文字已保留。','This item changed elsewhere. Your text is retained.'):copy('未保存，文字已保留。','Not saved. Your text is retained.')));if(conflict){this.feedback.append(button(copy('保留为新条目','Keep as new item'),()=>void this.page.keepConflict(this)),button(copy('查看已保存内容','View saved content'),()=>void this.page.discardConflict(this)));}else this.feedback.append(button(copy('重试','Retry'),()=>void this.flush(true)));}
  async flush(retry=false){
   if(this.composing)return false;if(this.discarding&&!await this.discarding)return false;if(this.draftClearFailed&&!await this.clearDraft())return false;if(this.saving){await this.saving;return !this.failed&&!this.conflicted&&!this.dirty();}this.collect();if(!this.dirty())return true;if(this.conflicted){this.feedbackFailure(true);return false;}if(this.failed&&!retry)return false;
@@ -62,14 +64,14 @@ export class ContextItemEditor {
    if(!ack.result.ok){this.conflicted=true;this.feedbackFailure(true);return false;}
    if(ack.result.itemId!==this.id||ack.result.lifecycle!=='active'||!Number.isSafeInteger(ack.result.revision))throw Error('SAVE_OUTCOME_UNKNOWN');
    if(ack.change.operationId===this.undoOperationId){this.journal.undo.pop();this.undoOperationId=null;}else if(before!==ack.change.body&&before.trim())this.journal.record({body:before});
-   this.saved={...this.saved,body:ack.change.body,revision:ack.result.revision};this.fresh=false;this.failed=false;
+   this.saved={...this.saved,body:ack.change.body,revision:ack.result.revision,...(this.saved.origin==='automatic'?{protected:true,userEdited:true}:{})};this.fresh=false;this.failed=false;
    await this.recovery.discard(ack.change.operationId).catch(()=>{});
    this.feedback.textContent=!this.composing&&this.field.innerText===ack.change.body?copy('已保存','Saved'):copy('还有修改未保存','Newer changes are not saved yet');
    return true;
-  }catch(error){this.failed=true;if(error?.code==='CONTEXT_INVALIDATED'){this.conflicted=true;this.feedbackFailure(true);}else this.feedbackFailure();return false;}finally{this.saving=null;}})();
+  }catch(error){this.failed=true;if(error?.code==='CONTEXT_INVALIDATED'){this.conflicted=true;this.feedbackFailure(true);}else this.feedbackFailure();return false;}finally{this.saving=null;this.temporalStatus?.refresh();}})();
   const ok=await this.saving;if(ok&&this.dirty())return this.flush();if(ok)this.page.clearLeaveNotice?.();this.page.applySearch?.();return ok;
  }
- receive(item,epoch=this.epoch){if(epoch!==this.epoch||!item||item.revision!==this.saved.revision)this.basis?.invalidate();if(epoch===this.epoch&&item&&item.revision<this.saved.revision)return;if(epoch!==this.epoch){if(this.dirty()||this.composing||this.saving){this.conflicted=true;this.feedbackFailure(true);return;}this.epoch=epoch;this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch});}if(this.saving)return;if(!item||item.revision!==this.saved.revision){if(this.dirty()||this.composing){this.conflicted=true;this.feedbackFailure(true);return;}if(item){this.saved=structuredClone(item);this.local=item.body;if(this.field.innerText!==item.body)this.field.textContent=item.body;this.feedback.replaceChildren();}}}
+ receive(item,epoch=this.epoch){try{if(epoch!==this.epoch||!item||item.revision!==this.saved.revision)this.basis?.invalidate();if(epoch===this.epoch&&item&&item.revision<this.saved.revision)return;if(epoch!==this.epoch){if(this.dirty()||this.composing||this.saving){this.conflicted=true;this.feedbackFailure(true);return;}this.epoch=epoch;this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch});}if(this.saving)return;if(!item||item.revision!==this.saved.revision){if(this.dirty()||this.composing){this.conflicted=true;this.feedbackFailure(true);return;}if(item){this.saved=structuredClone(item);this.local=item.body;if(this.field.innerText!==item.body)this.field.textContent=item.body;this.feedback.replaceChildren();}}}finally{this.temporalStatus?.refresh();}}
  captureReorderSelection(){
   const selection=globalThis.getSelection?.();this.reorderSelection=null;
   if(this.composing||!selection?.rangeCount||selection.isCollapsed||!this.field.contains(selection.anchorNode)||!this.field.contains(selection.focusNode))return;
@@ -106,7 +108,7 @@ export class ContextItemEditor {
   }finally{this.copying=false;}
  }
  async undo(){this.reorderSelection=null;this.menu.open=false;if(!await this.flush())return;const prior=this.journal.undo.at(-1);if(!prior||!prior.body.trim())return;this.local=prior.body;this.field.textContent=prior.body;this.changed();this.undoOperationId=this.operation().operationId;await this.flush(true);this.field.focus();}
- dispose(){this.disposed=true;this.basis?.close();this.copyFeedback.replaceChildren();this.autosave.dispose();this.surface.dispose();}
+ dispose(){this.disposed=true;this.temporalStatus?.dispose();this.basis?.close();this.copyFeedback.replaceChildren();this.autosave.dispose();this.surface.dispose();}
 }
 
 export class ContextCardsPage {
@@ -268,7 +270,7 @@ export class ContextCardsPage {
   set(this.page.querySelector('.maintenance'),copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.'));
   set(this.empty,copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));set(this.add?.querySelector('.context-add-label'),copy(...itemCopy[this.card].add));
   for(const editor of this.editors.values()){
-   const card=editor.saved.card||this.card;set(editor.root.querySelector('.context-item-origin'),copy('本地内容 · 由你核对','Local content · Yours to review'));
+   editor.temporalStatus?.refresh();const card=editor.saved.card||this.card;set(editor.root.querySelector('.context-item-origin'),copy('本地内容 · 由你核对','Local content · Yours to review'));
    editor.field.setAttribute('aria-label',label(card));editor.field.dataset.placeholder=copy(...itemCopy[card].placeholder);
    editor.menu.querySelector('summary')?.setAttribute('aria-label',copy('此条内容的更多操作','More item actions'));
    const actions=editor.menu.querySelectorAll('button');

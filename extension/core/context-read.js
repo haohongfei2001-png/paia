@@ -1,4 +1,5 @@
 import {readableContextItems} from './context-item-lineage.js';
+import {contextTemporalProjection} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_ITEM_CARDS} from './context-cards.js';
 import {ContextTopicAccessService} from './context-topic-access.js';
 import {readContextTopicScope,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
@@ -184,7 +185,7 @@ export class ContextReadService {
   if(previous)need(previous.fence===captured.fence,'stale_cursor');
   need(captured.cards.access.global.enabled,'global_off');
   if(deep)need(captured.cards.access.inputs.enabled,'inputs_off');
-  let position=previous?.position??{index:0,field:0,offset:0},items=[],complete=false,outputBytes=2;
+  let position=previous?.position??{index:0,field:0,offset:0},items=[],complete=false,outputBytes=2;const temporalItems=new Map();
   const append=item=>{
    const size=bytes(JSON.stringify(item))+(items.length?1:0);
    if(outputBytes+size>CONTEXT_READ_LIMITS.outputBytes){need(items.length>0,'output_budget');return false;}
@@ -194,7 +195,7 @@ export class ContextReadService {
    const effective=await readableContextItems(this.#s,captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled),{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:JSON.stringify(captured.cards)});
    need(!effective.automaticEvaluation,'content_unavailable');
    const open=effective.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled).sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
-   for(const x of open.slice(position.index,position.index+o.limit))if(!append({itemId:x.id,card:x.card,role:roles[x.card],authority:'data',origin:x.origin,revision:x.revision,section:x.section,text:x.body}))break;
+   for(const x of open.slice(position.index,position.index+o.limit)){if(!append({itemId:x.id,card:x.card,role:roles[x.card],authority:'data',origin:x.origin,revision:x.revision,section:x.section,text:x.body,...contextTemporalProjection(x)}))break;temporalItems.set(x.id,x);}
    position={index:position.index+items.length,field:0,offset:0};complete=position.index===open.length;
   }else if(kind==='topics'){
    const choices=captured.choices.choices.filter(x=>x.enabled).sort((a,b)=>this.#s.repository.factory.cmp(JSON.stringify([a.binding.createdAt,a.topicId]),JSON.stringify([b.binding.createdAt,b.topicId])));
@@ -241,6 +242,9 @@ export class ContextReadService {
   const current=preview?null:await this.#verify(caller);if(!preview)need(identity(current)===identity(receipt),'connection_changed');
   const latest=await this.#read(t=>this.#snapshot(deep,t,preview),['meta']);
   need(latest.fence===captured.fence,'stale_authority');need(!attempt.expired,'timeout');if(!preview)this.#current(caller,current);
+  // Recompute only after the original final authority/connection fence. Time
+  // changes annotate the same permitted rows; they never filter or grant them.
+  if(kind==='shallow'){const at=Date.now();items=items.map(item=>({...item,...contextTemporalProjection(temporalItems.get(item.itemId),at)}));need(bytes(JSON.stringify(items))<=CONTEXT_READ_LIMITS.outputBytes,'output_budget');}
   let nextCursor=null;
   if(!complete){
    while(this.#cursors.size>=CONTEXT_READ_LIMITS.cursors)this.#cursors.delete(this.#cursors.keys().next().value);

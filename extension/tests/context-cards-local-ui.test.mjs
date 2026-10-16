@@ -806,3 +806,30 @@ test('CTX4 newly acknowledged editors retain canonical order when middle delete 
  assert.deepEqual(page.content.querySelectorAll('.context-item').map(node=>node.dataset.item),ordered);
  assert.deepEqual((await c.snapshot()).items.filter(item=>item.card==='info').map(item=>item.id),ordered);
 }));
+
+// Presentation DTO only: domain eligibility/lineage is tested by the real
+// Maintenance owner suite. No automatic row or permission is persisted here.
+test('Now same-revision temporal refresh preserves the actual editor, draft, focus and Undo journal',()=>fixture(async({makePage,calls})=>{
+ const page=makePage();await page.open('now');const editor=[...page.editors.values()][0],canonical=structuredClone(editor.saved),field=editor.field;
+ const expired={...canonical,origin:'automatic',protected:false,userEdited:false,maintenance:{temporal:{temporalScope:'SYNTHETIC explicit old interval',uncertainty:null,validUntil:'2020-01-01T00:00:00.000Z'}}};
+ editor.saved=structuredClone(expired);editor.temporalStatus.refresh();assert.equal(editor.temporalNode.hidden,false);
+ editor.field.focus();const focus=document.activeElement;editor.journal.record({body:'SYNTHETIC prior text'});const journal=structuredClone(editor.journal.undo),requests=calls.length;
+ editor.receive(structuredClone(expired),editor.epoch);assert.equal(editor.field,field);assert.equal(document.activeElement,focus);assert.deepEqual(editor.journal.undo,journal);assert.equal(editor.saved.revision,canonical.revision);assert.equal(calls.length,requests);
+ editor.local='SYNTHETIC unsaved human text';editor.field.textContent=editor.local;editor.surface.composing=true;editor.receive(structuredClone(expired),editor.epoch);
+ assert.equal(editor.temporalNode.hidden,true);assert.equal(editor.local,'SYNTHETIC unsaved human text');assert.equal(editor.field,field);assert.equal(document.activeElement,focus);assert.deepEqual(editor.journal.undo,journal);assert.equal(calls.length,requests);
+ editor.surface.composing=false;editor.dispose();assert.equal(editor.temporalNode.textContent,'');assert.equal(editor.temporalStatus.timer,null);
+}));
+
+
+test('Now expiry localization and restoring original text after failure refresh only the status',()=>fixture(async({makePage})=>{
+ const page=makePage();await page.open('now');const editor=[...page.editors.values()][0],field=editor.field;
+ editor.saved={...editor.saved,origin:'automatic',protected:false,userEdited:false,maintenance:{temporal:{temporalScope:null,uncertainty:null,validUntil:'2020-01-01T00:00:00.000Z'}}};editor.temporalStatus.refresh();assert.match(editor.temporalNode.textContent,/Validity period ended/);
+ document.documentElement.lang='zh';field.focus();page.localizeEditable();assert.match(editor.temporalNode.textContent,/有效期已过/);assert.equal(editor.field,field);assert.equal(document.activeElement,field);
+ editor.failed=true;editor.temporalStatus.refresh();assert.equal(editor.temporalNode.hidden,true);editor.changed();assert.equal(editor.failed,false);assert.equal(editor.dirty(),false);assert.equal(editor.temporalNode.hidden,false);assert.match(editor.temporalNode.textContent,/有效期已过/);assert.equal(editor.field,field);
+}));
+test('Now restored unsaved draft hides saved automatic expiry without changing its metadata',()=>fixture(async({makePage,recovery})=>{
+ const page=makePage();await page.open('now');const editor=[...page.editors.values()][0];await tick();
+ editor.saved={...editor.saved,origin:'automatic',protected:false,userEdited:false,maintenance:{temporal:{temporalScope:null,uncertainty:null,validUntil:'2020-01-01T00:00:00.000Z'}}};const before=structuredClone(editor.saved);editor.temporalStatus.refresh();assert.equal(editor.temporalNode.hidden,false);
+ const change={...put('now'),itemId:editor.id,expectedRevision:editor.saved.revision,body:'SYNTHETIC protected recovered human draft'};await recovery.save(draft(change));await editor.recover();
+ assert.equal(editor.local,change.body);assert.equal(editor.field.textContent,change.body);assert.equal(editor.temporalNode.hidden,true);assert.deepEqual(editor.saved,before);assert.equal(editor.dirty(),true);
+}));

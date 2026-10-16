@@ -208,3 +208,6 @@ html[data-paia-theme=dark] .context-editor-toolbar .add-item:hover{background:#3
 .context-card .context-access{justify-content:space-between;width:100%;border:0;border-radius:0;padding-inline:0;background:transparent}
 html[data-paia-theme="dark"] .context-card .context-access{background:transparent}
 @media(max-width:767px){.context-cards{align-items:start}.context-card .card-title{font-size:18px}.context-card .card-open{padding:22px}.context-card .card-footer{margin-inline:22px}}
+
+/* Only an explicitly expired unprotected automatic Now item needs this note. */
+.context-item-footer .item-temporal{margin-inline-end:auto;color:var(--muted);font:12px/20px var(--font);overflow-wrap:anywhere}
