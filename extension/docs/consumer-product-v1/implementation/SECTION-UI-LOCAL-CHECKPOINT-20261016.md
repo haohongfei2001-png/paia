@@ -1,3 +1,13 @@
+# PR291 native proof closure repair — 2026-10-17 05:17, ACTIVE / NOT complete
+
+UI candidatea59005bb4828c7951cd2611a08e96d850ad4f2d6 is published as readyPR291 with PAIA_FULL_CERTIFICATION. Exact clean-head local Source/Working/mixed native whole7files14/14PASS155.091s /tmp/paia-ui052-clean-head-native-r37.log; default4unit7137 and component browser receipts retain earlier identities. Full38967063508 on a590 actually FAILED native Node preflight: exactly3 strict inventory assertions omitted new genuine core/archive-year-index.js; remaining browser jobs still running, no forced merge or same-SHA retry. Raw/ANSI-clean job evidence /tmp/paia-pr291-sync-native-first-failure*.log retained.
+
+The finite repair adds that one actual module to each original explicit HUMAN_WITNESS_PATHS and RETENTION_RUNTIME_PATHS. No closure algorithm, namespace exception, hash/case/duplicate/missing/body/non-native rejection, workflow, timeout or threshold changed. Local exact3fileRED10PASS/3FAIL reproduced, corrected13/13PASS. Entire original CI Node native preflight734/734PASS14.864s /tmp/paia-pr291-native-complete-preflight-r3.log. Independent proof review CLEAN. New exact commit and actual witness/retention Source/release plus replacement changed-head Full remain required. Let first Full finish collecting failures, batch corrections and push one stable successor, not speculative cancellations/repeated CI.
+
+Next approved Now work is fully preserved, NOT mixed into this PR: local branch codex/context-now-currentness-20261017 immutableWIP5b20b26ce5c9e153bea4496c932d8a865b22149e. Backend275/275/UI87/87 PASS, final separate backend/UI independent reviews CLEAN after two presentation P2 fixes and recovery-note refresh. Source/release Now verification, version/release and final CI still pending; no installed/model-quality/plan-complete claim. Restore that exact branch after this narrow UI repair, preserve its12 code/test/record paths; originalstash9854d87f untouched. OnlyRoot runtimewriter; no competing browser/task. SameMaccheckout, no second project, paia30minheartbeatACTIVE, Syncnewfeaturespaused, no paid/credentials/permission/private-data change. ProgrammeACTIVE.
+
+## Preserved preceding breakpoint
+
 # Verified local candidate / preparing exact-head integration — 2026-10-17 05:02, ACTIVE / NOT complete
 
 Existing checkout / branch codex/approved-ui-convergence-20261016, HEAD8525b6bb before candidate commit; all200 owned candidate paths and original stash9854d87f preserved. Fresh origin/main8525b6bb. Required486f7ba remains ancestor. No second checkout, paid activation, private upload or user Chrome interaction.
