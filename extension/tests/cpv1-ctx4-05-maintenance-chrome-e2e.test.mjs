@@ -10,7 +10,7 @@ import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url));
 const cases=[
  ...['complete','stale','protected','excluded','revoked','receipt-abort','generation-abort'].map(x=>'no-change-'+x),
- 'deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
+ 'current-input-mirror','deep-read-pagination-and-revocation','default-denied','commit-replay-human-takeover-delete-undo','post-commit-regrant-before-settlement',
  ...['maintain','snapshot','shallow','recovery'].map(path=>path+'-hash-race'),
  ...['item','receipt','post-callback'].flatMap(phase=>['cancel','revoke'].map(kind=>phase+'-'+kind)),
  'post-callback-expiry','closed-database-before-write','denied-input-before-hash'
@@ -192,6 +192,24 @@ async function install(page){
       if(mode.endsWith('-abort'))check(aborted,'Injected real native transaction abort reached');
       equal(await f.snapshot(),before,'Refusal or native abort preserves every durable owner');
      }
+    }else if(name==='current-input-mirror'){
+     check((await f.put(c)).ok,'Old evidence initially qualifies');
+     const history=await f.snapshot();
+     await f.edit({libraryText:'SYNTHETIC edited complete native Input 👩🏽‍💻'});
+     const before=await f.snapshot(),scope=await readContextTopicScope(f.s,{topicId:f.topic.id});
+     check(scope.available&&scope.scope.eligibility==='eligible','Current complete mirror remains eligible');
+     equal(before.dependencies,history.dependencies,'Input edit preserves historical dependency evidence');
+     equal(before.provenance,history.provenance,'Input edit preserves historical provenance');
+     const {body:oldBody,section:oldSection,...oldIdentity}=c;
+     const old=await settled(f.service.noChange(f.caller,{...oldIdentity,operationId:op(),operation:'NO_CHANGE',expectedRevision:1}));
+     check(!old.fulfilled&&old.code==='CONTEXT_INVALIDATED','Old Context evidence is still refused');
+     equal(await f.snapshot(),before,'Stale Context refusal writes nothing');
+     const fresh=await f.request();check((await f.put(fresh)).ok,'Fresh current Input evidence commits');
+     const after=await f.snapshot();equal(protectedOwners(after),protectedOwners(before),'Maintenance preserves all Source and human owners');
+     await f.edit({excluded:true});const deniedBefore=await f.snapshot();
+     const denied=await settled(f.put({...fresh,operationId:op(),itemId:op()}));
+     check(!denied.fulfilled&&denied.code==='CONTEXT_INVALIDATED','Exclusion still refuses maintenance');
+     equal(await f.snapshot(),deniedBefore,'Excluded mirror refusal writes nothing');
     }else if(name==='deep-read-pagination-and-revocation'){
      const access=new ContextTopicAccessService(f.s),expected=new Map();
      const text='SYNTHETIC 多字节🙂e\u0301 '+('尾部🙂 '.repeat(9))+' EXACT_TAIL';

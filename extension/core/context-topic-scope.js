@@ -5,7 +5,7 @@ import {rootReadAuthority} from './organizer/root-read.js';
 import {identityMetadata,resolveTopicIdentity} from './topic-identity.js';
 import {validTopicIdentity,validTopicNameRegistry,validOrganizationIntents} from './topic-identity-backup.js';
 import {BINDING_ROW} from './thought-binding.js';
-import {inputProjection,readDependencyInputs,dependencyLifecycle} from './thought-evidence.js';
+import {inputProjection,readDependencyInputs,dependencyLifecycle,currentMirrorField} from './thought-evidence.js';
 import {MemoryService} from './memory/service.js';
 import {validateMemoryRow} from './memory/model.js';
 import {FILTER_VERSIONS} from './smart-filter.js';
@@ -223,11 +223,11 @@ export async function readContextTopicScope(store,options={},workBudget=null){
  // Only these selected strings survive the material transaction, for this call
  // alone. Bound UTF-8 bytes and hash work before retaining any task. No durable
  // cache, body DTO or alternative hash implementation is introduced.
- const queueHash=(text,expected)=>{
+ const queueHash=(text,expected,currentMirror=false)=>{
   requireFact(typeof text==='string','input_unavailable');
   if(readBudget.hashFields>=MAX_HASH_FIELDS||text.length>MAX_HASH_BYTES-readBudget.hashBytes)refuse('hash_budget');
   hashBytes=new TextEncoder().encode(text).byteLength;readBudget.hashBytes+=hashBytes;readBudget.hashFields++;if(readBudget.hashBytes>MAX_HASH_BYTES)refuse('hash_budget');
-  hashWork.push({text,expected});
+  hashWork.push({text,expected,currentMirror});
  };
  try{const material=await scopeRead(store,readBudget,async transaction=>{
   try{
@@ -245,7 +245,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
      // basedOnContentRevision records evidence origin, not selected-field
      // freshness. A note edit leaves body-only evidence valid. Match the actual
      // dependencyState owner by comparing every selected field's current digest.
-     for(const field of dep.selectedFields)queueHash(input[field],dep.fieldDigests?.[field]);
+     for(const field of dep.selectedFields)queueHash(input[field],dep.fieldDigests?.[field],currentMirrorField(current,dep,input,field));
     }
     if(raw.bodyBinding==='input'&&current.bodyBinding!=='input')eligible=false;
    }
@@ -269,7 +269,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
   }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
  });
   // WebCrypto must never be awaited inside a live IndexedDB transaction.
-  for(const work of hashWork){if(readBudget.signal?.aborted)refuse('stale_authority');let digest;try{digest=await hashText(work.text);}catch{refuse('hash_unavailable');}if(readBudget.signal?.aborted)refuse('stale_authority');if(digest!==work.expected)material.scope.eligibility='ineligible';work.text='';}
+  for(const work of hashWork){if(readBudget.signal?.aborted)refuse('stale_authority');let digest;try{digest=await hashText(work.text);}catch{refuse('hash_unavailable');}if(readBudget.signal?.aborted)refuse('stale_authority');if(!work.currentMirror&&digest!==work.expected)material.scope.eligibility='ineligible';work.text='';}
   hashWork.length=0;
   requireFact(store.repository.db,'not_ready');
   await scopeRead(store,readBudget,async transaction=>{
