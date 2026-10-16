@@ -159,7 +159,19 @@ export class LocalMaintenanceSession {
    entryMapping=await this.#entryMapping(batch.request);placementMapping=await this.#placementMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
    if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()),new Set(placementMapping.keys())).length)fail('UNAVAILABLE');
   }
-  const request=batch.request,progress={deferredUnits,blockedUnits:batch.blockedUnits??0,remainingWork:deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
+  const request=batch.request;
+  // Any Topic facet can affect a human Placement's target, even for another
+  // Input. Keep supported Placement Context dirty for a separately admitted
+  // opportunity instead of refreshing an already authorized snapshot.
+  const pendingPlacementUnits=request.coverage.some(u=>u.facet==='topic')
+   ?request.coverage.filter(u=>u.facet==='context'&&placementMapping.has(u.key)).length:0;
+  if(pendingPlacementUnits){
+   request.coverage=request.coverage.filter(u=>!(u.facet==='context'&&placementMapping.has(u.key)));
+   request.items=request.items.filter(item=>request.coverage.some(u=>u.key===item.key));
+   // Revisit this scan boundary: advancing beyond withheld rows loses work.
+   batch={...batch,nextCursor:options.cursor??null,complete:false};
+  }
+  const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,...(pendingPlacementUnits?{pendingPlacementUnits}:{}),remainingWork:pendingPlacementUnits>0||deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
   // Reuse the current Topic identity owner's 20-distinct-Source admission
   // boundary. Keep all remaining facets of each Input in the same child.
   // More than two required partitions is unavailable, never lost coverage.
@@ -181,7 +193,7 @@ export class LocalMaintenanceSession {
   syncTrue(this.#window.isCurrent(grant));
   const job=await this.#foundation.plan(request);
   if(generation!==this.#generation||grant.revocationSignal.aborted)fail('UNAVAILABLE');syncTrue(this.#window.isCurrent(grant));
-  if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const handle=Object.freeze(outcome(job.state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));this.#passive.set(handle,{generation,state:job.state,...progress});return handle;}
+  if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const state=pendingPlacementUnits?'PARTIAL':job.state,processed=pendingPlacementUnits?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
   const state={progress,request,entryMapping,placementMapping,job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
@@ -195,7 +207,7 @@ export class LocalMaintenanceSession {
  #settled(state,facets=[]){
   // Job settlement and scan completion are separate: a committed page may
   // still have a continuation, while deferred facets remain a partial job.
-  const partial=state.progress.deferredUnits>0||state.progress.blockedUnits>0;
+  const partial=state.progress.deferredUnits>0||state.progress.blockedUnits>0||(state.progress.pendingPlacementUnits??0)>0;
   return outcome(partial?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,nextCursor:state.handle.nextCursor,complete:state.handle.complete,...state.progress,...(partial?{processedState:'COMMITTED'}:{})});
  }
  #response(a){
@@ -357,7 +369,7 @@ export class LocalMaintenanceSession {
  }
  async #defer(state,childId,facet,units,retryCondition){await this.#foundation.commitFacet(state.job.id,childId,{facet,units,outcome:'DEFER',retryCondition});this.#current(state);return {facet,units:units.length,state:'DEFERRED'};}
  run(handle){
-  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork}));
+  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits,processedState:passive.processedState}:{})}));
   const state=this.#handles.get(handle);if(!state)return Promise.resolve(outcome('UNAVAILABLE'));
   if(state.completed)return Promise.resolve(state.generation===this.#generation?this.#settled(state):outcome('UNAVAILABLE',{jobId:state.job.id,facets:[]}));
   try{this.#current(state);}catch(e){return Promise.resolve(outcome(safeError(e)));}

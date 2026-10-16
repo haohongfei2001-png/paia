@@ -4,7 +4,7 @@ The next implemented repair is version0.51.1: after a human edits a complete ori
 
 The original handoff486f7ba, count fix762e429 and Entry duplicate-read fixb64b1b25 are all included in this local branch. PR289's replacement exact-head Full38856045373 is running on b64b1b25; failed Full38854021635 remains historical failure, not a pass. Current mirror branch was integrated locally with that repair;133 scoped owner/scope/purge/version tests pass. Integrated actual isolated headless Source/release passed126/126 in27717.697416ms. Independent review and final changed-head Full/main gates remain separate requirements for the combined candidate. Nothing is merged or installed yet.
 
-Next unresolved mixed Input/Placement processing must preserve exact human placement qualification; do not refresh request snapshots or ACK stale coverage merely to convert PARTIAL into COMPLETE. Continue approved plans with Sync paused, original input-only capture and no new providers, paid activation or permissions.
+Mixed Input/Placement processing now preserves exact human placement qualification by withholding supported Placement Context from a batch with any executable Topic facet. Dirty obligations remain; the current result reports pendingPlacementUnits, PARTIAL, complete:false and the incoming scan boundary. A separate genuinely admitted opportunity must capture fresh Placement authority; no refreshed sent snapshot, fake DEFER/ACK or automatic extra physical request. Related212 tests pass; final native/review evidence is in the owning receipt. Continue approved plans with Sync paused, original input-only capture and no new providers, paid activation or permissions.
 
 ## Preserved prior checkpoint
 
