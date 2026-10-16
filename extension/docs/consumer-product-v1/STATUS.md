@@ -1,3 +1,13 @@
+# Unified local candidate — 2026-10-16
+
+PR289 now combines the preserved handoff486f7ba, Root count readonly qualification, canonical Entry duplicate-read removal, current complete Input mirror eligibility and conservative mixed Topic/Placement admission. The existing local checkout retains all intermediate commits; version0.51.1 is the unified candidate, not an installed update. No separate provider, body authority, permission or Sync feature was added.
+
+Full38854021635 failed ANS-08 at783.9ms; replacement Full38856045373 passed ANS-08 but failed consumer-cleanup release while its synthetic historical-grant fixture created a competing live Store and encountered CONTROL_PUBLICATION_CHANGED. A second Browser1 failure was historical Backup fixture initialization: actual metadata proves two unentered acquisitions straddled the start and settlement of one external publication. Consumer setup now seeds only the same grant in the existing native database and proves the exact grant active then revoked by Settings. Historical Backup waits for bounded original-fence settlement before its same single retry; entered callbacks are never replayed. Production guards and all previous failures remain unchanged. Final changed-head Full and subsequent exact-main qualification are required before closure.
+
+The current Input/mixed Placement implementation and final reviewer-driven passive ACK race repair passed147 whole-session tests and130 actual headless Source/release cases; earlier combined session/mixed/batch212 tests and scope/projection/purge/version133 tests retain their own identities. Independent read-only reviews found no remaining blocking findings after the passive result correction. The final consumer source/release check and final candidate identity are recorded in the owning receipt. Preserve all seven plans and paused Sync; this does not establish whole-product or live-provider completion.
+
+## Preserved prior checkpoint
+
 # Current next slice — complete Input mirror eligibility (2026-10-16)
 
 The next implemented repair is version0.51.1: after a human edits a complete original Input mirror, current Entry/Context eligibility uses the exact current binding for its primary body instead of treating the historical body digest as current authority. Historical evidence remains byte-for-byte intact; derived/partial/detached/unknown-version/context-only and changed-note evidence retain the original checks. Every selected field still hashes under the original budgets, and Source, exclusion and final authority fences remain. See implementation/ai-usage/AI-COST-03-CURRENT-INPUT-MIRROR.md.
