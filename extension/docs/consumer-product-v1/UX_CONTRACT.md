@@ -1,98 +1,90 @@
-# Consumer UX Contract — approved existing-design white refinement
+# Consumer UX Contract — direct-document reading refinement
 
-**PAIA-WHITE-UI-1.0 / OWNER_APPROVED / 2026-10-13.** Current presentation targets: **TL-PT1-UI-1.3 / CTX4-UI-1.3 / IAH-1.4 / SET2-UI-1.3**. The owner approved `PAIA_既有设计精修_交互原型.html` and requested in-place GitHub plan integration. [Exact references](WHITE_REFINEMENT_REFERENCES_2026-10-13.md) bind the unified prototype, three refined single-page HTMLs and 22 packaged screenshots. Screenshot 12 is the old-blue comparison only, not a second production target.
+**PAIA-READING-1.0 / OWNER_DIRECTED / PLAN_UPDATED / 2026-10-16.** Scoped targets: **TL-PT1-UI-1.5 / CTX4-UI-1.5 / IAH-1.6**. Settings retains SET2-UI-1.4 and its existing raw-source destination. The existing domain plans and STATUS remain the execution system; this is not another workstream. [Exact revised artifacts](READING_REFINEMENT_REFERENCES_2026-10-16.md) identify the edited existing prototypes and their limited evidence.
 
-The complete preceding shared UX is preserved byte-for-byte in [PRE_WHITE](UX_CONTRACT_PRE_WHITE_2026-10-13.md), blob `f56738330e8f80d573b23a7f75ad3763e136b080`. **All its nonconflicting sections 1–8 and every incorporated prior product, behavior, privacy, editing, source, recovery and verification requirement remain normative.** This is not a new product or execution plan. Current STATUS, existing task identifiers and shared-file owners remain controlling.
+The complete immediately preceding UX is preserved byte-for-byte in [PRE_READING](UX_CONTRACT_PRE_READING_2026-10-16.md), blob `308daf869ad6ba032f8b79c608160e7e328a734c`. **All its nonconflicting sections 0–6 and every incorporated product, identity, data, permission, human-edit, deletion, recovery, search, accessibility and verification obligation remain normative.** Read applicable retained detail before changing its owner. Only the precise reader/card presentation and editing-entry replacements below supersede previous requirements. This task changes prototypes and documentation, not production behavior.
 
-## 0. White-led visual baseline and unchanged product vision
+## 0. Source of the correction and retained product
 
-PAIA remains the personal context system built from attributable user expression: find, read, correct, organize, continue and reuse what the user said; reuse prompts; maintain independent Context information; and provide qualified context to AI under explicit control. It is not reduced to a static reader, a generic notes suite, a chat client, a dashboard or an autonomous agent. Source evidence, Working Input text, Thought bodies/placements, independent Context Items and authorized Topic references retain their distinct owners. Prompt reuse, incremental AI organization and human protection, all three AI reading styles, complete authorized external reads/revocation, cross-source continuity, Sync and automatic new-device recovery keep their full existing goals and actual service gates. A smaller interface is not a smaller product contract.
+The owner identified the broken Topic-card vertical rule, rough/over-spaced Reader, oversized titles, pervasive sources, daily date separators, Continue Writing and Edit buttons. The owner required consulting the original Drive design rather than inventing another product. The complete `PAIA设计想法.docx`, content-reviewed v2.5, was read on 2026-10-16: §2.4 places provenance below the normal reading surface; §3.2 and §5.2 require Word-like direct editing; the earlier time-display instruction requires small, default-visible time; §13.3 puts readable text and restrained controls ahead of decoration. The current explicit correction additionally selects year-only temporal separators.
 
-**Use the refined existing four prototypes, not the generated six-panel concept collage.** No assistant responses or send composer in Archive; no single-column fixed-taxonomy replacement for Thought cards; no replacement of the four Context objects by education/hobbies cards; no My Space/account/region/timezone/backup-generation additions. Preserve the separately authoritative logo, three primary spaces and secondary Settings. The sample wordmark is not a new logo decision. Website, browser floating-board/NIB geometry and other independent design owners are not redesigned by this application-surface approval.
+That older idea document informs intent, **not a blanket reinstatement of its historical exports, Context packages, reverse-binding, deletion or permission proposals**. Current Canonical data/permission owners and later explicit decisions still govern. The private Drive original is neither changed nor published here.
 
-### 0.1 Color roles, not all-over tint
+PAIA remains a personal context system for capturing, finding, inspecting, thinking about, correcting, organizing and reusing user expression. Keep three primary spaces and secondary Settings; Source, Working Input, Thought bodies/placements and independent Context Items remain distinct. Prompt reuse, human protection, all three AI organizing styles, actual maintenance, full authorized reads/revocation and Sync/new-device recovery retain their existing goals and gates. A direct editor is not a replacement chat client or a generic word processor.
 
-White or near-white content surfaces, darker near-neutral text and restrained blue emphasis are now the final light-mode target. Keep existing type roles, rounded boundaries, card proportions, directory composition and light depth; do not revert to the old empty rectangles, introduce a gray dashboard canvas or flatten every surface into an undifferentiated page. Remove the full-screen blue wash and continuous blue-tinted prose, rather than merely changing one background token.
+Keep the white-led palette and restrained blue accents of the current content-first contract. No new theme, logo, taxonomy, dashboard or full-screen blue wash. The NIB floating design candidate is not adopted or modified here; its search, geometry, exact reuse and separate permissions remain with its original owner.
 
-| Role | Refined HTML starting value |
+## 1. Topic cards: repair the hierarchy, not another decoration
+
+Keep the existing three/two/one-column content-sized cards with only authentic Topic titles and real Section links. Remove the malformed/duplicated vertical connector and its old pseudo-element/border implementations. Use one consistent text indent and row rhythm instead; do not retain a displaced line under hover, wrapping, empty Sections or resize. This change applies to Home cards, not every functional tree/focus indicator in PAIA.
+
+Preserve real links, title-only sparse Topics, explicit named empty Sections, stable activity order, keyboard/coarse targets and no filler. No quotation, summary, count, date/update badge, open footer, generic New Topic or manual root sorting returns. Stored descriptions/bodies are not deleted because the card omits them. Reference padding20/22/18px, chapter indent about33px and36px default row are tuning anchors; coarse/narrow effective targets remain at least44px and text can grow.
+
+## 2. Reading identity: content starts near the top
+
+**Thought Reader has no visible Topic/page title block**, repeated breadcrumb, descriptive introduction or separate 接着写 action. Preserve the nonvisual semantic heading and accessible document identity. The real current-Topic Section directory remains; actual Section names can appear once as small in-document labels, not a succession of large headlines. Preserve human Section order and genuine anchors; do not erase headings authored inside a user's text.
+
+**Archive Reader has at most one compact Conversation name in the top tool line**, approximately13px in the reference. Remove the large headline, provider/project/source breadcrumb, date-range introduction and their reserved height. The source selector in the navigator remains: it is a navigation control, not repeated provenance in the reading body. Do not rename stored Conversations or automatically select a first/latest one to fill space.
+
+Context detail keeps at most one small current-object label where needed, real group labels and independent permission controls, not a new title/intro stack. Independent Context facts are not forced into a dated transcript. All pages retain normal-flow contextual Back, legitimate compact actions and the existing exact origin/focus restoration. Necessary narrow-screen identity can be carried by a small selector or accessible label without restoring a large title.
+
+## 3. Sources: retained in data, absent from normal Reader
+
+Remove routine source/provider badges, original/current comparisons, 查看来源/查看依据/查看原文 links, source buttons and per-entry source actions from Archive, Thought and Context reading/editing. Do not move the same source action into every row's overflow or into a hover tooltip and call that removal. Do not add a reassurance line such as 原文保留 after every saved input.
+
+Keep original facts, revisions, source mappings, eligibility and deletion fences intact. Use the **existing Settings → 数据与恢复 → 原始来源记录** as the low-frequency raw-data destination; do not add a new row, Source browser or duplicate permissions panel. Existing deliberate raw-data/history/recovery workflows retain their exact original/current distinctions and action-local risk checks. A raw immutable Source remains read-only. Removing reader provenance is never authorization to rewrite, forget, reconstruct or purge it.
+
+A transient save failure/conflict, revoked target or genuinely incomplete read may still need a short truthful status. These are actionable states, not ornamental source display. Legal/help and essential consent/destructive-impact text remain at their deliberate destinations. No blanket CSS rule hides all text or all status nodes.
+
+## 4. Time: years divide, month/day/clock label the input
+
+For dated input sequences, use a restrained **year separator only when the known year changes in the displayed sequence**. Do not create daily or monthly section headings, full-width rules for every date, separate time-gutter columns or a large date-range header. Within actual Thought Sections, retain Section order first; apply year changes within that sequence rather than moving Entries across Sections merely to produce a global timeline.
+
+Each input has one small default-visible adjacent label, for example `10.07 · 09:42`, above or immediately beside its text. The reference uses11px secondary text with a short gap to the body. It is not a filled chip, source badge or hover-only clock. Date and time retain their actual precision and timezone; a known date with unknown clock remains that date plus honest unknown-time state. Unknown year/date does not inherit the previous record's year, join a fabricated year or disappear. Exact full metadata remains in the existing underlying owner.
+
+Use qualified original send time for captured/imported expressions and actual creation time for directly authored notes. Never replace it with ingestion, import, save, edit, sorting or current time. Substantive edit activity may affect the existing Topic activity projection but does not rewrite the input's displayed creation/send label. Existing ordering guarantees, stable ties and asc/desc behavior remain; no time schema or calendar product is introduced.
+
+Independent Context Items need no invented dates merely to match Archive. Deliberate read-only dated input views can use the same compact labels. AI-generated projection headings are not proof of source chronology; retain their source mapping without falsely stamping a mixed-source synthesis as one historical input.
+
+## 5. Compact continuous text, not entry-sized blank bands
+
+Preserve actual saved body size/width and white/dark roles. At17px ordinary prose, reference leading is about28px (1.65); ordinary same-input paragraph gap about8px and adjacent input gap about18px. These are tuning anchors, not exact heights that clip large text. A year boundary has one fine rule and modest breathing room; Section changes remain distinguishable without huge padding. Remove accumulated record margins, empty toolbar rows, old date headings and obsolete title/footer reserves.
+
+**Visual compaction must not mutate text.** Preserve intentional newlines, blank lines, poems, lists, code indentation, Unicode/graphemes and exact copied/serialized bodies. Ordinary paragraph DOM may represent logical double-newline boundaries with a modest CSS gap, but source offsets, selection, copy, undo and serialization must still refer to identical logical text. Do not combine preserved newline spacing with a second large block margin. Literal code/verse and unclassified deliberate whitespace retain their proper rendering. No global whitespace normalization or new line-spacing setting.
+
+Test short wrapped text, multiple paragraphs, explicit blank lines, code/verse/lists, long inputs and different years at normal/enlarged/narrow/dark sizes. Dates must stay with their own input. Reflow changes no body hash/revision/permission and preserves actual Input/revision/text-offset reading anchors.
+
+## 6. Word-like means direct document editing
+
+All **editable user Working/Thought/Context text** uses its current editor directly: clicking text places the caret at that position; keyboard focus/selection/type/Enter/native undo remain ordinary document operations. Remove Edit pencils/buttons, edit-mode toggles, click-to-replace-text-with-a-separate-textarea flows and mandatory per-input Save/Cancel forms. Do not replace them with a new hover Edit control. The quiet resting and editing composition should not jump in width, height or source chrome.
+
+Use the existing EditorSession, canonical body owner, revision/CAS, selection and history, not a second unbounded document store. Autosave follows actual durable acknowledgement. IME composition cannot be partially committed; failure retains draft/caret/selection with short retry/safe-copy recovery. Browser Back, section/source change, sort, close and external updates must respect pending work. The same-session native undo history must not be destroyed by saving or rerendering the whole content tree. Cross-entry selections/deletions cannot bypass identity, atomicity, immutable-source or conflict guards.
+
+Remove the Thought 接着写 button **without cancelling direct writing**: the document end of a real Section can receive typing through the existing writer. A blank editable end position is not a new CTA/card and creates no Entry until actual text is entered and acknowledged. Scope comes from an explicit Section/document identity, never guessed scroll position. No generic Topic creation, fake default chapter or AI-classification requirement is added. Untitled/default and empty named Sections remain lawful. Existing supported title/label edits must use their actual rename owner; clicking a navigation title must not simultaneously navigate and rename.
+
+Copy/move/remove/history actions that remain genuinely useful keep existing contextual and keyboard/touch paths, not a permanent action toolbar on every paragraph. Their availability is not proof of a complete Word rich-text suite. **Source originals, deliberately read-only previews, generated AI projections and revoked/unqualified content do not become writable**. An existing separately permitted projection-edit route must still obey its qualified owner; visual consistency grants no new reverse write.
+
+## 7. Search and previously settled removals remain
+
+Retain the full previous UX §3 discovery/Reader matrix: no app-owned search input, icon, shortcut, filter or find bar anywhere in Reader, including Archive's middle navigator. No source or editing change restores Reader Find. Native Ctrl/Cmd+F stays browser-owned and is not described as complete search of unmounted content.
+
+Overview/Archive discovery/My Inputs authorization list and NIB keep their existing scoped search and full qualified retrieval. Search-result activation still reaches the exact current Input/Entry/Section occurrence with a passive safe highlight, not an active Reader filter. Return restores query, scope, snapshot, continuation, scroll and focus through existing bounded session owners. Do not delete shared query/index services or external Context retrieval.
+
+Keep all prior no-count/no-quote/no-New-Topic/activity, directory-only Context Home privacy, independent default-off authorization, no Settings sample, no welcome tour and six-group22-operation decisions. Do not republish prior screenshots as final for the now-removed Reader elements.
+
+## 8. Exact supersession and implementation routing
+
+| Earlier clause or interpretation | This owner-directed replacement |
 |---|---|
-| Main canvas / content and card surface | `#ffffff` |
-| Primary rail / Archive navigator | `#fcfdff`, subtle `#e5eaf0` boundary |
-| Main ink / prose | `#222832` / `#343b45` |
-| Main title / content heading | `#242d3b` / `#2b3543` |
-| Directory text / secondary information | `#525e6d` / `#687381` |
-| Primary accent / text action | `#3769c9` / `#3566b6` |
-| Selected fill / selected text | `#edf3ff` / `#305eac` |
-| Divider / subtle divider | `#e1e6ec` / `#edf0f3` |
-| Focus | `#5a85ca`, visible shape as well as color |
-| Quiet card depth | reference `0 5px 13px -10px #192f572c`; stronger only on an actual temporary layer |
-| Ordinary 17px prose | approximately 28px leading (`1.65` reference), respecting saved size/width |
-| Dark canvas / surface / prose | `#1a2028` / `#202731` / `#d7dde5`; corresponding legible dark roles |
+| Content-first UX §1/§4 or domain visual docs require a visible large Topic/Conversation title | No Thought title block; compact Archive/object identity at most; actual small Section labels and semantic identity remain. |
+| Retaining provenance requires accessible source actions throughout Reader or every overflow | No routine source display/action in Reader; preserve underlying provenance and existing low-frequency raw-data destination. |
+| Chapter continuation must be a 接着写 button or separate input form | Direct document-end typing through the original scoped writer, no CTA or implicit data creation. |
+| Editing uses a visible Edit control or mode-specific textarea | Direct existing document editor, with actual autosave/undo/IME/CAS/draft guards. |
+| Date groups, per-day rules, clock gutter and broad gaps match approved old pixels | Year-only temporal separators and compact adjacent month/day/clock labels; precise source time and text unchanged. |
+| A malformed Topic-card vertical connector is required hierarchy | Remove conflicting rule/pseudo-elements; use aligned labels/indent/spacing. |
 
-These values come from the later `paia-refinement-palette` and `paia-refinement-structure` blocks, **not the older blue declarations at the beginning of the HTML**. Use their final computed result as the reference. Map into current semantic tokens/scoped components; do not port the broad demo selectors, repeated override sheets, inline scripts or weakened CSP. No font binaries. Keep accessible text, control, focus, error and permission-state distinctions even where an incidental sample pixel needs adjustment. Do not claim accessibility or comfort certification from palette values alone.
+These finite changes also supersede conflicting reader clauses in the current per-domain ADOPTION/UX/INTERACTION/VISUAL/REFERENCES and their earlier transcriptions. **Only these presentation/entry requirements change; complete underlying contracts remain incorporated.** Existing plan paths have been revised, not replaced by a separate implementation programme. Current explicit user constraints and this UX precede old reference pixels; a missing new image cannot require implementation of a rejected source/Edit/title/Continue control.
 
-Blue identifies selection, links, focus, important actions and permission controls, with only small icon/edge accents. It does not color all ordinary text. Error/destructive semantics remain distinct; white refinement is not permission to make every state blue. Keep the same hierarchy in dark mode, system appearance and saved user settings; white does not mean forcing light mode.
+Apply in TOPIC-05.2/04/06/08, ARCHIVE-HOME-04/05/06 and CTX4-02/03/07. Reuse correct foundations; one writer per shared editor/navigation/data boundary, current STATUS and existing risk-based verification. No new full-audit cycle per removed label or resumption of completed work. Full production search/return/data/provenance/permission/recovery/large-corpus/long-reading/accessibility and actual service acceptance remain. Change only genuinely retired UI-specific tests; add exact-text/time/word-like-entry/source-absence/compact-layout tests instead.
 
-The viewer's **白色主导 / 原蓝白对照** switch is review-only. Production keeps its existing system/light/dark preference, not another palette preference or a second theme product. The old-blue comparison preserves the refined structure for a fair comparison; it does not restore earlier rejected content or compete with the approved white target.
-
-## 1. Thought Library — preserve content cards and one meaningful activity order
-
-Keep the desktop three-column starting composition, responsive two/one columns, content-sized Topic cards, actual chapter direct links, eligible exact short expression preview, contextual actions and the current-Topic directory with continuous Reader. Do not replace this by the concept collage's fixed category list or seed its taxonomy. Sparse and empty Topics remain compact and truthful.
-
-Retain the complete previous §1: no UI-added Topic totals, Section counts, chapter/item totals, Today/update/date badges or activity scores in overview/directory. Human-written numbers and scientific/technical Topics are not removed; genuine Source/Input timestamps and necessary coverage/error/continuation information remain. Do not move decorative counts into an overflow menu.
-
-Exactly one natural automatic meaningful-user-activity root order remains. Qualified original expression time and substantive acknowledged human writing/continuation/edits drive the existing bounded projection, not storage updatedAt, views, rename, moving a reference, AI, indexing, sync or ingestion. Old imported content retains original activity; unknown times do not become today. No analytics collector, root manual sort/pin mode or new score control. Preserve legacy root-order data non-destructively and human Section/Entry order/negative intent. Order the complete eligible set, use deterministic ties and stable visible snapshots, and restore actual Back/query/card anchors before safe reconciliation. A clicked card must not jump away.
-
-All prior create/rename/promotion, editing, Section-aware writing, move/removal/undo, multi-placement and original/source/AI style behavior remains. The mock's fixed activity seed, synthetic corpus and simplified mutation handling are not production algorithms.
-
-## 2. AI Context — four objects, private-directory first surface
-
-Keep **我的信息 / 我的规则 / 我的现在 / 我的输入**, 2×2 on wide screens and one column when narrow. The first three show suitable real category-level directory labels only, never specific personal facts, Item text, summary or first-N-character excerpts. Do not synthesize fact-bearing headings or mount private text in hidden DOM, title, tooltip, accessible names or hover. A generic real card entry is sufficient without safe subdirectories; no artificial categories or classification prerequisite. The fourth card may show actual Topic titles/directory cues, not their body text. Preserve current masking and eligibility.
-
-Directory links must resolve to actual groups/content. Opening a card, directory or explicit local search reveals the intended detail without granting access. Ordinary Home must not reopen prior private content/search by default. Existing deliberate Back/history restoration stays guarded. Compact card heights follow remaining directory content, not old body-preview minimum heights. Content navigation and independent bottom access controls remain separate; opening a card marked private is not an external grant.
-
-Retain the entire preceding §2 and CTX4 contract: independent Items versus Topic references, direct edit/autosave/durable ACK, groups, add/copy/evidence/order/move confirmation/removal/undo, local search, My Inputs All/Selected and local read-only inspection, controlled readable-scope preview, actual connection management, current revision/generation/eligibility and stronger deny/purge fences. New users remain global/card/new-Topic off and unconnected; fixture preselection is not a default. One shared PAIA scope, no per-client matrix or Archive fallback. Full maintenance fidelity and a real client read/revoke journey remain required; a pretty Home does not complete them.
-
-## 3. Reading — retain exact text, correct visual rhythm
-
-Across Archive/Thought/Context and substantive auxiliary prose: close wrapped lines, modest same-Input paragraph separation and clearer separation between independent Inputs. The refined 1.65 leading at 17px realizes the prior 27–29px tuning direction; scale to actual saved preferences. Fix duplicated margins, empty-block rendering and newline styling, not the stored text. Preserve intentional blank lines, poems, lists, code indentation, Unicode and exact copy/serialization. Never rewrite source, body hashes or revisions merely to make a screenshot tighter.
-
-Retain continuous unboxed reading, proper time precision/provenance, long-content windowing to the real eligible end, contextual edit/source/history actions and the existing editor. Source/current evidence remains distinct. Search offsets/highlights, Input/revision/text anchors, caret/selection/IME, dirty work, durable saves/conflict/retry and safe return must survive reflow, source switching, new captures and appearance changes. Do not add a line-spacing control or reset the existing font/width choices to the mock's constants.
-
-## 4. Archive — one source selector, not a new chat interface
-
-Keep the three roles: primary navigation, Source/Project/Conversation navigator and continuous Working Input Reader or flat Input-first results. Ordinary entry leaves Main unselected and blank; no latest/first/host auto-open, welcome, feed, assistant output, avatars, reconstructed exchange or send box.
-
-The current source name itself opens actual available source choices and deliberate 全部来源 search. Ordinary browsing shows one source tree, not simultaneously expanded ChatGPT/Claude sections or a permanent tab strip. Locally readable imported-source data does not prove live capture support. No fixture provider, credential probing or favorite-source store.
-
-Source choice preserves query, clears incompatible Project/content/reveal, coordinates navigator and enforced Archive query scope after existing edit/IME guards and rejects stale requests. A nonempty query displays that scope's results; empty query leaves Main blank. Preserve validated view-source lifetime. Primary Archive clears query/Project/Reader, may retain the current Source and never resumes a Reader. Clear Project returns to its Source; broader All is explicit. Project name/arrow only disclose. Reader Find remains independently Conversation-local. Exact Input activation, Unicode-safe current text, temporary eligible filter reveal (not Keep), full coverage and actual Back/Forward/NIB/Topic handoffs retain the complete preceding §4 and interaction matrices.
-
-## 5. Settings and auxiliary pages — compact controls, full capabilities
-
-Keep six groups and the established **22 primary operations**, plus secondary position-only reset. No reading sample/effect preview, hidden replacement preview, sample time, repeated slogans or explanation under every obvious row. Remove corresponding unused layout/DOM/glue in production, not merely CSS-hide it. User chooses named values, receives truthful save feedback and sees the effect in actual readers. Preserve supported enums, actual shared preference owner, saved sizes/widths, system language/theme, preview mask and safe retries. No region/timezone/account/API-key/export/backup-generation or duplicate permission console.
-
-Keep short action-local information for consent, capture/filter distinctions, actual failures/unknowns, irreversible scope, account transfer, restore and conflict consequences. Meaningful file preflight and human-conflict comparisons are not typography demonstrations and must remain. Use ordinary pages for substantive workflows/long documents, temporary drawers for Source inspection and short dialogs for actual decisions. Never omit risk text to imitate a sparse reference.
-
-Sync/restore/import/Source/typed recovery/Help/feedback and connection goals stay with their existing owners. Preserve all BNS adapters/state/publication/retirement/account/conflict/automatic-new-device-recovery requirements, including states unpictured here. Actual AI connections remain in 用于 AI under CTX4-06/07; Settings has one route/status entry. No Settings-owned permission/cloud engine. Preserve verified legal/content/contact/update channels and existing failed-draft/explicit-send semantics; no fictitious effective terms, latest-version claims, automatic logs or private-content upload.
-
-## 6. First use — one minimal permission, no tour
-
-Enter the actual application; do not rebuild an introduction/welcome/example page or mandatory intro → consent → import sequence. Only genuinely undecided capture consent gets one compact surface: explicit heading, brief accurate scope, 开始保存 / 暂不开始 and optional complete boundaries. The reference starts around 430px, bounded by viewport and enlarged text. No sample corpus or second teaching/confirmation stage.
-
-Retain the preceding §6 in full: actual eligible sent/displayed user-text scope and exclusions, Temporary Chat policy, reliable time and pause/resume disclosure; required platform consent is not bypassed. Decline/dismiss remains off, allows continued app use and respects existing decision lifetime; later Settings enable remains reachable. Report enabled only after the original acknowledged consent/enable operation. Failed persistence stays off with retry. Capture does not enable suggestions, Sync, external AI or billing. Existing users are not re-onboarded because the palette changed.
-
-## 7. Precedence, history and exact references
-
-Order: current explicit product/behavior/permission constraints and this white refinement → identified refined HTML's final rendering and applicable screenshots → prior approved unaffected design details. The original six simplifications remain mandatory. The generated six-panel concept collage is **rejected reference material**, not an alternate authority. Earlier dashboards, empty equal-height cards, personal Home snippets, counts/manual root sorting, inflated leading, dual default source trees, reading samples and welcome tours cannot return under pixel matching.
-
-[PRE_WHITE](UX_CONTRACT_PRE_WHITE_2026-10-13.md) and the per-domain PRE_WHITE snapshots preserve exact preceding Git blobs and their full incorporated contracts. Earlier source dates, NOT_STARTED, artifact statuses and PASS/FAIL describe their own tasks; they neither restart completed work nor certify this new UI. The refined package's DESIGN_CANDIDATE wording is superseded by this owner approval without rewriting original bytes. No new production tests or accessibility/real-service/installed-result claims follow.
-
-Only scoped color/depth/reference changes override old full-blue/light-tint clauses, including older auxiliary BNS/Context transcriptions. No data model, semantic ownership, capture/permission/retention, paid-service policy, website requirement or other unrelated feature is changed. The same planned capabilities must remain discoverable and usable through the actual application, not merely preserved in a document while removed from runtime.
-
-## 8. Existing execution and required evidence
-
-Keep TOPIC-01–06 (especially 05.1–05.8), CTX4-01–07, ARCHIVE-HOME-01–06 and SET2-01–05. Their current plan paths remain the sole work plans; the shared reference manifest is not another queue. Reuse current completed foundations. Map palette/type/spacing into existing shared roles once, coordinate one writer for shared AppShell/editor/preferences/query/worker boundaries, and integrate domain presenters without disrupting active work. Current STATUS and all seven Canonical goals remain; no model/account/Sync prerequisite blocks ordinary independent local UI.
-
-Actual convergence compares native source/release with the new applicable white/dark references and all retained states. Preserve full coverage, truthful defaults and source times, activity negatives, first-surface privacy including DOM/attributes, real directory targeting, permission/navigation separation, source/scope/Back behavior, edit/IME/conflict/undo, exact multiline copy and long-reader bounds. Verify shared preferences across real pages, no preview/tour, 320px reflow, 200% text, keyboard/focus/target/contrast and reduced motion. The package's 79 reported prototype checks and eight text-scale checks remain only synthetic evidence, not a replacement for production or live provider/client acceptance.
-
-Do not ship the review palette toggle, scene menus, inspector hooks, synthetic values, sample grants, iframe/base64 navigation, message bridge, demo stores or broad CSS overrides. Strip them rather than letting a passing mock masquerade as implementation. Apply existing focused/affected and risk-escalated gates; do not weaken tests, inflate timeouts or relabel prior failures. Documentation baseline: main `8021be46e51d23812aa4d0b725e601afdf335df2`, tree `95c08234186c80a9feee59ee6bf3b7db5fd9090f`. This task edits plans/references only, not production, versions, CI, website, personal data, Mac, services, accounts, spending, installation or deployment.
+The revised package has41 limited synthetic checks and12 screenshots. Checks use in-memory HTML in local Chromium, not a loaded production extension, real host, durable-reload storage, physical IME, cloud/client or full accessibility certification. Prior failures keep their original scope. Documentation baseline main `41bcd131537818f1aa96b47661c816d6a5c74eca`; this task edits design artifacts and plans only. No runtime code, test/CI/version, website, real data, Drive original, permission, service/billing, installation, deployment or scheduling change.

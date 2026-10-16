@@ -1,69 +1,47 @@
-# Input Archive — interaction contract IAH-1.3
+# Input Archive — interaction contract IAH-1.5
 
-**OWNER_APPROVED / 2026-10-13.** [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md) and [shared UX §§3/4](UX_CONTRACT.md) apply the latest source-selector/reading corrections. [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) remains the implementation plan; STATUS schedules execution.
+**PAIA-CONTENT-FIRST-1.0 / OWNER_DIRECTED / 2026-10-16.** [Shared UX](UX_CONTRACT.md) §3 retires app-owned Reader search, including the navigator field while reading. [Plan](INPUT_ARCHIVE_HOME_PLAN.md), [adoption](INPUT_ARCHIVE_HOME_ADOPTION.md) and [visual UX](INPUT_ARCHIVE_HOME_UX.md) keep their existing owners. STATUS schedules work.
 
-The entire previous contract is retained in [PRE_REFINEMENT](INPUT_ARCHIVE_INTERACTION_CONTRACT_PRE_REFINEMENT_2026-10-13.md), exact blob `1aeafeb5631af6d96ee50a5a0ce1c908a23b58e8`. All nonconflicting IAH-01–12 and incorporated prior state/lifetime/target/failure matrices remain normative. The finite changes below replace old all-source-on-primary/reset semantics and simultaneous-provider presentation; they do not replace the underlying owner system.
+The complete IAH-1.3 predecessor is preserved in [PRE_CONTENT_FIRST](INPUT_ARCHIVE_INTERACTION_CONTRACT_PRE_CONTENT_FIRST_2026-10-16.md), exact blob `73a67beaf082254a22cf62edc9c984e239804f10`. All nonconflicting IAH-01–12 and incorporated state/target/lifetime/return/source/privacy/recovery matrices remain normative. Exceptions are its required independent on-screen Reader Find and visible global search during Reader, local-Find UI lifetimes and obsolete two-field/duplicate-title expectations. Do not delete shared search/data machinery.
 
-## IAH-01. Existing four logical states
+## IAH-01. Same four states, no extra reader-search mode
 
-ARCHIVE_HOME remains neutral/no selected content with blank Main. With a selected Source or Project, the existing BROWSE_SCOPE can represent that empty-query context; this is not a fifth state or new page. SEARCH_RESULTS represents an explicit nonempty Archive query with its actual all/source/project scope. CONVERSATION_READER opens only an explicit stable Conversation/Input/qualified handoff and retains independent local Find.
+ARCHIVE_HOME stays neutral with blank Main; BROWSE_SCOPE represents selected source/project with empty query; SEARCH_RESULTS is deliberate nonempty scoped discovery; CONVERSATION_READER opens only an explicit stable content target or qualified handoff. Reader has no app search. Its source tree remains navigation, not a new permission or search authority. No fifth state, router or permanent query store.
 
-Provider/source selection belongs to the same current route/view/query owner, not a second UI or account store. Current Source identity and query scope must be consistent. Project disclosure changes only tree expansion/extent/scroll/focus and creates no scope/content/history transition.
+## IAH-02. Fresh entry and source choice remain
 
-## IAH-02. Neutral entry and source selection
+Primary Archive clears discovery query/Project/Reader and may retain validated current Source within existing lifetime, never resumes latest/host/first Conversation. Declining capture does not prevent use. Source name activates the existing actual-source menu; no fixture or credential inference. Empty/unknown/unavailable source remains honest. Same-name entities remain source-qualified.
 
-Primary/generic Archive entry clears query, Project, selected Conversation/Input and old Reader body/title/match/reveal. It retains a valid current-source choice within the existing bounded view lifetime; the old blanket reset-to-all requirement is superseded. A fresh view uses actual existing source initialization, choosing one locally browsable source where available, never a fixture, recent Conversation, host tab or credential lookup. Empty/unknown/unavailable source is honest, not a guessed replacement.
+A deliberate Source choice passes current editor/save/IME guards, retains discovery query, clears incompatible Project/content/reveal, changes actual source/tree/query scope together and cancels stale generations/cursors. Nonempty query yields scoped results, empty query blank Main. This can exit the old Reader; it does not mount a search there. Explicit All remains deliberate, clearing Project returns to its Source, clearing text does not secretly broaden. Project text/arrow only disclose. Project-search menu actions are exposed only in discovery, not as a reader-search substitute.
 
-Repeated neutral entry is idempotent. Declining capture does not prevent entering Archive. Existing collapsed-group conventions remain; no first Project/Conversation is automatically expanded/opened merely because the source is selected. Explicit reload/Back/history is not neutral primary entry. Preserve all existing editor leave/save/IME/recovery guards and valid reading preferences.
+## IAH-03. Reader presentation retirement
 
-## IAH-03. Source switch, Back and origin
+During CONVERSATION_READER, neither navigator/global Archive search nor current-Conversation Find may be visible, focusable, accessible as an active control or keyboard-launchable. Remove Reader Find DOM/handlers/shortcut/subscriptions and stale filtering; do not add a hidden menu/command alternative. Discovery shortcuts only act in the appropriate discovery state. Ctrl/Cmd+F is left to the browser and is not claimed to find unmounted text.
 
-The current-source name and disclosure glyph activate one menu. Selecting another actual Source is an explicit scope transition: guard edits, preserve the query, clear incompatible Project/Conversation selection and transient reveal, update navigator/scope/label together, and cancel old result/continuation generations. Show scoped results when query is nonempty, otherwise blank Main. Do not silently replace content while a save/IME guard blocks the change; keep the previous acknowledged source/value and draft.
+Keep discovery session data dormant for return; do not clear its query to remove UI. On legacy restored state, ignore/retire obsolete local-Find presentation while preserving actual Reader identity and discovery origin. A saved term must not silently narrow the Reader body or reopen a removed bar. Inert compatibility nodes in the demonstration are not authority to keep active hidden controls in production.
 
-The menu offers deliberate 全部来源 search. That broadening does not force all source trees to expand. Primary navigation does not silently broaden a retained Source. Clearing Project restriction returns to that Source; clearing query leaves the explicit Source/Project browsing context; choosing all is separate. No hidden alternate scope remains behind the visible source name.
+## IAH-04. Exact arrival is retained, not called Reader Find
 
-Record Source/all/Project context with the existing query/tree/result/Reader origin snapshot. Normal-flow Back restores actual prior scope, query, result window/identity-relative position and focus or prior tree expansion/extent/scroll. Native Back/Forward includes meaningful source changes, not every keystroke/menu focus/disclosure. No push loops or saved body replay. Preserve the full prior source/result/tree/no-origin/sibling/cross-space/eviction matrix. A stale/unavailable source must not silently broaden or fabricate exact restoration.
+Discovery search and NIB/Topic/qualified handoffs still resolve current document/Input/revision/scope-generation/eligibility and original-safe occurrence, load the bounded surrounding Reader and present passive temporary highlight. Never substitute Conversation top, neighboring content, stale text or a stored body snapshot. Preserve the entire prior changed/moved/hidden/removed/purged/unavailable matrix and exact Unicode/condition/negation rules. Highlight does not write text, create Keep, edit or grant access.
 
-## IAH-04. Representation and lifetime unchanged
+No global query is installed as a Reader query. Full qualified text remains readable to the true eligible end using the current safe long-reader windows. Do not eagerly load the entire corpus to make native browser Find equivalent to retired app Find.
 
-Use current AppShell/RouteHistory/ViewSessions/DocumentSearchSessions, qualified source IDs and bounded session checkpoint policy. No new public fragment grammar, persisted global favourite-source/last-query corpus, private body in URL/history, external return URL or cloud query checkpoint. Bind the real inner scroller to the existing anchor owner. Keep strict callers and existing NIB-to-Archive all/source/project query handoffs and Topic/Section targets; an explicit all-source handoff remains all, not forcibly narrowed by a default source selector.
+## IAH-05. Discovery and return own the query
 
-## IAH-05. Two independent search scopes
+Outside Reader retain one actual all/source/project Archive query, deterministic current ranking, full eligible scope and bounded continuation. Input text is current qualified Working text, with original source separately inspectable. Title-only, incomplete index, empty intermediate page, final no-match, failed search and unknown coverage remain distinct; no model, tier, network requirement or DOM-only search. Smart-filtered eligible inputs remain discoverable; explicit removal/purge wins.
 
-Archive Search is in the navigator and follows the explicit selector/project scope across the whole trusted query, indexes, results and continuation. Its visible/accessibility label reflects the actual Source or All even when query text replaces the placeholder. Reader Find remains current-Conversation-only and keeps its own query/session/pre-Find anchor. Opening an Archive result does not copy its query into Reader Find.
+Before entering Reader save the actual discovery query/scope/result snapshot/continuation/anchor/focus and tree expansion/scroll with existing origin lifetime rules. Back/Forward to discovery restores its control and actual state before appropriate revalidation; source/row availability changes degrade truthfully. Normal-flow Back remains origin-aware, not sticky or floating. Preserve search-origin/tree/no-origin/sibling/cross-space/eviction matrices and strict NIB all-source handoffs. No body/query in public URLs, global last-query store, cloud query checkpoint or arbitrary return URL.
 
-Project name/arrow only disclose; an actual separate low-frequency Project search can narrow within the current source. Focus alone changes nothing. Debounce/cancel stale queries; committed IME only; Enter does not open an unselected result. No off-screen duplicate mobile field, model work, AI tier or network dependency. Use the same source selector in the narrow navigator and restore focus on dismissal.
+## IAH-06. Source, editing, geometry and recovery unchanged
 
-## IAH-06. Search truth, coverage and time unchanged
+Retain current precision/timezone/provenance, qualified order and all unknown-time Inputs; no capture/import/edit-time substitution. Source/Project/Conversation membership, unknown/unassigned/last-known/deleted distinctions and full tree paging remain. Source switching is not an account or permission operation.
 
-Retain the full prior current-Working-versus-original, exact excerpt, title-only, original-safe Unicode/negation/condition, stable Input dedupe and deterministic rank rules. Preserve full eligible coverage, bounded continuation, honest unknown/partial/error/no-result and source-qualified identity. A failed selected source is not an instruction to search others. All-source results retain true source attribution. Smart-filtered-but-eligible inputs remain findable; removed/purged data remain excluded.
+Retain route-local temporary reveal, separate explicit Keep, scoped Working removal/restore/undo and stronger purge/tombstone/current-generation checks across layers/caches/in-flight work. On-demand original/source/history, full exact copying, verified separate original-site action, current B-01/B-02 and canonical Source/Working bindings remain. Evidence inspection is not decorative explanation to remove.
 
-Keep actual send-time precision/timezone/provenance and stable source chronology. No capture/import/edit/current-time substitution. Thought metadata simplification does not remove real Archive time. Unknown date/time remains distinct and does not drop or move data to a fake day.
+Remove excess layout gaps but preserve authored newlines, poems/code/lists, source/current hashes, copy/serialization and existing editor. All transitions guard caret/selection/IME/draft/conflict/ACK/failure/retry and actual scroller/Input/revision/text-offset anchors. Preserve narrow directory-or-Reader/overlay focus, system/dark, saved size/width,320px/200% text, reachable targets, reduced motion and honest errors. Resize cannot request search or select substitute content.
 
-## IAH-07. Precise landing and Reader Find unchanged
+## IAH-07. Current acceptance
 
-Resolve document/Input/current revision/query generation/eligibility and recompute original-text-safe occurrence through the existing bounded reader before highlighting. Preserve the complete changed/moved/hidden/removed/purged/unavailable-target matrix. Exact arrival is not the Conversation top or a stale snippet under a new title. Highlight does not alter editable text or grant Keep. Reader Find steps beyond mounted windows and closing it restores the proper reading anchor independently of Archive origin.
+Replace retired local-Find/two-visible-search UI cases with real no-search/no-shortcut/legacy-state checks and complete discovery→deep exact hit→Reader→Back restoration. Keep shared query/index/rank/Unicode/reveal/caller/NIB/Context-consumer tests and every nonconflicting original data, long-read, migration, recovery, source/permission and physical-device obligation. Removal of a control cannot mask missing text or weaken deletion/authorization coverage.
 
-## IAH-08. Temporary reveal, Keep and recovery unchanged
-
-Retain route-local eligible filtered-target reveal, separate deliberate Keep/protect, scoped Working removal, lawful recovery and guarded undo. Source switching/neutral entry discards unrelated reveals; explicit Back revalidates before restoring them. Permission/deletion/tombstone fences defeat current UI caches, layers and late requests. No duplicate body, broadened permission, automatic restore or change to source existence.
-
-## IAH-09. One-source tree, original identity
-
-The ordinary view shows one chosen Source's Project/Conversation tree. Other source names are menu choices, not mandatory simultaneously expanded groups. The explicit All choice is for broader navigation/search and never a reason for automatic expanded trees. Keep current provider-qualified IDs, real source order, long/duplicate names, source membership distinctions, complete paging and readable lawful local data. A platform with imported qualified content need not imply live capture support; express actual capability honestly. Unknown/unassigned/last-known/deleted states are not merged for aesthetics.
-
-## IAH-10. Original source and history unchanged
-
-Retain the exact source/current distinction and on-demand source/history drawer, meaningful real version metadata, explicit safe historical-version replacement, real source-time facts, copy eligibility/full text/newlines and verified separate original-site actions. No permanent fourth column, stale purged-source replay, inferred source URL, bulk export or data/permission change from inspection. Contextual risk disclosure remains despite reduced ordinary explanation text.
-
-## IAH-11. Responsive presentation and ordinary text rhythm
-
-Use [UX](INPUT_ARCHIVE_HOME_UX.md) and shared UX §3. Correct combined line-height/paragraph margin/blank-block presentation so ordinary wrapped lines and paragraphs of one Input stay connected. Start around 27–29px leading at 17px ordinary prose, scaling with actual saved preferences. Separate different Inputs with a larger gap without making each a card. Preserve deliberate blank lines, verse, code and list semantics; this is not text cleanup.
-
-Maintain one narrow navigator/Reader/overlay lifecycle, 320px reflow, 200% text, dark/theme preferences, reduced motion, accessible controls/targets and focus. Source switching and resize preserve guarded work. No sticky Back, unsolicited keyboard or independent mobile scope store. Reflow/sort/date jumps retain qualified identity-relative anchors.
-
-## IAH-12. Existing editor and acceptance boundary
-
-Keep canonical Working/Source bindings, EditorSession, durable ACK, revision/CAS, edit history, current B-01/B-02 and human intent. No raw body newline removal or replacement of the editor/parser to match CSS. Resting display, active editor, original/history display and clipboard/serialization must agree on the same unchanged text. Protect caret/selection/IME/drafts, failure/retry and cross-tab revisions through every source/query/sort/navigation transition.
-
-Test source-selection atomicity, all/source/project restoration and stale-response rejection, plus compact single-Input text in the actual production Reader. All prior data/privacy/full-read/migration/physical-device/service evidence obligations remain. Original snapshots are reference history, not the new runtime; this documentation starts no provider, capture, cloud, payment, installation or release operation.
+This document and design prototypes are updated; production, tests, CI, versions, website, user data, installed app, services and current execution are not modified. Current base is `ff669b33b3fdb8ef54b0763f95e022209d85c8b3`. No new model/account/capture/cloud/payment action or public route grammar is authorized.
