@@ -361,3 +361,49 @@ test('CTX4-03 excessive selected-field work refuses even below the transient byt
  try{subtle.digest=async function(...args){hashes++;return original.apply(this,args);};refused(await scope(f),'hash_budget');assert.equal(hashes,0);}finally{subtle.digest=original;}
  assert.deepEqual(await freeze(f.s),before);
 });
+
+async function currentMirrorFixture(){
+ const f=await fixture({empty:true}),input=await f.s.input(f.input.id);
+ f.entry=await f.s.addToTopics({kind:'input',id:input.id,expectedRevision:input.revision,topicIds:[f.topic.id],operationId:op()});
+ assert.equal((await f.s.entry(f.entry.id)).bodyBinding,'input');
+ f.history={dependencies:await rows(f.s,'dependencies'),provenance:await rows(f.s,'provenance')};
+ await inputEdit(f.s,input.id,{libraryText:'SYNTHETIC current complete human Input 👩🏽‍💻'});
+ return f;
+}
+
+test('CTX4-03 current complete Input mirror remains eligible without rewriting historical evidence',async()=>{
+ const f=await currentMirrorFixture(),before=await freeze(f.s),current=await f.s.entry(f.entry.id);
+ assert.equal(current.bodyBinding,'input');assert.equal(current.body,'SYNTHETIC current complete human Input 👩🏽‍💻');
+ assert.equal(current.freshness,'current');assert.equal(evaluate(await scope(f)).reason,'policy_allowed');
+ assert.deepEqual(await rows(f.s,'dependencies'),f.history.dependencies);assert.deepEqual(await rows(f.s,'provenance'),f.history.provenance);
+ assert.deepEqual(await freeze(f.s),before,'eligibility remains read-only');
+});
+
+for(const defect of ['detached','partial_provenance','wrong_revision','wrong_input','context_only','selected_note','version_unknown','wrong_length'])test('CTX4-03 current mirror refuses '+defect+' instead of relaxing historical evidence',async()=>{
+ const f=await currentMirrorFixture();
+ if(defect==='selected_note'){
+  const {hashText}=await import('../core/dedupe.js');const digest=await hashText('SYNTHETIC old selected note');
+  await f.s.foundationWrite(async t=>{for(const dep of await t.all('dependencies')){dep.selectedFields=['body','note'];dep.fieldDigests.note=digest;await t.put('dependencies',dep);}});
+ }else if(defect==='partial_provenance')await f.s.foundationWrite(async t=>{for(const row of await t.all('provenance')){row.span={...row.span,full:false};await t.put('provenance',row);}});
+ else if(defect==='version_unknown')await f.s.foundationWrite(async t=>{for(const dep of await t.all('dependencies')){dep.status='version_unknown';await t.put('dependencies',dep);}});
+ else if(defect==='context_only')await f.s.foundationWrite(async t=>{for(const dep of await t.all('dependencies')){dep.roles=['context_only'];await t.put('dependencies',dep);}});
+ else await change(f.s,'thoughts',f.entry.id,row=>{if(defect==='detached')row.bodyBinding='thought';if(defect==='wrong_revision')row.bindingRevision=0;if(defect==='wrong_length')row.bindingLength=1;if(defect==='wrong_input')row.workingInputId='synthetic-other-input';});
+ const before=await freeze(f.s),value=await scope(f);
+ assert.ok(!value.available||value.scope.eligibility==='ineligible',defect+' cannot become eligible');
+ assert.deepEqual(await freeze(f.s),before);
+});
+
+test('CTX4-03 current mirror still honors explicit Input exclusion and legacy denial',async()=>{
+ const f=await currentMirrorFixture();assert.equal(evaluate(await scope(f)).reason,'policy_allowed');
+ await f.m.exclude({inputId:f.input.id,excluded:true});assert.equal(evaluate(await scope(f)).reason,'legacy_restricted');
+ const excluded=await currentMirrorFixture();await inputEdit(excluded.s,excluded.input.id,{excluded:true});
+ assert.equal(evaluate(await scope(excluded)).reason,'content_unavailable');
+});
+
+test('CTX4-03 current mirror hashes remain bounded and final authority rejects an edit during hashing',async()=>{
+ const f=await currentMirrorFixture(),subtle=crypto.subtle,original=subtle.digest;let entered=false;
+ try{
+  subtle.digest=async function(...args){if(!entered){entered=true;await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC later Input while scope hashes'});}return original.apply(this,args);};
+  const result=await scope(f);assert.equal(entered,true);refused(result,'stale_authority');
+ }finally{subtle.digest=original;}
+});

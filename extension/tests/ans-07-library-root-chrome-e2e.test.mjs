@@ -144,6 +144,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
    const sorted=[...samples].sort((a,b)=>a-b),p95=sorted[Math.ceil(sorted.length*.95)-1];
    return {p95,samples,operations,firstOperations:first.operations};
   });
+  await writeFile('work/ans-07/compatibility-performance.json',JSON.stringify(perf,null,2));
   assert.ok(perf.p95<=750,'warmed next-chunk p95 <= 750 ms');
   assert.ok(perf.operations.indexRowsRead<=40&&perf.operations.topicRowsRead<=40);
   assert.equal(perf.operations.buildRowsScanned,0);

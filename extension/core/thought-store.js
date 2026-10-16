@@ -106,9 +106,8 @@ export class LibraryFoundationStore extends SmartFilterStore {
   return applyBinding(structuredClone(row),await classifyBinding(this,t,row));
  }
  async entry(id) {
-  if(!idOK(id))fail();await this.finishFoundation();const row=await this.run(()=>this.repository.transaction(false,async t=>bindingRead(this,t,await this.readableEntry(t,id))));
-  if(row.staleReasons?.includes('source_purged'))return entryDTO(row);
-  const state=await dependencyState(this,row,bindingRead);if(!state)fail();return entryDTO(state);
+  if(!idOK(id))fail();await this.finishFoundation();
+  const state=await dependencyState(this,{id},bindingRead);if(!state)fail();return entryDTO(state);
  }
  async entryPage({cursor=null,limit=50}={}) {
   await this.finishFoundation();

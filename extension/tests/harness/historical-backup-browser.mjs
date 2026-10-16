@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 const source=await readFile(new URL('./historical-backup.mjs',import.meta.url),'utf8');
 const publicationEvidence=await readFile(new URL('./historical-publication-evidence.mjs',import.meta.url),'utf8');
+const publicationSettled=await readFile(new URL('./historical-publication-settled.mjs',import.meta.url),'utf8');
 const readRetry=await readFile(new URL('./pre-dispatch-read-retry.mjs',import.meta.url),'utf8');
 const encoder=source.replace(/^import \{([^\n]+)\} from '(\.\.\/\.\.\/core\/[^']+)';$/gm,(_all,names,path)=>
  `const {${names.replace(/\s+as\s+/g,':')}}=await import(chrome.runtime.getURL(${JSON.stringify(path.slice(6))}));`)
@@ -14,14 +15,14 @@ export async function historicalBackupItems(page,{retryPreDispatchReads=false}={
  assert.equal(typeof retryPreDispatchReads,'boolean');
  const retired=await page.evaluate(()=>chrome.runtime.sendMessage({type:'PAIA_BACKUP_BEGIN_EXPORT'}));
  assert.equal(retired.ok,false);assert.equal(retired.error,'FEATURE_UNAVAILABLE');
- const script=`(async()=>{${encoder}\n${retryPreDispatchReads?readRetry.replace('export async function','async function')+'\n'+publicationEvidence.replace('export function','function'):''}\n
+ const script=`(async()=>{${encoder}\n${retryPreDispatchReads?readRetry.replace('export async function','async function')+'\n'+publicationEvidence.replace('export function','function')+'\n'+publicationSettled.replace('export async function','async function'):''}\n
  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
  const store=new OrganizerStore(chrome.storage.local);
  ${retryPreDispatchReads?`let stage='construct',runNumber=0;const events=[];globalThis.__uxR6BackupPhase={stage,events};const originalObservedRun=store.run.bind(store);store.run=fn=>{const event={stage,run:++runNumber,entered:false};events.push(event);if(events.length>32)events.shift();return originalObservedRun(()=>{event.entered=true;return fn();}).catch(error=>{event.error=typeof error?.code==='string'&&/^[A-Z0-9_]{1,64}$/.test(error.code)?error.code:'UNKNOWN';throw error;});};const phase=value=>{stage=value;__uxR6BackupPhase.stage=stage;};let primaryError=null;const stopEvidence=observeHistoricalPublication(store,chrome.storage,STORAGE_KEY,__uxR6BackupPhase);try{`:''}
  // Only a rejected acquisition before the supplied callback enters may retry.
  // Initialization and maintenance callbacks still execute at most once; their
  // effects, pending publications and all other errors are never replayed.
- ${retryPreDispatchReads?'const originalReadRun=store.run.bind(store);store.run=fn=>runWithPreDispatchReadRetry(originalReadRun,fn);':''}
+ ${retryPreDispatchReads?`const {readControlPublicationFence,controlPublicationEqual}=await import(chrome.runtime.getURL('core/local-control-publication.js'));const originalReadRun=store.run.bind(store);store.run=fn=>runWithPreDispatchReadRetry(originalReadRun,fn,async error=>{if(!store.loaded||!await waitForHistoricalPublication(()=>store.repository.transaction(false,readControlPublicationFence,['meta']),controlPublicationEqual))throw error;});`:''}
  ${retryPreDispatchReads?"phase('finish-foundation');":''}await store.finishFoundation();
  ${retryPreDispatchReads?"phase('drain-purge');":''}await store.drainPurgeCleanup();
  ${retryPreDispatchReads?"phase('drain-invalidations');":''}await store.drainInvalidations();

@@ -105,3 +105,43 @@ test('ANS-07 continuous collection rejects stale query responses and preserves v
  const restored=new ContinuousCollection({scope:'root',load:async()=>({items:[],nextCursor:null,complete:true})});
  restored.restore(keep.snapshot(),{scope:'root',query:''});assert.deepEqual(restored.items.map(x=>x.id),['kept']);
 });
+
+// Warm counts retain the original task and cache without a durable writer lock.
+test('ANS-07 warm pending and completed counts never open a write transaction',async()=>{
+ const {s}=await fixture(1),topic=(await firstReady(s)).items[0],taskId=JSON.stringify(['count',topic.id]);
+ const inspect=()=>s.repository.transaction(false,async t=>({topic:await t.get('topics',topic.id),task:await t.get('libraryMigrationItems',taskId)}));
+ const before=await inspect(),transaction=s.repository.transaction.bind(s.repository);let writes=0;
+ s.repository.transaction=(write,...args)=>{if(write)writes++;return transaction(write,...args);};
+ assert.deepEqual(await s.topicCount(topic.id),{visibleEntryCount:0,countComplete:false});
+ assert.deepEqual(await inspect(),before);assert.equal(writes,0);
+ await s.drainLibraryMaintenance();writes=0;
+ const completed=await inspect();assert.equal(completed.task,undefined);
+ assert.deepEqual(await s.topicCount(topic.id),{visibleEntryCount:0,countComplete:true});
+ assert.deepEqual(await inspect(),completed);assert.equal(writes,0);
+});
+
+test('ANS-07 count enqueue rechecks epoch and cache after the readonly miss',async()=>{
+ const {s}=await fixture(1),topic=(await firstReady(s)).items[0],taskId=JSON.stringify(['count',topic.id]);
+ await s.repository.transaction(true,t=>t.delete('libraryMigrationItems',taskId));
+ const transaction=s.repository.transaction.bind(s.repository);let injected=false;
+ s.repository.transaction=async(write,fn,stores)=>{
+  if(write&&!injected){injected=true;await transaction(true,async t=>{
+   const current=await t.get('topics',topic.id);await t.put('meta',{id:'thought-epoch',value:91});
+   current.countCache={key:`reading1:${current.activeLayoutGeneration}:${current.countVersion||0}:91`,count:7,complete:true};await t.put('topics',current);
+  });}
+  return transaction(write,fn,stores);
+ };
+ assert.deepEqual(await s.topicCount(topic.id),{visibleEntryCount:7,countComplete:true});assert.equal(injected,true);
+ assert.equal(await transaction(false,t=>t.get('libraryMigrationItems',taskId)),undefined,'no obsolete count job is queued');
+});
+
+test('ANS-07 changed count generation resets stale work but keeps same-generation partial progress',async()=>{
+ const {s}=await fixture(1),topic=(await firstReady(s)).items[0],taskId=JSON.stringify(['count',topic.id]);
+ await s.repository.transaction(true,async t=>{const job=await t.get('libraryMigrationItems',taskId);await t.put('libraryMigrationItems',{...job,cursor:'synthetic-progress',count:3});});
+ const original=await s.repository.transaction(false,t=>t.get('libraryMigrationItems',taskId));
+ await s.topicCount(topic.id);assert.deepEqual(await s.repository.transaction(false,t=>t.get('libraryMigrationItems',taskId)),original);
+ await s.repository.transaction(true,t=>t.put('meta',{id:'thought-epoch',value:92}));
+ assert.deepEqual(await s.topicCount(topic.id),{visibleEntryCount:0,countComplete:false});
+ const changed=await s.repository.transaction(false,t=>t.get('libraryMigrationItems',taskId));
+ assert.notEqual(changed.key,original.key);assert.ok(changed.key.endsWith(':92'));assert.equal(changed.cursor,null);assert.equal(changed.count,0);
+});
