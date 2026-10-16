@@ -1,142 +1,83 @@
-# PAIA Narrow Input Board v4 — Canonical Design Specification
+# PAIA floating input — approved fixed three-state design
 
-Contract: **NIB-V4-1.0** · 2026-10-09 · Programme: **PAIA-CONSUMER-PRODUCT-v1 / existing Prompt lane**.
+**PAIA-FLOAT-UI-1.0 / OWNER_APPROVED / 2026-10-16.** Existing programme and task IDs remain **PAIA-CONSUMER-PRODUCT-v1 / Prompt / CPV1-NIBV4 S0–S4**. The legacy filename stays so all existing plan links resolve to this current contract. This is a scoped design/plan adoption, not an installed extension or runtime acceptance.
 
-**DESIGN_SCOPE_OWNER_APPROVED / DOCUMENTATION_ONLY / IMPLEMENTATION_NOT_STARTED_BY_THIS_TASK.** The owner selected the ten narrow-board requirements. This specification records that selection; it does not certify the prototype, authorize runtime execution in this turn, activate Pro, or remove Popup. While the documentation PR is Draft/unmerged, this is its proposed canonical integration, not a claim that main has changed.
+Read [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). The complete preceding SPEC is retained byte-for-byte in [PRE_FIXED](NARROW_INPUT_BOARD_V4_SPEC_PRE_FIXED_2026-10-16.md), blob `35562aa31c6922f19e4f1c45f5ce3ea14c10f553`. **Every nonconflicting product, content-owner, privacy, search, manual-intent, target, lifecycle, admission, recovery and entry-replacement requirement remains incorporated in full.** The finite supersession ledger controls conflicts; do not import its former adaptive height or mandatory CHECK_TEXT back into the new UI.
 
-Read [adoption and supersession](NARROW_INPUT_BOARD_V4_ADOPTION.md), [execution plan](NARROW_INPUT_BOARD_V4_PLAN.md), [integration](NARROW_INPUT_BOARD_V4_INTEGRATION.md), [references](NARROW_INPUT_BOARD_V4_REFERENCES.md), and [acceptance](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md). STATUS alone admits a future implementation batch and assigns the existing Root/coordinator and Prompt owner. No second programme, scheduler or automatic developer is introduced.
+## 1. Product identity and exact selection
 
-## 1. Product and surface boundary
+PAIA preserves and reuses the user's own expressions. This surface is the user's personal language layer on a supported AI website, **not an AI assistant, a chat composer, a prompt marketplace or a fourth primary application**. A normal action selects existing lawful text and puts it into the current host composer. It never sends it.
 
-One narrow browser board supports familiar expression reuse, local Archive search and bounded exact-text checking. Free provides the existing editable frequency/Prompt Family experience. Pro may provide authorized AI-selected historical candidates through the same renderer. Deep reading, Archive/Thought/Context organization and full permissions remain in PAIA.
+The owner approved the **last generated design board immediately before “可以，把这一版写进开发计划”**, after the Drive/GitHub review. Its exact artifact identity is in REFERENCES. That image controls the selected smoky-blue/deep-indigo frosted-glass appearance; **V6 controls the already accepted compact geometry and interaction**. Earlier V7, pastel/rainbow/mascot proposals and unrelated reference images are not alternative approved targets. Do not restart aesthetic exploration or substitute another attractive sphere.
 
-Do not build a native Side Panel, injected large sidebar, dual-carrier handoff, 376/613/620px expanded search window, document reader, content-type filters, ranking dashboard, material tray or second prompt library. The single ordinary product link is **打开 PAIA**. Logo is not a duplicate navigation control. Normal rows contain no frequency, confidence, date, category or diagnostic badges.
+Poster copy, sample personal host-sidebar labels, enlarged objects, marketing composition, simulated host model/version, gears, cursor-like marks and simultaneous overview objects are not new product capabilities. In particular, the capsule must display an actual reusable expression, not a placeholder inviting the user to type or ask PAIA a question. No Send, microphone, eyes, face, added keyboard shortcuts or invented assistant status.
 
-Automatic supported-input capture remains unified, continuous and independent of surface visibility. No per-page/per-conversation capture chooser. Existing Source removal/non-reentry, retained underlying records, tombstones, human protections, revision and recovery owners are unchanged. Searches, closing, subscription changes and geometry cannot restore removed material, delete source data, create capture consent or enable external Context access.
+## 2. Three external forms; fixed ordinary geometry
 
-## 2. Exact geometry and material
-
-### 2.1 Width
-
-Retain the current layout rule in CSS pixels:
-
-```text
-W = min(viewportWidth <= 400 ? 322 : 336, viewportWidth - 32)
-```
-
-Ordinary desktop width is exactly 336px, independent of candidate count or body length. Candidate, search, full-text check, editing, menu and authorization states use this same width. The existing narrow-viewport rule only reduces width; it never grows beyond 336px. Browser zoom/DPR are not CSS-pixel width changes. Keep the existing horizontal position/position-reset owner; only clamp to the available viewport. Do not add a parallel position preference or rewrite saved position records.
-
-### 2.2 Height
-
-Use actual visible top controls and the **whole composer form**, including send/attachment/model/voice controls. Measure all rectangles in one coordinate system, accounting for visualViewport offset/scale. Do not confuse layout-viewport coordinates with visual-viewport coordinates.
-
-```text
-safeTop    = max(visibleViewportTop, relevantTopControls.bottom) + 12
-safeBottom = min(visibleViewportBottom - 12, composerForm.top - 12)
-available  = max(0, safeBottom - safeTop)
-height     = min(measuredIntrinsicContentHeight, available)
-y          = safeBottom - height
-```
-
-Anchor in this band above the composer; increasing content extends upward. A growing composer reduces available height. Keep the horizontal anchor stable. Do not move the board below or beside the composer to turn it into a larger reader. Upward-growing composer changes position and height, never user mode.
-
-At normal text size, the reference list geometry is approximately `90 + 44*N`px; 90px is reference chrome, not a storage/algorithm constant. Measure actual content when language, font scaling, notices or editing change it. Do not fill all available height when there are few candidates. At the cap, scroll only the candidate/checking content; retain reachable search, back, close and necessary actions. Keep scroll anchor and focused row during reflow.
-
-If the safe band cannot contain usable controls and a row, report layout limitation without covering the composer/top controls or changing logical mode. Retain query and pending manual work in the existing protected state. A temporarily unrenderable board may be clipped/not painted; this is **not** COLLAPSED and does not overwrite open preference. Resume the same view when geometry recovers. Do not auto-open PAIA or a sidebar. The toolbar remains an explicit PAIA escape route. Do not claim this physically unusable condition is a normal usability PASS.
-
-### 2.3 Reused visual language
-
-Use the current frequency-board font stack, **13.3px / 1.55** text role, approximately 430 normal row weight, 20px outer radius, 12px row radius, quiet separators, blue-white diffused light, translucent glass, subtle edge and soft shadow. Reference light text `#1d2738`, secondary `#64748b`, action `#426cad`, focus `#5e8ee8`; dark text `#e9eef6`, secondary `#a6b2c2`, focus `#91b4f4`. Reuse existing semantic roles rather than make a second theme system.
-
-Keep the existing 40px visible orb/44px hit area. Capsule reference is 272x44px, reducing when necessary; no face, pulse or automatic carousel. Glass lives in the existing page-overlay shell; private text, including capsule text, stays in a bound cross-origin extension frame, not host DOM. Blur is bounded to the visible surface, approximately the existing 18px. Use higher opacity in the small full-text check when necessary for readability. No remote fonts or host screenshots.
-
-Honor explicit PAIA appearance/language preferences, with the existing system/host fallback only where appropriate; do not claim the unfinished global proportional-font feature is delivered. Support keyboard, visible focus, coarse input, 200% text, forced colors and reduced motion/transparency. At enlarged text, 44px is a minimum rather than a clipping mandate; remain one text line with safe ellipsis and a reachable full-text path. Default-size rows are 44px.
-
-## 3. One-line rows and exact use
-
-All candidate and search rows use the same component. One expression, one line: nowrap, overflow hidden, ellipsis. No title/summary pair. Reserve a stable row action region; hover/focus must not move text, change the truncation threshold or reorder rows. Fine pointers reveal fill/copy/more; coarse pointers retain explicit accessible actions with at least 44px targets. Actions never overlap the text hit target or nest interactive elements.
-
-A genuinely fully visible short expression can be filled by its text button or explicit fill control. Copy is a separate action. **Actual truncation**, multiline source text, meaningful hidden whitespace or a visually abbreviated body makes text/fill enter full-text checking first. Do not use a character-count heuristic as proof that all meaning was visible. Copying a truncated row also enters checking before disclosure. Accessible names do not substitute for visually checking an unseen condition.
-
-The full-text check replaces/occupies a compact area in the same 336px board; its normal body viewport is at most **150px**, with internal scrolling. It is not a long reader. Show necessary source/ownership context here, not on every candidate row. Full text must come from the current trusted body owner. Whole-text actions require complete resolution; a loaded page is not an entire Input. Oversize/unsupported material refuses rather than truncating a hidden tail. Deep reading uses 打开 PAIA.
-
-With no selection, buttons say 填入整条 / 复制整条. A contiguous selection inside the current body changes them to 填入选段 / 复制选段. Bind original UTF-16 offsets plus input/template identity, revision and eligibility generation; honor Unicode/grapheme boundaries and original line breaks. Preserve the selected range when focus moves to an action; explicit cancel returns to whole text. An invalid range never falls back to the entire body or a guessed newer range.
-
-Only the selected body/range is used: no automatic title, timestamp, source URL, surrounding conversation, hidden evidence, Markdown quotation or generated prefix. Source invalidation/revocation removes stale readable body and disables fill/copy; do not fall back to retained Source or old cache. Content already deliberately placed in the user's draft is not later removed by background work.
-
-## 4. Distinct content owners, one renderer
-
-These are conceptual discriminated refs, not a new persistent schema or claimed existing endpoint:
-
-| Ref | Authoritative body | Allowed handling |
+| Form | Ordinary CSS geometry | Meaning |
 |---|---|---|
-| `history_input` | Current eligible Archive Working Input, stable Input ID/revision | Search and Pro historical-ID results; exact body/range use |
-| `prompt_family` | Existing PromptReuseService resolver, Family/preferences revision and generation | Existing frequency projection, representative, pin/order/hide/split and manual intent |
-| `manual_reuse` | Existing manual template/override owner | User-owned reusable expression, never relabeled as previously sent history |
-| `reply_suggestion` | Existing ephemeral Stage3A candidate and authorization generation | Separate local reply-suggestion contract; never a durable historical row |
+| Orb | 40px visible face in a minimum 44×44px target | One click directly opens the board; existing drag/position owner remains |
+| Capsule | 272×44px; independent right-hand 44px expand target | Body click inserts its single actual expression; arrow only opens the board |
+| Board | **336×312px**, 20px outer radius | Compact fixed rectangle; six default 44px single-line rows; internal scrolling thereafter |
 
-Free default candidates continue to use existing Families and manual overrides. **Do not replace the Family engine with a naive list of Input IDs.** Keep stable IDs, pins, representatives, hidden rows, split/do-not-merge intent, retained templates, manual order and existing verified-reuse semantics. Sharing a renderer does not merge these identities.
+Orb and capsule are alternative user-selected collapsed presentations, not compulsory steps. The board is their expanded form, not a second simultaneous independent widget. A small brand cue within the capsule is allowed; repeated spheres before list rows are forbidden. Existing independent Stage3A permission and transient-reply semantics remain; this adoption adds no new always-visible fourth carrier or chat flow.
 
-Editing a Family changes its existing reusable override, not Source or Working Input. Editing a history search hit creates/updates a reusable expression through the existing Prompt owner only after explicit save; no silent Archive edit, no placeholder Family solely to pass insertion. The history search result remains the actual history version. Full-text checking distinguishes 你修改的常用表达 / 手工创建的常用表达 from history. Do not delete manual work on upgrade, downgrade, reindex, new AI ordering or migration.
+The board retains the V6 44px compact header and approximately 266px list region including its small edge spacing. Use existing 13.3px/1.55 body typography, readable near-neutral dark text and stable row action space. Keep controls reachable without shrinking the font. Normal 0/1/3/6/many results, loading, error and empty search all have the same outer rectangle. Do not fill blank space with fake rows. More than six candidates scroll inside; six is a visible-window capacity, never a storage/search limit.
 
-AI does not overwrite or move human-pinned/edited rows. Pin/manual order is applied as a constraint before presenting an admitted AI candidate sequence. Any manual override associated with an AI-chosen historical ID must be resolved explicitly as `manual_reuse`, not shown as unmodified history. Model-proposed free-form strings are rejected.
+Search, optional whole-text viewing, editing and more are internal views of the same rectangle. Search replaces content in the existing header; no second toolbar, six-category strip, permanent count/150-character footer or extra management window. Retain the existing compact search/more/close affordances; a poster gear means the existing low-frequency controls, not a new settings product. Show one expression per row, without title/summary pairs, semantic category icons, decorative dots, dates, scores, use counts or shortcut labels. No per-row decorative card shell. A repeated right-chevron implying navigation is not the primary insertion affordance; use the whole text target and optional existing row-more control.
 
-Frequency counting stays in its existing owner. Duplicate capture, failed/unknown insertion, opening, hovering and search do not increment it. Do not invent historical per-Input reuse counts by copying Family counts; no new behavior telemetry/event store. Successful Archive use that is not a Family must not fabricate a Family event. Any future additional aggregate belongs to the existing owner with separate compatibility review, not this UI's new database.
+### Fixed size is not a fixed dead position
 
-## 5. One Archive search
+Observe the complete real composer, including attachment/send/model/voice controls, and the actual top-control region in one visual-viewport coordinate system. Retain approximately 12px safe gaps. A growing composer first moves the whole board upward while preserving its ordinary size. Geometry alone cannot change mode, query, candidate order or open preference; do not resize the host composer to manufacture space.
 
-Search is free for both tiers and searches effective historical user Inputs, not Thought/Context types or only the useful Families. Use `SEARCH_INPUTS`, `qualifiedInputSearch`, existing ranking/cache/scan and `findInputPage`. Use Archive's existing full eligible scope and ordinary include-filtered semantics; no new type/category/ranking tabs. Recommendation eligibility may be narrower than ordinary Archive search; do not accidentally apply the Family useful/filter predicate to all search results.
+Only when the safe viewport cannot contain 336×312 may the existing layout owner constrain width/height and scroll the interior. Reuse the existing narrow-width and position-clamp owners rather than create a new preference/protocol. V6's reduced-height examples are boundary demonstrations, not routine content-adaptive growth. At enlarged text, rows/controls may grow and fewer rows may be visible. With physically unusable space, preserve logical view/query/dirty work and report the limitation; do not cover host controls or silently switch to a sidebar. Recovery restores the same view. Do not treat extreme-space fallback as normal-size acceptance.
 
-Empty query stays SEARCH without invoking a zero-query whole-archive feed. No typing-triggered generative reranking or hidden remote embedding. Defer queries during IME composition; cancel superseded continuations. Partial coverage, no result, stale snapshot and read failure are different states. Preserve exact original input text in matches; normalized matching must map safely back to the original.
+## 3. Approved material, hierarchy and color distribution
 
-Back restores query, existing search scope/order/snapshot, continuation, result ID plus relative scroll offset, and focus. Removed targets revalidate and degrade honestly. Geometry and scroll never trigger a query. Reopening can revalidate refs; do not store a second body cache, snippets in URLs, permanent query history or sync active UI sessions.
+### Orb: the visual emphasis
 
-An explicit board-to-PAIA search/selected-Input action hands the same query contract and qualified Input/range to existing Archive navigation after current editor save/IME guards. New query generations may require re-reading but not a silently different ranking. Generic opening does not infer an Input from the host chat. No arbitrary `#settings`/Archive URL grammar or general worker sender bypass.
+Match the approved image's rounded, translucent volume and quiet internal depth: smoky blue, a localized deep indigo region, a restrained lavender transition, and neutral cool light. The source's five palette samples are recorded in REFERENCES as raster observations, not a new global brand-token mandate. Dark regions supply depth; highlights provide a small counterweight. Do not reduce the object to an almost-white pastel button, recolor it into candy blue/pink, or make the center opaque black.
 
-## 6. Stable interaction and lifecycle
+Use diffused internal transitions and a soft outer rim. Do not add a button base, concentric rings, separate white reflection stickers, a hard double rim, metallic chrome, a uniform luminous halo or continuous bloom. Preserve the visual balance of the approved source; earlier v2 numeric color/opacity values may not override this later approval, and an approximate implementation is not automatically a faithful match. No continuous rotation, pulsing or color cycling is required. The sphere is not a new PAIA logo or a personality.
 
-Logical states: COLLAPSED (orb or single capsule), CANDIDATES, SEARCH, CHECK_TEXT, EDIT, MORE, CONSENT/RECOVERY. Geometry has only a rectangle and layout-availability; it cannot request a logical state transition.
+### Capsule and board: quieter members of the same material family
 
-Only deliberate user pointer/keyboard actions expand, collapse or switch mode. Blur, inactivity, host scrolling, viewport/composer changes, unrelated storage notifications and arriving recommendations do not. Clear query stays SEARCH; Back restores the prior list. Fill/copy success leaves the board open. Preserve dirty edit/IME guards when a user explicitly closes.
+Use a near-neutral white/cold-white frosted body with fine edges, shallow separation shadow and clear dark typography. **Do not spread the sphere's blue/purple pattern across the panel or its text area.** Same material language does not mean equal color intensity. A very restrained cool reflection at an edge is acceptable; colored clouds, large swirls and luminous borders behind the rows are not. The capsule's text remains primary. Do not add a filled blue send-like CTA.
 
-Freeze candidate identity/order for the open session. Newly computed frequency/AI candidates become eligible for the next explicit open/refresh, not an involuntary jump. Explicit user reorder can update immediately. Removal/revocation is an immediate eligibility veto: erase or disable that slot without refilling/reordering the rest; stability never justifies stale content.
+The host remains unchanged. Do not recolor the ChatGPT page, add background gradients, blur surrounding content, add a desktop-scene backdrop or use studio reflections to make the component appear better. Inspect the small live-size component on unmodified light, dark and heterogeneous synthetic host backgrounds. The poster is a visual reference, not a screenshot proving native size or current ChatGPT compatibility.
 
-New users default to the existing orb. A single-candidate capsule is a user-selected collapsed presentation, not an automatic appearance when AI completes. Retain its selected presentation without restoring ephemeral content or authority. No candidate rotation. With no lawful capsule candidate show a quiet orb/empty affordance without auto-expanding.
+Reuse PAIA font/theme/focus/accessibility roles. Text must remain legible through changing backgrounds; raise local neutral opacity when needed instead of tinting or fading text. Reduced transparency disables background blur while preserving a recognizable static fallback. Reduced motion removes nonessential movement. Forced colors and keyboard focus remain usable. Keep private expression bodies in the existing bound cross-origin extension frame; the host only receives permitted shell geometry until the user explicitly inserts text.
 
-Same-document conversation/branch changes preserve mode/query but invalidate selections' receiving target and transient reply candidates. Actual document replacement/refresh resets temporary expanded state, search/ranges and insertion tokens to the chosen collapsed entry. Background tab focus changes do not reset. Never apply another tab's saved open state to the current document. Preserve position/manual preferences and unrelated browser-session Next authorization across an ordinary page refresh. Extension update/browser-session termination follows existing permission owners, never backup-restores reply reading.
+## 4. Direct use and optional detail
 
-The private Stage3A transient strip may retain its existing bounded display lifetime; this is distinct from the user's expanded board and does not collapse or reorder it.
+Normal path: **click actual candidate → validate current content and receiver → insert exact complete expression → verify → return focus to the host composer**. Visual ellipsis, newlines or text that is not entirely visible do not introduce mandatory CHECK_TEXT for an otherwise eligible <=150-character expression. Remove the normal second “insert or copy” choice. Do not leave an invisible second confirmation in a coordinator or allow an old test to restore it.
 
-## 7. Existing draft and receiving target
+Optional row-more/full-text is available in the same board for recognition, editing, pinning, hiding and the existing precise-copy/range operations. It never becomes a compulsory step for ordinary row use. A retained explicit range operation must use the exact current Unicode-safe selection, never a guessed range or the entire body after invalidation. Only a deliberately selected range of <=150 characters may use the quick insertion route. Long-body deep reading and unrestricted archival work remain in PAIA, not a floating document reader.
 
-Reuse `ChatGPTComposerAdapter` and the existing insertion coordinator, extending typed source resolution rather than creating a second writer. Before effect, revalidate window/tab/document/conversation/composer identities, content revision, selected range and relevant authorization generation. No lastFocusedWindow-based surprise target, hidden old-tab activation or generic editor fallback.
+Preserve the existing single insertion coordinator and ChatGPTComposerAdapter, current target/document/conversation/revision/authorization checks, IME and draft-conflict protection. A nonempty draft is not a reason for repeated confirmation. Preserve prefix/suffix and selected draft text; only use the existing non-destructive append behavior when the caret is genuinely unavailable, not to bypass drift. Never select another editor/tab/window to make an operation succeed. No automatic copy on target failure and no automatic Send/Enter-to-send.
 
-Use a valid current/saved caret, preserving prefix/suffix; a selected host draft is not permission to replace it. When there is no reliable caret, use the adapter's explicit non-destructive append behavior. Nonempty draft alone needs no repeated confirmation. Preparation-time draft drift, composition/unknown IME state, ambiguous/unwritable composer, target change or size refusal produces no write; do not switch to append to bypass conflict.
+One operation has at most one effect; double activation and held activation keys do not produce repeated text or a later host Send. UNKNOWN remains UNKNOWN: no silent retry, new-op replay or false success. Keep native undo/redo where actually supported and validate it per host; never restore an old whole draft to simulate undo. No prototype textarea API is adopted as a universal host writer.
 
-One operation ID has at most one effect. Fill/reply reuse paths share the target document's existing write arbitration; busy refuses rather than queues automatic actions. A known success requires readback; a lost acknowledgement is UNKNOWN, not failed or safe-to-retry. Preserve pending identity across relevant worker interruption without logging bodies; never auto-replay. User checks the draft before any new attempt. Use native undo where the adapter actually supports it; never restore an old whole draft destructively.
+The board stays open after insertion, losing focus, host scrolling or idle time. Only explicit user actions and the already defined genuine document lifecycle reset it. Freeze candidate identity/order during the open session; removal/revocation invalidates immediately without replacing other rows. Same-document chat changes preserve view but invalidate the receiving target. Dirty-editor leave guards remain, but are not ordinary insertion confirmations.
 
-Copy is write-only clipboard with truthful failure/manual-selection fallback and current eligibility checks. Fill is an explicit one-time disclosure to the host input field even without Send; do not claim the website cannot see it. Never click Send, simulate Enter-to-send, upload an attachment or change persistent Context grants.
+## 5. The 150-character boundary
 
-## 8. Free and Pro admission
+The limit applies to the actual reusable expression admitted to the quick surface, not merely the visible prefix. Use one grapheme-cluster count at all applicable entry points: Chinese, Latin letters, digits, punctuation, spaces and line breaks count; a complete emoji counts once; CRLF counts as one newline. Define the capability-safe shared implementation in the original owner, not inconsistent JavaScript string-length checks.
 
-Same board, search, rows, manual controls and insertion. Free uses frequency/retained expressions. Pro uses AI candidate selection only after all of: trusted membership/entitlement, real service availability, capability-specific processing consent/current scope, budget/quota admission and qualified candidate result. A local Pro switch is never authority. Without admission show/use ordinary 常用输入 and local search; never disguise local frequency as AI推荐.
+150 is admitted; 151 is not. Cover create/edit, automatic Family representative selection, manual overrides, imports/restores, sync recovery, admitted AI IDs, transient candidates and final quick-use validation. Preserve oversized edits with a clear count, never silently trim, summarize or overwrite them. Existing long records keep their IDs, bodies, ownership and human intent; they simply do not become whole-body quick candidates. A manually saved shorter reuse expression must not masquerade as unmodified sent history.
 
-Permitted recommendation inputs are bounded already-eligible historical Inputs within the processing scope; relevant already-sent/already-captured user Inputs within that same scope; and task intent the user explicitly supplies for this action. No unsent draft, keylogging, whole-chat or hidden-tab sweep, assistant history, attachments or credentials. Stage3A local reply consent does not authorize this provider to read/upload replies. Do not relabel the dormant reply-oriented Assist implementation as a safe historical recommender without a new scoped adapter/admission check.
+Archive search still queries the complete lawful historical scope through the original qualified query/index/ranking/pagination owner. Apply quick-use length eligibility as a separate projection, not a global corpus filter or new index. Results beyond the visible six must remain reachable. If only long inputs match, offer the existing PAIA continuation and distinguish that state from “no history matches”; partial coverage is not no-result. Manual edits/hide of a reuse expression do not rewrite the original history result. Preserve no-zero-query-feed, IME deferral, cancellation, exact origin/Back restoration and current content denial fences.
 
-Use the existing AI-COST/AI_USAGE job, entitlement, budget, usage receipt, cache and unknown-outcome machinery. This is a Pro historical-candidate facet, not a fourth independent quota/account/provider stack. Map its job/result contract before live activation; all numeric quotas remain owned by AI_USAGE_ARCHITECTURE, not copied here. Existing unrelated Free AI Assist/Organize allowances are not silently removed by this narrower Pro default-candidate decision.
+## 6. Speed and restrained state feedback
 
-Model output is a bounded ordered set of allowlisted candidate IDs with validated schema; trusted code resolves exact current bodies. Reject fabricated IDs, stale refs, assistant-derived pseudo-history, negation/condition mismatch and implicit sensitive confirmations. No generated prompt is represented as history. Low confidence may return no recommendation. Cache by allowed evidence/content/human-intent revisions and permission/service identity; never by page size or a broad all-history snapshot on every open.
+Reuse/pre-initialize the lightweight lawful surface and existing invalidatable local candidate projections. Opening must not wait for a remote model, network, full-corpus scan or new index. Insertion must not wait for motion, re-ranking or usage persistence. Do not invent a persistent private-body cache, keep a worker alive artificially or bypass eligibility to meet a speed number.
 
-In the first live slice, dispatch requires explicit AI recommendation intent after consent; merely opening/searching/resizing the board reads cache/local candidates and costs no remote call. Background refresh on newly captured inputs is deferred unless separately bounded and authorized. One request in flight; no timer loop, streaming-token request or hidden retry. Late result is held for a later explicit refresh. Revoke invalidates in-flight delivery immediately. Downgrade, quota exhaustion, service outage and offline state preserve lawful manual content/search and do not silently spend elsewhere.
+Use V6's approximately **120ms opening / 80ms closing**, at most about4px translation with opacity; no elastic bounce, row-by-row entrance, continuous width/height/blur animation or delayed clickability. The visible action may begin immediately while motion finishes. Success is a brief local row/capsule confirmation, about480ms, plus nonvisual accessible status; avoid simultaneous composer glow, footer mutation and toast. Failures receive a truthful visible notice.
 
-Real provider/region/retention, commercial disclosure, account and financial permission remain genuine S3 activation gates. Fixed-ID prototype samples are not a service, benchmark or billable success.
+The existing **warm p95 <=50ms** aspirations for open-to-usable-candidates and click-to-visible-verified-text are optimization targets, not measured achievements or permission to alter existing gates. Report cold and warm samples separately, including p50/p95, failures and long tails, actual paint/receiver behavior, browser/hardware/host and data size. Respect 120Hz where available without claiming frame rate from a function timer. If targets are unmet, record actual values and causes, not fake success or weakened checks.
 
-## 9. Old Popup responsibilities and final entry
+## 7. Retained domain boundaries and evidence
 
-Keep production Popup until S4 replacement evidence is complete. No sidePanel permission or native carrier is introduced. Owner-approved S4 behavior: toolbar always opens/focuses an existing PAIA tab in the current window (create only if absent), without reloading or discarding work; the orb is the in-page reuse entry. Specific board search/content actions carry explicit qualified intent. The owner explicitly confirmed this focus-only toolbar behavior on 2026-10-11. Cutover still requires complete replacement acceptance; confirmation is not evidence of implementation or acceptance.
+All nonconflicting predecessor sections4–10 remain mandatory: distinct Family/Manual/History/Reply owners; human pin/order/edit/hide/split priority; source non-reentry and purge; revision/restore; original search and single receiver; Free/Pro shared surface; real AI-COST entitlement, budget, processing permission and provider-quality gates; independent default-off local Stage3A; no remote Stage3B activation; and complete S4 replacement before any uncompleted Popup cutover. Do not reinstate a Popup already lawfully replaced or call an unverified cutover complete.
 
-First capture consent still goes through existing PAIA onboarding. Preserve independent Next status/configure, pause/resume with existing backfill explanation, Settings/permissions, About/current-install update and actionable fault recovery. Put them in board more/PAIA Settings as appropriate, not a status dashboard. Non-supported websites and hidden/unavailable orb still have the toolbar-to-PAIA route. Basic control reachability must not depend on a healthy archive search or Pro service. Actual faults use one truthful local notice; never auto-refresh a draft, unload/reinstall/clear storage, or equate enabled capture with successful saving.
-
-## 10. Implementation and completion are separate
-
-This document specifies future behavior. All production gates in ACCEPTANCE start NOT_RUN for NIB v4. S0 preserves Family/manual compatibility immediately; S2 is completion, not permission to break those features earlier. A design reference passing 193 synthetic assertions cannot certify actual extension iframe isolation, native IME/undo, 100k-input behavior or live AI quality. Existing Source/capture/Sync/Context/other UI work and release gates are retained; no old feature is restarted to manufacture this plan.
+The latest original programme STATUS and actual main/receipts control implementation progress. This amendment neither resets completed S0–S4 work nor marks new requirements implemented. Original current plans, seven lanes, Sync pause, private Drive source, main application, website, runtime/tests/CI/package/version, accounts and user installation are not changed by this design adoption. Test the affected new behavior at the existing coherent integration boundary; final visual/native/performance acceptance remains separate from this approved design.
