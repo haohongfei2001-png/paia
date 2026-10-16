@@ -10,7 +10,7 @@ const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const iah='iah11-result-presentation-chrome-e2e.test.mjs',selected='iah11-selected-acceptance-chrome-e2e.test.mjs';
 import {readdir,readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-import {group,testShard} from './test-groups.mjs';
+import {group,testShard,isPreviousCurrentBrowser,APPROVED_UI_BROWSER_FILES} from './test-groups.mjs';
 
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 const names=new Set((await readdir('tests')).filter(name=>name.endsWith('.test.mjs')));
@@ -62,7 +62,8 @@ for(const name of archived){
  if(!names.has(name)||group(name)!=='experimental')throw Error(`SEMANTIC_ARCHIVE_COVERAGE_MISSING:${name}`);
 }
 const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
-const current=[...names].filter(name=>group(name)==='browser E2E').sort();
+const allCurrent=[...names].filter(name=>group(name)==='browser E2E').sort();
+const current=allCurrent.filter(isPreviousCurrentBrowser);
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 const preferencePublication='settings-preference-publication-chrome-e2e.test.mjs';
 if(!current.includes(preferencePublication)||testShard(preferencePublication,current.indexOf(preferencePublication),9,'browser E2E')!==7)throw Error('PREFERENCE_NATIVE_CURRENT_ROUTING_INVALID');
@@ -182,4 +183,18 @@ console.log('PENDING_HISTORY_CURRENT_COVERAGE_PASS previous=95 added=1 total=96;
 const ten=Array.from({length:10},(_,slot)=>current.filter((name,position)=>testShard(name,position,10,'browser E2E')===slot+1));
 if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==current.join('|')||new Set(ten.flat()).size!==current.length||ten[9].join('|')!=='context-cards-chrome-e2e.test.mjs')throw Error('CURRENT_TEN_INCOMPLETE');
 for(const [position,name]of current.entries())if(testShard(name,position,10,'browser E2E')!==(name==='context-cards-chrome-e2e.test.mjs'?10:testShard(name,position,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
-console.log('CURRENT_TEN_COVERAGE_PASS total=96 Context whole-file isolated; every other route preserved');
+console.log('CURRENT_TEN_BASELINE_COVERAGE_PASS total=96 Context whole-file isolated; every other route preserved');
+
+// The actual execution census includes every newly admitted whole file. Never
+// use the frozen historical view to remove a file from current acceptance.
+if(allCurrent.length!==100||new Set(allCurrent).size!==100||APPROVED_UI_BROWSER_FILES.length!==4||new Set(APPROVED_UI_BROWSER_FILES).size!==4)throw Error('APPROVED_UI_CURRENT_CENSUS_INVALID');
+for(const file of APPROVED_UI_BROWSER_FILES){
+ if(!names.has(file)||group(file)!=='browser E2E'||!allCurrent.includes(file))throw Error('APPROVED_UI_NATIVE_NOT_CURRENT:'+file);
+ for(const width of [4,5,6,7,9,10])if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==(width===10?10:width===9?9:4))throw Error('APPROVED_UI_NATIVE_NOT_ROUTED:'+file);
+}
+for(const width of [4,5,6,7,9,10]){
+ const actual=Array.from({length:width},(_,slot)=>allCurrent.filter((file,position)=>testShard('tests/'+file,position,width,'browser E2E')===slot+1)).flat();
+ if(actual.length!==100||new Set(actual).size!==100||actual.sort().join('|')!==allCurrent.join('|'))throw Error('APPROVED_UI_CURRENT_PARTITION_INVALID:'+width);
+ for(const file of current)if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==testShard(file,current.indexOf(file),width,'browser E2E'))throw Error('APPROVED_UI_SHIFTED_PRIOR_ROUTE:'+width+':'+file);
+}
+console.log('CURRENT_TEN_COVERAGE_PASS total=100 previous=96 approved-ui=4; all whole files execute exactly once');

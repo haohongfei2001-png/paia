@@ -1,3 +1,4 @@
+import {SECTION_AI_FIELDS} from './topic-section-ai.js';
 import {thoughtCopy as tc} from './thought-copy.js';
 import {request,element,statusLabel} from './common.js';
 import {textOf,AutosaveSession,UndoJournal,RevisionSession} from './editor-primitives.js';
@@ -9,15 +10,17 @@ import {RecoveryDraftSession} from './recovery-draft.js';
 const labels={keyInformation:'已有信息',decisions:'已有决定',preferences:'已有偏好',judgments:'已有判断',openQuestions:'已有问题'};
 export function localizeSavedAIControls(root){for(const node of root.querySelectorAll('[data-ai-product-label]'))node.textContent=tc(node.dataset.aiProductLabel);for(const node of root.querySelectorAll('[data-ai-product-aria]'))node.setAttribute('aria-label',tc(node.dataset.aiProductAria));}
 export class AIReadingEditor {
- constructor(root,presentation,onEvidence,onStatus,{fieldsOnly=false}={}){
-  this.fieldsOnly=fieldsOnly;
+ constructor(root,presentation,onEvidence,onStatus,{fieldsOnly=false,admittedFields=null,sectionEvidence=null}={}){
+  this.admittedFields=admittedFields instanceof Set?new Set([...admittedFields].filter(field=>SECTION_AI_FIELDS.includes(field))):admittedFields===null?null:new Set();
+  this.sectionEvidence=sectionEvidence instanceof Set?new Set(sectionEvidence):this.admittedFields===null?null:new Set();
+  this.fieldsOnly=fieldsOnly;this.recoveryChecked=this.admittedFields===null;
   this.root=root;this.row=structuredClone(presentation);this.onStatus=onStatus;this.pending=null;this.failed=false;this.disposed=false;this.recovery=new RecoveryDraftSession({epoch:this.row.recoveryEpoch,kind:'ai_presentation',ownerId:this.row.topicId});this.recoveryLast=null;this.recoveryFailed=false;this.nodes=new Map();this.controller=new AbortController();this.autosave=new AutosaveSession(()=>void this.flush(),{delay:650,maxWait:3000});this.journal=new UndoJournal();this.revisions=new RevisionSession();this.draft={};this.excerptEditors=[];this.excerptHosts=new Map();this.evidenceEpoch=0;this.evidenceRows=new Map();
   if(fieldsOnly){
    const legacy=element('details','ai-legacy');legacy.dataset.aiSavedFields='true';const summary=element('summary','',tc('已保存的 AI 整理'));summary.dataset.aiProductLabel='已保存的 AI 整理';legacy.append(summary);
    this.field('blockSummary',this.row.blockSummary,legacy,'主题速览','ai-summary');
    this.field('currentView',this.row.currentView,legacy,'当前理解','entry-prose');
    for(const [field,label]of Object.entries({...labels,possibleEvolution:'已保存的思考线索'})){
-    if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');const heading=element('h2','',tc(label));heading.dataset.aiProductLabel=label;section.append(heading);
+    if(!this.admits(field)||!this.row[field]?.length)continue;const section=element('section','ai-reading-section');const heading=element('h2','',tc(label));heading.dataset.aiProductLabel=label;section.append(heading);
     const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);
    }
    root.append(legacy);document.addEventListener('paia:preferences-applied',()=>localizeSavedAIControls(root),{signal:this.controller.signal});
@@ -25,14 +28,14 @@ export class AIReadingEditor {
   const overview=element('section','ai-reading-section ai-overview');overview.append(element('h2','','当前理解'));
   this.field('blockSummary',this.row.blockSummary,overview,'主题速览','ai-summary');
   this.field('currentView',this.row.currentView,overview,'当前理解','entry-prose');
-  if(!this.row.currentView?.trim()&&!this.row.blockSummary?.trim())overview.append(element('p','evolution-note','尚没有已保存的概括。下方保留本次可读取的表达。'));
+  if(!(this.admits('currentView')&&this.row.currentView?.trim())&&!(this.admits('blockSummary')&&this.row.blockSummary?.trim()))overview.append(element('p','evolution-note','尚没有已保存的概括。下方保留本次可读取的表达。'));
   root.append(overview);
   const evolution=element('div','ai-evolution'),main=element('div','ai-evolution-main'),header=element('header');header.append(element('h2','','思考线索'));
-  this.coverage=element('p','evolution-note',this.row.possibleEvolution?.length?'按已保存整理中的线索展开；下方原话只来自已有证据，不把线索当作固定阶段。':'当前整理没有保存思考线索；下面按表达时间阅读原话，不推断观点已经改变。');header.append(this.coverage);main.append(header);
+  this.coverage=element('p','evolution-note',this.admits('possibleEvolution')&&this.row.possibleEvolution?.length?'按已保存整理中的线索展开；下方原话只来自已有证据，不把线索当作固定阶段。':'当前整理没有保存思考线索；下面按表达时间阅读原话，不推断观点已经改变。');header.append(this.coverage);main.append(header);
   this.stages=element('div','evolution-stages');main.append(this.stages);
   this.rail=element('nav','evolution-rail');this.rail.setAttribute('aria-label','思考线索位置');this.rail.hidden=true;evolution.append(main,this.rail);root.append(evolution);
   this.evolutionNodes=[];
-  for(const [index,item]of (this.row.possibleEvolution||[]).entries()){
+  for(const [index,item]of (this.admits('possibleEvolution')?this.row.possibleEvolution||[]:[]).entries()){
    const stage=this.stageShell('stage-'+index,index+1,'线索');
    const prose=this.fieldNode('possibleEvolution',item.text,stage,'思考线索 '+(index+1),'evolution-frame');this.evolutionNodes.push(prose);
    const host=element('div','evolution-excerpts');host.append(element('p','evolution-unavailable','正在读取相关原话…'));stage.append(host);this.excerptHosts.set('stage-'+index,host);this.stages.append(stage);
@@ -40,30 +43,32 @@ export class AIReadingEditor {
   if(this.evolutionNodes.length){this.nodes.set('possibleEvolution',this.evolutionNodes);this.draft.possibleEvolution=this.values('possibleEvolution');}
   // Preserve older authored fields without presenting them as invented evolution stages.
   const legacy=element('details','ai-legacy');legacy.append(element('summary','','其他已保存的整理'));
-  for(const [field,label]of Object.entries(labels)){if(!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);}
+  for(const [field,label]of Object.entries(labels)){if(!this.admits(field)||!this.row[field]?.length)continue;const section=element('section','ai-reading-section');section.append(element('h2','',label));const nodes=this.row[field].map(value=>this.fieldNode(field,value.text,section,label,'entry-prose'));this.nodes.set(field,nodes);this.draft[field]=this.values(field);legacy.append(section);}
   if(legacy.children.length>1)root.append(legacy);
   }
   root.addEventListener('keydown',e=>{if(e.target.closest('[data-entry-field]'))return;if((e.metaKey||e.ctrlKey)&&!e.altKey&&['z','y'].includes(e.key.toLowerCase())){e.preventDefault();void this.history(e.shiftKey||e.key.toLowerCase()==='y');}},{signal:this.controller.signal});
   const resume=()=>this.resumeDeferredReading();
   document.addEventListener('selectionchange',resume,{signal:this.controller.signal});
   root.addEventListener('compositionend',()=>queueMicrotask(resume),{signal:this.controller.signal});
-  this.ready=this.refreshEvidence();this.recoveryReady=this.restoreRecovery();
+  this.ready=this.refreshEvidence();this.recoveryReady=this.restoreRecovery().finally(()=>{this.recoveryChecked=true;if(this.admittedFields!==null)for(const nodes of this.nodes.values())for(const node of nodes)node.contentEditable=this.recoveryForeign?'false':'plaintext-only';});
  }
  readingReflowBlocked(){const selection=this.root.ownerDocument?.getSelection?.()||document.getSelection?.();return this.composing||!!(selection&&!selection.isCollapsed&&selection.rangeCount&&(this.root.contains(selection.anchorNode)||this.root.contains(selection.focusNode)));}
  deferReadingRefresh(refresh){this.deferredReadingRefresh=refresh;}
  resumeDeferredReading(){if(this.disposed||this.readingReflowBlocked())return;const refresh=this.deferredReadingRefresh,evidence=this.deferredEvidenceRefresh;this.deferredReadingRefresh=null;this.deferredEvidenceRefresh=null;if(evidence)void Promise.resolve(evidence()).then(()=>{if(!this.disposed)refresh?.();});else if(refresh)void refresh();}
+ admits(field){return this.admittedFields==null||this.admittedFields.has(field);}
+ readingProjection(){return {...this.row,possibleEvolution:this.admits('possibleEvolution')?this.row.possibleEvolution:[],evidenceEntryIds:this.sectionEvidence?[...this.sectionEvidence]:(this.row.evidenceEntryIds||[])};}
  fieldNode(field,text,host,label,className){
-  const prose=element('div',className,text||'');prose.contentEditable='plaintext-only';prose.setAttribute('aria-label',this.fieldsOnly?tc(label):label);if(this.fieldsOnly)prose.dataset.aiProductAria=label;prose.dataset.aiField=field;
+  const prose=element('div',className,text||'');prose.contentEditable=this.recoveryChecked?'plaintext-only':'false';prose.setAttribute('aria-label',this.fieldsOnly?tc(label):label);if(this.fieldsOnly)prose.dataset.aiProductAria=label;prose.dataset.aiField=field;
   const options={signal:this.controller.signal};
   prose.addEventListener('compositionstart',()=>{this.composing=true;this.autosave.cancel();},options);
   prose.addEventListener('compositionend',()=>{this.composing=false;this.schedule();},options);
   prose.addEventListener('input',()=>{if(!this.composing)this.schedule();},options);
   prose.addEventListener('blur',()=>{if(!this.composing)void this.flush();},options);host.append(prose);return prose;
  }
- field(field,text,host,label,className){if(!text?.trim())return;const prose=this.fieldNode(field,text,host,label,className);this.nodes.set(field,[prose]);this.draft[field]=this.values(field);}
+ field(field,text,host,label,className){if(!this.admits(field)||!text?.trim())return;const prose=this.fieldNode(field,text,host,label,className);this.nodes.set(field,[prose]);this.draft[field]=this.values(field);}
  stageShell(key,index,kind='线索'){const stage=element('section','ai-reading-section evolution-stage');stage.dataset.stageKey=key;stage.dataset.readingKind=kind==='原话'?'original':'line';stage.id='evolution-'+key;stage.append(element('h2','',kind+' '+String(index).padStart(2,'0')),element('p','evolution-date',''));return stage;}
  async refreshEvidence(){
-  const epoch=++this.evidenceEpoch,ids=evolutionEntryIds(this.row),rows=[],unavailable=[];
+  const epoch=++this.evidenceEpoch,ids=evolutionEntryIds(this.readingProjection()).filter(id=>!this.sectionEvidence||this.sectionEvidence.has(id)),rows=[],unavailable=[];
   for(let offset=0;offset<ids.length;offset+=8){
    const batch=await Promise.all(ids.slice(offset,offset+8).map(async id=>({id,...await boundedLocalRead(()=>request('GET_LIBRARY_ENTRY',{id}))})));
    if(this.disposed||epoch!==this.evidenceEpoch)return;
@@ -86,7 +91,7 @@ export class AIReadingEditor {
    this.evidenceRows=new Map(rows.filter(usableEvolutionEntry).map(e=>[e.id,e]));return;
   }
   this.evidenceRows=new Map(rows.filter(usableEvolutionEntry).map(e=>[e.id,e]));
-  const plan=evolutionPlan(this.row,rows);
+  const plan=evolutionPlan(this.readingProjection(),rows);
   if(!plan.inferred)this.stages.replaceChildren();
   for(const [i,stage]of plan.stages.entries()){
    let shell=[...this.stages.children].find(n=>n.dataset.stageKey===stage.key);
@@ -111,7 +116,7 @@ export class AIReadingEditor {
   else host.append(element('p','evolution-unavailable','这里没有可独立展开的原话，或原话已在前面的线索中出现。'));
  }
  installRail(){
-  this.observer?.disconnect();this.rail.replaceChildren();const stages=[...this.stages.querySelectorAll('.evolution-stage')],savedLines=(this.row.possibleEvolution||[]).length;this.rail.hidden=stages.length<2||savedLines<2;if(this.rail.hidden)return;
+  this.observer?.disconnect();this.rail.replaceChildren();const stages=[...this.stages.querySelectorAll('.evolution-stage')],savedLines=(this.admits('possibleEvolution')?this.row.possibleEvolution||[]:[]).length;this.rail.hidden=stages.length<2||savedLines<2;if(this.rail.hidden)return;
   const label=element('strong','','定位线索'),range=element('input');range.type='range';range.min='1';range.max=String(stages.length);range.step='1';range.value='1';range.setAttribute('aria-label','拖动定位思考线索');this.rail.append(label,range);
   const go=(i,smooth=true)=>{stages[i]?.scrollIntoView({block:'start',behavior:smooth&&!matchMedia('(prefers-reduced-motion: reduce)').matches?'smooth':'instant'});range.value=String(i+1);range.setAttribute('aria-valuetext','线索 '+(i+1)+'，共 '+stages.length+' 条');};
   range.addEventListener('input',()=>go(Number(range.value)-1,false),{signal:this.controller.signal});
@@ -133,10 +138,10 @@ export class AIReadingEditor {
   return array?nodes.map((node,index)=>({...this.row[field][index],text:value(node,index)})):value(nodes[0],0);
  }
  dirty(){return this.composing||this.excerptEditors.some(e=>e.dirty())||[...this.nodes.keys()].some(k=>JSON.stringify(this.values(k))!==JSON.stringify(this.row[k]));}
- schedule(){if(this.disposed)return;this.collect();this.failed=false;this.onStatus('正在保存…');this.autosave.schedule();void this.protectRecovery();}
+ schedule(){if(this.disposed||this.admittedFields!=null&&!this.recoveryChecked)return;this.collect();this.failed=false;this.onStatus('正在保存…');this.autosave.schedule();void this.protectRecovery();}
  recoverySnapshot(){const values={};for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)!==JSON.stringify(this.row[field]))values[field]=value;}if(!Object.keys(values).length)return null;return {type:'AI_RECOVERY_SNAPSHOT',topicId:this.row.topicId,generation:this.row.recoveryGeneration||'legacy',baseRevision:this.row.revision,values};}
- async protectRecovery(){const operation=this.recoverySnapshot();if(!operation){const token=this.recoveryLast?.token;if(token)void this.recovery.clear(token);this.recoveryLast=null;return true;}const signature=JSON.stringify(operation);if(!this.recoveryLast||this.recoveryLast.signature!==signature)this.recoveryLast={signature,token:crypto.randomUUID()};try{await this.recovery.protect(operation,this.recoveryLast.token);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}}
- async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{return false;}if(!draft)return false;const operation=draft.operation;if(operation?.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==this.row.topicId||!operation.values||typeof operation.values!=='object'){await this.recovery.clear(draft.token).catch(()=>{});return false;}const entries=Object.entries(operation.values).filter(([field])=>this.nodes.has(field));if(!entries.length){await this.recovery.clear(draft.token).catch(()=>{});return false;}if(entries.every(([field,value])=>JSON.stringify(this.row[field])===JSON.stringify(value))){await this.recovery.clear(draft.token).catch(()=>{});return false;}for(const [field,value]of entries){this.nodes.get(field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i]?.text||'':value);this.draft[field]=structuredClone(value);}if(this.row.revision!==operation.baseRevision){this.conflicted=true;this.onStatus('检测到上次未完成的 AI 整理人工修改，但已保存版本同时变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}this.recoveryLast={signature:JSON.stringify(operation),token:draft.token};this.onStatus('正在恢复上次未完成的修改…');this.failed=false;return this.flush();}
+ async protectRecovery(){if(this.recoveryForeign)return false;const operation=this.recoverySnapshot();if(!operation){const token=this.recoveryLast?.token;if(token)void this.recovery.clear(token);this.recoveryLast=null;return true;}const signature=JSON.stringify(operation);if(!this.recoveryLast||this.recoveryLast.signature!==signature)this.recoveryLast={signature,token:crypto.randomUUID()};try{await this.recovery.protect(operation,this.recoveryLast.token);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}}
+ async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{if(this.admittedFields!=null){this.recoveryForeign=true;this.conflicted=true;this.onStatus('恢复草稿暂时无法核对，已有内容仍保留，请稍后重新读取再编辑。','error');}return false;}if(!draft)return false;const operation=draft.operation;if(operation?.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==this.row.topicId||!operation.values||typeof operation.values!=='object'){await this.recovery.clear(draft.token).catch(()=>{});return false;}const entries=Object.entries(operation.values).filter(([field])=>this.nodes.has(field));if(this.admittedFields!=null&&Object.entries(operation.values).some(([field,value])=>!this.nodes.has(field)&&JSON.stringify(this.row[field])!==JSON.stringify(value))){this.recoveryForeign=true;this.conflicted=true;this.onStatus('另一个阅读范围仍有未保存的 AI 整理修改。已保留原草稿，请返回对应范围处理后再编辑。','conflict');return false;}if(!entries.length){await this.recovery.clear(draft.token).catch(()=>{});return false;}if(entries.every(([field,value])=>JSON.stringify(this.row[field])===JSON.stringify(value))){await this.recovery.clear(draft.token).catch(()=>{});return false;}for(const [field,value]of entries){this.nodes.get(field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i]?.text||'':value);this.draft[field]=structuredClone(value);}if(this.row.revision!==operation.baseRevision){this.conflicted=true;this.onStatus('检测到上次未完成的 AI 整理人工修改，但已保存版本同时变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}this.recoveryLast={signature:JSON.stringify(operation),token:draft.token};this.onStatus('正在恢复上次未完成的修改…');this.failed=false;return this.flush();}
  get recoveryPending(){return !!this.recovery?.pending||this.excerptEditors.some(e=>e.recoveryPending);}
  async flush(){this.autosave.cancel();if(this.composing||this.disposed)return false;for(const editor of this.excerptEditors){editor.collect();if(!await editor.flush()&&editor.dirty())return false;}if(this.composing||this.disposed||this.conflicted)return false;if(this.pending){await this.pending;return this.dirty()?this.flush():true;}if(this.failed)return false;await this.protectRecovery();this.pending=(async()=>{for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)===JSON.stringify(this.row[field]))continue;try{const r=await request('EDIT_AI_PRESENTATION',{edit:this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision})});this.row[field]=value;this.row.revision=r.revision;this.onStatus('已保存 · 此字段由你维护');await this.protectRecovery();}catch(e){this.failed=true;this.conflicted=e.code==='STALE_BASE';this.onStatus(this.conflicted?'此字段已有较新的版本，当前草稿仍在页面。请重新读取已保存版本，或保留草稿后再编辑。':this.recoveryFailed?'AI整理修改尚未保存，恢复草稿也未能写入。请保持此页打开并复制或重试。':'AI整理修改尚未保存，恢复草稿已保存在本机。请重试本地保存，不会调用 AI。',this.conflicted?'conflict':'error');return false;}}return true;})();let ok;try{ok=await this.pending;}finally{this.pending=null;}return ok&&this.dirty()?this.flush():ok;}
  get composing(){return !!this.ownComposing||this.excerptEditors.some(e=>e.surface?.composing);}

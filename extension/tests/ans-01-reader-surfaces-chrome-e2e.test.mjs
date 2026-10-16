@@ -33,6 +33,8 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
     const p=h.archive;
     await consent(p);
     await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
+    assert.equal((await rpc(p,'GET_ORGANIZER_CONTROLS')).inputReadingSort,'desc','fresh annual reading starts latest first');
+    await rpc(p,'SET_ORGANIZER_CONTROLS',{changes:{inputReadingSort:'asc'}});
     await h.open({
       id:'ans01-reader-chat',
       title:'ANS-01 Reader',
@@ -103,7 +105,12 @@ test('ANS-01 Reader surfaces stay quiet while order, time, reuse and failure rec
       return controls.inputReadingSort==='desc'&&await toggle.getAttribute('data-current-sort')==='desc';
     },'single toggle persists desc');
     assert.equal(await toggle.getAttribute('aria-pressed'),'true');
-    assert.deepEqual(await p.evaluate(()=>({sort:history.state?.paiaReader?.sort,anchorSort:history.state?.paiaReader?.anchor?.sort})),{sort:'desc',anchorSort:'desc'},'sort route keeps the captured reading anchor on the exact next order');
+    // YEAR-HARMONY section2.4 makes an explicit order change start at
+    // the opposite endpoint; the old ascending anchor is not carried over.
+    await eventually(()=>p.evaluate(()=>history.state?.paiaReader?.sort==='desc'&&scrollY===0&&document.querySelector('.library-prose')?.textContent.includes('ANS01_THIRD')),'descending route reaches its actual latest endpoint');
+    const descendingRoute=await p.evaluate(()=>({sort:history.state?.paiaReader?.sort,anchor:history.state?.paiaReader?.anchor||null,firstId:document.querySelector('.library-block')?.dataset.blockId}));
+    assert.equal(descendingRoute.sort,'desc');
+    if(descendingRoute.anchor){assert.equal(descendingRoute.anchor.sort,'desc');assert.equal(descendingRoute.anchor.inputId,descendingRoute.firstId,'a later native checkpoint describes the new endpoint, never the old ascending anchor');}
     const descBodies=await p.locator('.library-prose').allTextContents();
     assert.equal(descBodies[0].includes('ANS01_THIRD'),true,'descending Reader places latest Input first');
 
@@ -194,7 +201,7 @@ test('ANS-01 Topic menus keep small and 201-item libraries intact with every Tra
     await p.locator('#primary-nav [data-view="memory"]').click();
     await eventually(()=>p.locator('#thought-panel').isHidden(),'actual Context visit leaves Topic Reader');
     await p.goBack();
-    await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#topic-search').isEnabled(),'return from Context to the preserved Topic Reader');
+    await eventually(async()=>await p.locator('#topic-menu summary').isVisible()&&await p.locator('#original-reading-body [data-entry-id]').count()>0,'return from Context to the preserved Topic Reader');
     assert.equal(await p.evaluate(()=>history.state?.paiaReader?.topicId),retainedTopic,'Back restores the exact same Topic');
     await p.locator('#back').click();
     await eventually(()=>p.locator('.personal-topic-link[data-topic-id]').filter({hasText:'ANS01 大主题'}).isVisible(),'Thought home returns');

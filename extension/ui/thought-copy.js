@@ -158,7 +158,7 @@ const english={
  '恢复尚未完成，请重试。':'Restore did not finish. Try again.',
  '我的主题':'My topics','思想库更多':'Thought Library options','添加主题':'Add topic','列表 / 网格':'List / grid','整理新增内容':'Organize new content',
  '把已有内容归成主题':'Organize existing content into topics','先留下几段表达，主题可以慢慢形成。':'Start with a few expressions. Topics can form over time.',
- '单独写下的想法':'Thoughts without a topic','布局尚未保存，已保留原值。':'Layout was not saved. The previous layout is kept.',
+ '写下想法':'Write a thought','单独写下的想法':'Thoughts without a topic','布局尚未保存，已保留原值。':'Layout was not saved. The previous layout is kept.',
  '同时修改档案中的对应完整内容':'Also edit the matching whole input in the archive',
  '仅对仍与档案完整对应的内容生效；已改写、选段和 AI 稿不反向修改。':'Only applies to whole inputs still being followed. Independent edits, excerpts and AI drafts do not write back.',
  '去档案留下表达':'Open Archive','同时修改档案':'Also editing the archive',

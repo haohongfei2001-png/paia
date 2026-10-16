@@ -36,7 +36,7 @@ test('header menu retains history, removal and search while export handlers are 
  const header=source.slice(source.indexOf('function openDocumentMenu()'),source.indexOf('async function openSourceRecord('));
  assert.match(header,/文档版本历史/);assert.match(header,/会话收录设置/);assert.doesNotMatch(header,/从档案移除|永久删除|copyReadingText|addInputToTopic/);
  assert.match(source,/add\('从档案移除'|view==='excluded'\?'恢复显示':'从档案移除'/);assert.doesNotMatch(source,/menuId\|\|row\.dataset\.itemId/);
- assert.match(source,/smartFilter.changed\(\);invalidateDocumentSearch\(\)/);assert.doesNotMatch(source,/archiveExportBusy|重试导出|readSourceExport|exportJSON|exportMarkdown/);
+ assert.match(source,/smartFilter.changed\(\)/);assert.match(source,/if\(navigatorInvalidationMessage\(m\)\)archiveNavigator.invalidate\(\)/,'original discovery invalidates through its existing message owner after Reader Find retirement');assert.doesNotMatch(source,/archiveExportBusy|重试导出|readSourceExport|exportJSON|exportMarkdown/);
 });
 
 

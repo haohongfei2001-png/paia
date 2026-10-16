@@ -42,8 +42,8 @@ const family=(i,text='explain sorting')=>({id:'pf:'+i.toString(16).padStart(64,'
 for(const [name,families,available] of [
  ['full bound',Array.from({length:64},(_,i)=>family(i)),true],
  ['too many',Array.from({length:65},(_,i)=>family(i)),false],
- ['long text',[family(0,'a'.repeat(2049))],false],
- ['byte total',Array.from({length:12},(_,i)=>family(i,'文'.repeat(2048))),false]
+ ['long text',[family(0,'a'+'\u0301'.repeat(2048))],false],
+ ['byte total',Array.from({length:17},(_,i)=>family(i,('文'+'\u0301'.repeat(12)).repeat(150))),false]
 ])test('view bound '+name+' never truncates',async()=>{const v=new NextFamilyView(()=>10);v.publish(v.begin(),{families,generation:1});const result=await v.read(async()=>{});assert.equal(result.available,available);if(available)assert.equal(result.items.length,64);});
 test('generation rejection or expiry during qualification clears old view',async()=>{
  let now=1;const v=new NextFamilyView(()=>now);v.publish(v.begin(),{families:[family(1)],generation:1});assert.equal((await v.read(async()=>{throw Error('stale');})).available,false);
@@ -59,4 +59,8 @@ test('older successful query cannot replace newer projection and hidden explicit
 test('unavailable generation read refuses cached bytes; successful query cannot make a restart warm',async()=>{
  const f=await fixture();await f.service.query();assert.equal((await new PromptReuseService(f.s).nextFamilyView()).available,false);
  f.service.assertCurrent=async()=>{throw Error('synthetic unavailable storage');};assert.equal((await f.service.nextFamilyView()).available,false);
+});
+
+test('oversized historical Family bodies are withheld only from quick projection without truncation',async()=>{
+ const view=new NextFamilyView(()=>10),text='a'.repeat(151);view.publish(view.begin(),{families:[family(1,text),family(2,'explain sorting')],generation:1});const result=await view.read(async()=>{});assert.equal(result.available,true);assert.deepEqual(result.items.map(row=>row.text),['explain sorting']);assert.equal(text.length,151);
 });

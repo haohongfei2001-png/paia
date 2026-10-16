@@ -6,7 +6,7 @@ const KEY='promptSurfaceV1',site=url=>{try{return new URL(url).origin==='https:/
 // The sole optional v1 field fences device-local position resets. Absence is
 // legacy generation zero; unknown fields/versions are never coerced or replaced.
 const generation=v=>v.positionGeneration??0;
-export const validSurface=v=>own(v,['version','open','position','positionGeneration'])&&v.version===1&&typeof v.open==='boolean'&&(v.positionGeneration===undefined||Number.isSafeInteger(v.positionGeneration)&&v.positionGeneration>=0)&&(v.position===null||own(v.position,['x','y'])&&['x','y'].every(k=>Number.isFinite(v.position[k])&&v.position[k]>=0&&v.position[k]<=1));
+export const validSurface=v=>own(v,['version','open','position','positionGeneration','collapsedForm'])&&v.version===1&&typeof v.open==='boolean'&&(v.collapsedForm===undefined||['orb','capsule'].includes(v.collapsedForm))&&(v.positionGeneration===undefined||Number.isSafeInteger(v.positionGeneration)&&v.positionGeneration>=0)&&(v.position===null||own(v.position,['x','y'])&&['x','y'].every(k=>Number.isFinite(v.position[k])&&v.position[k]>=0&&v.position[k]<=1));
 export class PromptSurfaceCommands{
  constructor(commands,api,{openArchiveArrival=null}={}){this.openArchiveArrival=openArchiveArrival;this.commands=commands;this.api=api;this.frames=new Map();this.candidates=new Map();this.geometryQueue=Promise.resolve();}
  removeTab(tabId){this.frames.delete(tabId);this.candidates.delete(tabId);}
@@ -41,7 +41,11 @@ export class PromptSurfaceCommands{
    if(state===undefined){const displayPreferences=await this.readDisplayPreferences();await this.consent();return {...saved,displayPreferences};}
    // No stale open/position write, including old content scripts after restart.
    if(generation(state)!==generation(saved))throw new ArchiveError('STALE_BASE');
-   await this.api.storage.local.set({[KEY]:state});return state;
+   // Only the authenticated private form command changes the collapsed form.
+   // Late legacy geometry writes cannot reset that independent preference.
+   const next={...state,...(saved.collapsedForm?{collapsedForm:saved.collapsedForm}:{})};
+   if(!saved.collapsedForm)delete next.collapsedForm;
+   await this.api.storage.local.set({[KEY]:next});return next;
   });
  }
  async settings(r,sender){
@@ -102,6 +106,12 @@ export class PromptSurfaceCommands{
   this.frames.set(tab.id,{id:sender.frameId,nonce:r.nonce});
   const c=r.command;if(!c||typeof c.type!=='string')fail();
   if(['next_available','next_reopen'].includes(c.type))return this.next.card(c,tab);
+  if(c.type==='surface_form'){
+   if(!own(c,['type','form'])||Object.keys(c).length!==2||!['orb','capsule','board'].includes(c.form))fail();
+   if(c.form!=='board')await this.geometry(async()=>{await this.consent();const saved=await this.readGeometry();await this.consent();await api.storage.local.set({[KEY]:{...saved,collapsedForm:c.form}});});
+   await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_FORM',nonce:r.nonce,form:c.form},{frameId:0});return {form:c.form};
+  }
+
   if(['history_candidates_status','history_candidates_refresh','history_candidates_adopt'].includes(c.type)){
    const fields=c.type==='history_candidates_refresh'?['type','query']:['type'];
    if(!own(c,fields)||Object.keys(c).length!==fields.length||typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
@@ -140,11 +150,12 @@ export class PromptSurfaceCommands{
   if(c.type==='members'&&own(c,['type','id']))return this.commands.service.members(c.id);
   if(!['PAIA_PROMPT_QUERY','PAIA_PROMPT_CHANGE','PAIA_PROMPT_COPY_TEXT','PAIA_PROMPT_INSERT','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_HISTORY_SAVE','PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_SELECTION_INSERT'].includes(c.type))fail();
   if(c.type==='PAIA_PROMPT_INSERT'||c.type==='PAIA_PROMPT_SELECTION_INSERT'){
-   if(!own(c,c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId']:['type','ref','range','operationId','target']))fail();
-   if(c.type==='PAIA_PROMPT_SELECTION_INSERT'){const target=c.target;if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||!target||!own(target,['url','documentId','nonce'])||Object.keys(target).length!==3||target.url!==tab.url||target.documentId!==sender.documentId||target.nonce!==r.nonce)fail();const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};return this.commands.dispatch({type:c.type,ref:c.ref,range:c.range,operationId:c.operationId,tabId:tab.id,url:tab.url},{assertTarget:()=>this.currentSelectionTarget(source),targetIdentity:source});}
+   if(!own(c,c.type==='PAIA_PROMPT_INSERT'?['type','id','text','operationId']:['type','ref','range','operationId','target','activationKey']))fail();
+   if(Object.hasOwn(c,'activationKey')&&!['Enter',' '].includes(c.activationKey))fail();
+   if(c.type==='PAIA_PROMPT_SELECTION_INSERT'){const target=c.target;if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active'||!target||!own(target,['url','documentId','nonce'])||Object.keys(target).length!==3||target.url!==tab.url||target.documentId!==sender.documentId||target.nonce!==r.nonce)fail();const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};return this.commands.dispatch({type:c.type,ref:c.ref,range:c.range,operationId:c.operationId,tabId:tab.id,url:tab.url,...(c.activationKey?{activationKey:c.activationKey}:{})},{assertTarget:()=>this.currentSelectionTarget(source),targetIdentity:source});}
    return this.commands.dispatch({...c,tabId:tab.id,url:tab.url});
   }
-  const reading=['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY'].includes(c.type);
+  const reading=['PAIA_PROMPT_SELECTION_READ','PAIA_PROMPT_HISTORY_QUERY','PAIA_PROMPT_QUERY'].includes(c.type);
   const readSource=reading?{tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url}:null;
   if(reading)await this.currentReadTarget(readSource);
   const result=await this.commands.dispatch(c);
@@ -155,6 +166,7 @@ export class PromptSurfaceCommands{
    // The asynchronous host check can outlive a real Working edit. Re-read the
    // original domain owner before delivering the already-read body.
    if(c.type==='PAIA_PROMPT_SELECTION_READ')await this.commands.service.assertSelectionCurrent(result);
+   else if(c.type==='PAIA_PROMPT_QUERY')await this.commands.service.assertCurrent(result.generation);
    else if(result.searchSnapshot&&!result.changed)await this.commands.service.assertCurrent(result.searchSnapshot.generation);
   }
   if(['PAIA_PROMPT_CHANGE','PAIA_PROMPT_HISTORY_SAVE'].includes(c.type))void api.runtime.sendMessage({type:'PAIA_PROMPT_CHANGED'}).catch(()=>{});
@@ -164,7 +176,8 @@ export class PromptSurfaceCommands{
   // Read only the two bounded display choices through the existing owner. No
   // settings body, control capability or alternate persistence is exposed.
   const displayPreferences=await this.readDisplayPreferences();
-  return {...result,theme:host.dark?'dark':'light',displayPreferences};
+  await this.currentReadTarget(readSource);await this.commands.service.assertCurrent(result.generation);
+  return {...result,target:{url:tab.url,documentId:sender.documentId,nonce:r.nonce},theme:host.dark?'dark':'light',displayPreferences,surfaceForm:host.expanded===false?'capsule':'board'};
  }
  async currentReadTarget(source){
   const fail=()=>{throw new ArchiveError('FORBIDDEN');},api=this.api;

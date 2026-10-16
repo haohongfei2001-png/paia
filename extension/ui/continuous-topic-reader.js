@@ -1,7 +1,7 @@
 const itemKey=item=>item?.entry?.id||item?.id||null;
 const pick=(row,fields)=>Object.fromEntries(fields.filter(key=>row?.[key]!==undefined).map(key=>[key,row[key]]));
 const identity=item=>({entry:{id:itemKey(item),...pick(item?.entry,['revision','contentRevision','bodyBinding','workingInputId','bindingRevision','currentInputRevision']),...(item?.entry?.fieldRevisions?{fieldRevisions:pick(item.entry.fieldRevisions,['body'])}:{})},...(item?.placement?{placement:pick(item.placement,['id','topicId','sectionId','layoutGeneration','revision','rank','sectionRank'])}:{})});
-const reference=item=>({...identity(item),...(item?.expanded===true?{expanded:true,...(Number.isFinite(item.height)&&item.height>0&&item.height<10000000?{height:item.height}:{})}:{}),unloaded:true});
+const reference=item=>({...identity(item),...(item?.expanded===true?{expanded:true,...(Number.isFinite(item.height)&&item.height>0&&item.height<10000000?{height:item.height}:{})}:{}),...(item?.readingYear!==undefined?{readingYear:item.readingYear}:{}),unloaded:true});
 const sameReference=(old,item)=>JSON.stringify(identity(old))===JSON.stringify(identity(item));
 const sectionReference=row=>pick(row,['sectionId','topicId','layoutGeneration','revision','isDefault','named','title','rank','titleProtected','orderProtected','sourceUnavailable','lifecycle','redirectTo']);
 const clone=value=>value===undefined?undefined:structuredClone(value);
@@ -19,16 +19,18 @@ export class ContinuousTopicReader{
   if(typeof load!=='function'||loadEntry!==null&&typeof loadEntry!=='function'||!Number.isInteger(chunk)||chunk<1||chunk>40||!Number.isInteger(windowChunks)||windowChunks<1||windowChunks>5||!Number.isInteger(maxEmptyLoads)||maxEmptyLoads<1||maxEmptyLoads>100||!Number.isInteger(maxReferences)||maxReferences<chunk*windowChunks||maxReferences>20000)throw new TypeError('INVALID_TOPIC_READER');
   this.load=load;this.loadEntry=loadEntry;this.pins=pins;this.maxReferences=maxReferences;this.chunk=chunk;this.windowSize=chunk*windowChunks;this.maxEmptyLoads=maxEmptyLoads;this.defaultHeight=estimatedHeight;this.measurements=new Map();this.averageHeight=estimatedHeight;this.serial=0;this.reset({});
  }
- reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null,timeEdge=null}={}){
-  this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;this.timeEdge=timeEdge;
-  this.measurements.clear();this.items=[];this.index=new Map();this.bodyRevision=0;this.protectionBlocked=false;this.hydrating=false;this.hydrationPromise=null;this.hydrationError=null;this.windowRevision=0;this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
+ reset({topicId=null,sort='asc',query='',anchorId=null,sectionId=null,scopeSectionId=null,chronology=null,year=null,timeEdge=null}={}){
+  this.serial++;this.topicId=topicId;this.sort=sort;this.query=query;this.anchorId=anchorId;this.sectionId=sectionId;this.scopeSectionId=scopeSectionId;this.chronology=chronology;this.requestYear=year;this.nextRequestYear=year;this.previousRequestYear=year;this.openedYears=[];this.currentYear=null;this.nextYear=null;this.timeEdge=timeEdge;
+  this.preparations=new Map();this.measurements.clear();this.items=[];this.index=new Map();this.bodyRevision=0;this.protectionBlocked=false;this.hydrating=false;this.hydrationPromise=null;this.hydrationError=null;this.windowRevision=0;this.nextCursor=null;this.previousCursor=null;this.coverage=null;this.pageMeta=null;this.sections=new Map();this.sectionCursor=null;
   this.frontiers=[];this.boundsBlocked=false;this.recoveryEpoch=null;this.pendingSectionAnchor=null;this.sectionRestoreAnchor=null;this.sectionRestoreRequested=false;this.sectionAnchorRestored=false;this.sectionRestoreRefused=false;this.windowStart=0;this.initialized=false;this.indexing=false;this.continuationNext=false;this.continuationPrevious=false;this.loadingNext=false;this.loadingPrevious=false;this.errorNext=null;this.errorPrevious=null;this.terminalNext=false;this.terminalPrevious=anchorId===null&&sectionId===null;this.stale=false;this.anchorUnavailable=false;return this.state();
  }
- matches({topicId,sort,query}){return this.topicId===topicId&&this.sort===sort&&this.query===query;}
+ matches({topicId,sort,query,scopeSectionId=null,chronology=null}){return this.topicId===topicId&&this.sort===sort&&this.query===query&&this.scopeSectionId===scopeSectionId&&this.chronology===chronology;}
  state(){return {
-  topicId:this.topicId,sort:this.sort,query:this.query,items:[...this.items],
+  topicId:this.topicId,sort:this.sort,query:this.query,scopeSectionId:this.scopeSectionId,chronology:this.chronology,year:this.currentYear??null,nextYear:this.nextYear,items:[...this.items],
   nextCursor:this.nextCursor,previousCursor:this.previousCursor,
-  terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,
+  // The raw cursor boundary is within one year; the UI describes the
+  // complete already-opened reading scope, including a pruned earlier year.
+  terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious&&!(this.chronology&&this.openedYears.indexOf(this.items[0]?.readingYear)>0),
   loadingNext:this.loadingNext,loadingPrevious:this.loadingPrevious,
   errorNext:this.errorNext||this.hydrationError,errorPrevious:this.errorPrevious,indexing:this.indexing,continuationNext:this.continuationNext,continuationPrevious:this.continuationPrevious,
   coverage:this.coverage,pageMeta:this.pageMeta,sectionCursor:this.sectionCursor,
@@ -36,15 +38,17 @@ export class ContinuousTopicReader{
  };}
  snapshot(anchor=null,sectionAnchor=null){
   const fallback=!anchor?.id&&!this.query?sectionAnchorRef(sectionAnchor):null;
-  return {topicId:this.topicId,sort:this.sort,query:this.query,anchor:entryAnchor(anchor),
+  return {topicId:this.topicId,sort:this.sort,query:this.query,scopeSectionId:this.scopeSectionId,...(this.chronology?{chronology:this.chronology,requestYear:this.requestYear,nextRequestYear:this.nextRequestYear,previousRequestYear:this.previousRequestYear,openedYears:[...this.openedYears],nextYear:this.nextYear}:{}),anchor:entryAnchor(anchor),
    sectionAnchor:fallback&&fallback.topicId===this.topicId&&fallback.recoveryEpoch===this.recoveryEpoch&&sameSection(this.sections.get(fallback.sectionId),fallback)?fallback:null,
    extent:this.items.map(reference),sections:[...this.sections.values()].map(sectionReference),recoveryEpoch:this.recoveryEpoch,frontiers:clone(this.frontiers),windowStart:this.windowStart,nextCursor:clone(this.nextCursor),previousCursor:clone(this.previousCursor),terminalNext:this.terminalNext,terminalPrevious:this.terminalPrevious,generation:this.coverage?.activeGeneration||null};
  }
  restore(saved){
   if(!saved||!this.matches(saved)||!Array.isArray(saved.extent)||saved.extent.length>this.maxReferences+this.chunk||!Array.isArray(saved.sections??[])||(saved.sections?.length||0)>this.maxReferences+100)return false;
+  if(this.scopeSectionId&&(saved.extent.some(item=>item.placement?.sectionId!==this.scopeSectionId)||(saved.sections||[]).some(row=>row.sectionId!==this.scopeSectionId)))return false;
   const sections=new Map((saved.sections||[]).map(row=>[row.sectionId,sectionReference(row)])),fallback=!saved.anchor?.id&&!this.anchorId&&!this.query?sectionAnchorRef(saved.sectionAnchor):null;
   const sectionAnchor=fallback&&fallback.topicId===this.topicId&&fallback.recoveryEpoch===saved.recoveryEpoch&&sameSection(sections.get(fallback.sectionId),fallback)?fallback:null;
   if(!saved.extent.length&&!sectionAnchor)return false;
+  if(this.chronology){if(!Array.isArray(saved.openedYears)||saved.openedYears.length>10001||saved.openedYears.some(year=>year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999)))return false;this.openedYears=[...saved.openedYears];this.requestYear=saved.requestYear??null;this.nextRequestYear=saved.nextRequestYear??null;this.previousRequestYear=saved.previousRequestYear??null;this.nextYear=saved.nextYear??null;}
   this.sections=sections;this.recoveryEpoch=saved.recoveryEpoch||null;this.frontiers=clone(saved.frontiers||[]);this.items=saved.extent.map(reference);this.index=new Map(this.items.map((item,i)=>[itemKey(item),i]));this.windowStart=clamp(saved.windowStart||0,0,Math.max(0,this.items.length-this.windowSize));
   for(const item of this.items)if(item.expanded&&item.height)this.measurements.set(itemKey(item),item.height);
   this.pendingSectionAnchor=sectionAnchor;this.sectionRestoreRequested=!!sectionAnchor;
@@ -61,6 +65,22 @@ export class ContinuousTopicReader{
   this.hydrationRevision=this.windowRevision;const run=this._hydrateWindow(serial,this.windowRevision);this.hydrationPromise=run;
   try{return await run;}finally{if(this.hydrationPromise===run)this.hydrationPromise=null;}
  }
+ async readPrepared(options,isCurrent){
+  const key=JSON.stringify(options),pending=this.preparations.get(key);
+  const continuation=(cursor,generation)=>({...options,anchorId:null,sectionId:null,cursor,expectedReadGeneration:generation||options.expectedReadGeneration});
+  let page=await this.load(pending?continuation(pending.cursor,pending.generation):options),seen=new Set();
+  for(let i=0;this.chronology&&page?.indexing&&!page.cursorInvalid;i++){
+   if(!isCurrent())return null;
+   const token=JSON.stringify(page.nextCursor);
+   if(!page.nextCursor||seen.has(token)){this.preparations.delete(key);throw Error('TOPIC_YEAR_PREPARATION_PENDING');}
+   seen.add(token);
+   this.preparations.delete(key);this.preparations.set(key,{cursor:clone(page.nextCursor),generation:page.coverage?.activeGeneration||options.expectedReadGeneration});
+   while(this.preparations.size>32)this.preparations.delete(this.preparations.keys().next().value);
+   if(i>=this.maxEmptyLoads)throw Error('TOPIC_YEAR_PREPARATION_PENDING');
+   page=await this.load(continuation(page.nextCursor,page.coverage?.activeGeneration));
+  }
+  this.preparations.delete(key);return page;
+ }
  async _hydrateWindow(serial,windowRevision){
   this.hydrating=true;
   try{
@@ -69,7 +89,7 @@ export class ContinuousTopicReader{
    for(let read=0;read<maxReads;read++){
     const indices=this.protectedWindow(this.pins()),missing=indices.find(i=>this.items[i]?.unloaded);
     if(missing===undefined){this.hydrationError=null;this.trimBodies();return true;}
-    const id=itemKey(this.items[missing]),page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,anchorId:id,cursor:null,direction:'next',expectedReadGeneration:this.coverage?.activeGeneration||null});
+    const id=itemKey(this.items[missing]),page=await this.readPrepared({topicId:this.topicId,sort:this.sort,query:this.query,scopeSectionId:this.scopeSectionId,...(this.chronology?{chronology:this.chronology,year:this.items[missing]?.readingYear??this.requestYear}:{}),anchorId:id,cursor:null,direction:'next',expectedReadGeneration:this.coverage?.activeGeneration||null},()=>serial===this.serial&&windowRevision===this.windowRevision);
     if(serial!==this.serial||windowRevision!==this.windowRevision)return false;
     if(this.invalidPage(page)||page?.indexing){this.invalidate(page);return false;}
     const rows=page.items||[],target=rows.find(item=>itemKey(item)===id);
@@ -79,7 +99,7 @@ export class ContinuousTopicReader{
     for(const item of rows){const at=this.index.get(itemKey(item));if(Number.isInteger(at)&&selected.has(at)&&this.items[at].unloaded){
      const expected=this.items[at];if(!sameReference(expected,item)){this.invalidate();return false;}
      const resolved=expected.expanded?await this.readExpandedEntry(item,expected,()=>serial===this.serial&&windowRevision===this.windowRevision):item;
-     if(serial!==this.serial||windowRevision!==this.windowRevision||!resolved)return false;this.items[at]=resolved;this.bodyRevision++;
+     if(serial!==this.serial||windowRevision!==this.windowRevision||!resolved)return false;this.items[at]={...resolved,...(expected.readingYear!==undefined?{readingYear:expected.readingYear}:{})};this.bodyRevision++;
     }}
     this.trimBodies();
    }
@@ -95,7 +115,7 @@ export class ContinuousTopicReader{
   const row=await this.loadEntry(id);if(!isCurrent())return null;
   // A full canonical body is admitted only after its original Section/query
   // generation and placement have been revalidated across the full-body await.
-  const page=await this.load({topicId:this.topicId,query:this.query,sort:this.sort,anchorId:id,cursor:null,direction:'next',limit:1,expectedReadGeneration:generation});
+  const page=await this.readPrepared({topicId:this.topicId,query:this.query,sort:this.sort,scopeSectionId:this.scopeSectionId,...(this.chronology?{chronology:this.chronology,year:expected.readingYear??this.requestYear}:{}),anchorId:id,cursor:null,direction:'next',limit:1,expectedReadGeneration:generation},isCurrent);
   if(!isCurrent())return null;
   if(this.invalidPage(page)||page.indexing){this.invalidate(page);return null;}
   const current=page.items?.find(item=>itemKey(item)===id);
@@ -103,7 +123,7 @@ export class ContinuousTopicReader{
    this.invalidate({anchorUnavailable:!current});return null;
   }
   this.readMeta(page);
-  return {...current,expanded:true,...(expected.height?{height:expected.height}:{}),entry:{...row,expressionTime:current.entry.expressionTime,timeBasis:current.entry.timeBasis,effectiveTime:current.entry.effectiveTime}};
+  return {...current,...(expected.readingYear!==undefined?{readingYear:expected.readingYear}:{}),expanded:true,...(expected.height?{height:expected.height}:{}),entry:{...row,expressionTime:current.entry.expressionTime,timeBasis:current.entry.timeBasis,effectiveTime:current.entry.effectiveTime}};
  }
  async expandEntry(item,{isCurrent=()=>true}={}){
   const serial=this.serial,id=itemKey(item),at=this.index.get(id),current=()=>serial===this.serial&&isCurrent();
@@ -115,7 +135,7 @@ export class ContinuousTopicReader{
 
  async hydrateSectionAnchor(serial,windowRevision){
   const anchor=this.pendingSectionAnchor,generation=this.coverage?.activeGeneration||null,current=()=>serial===this.serial&&windowRevision===this.windowRevision;
-  const read=expectedReadGeneration=>this.load({topicId:this.topicId,sort:this.sort,query:this.query,sectionId:anchor.sectionId,anchorId:null,cursor:null,direction:'next',expectedReadGeneration});
+  const read=expectedReadGeneration=>this.readPrepared({topicId:this.topicId,sort:this.sort,query:this.query,scopeSectionId:this.scopeSectionId,...(this.chronology?{chronology:this.chronology,year:this.requestYear}:{}),sectionId:anchor.sectionId,anchorId:null,cursor:null,direction:'next',expectedReadGeneration},current);
   let page=await read(generation);if(!current())return false;
   // Cursor/generation caches may expire while Settings is open. One fresh
   // exact-Section read can recover a still-identical reference; epoch, revision,
@@ -132,7 +152,7 @@ export class ContinuousTopicReader{
   // the Section's measured top restores the viewport without fake Entries.
   const pins=this.pins(),protectedRefs=this.items.filter(item=>pins.has(itemKey(item))).map(reference);
   this.items=protectedRefs;this.index=new Map(protectedRefs.map((item,i)=>[itemKey(item),i]));this.sections.clear();this.frontiers=[];this.measurements.clear();this.windowStart=0;
-  this.rememberFrontier(page,'next');this.readMeta(page);this.merge(page.items||[],'next');if(this.stale)return false;
+  this.rememberFrontier(page,'next');this.readMeta(page);if(this.chronology){this.currentYear=page.year??null;this.nextYear=page.nextYear??null;}this.merge((page.items||[]).map(item=>this.chronology?{...item,readingYear:page.year}:item),'next');if(this.stale)return false;
   this.nextCursor=page.nextCursor??null;this.previousCursor=page.previousCursor??null;this.terminalNext=!this.nextCursor;this.terminalPrevious=!this.previousCursor;
   this.pendingSectionAnchor=null;this.sectionRestoreAnchor=anchor;this.bodyRevision++;return true;
  }
@@ -141,16 +161,16 @@ export class ContinuousTopicReader{
   if(page?.unavailable||page?.unsupported)throw Error(page.reason||'TOPIC_READ_UNAVAILABLE');
   return page?.cursorInvalid||this.coverage?.activeGeneration&&page.coverage?.activeGeneration!==this.coverage.activeGeneration||this.recoveryEpoch&&page.recoveryEpoch!==this.recoveryEpoch;
  }
- invalidate(page={}){this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.sections.clear();this.frontiers=[];this.pageMeta=null;this.pendingSectionAnchor=null;this.sectionRestoreAnchor=null;}
+ invalidate(page={}){this.preparations.clear();this.stale=true;this.anchorUnavailable=page.anchorUnavailable===true;this.items=this.items.map(reference);this.sections.clear();this.frontiers=[];this.pageMeta=null;this.pendingSectionAnchor=null;this.sectionRestoreAnchor=null;}
  readMeta(page){const {items,tracked,...meta}=page||{};this.pageMeta=meta;this.addSections(page?.sections);this.coverage=page?.coverage||this.coverage;this.recoveryEpoch=page?.recoveryEpoch||this.recoveryEpoch;}
 
  // Opaque page frontiers permit a finite tab-local extent without losing the
  // ability to read backwards. No cursor is interpreted or written to storage.
- rememberFrontier(page,direction){
+ rememberFrontier(page,direction,requestYear=this.requestYear){
   const ids=(page.items||[]).map(itemKey),sections=(page.sections||[]).map(row=>row.sectionId);
   const fresh=ids.some(id=>!this.index.has(id))||sections.some(id=>!this.sections.has(id));
-  if(fresh){const point={ids,sections,before:clone(page.previousCursor),after:clone(page.nextCursor)};if(direction==='previous')this.frontiers.unshift(point);else this.frontiers.push(point);}
-  else if(this.frontiers.length){if(direction==='previous')this.frontiers[0].before=clone(page.previousCursor);else this.frontiers.at(-1).after=clone(page.nextCursor);}
+  if(fresh){const point={ids,sections,before:clone(page.previousCursor),after:clone(page.nextCursor),requestYear,year:page.year??null,nextYear:page.nextYear??null};if(direction==='previous')this.frontiers.unshift(point);else this.frontiers.push(point);}
+  else if(this.frontiers.length){if(direction==='previous')this.frontiers[0].before=clone(page.previousCursor);else {this.frontiers.at(-1).after=clone(page.nextCursor);this.frontiers.at(-1).nextYear=page.nextYear??null;}}
  }
  pruneExtent(direction='next'){
   this.boundsBlocked=false;
@@ -168,8 +188,8 @@ export class ContinuousTopicReader{
    this.windowStart=this.index.get(windowId)??0;
    const keptSections=new Set([...rest.flatMap(value=>value.sections),...this.items.map(item=>item.placement?.sectionId)]);
    for(const id of this.sections.keys())if(!keptSections.has(id))this.sections.delete(id);
-   if(previous){this.nextCursor=clone(rest.at(-1).after);this.terminalNext=!this.nextCursor;}
-   else{this.previousCursor=clone(rest[0].before);this.terminalPrevious=!this.previousCursor;}
+   if(previous){this.nextCursor=clone(rest.at(-1).after);this.nextRequestYear=rest.at(-1).requestYear??null;this.terminalNext=!this.nextCursor;this.nextYear=rest.at(-1).nextYear??null;}
+   else{this.previousCursor=clone(rest[0].before);this.previousRequestYear=rest[0].requestYear??null;this.terminalPrevious=!this.previousCursor;}
    for(const id of this.measurements.keys())if(!this.index.has(id))this.measurements.delete(id);
    this.windowRevision++;
   }
@@ -190,12 +210,26 @@ export class ContinuousTopicReader{
   return this._load('initial');
  }
  async next(){
-  if(this.loadingNext||this.terminalNext)return this.state();
+  if(this.loadingNext)return this.state();
+  if(this.terminalNext)return this.nextYear!==null&&this.openedYears.includes(this.nextYear)?this.openNextYear():this.state();
   return this._load('next');
  }
  async previous(){
-  if(this.loadingPrevious||this.terminalPrevious)return this.state();
+  if(this.loadingPrevious)return this.state();
+  if(this.terminalPrevious){const at=this.openedYears.indexOf(this.items[0]?.readingYear);return this.chronology&&at>0?this.openYear(this.openedYears[at-1],'previous'):this.state();}
   return this._load('previous');
+ }
+ async openNextYear(){
+  if(!this.chronology||!this.terminalNext||this.loadingNext||this.loadingPrevious||this.nextYear===null)return this.state();
+  return this.openYear(this.nextYear,'next');
+ }
+ async openYear(year,direction){
+  const previous=direction==='previous',requestKey=previous?'previousRequestYear':'nextRequestYear',cursorKey=previous?'previousCursor':'nextCursor',terminalKey=previous?'terminalPrevious':'terminalNext';
+  const prior={requestYear:this.requestYear,[requestKey]:this[requestKey],[cursorKey]:this[cursorKey],[terminalKey]:this[terminalKey],nextYear:this.nextYear,pageMeta:this.pageMeta};
+  this.requestYear=year;this[requestKey]=year;this[cursorKey]=null;this[terminalKey]=false;
+  const state=await this._load(direction);
+  if(state[previous?'errorPrevious':'errorNext']&&!state.stale)Object.assign(this,prior);
+  return this.state();
  }
  async _load(kind){
   const direction=kind==='previous'?'prev':'next',serial=this.serial,flag=kind==='previous'?'loadingPrevious':'loadingNext',errorKey=kind==='previous'?'errorPrevious':'errorNext';
@@ -204,12 +238,14 @@ export class ContinuousTopicReader{
   try{
    do{
     const cursor=kind==='initial'?(initialPass?null:this.nextCursor):kind==='previous'?this.previousCursor:this.nextCursor;
-    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor,expectedReadGeneration:this.coverage?.activeGeneration||null});
+    const pageRequestYear=kind==='previous'?this.previousRequestYear:this.nextRequestYear;
+    const page=await this.load({topicId:this.topicId,sort:this.sort,query:this.query,scopeSectionId:this.scopeSectionId,...(this.chronology?{chronology:this.chronology,year:pageRequestYear}:{}),cursor,direction,anchorId:kind==='initial'&&initialPass?this.anchorId:null,sectionId:kind==='initial'&&initialPass?this.sectionId:null,timeEdge:kind==='initial'&&initialPass?this.timeEdge:null,sectionCursor:this.sectionCursor,expectedReadGeneration:this.coverage?.activeGeneration||null});
     if(serial!==this.serial)return {...this.state(),stale:true};
     if(this.invalidPage(page)){this.invalidate(page);return this.state();}
-    this.initialized=true;this.indexing=page?.indexing===true;const sectionCount=this.sections.size,visibleSection=!this.query&&(page?.sections||[]).some(row=>!row.isDefault&&row.title?.trim()&&!this.sections.get(row.sectionId)?.title?.trim());this.rememberFrontier(page,kind==='previous'?'previous':'next');this.readMeta(page);if(this.sections.size!==sectionCount)this.bodyRevision++;
+    this.initialized=true;this.indexing=page?.indexing===true;const sectionCount=this.sections.size,visibleSection=!this.query&&(page?.sections||[]).some(row=>!row.isDefault&&row.title?.trim()&&!this.sections.get(row.sectionId)?.title?.trim());this.rememberFrontier(page,kind==='previous'?'previous':'next',pageRequestYear);this.readMeta(page);if(this.sections.size!==sectionCount)this.bodyRevision++;
     if(page?.sectionCursor!==undefined)this.sectionCursor=page.sectionCursor;
-    const added=this.merge(page?.items||[],kind==='previous'?'previous':'next');addedTotal+=added;if(this.stale)return this.state();
+    if(this.chronology&&!page.indexing){this.currentYear=page.year??null;if(this.currentYear!==null&&!this.openedYears.includes(this.currentYear))this.openedYears.push(this.currentYear);if(kind!=='previous')this.nextYear=page.nextYear??null;}
+    const added=this.merge((page?.items||[]).map(item=>this.chronology?{...item,readingYear:page.year}:item),kind==='previous'?'previous':'next');addedTotal+=added;if(this.stale)return this.state();
     if(kind==='initial'){this.nextCursor=page?.nextCursor??null;if(initialPass)this.previousCursor=page?.previousCursor??null;}
     else if(kind==='previous')this.previousCursor=page?.previousCursor??null;
     else this.nextCursor=page?.nextCursor??null;
@@ -294,3 +330,4 @@ export class ContinuousTopicReader{
  }
 };
 export const topicReaderItemKey=itemKey;
+export const topicReaderReference=reference;

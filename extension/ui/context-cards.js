@@ -1,4 +1,3 @@
-import {ContextHomeSearch} from './context-home-search.js';
 import {ContextScopePreview} from './context-scope-preview.js';
 import {request,element} from './common.js';
 import {createIcon} from './icons.js';
@@ -19,7 +18,6 @@ const button=(text,fn,className='')=>{const b=element('button',className,text);b
 
 // Fixed presentation copy and decorative paths from the approved white Context original.
 // These describe cards, never infer categories or facts from private Items.
-const cardDescriptions={info:['身份、背景与长期偏好','Identity, background and lasting preferences'],rules:['回答方式、表达与协作习惯','Responses, expression and collaboration'],now:['当前的目标、项目与关注','Current goals, projects and interests'],inputs:['从思想库中，选择可以读取的主题','Choose readable topics from Thoughts']};
 const detailDescriptions={info:['让 AI 了解你的背景。这里的内容，由你直接维护。','Let AI understand your background. You maintain this content directly.'],rules:['告诉 AI 怎样与你一起工作。不是更多指令，而是更合适的回答。','Tell AI how to work with you, for more suitable answers.'],now:['留下此刻重要的事。重点变化时，直接修改这里。','Keep what matters now. Edit this when your priorities change.'],inputs:['按主题选择，不必重复整理。未开放的内容，仍然只有你自己能看。','Choose by Topic without reorganizing. Unselected content stays private.']};
 const cardSymbols={info:[['rect',{x:3.5,y:4,width:17,height:16,rx:2}],['circle',{cx:8.5,cy:10,r:2}],['path',{d:'M5.5 16c.5-3 5.5-3 6 0M14 9h3M14 13h3M14 16h2'}]],rules:[['path',{d:'M4 5h16M4 12h16M4 19h16'}],...[[7,3],[14,10],[6,17]].map(([x,y])=>['rect',{x,y,width:4,height:4,rx:1,fill:'currentColor',stroke:'none'}])],now:[['circle',{cx:12,cy:12,r:8.5}],['path',{d:'M12 7v5l3.5 2M12 1v2M12 21v2M1 12h2M21 12h2'}]],inputs:[['rect',{x:7,y:3,width:13,height:16,rx:1.5}],['path',{d:'M4 6v15h13M10 7h7M10 11h7M10 15h4'}]]};
 function cardSymbol(key){const svg=createIcon('context',{className:'card-symbol-icon'});svg.setAttribute('viewBox','0 0 24 24');svg.replaceChildren();for(const [tag,attributes]of cardSymbols[key]){const node=document.createElementNS(svg.namespaceURI,tag);for(const [name,value]of Object.entries(attributes))node.setAttribute(name,String(value));svg.append(node);}return svg;}
@@ -34,9 +32,9 @@ export class ContextItemEditor {
   this.field=element('div','item-text',item.body);this.field.contentEditable='plaintext-only';this.field.setAttribute('role','textbox');this.field.setAttribute('aria-multiline','true');this.field.setAttribute('aria-label',label(item.card||page.card||'info'));this.field.dataset.placeholder=copy(...itemCopy[item.card||page.card||'info'].placeholder);this.field.spellcheck=false;
   this.feedback=element('div','item-feedback');this.feedback.setAttribute('role','status');
   this.menu=element('details','item-menu');const summary=element('summary');summary.setAttribute('aria-label',copy('此条内容的更多操作','More item actions'));summary.append(createIcon('more'));
-  const actions=element('div','menu-items');actions.append(button(copy('复制','Copy'),()=>void this.copyBody()),button(copy('查看依据','View basis'),()=>void this.showBasis()),button(copy('撤销上次修改','Undo last edit'),()=>void this.undo()),button(copy('删除','Delete'),()=>void page.remove(this),'danger'));this.moveUp=button(copy('上移','Move up'),()=>void page.reorder(this,'up'));this.moveDown=button(copy('下移','Move down'),()=>void page.reorder(this,'down'));actions.append(this.moveUp,this.moveDown);this.moveTargets=[];for(const target of ['info','rules','now'])if(target!==this.saved.card){const control=button(copy(`移动到${label(target)}`,`Move to ${label(target)}`),()=>void page.move(this,target));control.setAttribute('data-move-target',target);this.moveTargets.push(control);actions.append(control);}this.menu.append(summary,actions);summary.addEventListener('pointerdown',()=>this.captureReorderSelection());this.menu.addEventListener('keydown',e=>{this.page.cancelReorderIntent?.();if(e.target===summary&&(e.key==='Enter'||e.key===' ')&&!this.reorderSelection)this.captureReorderSelection();if(e.key==='Escape'){this.reorderSelection=null;e.preventDefault();this.menu.open=false;summary.focus();}});
+  const actions=element('div','menu-items');actions.append(button(copy('复制','Copy'),()=>void this.copyBody()),button(copy('撤销上次修改','Undo last edit'),()=>void this.undo()),button(copy('删除','Delete'),()=>void page.remove(this),'danger'));this.moveUp=button(copy('上移','Move up'),()=>void page.reorder(this,'up'));this.moveDown=button(copy('下移','Move down'),()=>void page.reorder(this,'down'));actions.append(this.moveUp,this.moveDown);this.moveTargets=[];for(const target of ['info','rules','now'])if(target!==this.saved.card){const control=button(copy(`移动到${label(target)}`,`Move to ${label(target)}`),()=>void page.move(this,target));control.setAttribute('data-move-target',target);this.moveTargets.push(control);actions.append(control);}this.menu.append(summary,actions);summary.addEventListener('pointerdown',()=>this.captureReorderSelection());this.menu.addEventListener('keydown',e=>{this.page.cancelReorderIntent?.();if(e.target===summary&&(e.key==='Enter'||e.key===' ')&&!this.reorderSelection)this.captureReorderSelection();if(e.key==='Escape'){this.reorderSelection=null;e.preventDefault();this.menu.open=false;summary.focus();}});
   this.copyFeedback=element('div','item-copy-feedback');this.copyFeedback.setAttribute('role','status');
-  this.footer=element('div','context-item-footer');this.footer.append(element('span','context-item-origin',copy('本地内容 · 由你核对','Local content · Yours to review')),this.menu);this.root.append(this.field,this.footer,this.feedback,this.copyFeedback);
+  this.footer=element('div','context-item-footer');this.footer.append(this.menu);this.root.append(this.field,this.footer,this.feedback,this.copyFeedback);
   this.autosave=new AutosaveSession(()=>void this.flush());
   this.surface=new PlainTextSurface(this.field,{start:()=>{this.basis?.close();this.reorderSelection=null;this.copyEpoch=(this.copyEpoch||0)+1;this.copyFeedback.replaceChildren();this.autosave.cancel();if(!this.failed&&!this.conflicted&&!this.saving)this.feedback.replaceChildren();},end:()=>this.changed(),input:()=>this.changed(),leave:()=>void this.flush()});
   this.recovery=new RecoveryDraftSession({kind:'context_item',ownerId:this.id,epoch:page.snapshot.epoch});
@@ -163,7 +161,7 @@ export class ContextCardsPage {
  renderHomeCard(key){
   const card=element('article','context-card');card.dataset.card=key;
   const content=element('div','card-open'),heading=button('',()=>void this.onNavigate(key),'card-link card-head-button');heading.setAttribute('aria-label',copy('打开','Open ')+label(key));
-  const title=element('div','card-heading');title.append(element('h2','card-title',label(key)),element('p','card-description',copy(...cardDescriptions[key])));const symbol=element('span','card-symbol');symbol.setAttribute('aria-hidden','true');symbol.append(cardSymbol(key));heading.append(title,symbol);content.append(heading);
+  const title=element('div','card-heading');title.append(element('h2','card-title',label(key)));const symbol=element('span','card-symbol');symbol.setAttribute('aria-hidden','true');symbol.append(cardSymbol(key));heading.append(symbol,title);content.append(heading);
   const directory=element('div','context-directory');
   // The admitted Home snapshot has no trusted Item-category or Topic target IDs.
   // Use the original's real card-entry fallback, never body/section inference.
@@ -186,23 +184,23 @@ export class ContextCardsPage {
   this.homeSearch?.close();this.homeSearch=null;
   this.scopePreview?.close();
   this.inputs?.close();this.inputs=null;this.renderedCard=this.card;this.searchQuery='';++this.searchGeneration;this.searchComposing=false;this.searchForm=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=element('section','context-page'+(this.card?' context-detail':''));this.host.replaceChildren(this.page);
-  if(this.card){const back=button('',()=>void this.onNavigate(null),'context-back');back.append(createIcon('back'),element('span','',copy('AI 上下文','AI Context')));if(detailDescriptions[this.card]){const row=element('div','context-back-row'),crumb=element('nav','context-breadcrumb');crumb.setAttribute('aria-label',copy('当前位置','Current location'));crumb.append(back,element('span','context-crumb-current','/ '+label(this.card)));row.append(crumb);this.page.append(row);}else this.page.append(back);}
-  const head=element('header','context-head'),title=element('h1','',this.card?label(this.card):copy('AI 上下文','AI Context'));title.tabIndex=-1;if(!this.card){const heading=element('div','context-heading-copy');heading.append(element('p','context-eyebrow','AI CONTEXT'),title,element('p','context-subtitle',copy('让 AI 了解你，也由你决定它能了解多少。','Let AI understand you. You decide how much it can know.')));head.append(heading);}else if(detailDescriptions[this.card]){const heading=element('div','context-heading-copy');heading.append(element('p','context-eyebrow','AI CONTEXT / '+String(Object.keys(names).indexOf(this.card)+1).padStart(2,'0')),title,element('p','context-subtitle',copy(...detailDescriptions[this.card])));head.append(heading);}else head.append(title);if(this.card&&this.card!=='connections'){const right=element('div','context-detail-right');this.gateCaption=element('p','context-gate-caption');right.append(this.access(this.card),this.gateCaption);head.append(right);}this.page.append(head);let accessBar;if(!this.card){accessBar=element('div','context-access-bar');accessBar.append(element('span','context-access-caption',copy('你提供的上下文','Context you provide')));const controls=element('div','context-access-controls');controls.append(this.access('global'));accessBar.append(controls);this.page.append(accessBar);}
+  if(this.card){const back=button('',()=>void this.onNavigate(null),'context-back');back.append(createIcon('back'),element('span','',copy('AI 上下文','AI Context')));if(detailDescriptions[this.card]){const row=element('div','context-back-row'),crumb=element('nav','context-breadcrumb');crumb.setAttribute('aria-label',copy('当前位置','Current location'));crumb.append(back);row.append(crumb);this.page.append(row);}else this.page.append(back);}
+  const head=element('header','context-head'),title=element('h1',this.card?'':'context-semantic-title',this.card?label(this.card):copy('AI 上下文','AI Context'));title.tabIndex=-1;head.append(title);if(this.card&&this.card!=='connections'){const right=element('div','context-detail-right');this.gateCaption=element('p','context-gate-caption');right.append(this.access(this.card),this.gateCaption);head.append(right);}this.page.append(head);let accessBar;if(!this.card){accessBar=element('div','context-access-bar');const controls=element('div','context-access-controls');controls.append(this.access('global'));accessBar.append(controls);head.append(accessBar);}
   const preview=button(copy('预览 AI 可读内容','Preview AI-readable content'),()=>void this.openScopePreview(),'context-scope-preview-open');preview.prepend(contextDetailIcon('eye'));if(this.card==='connections')this.page.append(preview);
   if(editable(this.card))this.page.append(element('p','maintenance',copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.')));
   this.globalNote=element('p','global-note');this.page.append(this.globalNote);
   this.message=element('div','context-notice');this.message.setAttribute('role','status');
   if(!this.card){
-   const grid=element('div','context-cards');for(const key of Object.keys(names))grid.append(this.renderHomeCard(key));this.homeSearch=new ContextHomeSearch({host:this.page,send:request,state:this.homeSearchState,beforeSearch:()=>this.flush(),openItem:(target,current)=>this.openHomeSearchItem(target,current),onState:state=>{this.homeSearchState=state;},onResults:active=>{grid.hidden=active;}});head.append(this.homeSearch.form);this.page.append(grid);const foot=element('footer','context-home-end');foot.append(element('span','context-local-boundary',copy('本地核对，不改变 AI 访问设置。','Local inspection does not change AI access.')),preview);this.page.append(foot);
+   const grid=element('div','context-cards');for(const key of Object.keys(names))grid.append(this.renderHomeCard(key));this.homeSearchState=null;this.page.append(grid);const foot=element('footer','context-home-end');foot.append(preview);this.page.append(foot);
    const connections=button('',()=>void this.onNavigate('connections'),'connections-link');connections.append(contextDetailIcon('link'),element('span','',copy('已连接的 AI','Connected AI')),element('span','connection-number',String(this.snapshot.connections)),createIcon('chevron-right'));accessBar.querySelector('.context-access-controls').prepend(connections);
   }else if(editable(this.card)){
-   this.renderSearch();this.content=element('div','detail-content');this.empty=element('p','empty-detail',copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));this.add=button('',()=>void this.addItem(),'add-item');const addSign=element('span','add-sign','＋');addSign.setAttribute('aria-hidden','true');this.add.append(addSign,element('span','context-add-label',copy(...itemCopy[this.card].add)));const toolbar=element('div','context-editor-toolbar'),toolbarCopy=element('div','context-toolbar-copy');toolbarCopy.append(element('span','context-toolbar-label',copy('由你维护的内容','Content you maintain')),this.page.querySelector('.maintenance'));toolbar.append(toolbarCopy,this.add);this.content.append(this.empty);this.page.append(toolbar,this.content);for(const item of this.snapshot.items)if(item.card===this.card)this.mountItem(item);this.orderItems();this.paintEmpty();
+   this.content=element('div','detail-content');this.empty=element('p','empty-detail',copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));this.add=button('',()=>void this.addItem(),'add-item');const addSign=element('span','add-sign','＋');addSign.setAttribute('aria-hidden','true');this.add.append(addSign,element('span','context-add-label',copy(...itemCopy[this.card].add)));const toolbar=element('div','context-editor-toolbar'),toolbarCopy=element('div','context-toolbar-copy');toolbarCopy.append(this.page.querySelector('.maintenance'));toolbar.append(toolbarCopy,this.add);this.content.append(this.empty);this.page.append(toolbar,this.content);for(const item of this.snapshot.items)if(item.card===this.card)this.mountItem(item);this.orderItems();this.paintEmpty();
   }else if(this.card==='inputs'&&this.snapshot.capabilities.inputs){
-   this.inputs=new ContextTopicInputs({host:this.page,access:this.snapshot.access});this.page.querySelector('.context-back-row').append(this.inputs.filters);
+   this.inputs=new ContextTopicInputs({host:this.page,access:this.snapshot.access});
   }else if(this.card==='connections'){
    this.page.append(element('p','empty-detail',copy('还没有连接的 AI。','No AI is connected.')),element('p','quiet-footnote',copy('外部连接目前不可用。开放设置只保存在本机，不会发送内容。','External connections are unavailable. Access preferences stay on this device; no content is sent.')));
   }else this.page.append(element('p','empty-detail',copy('此页目前不可用。开放设置已保存在本机，不会向外部提供内容。','This page is not available yet. Access preferences are saved locally; no content is shared.')));
-  if(detailDescriptions[this.card]){const footer=element('footer','context-detail-footer');footer.append(element('span','context-local-boundary',this.card==='inputs'?copy('本地阅读不改变访问选择；选择状态见各主题。','Local reading does not change access choices; each Topic shows its choice.'):copy('编辑保存在本机；保存状态见各条内容。','Edits stay on this device; each item shows its save status.')),preview);this.page.append(footer);}this.page.append(this.message);this.paintAccess();
+  if(detailDescriptions[this.card]){const footer=element('footer','context-detail-footer');footer.append(preview);this.page.append(footer);}this.page.append(this.message);this.paintAccess();
  }
  async openHomeSearchItem(target,current){
   if(!current()||!this.active||this.card)return false;
@@ -274,44 +272,20 @@ export class ContextCardsPage {
    editor.field.setAttribute('aria-label',label(card));editor.field.dataset.placeholder=copy(...itemCopy[card].placeholder);
    editor.menu.querySelector('summary')?.setAttribute('aria-label',copy('此条内容的更多操作','More item actions'));
    const actions=editor.menu.querySelectorAll('button');
-   for(const [index,pair]of [['复制','Copy'],['查看依据','View basis'],['撤销上次修改','Undo last edit'],['删除','Delete']].entries())set(actions[index],copy(...pair));
+   for(const [index,pair]of [['复制','Copy'],['撤销上次修改','Undo last edit'],['删除','Delete']].entries())set(actions[index],copy(...pair));
    for(const control of editor.moveTargets||[]){const target=control.getAttribute('data-move-target');set(control,copy(`移动到${label(target)}`,`Move to ${label(target)}`));}set(editor.moveUp,copy('上移','Move up'));set(editor.moveDown,copy('下移','Move down'));
 
   }
  }
- renderSearch(){
-  this.searchForm=element('form','context-search');this.searchField=element('input');this.searchField.type='search';this.searchField.autocomplete='off';this.searchField.spellcheck=false;
-  this.searchSubmit=button('',()=>{},'context-search-submit');this.searchSubmit.type='submit';
-  this.searchClear=button('',()=>{if(this.searchComposing)return;this.searchField.value='';void this.search('');},'context-search-clear');
-  this.searchStatus=element('p','context-search-status');this.searchStatus.setAttribute('role','status');
-  this.searchField.addEventListener('compositionstart',()=>{this.searchComposing=true;});this.searchField.addEventListener('compositionend',()=>{this.searchComposing=false;});
-  this.searchForm.addEventListener('submit',event=>{event.preventDefault();if(!this.searchComposing&&!event.isComposing)void this.search(this.searchField.value);});
-  this.searchForm.append(this.searchField,this.searchSubmit,this.searchClear);this.page.querySelector('.context-back-row').append(this.searchForm);this.page.append(this.searchStatus);this.localizeSearch();
- }
- localizeSearch(){
-  if(!this.searchForm)return;this.searchField.setAttribute('aria-label',copy('搜索当前卡片','Search this card'));this.searchField.placeholder=copy('搜索当前卡片','Search this card');this.searchSubmit.textContent=copy('搜索','Search');this.searchClear.textContent=copy('清空','Clear');
- }
- async search(query){
-  if(!this.active||!editable(this.card)||this.busy||this.searchComposing)return false;
-  const generation=++this.searchGeneration,opened=this.openGeneration,card=this.card;
-  if(!await this.flush()){if(this.active&&opened===this.openGeneration&&generation===this.searchGeneration)this.searchBlockedNotice=this.notice(copy('请先完成并保存当前编辑，搜索不会丢弃文字。','Finish and save the current edit first. Search will not discard text.'));return false;}
-  if(!this.active||opened!==this.openGeneration||card!==this.card||generation!==this.searchGeneration)return false;
-  this.searchBlockedNotice?.remove();this.searchBlockedNotice=null;
-  this.searchQuery=String(query??'');this.applySearch();return true;
- }
+ // Reader search is retired. Keep lifecycle call sites harmless and clear
+ // legacy query state without touching editor identity, text or recovery.
+ localizeSearch(){}
+ async search(){this.applySearch();return false;}
  applySearch(){
-  if(!this.searchForm||!this.active||!editable(this.card))return;
-  const query=this.searchQuery.toLowerCase(),filtering=query.length>0;let matches=0,retained=0;
-  for(const editor of this.editors.values()){
-   const match=!editor.outsideCard&&(!filtering||editor.local.toLowerCase().includes(query)||editor.saved.section.toLowerCase().includes(query));
-   // Filtering never retires or hides an outstanding human editor/recovery.
-   const protectedEdit=editor.fresh||editor.dirty()||editor.composing||editor.conflicted||editor.recoveryPending||document.activeElement===editor.field;
-   editor.root.hidden=!match&&!protectedEdit;if(match)matches++;else if(protectedEdit)retained++;
-  }
-  for(const group of this.content?.querySelectorAll('.context-section')||[])group.hidden=![...group.querySelectorAll('.context-item')].some(node=>!node.hidden);
-  this.searchClear.hidden=!filtering&&!this.searchField.value;
-  this.searchStatus.textContent=!filtering?'':matches?copy(`找到 ${matches} 条匹配内容。`,`Found ${matches} matching items.`):copy('当前卡片没有匹配内容。','No matches in this card.');
-  if(filtering&&retained)this.searchStatus.textContent+=' '+copy('正在编辑或未完成的内容仍保留显示。','Active or unfinished edits remain visible.');
+  this.searchQuery='';
+  if(!this.active||!editable(this.card))return;
+  for(const editor of this.editors.values())editor.root.hidden=false;
+  for(const group of this.content?.querySelectorAll('.context-section')||[])group.hidden=false;
  }
  paintEmpty(){if(this.empty)this.empty.hidden=this.editors.size>0;for(const group of this.content?.querySelectorAll('.context-section')||[])if(!group.querySelector('.context-item'))group.remove();this.applySearch();this.paintReorder();}
  notice(text,undo=false){const node=element('span','',text);this.message?.replaceChildren(node);if(undo)this.message.append(button(copy('撤销','Undo'),()=>void this.undoDelete()));return node;}

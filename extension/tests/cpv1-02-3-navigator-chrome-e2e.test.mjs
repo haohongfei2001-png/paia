@@ -163,8 +163,8 @@ test('Bounded Archive keeps one search above a quiet tree and stable same-title 
   for(const [id] of duplicates){
    await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).click();
    await eventually(async()=>await p.evaluate(()=>history.state?.paiaReader?.documentId)===id);
-   assert.equal(await p.locator('input[type="search"]:visible').count(),2,'persistent Archive search and current-document search have separate owners');assert.equal(await p.locator('#reader-scope-search').isVisible(),true);
-   assert.equal(await p.locator('#scope-search').isVisible(),true);
+   assert.equal(await p.locator('input[type="search"]:visible').count(),0,'Reader application search is retired');assert.equal(await p.locator('#reader-scope-search').count(),0);
+   assert.equal(await p.locator('#scope-search').isVisible(),false);
    assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0);
    await white(['body','.sidebar','.workspace','#archive-navigator']);
    assert.equal(await p.locator(`.archive-navigator-window[data-document-id="${id}"]`).getAttribute('aria-current'),'page');

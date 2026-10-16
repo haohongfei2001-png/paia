@@ -1,5 +1,5 @@
 import {hashText} from './dedupe.js';
-import {emptyPromptPreferences} from './prompt-reuse-preferences.js';
+import {emptyPromptPreferences,quickPromptEligible} from './prompt-reuse-preferences.js';
 const structured=text=>/[`{}<>\t"'()[\]\\=;]|^ {2,}\S|^(?:const|let|var|def|class|import|from|function|SELECT|echo|printf|git|npm|python|node|curl|sudo|ls|cd)\b/m.test(text);
 export function promptCandidate(text){
  if(typeof text!=='string'||!text.trim()||text.length>200000)return null;
@@ -30,7 +30,7 @@ export async function projectPromptFamilies(inputs,preferences=emptyPromptPrefer
  for(const g of groups.values()){
   const id='pf:'+await hashText(g.key),override=preferences.overrides.find(x=>x.id===id);
   const representative=override?.representative&&inputs.find(x=>x.id===override.representative&&g.members.includes(x.id));
-  const text=override?.text??(representative?promptCandidate(representative.text).text:[...g.variants.values()].sort((a,b)=>b.count-a.count||b.at-a.at||(a.text<b.text?-1:a.text>b.text?1:0))[0].text);
+  const text=override?.text??(representative?promptCandidate(representative.text).text:[...g.variants.values()].sort((a,b)=>Number(quickPromptEligible(b.text))-Number(quickPromptEligible(a.text))||b.count-a.count||b.at-a.at||(a.text<b.text?-1:a.text>b.text?1:0))[0].text);
   const frequency=[...g.conversations.values()].reduce((sum,c)=>sum+(c.at===null?.75:.75+.25*Math.pow(.5,Math.max(0,now-c.at)/(180*86400000))),0);
   result.push({id,text,members:g.members.sort(),conversations:g.conversations.size,score:frequency+Math.min(.2,Math.max(0,g.members.length-g.conversations.size)*.01)+Math.min(.1,(override?.reuseCount||0)*.01),hidden:override?.hidden===true,edited:override?.text!==undefined,useful:!g.trivial&&(g.members.length>=2||g.corrected),retained:!!override});
  }

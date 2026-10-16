@@ -31,3 +31,32 @@ test('complete control meter rejects a supplied getter before reading consent or
 test('original migration DDL version and Library migration copied version must agree',async()=>{
  const x=await producer();try{for(const id of ['thought-ddl','thought-library']){const rows=structuredClone(x.rows);rows.meta.find(row=>row.id===id).fromVersion++;assert.throws(()=>qualify(x.core,x.scope,x.plan,rows,x.control,x.databaseId),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});}}finally{await x.store.repository.close();}
 });
+
+test('annual local cache is accepted only as exact original blockIndex projection, never an unknown prefix exemption',async()=>{
+ const x=await producer();try{
+  const original=x.rows.meta.find(row=>row.id.startsWith('archive-year:v1:row:'));assert.ok(original,'actual repository write created the derived row');
+  for(const mutate of [row=>row.inputId='SYNTHETIC_wrong_input',row=>row.documentId='SYNTHETIC_wrong_document',row=>row.sourceSentAt='2020-01-01T00:00:00Z',row=>row.conversationOrder++,row=>row.extra=true,row=>row.id+=':extra']){
+   const rows=structuredClone(x.rows);mutate(rows.meta.find(row=>row.id===original.id));assert.throws(()=>qualify(x.core,x.scope,x.plan,rows,x.control,x.databaseId),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+  }
+  const unknown=structuredClone(x.rows);unknown.meta.push({id:'archive-year:v1:SYNTHETIC_unknown',value:true});assert.throws(()=>qualify(x.core,x.scope,x.plan,unknown,x.control,x.databaseId),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+  const legacy=structuredClone(x.rows);legacy.meta=legacy.meta.filter(row=>!row.id.startsWith('archive-year:v1:'));qualify(x.core,x.scope,x.plan,legacy,x.control,x.databaseId);
+ }finally{await x.store.repository.close();}
+});
+test('actual completed annual metadata requires strict marker and complete exact local projection without making it portable',async()=>{
+ const x=await producer();try{
+  await x.store.page({documentId:x.scope.expected.blocks[0].documentId,yearReading:{}});
+  x.rows.meta=await x.store.repository.transaction(false,t=>t.all('meta'));const marker=x.rows.meta.find(row=>row.id.startsWith('archive-year:v1:build:'));assert.ok(marker?.complete);qualify(x.core,x.scope,x.plan,x.rows,x.control,x.databaseId);
+  for(const mutate of [r=>r.meta.find(row=>row.id===marker.id).cursor='SYNTHETIC_invalid_cursor',r=>r.meta.find(row=>row.id===marker.id).epoch='',r=>r.meta.find(row=>row.id===marker.id).revision=-1,r=>r.meta.find(row=>row.id===marker.id).extra=true,r=>{r.meta=r.meta.filter(row=>!row.id.startsWith('archive-year:v1:row:'));},r=>r.meta.find(row=>row.id===marker.id).id+=':wrong']){
+   const rows=structuredClone(x.rows);mutate(rows);assert.throws(()=>qualify(x.core,x.scope,x.plan,rows,x.control,x.databaseId),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+  }
+  const {backupMetaAllowed}=await import('../core/backup-format.js');assert.equal(backupMetaAllowed(marker.id),false);for(const row of x.rows.meta.filter(row=>row.id.startsWith('archive-year:v1:row:')))assert.equal(backupMetaAllowed(row.id),false);
+ }finally{await x.store.repository.close();}
+});
+test('annual missing-document reads preserve the original exact Source/Working inventory qualification',async()=>{
+ const x=await producer();try{
+  qualify(x.core,x.scope,x.plan,x.rows,x.control,x.databaseId);
+  const missing='SYNTHETIC_nonexistent_document',page=await x.store.page({documentId:missing,yearReading:{}});assert.deepEqual(page.pageItemIds,[]);
+  x.rows.meta=await x.store.repository.transaction(false,t=>t.all('meta'));assert.equal(x.rows.meta.some(row=>row.id==='archive-year:v1:build:'+missing),false);
+  qualify(x.core,x.scope,x.plan,x.rows,x.control,x.databaseId);
+ }finally{await x.store.repository.close();}
+});

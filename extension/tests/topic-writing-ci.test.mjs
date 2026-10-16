@@ -7,12 +7,12 @@ const removedPlacement='settings-removed-placement-chrome-e2e.test.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
-import {group,testShard} from '../scripts/test-groups.mjs';
+import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 const writing='topic-section-writing-chrome-e2e.test.mjs';
 test('Topic writing adds one whole native file and preserves all332 actual Prompt parent routes',async()=>{
  const prior=JSON.parse(await readFile(new URL('./fixtures/topic-writing-prior-routes.json',import.meta.url),'utf8'));
  assert.equal(prior.base,'8a38c8644605be6919c114f0b6866ada36a2552d');assert.equal(prior.files,83);assert.equal(prior.rows.length,83);
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort();
  assert.equal(names.length,96);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'].includes(n)&&n!==preferencePublication&&n!==topicReturn&&n!==removedPlacement&&n!==writing),prior.rows.map(r=>r[0]));
  assert.equal(group('topic-section-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  let count=0;

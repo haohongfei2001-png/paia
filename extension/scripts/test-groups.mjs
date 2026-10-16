@@ -1,3 +1,10 @@
+// Four whole files added by the approved UI convergence. Historical route
+// assertions retain their original96-file census separately from actual100.
+export const APPROVED_UI_BROWSER_FILES=Object.freeze(['archive-year-chrome-e2e.test.mjs','topic-year-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs','nib-approved-fixed-chrome-e2e.test.mjs']);
+const approvedUIBrowser=new Set(APPROVED_UI_BROWSER_FILES);
+const browserName=file=>file.replaceAll('\\','/').split('/').at(-1);
+// Only for frozen historical census assertions, never the execution filter.
+export const isPreviousCurrentBrowser=file=>group(file)==='browser E2E'&&!approvedUIBrowser.has(browserName(file));
 const promotion='topic-section-promotion-chrome-e2e.test.mjs';
 const NIB_BROWSER=['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'];
 const pendingHistory='uir-04-pending-history-chrome-e2e.test.mjs';
@@ -100,6 +107,7 @@ const CURRENT_NINE=new Map([
  ["ux-r6-release-chrome-e2e.test.mjs",1],
  [preferencePublication,7],
 ]);
+const previousCurrentPositions=new Map([...CURRENT_NINE.keys()].sort().map((name,index)=>[name,index]));
 const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 const writing='topic-section-writing-chrome-e2e.test.mjs';
 const settingsNext='settings-next-chrome-e2e.test.mjs';
@@ -107,7 +115,7 @@ const next='cpv1-12-next-prompt-chrome-e2e.test.mjs';
 const entryMove='topic-entry-section-move-chrome-e2e.test.mjs';
 const IAH_FILES=['iah11-result-presentation-chrome-e2e.test.mjs','iah11-selected-acceptance-chrome-e2e.test.mjs'];
 const AI_BROWSER='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
-const CURRENT_BROWSER=new Set([promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
+const CURRENT_BROWSER=new Set([...APPROVED_UI_BROWSER_FILES,promotion,...NIB_BROWSER,topicReturn,removedPlacement,writing,settingsNext,next,entryMove,...IAH_FILES,AI_BROWSER,preferencePublication,settingsData,
  'cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs',
  'cpv1-topic-05-4-section-chrome-e2e.test.mjs',
  'cpv1-topic-05-2-root-chrome-e2e.test.mjs',
@@ -148,7 +156,7 @@ function isCurrentAnsBrowser(name){return /^ans-\d+-.*-chrome-e2e\.test\.mjs$/.t
 function isCurrentCprBrowser(name){return /^cpr-\d+-.*-chrome-e2e\.test\.mjs$/.test(name);}
 function isCurrentCpv1Browser(name){return /^cpv1-\d+-.*-chrome-e2e\.test\.mjs$/.test(name);}
 export function group(file) {
- const name=file.split('/').at(-1);
+ const name=browserName(file);
  if(EXPERIMENTAL.has(name))return 'experimental';
  if(CURRENT_BROWSER.has(name)||isCurrentUxBrowser(name)||isCurrentUirBrowser(name)||isCurrentUisBrowser(name)||isCurrentAnsBrowser(name)||isCurrentCprBrowser(name)||isCurrentCpv1Browser(name))return 'browser E2E';
  if(name.endsWith('-chrome-e2e.test.mjs')||LEGACY_BROWSER.has(name))return 'historical browser E2E';
@@ -166,6 +174,15 @@ export function group(file) {
  */
 // Admit the complete Section file without reindexing any prior file.
 export function testShard(file,position,total,category){
+ file=file.replaceAll('\\','/');
+ const currentName=browserName(file);
+ if(category==='browser E2E'&&approvedUIBrowser.has(currentName)){
+  if(total===10)return 10;if(total===9)return 9;if([4,5,6,7].includes(total))return 4;
+ }
+ // Freeze the original96 sorted positions, rather than subtracting insertions
+ // from an ambiguous caller-supplied historical/current corpus index.
+ if(category==='browser E2E'&&[4,5,6,7].includes(total)&&previousCurrentPositions.has(currentName))position=previousCurrentPositions.get(currentName);
+
  // Independent whole pending-history file; preserve all prior historical positions.
  const pendingName=file.replaceAll('\\','/').split('/').at(-1);if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(pendingName===pendingHistory)return 3;if(pendingName>pendingHistory)position--;}
  const dataName=file.replaceAll('\\','/').split('/').at(-1);if(category==='browser E2E'&&[4,5,6,7].includes(total)){if(dataName===settingsData)return 4;if(dataName>settingsData)position--;}

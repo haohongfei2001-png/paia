@@ -1,6 +1,6 @@
 import {reject} from './contracts.js';
 
-export const DEFAULT_CONTROLS=Object.freeze({readingSort:'asc',inputReadingSort:'asc',libraryView:'original'});
+export const DEFAULT_CONTROLS=Object.freeze({readingSort:'desc',inputReadingSort:'desc',libraryView:'original'});
 const retired=new Set(['dailyRequests','batchMode','aiOnboardingSeen']);
 
 export async function organizerControls(s){

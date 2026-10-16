@@ -1,4 +1,5 @@
 import {element} from './common.js';
+import {textOf} from './editor-primitives.js';
 import {thoughtCopy as tc} from './thought-copy.js';
 
 const english={
@@ -14,19 +15,20 @@ export const composeCopy=text=>document.documentElement.lang==='en'?(english[tex
 
 // Presentation owns nodes only. TopicActions owns the draft, selected Topics,
 // acknowledgement lifecycle and every effect handler in both presentations.
-export function createThoughtComposeNodes({topicId,quote=''}={}){
+export function createThoughtComposeNodes({topicId,quote='',inline=false}={}){
  const explanation=element('p','muted',tc('这会保存为今天的新想法，不修改以前的内容。'));
  let quotePreview=null;
  if(quote){quotePreview=element('details');quotePreview.append(element('summary','',tc('参考文字')),element('pre','topic-selection-preview',quote));}
- const draft=element('textarea','thought-draft');draft.setAttribute('aria-label',tc('今天的新想法'));draft.placeholder=tc('接着写…');
+ const draft=element(inline?'div':'textarea',inline?'entry-prose thought-inline-draft':'thought-draft');if(inline){draft.contentEditable='plaintext-only';draft.setAttribute('role','textbox');draft.setAttribute('aria-multiline','true');draft.dataset.placeholder=tc('接着写…');Object.defineProperty(draft,'value',{configurable:true,get:()=>textOf(draft),set:value=>{draft.textContent=value;}});}draft.setAttribute('aria-label',tc('今天的新想法'));draft.placeholder=tc('接着写…');
  const destination=element('p','muted',topicId?tc('保存到当前主题'):tc('暂不加入主题'));
  const choices=element('details'),choiceHost=element('div');choices.append(element('summary','',tc('选择主题（可不选）')),choiceHost);
  return {explanation,quotePreview,draft,destination,choices,choiceHost};
 }
 
-export function mountThoughtComposePresentation({content,feedback,nodes,submit,copy,cancel,workspacePreview=false,workspace=false}){
+export function mountThoughtComposePresentation({content,feedback,nodes,submit,copy,cancel,workspacePreview=false,workspace=false,inline=false}){
  const {explanation,quotePreview,draft,destination,choices}=nodes;
  const optional=[quotePreview].filter(Boolean);
+ if(inline){content.className='thought-inline-compose';content.append(draft,feedback);return {};}
  if(!workspacePreview&&!workspace){content.append(explanation,...optional,draft,destination,choices,submit,copy,cancel);return {};}
 
  const heading=element('h1','thought-compose-title',composeCopy('写下想法'));heading.id='thought-compose-workspace-title';content.setAttribute('aria-labelledby',heading.id);

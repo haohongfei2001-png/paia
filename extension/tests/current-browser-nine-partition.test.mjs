@@ -6,12 +6,12 @@ const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
-import {group,testShard} from '../scripts/test-groups.mjs';
+import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 test('nine measured whole-file jobs preserve every legacy route and exact current coverage',async()=>{
  const plan=JSON.parse(await readFile(new URL('./fixtures/current-browser-capacity-nine.json',import.meta.url),'utf8'));
  assert.equal(plan.legacyBase,'144f87b4c6f214aeab0130bbca763d7c5a83bd28');assert.equal(plan.legacyRoutes.length,84);
  const added='settings-removed-placement-chrome-e2e.test.mjs',preference='settings-preference-publication-chrome-e2e.test.mjs';
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();assert.equal(names.length,96);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!nib.includes(n)&&n!==topicReturn&&n!==added&&n!==preference),plan.legacyRoutes.map(row=>row[0]));assert.deepEqual([...plan.files.map(row=>row.file)].sort(),names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!nib.includes(n)&&n!==topicReturn&&n!==added&&n!==preference));assert.equal(testShard(added,names.indexOf(added),9,'browser E2E'),4);assert.equal(testShard(preference,names.indexOf(preference),9,'browser E2E'),7);for(const total of [4,5,6,7])assert.equal(testShard(preference,names.indexOf(preference),total,'browser E2E'),3);
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort();assert.equal(names.length,96);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!nib.includes(n)&&n!==topicReturn&&n!==added&&n!==preference),plan.legacyRoutes.map(row=>row[0]));assert.deepEqual([...plan.files.map(row=>row.file)].sort(),names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!nib.includes(n)&&n!==topicReturn&&n!==added&&n!==preference));assert.equal(testShard(added,names.indexOf(added),9,'browser E2E'),4);assert.equal(testShard(preference,names.indexOf(preference),9,'browser E2E'),7);for(const total of [4,5,6,7])assert.equal(testShard(preference,names.indexOf(preference),total,'browser E2E'),3);
  assert.equal(group(pendingHistory),'browser E2E');for(const total of [4,5,6,7])assert.equal(testShard(pendingHistory,names.indexOf(pendingHistory),total,'browser E2E'),3);
  for(const [file,shard]of [[nib[4],1],[nib[5],7],[pendingHistory,7]])assert.equal(testShard(file,names.indexOf(file),9,'browser E2E'),shard);
  for(const [column,total]of [4,5,6,7].entries())for(const [file,...routes]of plan.legacyRoutes)for(const path of [file,'tests/'+file])assert.equal(testShard(path,names.indexOf(file),total,'browser E2E'),routes[column],`${total}:${path}`);
@@ -25,7 +25,7 @@ test('nine measured whole-file jobs preserve every legacy route and exact curren
 });
 
 test('ten current jobs isolate only the complete Context owner without losing, duplicating or weakening coverage',async()=>{
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();assert.equal(names.length,96);
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort();assert.equal(names.length,96);
  const actual=Array.from({length:10},(_,i)=>names.filter((n,p)=>testShard(n,p,10,'browser E2E')===i+1));assert.deepEqual(actual.flat().sort(),names);assert.equal(new Set(actual.flat()).size,96);assert.ok(actual.every(files=>files.length));assert.deepEqual(actual[9],['context-cards-chrome-e2e.test.mjs']);
  for(const [position,file]of names.entries())for(const path of [file,'tests/'+file])assert.equal(testShard(path,position,10,'browser E2E'),file==='context-cards-chrome-e2e.test.mjs'?10:testShard(file,position,9,'browser E2E'),path);
  assert.throws(()=>testShard('new-unadmitted-chrome-e2e.test.mjs',0,10,'browser E2E'),/CURRENT_TEN_UNADMITTED/);

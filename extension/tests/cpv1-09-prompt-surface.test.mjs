@@ -2,13 +2,13 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {PromptSurfaceCommands,validSurface} from '../background/prompt-surface.js';
 const nonce='11111111-1111-4111-8111-111111111111',url='https://chatgpt.com/c/synthetic';
 function fixture(){const sent=[],writes=[],calls=[],storage={};let consent=true;const preferences={appearance:'system',language:'system',privateSetting:'DO_NOT_EXPOSE'},reads=[];
- const api={runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,sendMessage:async()=>{}},storage:{local:{get:async()=>storage,set:async x=>{writes.push(x);Object.assign(storage,x);}}},tabs:{get:async()=>({id:7,url}),sendMessage:async(...args)=>{sent.push(args);return {open:true,nonce,url,dark:false};}}};
- const commands={service:{s:{status:async()=>({consented:consent}),run:async fn=>fn(),repository:{transaction:async(w,fn,stores)=>{reads.push({w,stores});return fn({});}},control:async()=>({preferences})},members:async()=>[]},dispatch:async c=>{calls.push(c);return {items:[]};}};
- const s=new PromptSurfaceCommands(commands,api),sender={id:'ext',tab:{id:7},frameId:2,url:api.runtime.getURL('ui/prompt-surface.html')+'#'+nonce},request={type:'PAIA_PROMPT_SURFACE_RPC',nonce,command:{type:'PAIA_PROMPT_QUERY'}};
+ const api={runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,getContexts:async()=>[{documentId:'private-current',tabId:7,windowId:4,frameId:2,documentUrl:'chrome-extension://ext/ui/prompt-surface.html#'+nonce}],sendMessage:async()=>{}},storage:{local:{get:async()=>storage,set:async x=>{writes.push(x);Object.assign(storage,x);}}},tabs:{get:async()=>({id:7,url,windowId:4}),sendMessage:async(...args)=>{sent.push(args);return {open:true,nonce,url,dark:false};}}};
+ const commands={service:{s:{status:async()=>({consented:consent}),run:async fn=>fn(),repository:{transaction:async(w,fn,stores)=>{reads.push({w,stores});return fn({});}},control:async()=>({preferences})},members:async()=>[],assertCurrent:async generation=>assert.equal(generation,0)},dispatch:async c=>{calls.push(c);return {items:[],generation:0};}};
+ const s=new PromptSurfaceCommands(commands,api),sender={id:'ext',tab:{id:7},frameId:2,documentId:'private-current',documentLifecycle:'active',url:api.runtime.getURL('ui/prompt-surface.html')+'#'+nonce},request={type:'PAIA_PROMPT_SURFACE_RPC',nonce,command:{type:'PAIA_PROMPT_QUERY'}};
  return {s,api,sender,request,sent,writes,calls,preferences,reads,revoke(){consent=false;}};
 }
 test('surface frames require exact origin, nonce, current host, positive frame and consent',async()=>{
- const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],theme:'light',displayPreferences:{appearance:'system',language:'system'}});
+ const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'system',language:'system'},surfaceForm:'board'});
  for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:0},{...f.sender,frameId:undefined},{...f.sender,url},{...f.sender,tab:{id:7,incognito:true}},{...f.sender,url:f.sender.url+'x'}])await assert.rejects(()=>f.s.handle(f.request,sender));
  f.api.tabs.sendMessage=async()=>({open:true,nonce,url:url+'/changed'});await assert.rejects(()=>f.s.handle(f.request,f.sender));f.revoke();await assert.rejects(()=>f.s.handle(f.request,f.sender),e=>e.code==='CONSENT_REQUIRED');
 });
@@ -152,13 +152,13 @@ test('host close request rejects navigation or consent changes during its live p
  const f=fixture();await f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'live-document'});assert.equal(f.calls.length,0);
 });
 
-test('frosted v2 presentation removes hard reflection and double rim without changing the accessible owner',async()=>{
+test('approved smoky-blue frosted presentation removes hard reflection and double rim without changing the accessible owner',async()=>{
  const f=await hostFixture(),style=f.nodes.find(n=>n.tag==='style').textContent;
  assert.equal(f.orb.getAttribute('aria-label'),'常用 Prompt；拖动或 Alt 加方向键移动');
  assert.equal(f.orb.getAttribute('aria-expanded'),'false');
  assert.match(style,/width:44px;height:44px/);assert.match(style,/width:40px;height:40px/);
- assert.match(style,/backdrop-filter:blur\(9px\) saturate\(\.92\)/);
- assert.match(style,/filter:blur\(3px\)/);assert.match(style,/filter:blur\(4px\)/);
+ assert.match(style,/backdrop-filter:blur\(9px\) saturate\(\.88\)/);
+ assert.match(style,/filter:blur\(2px\)/);for(const color of ['273a5f','7f91ab','8a8fb8','cbd4e1','f6f7f8'])assert.ok(style.includes('#'+color));
  assert.doesNotMatch(style,/inset:-3px|width:14px;height:10px|\.reflection|#fffffffa|#c8dcfff0/);
  assert.equal(f.nodes.some(n=>n.className==='reflection'),false);
  assert.match(style,/button:focus-visible\{outline:2px solid/);
@@ -189,7 +189,7 @@ test('measure acknowledgements follow layout and cannot authorize a superseded n
 
 test('surface exposes only normalized display preferences through the original read-only meta owner',async()=>{
  const f=fixture();Object.assign(f.preferences,{appearance:'dark',language:'en'});
- assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],theme:'light',displayPreferences:{appearance:'dark',language:'en'}});
+ assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'dark',language:'en'},surfaceForm:'board'});
  assert.deepEqual(f.reads,[{w:false,stores:['meta']}]);assert.equal(f.writes.length,0);
  Object.assign(f.preferences,{appearance:'not-a-theme',language:'private-value'});
  assert.deepEqual((await f.s.handle(f.request,f.sender)).displayPreferences,{appearance:'system',language:'system'});
@@ -219,4 +219,16 @@ test('initial connected orb already has the saved accessible language and theme 
  const pending=[],f=await hostFixture({displayPreferences:{appearance:'dark',language:'en'},animationFrame:callback=>pending.push(callback)}),host=f.nodes.find(node=>node.dataset.paiaPromptSurface==='');
  assert.equal(host.isConnected,true);assert.ok(pending.length>0);assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');
  while(pending.length)pending.shift()();assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');assert.equal(f.nodes.some(node=>node.tag==='iframe'),false);assert.equal(f.sent.some(request=>request.state),false);
+});
+
+test('only an authenticated private frame selects a strict device-local collapsed form',async()=>{
+ const f=fixture(),send=form=>f.s.handle({...f.request,command:{type:'surface_form',form}},f.sender);
+ assert.equal(validSurface({version:1,open:false,position:null}),true);
+ for(const collapsedForm of ['orb','capsule'])assert.equal(validSurface({version:1,open:false,position:null,collapsedForm}),true);
+ for(const collapsedForm of [null,'board','sidebar',{},1])assert.equal(validSurface({version:1,open:false,position:null,collapsedForm}),false);
+ await send('capsule');const saved=(await f.s.readGeometry());assert.equal(saved.collapsedForm,'capsule');assert.equal('text' in saved,false);
+ await f.s.hostGeometry({version:1,open:true,position:{x:.1,y:.2}});assert.equal((await f.s.readGeometry()).collapsedForm,'capsule','late legacy geometry cannot erase selected form');
+ await send('board');assert.equal((await f.s.readGeometry()).collapsedForm,'capsule','expanding preserves the selected collapsed form');
+ for(const form of ['sidebar','',null,{}])await assert.rejects(send(form),{code:'FORBIDDEN'});
+ await assert.rejects(f.s.handle({...f.request,command:{type:'surface_form',form:'orb'}},{...f.sender,frameId:0}),{code:'FORBIDDEN'});
 });

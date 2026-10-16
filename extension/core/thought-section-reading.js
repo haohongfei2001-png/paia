@@ -5,7 +5,8 @@ import {readDependencyInputs,dependencyLifecycle} from './thought-evidence.js';
 import {entryMatchesProvider} from './thought-source-scope.js';
 import {validProvider} from './read-projection-keys.js';
 import {boundedThoughtRead,thoughtReadTopic,thoughtReadSection,thoughtReadPlacement} from './thought-library-read-model.js';
-import {thoughtTopicGenerationMatches} from './thought-read-index.js';
+import {thoughtTopicGenerationMatches,thoughtTopicExpressionPage} from './thought-read-index.js';
+import {descriptorReader} from './organizer/topic-reading.js';
 
 const invalid=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const unavailable=()=>{throw new ArchiveError('UNAVAILABLE');};
@@ -15,7 +16,7 @@ const sectionKey=(topic,row)=>[topic.id,topic.activeLayoutGeneration,0,row.rank,
 const placementKey=(topic,p)=>[topic.id,topic.activeLayoutGeneration,p.sectionId,0,p.rank,p.entryId];
 const sectionDTO=row=>{const {id,...rest}=row;return {sectionId:id,...rest};};
 // The same body-free identity accompanies full rows and large placeholders.
-const entryIdentity=e=>({id:e.id,revision:e.revision,contentRevision:e.contentRevision,fieldRevisions:e.fieldRevisions,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId,bindingRevision:e.bindingRevision,currentInputRevision:e.currentInputRevision});
+const entryIdentity=e=>({id:e.id,lifecycle:e.lifecycle,revision:e.revision,contentRevision:e.contentRevision,fieldRevisions:e.fieldRevisions,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId,bindingRevision:e.bindingRevision,currentInputRevision:e.currentInputRevision});
 const sameBody=(entry,ref)=>entry.id===ref.entryRef.id&&entry.revision===ref.entryRef.revision&&entry.contentRevision===ref.entryRef.contentRevision&&(ref.bodyRef.kind==='input'?entry.bodyBinding==='input'&&entry.workingInputId===ref.bodyRef.id&&entry.bindingRevision===ref.bodyRef.contentRevision:entry.bodyBinding==='thought'&&entry.fieldRevisions?.body===ref.bodyRef.fieldRevision);
 const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase();
 const sameTopic=(a,b)=>a?.id===b?.id&&a?.revision===b?.revision&&a?.organizationRevision===b?.organizationRevision&&a?.activeLayoutGeneration===b?.activeLayoutGeneration;
@@ -42,7 +43,7 @@ function readOwner(model){
 // or one of its Placements. Section starts are real metadata events, including
 // empty named Sections, never fabricated Entries. This gives both directions
 // finite progress even across hundreds of empty or currently ineligible rows.
-function eventReader(t,topic){
+function eventReader(t,topic,scopeSectionId=null){
  const range=prefix([topic.id,topic.activeLayoutGeneration,0]),sections=new Map();
  const section=async key=>{
   const id=key.at(-1);
@@ -50,6 +51,7 @@ function eventReader(t,topic){
   return sections.get(id);
  };
  const adjacent=async(key,direction)=>{
+  if(scopeSectionId!==null){if(key)return null;const value=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,scopeSectionId]));if(!value)return null;sections.set(scopeSectionId,value);return {key:sectionKey(topic,value),value};}
   const row=(await t.rangePage('sections','byTopicOrder',range,key,1,direction)).rows[0];
   if(row)sections.set(row.value.sectionId,row.value);
   return row;
@@ -87,7 +89,7 @@ async function trackedReferences(s,t,ids){
 }
 
 export class ThoughtSectionReading{
- constructor(readModel){this.model=readModel;this.generations=new Map();}
+ constructor(readModel){this.model=readModel;this.generations=new Map();this.yearMetadata=new Map();}
  generation(key){
   if(!this.generations.has(key))this.generations.set(key,crypto.randomUUID());
   if(this.generations.size>128)this.generations.delete(this.generations.keys().next().value);
@@ -168,28 +170,144 @@ export class ThoughtSectionReading{
    return thoughtTopicGenerationMatches(owner,lexicalFence);
   });
  }
+ expressionPage(options){
+  const {topicId,cursor,limit,direction,anchorId,sectionId,scopeSectionId,trackedEntryIds,expectedReadGeneration,providerKey,sort,year}=options;
+  const model=this.model,s=model.s,scope={kind:'section_expression',topicId,scopeSectionId:scopeSectionId??sectionId,providerKey,sort,year,direction};
+  let fence=null,preparedMetadata=null;
+  return model.read(scope,cursor,async(t,prior)=>{
+   const raw=await t.get('topics',topicId),topic=await thoughtReadTopic(s,t,raw);
+   if(!topic)return empty({unavailable:true,reason:'topic_unavailable'});
+   const selected=scopeSectionId??sectionId;
+   const selectedSection=selected===null?null:await thoughtReadSection(s,t,raw,await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,selected])));
+   if(selected!==null&&!selectedSection)return empty({cursorInvalid:true,anchorUnavailable:true});
+   if(scopeSectionId!==null&&sectionId!==null&&scopeSectionId!==sectionId)return empty({cursorInvalid:true,anchorUnavailable:true});
+   const recoveryEpoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
+   if(typeof recoveryEpoch!=='string'||recoveryEpoch.length>200)unavailable();
+   return {raw,topic,prior,recoveryEpoch,selectedSection,tracked:await trackedReferences(s,t,trackedEntryIds)};
+  },async result=>{
+   if(!result.raw)return result;
+   const {raw,topic,prior,authority,recoveryEpoch,tracked,selectedSection}=result;
+   // Only the existing descriptor owner maintains its original derived index.
+   // The Section adapter qualifies metadata before counting or hydrating it.
+   const describe=descriptorReader(s),reader=readOwner(model),selected=scopeSectionId??sectionId,effectiveAnchor=prior?.anchorId??anchorId;
+   const stale=(anchorUnavailable=false)=>({...empty({cursorInvalid:true,anchorUnavailable}),authority});
+   const descriptor=async args=>{
+    const page=await thoughtTopicExpressionPage(s,{topicId,sort,providerKey,describe,...args});
+    fence={topicId,generation:page.coverage.activeGeneration,viewKey:page.coverage.activeKey,currentKey:page.coverage.currentKey,indexing:page.indexing===true};
+    return page;
+   };
+   const qualified=async rows=>s.repository.transaction(false,async tx=>{
+    const t=boundedThoughtRead(tx),current=await t.get('topics',topicId);
+    if(!sameTopic(raw,current)||!await thoughtReadTopic(s,t,current))return null;
+    const refs=[];
+    for(const d of rows){
+     if(selected!==null&&d.sectionId!==selected)continue;
+     const p=await t.get('placements',JSON.stringify([topicId,current.activeLayoutGeneration,d.entryId]));
+     const ref=p?await thoughtReadPlacement(s,t,current,p):null;
+     if(!ref)continue;
+     if(p.revision!==d.placementRevision||ref.entryRef.revision!==d.entryRevision||JSON.stringify(ref.expressionTime)!==JSON.stringify(d.expressionTime))return null;
+     if(providerKey!==null&&!await entryMatchesProvider(s,t,d.entryId,providerKey))continue;
+     refs.push({d,ref});
+    }
+    return refs;
+   });
+   let counts={...(prior?.counts||{})},metadataComplete=prior?.metadataComplete===true,chosen=prior?.chosen??year,generation=prior?.generation??null,indexGeneration=prior?.indexGeneration??null;
+   const issue=(dir,key)=>model.issue({...scope,direction:dir},{counts,metadataComplete,chosen,generation,indexGeneration,anchorId:effectiveAnchor,...key},authority);
+   const base=()=>({version:1,kind:'section_reading',topic,recoveryEpoch,tracked,sections:selectedSection?[sectionDTO(selectedSection)]:[],items:[],currentCursor:cursor,sectionCursor:null,query:'',chronology:'expression',sort,providerKey,year:chosen,readingStructure:{kind:'derivative_reading',state:'not_projected'},authority});
+   if(!metadataComplete){
+    const scan=await descriptor({limit:40,cursor:prior?.metadataCursor??null,expectedReadGeneration:indexGeneration});
+    if(scan.cursorInvalid)return stale();
+    indexGeneration=scan.coverage.activeGeneration;
+    generation=indexGeneration?this.generation(JSON.stringify([authority,topicId,selected,providerKey,sort,indexGeneration])):null;
+    if(expectedReadGeneration!==null&&generation!==expectedReadGeneration||prior?.generation&&prior.generation!==generation)return stale();
+    if(scan.indexing)return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:null}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false}};
+    // A bounded worker-local preparation cache contains only fully qualified
+    // year counts. Current authority and original index identity are reread
+    // before reuse; no body, grant or durable domain truth is cached here.
+    const cacheKey=JSON.stringify([authority,topicId,selected,providerKey,sort,raw.activeLayoutGeneration,raw.organizationRevision,indexGeneration,scan.coverage.activeKey]);
+    const cached=this.yearMetadata.get(cacheKey);
+    if(cached){counts={...cached};metadataComplete=true;}
+    else{
+     const refs=await qualified(scan.items);if(!refs)return stale();
+     for(const {ref} of refs){const key=Number.isInteger(ref.expressionTime.year)?String(ref.expressionTime.year):'unknown';counts[key]=(counts[key]||0)+1;}
+     metadataComplete=!scan.nextCursor;
+     if(!metadataComplete)return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:scan.nextCursor}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false},operations:{...scan.operations,hydratedEntries:0}};
+     preparedMetadata={key:cacheKey,counts:{...counts}};
+    }
+   }
+   if(expectedReadGeneration!==null&&generation!==expectedReadGeneration)return stale();
+   const years=Object.keys(counts).filter(key=>key!=='unknown').map(Number).sort((a,b)=>sort==='desc'?b-a:a-b);if(counts.unknown)years.push('unknown');
+   if(chosen===null)chosen=years[0]??null;
+   if(!prior?.bodyCursor&&effectiveAnchor!==null){
+    const target=await descriptor({limit:1,anchorId:effectiveAnchor,expectedReadGeneration:indexGeneration});
+    if(target.cursorInvalid||target.indexing)return stale(target.anchorUnavailable===true);const refs=await qualified(target.items);
+    if(!refs)return stale();if(refs.length!==1||refs[0].d.entryId!==effectiveAnchor)return stale(true);
+    chosen=Number.isInteger(refs[0].ref.expressionTime.year)?refs[0].ref.expressionTime.year:'unknown';
+   }
+   const yearMetadata={pending:false,complete:true};
+   if(chosen===null)return {...base(),nextCursor:null,previousCursor:null,nextYear:null,yearMetadata,complete:true,coverage:{activeGeneration:generation,complete:true,start:true,end:true},operations:{hydratedEntries:0}};
+   const page=await descriptor({year:chosen,limit,direction,cursor:prior?.bodyCursor??null,anchorId:prior?.bodyCursor?null:effectiveAnchor,expectedReadGeneration:indexGeneration});
+   if(page.cursorInvalid||page.indexing)return stale();const refs=await qualified(page.items);if(!refs)return stale();
+   const eligible=new Map(refs.map(value=>[value.d.entryId,value.ref])),items=[],sections=new Map(selectedSection?[[selectedSection.id,sectionDTO(selectedSection)]]:[]);let lastConsumed=null,stopped=false,hydrated=0;
+   const ordered=direction==='prev'?[...page.items].reverse():page.items;
+   for(const d of ordered){
+    const ref=eligible.get(d.entryId);let item=null;
+    if(ref){
+     const canonical=await reader.readingEntry(ref.entryRef.id);hydrated++;
+     if(canonical.lifecycle!=='active'||!sameBody(canonical,ref))return stale();
+     const expressionTime=ref.expressionTime;let entry={...canonical,expressionTime,effectiveTime:expressionTime.at,timeBasis:expressionTime.basis};
+     if(bytes(entry)>128*1024)entry={...entryIdentity(canonical),large:true,title:canonical.title,bodyBytes:bytes(canonical.body),expressionTime,effectiveTime:expressionTime.at,timeBasis:expressionTime.basis};
+     item={entry,placement:ref.placement};
+    }
+    const nextSections=new Map(sections);if(ref)nextSections.set(ref.section.id,sectionDTO(ref.section));
+    if(bytes({...base(),sections:[...nextSections.values()],items:item?[...items,item]:items})>256*1024-2048){stopped=true;break;}
+    if(item)items.push(item);if(ref)sections.set(ref.section.id,sectionDTO(ref.section));lastConsumed=d._cursorKey;
+   }
+   if(stopped&&!lastConsumed)unavailable();
+   const boundary=stopped?{generation:indexGeneration,viewKey:page.coverage.activeKey,sort,year:chosen,providerKey,query:'',key:lastConsumed}:null;
+   const next=direction==='next'&&boundary?boundary:page.nextCursor,previous=direction==='prev'&&boundary?boundary:page.previousCursor;
+   if(direction==='prev')items.reverse();
+   const nextCursor=next?issue('next',{bodyCursor:next}):null,previousCursor=previous?issue('prev',{bodyCursor:previous}):null;
+   const complete=direction==='next'?!nextCursor:!previousCursor,at=years.indexOf(chosen),nextYear=!nextCursor&&at>=0?years[at+1]??null:null;
+   return {...base(),items,sections:[...sections.values()],nextCursor,previousCursor,nextYear,yearMetadata,complete,coverage:{activeGeneration:generation,complete,start:!previousCursor,end:!nextCursor},operations:{...page.operations,hydratedEntries:hydrated}};
+  },t=>{
+   if(!fence)return true;const owner=Object.create(s);owner.run=work=>work();owner.repository={transaction:(write,work)=>{if(write)unavailable();return work(t);}};
+   return thoughtTopicGenerationMatches(owner,fence);
+  }).then(result=>{
+   // Publish only after the final consent, authority and index-generation fence.
+   if(preparedMetadata&&!result.cursorInvalid&&!result.unavailable){
+    this.yearMetadata.set(preparedMetadata.key,preparedMetadata.counts);
+    while(this.yearMetadata.size>32)this.yearMetadata.delete(this.yearMetadata.keys().next().value);
+   }
+   return result;
+  });
+ }
  page(options={}){
-  const allowed=['topicId','cursor','limit','direction','anchorId','sectionId','trackedEntryIds','expectedReadGeneration','query','providerKey','sort','timeEdge','view','sectionCursor'];
+  const allowed=['topicId','cursor','limit','direction','anchorId','sectionId','trackedEntryIds','expectedReadGeneration','query','providerKey','sort','timeEdge','view','sectionCursor','scopeSectionId','chronology','year'];
   if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(key=>!allowed.includes(key)))invalid();
-  const {topicId,cursor=null,limit=40,direction='next',anchorId=null,sectionId=null,trackedEntryIds=[],expectedReadGeneration=null,query='',providerKey=null,sort='asc',timeEdge=null,view='original',sectionCursor=null}=options;
-  if(!idOK(topicId)||!Number.isInteger(limit)||limit<1||limit>40||!['next','prev'].includes(direction)||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId)||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||expectedReadGeneration!==null&&(typeof expectedReadGeneration!=='string'||expectedReadGeneration.length>4000)||typeof query!=='string'||query.length>500||providerKey!==null&&!validProvider(providerKey)||!['asc','desc'].includes(sort)||!['original','ai'].includes(view)||timeEdge!==null&&!['earliest','latest','unknown'].includes(timeEdge)||sectionCursor!==null||cursor!==null&&(anchorId!==null||sectionId!==null)||direction==='prev'&&(anchorId!==null||sectionId!==null))invalid();
+  const {topicId,cursor=null,limit=40,direction='next',anchorId=null,sectionId=null,trackedEntryIds=[],expectedReadGeneration=null,query='',providerKey=null,chronology=null,year=null,sort=chronology==='expression'?'desc':'asc',timeEdge=null,view='original',sectionCursor=null,scopeSectionId=null}=options;
+  if(scopeSectionId!==null&&!idOK(scopeSectionId)||!idOK(topicId)||!Number.isInteger(limit)||limit<1||limit>40||!['next','prev'].includes(direction)||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId)||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||expectedReadGeneration!==null&&(typeof expectedReadGeneration!=='string'||expectedReadGeneration.length>4000)||typeof query!=='string'||query.length>500||scopeSectionId!==null&&query.trim()||providerKey!==null&&!validProvider(providerKey)||!['asc','desc'].includes(sort)||!['original','ai'].includes(view)||timeEdge!==null&&!['earliest','latest','unknown'].includes(timeEdge)||sectionCursor!==null||cursor!==null&&(anchorId!==null||sectionId!==null)||direction==='prev'&&(anchorId!==null||sectionId!==null))invalid();
+  if(chronology!==null&&chronology!=='expression'||year!==null&&year!=='unknown'&&(!Number.isInteger(year)||year<0||year>9999)||chronology===null&&year!==null)invalid();
+  if(chronology==='expression'){if(query.trim()||timeEdge!==null||view!=='original')invalid();return this.expressionPage({topicId,cursor,limit,direction,anchorId,sectionId,scopeSectionId,trackedEntryIds,expectedReadGeneration,providerKey,sort,year});}
   if(query.trim()&&sort==='asc'&&timeEdge===null&&view==='original')return this.queryPage({topicId,cursor,limit,direction,anchorId,sectionId,trackedEntryIds,expectedReadGeneration,query,providerKey});
-  const model=this.model,s=model.s,scope={kind:'section_reading',topicId,providerKey,direction};
+  const model=this.model,s=model.s,scope={kind:'section_reading',topicId,providerKey,direction,...(scopeSectionId!==null?{scopeSectionId}:{})};
   return model.read(scope,cursor,async(t,prior,authority)=>{
    // Saved-AI and nonstandard ordering need their separately admitted owners.
    // Unsupported requests cannot silently widen to all ordinary Topic prose.
    if(query.trim()||sort!=='asc'||timeEdge!==null||view!=='original')return empty({unsupported:true,reason:'reading_mode_unsupported'});
    const raw=await t.get('topics',topicId),topic=await thoughtReadTopic(s,t,raw);
    if(!topic)return expectedReadGeneration!==null?empty({cursorInvalid:true,anchorUnavailable:anchorId!==null||sectionId!==null}):empty({unavailable:true,reason:'topic_unavailable'});
-   const generation=this.generation(JSON.stringify([authority,topic.id,topic.revision,topic.organizationRevision,topic.layoutGeneration,providerKey]));
+   if(scopeSectionId!==null&&!await thoughtReadSection(s,t,raw,await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,scopeSectionId]))))return empty({cursorInvalid:true,anchorUnavailable:true});
+   if(scopeSectionId!==null&&sectionId!==null&&sectionId!==scopeSectionId)return empty({cursorInvalid:true,anchorUnavailable:true});
+   const generation=this.generation(JSON.stringify([authority,topic.id,topic.revision,topic.organizationRevision,topic.layoutGeneration,providerKey,scopeSectionId]));
    const recoveryEpoch=(await t.get('meta','recovery-restore-epoch'))?.value||'initial';
    if(typeof recoveryEpoch!=='string'||recoveryEpoch.length>200)unavailable();
    if(expectedReadGeneration!==null&&expectedReadGeneration!==generation||prior&&prior.generation!==generation)return empty({cursorInvalid:true});
-   const nextEvent=eventReader(t,raw),events=[];let position=prior?.position??null,initial=null,placements=0,headers=0;
+   const nextEvent=eventReader(t,raw,scopeSectionId),events=[];let position=prior?.position??null,initial=null,placements=0,headers=0;
    if(anchorId!==null){
     const p=await t.get('placements',JSON.stringify([topicId,raw.activeLayoutGeneration,anchorId]));
     const ref=p?await thoughtReadPlacement(s,t,raw,p):null;
-    if(!ref||sectionId!==null&&p.sectionId!==sectionId||providerKey!==null&&!await entryMatchesProvider(s,t,anchorId,providerKey))return empty({cursorInvalid:true,anchorUnavailable:true});
+    if(!ref||scopeSectionId!==null&&p.sectionId!==scopeSectionId||sectionId!==null&&p.sectionId!==sectionId||providerKey!==null&&!await entryMatchesProvider(s,t,anchorId,providerKey))return empty({cursorInvalid:true,anchorUnavailable:true});
     initial={position:{section:sectionKey(raw,{...ref.section,sectionId:ref.section.id}),placement:placementKey(raw,p)},section:await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,p.sectionId])),placement:p,ref};
    }else if(sectionId!==null){
     const section=await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,sectionId]));

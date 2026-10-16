@@ -1,5 +1,6 @@
 import {writeFile,mkdir} from 'node:fs/promises';
 import {group} from './test-groups.mjs';
+import {inspect} from 'node:util';
 // Test event metadata only. Runtime has no logging; fixtures are exclusively synthetic.
 export default async function* report(events) {
  const totals={pass:0,fail:0,skipped:0};const groups={},files={};
@@ -13,7 +14,7 @@ export default async function* report(events) {
    yield `${outcome.toUpperCase()} ${file}: ${data.name}\n`;
    // Node wraps assertion errors; retain their actual fixture location too.
    const seen=new Set();let error=data.details?.error;
-   for(let depth=0;error&&depth<8&&!seen.has(error);depth++,error=error.cause){seen.add(error);yield `${depth?'Caused by: ':''}${error.stack||error.message||String(error)}\n`;}
+   for(let depth=0;error&&depth<8&&!seen.has(error);depth++,error=error.cause){seen.add(error);yield `${depth?'Caused by: ':''}${error.stack||error.message||inspect(error,{depth:4,maxArrayLength:40,customInspect:false,getters:false})}\n`;}
   }
   else if(data.nesting===0)yield `PASS ${file}: ${data.name}\n`;
  }

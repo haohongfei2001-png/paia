@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
+import {waitArchiveWindow} from './harness/archive-navigator.mjs';
 
 const execFileAsync=promisify(execFile);
 const op=()=>crypto.randomUUID();
@@ -59,7 +60,7 @@ async function seed(page,prefix){
     const {invalidateThoughtTopicIndex}=await import(chrome.runtime.getURL('core/thought-read-index.js'));
     const store=new LibraryFoundationStore(chrome.storage.local);
     try{await store.foundationWrite(async t=>{
-      for(let i=0;i<ids.length;i++){const row=await t.get('thoughts',ids[i]);row.createdAt=i===0?null:'invalid legacy time';await t.put('thoughts',row);}
+      for(let i=0;i<ids.length;i++){const row=await t.get('thoughts',ids[i]);row.createdAt=i===0?null:'invalid legacy time';await t.put('thoughts',row);for(const receipt of await t.all('operationReceipts'))if(receipt.ownerId===ids[i]){delete receipt.result.independentExpression;await t.put('operationReceipts',receipt);}}
       await invalidateThoughtTopicIndex(store,t,topicId,{sourceTime:true});
     });}finally{store.repository.db?.close();}
   },{topicId:topics[0].id,ids:topics[0].unknownIds});
@@ -84,8 +85,32 @@ async function assertOffline(h){
 }
 
 
+// Failure-only metadata for the real Section boundary action. Forward the
+// existing owner methods unchanged; no body, Source text or Provider data.
+async function installSectionBoundaryEvidence(page,variant){
+ await page.evaluate(async variant=>{
+  const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js')),events=[];
+  const trace=globalThis.__uir03SectionBoundary={variant,owner:null,events};
+  trace.snapshot=()=>{
+   const owner=trace.owner,reader=owner?.topicReader,button=document.getElementById('topic-next-year'),rect=button?.getBoundingClientRect(),style=button?getComputedStyle(button):null,body=document.getElementById('original-reading-body');
+   const editor=value=>value?{dirty:value.dirty?.(),saving:!!value.saving,composing:!!(value.composing||value.surface?.composing||value.entry?.surface?.composing)}:null;
+   return {topicId:owner?.id,sectionId:owner?.activeSectionId,provider:owner?.topicProviderKey,selectedProvider:document.getElementById('topic-source-scope')?.value,serial:owner?.serial,intent:owner?.openIntent,view:owner?.view,annualBusy:!!owner?.annualTransitionBusy,refresh:owner?.refreshRun?{queued:owner.refreshRun.queued}:null,
+    reader:reader?{scope:reader.scopeSectionId,provider:reader.providerKey,ids:reader.items.map(row=>row.entry.id),reportedTerminalPrevious:reader.state().terminalPrevious,currentYear:reader.currentYear,nextYear:reader.nextYear,openedYears:reader.openedYears,indexing:reader.indexing,initialized:reader.initialized,terminalNext:reader.terminalNext,terminalPrevious:reader.terminalPrevious,loadingNext:reader.loadingNext,loadingPrevious:reader.loadingPrevious,hydrating:reader.hydrating,stale:reader.stale,references:reader.items.length,windowRevision:reader.windowRevision,bodyRevision:reader.bodyRevision,errorNext:reader.errorNext?.code||reader.errorNext?.message||null}:null,
+    button:button?{hidden:button.hidden,disabled:button.disabled,connected:button.isConnected,display:style.display,visibility:style.visibility,rect:{top:rect.top,bottom:rect.bottom,width:rect.width,height:rect.height}}:null,
+    frontier:{terminal:document.getElementById('topic-continuous-after')?.dataset.terminal,hidden:document.getElementById('topic-continuous-after')?.hidden},documentState:document.getElementById('thought-document')?.dataset.state,inert:document.getElementById('topic-body')?.inert,bodyHidden:body?.hidden,mounted:body?.querySelectorAll('[data-entry-id]').length||0,mountedIds:[...body?.querySelectorAll('[data-entry-id]')||[]].map(node=>node.dataset.entryId),before:{hidden:document.getElementById('topic-continuous-before')?.hidden,terminal:document.getElementById('topic-continuous-before')?.dataset.terminal},sections:[...body?.querySelectorAll('.topic-section')||[]].map(node=>node.dataset.sectionId),active:{tag:document.activeElement?.tagName,id:document.activeElement?.id,entryId:document.activeElement?.closest('[data-entry-id]')?.dataset.entryId,editable:document.activeElement?.contentEditable},editors:{editor:editor(owner?.editor),ai:editor(owner?.aiEditor),dialog:editor(owner?.dialogEditor)},writer:owner?.sectionEndWriter?{hasDraft:owner.sectionEndWriter.hasDraft(),connected:owner.sectionEndWriter.field?.isConnected}:null};
+  };
+  trace.record=(name,detail={})=>{try{events.push({at:performance.now(),name,detail,state:trace.snapshot()});if(events.length>64)events.shift();}catch(error){events.push({name,diagnosticError:String(error)});if(events.length>64)events.shift();}};
+  for(const name of ['createTopicReader','updateTopicContinuous','openNextTopicYear']){
+   const original=ThoughtWorkspace.prototype[name];ThoughtWorkspace.prototype[name]=function(...args){trace.owner=this;trace.record(name+':start');const result=original.apply(this,args);trace.record(name+':returned');if(name==='openNextTopicYear'&&result?.then)result.then(value=>trace.record(name+':settled',{value}),error=>trace.record(name+':rejected',{code:error?.code,name:error?.name}));return result;};
+  }
+  document.addEventListener('click',event=>{if(event.target.closest?.('#topic-next-year'))trace.record('year-click',{trusted:event.isTrusted});},true);
+  document.addEventListener('change',event=>{if(event.target.id==='topic-source-scope')trace.record('source-change',{selected:event.target.value,trusted:event.isTrusted});},true);
+  new MutationObserver(records=>{for(const record of records)if(['topic-next-year','topic-body','original-reading-body','thought-document'].includes(record.target.id))trace.record('attribute:'+record.attributeName,{id:record.target.id});}).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['hidden','disabled','inert','data-state']});
+ },variant);
+}
+
 async function provenanceRoleJourney(page,topics,{release=false}={}){
-  const id=await page.evaluate(async({topicId,prefix})=>{
+  const seeded=await page.evaluate(async({topicId,prefix})=>{
     const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
     const store=new OrganizerStore(chrome.storage.local);
     try{
@@ -101,32 +126,137 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
       const topic=await store.topic(topicId);
       const placed=await store.placeEntry({entryId:entry.id,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:crypto.randomUUID()});
       if(placed.conflict)throw Error('synthetic provenance placement conflict');
-      return entry.id;
+      return {id:entry.id,chatId,roles:specs.map(({role,inputId})=>({role,inputId})),sourceRecordIds:[...new Set(evidence.flatMap(row=>row.sourceRecordIds))]};
     }finally{store.repository.db?.close();}
   },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
-  const before=await rpc(page,'GET_LIBRARY_ENTRY',{id});
+  const {id}=seeded,before=await rpc(page,'GET_LIBRARY_ENTRY',{id});
+  const destination=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
+  await installSectionBoundaryEvidence(page,release?'release':'source');
   await page.setViewportSize({width:1440,height:900});
   await page.locator('#back').click();
   await eventually(()=>page.locator('#thought-list').isVisible(),'return to Topic scanning after original reading');
   await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
   const entry=page.locator('#original-reading-body [data-entry-id="'+id+'"]');
+  await eventually(()=>page.evaluate(({name,sectionId})=>{
+    const doc=document.getElementById('thought-document'),body=document.getElementById('original-reading-body'),sections=[...(body?.querySelectorAll('.topic-section')||[])],rows=[...(body?.querySelectorAll('[data-entry-id]')||[])];
+    return doc?.dataset.state==='ready'&&!document.getElementById('topic-body').inert&&document.querySelector('#topic-heading h1')?.textContent===name&&document.querySelector('.topic-section-select')?.value===sectionId&&sections.length===1&&sections[0].dataset.sectionId===sectionId&&rows.length>0&&rows.every(row=>row.dataset.sectionId===sectionId);
+  },{name:destination.name,sectionId:destination.defaultSectionId}),'same canonical Topic and Section finish their qualified initial paint before traversal');
+  // UX_CONTRACT section2.4 keeps this mixed-source synthesis undated; its
+  // capture/derivation time cannot move it into the two real dated expressions.
+  // Reach it through the existing Section's actual explicit year boundary.
+  await exhaustSection(page,3);
   await entry.waitFor({state:'visible'});
-  const provenance=entry.locator('.entry-provenance');
-  assert.equal(await provenance.getAttribute('open'),null,'source roles stay on demand');
-  await entry.locator('.library-actions summary').click();await entry.getByRole('button',{name:'来源',exact:true}).click();
-  await eventually(async()=>await provenance.locator('[data-evidence-role]').count()===3,'each real evidence role receives its user-language label');
-  assert.match(await provenance.innerText(),/主要来源 1 · 补充来源 1 · 辅助上下文 1/);
-  for(const [role,label]of [['primary','主要来源'],['supporting','补充来源'],['context_only','辅助上下文']]){
-    const row=provenance.locator('[data-evidence-role="'+role+'"]');
-    assert.match(await row.innerText(),new RegExp(label+' · 来源可查看'));
-    assert.equal(await row.getByRole('button',{name:'查看输入',exact:true}).count(),1);
+  const sectionBefore=await page.locator('#original-reading-body [data-entry-id]').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.entryId,sectionId:node.dataset.sectionId,body:node.querySelector('[data-entry-field="body"]').textContent})));
+  const openedBefore=await page.evaluate(()=>[...__uir03SectionBoundary.owner.topicReader.openedYears]);
+  // Current UX0 -> PRE_YEAR0 -> PRE_SECTION3 explicitly retires per-Entry
+  // Source actions, including overflow. Preserve actual evidence via its
+  // unchanged service and the existing deliberate raw-source destination.
+  assert.equal(await entry.locator('.entry-provenance').getAttribute('open'),null);
+  assert.equal(await entry.locator('.entry-provenance').evaluate(node=>node.hidden),true,'normal reading exposes no recurring provenance panel');
+  await entry.locator('.library-actions summary').click();
+  assert.equal(await entry.getByRole('button',{name:/^(来源|查看来源|查看依据|查看原文|查看输入)$/}).count(),0,'the retired per-Entry Source CTA is absent even in overflow');
+  await page.keyboard.press('Escape');
+  const provenance=await rpc(page,'GET_LIBRARY_PROVENANCE',{id});
+  assert.deepEqual({count:provenance.count,primary:provenance.primary,supporting:provenance.supporting,contextOnly:provenance.contextOnly},{count:3,primary:1,supporting:1,contextOnly:1});
+  const byRole=(a,b)=>a.role.localeCompare(b.role);
+  assert.deepEqual(provenance.items.map(({role,inputId,availability})=>({role,inputId,availability})).sort(byRole),seeded.roles.map(row=>({...row,availability:'resolvable'})).sort(byRole),'all three exact original Inputs retain their distinct real evidence roles and resolvability');
+  for(const item of provenance.items){assert.ok(Number.isSafeInteger(item.usedVersion));assert.equal(item.currentVersion,item.usedVersion,'each role still resolves the exact evidence version used');}
+  const index=await rpc(page,'GET_PAGE',{page:{view:'archive',limit:100}}),documents=index.documents.filter(row=>row.sourceConversationId===seeded.chatId);
+  assert.equal(documents.length,1,'the actual synthetic Source conversation has one raw-data identity');
+  const sourceDocument=documents[0],sourcePage=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId:sourceDocument.id,limit:100}});
+  assert.deepEqual(new Set(sourcePage.records.map(row=>row.id)),new Set(seeded.sourceRecordIds),'all three captured original Source identities remain intact');
+  assert.equal(sourcePage.records.length,3);assert.equal(new Set(seeded.roles.map(row=>row.inputId)).size,3);
+  const originalInputs=await Promise.all(seeded.roles.map(row=>rpc(page,'GET_INPUT',{id:row.inputId})));
+  assert.deepEqual(new Set(originalInputs.map(row=>row.id)),new Set(seeded.roles.map(row=>row.inputId)));
+  assert.deepEqual(new Set(originalInputs.map(row=>row.originalTextReference)),new Set(seeded.sourceRecordIds),'each exact role Input still points to its actual captured original');
+  await nav(page,'settings');await page.locator('[data-settings-group="data"]').click();await page.locator('#ux-settings-data-group').waitFor({state:'visible'});
+  await page.locator('#settings-source-records').click();
+  await eventually(()=>page.locator('body').getAttribute('data-paia-space').then(space=>space==='archive'),'the existing Settings raw-source destination opens through its real route');
+  // The current Navigator intentionally hides the legacy conversation list.
+  // Use its real disclosures/continuations, then prove the same canonical ID.
+  const sourceWindow=await waitArchiveWindow(page,{text:sourceDocument.userTitle||sourceDocument.originalConversationTitle,label:'the actual synthetic raw Source conversation is reachable through its current Navigator'});
+  assert.equal(await sourceWindow.getAttribute('data-document-id'),sourceDocument.id,'visible navigation resolves the exact original Source document, never a same-title substitute');
+  await sourceWindow.click();
+  await eventually(()=>page.locator('#document-body .archive-block').count().then(count=>count===3),'the actual raw Source reader renders all three synthetic originals');
+  for(const original of sourcePage.records){
+    const raw=page.locator('#document-body .archive-block[data-record-id="'+original.id+'"] .original-prose');
+    assert.equal(await raw.isVisible(),true,'each exact original Source record is genuinely visible');
+    assert.deepEqual(Buffer.from(await raw.textContent(),'utf8'),Buffer.from(original.originalText,'utf8'),'low-frequency inspection preserves exact original UTF-8 bytes');
+    assert.equal(await raw.evaluate(node=>node.isContentEditable),false,'immutable Source is genuinely read-only');
   }
-  assert.match(await provenance.innerText(),/不作为这条内容的直接依据/);
+  const originalsAfter=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId:sourceDocument.id,limit:100}});
+  assert.deepEqual(originalsAfter.records,sourcePage.records,'raw-data inspection changes no original bytes, hashes, identity or timestamps');
+  assert.deepEqual(await rpc(page,'GET_LIBRARY_PROVENANCE',{id}),provenance,'raw Source inspection preserves all role/version/availability bindings');
+  assert.deepEqual(await Promise.all(seeded.roles.map(row=>rpc(page,'GET_INPUT',{id:row.inputId}))),originalInputs,'raw Source inspection does not rewrite the original role-bound Working Inputs');
+  await shot(page,release?'vs05-release-raw-source-records':'vs05-source-raw-source-records');
+  await nav(page,'thoughts');
+  await page.locator('.personal-topic-link[data-topic-id="'+destination.id+'"]').click();
+  await eventually(()=>page.evaluate(({name,sectionId})=>document.getElementById('thought-document')?.dataset.state==='ready'&&!document.getElementById('topic-body')?.inert&&document.querySelector('#topic-heading h1')?.textContent===name&&document.querySelector('.topic-section-select')?.value===sectionId&&[...document.querySelectorAll('#original-reading-body [data-entry-id]')].some(node=>node.dataset.sectionId===sectionId),{name:destination.name,sectionId:destination.defaultSectionId}),'raw-data inspection returns through the real same Topic and Section owner');
+  await entry.waitFor({state:'visible'});
+  assert.equal(await entry.locator('[data-entry-field="body"]').textContent(),before.body,'the exact restored Entry retains its canonical body before any traversal');
+  await recoverOpenedSectionPrefix(page,destination,sectionBefore,openedBefore);
+  await exhaustSection(page,3);await entry.waitFor({state:'visible'});
+  assert.deepEqual(await page.locator('#original-reading-body [data-entry-id]').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.entryId,sectionId:node.dataset.sectionId,body:node.querySelector('[data-entry-field="body"]').textContent}))),sectionBefore,'normal bidirectional reading recovers all three exact original IDs, order, Section and bodies');
   const after=await rpc(page,'GET_LIBRARY_ENTRY',{id});
-  assert.equal(after.body,before.body);assert.equal(after.revision,before.revision,'opening evidence details never edits human content');
-  await shot(page,release?'vs05-release-provenance-roles':'vs05-source-provenance-roles');
+  assert.equal(after.body,before.body);assert.equal(after.revision,before.revision,'deliberate source inspection never edits human content');
 }
 
+
+// An exact restored target can start in the last of already opened years.
+// Recover that existing prefix only through the genuinely visible native edge.
+async function recoverOpenedSectionPrefix(page,destination,expectedRows,openedYears){
+ const expected=new Map(expectedRows.map(row=>[row.id,row])),before=page.locator('#topic-continuous-before');
+ const state=()=>page.evaluate(()=>{const owner=globalThis.__uir03SectionBoundary?.owner,reader=owner?.topicReader,node=document.getElementById('topic-continuous-before');return {topicId:owner?.id,sectionId:owner?.activeSectionId,scope:reader?.scopeSectionId,view:owner?.view,openedYears:[...reader?.openedYears||[]],firstYear:reader?.items[0]?.readingYear,globalTerminalPrevious:reader?.state().terminalPrevious,loading:!!(reader?.loadingPrevious||reader?.loadingNext||reader?.hydrating),indexing:reader?.indexing,stale:reader?.stale,error:reader?.errorPrevious?.code||reader?.errorPrevious?.message||reader?.errorNext?.code||reader?.errorNext?.message||reader?.hydrationError?.message||null,beforeHidden:node?.hidden,terminal:node?.dataset.terminal,count:document.querySelectorAll('#original-reading-body [data-entry-id]').length};});
+ try{
+  for(let turn=0;turn<8;turn++){
+   const current=await state();assert.equal(current.topicId,destination.id);assert.equal(current.sectionId,destination.defaultSectionId);assert.equal(current.scope,destination.defaultSectionId);assert.equal(current.view,'original');assert.deepEqual(current.openedYears,openedYears,'prefix traversal never opens an unrequested year');assert.equal(current.stale,false);assert.equal(current.error,null);
+   const rows=await page.locator('#original-reading-body [data-entry-id]').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.entryId,sectionId:node.dataset.sectionId,body:node.querySelector('[data-entry-field="body"]').textContent})));
+   for(const row of rows)assert.deepEqual(row,expected.get(row.id),'every restored row keeps its exact original Section/body');
+   if(rows.length===expectedRows.length)return;
+   assert.ok(openedYears.indexOf(current.firstYear)>0,'only an earlier already-opened year can require this native previous action');
+   await before.waitFor({state:'visible'});
+   const ready=await state();if(ready.count===expectedRows.length)return;
+   assert.equal(ready.beforeHidden,false);assert.equal(ready.globalTerminalPrevious,false,'the real current frontier permits reading an already-opened prefix');
+   await before.focus();assert.equal(await page.evaluate(()=>document.activeElement?.id),'topic-continuous-before');
+   await before.press('Enter');
+   await eventually(async()=>{const next=await state();assert.equal(next.topicId,destination.id);assert.equal(next.sectionId,destination.defaultSectionId);assert.deepEqual(next.openedYears,openedYears);assert.equal(next.error,null);return next.count>rows.length&&!next.loading&&!next.indexing&&!next.stale;},'the trusted visible previous control paints more of the same already-opened Section',30000);
+  }
+  assert.fail('already-opened Section prefix did not reach its original bounded extent');
+ }catch(error){try{const evidence=await page.evaluate(()=>{const trace=globalThis.__uir03SectionBoundary;return trace?{variant:trace.variant,events:trace.events,final:trace.snapshot()}:null;});await mkdir('work/ux-r3',{recursive:true});await writeFile(`work/ux-r3/uir03-opened-prefix-failure-${evidence?.variant||'unknown'}.json`,JSON.stringify({kind:'synthetic-body-free-native-prefix-diagnostic',error:{name:error.name,message:error.message,stack:error.stack},state:await state(),evidence},null,2));}catch(diagnosticError){console.error('UIR03_PREFIX_DIAGNOSTIC_FAILED',diagnosticError?.name||'Error');}throw error;}
+}
+
+// Traverse only this synthetic selected Section through its real page/year
+// controls. Each later year needs its own visible explicit activation.
+async function exhaustSection(page,expected){
+ const after=page.locator('#topic-continuous-after'),nextYear=page.locator('#topic-next-year');
+ for(let boundary=0;boundary<8;boundary++){
+  await eventually(async()=>{await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));return await nextYear.isVisible()||await after.getAttribute('data-terminal')==='true';},'actual selected-year boundary completes',30000);
+  if(await nextYear.isVisible()){
+   const previousLabel=await nextYear.textContent();
+   try{await nextYear.click();await eventually(()=>nextYear.evaluate((node,label)=>node.hidden||node.textContent!==label,previousLabel),'the explicit year boundary is consumed before another boundary action',30000);}
+   catch(error){try{const evidence=await page.evaluate(()=>{const trace=globalThis.__uir03SectionBoundary;return trace?{variant:trace.variant,events:trace.events,final:trace.snapshot()}:null;});await mkdir('work/ux-r3',{recursive:true});await writeFile(`work/ux-r3/uir03-section-boundary-failure-${evidence?.variant||'unknown'}.json`,JSON.stringify({kind:'synthetic-body-free-boundary-diagnostic',error:{name:error.name,message:error.message,stack:error.stack},boundary,expected,evidence},null,2));}catch(diagnosticError){console.error('UIR03_BOUNDARY_DIAGNOSTIC_FAILED',diagnosticError?.name||'Error');}throw error;}
+   continue;
+  }
+  // Terminal metadata can precede the native body paint of the admitted year.
+  try{await eventually(()=>page.evaluate(expected=>document.getElementById('thought-document')?.dataset.state==='ready'&&!document.getElementById('topic-body')?.inert&&document.getElementById('topic-continuous-after')?.dataset.terminal==='true'&&document.getElementById('topic-next-year')?.hidden===true&&document.querySelectorAll('#original-reading-body [data-entry-id]').length===expected,expected),'the complete selected Section reaches its exact native painted extent',30000);}
+  catch(error){try{const evidence=await page.evaluate(()=>{const trace=globalThis.__uir03SectionBoundary;return trace?{variant:trace.variant,events:trace.events,final:trace.snapshot()}:null;});await mkdir('work/ux-r3',{recursive:true});await writeFile(`work/ux-r3/uir03-section-terminal-failure-${evidence?.variant||'unknown'}.json`,JSON.stringify({kind:'synthetic-body-free-section-terminal-diagnostic',error:{name:error.name,message:error.message,stack:error.stack},boundary,expected,evidence},null,2));}catch(diagnosticError){console.error('UIR03_TERMINAL_DIAGNOSTIC_FAILED',diagnosticError?.name||'Error');}throw error;}
+  assert.equal(await page.locator('#original-reading-body [data-entry-id]').count(),expected,'all real synthetic Section identities are mounted without skipping a year');return;
+ }
+ assert.fail('synthetic Section did not reach its bounded actual end');
+}
+
+// A native selection changes its value before the guarded Source read settles.
+// Wait for that actual replacement reader, not the old scope's terminal DOM.
+async function selectSettledTopicSource(page,scope,value,topic){
+ await page.evaluate(()=>{const trace=globalThis.__uir03SectionBoundary;trace.previousSourceReader=trace.owner.topicReader;});
+ try{
+  await scope.selectOption(value);
+  await eventually(()=>page.evaluate(({value,topicId,sectionId})=>{
+   const trace=globalThis.__uir03SectionBoundary,owner=trace?.owner,reader=owner?.topicReader,select=document.getElementById('topic-source-scope'),provider=value||null;
+   return !!reader&&reader!==trace.previousSourceReader&&owner.id===topicId&&owner.activeSectionId===sectionId&&reader.scopeSectionId===sectionId&&(owner.topicProviderKey??null)===provider&&(reader.providerKey??null)===provider&&select.value===value&&!select.disabled&&document.getElementById('thought-document')?.dataset.state==='ready'&&!document.getElementById('topic-body')?.inert&&reader.initialized&&!reader.indexing&&!reader.loadingNext&&!reader.loadingPrevious&&!reader.hydrating&&!reader.stale&&!reader.errorNext&&!reader.errorPrevious&&!reader.hydrationError&&[...document.querySelectorAll('#original-reading-body [data-entry-id]')].some(row=>row.dataset.sectionId===sectionId);
+  },{value,topicId:topic.id,sectionId:topic.defaultSectionId}),'the native Source choice publishes its own qualified Topic/Section reader before year traversal',30000);
+ }finally{await page.evaluate(()=>{delete globalThis.__uir03SectionBoundary?.previousSourceReader;});}
+}
 
 async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  const seeded=await page.evaluate(async ({topicId,prefix})=>{
@@ -157,6 +287,7 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  const before=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
  const topicBefore=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
  await page.reload();
+ await installSectionBoundaryEvidence(page,release?'release':'source');
  await eventually(async()=>await page.locator('#thought-document').isVisible()&&await page.locator('#topic-heading h1').textContent()===topicBefore.name,'reload restores the same Topic reading route');
  await page.locator('#back').click();
  await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').isVisible(),'explicit back returns to the same Topic in root scanning');
@@ -168,34 +299,33 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(available.coverage.state,'complete','selector waits for real source-index readiness');
  assert.ok(available.items.some(item=>item.providerKey==='claude'),'official imported source is present in the completed index');
 
- assert.equal(await page.locator('input[type="search"]:visible').count(),1,'source selection keeps one Topic search');
- await openThoughtReadingOptions(page);await scope.selectOption('claude');
- await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.mixed+'"]').count()===1,'Claude view contains direct and mixed evidence only');
+ assert.equal(await page.locator('#thought-panel input[type="search"]').count(),0,'source selection does not revive retired Topic search');
+ await openThoughtReadingOptions(page);await selectSettledTopicSource(page,scope,'claude',topicBefore);
+ await exhaustSection(page,2);assert.equal(await body.locator('[data-entry-id="'+seeded.mixed+'"]').count(),1,'Claude view contains direct and mixed evidence only');
  assert.equal(await body.locator('[data-entry-id="'+seeded.claude+'"]').count(),1);
  assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),true,'a source-scoped view cannot falsely use whole-Topic time endpoints');
  assert.match(await page.locator('#topic-search-count').textContent(),/当前来源内容/);
- await page.locator('#topic-search').fill('Scope shared claude');
- await eventually(async()=>await body.locator('[data-entry-id]').count()===1&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1,'Topic lexical search remains inside Claude scope');
- await page.locator('#topic-search').fill('');
- await eventually(async()=>await body.locator('[data-entry-id]').count()===2,'clearing query keeps source scope');
- await openThoughtReadingOptions(page);await scope.selectOption('chatgpt');
- await eventually(async()=>await body.locator('[data-entry-id]').count()===2&&await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===0,'ChatGPT view includes the mixed identity and existing role-bound expression');
+ // The lexical owner remains a compatibility service; the approved reader has no search UI.
+ let lexical;await eventually(async()=>{lexical=await rpc(page,'GET_LIBRARY_SECTION_READING',{options:{topicId:topics[1].id,providerKey:'claude',query:'Scope shared claude',sort:'asc',limit:40}});return !lexical.indexing&&!lexical.cursorInvalid;},'real provider-scoped lexical owner completes');
+ assert.deepEqual(lexical.items.map(item=>item.entry.id),[seeded.claude]);assert.equal(await scope.inputValue(),'claude');assert.equal(await body.locator('[data-entry-id]').count(),2,'compatibility query never filters the actual selected Section');
+ await openThoughtReadingOptions(page);await selectSettledTopicSource(page,scope,'chatgpt',topicBefore);
+ await exhaustSection(page,2);assert.equal(await body.locator('[data-entry-id="'+seeded.claude+'"]').count(),0,'ChatGPT view includes the mixed identity and existing role-bound expression');
  assert.equal(await body.locator('[data-entry-id="'+seeded.mixed+'"]').count(),1);
- await openThoughtReadingOptions(page);await scope.selectOption('claude');
+ await openThoughtReadingOptions(page);await selectSettledTopicSource(page,scope,'claude',topicBefore);
  await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1);
  await page.locator('#back').click();await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
- await eventually(async()=>await scope.inputValue()==='claude'&&await body.locator('[data-entry-id]').count()===2,'return preserves Topic source scope without duplicating the Topic');
- await openThoughtReadingOptions(page);await scope.selectOption('');
- await eventually(async()=>await body.locator('[data-entry-id]').count()===5,'All sources restores the original independent expressions');
+ await eventually(async()=>await scope.inputValue()==='claude','return preserves actual provider scope');await exhaustSection(page,2);
+ await openThoughtReadingOptions(page);await selectSettledTopicSource(page,scope,'',topicBefore);
+ await exhaustSection(page,5);
  assert.equal(await page.locator('[data-reading-start="asc"]').isDisabled(),false);
  const after=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
  for(let i=0;i<before.length;i++){assert.equal(after[i].body,before[i].body);assert.equal(after[i].revision,before[i].revision);}
 
  await page.locator('#back').click();
- const rootScope=page.locator('#thought-source-scope'),rootList=page.locator('#thought-list'),rootSearch=page.locator('#thought-search'),blocks=rootList.locator('article.personal-topic-block');
+ const rootScope=page.locator('#thought-source-scope'),rootList=page.locator('#thought-list'),blocks=rootList.locator('article.personal-topic-block');
  await eventually(async()=>await blocks.count()===3,'Root returns the same three independent Topic identities');
  assert.equal(await rootScope.isHidden(),true,'the retired Root Source control cannot create a second organization view');
- assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Root retains one local Thought search');
+ assert.equal(await page.locator('#thought-panel input[type="search"]').count(),0,'Root has no retired local Thought search');
  // Preserve the real source-scoped owner contract independently of the retired
  // Root selector. Topic reading above still exercises its actual visible UI.
  const collectScoped=async options=>{
@@ -219,46 +349,29 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.ok(scopedSearch.items.every(row=>row.entryId===seeded.claude),'direct-source search never admits independent or nonmatching bodies');
  assert.equal(await rootList.locator('small,.summary').count(),0,'normal metadata blocks publish no misleading source counts or body excerpts');
  const addresses=await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot]));
- await rootSearch.fill('Scope shared claude');
- const match=rootList.locator('article.personal-topic-block:not(.personal-topic-nonmatch)'),action=match.locator('.personal-entry-match');
- await eventually(async()=>await match.count()===1&&await action.isVisible()&&/Scope shared claude/i.test(await action.innerText()),'eligible Root lexical match appears inside its existing Topic slot');
- assert.equal(await match.getAttribute('data-topic-id'),topics[1].id);assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses,'search preserves stable identities and addresses');
- // Hold the real search continuation at the section boundary, then navigate
- // Back. The obsolete continuation must finish without opening a content modal.
- await page.evaluate(async()=>{
-  const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js'));
-  const proto=ThoughtWorkspace.prototype,focus=proto.focusSection,open=proto.openSearchResult;
-  window.vs05SearchRace={started:false,done:false};
-  const gate=new Promise(resolve=>{window.vs05SearchRace.release=resolve;});
-  proto.focusSection=async function(...args){window.vs05SearchRace.started=true;await gate;return focus.apply(this,args);};
-  proto.openSearchResult=async function(...args){window.vs05SearchOwner=this;window.vs05SearchRace.target={kind:args[0]?.kind,entryId:args[0]?.entryId,path:args[1]||args[0]?.paths?.[0]};try{return await open.apply(this,args);}catch(error){window.vs05SearchRace.error=String(error?.message||error?.code||error);throw error;}finally{window.vs05SearchRace.done=true;}};
-  window.vs05SearchRace.restore=()=>{proto.focusSection=focus;proto.openSearchResult=open;};
- });
+ // Preserve the exact legacy search handoff/Back race through its original
+ // production controller. The approved Root has no query field or result cards.
+ const exact=scopedSearch.items.find(row=>row.entryId===seeded.claude);assert.ok(exact);
+ await page.evaluate(async()=>{const {ThoughtWorkspace}=await import(chrome.runtime.getURL('ui/thoughts.js')),proto=ThoughtWorkspace.prototype,open=proto.open;window.vs05OwnerRestore=()=>proto.open=open;proto.open=function(...args){window.vs05SearchOwner=this;return open.apply(this,args);};});
+ await rootList.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();await eventually(()=>body.locator('[data-entry-id]').count().then(n=>n>0));await page.locator('#back').click();
+ await page.evaluate(()=>vs05OwnerRestore());
+ await page.evaluate(async item=>{
+  const owner=window.vs05SearchOwner,focus=owner.focusSection;window.vs05SearchRace={started:false,done:false};
+  const gate=new Promise(resolve=>window.vs05SearchRace.release=resolve);
+  owner.focusSection=async function(...args){window.vs05SearchRace.started=true;await gate;return focus.apply(this,args);};window.vs05SearchRace.restore=()=>owner.focusSection=focus;
+  owner.openSearchResult(item).then(()=>window.vs05SearchRace.done=true,error=>{window.vs05SearchRace.error=String(error.message);window.vs05SearchRace.done=true;});
+ },exact);
  try{
-  await action.click();
-  try{await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.started),'real search continuation reaches section focus');}catch(error){const diagnostic=await page.evaluate(()=>{const owner=window.vs05SearchOwner;return {race:window.vs05SearchRace&&{started:vs05SearchRace.started,done:vs05SearchRace.done,target:vs05SearchRace.target,error:vs05SearchRace.error},owner:owner&&{id:owner.id,openIntent:owner.openIntent,serial:owner.serial,view:owner.view,readFailed:owner.readFailed,refreshKey:owner.refreshRun?.key},visibleError:document.getElementById('error')?.textContent,notice:document.getElementById('notice')?.textContent};});throw new Error(error.message+' '+JSON.stringify(diagnostic));}
-  await eventually(async()=>await page.locator('#thought-document').isVisible(),'scoped root search opens the canonical Topic');
-  await page.locator('#back').click();
-  await eventually(async()=>await rootList.isVisible()&&await blocks.count()===3,'Back completes before the delayed search continuation');
-  await page.evaluate(()=>window.vs05SearchRace.release());
-  await eventually(async()=>await page.evaluate(()=>window.vs05SearchRace.done),'obsolete search continuation settles');
-  assert.equal(await page.locator('#library-dialog').evaluate(el=>el.open),false,'obsolete entry focus cannot open a modal after Back');
-  assert.equal(await page.locator('#thought-document').isVisible(),false,'obsolete section focus cannot replace the root route');
- }finally{
-  await page.evaluate(()=>{window.vs05SearchRace.release();window.vs05SearchRace.restore();});
- }
- // Also retain the ordinary successful navigation and target-entry readback.
- await action.click();
- await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'scoped search focuses the actual placed expression without a standalone fallback');
- await page.locator('#back').click();
- await eventually(async()=>await rootSearch.inputValue()==='Scope shared claude'&&await match.count()===1&&await action.isVisible(),'Back preserves Root query and qualified result identity');
- assert.equal(await match.getAttribute('data-topic-id'),topics[1].id);assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses);
- await rootSearch.fill('independent-only-never-in-source');
- await eventually(async()=>await page.locator('#library-search-status').textContent()==='当前没有匹配内容。','empty Root search reports a real completed no-match result');
- assert.equal(await match.count(),0);assert.equal(await blocks.count(),3,'empty query results keep all existing stable Topic slots');
- await rootSearch.fill('');
- await eventually(async()=>await rootList.locator('article.personal-topic-block:not(.personal-topic-nonmatch)').count()===3&&await rootList.locator('.personal-entry-preview').count()===0,'clearing Root search restores all metadata-only Topic blocks');
- assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses);
+  await eventually(()=>page.evaluate(()=>vs05SearchRace.started),'real compatibility handoff reaches held Section focus');await eventually(()=>page.locator('#thought-document').isVisible());
+  await page.locator('#back').click();await eventually(async()=>await rootList.isVisible()&&await blocks.count()===3,'Back wins before the delayed original continuation');
+  await page.evaluate(()=>vs05SearchRace.release());await eventually(()=>page.evaluate(()=>vs05SearchRace.done));
+  assert.equal(await page.locator('#library-dialog').evaluate(el=>el.open),false,'obsolete Entry focus cannot reopen a modal');assert.equal(await page.locator('#thought-document').isVisible(),false,'obsolete Section focus cannot replace Root');
+ }finally{await page.evaluate(()=>{vs05SearchRace.release();vs05SearchRace.restore();});}
+ await page.evaluate(item=>vs05SearchOwner.openSearchResult(item),exact);
+ await eventually(async()=>await body.locator('[data-entry-id="'+seeded.claude+'"]').count()===1&&await page.locator('#library-dialog').evaluate(el=>!el.open),'original compatibility handoff reaches actual placement without standalone fallback');
+ await page.locator('#back').click();await eventually(()=>rootList.isVisible());assert.deepEqual(await blocks.evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),addresses,'Back retains all actual identity addresses');
+ let empty;await eventually(async()=>{empty=await collectScoped({query:'independent-only-never-in-source'});return empty.complete===true&&!empty.cursorInvalid;},'original lexical no-match reaches a complete result');assert.equal(empty.items.length,0);
+ assert.equal(await blocks.count(),3);assert.equal(await rootList.locator('.personal-entry-preview,.personal-entry-match').count(),0,'compatibility search cannot publish retired Root body previews');
  assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false,'source root adds no AI control');
  await rootList.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
  await eventually(async()=>await page.locator('#thought-document').isVisible());
@@ -266,6 +379,24 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  await assertOffline(h);
 }
 
+
+// A new independent expression may precede the qualified retained anchor in
+// the same opened year. Use the real visible backward frontier to reveal it.
+async function revealCommittedExpression(page,topic,entryId){
+ const read=()=>page.evaluate(()=>globalThis.__uir03SectionBoundary.snapshot()),target=page.locator('#original-reading-body [data-entry-id="'+entryId+'"]'),before=page.locator('#topic-continuous-before');
+ const same=state=>state.topicId===topic.id&&state.sectionId===topic.defaultSectionId&&state.reader?.scope===topic.defaultSectionId&&state.provider===null&&state.reader.provider===null&&state.view==='original';
+ await eventually(async()=>{const state=await read(),reader=state.reader;return same(state)&&state.documentState==='ready'&&!state.inert&&reader.initialized&&!reader.loadingNext&&!reader.loadingPrevious&&!reader.hydrating&&!reader.indexing&&!reader.stale&&!reader.errorNext;},'the committed expression keeps a qualified same-Topic/Section all-source reader',30000);
+ const openedYears=(await read()).reader.openedYears;
+ for(let turn=0;turn<8;turn++){
+  const state=await read();assert.equal(same(state),true);assert.deepEqual(state.reader.openedYears,openedYears,'revealing the committed expression never opens another year');assert.equal(state.reader.stale,false);assert.equal(state.reader.errorNext,null);
+  if(await target.count()===1)return;
+  await before.waitFor({state:'visible'});if(await target.count()===1)return;
+  const ready=await read();assert.equal(ready.before.hidden,false);assert.equal(ready.reader.reportedTerminalPrevious,false,'the actual current reader has a legitimate previous range');
+  await before.focus();assert.equal(await page.evaluate(()=>document.activeElement?.id),'topic-continuous-before');await before.press('Enter');
+  await eventually(async()=>{const next=await read();assert.equal(same(next),true);assert.deepEqual(next.reader.openedYears,openedYears);assert.equal(next.reader.errorNext,null);return next.mounted>state.mounted&&!next.reader.loadingNext&&!next.reader.loadingPrevious&&!next.reader.hydrating&&!next.reader.indexing&&!next.reader.stale;},'native previous reading admits more of the same already-opened expression year',30000);
+ }
+ assert.fail('the committed expression was not reached through its bounded real previous ranges');
+}
 
 async function independentThoughtRelationJourney(page,h,topics,{release=false}={}){
  await page.setViewportSize({width:1440,height:900});
@@ -294,8 +425,13 @@ async function independentThoughtRelationJourney(page,h,topics,{release=false}={
  const rejected=await page.evaluate(thought=>chrome.runtime.sendMessage({type:'CONTINUE_THINKING',thought}),{operationId:op(),body:responseBody,topicId:topics[1].id,relation:{id:targetId,expectedRevision:before.revision,expectedBodySha256}});assert.equal(rejected.error,'FEATURE_UNAVAILABLE','retired explicit response relation cannot create any new Thought');
  assert.deepEqual(await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId}),before,'rejected relation leaves the original body and revision intact');
  const response=await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),body:responseBody,topicId:topics[1].id}}),responseId=response.id;
- const responseRow=page.locator(`#original-reading-body [data-entry-id="${responseId}"]`);await eventually(()=>responseRow.locator('[data-entry-field="body"]').textContent().then(body=>body===responseBody),'independent Thought remains available');assert.notEqual(responseId,targetId);
+ const responseRow=page.locator(`#original-reading-body [data-entry-id="${responseId}"]`),responseTopic=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
+ const committed=await rpc(page,'GET_LIBRARY_ENTRY',{id:responseId}),committedPaths=await rpc(page,'GET_LIBRARY_PATHS',{id:responseId});assert.equal(committed.body,responseBody);assert.equal(committed.provenanceType,'user_created');assert.deepEqual(committedPaths.map(path=>[path.topicId,path.sectionId]),[[responseTopic.id,responseTopic.defaultSectionId]],'the exact committed expression belongs to this canonical Topic/Section');
+ try{await revealCommittedExpression(page,responseTopic,responseId);await eventually(()=>responseRow.locator('[data-entry-field="body"]').textContent().then(body=>body===responseBody),'independent Thought remains available');}
+ catch(error){try{const canonical=await rpc(page,'GET_LIBRARY_ENTRY',{id:responseId}),paths=await rpc(page,'GET_LIBRARY_PATHS',{id:responseId}),evidence=await page.evaluate(()=>{const trace=globalThis.__uir03SectionBoundary;return trace?{variant:trace.variant,events:trace.events,final:trace.snapshot()}:null;});await mkdir('work/ux-r3',{recursive:true});await writeFile(`work/ux-r3/uir03-independent-expression-failure-${release?'release':'source'}.json`,JSON.stringify({kind:'synthetic-body-free-independent-expression-diagnostic',error:{name:error.name,message:error.message,stack:error.stack},canonical:{id:canonical.id,createdAt:canonical.createdAt,revision:canonical.revision,lifecycle:canonical.lifecycle,provenanceType:canonical.provenanceType,bodyMatches:canonical.body===responseBody,sourceRecordCount:canonical.sourceRecordIds?.length},paths:paths.map(row=>({topicId:row.topicId,sectionId:row.sectionId,placementId:row.placement?.id,placementRevision:row.placement?.revision})),evidence},null,2));}catch(diagnosticError){console.error('UIR03_INDEPENDENT_DIAGNOSTIC_FAILED',diagnosticError?.name||'Error');}throw error;}
+ assert.notEqual(responseId,targetId);
  assert.deepEqual((await rpc(page,'COMPARE_THOUGHT_INPUT',{id:responseId})).relations,[],'independent save invents no response relation');
+ const originalAfter=await rpc(page,'GET_LIBRARY_ENTRY',{id:targetId});assert.equal(originalAfter.body,before.body);assert.equal(originalAfter.revision,before.revision,'revealing the new independent expression never rewrites the original');
  await responseRow.locator('.library-actions summary').click();assert.equal(await responseRow.getByRole('button',{name:'查看关联',exact:true}).count(),0);assert.equal(await responseRow.getByRole('button',{name:'回应',exact:true}).count(),0);await page.keyboard.press('Escape');
  await shot(page,release?'vs05-release-independent-no-response':'vs05-source-independent-no-response');
  await assertOffline(h);
@@ -305,8 +441,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.bringToFront();
   await nav(page,'thoughts');
   await eventually(async()=>await page.locator('#thought-list article.personal-topic-block').count()===3,'Thought home renders the seeded Topics');
-  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'Thought root exposes exactly one visible search control');
-  assert.equal(await page.locator('#thought-search').isVisible(),true,'Thought root keeps its page-scoped search');
+  assert.equal(await page.locator('#thought-panel input[type="search"]').count(),0,'approved Thought Root retires search');
   assert.equal(await page.locator('#library-view-switch').isVisible(),false,'Thought root hides AI presentation controls until a Topic is open');
   assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false,'Thought root has no visible AI organize toggle');
   assert.equal(await page.locator('#thought-recent').count(),0,'Thought root no longer renders 最近阅读');
@@ -314,16 +449,19 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   assert.ok(index.recent?.some(item=>item.id===topics[1].id),'recent-read metadata remains available behind the removed root section');
   const homeMenu=page.locator('#thought-home-tools .thought-root-actions .library-actions').first();
   await homeMenu.locator('summary').click();
-  assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).isVisible(),true,'root menu keeps Add Topic');
+  assert.equal(await homeMenu.getByRole('button',{name:'添加主题',exact:true}).count(),0,'Root retires generic manual Topic creation');
   assert.equal(await homeMenu.getByRole('button',{name:'列表 / 网格',exact:true}).count(),0,'current Personal Topic layout has no competing layout switch');
   assert.equal(await homeMenu.getByRole('button',{name:'整理新增内容',exact:true}).count(),0,'root menu no longer starts AI organization');
   await page.keyboard.press('Escape');
-  assert.equal(await page.locator('#thought-home-tools .thought-root-actions').getByRole('button',{name:'接着写',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
+  assert.equal(await page.locator('#thought-home-tools .thought-root-actions').getByRole('button',{name:'写下想法',exact:true}).isVisible(),true,'independent Thought creation remains reachable');
 
   await page.setViewportSize({width:1440,height:900});
   await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:'light'}});
   await eventually(async()=>await page.evaluate(()=>document.documentElement.dataset.paiaTheme)==='light','light theme applies');
-  assert.equal(await page.locator('h1:visible').count(),1,'Thought home has one visible page heading');
+  // Current UX_CONTRACT section0 retains PRE_YEAR sections0/5: Root uses its real Topic cards, without a duplicate page headline.
+  assert.equal(await page.locator('h1:visible').count(),0,'approved Thought Root has no duplicate visible page heading');
+  assert.equal(await page.locator('#thought-root-heading h1,.thought-root-eyebrow').count(),0,'retired Root headline nodes have no hidden owner');
+  assert.equal(await page.locator('#thought-list').isVisible(),true,'the actual seeded Topic list remains the visible Home owner');
   assert.equal(await page.locator('#thought-document').isVisible(),false,'Topic document stays out of the home view');
   assert.equal((await rpc(page,'GET_THOUGHT_LAYOUT')).layout,'list','retired layout service retains its compatibility receipt');
   await eventually(async()=>await page.locator('#thought-list').evaluate(el=>el.classList.contains('personal-topic-grid')),'current stable Personal Topic grid applies');
@@ -367,21 +505,20 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   await page.locator(`.personal-topic-link[data-topic-id="${topics[0].id}"]`).click();
   await eventually(()=>page.locator('#thought-document').isVisible(),'Topic opens from the existing home owner');
   await eventually(()=>page.locator('#original-reading-body .topic-section').count().then(count=>count>0),'Original content renders in the existing Topic document');
-  assert.equal(await page.locator('h1:visible').count(),1,'Topic has one visible h1');
+  assert.equal(await page.locator('#topic-heading h1').count(),1,'Topic keeps its canonical accessible identity heading');
   assert.equal(await page.locator('#view-title').isVisible(),false,'global Thought Library title no longer competes with the Topic h1');
   assert.equal(await page.locator('#topic-heading>p').count(),0,'normal Content does not publish an unlabelled generated summary');await page.locator('#topic-menu summary').click();await page.getByRole('button',{name:'主题说明',exact:true}).click();assert.equal(await page.getByLabel('你写的主题说明',{exact:true}).inputValue(),topics[0].summary,'the complete protected human cue remains editable from its existing metadata owner');await page.getByRole('button',{name:'收起说明',exact:true}).click();
   assert.equal(await page.locator('#back').isVisible(),true,'Topic keeps the existing return path');
 
   const shell=await page.locator('#thought-document').boundingBox();
   const section=await page.locator('#original-reading-body .topic-section').first().boundingBox();
-  assert.ok(shell&&section&&Math.abs(shell.width-936)<=2,'Topic shell follows the approved D6.2 936px workspace boundary');assert.ok(Math.abs(shell.x-228)<=2&&Math.abs(section.x-shell.x)<=2,'Topic and saved-width prose share the D6.2 left reading axis');
+  assert.ok(shell&&section&&Math.abs(shell.x-228)<=2,'approved184px navigation plus44px workspace gutter retains the absolute reading axis');assert.ok(shell.width<=936&&shell.width>216,'Topic retains the inherited bounded workspace cap');assert.ok(shell&&section&&Math.abs(shell.width-(section.width+216))<=2,'approved Topic shell has an independent216px directory axis');assert.ok(Math.abs(section.x-shell.x-216)<=2,'prose starts after the actual independent Section directory');
   assert.ok(section.width<=722,`Original prose keeps the saved 640/680/720px reading-width boundary; got ${section?.width}`);
   assert.ok(shell.width-section.width>120,'Topic shell and readable prose width remain distinct');
-  assert.equal(await page.locator('input[type="search"]:visible').count(),1,'open Topic exposes exactly one visible search control');
-  assert.equal(await page.locator('#topic-search').isVisible(),true,'current-Topic search remains in the existing toolbar');
+  assert.equal(await page.locator('#thought-panel input[type="search"]').count(),0,'normal Topic reading retires search');
   assert.equal(await page.locator('#library-view-switch').isVisible(),true,'AI presentation controls appear only with a concrete open Topic');
   assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),true,'Topic keeps its contextual AI presentation switch');
-  assert.equal(await page.locator('#create-entry').isVisible(),true,'continue-thinking entry remains reachable');
+  assert.equal(await page.locator('#create-entry').count(),0,'old Continue action is retired; the canonical end writer remains the writing owner');
   const topicMenu=page.locator('#topic-menu .library-actions');
   await topicMenu.locator('summary').click();
   assert.equal(await topicMenu.getByRole('button',{name:'导出主题',exact:true}).count(),0,'cancelled Topic export has no menu action');
@@ -392,20 +529,15 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
   const beforeFirst=await rpc(page,'GET_LIBRARY_ENTRY',{id:firstId}),beforeLatest=await rpc(page,'GET_LIBRARY_ENTRY',{id:latestId});
   const unknownBefore=await Promise.all(topics[0].unknownIds.map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
   const originalSort=(await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort;
-  await page.locator('#topic-search').fill('_THOUGHT_0_A');
-  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()===1,'Topic search narrows original records');
-  assert.equal(await page.locator('#original-reading-body [data-entry-id]').first().getAttribute('data-entry-id'),firstId,'search addresses the same canonical Entry');
-  // TOPIC-05.4 Content uses durable Section order and continuous paging. The
-  // old time-endpoint/unknown-year menu is intentionally not a Content route.
-  assert.equal(await page.locator('#topic-time-jumps summary').isVisible(),false,'Content does not expose the retired chronological jump menu');
-  assert.equal(await page.locator('#topic-outline').isVisible(),false,'Content does not expose the retired year outline');
-  await page.locator('#topic-search').fill('');
-  await eventually(async()=>await page.locator('#original-reading-body [data-entry-id]').count()>1,'clearing Topic search restores continuous Section reading');
-  await eventually(async()=>{await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));return await page.locator('#topic-continuous-after').getAttribute('data-terminal')==='true';},'continuous Section reading reaches the actual end beyond its initial 40 rows',30000);
+  let lexical;await eventually(async()=>{lexical=await rpc(page,'GET_LIBRARY_SECTION_READING',{options:{topicId:topics[0].id,query:'_THOUGHT_0_A',sort:'asc',limit:40}});return !lexical.indexing&&!lexical.cursorInvalid;},'retained canonical lexical query completes');assert.deepEqual(lexical.items.map(item=>item.entry.id),[firstId]);
+  assert.equal(await page.locator('#topic-time-jumps summary').isVisible(),false,'retired time-jump menu stays absent');
+  assert.equal(await page.locator('#topic-outline').isVisible(),true,'actual Section directory remains independently reachable');
+  await eventually(async()=>{await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));return await page.locator('#topic-next-year').isVisible();},'current actual year reaches its explicit unknown-year boundary beyond40 rows',30000);
+  assert.equal(await page.locator('#topic-next-year').textContent(),'↓ 日期未记录');await page.locator('#topic-next-year').click();await eventually(()=>page.locator('.thought-inline-draft').isVisible(),'explicit unknown-year append reaches the actual whole Section end');
   const entry=id=>page.locator(`#original-reading-body [data-entry-id="${id}"]`);
   assert.equal(await entry(latestId).count(),1,'later canonical Entry remains reachable beyond the first page');
   await entry(latestId).scrollIntoViewIfNeeded();assert.equal(await entry(latestId).isVisible(),true,'later Entry is actually rendered in the current reading surface');
-  assert.equal(await page.locator('#topic-search').inputValue(),'','continuous reading uses the explicitly cleared search');
+  assert.equal(await page.locator('#topic-search').count(),0,'retained lexical compatibility never revives reader search');
   assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,originalSort,'Section reading does not overwrite the saved chronological preference');
   assert.ok(await page.locator('#original-reading-body [data-entry-id]').count()<=120,'Topic keeps its bounded continuous reading window');
   assert.equal(await page.locator('#original-reading-body .topic-expression-year,.topic-unknown-time').count(),0,'Content preserves real Sections instead of manufacturing year groups');
@@ -440,10 +572,7 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
       assert.ok(overflow<=2,`${width}px Topic has no root horizontal overflow; got ${overflow}`);
       if(width===390){
-        const searchBox=await page.locator('#topic-search').boundingBox();
-        const continueBox=await page.locator('#create-entry').boundingBox();
-        assert.ok(searchBox&&searchBox.height>=44,'mobile Topic search keeps a 44px target');
-        assert.ok(continueBox&&continueBox.height>=44,'mobile continue-thinking action keeps a 44px target');
+        const directoryBox=await page.locator('.topic-section-select').boundingBox();const continueBox=await page.locator('.thought-inline-draft').boundingBox();assert.ok(directoryBox&&directoryBox.height>=44,'mobile actual Section selector keeps a44px target');assert.ok(continueBox&&continueBox.height>=44,'mobile actual end writer keeps a44px target '+JSON.stringify({continueBox,field:await page.locator('.thought-inline-draft').evaluate(node=>({font:getComputedStyle(node).fontSize,minHeight:getComputedStyle(node).minHeight,padding:getComputedStyle(node).padding,lineHeight:getComputedStyle(node).lineHeight,connected:node.isConnected}))}));
         await shot(page,'uir-03-topic-original-390x844-light',{fullPage:false});
       }
     }

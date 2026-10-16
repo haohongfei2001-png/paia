@@ -1,9 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow,waitArchiveWindow} from './harness/archive-navigator.mjs';
-import {openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 
 const op=()=>crypto.randomUUID();
 const rpc=async(page,type,fields={})=>{
@@ -11,7 +9,7 @@ const rpc=async(page,type,fields={})=>{
   assert.equal(response.ok,true,JSON.stringify(response));
   return response.data;
 };
-const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();await eventually(()=>page.locator('#scope-search').isEnabled(),'the actual page navigation completes before a keyboard assertion');};
+const nav=async(page,view)=>{await page.locator(view==='settings'?'.sidebar-bottom [data-view="settings"]':`#primary-nav [data-view="${view}"]`).click();await eventually(()=>page.locator(view==='settings'?'#settings-panel':view==='thoughts'?'#thought-panel':'#collection-panel').isVisible(),'page navigation completes');};
 const shortcut=(page,key,options={})=>page.evaluate(({key,options})=>document.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true,...options})),{key,options});
 const activeId=page=>page.evaluate(()=>document.activeElement?.id||'');
 const visibleSearches=page=>page.locator('input[type="search"]:visible').count();
@@ -74,62 +72,36 @@ test('UIS-02 search is page-scoped across Archive, Reader, Thought root/topic an
     await page.locator('#scope-search').fill('');
     await waitArchiveWindow(page,{label:'clearing Archive root search restores browse navigation'});
 
-    // One Archive document: current-document search uses documentId and never leaks another document.
-    await openArchiveWindow(page,{text:'UIS02 文档甲',label:'UIS02 文档甲 is reachable from current Archive navigation'});
-    await eventually(()=>page.locator('#reader-scope-search').isVisible(),'Archive Reader exposes its scoped search');
-    assert.equal(await visibleSearches(page),2,'persistent Archive directory and current Reader have separate visible searches');assert.equal(await page.locator('#scope-search').isVisible(),true);assert.equal(await page.locator('#scope-search').inputValue(),'');assert.equal(await page.locator('#universal-search-open').isVisible(),false);await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'Reader releases its independent query before keyboard input');
-    await page.evaluate(()=>{globalThis.__uis02SearchRequests=[];const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{if(message?.type==='SEARCH_INPUTS')globalThis.__uis02SearchRequests.push(structuredClone(message.options));return send(message);};});
-    await shortcut(page,'k',{metaKey:true});
-    assert.equal(await activeId(page),'reader-scope-search','Cmd/Ctrl+K focuses current Archive document search instead of a global launcher');
-    await page.locator('#reader-scope-search').fill('UIS02_DOC_B_TARGET');
-    await eventually(async()=>/没有匹配|No matching/.test(await page.locator('#document-search-status').innerText()),'other-document input is excluded');
-    assert.equal(await page.locator('.document-search-hit').count(),0,'Archive document search cannot leak another document');
-    await page.locator('#reader-scope-search').fill('UIS02_DOC_A_TARGET');
-    await eventually(async()=>await page.locator('.document-search-hit').count()===1,'current document result appears');
-    const scoped=await page.evaluate(()=>globalThis.__uis02SearchRequests.filter(x=>x?.paged===true));
-    assert.ok(scoped.length>0,'document search uses the shared paged lexical coordinator');
-    assert.ok(scoped.every(x=>typeof x.documentId==='string'&&x.documentId.length>0),'every Reader search request is explicitly document-scoped');
-    const queryBeforeOpen=await page.locator('#reader-scope-search').inputValue();
-    await page.locator('.document-search-hit').first().click();
-    await eventually(async()=>await page.locator('[data-search-origin="true"]').count()===1,'search result opens exact Reader input');
-    assert.equal(await page.locator('#reader-scope-search').inputValue(),queryBeforeOpen,'document search query survives exact-result Reader navigation');
-    assert.ok(await page.evaluate(()=>CSS.highlights?.has('paia-search')===true),'Reader keeps local match highlighting after result open');
-    await page.locator('#back').click();
-    await eventually(async()=>(await page.locator('#collection-panel').isVisible())&&(await page.locator('#scope-search').isEnabled()),'Reader finishes returning to Archive root before inspecting its query');
-    assert.equal(await page.locator('#scope-search').inputValue(),'','Reader search state does not overwrite Archive-root search state');
+    // Reader search is retired. Its former hotkeys cannot focus hidden inputs,
+    // and ordinary reading keeps current-document identity and exact text.
+    await openArchiveWindow(page,{text:'UIS02 文档甲'});
+    await eventually(()=>page.locator('#document-panel').isVisible());
+    console.error('READER_SEARCH_STATE',JSON.stringify(await page.evaluate(()=>({route:history.state,search:[...document.querySelectorAll('input[type=search]')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden').map(n=>({id:n.id,html:n.outerHTML})),body:document.body.dataset}))));assert.equal(await visibleSearches(page),0);
+    for(const [key,options]of [['/',{}],['k',{metaKey:true}],['f',{metaKey:true}]]){
+      await page.locator('#back').focus();await shortcut(page,key,options);
+      assert.notEqual(await activeId(page),'reader-scope-search');assert.notEqual(await activeId(page),'scope-search');
+    }
+    assert.match(await page.locator('#document-body').textContent(),/UIS02_DOC_A_TARGET/);
+    assert.doesNotMatch(await page.locator('#document-body').textContent(),/UIS02_DOC_B_TARGET/);
+    await page.locator('#back').click();await eventually(()=>page.locator('#scope-search').isVisible(),'actual Back navigation restores discovery before assertions');await expectSingleSearch(page,'scope-search','Archive return');
+    assert.equal(await page.locator('#scope-search').inputValue(),'');
+    // Explicit Archive result still resolves its exact Input without a Reader query UI.
+    await page.locator('#scope-search').fill('UIS02_DOC_B_TARGET');await eventually(async()=>await page.locator('#document-list .search-input').count()===1);
+    await page.locator('#document-list .search-input').first().click();await eventually(()=>page.locator('#document-panel').isVisible());
+    assert.equal(await visibleSearches(page),0);assert.match(await page.locator('#document-body').textContent(),/UIS02_DOC_B_TARGET/);assert.doesNotMatch(await page.locator('#document-body').textContent(),/UIS02_DOC_A_TARGET/);
+    await page.locator('#back').click();await eventually(()=>page.locator('#scope-search').isVisible());assert.equal(await page.locator('#scope-search').inputValue(),'UIS02_DOC_B_TARGET');
 
-    // Thought Library root: its existing local search remains the sole visible search.
-    await nav(page,'thoughts');
-    await eventually(async()=>await page.locator('#thought-list article.personal-topic-block').count()===2,'Thought root shows both topics');
-    await expectSingleSearch(page,'thought-search','Thought Library root');
-    await shortcut(page,'/');
-    assert.equal(await activeId(page),'thought-search','/ focuses Thought Library root search');
+    // Thought Home and reader expose no app search, while backend qualified
+    // retrieval remains separately covered by its owning tests and consumers.
+    await nav(page,'thoughts');await eventually(async()=>await page.locator('#thought-list article.personal-topic-block').count()===2);
+    assert.equal(await visibleSearches(page),0);assert.equal(await page.locator('#thought-list .personal-entry-preview').count(),0);
     const slots=await page.locator('#thought-list article.personal-topic-block').evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot]));
-    await page.locator('#thought-search').fill('UIS02_TOPIC_B_TARGET');
-    const match=page.locator('#thought-list article.personal-topic-block:not(.personal-topic-nonmatch)');
-    await eventually(async()=>await match.count()===1&&await match.locator('.personal-entry-preview').isVisible(),'Thought root search finds eligible content in its existing stable Topic slot');
-    assert.equal(await match.getAttribute('data-topic-id'),topics.b.id);assert.match(await match.locator('.personal-entry-preview').innerText(),/UIS02_TOPIC_B_TARGET/);
-    assert.deepEqual(await page.locator('#thought-list article.personal-topic-block').evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),slots,'scoped search preserves both Topic identities and their addresses');
-    assert.equal(await page.locator('#thought-list .topic-index-row').count(),0,'Root search does not add a parallel result directory');
-    await page.locator('#thought-search').fill('');
-    await eventually(async()=>await page.locator('#thought-list article.personal-topic-block:not(.personal-topic-nonmatch)').count()===2&&await page.locator('#thought-list .personal-entry-preview').count()===0,'Thought root query clears locally and restores both original Topic slots');
-
-    // One Thought topic: search is restricted to that topic/document.
+    await shortcut(page,'/');await shortcut(page,'k',{metaKey:true});assert.notEqual(await activeId(page),'thought-search');
+    assert.deepEqual(await page.locator('#thought-list article.personal-topic-block').evaluateAll(nodes=>nodes.map(node=>[node.dataset.topicId,node.dataset.rootSlot])),slots);
     await page.locator(`.personal-topic-link[data-topic-id="${topics.a.id}"]`).click();
-    await eventually(()=>page.locator('#topic-search').isVisible(),'Thought topic search is visible');
-    await expectSingleSearch(page,'topic-search','Thought topic');
-    await page.evaluate(()=>{globalThis.__uis02TopicReads=[];globalThis.__uis02TopicReadCount=0;globalThis.__uis02TopicPhase='topic-open';const send=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=async message=>{const relevant=/LIBRARY.*READING|LIBRARY_TOPIC|LIBRARY_ENTRY/.test(message?.type||''),row=relevant?{type:message.type,query:message.options?.query==='UIS02_TOPIC_A_TARGET'?'current':message.options?.query==='UIS02_TOPIC_B_TARGET'?'other':message.options?.query?'other-query':'empty',phase:'sent',queryPhase:globalThis.__uis02TopicPhase,limit:Number.isInteger(message.options?.limit)?message.options.limit:null,hasCursor:typeof message.options?.cursor==='string',expectsGeneration:typeof message.options?.expectedReadGeneration==='string'}:null;if(row){row.sequence=++globalThis.__uis02TopicReadCount;globalThis.__uis02TopicReads.push(row);if(globalThis.__uis02TopicReads.length>100)globalThis.__uis02TopicReads.shift();}try{const result=await send(message);if(row)Object.assign(row,{phase:'returned',ok:result?.ok,error:typeof result?.error==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(result.error)?result.error:typeof result?.error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(result.error.code)?result.error.code:result?.ok===false?'UNCLASSIFIED':undefined,cursorInvalid:result?.data?.cursorInvalid,unavailable:result?.data?.unavailable,itemCount:result?.data?.items?.length,indexing:result?.data?.indexing===true,hasNext:!!result?.data?.nextCursor,hasPrevious:!!result?.data?.previousCursor,coverageStart:result?.data?.coverage?.start===true,coverageEnd:result?.data?.coverage?.end===true,generationMatches:message.options?.expectedReadGeneration?message.options.expectedReadGeneration===result?.data?.coverage?.activeGeneration:null});return result;}catch(error){if(row){row.phase='rejected';row.error=typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(error.code)?error.code:'UNCLASSIFIED';}throw error;}};});
-    await shortcut(page,'f',{metaKey:true});
-    assert.equal(await activeId(page),'topic-search','Cmd/Ctrl+F focuses current Thought topic search');
-    await page.evaluate(()=>{globalThis.__uis02TopicPhase='other-query';});
-    await page.locator('#topic-search').fill('UIS02_TOPIC_B_TARGET');
-    await openThoughtReadingOptions(page);
-    await eventually(async()=>/0 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'other-topic content is excluded');
-    assert.equal(await page.locator('#topic-body [data-entry-id]').count(),0,'Thought topic search cannot leak another topic');
-    await page.evaluate(()=>{globalThis.__uis02TopicPhase='current-query';});
-    await page.locator('#topic-search').fill('UIS02_TOPIC_A_TARGET');
-    try{await eventually(async()=>/1 条匹配内容/.test(await page.locator('#topic-search-count').innerText()),'current topic match appears');}catch(error){try{const diagnostic=await page.locator('html').evaluate(()=>({queryPhase:globalThis.__uis02TopicPhase,readCount:globalThis.__uis02TopicReadCount,pendingReads:globalThis.__uis02TopicReads.filter(row=>row.phase==='sent').length,queryIsCurrent:document.getElementById('topic-search').value==='UIS02_TOPIC_A_TARGET',count:document.getElementById('topic-search-count').textContent,entries:document.querySelectorAll('#topic-body [data-entry-id]').length,state:document.getElementById('thought-document').dataset.state,retryVisible:!document.getElementById('library-read-retry').hidden,reads:globalThis.__uis02TopicReads}),null,{timeout:1000});console.error('UIS02_TOPIC_SEARCH_DIAGNOSTIC',JSON.stringify(diagnostic));await mkdir('work/uis02-search-diagnostic',{recursive:true});await writeFile('work/uis02-search-diagnostic/failure.json',JSON.stringify(diagnostic,null,2)+'\n');}catch{}throw error;}
-    assert.equal(await page.locator('#topic-body [data-entry-id]').count(),1);
+    await eventually(()=>page.locator('#topic-body').textContent().then(text=>text.includes('UIS02_TOPIC_A_TARGET')));
+    assert.equal(await visibleSearches(page),0);assert.doesNotMatch(await page.locator('#topic-body').textContent(),/UIS02_TOPIC_B_TARGET/);
+    await shortcut(page,'f',{metaKey:true});assert.notEqual(await activeId(page),'topic-search');
 
     // Settings: no search box, no visible launcher, and PAIA search-focus shortcuts do not open hidden/global search.
     await nav(page,'settings');

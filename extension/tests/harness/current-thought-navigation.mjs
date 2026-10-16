@@ -31,3 +31,11 @@ export async function openThoughtReadingOptions(page){
  if(!await options.evaluate(node=>node.open))await options.locator(':scope>summary').click();
  assert.equal(await options.evaluate(node=>node.open),true);
 }
+
+// Current Home keeps independent Entry writing through the original composer.
+// Generic manual Topic creation is absent; this does not revive that workflow.
+export async function openRetainedThoughtComposer(page){
+ assert.equal(await page.locator('#create-topic').count(),0,'generic New Topic control remains absent');
+ const english=await page.evaluate(()=>document.documentElement.lang==='en');
+ await page.locator('#thought-home-tools .thought-root-actions').getByRole('button',{name:english?'Write a thought':'写下想法',exact:true}).click();
+}

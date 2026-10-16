@@ -275,3 +275,20 @@ body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space
 
 /* Primary intent is distinct from dangerous confirmation and paused permission. */
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.reader-confirm-actions>button.primary,#settings-search-repair-dialog #library-rebuild-search){background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+
+/* Current Section directory and inline Archive years share the reading axis. */
+#document-body .block-time.input-year-start{margin-top:24px}
+#document-body>.document-block:first-child .block-time.input-year-start{margin-top:0}
+#scope-search-host{margin-bottom:12px}
+#thought-document #topic-section-nav{display:flex;flex-direction:column;gap:4px}
+#thought-document #topic-section-nav button{text-align:left;font-size:13.5px;font-weight:400;white-space:normal;overflow-wrap:anywhere}
+#thought-document #topic-section-nav button[aria-current="true"]{color:var(--selected-ink);background:var(--selected)}
+@media(min-width:1024px){
+ #thought-document{position:relative;padding-left:220px}
+ #thought-document>#topic-outline{position:absolute;left:0;top:0;width:188px}
+ #thought-document>#topic-outline>summary{display:none}
+}
+@media(max-width:1023px){#thought-document>#topic-outline{margin-bottom:18px}}
+
+.reader-year-continuation{display:block;margin:20px 0;padding:6px 10px;min-height:36px;background:transparent;border:0;color:var(--quiet);font:400 12px/1.5 var(--font)}
+@media(pointer:coarse){.reader-year-continuation{min-height:44px;min-width:44px}}

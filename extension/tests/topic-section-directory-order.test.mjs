@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {PresentationNode} from './harness/presentation-dom.mjs';
+import {TopicWorkspacePresentation} from '../ui/topic-workspace-presentation.js';
+class Node extends PresentationNode{
+ get parentNode(){return this.parentElement;}
+ querySelectorAll(selector){const rows=this.children.flatMap(node=>[node,...node.querySelectorAll('*')]);return selector==='*'?rows:selector.startsWith('.')?rows.filter(node=>node.classList.contains(selector.slice(1))):rows.filter(node=>node.id===selector.slice(1));}
+ querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
+ before(node){this.parentElement?.insertBefore(node,this);}
+ after(node){this.parentElement?.insertBefore(node,this.nextSibling);}
+}
+function fixture(run){
+ const prior=Object.getOwnPropertyDescriptor(globalThis,'document'),body=new Node('body'),nodes=new Map(),make=(id,tag='div',className='')=>{const node=new Node(tag);node.id=id;node.className=className;nodes.set(id,node);return node;};
+ const root=make('thought-document','article'),shared=make('shared-header','header'),title=make('title-row','div','topic-title-row'),heading=make('topic-heading'),presentation=make('topic-presentation'),toolbar=make('topic-toolbar'),menu=make('topic-menu'),menuList=make('menu-list','div','library-action-list'),history=make('history-tools','div','library-history-tools'),tabs=make('topic-original-tabs'),controls=make('topic-reading-controls'),order=make('topic-time-order'),outline=make('topic-outline','details'),directory=make('topic-section-nav','nav'),select=make('section-select','select'),sectionButton=make('section-button','button'),before=make('topic-continuous-before'),prose=make('topic-body'),entry=make('entry','article'),field=make('field'),after=make('topic-continuous-after'),revision=make('revision-history','button');
+ body.append(shared,root);shared.append(revision);title.append(heading,presentation);toolbar.append(menu,history);menu.append(menuList);controls.append(order);outline.append(directory);directory.append(select,sectionButton);prose.append(entry);entry.append(field);field.contentEditable='plaintext-only';field.textContent='SYNTHETIC retained exact 👩🏽‍💻\n\n  code';
+ root.append(title,toolbar,tabs,controls,outline,before,prose,after);const events=new Map();globalThis.document={body,activeElement:body,createElement:tag=>new Node(tag),getElementById:id=>nodes.get(id),addEventListener:(type,fn)=>events.set(type,fn),removeEventListener:(type,fn)=>{if(events.get(type)===fn)events.delete(type);}};
+ const handlers={choose(){},select(){},edit(){},history(){}};sectionButton.addEventListener('click',handlers.choose);select.addEventListener('change',handlers.select);field.addEventListener('input',handlers.edit);revision.addEventListener('click',handlers.history);
+ const containers=[root,shared,title,toolbar,menu,menuList,history,tabs,controls,order,outline,directory,prose,entry],original=new Map(containers.map(node=>[node,[...node.childNodes]])),owner={id:'topic',view:'original',sectionDirectory:[{sectionId:'section'}],topicReader:{state:()=>({terminalPrevious:true})}};
+ let mounted=null;try{return run({root,outline,before,prose,after,field,entry,sectionButton,select,revision,handlers,original,events,mount(){return mounted=new TopicWorkspacePresentation(owner);},dispose(){mounted?.dispose();mounted=null;}});}finally{mounted?.dispose();if(prior)Object.defineProperty(globalThis,'document',prior);else delete globalThis.document;}
+}
+function owners(f){assert.equal(f.outline.querySelector('#topic-section-nav').children[0],f.select);assert.equal(f.outline.querySelector('#topic-section-nav').children[1],f.sectionButton);assert.equal(f.prose.firstElementChild,f.entry);assert.equal(f.entry.firstElementChild,f.field);assert.equal(f.field.textContent,'SYNTHETIC retained exact 👩🏽‍💻\n\n  code');assert.equal(f.sectionButton.listeners.get('click'),f.handlers.choose);assert.equal(f.select.listeners.get('change'),f.handlers.select);assert.equal(f.field.listeners.get('input'),f.handlers.edit);assert.equal(f.revision.listeners.get('click'),f.handlers.history);}
+test('actual Topic presentation keeps the original Section directory before continuation sentinels and prose in native DOM order',()=>fixture(f=>{
+ f.field.focus();f.mount();const children=f.root.children;assert.ok(children.indexOf(f.outline)<children.indexOf(f.before),'visible Section navigation must precede the before-sentinel in native keyboard order');assert.ok(children.indexOf(f.before)<children.indexOf(f.prose));assert.ok(children.indexOf(f.prose)<children.indexOf(f.after));owners(f);assert.equal(f.outline.parentNode,f.root);assert.equal(f.select.tabIndex,undefined,'no positive tabindex overrides natural DOM traversal');assert.equal(f.sectionButton.tabIndex,undefined);assert.equal(f.field.contentEditable,'plaintext-only');assert.equal(document.activeElement,f.field,'presentation may not detach or blur the original body editor');
+}));
+test('Topic presentation preserves original Section/control/body identities and restores exact sibling order on disposal',()=>fixture(f=>{
+ for(let i=0;i<2;i++){const view=f.mount();owners(f);assert.equal(f.events.size,1);view.options.open=true;f.dispose();for(const [parent,children]of f.original)assert.deepEqual(parent.childNodes,children,'dispose restores original owner and sibling order for '+parent.id);owners(f);assert.equal(f.events.size,0);assert.equal(f.root.classList.contains('dvn-topic-composition'),false);}
+}));
+test('already ordered Section navigation stays focused without registering a disposal reparent',()=>fixture(f=>{
+ f.select.focus();const view=f.mount();assert.equal(document.activeElement,f.select);assert.equal(view.moves.some(move=>move.node===f.outline),false,'an already ordered live directory is not a presentation move');f.dispose();assert.equal(document.activeElement,f.select);owners(f);
+}));

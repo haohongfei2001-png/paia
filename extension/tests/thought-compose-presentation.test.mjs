@@ -60,7 +60,8 @@ test('T05 preview blocks every unwired write and dismissal even if its disabled 
  let flushes=0;f.owner.flush=async()=>{flushes++;return true;};
  const mount=await preview(f),surface=f.owner.surface;
  f.owner.draft.value='SYNTHETIC retained';
- for(const label of ['保存想法','取消','新建主题']){const control=named(mount,label);assert.equal(control.disabled,true);assert.ok(control['aria-describedby']);control.onclick();}
+ assert.equal(descendants(mount).some(node=>node.tagName==='BUTTON'&&node.textContent==='新建主题'),false);
+ for(const label of ['保存想法','取消']){const control=named(mount,label);assert.equal(control.disabled,true);assert.ok(control['aria-describedby']);control.onclick();}
  surface.onChoicePending();await tick();
  assert.equal(named(mount,'保存想法').disabled,true);
  assert.equal(f.owner.surface,surface);assert.equal(f.owner.draft.value,'SYNTHETIC retained');

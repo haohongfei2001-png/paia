@@ -1,3 +1,4 @@
+import {quickPromptEligible} from './prompt-reuse-preferences.js';
 // Disposable projection only; never insertion authority or another library.
 import {NEXT_FAMILY_LIMITS} from './next-family-matcher.js';
 export const NEXT_FAMILY_VIEW_TTL=30000;
@@ -10,7 +11,7 @@ export class NextFamilyView{
   if(serial!==this.#serial)return;
   const items=[];let bytes=0;
   for(const f of snapshot.families){
-   if(f.hidden||!(f.useful||f.pinned||f.edited||f.retained))continue;
+   if(f.hidden||!(f.useful||f.pinned||f.edited||f.retained)||!quickPromptEligible(f.text))continue;
    if(typeof f.text!=='string'||Array.from(f.text).length>NEXT_FAMILY_LIMITS.textCharacters)return;
    bytes+=new TextEncoder().encode(f.text).length;
    if(bytes>NEXT_FAMILY_LIMITS.totalBytes||items.length===NEXT_FAMILY_LIMITS.families)return;

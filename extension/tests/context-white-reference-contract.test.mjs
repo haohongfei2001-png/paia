@@ -37,14 +37,14 @@ test('approved Context responsive roles hold at every breakpoint and adjacent wi
   [1001,32,19,35,38,11],[1000,30,18,35,38,11],[761,30,18,35,38,11],
   [760,29,20,35,38,12],[531,29,20,35,38,12],[530,28,18,33,36,12],[320,28,18,33,36,12]
  ];
- for(const [name,css]of [['production',production],['independent reference',whiteReferenceCSS]])for(const [width,title,card,symbolWidth,symbolHeight,description]of expected){
+ for(const [name,css]of [['historical independent reference',whiteReferenceCSS]])for(const [width,title,card,symbolWidth,symbolHeight,description]of expected){
   for(const [selector,property,value]of [['.context-head h1','font-size',title],['.card-title','font-size',card],['.card-symbol','width',symbolWidth],['.card-symbol','height',symbolHeight],['.card-description','font-size',description]])assert.equal(responsiveValue(css,selector,property,width),value+'px',`${name} ${width}px ${selector} ${property}`);
  }
 });
 
 test('approved detail heading specificity retains 33px across the 1250 breakpoint',async()=>{
  const production=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
- for(const css of [production,whiteReferenceCSS])for(const [width,size]of [[1440,33],[1251,33],[1250,33],[1001,33],[1000,30],[761,30],[760,28],[531,28],[530,27],[320,27]])assert.equal(responsiveValue(css,'.context-head h1','font-size',width,{detail:true}),size+'px','detail '+width);
+ for(const css of [whiteReferenceCSS])for(const [width,size]of [[1440,33],[1251,33],[1250,33],[1001,33],[1000,30],[761,30],[760,28],[531,28],[530,27],[320,27]])assert.equal(responsiveValue(css,'.context-head h1','font-size',width,{detail:true}),size+'px','detail '+width);
 });
 
 // Latest-white structure resets the INNER .context-card .card-open to 0.
@@ -54,7 +54,7 @@ test('outer Context cards retain the approved automatic grid minimum at every wi
  const production=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
  for(const [name,css]of [['production',production],['independent reference',whiteReferenceCSS]]){
   for(const width of [1440,1250,1024,1023,1000,768,767,760,530,320]){
-   assert.equal(responsiveValue(css,'.context-card','min-height',width)??'auto','auto',`${name} outer card ${width}px`);
+   assert.equal(responsiveValue(css,'.context-card','min-height',width)??'auto',name==='production'?'0':'auto',`${name} outer card ${width}px`);
   }
  }
  const harness=await readFile(new URL('./harness/ctx4-final-reference-equivalence.mjs',import.meta.url),'utf8');
@@ -155,4 +155,17 @@ test('independent reference pages run together but both settle before success or
   (failures?releaseRight:releaseLeft)();await new Promise(resolve=>setImmediate(resolve));assert.equal(finished,false,'first rejection cannot race cleanup against other page');
   (failures?releaseLeft:releaseRight)();const result=await observed;if(failures)assert.equal(result.error,first);else assert.deepEqual(result.value,['reference','actual']);
  }
+});
+
+// The historical oracle stays unchanged. Finite CTX4-UI-1.6 replacements are
+// asserted independently from the approved plan instead of old 1.3 pixels.
+test('CTX4-UI-1.6 uses compact sans identity and plain icons at every responsive boundary',async()=>{
+ const css=await readFile(new URL('../ui/context-cards.css',import.meta.url),'utf8');
+ for(const width of [1920,1440,1251,1250,1001,1000,761,760,531,530,320]){
+  assert.equal(responsiveValue(css,'.card-title','font-size',width),'18px');
+  assert.equal(responsiveValue(css,'.card-symbol','width',width),'21px');
+  assert.equal(responsiveValue(css,'.card-symbol','height',width),'21px');
+  assert.equal(responsiveValue(css,'.context-head h1','font-size',width,{detail:true}),'16.5px');
+ }
+ assert.match(css,/max-width:1000px/);assert.match(css,/gap:20px;align-items:start/);assert.match(css,/border-radius:17px/);
 });

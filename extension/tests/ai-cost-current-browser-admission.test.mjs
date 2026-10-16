@@ -15,7 +15,7 @@ const additions=[entryMove,'iah11-result-presentation-chrome-e2e.test.mjs','iah1
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readdir,readFile} from 'node:fs/promises';
-import {group,testShard} from '../scripts/test-groups.mjs';
+import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 
 // Frozen by evaluating exact parent main 4fe2afd328c6e30e6a1d39d68415ad821a7f779c.
 // test-groups blob 63fe2e9c57d001dd53502fbc18bb69c85f9809fa; never generated from the changed router.
@@ -556,7 +556,7 @@ const baseline=[
 const actions='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 const ai='cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs';
 test('AI_COST admits one whole file on4 and preserves all304 exact main routes',async()=>{
- const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&group(name)==='browser E2E').sort();
+ const names=(await readdir(new URL('./',import.meta.url))).filter(name=>name.endsWith('.test.mjs')&&isPreviousCurrentBrowser(name)).sort();
  assert.equal(baseline.length,76);assert.equal(names.length,96);assert.equal(new Set(baseline.map(row=>row[0])).size,76);assert.deepEqual(names.filter(name=>name!==pendingHistory&&name!==settingsData&&name!==promotion&&!nib.includes(name)&&name!==preferencePublication&&name!==topicReturn&&name!==removedPlacement&&name!==writing&&name!==settingsNext&&name!==next&&name!==ai&&name!==actions&&!additions.includes(name)),baseline.map(row=>row[0]));
  assert.equal(group(ai),'browser E2E');assert.equal(group('ai-cost-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  for(const file of additions)for(const total of [4,5,6,7])assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),4);

@@ -8,6 +8,7 @@ import {resolveTopicRootTarget} from './topic-root-target.js';
 import {canRetainRootMetadata} from './topic-root-slots.js';
 import {ContinuousRootReader} from './continuous-root-reader.js';
 import {expressionYear,expressionCaption} from './topic-expression.js';
+import {archiveInputStamp} from './archive-date-view.js';
 import {renderTopicSectionProse,coherentTopicEditorRow,validTopicEditorRow} from './topic-section-prose.js';
 import {topicRootCaption} from './topic-root.js';
 import {thoughtCopy as tc,watchThoughtCopy} from './thought-copy.js';
@@ -18,8 +19,10 @@ import {reconcile,placeChildren} from './retained-dom.js';
 import {isComposing} from './session-lifecycle.js';
 import {revisionPreview} from './revision-preview.js';
 import {beginLoading,showLocalFailure,setProductState,productAction,announce} from './product-state.js';
-import {highlightText,highlightReading,wireSearchKeyboard,wireContinuousKeyboard} from './search-experience.js';
+import {highlightText,highlightReading,wireContinuousKeyboard} from './search-experience.js';
 import {AIReadingEditor} from './ai-presentation.js';
+import {qualifySectionAI,canRetainSectionAIEditor} from './topic-section-ai.js';
+import {stageTopicYearWindow,stageTopicYearExtent} from './topic-year-requalification.js';
 import {ContinuousCollection,continuousItemKey} from './continuous-collection.js';
 import {ContinuousTopicReader} from './continuous-topic-reader.js';
 import {request,element} from './common.js';
@@ -131,7 +134,7 @@ import {renderAICandidateComparison} from './ai-candidate.js';
 // One Topic controller owns root, Content, Years and saved AI view composition.
 export class TopicController {
  constructor({onStatus,onOpen,onInput,onSettings}){
-  this.onSettings=onSettings||(()=>{});this.onStatus=onStatus;this.onOpen=onOpen;this.onInput=onInput;this.id=null;this.cursor=null;this.editor=null;this.mode='stable';this.view='original';this.readingSort='asc';this.topicProviderKey=null;this.rootProviderKey=null;this.serial=0;this.pages=[];this.aiTopics=new Map();this.statusEpoch=0;this.statusReadSerial=0;this.statusUnavailable=['ai'];this.homeCollection=null;this.unplacedCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;this.topicReader=null;this.topicReaderInstalled=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;this.topicResetFromStart=false;
+  this.onSettings=onSettings||(()=>{});this.onStatus=onStatus;this.onOpen=onOpen;this.onInput=onInput;this.id=null;this.cursor=null;this.editor=null;this.mode='stable';this.view='original';this.readingSort='desc';this.topicProviderKey=null;this.rootProviderKey=null;this.serial=0;this.pages=[];this.aiTopics=new Map();this.statusEpoch=0;this.statusReadSerial=0;this.statusUnavailable=['ai'];this.homeCollection=null;this.unplacedCollection=null;this.homeDesiredCount=40;this.homeRestoring=false;this.topicReader=null;this.topicReaderInstalled=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;this.topicResetFromStart=false;
   this.personalRoot=new PersonalTopicRoot($('thought-list'),{open:(topicId,sectionId)=>this.openRootTarget(topicId,sectionId),onResize:()=>this.resizeHomeAnchor()});this.homeDesiredCount=Math.max(40,this.personalRoot.slots.extent());
   document.addEventListener('paia:topic-root-target',event=>{const target=event.detail;if(target?.topicId===this.id)void this.openRootTarget(target.topicId,target.sectionId);});
   for(const type of ['keydown','pointerdown','input'])window.addEventListener(type,event=>{if(event.isTrusted!==false)this.cancelHomeAnchor();},{capture:true,passive:true});
@@ -140,11 +143,10 @@ export class TopicController {
   $('ai-presentation-toggle').addEventListener('change',event=>changeAIView(event.currentTarget.checked?'ai':'original'));
   $('topic-source-scope').addEventListener('change',productAction(()=>this.changeTopicSourceScope()));
   $('thought-source-scope').addEventListener('change',productAction(()=>this.changeRootSourceScope()));
-  $('topic-search').addEventListener('input',()=>{this.serial++;clearTimeout(this.topicSearchTimer);this.topicSearchTimer=setTimeout(productAction(()=>this.searchTopic()),180);});
-  for(const b of $('topic-time-order').querySelectorAll('button'))b.addEventListener('click',productAction(()=>{if(b.dataset.readingStart)$('topic-time-jumps').open=false;return this.changeReadingSort(b.dataset.readingSort||b.dataset.readingStart,{fromStart:!!b.dataset.readingStart});}));
+  for(const b of $('topic-time-order').querySelectorAll('button'))b.addEventListener('click',productAction(()=>{if(b.dataset.readingStart)$('topic-time-jumps').open=false;return this.changeReadingSort(b.dataset.readingSort||b.dataset.readingStart,{fromStart:true});}));
   $('ai-revision-history').addEventListener('click',productAction(()=>this.aiRevisions()));
-  wireSearchKeyboard($('thought-search'),$('thought-list'),{onScrollIntent:()=>this.cancelHomeFocusScroll(),selector:'a:not([hidden]),button:not(:disabled)'});$('thought-search').addEventListener('input',()=>this.searchRoot());$('thought-search').addEventListener('focus',()=>this.beginHomeFocusScroll());window.addEventListener('wheel',event=>{this.cancelHomeFocusScroll();this.topicRestoreInput(event);},{passive:true});window.addEventListener('touchstart',event=>{this.cancelHomeFocusScroll();this.topicRestoreInput(event);},{passive:true});
-  $('library-unplaced').addEventListener('click',productAction(()=>this.unplaced()));$('create-entry').addEventListener('click',productAction(()=>this.createEntry()));
+  window.addEventListener('wheel',event=>{this.cancelHomeFocusScroll();this.topicRestoreInput(event);},{passive:true});window.addEventListener('touchstart',event=>{this.cancelHomeFocusScroll();this.topicRestoreInput(event);},{passive:true});
+  $('library-unplaced').addEventListener('click',productAction(()=>this.unplaced()));
   document.addEventListener('click',event=>{for(const menu of document.querySelectorAll('.library-actions[open]'))if(!menu.contains(event.target))menu.open=false;});
   $('topic-body').addEventListener('focusin',event=>this.rememberReadingEditor(event.target));
   const readingHistory=redo=>this.readingHistory(redo);
@@ -153,11 +155,11 @@ export class TopicController {
   document.addEventListener('paia:removed-history',event=>{const {kind,id,isCurrent}=event.detail||{};if(['topic','entry'].includes(kind)&&typeof isCurrent==='function'&&isCurrent())productAction(()=>this.revisions(kind==='topic'?'topic':'library_entry',id,id,{isCurrent}))();});
   $('library-removed-placements').addEventListener('click',productAction(()=>this.removedList().show('placement')));$('library-removed-topics').addEventListener('click',productAction(()=>this.removedTopics()));$('library-removed').addEventListener('click',productAction(()=>this.removed()));$('library-rebuild-search').addEventListener('click',productAction(()=>this.checked('REBUILD_LIBRARY_SEARCH')));
   $('topic-menu').append(actionMenu('主题操作',[["管理结构",()=>this.manageSections()],[tc("主题说明"),()=>this.editTopicCue()],["合并主题",()=>this.mergeTopic()],["重命名",()=>this.renameTopic(this.id)],["删除主题",()=>this.deleteTopic(this.id)],[tc("新建章节"),()=>this.createSection()]]));$('topic-menu').querySelector('button').id='topic-structure';$('topic-menu').querySelectorAll('button')[2].id='topic-merge';$('topic-menu').querySelectorAll('button')[5].id='topic-create-section';
- const homeMenu=actionMenu(tc('思想库更多'),[[tc('添加主题'),()=>this.createTopic()],[tc('单独写下的想法'),()=>{const container=$('library-unplaced').parentElement;container.hidden=false;return this.unplaced();}]]);const rootActions=element('div','thought-root-actions');rootActions.append(button(tc('添加主题'),()=>this.createTopic()),homeMenu,button(tc('接着写'),()=>this.createStandalone()));const rootToolbar=element('div','thought-root-toolbar');rootToolbar.append(element('h2','thought-root-section-label',tc('我的主题')),rootActions);$('thought-home-tools').append(rootToolbar);$('thought-root-heading').append(element('div','thought-root-eyebrow','THOUGHT LIBRARY'));
- $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
- $('create-entry').textContent=tc('补充今天的想法');$('library-unplaced').textContent=tc('单独写下的想法');
+ const homeMenu=actionMenu(tc('思想库更多'),[[tc('单独写下的想法'),()=>{const container=$('library-unplaced').parentElement;container.hidden=false;return this.unplaced();}]]);const rootActions=element('div','thought-root-actions');rootActions.append(homeMenu,button(tc('写下想法'),()=>this.createStandalone()));const rootToolbar=element('div','thought-root-toolbar');rootToolbar.append(rootActions);$('thought-home-tools').append(rootToolbar);$('thought-root-heading').replaceChildren();
+ $('thought-empty-settings').removeAttribute('data-view');$('thought-empty-settings').textContent=tc('写下想法');$('thought-empty-settings').onclick=()=>this.createStandalone();$('thought-empty').querySelector('p').textContent=tc('先留下几段表达，主题可以慢慢形成。');
+ $('library-unplaced').textContent=tc('单独写下的想法');
  watchThoughtCopy();
- document.addEventListener('paia:preferences-applied',()=>{if(this.originalPane)localizeExactRepeats(this.originalPane);this.syncReadingControls();if(this.topicReader)this.updateTopicContinuous();if(this.thoughtRootVisible()&&this.homePage)this.paintHome(this.homePage.page,this.homePage.query,false);if(this.id&&this.originalMode==='content')for(const node of this.originalPane?.querySelectorAll('[data-entry-id]')||[]){const item=this.document?.items?.find(x=>x.entry.id===node.dataset.entryId),caption=node.querySelector('.entry-sent-time');if(item&&caption)caption.textContent=expressionCaption(item.entry,document.documentElement.lang);}});
+ document.addEventListener('paia:preferences-applied',()=>{if(this.originalPane)localizeExactRepeats(this.originalPane);this.syncReadingControls();if(this.topicReader)this.updateTopicContinuous();if(this.thoughtRootVisible()&&this.homePage)this.paintHome(this.homePage.page,this.homePage.query,false);if(this.id&&this.originalMode==='content')for(const node of this.originalPane?.querySelectorAll('[data-entry-id]')||[]){const item=this.document?.items?.find(x=>x.entry.id===node.dataset.entryId),caption=node.querySelector('.entry-sent-time');if(item&&caption)caption.textContent=expressionCaption(item.entry,document.documentElement.lang);}this.refreshTopicStamps();});
  this.homePositions=new Map();this.topicLastScrollY=scrollY||0;this.topicScrollDirection=null;window.addEventListener('scroll',()=>{const y=scrollY||0;if(this.homeRestoring||this.topicRestoring()||!this.id&&this.homeFocusScrolling){this.topicLastScrollY=y;this.topicScrollDirection=null;return;}if(y!==this.topicLastScrollY)this.topicScrollDirection=y<this.topicLastScrollY?'previous':'next';this.topicLastScrollY=y;if(!this.id&&this.thoughtRootVisible())this.rememberHomeAnchor();if(!this.id&&y<=4&&this.homeCollection?.windowStart>0)void this.shiftHomeWindow('previous');if(y<=4&&this.topicContinuousVisible()&&this.topicReader?.windowStart>0)void this.shiftTopicWindow('previous');this.schedulePosition();},{passive:true});document.addEventListener('visibilitychange',()=>this.schedulePosition());this.layout='list';void request('GET_THOUGHT_LAYOUT').then(r=>{this.layout=r.layout;this.applyLayout();}).catch(()=>{});
  $('library-dialog-close').addEventListener('click',productAction(()=>this.requestCloseDialog()));$('library-dialog').addEventListener('cancel',e=>{e.preventDefault();void this.requestCloseDialog();});
   this.aiViewSession=new TopicAIViewSession();this.viewPreferenceChosen=true;this.ensureAITopicStatus();this.originalMode='content';this.timelinePositions=new TopicTimelinePositions();this.contentPositions=new TopicTimelinePositions();this.installOriginalTabs();this.timelineLocale=document.documentElement.lang;document.addEventListener('paia:preferences-applied',()=>{const locale=document.documentElement.lang;if(locale===this.timelineLocale)return;this.timelineLocale=locale;this.syncOriginalTabs();if(this.id&&this.view==='original'&&this.originalMode==='years')void this.refresh();});
@@ -170,6 +172,7 @@ export class TopicController {
  ensureContinuousRoot(){if(this.continuousInstalled)return;this.continuousInstalled=true;wireContinuousKeyboard($('thought-continuous-sentinel'),()=>this.loadHomeNext());wireContinuousKeyboard($('unplaced-continuous-sentinel'),()=>this.loadUnplacedNext());$('thought-continuous-retry').addEventListener('click',()=>void this.loadHomeNext());$('unplaced-continuous-retry').addEventListener('click',()=>void this.loadUnplacedNext());if('IntersectionObserver'in window){this.continuousObserver=new IntersectionObserver(entries=>{if(!$('thought-panel').hidden)for(const entry of entries){if(!entry.isIntersecting)continue;if(entry.target.id==='thought-continuous-sentinel'&&this.thoughtRootVisible())void this.loadHomeNext({explicit:false});if(entry.target.id==='unplaced-continuous-sentinel'&&!this.id&&!$('library-unplaced-list').hidden)void this.loadUnplacedNext();}},{rootMargin:'600px 0px'});this.continuousObserver.observe($('thought-continuous-sentinel'));this.continuousObserver.observe($('unplaced-continuous-sentinel'));}}
  topicContinuousVisible(){return this.originalMode!=='years'&&!!this.id&&['original','ai'].includes(this.view)&&!$('thought-document').hidden;}
  ensureTopicContinuous(){if(this.topicReaderInstalled)return;this.topicReaderInstalled=true;
+  this.topicNextYear=button('',()=>this.openNextTopicYear());this.topicNextYear.id='topic-next-year';this.topicNextYear.hidden=true;$('topic-continuous-after').after(this.topicNextYear);
   wireContinuousKeyboard($('topic-continuous-after'),()=>this.loadTopicContinuous('next'));wireContinuousKeyboard($('topic-continuous-before'),()=>this.loadTopicContinuous('previous'));
   $('topic-continuous-after-retry').addEventListener('click',()=>void this.loadTopicContinuous('next'));$('topic-continuous-before-retry').addEventListener('click',()=>void this.loadTopicContinuous('previous'));
   if('IntersectionObserver'in window){this.topicContinuousObserver=new IntersectionObserver(entries=>{if(!this.topicContinuousVisible())return;for(const entry of entries){if(!entry.isIntersecting)continue;if(entry.target.id==='topic-continuous-after')void this.loadTopicContinuous('next',{explicit:false});if(entry.target.id==='topic-continuous-before')void this.loadTopicContinuous('previous',{explicit:false});}},{rootMargin:'800px 0px'});this.topicContinuousObserver.observe($('topic-continuous-after'));this.topicContinuousObserver.observe($('topic-continuous-before'));
@@ -177,7 +180,7 @@ export class TopicController {
   }
  }
  observeTopicWindowSpacers(){const observer=this.topicWindowObserver;if(!observer)return;observer.disconnect();for(const node of this.originalPane?.querySelectorAll?.('.topic-window-spacer')||[])observer.observe(node);}
- async shiftTopicWindow(direction){const reader=this.topicReader;if(this.topicRestoring()||this.topicWindowShifting||!reader||!this.topicContinuousVisible())return;if(direction==='previous')this.topicAutoForward=false;const jumpStart=direction==='previous'&&(scrollY||0)<=4,changed=jumpStart?reader.moveWindowToStart():reader.shiftWindow(direction);if(!changed)return;this.topicWindowShifting=true;const anchor=jumpStart?null:this.topicAnchor(),serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view;let failureReader=reader;try{await this.renderTopicReader(anchor);if(serial===this.serial&&reader===this.topicReader&&reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||null,restoreAnchor:anchor,expectedSerial:serial});failureReader=this.topicReader;await reset;}}catch{if(serial===this.serial&&failureReader===this.topicReader&&intent===this.openIntent&&cueEpoch===(this.rootCueEpoch||0)&&view===this.view){this.readFailure();this.updateTopicContinuous();}return false;}finally{this.topicWindowShifting=false;}}
+ async shiftTopicWindow(direction){const reader=this.topicReader;if(this.topicRestoring()||this.topicWindowShifting||!reader||reader.publicationOwner||!this.topicContinuousVisible())return;if(direction==='previous')this.topicAutoForward=false;const jumpStart=direction==='previous'&&(scrollY||0)<=4,changed=jumpStart?reader.moveWindowToStart():reader.shiftWindow(direction);if(!changed)return;this.topicWindowShifting=true;const anchor=jumpStart?null:this.topicAnchor(),serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view;let failureReader=reader;try{await this.renderTopicReader(anchor);if(serial===this.serial&&reader===this.topicReader&&reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||null,restoreAnchor:anchor,expectedSerial:serial});failureReader=this.topicReader;await reset;}}catch{if(serial===this.serial&&failureReader===this.topicReader&&intent===this.openIntent&&cueEpoch===(this.rootCueEpoch||0)&&view===this.view){this.readFailure();this.updateTopicContinuous();}return false;}finally{this.topicWindowShifting=false;}}
  // A saved window owns restoration through the queued layout scroll events.
  // Explicit reading input cancels only this restoration, never normal paging.
  beginTopicRestore(reader,serial){this.cancelTopicRestore();const restore={reader,serial,intent:this.openIntent,cancelled:false};this.topicRestore=restore;this.topicScrollDirection=null;return restore;}
@@ -187,21 +190,23 @@ export class TopicController {
  interruptTopicRestore(){if(!this.topicRestoring())return;this.topicRestoreInputEpoch=(this.topicRestoreInputEpoch||0)+1;this.cancelTopicRestore();}
  topicRestoreInput(event){if(event.isTrusted===false||event.defaultPrevented||event.isComposing)return;if(event.type==='keydown'&&(!['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey||event.target?.closest?.('input,textarea,select,[contenteditable]')))return;if(!this.topicRestoring())this.topicRestoreInputEpoch=(this.topicRestoreInputEpoch||0)+1;else this.interruptTopicRestore();}
  createTopicReader({anchorId=null,sectionId=null}={}){
-  const topicId=this.id,providerKey=this.topicProviderKey,query=$('topic-search').value.trim(),sort='asc';
-  const reader=new ContinuousTopicReader({loadEntry:id=>request('GET_LIBRARY_ENTRY',{id}),pins:()=>this.editor?.entry.protectedIds?.()||new Set(),load:options=>{
-   const scope={topicId,sort,query,providerKey,expectedReadGeneration:options.expectedReadGeneration,cursor:options.cursor,direction:options.direction,anchorId:options.anchorId,sectionId:options.sectionId,limit:options.limit||40};
+  const topicId=this.id,scopeSectionId=this.activeSectionId,providerKey=this.topicProviderKey,query='',chronology=scopeSectionId?'expression':null,sort=chronology?this.readingSort:'asc';
+  const reader=new ContinuousTopicReader({loadEntry:id=>request('GET_LIBRARY_ENTRY',{id}),pins:()=>this.topicProtectedIds(),load:options=>{
+   const scope={topicId,scopeSectionId,...(chronology?{chronology,year:options.year??null}:{}),sort,query,providerKey,expectedReadGeneration:options.expectedReadGeneration,cursor:options.cursor,direction:options.direction,anchorId:options.anchorId,sectionId:options.sectionId,limit:options.limit||40};
    return request('GET_LIBRARY_SECTION_READING',{options:scope});
   }});
-  reader.reset({topicId,sort,query,anchorId,sectionId});reader.providerKey=providerKey;this.topicAutoForward=true;return reader;
+  reader.reset({topicId,scopeSectionId,chronology,sort,query,anchorId,sectionId});reader.providerKey=providerKey;this.topicAutoForward=true;return reader;
  }
  topicAnchorEntry(id){const owner=this.editor?.entry;return owner&&!owner.dirty()&&!owner.saving&&!owner.surface?.composing?owner.entries.get(id):undefined;}
  topicAnchor(){if(!this.topicReader)return null;const root=this.originalPane||$('topic-body'),anchor=this.topicReader?.captureAnchor(root)||null,owner=this.editor?.entry;if(!anchor||this.view!=='original'||!owner||owner.dirty()||owner.saving||owner.surface?.composing)return anchor;const row=owner.entries.get(anchor.id),body=[...root.querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===anchor.id)?.querySelector('[data-entry-field="body"]');if(!row||!Number.isSafeInteger(row.revision)||typeof row.saved.body!=='string'||!body||body.textContent!==row.saved.body)return anchor;const range=document.caretRangeFromPoint?.(Math.max(20,body.getBoundingClientRect().left+4),Math.max(140,body.getBoundingClientRect().top+8));if(!range||!body.contains(range.startContainer))return anchor;const before=range.cloneRange();before.selectNodeContents(body);before.setEnd(range.startContainer,range.startOffset);const offset=before.toString().length,rect=range.getBoundingClientRect(),top=rect.top;if(Number.isSafeInteger(offset)&&offset>=0&&offset<=row.saved.body.length&&Number.isFinite(top)&&rect.height>0)anchor.text={revision:row.revision,offset,top};return anchor;}
  topicSectionAnchor(){return this.topicReader?.captureSectionAnchor?.(this.originalPane||$('topic-body'))||null;}
- async checkAllTracked(serial=this.serial){if(!this.editor?.entry)return true;const ids=[...this.editor.entry.entries.keys()];for(let i=0;i<ids.length;i+=100){const result=await request('GET_LIBRARY_TRACKED_ENTRIES',{options:{ids:ids.slice(i,i+100)}});if(serial!==this.serial)return false;await this.editor.entry.checkTracked(result||[]);}return serial===this.serial;}
- topicPageFromReader(){const reader=this.topicReader,state=reader?.state(),meta=reader?.pageMeta||{};if(!reader||!state)return null;const pins=this.editor?.entry.protectedIds?.()||new Set(),layout=reader.layout(pins),items=layout.filter(x=>x.kind==='item').map(x=>x.item);return {...meta,topic:meta.topic||this.topic,sections:[...reader.sections.values()],items,windowLayout:layout,nextCursor:state.nextCursor,previousCursor:state.previousCursor,sectionCursor:state.sectionCursor,query:reader.query,sort:reader.sort,matchCount:meta.matchCount};}
+ async checkAllTracked(serial=this.serial,{invalidateReader=false}={}){if(!this.editor?.entry)return true;const ids=[...this.editor.entry.entries.keys()];for(let i=0;i<ids.length;i+=100){const result=await request('GET_LIBRARY_TRACKED_ENTRIES',{options:{ids:ids.slice(i,i+100)}});if(serial!==this.serial)return false;
+  if(invalidateReader&&this.topicReader&&!this.topicReader.stale&&(result||[]).some(row=>{const at=this.topicReader.index.get(row.id),item=Number.isInteger(at)?this.topicReader.items[at]:null;return item&&(row.lifecycle!=='active'||row.purged&&!item.unloaded&&typeof item.entry.body==='string'&&!item.entry.staleReasons?.includes('source_purged'));}))this.topicReader.invalidate();
+  await this.editor.entry.checkTracked(result||[]);}return serial===this.serial;}
+ topicPageFromReader(){const reader=this.topicReader,state=reader?.state(),meta=reader?.pageMeta||{};if(!reader||!state)return null;const pins=this.topicProtectedIds(),layout=reader.layout(pins),items=layout.filter(x=>x.kind==='item').map(x=>x.item);return {...meta,scopeSectionId:reader.scopeSectionId,topic:meta.topic||this.topic,sections:[...reader.sections.values()],items,windowLayout:layout,nextCursor:state.nextCursor,previousCursor:state.previousCursor,sectionCursor:state.sectionCursor,query:reader.query,sort:reader.sort,matchCount:meta.matchCount};}
  updateTopicSearchCount(){
   const count=$('topic-search-count'),reader=this.topicReader;if(!count||!this.topicContinuousVisible())return;
-  const query=$('topic-search').value.trim(),state=reader?.state();
+  const query='',state=reader?.state();
   // A continuation may finish after another query was typed. Its retained
   // bodies and terminal flags never describe that newer search or a refusal.
   if(!state||state.stale||reader.topicId!==this.id||reader.query!==query||(reader.providerKey??null)!==(this.topicProviderKey??null)){count.textContent='';return;}
@@ -209,25 +214,82 @@ export class TopicController {
   count.textContent=query||this.topicProviderKey?`${state.items.length}${complete?'':'+'} 条${query?'匹配':'当前来源'}内容`:'';
  }
  updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;this.updateTopicSearchCount();
+  void this.mountSectionEndWriter();
+  const nextYear=this.topicNextYear;if(nextYear){const explicit=state.nextYear!==null&&!reader.openedYears.includes(state.nextYear);nextYear.hidden=this.view!=='original'||!state.terminalNext||!explicit||state.indexing||state.stale;nextYear.disabled=!!(state.loadingNext||state.loadingPrevious);nextYear.textContent='↓ '+(state.nextYear==='unknown'?(document.documentElement.lang==='en'?'Undated':'日期未记录'):String(state.nextYear)+(document.documentElement.lang==='en'?'':'年'));}
   const before=$('topic-continuous-before'),after=$('topic-continuous-after'),pending=state.loadingNext||state.loadingPrevious||state.indexing,unsettled=pending||state.stale;
   for(const [edge,continuation,error]of [['before',state.continuationPrevious,state.errorPrevious],['after',state.continuationNext,state.errorNext]]){const retry=$('topic-continuous-'+edge+'-retry');retry.hidden=pending||!error&&!continuation;retry.textContent=tc(continuation?'继续载入':'重试加载');}
-  before.dataset.terminal=String(!unsettled&&!state.errorPrevious&&!state.continuationPrevious&&!!state.terminalPrevious);after.dataset.terminal=String(!unsettled&&!state.errorNext&&!state.continuationNext&&!state.protectionBlocked&&!!state.terminalNext);
+  before.dataset.terminal=String(!unsettled&&!state.errorPrevious&&!state.continuationPrevious&&!!state.terminalPrevious);after.dataset.terminal=String(!unsettled&&!state.errorNext&&!state.continuationNext&&!state.protectionBlocked&&!!state.terminalNext&&!(state.nextYear!==null&&reader.openedYears.includes(state.nextYear)));
   $('topic-continuous-before-status').textContent=tc(state.loadingPrevious?'正在载入更早内容…':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorPrevious?'更早内容加载中断；当前文字与草稿已保留。':state.continuationPrevious||unsettled?'还有内容待载入，请继续读取。':state.terminalPrevious?'已到主题开头':'向上滚动继续加载');
   $('topic-continuous-after-status').textContent=tc(state.protectionBlocked?'暂缓继续加载：请先保存或完成当前编辑，文字与选择仍保留。':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorNext?'加载中断；当前文字与草稿已保留。':state.continuationNext||unsettled?'还有内容待载入，请继续读取。':state.terminalNext?'已到主题末尾':'向下滚动继续加载');
   this.desktopPresentation?.sync();
   clearTimeout(this.topicContinuousTimer);if(state.indexing&&!state.loadingNext&&!state.errorNext)this.topicContinuousTimer=setTimeout(()=>{if(this.topicContinuousVisible())void this.loadTopicContinuous('next');},250);
  }
- async renderTopicReader(anchor=null,restore=null,{preserveLiveAnchor=false}={}){
-  const reader=this.topicReader,serial=this.serial,windowRevision=reader?.windowRevision,cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;if(!reader)return false;
+ async mountSectionEndWriter(){
+  // A successful reflow may remove a former scope's empty inline host.
+  // Retire only that detached, data-free handle before eligibility can defer
+  // the next mount; draft/IME/pending/unknown ownership remains untouched.
+  const detached=this.sectionEndWriter;
+  if(detached?.field?.isConnected===false&&!detached.hasDraft()){detached.dispose();if(this.sectionEndWriter===detached)this.sectionEndWriter=null;}
+  if(this.endWriterMounting||!this.actions?.compose||this.actions.surface&&!this.actions.surface.inline)return;
+  const reader=this.topicReader,state=reader?.state();
+  if(!this.id||!this.activeSectionId||this.view!=='original'||!state?.initialized||!state.terminalNext||state.nextYear!==null||state.stale||state.indexing||state.errorNext||state.loadingNext||state.loadingPrevious)return;
+  if(this.sectionEndWriter?.field?.isConnected)return;
+  if(this.sectionEndWriter?.hasDraft())return;
+  this.sectionEndWriter?.dispose();this.sectionEndWriter=null;
+  const host=[...this.originalPane.querySelectorAll('.topic-section')].find(node=>node.dataset.sectionId===this.activeSectionId);if(!host)return;
+  const topicId=this.id,sectionId=this.activeSectionId,intent=this.openIntent,owner=this.editor;
+  const current=()=>this.id===topicId&&this.activeSectionId===sectionId&&this.view==='original'&&this.openIntent===intent&&this.editor===owner&&host.isConnected;
+  this.endWriterMounting=true;
+  try{
+   const handle=await this.actions.compose({topicId,sectionId,isCurrent:current,inline:{host,onAcknowledged:async({id,submittedBody,field,isCurrent})=>{
+    const valid=()=>current()&&isCurrent();if(!valid())return false;
+    const row=await request('GET_LIBRARY_ENTRY',{id});if(!valid())return false;
+    const page=await request('GET_LIBRARY_SECTION_READING',{options:{topicId,scopeSectionId:sectionId,anchorId:id,sort:'asc',query:'',limit:1}});if(!valid())return false;
+    const ref=page.items?.find(item=>item.entry.id===id),placement=ref?.placement;
+    if(page.cursorInvalid||page.unavailable||!ref||placement?.sectionId!==sectionId||row.revision!==ref.entry.revision||row.recoveryEpoch!==page.recoveryEpoch||row.body!==submittedBody||row.lifecycle!=='active')return false;
+    const node=[...host.querySelectorAll('[data-entry-id]')].find(node=>node.dataset.entryId===id)||this.entryNode({entry:row,placement}),replacement=node.querySelector('[data-entry-field="body"]');if(!replacement)return false;
+    this.sectionEndHandoff={id,field,owner,topicId,sectionId,authority:page.authority,recoveryEpoch:page.recoveryEpoch};const focused=document.activeElement===field;field.dataset.entryField='body';field.className='entry-prose';replacement.replaceWith(field);node.dataset.sectionId=sectionId;host.append(node);
+    owner.entry.addRows([row]);owner.entry.journal.record([{id,field:'body',before:'',after:submittedBody}]);owner.entry.collect();
+    this.sectionEndWriter?.dispose();this.sectionEndWriter=null;
+    if(focused&&document.activeElement!==field)field.focus({preventScroll:true});
+    this.topicNavigationAnchor={entryId:id,top:node.getBoundingClientRect().top};this.topicReader=null;
+    queueMicrotask(()=>{if(current())void this.refresh();});return true;
+   }}});
+   if(!current()){if(!handle?.hasDraft())handle?.dispose();return;}
+   this.sectionEndWriter=handle||null;
+  }catch{if(current())this.onStatus('当前章节末端暂时无法编辑，请重试读取。','read_error');}
+  finally{this.endWriterMounting=false;}
+ }
+ async qualifySectionHandoff(page,isCurrent){
+  const handoff=this.sectionEndHandoff;if(!handoff)return true;
+  if(handoff.owner!==this.editor||handoff.topicId!==this.id||handoff.sectionId!==this.activeSectionId||!handoff.field.isConnected){this.sectionEndHandoff=null;return true;}
+  // A pin preserves a native editor, never an old placement or read authority.
+  // The exact original Section anchor must still admit this same Entry after
+  // every generation change, including movement that leaves the Entry active.
+  const checked=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:handoff.topicId,scopeSectionId:handoff.sectionId,anchorId:handoff.id,sort:'asc',query:'',limit:1}});
+  if(!isCurrent()||this.sectionEndHandoff!==handoff)return false;
+  if(checked.anchorUnavailable&&checked.authority===page.authority){
+   const fresh=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:handoff.topicId,scopeSectionId:handoff.sectionId,sort:'asc',query:'',limit:1}});
+   if(!isCurrent()||this.sectionEndHandoff!==handoff)return false;
+   if(fresh.cursorInvalid||fresh.unavailable||fresh.authority!==page.authority||fresh.recoveryEpoch!==page.recoveryEpoch)throw Error('TOPIC_HANDOFF_CHANGED');
+   this.sectionEndHandoff=null;return true;
+  }
+  if(checked.unavailable||checked.cursorInvalid||checked.authority!==page.authority||checked.recoveryEpoch!==page.recoveryEpoch)throw Error('TOPIC_HANDOFF_CHANGED');
+  const item=checked.items?.find(item=>item.entry.id===handoff.id&&item.placement?.sectionId===handoff.sectionId);
+  if(!item){this.sectionEndHandoff=null;return true;}
+  handoff.authority=checked.authority;handoff.recoveryEpoch=checked.recoveryEpoch;return true;
+ }
+ async renderTopicReader(anchor=null,restore=null,{preserveLiveAnchor=false,beforePaint=null,publicationOwner=null}={}){
+  const reader=this.topicReader,serial=this.serial,windowRevision=reader?.windowRevision,cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;if(!reader||reader.publicationOwner&&reader.publicationOwner!==publicationOwner)return false;
   const current=()=>{
    if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}
-   const valid=reader===this.topicReader&&serial===this.serial&&windowRevision===reader.windowRevision&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
+   const valid=!this.sectionEndWriter?.hasDraft()&&reader===this.topicReader&&serial===this.serial&&windowRevision===reader.windowRevision&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
    if(!valid&&cueEpoch!==(this.rootCueEpoch||0))reader.invalidate({cursorInvalid:true});return valid;
   };
   const ready=await reader.hydrateWindow();
-  if(!current())return false;if(!ready){this.updateTopicContinuous();return false;}
+  if(!current()||this.sectionEndWriter?.hasDraft())return false;if(!ready){this.updateTopicContinuous();return false;}
   const page=this.topicPageFromReader();if(!page?.topic)return false;
-  if(page.indexing){if(this.originalPane)this.originalPane.hidden=true;this.updateTopicContinuous();return false;}
+  if(page.indexing){if(this.originalPane&&!reader.items.length)this.originalPane.hidden=true;this.updateTopicContinuous();return false;}
   if(page.kind==='section_reading'){
    const metadata=this.topicMetadata(),qualification=metadata?.beginQualifiedRead();
    // A newer metadata read owns its token even when the reader/window is unchanged.
@@ -242,7 +304,7 @@ export class TopicController {
    // Metadata uses its existing owner. Recheck the read generation after that
    // asynchronous boundary so a concurrent move, purge or restore cannot paint
    // a previously valid body/Section snapshot under a newly fetched heading.
-   const checked=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:reader.topicId,query:reader.query,sort:reader.sort,providerKey:'providerKey'in reader?reader.providerKey:this.topicProviderKey,limit:1,expectedReadGeneration:page.coverage?.activeGeneration}});
+   const checked=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:reader.topicId,scopeSectionId:reader.scopeSectionId,query:reader.query,sort:reader.sort,...(reader.chronology?{chronology:reader.chronology,year:reader.requestYear}:{}),providerKey:'providerKey'in reader?reader.providerKey:this.topicProviderKey,limit:1,expectedReadGeneration:page.coverage?.activeGeneration}});
    if(!current())return false;
    if(checked.cursorInvalid||checked.unavailable||checked.coverage?.activeGeneration!==page.coverage?.activeGeneration||checked.recoveryEpoch!==page.recoveryEpoch){reader.invalidate(checked);await this.checkAllTracked(serial);throw Error('TOPIC_READING_CHANGED');}
    if(!ownsQualification())return false;
@@ -251,31 +313,65 @@ export class TopicController {
   }
   // Continuation reads may outlive scrolling or reflow. Capture the current
   // DOM immediately before paint; never fall back to an already removed anchor.
+  if(!await this.qualifySectionHandoff(page,current)||!current()||this.crossSectionProtected(reader.scopeSectionId))return false;
   const readingAnchor=preserveLiveAnchor?this.topicAnchor():anchor||reader.sectionRestoreAnchor;
-  this.topic=page.topic;this.document=page;this.renderDocument(page);if(readingAnchor)revealExactRepeat(this.originalPane,readingAnchor.id);reader.measure(this.originalPane);
+  if(beforePaint&&beforePaint(page)!==true)return false;
+  this.topic=page.topic;this.document=page;this.renderDocument(page);if(this.sectionEndHandoff&&page.items.some(item=>item.entry.id===this.sectionEndHandoff.id))this.sectionEndHandoff=null;this.refreshTopicStamps(page);if(readingAnchor)revealExactRepeat(this.originalPane,readingAnchor.id);reader.measure(this.originalPane);
   this.originalPane.dataset.retainedBodies=String(reader.items.filter(item=>!item.unloaded).length);this.originalPane.dataset.loadedExtent=String(reader.items.length);
   if(readingAnchor&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(preserveLiveAnchor||anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor,this.topicAnchorEntry(readingAnchor?.id));
   // A successful paint consumes this one return attempt, including a return
   // interrupted by deliberate scrolling. Later paging must not replay it.
   if(!anchor)reader.sectionRestoreAnchor=null;
-  this.observeTopicWindowSpacers();this.updateTopicContinuous();return true;
+  this.observeTopicWindowSpacers();this.updateTopicContinuous();this.admitTopicContinuation(reader);return true;
  }
- async resetTopicReader({anchorId=null,sectionId=null,timeEdge=null,restoreAnchor=null,saved=null,expectedSerial=this.serial}={}){
-  this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;this.topicReader=reader;reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
+ admitReadingSnapshot(){
+  this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
+  for(const id of ['topic-body','topic-heading'])$(id).inert=false;
+  this.readRetry.hidden=true;if(this.readFailed){this.readFailed=false;this.onStatus('');}
+  const reader=this.topicReader,admission=reader?.initialAdmission;if(admission&&admission.token===this.loadToken&&admission.epoch===this.statusEpoch&&admission.serial===this.serial)delete reader.initialAdmission;
+ }
+ admitTopicContinuation(reader){
+  const admission=reader.initialAdmission;
+  if(!admission||reader.publicationOwner||this.leavePublication||this.departureFlush||this.view!=='original'||reader!==this.topicReader||reader.stale||reader.indexing||admission.token!==this.loadToken||admission.epoch!==this.statusEpoch||admission.serial!==this.serial||admission.intent!==this.openIntent||admission.cue!==(this.rootCueEpoch||0)||admission.key!==this.readKey()||admission.topic!==this.id||admission.section!==this.activeSectionId)return;
+  // Index preparation can finish after refreshOnce returned without a paint.
+  // Only this reader's fully qualified canonical paint can admit its editing.
+  this.admitReadingSnapshot();delete reader.initialAdmission;
+ }
+ async resetTopicReader({anchorId=null,sectionId=null,timeEdge=null,restoreAnchor=null,saved=null,expectedSerial=this.serial,beforePaint=null,prepareInitial=false,isCurrent=()=>true}={}){
+  // Every initial canonical paint owns its metadata qualification. Observer
+  // redraws must not steal it and leave refresh refused with editing inert.
+  // A staged AI pane shares that same first paint.
+  let settlePublication;
+  this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),publicationOwner=Symbol('topic-publication'),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;reader.publicationOwner=publicationOwner;reader.publicationDone=new Promise(resolve=>settlePublication=resolve);this.topicReader=reader;if(this.view==='original'&&this.loadToken)reader.initialAdmission={token:this.loadToken,epoch:this.statusEpoch,serial:expectedSerial,intent:this.openIntent,cue:this.rootCueEpoch||0,key:this.readKey(),topic:this.id,section:this.activeSectionId};reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
   // A held page may finish after Root invalidation or navigation. The worker
   // qualified that read before replying; the UI must also keep its own intent
   // fence through the entire asynchronous reader reset, not only before focus.
   const current=()=>{
-   const valid=expectedSerial===this.serial&&reader===this.topicReader&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
+   const valid=isCurrent()&&expectedSerial===this.serial&&reader===this.topicReader&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
    if(!valid&&cueEpoch!==(this.rootCueEpoch||0))reader.invalidate({cursorInvalid:true});return valid;
   };
   try{
    const initial=reader.initial();this.updateTopicContinuous();await initial;if(!current())return {...reader.state(),stale:true};
-   if(reader.stale){const sectionRefused=reader.sectionRestoreRequested;this.cancelTopicRestore(restore);restore=null;if(reader.anchorUnavailable){anchorId=null;this.onStatus('原位置已变化，从主题开头继续。');}reader.reset({topicId:this.id,sort:reader.sort,query:reader.query,anchorId,sectionId:reader.anchorUnavailable?null:sectionId});reader.sectionRestoreRefused=sectionRefused;const retry=reader.initial();this.updateTopicContinuous();await retry;if(!current())return {...reader.state(),stale:true};}
-   const state=reader.state();if(state.errorNext&&!state.items.length)throw state.errorNext;await this.renderTopicReader(restoreAnchor,restore);if(!current())return {...reader.state(),stale:true};void this.loadRemainingTopicSections(reader);completed=!reader.hydrationError&&!reader.stale;return reader.state();
-  }finally{if(restore){if(completed&&this.topicRestore===restore)this.finishTopicRestore(restore);else this.cancelTopicRestore(restore);}}
+   if(reader.stale){if(reader.anchorUnavailable&&reader.scopeSectionId){this.onStatus('这个章节或位置已变化，请重新选择章节。','read_error');return reader.state();}const sectionRefused=reader.sectionRestoreRequested;this.cancelTopicRestore(restore);restore=null;if(reader.anchorUnavailable){anchorId=null;this.onStatus('原位置已变化，从主题开头继续。');}reader.reset({topicId:this.id,scopeSectionId:reader.scopeSectionId,chronology:reader.chronology,year:reader.requestYear,sort:reader.sort,query:reader.query,anchorId,sectionId:reader.anchorUnavailable?null:sectionId});reader.sectionRestoreRefused=sectionRefused;if(reader.chronology&&Array.isArray(saved?.openedYears)&&saved.openedYears.length<=10001)reader.openedYears=saved.openedYears.filter(year=>year==='unknown'||Number.isInteger(year)&&year>=0&&year<=9999);const retry=reader.initial();this.updateTopicContinuous();await retry;if(!current())return {...reader.state(),stale:true};}
+   // An explicit Section switch retains this publication owner while the
+   // original bounded index continuation prepares its first canonical page.
+   for(let reads=0;prepareInitial&&reader.indexing&&!reader.stale&&!reader.errorNext&&!reader.protectionBlocked&&reads<reader.maxEmptyLoads;reads++){
+    if(!current())return {...reader.state(),stale:true};const pending=reader.next();this.updateTopicContinuous();await pending;if(!current())return {...reader.state(),stale:true};
+   }
+   const state=reader.state();if(state.errorNext&&!state.items.length)throw state.errorNext;if(prepareInitial&&reader.indexing){this.updateTopicContinuous();return {...state,paintRefused:true};}const painted=await this.renderTopicReader(restoreAnchor||(restored?saved.anchor:null),restore,{beforePaint,publicationOwner});reader.positionRestored=painted===true&&restored&&!reader.stale;if(!current())return {...reader.state(),stale:true};void this.loadRemainingTopicSections(reader);completed=painted===true&&!reader.hydrationError&&!reader.stale;return {...reader.state(),paintRefused:painted!==true};
+  }finally{if(reader.publicationOwner===publicationOwner){delete reader.publicationOwner;delete reader.publicationDone;}settlePublication(completed||view==='original'&&reader.indexing&&!reader.stale&&!reader.hydrationError&&current());if(restore){if(completed&&this.topicRestore===restore)this.finishTopicRestore(restore);else this.cancelTopicRestore(restore);}}
  }
- async loadTopicContinuous(direction,{explicit=true}={}){if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;let failureReader=reader;try{if(!await this.checkAllTracked(serial)||serial!==this.serial||reader!==this.topicReader)return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(serial!==this.serial||reader!==this.topicReader)return;if(reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});failureReader=this.topicReader;await reset;return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});else this.updateTopicContinuous();}catch{
+ async loadTopicContinuous(direction,{explicit=true}={}){
+  const publishing=this.topicReader;
+  if(publishing?.publicationOwner){
+   if(!explicit)return;
+   // Deliberate reading cancels automatic anchor restoration immediately,
+   // but paging waits for the existing qualified first paint to settle.
+   this.interruptTopicRestore();const completion=publishing.publicationDone,serial=this.serial,intent=this.openIntent,cue=this.rootCueEpoch||0,view=this.view;
+   if(!completion||await completion!==true)return;
+   if(publishing!==this.topicReader||publishing.publicationOwner||serial!==this.serial||intent!==this.openIntent||cue!==(this.rootCueEpoch||0)||view!==this.view)return;
+  }
+if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReader?.nextYear!==null&&this.topicReader?.errorNext)return this.openNextTopicYear();if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;let failureReader=reader;try{if(!await this.checkAllTracked(serial)||serial!==this.serial||reader!==this.topicReader)return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(serial!==this.serial||reader!==this.topicReader)return;if(reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});failureReader=this.topicReader;await reset;return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});else this.updateTopicContinuous();}catch{
   // Automatic observers do not await this promise. Keep the strict reader's
   // refusal, then hand its failure to the existing retained-content/retry UI.
   // A retired read must never change a newer route, view or reader's status.
@@ -286,21 +382,72 @@ export class TopicController {
   // Each qualified reading page supplies only its own Section metadata. A
   // separate legacy continuation must never supplement those labels.
  }
- async navigateTopicSection(sectionId,{isCurrent=()=>true}={}){
-  const serial=this.serial,topicId=this.id,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0;
-  const current=()=>isCurrent()&&this.id===topicId&&this.view==='original'&&this.serial===serial&&this.openIntent===intent&&(this.rootCueEpoch||0)===cueEpoch;
+ async navigateAISection(sectionId){
+  const topicId=this.id,intent=this.openIntent,transition=this.sectionIntent=(this.sectionIntent||0)+1;
+  const current=()=>this.id===topicId&&this.view==='ai'&&intent===this.openIntent&&transition===this.sectionIntent;
   const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
-  if(!topicId||!current()||composing())return false;
-  if(!await this.flushEditors()||!current()||composing())return false;
-  if(!await this.checkAllTracked(serial)||!current()||composing())return false;
-  const state=await this.resetTopicReader({sectionId,expectedSerial:serial});
-  if(!current()||state.stale||state.unavailable||state.anchorUnavailable)return false;
-  // A heading can survive outside the hydrated window. Only the qualified
-  // Section read establishes arrival, including a genuinely empty Section.
-  const node=[...this.originalPane.querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===sectionId);
-  if(!node)return false;
-  node.scrollIntoView({block:'start'});(node.querySelector('h2')||node).focus({preventScroll:true});this.writingSection={topicId,sectionId,openIntent:intent,presentationIntent:this.presentationIntent};return true;
+  if(!topicId||!current()||composing()||!await this.flushReadingNavigation()||!current()||composing())return false;
+  const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId)||this.crossSectionProtected(sectionId))return false;
+  const previous={section:this.activeSectionId,reader:this.topicReader,document:this.document,resume:this.contentResume,directory:this.sectionDirectory};
+  this.activeSectionId=sectionId;this.sectionDirectory=rows;this.topicReader=null;this.contentResume=null;this.rememberActiveSection(topicId,sectionId);
+  const rollback=()=>{if(!current())return;this.activeSectionId=previous.section;this.topicReader=previous.reader;this.document=previous.document;this.contentResume=previous.resume;this.sectionDirectory=previous.directory;this.rememberActiveSection(topicId,previous.section);this.renderSectionNav();};
+  try{await this.refresh();}catch(error){rollback();throw error;}if(!current())return false;
+  // refresh may truthfully defer a paint while the old native editor begins IME.
+  // Only the scope actually committed with the displayed AI editor admits a
+  // new directory label; a composing newly painted destination remains valid.
+  let painted;try{painted=JSON.parse(this.aiScopeKey);}catch{}
+  if(this.readFailed||!Array.isArray(painted)||painted[0]!==topicId||painted[1]!==sectionId){rollback();return false;}
+  this.renderSectionNav();return true;
  }
+ async navigateTopicSection(sectionId,{isCurrent=()=>true}={}){
+  const topicId=this.id,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0;
+  const route=()=>isCurrent()&&this.id===topicId&&this.view==='original'&&this.openIntent===intent&&(this.rootCueEpoch||0)===cueEpoch;
+  if(!topicId||!route())return false;
+  const refreshing=this.refreshRun;
+  if(refreshing&&!this.sectionNavigationRun){
+   // A save can already own a queued canonical refresh. Settle that owner
+   // before capturing this navigation's strict serial, without requeuing it.
+   const wait=Symbol('section-refresh-wait'),sectionIntent=this.sectionIntent,focusIntent=this.entryFocusIntent,presentation=this.presentationIntent;this.sectionRefreshWait=wait;
+   try{await refreshing.promise;if(this.sectionRefreshWait!==wait||!route()||this.sectionIntent!==sectionIntent||this.entryFocusIntent!==focusIntent||this.presentationIntent!==presentation||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;}
+   catch{return false;}
+   finally{if(this.sectionRefreshWait===wait)delete this.sectionRefreshWait;}
+  }
+  const serial=this.serial,routeCurrent=()=>route()&&this.serial===serial;
+  if(!routeCurrent())return false;
+  const transition=this.sectionIntent=(this.sectionIntent||0)+1,current=()=>transition===this.sectionIntent&&routeCurrent();
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const snapshot=()=>({section:this.activeSectionId,reader:this.topicReader,document:this.document,directory:this.sectionDirectory,resume:this.contentResume,hidden:this.originalPane?.hidden});
+  const pending=this.sectionNavigationRun,inherited=pending&&!pending.published&&pending.topicId===topicId&&pending.intent===intent&&pending.serial===serial&&pending.cueEpoch===cueEpoch;
+  // A newer click can supersede an unpainted destination. Its rollback still
+  // belongs to the last actual published reader, never that temporary target.
+  const run={topicId,intent,serial,cueEpoch,previous:inherited?pending.previous:snapshot(),published:false};this.sectionNavigationRun=run;
+  let changed=false;
+  try{
+   if(composing())return false;
+   if(!await this.flushReadingNavigation()||!current()||composing())return false;
+   if(!await this.checkAllTracked(serial)||!current()||composing())return false;
+   const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId)||this.crossSectionProtected(sectionId))return false;
+   if(!inherited||this.topicReader===run.previous.reader&&this.activeSectionId===run.previous.section)run.previous=snapshot();
+   this.rememberContent();changed=true;this.activeSectionId=sectionId;this.sectionDirectory=rows;this.lastSections??=new Map();this.rememberActiveSection(topicId,sectionId);this.restoreContent(topicId);
+   const saved=this.contentResume;this.contentResume=null;
+   const state=await this.resetTopicReader({sectionId,saved,expectedSerial:serial,prepareInitial:true,isCurrent:()=>current()&&!composing(),beforePaint:page=>current()&&!composing()&&page.scopeSectionId===sectionId&&page.items.every(item=>item.placement?.sectionId===sectionId)&&page.sections.every(section=>section.sectionId===sectionId)});
+   if(!current())return false;
+   if(state.stale||state.unavailable||state.anchorUnavailable||state.errorNext||state.paintRefused)return false;
+   const node=[...this.originalPane.querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===sectionId);if(!node)return false;
+   run.published=true;this.writingSection={topicId,sectionId,openIntent:intent,presentationIntent:this.presentationIntent};
+   if(!saved)node.scrollIntoView({block:'start'});(node.querySelector('h2')||node).focus({preventScroll:true});return true;
+  }finally{
+   if(this.sectionNavigationRun===run){
+    if(!run.published&&(changed||inherited)&&current()){
+     const previous=run.previous;
+     if(this.topicReader!==previous.reader||this.activeSectionId!==previous.section){this.activeSectionId=previous.section;this.topicReader=previous.reader;this.document=previous.document;this.sectionDirectory=previous.directory;this.contentResume=previous.resume;this.rememberActiveSection(topicId,previous.section);this.renderSectionNav();}
+     if(this.originalPane&&typeof previous.hidden==='boolean')this.originalPane.hidden=previous.hidden;
+    }
+    delete this.sectionNavigationRun;
+   }
+  }
+ }
+ rememberActiveSection(topicId,sectionId){this.lastSections??=new Map();this.lastSections.delete(topicId);this.lastSections.set(topicId,sectionId);while(this.lastSections.size>100)this.lastSections.delete(this.lastSections.keys().next().value);}
  async topicSectionRows(){
   // Contextual destinations use the existing source-qualified Section owner,
   // independently of the partial prose/query window and without caching labels.
@@ -308,7 +455,7 @@ export class TopicController {
   do{
    const page=await request('GET_LIBRARY_SECTION_PROJECTION',{options:{topicId,cursor,limit:100}});if(this.id!==topicId)return [];
    if(page.cursorInvalid||page.unavailable||page.topic?.id!==topicId||!Array.isArray(page.items))throw Error('TOPIC_SECTIONS_CHANGED');
-   rows.push(...page.items.map(row=>({...row,sectionId:row.id})));cursor=page.nextCursor;
+   rows.push(...page.items.map(row=>({...row,sectionId:row.id})));if(rows.length>10000)throw Error('TOPIC_SECTIONS_LIMIT');cursor=page.nextCursor;
    if(cursor&&seen.has(cursor))throw Error('TOPIC_SECTIONS_CHANGED');if(cursor)seen.add(cursor);
   }while(cursor);
   return rows;
@@ -316,7 +463,7 @@ export class TopicController {
  // A successful AppShell departure can precede open() and synchronously remove
  // every Root node. Capture before release; a second leave must not overwrite
  // that position with an empty DOM or its browser-clamped scroll offset.
- captureHomePosition(){if(!this.id&&this.personalRoot?.nodes?.size===0)return null;const anchor=this.id&&this.view==='original'?this.topicAnchor():null;return {scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?$('topic-search').value:$('thought-search').value,sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(anchor?{anchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor(),returnGeometry:{authority:this.homeCollection.authority,source:this.rootProviderKey||null,session:this.rootGeometrySession||0,geometry:this.personalRoot?.captureReturnGeometry?.()||null}}: {})};}
+ captureHomePosition(){if(!this.id&&this.personalRoot?.nodes?.size===0)return null;const anchor=this.id&&this.view==='original'?this.topicAnchor():null;return {scroll:scrollY,cursor:this.cursor,pages:this.pages,query:this.id?'':'',sort:this.readingSort,providerKey:this.topicProviderKey,rootProviderKey:this.rootProviderKey,...(anchor?{anchor}:{}),...(!this.id&&this.homeCollection?{collection:this.homeCollection.snapshot(),rootAnchor:this.captureHomeAnchor(),returnGeometry:{authority:this.homeCollection.authority,source:this.rootProviderKey||null,session:this.rootGeometrySession||0,geometry:this.personalRoot?.captureReturnGeometry?.()||null}}: {})};}
  saveHomePosition(key,value){this.homePositions.delete(key);this.homePositions.set(key,value);while(this.homePositions.size>21){const oldest=[...this.homePositions.keys()].find(k=>k!=='home');this.homePositions.delete(oldest);}}
  captureHomeAnchor(){if(this.id)return null;const rows=[...$('thought-list').querySelectorAll('[data-root-key]')],focusRef=rows.length?this.personalRoot.focusRef():null,visible=x=>{const r=x.getBoundingClientRect();return r.bottom>120&&r.top<(globalThis.innerHeight||Infinity);};
   // Independent content-sized columns need the activated identity's own anchor.
@@ -340,7 +487,7 @@ export class TopicController {
  beginRootEntry(){
   this.resetRootReturnGeometry();  this.rootSearchSession=null;this.freshRootEntry=true;this.resetHomeCollection();this.personalRoot.beginOrder();this.homeDesiredCount=40;
   this.homePositions.delete('home');this.rootInvalidationAnchor=null;this.rootPreSearch=null;this.rootBaseCollection=null;this.preserveHomeRefresh=false;
-  $('thought-search').value='';this.rootProviderKey=null;
+  ;this.rootProviderKey=null;
  }
  resetHomeCollection(){this.homePaintAnchor=null;clearTimeout(this.continuousTimer);this.homeWindowShift=null;this.homeWindowShifting=false;this.homePage=null;this.homeHydrationAnchor=null;this.homeWindowReveal=null;this.homeCollection?.releaseBodies?.();this.homeCollection=null;this.homeDesiredCount=Math.max(40,this.personalRoot.slots.extent());this.homeRestoring=false;}
  invalidateHomeSnapshot({cause}={}){
@@ -356,10 +503,10 @@ export class TopicController {
   this.rootCueEpoch=(this.rootCueEpoch||0)+1;if(this.homeCollection)this.homeCollection.reset({scope:this.homeCollection.scope,query:this.homeCollection.query});this.homeCollection=null;this.homePage=null;this.homeReadingPosition=null;this.homeWindowShift=null;this.homeWindowShifting=false;
   // Metadata/cues are transient, including hidden rows and protected menu pins.
   // Drop every derived body before a fresh read can fail.
-  if(!canRetainRootMetadata(cause)||$('thought-search').value.trim())this.clearHomeRows();
+  if(!canRetainRootMetadata(cause)||'')this.clearHomeRows();
   if(!canRetainRootMetadata(cause))for(const node of document.querySelectorAll('.topic-root-section-anchor'))node.remove();
  }
- rootSearchReturnSession(){if(!this.rootPreSearch||!this.rootSearchSession)return null;const query=$('thought-search')?.value.trim();return query&&this.rootPreSearch&&this.personalRoot?.searchQuery===query?this.rootSearchSession:null;}
+ rootSearchReturnSession(){if(!this.rootPreSearch||!this.rootSearchSession)return null;const query='';return query&&this.rootPreSearch&&this.personalRoot?.searchQuery===query?this.rootSearchSession:null;}
  clearHomeRows({preserveSearch=false}={}){this.rootReturnGeometry=null;this.homeResizeAnchor=null;this.homePaintAnchor=null;this.homePage=null;this.personalRoot?.clear({searchSession:preserveSearch?this.rootSearchReturnSession():null});}
  homeCollectionScope(query){return this.rootProviderKey?JSON.stringify(['source',this.rootProviderKey,query?'search':'root']):query?'search':'root';}
  createHomeCollection(query){const scope=this.homeCollectionScope(query),providerKey=this.rootProviderKey;return new ContinuousRootReader({scope,query,windowSize:Number.MAX_SAFE_INTEGER,pins:()=>this.rootPins(),load:async({cursor,authority})=>{
@@ -374,7 +521,7 @@ export class TopicController {
  // then emits no new crossing, despite a qualified next cursor still existing.
  if(state.cursor&&!state.loading&&!state.terminal&&!state.error&&!state.stale&&!state.protectionBlocked){this.continuousObserver?.unobserve(sentinel);this.continuousObserver?.observe(sentinel);}
  clearTimeout(this.continuousTimer);if(!state.terminal&&!state.error&&!state.cursor&&(state.pageMeta?.indexing||state.coverage?.complete===false))this.continuousTimer=setTimeout(()=>{if(this.thoughtRootVisible())void this.loadHomeNext({explicit:false});},250);}
- async renderHomeReader(anchor=null){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}const collection=this.homeCollection,serial=this.serial,revision=collection?.windowRevision,paintIntent=this.openIntent,paintInputEpoch=this.topicRestoreInputEpoch||0;if(!collection)return false;this.homePage=null;const ready=await collection.hydrateWindow();if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(collection!==this.homeCollection||serial!==this.serial)return false;if(paintIntent!==this.openIntent||paintInputEpoch!==(this.topicRestoreInputEpoch||0)){anchor=null;this.homeWindowReveal=null;}if(collection.stale){this.clearHomeRows();this.rootInvalidationAnchor=anchor;void this.refresh();return false;}if(revision!==collection.windowRevision)return false;if(paintIntent!==this.openIntent||paintInputEpoch!==(this.topicRestoreInputEpoch||0)){anchor=null;this.homeWindowReveal=null;}else if(this.homeWindowReveal?.collection===collection&&this.homeWindowReveal.revision===revision)anchor=this.homeWindowReveal.anchor;if(!ready){this.homeHydrationAnchor=anchor;this.updateHomeContinuous(collection.state());return false;}this.homeHydrationAnchor=null;this.homeWindowReveal=null;const query=$('thought-search').value.trim(),page=this.homePageState(collection.state());this.homePage={page,query,key:this.readKey()};
+ async renderHomeReader(anchor=null){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}const collection=this.homeCollection,serial=this.serial,revision=collection?.windowRevision,paintIntent=this.openIntent,paintInputEpoch=this.topicRestoreInputEpoch||0;if(!collection)return false;this.homePage=null;const ready=await collection.hydrateWindow();if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(collection!==this.homeCollection||serial!==this.serial)return false;if(paintIntent!==this.openIntent||paintInputEpoch!==(this.topicRestoreInputEpoch||0)){anchor=null;this.homeWindowReveal=null;}if(collection.stale){this.clearHomeRows();this.rootInvalidationAnchor=anchor;void this.refresh();return false;}if(revision!==collection.windowRevision)return false;if(paintIntent!==this.openIntent||paintInputEpoch!==(this.topicRestoreInputEpoch||0)){anchor=null;this.homeWindowReveal=null;}else if(this.homeWindowReveal?.collection===collection&&this.homeWindowReveal.revision===revision)anchor=this.homeWindowReveal.anchor;if(!ready){this.homeHydrationAnchor=anchor;this.updateHomeContinuous(collection.state());return false;}this.homeHydrationAnchor=null;this.homeWindowReveal=null;const query='',page=this.homePageState(collection.state());this.homePage={page,query,key:this.readKey()};
   // Ordering preparation has not painted a destination. Retain only the
   // metadata anchor until this same navigation admits real rows, never the
   // old preview bodies. A new route/source or user scroll retires it.
@@ -394,7 +541,7 @@ export class TopicController {
   this.homeWindowObserver?.disconnect();for(const node of $('thought-list').querySelectorAll('[data-root-window-from]'))this.homeWindowObserver?.observe(node);
  }
  searchRoot(){
-  const query=$('thought-search').value.trim(),prior=this.homeCollection?.query||'';
+  const query='',prior=this.homeCollection?.query||'';
   this.rootSearchSession={};
   // Capture only qualified numbers before beginSearch synchronously releases
   // preview text and its shell. Search keeps one original reading viewport.
@@ -410,14 +557,14 @@ export class TopicController {
   const collection=this.rootBaseCollection;if(this.rootBaseLoading===collection)return;this.rootBaseLoading=collection;
   try{
    do{
-    if(!this.thoughtRootVisible()||!$('thought-search').value.trim()||collection!==this.rootBaseCollection)return;
+    if(!this.thoughtRootVisible()||!''||collection!==this.rootBaseCollection)return;
     if(!collection.terminal&&!collection.loading)await collection.loadNext();
-    if(!this.thoughtRootVisible()||!$('thought-search').value.trim()||collection!==this.rootBaseCollection)return;
+    if(!this.thoughtRootVisible()||!''||collection!==this.rootBaseCollection)return;
     if(collection.stale){this.rootBaseCollection=null;this.rootPreSearch={...(this.rootPreSearch||{}),items:[],complete:false};this.personalRoot.clear();this.onStatus('主题目录已变化，请重试读取。','read_error');return;}
     if(collection.error){this.onStatus('主题目录尚未读完，已显示的位置保留；请重试。','read_error');return;}
-    const hydrated=await collection.hydrateWindow();if(!this.thoughtRootVisible()||!$('thought-search').value.trim()||collection!==this.rootBaseCollection)return;if(!hydrated||collection.stale||collection.error){if(collection.stale){this.rootBaseCollection=null;this.rootPreSearch={...(this.rootPreSearch||{}),items:[],complete:false};this.personalRoot.clear();}this.onStatus('主题目录尚未重新核对，请重试；原有位置仍保留。','read_error');return;}
+    const hydrated=await collection.hydrateWindow();if(!this.thoughtRootVisible()||!''||collection!==this.rootBaseCollection)return;if(!hydrated||collection.stale||collection.error){if(collection.stale){this.rootBaseCollection=null;this.rootPreSearch={...(this.rootPreSearch||{}),items:[],complete:false};this.personalRoot.clear();}this.onStatus('主题目录尚未重新核对，请重试；原有位置仍保留。','read_error');return;}
     this.rootPreSearch={...(this.rootPreSearch||{}),items:collection.layout().filter(x=>x.kind==='item').map(x=>x.item),complete:collection.terminal};
-    const query=$('thought-search').value.trim();if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal,preserveSearch:true,searchSession:this.rootSearchSession,query});
+    const query='';if(this.homePage?.query===query)this.paintRootSearch(this.homePage.page,query);else this.personalRoot.render(this.rootPreSearch.items,{complete:collection.terminal,preserveSearch:true,searchSession:this.rootSearchSession,query});
     if(collection.terminal)return;await new Promise(resolve=>setTimeout(resolve,0));
    }while(collection===this.rootBaseCollection);
   }finally{if(this.rootBaseLoading===collection)this.rootBaseLoading=null;}
@@ -429,24 +576,17 @@ export class TopicController {
  clearActionFeedback(){$('ai-update-feedback')?.replaceChildren();}
  rootAction(method,...args){return()=>this[method](...args);}
  async openRootTarget(topicId,sectionId=null){
-  const claim=this.openIntent=(this.openIntent||0)+1,serial=this.serial,epoch=this.statusEpoch,cueEpoch=this.rootCueEpoch||0;
-  const current=()=>claim===this.openIntent&&serial===this.serial&&epoch===this.statusEpoch&&cueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
+  const claim=this.rootTargetIntent=(this.rootTargetIntent||0)+1,openIntent=this.openIntent,serial=this.serial,epoch=this.statusEpoch,cueEpoch=this.rootCueEpoch||0;
+  const current=()=>claim===this.rootTargetIntent&&openIntent===this.openIntent&&serial===this.serial&&epoch===this.statusEpoch&&cueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
   let valid=false;try{valid=await resolveTopicRootTarget({topicId,sectionId},options=>request('GET_LIBRARY_SECTION_PROJECTION',{options}));}catch{if(current())this.onStatus('暂时无法核对这个主题或分区，请重试。','read_error');return;}
   if(!current())return;
   if(!valid){this.onStatus('这个主题或分区已不可用，请重新读取思想库。','read_error');return;}
   try{
-  if(sectionId){this.requestedTopicView='original';if(this.id===topicId&&this.view!=='original'){await this.switchView('original');if(claim!==this.openIntent)return;}}
-  const intent=await this.open(topicId),targetCueEpoch=this.rootCueEpoch||0,active=()=>intent!==undefined&&intent===this.openIntent&&this.id===topicId&&this.view==='original'&&targetCueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
+  if(sectionId){this.requestedTopicView='original';if(this.id===topicId&&this.view!=='original'){await this.switchView('original');if(claim!==this.rootTargetIntent||openIntent!==this.openIntent)return;}}
+  const intent=await this.open(topicId,{sectionId}),targetCueEpoch=this.rootCueEpoch||0,active=()=>intent!==undefined&&intent===this.openIntent&&this.id===topicId&&this.view==='original'&&targetCueEpoch===(this.rootCueEpoch||0)&&!$('thought-panel').hidden;
   if(!active()||!sectionId)return;
   await this.focusSection(sectionId,{isCurrent:active});if(!active())return;
-  if(this.document?.kind==='section_reading'&&this.document.sections?.some(section=>section.sectionId===sectionId))return;
-  let cursor=null,section=null;
-  do{const page=await request('GET_LIBRARY_SECTION_PROJECTION',{options:{topicId,cursor,limit:100}});if(!active())return;if(page.cursorInvalid||page.unavailable||page.topic?.id!==topicId)break;section=page.items.find(value=>value.id===sectionId&&(!value.sourceUnavailable||value.titleProtected===true));if(section||!page.nextCursor)break;cursor=page.nextCursor;}while(cursor);
-  if(!section){this.onStatus('这个分区已变化，请重新读取主题。','read_error');return;}
-  const entry=[...this.originalPane.querySelectorAll('[data-entry-id][data-section-id]')].find(node=>node.dataset.sectionId===sectionId);
-  for(const prior of this.originalPane.querySelectorAll('.topic-root-section-anchor'))prior.remove();
-  if(section.title){const anchor=element('section','topic-root-section-anchor'),heading=element('h2','',section.title);anchor.dataset.sectionId=sectionId;anchor.dataset.topicId=topicId;anchor.dataset.rootOpenIntent=String(intent);anchor.dataset.layoutGeneration=String(section.layoutGeneration);anchor.dataset.sectionRevision=String(section.revision);heading.tabIndex=-1;anchor.append(heading);if(entry)entry.before(anchor);else this.originalPane.append(anchor);anchor.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}
-  else if(entry)entry.scrollIntoView({block:'start'});
+  if(!this.document?.sections?.some(section=>section.sectionId===sectionId))this.onStatus('这个章节暂时无法读取，请重新选择。','read_error');
   }catch{if(this.id===topicId&&!$('thought-panel').hidden)this.onStatus('这个分区暂时无法读取，请重试；已保存内容仍保留。','read_error');}
  }
  async mergeRootTopic(id){await this.open(id);if(this.id===id)await this.mergeTopic();}
@@ -462,7 +602,7 @@ export class TopicController {
   $('library-search-status').textContent=page.coverage?.complete===false?'继续向下读取全部主题。':'';
   setProductState($('thought-collection'),page.items.length?'ready':page.complete?'empty':'loading');
   $('thought-empty').hidden=page.items.length>0||!page.complete;
-  $('thought-empty-settings').textContent=tc('添加主题');$('thought-empty-settings').onclick=()=>this.createTopic();
+  $('thought-empty-settings').textContent=tc('写下想法');$('thought-empty-settings').onclick=()=>this.createStandalone();
  }
  paintRootSearch(page,query){
   // Search uses the existing bounded lexical owner; presentation never creates
@@ -486,7 +626,7 @@ export class TopicController {
   this.closeDialog();$('library-dialog-title').textContent='AI整理版本';const list=$('library-dialog-content');for(const r of [...result.items].reverse()){const section=element('section','revision-row'),detail=element('details');section.append(element('p','',`${new Date(r.at).toLocaleString()} · ${r.actor==='ai'?'AI 更新':'用户编辑'}`));detail.append(element('summary','','查看此版本'),element('pre','',[r.after.blockSummary,r.after.currentView,...['keyInformation','preferences','decisions','judgments','openQuestions','possibleEvolution'].flatMap(f=>r.after[f].map(x=>x.text))].filter(Boolean).join('\n\n')));section.append(detail);list.append(section);}if(!result.items.length)list.append(element('p','muted','尚无可查看版本。'));$('library-dialog').showModal();await this.refresh();
  }
  async togglePin(){await this.mutate(async()=>{const t=await request('GET_LIBRARY_TOPIC',{id:this.id});await this.checked('EDIT_LIBRARY_TOPIC',{edit:{id:t.id,expectedRevision:t.revision,changes:{pinned:t.pinKey!==0},operationId:op()}});});}
- async requestCloseDialog(){this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;const active=this.dialogEditor;if(active){active.collect();if(!await active.flush()&&(active.dirty()||isComposing(active))&&!window.confirm('当前草稿尚未保存。关闭会放弃这些修改，已保存内容不会改变。仍要关闭？'))return;if(this.dialogEditor===active){active.dispose();this.dialogEditor=null;}}this.closeDialog();if(!this.id)await this.refresh();}
+ async requestCloseDialog(){this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;const active=this.dialogEditor;if(active){active.collect();if(!await active.flush()&&(active.dirty()||isComposing(active))&&!window.confirm('当前草稿尚未保存。关闭会放弃这些修改，已保存内容不会改变。仍要关闭？'))return false;if(this.dialogEditor===active){active.dispose();this.dialogEditor=null;}}this.closeDialog();if(!this.id)await this.refresh();return true;}
  closeDialog(){if(this.formCloseLabel!==undefined){$('library-dialog-close').textContent=this.formCloseLabel;delete this.formCloseLabel;}$('library-dialog-content').inert=false;this.dialogResolve?.(null);this.dialogResolve=null;$('library-dialog').close();$('standalone-revisions').hidden=true;$('library-form').replaceChildren();$('library-dialog-content').replaceChildren();}
  form(title,fields,{submitLabel='确定',closeLabel}={}){this.closeDialog();if(closeLabel!==undefined){this.formCloseLabel=$('library-dialog-close').textContent;$('library-dialog-close').textContent=closeLabel;}$('library-dialog-title').textContent=title;const form=$('library-form');const controls={};for(const f of fields){const label=element('label','',f.label);const input=element(f.options?'select':f.multiline?'textarea':'input');input.name=f.key;input.setAttribute('aria-label',f.label);if(f.options)for(const [value,text]of f.options){const option=element('option','',text);option.value=value;input.append(option);}if(f.value!==undefined)input.value=f.value;input.required=!!f.required;if(Number.isInteger(f.maxLength))input.maxLength=f.maxLength;label.append(input);form.append(label);controls[f.key]=input;}const submit=element('button','',submitLabel);submit.type='submit';form.append(submit);$('library-dialog').showModal();return new Promise(resolve=>{this.dialogResolve=resolve;form.onsubmit=e=>{e.preventDefault();const data=Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,v.value]));this.dialogResolve=null;this.closeDialog();resolve(data);};});}
  async checked(type,data={},isCurrent=()=>true){try{const r=await request(type,data);if(r?.conflict){if(isCurrent())this.onStatus('内容或组织已更新，请重读后再试。','conflict');throw Object.assign(new Error('CONFLICT'),{handled:true});}return r;}catch(e){if(e.handled)throw e;if(isCurrent())this.onStatus('操作尚未完成，当前内容保留。请重试。','error');throw e;}}
@@ -524,29 +664,75 @@ export class TopicController {
   if(!this.id&&!this.rootProviderKey)void this.updateUnplaced(current);if(!this.id&&this.rootProviderKey)$('library-unplaced').parentElement.hidden=true;
  }
 
- async flushEditors(){for(const active of [this.editor,this.aiEditor,this.dialogEditor]){active?.collect?.();if(active&&!await active.flush()&&active.dirty())return false;}return true;}
- async refresh(){if(!this.id&&this.homeCollection&&!this.preserveHomeRefresh){this.homeDesiredCount=Math.max(40,this.homeDesiredCount||0,this.personalRoot.slots.extent(),this.homeCollection.items.length);this.homeCollection.releaseBodies();this.homePage=null;this.homeCollection=null;}this.preserveHomeRefresh=false;const key=this.readKey(),active=this.refreshRun;if(active&&active.key===key){active.queued=true;return active.promise;}const run={key,queued:false,promise:null};run.promise=(async()=>{do{run.queued=false;await this.refreshOnce();}while(run.queued&&run.key===this.readKey());})();this.refreshRun=run;try{return await run.promise;}finally{if(this.refreshRun===run)this.refreshRun=null;}}
+ topicProtectedIds(){const ids=this.editor?.entry?.protectedIds?.()||new Set(),handoff=this.sectionEndHandoff;if(handoff&&handoff.owner===this.editor&&handoff.topicId===this.id&&handoff.sectionId===this.activeSectionId&&handoff.field.isConnected&&handoff.authority===this.document?.authority&&handoff.recoveryEpoch===this.document?.recoveryEpoch)ids.add(handoff.id);return ids;}
+ crossSectionProtected(sectionId){
+  if(!sectionId)return false;const pins=this.topicProtectedIds();
+  const blocked=[...(this.originalPane?.querySelectorAll?.('[data-entry-id]')||[])].some(node=>pins.has(node.dataset.entryId)&&node.dataset.sectionId!==sectionId);
+  if(blocked)this.onStatus?.('请先结束当前编辑或取消文字选区，再切换章节；当前文字和位置已保留。','read_error');
+  return blocked;
+ }
+ async flushReadingNavigation(){this.departureFlush=(this.departureFlush||0)+1;try{return await this.flushEditors();}finally{this.departureFlush--;}}
+ async flushEditors(){if(this.sectionEndWriter&&!await this.sectionEndWriter.flush())return false;for(const active of [this.editor,this.aiEditor,this.dialogEditor]){active?.collect?.();if(active&&!await active.flush()&&active.dirty())return false;}return true;}
+ async refresh(){if(this.annualTransitionBusy&&!this.yearTransitionRefreshing){this.annualRefreshQueued=true;await this.checkAllTracked(this.serial,{invalidateReader:true});return false;}if(!this.id&&this.homeCollection&&!this.preserveHomeRefresh){this.homeDesiredCount=Math.max(40,this.homeDesiredCount||0,this.personalRoot.slots.extent(),this.homeCollection.items.length);this.homeCollection.releaseBodies();this.homePage=null;this.homeCollection=null;}this.preserveHomeRefresh=false;const key=this.readKey(),active=this.refreshRun;if(active&&active.key===key){active.queued=true;return active.promise;}const run={key,queued:false,promise:null};run.promise=(async()=>{do{run.queued=false;await this.refreshOnce();}while(run.queued&&run.key===this.readKey());})();this.refreshRun=run;try{return await run.promise;}finally{if(this.refreshRun===run)this.refreshRun=null;}}
  async refreshOnce(){
-  const token=Symbol(),epoch=this.statusEpoch;this.loadToken=token;this.searching=!this.id&&!!$('thought-search').value.trim();
+  const token=Symbol(),epoch=this.statusEpoch;this.loadToken=token;this.searching=!this.id&&!!'';
   const key=this.readKey(),host=this.id?$('thought-document'):$('thought-collection');
   const done=this.snapshotKey===key?()=>{}:beginLoading(host,this.id?'正在读取主题内容…':'正在读取思想库…');
   try{
    const read=await this.readRefresh();
    if(read!==true||this.loadToken!==token||epoch!==this.statusEpoch){done();return;}
-   this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
-   for(const id of ['topic-body','topic-heading'])$(id).inert=false;
-   highlightReading(this.id?$('topic-body'):null,this.id?$('topic-search').value:'');
-   done(host.dataset.state==='empty'?'empty':'ready');this.readRetry.hidden=true;
-   if(this.readFailed){this.readFailed=false;this.onStatus('');}
+   this.admitReadingSnapshot();
+   highlightReading(this.id?$('topic-body'):null,this.id?'':'');
+   done(host.dataset.state==='empty'?'empty':'ready');
    if(this.view!=='ai'||!this.id)this.queueOptionalStatus();
   }catch{done('failed');if(this.loadToken===token&&epoch===this.statusEpoch)this.readFailure();}
   finally{if(this.loadToken===token)this.searching=false;}
  }
  async reloadStructure(){if(!await this.leave())return;this.cursor=null;this.pages=[];await this.refresh();}
  ensurePanes(){if(!this.originalPane||!this.originalPane.isConnected){this.originalPane=element('div');this.originalPane.id='original-reading-body';this.aiPane=element('div');this.aiPane.id='ai-reading-body';$('topic-body').replaceChildren(this.originalPane,this.aiPane);this.aiSignature=undefined;}}
+ refreshTopicStamps(page=this.document){
+  if(!page||page.chronology!=='expression'||!this.originalPane)return;
+  const rows=new Map(page.items.map(item=>[item.entry.id,item.entry]));let previousYear=null;
+  for(const node of this.originalPane.querySelectorAll('[data-entry-id]')){
+   const entry=rows.get(node.dataset.entryId),stamp=node.querySelector('.entry-sent-time');if(!entry||!stamp)continue;
+   const year=entry.expressionTime?.year??null;
+   stamp.textContent=archiveInputStamp(entry.expressionTime?.at,{locale:document.documentElement.lang==='en'?'en':'zh-CN',timeZone:'UTC',includeYear:year!==null&&year!==previousYear,unknown:document.documentElement.lang==='en'?'Expression time unknown':'时间未知'});
+   if(year!==null)previousYear=year;
+  }
+ }
+ async openNextTopicYear(){
+  if(this.annualTransitionBusy)return false;
+  const topicId=this.id,intent=this.openIntent,sectionId=this.activeSectionId,target=this.topicReader?.nextYear;
+  const current=()=>topicId===this.id&&intent===this.openIntent&&sectionId===this.activeSectionId&&this.view==='original';
+  if(target===null||target===undefined||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||this.sectionEndWriter?.hasDraft())return false;
+  this.annualTransitionBusy=true;
+  try{
+   if(!await this.flushReadingNavigation()||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;
+   const reader=this.topicReader;if(!reader||reader.stale||!reader.initialized)return false;
+   if(!await this.checkAllTracked(this.serial)||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;
+   const serial=this.serial,pins=this.topicProtectedIds(),indices=reader.protectedWindow(pins),items=indices.map(index=>reader.items[index]),windowRevision=reader.windowRevision,bodyRevision=reader.bodyRevision;
+   // Scrolling, hydration and editor protection may change during bounded
+   // qualification. Cancel this staging rather than restore its older window.
+   const same=()=>{const protectedIds=this.topicProtectedIds();return current()&&reader===this.topicReader&&serial===this.serial&&!reader.stale&&!reader.hydrating&&!reader.loadingNext&&!reader.loadingPrevious&&reader.windowRevision===windowRevision&&reader.bodyRevision===bodyRevision&&protectedIds.size===pins.size&&[...pins].every(id=>protectedIds.has(id))&&!this.sectionEndWriter?.hasDraft()&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);};
+   let staged=await stageTopicYearWindow({topicId,sectionId,sort:reader.sort,providerKey:reader.providerKey??null,recoveryEpoch:reader.recoveryEpoch,items,openedYears:reader.openedYears,pins,maxItems:reader.windowSize,readPrepared:(options,guard)=>reader.readPrepared(options,guard),isCurrent:same,expandEntry:async(descriptor,old,{generation,recoveryEpoch,isCurrent})=>{
+    const fresh=new ContinuousTopicReader({load:reader.load,loadEntry:reader.loadEntry});fresh.reset({topicId,scopeSectionId:sectionId,sort:reader.sort,chronology:reader.chronology});fresh.coverage={activeGeneration:generation};fresh.recoveryEpoch=recoveryEpoch;
+    return fresh.readExpandedEntry(descriptor,{...descriptor,expanded:true,...(old.height?{height:old.height}:{})},isCurrent);
+   }});
+   if(staged.ok&&reader.items.length>indices.length)staged=await stageTopicYearExtent({extent:reader.items,staged,openedYears:reader.openedYears,topicId,sectionId,sort:reader.sort,providerKey:reader.providerKey??null,recoveryEpoch:reader.recoveryEpoch,readPrepared:(options,guard)=>reader.readPrepared(options,guard),isCurrent:same,maxReferences:reader.maxReferences,maxItems:reader.windowSize,chunk:reader.chunk,pins,maxEmptyLoads:reader.maxEmptyLoads});
+   if(!same())return false;
+   if(!staged.ok){reader.errorNext=Error('TOPIC_YEAR_REQUALIFICATION_REQUIRED');if(staged.reason==='window_year_gap_changed')this.onStatus('年份有更新，已打开的文字仍保留；请用时间排序从头重新读取当前章节。','read_error');this.updateTopicContinuous();return false;}
+   const anchorBefore=this.topicAnchor();
+   Object.assign(reader,{items:staged.items,index:new Map(staged.items.map((item,index)=>[item.entry.id,index])),sections:new Map(staged.sections.map(section=>[section.sectionId,section])),frontiers:staged.frontiers,coverage:staged.coverage,pageMeta:staged.pageMeta,recoveryEpoch:staged.recoveryEpoch,previousCursor:staged.previousCursor,nextCursor:staged.nextCursor,previousRequestYear:staged.previousRequestYear,nextRequestYear:staged.nextRequestYear,requestYear:staged.nextRequestYear,currentYear:staged.currentYear,nextYear:staged.nextYear,openedYears:staged.openedYears,terminalPrevious:staged.terminalPrevious,terminalNext:staged.terminalNext,windowStart:staged.windowStart??0,indexing:false,errorNext:null,hydrationError:null});reader.bodyRevision++;reader.windowRevision++;
+   if(reader.nextYear!==target){await this.renderTopicReader(anchorBefore,null,{preserveLiveAnchor:true});return false;}
+   const anchor=this.topicAnchor(),pending=reader.openNextYear();this.updateTopicContinuous();await pending;
+   if(!current()||reader!==this.topicReader)return false;
+   if(reader.stale){this.updateTopicContinuous();return false;}
+   await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});this.rememberContent();return !reader.errorNext;
+  }finally{try{if(current())await this.checkAllTracked(this.serial,{invalidateReader:true});}finally{this.annualTransitionBusy=false;this.yearTransitionRefreshing=false;this.updateTopicContinuous();if(this.annualRefreshQueued&&!this.topicReader?.errorNext&&!this.topicReader?.stale){this.annualRefreshQueued=false;queueMicrotask(()=>{if(current())void this.refresh();});}}}
+ }
  renderDocument(page){
   this.ensurePanes();this.originalPane.hidden=false;this.aiPane.hidden=this.view!=='ai';
-  const heading=$('topic-heading'),body=this.originalPane,metadata=this.editor?.metadata||[],pins=this.editor?.entry.protectedIds?.()||new Set();
+  const heading=$('topic-heading'),body=this.originalPane,metadata=this.editor?.metadata||[],pins=this.topicProtectedIds();
   if(!this.editor){heading.replaceChildren(...this.topicHeading(page.topic));metadata.push(new MetadataEditor(heading,page.topic,'topic',this.onStatus));}
   if(page.kind==='section_reading'){
   const cached=this.aiTopics?.get(this.id)?.presentation,repeatReader=this.topicReader,repeatIntent=this.openIntent;
@@ -604,12 +790,12 @@ export class TopicController {
   const topicId=this.id,anchor=fromStart?null:this.topicAnchor(),controls=$('topic-time-order'),buttons=[...controls.querySelectorAll('button')];
   this.readingSortBusy=true;controls.setAttribute('aria-busy','true');buttons.forEach(b=>b.disabled=true);
   try{
-   if(!await this.flushEditors()||this.id!==topicId||this.view!=='original')return;
+   if(!await this.flushReadingNavigation()||this.id!==topicId||this.view!=='original')return;
    try{await request('SET_ORGANIZER_CONTROLS',{changes:{readingSort:sort}});}
    catch{showLocalFailure('时间排序偏好尚未保存，阅读位置保持不变。请重试。');return;}
    if(this.id!==topicId||this.view!=='original')return;
    this.sortPreferenceChosen=true;this.readingSort=sort;this.topicNavigationAnchor=anchor?{entryId:anchor.id,top:anchor.top}:null;
-   if(fromStart){this.topicResetFromStart=true;this.topicNavigationSection=null;this.resumeAnchor=null;this.topicTimeEdge=timeEdge||(sort==='asc'?'earliest':'latest');$('topic-search').value='';}
+   if(fromStart){this.topicResetFromStart=true;this.topicNavigationSection=null;this.resumeAnchor=null;this.topicTimeEdge=timeEdge||(sort==='asc'?'earliest':'latest');;}
    this.cursor=null;this.pages=[];await this.refresh();
    if(fromStart&&this.id===topicId&&this.view==='original'&&!this.readFailed){
     const first=this.originalPane?.querySelector('[data-entry-id]');
@@ -654,16 +840,31 @@ export class TopicController {
    this.originalPane?.replaceChildren();await this.refresh();
   }finally{select.disabled=false;}
  }
- filterAIReading(){const needle=$('topic-search').value.trim().normalize('NFKC').toLocaleLowerCase();let count=0;for(const section of $('topic-body').querySelectorAll('.ai-overview, .evolution-stage')){section.hidden=!!needle&&!section.textContent.normalize('NFKC').toLocaleLowerCase().includes(needle);if(!section.hidden)count++;}$('topic-search-count').textContent=needle?`${count} 个匹配章节`:'';this.renderSectionNav();highlightReading($('topic-body'),$('topic-search').value);}
+ filterAIReading(){this.renderSectionNav();}
+
  async focusSection(id,{isCurrent=()=>true}={}){
   if(!isCurrent())return false;
   if(this.view==='original')return this.navigateTopicSection(id,{isCurrent});
   const node=[...$('topic-body').querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===id);
   node?.scrollIntoView({block:'start'});(node?.querySelector('h2')||node)?.focus({preventScroll:true});return !!node;
  }
- renderSectionNav(page=null){const nav=$('topic-section-nav');if(['original','ai'].includes(this.view)){$('topic-outline').hidden=true;nav.hidden=true;nav.replaceChildren();return;}const sections=page?(page.sections||[]).map(s=>({id:s.sectionId,title:s.title||'正文'})):[...$('topic-body').querySelectorAll('.ai-overview:not([hidden]), .evolution-stage:not([hidden])')].map((s,i)=>({id:'ai-'+i,title:s.querySelector('h2').textContent,node:s}));if((page?.overview?.unknownCount??page?.coverage?.unknownTimeCount)&&!this.topicProviderKey)sections.push({id:null,title:'时间未知',timeGroup:'unknown'});const signature=JSON.stringify(sections.map(s=>[s.id,s.title,s.timeGroup]));$('topic-outline').hidden=!(page?.overview?.unknownCount??page?.coverage?.unknownTimeCount)&&sections.length<4&&$('topic-body').scrollHeight<innerHeight*3;if(nav.dataset.signature===signature)return;nav.dataset.signature=signature;nav.replaceChildren();nav.hidden=false;for(const section of sections){const b=button(section.title,async()=>{if(section.timeGroup==='unknown'){if(!await this.flushEditors())return;await this.changeReadingSort(this.readingSort,{fromStart:true,timeEdge:'unknown'});$('topic-outline').open=false;const unknown=this.originalPane?.querySelector('.topic-unknown-time');unknown?.scrollIntoView({block:'start'});unknown?.querySelector('h2')?.focus({preventScroll:true});return;}let node=section.node||[...$('topic-body').querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===section.id);if(page&&!node&&this.view==='original'){await this.navigateTopicSection(section.id);node=[...$('topic-body').querySelectorAll('.topic-section')].find(n=>n.dataset.sectionId===section.id);}$('topic-outline').open=false;node?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});});if(section.timeGroup)b.dataset.timeGroup=section.timeGroup;nav.append(b);}}
+ renderSectionNav(){
+  const nav=$('topic-section-nav'),outline=$('topic-outline'),rows=this.sectionDirectory||[];
+  outline.hidden=!this.id||!rows.length;nav.hidden=false;outline.open=true;
+  const signature=JSON.stringify([this.id,this.activeSectionId,rows.map(row=>[row.sectionId,row.title])]);
+  if(nav.dataset.signature===signature)return;nav.dataset.signature=signature;nav.replaceChildren();
+  const choose=async(id,control)=>{try{if(!await (this.view==='ai'?this.navigateAISection(id):this.navigateTopicSection(id)))control.value=this.activeSectionId||'';}catch{control.value=this.activeSectionId||'';this.onStatus('这个章节暂时无法读取，请重试；当前文字仍保留。','read_error');}};
+  const select=element('select','topic-section-select');select.setAttribute('aria-label',document.documentElement.lang==='en'?'Section':'章节');
+  const directory=element('div','topic-section-directory');
+  for(const row of rows){
+   const title=row.title||tc('正文'),option=element('option','',title);option.value=row.sectionId;select.append(option);
+   const target=button(title,()=>choose(row.sectionId,target));target.dataset.sectionId=row.sectionId;target.setAttribute('aria-current',String(row.sectionId===this.activeSectionId));directory.append(target);
+  }
+  select.value=this.activeSectionId||'';select.addEventListener('change',()=>void choose(select.value,select));nav.append(select,directory);
+ }
+
  entryNode(item){const e=item.entry,node=element('div','library-entry');node.dataset.entryId=e.id;node.entryMovePlacement=item.placement?{...item.placement}:null;const optOut=host=>mountReverseEditOptOut(host,e,{pauseDrafts:()=>{this.editor?.entry?.autosave?.cancel();this.dialogEditor?.autosave?.cancel();}});if(e.large){node.append(element('p','muted','长内容单独载入，完整正文不会截断保存。'),button('读取完整内容',()=>this.loadLargeEntry(item,node)));optOut(node);return node;}
-  const prose=editable('div',['entryField','body'],e.body,tc('内容正文'));prose.className='entry-prose';prose.contentEditable='false';prose.dataset.placeholder='写下内容…';const meta=element('div','entry-meta');const type=element('select');type.dataset.entryField='type';type.setAttribute('aria-label','内容类型');for(const [value,text]of Object.entries({fact:'事实',event:'事件',preference:'偏好',decision:'决定',judgment:'判断',idea:'想法',goal_plan:'目标与计划',reflection:'反思',creation:'创作'})){const o=element('option','',text);o.value=value;type.append(o);}type.value=e.type;meta.append(type,button(stale(e),()=>this.actions.compare(e.id)));meta.lastElementChild.className='entry-stale';let selectedThought=null;const actions=actionMenu('内容操作',[[tc('加入所选文字'),async()=>{if(!selectedThought){this.onStatus(tc('请先在这条思想中选择文字。'));return;}if(!await this.flushEditors())return;const current=await request('GET_LIBRARY_ENTRY',{id:e.id});if(current.body.slice(selectedThought.start,selectedThought.end)!==selectedThought.text){this.onStatus(tc('这段内容已变化，请重新确认。'));return;}await this.actions.add({kind:'thought',id:e.id,expectedRevision:current.revision,span:{start:selectedThought.start,end:selectedThought.end}},selectedThought.text);} ],[tc('查看当时记录'),()=>this.actions.compare(e.id,{source:true})],[tc('查看档案当前文字'),()=>this.actions.compare(e.id)],[tc('复制当前文字'),()=>this.copyEntryText(e.id,node)],['来源',()=>{provenance.hidden=false;provenance.open=true;}],['备注',()=>{note.hidden=false;note.open=true;field.focus();}],...(!item.standalone?[['版本历史',()=>this.revisions('library_entry',e.id,e.id)]]:[]),...([['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>item.placement?.topicId||['add','delete'].includes(key)).map(([key,label])=>[key==='section'?tc(label):label,()=>this.entryActions(e.id,key==='section'?node.entryMovePlacement:item.placement,key)]))]);const rememberSelection=()=>{const selection=getSelection(),range=selection?.rangeCount?selection.getRangeAt(0):null;if(!range||range.collapsed||!prose.contains(range.startContainer)||!prose.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(prose);before.setEnd(range.startContainer,range.startOffset);selectedThought={start:before.toString().length,end:before.toString().length+range.toString().length,text:range.toString()};};actions.classList.add('topic-entry-actions');const moveControl=[...actions.querySelectorAll('button')].find(control=>control.textContent===tc('移动到章节'));moveControl?.classList.add('topic-entry-move');this.updateSectionActionControls(actions);actions.addEventListener('pointerdown',rememberSelection);actions.addEventListener('focusin',rememberSelection);meta.append(actions);
+  const prose=editable('div',['entryField','body'],e.body,tc('内容正文'));prose.className='entry-prose';prose.contentEditable='false';prose.dataset.placeholder='写下内容…';const meta=element('div','entry-meta');const type=element('select');type.dataset.entryField='type';type.setAttribute('aria-label','内容类型');for(const [value,text]of Object.entries({fact:'事实',event:'事件',preference:'偏好',decision:'决定',judgment:'判断',idea:'想法',goal_plan:'目标与计划',reflection:'反思',creation:'创作'})){const o=element('option','',text);o.value=value;type.append(o);}type.value=e.type;meta.append(type,button(stale(e),()=>this.actions.compare(e.id)));meta.lastElementChild.className='entry-stale';let selectedThought=null;const actions=actionMenu('内容操作',[[tc('加入所选文字'),async()=>{if(!selectedThought){this.onStatus(tc('请先在这条思想中选择文字。'));return;}if(!await this.flushEditors())return;const current=await request('GET_LIBRARY_ENTRY',{id:e.id});if(current.body.slice(selectedThought.start,selectedThought.end)!==selectedThought.text){this.onStatus(tc('这段内容已变化，请重新确认。'));return;}await this.actions.add({kind:'thought',id:e.id,expectedRevision:current.revision,span:{start:selectedThought.start,end:selectedThought.end}},selectedThought.text);} ],[tc('复制当前文字'),()=>this.copyEntryText(e.id,node)],['备注',()=>{note.hidden=false;note.open=true;field.focus();}],...(!item.standalone?[['版本历史',()=>this.revisions('library_entry',e.id,e.id)]]:[]),...([['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>item.placement?.topicId||['add','delete'].includes(key)).map(([key,label])=>[key==='section'?tc(label):label,()=>this.entryActions(e.id,key==='section'?node.entryMovePlacement:item.placement,key)]))]);const rememberSelection=()=>{const selection=getSelection(),range=selection?.rangeCount?selection.getRangeAt(0):null;if(!range||range.collapsed||!prose.contains(range.startContainer)||!prose.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(prose);before.setEnd(range.startContainer,range.startOffset);selectedThought={start:before.toString().length,end:before.toString().length+range.toString().length,text:range.toString()};};actions.classList.add('topic-entry-actions');const moveControl=[...actions.querySelectorAll('button')].find(control=>control.textContent===tc('移动到章节'));moveControl?.classList.add('topic-entry-move');this.updateSectionActionControls(actions);actions.addEventListener('pointerdown',rememberSelection);actions.addEventListener('focusin',rememberSelection);meta.append(actions);
   const note=element('details','entry-note');note.hidden=true;note.addEventListener('toggle',()=>{if(!note.open)note.hidden=true;});note.append(element('summary','','备注'));const field=element('textarea');field.dataset.entryField='note';field.value=e.note;field.setAttribute('aria-label','内容备注');note.append(field);
   const provenance=element('details','entry-provenance');provenance.hidden=true;provenance.append(element('summary','','来源'));const detail=element('div');provenance.append(detail);provenance.addEventListener('toggle',productAction(async()=>{detail.replaceChildren();if(!provenance.open){provenance.hidden=true;return;}const r=await request('GET_LIBRARY_PROVENANCE',{id:e.id});if(!provenance.open)return;detail.append(element('p','',r.count?`主要来源 ${r.primary} · 补充来源 ${r.supporting} · 辅助上下文 ${r.contextOnly??r.items.filter(x=>x.role==='context_only').length}`:r.userCreated?'用户创建的独立内容':'原有来源已不可用，保留独立整理内容'));if(r.items.some(x=>x.role==='context_only'))detail.append(element('p','muted','辅助上下文帮助理解当时的表达，不作为这条内容的直接依据。'));for(const source of r.items){const role=({primary:'主要来源',supporting:'补充来源',context_only:'辅助上下文'})[source.role]||'来源作用未确认';const row=element('p','',role+' · '+(({resolvable:'来源可查看',version_unavailable:'来源已更新；引用的旧版本已不可用',removed:'来源已移除',unavailable:'来源不可用'})[source.availability]||'来源状态未确认'));row.dataset.evidenceRole=source.role;if(source.inputId)row.append(button('查看输入',()=>this.onInput(source.inputId)));const advanced=element('details','source-technical');advanced.append(element('summary','','高级详情'),element('p','',`引用版本 ${source.usedVersion}${source.currentVersion===null?'':' / 当前版本 '+source.currentVersion}`));detail.append(row,advanced);}}));
   const binding=element('p','thought-binding-status',e.bodyBinding==='input'&&e.reverseEditEnabled?tc('同时修改档案'):e.thoughtEditedAt?tc('已在思想库编辑'):'');node.append(binding);optOut(node);
@@ -699,63 +900,6 @@ export class TopicController {
   if(decision.decision==='current'){await owner.recovery.clear(token||owner.recoveryToken);if(!valid())return;}
   owner.pendingQualification=null;owner.qualifiedAuthority=fresh.authority||null;owner.row=fresh;owner.saved=Object.fromEntries(owner.fields.map(field=>[field,fresh[field]]));owner.local=decision.decision==='current'?{...owner.saved}:draft;owner.failed=false;owner.conflicted=false;owner.conflictBaseRevision=null;owner.recoveryAttempt=null;owner.recoveryUnacknowledged=false;owner.paint();
   if(decision.decision==='mine')await owner.flush();
- }
- async createTopic(){
-  if(this.topicCreationPending||this.topicContainerPending||this.topicMergePending||this.sectionActionPending||this.mutating)return;
-  const route=this.id,intent=this.openIntent,presentation=this.presentationIntent,epoch=this.statusEpoch,view=this.view;let ownMutation=false;
-  const current=()=>this.id===route&&this.openIntent===intent&&this.presentationIntent===presentation&&(this.statusEpoch===epoch||ownMutation&&this.statusEpoch===epoch+1)&&this.view===view;
-  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
-  if(composing())return;
-  this.topicCreationPending=true;
-  let draft=this.topicCreationDraft;
-  try{
-   if(!await this.flushEditors()||!current()||composing())return;
-   const status=await request('GET_LIBRARY_FOUNDATION_STATUS');if(!current()||composing())return;
-   if(typeof status.recoveryEpoch!=='string'||!status.recoveryEpoch)throw Error('BACKUP_CHANGED');
-   // An unresolved create owns its immutable name and operation. Opening the
-   // action again reconciles it, rather than minting a duplicate Topic.
-   if(draft?.attempt&&draft.attempt.expectedRecoveryEpoch!==status.recoveryEpoch){
-    draft.attempt=null;draft.result=null;
-    this.onStatus(tc('资料库已恢复，旧创建请求不会重放。名称仍保留，请重新确认。'),'conflict');return;
-   }
-   if(!draft?.attempt){
-    const value=await this.form(tc('新建主题'),[{key:'name',label:'主题名称',required:true,maxLength:300,value:draft?.name||''}]);
-    if(!current()||composing())return;
-    if(!value){this.topicCreationDraft=null;return;}
-    if(typeof value.name!=='string'||!value.name.trim()||value.name.length>300)return;
-    draft={name:value.name,attempt:null,result:null};this.topicCreationDraft=draft;
-    draft.attempt=Object.freeze({name:draft.name,operationId:op(),expectedRecoveryEpoch:status.recoveryEpoch});
-   }
-   ownMutation=true;
-   const saved=await this.mutate(async()=>{
-    if(!current()||composing())return;
-    const result=draft.result||await this.checked('CREATE_LIBRARY_TOPIC',{topic:draft.attempt},current);
-    if(typeof result?.id!=='string'||!result.id)throw Error('OUTCOME_UNKNOWN');
-    draft.result=result;
-    if(!current()||composing())return;
-   },{isCurrent:current});
-   if(saved&&draft.result&&current()&&!composing()){
-    // Qualify after mutate's own refresh as well as after the receipt. A
-    // different window may have removed/merged it or restored the library.
-    let topic;
-    try{topic=await request('GET_LIBRARY_TOPIC',{id:draft.result.id});}
-    catch(error){
-     if(current()&&error.code==='INVALID_REQUEST'){
-      draft.attempt=null;draft.result=null;
-      this.onStatus(tc('原创建已确认，但主题已不可用。名称仍保留，再次添加前请重新确认。'),'conflict');return;
-     }
-     throw error;
-    }
-    if(!current()||composing())return;
-    if(topic.id!==draft.result.id||topic.lifecycle!=='active'||topic.recoveryEpoch!==draft.attempt.expectedRecoveryEpoch){
-     draft.attempt=null;draft.result=null;
-     this.onStatus(tc('原创建已确认，但主题已变化。名称仍保留，再次添加前请重新确认。'),'conflict');return;
-    }
-    if(this.topicCreationDraft===draft)this.topicCreationDraft=null;
-    await this.open(draft.result.id);
-   }else if(current())this.onStatus(tc('主题创建结果尚未确认，名称仍保留。再次选择添加主题会先核对原请求。'),'error');
-  }catch(error){if(current())this.onStatus(tc('主题创建尚未完成，名称仍保留。请再次选择添加主题核对或重试。'),'error');}
-  finally{this.topicCreationPending=false;}
  }
 
  updateSectionActionControls(menu,busy=!!(this.sectionActionPending||this.mutating)){
@@ -809,7 +953,7 @@ export class TopicController {
    if(current())await this.focusSection(section.sectionId,{isCurrent:current});
   }finally{this.sectionActionPending=false;this.syncSectionActionControls();}
  }
- async createEntry(){const topicId=this.id||undefined,intent=this.openIntent,presentation=this.presentationIntent,target=this.writingSection;const isCurrent=()=>this.id===(topicId||null)&&this.openIntent===intent&&this.presentationIntent===presentation;if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;const sectionId=this.view==='original'&&target?.topicId===topicId&&target.openIntent===intent&&target.presentationIntent===presentation?target.sectionId:undefined;return this.actions.compose({topicId,...(sectionId?{sectionId}:{}),isCurrent});}
+ async createEntry(){const topicId=this.id||undefined,intent=this.openIntent,presentation=this.presentationIntent,target=this.writingSection;const isCurrent=()=>this.id===(topicId||null)&&this.openIntent===intent&&this.presentationIntent===presentation;if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return;const sectionId=this.view==='original'?this.activeSectionId||undefined:undefined;return this.actions.compose({topicId,...(sectionId?{sectionId}:{}),isCurrent});}
  async manageSections(){
   const topicId=this.id,intent=this.openIntent,viewIntent=this.presentationIntent;
   const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.presentationIntent===viewIntent;
@@ -817,7 +961,7 @@ export class TopicController {
   const sections=await this.topicSectionRows();if(!current())return;
   this.closeDialog();$('library-dialog-title').textContent=tc('管理主题结构');const host=$('library-dialog-content');
   host.append(element('p','muted',tc('内容按章节与手动顺序连续阅读。')),button(tc('新建章节'),()=>{if(current())return this.createSection();}));
-  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||'正文'));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(label,()=>{if(!current())return;this.closeDialog();return this.sectionActions(section,action);}));host.append(row);}
+  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||'正文'));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(label,()=>{if(!current())return;this.closeDialog();return this.sectionActions(section,action);}));if(!section.isDefault)row.append(button(tc('提升为独立主题'),()=>{if(!current())return;this.closeDialog();return this.sectionContextAction(section,'promote');}));host.append(row);}
   $('library-dialog').showModal();
  }
  async createSection(){
@@ -1220,7 +1364,32 @@ export class TopicController {
  async removed(cursor=null){return this.removedList().show('entry',cursor);}
  async revisions(kind='topic',id=this.id,documentId=this.id,{isCurrent=null}={}){const originCurrent=isCurrent??(()=>true),historyIntent=isCurrent?(this.dialogOpenIntent=(this.dialogOpenIntent||0)+1):null;isCurrent=()=>originCurrent()&&(historyIntent===null||this.dialogOpenIntent===historyIntent);if(!isCurrent())return;try{if(this.dialogEditor){this.dialogEditor.collect();if(!await this.dialogEditor.flush())return;if(!isCurrent())return;this.dialogEditor.dispose();this.dialogEditor=null;}if(this.editor){this.editor.collect();if(!await this.editor.flush())return;}if(!isCurrent())return;this.closeDialog();$('library-dialog-title').textContent='版本历史';const list=$('library-dialog-content');const load=async cursor=>{if(!isCurrent())return false;let result;try{result=await request('GET_REVISIONS',{options:{kind,entityId:id,documentId,cursor,limit:50}});}catch(error){if(!isCurrent())return false;throw error;}if(!isCurrent())return false;for(const r of result.items.filter(x=>x.entityId===id)){const row=element('section','revision-row');row.append(element('p','',`${new Date(r.at).toLocaleString()} · ${r.actor==='ai'?'AI':'用户'} · ${revisionLabel(r)} ${r.important?'· 重要版本':''}`));const detail=element('details');detail.append(element('summary','','查看变化'),element('pre','','操作前\n'+revisionPreview(r.before,r.kind)+'\n\n操作后\n'+revisionPreview(r.after,r.kind)));row.append(detail);for(const side of ['before','after'].filter(side=>r[side]!==null))row.append(button(side==='before'?'恢复操作前':'恢复此版本',async()=>{if(!isCurrent()||!$('library-dialog').open)return;await this.restoreRevision(r,side,{isCurrent:()=>isCurrent()&&$('library-dialog').open,historyIntent});if(isCurrent())this.closeDialog();}));list.append(row);}if(result.nextCursor)list.append(button('更多版本',()=>{if($('library-dialog').open)return load(result.nextCursor);}));return true;};if(await load(null)&&isCurrent())$('library-dialog').showModal();}catch(error){if(isCurrent())throw error;}}
  async restoreRevision(r,side,{isCurrent=()=>true,historyIntent=null}={}){if(!isCurrent())return;await this.mutate(async()=>{if(!isCurrent())return;if(r.kind==='library_entry'){const e=await request('GET_LIBRARY_ENTRY',{id:r.entityId});if(!isCurrent())return;await this.checked('RESTORE_REVISION',{restore:{id:r.id,side,expectedRevision:e.revision,operationId:op()}},isCurrent);}else{const topic=await request('GET_LIBRARY_TOPIC',{id:r.documentId||r.entityId});if(r.kind==='placement'){const value=r[side]||r.after,p=await request('GET_LIBRARY_PLACEMENT',{topicId:topic.id,entryId:value.entryId}),e=await request('GET_LIBRARY_ENTRY',{id:value.entryId});if(!isCurrent())return;await this.checked('RESTORE_REVISION',{restore:{id:r.id,side,expectedRevision:p.revision,expectedEntryRevision:e.revision,expectedTopicRevision:topic.organizationRevision,operationId:op()}},isCurrent);}else if(r.kind==='topic'){if(!isCurrent())return;await this.checked('RESTORE_REVISION',{restore:{id:r.id,side,expectedRevision:topic.revision,operationId:op()}},isCurrent);}else if(r.kind==='section'){const page=await request('TOPIC_DOCUMENT_PAGE',{options:{topicId:topic.id}}),section=page.sections.find(s=>s.sectionId===r.entityId);if(section&&isCurrent())await this.checked('RESTORE_REVISION',{restore:{id:r.id,side,expectedRevision:section.revision,operationId:op()}},isCurrent);}}},{isCurrent,historyIntent});}
- async focusEntry(id,{isCurrent=()=>true}={}){if(!isCurrent())return;const node=[...$('topic-body').querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===id);if(node){node.scrollIntoView({block:'center'});node.querySelector('[data-entry-field="body"]')?.focus();}else await this.openStandalone(id,{isCurrent});}
+ async focusEntry(id,{isCurrent=()=>true}={}){
+  const topicId=this.id,intent=this.openIntent,view=this.view,sectionIntent=this.sectionIntent;
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  if(!isCurrent()||composing())return false;
+  const focusIntent=this.entryFocusIntent=(this.entryFocusIntent||0)+1;
+  const current=()=>isCurrent()&&!composing()&&this.id===topicId&&this.openIntent===intent&&this.view===view&&this.sectionIntent===sectionIntent&&this.entryFocusIntent===focusIntent;
+  // Retained DOM can precede an already-running canonical refresh. Finish its
+  // original owner first, then resolve the explicit target in the settled view.
+  const refreshing=this.refreshRun;if(refreshing){try{await refreshing.promise;}catch{return false;}}
+  if(!current()||composing())return false;
+  const mounted=()=>{const reader=this.topicReader;if(reader&&(reader.indexing||reader.stale||reader.publicationOwner||reader.initialAdmission||!reader.items.some(item=>item.entry.id===id&&!item.unloaded)))return null;return [...$('topic-body').querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===id);};
+  let node=mounted();
+  if(!node&&topicId){
+   if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushReadingNavigation()||!current())return false;
+   const placement=await request('GET_LIBRARY_PLACEMENT',{topicId,entryId:id});if(!current()||!placement?.sectionId)return false;
+   const qualified=await request('GET_LIBRARY_SECTION_READING',{options:{topicId,scopeSectionId:placement.sectionId,anchorId:id,sort:'asc',limit:1}});
+   if(!current()||qualified.cursorInvalid||qualified.unavailable||!qualified.items?.some(item=>item.entry.id===id&&item.placement?.sectionId===placement.sectionId))return false;
+   const rows=await this.topicSectionRows();if(!current()||!rows.some(row=>row.sectionId===placement.sectionId))return false;
+   this.rememberContent();this.activeSectionId=placement.sectionId;this.explicitSectionId=placement.sectionId;this.sectionDirectory=rows;this.rememberActiveSection(topicId,placement.sectionId);
+   this.topicNavigationAnchor={entryId:id,top:140,prepareInitial:true,isCurrent:current};this.topicReader=null;this.contentResume=null;await this.refresh();if(!current())return false;
+   node=mounted();
+  }
+  if(node){node.scrollIntoView({block:'center'});node.querySelector('[data-entry-field="body"]')?.focus();return true;}
+  if(!topicId){await this.openStandalone(id,{isCurrent});return current();}
+  this.onStatus('这个位置暂时无法核对，请重新读取。','read_error');return false;
+ }
  dialogStatus(text,kind){
   this.onStatus(text,kind);const root=$('library-dialog-content');root.querySelector('#standalone-save-feedback')?.remove();if(!kind)return;
   const feedback=element('div','local-save-feedback');feedback.id='standalone-save-feedback';feedback.setAttribute('role','status');feedback.append(element('p','',text+' 当前草稿仍保留在此弹窗。'));
@@ -1236,12 +1405,12 @@ export class TopicController {
   }catch(error){if(active&&intent===this.dialogOpenIntent)this.dialogStatus('内容尚未读完，请重试；已保存内容没有改变。','error');else throw error;}
   finally{if(intent===this.dialogOpenIntent)root.inert=false;}
  }
- contentReadKey(){return JSON.stringify([this.id,this.view,this.readingSort,this.topicProviderKey,this.rootProviderKey,this.cursor,this.id?$('topic-search').value.trim():$('thought-search').value.trim()]);}
+ contentReadKey(){return JSON.stringify([this.id,this.activeSectionId,this.view,this.readingSort,this.topicProviderKey,this.rootProviderKey,this.cursor,this.id?'':'']);}
  async openContentSearchResult(item,path=item.paths?.[0]||item){
   const before=this.openIntent;
   if(item.aiField&&this.view!=='ai'){await this.switchView('ai');if(before!==this.openIntent)return;}
   if(!path.topicId){const current=()=>this.id===null&&before===this.openIntent;await this.openStandalone(item.entryId,{isCurrent:current});return;}
-  const intent=await this.open(path.topicId);
+  const intent=await this.open(path.topicId,{sectionId:path.sectionId||null});
   const current=()=>intent!==undefined&&intent===this.openIntent&&this.id===path.topicId;
   if(!current())return;
   if(path.sectionId){await this.focusSection(path.sectionId,{isCurrent:current});if(!current())return;}
@@ -1250,7 +1419,7 @@ export class TopicController {
  }
  async searchContent(){
   if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushEditors())return;
-  const query=$('topic-search').value.trim(),prior=this.topicReader?.query||'',anchor=this.topicAnchor();
+  const query='',prior=this.topicReader?.query||'',anchor=this.topicAnchor();
   if(query&&!prior&&this.topicReader)this.contentPreSearch={topicId:this.id,providerKey:this.topicProviderKey,sort:this.readingSort,snapshot:this.topicReader.snapshot(anchor,anchor?null:this.topicSectionAnchor()),anchor};
   const before=this.contentPreSearch;
   if(!query&&prior&&before?.topicId===this.id&&before.providerKey===this.topicProviderKey&&before.sort===this.readingSort){this.contentResume=before.snapshot;this.topicReader=null;this.topicNavigationAnchor=before.anchor?{entryId:before.anchor.id,top:before.anchor.top}:null;this.topicResetFromStart=false;this.contentPreSearch=null;}
@@ -1277,9 +1446,9 @@ export class TopicController {
   if(!available&&reportFailure)this.onStatus('后台消息通道暂时中断；当前内容保留。','error');
   if(strict&&!available)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};return available?state:null;
  }
- async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
+ async readContentRefresh(){if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(this.sectionEndWriter?.hasDraft())return false;if(this.mutating){this.mutationDeferredRead={key:this.readKey(),intent:this.openIntent,presentation:this.presentationIntent,epoch:this.statusEpoch};return false;}const serial=++this.serial,rootCueEpoch=this.rootCueEpoch||0;$('thought-home-tools').hidden=!!this.id;$('thought-collection').hidden=!!this.id;$('revision-history').hidden=!this.id;$('thought-document').hidden=!this.id;
   if(!this.id){
-   this.ensureContinuousRoot();this.rootProviderKey=null;const query=$('thought-search').value.trim(),scope=this.homeCollectionScope(query);$('thought-source-scope').value='';if(query&&this.personalRoot)void this.loadRootSearchBase();
+   this.ensureContinuousRoot();this.rootProviderKey=null;const query='',scope=this.homeCollectionScope(query);$('thought-source-scope').value='';if(query&&this.personalRoot)void this.loadRootSearchBase();
    if(!this.homeCollection||this.homeCollection.scope!==scope||this.homeCollection.query!==query)this.homeCollection=this.createHomeCollection(query);
    let state=this.homeCollection.state();if(!state.items.length&&!state.terminal)state=await this.homeCollection.loadUntil({minItems:this.homeDesiredCount||40,maxLoads:30});
    if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}if(serial!==this.serial||rootCueEpoch!==(this.rootCueEpoch||0))return false;
@@ -1287,8 +1456,14 @@ export class TopicController {
    const anchor=this.rootInvalidationAnchor;if(anchor?.key&&!this.homeCollection.items.slice(this.homeCollection.windowStart,this.homeCollection.windowStart+this.homeCollection.windowSize).some(item=>item.key===anchor.key))this.homeCollection.around(anchor.key);this.rootInvalidationAnchor=null;this.homeRestoring=false;
    return this.renderHomeReader(anchor);
   }
-  $('ai-topic-tools').hidden=true;$('topic-source-scope-label').hidden=this.view==='ai';$('topic-source-scope').value=this.topicProviderKey||'';if(this.view==='original')void this.updateTopicSourceOptions(serial);for(const b of $('topic-time-order').querySelectorAll('[data-reading-start]'))b.disabled=!!this.topicProviderKey;$('topic-time-order').hidden=true;$('topic-search-count').textContent='';this.syncReadingControls();
+  $('ai-topic-tools').hidden=this.view!=='ai';$('ai-revision-history').hidden=this.view!=='ai';$('topic-source-scope-label').hidden=this.view==='ai';$('topic-source-scope').value=this.topicProviderKey||'';if(this.view==='original')void this.updateTopicSourceOptions(serial);for(const b of $('topic-time-order').querySelectorAll('[data-reading-start]'))b.disabled=!!this.topicProviderKey;$('topic-time-order').hidden=this.view!=='original';$('topic-search-count').textContent='';this.syncReadingControls();
   this.ensurePanes();this.originalPane.hidden=false;this.aiPane.hidden=this.view!=='ai';
+  const directory=await this.topicSectionRows();if(serial!==this.serial)return false;
+  if(this.explicitSectionId&&!directory.some(row=>row.sectionId===this.explicitSectionId))throw Error('TOPIC_SECTION_UNAVAILABLE');
+  if(!directory.some(row=>row.sectionId===this.activeSectionId))this.activeSectionId=directory[0]?.sectionId||null;
+  if(!this.activeSectionId)throw Error('TOPIC_SECTION_UNAVAILABLE');
+  this.sectionDirectory=directory;this.lastSections??=new Map();this.rememberActiveSection(this.id,this.activeSectionId);this.explicitSectionId=null;
+  let aiPublication=null;
   if(this.view==='ai'){
    const presentationRead=await (async()=>{
    const stateRead=this.updateViewStatus({strict:false,isCurrent:()=>serial===this.serial});
@@ -1296,32 +1471,92 @@ export class TopicController {
    const state=await stateRead;if(serial!==this.serial)return false;if(!state)throw {code:'MESSAGE_CHANNEL_INTERRUPTED'};
    if(!$('topic-heading').children.length)$('topic-heading').append(element('h1','',topic.name));
    if(this.editor&&!await this.checkAllTracked(serial))return false;
-   const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=false;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('create-entry').hidden=true;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
-   if(this.aiEditor){await this.aiEditor.refreshEvidence?.();if(serial!==this.serial)return false;}
-   if(this.aiEditor&&cached&&this.aiEditor.readingReflowBlocked()){
-    const active=this.aiEditor,topicId=this.id,intent=this.openIntent;
-    active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});
-    return 'deferred';
+   const cached=this.aiTopics.get(this.id)?.presentation;this.originalPane.hidden=false;this.aiPane.hidden=false;$('topic-toolbar').hidden=false;$('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;
+   const sectionId=this.activeSectionId,current=()=>serial===this.serial&&this.view==='ai'&&this.id===topic.id&&this.activeSectionId===sectionId&&!this.sectionEndWriter?.hasDraft();
+   // Eligibility and purge checks precede presentation deferral, even during
+   // selection or IME. Reflow must wait; forbidden evidence must not wait.
+   await this.aiEditor?.refreshEvidence?.();if(!current())return false;
+   const projection=cached?await qualifySectionAI(cached,{topicId:this.id,sectionId,load:options=>request('GET_LIBRARY_SECTION_READING',{options}),isCurrent:current}):null;
+   if(!current())return false;
+   const scopeKey=JSON.stringify([this.id,sectionId,projection?.complete===true,[...(projection?.admittedFields||[])].sort(),projection?.generation,projection?.recoveryEpoch]);
+   const defer=()=>{const active=this.aiEditor,topicId=this.id,intent=this.openIntent;if(!active||!cached)return false;active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.activeSectionId!==sectionId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});return true;};
+   const canPaint=()=>current()&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing)&&(!cached||!this.aiEditor?.readingReflowBlocked());
+   if(cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
+   if(!canPaint())return false;
+   if(this.aiEditor&&(this.aiEditor.dirty()||this.aiEditor.saving)){
+    this.aiEditor.collect();if(!await this.aiEditor.flush()&&this.aiEditor.dirty())return false;if(!canPaint())return false;
    }
-   if(this.aiEditor&&cached&&(this.aiEditor.dirty()||this.aiEditor.saving||this.aiEditor.row.revision>=cached.revision)){this.filterAIReading();return true;}
-   const signature=JSON.stringify(cached||this.aiTopics.get(this.id)?.userDraft||null);if(!cached&&this.aiSignature===signature){this.filterAIReading();return true;}
-   this.aiEditor?.dispose();this.aiEditor=null;this.aiSignature=signature;this.aiPane.replaceChildren();
-   if(!cached){const draft=this.aiTopics.get(this.id)?.userDraft;if(draft){const box=element('section','ai-user-draft');box.append(element('h2','','保留的人工整理'));for(const item of draft.fields)box.append(element('h3','',item.label),element('p','entry-prose',item.text));box.append(button('保留为独立内容',async()=>{await this.checked('RECOVER_AI_PRESENTATION_DRAFT',{options:{topicId:this.id,expectedRevision:draft.revision,operationId:op()}});await this.refresh();}));this.aiPane.append(box);}else this.aiPane.append(element('p','muted','AI 服务尚未上线。尚无已保存的 AI整理。'));this.renderSectionNav();return true;}
-   this.aiEditor=new AIReadingEditor(this.aiPane,cached,id=>this.openStandalone(id),this.onStatus,{fieldsOnly:true});const activeEditor=this.aiEditor;void activeEditor.ready.then(()=>{if(this.aiEditor===activeEditor&&!activeEditor.disposed)this.filterAIReading();}).catch(()=>{});this.filterAIReading();return true;
+   const commit=()=>{
+   if(!canPaint()){defer();return false;}
+   if(this.aiEditor&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
+   if(canRetainSectionAIEditor(this.aiEditor,cached,projection,this.aiScopeKey,scopeKey)){
+    this.aiEditor.row=structuredClone(cached);this.aiScopeKey=scopeKey;this.filterAIReading();return true;
+   }
+   this.aiEditor?.dispose();this.aiEditor=null;this.aiScopeKey=scopeKey;this.aiPane.replaceChildren();
+   if(!cached){
+    const draft=this.aiTopics.get(this.id)?.userDraft;
+    if(draft){const box=element('section','ai-user-draft');box.append(element('p','','主题级人工整理仍保存在原范围。'),button('保留主题级人工整理为独立内容',async()=>{if(!await this.flushReadingNavigation())return;await this.checked('RECOVER_AI_PRESENTATION_DRAFT',{options:{topicId:this.id,expectedRevision:draft.revision,operationId:op()}});await this.refresh();}));this.aiPane.append(box);}
+    else this.aiPane.append(element('p','muted','AI 服务尚未上线。尚无已保存的 AI整理。'));
+    this.renderSectionNav();return true;
+   }
+   if(!projection.complete||!projection.admittedFields.size)this.aiPane.append(element('p','muted',projection.complete?'当前章节暂无可独立归属的已保存 AI 整理。':'当前章节的整理范围暂时无法核对，请重试读取。'));
+   if(projection.withheldFields.size)this.aiPane.append(element('p','muted','跨章节或归属不明的整理未在当前章节显示。'));
+   if(projection.complete&&projection.admittedFields.size){
+    this.aiEditor=new AIReadingEditor(this.aiPane,cached,id=>this.focusEntry(id),this.onStatus,{fieldsOnly:true,admittedFields:projection.admittedFields,sectionEvidence:projection.sectionEvidence});
+    const activeEditor=this.aiEditor;void activeEditor.ready.then(()=>{if(this.aiEditor===activeEditor&&!activeEditor.disposed)this.filterAIReading();}).catch(()=>{});
+   }
+   this.filterAIReading();return true;
+   };
+   aiPublication={commit,current,projection,sectionId,committed:false,defer};return true;
    })();
-   if(presentationRead===false)return false;if(presentationRead==='deferred')return true;
+   if(presentationRead===false||presentationRead==='deferred')return false;
   }
-  $('create-entry').hidden=false;$('topic-toolbar').hidden=false;
-  const visible=this.topicAnchor(),navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||this.resumeAnchor?.entryId||visible?.id||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
+  $('topic-toolbar').hidden=false;
+  const visible=this.topicReader?.scopeSectionId===this.activeSectionId?this.topicAnchor():null,navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||visible?.id||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
   const saved=!resetFromStart&&!sectionId&&!timeEdge?(this.topicReader?.snapshot(visible,visible?null:this.topicSectionAnchor())||this.contentResume):null;this.contentResume=null;
-  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial});if(serial!==this.serial||state.stale)return false;
+  const explicitEntry=navigationAnchor?.prepareInitial===true;
+  const beforePaint=aiPublication||explicitEntry?page=>{
+   if(explicitEntry&&(!navigationAnchor.isCurrent()||!page.items.some(item=>item.entry.id===navigationAnchor.entryId&&item.placement?.sectionId===this.activeSectionId)))return false;
+   if(!aiPublication)return true;
+   const staged=aiPublication;if(!staged.current())return false;
+   if(staged.projection?.complete&&(staged.projection.recoveryEpoch!==page.recoveryEpoch||staged.projection.authority!==JSON.stringify(page.authority??null)))return false;
+   if(!staged.commit())return false;staged.committed=true;return true;
+  }:null;
+  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:{})});if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
   this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
 
  }
- async leaveEditors({historyIntent=null}={}){if([this.aiEditor,this.dialogEditor,this.editor].some(isComposing))return false;this.departureFlush=(this.departureFlush||0)+1;try{this.cancelTopicRestore();if(historyIntent===null||historyIntent!==this.dialogOpenIntent||!$('library-dialog').open||this.dialogEditor)this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;clearTimeout(this.positionTimer);stopMemoryRecomposition();this.serial++;this.statusEpoch++;this.statusReadSerial++;this.loadToken=null;this.readRetry.hidden=true;clearTimeout(this.refreshTimer);clearTimeout(this.updateTimer);clearTimeout(this.topicSearchTimer);clearTimeout(this.searchTimer);for(const key of ['aiEditor','dialogEditor','editor']){const active=this[key];if(!active)continue;if(isComposing(active))return false;active.collect?.();const saved=await active.flush();if([this.aiEditor,this.dialogEditor,this.editor].some(isComposing)||!saved&&active.dirty())return false;if(this[key]===active){if(key==='editor'&&this.id&&this.view==='original'){this.rememberView();const anchor=this.topicAnchor();if(anchor)this.saveHomePosition(this.id,{...this.homePositions.get(this.id),anchor});}active.dispose();this[key]=null;if(key==='dialogEditor')this.closeDialog();}}if(this.view==='ai')this.originalPane?.replaceChildren();else{this.aiPane?.replaceChildren();this.aiSignature=undefined;}for(const id of ['topic-body','topic-heading'])$(id).inert=true;if(this.desktopPresentation){this.desktopPresentation.dispose();this.desktopPresentation=null;}return true;}finally{this.departureFlush--;}}
+ async leaveEditors({historyIntent=null}={}){
+  const claim=Symbol('topic-leave'),route={id:this.id,view:this.view,intent:this.openIntent,open:this.topicOpenIntent,departure:this.homeDepartureToken,presentation:this.presentationIntent,cue:this.rootCueEpoch};
+  this.leavePublication=claim;let serial=this.serial,epoch=this.statusEpoch;
+  const slots=['aiEditor','dialogEditor','editor'],owners=new Map(slots.map(key=>[key,this[key]])),writer=this.sectionEndWriter;let expectedWriter=writer;
+  const current=()=>this.leavePublication===claim&&this.sectionEndWriter===expectedWriter&&this.id===route.id&&this.view===route.view&&this.openIntent===route.intent&&this.topicOpenIntent===route.open&&this.homeDepartureToken===route.departure&&this.presentationIntent===route.presentation&&this.rootCueEpoch===route.cue&&this.serial===serial&&this.statusEpoch===epoch&&slots.every(key=>this[key]===owners.get(key));
+  try{
+   if(writer&&!await writer.leave())return false;
+   if(!current())return false;this.sectionEndWriter=null;expectedWriter=null;
+   if(slots.some(key=>isComposing(this[key])))return false;
+   this.departureFlush=(this.departureFlush||0)+1;
+   try{
+    this.cancelTopicRestore();if(historyIntent===null||historyIntent!==this.dialogOpenIntent||!$('library-dialog').open||this.dialogEditor)this.dialogOpenIntent=(this.dialogOpenIntent||0)+1;
+    clearTimeout(this.positionTimer);stopMemoryRecomposition();this.serial++;this.statusEpoch++;serial=this.serial;epoch=this.statusEpoch;this.statusReadSerial++;this.loadToken=null;this.readRetry.hidden=true;clearTimeout(this.refreshTimer);clearTimeout(this.updateTimer);clearTimeout(this.topicSearchTimer);clearTimeout(this.searchTimer);
+    for(const key of slots){
+     const active=owners.get(key);if(!active)continue;if(isComposing(active))return false;
+     active.collect?.();const saved=await active.flush();
+     if(!current()||slots.some(slot=>isComposing(this[slot]))||!saved&&active.dirty())return false;
+     if(key==='editor'&&this.id&&this.view==='original'){this.rememberView();const anchor=this.topicAnchor();if(anchor)this.saveHomePosition(this.id,{...this.homePositions.get(this.id),anchor});}
+     active.dispose();this[key]=null;owners.set(key,null);if(key==='dialogEditor')this.closeDialog();
+    }
+    if(!current())return false;
+    if(this.view==='ai')this.originalPane?.replaceChildren();else{this.aiPane?.replaceChildren();this.aiSignature=undefined;}
+    for(const id of ['topic-body','topic-heading'])$(id).inert=true;
+    if(this.desktopPresentation){this.desktopPresentation.dispose();this.desktopPresentation=null;}return true;
+   }finally{this.departureFlush--;}
+  }finally{if(this.leavePublication===claim)delete this.leavePublication;}
+ }
+
  installOriginalTabs(){
   // Keep the existing node contract for presentation disposal and saved routes,
   // but normal reading is one continuous durable Section page.
@@ -1329,36 +1564,36 @@ export class TopicController {
  }
  syncOriginalTabs(){const tabs=$('topic-original-tabs');if(tabs)tabs.hidden=true;if(this.view==='original')this.originalMode='content';}
 
- rememberContent(){if(this.id&&this.view==='original'&&this.originalMode==='content'&&this.topicReader){this.contentPositions.save(this.id,{providerKey:this.topicProviderKey,sort:this.readingSort,snapshot:this.topicReader.snapshot(this.topicAnchor(),this.topicSectionAnchor()),preSearch:this.contentPreSearch});}}
- restoreContent(id){const saved=this.contentPositions.get(id);if(saved?.providerKey===this.topicProviderKey&&saved.sort===this.readingSort){this.contentResume=saved.snapshot;this.contentPreSearch=saved.preSearch||null;}}
+ rememberContent(){if(this.id&&this.view==='original'&&this.originalMode==='content'&&this.topicReader){this.contentPositions.save(JSON.stringify([this.id,this.activeSectionId]),{providerKey:this.topicProviderKey,sort:this.readingSort,snapshot:this.topicReader.snapshot(this.topicAnchor(),this.topicSectionAnchor()),preSearch:this.contentPreSearch});}}
+ restoreContent(id){const saved=this.contentPositions.get(JSON.stringify([id,this.activeSectionId]));if(saved?.providerKey===this.topicProviderKey&&saved.sort===this.readingSort){this.contentResume=saved.snapshot;this.contentPreSearch=saved.preSearch||null;}}
  rememberTimeline(){if(this.id&&this.view==='original'&&this.originalMode==='years'&&this.topicTimeline?.visible())this.timelinePositions.save(this.id,{...this.topicTimeline.snapshot(),mode:'years',providerKey:this.topicProviderKey,sort:this.readingSort});}
  invalidateTimeline(){this.contentResume=null;this.contentPreSearch=null;this.contentPositions?.rows.clear();this.timelinePositions?.invalidate();if(this.topicTimeline?.visible()){const saved=this.topicTimeline.invalidate();if(this.id)this.timelinePositions.save(this.id,{...saved,position:null,anchor:null,mode:'years',providerKey:this.topicProviderKey,sort:this.readingSort});}}
  async switchOriginalMode(mode){
   if(!this.id||this.view!=='original'||mode!=='content')return;
   const intent=this.presentationIntent=(this.presentationIntent||0)+1;if(mode===this.originalMode)return;
   const id=this.id;if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushEditors()||id!==this.id||this.view!=='original'||intent!==this.presentationIntent)return;
-  if(this.originalMode==='content')this.rememberContent();if(this.originalMode==='content')this.contentPosition={topicId:id,anchor:this.topicAnchor(),query:$('topic-search').value,scroll:scrollY};else this.rememberTimeline();
+  if(this.originalMode==='content')this.rememberContent();if(this.originalMode==='content')this.contentPosition={topicId:id,anchor:this.topicAnchor(),query:'',scroll:scrollY};else this.rememberTimeline();
   this.editor?.dispose();this.editor=null;this.topicReader=null;this.document=null;this.originalPane?.replaceChildren();this.topicTimeline?.dispose();this.originalMode=mode;this.desktopPresentation?.sync();
-  if(mode==='content'){this.restoreContent(id);const saved=this.contentPosition?.topicId===id?this.contentPosition:null;$('topic-search').value=saved?.query||'';if(saved?.anchor)this.topicNavigationAnchor={entryId:saved.anchor.id,top:saved.anchor.top};this.timelinePositions.save(id,{...(this.timelinePositions.get(id)||{}),mode:'content'});}
-  else $('topic-search').value=this.timelinePositions.get(id)?.query||'';
+  if(mode==='content'){this.restoreContent(id);const saved=this.contentPosition?.topicId===id?this.contentPosition:null;;if(saved?.anchor)this.topicNavigationAnchor={entryId:saved.anchor.id,top:saved.anchor.top};this.timelinePositions.save(id,{...(this.timelinePositions.get(id)||{}),mode:'content'});}
+  else ;
   await this.refresh();if(intent!==this.presentationIntent||id!==this.id)return;this.syncOriginalTabs();$('topic-original-tabs').querySelector(`[data-topic-view="${mode}"]`)?.focus({preventScroll:true});
  }
  readKey(){return this.contentReadKey()+':'+(this.originalMode||'content');}
  async readYears(){
   const serial=++this.serial,id=this.id;this.document=null;this.ensurePanes();this.originalPane.hidden=true;this.aiPane.hidden=true;
-  $('thought-home-tools').hidden=true;$('thought-collection').hidden=true;$('thought-document').hidden=false;$('revision-history').hidden=false;$('topic-toolbar').hidden=false;$('create-entry').hidden=false;
+  $('thought-home-tools').hidden=true;$('thought-collection').hidden=true;$('thought-document').hidden=false;$('revision-history').hidden=false;$('topic-toolbar').hidden=false;
   $('topic-continuous-before').hidden=true;$('topic-continuous-after').hidden=true;$('topic-outline').hidden=true;$('topic-time-order').hidden=false;$('topic-source-scope-label').hidden=false;$('topic-search-count').textContent='';
   $('topic-source-scope').value=this.topicProviderKey||'';void this.updateTopicSourceOptions(serial);this.syncReadingControls();
   const topic=await request('GET_LIBRARY_TOPIC',{id});if(serial!==this.serial||id!==this.id)return false;this.topic=topic;$('topic-heading').replaceChildren(element('h1','',topic.name));
   let saved=this.topicTimeline?.visible()?this.topicTimeline.snapshot():this.timelinePositions.get(id);
   if(saved?.providerKey!==undefined&&saved.providerKey!==this.topicProviderKey||saved?.sort&&saved.sort!==this.readingSort)saved={...saved,position:null,anchor:null};
-  if(!this.topicTimeline||!this.topicTimeline.host.isConnected){const host=element('div','topic-timeline');host.id='topic-timeline';$('topic-body').append(host);this.topicTimeline=new TopicTimeline({host,onStatus:this.onStatus,onQueryReset:()=>{$('topic-search').value='';$('topic-search-count').textContent='';}});}
-  this.topicTimeline.host.hidden=false;await this.topicTimeline.open({topicId:id,providerKey:this.topicProviderKey,sort:this.readingSort,saved,query:$('topic-search').value.trim()});
+  if(!this.topicTimeline||!this.topicTimeline.host.isConnected){const host=element('div','topic-timeline');host.id='topic-timeline';$('topic-body').append(host);this.topicTimeline=new TopicTimeline({host,onStatus:this.onStatus,onQueryReset:()=>{;$('topic-search-count').textContent='';}});}
+  this.topicTimeline.host.hidden=false;await this.topicTimeline.open({topicId:id,providerKey:this.topicProviderKey,sort:this.readingSort,saved,query:''});
   return serial===this.serial&&id===this.id;
  }
  async openSearchResult(item,path=item.paths?.[0]||item){if(path.topicId){const saved=this.timelinePositions.get(path.topicId)||{};this.timelinePositions.save(path.topicId,{...saved,mode:'content'});if(this.id===path.topicId&&this.originalMode==='years')await this.switchOriginalMode('content');}return this.openContentSearchResult(item,path);}
- async searchTopic(){if(this.id&&this.view==='original'&&this.originalMode==='years'&&this.topicTimeline){await this.topicTimeline.changeQuery($('topic-search').value.trim());return;}return this.searchContent();}
- rememberView(){this.rememberContent();if(this.id){const anchor=this.topicAnchor();this.aiViewSession.remember(this.id,this.view,{scroll:Math.max(0,scrollY||0),cursor:this.cursor,pages:this.pages,query:$('topic-search').value||'',anchor});}}
+ async searchTopic(){if(this.id&&this.view==='original'&&this.originalMode==='years'&&this.topicTimeline){await this.topicTimeline.changeQuery('');return;}return this.searchContent();}
+ rememberView(){this.rememberContent();if(this.id){const anchor=this.topicAnchor();this.aiViewSession.remember(this.id,this.view,{scroll:Math.max(0,scrollY||0),cursor:this.cursor,pages:this.pages,query:''||'',anchor});}}
  ensureAITopicStatus(){let host=$('ai-topic-status');if(host)return host;host=element('section','ai-topic-status');host.id='ai-topic-status';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.hidden=true;const row=$('topic-heading')?.closest('.topic-title-row');if(row)row.after(host);else $('thought-document')?.prepend(host);return host;}
  renderAITopicStatus(state=null,selected=this.id?this.aiTopics.get(this.id):null){
   const host=this.ensureAITopicStatus();host.hidden=!this.id||this.view!=='ai';
@@ -1370,15 +1605,27 @@ export class TopicController {
   if(!['original','ai'].includes(view))return;const transition=this.presentationIntent=(this.presentationIntent||0)+1;if(!this.id){this.requestedTopicView=view;return;}if(this.viewSwitchPromise){await this.viewSwitchPromise;if(transition!==this.presentationIntent)return;return this.switchView(view,{restoreFocus});}if(view===this.view)return;
   const toggle=$('ai-presentation-toggle'),topicId=this.id,previous=this.view,shouldRestoreFocus=restoreFocus===null?document.activeElement===toggle:restoreFocus===true;this.rememberView();const bodyAnchor=this.topicAnchor();this.pendingView=view;toggle.checked=view==='ai';toggle.disabled=true;
   const focusSession={open:this.openIntent,dialog:this.dialogOpenIntent},focusEvents=new AbortController();let focusTaken=false;
+  const current=()=>transition===this.presentationIntent&&topicId===this.id&&focusSession.open===this.openIntent;
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
   const takeFocus=event=>{if(event.target!==toggle)focusTaken=true;};
   for(const type of ['focusin','pointerdown'])document.addEventListener?.(type,takeFocus,{capture:true,signal:focusEvents.signal});
-  const change=(async()=>{if([this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||!await this.flushEditors()||transition!==this.presentationIntent||topicId!==this.id)return;this.rememberTimeline();this.topicTimeline?.dispose();this.aiViewSession.setView(topicId,view);const target=this.aiViewSession.position(topicId,view),apply=async()=>{if(this.id!==topicId)return;this.clearActionFeedback();this.view=view;this.desktopPresentation?.sync();if(view==='original')this.restoreContent(topicId);this.cursor=target?.cursor??null;this.pages=target?.pages||[];$('topic-search').value=target?.query||'';const returnAnchor=bodyAnchor||target?.anchor;if(returnAnchor)this.topicNavigationAnchor={entryId:returnAnchor.id,top:returnAnchor.top};await this.refresh();if(this.id!==topicId)return;if(returnAnchor)this.topicReader?.restoreAnchor(this.originalPane,returnAnchor,this.topicAnchorEntry(returnAnchor?.id));else if(Number.isFinite(target?.scroll))scrollTo(0,target.scroll);};if(this.aiTopics.get(topicId)?.presentation)await recomposeMemory($('topic-body'),apply);else await apply();})();
+  const change=(async()=>{if(composing()||!await this.flushReadingNavigation()||!current()||composing())return;if(this.sectionEndWriter){const handle=this.sectionEndWriter;if(!await handle.leave()||!current()||composing())return;if(this.sectionEndWriter===handle)this.sectionEndWriter=null;}const target=this.aiViewSession.position(topicId,view),apply=async()=>{if(!current()||composing())return;this.rememberTimeline();this.topicTimeline?.dispose();this.aiViewSession.setView(topicId,view);this.clearActionFeedback();this.view=view;this.desktopPresentation?.sync();if(view==='original')this.restoreContent(topicId);this.cursor=target?.cursor??null;this.pages=target?.pages||[];;const returnAnchor=bodyAnchor||target?.anchor;if(returnAnchor)this.topicNavigationAnchor={entryId:returnAnchor.id,top:returnAnchor.top};await this.refresh();if(this.id!==topicId)return;if(returnAnchor)this.topicReader?.restoreAnchor(this.originalPane,returnAnchor,this.topicAnchorEntry(returnAnchor?.id));else if(Number.isFinite(target?.scroll))scrollTo(0,target.scroll);};if(this.aiTopics.get(topicId)?.presentation)await recomposeMemory($('topic-body'),apply);else await apply();})();
   this.viewSwitchPromise=change;try{await change;}catch(error){this.aiViewSession.setView(topicId,previous);if(this.id===topicId){this.view=previous;this.desktopPresentation?.sync();await this.refresh().catch(()=>{});}throw error;}finally{focusEvents.abort();this.viewSwitchPromise=null;this.pendingView=null;toggle.checked=this.view==='ai';toggle.disabled=false;if(shouldRestoreFocus&&!focusTaken&&transition===this.presentationIntent&&this.id===topicId&&focusSession.open===this.openIntent&&focusSession.dialog===this.dialogOpenIntent&&[toggle,document.body].includes(document.activeElement))toggle.focus({preventScroll:true});}
  }
  async updateViewStatus(options={}){const state=await this.readViewStatus(options),selected=this.id&&this.aiTopics.get(this.id);this.renderAITopicStatus(state,selected);if(this.id&&this.view==='ai'&&this.originalPane&&this.aiPane){this.originalPane.hidden=false;this.aiPane.hidden=false;}return state;}
  renderCandidate(row){
   if(!this.aiPane)return;
-  renderAICandidateComparison(this.aiPane,{candidate:row?.candidate,current:row?.presentation,onEvidence:id=>this.openStandalone(id)});
+  this.aiPane.querySelector('[data-ai-candidate]')?.remove();
+  let trigger=this.aiPane.querySelector('[data-topic-candidate-review]');
+  if(!row?.candidate){trigger?.remove();return;}
+  if(!trigger){trigger=button('查看主题级已保存候选',async()=>{
+   const topicId=this.id,intent=this.openIntent;if(!await this.flushReadingNavigation()||topicId!==this.id||intent!==this.openIntent)return;
+   const state=await request('GET_AI_PRESENTATION_STATUS',{options:{topicId}});if(topicId!==this.id||intent!==this.openIntent)return;
+   const fresh=state.topics?.find(row=>row.topicId===topicId);if(!fresh?.candidate)return;
+   if(!await this.requestCloseDialog()||topicId!==this.id||intent!==this.openIntent)return;
+   this.closeDialog();$('library-dialog-title').textContent='主题级已保存候选';
+   renderAICandidateComparison($('library-dialog-content'),{candidate:fresh.candidate,current:fresh.presentation,onEvidence:id=>{this.closeDialog();void this.focusEntry(id);}});$('library-dialog').showModal();
+  });trigger.dataset.topicCandidateReview='true';this.aiPane.prepend(trigger);}
  }
  async readRefresh(){
   this.syncOriginalTabs();if(this.id&&this.view==='original'&&this.originalMode==='years'){const result=await this.readYears();if(result&&this.desktopAppearance)this.enableDesktopPresentation();return result;}if(this.topicTimeline)this.topicTimeline.host.hidden=true;
@@ -1401,19 +1648,25 @@ export class TopicController {
   }return true;}
   this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}
  }
- async open(id){
+ async open(id,{sectionId=null}={}){
+  const claim=this.topicOpenIntent=(this.topicOpenIntent||0)+1;
   const freshRoot=!id&&this.freshRootEntry===true;if(freshRoot)this.freshRootEntry=false;
   this.rememberView();const departure=this.id?this.captureHomePosition():null;
   if(!freshRoot&&departure)this.saveHomePosition(this.id||'home',departure);
-  const intent=this.openIntent=(this.openIntent||0)+1;if(!await this.leave()||intent!==this.openIntent)return;this.clearActionFeedback();
+  const previousIntent=this.openIntent;if(!await this.leave()||claim!==this.topicOpenIntent||previousIntent!==this.openIntent)return;const intent=this.openIntent=(this.openIntent||0)+1;this.clearActionFeedback();
   const changed=this.id!==id;if(changed){if(!this.id){this.homeCollection?.releaseBodies();this.personalRoot?.clear({searchSession:this.rootSearchReturnSession()});this.homePage=null;$('thought-list').replaceChildren();}this.topicTimeline?.dispose();this.topicTimeline=null;this.originalMode=this.timelinePositions.get(id)?.mode||'content';this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;this.topicReader=null;const requested=this.requestedTopicView;this.requestedTopicView=null;this.view=id?(requested||this.aiViewSession.view(id)):'original';if(id&&requested)this.aiViewSession.setView(id,requested);}
-  this.id=id;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
-  const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=this.view==='original'?(session?.anchor||saved?.anchor||null):null,sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
+  this.id=id;this.activeSectionId=sectionId||this.lastSections?.get(id)||null;this.explicitSectionId=sectionId;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
+  const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=null,sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
   if(id&&this.view==='original'&&!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;if(!this.resumeAnchor&&saved?.sort)this.readingSort=saved.sort;
-  $('topic-search').value=id?(session?.query??saved?.query??''):'';if(!id){this.rootProviderKey=saved?.rootProviderKey||null;if(saved){const returned=saved.returnGeometry;delete saved.returnGeometry;this.rootReturnGeometry=returned?{...returned,intent,inputEpoch:this.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0}:null;$('thought-search').value=saved.query||'';this.rootInvalidationAnchor=saved.rootAnchor||null;if(saved.collection){this.homeCollection=this.createHomeCollection(saved.query||'');this.homeCollection.restore(saved.collection,{scope:this.homeCollectionScope(saved.query||''),query:saved.query||''});this.homeDesiredCount=Math.max(40,saved.collection.items.length);this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootInvalidationAnchor=saved.rootAnchor||null;}}}this.cursor=id?(session?.cursor??saved?.cursor??null):null;this.pages=session?.pages||saved?.pages||[];this.history=null;if(sessionAnchor)this.topicNavigationAnchor={entryId:sessionAnchor.id,top:sessionAnchor.top};
+  ;if(!id){this.rootProviderKey=saved?.rootProviderKey||null;if(saved){const returned=saved.returnGeometry;delete saved.returnGeometry;this.rootReturnGeometry=returned?{...returned,intent,inputEpoch:this.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0}:null;;this.rootInvalidationAnchor=saved.rootAnchor||null;if(saved.collection){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved.collection,{scope:this.homeCollectionScope(''),query:''});this.homeDesiredCount=Math.max(40,saved.collection.items.length);this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootInvalidationAnchor=saved.rootAnchor||null;}}}this.cursor=id?(session?.cursor??saved?.cursor??null):null;this.pages=session?.pages||saved?.pages||[];this.history=null;if(sessionAnchor)this.topicNavigationAnchor={entryId:sessionAnchor.id,top:sessionAnchor.top};
   if(id&&this.view==='original')this.restoreContent(id);const restoreInputEpoch=this.topicRestoreInputEpoch||0;await this.refresh();if(intent!==this.openIntent)return;this.onOpen();
   let sessionAnchorRestored=false;
-  if((this.topicRestoreInputEpoch||0)===restoreInputEpoch){if(!(this.view==='original'&&(sessionAnchor||this.topicReader?.sectionAnchorRestored||this.topicReader?.sectionRestoreRefused)))scrollTo(0,session?.scroll??saved?.scroll??0);else sessionAnchorRestored=this.topicReader?.restoreAnchor(this.originalPane,sessionAnchor,this.topicAnchorEntry(sessionAnchor?.id))===true;}
+  if((this.topicRestoreInputEpoch||0)===restoreInputEpoch){
+   const scopedResume=this.view==='original'&&this.topicReader?.scopeSectionId===this.activeSectionId&&(this.topicReader?.positionRestored||this.topicReader?.sectionAnchorRestored||this.topicReader?.sectionRestoreRefused);
+   if(scopedResume)sessionAnchorRestored=true;
+   else if(this.view==='original'&&sessionAnchor)sessionAnchorRestored=this.topicReader?.restoreAnchor(this.originalPane,sessionAnchor,this.topicAnchorEntry(sessionAnchor.id))===true;
+   else scrollTo(0,session?.scroll??saved?.scroll??0);
+  }
   if(id&&this.view==='original'&&sameSessionResume){await readPosition().then(async anchor=>{if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;if(!sessionAnchorRestored&&(sessionAnchor||anchor?.sort&&anchor.sort!==this.readingSort)){if(anchor?.sort)this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;this.topicNavigationAnchor=null;await this.refresh();if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;}if(!sessionAnchorRestored)await this.restorePosition(anchor);this.resumeAnchor=null;if(intent===this.openIntent&&this.id===id&&this.view==='original')this.schedulePosition();});}
   else if(id&&this.view==='original'&&this.resumeAnchor){await this.restorePosition(this.resumeAnchor);this.resumeAnchor=null;this.schedulePosition();}
   if(intent===this.openIntent){

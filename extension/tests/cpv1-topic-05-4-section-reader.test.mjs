@@ -91,19 +91,19 @@ for(const patch of [{id:'other'},{revision:3},{name:'changed'},{summary:undefine
  const model={topic:{id:'topic',revision:2,name:'Name'},recoveryEpoch:'initial'},row={id:'topic',revision:2,name:'Name',summary:'SYNTHETIC SAVED SUMMARY',recoveryEpoch:'initial'};assert.equal(coherentTopicEditorRow(model,row),true);assert.equal(coherentTopicEditorRow(model,{...row,...patch}),false);
 });
 
-test('TOPIC-05.4 actual controller keeps ordinary and lexical scopes distinct through the qualified owner despite a saved desc preference',()=>withDOM(async({get})=>{
+test('TOPIC-05.4 actual controller ignores retired lexical UI and keeps its selected Section despite a saved desc preference',()=>withDOM(async({get})=>{
  const calls=[];globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(message);return {ok:true,data:{items:[],sections:[],nextCursor:null}};}}};
- const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',readingSort:'desc',topicProviderKey:'chatgpt'});
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',activeSectionId:'section',readingSort:'desc',topicProviderKey:'chatgpt'});
  await owner.createTopicReader({sectionId:'section'}).initial();get('topic-search').value='needle';await owner.createTopicReader().initial();
- assert.deepEqual(calls.map(call=>call.type),['GET_LIBRARY_SECTION_READING','GET_LIBRARY_SECTION_READING']);assert.equal(calls[0].options.sort,'asc');assert.equal(calls[0].options.sectionId,'section');assert.equal(calls[0].options.providerKey,'chatgpt');assert.equal(calls[1].options.query,'needle');assert.equal(calls[1].options.sort,'asc');assert.equal(calls[1].options.chronology,undefined);assert.equal(owner.readingSort,'desc');assert.equal(calls[1].options.expectedReadGeneration,null);
+ assert.deepEqual(calls.map(call=>call.type),['GET_LIBRARY_SECTION_READING','GET_LIBRARY_SECTION_READING']);assert.equal(calls[0].options.sort,'desc');assert.equal(calls[0].options.sectionId,'section');assert.equal(calls[0].options.providerKey,'chatgpt');assert.equal(calls[1].options.query,'');assert.equal(calls[0].options.scopeSectionId,'section');assert.equal(calls[1].options.scopeSectionId,'section');assert.equal(calls[1].options.sort,'desc');assert.equal(calls[1].options.chronology,'expression');assert.equal(owner.readingSort,'desc');assert.equal(calls[1].options.expectedReadGeneration,null);
 }));
-for(const empty of [false,true])test(`TOPIC-05.4 Root opens ${empty?'empty':'nonempty'} named Section with exactly one genuine heading and focus`,()=>withDOM(async({body,entryNode,get})=>{
+for(const empty of [false,true])test(`TOPIC-05.4 Root opens ${empty?'empty':'nonempty'} named Section with one genuine host and focus but no repeated headline`,()=>withDOM(async({body,entryNode,get})=>{
  const f=rootSectionRouteFixture({body,entryNode,get},{empty});
  renderTopicSectionProse({body,page:f.data,entryNode});
  await f.owner.openRootTarget('topic','named');
- assert.equal(f.calls.filter(call=>call.type==='GET_LIBRARY_SECTION_PROJECTION').length,1,'no fallback projection/heading injection after the validated durable render');
+ assert.equal(f.calls.filter(call=>call.type==='GET_LIBRARY_SECTION_PROJECTION').length,2,'Root target and Section-switch directory each revalidate through their original owner');
  assert.equal(f.calls.some(call=>call.type==='GET_LIBRARY_SECTION_READING'&&call.options.sectionId==='named'),true,'an existing heading still requires a qualified target read');
- assert.deepEqual(f.statuses,[]);assert.equal(body.querySelectorAll('h2').length,1);assert.equal(document.activeElement,body.querySelector('h2'));assert.deepEqual(document.activeElement.focusOptions,{preventScroll:true});
+ assert.deepEqual(f.statuses,[]);assert.equal(body.querySelectorAll('h2').length,0);assert.equal(body.querySelectorAll('.section-heading').length,0);const host=body.querySelector('.topic-section');assert.ok(host);assert.equal(host.dataset.sectionId,'named');assert.equal(document.activeElement,host);assert.deepEqual(host.focusOptions,{preventScroll:true});assert.equal(f.owner.document.scopeSectionId,'named');assert.equal(f.owner.document.sections[0].title,'Named');assert.equal(body.querySelectorAll('[data-entry-id]').length,empty?0:1);
 }));
 
 test('TOPIC-05.4 an empty-Section-only extent stays bounded and rereads discarded headings toward both real ends',async()=>{
@@ -236,7 +236,7 @@ async function withEmptySectionController(run,{all=true,mixed=false}={}){return 
  try{await run({...f,owner,body,scrolls,frames,get});}finally{await new Promise(resolve=>setImmediate(resolve));clearTimeout(owner.positionTimer);owner.editor?.dispose();}
 });}
 test('TOPIC-05.4 warm Settings return rehydrates the same empty Section through actual content snapshot owners',()=>withEmptySectionController(async f=>{
- const anchor=f.owner.topicSectionAnchor();assert.equal(anchor.sectionId,'empty-150');assert.equal(f.owner.topicAnchor(),null);f.owner.rememberContent();const saved=f.owner.contentPositions.get('topic').snapshot;assert.equal(saved.sectionAnchor.sectionId,'empty-150');
+ const anchor=f.owner.topicSectionAnchor();assert.equal(anchor.sectionId,'empty-150');assert.equal(f.owner.topicAnchor(),null);f.owner.rememberContent();const saved=f.owner.contentPositions.get(JSON.stringify(['topic',f.owner.activeSectionId])).snapshot;assert.equal(saved.sectionAnchor.sectionId,'empty-150');
  assert.equal(await f.owner.leave(),true);f.owner.restoreContent('topic');await f.owner.resetTopicReader({saved:f.owner.contentResume});assert.equal(f.owner.topicReader.sectionAnchorRestored,true);assert.equal(f.owner.topicSectionAnchor().sectionId,'empty-150');assert.equal(f.owner.topicSectionAnchor().top,anchor.top);assert.equal(f.body.querySelectorAll('[data-entry-id]').length,0);assert.ok(f.body.querySelectorAll('h2').length<=100);assert.equal(f.owner.editor.metadata[0].saved.summary,'SYNTHETIC SAVED SUMMARY');
 }));
 test('TOPIC-05.4 expired empty-Section continuation renews the current Section and then reaches the real end',()=>withEmptySectionController(async f=>{
@@ -278,7 +278,7 @@ for(const query of ['', 'SYNTHETIC'])test(`TOPIC-05.4 actual ${query?'query':'or
  const safe={id:'topic',name:'',summary:'',revision:2,recoveryEpoch:'initial',defaultSectionId:'default',organizationRevision:7,activeLayoutGeneration:1,authority:'qualified-authority'},calls=[];
  globalThis.chrome={runtime:{sendMessage:async message=>{
   calls.push(structuredClone(message));if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA')return {ok:true,data:safe};
-  if(message.type==='GET_LIBRARY_SECTION_READING'){assert.deepEqual(message.options,{topicId:'topic',query,sort:'asc',providerKey:'chatgpt',limit:1,expectedReadGeneration:f.reader.coverage.activeGeneration});return {ok:true,data:{coverage:{activeGeneration:f.reader.coverage.activeGeneration},recoveryEpoch:'initial'}};}
+  if(message.type==='GET_LIBRARY_SECTION_READING'){assert.deepEqual(message.options,{topicId:'topic',scopeSectionId:null,query,sort:'asc',providerKey:'chatgpt',limit:1,expectedReadGeneration:f.reader.coverage.activeGeneration});return {ok:true,data:{coverage:{activeGeneration:f.reader.coverage.activeGeneration},recoveryEpoch:'initial'}};}
   if(message.type==='PAIA_RECOVERY_DRAFT_LOAD')return {ok:true,data:null};throw Error('UNQUALIFIED_OR_UNEXPECTED '+message.type);
  }}};
  const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,topicReader:f.reader,topicProviderKey:'chatgpt',readingSort:'desc',originalPane:body,aiPane:get('ai-reading-body'),entryNode,onStatus(){},applyLayout(){},observeTopicWindowSpacers(){},updateTopicContinuous(){}});
@@ -390,14 +390,14 @@ function rootSectionRouteFixture({body,entryNode,get},{empty=false,hold=null}={}
   const response={ok:true,data:structuredClone(result)};
   return stage===hold?new Promise(resolve=>{release=()=>resolve(response);}):Promise.resolve(response);
  }}};
- const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',view:'original',serial:1,statusEpoch:0,openIntent:0,rootCueEpoch:0,readingSort:'asc',topicProviderKey:null,originalPane:body,aiPane:get('ai-reading-body'),homePositions:new Map(),entryNode,onStatus:text=>statuses.push(text),async open(){return ++this.openIntent;},ensurePanes(){},checkAllTracked:async()=>true,applyLayout(){},renderSectionNav(){},observeTopicWindowSpacers(){},updateTopicContinuous(){},invalidateTimeline(){},clearHomeRows(){},editor:{collect(){},async flush(){return true;},dirty(){return false;},metadata:[],entry:{protectedIds:()=>new Set(),addRows(){},releaseRows(){},receive(){}}}});
+ const owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',activeSectionId:'named',originalMode:'content',contentPositions:new TopicTimelinePositions(),view:'original',serial:1,statusEpoch:0,openIntent:0,rootCueEpoch:0,readingSort:'asc',topicProviderKey:null,originalPane:body,aiPane:get('ai-reading-body'),homePositions:new Map(),entryNode,onStatus:text=>statuses.push(text),async open(){return ++this.openIntent;},ensurePanes(){},checkAllTracked:async()=>true,applyLayout(){},renderSectionNav(){},observeTopicWindowSpacers(){},updateTopicContinuous(){},invalidateTimeline(){},clearHomeRows(){},editor:{collect(){},async flush(){return true;},dirty(){return false;},metadata:[],entry:{protectedIds:()=>new Set(),addRows(){},releaseRows(){},receive(){}}}});
  return {owner,calls,statuses,data,release:()=>release?.(),held:()=>!!release};
 }
-for(const empty of [false,true])test(`TOPIC-05.4 current Root RPC path retains ${empty?'empty':'nonempty'} Section heading and canonical nodes through repeated qualified redraw`,()=>withDOM(async env=>{
- const f=rootSectionRouteFixture(env,{empty});await f.owner.openRootTarget('topic','named');const heading=env.body.querySelector('h2'),entry=env.body.querySelector('[data-entry-id]');
- assert.ok(heading);assert.equal(heading.textContent,'Named');assert.equal(document.activeElement,heading);assert.equal(f.owner.document.kind,'section_reading');assert.equal(f.calls.some(call=>call.type==='GET_LIBRARY_SECTION_READING'&&call.options.sectionId==='named'),true);
- const before=entry?.textContent;
- for(let i=0;i<3;i++){assert.equal(await f.owner.renderTopicReader(),true);assert.equal(env.body.querySelector('h2'),heading);assert.equal(document.activeElement,heading);assert.equal(env.body.querySelectorAll('h2').length,1);assert.equal(env.body.querySelector('[data-entry-id]'),entry);assert.equal(entry?.textContent,before);}
+for(const empty of [false,true])test(`TOPIC-05.4 current Root RPC path retains ${empty?'empty':'nonempty'} Section host and canonical nodes without repeated headlines through qualified redraw`,()=>withDOM(async env=>{
+ const f=rootSectionRouteFixture(env,{empty});await f.owner.openRootTarget('topic','named');const host=env.body.querySelector('.topic-section'),entry=env.body.querySelector('[data-entry-id]');
+ assert.ok(host);assert.equal(host.dataset.sectionId,'named');assert.equal(env.body.querySelectorAll('h2').length,0);assert.equal(env.body.querySelectorAll('.section-heading').length,0);assert.equal(document.activeElement,host);assert.equal(f.owner.document.sections[0].title,'Named');assert.equal(f.owner.document.scopeSectionId,'named');assert.equal(f.owner.document.kind,'section_reading');assert.equal(f.calls.some(call=>call.type==='GET_LIBRARY_SECTION_READING'&&call.options.sectionId==='named'),true);
+ const before=entry?.textContent,focus=entry?.firstElementChild||host;focus.focus();
+ for(let i=0;i<3;i++){assert.equal(await f.owner.renderTopicReader(),true);assert.equal(env.body.querySelector('.topic-section'),host);assert.equal(document.activeElement,focus);assert.equal(env.body.querySelectorAll('h2').length,0);assert.equal(env.body.querySelectorAll('.section-heading').length,0);assert.equal(env.body.querySelector('[data-entry-id]'),entry);assert.equal(entry?.textContent,before);assert.equal(f.owner.document.sections[0].title,'Named');}
  assert.deepEqual(f.statuses,[]);assert.equal(f.calls.some(call=>call.type==='TOPIC_DOCUMENT_PAGE'),false);assert.equal(env.body.querySelector('.topic-root-section-anchor'),null);
 }));
 for(const hold of ['root qualification','initial reading','metadata','authority recheck'])for(const cause of ['purge','AI navigation'])test(`TOPIC-05.4 current Root ${hold} cannot paint or focus after ${cause}`,()=>withDOM(async env=>{
@@ -479,3 +479,11 @@ for(const entry of ['continuation','window'])for(const change of ['current','rou
  if(change==='route')owner.openIntent++;if(change==='reader')owner.topicReader={};if(change==='view')owner.view='ai';if(change==='root cue')owner.rootCueEpoch++;
  reject(Error('STORAGE_FAILED'));assert.equal(await pending,false);assert.equal(events.filter(event=>event==='failure').length,change==='current'?1:0);if(entry==='window')assert.equal(owner.topicWindowShifting,false);
 });
+
+for(const hold of ['metadata','authority recheck'])test('Section refresh never paints over an inline draft begun during '+hold,()=>withDOM(async env=>{
+ const f=rootSectionRouteFixture(env,{hold}),owner=f.owner;
+ owner.topicReader=owner.createTopicReader();await owner.topicReader.initial();let dirty=false;
+ owner.sectionEndWriter={hasDraft:()=>dirty};let paints=0;owner.renderDocument=()=>paints++;
+ const pending=owner.renderTopicReader();for(let i=0;i<100&&!f.held();i++)await new Promise(r=>setImmediate(r));assert.equal(f.held(),true);
+ dirty=true;f.release();assert.equal(await pending,false);assert.equal(paints,0);
+}));

@@ -645,66 +645,26 @@ for(const card of cards)test(`CTX4 locale refresh preserves the composing ${card
  assert.deepEqual((await c.snapshot()).items.map(item=>item.body),items.map(item=>item.body));
 }));
 
-for(const card of cards)test(`CTX4 current-card search covers ${card} body and groups without rebuilding editors`,()=>fixture(async({c,makePage,items})=>{
+for(const card of cards)test(`CTX4 retired Reader search cannot filter ${card}, save a draft or replace editors`,()=>fixture(async({c,makePage,items,calls})=>{
  const extra=put(card,{body:'精确Ａ  A\n𠮷🙂 café',section:'特别分组'});await c.change(extra);
- const page=makePage();await page.open(card);await tick();
- const original=new Map(page.editors),target=page.editors.get(extra.itemId);
- assert.ok(page.searchForm);assert.equal(await page.search('𠮷🙂'),true);
- assert.equal(target.root.hidden,false);assert.equal(page.editors.get(items.find(item=>item.card===card).itemId).root.hidden,true);
- for(const [id,editor]of original)assert.equal(page.editors.get(id),editor);
- assert.equal(await page.search('特别分组'),true);assert.equal(target.root.hidden,false);
- assert.equal(await page.search('Ａ  A\n'),true);assert.equal(target.root.hidden,false);
- assert.equal(await page.search('missing'),true);assert.equal(target.root.hidden,true);assert.match(page.searchStatus.textContent,/没有匹配|No matches/);
- assert.equal(await page.search(''),true);assert.ok([...page.editors.values()].every(editor=>!editor.root.hidden));
- await page.open(null);assert.equal(page.searchForm,null);assert.equal(page.searchQuery,'');assert.equal(page.editors.size,0);
- await page.open(card);assert.equal(page.searchQuery,'');assert.ok([...page.editors.values()].every(editor=>!editor.root.hidden));
+ const page=makePage();await page.open(card);await tick();const original=new Map(page.editors),editor=page.editors.get(extra.itemId),saved=structuredClone(editor.saved);
+ assert.equal(page.searchForm,null);assert.equal(page.host.querySelectorAll('input').length,0);
+ for(const state of ['composing','failed','ordinary']){
+  editor.surface.composing=state==='composing';editor.failed=state==='failed';editor.local='SYNTHETIC unsaved 中文 draft';editor.field.textContent=editor.local;
+  const before=calls.length;page.searchQuery='PRIVATE LEGACY QUERY';editor.root.hidden=true;
+  assert.equal(await page.search('missing'),false);assert.equal(page.searchQuery,'');assert.equal(editor.root.hidden,false);assert.equal(calls.length,before);
+  assert.equal(editor.field.textContent,editor.local);assert.deepEqual(editor.saved,saved);for(const [id,value]of original)assert.equal(page.editors.get(id),value);
+ }
+ editor.surface.composing=false;document.documentElement.lang='zh-CN';page.localizeEditable();assert.equal(page.searchForm,null);assert.equal(editor.field.textContent,editor.local);
+ assert.ok([...page.editors.values()].every(value=>value.saved.card===card));
+ assert.equal(JSON.stringify(calls).includes('PRIVATE LEGACY QUERY'),false);
 }));
 
-test('CTX4 search blocks composition and failed draft, retains dirty editors, and reapplies after current refresh',()=>fixture(async({c,makePage,items})=>{
- const page=makePage();await page.open('info');await tick();const editor=page.editors.get(items[0].itemId);
- assert.equal(await page.search('info saved body'),true);
- editor.surface.composing=true;editor.field.textContent='正在组合';
- assert.equal(await page.search('absent'),false);assert.equal(page.searchQuery,'info saved body');assert.equal(editor.root.hidden,false);
- editor.surface.composing=false;editor.local='unfinished';editor.field.textContent=editor.local;editor.failed=true;page.applySearch();
- assert.equal(editor.root.hidden,false);assert.equal(await page.search('absent'),false);assert.equal(page.searchQuery,'info saved body');
- editor.failed=false;assert.equal(await editor.flush(true),true);page.applySearch();assert.equal(editor.root.hidden,true);
- const row=(await c.snapshot()).items.find(item=>item.id===editor.id);await c.change({...put('info'),itemId:row.id,expectedRevision:row.revision,body:'remote info saved body',section:row.section});
- await page.refresh();assert.equal(page.editors.get(editor.id),editor);assert.equal(editor.root.hidden,false);
-}));
-
-test('CTX4 search does not apply a delayed flush after navigation and never persists its query',()=>fixture(async({makePage,calls})=>{
- const page=makePage();await page.open('rules');await tick();const held=deferred(),flush=page.flush.bind(page);page.flush=()=>held.promise;
- const pending=page.search('PRIVATE QUERY');await page.open('now');held.resolve(true);assert.equal(await pending,false);assert.equal(page.searchQuery,'');
- page.flush=flush;assert.ok(!JSON.stringify(calls).includes('PRIVATE QUERY'));
- page.searchComposing=true;assert.equal(await page.search('compose'),false);page.searchComposing=false;
-}));
-
-test('CTX4 current-card search last submission wins and locale refresh keeps the query and node identity',()=>fixture(async({makePage})=>{
- const page=makePage();await page.open('info');await tick();const first=deferred(),second=deferred();let n=0;page.flush=()=>++n===1?first.promise:second.promise;
- const earlier=page.search('earlier'),later=page.search('later');second.resolve(true);assert.equal(await later,true);first.resolve(true);assert.equal(await earlier,false);assert.equal(page.searchQuery,'later');
- const field=page.searchField,editors=[...page.editors.values()];document.documentElement.lang='en';page.localizeEditable();assert.equal(page.searchField,field);assert.equal(field.getAttribute('aria-label'),'Search this card');assert.equal(page.searchQuery,'later');for(const editor of editors)assert.equal(page.editors.get(editor.id),editor);
-}));
-
-test('CTX4 search reconciles removal and recovery, keeps new drafts visible, and never searches sibling cards',()=>fixture(async({c,makePage,items,recovery})=>{
- const page=makePage();await page.open('rules');await tick();const id=items[1].itemId,editor=page.editors.get(id);
- assert.equal(await page.search('info saved body'),true);assert.ok([...page.editors.values()].every(value=>value.root.hidden));
- assert.equal(await page.search('rules saved body'),true);assert.equal(editor.root.hidden,false);
- const row=(await c.snapshot()).items.find(value=>value.id===id);await c.change({kind:'delete',operationId:op(),epoch:'initial',itemId:id,expectedRevision:row.revision});await page.refresh();assert.equal(page.editors.has(id),false);assert.match(page.searchStatus.textContent,/没有匹配|No matches/);
- await page.addItem();const fresh=[...page.editors.values()].find(value=>value.fresh);assert.ok(fresh);page.applySearch();assert.equal(fresh.root.hidden,false);
- const extra=put('rules',{body:'original unmatched',section:'Group'});await c.change(extra);await page.refresh();const recovered=page.editors.get(extra.itemId);assert.equal(recovered.root.hidden,true);
- const change={...extra,operationId:op(),expectedRevision:1,body:'restored unsaved text'};await recovery.save(draft(change));await recovered.recover();assert.equal(recovered.local,'restored unsaved text');assert.equal(recovered.root.hidden,false);assert.equal(recovered.dirty(),true);
-}));
-
-test('CTX4 successful search removes only its own previous blocked notice after retry',()=>fixture(async({makePage})=>{
- const page=makePage();await page.open('info');await tick();const editor=[...page.editors.values()][0];
- editor.local='updated expression';editor.field.textContent=editor.local;editor.failed=true;
- assert.equal(await page.search('updated'),false);assert.match(page.message.textContent,/搜索不会|Search will not/);
- assert.equal(await editor.flush(true),true);assert.equal(await page.search('updated'),true);assert.equal(page.message.textContent,'');
- assert.equal(await page.search(''),true);assert.equal(page.message.textContent,'');
- editor.local='second expression';editor.field.textContent=editor.local;editor.failed=true;assert.equal(await page.search('second'),false);
- const other=page.notice('SYNTHETIC unrelated permission failure');
- assert.equal(await editor.flush(true),true);assert.equal(await page.search('second'),true);
- assert.equal(page.message.textContent,'SYNTHETIC unrelated permission failure');assert.equal(page.message.children[0],other);
+test('CTX4 retired Reader search preserves unrelated failure notices and recovered drafts',()=>fixture(async({c,makePage,recovery})=>{
+ const page=makePage();await page.open('rules');await tick();const editor=[...page.editors.values()][0],other=page.notice('SYNTHETIC unrelated permission failure');
+ const change={...put('rules'),itemId:editor.id,expectedRevision:editor.saved.revision,body:'SYNTHETIC restored draft'};await recovery.save(draft(change));await editor.recover();
+ page.searchQuery='unmatched';page.applySearch();assert.equal(editor.root.hidden,false);assert.equal(editor.dirty(),true);assert.equal(editor.local,change.body);
+ assert.equal(await page.search('missing'),false);assert.equal(page.message.children[0],other);assert.equal(await page.leave(),true);
 }));
 
 async function clipboardFixture(writeText,run){
@@ -743,13 +703,13 @@ for(const invalidation of ['close','dispose','new-text','composition'])test(`CTX
  });
 }));
 
-test('CTX4-02 group reorder uses full canonical group under search and keeps editor identities, focus and authored text',()=>fixture(async({c,makePage,items,calls})=>{
+test('CTX4-02 group reorder uses full canonical group after legacy search retirement and keeps editor identities, focus and authored text',()=>fixture(async({c,makePage,items,calls})=>{
  const hidden=put('info',{body:'SYNTHETIC middle hidden'}),last=put('info',{body:'SYNTHETIC last visible'}),other=put('info',{section:'Other group'});for(const change of [hidden,last,other])await c.change(change);
  const page=makePage();await page.open('info');const first=page.editors.get(items[0].itemId),middle=page.editors.get(hidden.itemId),end=page.editors.get(last.itemId),nodes=[first.root,middle.root,end.root],bodies=[first.local,middle.local,end.local];
  assert.equal(first.moveUp.disabled,true);assert.equal(first.moveDown.disabled,false);assert.equal(end.moveDown.disabled,true);assert.equal(page.editors.get(other.itemId).moveUp.disabled,true);
- await page.search('last visible');assert.equal(middle.root.hidden,true);assert.equal(end.root.hidden,false);const before=calls.filter(x=>x.type==='PAIA_CONTEXT_CARDS_CHANGE').length;
- end.menu.querySelector('summary').focus();assert.equal(await page.reorder(end,'up'),true);const changed=calls.filter(x=>x.type==='PAIA_CONTEXT_CARDS_CHANGE').slice(before);assert.equal(changed.length,1);assert.equal(changed[0].change.adjacentId,middle.id,'hidden immediate neighbor, not visible filtered row');
- assert.deepEqual([...first.root.parentElement.querySelectorAll('.context-item')].map(x=>x.dataset.item),[first.id,end.id,middle.id]);assert.deepEqual([first.root,middle.root,end.root],nodes);assert.deepEqual([first.local,middle.local,end.local],bodies);assert.equal(document.activeElement,end.menu.querySelector('summary'));assert.equal(middle.root.hidden,true);assert.equal(page.searchQuery,'last visible');
+ await page.search('last visible');assert.equal(middle.root.hidden,false);assert.equal(end.root.hidden,false);const before=calls.filter(x=>x.type==='PAIA_CONTEXT_CARDS_CHANGE').length;
+ end.menu.querySelector('summary').focus();assert.equal(await page.reorder(end,'up'),true);const changed=calls.filter(x=>x.type==='PAIA_CONTEXT_CARDS_CHANGE').slice(before);assert.equal(changed.length,1);assert.equal(changed[0].change.adjacentId,middle.id,'actual immediate neighbor retains its canonical order');
+ assert.deepEqual([...first.root.parentElement.querySelectorAll('.context-item')].map(x=>x.dataset.item),[first.id,end.id,middle.id]);assert.deepEqual([first.root,middle.root,end.root],nodes);assert.deepEqual([first.local,middle.local,end.local],bodies);assert.equal(document.activeElement,end.menu.querySelector('summary'));assert.equal(middle.root.hidden,false);assert.equal(page.searchQuery,'');
  await page.search('');assert.equal(await page.reorder(end,'down'),true);assert.deepEqual([...first.root.parentElement.querySelectorAll('.context-item')].map(x=>x.dataset.item),[first.id,middle.id,end.id]);
  document.documentElement.lang='zh';page.localizeEditable();assert.equal(end.moveUp.textContent,'上移');assert.equal(end.moveDown.textContent,'下移');
 }));
@@ -791,9 +751,9 @@ test('CTX4-02 menu captures pre-default selection once and restores only the unc
  }finally{if(original)Object.defineProperty(globalThis,'getSelection',original);else delete globalThis.getSelection;}
 }));
 
-for(const target of ['other-editor','search','new-selection','keyboard-selection'])test(`CTX4-02 held reorder ACK does not steal newer ${target} intent`,()=>fixture(async({c,makePage,items,transport,dispatch})=>{
+for(const target of ['other-editor','add-control','new-selection','keyboard-selection'])test(`CTX4-02 held reorder ACK does not steal newer ${target} intent`,()=>fixture(async({c,makePage,items,transport,dispatch})=>{
  const second=put('info');await c.change(second);const page=makePage();await page.open('info');const editor=page.editors.get(items[0].itemId),other=page.editors.get(second.itemId),text=editor.field.firstChild,original=Object.getOwnPropertyDescriptor(globalThis,'getSelection');let restored=null;const selection={rangeCount:1,isCollapsed:false,anchorNode:text,anchorOffset:10,focusNode:text,focusOffset:2,setBaseAndExtent(...values){restored=values;}};globalThis.getSelection=()=>selection;const hold=deferred(),entered=deferred();transport.dispatch=async message=>{const result=await dispatch(message);if(message.change?.kind==='reorder'){entered.resolve();await hold.promise;}return result;};
- try{editor.field.focus();editor.captureReorderSelection();editor.menu.querySelector('summary').focus();const pending=page.reorder(editor,'down');await entered.promise;restored=null;const focus=target==='other-editor'?other.field:target==='search'?page.searchField:editor.field;focus.focus();if(target==='keyboard-selection')editor.field.listeners.get('keydown')({key:'ArrowLeft',shiftKey:true});else document.dispatchEvent({type:target==='new-selection'?'pointerdown':'focusin',target:focus});selection.anchorNode=focus.firstChild||focus;selection.focusNode=selection.anchorNode;selection.anchorOffset=0;selection.focusOffset=0;selection.isCollapsed=true;await hold.resolve();assert.equal(await pending,true);assert.equal(document.activeElement,focus);assert.notDeepEqual(restored,[text,10,text,2],'old menu selection must not replace current intent');assert.equal(editor.saved.revision,2);}finally{hold.resolve();if(original)Object.defineProperty(globalThis,'getSelection',original);else delete globalThis.getSelection;}
+ try{editor.field.focus();editor.captureReorderSelection();editor.menu.querySelector('summary').focus();const pending=page.reorder(editor,'down');await entered.promise;restored=null;const focus=target==='other-editor'?other.field:target==='add-control'?page.add:editor.field;focus.focus();if(target==='keyboard-selection')editor.field.listeners.get('keydown')({key:'ArrowLeft',shiftKey:true});else document.dispatchEvent({type:target==='new-selection'?'pointerdown':'focusin',target:focus});selection.anchorNode=focus.firstChild||focus;selection.focusNode=selection.anchorNode;selection.anchorOffset=0;selection.focusOffset=0;selection.isCollapsed=true;await hold.resolve();assert.equal(await pending,true);assert.equal(document.activeElement,focus);assert.notDeepEqual(restored,[text,10,text,2],'old menu selection must not replace current intent');assert.equal(editor.saved.revision,2);}finally{hold.resolve();if(original)Object.defineProperty(globalThis,'getSelection',original);else delete globalThis.getSelection;}
 }));
 
 test('CTX4-02 reorder intent fence begins before preflight read and releases on early refusal',()=>fixture(async({c,makePage,items,transport,dispatch})=>{
@@ -819,7 +779,7 @@ test('CTX4 move holds leave during pre-read and never dispatches after disposal'
 }));
 
 test('CTX4 external move retains dirty source draft as conflict but excludes it from current-card matches',()=>fixture(async({c,makePage})=>{
- const page=makePage();await page.open('info');const editor=[...page.editors.values()][0];editor.local='SYNTHETIC retained draft';editor.field.textContent=editor.local;const snapshot=await c.snapshot(),item=snapshot.items.find(x=>x.id===editor.id);await c.change({kind:'move',operationId:op(),epoch:snapshot.epoch,itemId:item.id,expectedRevision:item.revision,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(key=>[key,snapshot.access[key]]))});await page.refresh({force:true});assert.equal(page.editors.get(item.id),editor);assert.equal(editor.saved.card,'info');assert.equal(editor.local,'SYNTHETIC retained draft');assert.equal(editor.conflicted,true);page.searchQuery='retained';page.applySearch();assert.equal(editor.root.hidden,false);assert.match(page.searchStatus.textContent,/No matches in this card/);assert.equal(await page.leave(),false);
+ const page=makePage();await page.open('info');const editor=[...page.editors.values()][0];editor.local='SYNTHETIC retained draft';editor.field.textContent=editor.local;const snapshot=await c.snapshot(),item=snapshot.items.find(x=>x.id===editor.id);await c.change({kind:'move',operationId:op(),epoch:snapshot.epoch,itemId:item.id,expectedRevision:item.revision,fromCard:'info',toCard:'rules',expectedAccess:Object.fromEntries(['global','info','rules'].map(key=>[key,snapshot.access[key]]))});await page.refresh({force:true});assert.equal(page.editors.get(item.id),editor);assert.equal(editor.saved.card,'info');assert.equal(editor.local,'SYNTHETIC retained draft');assert.equal(editor.conflicted,true);page.searchQuery='retained';page.applySearch();assert.equal(editor.root.hidden,false);assert.equal(page.searchQuery,'');assert.equal(page.searchForm,null);assert.equal(await page.leave(),false);
 }));
 
 test('CTX4 move unknown acknowledgement retries original operation and preserves undo when refresh fails',()=>fixture(async({c,makePage,transport,dispatch,calls})=>{
@@ -830,11 +790,10 @@ test('CTX4 move refuses IME and failed edits and localizes only target menu labe
  const page=makePage();await page.open('info');const editor=[...page.editors.values()][0];editor.surface.composing=true;assert.equal(await page.move(editor,'now'),false);editor.surface.composing=false;editor.local='SYNTHETIC unsaved';editor.field.textContent=editor.local;editor.failed=true;assert.equal(await page.move(editor,'now'),false);assert.equal(calls.filter(x=>x.change?.kind==='move').length,0);document.documentElement.lang='zh';page.localizeEditable();assert.match(editor.moveTargets[0].textContent,/移动到我的规则/);assert.equal(editor.field.textContent,'SYNTHETIC unsaved');
 }));
 
-test('Context Home explicit search navigates exact Item and Back requalifies without retaining bodies',()=>fixture(async({makePage,c,items,transport,dispatch,calls})=>{
- const page=makePage();page.onNavigate=async card=>{if(await page.leave())await page.open(card);};await page.open();const initial=calls.length;assert.deepEqual(page.snapshot.items,[]);
- transport.dispatch=message=>message.type==='PAIA_CONTEXT_TOPICS_PAGE'?{available:true,version:1,externalAllowed:false,epoch:'initial',authority:'test-topics',items:[],nextCursor:null,complete:true}:message.type==='GET_LIBRARY_ROOT_SEARCH'?{version:1,kind:'search',authority:'test-search',items:[],nextCursor:null,complete:true,coverage:{complete:true}}:dispatch(message);
- await page.homeSearch.search('saved body');assert.equal(page.homeSearch.matches.length,3);assert.ok(calls.length>initial);const item=page.homeSearch.matches.find(x=>x.card==='rules');assert.equal(await page.homeSearch.activate(item),true);assert.equal(page.card,'rules');assert.equal(document.activeElement,page.editors.get(item.id).field);assert.equal(JSON.stringify(page.homeSearchState).includes(items[0].body),false);
- await page.onNavigate(null);assert.equal(page.card,null);assert.equal(page.homeSearch.query,'saved body');assert.equal(page.homeSearch.matches.length,3);assert.equal(document.activeElement.dataset.contextSearchOpen,item.id);assert.deepEqual(page.snapshot.items,[]);page.homeSearch.clear();assert.equal(page.host.querySelector('.context-cards').hidden,false);await page.close();assert.equal(page.homeSearchState,null);
+test('Context Home retires legacy search state without reading bodies or dropping cards',()=>fixture(async({makePage,items,calls})=>{
+ const page=makePage();page.homeSearchState={query:'PRIVATE OLD QUERY',matches:items};await page.open();
+ assert.equal(page.homeSearch,null);assert.equal(page.homeSearchState,null);assert.deepEqual(page.snapshot.items,[]);assert.equal(page.host.querySelectorAll('input').length,0);assert.equal(page.host.querySelectorAll('.context-card').length,4);
+ assert.ok(calls.filter(row=>row.type==='PAIA_CONTEXT_CARDS_SNAPSHOT').every(row=>row.mode==='home'));assert.equal(JSON.stringify(calls).includes('PRIVATE OLD QUERY'),false);
 }));
 
 test('CTX4 newly acknowledged editors retain canonical order when middle delete is undone',()=>fixture(async({c,makePage})=>{

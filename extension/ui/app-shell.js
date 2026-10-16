@@ -41,7 +41,6 @@ export class AppShellController {
   const rootHeader=document.getElementById('thought-root-header'),rootTools=document.getElementById('thought-home-tools');
   document.getElementById('thought-panel').insertBefore(rootHeader,rootTools);rootHeader.append(rootTools);
   document.getElementById('thought-root-source').append(document.getElementById('thought-source-scope-label'),...document.querySelectorAll('#thought-home-tools > .library-actions,#thought-home-tools > button'));
-  document.getElementById('thought-topic-header').append(document.getElementById('topic-search'));
   this.installArchivePresentation();
   installUniversalSearch();installRevisit();
   installSettingsPreferences({backup:this.settingsBackup,routeChanged:options=>options?.replace?this.routes?.checkpoint():this.routes?.commit(options),back:()=>this.navigate(this.settingsReturn.view,this.settingsReturn.documentId||null,null,{topicId:this.settingsReturn.topicId,...(this.settingsReturn.originKey?{originKey:this.settingsReturn.originKey}:{}),...(this.settingsReturn.contextCard?{contextCard:this.settingsReturn.contextCard}:{}),returnTo:this.settingsReturn.returnTo,searchQuery:this.settingsReturn.searchQuery,anchor:this.settingsReturn.anchor})});
@@ -97,7 +96,6 @@ export class AppShellController {
   document.getElementById('ux-skip-main').textContent=labels()?'Skip to main content':'跳到主要内容';
   document.getElementById('primary-nav').setAttribute('aria-label',labels()?'Primary navigation':'主要导航');
   const title=document.getElementById('view-title'),text=this.viewLabel(this.route.view);if(text&&!title.hidden)title.textContent=text;
-  document.getElementById('thought-root-description').textContent=labels()?'Return to your own expressions, by topic.':'按主题回到自己的表达。';
   document.getElementById('archive-root-description').textContent=labels()?'Return to the places you once expressed yourself.':'回到你曾经表达过的地方。';
   this.archiveCompactLabel.textContent=this.viewLabel(this.route.view)||this.viewLabel('library');
   presentSettingsPreferences({visible:this.route.view==='settings'});
@@ -105,7 +103,7 @@ export class AppShellController {
  present(route,options){
   if(route.view==='settings'&&this.route.view!=='settings'&&!this.settingsReturnPrepared)this.settingsReturn=this.route;this.settingsReturnPrepared=false;
   this.route=route;presentAppShell(document,route,options);
-  const archiveRoot=['library','archive'].includes(route.view),heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),thoughtRoot=route.view==='thoughts'&&!route.topicId,headingHost=archiveRoot?document.getElementById('archive-root-heading'):thoughtRoot?document.getElementById('thought-root-heading'):header;
+  const archiveRoot=['library','archive'].includes(route.view),heading=document.getElementById('workspace-heading'),header=document.querySelector('.workspace-header'),headingHost=archiveRoot?document.getElementById('archive-root-heading'):header;
   if(heading.parentElement!==headingHost)headingHost.prepend(heading);
   document.getElementById('input-time-order').hidden=route.view!=='library'||!route.documentId;
   const reader=!!route.documentId||route.view==='thoughts'&&!!route.topicId;

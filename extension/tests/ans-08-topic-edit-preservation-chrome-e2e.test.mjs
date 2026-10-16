@@ -9,11 +9,11 @@ const digestSources=page=>page.evaluate(async()=>{
 });
 
 test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/undo state',{timeout:180000},async()=>{
- const h=await FakeChatGPT.start({headless:false}),page=h.archive;
+ const h=await FakeChatGPT.start({headless:true}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   await eventually(async()=>{const status=await rpc(page,'GET_STATUS');return status.consented===true&&status.enabled===true;},'ANS-08 consent is durable before capture');
-  const capturePage=await h.open({id:'ans08-edit-source',title:'ANS08 synthetic source',base:1609459200,messages:[{id:'ans08-source-message',text:'ANS08 immutable source text'}]});
+  const capturePage=await h.open({id:'ans08-edit-source',title:'ANS08 synthetic source',base:Date.UTC(2026,3,1)/1000,messages:[{id:'ans08-source-message',text:'ANS08 immutable source text'}]});
   await eventually(async()=>{const state=await h.state();return state.records.some(r=>r.chatId==='ans08-edit-source'&&r.sourceMessageId==='ans08-source-message');},'ANS-08 source captured through the real content path',30000);
   await eventually(async()=>page.evaluate(async()=>{
    const {OrganizerStore}=await import('../core/organizer/store.js');
@@ -23,14 +23,13 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
   }),'ANS-08 plain-route source structure settles',30000);
   await capturePage.close();
   const seed=await page.evaluate(async()=>{
-   const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),rank=n=>String(n*1024).padStart(12,'0'),pad=n=>String(n).padStart(4,'0');
-   const block=(await s.run(()=>s.repository.transaction(false,t=>t.all('blocks'))))[0].value,topic=await s.createTopic({name:'ANS08_EDIT_SAFE_TOPIC',operationId:op()}),backed=await s.addToTopics({kind:'input',id:block.id,expectedRevision:block.revision,operationId:op(),topicIds:[topic.id]}),user=await s.continueThinking({operationId:op(),body:'ANS08 editable 0001',topicId:topic.id});
-   await s.foundationWrite(async t=>{const live=await t.get('topics',topic.id),template=await t.get('thoughts',user.id),section=await t.get('sections',JSON.stringify([topic.id,live.activeLayoutGeneration,live.defaultSectionId])),base=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,user.id]));section.rank=rank(1);await t.put('sections',section);
-    const backedPlacement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,backed.id]));backedPlacement.sectionRank=section.rank;backedPlacement.rank=rank(1);backedPlacement.revision++;await t.put('placements',backedPlacement);
-    base.sectionRank=section.rank;base.rank=rank(2);base.revision++;await t.put('placements',base);
-    for(let i=2;i<180;i++){const id='ans08-edit-entry-'+pad(i),row={...structuredClone(template),id},at=new Date(Date.UTC(2026,2,1)+i*1000).toISOString();row.thoughtText='ANS08 editable '+pad(i);row.createdAt=at;row.updatedAt=at;row.createdSequence=(template.createdSequence||1)+i;row.updatedSequence=(template.updatedSequence||1)+i;row.sourceRecordIds=[];row.provenanceType='user_created';refreshEntryIndex(row);await t.put('thoughts',row);await t.put('placements',{...structuredClone(base),id:JSON.stringify([topic.id,live.activeLayoutGeneration,id]),entryId:id,rank:rank(i+1),revision:0});}
-    live.organizationRevision++;live.countVersion=(live.countVersion||0)+1;await t.put('topics',live);
-   });await s.repository.close();return {topicId:topic.id,backedId:backed.id,count:180};
+   const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0');
+   s.clock=()=> '2026-03-01T00:00:00.000Z';
+   const block=(await s.run(()=>s.repository.transaction(false,t=>t.all('blocks'))))[0].value,topic=await s.createTopic({name:'ANS08_EDIT_SAFE_TOPIC',operationId:op()}),backed=await s.addToTopics({kind:'input',id:block.id,expectedRevision:block.revision,operationId:op(),topicIds:[topic.id]});
+   // Actual committed independent-expression receipts qualify every synthetic
+   // human row in2026. The captured April Input remains first in newest order.
+   for(let i=1;i<180;i++){s.clock=()=>new Date(Date.UTC(2026,2,1)+i*1000).toISOString();await s.continueThinking({operationId:op(),body:'ANS08 editable '+pad(i),topicId:topic.id,sectionId:topic.sectionId});}
+   await s.repository.close();return {topicId:topic.id,backedId:backed.id,count:180};
   });
   const sourceBefore=await digestSources(page),reverseBefore=await rpc(page,'GET_THOUGHT_REVERSE_EDIT');assert.equal(reverseBefore.enabled,false);
 
@@ -40,6 +39,7 @@ test('ANS-08 Chrome windowing preserves dirty, IME, selection and bounded save/u
   const sentinel=page.locator('#topic-continuous-after');for(let i=0;i<2;i++){const before=await page.locator('#topic-body [data-entry-id]').count();await sentinel.focus();await sentinel.press('Enter');await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>before,'load edit window',20000);}
   assert.ok(await page.locator('#topic-body [data-entry-id]').count()>=110);
 
+  assert.equal(await page.locator('#topic-body [data-entry-id]').first().getAttribute('data-entry-id'),seed.backedId,'the source-bound Input is actually inside the protected edit group');
   const setup=await page.evaluate(()=>{
    const nodes=[...document.querySelectorAll('#topic-body [data-entry-id]')],dirty=[],ime=nodes[5],selection=nodes[45],originalBody=nodes[0].querySelector('[data-entry-field="body"]').textContent;window.ans08Nodes={dirty:nodes[0],ime,selection};
    for(let i=0;i<100;i++){if(i===5||i===45)continue;const field=nodes[i].querySelector('[data-entry-field="body"]');field.textContent=field.textContent+' DIRTY_'+String(i).padStart(3,'0');field.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:'x'}));dirty.push(nodes[i].dataset.entryId);}
