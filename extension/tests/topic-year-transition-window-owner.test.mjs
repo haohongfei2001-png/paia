@@ -45,3 +45,53 @@ for(const boundary of ['same year','changed year','retired route'])test(`explici
  if(boundary==='changed year')reader.nextYear=2020;if(boundary==='retired route')owner.openIntent++;
  release();assert.equal(await pending,false);assert.equal(flushes,boundary==='same year'?1:0,'only the still-current exact year reaches its original save/IME gate');assert.equal(owner.annualTransitionBusy,false);
 });
+
+for(const boundary of ['current return','old reader error','old reader stale','departure','new open intent','new Section','new view','new Root cue','new presentation','hidden Thought','draft','IME','leaving','flushing'])test('deferred current return after annual terminal tracking: '+boundary,()=>withAnnualTransition(async f=>{
+ const keys=['document','chrome','scrollTo'],prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)])),nodes=new Map(),rpcs=[],reads=[];
+ const node=()=>({hidden:false,inert:false,dataset:{},children:[],classList:{toggle(){}},querySelectorAll:()=>[],querySelector:()=>null,setAttribute(){},removeAttribute(){},replaceChildren(){}});
+ globalThis.document={getElementById:id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);},documentElement:{lang:'en'},addEventListener(){}};
+ globalThis.chrome={runtime:{sendMessage:async message=>{rpcs.push(message);return {ok:true,data:null};}}};globalThis.scrollTo=()=>{};
+ let releaseFinal,enterFinal;const finalGate=new Promise(resolve=>releaseFinal=resolve),finalEntered=new Promise(resolve=>enterFinal=resolve);let finalHeld=false;
+ const owner=f.owner;
+ Object.assign(owner,{statusEpoch:1,statusReadSerial:0,rootCueEpoch:0,readingSort:'desc',originalMode:'content',lastSections:new Map([['topic','section']]),homePositions:new Map([['topic',{sort:'desc'}]]),aiViewSession:{position:()=>null},readRetry:node(),originalPane:node(),aiPane:node(),rememberTimeline(){},rememberView(){},captureHomePosition:()=>null,clearActionFeedback(){},onOpen(){},restoreContent(){},restorePosition:async()=>{},schedulePosition(){},syncReadingControls(){},readRefresh:async function(){reads.push({sort:this.readingSort,intent:this.openIntent});return true;},queueOptionalStatus(){},
+ checkAllTracked:async function(){if(f.counts().painted&&!finalHeld){finalHeld=true;enterFinal();await finalGate;}return true;}});
+ try{
+  f.release();await finalEntered;
+  assert.equal(owner.annualTransitionBusy,true);assert.equal(f.reader.items.length,165,'real annual canonical append already painted');
+  assert.equal(await owner.leave(),true,'actual Settings departure retires editor admission');
+  await owner.open('topic');
+  assert.equal(owner.openIntent,2);assert.equal(owner.topicOpening,undefined);assert.equal(nodes.get('topic-body').inert,true);
+  await owner.changeReadingSort('asc',{fromStart:true});
+  assert.equal(owner.readingSort,'asc');assert.equal(rpcs.filter(row=>row.type==='SET_ORGANIZER_CONTROLS').length,1);
+  assert.equal(reads.length,0,'held retired transition has swallowed both current refreshes');
+  const allowed=['current return','old reader error','old reader stale'].includes(boundary);
+  if(boundary==='old reader error')f.reader.errorNext=Error('SYNTHETIC_OLD_ANNUAL_FAILURE');
+  if(boundary==='old reader stale')f.reader.invalidate({cursorInvalid:true});
+  if(boundary==='departure')assert.equal(await owner.leave(),true);
+  if(boundary==='new open intent')owner.openIntent++;
+  if(boundary==='new Section')owner.activeSectionId='another-section';
+  if(boundary==='new view')owner.view='ai';
+  if(boundary==='new Root cue')owner.rootCueEpoch++;
+  if(boundary==='new presentation')owner.presentationIntent=1;
+  if(boundary==='hidden Thought')document.getElementById('thought-panel').hidden=true;
+  if(boundary==='draft')owner.sectionEndWriter={hasDraft:()=>true};
+  if(boundary==='IME')owner.editor={surface:{composing:true}};
+  if(boundary==='leaving')owner.leavePublication=Symbol('new-departure');
+  if(boundary==='flushing')owner.departureFlush=1;
+  releaseFinal();await f.transition;await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(owner.annualRefreshQueued,false);assert.equal(owner.annualRefreshRequest,null);
+  if(!allowed){assert.deepEqual(reads,[],'retired or edit-protected request cannot be replayed');assert.equal(nodes.get('topic-body').inert,true);return;}
+  assert.ok(reads.some(row=>row.sort==='asc'&&row.intent===2),'latest current route must actually refresh its ascending reader after the older annual owner settles');
+  assert.equal(nodes.get('topic-body').inert,false,'the new qualified read re-admits its current editor');
+ }finally{releaseFinal();for(const [key,value]of prior)if(value)Object.defineProperty(globalThis,key,value);else delete globalThis[key];}
+}));
+
+for(const failure of ['error','stale'])test('same annual owner '+failure+' remains an explicit retry after a queued refresh',()=>withAnnualTransition(async f=>{
+ const owner=f.owner;let refreshes=0,checks=0;
+ owner.checkAllTracked=async(_serial,options)=>{if(options?.invalidateReader){checks++;if(f.counts().painted){if(failure==='error')f.reader.errorNext=Error('SYNTHETIC_ANNUAL_FAILURE');else f.reader.invalidate({cursorInvalid:true});}}return true;};
+ assert.equal(await owner.refresh(),false);assert.equal(checks,1,'deferred reads still check forbidden Source immediately');
+ // No new read is authorized by a failed old annual continuation.
+ owner.refresh=async()=>{refreshes++;};
+ f.release();await f.transition;await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(refreshes,0);assert.equal(owner.annualRefreshQueued,false);assert.equal(owner.annualRefreshRequest,null);
+}));

@@ -9,7 +9,26 @@ async function consent(page){const action=page.locator('#enable-consent');await 
 async function openData(page){
  const compact=await page.evaluate(()=>innerWidth<768);
  await eventually(()=>page.evaluate(compact=>{const button=document.querySelector('.sidebar [data-view="settings"]'),menu=document.getElementById('archive-compact-navigation');return compact?button?.parentElement?.id==='archive-compact-nav-items'&&menu.hidden===false:button?.parentElement?.classList.contains('sidebar-bottom');},compact),'Settings primary control has settled in its real breakpoint owner');
- if(compact){await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view="settings"]').click();}else await page.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>page.locator('#settings-panel').isVisible());await chooseGroup(page,'data');}
+ if(compact){await page.locator('#archive-compact-navigation > summary').click();await page.locator('#archive-compact-nav-items [data-view="settings"]').click();}else await page.locator('.sidebar-bottom [data-view="settings"]').click();await eventually(()=>page.locator('#settings-panel').isVisible());await chooseGroup(page,'data');
+ // Rendering Settings precedes its asynchronous read and route commit. The
+ // late-ACK comparison needs the completed destination as its baseline.
+ await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='settings'&&history.state.paiaReader.settingsGroup==='data'&&history.state?.paiaShell?.view==='settings'),'Settings Data navigation commits before a late-ACK baseline');}
+
+async function openDataWithHeldCommit(page){
+ // This is the existing Data -> excluded -> Data journey. Re-selecting the
+ // same group must not create a separate group-change route commit.
+ assert.equal(await page.locator('[data-settings-group="data"]').getAttribute('aria-current'),'page');
+ await page.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__settingsRouteCommit={original,release:null};chrome.runtime.sendMessage=async message=>{const result=await original(message);if(message.type==='GET_MIGRATION_STATUS'&&!__settingsRouteCommit.release)await new Promise(resolve=>__settingsRouteCommit.release=resolve);return result;};});
+ let settled=false;const opening=openData(page).finally(()=>settled=true);
+ try{
+  await eventually(()=>page.evaluate(()=>!!__settingsRouteCommit.release),'the original Settings read is held after render');
+  await page.locator('[data-group="data"]').waitFor({state:'visible'});
+  assert.equal(await page.locator('#settings-panel').isVisible(),true);
+  assert.equal(await page.evaluate(()=>history.state?.paiaReader?.view),'excluded','visible Settings is not a committed history destination');
+  assert.equal(settled,false,'the helper cannot return an old excluded route as the Settings baseline');
+  await page.evaluate(()=>__settingsRouteCommit.release());await opening;
+ }finally{await page.evaluate(()=>{__settingsRouteCommit.release?.();chrome.runtime.sendMessage=__settingsRouteCommit.original;delete globalThis.__settingsRouteCommit;});await opening;}
+}
 
 async function historyLocale(page,english){
  await page.locator('#history-close').focus();
@@ -41,7 +60,7 @@ export async function pendingInputDialogSafety(h,variant){
  for(const [row,label,action] of [[pending[0],'保留为独立整理文档','standalone'],[pending[2],'忽略','ignore']]){
   await openData(p);await p.locator('#settings-history').click();await p.locator('#history-dialog').waitFor({state:'visible'});await p.locator('#manage-excluded').click();await p.locator('#history-dialog').waitFor({state:'hidden'});await p.locator('.conversation-document[data-document-id="'+row.documentId+'"]').click();
   await p.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__pendingAction={original,calls:0,release:null};chrome.runtime.sendMessage=async m=>{if(m.type!=='IMPORT_RESOLVE_BRANCH')return original(m);__pendingAction.calls++;const result=await original(m);await new Promise(r=>__pendingAction.release=r);return result;};});
-  try{const button=p.getByRole('button',{name:label,exact:true});await button.evaluate(n=>__pendingAction.button=n);await button.click();await eventually(()=>p.evaluate(()=>!!__pendingAction.release));await p.evaluate(()=>__pendingAction.button.dispatchEvent(new MouseEvent('click')));assert.equal(await p.evaluate(()=>__pendingAction.calls),1);const saved=await rpc(p,'GET_INPUT',{id:row.id});assert.equal(!!saved.branchStatus,false);assert.equal(saved.excluded,action==='ignore','real standalone/ignore durability before UI ACK');await openData(p);const route=await p.evaluate(()=>JSON.stringify(history.state)),status=await p.locator('#review-result').textContent();await p.evaluate(()=>__pendingAction.release());await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.equal(await p.locator('#settings-panel').isVisible(),true);assert.equal(await p.evaluate(()=>JSON.stringify(history.state)),route);assert.equal(await p.locator('#review-result').textContent(),status,'late action ACK leaves current result UI unchanged');}
+  try{const button=p.getByRole('button',{name:label,exact:true});await button.evaluate(n=>__pendingAction.button=n);await button.click();await eventually(()=>p.evaluate(()=>!!__pendingAction.release));await p.evaluate(()=>__pendingAction.button.dispatchEvent(new MouseEvent('click')));assert.equal(await p.evaluate(()=>__pendingAction.calls),1);const saved=await rpc(p,'GET_INPUT',{id:row.id});assert.equal(!!saved.branchStatus,false);assert.equal(saved.excluded,action==='ignore','real standalone/ignore durability before UI ACK');if(action==='standalone')await openDataWithHeldCommit(p);else await openData(p);const route=await p.evaluate(()=>JSON.stringify(history.state)),status=await p.locator('#review-result').textContent();await p.evaluate(()=>__pendingAction.release());await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));assert.equal(await p.locator('#settings-panel').isVisible(),true);assert.equal(await p.evaluate(()=>JSON.stringify(history.state)),route);assert.equal(await p.locator('#review-result').textContent(),status,'late action ACK leaves current result UI unchanged');}
   finally{await p.evaluate(()=>{__pendingAction.release?.();chrome.runtime.sendMessage=__pendingAction.original;delete globalThis.__pendingAction;});}
  }
  for(const [row,label,copy] of [[pending[3],'保留为独立整理文档','已确认归属。'],[pending[4],'忽略','已移入已移除输入；来源保留，可以恢复。']]){

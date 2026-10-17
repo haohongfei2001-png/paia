@@ -786,7 +786,16 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  }
  async flushReadingNavigation(){this.departureFlush=(this.departureFlush||0)+1;try{return await this.flushEditors();}finally{this.departureFlush--;}}
  async flushEditors(){if(this.sectionEndWriter&&!await this.sectionEndWriter.flush())return false;for(const active of [this.editor,this.aiEditor,this.dialogEditor]){active?.collect?.();if(active&&!await active.flush()&&active.dirty())return false;}return true;}
- async refresh(){if(this.annualTransitionBusy&&!this.yearTransitionRefreshing){this.annualRefreshQueued=true;await this.checkAllTracked(this.serial,{invalidateReader:true});return false;}if(!this.id&&this.homeCollection&&!this.preserveHomeRefresh){this.homeDesiredCount=Math.max(40,this.homeDesiredCount||0,this.personalRoot.slots.extent(),this.homeCollection.items.length);this.homeCollection.releaseBodies();this.homePage=null;this.homeCollection=null;}this.preserveHomeRefresh=false;const key=this.readKey(),active=this.refreshRun;if(active&&active.key===key){active.queued=true;return active.promise;}const run={key,queued:false,promise:null};run.promise=(async()=>{do{run.queued=false;await this.refreshOnce();}while(run.queued&&run.key===this.readKey());})();this.refreshRun=run;try{return await run.promise;}finally{if(this.refreshRun===run)this.refreshRun=null;}}
+ async refresh(){if(this.annualTransitionBusy&&!this.yearTransitionRefreshing){
+   // A newer open/sort owns its own deferred read. The finishing annual click
+   // may already be retired; it must neither swallow that read nor replay it
+   // after another navigation, departure, or editing intent takes ownership.
+   const queued={key:this.readKey(),id:this.id,intent:this.openIntent,opening:this.topicOpenIntent,section:this.activeSectionId,view:this.view,presentation:this.presentationIntent,cue:this.rootCueEpoch,epoch:this.statusEpoch,departure:this.homeDepartureToken};
+   queued.current=()=>queued.key===this.readKey()&&queued.id===this.id&&queued.intent===this.openIntent&&queued.opening===this.topicOpenIntent&&queued.section===this.activeSectionId&&queued.view===this.view&&queued.presentation===this.presentationIntent&&queued.cue===this.rootCueEpoch&&queued.epoch===this.statusEpoch&&queued.departure===this.homeDepartureToken&&!$('thought-panel')?.hidden&&!this.leavePublication&&!this.departureFlush&&!this.sectionEndWriter?.hasDraft()&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+   this.annualRefreshRequest=queued;this.annualRefreshQueued=true;
+   // Purged Source must disappear immediately, even while a read is deferred.
+   await this.checkAllTracked(this.serial,{invalidateReader:true});return false;
+  }if(!this.id&&this.homeCollection&&!this.preserveHomeRefresh){this.homeDesiredCount=Math.max(40,this.homeDesiredCount||0,this.personalRoot.slots.extent(),this.homeCollection.items.length);this.homeCollection.releaseBodies();this.homePage=null;this.homeCollection=null;}this.preserveHomeRefresh=false;const key=this.readKey(),active=this.refreshRun;if(active&&active.key===key){active.queued=true;return active.promise;}const run={key,queued:false,promise:null};run.promise=(async()=>{do{run.queued=false;await this.refreshOnce();}while(run.queued&&run.key===this.readKey());})();this.refreshRun=run;try{return await run.promise;}finally{if(this.refreshRun===run)this.refreshRun=null;}}
  async refreshOnce(){
   const token=Symbol(),epoch=this.statusEpoch;this.loadToken=token;this.searching=!this.id&&!!'';
   const key=this.readKey(),host=this.id?$('thought-document'):$('thought-collection');
@@ -815,7 +824,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  }
  async openNextTopicYear(){
   if(this.annualTransitionBusy)return false;
-  const topicId=this.id,intent=this.openIntent,sectionId=this.activeSectionId,target=this.topicReader?.nextYear;
+  const topicId=this.id,intent=this.openIntent,opening=this.topicOpenIntent,sectionId=this.activeSectionId,key=this.readKey(),target=this.topicReader?.nextYear;
   const current=()=>topicId===this.id&&intent===this.openIntent&&sectionId===this.activeSectionId&&this.view==='original';
   if(target===null||target===undefined||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||this.sectionEndWriter?.hasDraft())return false;
   this.annualTransitionBusy=true;this.updateTopicContinuous();
@@ -845,7 +854,15 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!current()||reader!==this.topicReader)return false;
    if(reader.stale){this.updateTopicContinuous();return false;}
    await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});this.rememberContent();return !reader.errorNext;
-  }finally{try{if(current())await this.checkAllTracked(this.serial,{invalidateReader:true});}finally{this.annualTransitionBusy=false;this.yearTransitionRefreshing=false;this.updateTopicContinuous();if(this.annualRefreshQueued&&!this.topicReader?.errorNext&&!this.topicReader?.stale){this.annualRefreshQueued=false;queueMicrotask(()=>{if(current())void this.refresh();});}}}
+  }finally{try{if(current())await this.checkAllTracked(this.serial,{invalidateReader:true});}finally{
+   const queued=this.annualRefreshRequest;this.annualRefreshRequest=null;this.annualRefreshQueued=false;this.annualTransitionBusy=false;this.yearTransitionRefreshing=false;this.updateTopicContinuous();
+   if(queued)queueMicrotask(()=>{
+    const newer=queued.id!==topicId||queued.intent!==intent||queued.opening!==opening||queued.section!==sectionId||queued.key!==key;
+    // An unchanged failed annual reader still needs an explicit retry. A new
+    // deliberate open/sort may read afresh, but only under its own live guard.
+    if((newer||!this.topicReader?.errorNext&&!this.topicReader?.stale)&&queued.current())void this.refresh();
+   });
+  }}
  }
  renderDocument(page){
   this.ensurePanes();this.originalPane.hidden=false;this.aiPane.hidden=this.view!=='ai';
