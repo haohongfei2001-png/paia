@@ -32,3 +32,42 @@ for(const state of ['dirty','whitespace','empty IME','pending ACK','unknown ACK'
 test('a failed Section admission retains its connected blank writer for the original rollback scope',()=>fixture(async f=>{
  f.owner.resetTopicReader=async()=>({stale:true});assert.equal(await f.owner.navigateTopicSection('named'),false);assert.equal(f.owner.activeSectionId,'default');assert.equal(f.owner.topicReader,f.oldReader);assert.equal(f.owner.sectionEndWriter,f.writer);assert.equal(f.writer.field.isConnected,true);assert.equal(f.writer.hasDraft(),false);await f.owner.mountSectionEndWriter();assert.equal(f.owner.sectionEndWriter,f.writer);assert.equal(f.owner.actions.draft,f.writer.field);assert.equal(await f.owner.leaveEditors(),true,'a still-current blank writer leaves through its original idempotent owner');assert.equal(f.rpcCalls.length,0);
 }));
+
+
+test('pending blank writer qualification cannot publish a new owner during the original Back leave flush',()=>fixture(async f=>{
+ f.writer.dispose();f.owner.sectionEndWriter=null;
+ const compose=f.owner.actions.compose.bind(f.owner.actions);let releaseCompose,composeEntered,releaseFlush,flushEntered,handle;
+ const composeHeld=new Promise(resolve=>releaseCompose=resolve),composed=new Promise(resolve=>composeEntered=resolve),flushHeld=new Promise(resolve=>releaseFlush=resolve),flushing=new Promise(resolve=>flushEntered=resolve);
+ f.owner.actions.compose=async options=>{handle=await compose(options);handle.field.matches=()=>false;Object.defineProperty(handle.field,'innerText',{get:()=>handle.field.textContent});composeEntered();await composeHeld;return handle;};
+ f.owner.editor.flush=async()=>{flushEntered();await flushHeld;return true;};
+ const mounting=f.owner.mountSectionEndWriter();let leaving;
+ try{
+  await composed;assert.equal(handle.hasDraft(),false);assert.equal(handle.field.isConnected,true);assert.equal(f.owner.sectionEndWriter,null,'the original mount still awaits its same qualification');
+  leaving=f.owner.leaveEditors();await flushing;
+  releaseCompose();await mounting;releaseFlush();
+  assert.equal(await leaving,true,'the exact original Back flush succeeds without a second click or discarded human work');
+  assert.equal(f.owner.sectionEndWriter,null);assert.equal(handle.field.isConnected,false,'only the unused blank late handle is retired');assert.equal(f.rpcCalls.length,0,'no Entry, permission or receipt is created');
+ }finally{releaseCompose();releaseFlush();await mounting;await leaving;handle?.dispose();}
+}));
+
+for(const guard of ['leavePublication','departureFlush'])test('a new writer mount is not started during '+guard,()=>fixture(async f=>{
+ f.writer.dispose();f.owner.sectionEndWriter=null;let called=0;const compose=f.owner.actions.compose.bind(f.owner.actions);f.owner.actions.compose=async options=>{called++;return compose(options);};
+ f.owner[guard]=guard==='leavePublication'?Symbol('active leave'):1;
+ await f.owner.mountSectionEndWriter();assert.equal(called,0,'departure owns admission before any blank surface construction');assert.equal(f.owner.sectionEndWriter,null);assert.equal(f.rpcCalls.length,0);
+}));
+
+
+for(const state of ['dirty','empty IME'])test('a human '+state+' handle admitted before departure remains protected when its mount settles late',()=>fixture(async f=>{
+ f.writer.dispose();f.owner.sectionEndWriter=null;
+ const compose=f.owner.actions.compose.bind(f.owner.actions);let releaseCompose,composeEntered,releaseFlush,flushEntered,handle;
+ const composeHeld=new Promise(resolve=>releaseCompose=resolve),composed=new Promise(resolve=>composeEntered=resolve),flushHeld=new Promise(resolve=>releaseFlush=resolve),flushing=new Promise(resolve=>flushEntered=resolve);
+ f.owner.actions.compose=async options=>{handle=await compose(options);handle.field.matches=()=>false;Object.defineProperty(handle.field,'innerText',{get:()=>handle.field.textContent});composeEntered();await composeHeld;return handle;};
+ f.owner.editor.flush=async()=>{flushEntered();await flushHeld;return true;};
+ const mounting=f.owner.mountSectionEndWriter();let leaving;
+ try{
+  await composed;if(state==='empty IME')handle.field.listeners.get('compositionstart')();else handle.field.textContent='SYNTHETIC exact human draft 👩🏽‍💻';
+  const before=handle.field.textContent;assert.equal(handle.hasDraft(),true);leaving=f.owner.leaveEditors();await flushing;
+  releaseCompose();await mounting;releaseFlush();assert.equal(await leaving,false,'new human editing ownership refuses the old Back flush');
+  assert.equal(f.owner.sectionEndWriter,handle);assert.equal(handle.field.isConnected,true);assert.equal(handle.field.textContent,before);assert.equal(handle.hasDraft(),true);assert.equal(f.rpcCalls.length,0);
+ }finally{releaseCompose();releaseFlush();await mounting;await leaving;handle?.dispose();}
+}));

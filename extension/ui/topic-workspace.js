@@ -243,7 +243,7 @@ export class TopicController {
   }
  }
  async mountSectionEndWriter(){
-  if(this.entryComparison)return;
+  if(this.entryComparison||this.leavePublication||this.departureFlush)return;
   // A successful reflow may remove a former scope's empty inline host.
   // Retire only that detached, data-free handle before eligibility can defer
   // the next mount; draft/IME/pending/unknown ownership remains untouched.
@@ -276,6 +276,7 @@ export class TopicController {
     queueMicrotask(()=>{if(current())void this.refresh();});return true;
    }}});
    if(!current()){if(!handle?.hasDraft())handle?.dispose();return;}
+   if(this.leavePublication||this.departureFlush){if(handle?.hasDraft())this.sectionEndWriter=handle;else handle?.dispose();return;}
    this.sectionEndWriter=handle||null;
   }catch{if(current())this.onStatus('当前章节末端暂时无法编辑，请重试读取。','read_error');}
   finally{this.endWriterMounting=false;if(this.endWriterMountDone===mountDone)delete this.endWriterMountDone;settleMount();}
@@ -899,12 +900,12 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   else{const entry=new LibraryEntryEditor(body,rows,this.onStatus,()=>{if(this.editor?.entry===entry&&this.id===page.topic.id&&!this.departureFlush)void this.refresh();});entry.importHistory(this.history);this.editor=new DocumentSession(entry,metadata);}
   this.applyLayout();this.renderSectionNav(page);if(this.desktopAppearance&&!this.desktopPresentation)this.enableDesktopPresentation();else this.desktopPresentation?.sync();
  }
- syncReadingControls(){const b=$('topic-order-toggle');if(!b)return;const asc=this.readingSort==='asc',en=document.documentElement.lang==='en',label=asc?(en?'Oldest first':'最早在前'):(en?'Newest first':'最新在前');b.dataset.readingSort=asc?'desc':'asc';setIconLabel(b,asc?'sort-up':'sort-down',label);b.setAttribute('aria-label',label);}
+ syncReadingControls(){const b=$('topic-order-toggle');if(!b)return;b.disabled=!!this.readingSortBusy||this.topicOpening!==undefined;const asc=this.readingSort==='asc',en=document.documentElement.lang==='en',label=asc?(en?'Oldest first':'最早在前'):(en?'Newest first':'最新在前');b.dataset.readingSort=asc?'desc':'asc';setIconLabel(b,asc?'sort-up':'sort-down',label);b.setAttribute('aria-label',label);}
  async changeReadingSort(sort,{fromStart=false,timeEdge=null}={}){
-  if(!this.id||this.view!=='original'||!['asc','desc'].includes(sort)||this.readingSortBusy)return;
+  if(!this.id||this.view!=='original'||!['asc','desc'].includes(sort)||this.readingSortBusy||this.topicOpening!==undefined)return;
   if(fromStart&&this.topicProviderKey)return;
-  const topicId=this.id,intent=this.openIntent,section=this.activeSectionId,cue=this.rootCueEpoch,presentation=this.presentationIntent,controls=$('topic-time-order'),buttons=[...controls.querySelectorAll('button')];
-  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.activeSectionId===section&&this.rootCueEpoch===cue&&this.presentationIntent===presentation&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const topicId=this.id,intent=this.openIntent,opening=this.topicOpenIntent,section=this.activeSectionId,cue=this.rootCueEpoch,presentation=this.presentationIntent,controls=$('topic-time-order'),buttons=[...controls.querySelectorAll('button')];
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.topicOpenIntent===opening&&this.activeSectionId===section&&this.rootCueEpoch===cue&&this.presentationIntent===presentation&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
   this.readingSortBusy=true;controls.setAttribute('aria-busy','true');buttons.forEach(b=>b.disabled=true);
   try{
    // Retained return rows can precede admission of their actual editor. Wait
@@ -1783,7 +1784,12 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   this.view='original';try{return await this.leaveEditors({historyIntent});}finally{this.view='ai';}
  }
  async open(id,{sectionId=null}={}){
-  const claim=this.topicOpenIntent=(this.topicOpenIntent||0)+1;
+  const claim=this.topicOpenIntent=(this.topicOpenIntent||0)+1;this.topicOpening=claim;
+  // Retained rows can already be visible while their old editor is leaving.
+  // Keep the real chronology action disabled through this same open owner's
+  // leave, canonical publication and position restoration, including failures.
+  try{
+  this.syncReadingControls?.();
   const freshRoot=!id&&this.freshRootEntry===true;if(freshRoot)this.freshRootEntry=false;
   this.rememberView();const departure=this.id?this.captureHomePosition():null;
   if(!freshRoot&&departure)this.saveHomePosition(this.id||'home',departure);
@@ -1822,5 +1828,6 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    return intent;
   }
   }finally{positionEvents?.abort();if(intent===this.openIntent&&(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)this.resumeAnchor=null;}
+  }finally{if(this.topicOpening===claim){delete this.topicOpening;this.syncReadingControls?.();}}
  }
 }

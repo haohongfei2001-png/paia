@@ -1,5 +1,5 @@
 /* TL-PT1 Root: stable identity slots with content-sized blocks; durable names only. */
-#thought-list.personal-topic-grid{--topic-root-columns:3;display:grid;grid-template-columns:repeat(var(--topic-root-columns),minmax(0,1fr));column-gap:18px;row-gap:0;grid-auto-rows:1px;width:100%;max-width:none;margin:0;align-items:start}
+#thought-list.personal-topic-grid{--topic-root-columns:3;display:grid;grid-template-columns:repeat(var(--topic-root-columns),minmax(0,1fr));column-gap:18px;row-gap:0;grid-auto-rows:1px;width:100%;overflow-anchor:none;max-width:none;margin:0;align-items:start}
 .personal-topic-block{min-width:0;min-height:0;margin:0;padding:22px;border:1px solid var(--paia-line);border-radius:16px;background:var(--paia-surface,transparent);display:flex;flex-direction:column;gap:16px;overflow:hidden}
 .personal-topic-title{display:flex;align-items:center;gap:12px;margin:0;font:500 16px/1.6 var(--font);font-synthesis:none;min-width:0}
 .personal-topic-symbol{display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;width:21px;height:24px;color:var(--action,var(--focus));background:transparent}

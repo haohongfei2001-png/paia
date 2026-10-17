@@ -12,8 +12,13 @@ async function record(h,name,checks){assert.equal(h.externalRequests,0);assert.e
 
 test('audit Archive discovery refreshes edited/removed content, drops stale replies, and keeps header menu document-only',{timeout:120000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
-  const p=await ready(h);await h.open({id:'audit-reader',title:'Synthetic audit Reader',messages:Array.from({length:55},(_,i)=>({id:'audit-reader-'+i,text:'AUDIT_MATCH independent synthetic reading statement '+i}))});
-  await eventually(async()=>(await h.state()).records.length===55,'all synthetic Inputs captured',30000);await openArchiveWindow(p,{text:'Synthetic audit Reader'});await p.locator('#back').click();
+  const p=await ready(h),sourceHost=await h.open({id:'audit-reader',title:'Synthetic audit Reader',messages:Array.from({length:55},(_,i)=>({id:'audit-reader-'+i,text:'AUDIT_MATCH independent synthetic reading statement '+i}))});
+  await eventually(async()=>(await h.state()).records.length===55,'all synthetic Inputs captured',30000);
+  // This Archive-only cursor journey owns one explicit edit, not concurrent
+  // source observation. Closing only its synthetic host retires future capture
+  // retries; the actual extension worker, stored Inputs and Archive stay live.
+  await sourceHost.close();
+  await openArchiveWindow(p,{text:'Synthetic audit Reader'});await p.locator('#back').click();
   await p.locator('#scope-search').fill('AUDIT_MATCH');await eventually(async()=>await p.locator('.search-input').count()===50,'first search page');
   const worker=h.context.serviceWorkers().find(worker=>worker.url().endsWith('/background/service-worker.js'));
   await worker.evaluate(()=>{const put=IDBObjectStore.prototype.put;let pending=[];globalThis.__auditGenerationWrites=[];IDBObjectStore.prototype.put=function(value,...args){pending.push({store:this.name,id:value?.id,...(this.name==='meta'&&value?.id==='smart-filter'?{taskState:value.taskState,decisionSequence:value.decisionSequence,noticePending:value.noticePending}:{})});pending=pending.slice(-100);if(this.name==='meta'&&value?.id==='backup-data-generation'){globalThis.__auditGenerationWrites.push({generation:value.value,writes:pending});globalThis.__auditGenerationWrites=globalThis.__auditGenerationWrites.slice(-30);pending=[];}return put.call(this,value,...args);};});
@@ -63,7 +68,11 @@ test('audit independent Thought can save, edit and open history while response r
 
 test('audit retired Source exports reject repeated calls without reads, downloads or data mutation',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({launchThroughPort:true});try{
-  const p=await ready(h);await h.open({id:'audit-export',title:'Synthetic audit export',messages:[{id:'audit-export-one',text:'Synthetic export content'}]});await eventually(async()=>(await h.state()).records.length===1,'source captured');await p.bringToFront();
+  const p=await ready(h),sourceHost=await h.open({id:'audit-export',title:'Synthetic audit export',messages:[{id:'audit-export-one',text:'Synthetic export content'}]});await eventually(async()=>(await h.state()).records.length===1,'source captured');
+  // Retire only this synthetic observer before the exact no-mutation cut.
+  // Ongoing capture legitimately updates ingestion diagnostics; the retained
+  // Source, real worker and Archive remain live for the full snapshot oracle.
+  await sourceHost.close();await p.bringToFront();
   // Complete the fixture's genuine capture/filter publication and open its
   // original Reader before observing the retired export event's zero-read cut.
   // The strict all-command empty assertion below is unchanged.
