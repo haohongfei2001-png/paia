@@ -1,22 +1,15 @@
 // Injected into the disposable native worker. Observe and reuse the original
 // LibraryRunner/Store; no replacement store, retry, drain, or public RPC exists.
-export async function installLibraryFixtureObservation(){
- const {LibraryRunner}=await import(chrome.runtime.getURL('core/library-runner.js'));
- const {prefix}=await import(chrome.runtime.getURL('core/thought-model.js'));
- const trace=globalThis.__uir03Library={owner:null,errors:[],batches:0};
- const wake=LibraryRunner.prototype.wake;
- trace.restoreWake=()=>{LibraryRunner.prototype.wake=wake;};
- LibraryRunner.prototype.wake=function(...args){
-  if(!trace.owner){
-   trace.owner=this;const store=this.store,run=store.run,process=store.processLibraryMaintenance;
-   store.run=function(callback){let entered=false;return run.call(this,()=>{entered=true;return callback();}).catch(error=>{
-    trace.errors.push({code:/^[A-Z][A-Z0-9_]{0,63}$/.test(error?.code)?error.code:'OTHER',entered});if(trace.errors.length>64)trace.errors.shift();throw error;
-   });};
-   store.processLibraryMaintenance=async function(...args){trace.batches++;return process.apply(this,args);};
-   trace.restore=()=>{trace.restoreWake();store.run=run;store.processLibraryMaintenance=process;};
-  }else if(trace.owner!==this)throw Error('Synthetic fixture observed a second Library owner');
-  return wake.apply(this,args);
- };
+export function installLibraryFixtureObservation(){
+ const {store,library:owner,prefix}=globalThis.__uir03Worker||{};
+ if(!store||owner?.store!==store||typeof prefix!=='function')throw Error('Original static worker fixture references required');
+ const trace=globalThis.__uir03Library={owner,errors:[],batches:0};
+ const run=store.run,process=store.processLibraryMaintenance;
+ store.run=function(callback){let entered=false;return run.call(this,()=>{entered=true;return callback();}).catch(error=>{
+  trace.errors.push({code:/^[A-Z][A-Z0-9_]{0,63}$/.test(error?.code)?error.code:'OTHER',entered});if(trace.errors.length>64)trace.errors.shift();throw error;
+ });};
+ store.processLibraryMaintenance=async function(...args){trace.batches++;return process.apply(this,args);};
+ trace.restore=()=>{store.run=run;store.processLibraryMaintenance=process;};
  trace.read=async()=>{
   const owner=trace.owner;if(!owner)return {observed:false};
   const index=await owner.store.repository.transaction(false,async t=>{

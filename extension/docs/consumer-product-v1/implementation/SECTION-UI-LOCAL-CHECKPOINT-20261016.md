@@ -1,3 +1,17 @@
+# PR292 native fixture correction and measured capacity — 2026-10-17 / INCOMPLETE
+
+Candidate `c91694ec964450e8932e7dfb26c82d3f64c745bb` [Full39059013883](https://github.com/haohongfei2001-png/paia/actions/runs/39059013883) failed. Browser6 rejected both Source/release coarse media and the new UIR03 observer's prohibited MV3 service-worker dynamic import. Browser3 completed53/53 cases and both audits, then was cancelled at18minutes. The other eight Browser shards, four Unit shards, both macOS gates, Sync native and release/privacy passed; Full and Integration failed. Main `2cc827e8` and its original failed Full39036406089 remain unqualified. Prior local7406/7406 unit success did not establish native compatibility.
+
+The correction uses the already-qualified headed Chrome155 coarse mode, rejects a forced-headless override and measures actual media before seeding and throughout all original journeys. Fine baseline mode remains unchanged. UIR03 now appends static imports and references to the original Store/LibraryRunner only in disposable Source/release copies; no selected production package, public handler or permission changes. A regression executes the actual copied worker and the exact observer with dynamic imports forbidden. Native verification remains pending.
+
+Measured complete Working Revision file186–195seconds moves only from current-ten shard3 to10, whose three observed whole-job totals were624–742seconds. All100 current files execute exactly once; all ten jobs remain nonempty. Frozen fixtures remain unchanged:574 route entries plus two explicitly tested current-ten exceptions, with historical widths4/5/6/7/9, all timeouts/assertions and18-minute deadline unchanged. Context retains its dedicated artifact; separate temporary profiles/release directories are not shared. See MAIN-UI-CERTIFICATION-REPAIR-20261017 for exact evidence and verification boundaries.
+
+Saved Now97a2e802 and its separate reviewed local integration remain preserved and unmerged. This is still test-only0.52.0; current-head Full, independent review, guarded merge and exact-main Full are required. Manual full-window visual and external/device/product qualifications remain open. Input-only privacy, human membership/order and paused Sync remain unchanged.
+
+Final complete default-four unit run passes7408/7408, zero failures/skips. Targeted19/19 and independent19/19 pass; separate routing review6/6 passes. Source package16457 guardrails/490resources, standard0.52.0 release16393/486resources and510-file checks, privacy/network audit, syntax and diff checks pass. Independent final review is CLEAN, including byte comparison of all3087 selected Source files and510 built release files: only the disposable copies receive the exact static bridge. These local results do not certify native Chrome; changed-head Full/D7 and later exact-main Full remain required.
+
+## Preserved preceding checkpoint
+
 # Merged-main Full failed; Browser6 ownership repair — 2026-10-17 / INCOMPLETE
 
 Exact main `2cc827e8e4bed9d7d7a2a57fce1d6a8f5724c3a8` actually ran [Full39036406089](https://github.com/haohongfei2001-png/paia/actions/runs/39036406089) and failed Browser6: IAH Source Reader coarse media was false, and UIR03 Source scoped lexical index did not complete. Browser6 passed80/82 with no skips; the other nine Browser shards, four Unit shards, both macOS gates, Sync native and build/privacy passed. Full/Integration remain failed. The previous PR291 candidate success and state-only main commit do not replace exact-main qualification.

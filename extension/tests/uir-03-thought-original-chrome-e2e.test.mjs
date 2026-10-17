@@ -9,6 +9,7 @@ import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 import {waitArchiveWindow} from './harness/archive-navigator.mjs';
 import {installLibraryFixtureObservation,failWithBoundedEvidence} from './harness/uir03-worker-fixture.mjs';
+import {createUIRWorkerFixture} from './harness/uir03-worker-copy.mjs';
 
 const execFileAsync=promisify(execFile);
 const op=()=>crypto.randomUUID();
@@ -19,13 +20,14 @@ const rpc=async(page,type,fields={})=>{
 };
 const nav=thoughtPrimary;
 
-async function ready(h){
+async function ready(h,fixture,variant){
   const page=h.archive;
   h.libraryWorker=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);assert.ok(h.libraryWorker,'the original native worker is running');
   await h.libraryWorker.evaluate(installLibraryFixtureObservation);
   await rpc(page,'GET_STATUS');
-  await eventually(()=>h.libraryWorker.evaluate(()=>!!globalThis.__uir03Library?.owner),'observe the existing LibraryRunner through its ordinary wake');
-  await h.libraryWorker.evaluate(()=>__uir03Library.restoreWake());
+  const originalStore=await h.libraryWorker.evaluate(()=>__uir03Library.owner.store===__uir03Worker.store);
+  assert.equal(originalStore,true,'static bridge references the original worker Store');
+  console.info('UIR03_STATIC_WORKER '+JSON.stringify({variant,workerSha256:fixture.workerSha256,bridgeSha256:fixture.bridgeSha256,originalStore}));
   const action=page.locator('#enable-consent');
   await action.waitFor({state:'visible'});
   await eventually(async()=>!(await action.isDisabled()),'UIR-03 consent action is available');
@@ -62,7 +64,7 @@ async function seed(page,h,prefix){
   // Synthesize legacy missing/invalid dates through the real repository only
   // in this isolated fixture; normal creation must retain its actual date.
   await h.libraryWorker.evaluate(async ({topicId,ids})=>{
-    const {invalidateThoughtTopicIndex}=await import(chrome.runtime.getURL('core/thought-read-index.js'));
+    const {invalidateThoughtTopicIndex}=globalThis.__uir03Worker;
     const store=globalThis.__uir03Library.owner.store;
     await store.foundationWrite(async t=>{
       for(let i=0;i<ids.length;i++){const row=await t.get('thoughts',ids[i]);row.createdAt=i===0?null:'invalid legacy time';await t.put('thoughts',row);for(const receipt of await t.all('operationReceipts'))if(receipt.ownerId===ids[i]){delete receipt.result.independentExpression;await t.put('operationReceipts',receipt);}}
@@ -267,9 +269,7 @@ async function selectSettledTopicSource(page,scope,value,topic){
 
 async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  const seeded=await h.libraryWorker.evaluate(async ({topicId,prefix})=>{
-  const {ImportLedger}=await import(chrome.runtime.getURL('core/import/ledger.js'));
-  const {ImportCoordinator}=await import(chrome.runtime.getURL('core/import/coordinator.js'));
-  const {getOfficialExportAdapter}=await import(chrome.runtime.getURL('core/import/registry.js'));
+  const {ImportLedger,ImportCoordinator,getOfficialExportAdapter}=globalThis.__uir03Worker;
   const store=globalThis.__uir03Library.owner.store;
    const ledger=new ImportLedger(store),coordinator=new ImportCoordinator({transport:(method,query)=>ledger[method](query,'vs05-browser-scope'),resolveAdapter:getOfficialExportAdapter});
    const id='vs05-browser-claude-'+crypto.randomUUID(),data=[{uuid:id,name:prefix+' Scope shared Claude',current_leaf_message_uuid:id+'-answer',chat_messages:[
@@ -605,26 +605,28 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
 }
 
 test('UIR-03 Thought home and Topic Original presentation keep existing identity, editing owners and reading width in source and built release Chrome',{timeout:300000},async()=>{
-  let source;
+  let source,sourceFixture;
   try{
-    source=await FakeChatGPT.start({onboarding:true});
-    const page=await ready(source);
+    sourceFixture=await createUIRWorkerFixture();
+    source=await FakeChatGPT.start({extensionPath:sourceFixture.path,onboarding:true});
+    const page=await ready(source,sourceFixture,'source');
     const topics=await seed(page,source,'UIR03_SOURCE');
     await homeAndOriginalJourney(page,source,topics);
   }finally{
-    await source?.close();
+    await source?.close();await sourceFixture?.close();
   }
 
   const releasePath=await mkdtemp(join(tmpdir(),'paia-uir03-release-'));
-  let release;
+  let release,releaseFixture;
   try{
     await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
-    release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
-    const page=await ready(release);
+    releaseFixture=await createUIRWorkerFixture(releasePath);
+    release=await FakeChatGPT.start({extensionPath:releaseFixture.path,onboarding:true});
+    const page=await ready(release,releaseFixture,'release');
     const topics=await seed(page,release,'UIR03_RELEASE');
     await homeAndOriginalJourney(page,release,topics,{release:true});
   }finally{
-    await release?.close();
+    await release?.close();await releaseFixture?.close();
     await rm(releasePath,{recursive:true,force:true});
   }
 });

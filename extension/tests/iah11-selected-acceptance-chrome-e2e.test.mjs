@@ -111,7 +111,11 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   assert.ok(!data.backPosition.some(n=>['sticky','fixed'].includes(n.position)),'Back has no sticky/fixed ancestor');
   await p.locator('#back').focus();const back=performance.now();await p.keyboard.press('Enter');await eventually(()=>row.evaluate(n=>document.activeElement===n));data.returnMs=performance.now()-back;
   assertOffline(h);await h.close();h=null;
-  h=await FakeChatGPT.start({extensionPath:path,headless:true,hasTouch:true,viewport:{width:1440,height:900}});p=h.archive;
+  // Chrome155 loses primary coarse media on extension navigation in headless mode.
+  // Use the same headed touch mode already qualified by Settings in this shard.
+  assert.notEqual(process.env.PAIA_HEADLESS,'1','IAH coarse acceptance requires the qualified headed Chrome mode');
+  h=await FakeChatGPT.start({extensionPath:path,headless:false,hasTouch:true,viewport:{width:1440,height:900}});p=h.archive;data.coarseBrowser={headless:false,version:h.context.browser().version()};
+  await deviceEvidence(p,data,'fresh coarse context before seed',true);
   await seedArchive(h,p);await deviceEvidence(p,data,'fresh coarse context',true);
   await p.locator('#archive-source-scope').selectOption('');
   await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');row=p.locator('.search-input').first();await eventually(()=>row.isVisible());

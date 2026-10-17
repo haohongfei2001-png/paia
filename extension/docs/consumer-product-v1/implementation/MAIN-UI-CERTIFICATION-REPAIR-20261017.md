@@ -1,3 +1,35 @@
+# PR292 native execution correction — 2026-10-17
+
+Status: local implementation and independent review complete; changed-head native/full certification remains required. Every production runtime, manifest, version and workflow byte remains unchanged. The original repair receipt below is historical; its dynamic-import observation route was not native compatible and is replaced here.
+
+## Actual candidate failure
+
+Candidate `c91694ec964450e8932e7dfb26c82d3f64c745bb`, tested PR merge `c4a03f1289157f97e4be86e4a4311a413157c7e7`, failed [Full39059013883](https://github.com/haohongfei2001-png/paia/actions/runs/39059013883). [Browser6 job117472963226](https://github.com/haohongfei2001-png/paia/actions/runs/39059013883/job/117472963226) rejected Source and release at the fresh coarse media assertion, then UIR03 failed immediately because `import()` is prohibited in ServiceWorkerGlobalScope. The new observer caused this second failure; it was not a recurrence of the earlier lexical timeout. Node-only tests and the preceding review did not establish MV3 compatibility.
+
+[Browser6 artifact12111420560](https://github.com/haohongfei2001-png/paia/actions/runs/39059013883/artifacts/12111420560) SHA256 `13991711944f17dfeefa13bfe813c3075098e9716361684b3b462fe82b2cac3b`. Both IAH samples are coarse:false, fine:true, maxTouchPoints:1: Playwright forwarded touch capability, but this headless extension mode does not retain primary coarse media. The same artifact's Settings Source/release receipts on Chrome155.0.8059.39 pass six headed coarse groups and seven native activations per variant, including actual coarse media/trusted touch after navigation/reload. This matches the existing finite headless/headed investigation in settings/SET2-01.md. No unique Chrome internal reset command is inferred.
+
+## Bounded corrections
+
+IAH retains its exact fine-pointer baseline and90-second test limits. Only the coarse context uses the already-qualified headed1440×900 mode; a forced PAIA_HEADLESS=1 is rejected before launch. Actual coarse/fine/touch state is asserted before synthetic seeding, after it and at every existing action/target checkpoint. An actual fine-media/maxTouchPoints1 sample still fails even with a44px control. No media mock, isMobile emulation, CDP repair, extra sleep, target relaxation or skipped action is introduced.
+
+UIR03 uses an owned temporary copy of the selected Source or standard built release. The original background worker bytes are retained in order, followed only by static imports of existing helpers and references to its original Store and LibraryRunner. The manifest is byte-identical. Observation wraps those same instances without new construction, public handlers, explicit maintenance driving, retries or failure-latch clearing. The three worker seed callbacks use those static references; page-only imports remain page-only. Original selected worker bytes and standard release output are untouched and copies are cleaned. Native evidence logs the selected worker/bridge digests and exact Store identity.
+
+A deterministic test imports the actual copied service worker with synthetic Chrome/storage, verifies its real Store/runner identity and ordinary guarded maintenance completion, unchanged public CAPTURE refusal and zero network. The exact injected observer is additionally executed with every dynamic import rejected. This directly tests the prior prohibited execution form, but remains Node evidence rather than a native Chrome pass. Existing competing-Store failure and all five bounded-diagnostic negatives remain.
+
+## Measured Browser3 capacity
+
+[Browser3 job117472963281](https://github.com/haohongfei2001-png/paia/actions/runs/39059013883/job/117472963281) started18:39:01.466; its browser step started18:39:37.632. All53 cases (51 browser and two imported lifecycle controls) finished by18:57:02.563 with zero failures/skips. Package and development privacy audits passed by18:57:05.272; cancellation followed30ms later. Whole job1086.462seconds, browser step1047.678seconds. No tail test or hung file was found; fail-fast:false remained. Artifact12111615046 SHA256 `84c32b7638c501f3da9c326880b10f95569ac89e3a7e65d73a72f688d3f3c9a6` was uploaded. This cancelled job is not relabeled PASS.
+
+Across Full39033996438 /39036406089 /39059013883, Browser3 whole-job durations were866.948/1002.057/1086.462seconds. Complete-file wall envelopes were: AI cost foundation135.161/225.079/261.433; Working Revision186.265/191.357/194.929; historical comparison252.418/262.320/273.154; IAH result159.741/178.412/202.005. Other six files total67–114seconds. These measurements establish insufficient reserve under observed execution variation, not a unique CPU/storage cause.
+
+Only the complete eight-case Working Revision file moves current-ten3→10. Shard10's measured whole jobs742.331/623.739/720.606 imply combined planning envelopes928.596/815.096/915.535seconds; shard3 becomes680.683/810.700/891.533. These are estimates, not PASS evidence. The old saved-AI5→4 relocation remains, and every other frozen route stays exact:574 unchanged entries and two named current-ten exceptions, all1728 path-form checks. All100 files execute once, ten jobs are nonempty, historical4/5/6/7/9 widths and frozen JSON fixtures are unchanged. Context retains its dedicated artifact; both files create independent disposable browser profiles and release directories and run with original concurrency1. No workflow,18-minute deadline, per-test timeout, assertion or complete-file coverage changes.
+
+## Required qualification
+
+Final complete default-four unit run passes7408/7408, zero failures/skips. Targeted19/19 and independent19/19 pass; separate routing review6/6 passes. Source package16457 guardrails/490resources, standard0.52.0 release16393/486resources and510-file checks, privacy/network audit, syntax and diff checks pass. Independent final review is CLEAN, including byte comparison of all3087 selected Source files and510 built release files: only the disposable copies receive the exact static bridge. These local results do not certify native Chrome; changed-head Full/D7 and later exact-main Full remain required. Changed-head Source/release native Full, safe merge and exact-main Full remain mandatory. Saved Now97a and its separate integration are preserved; visual/device/live-provider/installation/whole-programme acceptance remain open. Preserve input-only privacy, human membership/order and paused Sync.
+
+## Preserved original repair receipt
+
 # Merged-main Browser6 fixture ownership repair — 2026-10-17
 
 Status: implementation and local verification; current candidate native/full CI and exact merged-main qualification remain required. This is a test-only repair, retaining version0.52.0 and every delivered runtime/workflow byte.

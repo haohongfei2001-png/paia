@@ -45,15 +45,15 @@ test('seeding through the existing worker tail preserves the original runner and
 });
 
 test('fixture observation forwards wakes and original errors without clearing failure, retrying or replacing the Store',async()=>{
- const saved=globalThis.chrome;globalThis.chrome={runtime:{getURL:path=>new URL('../'+path,import.meta.url).href}};
+ const saved=globalThis.__uir03Worker;
  const failure=Object.assign(Error('SYNTHETIC failure'),{code:'STORAGE_FAILED'});let runs=0,batches=0;
  const store={run:async fn=>{runs++;return fn();},processLibraryMaintenance(){batches++;return this.run(()=>{throw failure;});}},runner=new LibraryRunner(store);
  try{
-  await installLibraryFixtureObservation();await runner.wake();
+  globalThis.__uir03Worker={store,library:runner,prefix:()=>null};installLibraryFixtureObservation();await runner.wake();
   const trace=globalThis.__uir03Library;assert.equal(trace.owner,runner);assert.equal(trace.owner.store,store);assert.equal(runner.failed,true);assert.deepEqual(trace.errors,[{code:'STORAGE_FAILED',entered:true}]);
   await runner.wake();assert.equal(runs,1);assert.equal(batches,1);assert.equal(trace.batches,1);
   trace.restore();assert.equal(runner.failed,true);
- }finally{globalThis.__uir03Library?.restore();delete globalThis.__uir03Library;globalThis.chrome=saved;}
+ }finally{globalThis.__uir03Library?.restore();delete globalThis.__uir03Library;globalThis.__uir03Worker=saved;}
 });
 
 test('native UIR03 seeds only the observed worker and keeps strict bounded lexical completion',async()=>{
