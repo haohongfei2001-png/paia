@@ -1,4 +1,4 @@
-import {applyDetailReference} from './context-detail-reference.mjs';
+import {applyDetailReference,applySectionReference,applyQuartetReference} from './context-detail-reference.mjs';
 // Independent test-only derivation of CTX4-UI-1.3. No production UI imports,
 // computed production styles, screenshots or runtime data become expected values.
 // Source: approved PAIA_AI上下文_白色精修.html SHA256
@@ -10,7 +10,7 @@ import {applyDetailReference} from './context-detail-reference.mjs';
 // Canonical CTX4-02/03/04 add local search, independent Topic read/permission
 // targets and scope preview. Their functional controls are modeled explicitly,
 // never removed from actual metrics to make old geometry pass.
-export const whiteReferenceIdentity={revision:'CTX4-UI-1.3',sourceSHA256:'ae103313b9d48ee77631b043360a4a3a7c5ce3011d45ff698f652d84030b46ae',preserved:'20 synthetic states; immutable original manifest; every style/geometry comparison'};
+export const whiteReferenceIdentity={revision:'CTX4-UI-1.7',derivation:'AI_CONTEXT_CARDS_V2_PLAN and UX_CONTRACT finite replacements; private final prototype bytes unavailable',sourceSHA256:'ae103313b9d48ee77631b043360a4a3a7c5ce3011d45ff698f652d84030b46ae',preserved:'20 synthetic states; immutable original manifest; every style/geometry comparison'};
 export const whiteReferenceCSS=`
 body[data-paia-space=memory]{--bg:#fff;--surface:#fff;--rail:#fcfdff;--text:#222832;--muted:#687381;--quiet:#687381;--line:#e1e6ec;--soft:#fcfdff;--selected:#edf3ff;--focus:#5a85ca;--selection:#ddeaff;--prose-ink:#343b45;--title-ink:#242d3b;--heading-ink:#2b3543;--directory-ink:#525e6d;--selected-ink:#305eac}
 html[data-paia-theme=dark] body[data-paia-space=memory]{--bg:#1a2028;--surface:#202731;--rail:#1c232d;--text:#edf0f5;--muted:#a9b6c7;--quiet:#a2afc0;--line:#35414f;--soft:#2b3542;--selected:#293f5e;--focus:#94baff;--selection:#314d79;--prose-ink:#d7dde5;--title-ink:#edf0f5;--heading-ink:#edf0f5;--directory-ink:#a9b6c7;--selected-ink:#c2d8fa}
@@ -80,4 +80,6 @@ export async function refineWhiteReference(page){
  });
  await page.addStyleTag({content:whiteReferenceCSS});
  await applyDetailReference(page);
+ await applySectionReference(page);
+ await applyQuartetReference(page);
 }

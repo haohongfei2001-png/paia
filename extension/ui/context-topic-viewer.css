@@ -38,3 +38,8 @@ html[data-paia-theme="dark"] .context-drawer{background:#202731;border-color:#35
 .context-topic-search-results .entry-prose{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--prose-ink,var(--text));font-size:var(--paia-prose-size,17px);line-height:1.65;max-width:var(--paia-prose-width,680px)}
 .context-topic-search-result{padding-block:12px;border-bottom:1px solid var(--line)}
 .context-topic-search-result button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+/* One current, readonly Section; the selector never changes AI access. */
+.context-topic-viewer .context-drawer-head{flex-wrap:wrap;justify-content:flex-start}
+.context-topic-section-select{min-width:0;max-width:100%;flex:1 1 160px;font:400 13.5px/1.65 var(--font);color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.context-topic-viewer .context-drawer-head h2{flex:1 1 100%;font-family:var(--font);font-synthesis:none}
+@media(max-width:767px),(pointer:coarse){.context-topic-section-select{min-height:44px}}

@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
+import {openRawInputOriginal,returnRawToInput} from './harness/raw-source-navigation.mjs';
 
 const rpc=async(page,type,fields={})=>{const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(result.ok,true,JSON.stringify(result));return result.data;};
 const noOverflow=page=>page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -44,12 +45,12 @@ for(const variant of ['source','release'])test('CPV1-02.6 Reader and Archive kee
   await capturePage.close();await rpc(p,'GET_STATUS');
   await eventually(async()=>{const filter=await rpc(p,'FILTER_STATUS');return filter.pending===0&&(filter.mode==='off'||filter.taskState==='idle');},'original filter owner completes fixture capture work');
   const beforeTitle=(await h.state()).conversations.find(doc=>doc.sourceConversationId==='cpv1-026-a11y');assert.ok(beforeTitle);assert.ok(title.length>300);assert.equal(beforeTitle.originalConversationTitle,title.trim(),'original adapter removes only its surrounding page-title whitespace');assert.equal(beforeTitle.userTitle,'');
-  const prose=p.locator('.library-prose').first();await prose.click({button:'right'});await p.locator('#context-menu button').filter({hasText:'查看原始内容'}).click();
+  const prose=p.locator('.library-prose').first(),inputId=await prose.getAttribute('data-edit-id');await prose.click({button:'right'});assert.equal(await p.getByRole('menuitem',{name:'查看原始内容',exact:true}).count(),0,'normal Reader has no recurring Source action');await p.keyboard.press('Escape');const raw=await openRawInputOriginal(p,inputId);assert.equal(await p.locator('#info-content .source-original').textContent(),body,'the native raw-data route exposes the same exact original bytes');
   await eventually(()=>p.locator('#info-dialog').evaluate(el=>el.open),'Source dialog opens');
   assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog','dialog takes focus');
   await p.keyboard.press('Tab');assert.equal(await p.evaluate(()=>document.activeElement?.closest('dialog')?.id),'info-dialog','keyboard focus stays in the dialog');
   await p.locator('#close-info').click();await eventually(()=>p.locator('#info-dialog').isHidden(),'dialog closes');
-  await eventually(()=>p.evaluate(()=>document.activeElement?.closest('[data-item-id]')?.classList.contains('library-prose')),'focus returns to the Reader Input');
+  await eventually(()=>raw.prose.evaluate(node=>document.activeElement===node),'Original returns focus to its actual surviving raw Source invoker');const returned=await returnRawToInput(p,inputId);await returned.focus();assert.equal(await returned.evaluate(node=>document.activeElement===node),true,'the same canonical Reader Input remains keyboard reachable through the native return');
   const afterTitle=(await h.state()).conversations.find(doc=>doc.id===beforeTitle.id);assert.deepEqual({original:afterTitle.originalConversationTitle,manual:afterTitle.userTitle,revision:afterTitle.titleRevision},{original:beforeTitle.originalConversationTitle,manual:'',revision:beforeTitle.titleRevision},'opening and closing Original must not rename the untouched long captured title');
   await p.setViewportSize({width:1024,height:768});const cdp=await h.context.newCDPSession(p);await cdp.send('Emulation.setPageScaleFactor',{pageScaleFactor:2});
   assert.ok(await noOverflow(p)<=2,'200% page scale keeps Reader reflowed');assert.equal(await p.locator('.reader-more').isVisible(),true);

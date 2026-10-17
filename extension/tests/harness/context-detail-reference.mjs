@@ -54,3 +54,75 @@ export async function applyDetailReference(page){
  });
  await page.addStyleTag({content:detailReferenceCSS});
 }
+
+// Finite replacements derived from CTX4-UI-1.6 §§1–2 and shared UX §§4–5.
+// This is a plan-derived oracle; it does not claim possession of private
+// 55afe23b... prototype bytes or import/read production styles.
+export const sectionReferenceCSS=`
+.context-page{max-width:1000px;margin-left:var(--archive-gutter);margin-right:var(--archive-gutter);font-synthesis:none}
+.context-page:not(.context-detail) .context-head{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:20px}
+.context-semantic-title{position:absolute;overflow:hidden;width:1px;height:1px;margin:-1px;padding:0;clip-path:inset(50%);white-space:nowrap}
+.context-head>.context-search{width:auto;max-width:440px;flex:1 1 240px;margin:0}
+.context-head .context-access-bar{flex:1 1 auto;justify-content:flex-end;min-height:0;margin:0}
+.context-access-controls{gap:12px}
+.context-cards{align-items:start;gap:20px}
+.context-card{min-height:0;border-radius:17px}
+.context-card .card-open{padding:20px 22px 12px}
+.context-card .card-head-button{align-items:center;justify-content:flex-start;gap:10px;min-height:44px}
+.context-card .card-title{font-family:var(--font);font-size:16.5px;font-weight:500;line-height:1.5;letter-spacing:0;font-synthesis:none}
+.context-card .card-symbol,html[data-paia-theme=dark] .context-card .card-symbol{background:none;border:0;border-radius:0;width:21px;height:21px;flex:0 0 21px}
+.context-card .card-symbol svg{width:21px;height:21px;stroke-width:1.4}
+.context-card .card-symbol:before,.context-card .card-symbol:after{content:none}
+.context-card .context-directory{min-height:0;margin-top:8px;padding-top:0}
+.context-card .context-directory-link,.context-card .input-summary{font-size:13.5px;font-weight:400;line-height:1.65}
+.context-card .card-footer{margin-inline:22px;padding-block:12px}
+.context-detail .context-head{align-items:center;margin-bottom:16px}
+.context-detail .context-head h1{font:500 16.5px/1.5 var(--font);font-synthesis:none;letter-spacing:0}
+.context-detail-right{padding-top:0}
+.context-item-footer{justify-content:flex-end}
+.context-home-end,.context-detail-footer{justify-content:flex-end;gap:12px}
+@media(max-width:767px){
+ .context-page:not(.context-detail) .context-head{gap:12px}
+ .context-head>.context-search{width:100%;max-width:none;flex-basis:100%;margin:0}
+ .context-head .context-access-bar{justify-content:flex-start}
+ .context-head .context-access-controls{gap:8px;justify-content:flex-start}
+ .context-cards{grid-template-columns:minmax(0,1fr)}
+ .context-card .card-title{font-size:16.5px}
+ .context-card .context-directory-link{min-height:44px}
+ .context-back-row{margin-bottom:16px}
+ .context-detail .context-head{gap:12px}
+}
+`;
+export async function applySectionReference(page){
+ await page.evaluate(()=>{
+  const panel=document.querySelector('.context-page'),head=panel.querySelector('.context-head'),home=!!panel.querySelector('.context-cards');
+  for(const node of panel.querySelectorAll('.context-eyebrow,.context-subtitle,.card-description,.context-access-caption,.context-local-boundary,.context-toolbar-label,.context-item-origin,.context-crumb-current'))node.remove();
+  const heading=head.querySelector('.context-heading-copy'),title=heading?.querySelector('h1');if(heading&&title){heading.replaceWith(title);if(home)title.classList.add('context-semantic-title');}
+  if(home){head.append(panel.querySelector('.context-access-bar'));for(const button of panel.querySelectorAll('.card-head-button'))button.prepend(button.querySelector('.card-symbol'));}
+  else if(panel.querySelector('.detail-content'))panel.querySelector('.context-back-row .context-search')?.remove();
+ });
+ await page.addStyleTag({content:sectionReferenceCSS});
+}
+
+// Finite YEAR-HARMONY plan-derived update. Exact private prototype pixels are
+// separately qualified; these literals represent the published role anchors.
+export const quartetReferenceCSS=`
+.context-page:not(.context-detail){max-width:760px}
+.context-page:not(.context-detail) .context-head{margin-bottom:22px}
+.context-head .context-access-bar{display:block;width:100%}
+.context-head .context-access-controls{width:100%;justify-content:space-between}
+.context-cards{gap:22px;align-items:stretch}.context-card{border-radius:21px}
+.context-card .card-open{padding:24px 26px 20px;flex:1}
+.context-card .card-head-button{flex-direction:row-reverse;justify-content:space-between}
+.context-card .card-title{font-size:18px;font-weight:500}
+.context-card .context-directory{margin-top:24px}
+.context-card .context-directory-link,.context-card .input-summary{font-size:14px}
+.context-card .card-footer{margin-inline:26px;padding-block:15px;justify-content:flex-start}
+.context-card .access{width:100%;justify-content:space-between;border:0;border-radius:0;padding-inline:0;background:transparent}
+html[data-paia-theme=dark] .context-card .access{background:transparent}
+@media(max-width:767px){.context-cards{align-items:start}.context-card .card-title{font-size:18px}.context-card .card-open{padding:22px}.context-card .card-footer{margin-inline:22px}}
+`;
+export async function applyQuartetReference(page){
+ await page.evaluate(()=>{for(const form of document.querySelectorAll('.context-page .context-search'))form.remove();});
+ await page.addStyleTag({content:quartetReferenceCSS});
+}

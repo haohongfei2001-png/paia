@@ -60,21 +60,17 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   assert.doesNotMatch(await page.locator('#thought-panel').innerText(),/下一部分/);
   const firstCount=await page.locator('#thought-list article.personal-topic-block[data-topic-id]').count();assert.equal((await blockIds(page)).includes(seed.targetId),false,'deep search target is outside the actual first mounted projection page');
 
-  // A fresh actual tab has no visited Root extent. Search must discover an
-  // identity that has never been mounted there, while the original tab keeps
-  // its independent first-page keyboard/continuation journey below.
+  // Home search is retired. Its shared lexical service must still discover
+  // never-mounted identities without expanding or filtering this directory.
   const searchTab=await h.context.newPage();searchTab.on('pageerror',error=>h.errors.push(error.message));
   try{
-   await searchTab.goto(page.url().split('#')[0]);
-   await searchTab.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__ans07FreshSearchReads=[];chrome.runtime.sendMessage=async(message,...args)=>{const response=await send(message,...args);if(message.type==='GET_LIBRARY_ROOT_SEARCH')__ans07FreshSearchReads.push({query:message.options?.query,ok:response?.ok,page:response?.data});return response;};});
-   await searchTab.locator('[data-view=thoughts]').click();await eventually(()=>searchTab.locator(rootBlocks).count().then(n=>n>=40),'fresh tab mounts its initial bounded Root extent');
-   assert.equal((await blockIds(searchTab)).includes(seed.targetId),false,'deep target has never been mounted in this tab before the query');
-   await searchTab.locator('#thought-search').fill('ANS07_DEEP_SEARCH_TARGET');const freshMatch=searchTab.locator(rootBlocks+':not(.personal-topic-nonmatch)');
-   await eventually(async()=>await freshMatch.count()===1&&await freshMatch.getAttribute('data-topic-id')===seed.targetId,'actual Root query retrieves the previously unmounted identity',30000);
-   assert.ok((await freshMatch.textContent()).includes('ANS07_DEEP_SEARCH_TARGET'));
-   const reads=await searchTab.evaluate(()=>__ans07FreshSearchReads);assert.ok(reads.some(row=>row.ok&&row.query==='ANS07_DEEP_SEARCH_TARGET'&&row.page.items.some(item=>(item.topicId||item.id)===seed.targetId)),'a real trusted search response supplies the absent identity');
-  }finally{await searchTab.close();await page.bringToFront();}
-  assert.equal(await page.locator(rootBlocks).count(),firstCount,'search in another tab cannot expand this tab’s visited Root extent');
+   await searchTab.goto(page.url().split('#')[0]);await searchTab.locator('[data-view=thoughts]').click();await eventually(()=>searchTab.locator(rootBlocks).count().then(n=>n>=40),'fresh tab mounts its initial bounded Root extent');
+   assert.equal((await blockIds(searchTab)).includes(seed.targetId),false,'deep target has never been mounted in this tab before the service query');assert.equal(await searchTab.locator('#thought-search,.personal-root-search-extra,.personal-entry-preview').count(),0,'retired Home search and previews are absent');
+   const matches=[];let cursor=null,authority;
+   do{const result=await rpc(searchTab,'GET_LIBRARY_ROOT_SEARCH',{options:{query:'ANS07_DEEP_SEARCH_TARGET',limit:40,cursor,...(authority?{authority}:{})}});assert.notEqual(result.cursorInvalid,true);assert.ok(result.items.length<=40);authority=result.authority;matches.push(...result.items);cursor=result.nextCursor;}while(cursor);
+   const match=matches.find(item=>(item.topicId||item.id)===seed.targetId);assert.ok(match,'the original trusted lexical service retrieves the absent identity');assert.ok(JSON.stringify(match).includes('ANS07_DEEP_SEARCH_TARGET'));assert.equal((await blockIds(searchTab)).includes(seed.targetId),false,'a backend query cannot mount an unsolicited UI result');assert.equal(await searchTab.locator('#thought-search,.personal-root-search-extra').count(),0);
+  }finally{await searchTab.close();}
+  assert.equal(await page.locator(rootBlocks).count(),firstCount,'service lookup in another tab cannot expand this tab’s visited Root extent');
 
   const sentinel=page.locator('#thought-continuous-sentinel');await sentinel.focus();await sentinel.press('Enter');
   await eventually(async()=>await page.locator('#thought-list article.personal-topic-block[data-topic-id]').count()>firstCount,'keyboard continuous load',20000);
@@ -116,14 +112,10 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   const afterBack=await visibleAnchor(page);assert.equal(afterBack.id,beforeOpen.id);assert.ok(Math.abs(afterBack.top-beforeOpen.top)<=2,'back returns the exact key to its prior viewport offset');assert.equal(Number(await page.locator('#thought-list').getAttribute('data-loaded-extent')),300,'Back preserves the complete visited extent');
   await page.screenshot({path:'work/ans-07/root-return-restored.png'});
 
-  const beforeSearch=await visibleAnchor(page),beforeSearchClickedTop=await targetRow.evaluate(node=>node.getBoundingClientRect().top);
-  const searchGeometry=await page.evaluate(()=>({scroll:scrollY,anchor:__ans07Root.previousHomeAnchor(),geometry:__ans07Root.personalRoot.captureReturnGeometry()}));
-  await page.locator('#thought-search').fill('ANS07_DEEP_SEARCH_TARGET');
-  await eventually(async()=>await page.locator(rootBlocks+':not(.personal-topic-nonmatch)').count()===1,'search highlights the correct stable slot in the fully loaded Root',30000);
-  const match=page.locator(rootBlocks+':not(.personal-topic-nonmatch)');assert.equal(await match.getAttribute('data-topic-id'),seed.targetId);assert.ok((await match.innerText()).includes('ANS07_DEEP_SEARCH_TARGET'));assert.equal(await page.locator(rootBlocks).count(),300,'search keeps all 300 Topic slots');assert.deepEqual(await blockIds(page),stableIds);assert.deepEqual(await rootSlots(page),stableSlots);bodyFree(await page.evaluate(()=>__ans07Root.rootPreSearch));
-  await page.locator('#thought-search').fill('');
-  await eventually(async()=>await page.locator(rootBlocks).count()===300&&await page.locator(rootBlocks+'.personal-topic-nonmatch').count()===0,'root returns after search',20000);
-  let searchClearError,searchDiagnosticError;try{await eventually(async()=>{const anchor=await visibleAnchor(page);return anchor?.id===beforeSearch.id&&Math.abs(anchor.top-beforeSearch.top)<=2;},'clearing search restores the exact pre-search identity and viewport offset');}catch(error){searchClearError=error;}try{await writeFile('work/ans-07/search-clear-diagnostics.json',JSON.stringify({beforeSearch,searchGeometry,after:await visibleAnchor(page),exact:await page.locator(rootBlocks+'[data-topic-id="'+beforeSearch.id+'"]').evaluate(node=>({top:node.getBoundingClientRect().top,height:node.getBoundingClientRect().height})),state:await page.evaluate(()=>({scroll:scrollY,anchor:__ans07Root.previousHomeAnchor(),pending:!!__ans07Root.rootPreSearch,searchQuery:__ans07Root.personalRoot.searchQuery,geometry:__ans07Root.personalRoot.captureReturnGeometry()}))},null,2));}catch(error){searchDiagnosticError=error;}try{await page.screenshot({path:'work/ans-07/search-clear.png'});}catch(error){searchDiagnosticError??=error;}if(searchClearError)throw searchClearError;if(searchDiagnosticError)throw searchDiagnosticError;assert.ok(Math.abs(await targetRow.evaluate(node=>node.getBoundingClientRect().top)-beforeSearchClickedTop)<=2,'clearing search also retains the activated Topic offset');assert.deepEqual(await blockIds(page),stableIds);assert.deepEqual(await rootSlots(page),stableSlots);
+  const beforeLookup=await visibleAnchor(page),beforeLookupClickedTop=await targetRow.evaluate(node=>node.getBoundingClientRect().top);
+  assert.equal(await page.locator('#thought-search,.personal-root-search-extra,.personal-entry-preview').count(),0,'the complete Root remains a Topic/Section metadata directory');
+  const lookup=await rpc(page,'GET_LIBRARY_ROOT_SEARCH',{options:{query:'ANS07_DEEP_SEARCH_TARGET',limit:40}});assert.ok(lookup.items.some(item=>(item.topicId||item.id)===seed.targetId),'the full directory preserves original shared query eligibility');
+  assert.deepEqual(await blockIds(page),stableIds);assert.deepEqual(await rootSlots(page),stableSlots);const afterLookup=await visibleAnchor(page);assert.equal(afterLookup.id,beforeLookup.id);assert.ok(Math.abs(afterLookup.top-beforeLookup.top)<=2,'a service query cannot move the current directory anchor');assert.ok(Math.abs(await targetRow.evaluate(node=>node.getBoundingClientRect().top)-beforeLookupClickedTop)<=2);assert.equal(await page.locator(rootBlocks+'.personal-topic-nonmatch').count(),0,'no stale invisible query hides directory identities');
 
   const unplacedButton=page.locator('#library-unplaced');await unplacedButton.waitFor({state:'visible'});await unplacedButton.click();
   await eventually(async()=>await page.locator('[data-unplaced-id]').count()>0,'continuous unplaced crosses empty first page',20000);
@@ -159,7 +151,7 @@ test('ANS-07 Chrome root is continuous, bounded, restorable and Provider-free',{
   assert.ok(projectionPerf.first.nextCursor,'current projection has a real continuation');assert.equal(projectionPerf.first.items.length,40);for(const page of projectionPerf.pages){assert.equal(page.cursorInvalid,undefined);assert.equal(page.items.length,40);bodyFree(page);}assert.ok(projectionPerf.p95<=750,'current Root projection warmed next-chunk p95 <= 750 ms');
 
   assert.equal(h.deepSeekRequests.length,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.deepEqual(h.errors,[]);
-  const evidence={topicCount:seed.topicCount,rootLoaded:loaded,unplacedCount:85,emptyUnplacedPage:true,keyboardLoad:true,scrollRestore:true,deepSearch:true,stableSlots:true,bodyFreeRoot:true,projectionPageLimit:40,projectionP95:projectionPerf.p95,p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={topicCount:seed.topicCount,rootLoaded:loaded,unplacedCount:85,emptyUnplacedPage:true,keyboardLoad:true,scrollRestore:true,deepBackendSearch:true,retiredSearchAbsent:true,stableSlots:true,bodyFreeRoot:true,projectionPageLimit:40,projectionP95:projectionPerf.p95,p95:perf.p95,operations:perf.operations,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-07/evidence.json',JSON.stringify(evidence,null,2));
   console.log('ANS07_BROWSER_EVIDENCE '+JSON.stringify(evidence));
  }finally{await h.close();}

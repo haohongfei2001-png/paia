@@ -1,3 +1,4 @@
+import {archiveYearKey,archiveYearMeta} from '../archive-year-index.js';
 import {consumeMixedPublicationMetadata,mixedConfigurationReplay} from './mixed-configuration.js';
 import {consumerDisplayPreferences} from './consumer-preference-restore.js';
 import {assertSourceWorkingCanonicalAndProtocolRows,assertSourceWorkingRestoredCanonicalAndProtocolRows} from './source-working-canonical.js';
@@ -17,6 +18,26 @@ import {equal,exact,hash,count,opaque,fail} from './value.js';
 
 const refuse=()=>fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 const iso=value=>typeof value==='string'&&Number.isFinite(Date.parse(value));
+
+// Local annual metadata is a disposable projection of the original, already
+// qualified blockIndex cut. Consume only exact rows; never exempt a namespace.
+function consumeArchiveYearMetadata(remaining,rows){
+ const expected=new Map(rows.blockIndex.filter(row=>!row.excluded).map(row=>{const value={id:archiveYearKey(row),inputId:row.id,documentId:row.documentId,sourceSentAt:row.sourceSentAt,conversationOrder:row.conversationOrder};return [value.id,value];}));
+ const documents=new Set(rows.blockIndex.map(row=>row.documentId));
+ for(const [id,row]of remaining){
+  if(!id.startsWith('archive-year:v1:'))continue;
+  if(expected.has(id)){if(!equal(row,expected.get(id)))refuse();remaining.delete(id);continue;}
+  const documentId=[...documents].find(doc=>archiveYearMeta(doc)===id);
+  if(!documentId||!exact(row,['id','epoch','revision','complete','cursor'])||Object.keys(row).length!==5||!opaque(row.epoch)||!count(row.revision)||typeof row.complete!=='boolean'||row.complete&&row.cursor!==null||!row.complete&&(typeof row.cursor!=='string'||!rows.blockIndex.some(item=>item.documentId===documentId&&item.id===row.cursor)))refuse();
+  // Complete markers must cover the whole current derived inventory; an old
+  // database may legitimately have no marker or only an exact partial build.
+  for(const item of rows.blockIndex)if(item.documentId===documentId&&!item.excluded&&(row.complete||item.id<=row.cursor)){
+   const key=archiveYearKey(item),present=rows.meta.find(value=>value.id===key);if(!present||!equal(present,expected.get(key)))refuse();
+  }
+  remaining.delete(id);
+ }
+}
+
 // Pure reconstruction of the original INITIAL transaction chronology only.
 // Counter fields are derived by the same observe/live/flush decisions used by
 // real writes, never final row count or the transport member iteration order.
@@ -89,7 +110,7 @@ function assertCurrentMixedDefaultMeta(core,store,scope,plan,raw,control,databas
    take(key('humanMapping',head.entityId),{type,local:physical(type,row),wire:physical(type,op.value.after),revisionId:op.revisionId});
   }
  }
- const remaining=new Map([...meta].filter(([id])=>!used.has(id)));consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,remaining);for(const id of meta.keys())if(!used.has(id)&&!remaining.has(id))used.add(id);
+ const remaining=new Map([...meta].filter(([id])=>!used.has(id)));consumeArchiveYearMetadata(remaining,rows);consumeOriginalMixedManualMeta(core,store,scope,plan,raw,control,nonce,remaining);for(const id of meta.keys())if(!used.has(id)&&!remaining.has(id))used.add(id);
  // Exact original keyed name/pair inventories were already compared by the
  // original Human body consumer. Derived IDs come only from the private query
  // owner after complete exact matching, never arbitrary prefix exemption.
@@ -144,7 +165,7 @@ function qualifyLocal(core,scope,plan,rows,control,databaseId,aiSequence){
  // The preceding canonical checker individually checked every original protocol
  // ID, including full operations/receipt/head/history and foreign namespaces.
  // No unvalidated protocol prefix or arbitrary local key is exempted here.
- const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);
+ const remaining=new Map(rows.meta.filter(row=>!admitted.has(row.id)).map(row=>[row.id,row]));consumeMixedPublicationMetadata(remaining);consumeArchiveYearMetadata(remaining,rows);
  for(const row of remaining.values())if(!row.id.startsWith('bns:'))refuse();
 }
 

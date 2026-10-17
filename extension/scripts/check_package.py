@@ -255,7 +255,19 @@ def audit_js(path, text):
         if label == "keyboard listener" and path == ROOT / "content/prompt-surface.js":
             require("listen(orb,'keydown'," in text and "listen(document,'keydown'," not in text,
                     "Prompt movement keys must be orb scoped")
+        if label == "keyboard listener" and path == ROOT / "content/prompt-reuse.js":
+            # Reviewed effect-safety fence only: trusted Enter/Space autorepeat
+            # until physical release; it never collects text or any other key.
+            exact = " const guardActivation=key=>{\n  releaseActivation?.();if(!['Enter',' '].includes(key))return;\n  const release=()=>{document.removeEventListener('keydown',down,true);document.removeEventListener('keyup',up,true);window.removeEventListener('blur',release,true);if(releaseActivation===release)releaseActivation=null;};\n  const down=e=>{if(!e.isTrusted||e.key!==key)return;if(!e.repeat){release();return;}e.preventDefault();e.stopImmediatePropagation();};\n  const up=e=>{if(!e.isTrusted||e.key!==key)return;e.preventDefault();e.stopImmediatePropagation();release();};\n  document.addEventListener('keydown',down,true);document.addEventListener('keyup',up,true);window.addEventListener('blur',release,true);releaseActivation=release;\n };"
+            require(text.count(exact) == 1,
+                    "Prompt receiver retains the exact reviewed activation-release fence")
+            scanned = scanned.replace(exact, "REVIEWED_PROMPT_ACTIVATION_RELEASE", 1)
         if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
+            # Private control-local activation metadata; no document/host keys.
+            exact = "function trackActivation(button){\n if(button?.tagName!=='BUTTON')throw Error('INVALID_ACTIVATION_CONTROL');\n button.addEventListener('keydown',event=>{if(!event.isTrusted||event.isComposing||event.keyCode===229||!['Enter',' '].includes(event.key))return;if(event.repeat){event.preventDefault();event.stopImmediatePropagation();return;}heldActivationKey=event.key;});\n button.addEventListener('keyup',event=>{if(event.isTrusted&&event.key===heldActivationKey)heldActivationKey=null;});\n}"
+            require(text.count(exact) == 1,
+                    "Prompt activation keys stay on exact trusted local buttons")
+            scanned = scanned.replace(exact, "REVIEWED_PRIVATE_BUTTON_ACTIVATION", 1)
             scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
             # Original-text range selection stays inside the private check body;
             # no global/host key capture and no key values are consumed.

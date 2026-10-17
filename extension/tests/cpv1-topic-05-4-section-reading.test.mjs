@@ -358,3 +358,28 @@ test('TOPIC-05.4 query final transaction rejects descriptor generation replaceme
  const consent=m.consent.bind(m);let calls=0;m.consent=async()=>{if(++calls===2)await s.foundationWrite(async t=>{const row=await t.get('meta','thought-read-index:v1:topic:'+a.id);row.activeGeneration=op();await t.put('meta',row);});return consent();};
  try{const page=await r.page({topicId:a.id,query:'SYNTHETIC'});assert.equal(page.cursorInvalid,true);assert.deepEqual(page.items,[]);assert.equal(page.complete,false);}finally{m.consent=consent;}
 });
+
+test('independent Section scope stays bounded in both directions and never hydrates sibling prose',async()=>{
+ const {s,r}=await fixture(),a=await topic(s),left=await section(s,a,'Left','100000000000'),right=await section(s,a,'Right','900000000000');
+ const sibling=await entry(s,a,{sectionId:left.sectionId,body:'SYNTHETIC sibling must stay outside reader'}),one=await entry(s,a,{sectionId:right.sectionId}),two=await entry(s,a,{sectionId:right.sectionId});
+ const before=await persisted(s),read=s.readingEntry;let siblingReads=0;s.readingEntry=async function(id){if(id===sibling.id)siblingReads++;return read.call(this,id);};
+ const all=await collect(r,{topicId:a.id,scopeSectionId:right.sectionId,limit:1});assert.deepEqual(all.items.map(x=>x.entry.id),[one.id,two.id]);assert.deepEqual(all.sections.map(x=>x.sectionId),[right.sectionId]);
+ let page=await r.page({topicId:a.id,scopeSectionId:right.sectionId,anchorId:two.id,limit:1}),ids=[two.id];
+ while(page.previousCursor){page=await r.page({topicId:a.id,scopeSectionId:right.sectionId,cursor:page.previousCursor,direction:'prev',limit:1});ids.unshift(...page.items.map(x=>x.entry.id));assert.ok(page.sections.every(x=>x.sectionId===right.sectionId));}
+ assert.deepEqual(ids,[one.id,two.id]);assert.equal(siblingReads,0);assert.deepEqual(await persisted(s),before);
+});
+test('independent Section scope refuses missing targets, sibling anchors and cross-scope cursors',async()=>{
+ const {s,r}=await fixture(),a=await topic(s),left=await section(s,a,'Left'),right=await section(s,a,'Right');const e=await entry(s,a,{sectionId:left.sectionId});await entry(s,a,{sectionId:left.sectionId});
+ for(const options of [{scopeSectionId:'missing'},{scopeSectionId:right.sectionId,anchorId:e.id},{scopeSectionId:right.sectionId,sectionId:left.sectionId}]){const page=await r.page({topicId:a.id,...options});assert.equal(page.anchorUnavailable,true);assert.deepEqual(page.items,[]);}
+ const page=await r.page({topicId:a.id,scopeSectionId:left.sectionId,limit:1});assert.ok(page.nextCursor);
+ for(const scopeSectionId of [right.sectionId,null]){const other=await r.page({topicId:a.id,scopeSectionId,cursor:page.nextCursor,limit:1});assert.equal(other.cursorInvalid,true);assert.deepEqual(other.items,[]);}
+});
+test('empty independent Section is complete without falling through to a sibling or creating data',async()=>{
+ const {s,r}=await fixture(),a=await topic(s),emptySection=await section(s,a,'Empty');await entry(s,a);const before=await persisted(s);
+ const page=await r.page({topicId:a.id,scopeSectionId:emptySection.sectionId});assert.equal(page.complete,true);assert.deepEqual(page.items,[]);assert.deepEqual(page.sections.map(x=>x.sectionId),[emptySection.sectionId]);assert.equal(page.previousCursor,null);assert.equal(page.nextCursor,null);assert.deepEqual(await persisted(s),before);
+});
+
+test('selected Section rejects malformed query through the original argument error',()=>{
+ const reader=new ThoughtSectionReading({});
+ for(const query of [null,{},17,[]])assert.throws(()=>reader.page({topicId:'topic',scopeSectionId:'section',query}),/INVALID_REQUEST/);
+});

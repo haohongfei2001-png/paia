@@ -1,4 +1,4 @@
-import {setAIView,openSavedAI,seedSavedAI} from './harness/consumer-ai-browser.mjs';
+import {setAIView,openSavedAI,seedSavedAI,openTopic as openCurrentTopic} from './harness/consumer-ai-browser.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -29,11 +29,11 @@ async function seed(page,label){
  entries.push(await rpc(page,'CONTINUE_THINKING',{thought:{operationId:op(),topicId:topic.id,body:`${label}_ORIGINAL_B 这段正文也会成为 Organized evidence。`}}));await seedSavedAI(page,topic.id,entries);
  const saved=await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id});
  await rpc(page,'EDIT_LIBRARY_TOPIC',{edit:{id:topic.id,expectedRevision:saved.revision,changes:{summary:`${label}_TOPIC_SUMMARY 私人主题摘要`},operationId:op()}});
- return topic;
+ return {...topic,entries};
 }
 
 async function openTopic(page,topic){
- await nav(page,'thoughts');await page.locator('#thought-panel').waitFor({state:'visible'});await page.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();await page.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
+ await openCurrentTopic(page,topic);await page.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&!document.querySelector('.workspace').inert,topic.id);
 }
 
 
@@ -59,18 +59,17 @@ async function journey(page,h,topic,label,{release=false}={}){
  assert.equal((await rpc(page,'GET_LIBRARY_TOPIC',{id:topic.id})).summary,`${label}_TOPIC_SUMMARY 私人主题摘要`,'Root presentation preserves the separate Topic summary');
  const projection=await rpc(page,'GET_LIBRARY_ROOT_PROJECTION',{options:{limit:40,sectionLimit:4}});assert.doesNotMatch(JSON.stringify(projection),/"(?:body|summary|rootCue|snippet)"/,'normal Root is a body-free metadata projection');
  assert.equal(await card.locator('.summary,.personal-entry-preview').count(),0,'normal Root has no unsolicited body preview');
- const query=`${label}_ORIGINAL_A`;await page.locator('#thought-search').fill(query);
- const preview=card.locator('.personal-entry-preview');await eventually(()=>preview.isVisible(),'real Root search exposes its eligible transient Entry excerpt');
- const search=await rpc(page,'GET_LIBRARY_ROOT_SEARCH',{options:{query,limit:40}}),match=search.items.find(row=>row.kind==='entry'&&row.paths.some(path=>path.topicId===topic.id));assert.ok(match);
- const previewText=match.snippet;assert.equal(await preview.textContent(),previewText,'transient preview is the actual bounded lexical owner excerpt');assert.ok(previewText.includes(query));
- const attrs=await card.evaluate(root=>[root,...root.querySelectorAll('[title],[aria-label]')].flatMap(node=>[node.getAttribute('title'),node.getAttribute('aria-label')]));assert.equal(attrs.some(value=>value?.includes(query)),false,'private Entry text is not duplicated into title or aria-label attributes');
+ const query=`${label}_ORIGINAL_A`;assert.equal(await page.locator('#thought-search').count(),0,'Root search is retired');
+ const search=await rpc(page,'GET_LIBRARY_ROOT_SEARCH',{options:{query,limit:40}}),match=search.items.find(row=>row.kind==='entry'&&row.paths.some(path=>path.topicId===topic.id));assert.ok(match,'shared lexical service remains eligible for its independent callers');assert.ok(match.snippet.includes(query),'the original bounded lexical owner still returns its exact excerpt');
+ assert.equal(await card.locator('.personal-entry-preview,.personal-topic-preview,.personal-root-search-extra').count(),0,'service lookup cannot expose a retired Root preview');
+ const attrs=await card.evaluate(root=>[root,...root.querySelectorAll('[title],[aria-label]')].flatMap(node=>[node.getAttribute('title'),node.getAttribute('aria-label')]));assert.equal(attrs.some(value=>value?.includes(query)),false,'private Entry text is not duplicated into title or aria-label attributes');assert.equal((await card.textContent()).includes(query),false,'private body is absent from the entire directory DOM');
  await rpc(page,'UPDATE_PREFERENCES',{changes:{hideContentPreviews:true}});await eventually(async()=>page.evaluate(()=>document.documentElement.classList.contains('paia-hide-content-previews')),'preview mask class applies');
- assert.equal(await preview.isVisible(),false,'transient Root Entry preview is masked');assert.equal(await card.locator('.personal-entry-mask-label').isVisible(),true,'a body-free open action stays reachable');assert.equal(await card.locator('.personal-topic-link').isVisible(),true,'independent Topic identity remains readable');
+ assert.equal(await card.locator('.personal-entry-preview,.personal-topic-preview,.personal-entry-mask-label').count(),0,'retired previews stay absent under masking');assert.equal(await card.locator('.personal-topic-link').isVisible(),true,'independent Topic identity remains readable');
  const maskedAttrs=await card.evaluate(root=>[root,...root.querySelectorAll('[title],[aria-label]')].flatMap(node=>[node.getAttribute('title'),node.getAttribute('aria-label')]));assert.equal(maskedAttrs.some(value=>value?.includes(query)),false,'masking never copies private body text into accessible attributes');
  const probe=await previewScopeProbe(page);assert.equal(probe.add,'none','add-to-Topic selection preview is masked');assert.equal(probe.quote,'none','quoted related-text preview is masked');assert.notEqual(probe.compare,'none','explicitly opened compare/full-body content keeps the existing readable boundary');assert.deepEqual(probe.leaks,[],'preview probe does not move private body text into title or aria-label');
  await shot(page,release?'uir-03-current-release-preview-mask-home-1440x900-light':'uir-03-preview-mask-home-1440x900-light');
 
- await openTopic(page,topic);const original=page.locator('#original-reading-body [data-entry-field="body"]').first();await original.waitFor();assert.equal(await original.isVisible(),true,'explicitly opened Original body remains readable while preview masking is on');assert.match(await original.textContent(),new RegExp(`${label}_ORIGINAL_A`));const originalId=await original.evaluate(node=>node.closest('[data-entry-id]').dataset.entryId);
+ await openTopic(page,topic);const original=page.locator(`#original-reading-body [data-entry-id="${topic.entries[0].id}"] [data-entry-field="body"]`);await original.waitFor();assert.equal(await original.isVisible(),true,'explicitly opened Original body remains readable while preview masking is on');assert.match(await original.textContent(),new RegExp(`${label}_ORIGINAL_A`));const originalId=await original.evaluate(node=>node.closest('[data-entry-id]').dataset.entryId);
  const toggle=page.locator('#ai-presentation-toggle');await eventually(()=>toggle.isEnabled(),'AI presentation switch is available');await setAIView(page,true);await openSavedAI(page);await page.locator('[data-ai-field="blockSummary"]').waitFor();
  const organized=page.locator('[data-ai-field="currentView"]'),evidence=page.locator(`#original-reading-body [data-entry-id="${originalId}"] [data-entry-field="body"]`);await organized.waitFor();await evidence.waitFor();assert.equal(await organized.isVisible(),true,'explicitly opened Organized body remains readable while preview masking is on');assert.equal(await evidence.isVisible(),true,'explicitly opened evidence body remains readable while preview masking is on');assert.match(await evidence.textContent(),new RegExp(`${label}_ORIGINAL_`));
  const privateTextInAttrs=await page.evaluate(prefix=>[...document.querySelectorAll('#topic-body [title],#topic-body [aria-label]')].some(node=>[node.getAttribute('title'),node.getAttribute('aria-label')].some(value=>value?.includes(prefix))),label);assert.equal(privateTextInAttrs,false,'opened body text is not copied into title or aria-label as a masking bypass');

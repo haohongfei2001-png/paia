@@ -21,7 +21,7 @@ async function fixture(extensionPath,{secondSource=false}={}){const h=await Fake
  // cycle publishes its PAUSED diagnostic. Freeze no-effect oracles only after
  // that actual observer ACK; keep every control/diagnostic/recovery row compared.
  await eventually(async()=>{const d=(await h.state()).diagnostics;return d.status==='PAUSED'&&d.scanned===0&&d.added===0&&d.captureHealth===undefined&&d.captureHealthAt===undefined;},'actual host observer acknowledges pause before whole-store equality');
- await openArchiveWindow(p,{text:'SYNTHETIC purge boundary'});const id=await p.locator('.library-prose').first().getAttribute('data-edit-id'),b=await rpc(p,'GET_INPUT',{id});await settle(p);return {h,p,b};}
+ await openArchiveWindow(p,{text:'SYNTHETIC purge boundary'});const snapshot=await h.state(),original=snapshot.records.find(row=>row.sourceMessageId==='dvn-purge-message');assert.ok(original);const matches=snapshot.library.blocks.filter(row=>row.originalTextReference===original.id);assert.equal(matches.length,1);const id=matches[0].id,b=await rpc(p,'GET_INPUT',{id});await p.locator('.library-prose[data-edit-id="'+id+'"]').waitFor({state:'visible'});await settle(p);return {h,p,b};}
 const releaseRoot=mkdtempSync(join(tmpdir(),'paia-dvn-purge-release-'));test.after(()=>rmSync(releaseRoot,{recursive:true,force:true}));
 console.log(execFileSync('python3',['scripts/build_current_release.py',releaseRoot],{encoding:'utf8'}));
 for(const variant of ['source','release']){

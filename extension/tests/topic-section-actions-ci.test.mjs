@@ -12,12 +12,12 @@ const subsequent=[entryMove,'cpv1-01-ai-cost-foundation-chrome-e2e.test.mjs', 'i
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
-import {group,testShard} from '../scripts/test-groups.mjs';
+import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 const added='cpv1-topic-05-5-section-actions-chrome-e2e.test.mjs';
 test('Section actions admits its whole native owner while retaining all304 actual parent routes',async()=>{
  const frozen=JSON.parse(await readFile(new URL('./fixtures/topic-section-actions-prior-routes.json',import.meta.url),'utf8'));
  assert.equal(frozen.base,'ff730401f53e7cb7a5658f7350770b201b5372d4');
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort();
  assert.equal(names.length,96);assert.equal(frozen.rows.length,76);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!['nib-v4-arrival-chrome-e2e.test.mjs','nib-v4-search-chrome-e2e.test.mjs','nib-v4-surface-chrome-e2e.test.mjs','nib-v4-historical-candidates-chrome-e2e.test.mjs','nib-v4-settings-entry-chrome-e2e.test.mjs','nib-v4-toolbar-entry-chrome-e2e.test.mjs'].includes(n)&&n!==preferencePublication&&n!==topicReturn&&n!==removedPlacement&&n!==writing&&n!==settingsNext&&n!==next&&n!==added&&!subsequent.includes(n)),frozen.rows.map(r=>r[0]));
  assert.equal(group('cpv1-topic-05-5-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  for(const file of subsequent)for(const total of [4,5,6,7])assert.equal(testShard(file,names.indexOf(file),total,'browser E2E'),4);

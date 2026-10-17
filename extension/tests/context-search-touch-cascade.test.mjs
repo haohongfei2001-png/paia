@@ -30,5 +30,5 @@ test('actual Context search input beats shared input minimum on narrow or coarse
   for(const width of [768,1024,1440]){assert.equal(minimum(css,width,true),'44px','coarse '+width);assert.equal(minimum(css,width,false),'36px','fine desktop '+width);}
  }
  const home=await readFile(new URL('../ui/context-home-search.js',import.meta.url),'utf8'),detail=await readFile(new URL('../ui/context-cards.js',import.meta.url),'utf8');
- assert.match(home,/this\.field\.type='search'/);assert.match(detail,/this\.searchField\.type='search'/);
+ assert.match(home,/this\.field\.type='search'/);assert.doesNotMatch(detail,/this\.searchField\.type='search'/);
 });

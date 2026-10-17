@@ -18,6 +18,11 @@ personal-ai-archive-*
 /outputs/*.zip.sha256
 __pycache__/
 
+# D6 masters are versioned in verified archives; unpack_masters.py emits these.
+/docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/screens/*.svg
+/docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/screens/index.html
+/docs/consumer-product-v1/desktop-vnext/d6-final-visual-master/assets/paia-icon-64.png
+
 /outputs/PAIA-v0.7.0-foundation-*/
 
 # Reproducible v0.8.0 internal/release packages; receipts are committed separately.

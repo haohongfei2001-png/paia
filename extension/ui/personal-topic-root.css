@@ -1,15 +1,13 @@
 /* TL-PT1 Root: stable identity slots with content-sized blocks; durable names only. */
-#thought-list.personal-topic-grid{--topic-root-columns:3;display:grid;grid-template-columns:repeat(var(--topic-root-columns),minmax(0,1fr));column-gap:20px;row-gap:0;grid-auto-rows:1px;width:100%;max-width:none;margin:0;align-items:start}
-.personal-topic-block{min-width:0;min-height:0;margin:0;padding:24px 20px 20px;border:1px solid var(--paia-line);border-radius:18px;background:var(--paia-surface,transparent);display:flex;flex-direction:column;gap:16px;overflow:hidden}
-.personal-topic-title{display:flex;align-items:center;gap:12px;margin:0;font:600 17px/1.6 var(--font);font-synthesis:weight;min-width:0}
-.personal-topic-symbol{display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;width:25px;height:28px;color:var(--action,var(--focus));background:var(--soft)}
-.personal-topic-symbol .paia-icon{width:22px;height:22px}
+#thought-list.personal-topic-grid{--topic-root-columns:3;display:grid;grid-template-columns:repeat(var(--topic-root-columns),minmax(0,1fr));column-gap:18px;row-gap:0;grid-auto-rows:1px;width:100%;overflow-anchor:none;max-width:none;margin:0;align-items:start}
+.personal-topic-block{min-width:0;min-height:0;margin:0;padding:22px;border:1px solid var(--paia-line);border-radius:16px;background:var(--paia-surface,transparent);display:flex;flex-direction:column;gap:16px;overflow:hidden}
+.personal-topic-title{display:flex;align-items:center;gap:12px;margin:0;font:500 16px/1.6 var(--font);font-synthesis:none;min-width:0}
+.personal-topic-symbol{display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;width:21px;height:24px;color:var(--action,var(--focus));background:transparent}
+.personal-topic-symbol .paia-icon{width:21px;height:21px}
 .personal-topic-link,.personal-section-link,.personal-topic-more{user-select:text;display:block;color:inherit;text-decoration:none;overflow-wrap:anywhere;white-space:normal;min-width:0}
 .personal-topic-link{flex:1;min-height:32px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.personal-topic-sections{position:relative;min-height:0;overflow:visible;display:flex;flex-direction:column;gap:0;margin-left:10px}
-.personal-topic-sections:not(:empty)::before{content:"";position:absolute;top:11px;bottom:11px;left:0;width:1px;background:var(--paia-line)}
-.personal-section-link{position:relative;flex-shrink:0;font:400 12px/1.65 var(--font);color:var(--muted);min-height:36px;padding:7px 9px 7px 14px;display:block;border-radius:7px}
-.personal-section-link::before{content:"";position:absolute;left:0;top:17px;width:6px;height:1px;background:var(--paia-line)}
+.personal-topic-sections{position:relative;min-height:0;overflow:visible;display:flex;flex-direction:column;gap:0;margin-left:33px}
+.personal-section-link{position:relative;flex-shrink:0;font:400 13.5px/1.65 var(--font);color:var(--muted);min-height:36px;padding:7px 0;display:block;border-radius:7px}
 .personal-topic-block a[hidden]{display:none!important}
 .personal-topic-more{align-self:flex-end;margin-top:auto;min-height:32px;font:400 12px/1.6666666667 var(--font);color:var(--muted)}
 .personal-topic-block:hover{border-color:var(--border-strong,var(--muted))}
@@ -26,10 +24,8 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 .topic-root-section-anchor{margin:24px 0 16px;scroll-margin-top:120px}.topic-root-section-anchor h2{margin:0;font:500 20px/1.45 var(--title-font);overflow-wrap:anywhere}
 #thought-source-scope-label{display:none!important}
 #thought-collection.library-index{max-width:none}
-@media(max-width:1250px){.personal-topic-title{font-size:15px}}
 @media(max-width:1000px){#thought-list.personal-topic-grid{--topic-root-columns:2}}
-@media(max-width:760px){.personal-topic-title{font-size:14px}}
-@media(max-width:530px){#thought-list.personal-topic-grid{--topic-root-columns:1}.personal-topic-block{padding:22px 19px 19px}.personal-topic-title{font-size:16px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
+@media(max-width:530px){#thought-list.personal-topic-grid{--topic-root-columns:1}.personal-topic-block{padding:22px}.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
 @media(pointer:coarse){.personal-topic-block a,.personal-root-match-step{min-height:44px}.personal-root-match-step{min-width:44px}}
 
 /* Search reuses the measured ordinary rectangle without displacing other Topics. */
@@ -38,11 +34,6 @@ html.paia-hide-content-previews .personal-entry-mask-label{display:block}
 .personal-topic-block[data-search-state="true"] .personal-topic-sections{flex-shrink:0;overflow:auto}
 
 /* Only the bounded current-visibility owner fills this real-expression cue. */
-.personal-topic-preview{margin:0;padding:15px 0 1px;border-top:1px solid var(--paia-line);font:400 12px/1.85 var(--font);color:var(--directory-ink,var(--muted));overflow-wrap:anywhere;white-space:pre-wrap}
-.personal-topic-preview[hidden]{display:none}
-.personal-topic-preview button{display:block;width:100%;min-height:44px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;white-space:inherit;overflow-wrap:anywhere;user-select:text}
-.personal-topic-preview button:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:2px}
-html.paia-hide-content-previews .personal-topic-preview{display:none!important}
 
 /* Final original .card-footer .open-topic is quiet in light, retained #7492b9 in dark. */
 html[data-paia-theme="dark"] body[data-paia-space="thoughts"] .personal-topic-more{color:#7492b9}

@@ -1,3 +1,4 @@
+import {syncArchiveYearIndex,clearArchiveYearIndex} from './archive-year-index.js';
 import {trackSemanticWrite,trackSemanticClear,flushSemanticWrites} from './ai-usage/delta.js';
 import {trackNavigationWrite,flushNavigationWrites} from './archive-navigation-invalidation.js';
 import {backupMetaAllowed} from './backup-format.js';
@@ -142,7 +143,7 @@ class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
  async has(store,key){this.metrics.reads++;return (await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
  async get(store,key){this.metrics.reads++;return req(this.tx.objectStore(store).get(key));}
- async put(store,value,key){await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
+ async put(store,value,key){if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;this.metrics.writes++;return req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));}
  async putDerivedSearchRow(store,value){
   if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
   const previous=await this.get(store,value.id);
@@ -176,8 +177,8 @@ class Transaction {
   if(!same(withoutRead(previous),withoutRead(value)))throw fail();
   const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
  }
- async delete(store,key){await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
- async clear(store){await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;return req(this.tx.objectStore(store).clear());}
+ async delete(store,key){if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;this.metrics.writes++;return req(this.tx.objectStore(store).delete(key));}
+ async clear(store){if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;return req(this.tx.objectStore(store).clear());}
  async count(store,index,key){return req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count());}
  async all(store,index,key,limit){this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;return rows;}
  async keys(store,index,key){return req((index?this.tx.objectStore(store).index(index):this.tx.objectStore(store)).getAllKeys(key));}

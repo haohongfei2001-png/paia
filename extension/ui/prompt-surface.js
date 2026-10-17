@@ -1,3 +1,4 @@
+import {quickPromptEligible,promptGraphemeCount} from '../core/prompt-reuse-preferences.js';
 import {createIcon} from './icons.js';
 import {PromptHistorySession} from './prompt-history-session.js';
 import {PromptListSession} from '../core/prompt-family.js';
@@ -10,11 +11,19 @@ let candidateTarget=null,candidateReady=false,candidateRequest=0;
 let mode='candidates',projectionGeneration=0,searchComposing=false,searchLoading=false,historyFailure=false,searchTimer=null;
 let checking=null,checkingRequest=null,copyRequest=null,layoutScheduled=false,lastMeasuredHeight=0,lastMinimumHeight=0,lastAppearance=null,lastLanguage=null,layoutPending=false,layoutDirty=false,pointerGesture=false,layoutTicket=0,disposed=false;
 let representativeChoice=null,splitChoice=null,historyReturnView=null,pendingListReturn=null,historyFocusedRow=null,returnIntent=0;
+let oversizedItems=[],showOversized=false,heldActivationKey=null;
+const activationKey=event=>event?.detail===0?heldActivationKey:null;
+function trackActivation(button){
+ if(button?.tagName!=='BUTTON')throw Error('INVALID_ACTIVATION_CONTROL');
+ button.addEventListener('keydown',event=>{if(!event.isTrusted||event.isComposing||event.keyCode===229||!['Enter',' '].includes(event.key))return;if(event.repeat){event.preventDefault();event.stopImmediatePropagation();return;}heldActivationKey=event.key;});
+ button.addEventListener('keyup',event=>{if(event.isTrusted&&event.key===heldActivationKey)heldActivationKey=null;});
+}
 let refreshing=false,manualOrder=[],revision=0,hidden=false,editing=false,busy=false,composing=false,drag=null,epoch=0;
 const attempted=new Set();
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
+ '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用输入':'Expand frequent inputs','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
  '为当前任务选择历史候选':'Select historical candidates for this task','采用已准备的历史候选':'Use prepared historical candidates','候选已准备；返回常用输入后可明确采用。':'Candidates are ready. Return to frequent inputs to use them explicitly.','历史候选暂不可用；常用输入和本机搜索仍可使用。':'Historical candidates are unavailable. Frequent inputs and local search remain available.',
  '选择代表原文':'Choose representative original','选择此 Family 的代表原文。':'Choose the original expression that represents this Family.','正在读取当前原文…':'Reading current original expressions…','原文已变化，请取消后重新选择。':'The original expressions changed. Cancel and choose again.',
  '更多列表操作':'More list actions','清除搜索':'Clear search','搜索全部档案':'Search all Archive Inputs','搜索':'Search','返回常用输入':'Back to frequent inputs','上一页':'Previous page','下一页':'Next page','打开 PAIA':'Open PAIA','请输入搜索词。':'Enter a search term.','正在继续搜索本机输入…':'Searching local Inputs…','没有找到匹配内容。':'No matches.','本页结果；还有更多内容。':'This page; more results are available.','档案仍在变化，请重新搜索。':'Archive is still changing. Search again.','当前档案输入':'Current Archive Input','填入选段':'Insert selection','复制选段':'Copy selection','取消选区':'Clear selection','已保存为独立常用表达。':'Saved as an independent expression.',
@@ -39,22 +48,22 @@ function applyDisplay(preferences=displayPreferences){
  for(const [node,entries]of copyBindings){if(!node.isConnected){copyBindings.delete(node);continue;}for(const [attribute,value]of entries){if(attribute)node.setAttribute(attribute,localize(value));else node.textContent=localize(value);}}
  document.title=localize('PAIA 常用输入');scheduleLayout();
 }
-for(const [selector,label,attribute]of [['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['nav','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#capsule-expand','展开常用输入','aria-label'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
 document.getElementById('open-search').replaceChildren(createIcon('search'));
 systemAppearance.addEventListener('change',()=>applyDisplay());
 
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
-const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';bindCopy(b,text);bindCopy(b,label,'aria-label');if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}b.addEventListener('click',e=>{if(e.isTrusted)void fn(e);});return b;};
+const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';bindCopy(b,text);bindCopy(b,label,'aria-label');if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}trackActivation(b);b.addEventListener('click',e=>{if(e.isTrusted&&e.detail<2)void fn(e);});return b;};
 function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if((b===searchInput||b.id==='search-clear')&&mode==='search')continue;if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
 let feedbackTimer;
-const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),1800);};
+const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
 async function refresh(internal=false){
  if(mode==='search'){if(!editing&&!checking)await runHistory();return;}
  if(checking||editing||(busy&&internal!==true)||drag||refreshing)return;
- refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;session.open(q);candidateTarget=null;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
+ refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
 }
-// Measure intrinsic children, not the flex viewport: a short list must shrink
-// again after a tall state. Geometry changes do not query or rebuild the list.
+// The board retains one fixed ordinary rectangle in every internal view.
+// Accessibility minimums may constrain its viewport, never its content identity.
 function contentHeight(node){
  const style=getComputedStyle(node);let total=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
  for(const child of node.children){if(child.hidden||getComputedStyle(child).display==='none')continue;const css=getComputedStyle(child);total+=child.getBoundingClientRect().height+(parseFloat(css.marginTop)||0)+(parseFloat(css.marginBottom)||0);}
@@ -62,11 +71,11 @@ function contentHeight(node){
 }
 function measureLayout(){
  layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card');if(!card.clientWidth)return;
- const header=document.querySelector('header'),nav=document.querySelector('nav'),content=checking?checkText:editing&&list.hidden?editor:list;
- const chrome=header.getBoundingClientRect().height+nav.getBoundingClientRect().height+status.getBoundingClientRect().height+(document.getElementById('surface-tools').hidden?0:document.getElementById('surface-tools').getBoundingClientRect().height);
+ const header=document.querySelector('header'),content=checking?checkText:editing&&list.hidden?editor:list;
+ const chrome=header.getBoundingClientRect().height+status.getBoundingClientRect().height;
  const row=list.querySelector('.row'),line=row?row.getBoundingClientRect().height:Math.max(44,parseFloat(getComputedStyle(card).fontSize)*1.55+22);
  const minimumHeight=Math.min(1024,Math.ceil(chrome+line+4));
- const height=Math.min(4096,Math.max(minimumHeight,Math.ceil(chrome+contentHeight(content)+2)));
+ const height=Math.max(312,minimumHeight);
  const appearance=document.documentElement.dataset.paiaTheme||resolveAppearance(displayPreferences.appearance,systemAppearance.matches);
  if(height===lastMeasuredHeight&&minimumHeight===lastMinimumHeight&&appearance===lastAppearance&&language===lastLanguage){restoreListReturn();return;}lastMeasuredHeight=height;lastMinimumHeight=minimumHeight;lastAppearance=appearance;lastLanguage=language;
  const ticket=++layoutTicket;let acknowledged=false;layoutPending=true;document.documentElement.setAttribute('data-layout-pending','');
@@ -80,8 +89,16 @@ const finishPointer=()=>{if(!pointerGesture)return;pointerGesture=false;if(layou
 document.addEventListener('pointerup',finishPointer,true);document.addEventListener('pointercancel',finishPointer,true);document.addEventListener('pointerout',event=>{if(!event.relatedTarget)finishPointer();},true);window.addEventListener('blur',finishPointer);
 new ResizeObserver(scheduleLayout).observe(document.getElementById('card'));
 new MutationObserver(scheduleLayout).observe(document.getElementById('card'),{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden','style']});
-const currentItems=()=>mode==='search'?history.items:session.current();
+const currentItems=()=>mode==='search'?history.items:showOversized?structuredClone(oversizedItems):session.current();
 const selectionRef=item=>item.ref??{kind:item.edited?'manual_reuse':'prompt_family',id:item.id,revision,generation:projectionGeneration};
+function paintCapsule(){
+ const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text)),text=document.getElementById('capsule-text'),use=document.getElementById('capsule-use');
+ if(!text||!use)return;text.textContent=item?.text||localize('没有可快速复用的表达。');use.disabled=busy||!item||attempted.has(item.id);
+}
+async function setSurfaceForm(form){
+ if(editing||checking||busy||drag||composing||searchComposing)return;
+ try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}
+}
 function clipped(item,node){return /[\r\n\t]/.test(item.text)||/^\s|\s$| {2}/.test(item.text)||node.scrollWidth>node.clientWidth+1;}
 function leaveCheck(restoreFocus=true){
  if(!checking)return;const prior=checking;checking=null;checkText.hidden=true;checkText.replaceChildren();list.hidden=false;list.scrollTop=prior.scrollTop;
@@ -97,7 +114,7 @@ async function checkWhole(item){
  if(busy||editing||composing||drag)return;const ticket=++epoch;checkingRequest=ticket;pending(true);
  try{const current=await readSelection(item);if(disposed||checkingRequest!==ticket||ticket!==epoch||current.text!==item.text||!currentItems().some(x=>x.id===item.id&&x.text===item.text))throw Error('changed');const row=[...list.querySelectorAll('.row')].find(n=>n.dataset.id===item.id),ref=current.ref??selectionRef(item);checking={item,ref,range:null,target:current.target,scrollTop:list.scrollTop,returnView:{mode,query:history.query,cursor:history.cursor,snapshot:history.snapshot,revision,generation:projectionGeneration,ref:structuredClone(ref),id:item.id,control:'more',offset:row?row.getBoundingClientRect().top-list.getBoundingClientRect().top:0,scroll:list.scrollTop}};list.hidden=true;checkText.hidden=false;checkText.replaceChildren();
  const note=document.createElement('p');bindCopy(note,item.ref?.kind==='history_input'?'当前档案输入':item.members.length===0?'手工创建的常用表达':item.edited?'你修改的常用表达':'常用表达');const body=document.createElement('div');body.className='check-body';body.tabIndex=0;body.textContent=current.text;
- const actions=document.createElement('div');actions.className='actions';const fill=button('填入整条',async e=>{await insert(item,e.currentTarget,true);}),copy=button('复制整条',()=>copyWhole(item,true)),clear=button('取消选区',()=>{if(checking){checking.range=null;getSelection()?.removeAllRanges();labels();}});clear.hidden=true;
+ const actions=document.createElement('div');actions.className='actions';const fill=button('填入整条',async e=>{await insert(item,e.currentTarget,true,activationKey(e));}),copy=button('复制整条',()=>copyWhole(item,true)),clear=button('取消选区',()=>{if(checking){checking.range=null;getSelection()?.removeAllRanges();labels();}});clear.hidden=true;
  const labels=()=>{if(!checking)return;bindCopy(fill,checking.range?'填入选段':'填入整条');bindCopy(fill,checking.range?'填入选段':'填入整条','aria-label');bindCopy(copy,checking.range?'复制选段':'复制整条');bindCopy(copy,checking.range?'复制选段':'复制整条','aria-label');clear.hidden=!checking.range;};
  const selected=()=>{if(checking?.item!==item)return;const selection=getSelection();if(!selection?.rangeCount)return;const range=selection.getRangeAt(0);if(!body.contains(range.startContainer)||!body.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(body);before.setEnd(range.startContainer,range.startOffset);const start=before.toString().length,end=start+range.toString().length;checking.range=end>start?{start,end}:null;labels();};
  checking.readRange=selected;body.addEventListener('pointerup',selected);body.addEventListener('keyup',selected);actions.addEventListener('pointerdown',e=>{if(e.isTrusted)e.preventDefault();});actions.append(fill,copy,clear,button('返回',()=>leaveCheck()));checkText.append(note,body,actions);body.focus();scheduleLayout();
@@ -118,21 +135,22 @@ async function change(action,id,extra={}){
  const result=await rpc({type:'PAIA_PROMPT_CHANGE',change:{action,id,revision,...extra}});revision=result.revision;return result;
 }
 async function manage(action,item,extra={}){if(busy||composing)return;pending(true);try{await change(action,item.id,extra);representativeChoice=null;splitChoice=null;editing=false;editor.hidden=true;list.hidden=false;await refresh(true);focusRow(item.id);}catch{if(action==='representative')invalidateRepresentative();if(action==='split')invalidateSplit();tell('未保存。内容可能已变化；你的编辑仍保留，请取消后刷新再试。');}finally{pending(false);}}
-async function insert(item,b,reviewed=false){
- if(!reviewed){const text=list.querySelector(`[data-id="${item.id}"] .text`);if(text&&clipped(item,text)){await checkWhole(item);return;}}
+async function insert(item,b,reviewed=false,key=null){
  if(editing||busy||drag||composing||attempted.has(item.id))return;
+ const selectedRange=checking?.item===item?checking.range:null;if(!selectedRange&&!quickPromptEligible(item.text)){tell('最多 150 个字符；编辑仍保留。');return;}
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
  let verified=false;
- try{const typed=item.ref||checking?.item===item&&checking.range;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
- if(verified){leaveCheck(false);return;}
+ try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
+ if(verified){const row=original?.closest('.row');if(row)row.dataset.inserted='true';setTimeout(()=>{if(row)delete row.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text))original.disabled=false;paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
 function edit(item){
  if(busy||drag||editing||checking)return;editing=true;++epoch;parkEditor();editor.replaceChildren();editor.hidden=false;
  const row=item&&list.querySelector(`[data-id="${item.id}"]`);list.hidden=!row;if(row){for(const tools of list.querySelectorAll('.tools'))tools.remove();row.classList.add('editing-row');row.after(editor);editor.className='inline-editor';}
- const label=document.createElement('label');const caption=document.createElement('span');caption.className='editor-label';bindCopy(caption,'复用文本');label.append(caption);const area=document.createElement('textarea');area.value=item?.text||'';area.maxLength=200000;bindCopy(area,'复用文本','aria-label');label.append(area);
+ const label=document.createElement('label');const caption=document.createElement('span');caption.className='editor-label';bindCopy(caption,'复用文本');label.append(caption);const area=document.createElement('textarea');area.value=item?.text||'';const editorText=()=>item&&area.value===item.text.replace(/\r\n/g,'\n')?item.text:area.value;area.maxLength=200000;bindCopy(area,'复用文本','aria-label');label.append(area);
  area.addEventListener('compositionstart',()=>{composing=true;});area.addEventListener('compositionend',()=>{composing=false;});
- const actions=document.createElement('div');actions.className='actions';actions.append(button('保存',async()=>{if(composing||!area.value.trim()||busy)return;pending(true);try{if(item?.ref?.kind==='history_input'){const result=await rpc({type:'PAIA_PROMPT_HISTORY_SAVE',ref:item.ref,text:area.value,revision});revision=result.revision;}else await change(item?'edit':'create',item?.id,{text:area.value});editing=false;editor.hidden=true;list.hidden=false;await refresh(true);if(item)focusRow(item.id);if(item?.ref?.kind==='history_input')tell('已保存为独立常用表达。');}catch{tell('未保存，编辑已保留。取消后刷新可重新编辑。');}finally{pending(false);}}),button('取消',()=>{if(composing||busy)return;editing=false;editor.hidden=true;list.hidden=false;void refresh();}));editor.append(label,actions);area.style.height=Math.min(180,Math.max(36,area.scrollHeight))+'px';area.focus();
+ const count=document.createElement('output');count.className='expression-count';const countText=()=>{count.textContent=`${promptGraphemeCount(editorText())} / 150`;count.dataset.overLimit=String(!quickPromptEligible(editorText()));};area.addEventListener('input',countText);countText();
+ const actions=document.createElement('div');actions.className='actions';actions.append(button('保存',async()=>{if(composing||!area.value.trim()||busy)return;if(!quickPromptEligible(editorText())){tell('最多 150 个字符；编辑仍保留。');return;}pending(true);try{if(item?.ref?.kind==='history_input'){const result=await rpc({type:'PAIA_PROMPT_HISTORY_SAVE',ref:item.ref,text:editorText(),revision});revision=result.revision;}else await change(item?'edit':'create',item?.id,{text:editorText()});editing=false;editor.hidden=true;list.hidden=false;await refresh(true);if(item)focusRow(item.id);if(item?.ref?.kind==='history_input')tell('已保存为独立常用表达。');}catch{tell('未保存，编辑已保留。取消后刷新可重新编辑。');}finally{pending(false);}}),button('取消',()=>{if(composing||busy)return;editing=false;editor.hidden=true;list.hidden=false;void refresh();}));editor.append(label,count,actions);area.style.height=Math.min(180,Math.max(36,area.scrollHeight))+'px';area.focus();
 }
 function invalidateRepresentative(){
  const choice=representativeChoice;if(!choice)return;choice.invalid=true;choice.members.replaceChildren();choice.save.disabled=true;if('pendingDisabled'in choice.save.dataset)choice.save.dataset.pendingDisabled='1';bindCopy(choice.note,'原文已变化，请取消后重新选择。');
@@ -174,11 +192,12 @@ function dragHandle(item,row,short=false){
    handle.addEventListener('pointerup',()=>{const d=drag;drag=null;row.classList.remove('moving');if(d?.moved&&d.target)void manage('pin',d.item,{order:order(d.item,d.target)});});handle.addEventListener('pointercancel',()=>{drag=null;render();});return handle;
 }
 function render(){
- parkEditor();list.replaceChildren();const items=currentItems();if(!items.length){const empty=document.createElement('p');empty.className='empty';bindCopy(empty,mode==='search'?(searchLoading?'正在继续搜索本机输入…':historyFailure?'暂时不可用。请在 PAIA 启用授权后刷新。':history.stale?'档案仍在变化，请重新搜索。':history.query.trim()?'没有找到匹配内容。':'请输入搜索词。'):hidden?'没有隐藏的 Prompt。':'常用表达会出现在这里，也可以新建自己的 Prompt。');list.append(empty);}
+ parkEditor();list.replaceChildren();paintCapsule();const items=currentItems();if(!items.length){const empty=document.createElement('p');empty.className='empty';bindCopy(empty,mode==='search'?(searchLoading?'正在继续搜索本机输入…':historyFailure?'暂时不可用。请在 PAIA 启用授权后刷新。':history.stale?'档案仍在变化，请重新搜索。':history.query.trim()?(history.longMatchCount?'仅匹配到较长表达，请在 PAIA 中继续查看。':'没有找到匹配内容。'):'请输入搜索词。'):hidden?'没有隐藏的 Prompt。':'常用表达会出现在这里，也可以新建自己的 Prompt。');list.append(empty);if(mode==='search'&&history.longMatchCount){list.append(button('打开 PAIA',openPaia));if(history.nextCursor)list.append(button('下一页',()=>runHistory(history.nextCursor,[...history.history,history.cursor])));}}
  for(const item of items){
   const row=document.createElement('div');row.className=item.ref?.kind==='history_input'?'row history':'row';row.dataset.id=item.id;
-  const insertButton=button('',()=>insert(item,insertButton)),text=document.createElement('span');insertButton.setAttribute('aria-label',item.text);copyBindings.delete(insertButton);text.className='text';text.textContent=item.text;insertButton.className='insert';insertButton.append(text);const disabled=item.hidden||attempted.has(item.id);insertButton.disabled=busy||refreshing||disabled;if(busy||refreshing)insertButton.dataset.pendingDisabled=disabled?'1':'0';
+  const insertButton=button('',event=>insert(item,insertButton,false,activationKey(event))),text=document.createElement('span');insertButton.setAttribute('aria-label',item.text);copyBindings.delete(insertButton);text.className='text';text.textContent=item.text;insertButton.className='insert';insertButton.append(text);const disabled=item.hidden||attempted.has(item.id)||!quickPromptEligible(item.text);insertButton.disabled=busy||refreshing||disabled;if(busy||refreshing)insertButton.dataset.pendingDisabled=disabled?'1':'0';
   const more=button('⋯',()=>{if(busy||refreshing||editing)return;const old=row.nextElementSibling;if(old?.className==='tools'){old.remove();more.setAttribute('aria-expanded','false');return;}for(const el of list.querySelectorAll('.tools'))el.remove();const tools=document.createElement('div');tools.className='tools';bindCopy(tools,'管理 Prompt','aria-label');more.setAttribute('aria-expanded','true');
+   tools.append(button('核对全文',()=>checkWhole(item)),button('复制整条',()=>copyWhole(item,true)));
    if(item.ref?.kind==='history_input'){tools.append(button('编辑',()=>edit(item)));row.after(tools);return;}
    tools.append(button('编辑',()=>edit(item)),button(item.pinned?'取消置顶':'置顶',()=>manage(item.pinned?'unpin':'pin',item)),button(item.hidden?'恢复':'隐藏',()=>manage(item.hidden?'show':'hide',item)));
    if(item.members.length>1)tools.append(button('选择代表原文',()=>chooseRepresentative(item)),button('拆分',()=>split(item)));
@@ -186,7 +205,7 @@ function render(){
    const pinned=items.filter(x=>x.pinned),index=pinned.findIndex(x=>x.id===item.id);
    const first=item.pinned&&index===0,last=item.pinned&&index===pinned.length-1;const up=button('上移',()=>{if(!first)void manage('pin',item,{order:order(item,item.pinned?pinned[index-1]?.id:pinned[0]?.id)});}),down=button('下移',()=>{if(!last)void manage('pin',item,{order:order(item,pinned[index+2]?.id)});});for(const [control,boundary]of [[up,first],[down,last]])if(boundary){control.disabled=true;if('pendingDisabled'in control.dataset)control.dataset.pendingDisabled='1';}tools.append(up,down);
    tools.append(dragHandle(item,row));row.after(tools);
-  },'管理此 Prompt');more.className='more';more.setAttribute('aria-expanded','false');const copyButton=button('',()=>{if(clipped(item,text))void checkWhole(item);else void copyWhole(item,true);},'复制此 Prompt');copyButton.className='copy-shortcut';const editButton=button('',()=>edit(item),'编辑此 Prompt');editButton.className='edit-shortcut';row.append(insertButton,...(item.ref?.kind==='history_input'?[]:[dragHandle(item,row,true)]),copyButton,editButton,more);list.append(row);
+  },'管理此 Prompt');more.className='more';more.setAttribute('aria-expanded','false');const copyButton=button('',()=>{if(clipped(item,text))void checkWhole(item);else void copyWhole(item,true);},'复制此 Prompt');copyButton.className='copy-shortcut';const editButton=button('',()=>edit(item),'编辑此 Prompt');editButton.className='edit-shortcut';row.append(insertButton,more);list.append(row);
  }
 }
 async function requestClose(event){
@@ -194,7 +213,7 @@ async function requestClose(event){
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
  // Freeze admission while the existing authenticated close RPC is in flight.
- pending(true);try{await rpc({type:'close'});}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ pending(true);try{await rpc({type:'close'});document.documentElement.dataset.surfaceForm='capsule';}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
 }
 function closeSurfaceTools(){document.getElementById('surface-tools').hidden=true;document.getElementById('surface-more').setAttribute('aria-expanded','false');}
 function paintHistoryControls(){
@@ -248,6 +267,11 @@ document.getElementById('surface-tools').append(candidateRefresh,candidateAdopt)
 let candidateAvailable=false;
 function paintCandidateControls(){candidateRefresh.hidden=!candidateAvailable||mode!=='search';candidateRefresh.disabled=!history.query.trim();candidateAdopt.hidden=!candidateReady||mode!=='candidates';}
 void rpc({type:'history_candidates_status'}).then(value=>{if(!disposed){candidateAvailable=value.available===true;paintCandidateControls();}},()=>{});
+trackActivation(document.getElementById('capsule-use'));
+document.getElementById('capsule-use').addEventListener('click',e=>{if(!e.isTrusted)return;const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text));if(item)void insert(item,e.currentTarget,false,activationKey(e));});
+document.getElementById('capsule-expand').addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm('board');});
+for(const form of ['orb','capsule'])document.getElementById('collapse-'+form).addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm(form);});
+document.getElementById('long-expressions').addEventListener('click',()=>{if(busy||editing||checking||composing)return;showOversized=!showOversized;mode='candidates';paintHistoryControls();render();});
 document.getElementById('surface-more').addEventListener('click',()=>{if(busy||composing||searchComposing||drag)return;const tools=document.getElementById('surface-tools');tools.hidden=!tools.hidden;document.getElementById('surface-more').setAttribute('aria-expanded',String(!tools.hidden));scheduleLayout();});
 document.getElementById('search-clear').addEventListener('click',()=>{if(editing||checking||composing||searchComposing||drag)return;clearTimeout(searchTimer);searchInput.value='';invalidateHistoryIntent();history.history=[];history.cursor=null;paintHistoryControls();searchInput.focus();});
 document.getElementById('surface-tools').addEventListener('click',event=>{if(event.target.closest('button'))closeSurfaceTools();});
@@ -263,10 +287,11 @@ searchInput.addEventListener('input',()=>{clearTimeout(searchTimer);invalidateHi
 document.addEventListener('selectionchange',()=>checking?.readRange?.());
 document.getElementById('search-next').addEventListener('click',()=>{if(!searchLoading&&history.nextCursor)void runHistory(history.nextCursor,[...history.history,history.cursor]);});
 document.getElementById('search-previous').addEventListener('click',()=>{if(!searchLoading&&history.history.length){const pages=[...history.history],cursor=pages.pop();void runHistory(cursor,pages);}});
-document.getElementById('open-paia').addEventListener('click',async()=>{if(busy||editing||drag||composing||searchLoading)return;pending(true);try{const result=await rpc({type:'history_open_paia',query:mode==='search'?history.query:'',searchSnapshot:mode==='search'?history.snapshot:null,ref:mode==='search'&&checking?.ref?.kind==='history_input'?checking.ref:null,range:mode==='search'?checking?.range??null:null});if(result?.status!=='opened')tell('暂时不可用。请在 PAIA 启用授权后刷新。');}catch{if(checking)leaveCheck(false);tell('此表达已变化，请刷新。');}finally{pending(false);}});
+async function openPaia(){if(busy||editing||drag||composing||searchLoading)return;pending(true);try{const result=await rpc({type:'history_open_paia',query:mode==='search'?history.query:'',searchSnapshot:mode==='search'?history.snapshot:null,ref:mode==='search'&&checking?.ref?.kind==='history_input'?checking.ref:null,range:mode==='search'?checking?.range??null:null});if(result?.status!=='opened')tell('暂时不可用。请在 PAIA 启用授权后刷新。');}catch{if(checking)leaveCheck(false);tell('此表达已变化，请刷新。');}finally{pending(false);}}
+document.getElementById('open-paia').addEventListener('click',openPaia);
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
-chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing)revision=q.revision;session.reconcile(q);if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 const next=document.createElement('button');next.id='next-reopen';bindCopy(next,'本轮建议');next.hidden=true;document.getElementById('surface-tools').append(next);
 let nextAvailabilityEpoch=0;

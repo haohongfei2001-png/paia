@@ -18,7 +18,7 @@ for(const screen of source.screens){
  report.states.push({name,conditions:screen,parityChangedPixels:parity.changed,targetDifferences:stats});
 }
 report.supplementalParity=[];
-for(const file of (await readdir(out)).filter(x=>x.startsWith('source-orb-')&&x.endsWith('.png'))){
+for(const file of (await readdir(out)).filter(x=>(x.startsWith('source-orb-')||x.startsWith('source-more-'))&&x.endsWith('.png'))){
  const a=PNG.sync.read(await readFile(join(out,file))),b=PNG.sync.read(await readFile(join(out,file.replace('source-','release-'))));
  assert.equal(a.width,b.width);assert.equal(a.height,b.height);assert.ok(a.data.equals(b.data),file+' supplemental source/release parity');
  report.supplementalParity.push(file.replace('source-',''));

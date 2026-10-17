@@ -1,11 +1,19 @@
 import {ArchiveError} from './constants.js';
 export const PROMPT_REUSE_ROW='prompt-reuse:v1';
 export const MAX_PROMPT_TEXT=200000;
+export const MAX_QUICK_PROMPT_GRAPHEMES=150;
+// Count the actual expression without changing its stored bytes. CRLF is one
+// newline and a combined emoji is one grapheme; unsupported segmentation refuses.
+export function promptGraphemeCount(text,stopAfter=Infinity){
+ if(typeof text!=='string'||typeof Intl.Segmenter!=='function')return Infinity;
+ let count=0;for(const _ of new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text.replace(/\r\n?/g,'\n'))){count++;if(count>stopAfter)break;}return count;
+}
+export const quickPromptEligible=text=>validPromptText(text)&&promptGraphemeCount(text,MAX_QUICK_PROMPT_GRAPHEMES)<=MAX_QUICK_PROMPT_GRAPHEMES;
 export const own=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 const id=v=>typeof v==='string'&&v.length>0&&v.length<=200;
 const family=v=>typeof v==='string'&&/^(pf:[a-f0-9]{64}|manual:[a-f0-9-]{36})$/.test(v);
 const count=v=>Number.isSafeInteger(v)&&v>=0;
-export const validPromptText=v=>typeof v==='string'&&v.trim().length>0&&v.length<=MAX_PROMPT_TEXT&&!v.includes('\r');
+export const validPromptText=v=>typeof v==='string'&&v.trim().length>0&&v.length<=MAX_PROMPT_TEXT&&!/\r(?!\n)/.test(v);
 export const emptyPromptPreferences=()=>({id:PROMPT_REUSE_ROW,version:1,revision:0,pins:[],overrides:[],splits:[]});
 export function validPromptPreferences(v){
  return own(v,['id','version','revision','pins','overrides','splits'])&&v.id===PROMPT_REUSE_ROW&&v.version===1&&count(v.revision)&&

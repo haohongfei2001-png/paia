@@ -1,3 +1,4 @@
+import {quickPromptEligible} from '../core/prompt-reuse-preferences.js';
 import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {own} from '../core/prompt-reuse-preferences.js';
@@ -81,6 +82,7 @@ export class NextPromptCommands{
    const latest=await this.probe(tab,sender.documentId);if(!same(latest?.binding,r.binding)||latest?.authorization!==auth.generation||this.offers.get(tab.id)!==attempt)fail();
    this.groups.delete(tab.id);
    if(result.type==='DEFER')return {available:false,reason:result.reason};
+   if(result.choices.some(text=>!quickPromptEligible(text)))return {available:false,reason:'QUICK_EXPRESSION_TOO_LONG'};
    if(this.groups.size>=100)return {available:false,reason:'RESOURCE_LIMIT'};
    const group={id:crypto.randomUUID(),tabId:tab.id,documentId:sender.documentId,binding:r.binding,authorization:auth.generation,type:result.type,sourceType:result.sourceType,...(result.family?{family:result.family}:{}),condition:result.condition,evidence:result.evidence,choices:result.choices.map((text,i)=>({id:crypto.randomUUID(),text,label:result.labels?.[i]||text})),attempted:new Set(),outcomes:new Map()};
    this.groups.set(tab.id,group);
@@ -107,7 +109,7 @@ export class NextPromptCommands{
   if(c?.type==='resize'&&own(c,['type','height'])&&Number.isFinite(c.height)&&c.height>=44&&c.height<=400){await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_RESIZE',nonce:r.nonce,height:c.height},{documentId:g.documentId});return {};}
   if(c?.type==='copy'&&own(c,['type','id'])){const choice=g.choices.find(x=>x.id===c.id);if(!choice||!['failed','uncertain'].includes(g.outcomes.get(choice.id)))fail();await this.resolveFamily(g);return {text:choice.text};}
   if(c?.type!=='insert'||!own(c,['type','id','operationId'])||!uuid(c.operationId))fail();
-  const choice=g.choices.find(x=>x.id===c.id);if(!choice||g.attempted.has(choice.id))fail();
+  const choice=g.choices.find(x=>x.id===c.id);if(!choice||g.attempted.has(choice.id)||!quickPromptEligible(choice.text))fail();
   g.attempted.add(choice.id);
   let timer,result;
   try{

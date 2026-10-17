@@ -7,12 +7,12 @@ const topicReturn='topic-section-return-position-chrome-e2e.test.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
-import {group,testShard} from '../scripts/test-groups.mjs';
+import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 test('removed Placement admits one complete file and checks all336 prior routes with one measured ReaderRevisit move',async()=>{
  const added='settings-removed-placement-chrome-e2e.test.mjs';
  const prior=JSON.parse(await readFile(new URL('./fixtures/settings-removed-placement-prior-routes.json',import.meta.url),'utf8'));
  assert.match(prior.base,/^76db8d6f[0-9a-f]{32}$/);assert.equal(prior.rows.length,84);
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort();
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort();
  assert.equal(names.length,96);assert.deepEqual(names.filter(n=>n!==pendingHistory&&n!==settingsData&&n!==promotion&&!nib.includes(n)&&n!==preferencePublication&&n!==topicReturn&&n!==added),prior.rows.map(row=>row[0]));
  assert.equal(group('settings-removed-unadmitted-chrome-e2e.test.mjs'),'historical browser E2E');
  let checked=0;

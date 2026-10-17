@@ -20,20 +20,38 @@ const openTopicDiagnostics=new WeakMap();
 function installOpenTopicDiagnostic(){const trace=globalThis.__openTopicDiagnostic={events:[]};const record=value=>{trace.events.push(value);if(trace.events.length>120)trace.events.shift();};for(const event of ['pointerdown','pointerup','click','selectionchange'])document.addEventListener(event,e=>{const n=e.target?.closest?.('button,a,[data-view]');record({event,trusted:e.isTrusted,tag:e.target?.tagName,id:n?.id,view:n?.dataset.view,topicLink:!!e.target?.closest?.('.personal-topic-link'),selectionCollapsed:getSelection()?.isCollapsed??true,selectionLength:getSelection()?.toString().length??0});},true);chrome.runtime.onMessage.addListener(message=>{if(message?.type==='ARCHIVE_CHANGED')record({event:'archive-changed',cause:message.cause==='EDIT_AI_PRESENTATION'?'saved-ai':'other'});});const original=chrome.runtime.sendMessage.bind(chrome.runtime);chrome.runtime.sendMessage=function(message,...args){const result=original(message,...args);if(result&&typeof result.then==='function')return result.then(reply=>{record({event:'reply',type:message?.type,ok:reply?.ok,error:reply?.error,items:Array.isArray(reply?.data?.items)?reply.data.items.length:undefined});return reply;},error=>{record({event:'reject',type:message?.type,name:error?.name});throw error;});return result;};}
 async function retainOpenTopicFailure(p,diagnostic,error){try{const state=await p.evaluate(()=>{const s=getSelection();return {events:globalThis.__openTopicDiagnostic?.events,selectionCollapsed:s?.isCollapsed??true,selectionLength:s?.toString().length??0,documentVisible:!!document.querySelector('#thought-document')&&!document.querySelector('#thought-document').hidden,headingCount:document.querySelectorAll('#topic-heading h1').length,headingVisible:!!document.querySelector('#topic-heading h1')?.getClientRects().length,activeTag:document.activeElement?.tagName,activeId:document.activeElement?.id,topicLinkCount:document.querySelectorAll('.personal-topic-link').length,recomposing:document.documentElement.classList.contains('paia-recomposing'),saveState:document.querySelector('#save-status')?.dataset.state,retryVisible:!!document.querySelector('#retry')&&!document.querySelector('#retry').hidden,reloadVisible:!!document.querySelector('#reload-document')&&!document.querySelector('#reload-document').hidden,errorVisible:!!document.querySelector('#error')&&!document.querySelector('#error').hidden};});const detail='OPEN_TOPIC_ORIGINAL_FAILURE '+JSON.stringify({...diagnostic,state}),stack=error.stack;try{error.message+='\n'+detail;error.stack=stack+'\n'+detail;}catch{}const dir=process.env.PAIA_CONSUMER_EVIDENCE_DIR||'work/consumer-cleanup';await mkdir(dir,{recursive:true});await writeFile(resolve(dir,diagnostic.variant+'-candidate-open-topic-failure.json'),JSON.stringify({...diagnostic,state},null,2));}catch{}throw error;}
 export async function fixture(variant='source',{saved=true,candidate=false,count=2,releasePath=null,diagnoseOpenTopic=false}={}){
+ releasePath??=process.env.PAIA_TOPIC_EXTENSION_PATH||null;
  if(variant==='release'&&!releasePath&&!releaseReady){execFileSync('python3',['scripts/build_current_release.py'],{stdio:'pipe'});releaseReady=true;}
- const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':releasePath||'work/current-release'),headless:true}),p=h.archive;if(diagnoseOpenTopic){await p.evaluate(installOpenTopicDiagnostic);openTopicDiagnostics.set(p,{variant,open:0});}
+ const h=await FakeChatGPT.start({extensionPath:resolve(variant==='source'?'.':releasePath||'work/current-release'),headless:true}),p=h.archive;
+ try{
+ if(diagnoseOpenTopic){await p.evaluate(installOpenTopicDiagnostic);openTopicDiagnostics.set(p,{variant,open:0});}
  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented);if(await p.locator('#onboarding-skip').isVisible())await p.locator('#onboarding-skip').click();
  await rpc(p,'UPDATE_PREFERENCES',{changes:{language:'zh-CN',appearance:'light'}});
  const topic=await rpc(p,'CREATE_LIBRARY_TOPIC',{topic:{name:'SYNTHETIC 已有主题 '+variant,operationId:crypto.randomUUID()}}),entries=[];
  for(let i=0;i<count;i++)entries.push(await rpc(p,'CONTINUE_THINKING',{thought:{topicId:topic.id,body:'SYNTHETIC 原始思想 '+i+'\n原话、人工内容与证据必须保留。',operationId:crypto.randomUUID()}}));
  if(saved)await seedSavedAI(p,topic.id,entries,{candidate});
  await openTopic(p,topic);return {h,p,topic,entries};
+ }catch(error){try{await h.close();}catch(cleanupError){console.error('CONSUMER_FIXTURE_CLEANUP_FAILURE',cleanupError.name);}throw error;}
 }
 export async function openTopic(p,topic){
  const diagnostic=openTopicDiagnostics.get(p);if(diagnostic)diagnostic.open++;try{
  if(await p.locator('#thought-document').isVisible())await p.locator('#back').click();
- await p.locator('[data-view="thoughts"]').first().click();await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();await p.locator('#topic-heading h1').filter({hasText:topic.name}).waitFor();
+ await p.locator('[data-view="thoughts"]').first().click();await p.locator(`.personal-topic-link[data-topic-id="${topic.id}"]`).click();const canonical=await rpc(p,'GET_LIBRARY_TOPIC',{id:topic.id});assert.equal(canonical.id,topic.id);assert.equal(typeof canonical.name,'string');await eventually(async()=>await p.locator('#thought-document').isVisible()&&await p.locator('#topic-heading h1').textContent()===canonical.name&&await p.evaluate(()=>{const section=document.querySelector('.topic-section-select')?.value,node=document.querySelector('#original-reading-body .topic-section[data-section-id="'+CSS.escape(section||'')+'"]');return !!section&&!!node?.isConnected&&!document.getElementById('original-reading-body').hidden&&!document.getElementById('topic-body').inert;}),'actual selected Section canonical reader is mounted');
  }catch(error){if(diagnostic)return retainOpenTopicFailure(p,diagnostic,error);throw error;}
+}
+// Select through the current visible directory. Saved AI and canonical prose
+// must share this exact durable Section; no whole-Topic body is a fallback.
+export async function selectTopicSection(p,sectionId){
+ const select=p.locator('.topic-section-select');
+ if(await select.isVisible())await select.selectOption(sectionId);
+ else await p.locator('.topic-section-directory button[data-section-id="'+sectionId+'"]').click();
+ await eventually(async()=>await p.locator('.topic-section-select').inputValue()===sectionId&&await p.locator('#original-reading-body .topic-section[data-section-id="'+sectionId+'"]').count()===1&&!await p.locator('#topic-body').evaluate(node=>node.inert),'native directory paints the exact qualified Section');
+}
+// Recovery identity is a read-snapshot token produced by the original worker;
+// never synthesize one or persist it into the saved domain row.
+export async function qualifiedSavedAI(p,topicId){
+ const status=await rpc(p,'GET_AI_PRESENTATION_STATUS',{options:{topicId}}),row=status.topics.find(item=>item.topicId===topicId||item.id===topicId)?.presentation;
+ assert.ok(row&&typeof row.recoveryEpoch==='string'&&row.recoveryEpoch.length>0,'original saved-presentation status supplies its recovery epoch');return row;
 }
 export async function seedSavedAI(p,topicId,entries,{candidate=false}={}){
  return p.evaluate(async({topicId,entries,candidate})=>{

@@ -1,5 +1,4 @@
 import {request,element} from './common.js';
-import {ContextTopicSearch} from './context-topic-search.js';
 import {ContextTopicViewer} from './context-topic-viewer.js';
 import {ContextTopicCommitSession} from './context-topic-commit.js';
 
@@ -24,46 +23,34 @@ export class ContextTopicInputs {
  constructor({host,access,send=request,onStateChange=()=>{}}){
   this.send=send;this.access=access;this.onStateChange=onStateChange;this.active=true;this.generation=0;this.rows=new Map();this.nodes=new Map();this.openNodes=new Map();this.rowNodes=new Map();this.viewer=null;this.order=[];this.focusId=null;this.openFocusId=null;this.focusIntent=null;this.busy=false;this.loading=false;this.failedRead=false;this.lastAttempt=null;this.commit=new ContextTopicCommitSession(send);this.query='';this.selectedOnly=false;this.composing=false;
   this.root=element('div','context-inputs');this.note=element('p','topics-note');this.field=element('div','topic-field');this.field.setAttribute('role','group');this.field.setAttribute('aria-label',copy('思想库主题','Thought Library Topics'));
-  this.footnote=element('p','topics-note',copy('新主题默认仅自己可见。','New Topics are private by default.'));this.status=element('div','context-notice');this.status.setAttribute('role','status');this.createFilters();this.root.append(this.toolbar,this.note,this.filters,this.filterStatus,this.field,this.footnote,this.status);host.append(this.root);
+  this.footnote=element('p','topics-note',copy('新主题默认仅自己可见。','New Topics are private by default.'));this.status=element('div','context-notice');this.status.setAttribute('role','status');this.createFilters();this.root.append(this.toolbar,this.note,this.filterStatus,this.field,this.footnote,this.status);host.append(this.root);
   this.field.addEventListener('keydown',event=>this.move(event));
   this.host=host;this.cancelMovedFocus=event=>{const intent=this.focusIntent;if(intent&&event.target!==intent.origin&&event.target?.closest?.('[data-topic-id]')?.dataset.topicId!==intent.topicId)this.focusIntent=null;};
   host.addEventListener('focusin',this.cancelMovedFocus);host.addEventListener('pointerdown',this.cancelMovedFocus);this.setAccess(access);
  }
  createFilters(){
-  this.filters=element('form','context-search');this.searchField=element('input');this.searchField.type='search';this.searchField.autocomplete='off';this.searchField.spellcheck=false;this.searchField.placeholder=copy('搜索主题、章节和正文','Search Topics, sections and content');this.searchField.setAttribute('aria-label',copy('搜索主题、章节和正文','Search Topics, sections and content'));this.searchField.maxLength=300;
-  this.searchSubmit=button(copy('搜索','Search'),()=>{});this.searchSubmit.type='submit';this.clearFilter=button(copy('清空','Clear'),()=>{if(this.filter(this.selectedOnly,''))this.searchField.value='';});
   this.allFilter=button(copy('全部','All'),()=>this.filter(false,this.query));this.selectedFilter=button(copy('已选','Selected'),()=>this.filter(true,this.query));
   for(const node of [this.allFilter,this.selectedFilter])node.className='context-topic-filter';
   this.filterStatus=element('p','topics-note context-topic-filter-status');this.filterStatus.setAttribute('role','status');
-  this.searchField.addEventListener('compositionstart',()=>{this.composing=true;});this.searchField.addEventListener('compositionend',()=>{this.composing=false;});
-  this.filters.addEventListener('submit',event=>{event.preventDefault();if(!event.isComposing)void this.searchContent(this.searchField.value);});
-  this.filters.append(this.searchField,this.searchSubmit,this.clearFilter);this.toolbar=element('div','context-inputs-toolbar');this.toolbar.append(this.allFilter,this.selectedFilter,element('span','context-reading-note',copy('打开主题只供本地阅读，不会授予 AI 访问。','Opening a Topic is local reading and does not grant AI access.')));
+  this.toolbar=element('div','context-inputs-toolbar');this.toolbar.append(this.allFilter,this.selectedFilter,element('span','context-reading-note',copy('打开主题只供本地阅读，不会授予 AI 访问。','Opening a Topic is local reading and does not grant AI access.')));
  }
  filter(selectedOnly,query){
   if(!this.active||this.composing||this.loading||this.busy||this.failedRead)return false;
   if(this.pending){this.unconfirmed();return false;}
-  this.selectedOnly=selectedOnly===true;this.query=String(query??'');if(!this.query.trim()){this.search?.close();this.search=null;}this.focusIntent=null;this.paint();this.search?.paint();return true;
+  this.selectedOnly=selectedOnly===true;this.query='';if(!this.query.trim()){this.search?.close();this.search=null;}this.focusIntent=null;this.paint();this.search?.paint();return true;
  }
- visibleIds(){const query=this.query.toLowerCase();return this.order.filter(id=>{const row=this.rows.get(id);return row&&(!this.selectedOnly||row.enabled)&&row.name.toLowerCase().includes(query);});}
- async searchContent(query){
-  if(typeof query!=='string'||query.length>300||!this.filter(this.selectedOnly,query))return false;
-  this.viewer?.close();this.search?.close();this.search=null;
-  if(!query.trim()){this.paint();return true;}
-  this.search=new ContextTopicSearch({host:this.root,send:this.send,query:query.trim(),choices:()=>this.rows,selectedOnly:()=>this.selectedOnly,open:(target,node)=>this.openSearchTarget(target,node)});this.paint();return this.search.read();
- }
- async openSearchTarget(target,node){
-  if(!this.active||this.loading||this.busy||this.failedRead||this.pending||this.composing||!this.search||this.search.invalidated||!this.search.allowed(target.topicId))return false;
-  this.viewer?.close();this.viewer=new ContextTopicViewer({host:this.root,send:this.send,...target,onClose:()=>{this.viewer=null;if(this.active&&node.isConnected!==false&&!node.disabled)node.focus({preventScroll:true});}});return this.viewer.read();
- }
+ visibleIds(){this.query='';return this.order.filter(id=>{const row=this.rows.get(id);return row&&(!this.selectedOnly||row.enabled);});}
+ async searchContent(){this.query='';this.search?.close();this.search=null;this.paint();return false;}
+ async openSearchTarget(){return false;}
  get pending(){return !!this.commit.pending;}
  setAccess(access){this.access=access;this.note.textContent=!access.inputs.enabled?copy('此类内容仅自己可见，主题选择已保留。','This category is private. Topic choices are retained.'):!access.global.enabled?copy('AI 访问已暂停，主题选择已保留。','AI access is paused. Topic choices are retained.'):copy('选择可以开放的主题。外部读取目前不可用。','Choose Topics to make available. External reading is unavailable.');this.paint();}
  paint(){
-  this.field.hidden=!!this.search;this.filterStatus.hidden=!!this.search;
+  this.search?.close();this.search=null;this.query='';this.field.hidden=false;this.filterStatus.hidden=false;
   this.root.setAttribute('aria-busy',String(this.loading||this.busy));
   const visible=this.visibleIds(),shown=new Set(visible);
   for(const [node,on]of [[this.allFilter,!this.selectedOnly],[this.selectedFilter,this.selectedOnly]]){node.setAttribute('aria-pressed',String(on));node.dataset.on=String(on);}
-  for(const node of [this.searchField,this.searchSubmit,this.clearFilter,this.allFilter,this.selectedFilter])node.disabled=this.loading||this.busy||this.failedRead||this.pending;
-  this.filterStatus.textContent=this.failedRead?copy('主题名称暂不可用，请重试读取。','Topic names are unavailable. Retry loading.'):(this.query||this.selectedOnly)&&!visible.length?copy('没有匹配的主题。仅搜索主题名称。','No matching Topics. Search covers Topic names only.'):this.query?copy('仅搜索主题名称，不搜索正文。','Search covers Topic names, not content.'):'';
+  for(const node of [this.allFilter,this.selectedFilter])node.disabled=this.loading||this.busy||this.failedRead||this.pending;
+  this.filterStatus.textContent=this.failedRead?copy('主题名称暂不可用，请重试读取。','Topic names are unavailable. Retry loading.'):this.selectedOnly&&!visible.length?copy('尚未选择主题。','No Topics selected.') : '';
   if(!this.loading&&!this.busy&&!this.failedRead){const row=this.rows.get(this.focusId);if(!row||!shown.has(this.focusId)||(row.enabled?!row.canDisable:!row.canEnable))this.focusId=visible.find(id=>{const value=this.rows.get(id);return value.enabled?value.canDisable:value.canEnable;})||null;}
   if(!shown.has(this.openFocusId))this.openFocusId=this.focusId||visible[0]||null;
   for(const [id,node]of this.nodes){const row=this.rows.get(id);if(!row)continue;node.hidden=!shown.has(id);this.rowNodes.get(id).hidden=node.hidden;this.openNodes.get(id).tabIndex=id===this.openFocusId?0:-1;this.openNodes.get(id).disabled=this.loading||this.busy||this.failedRead||this.pending;node.dataset.on=String(row.enabled);node.dataset.paused=String(row.enabled&&(!row.policyAllowed||!this.access.global.enabled||!this.access.inputs.enabled));node.setAttribute('aria-pressed',String(row.enabled));node.querySelector('.context-topic-state').textContent=row.enabled?(node.dataset.paused==='true'?copy('选择已保留','Choice retained'):copy('允许读取','Readable')):copy('仅自己','Only me');node.tabIndex=id===this.focusId?0:-1;node.disabled=this.loading||this.busy||this.failedRead||(row.enabled?!row.canDisable:!row.canEnable);node.title=row.enabled&&!row.policyAllowed?explain(row.reason):copy('仅保存主题选择；外部读取目前不可用。','Saves the Topic choice only. External reading is unavailable.');}
@@ -78,7 +65,7 @@ export class ContextTopicInputs {
   const intent=this.focusIntent;this.focusIntent=null;if(!this.active||!intent)return;
   const focused=document.activeElement;if(focused&&focused!==document.body&&focused!==intent.origin&&focused.dataset?.topicId!==intent.topicId)return;
   const wanted=this.nodes.get(intent.topicId),target=failed?this.status.querySelector('button'):wanted&&!wanted.disabled&&!wanted.hidden?wanted:this.nodes.get(this.focusId);
-  if(target&&!target.disabled&&!target.hidden)target.focus({preventScroll:true});else if(!failed&&!this.searchField.disabled)this.searchField.focus({preventScroll:true});
+  if(target&&!target.disabled&&!target.hidden)target.focus({preventScroll:true});else if(!failed&&!this.allFilter.disabled)this.allFilter.focus({preventScroll:true});
  }
  async refresh(){
   if(!this.active||this.busy||this.pending)return false;
@@ -155,5 +142,5 @@ export class ContextTopicInputs {
  unconfirmed(){this.notify(copy('选择尚未确认，请核对上次操作。','The choice is unconfirmed. Check the previous operation.'),{text:copy('核对上次操作','Check previous operation'),run:()=>{const change=this.commit.pending?.change||this.lastAttempt;if(change)void this.save(change);else void this.refresh();}});}
  leave(){if(this.busy||this.pending){this.unconfirmed();return false;}this.suspend();return true;}
  suspend(){this.search?.close();this.search=null;this.viewer?.close();++this.generation;this.loading=false;this.focusIntent=null;}
- close(){this.filters.remove();this.search?.close();this.search=null;this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
+ close(){this.search?.close();this.search=null;this.active=false;this.viewer?.close();++this.generation;this.focusIntent=null;this.host.removeEventListener?.('focusin',this.cancelMovedFocus);this.host.removeEventListener?.('pointerdown',this.cancelMovedFocus);}
 }

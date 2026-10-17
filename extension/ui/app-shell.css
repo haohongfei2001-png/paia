@@ -216,7 +216,7 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #a
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-navigator{position:relative;inset:auto;width:100%;min-height:0;flex:1 1 auto;padding:0 16px 24px;overflow:auto;overscroll-behavior:contain}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #collection-panel{margin:0 0 0 var(--nav-width);padding:32px var(--archive-gutter);max-width:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-main{max-width:none}
-body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-surface #archive-root-header{display:block;flex:none;margin:0;padding:0 20px 16px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-surface #archive-root-header{display:block;flex:none;margin:0;padding:0 20px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-heading{margin-bottom:16px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #archive-root-heading h1{font:600 16px/24px var(--font)}
 body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-surface #archive-root-header-actions{width:100%;max-width:100%;gap:4px}
@@ -243,8 +243,8 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-root #w
 /* The Archive directory keeps its header and tree when only the Reader changes. */
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-root-heading{display:none}
 #archive-reader-search-slot:empty{display:none}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:flex;align-items:center;gap:8px;padding:12px 0 0}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #archive-reader-back-slot{display:flex;align-items:center;gap:8px;margin:0;padding:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:flex;align-items:center;gap:8px;padding:0;margin:0 0 12px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]).ans-nav-reader #archive-reader-back-slot{display:flex;align-items:center;gap:8px;margin:0;padding:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin:0 0 16px;max-width:520px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{margin-top:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot:not(:has(.scope-search:not([hidden]))){display:none}
@@ -275,3 +275,23 @@ body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space
 
 /* Primary intent is distinct from dangerous confirmation and paused permission. */
 body:is([data-paia-space="library"],[data-paia-space="archive"],[data-paia-space="thoughts"],[data-paia-space="memory"],[data-paia-space="settings"]) :is(.reader-confirm-actions>button.primary,#settings-search-repair-dialog #library-rebuild-search){background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+
+/* Current Section directory and inline Archive years share the reading axis. */
+#document-body .block-time.input-year-start{margin-top:24px;position:relative}
+/* The year rule occupies the existing gap; no prose or caption box is enlarged. */
+#document-body .block-time.input-year-start::before{content:"";position:absolute;inset-inline:0;top:-12px;border-top:1px solid var(--line);pointer-events:none}
+#document-body>.reader-page:nth-child(1 of .reader-page:not([hidden]):has(>:is(.library-block,.archive-block):not([hidden])))>:is(.library-block,.archive-block):nth-child(1 of :is(.library-block,.archive-block):not([hidden])) .block-time.input-year-start::before{content:none}
+#document-body>.reader-page:first-child>:is(.library-block,.archive-block):first-child .block-time.input-year-start{margin-top:0}
+#scope-search-host{margin-bottom:12px}
+#thought-document #topic-section-nav{display:flex;flex-direction:column;gap:4px}
+#thought-document #topic-section-nav button{text-align:left;font-size:13.5px;font-weight:400;white-space:normal;overflow-wrap:anywhere}
+#thought-document #topic-section-nav button[aria-current="true"]{color:var(--selected-ink);background:var(--selected)}
+@media(min-width:1024px){
+ #thought-document{position:relative;padding-left:220px}
+ #thought-document>#topic-outline{position:absolute;left:0;top:0;width:188px}
+ #thought-document>#topic-outline>summary{display:none}
+}
+@media(max-width:1023px){#thought-document>#topic-outline{margin-bottom:18px}}
+
+.reader-year-continuation{display:block;margin:20px 0;padding:6px 10px;min-height:36px;background:transparent;border:0;color:var(--quiet);font:400 12px/1.5 var(--font)}
+@media(pointer:coarse){.reader-year-continuation{min-height:44px;min-width:44px}}

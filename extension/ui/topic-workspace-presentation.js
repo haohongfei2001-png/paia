@@ -32,16 +32,16 @@ export class TopicWorkspacePresentation {
  constructor(owner){
   this.owner=owner;this.topicId=owner.id;this.view=owner.view;this.root=document.getElementById('thought-document');this.moves=[];this.created=[];
   const previous=readingOptions.get(owner),active=document.activeElement;readingOptions.delete(owner);
-  const get=id=>document.getElementById(id),move=(node,target)=>{if(!node)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.append(node);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
+  const get=id=>document.getElementById(id),move=(node,target,before=null)=>{if(!node||node.parentNode===target&&node.nextSibling===before)return;this.moves.push({node,parent:node.parentNode,next:node.nextSibling});target.insertBefore(node,before);},make=(tag,name,text)=>{const node=element(tag,name,text);this.created.push(node);return node;};
   this.selectionFrame=null;this.onTitleSelection=()=>{if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);this.selectionFrame=requestAnimationFrame(()=>{this.selectionFrame=null;if(!this.disposed)revealCompactTopicTitleSelection(this.root);});};document.addEventListener('selectionchange',this.onTitleSelection);
   this.root.classList.add('dvn-topic-composition');const title=this.root.querySelector('.topic-title-row'),toolbar=get('topic-toolbar'),menu=get('topic-menu').querySelector('.library-action-list');
   move(toolbar.querySelector('.library-history-tools'),menu);
   this.caption=make('p','dvn-topic-caption');title.after(this.caption);
   this.actions=make('div','dvn-topic-action-row');this.caption.after(this.actions);move(get('topic-original-tabs'),this.actions);move(toolbar,this.actions);move(get('topic-presentation'),this.actions);
-  this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-outline'),this.options);move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
+  this.line=make('div','dvn-topic-coverage-row');this.coverage=make('p','dvn-topic-coverage');this.options=make('details','dvn-topic-options');const summary=make('summary','','阅读选项');this.options.append(summary);move(get('topic-reading-controls'),this.options);move(get('topic-time-order'),this.actions);move(get('topic-outline'),this.root,get('topic-continuous-before'));move(get('revision-history'),this.options);this.line.append(this.coverage,this.options);this.actions.after(this.line);
   this.options.open=previous?.topicId===this.topicId&&previous?.view===this.view&&previous.open===true;
   this.years=make('nav','dvn-topic-years');this.years.setAttribute('aria-label','年份');this.line.before(this.years);
-  this.write=get('create-entry');this.writeLabel=this.write.textContent;this.write.textContent=document.documentElement.lang==='en'?'Add Thought':'写下想法';this.sync();
+  this.sync();
   // A dialog may close before its read finishes, returning focus to a control
   // that this same-view remount must move again. Preserve only that move loss.
   if(previous?.topicId===this.topicId&&previous?.view===this.view&&active?.isConnected&&document.activeElement===document.body&&this.moves.some(({node})=>node===active||node.contains(active)))active.focus({preventScroll:true});
@@ -54,15 +54,15 @@ export class TopicWorkspacePresentation {
   // not the normal durable Section reader. Keep only the existing controls.
   this.coverage.textContent='';this.caption.textContent='';this.years.replaceChildren();
   const tabs=document.getElementById('topic-original-tabs');if(tabs)tabs.hidden=true;
-  const order=document.getElementById('topic-time-order');if(order)order.hidden=true;
-  if(content){const outline=document.getElementById('topic-outline');if(outline)outline.hidden=true;}
+  const order=document.getElementById('topic-time-order');if(order)order.hidden=!content;
+  const outline=document.getElementById('topic-outline');if(outline)outline.hidden=!owner.id||!owner.sectionDirectory?.length;
   const state=owner.topicReader?.state(),before=document.getElementById('topic-continuous-before');if(state?.terminalPrevious&&!state.loadingPrevious&&!state.errorPrevious&&content)before.hidden=true;
  }
  dispose(){
   if(this.disposed)return;this.disposed=true;document.removeEventListener('selectionchange',this.onTitleSelection);if(this.selectionFrame!==null)cancelAnimationFrame(this.selectionFrame);
   readingOptions.set(this.owner,{topicId:this.topicId,view:this.view,open:this.options.open});
   const active=document.activeElement,moved=this.moves.some(({node})=>node===active||node.contains(active));
-  this.root.classList.remove('dvn-topic-composition');this.write.textContent=this.writeLabel;for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();
+  this.root.classList.remove('dvn-topic-composition');for(const {node,parent,next}of this.moves.toReversed())if(parent?.isConnected)parent.insertBefore(node,next?.parentNode===parent?next:null);for(const node of this.created)node.remove();
   // Reparenting can blur the History invoker before the owner opens its dialog.
   // Restore only synchronous move loss, never replace another control's focus.
   if(moved&&active?.isConnected&&document.activeElement===document.body)active.focus({preventScroll:true});

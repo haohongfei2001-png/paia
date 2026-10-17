@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join,relative,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {FakeChatGPT,eventually} from './fake-chatgpt.mjs';
+import {readGitBlobSnapshot} from './git-blob-snapshot.mjs';
 
 const sourceRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -88,9 +89,10 @@ export async function startNavigatorSourceFixture({extensionPath=sourceRoot,laun
  const paths=await copiedFiles(extensionPath),base=new Map();
  for(const path of paths)base.set(path,await readFile(join(extensionPath,path)));
  const runtimePaths=execFileSync('git',['ls-files','-z','extension/core','extension/background','extension/content','extension/ui','extension/adapter','extension/icons','extension/manifest.json'],{cwd:gitRoot,encoding:'utf8'}).split('\0').filter(Boolean);
+ const gitSnapshot=readGitBlobSnapshot(gitRoot,head,[...runtimePaths,...paths.map(path=>relative(gitRoot,join(sourceRoot,path)))]);
  const sourceRuntime={},release=resolve(extensionPath)!==resolve(sourceRoot),publicOmissions=new Set(['ui/structure-diagnostics.js','ui/fingerprint-display.js','ui/source-time-display.js','icons/brand-icons-provenance.json']);
  for(const gitPath of runtimePaths){
-  const path=gitPath.slice('extension/'.length),source=await readFile(join(sourceRoot,path)),git=execFileSync('git',['show',head+':'+gitPath],{cwd:gitRoot});
+  const path=gitPath.slice('extension/'.length),source=await readFile(join(sourceRoot,path)),git=gitSnapshot.get(gitPath);assert.ok(git,'mandatory runtime blob exists at the fixed HEAD: '+gitPath);
   sourceRuntime[path]={bytes:source.length,actual:sha(source),git:sha(git)};
   if(release&&publicOmissions.has(path)){assert.equal(base.has(path),false,'standard release diagnostic omission: '+path);continue;}
   let expected=source;
@@ -117,8 +119,7 @@ export async function startNavigatorSourceFixture({extensionPath=sourceRoot,laun
    assert.deepEqual(current,bytes,'base did not change while copying: '+path);
    assert.deepEqual(copied,path==='background/service-worker.js'?Buffer.from(actual):bytes,'sole worker difference: '+path);
    const gitPath=relative(gitRoot,join(sourceRoot,path));
-   let gitBytes=null;
-   try{gitBytes=execFileSync('git',['show',head+':'+gitPath],{cwd:gitRoot,stdio:['ignore','pipe','ignore']});}catch{}
+   const gitBytes=gitSnapshot.get(gitPath);
    files[path]={bytes:bytes.length,base:sha(bytes),mirror:sha(copied),sourceGit:gitBytes?sha(gitBytes):null};
   }
   const binding={head,tree,extensionPath,mirror,sourceRuntime,files,originalWorker:sha(Buffer.from(original)),instrumentedWorker:sha(Buffer.from(actual)),completionInjection:sha(Buffer.from(completionInjection)),helper:sha(await readFile(fileURLToPath(import.meta.url))),soleRuntimeDifference:'background/service-worker.js',providerInjection:null,fixtureOnly:true,productionInstrumentation:false};

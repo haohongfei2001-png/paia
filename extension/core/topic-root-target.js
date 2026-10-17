@@ -17,13 +17,14 @@ export function topicRootTarget(value){
 }
 export async function resolveTopicRootTarget(target,read){
  if(!target||!ref(target.topicId)||target.sectionId!==null&&!ref(target.sectionId))return false;
- let cursor=null;
+ let cursor=null,count=0;const seen=new Set();
  do{
   const page=await read({topicId:target.topicId,cursor,limit:target.sectionId?100:1});
   if(page?.cursorInvalid||page?.unavailable||page?.topic?.id!==target.topicId||!Array.isArray(page.items))return false;
+  count+=page.items.length;if(count>10000)return false;
   if(target.sectionId===null)return true;
   if(page.items.some(section=>section.id===target.sectionId&&section.topicId===target.topicId&&(!section.sourceUnavailable||section.titleProtected===true)))return true;
-  if(!page.nextCursor)return false;if(page.nextCursor===cursor)return false;cursor=page.nextCursor;
+  if(!page.nextCursor)return false;if(seen.has(page.nextCursor))return false;seen.add(page.nextCursor);cursor=page.nextCursor;
  }while(cursor);
  return false;
 }

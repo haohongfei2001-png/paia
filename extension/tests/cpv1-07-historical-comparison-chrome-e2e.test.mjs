@@ -2,7 +2,7 @@ import {openRetainedSearchComponent} from './harness/retained-search-component.m
 import {admitPreGatePurgeBrowserFixture} from './harness/pre-gate-purge-browser-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {FakeChatGPT,eventually} from './harness/fake-chatgpt.mjs';
 import {materialKey} from '../core/manual-materials.js';
 
@@ -329,19 +329,40 @@ const currentReady=async p=>eventually(async()=>await p.locator('.universal-hit'
  &&await p.locator('#universal-search-dialog').getAttribute('data-query')==='SEARCH_LIFETIME'
  &&!await p.locator('.universal-results').getAttribute('aria-busy'),'complete current query');
 const frames=p=>p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+// Complete-scope evidence is an explicit aggregate of actual bounded pages,
+// not a single transport response. A short matching page may still have an
+// opaque continuation while the original 200-row scan traverses Thought/AI meta.
+async function completeCurrentScope(p,options){
+ let cursor=null,generation=null;const items=[],pages=[],cursors=new Set(),identities=new Set();
+ for(let read=0;read<1000;read++){
+  const page=await rpc(p,'SEARCH_INPUTS',{options:{...options,cursor}});
+  pages.push({generation:page.generation,changed:page.changed,complete:page.complete,count:page.items.length,scanned:page.scanned,nextCursor:page.nextCursor});
+  if(generation!==null&&page.generation!==generation)assert.equal(page.changed,true,'an actual generation change must explicitly refuse the old opaque cursor');
+  if(page.changed)return {items:[],pages,generation:page.generation,complete:false,changed:true};
+  if(generation===null)generation=page.generation;
+  assert.equal(page.generation,generation,'one complete authority cannot mix generations');
+  for(const item of page.items){const key=materialKey(item.ref);assert.equal(identities.has(key),false,'actual current-scope pages cannot repeat a material identity');identities.add(key);items.push(item);}
+  if(page.complete){assert.equal(page.nextCursor,null,'actual complete scope has no remaining opaque continuation');return {items,pages,generation,complete:page.complete,changed:false};}
+  assert.ok(page.nextCursor,'an unfinished actual scope must retain its original opaque continuation');const key=JSON.stringify(page.nextCursor);assert.equal(cursors.has(key),false,'current-scope continuation cannot cycle');cursors.add(key);cursor=page.nextCursor;
+ }
+ assert.fail('complete current scope exceeds the finite 1000-page evidence budget');
+}
 async function currentMaintenanceReady(p,count){
- let priorGeneration=null;
- await eventually(async()=>{
+ let priorGeneration=null;const samples=[];
+ const record=value=>{samples.push(value);if(samples.length>12)samples.shift();};
+ try{await eventually(async()=>{
   const filter=await rpc(p,'FILTER_STATUS');
   if(filter.taskState==='failed')throw Error('Actual Smart Filter maintenance failed');
-  if(filter.taskState==='running'||(filter.mode!=='off'&&filter.pending))return false;
+  if(filter.taskState==='running'||(filter.mode!=='off'&&filter.pending)){record({filter});return false;}
   const foundation=await rpc(p,'GET_LIBRARY_FOUNDATION_STATUS');
-  if(foundation.pendingCleanupJobs||foundation.pendingInvalidations||!foundation.compatibility.complete)return false;
-  const page=await rpc(p,'SEARCH_INPUTS',{options:{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100}});
-  if(!page.complete||page.items.length!==count){priorGeneration=null;return false;}
+  if(foundation.pendingCleanupJobs||foundation.pendingInvalidations||!foundation.compatibility.complete){record({filter,foundation});return false;}
+  const page=await completeCurrentScope(p,{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100});
+  record({filter,foundation,count:page.items.length,complete:page.complete,changed:page.changed,pages:page.pages,generation:page.generation,priorGeneration});
+  if(page.changed||!page.complete||page.items.length!==count){priorGeneration=null;return false;}
   const stable=priorGeneration===page.generation;priorGeneration=page.generation;
   return stable;
- },'actual filter/library completion and stable complete current generation');
+ },'actual filter/library completion and stable complete current generation');}
+ catch(error){await mkdir('work/historical-current-generation',{recursive:true});await writeFile('work/historical-current-generation/maintenance-failure.json',JSON.stringify({expectedCount:count,samples},null,2));throw error;}
 }
 async function currentLifetimeFixture(){
  const fixture=await searchLifetimeFixture(),{p}=fixture;
@@ -349,8 +370,8 @@ async function currentLifetimeFixture(){
   await p.getByRole('button',{name:'全部结果',exact:true}).click();await currentReady(p);
   await currentMaintenanceReady(p,42);
   await p.getByRole('searchbox',{name:'全局搜索'}).press('Enter');await currentReady(p);
-  const page=await rpc(p,'SEARCH_INPUTS',{options:{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100}});
-  assert.equal(page.items.length,42);assert.equal(page.complete,true);
+  const page=await completeCurrentScope(p,{universal:true,paged:true,mode:'current',query:'SEARCH_LIFETIME',limit:100});
+  assert.equal(page.changed,false);assert.equal(page.items.length,42);assert.equal(page.complete,true);
   const block=await rpc(p,'GET_INPUT',{id:page.items[0].id});
   return {...fixture,block,generation:page.generation};
  }catch(error){await fixture.h.close();throw error;}
@@ -621,9 +642,8 @@ test('VS07 current real capture replaces loaded generation without mixing old pa
    first=await p.evaluate(()=>globalThis.__captureUIReads.at(-1));
    assert.equal(first.ok,true);assert.equal(first.options.cursor,null);
    assert.equal(first.data.items.length,40);assert.equal(first.data.changed,false);
-   whole=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,limit:100}});
-   assert.equal(whole.complete,true);assert.equal(whole.items.length,43);
-   if(whole.generation===first.data.generation){admitted=true;break;}
+   whole=await completeCurrentScope(p,{...first.options,limit:100});
+   if(!whole.changed){assert.equal(whole.complete,true);assert.equal(whole.items.length,43);if(whole.generation===first.data.generation){admitted=true;break;}}
    assert.ok(whole.generation>first.data.generation,'a later actual archive transaction changed the observed generation');
    const refused=await rpc(p,'SEARCH_INPUTS',{options:{...first.options,cursor:first.data.nextCursor}});
    assert.equal(refused.changed,true,'the actual old generation cursor must be refused, never used as healthy paging');

@@ -1,8 +1,8 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFile,readdir} from 'node:fs/promises';import {group,testShard} from '../scripts/test-groups.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile,readdir} from 'node:fs/promises';import {isPreviousCurrentBrowser,group,testShard} from '../scripts/test-groups.mjs';
 test('measured search rebalance retains exactly the reviewed search and ReaderRevisit whole-file moves without losing coverage',async()=>{
  const prior=JSON.parse(await readFile(new URL('./fixtures/search-rebalance-prior-routes.json',import.meta.url),'utf8'));
  assert.equal(prior.base,'8a38c8644605be6919c114f0b6866ada36a2552d');assert.equal(prior.rows.length,83);
- const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&group(n)==='browser E2E').sort(),changed=[];
+ const names=(await readdir(new URL('./',import.meta.url))).filter(n=>n.endsWith('.test.mjs')&&isPreviousCurrentBrowser(n)).sort(),changed=[];
  for(const [column,total]of [4,5,6,7].entries()){
   for(const [file,...routes]of prior.rows){assert.ok(names.includes(file));const actual=testShard(file,names.indexOf(file),total,'browser E2E');if(actual!==routes[column])changed.push({file,total,before:routes[column],after:actual});}
   const all=Array.from({length:total},(_,slot)=>names.filter((n,i)=>testShard(n,i,total,'browser E2E')===slot+1)).flat();assert.deepEqual(all.sort(),names);assert.equal(new Set(all).size,names.length);

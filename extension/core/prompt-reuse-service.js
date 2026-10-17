@@ -2,14 +2,14 @@ import {requireHistoricalCandidateSession} from './ai-usage/historical-candidate
 import {prepareInputSearchContext,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
 import {PROMPT_HISTORY_SCOPE,queryPromptHistory,readPromptHistory,readPromptHistoryInTransaction,validPromptSelectionRef,selectPromptRange} from './prompt-selection.js';
 import {NextFamilyView} from './next-family-view.js';
-import {ArchiveError} from './constants.js';
+import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
 import {inputProjection} from './thought-evidence.js';
 import {materialRead} from './manual-materials.js';
 import {memoryRange,validateMemoryRow} from './memory/model.js';
 import {projectPromptFamilies} from './prompt-family.js';
-import {PROMPT_REUSE_ROW,own,validPromptText,readPromptPreferences,validPromptPreferences} from './prompt-reuse-preferences.js';
+import {PROMPT_REUSE_ROW,own,validPromptText,quickPromptEligible,readPromptPreferences,validPromptPreferences} from './prompt-reuse-preferences.js';
 const fail=()=>{throw new ArchiveError('INVALID_REQUEST');};
 const changed=()=>{throw new ArchiveError('MEMORY_STALE');};
 const generation=async t=>(await t.get('meta','backup-data-generation'))?.value||0;
@@ -57,7 +57,8 @@ export class PromptReuseService{
  async query({includeHidden=false}={}){
   if(typeof includeHidden!=='boolean')fail();const serial=this.#nextFamilyView.begin(),x=await this.snapshot();
   this.#nextFamilyView.publish(serial,x);
-  return {revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
+  const eligible=x.families.filter(f=>(includeHidden||!f.hidden)&&(f.useful||f.pinned||f.edited||f.retained));
+  return {revision:x.preferences.revision,generation:x.generation,manualOrder:[...x.preferences.pins],items:eligible.filter(f=>quickPromptEligible(f.text)),oversizedItems:eligible.filter(f=>!quickPromptEligible(f.text)),complete:true,...(x.unresolved?{unresolved:x.unresolved,bindingsComplete:x.bindingsComplete}:{})};
  }
  async historicalCandidateStatus(){return {available:this.#historyCandidates?.available()===true};}
  async refreshHistoricalCandidates(query,source){
@@ -69,7 +70,7 @@ export class PromptReuseService{
   const local=await this.query();if(!handle||!this.#historyCandidates)return local;
   try{
    const result=await this.#historyCandidates.read(handle);if(result.kind!=='CANDIDATES')return local;
-   const items=[];for(const ref of result.refs){const selected=await this.resolveSelection(ref);items.push({id:ref.id,text:selected.text,ref:structuredClone(ref),members:[],pinned:false,hidden:false,edited:false,retained:false,useful:true});}
+   const items=[];for(const ref of result.refs){const selected=await this.resolveSelection(ref);if(!quickPromptEligible(selected.text))continue;items.push({id:ref.id,text:selected.text,ref:structuredClone(ref),members:[],pinned:false,hidden:false,edited:false,retained:false,useful:true});}
    await this.#historyCandidates.read(handle);
    // Protected human slots remain in their original relative order. AI can add
    // only already-qualified historical IDs, never replace their authored text.
@@ -102,10 +103,36 @@ export class PromptReuseService{
  async resolveSelection(ref,range=null){
   if(!validPromptSelectionRef(ref))fail();
   if(ref.kind==='history_input')return readPromptHistory(this.s,ref,range);
+  // An independent authored override has no historical member or Family
+  // qualification. Read its original preference owner twice across the
+  // coordinator's initial/final checks, without rebuilding the Input corpus.
+  // Edited pf: identities and configured Sync correction owners keep their
+  // existing complete qualification; this path grants no portable authority.
+  if(this.syncJournal===null&&ref.kind==='manual_reuse'&&/^manual:[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(ref.id)){
+   let selectedRange;try{selectedRange=range===null?null:structuredClone(range);}catch{fail();}
+   return this.#independentManualSelection(structuredClone(ref),selectedRange);
+  }
   const x=await this.snapshot();if(x.generation!==ref.generation||x.preferences.revision!==ref.revision)changed();
   const family=x.families.find(f=>f.id===ref.id&&!f.hidden&&(f.useful||f.pinned||f.edited||f.retained));
   if(!family||(family.edited?'manual_reuse':'prompt_family')!==ref.kind)changed();
   return {ref:structuredClone(ref),range:range===null?null:structuredClone(range),text:selectPromptRange(family.text,range),generation:x.generation,familyId:ref.id};
+ }
+ async #independentManualSelection(ref,range){
+  await this.s.finishFoundation();
+  return this.s.run(()=>this.s.repository.transaction(false,async t=>{
+   await publicationSettled(t);
+   const before=await generation(t),{settings}=await this.s.control(t);
+   if(settings.consentVersion!==CONSENT_VERSION)throw new ArchiveError('CONSENT_REQUIRED');
+   const preferences=await readPromptPreferences(t);
+   if(before!==ref.generation||preferences.revision!==ref.revision)changed();
+   const override=preferences.overrides.find(row=>row.id===ref.id&&row.text!==undefined&&!row.hidden);
+   if(!override)changed();
+   const text=selectPromptRange(override.text,range);
+   await publicationSettled(t);
+   if(await generation(t)!==before)changed();
+   if((await this.s.control(t)).settings.consentVersion!==CONSENT_VERSION)throw new ArchiveError('CONSENT_REQUIRED');
+   return {ref:structuredClone(ref),range:range===null?null:structuredClone(range),text,generation:before,familyId:ref.id};
+  },['meta']));
  }
  async assertSelectionCurrent(selected){
   const current=await this.resolveSelection(selected.ref,selected.range);if(current.text!==selected.text)changed();return current;
@@ -121,15 +148,15 @@ export class PromptReuseService{
   const {action,id}=change,x=await this.snapshot();if(x.preferences.revision!==change.revision)changed();
   const p=structuredClone(x.preferences),f=x.families.find(f=>f.id===id);let o=p.overrides.find(o=>o.id===id);
   if(action==='create'){
-   if(id!==undefined||!validPromptText(change.text))fail();o={id:'manual:'+crypto.randomUUID(),text:change.text,hidden:false,reuseCount:0};p.overrides.push(o);
+   if(id!==undefined||!validPromptText(change.text))fail();if(!quickPromptEligible(change.text))throw new ArchiveError('PROMPT_TOO_LONG');o={id:'manual:'+crypto.randomUUID(),text:change.text,hidden:false,reuseCount:0};p.overrides.push(o);
   }else if(action==='delete'){
    // Delete only independent user-owned reuse work, never a supported Family.
    if(!f||f.members.length!==0||o?.text===undefined)fail();
    p.overrides=p.overrides.filter(x=>x.id!==id);p.pins=p.pins.filter(x=>x!==id);
   }else{
    if(!f&&!o)fail();if(!o){o={id,hidden:false,reuseCount:0};p.overrides.push(o);}
-   if(action==='edit'){if(!validPromptText(change.text))fail();o.text=change.text;}
-   else if(action==='representative'){if(!f?.members.includes(change.representative))fail();o.representative=change.representative;}
+   if(action==='edit'){if(!validPromptText(change.text))fail();if(!quickPromptEligible(change.text))throw new ArchiveError('PROMPT_TOO_LONG');o.text=change.text;}
+   else if(action==='representative'){if(!f?.members.includes(change.representative))fail();if(!quickPromptEligible(x.inputs.find(row=>row.id===change.representative)?.text))throw new ArchiveError('PROMPT_TOO_LONG');o.representative=change.representative;}
    else if(action==='hide'||action==='show')o.hidden=action==='hide';
    else if(action==='unpin')p.pins=p.pins.filter(x=>x!==id);
    else if(action==='pin'){
@@ -152,8 +179,13 @@ export class PromptReuseService{
   }));return {revision:p.revision,id:o.id};
  }
  // Only the trusted insertion coordinator calls this after verified read-back.
- async noteVerifiedReuse(id){
-  const x=await this.snapshot();if(!x.families.some(f=>f.id===id&&!f.hidden))return;
+ async noteVerifiedReuse(id,verifiedGeneration=null){
+  // A coordinator may reuse its just-qualified selection generation. The same
+  // canonical CAS below rejects every subsequent deletion/edit/revocation; no
+  // usage receipt can recreate a removed override. Legacy callers requalify.
+  const x=verifiedGeneration===null?await this.snapshot():{generation:verifiedGeneration};
+  if(!Number.isSafeInteger(x.generation)||x.generation<0)fail();
+  if(verifiedGeneration===null&&!x.families.some(f=>f.id===id&&!f.hidden))return;
   return this.s.run(()=>this.s.repository.transaction(true,async t=>{
    await publicationSettled(t);
    // A late acknowledgement cannot recreate an override deleted since selection.

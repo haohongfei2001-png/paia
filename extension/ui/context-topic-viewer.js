@@ -12,10 +12,11 @@ export class ContextTopicViewer {
   this.send=send;this.topicId=topicId;this.start={topicId,sectionId,anchorId};this.active=true;this.busy=false;this.generation=0;this.onClose=onClose;
   this.root=element('dialog','topic-action-dialog context-drawer context-topic-viewer');this.root.setAttribute('aria-label',copy('查看主题','View Topic'));
   this.title=element('h2','',name);this.back=button(copy('返回','Back'),()=>this.close());
+  this.sectionSelect=element('select','context-topic-section-select');this.sectionSelect.setAttribute('aria-label',copy('章节','Section'));this.sectionSelect.addEventListener('change',()=>void this.selectSection(this.sectionSelect.value));
   this.status=element('p','context-topic-viewer-status');this.status.setAttribute('role','status');
   this.body=element('div','context-topic-viewer-body');this.previous=button(copy('前面的内容','Earlier content'),()=>void this.read('previous'));
   this.next=button(copy('接着读','Continue reading'),()=>void this.read('next'));this.retry=button(copy('重新读取','Reload content'),()=>void this.restart());
-  const header=element('header','context-drawer-head'),content=element('div','context-drawer-content'),actions=element('footer','context-drawer-footer context-topic-viewer-actions');header.append(this.title,this.back);actions.append(this.previous,this.next,this.retry);
+  const header=element('header','context-drawer-head'),content=element('div','context-drawer-content'),actions=element('footer','context-drawer-footer context-topic-viewer-actions');header.append(this.back,this.sectionSelect,this.title);actions.append(this.previous,this.next,this.retry);
   content.append(element('p','quiet-footnote',copy('仅本人本地查看，不改变 AI 访问选择。','Local viewing only. AI access choices are unchanged.')),this.body,this.status);this.root.append(header,content,actions);host.append(this.root);
   this.root.addEventListener('cancel',event=>{event.preventDefault();this.close();});
   this.root.addEventListener('paia:request-close',event=>{event.preventDefault();this.close();});
@@ -26,20 +27,41 @@ export class ContextTopicViewer {
   this.reader=new ContinuousTopicReader({chunk:40,windowChunks:1,maxReferences:400,loadEntry:id=>this.fullEntry(id),load:options=>this.load(options)});this.reader.reset(this.start);
   this.root.showModal();this.back.focus();
  }
+ async sectionDirectory(){
+  const generation=this.generation,rows=[],seen=new Set();let cursor=null;
+  do{
+   const page=await this.send('GET_LIBRARY_SECTION_PROJECTION',{options:{topicId:this.topicId,cursor,limit:100}});
+   if(!this.active||generation!==this.generation)throw Error('TOPIC_VIEW_STALE');
+   if(page?.unavailable||page?.cursorInvalid||page?.topic?.id!==this.topicId||!Array.isArray(page.items)||page.items.length>100||new TextEncoder().encode(JSON.stringify(page)).length>256*1024)throw Error('TOPIC_SECTIONS_CHANGED');
+   for(const row of page.items){if(typeof row.id!=='string'||rows.some(old=>old.id===row.id))throw Error('TOPIC_SECTIONS_CHANGED');rows.push(row);}
+   cursor=page.nextCursor;if(rows.length>10000||cursor&&seen.has(cursor))throw Error('TOPIC_SECTIONS_CHANGED');if(cursor)seen.add(cursor);
+  }while(cursor);
+  const requested=this.start.sectionId,selected=requested?rows.find(row=>row.id===requested):rows[0];
+  if(requested&&!selected)throw Error('TOPIC_SECTION_UNAVAILABLE');
+  this.sectionRows=rows;this.start={...this.start,sectionId:selected?.id??null};this.sectionSelect.replaceChildren();
+  for(const row of rows){const option=element('option','',row.title||copy('未命名章节','Untitled Section'));option.value=row.id;this.sectionSelect.append(option);}
+  this.sectionSelect.value=this.start.sectionId??'';this.reader.reset(this.start);return !!selected;
+ }
+ async selectSection(id){
+  if(!this.active||this.busy||this.invalidated||!this.sectionRows?.some(row=>row.id===id))return false;
+  if(id===this.start.sectionId)return true;
+  this.generation++;this.start={topicId:this.topicId,sectionId:id,anchorId:null};this.reader.reset(this.start);this.body.replaceChildren();this.sectionSelect.value=id;return this.read();
+ }
  async load(options){
   if(!this.active||this.invalidated)throw Error('TOPIC_VIEW_CLOSED');
-  const generation=this.generation,page=await this.send('GET_LIBRARY_SECTION_READING',{options:{...options,topicId:this.topicId,query:'',view:'original',sort:'asc',limit:options.limit??40}});
+  const generation=this.generation,page=await this.send('GET_LIBRARY_SECTION_READING',{options:{...options,scopeSectionId:this.start.sectionId,topicId:this.topicId,query:'',view:'original',sort:'asc',limit:options.limit??40}});
   if(!this.active||this.invalidated||generation!==this.generation)throw Error('TOPIC_VIEW_STALE');
   if(page?.cursorInvalid||page?.unavailable||page?.unsupported)return page;
   if(new TextEncoder().encode(JSON.stringify(page)).length>256*1024||page?.version!==1||page.kind!=='section_reading'||page.topic?.id!==this.topicId||!Array.isArray(page.items)||page.items.length>40||!Array.isArray(page.sections)||page.sections.length>100||typeof page.recoveryEpoch!=='string'||!page.recoveryEpoch||typeof page.coverage?.activeGeneration!=='string'||typeof page.authority!=='string'||typeof page.complete!=='boolean'||page.complete!==((options.direction==='prev'?page.previousCursor:page.nextCursor)===null)||page.items.some(item=>!item.entry||typeof item.entry.id!=='string'||!Number.isSafeInteger(item.entry.revision)||!item.entry.large&&typeof item.entry.body!=='string'))throw Error('TOPIC_VIEW_INVALID');
   if(this.authority&&this.authority!==page.authority){this.invalidate();throw Error('TOPIC_VIEW_STALE');}this.authority=page.authority;
   return page;
  }
- async restart(){if(!this.active||this.busy)return false;this.invalidated=false;this.authority=null;this.reader.reset(this.start);this.body.replaceChildren();return this.read('initial');}
+ async restart(){if(!this.active||this.busy)return false;this.invalidated=false;this.authority=null;this.sectionRows=null;this.reader.reset(this.start);this.body.replaceChildren();return this.read('initial');}
  async read(direction='initial'){
   if(!this.active||this.busy||this.invalidated)return false;
   const generation=this.generation;this.busy=true;this.paintControls();
   try{
+   if(!this.sectionRows&&!await this.sectionDirectory()){this.status.textContent=copy('此主题没有可读取的章节。','No readable Sections in this Topic.');return true;}
    if(direction!=='initial'&&this.reader.shiftWindow(direction))await this.reader.hydrateWindow();else await this.reader[direction]();
    if(!this.active||generation!==this.generation)return false;
    const state=this.reader.state();if(state.stale){this.invalidate();return false;}
@@ -89,14 +111,15 @@ export class ContextTopicViewer {
  paintPage(){
   const state=this.reader.state(),items=this.reader.layout().filter(part=>part.kind==='item').map(part=>part.item),meta=this.reader.pageMeta;
    if(!meta)throw Error('TOPIC_VIEW_EMPTY');
+   if(items.some(item=>item.placement?.sectionId!==this.start.sectionId)||[...this.reader.sections.values()].some(row=>row.sectionId!==this.start.sectionId))throw Error('TOPIC_SECTION_MIXED');
    this.title.textContent=meta.topic.name;
-   renderTopicSectionProse({body:this.body,page:{...meta,sections:[...this.reader.sections.values()],items},entryNode:item=>{
+   renderTopicSectionProse({body:this.body,page:{...meta,scopeSectionId:this.start.sectionId,sections:[...this.reader.sections.values()],items},entryNode:item=>{
     const node=element('article','context-topic-viewer-entry');node.dataset.entryId=item.entry.id;
     node.append(element('p','entry-prose'));this.paintEntry(node,item);return node;
    },updateEntry:(node,item)=>this.paintEntry(node,item)});
-   this.status.textContent=items.some(item=>item.entry.large)?copy('含未完整读取的条目。','Some items have not been fully loaded.'):state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length?copy('已到主题末尾。','End of Topic.'):copy('后面还有内容。','More content follows.');
+   this.status.textContent=items.some(item=>item.entry.large)?copy('含未完整读取的条目。','Some items have not been fully loaded.'):state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length?copy('已到章节末尾。','End of Section.'):copy('后面还有内容。','More content follows.');
  }
- paintControls(){const state=this.reader.state();this.previous.disabled=this.busy||this.invalidated||state.windowStart===0&&state.terminalPrevious;this.next.disabled=this.busy||this.invalidated||state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length;this.retry.hidden=!this.invalidated;this.retry.disabled=this.busy;this.root.setAttribute('aria-busy',String(this.busy));for(const control of this.body.querySelectorAll('button'))control.disabled=this.busy||this.invalidated;}
+ paintControls(){const state=this.reader.state();this.sectionSelect.disabled=this.busy||this.invalidated||!this.sectionRows?.length;this.previous.disabled=this.busy||this.invalidated||!this.sectionRows?.length||state.windowStart===0&&state.terminalPrevious;this.next.disabled=this.busy||this.invalidated||!this.sectionRows?.length||state.terminalNext&&state.windowStart+this.reader.windowSize>=state.items.length;this.retry.hidden=!this.invalidated;this.retry.disabled=this.busy;this.root.setAttribute('aria-busy',String(this.busy));for(const control of this.body.querySelectorAll('button'))control.disabled=this.busy||this.invalidated;}
  invalidate(text=copy('内容已变化，请重新读取。','Content changed. Reload to continue.')){if(!this.active)return;this.generation++;this.invalidated=true;this.busy=false;this.reader.reset(this.start);this.body.replaceChildren();this.status.textContent=text;this.paintControls();}
  close(){if(!this.active)return;this.active=false;this.generation++;this.reader.reset({});this.body.replaceChildren();globalThis.chrome?.runtime?.onMessage?.removeListener(this.changed);document.removeEventListener?.('visibilitychange',this.visibility);this.root.close();this.root.remove();this.onClose();}
 }

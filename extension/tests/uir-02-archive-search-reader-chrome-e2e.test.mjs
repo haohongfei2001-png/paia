@@ -90,7 +90,7 @@ async function sourceJourney(page,h){
   // Preserve this all-source scenario through the real current Source control.
   await page.locator('#archive-source-scope').selectOption('');
   await eventually(()=>page.locator('#scope-search').getAttribute('placeholder').then(value=>value==='搜索全部档案'),'explicit all-source scenario is ready');
-  assert.deepEqual(await page.locator('#scope-search,#reader-scope-search').evaluateAll(nodes=>nodes.map(node=>node.placeholder)),['搜索全部档案','在此对话中查找'],'IAH-1.1 neutral Archive and Reader retain truthful independent scope hints');
+  assert.equal(await page.locator('#scope-search').getAttribute('placeholder'),'搜索全部档案');assert.equal(await page.locator('#reader-scope-search').isVisible(),false,'Reader Find is retired');
   assert.equal(await page.locator('#onboarding-history-step').isVisible(),false,'Archive evidence is not dominated by optional onboarding');
   assert.equal(await page.locator('.conversation-document .summary').first().evaluate(el=>getComputedStyle(el).display),'none','generic Archive subtitle is not presented');
   assert.match(await page.locator('#result-count').evaluate(el=>getComputedStyle(el,'::before').content),/当前范围/,'Archive count is explicitly scoped');
@@ -103,8 +103,9 @@ async function sourceJourney(page,h){
   await eventually(()=>page.locator('#document-panel').isVisible(),'Reader opens from Archive');await assertArchiveDirectoryUnchanged(page,'UIR normal selection');
   assert.equal(await page.locator('#archive-reader-navigator-slot #back').count(),0,'directory header is not replaced by Back');
   assert.equal(await page.locator('#reader-compact-tools #archive-reader-back-slot #back').count(),1,'existing Back belongs to the right Reader tools');
-  for(const shortcut of ['Control+f','Meta+f']){await page.locator('#back').focus();await page.keyboard.press(shortcut);assert.equal(await page.evaluate(()=>document.activeElement.id),'reader-scope-search');}
-  await page.locator('#reader-scope-search').fill('第二段');await eventually(()=>page.locator('.document-search-hit').count().then(count=>count===1),'Reader query finds only its conversation');assert.equal(await page.locator('#scope-search').inputValue(),'','Archive query remains independent');await page.locator('#reader-scope-search').fill('');await eventually(async()=>!await page.locator('#document-search-tools').isVisible(),'Reader query clears');await assertArchiveDirectoryUnchanged(page,'UIR normal selection');
+  for(const shortcut of ['Control+f','Meta+f']){await page.locator('#back').focus();await page.keyboard.press(shortcut);assert.notEqual(await page.evaluate(()=>document.activeElement.id),'reader-scope-search');}
+  console.error('READER_SEARCH_STATE',JSON.stringify(await page.evaluate(()=>({route:history.state,search:[...document.querySelectorAll('input[type=search]')].filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden').map(n=>({id:n.id,html:n.outerHTML})),body:document.body.dataset}))));assert.equal(await page.locator('input[type=search]:visible').count(),0,'Archive Reader exposes no app search');
+  assert.match(await page.locator('#document-body').textContent(),/第二段/);await assertArchiveDirectoryUnchanged(page,'UIR normal selection');
   const shell=await page.locator('#document-page').boundingBox();
   const body=await page.locator('#document-body').boundingBox();
   assert.ok(shell&&body&&shell.width>body.width,'Reader workspace is wider than the saved prose column');
@@ -143,20 +144,17 @@ async function sourceJourney(page,h){
 
   await page.locator('.universal-open').first().click();
   await eventually(()=>page.locator('#document-panel').isVisible(),'Search result opens Reader');
-  await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'actual Reader scope is ready');
-  assert.equal(await page.locator('#reader-scope-search').inputValue(),'UIR02_TARGET','explicit result query belongs to the Reader scope');assert.equal(await page.locator('#scope-search').inputValue(),'','explicit result does not overwrite the Archive query');
+  assert.equal(await page.locator('input[type=search]:visible').count(),0,'exact result arrival has no Reader search');assert.equal(await page.locator('#scope-search').inputValue(),'','explicit result does not overwrite the Archive query');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'explicit Reader full text remains readable while preview mask is enabled');
   const detailField=page.locator('.library-prose').first();
   const detailId=await detailField.getAttribute('data-edit-id');
   assert.ok(detailId,'Reader exposes the existing Input identity for review restoration');
 
-  await readerMenu(page,'查看原始内容',detailField);
-  await eventually(()=>page.locator('#info-dialog').evaluate(el=>el.open),'Source panel opens');
-  assert.equal(await page.locator('#info-dialog h2').textContent(),'所选 Input · 原始内容','Source mode is named as the immutable record');
-  assert.equal(await page.locator('#info-content [contenteditable]').count(),0,'Source record stays read-only');
-  assert.match(await page.locator('#info-content .source-original').textContent(),/UIR02_TARGET/,'explicit Source full text remains readable while preview mask is enabled');
-  await shot(page,'uir-02-source-1440x900-light');
-  await page.locator('#close-info').click();
+  // Source remains a separately qualified low-frequency reader, not a
+  // routine menu action. Exercise its original read-only surface explicitly.
+  await detailField.click({button:'right'});assert.equal(await page.locator('#context-menu button').filter({hasText:'查看原始内容'}).count(),0);await page.keyboard.press('Escape');
+  await page.evaluate(async id=>{const {OriginalSurface}=await import('./original-surface.js');const dialog=document.querySelector('#info-dialog'),content=document.querySelector('#info-content');const owner=new OriginalSurface({dialog,content,host:{open(node){node.showModal();return ()=>node.open;}},read:async page=>{const result=await chrome.runtime.sendMessage({type:'PAIA_ARCHIVE_ORIGINAL_PAGE',page});if(!result.ok)throw Error(result.error);return result.data;}});await owner.open({kind:'input',ref:id},document.activeElement);},detailId);
+  assert.equal(await page.locator('#info-dialog h2').textContent(),'所选 Input · 原始内容');assert.equal(await page.locator('#info-content [contenteditable]').count(),0);assert.match(await page.locator('#info-content .source-original').textContent(),/UIR02_TARGET/);await shot(page,'uir-02-source-1440x900-light');await page.locator('#close-info').click();
 
   await readerMenu(page,'版本历史',detailField);
   await eventually(()=>page.locator('#revision-dialog').evaluate(el=>el.open),'Revision panel opens');
@@ -245,7 +243,7 @@ async function releaseJourney(page,h){
   await page.getByRole('button',{name:'全部结果',exact:true}).click();
   await eventually(async()=>(await page.getByRole('button',{name:'全部结果',exact:true}).getAttribute('aria-pressed'))==='true'&&await page.locator('.universal-open').count()>0);
   await page.locator('.universal-open').first().click();
-  await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');await eventually(()=>page.locator('#reader-scope-search').isEnabled(),'release Reader query ready');assert.equal(await page.locator('#reader-scope-search').inputValue(),'UIR02_TARGET');assert.equal(await page.locator('#scope-search').inputValue(),'');
+  await eventually(()=>page.locator('#document-panel').isVisible(),'built release Search opens Reader');assert.equal(await page.locator('input[type=search]:visible').count(),0);assert.equal(await page.locator('#scope-search').inputValue(),'');
   assert.match(await page.locator('#document-body').textContent(),/UIR02_TARGET/,'built release Reader full text is not masked');
   await page.locator('#back').click();
   await eventually(()=>page.locator('#universal-search-dialog').isVisible(),'built release Reader returns to Search');

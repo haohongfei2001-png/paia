@@ -7,7 +7,7 @@ import {DocumentSearchSessions} from '../ui/document-search-sessions.js';
 const source=readFileSync(new URL('../ui/archive.js',import.meta.url),'utf8');
 const actual=(start,end)=>source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));
 const navigateCode=actual('async function navigate(', '\nfunction showCollection(');
-const archiveInputCode=actual('function onArchiveSearchInput(', '\nfunction onReaderSearchInput(');
+const archiveInputCode=actual('function onArchiveSearchInput(', '\nfunction presentScopeSearch(');
 function navigationFixture(accepted=true){
  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'synthetic old content',value:'',hidden:false,replaceChildren(){this.cleared=true;}});return nodes.get(id);},seen=[],timers=[];
  const context={validArchiveOrigin,archiveOriginKey:null,archiveOrigins:{get:()=>null},focusArchiveOrigin(){},readerCopy:(_zh,en)=>en,$:get,view:'library',documentId:'synthetic-doc',query:'ARCHIVE_A',archiveSearchIntent:0,scopeSearch:{input:{value:'ARCHIVE_B',disabled:false}},readerScopeSearch:{input:{value:'READER_ONLY',disabled:false}},navigationIntent:0,navigationInFlight:0,startupNavigation:Promise.resolve(),documentSearchIntent:0,documentSearchTimer:null,inputSearchTimer:null,documentSearchStates:new DocumentSearchSessions(),clearTimeout(){},setTimeout(fn){timers.push(fn);return timers.length;},closeDesktopAppearancePreview:()=>true,leave:async()=>accepted,readingModals:{close(){}},returnTo:null,readingSnapshot:null,inputSortSnapshot:null,contextInputId:null,showFilteredCurrent:false,queries:new Map([['library','ARCHIVE_A']]),routeStates:new Map([['library:',{query:'ARCHIVE_A',cursor:'ARCHIVE_A_PAGE_2',pages:[null],scroll:0}]]),pageCursor:null,pageHistory:[],menuId:null,notify(){},beginLoading:()=>()=>{},document:{querySelector:()=>({})},window:{scrollTo(){}},reader:{schedule(){},restore:async()=>{}},routes:{beginnings:0,beginNavigation(){this.beginnings++;},commit(){}},highlightReading(){},async refresh(){seen.push({query:context.query,cursor:context.pageCursor,history:[...context.pageHistory]});}};
@@ -41,7 +41,7 @@ test('fresh entry leaves the saved query and page available to the existing retu
 });
 
  test('Archive result click delegates reveal solely to completed navigation',()=>{
- const binding=actual('wireScopeSearchKeyboard(scopeSearch.input,','wireScopeSearchKeyboard(readerScopeSearch.input,');
+ const binding=actual('wireScopeSearchKeyboard(scopeSearch.input,',"for(const id of ['search-date-start','search-date-end'])");
  let captured;
  vm.runInNewContext(binding,{scopeSearch:{input:{}},$:id=>({id}),wireScopeSearchKeyboard:(_input,pages)=>{captured=pages;}});
  assert.equal(captured.length,1);assert.equal(captured[0].results.id,'document-list');

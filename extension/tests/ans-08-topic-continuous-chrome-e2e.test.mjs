@@ -78,22 +78,25 @@ function collectAns08PerformanceDiagnostics(setup){
 }
 
 test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Provider-free',{timeout:180000},async t=>{
- const h=await FakeChatGPT.start({headless:false}),page=h.archive;
+ const h=await FakeChatGPT.start({headless:true}),page=h.archive;
  try{
   await page.setViewportSize({width:1280,height:720});
   await page.locator('#enable-consent').waitFor({state:'visible'});await page.locator('#enable-consent').click();
   const seed=await page.evaluate(async()=>{
-   const [{OrganizerStore},{refreshEntryIndex}]=await Promise.all([import('../core/organizer/store.js'),import('../core/thought-model.js')]);
-   const s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0'),rank=n=>String(n*1024).padStart(12,'0');
-   const topic=await s.createTopic({name:'ANS08_CONTINUOUS_TOPIC',operationId:op()}),first=await s.continueThinking({operationId:op(),body:'ANS08 body 0000',topicId:topic.id});
-   const named=[];for(let i=1;i<12;i++)named.push(await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'ANS08 section '+pad(i),rank:rank(i+1),operationId:op()}));
-   await s.foundationWrite(async t=>{
-    const live=await t.get('topics',topic.id),template=await t.get('thoughts',first.id),basePlacement=await t.get('placements',JSON.stringify([topic.id,live.activeLayoutGeneration,first.id])),baseSection=await t.get('sections',JSON.stringify([topic.id,live.activeLayoutGeneration,live.defaultSectionId])),sectionIds=[live.defaultSectionId,...named.map(section=>section.sectionId)];
-    baseSection.rank=rank(1);await t.put('sections',baseSection);
-    for(let i=0;i<440;i++){const id=i===0?first.id:'ans08-browser-entry-'+pad(i),sectionIndex=i%12,sectionId=sectionIds[sectionIndex],at=new Date(Date.UTC(2026,0,1)+i*1000).toISOString(),row=i===0?template:{...structuredClone(template),id};row.thoughtText='ANS08 body '+pad(i);row.title='';row.createdAt=at;row.updatedAt=at;row.createdSequence=(template.createdSequence||1)+i;row.updatedSequence=(template.updatedSequence||1)+i;row.sourceRecordIds=[];row.provenanceType='user_created';refreshEntryIndex(row);await t.put('thoughts',row);await t.put('placements',{...structuredClone(basePlacement),id:JSON.stringify([topic.id,live.activeLayoutGeneration,id]),entryId:id,sectionId,sectionRank:rank(sectionIndex+1),rank:rank(Math.floor(i/12)+1),revision:0,lifecycle:'active',activeKey:0});}
-    live.organizationRevision++;live.countVersion=(live.countVersion||0)+1;await t.put('topics',live);
-   });
-   await s.repository.close();return {topicId:topic.id,count:440,deepSectionId:named[10].sectionId};
+   const {OrganizerStore}=await import('../core/organizer/store.js'),s=new OrganizerStore(chrome.storage.local),op=()=>crypto.randomUUID(),pad=n=>String(n).padStart(4,'0'),rank=n=>String(n*1024).padStart(12,'0');
+   s.clock=()=> '2026-01-01T00:00:00.000Z';
+   const topic=await s.createTopic({name:'ANS08_CONTINUOUS_TOPIC',operationId:op()}),sectionIds=[topic.sectionId],sections=[];
+   for(let i=1;i<12;i++){const section=await s.createSection({topicId:topic.id,expectedTopicRevision:(await s.topic(topic.id)).organizationRevision,title:'ANS08 section '+pad(i),rank:rank(i+1),operationId:op()});sectionIds.push(section.sectionId);sections.push({id:section.sectionId,title:'ANS08 section '+pad(i),ids:[]});}
+   // Freeze actual original-writer expression receipts. A cloned createdAt is
+   // not chronology authority, and unknown dates must not fake one year.
+   const defaultIds=[];
+   for(let i=0;i<440;i++){
+    const sectionIndex=i<240?0:1+(i-240)%11;
+    s.clock=()=>new Date(Date.UTC(2026,0,1)+i*1000).toISOString();
+    const entry=await s.continueThinking({operationId:op(),body:'ANS08 body '+pad(i),topicId:topic.id,sectionId:sectionIds[sectionIndex]});
+    (sectionIndex===0?defaultIds:sections[sectionIndex-1].ids).push(entry.id);
+   }
+   await s.repository.close();return {topicId:topic.id,defaultSectionId:topic.sectionId,count:440,defaultCount:240,defaultIds,sections,deepSectionId:sections.at(-1).id};
   });
 
   await page.evaluate(()=>{
@@ -105,17 +108,27 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'topic root',30000);
   await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'topic initial rows',30000);
+  // Named Sections have real human ranks before the default. Select the
+  // large original scope explicitly; keep its initial40 read in the trace.
+  await page.locator('.topic-section-directory button[data-section-id="'+seed.defaultSectionId+'"]').click();
+  await eventually(async()=>await page.locator('.topic-section-directory button[data-section-id="'+seed.defaultSectionId+'"]').getAttribute('aria-current')==='true'&&await page.locator('#topic-body .topic-section[data-section-id="'+seed.defaultSectionId+'"] [data-entry-id]').count()===40,'selected large default Section initial40',30000);
   assert.equal(await page.locator('#topic-next').count(),0);assert.equal(await page.locator('#topic-previous').count(),0);assert.doesNotMatch(await page.locator('#thought-document').innerText(),/下一部分|上一部分/);
 
-  const firstId=await page.locator('#topic-body [data-entry-id]').first().getAttribute('data-entry-id'),sentinel=page.locator('#topic-continuous-after');
+  const initialIds=await page.locator('#topic-body .topic-section[data-section-id="'+seed.defaultSectionId+'"] [data-entry-id]').evaluateAll(nodes=>nodes.map(node=>node.dataset.entryId)),firstId=initialIds[0],sentinel=page.locator('#topic-continuous-after');
+  assert.equal(initialIds.length,40,'the selected scope initially mounts the original40 members');
   for(let i=0;i<12;i++){
    const before=await page.evaluate(()=>window.ans08Trace.topicPages.length),status=await page.locator('#topic-continuous-after-status').textContent();if(/末尾/.test(status))break;
    await sentinel.focus();await sentinel.press('Enter');
    await eventually(async()=>await page.evaluate(n=>window.ans08Trace.topicPages.length>n,before)||/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'next continuous chunk',20000);
   }
   await eventually(async()=>/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'topic terminal',30000);
-  const trace=await page.evaluate(()=>structuredClone(window.ans08Trace.topicPages)),forward=trace.filter(x=>x.options?.direction!=='prev'&&!x.options?.anchorId&&!x.indexing),flat=forward.flatMap(x=>x.ids),unique=[...new Set(flat)];
-  assert.equal(unique.length,seed.count,'every Topic entry is reachable');assert.equal(flat.length,unique.length,'forward traversal has no duplicate entries');
+  const trace=await page.evaluate(()=>structuredClone(window.ans08Trace.topicPages)),forward=trace.filter(x=>x.options?.scopeSectionId===seed.defaultSectionId&&x.options?.direction!=='prev'&&!x.options?.anchorId&&!x.indexing),flat=forward.flatMap(x=>x.ids),unique=[...new Set(flat)];
+  assert.equal(unique.length,seed.defaultCount,'every Entry of the selected large default Section is reachable');assert.equal(flat.length,unique.length,'forward traversal has no duplicate entries');
+  // Expression pages scan the global bounded descriptor window before
+  // qualifying this Section, so earlier sibling-only windows legitimately
+  // carry no items. Keep them in trace; the first material page must match
+  // the exact40 originally mounted by this selected scope.
+  assert.deepEqual(forward.find(row=>row.ids.length)?.ids,initialIds,'the selected scope initial40 stays part of its complete traversal');assert.deepEqual([...unique].sort(),[...seed.defaultIds].sort(),'the large traversal contains the exact original default members');
   const domAfter=await page.locator('#topic-body [data-entry-id]').count();assert.ok(domAfter<=120,'clean DOM is bounded to about 3x40 entries');assert.equal(await page.locator('#topic-body [data-entry-id="'+firstId+'"]').count(),0,'early clean row is windowed out');
 
   const readsBeforeReturn=await page.evaluate(()=>window.ans08Trace.topicPages.length);
@@ -124,23 +137,45 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   const refetches=await page.evaluate(n=>window.ans08Trace.topicPages.slice(n),readsBeforeReturn);assert.ok(refetches.length>0&&refetches.every(row=>row.options.anchorId&&row.options.expectedReadGeneration),'an evicted window refetches exact generation-bound refs rather than retaining all bodies');assert.ok(Number(await page.locator('#original-reading-body').getAttribute('data-retained-bodies'))<=120);
   assert.ok(await page.locator('#topic-body [data-entry-id]').count()<=120);
 
-  // Durable Sections replace the retired Original outline and time sorting.
-  // Reach the deep Section through its actual Root search/link owner.
-  const controlsBefore=await rpc(page,'GET_ORGANIZER_CONTROLS'),deepSection='ANS08 section 0011',deepSectionId=seed.deepSectionId;
-  await page.locator('#back').click();await eventually(()=>page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').isVisible(),'Root before Section entry',20000);
-  await page.locator('#thought-search').fill(deepSection);
-  const sectionLink=page.locator('.personal-root-search-extra.personal-section-link[data-section-id="'+deepSectionId+'"]');
-  await eventually(()=>sectionLink.isVisible(),'Root exposes matching durable Section',20000);await sectionLink.click();
-  await eventually(()=>page.locator('.topic-section[data-section-id="'+deepSectionId+'"]').evaluateAll(nodes=>nodes.some(node=>node.querySelector('[data-entry-id="ans08-browser-entry-0011"]')&&document.activeElement===node.querySelector('.section-heading h2'))),'deep Section native entry',20000);
-  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] > .section-heading h2').textContent(),deepSection);
-  const arrivalDiagnostic=await page.evaluate(()=>({active:document.activeElement?.outerHTML?.slice(0,500),state:document.querySelector('#thought-document')?.dataset,headings:[...document.querySelectorAll('.topic-section')].map(node=>({id:node.dataset.sectionId,entries:node.querySelectorAll('[data-entry-id]').length})),reads:window.ans08Trace.topicPages.slice(-3)}));
-  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] > .section-heading h2').evaluate(node=>document.activeElement===node),true,'native Section entry focuses its actual heading '+JSON.stringify(arrivalDiagnostic));
-  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] [data-entry-id]').first().getAttribute('data-entry-id'),'ans08-browser-entry-0011','target Section starts at its real first Placement while neighboring loaded Sections may remain mounted');
-  assert.equal(await page.locator('#topic-time-order').isVisible(),false,'retired chronology control cannot reorder durable Sections');
-  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,controlsBefore.readingSort,'native Section entry does not rewrite global reading preference');
+  // The real directory replaces retired Home/Reader search. Its twelve
+  // independent scopes still expose the entire440-Entry corpus exactly once.
+  assert.equal(await page.locator('#thought-search,#topic-search').count(),0);
+  assert.equal(await page.locator('.topic-section-directory button').count(),12);
+  const corpus=new Set(unique),controlsBefore=await rpc(page,'GET_ORGANIZER_CONTROLS');
+  for(const section of seed.sections){
+   await page.locator('.topic-section-directory button[data-section-id="'+section.id+'"]').click();
+   await eventually(()=>page.locator('.topic-section-directory button[data-section-id="'+section.id+'"]').getAttribute('aria-current').then(value=>value==='true'),'selected original Section',20000);
+   // Assert the real navigation's focus before deliberately moving focus to
+   // the continuation sentinel below; paging must not be mistaken for arrival.
+   await eventually(()=>page.locator('#topic-body .topic-section[data-section-id="'+section.id+'"]').evaluateAll(nodes=>nodes.length===1&&document.activeElement===nodes[0]),'native Section arrival focuses its actual scoped host',20000);
+   for(let n=0;n<12;n++){
+    if(/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()))break;
+    const before=await page.evaluate(()=>window.ans08Trace.topicPages.length);await sentinel.focus();await sentinel.press('Enter');
+    await eventually(async()=>await page.evaluate(count=>window.ans08Trace.topicPages.length>count,before)||/末尾/.test(await page.locator('#topic-continuous-after-status').textContent()),'scoped Section continuation',20000);
+   }
+   await eventually(()=>page.locator('#topic-continuous-after-status').textContent().then(text=>/末尾/.test(text)),'actual Section boundary',30000);
+   await eventually(()=>page.locator('#topic-body .topic-section[data-section-id="'+section.id+'"] [data-entry-id]').count().then(count=>count===section.ids.length),'all actual sibling Section rows',20000);
+   // Initial Topic entry already read the first ranked named scope before
+   // selecting default. Returning resumes that reader and rehydrates its
+   // existing refs by anchor; retain its original forward page as well as
+   // the later continuation, excluding only those duplicate anchor reads.
+   const part=await page.evaluate(sectionId=>window.ans08Trace.topicPages.filter(row=>row.options.scopeSectionId===sectionId&&row.options.direction!=='prev'&&!row.indexing&&!row.options.anchorId).flatMap(row=>row.ids),section.id);
+   assert.equal(part.length,section.ids.length,'one forward scoped traversal retains every Section member');assert.equal(new Set(part).size,part.length,'each Section traversal has no duplicate Entry');
+   assert.deepEqual([...part].sort(),[...section.ids].sort());
+   for(const id of part){assert.equal(corpus.has(id),false,'directory scopes do not leak or repeat sibling Entries');corpus.add(id);}
+   assert.equal(await page.locator('#topic-body .topic-section').count(),1,'only the selected Section is mounted');
+  }
+  assert.equal(corpus.size,seed.count,'all440Entries across12actualSections remain reachable');
+  const deep=seed.sections.at(-1),deepSection=deep.title,deepSectionId=deep.id;
+  const activeDirectory=page.locator('.topic-section-directory button[data-section-id="'+deepSectionId+'"]'),activeHost=page.locator('#topic-body .topic-section[data-section-id="'+deepSectionId+'"]');
+  assert.equal(await activeDirectory.textContent(),deepSection,'the actual selected directory retains the full Section label');assert.equal(await activeDirectory.getAttribute('aria-current'),'true');
+  assert.equal(await activeHost.locator(':scope > .section-heading,:scope > h2').count(),0,'selected prose does not repeat the Section headline');
+  assert.equal(await page.locator('.topic-section[data-section-id="'+deepSectionId+'"] [data-entry-id]').first().getAttribute('data-entry-id'),deep.ids.at(-1),'the selected Section starts at its real newest qualified expression');
+  assert.equal(await page.locator('#topic-order-toggle').count(),1,'approved chronology retains its original compact owner');
+  assert.equal((await rpc(page,'GET_ORGANIZER_CONTROLS')).readingSort,controlsBefore.readingSort,'Section selection does not rewrite global reading preference');
   const sectionAnchor=await visibleAnchor(page);assert.ok(sectionAnchor?.id);
-  await page.locator('#topic-search').evaluate(node=>node.focus({preventScroll:true}));const afterSearchFocus=await visibleAnchor(page);assert.equal(afterSearchFocus?.id,sectionAnchor.id,'test focus does not itself scroll away from the Section anchor');assert.ok(Math.abs(afterSearchFocus.top-sectionAnchor.top)<=2,'test focus preserves the Section pixel anchor');await page.keyboard.press('Escape');
-  assert.equal((await visibleAnchor(page))?.id,sectionAnchor.id,'leaving empty search preserves the current Section anchor '+JSON.stringify({sectionAnchor,afterSearchFocus,afterEscape:await visibleAnchor(page)}));
+  await page.locator('.topic-section-directory button[data-section-id="'+deepSectionId+'"]').evaluate(node=>node.focus({preventScroll:true}));const afterDirectoryFocus=await visibleAnchor(page);assert.equal(afterDirectoryFocus?.id,sectionAnchor.id);assert.ok(Math.abs(afterDirectoryFocus.top-sectionAnchor.top)<=2,'directory focus preserves the Section pixel anchor');await page.keyboard.press('Escape');
+  assert.equal((await visibleAnchor(page))?.id,sectionAnchor.id,'closing an idle directory interaction preserves current reading anchor');
 
   const beforeBack=await visibleAnchor(page);await page.locator('#back').click();await eventually(async()=>await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').count()===1,'back to root',20000);await page.locator('.personal-topic-link[data-topic-id="'+seed.topicId+'"]').click();
   await eventually(async()=>await page.locator('#topic-body [data-entry-id]').count()>0,'Topic reopens with readable entries',30000);
@@ -178,17 +213,17 @@ test('ANS-08 Chrome Topic Reader is continuous, bidirectional, windowed and Prov
   await writeFile('work/ans-08/topic-performance.json',JSON.stringify(perf,null,2));
   console.log('ANS08_TOPIC_PERFORMANCE '+JSON.stringify(perf));
   assert.ok(perf.p95<=750,'warmed Topic next-chunk p95 <= 750 ms');assert.equal(perf.operations.buildRowsScanned,0);assert.ok(perf.operations.descriptorRowsRead<=40);
-  const sectionPerf=await page.evaluate(async topicId=>{
-   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,limit:40}),cursor=first.nextCursor,samples=[],operationSamples=[];let operations=null;
-   if(!cursor)throw Error('NO_SECTION_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;operationSamples.push(operations);}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples,operationSamples};
-  },seed.topicId);
+  const sectionPerf=await page.evaluate(async({topicId,scopeSectionId})=>{
+   const call=async options=>{const r=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});if(!r?.ok)throw Error(r?.error||'RPC_FAILED');return r.data;},first=await call({topicId,scopeSectionId,limit:40}),cursor=first.nextCursor,samples=[],operationSamples=[];let operations=null;
+   if(!cursor)throw Error('NO_SECTION_CURSOR');for(let i=0;i<30;i++){const at=performance.now(),next=await call({topicId,scopeSectionId,cursor,limit:40});samples.push(performance.now()-at);operations=next.operations;operationSamples.push(operations);}const sorted=[...samples].sort((a,b)=>a-b);return {p95:sorted[Math.ceil(sorted.length*.95)-1],operations,samples,operationSamples};
+  },{topicId:seed.topicId,scopeSectionId:seed.defaultSectionId});
   await writeFile('work/ans-08/section-performance.json',JSON.stringify(sectionPerf,null,2));
   console.log('ANS08_SECTION_PERFORMANCE '+JSON.stringify(sectionPerf));
   assert.ok(sectionPerf.p95<=750,'actual warmed Section next-chunk p95 <= 750 ms');assert.equal(sectionPerf.operationSamples.length,30);for(const sample of sectionPerf.operationSamples){assert.ok(sample.placementCandidates<=40);assert.ok(sample.hydratedEntries<=40);}
 
 
   await mkdir('work/ans-08',{recursive:true});await page.screenshot({path:'work/ans-08/topic-continuous.png',fullPage:true});
-  const evidence={entries:seed.count,forwardReachable:unique.length,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:beforeBack.id,readableAfterReturn:true,deferredChecks:[],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
+  const evidence={entries:seed.count,forwardReachable:corpus.size,selectedSectionReachable:unique.length,actualSections:12,domAfter,upwardRematerialized:true,serverReadsOnLoadedReturn:refetches.length,boundedBodyRefetch:true,deepSection:true,durableSectionEntry:true,readingPreferenceUnchanged:true,returnAnchor:beforeBack.id,readableAfterReturn:true,deferredChecks:[],p95:perf.p95,operations:perf.operations,sectionPerf,externalRequests:h.externalRequests,extensionNetworkRequests:h.extensionNetworkRequests,deepSeekRequests:h.deepSeekRequests.length};
   await writeFile('work/ans-08/topic-continuous.json',JSON.stringify(evidence,null,2));console.log('ANS08_CONTINUOUS_EVIDENCE '+JSON.stringify(evidence));
   assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   if(diagnosticError)throw diagnosticError;

@@ -7,19 +7,28 @@ import {placeChildren} from './retained-dom.js';
 export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,updateEntry=()=>{},sectionActions=()=>{},repeats=null}){
  const existing=new Map([...body.querySelectorAll('[data-entry-id]')].map(node=>[node.dataset.entryId,node]));
  const oldSections=new Map([...body.children].filter(node=>node.classList.contains('topic-section')).map(node=>[node.dataset.sectionId,node]));
- const sections=new Map((page.sections||[]).map(section=>[section.sectionId,section])),groups=new Map();
+ const sections=new Map((page.sections||[]).map(section=>[section.sectionId,section])),groups=new Map(),scope=page.scopeSectionId??null;
+ // A selected Section is a real reading boundary. Refuse contradictory DTOs
+ // or cross-Section live editors before changing any retained native node.
+ if(scope!==null&&(typeof scope!=='string'||!scope||!sections.has(scope)||[...sections.values()].some(section=>section.sectionId!==scope)||page.items.some(item=>item.placement?.sectionId!==scope)||(page.windowLayout||[]).some(part=>part.kind==='spacer'?part.sectionId!==scope:part.item?.placement?.sectionId!==scope)||[...existing].some(([id,node])=>pins.has(id)&&node.dataset.sectionId!==scope)))throw Error('TOPIC_SECTION_SCOPE_CHANGED');
  const groupFor=id=>{
   if(groups.has(id))return groups.get(id);
   const section=sections.get(id),node=oldSections.get(id)||element('section','topic-section');
   node.dataset.sectionId=id;node.tabIndex=-1;
-  const title=section&&!section.isDefault?section.title:'';
-  let header=node.querySelector('.section-heading');
+  // Remove obsolete chrome first, so retained children are already the first
+  // desired siblings and never detach during fallback reconciliation.
+  if(scope!==null)for(const child of [...node.children])if(child.classList.contains('section-heading'))child.remove();
+  // The shared directory/selector already identifies an active Section. Its
+  // prose host has no repeated headline or old heading-owned action menu.
+  // Unscoped consumers keep their genuine Section headings and actions.
+  const title=scope===null&&section&&!section.isDefault?section.title:'';
+  let header=scope===null?node.querySelector('.section-heading'):null;
   if(title){if(!header){header=element('header','section-heading');const heading=element('h2');heading.tabIndex=-1;header.append(heading);}header.firstElementChild.textContent=title;sectionActions(header,section);}
   const group={id,node,children:title?[header]:[],rank:section?.rank||'',section};groups.set(id,group);return group;
  };
  // Include real empty named Sections encountered by the bounded read. An empty
  // untitled default region has no heading, placeholder, or reserved chapter.
- if(!page.query?.trim())for(const section of sections.values())if(!section.isDefault&&section.title)groupFor(section.sectionId);
+ if(!page.query?.trim())for(const section of sections.values())if(!section.isDefault&&section.title||page.scopeSectionId===section.sectionId)groupFor(section.sectionId);
  for(const part of page.windowLayout||page.items.map(item=>({kind:'item',item}))){
   if(part.kind==='spacer'){
    const node=element('div','topic-window-spacer');node.setAttribute('aria-hidden','true');
@@ -37,6 +46,9 @@ export function renderTopicSectionProse({body,page,pins=new Set(),entryNode,upda
  for(const [id,node]of existing)if(pins.has(id)&&!visible.has(node))groupFor(node.dataset.sectionId||page.topic.defaultSectionId).children.push(node);
  const ordered=[...groups.values()].sort((a,b)=>a.rank.localeCompare(b.rank)||String(a.id).localeCompare(String(b.id)));
  for(const group of ordered)placeChildren(group.node,group.children);
+ // Discard unprotected prior scope hosts before ordering the one retained
+ // host, so leaving an earlier sibling never reparents its focused editor.
+ if(scope!==null){const keep=groups.get(scope)?.node;for(const child of [...body.children])if(child!==keep)child.remove();}
  placeChildren(body,ordered.map(group=>group.node));
  if(repeats)updateExactRepeats(body,page,{...repeats,pins});
  return ordered.map(group=>group.node);

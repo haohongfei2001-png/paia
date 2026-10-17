@@ -47,8 +47,9 @@ assert.match(await page.locator('#settings-ai-context').textContent(),/外部连
 assert.equal(await page.locator('#membership-ai-service').count(),0,'there is no fake purchase or AI launch');assert.equal(await page.locator('#settings-context-open').count(),1,'one real local Context entry');
 assert.equal(h.deepSeekRequests.length,0,'opening membership never starts a provider request');
       await nav(page,'thoughts');
-      await eventually(()=>page.locator('#thought-search').isVisible(),'Thought root is ready');
-      assert.equal(await page.locator('input[type="search"]:visible').count(),1);
+      await eventually(()=>page.locator('.personal-topic-link[data-topic-id="'+topic.id+'"]').isVisible(),'actual Topic root is ready');
+      assert.equal(await page.locator('#thought-search').count(),0,'retired Root search is absent');
+      assert.equal(await page.locator('input[type="search"]:visible').count(),0);
       assert.equal(await page.locator('#ai-presentation-toggle').isVisible(),false);
 assert.equal(await page.locator('#thought-panel #organizer-reading-actions').count(),0,'Thought root cannot own a collapsed AI organizer');
 assert.equal(await page.locator('#organizer-reading-actions').count(),0,'retired Settings organizer is absent from every root');

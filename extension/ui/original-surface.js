@@ -6,11 +6,15 @@ import {setIconLabel} from './icons.js';
 export class OriginalSurface {
  constructor({dialog,content,host,read}){Object.assign(this,{dialog,content,host,read});}
  retainProtectedInput(){return this.protectionRefresh?.()===true;}
- async open(target,trigger){
-  const {dialog,content,host,read}=this;content.replaceChildren();
+ async open(target,trigger,{expectedGeneration=null,isCurrent:ownerCurrent=()=>true,qualifyRead=async()=>true}={}){
+  const {dialog,content,host}=this,readSource=this.read;content.replaceChildren();
   dialog.querySelector('h2').textContent=target.kind==='conversation'?tc('当前 Conversation · 原始内容'):tc('所选 Input · 原始内容');
   dialog.dataset.readingSurface='original';setIconLabel(dialog.querySelector('#close-info'),'close',tc('关闭'));
-  const isCurrent=host.open(dialog,{target,trigger}),history=[];let generation=null,cursor=null,next=null,index=0,loading=false,qualified=null,initialRead,protectionSerial=0,copyIntent=0;
+  const modalCurrent=host.open(dialog,{target,trigger}),isCurrent=()=>modalCurrent()&&ownerCurrent(),history=[];let generation=expectedGeneration,cursor=null,next=null,index=0,loading=false,qualified=null,initialRead,protectionSerial=0,copyIntent=0;
+  // Deliberate raw-data arrivals can carry their existing read qualification.
+  // The same wrapper protects every pagination and complete-copy read; default
+  // callers retain their original fresh first-read behavior.
+  const read=async options=>{const page=await readSource(options);if(!isCurrent()||!await qualifyRead(page)||!isCurrent())throw Error('BACKUP_CHANGED');return page;};
   const rows=element('div','original-rows'),status=element('p','muted'),position=element('p','muted'),controls=element('nav','original-navigation');status.setAttribute('role','status');controls.setAttribute('aria-label',tc('原文位置'));
   const previous=element('button','',tc('上一段')),more=element('button','',tc('下一段')),copy=element('button','',tc('复制原文'));copy.id='original-copy';previous.disabled=true;more.hidden=true;copy.disabled=true;controls.append(previous,position,more);content.append(rows,status,controls,copy);
   // A page change supersedes pending full-copy work, including late clipboard

@@ -394,7 +394,9 @@ export async function thoughtTopicExpressionPage(store,{topicId,sort='asc',year=
   if(seek.key&&range.includes(seek.key)){start=seek.key;anchor={key:seek.key,value:seek.row};}
  }
  const take=anchor?limit-1:limit;
- const page=direction==='prev'&&!start?{rows:[],next:null}:await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,start,Math.max(1,take),direction)));
+ // A reopened earlier year starts at its qualified finite range's tail.
+ // A whole-Topic request with no previous cursor remains an empty boundary.
+ const page=direction==='prev'&&!start&&year===null?{rows:[],next:null}:await store.run(()=>store.repository.transaction(false,t=>t.rangePage('libraryMigrationItems','byStatus',range,start,Math.max(1,take),direction)));
  if(anchor){if(!take){page.next=page.rows.length?start:null;page.rows=[];}page.rows.unshift(anchor);}
  const ordered=direction==='prev'?[...page.rows].reverse():page.rows;
  operations.descriptorRowsRead=ordered.length;

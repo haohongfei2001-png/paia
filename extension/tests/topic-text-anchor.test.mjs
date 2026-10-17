@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+import {TopicController} from '../ui/topic-workspace.js';
 import {ContinuousTopicReader} from '../ui/continuous-topic-reader.js';import {TopicAIViewSession} from '../core/topic-ai-view-session.js';
 const anchor={id:'synthetic-entry',top:-16,text:{revision:2,offset:4,top:140}};
 test('optional text anchor remains body-free, independently cloned in snapshot and AI session; old shape remains intact',()=>{
@@ -25,9 +26,16 @@ test('actual capture uses current clean ACK row; dirty/saving/IME or different D
  assert.deepEqual(capture.call(context),anchor);for(const state of ['dirty','saving','ime','different-dom','ai']){owner.dirty=()=>state==='dirty';owner.saving=state==='saving';owner.surface.composing=state==='ime';body.textContent=state==='different-dom'?'different':owner.entries.get(anchor.id).saved.body;context.view=state==='ai'?'ai':'original';assert.deepEqual(capture.call(context),{id:anchor.id,top:-16});}
 });
 test('actual leave recaptures acknowledged position before disposal; failed flush never records a saved text anchor',async()=>{
- const source=await readFile(new URL('../ui/topic-workspace.js',import.meta.url),'utf8'),start=source.indexOf(' async leaveEditors('),end=source.indexOf('\n',start);assert.ok(start>0&&end>start);const method=source.slice(start,end).trim();
- const leave=Function('isComposing','stopMemoryRecomposition','$',`return {${method}}.leaveEditors;`)(value=>value?.composing===true,()=>{},()=>({inert:false}));
- for(const succeeds of [true,false]){const events=[],editor={dirty:()=>!succeeds,collect:()=>events.push('collect'),flush:async()=>{events.push('ack');return succeeds;},dispose:()=>events.push('dispose')},positions=new Map(),owner={editor,id:'synthetic-topic',view:'original',readRetry:{hidden:false},cancelTopicRestore(){},rememberView(){events.push('remember-current-ACK');},topicAnchor(){return {id:'synthetic-entry',top:0,text:{revision:2,offset:4,top:140}};},homePositions:positions,saveHomePosition(id,value){positions.set(id,value);}};
-  assert.equal(await leave.call(owner),succeeds);if(succeeds){assert.deepEqual(events,['collect','ack','remember-current-ACK','dispose']);assert.equal(positions.get(owner.id).anchor.text.revision,2);}else{assert.deepEqual(events,['collect','ack']);assert.equal(positions.size,0);assert.equal(owner.editor,editor);}
- }
+ const priorDocument=Object.getOwnPropertyDescriptor(globalThis,'document');
+ try{
+  for(const succeeds of [true,false]){
+   const nodes=new Map(['topic-body','topic-heading','library-dialog'].map(id=>[id,{inert:false,open:false}]));
+   globalThis.document={getElementById:id=>nodes.get(id)};
+   const events=[],editor={dirty:()=>!succeeds,collect:()=>events.push('collect'),flush:async()=>{events.push('ack');return succeeds;},dispose:()=>events.push('dispose')},positions=new Map();
+   const owner=Object.assign(Object.create(TopicController.prototype),{editor,id:'synthetic-topic',view:'original',serial:0,statusEpoch:0,statusReadSerial:0,readRetry:{hidden:false},cancelTopicRestore(){},rememberView(){events.push('remember-current-ACK');},topicAnchor(){return {id:'synthetic-entry',top:0,text:{revision:2,offset:4,top:140}};},homePositions:positions,saveHomePosition(id,value){positions.set(id,value);}});
+   assert.equal(await TopicController.prototype.leaveEditors.call(owner),succeeds);
+   if(succeeds){assert.deepEqual(events,['collect','ack','remember-current-ACK','dispose']);assert.equal(positions.get(owner.id).anchor.text.revision,2);}
+   else{assert.deepEqual(events,['collect','ack']);assert.equal(positions.size,0);assert.equal(owner.editor,editor);}
+  }
+ }finally{if(priorDocument)Object.defineProperty(globalThis,'document',priorDocument);else delete globalThis.document;}
 });

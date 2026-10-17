@@ -156,3 +156,55 @@ html[data-paia-theme=dark] .context-page.context-detail .detail-content .context
 .context-editor-toolbar .add-item,.context-editor-toolbar .add-item:hover{background:#3769c9;border-color:#3769c9;color:#fff}
 html[data-paia-theme=dark] .context-editor-toolbar .add-item{background:#4173c7;border-color:#4173c7;color:#fff}
 html[data-paia-theme=dark] .context-editor-toolbar .add-item:hover{background:#3465b7;border-color:#3465b7;color:#fff}
+
+/* CTX4-UI-1.6: content-first, left-anchored composition. Editor nodes and
+   saved prose preferences remain owned by the original reading surface. */
+.context-page{max-width:1000px;margin-inline:var(--archive-gutter);font-synthesis:none}
+.context-page:not(.context-detail) .context-head{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:20px}
+.context-semantic-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.context-head>.context-search{flex:1 1 240px;width:auto;margin:0;max-width:440px}
+.context-head .context-access-bar{flex:1 1 auto;margin:0;min-height:0;justify-content:flex-end}
+.context-access-controls{gap:12px}
+.context-cards{gap:20px;align-items:start}
+.context-card{min-height:0;border-radius:17px}
+.context-card .card-open{padding:20px 22px 12px}
+.context-card .card-head-button{display:flex;justify-content:flex-start;align-items:center;gap:10px;min-height:44px}
+.context-card .card-title{font:500 16.5px/1.5 var(--font);letter-spacing:0;font-synthesis:none}
+.context-card .card-symbol,html[data-paia-theme="dark"] .context-card .card-symbol{width:21px;height:21px;flex:0 0 21px;background:none;border:0;border-radius:0}
+.context-card .card-symbol::before,.context-card .card-symbol::after{content:none}
+.context-card .card-symbol-icon{width:21px;height:21px;stroke-width:1.4}
+.context-card .context-directory-link,.context-card .input-summary{font:400 13.5px/1.65 var(--font)}
+.context-card .context-directory{margin-top:8px;padding-top:0;min-height:0}
+.context-card .card-footer{margin-inline:22px;padding-block:12px}
+.context-detail .context-head h1{font:500 16.5px/1.5 var(--font);letter-spacing:0;font-synthesis:none}
+.context-detail .context-head{margin-bottom:16px;align-items:center}
+.context-detail-right{padding-top:0}
+.context-item-footer{justify-content:flex-end}
+.context-home-end,.context-detail-footer{justify-content:flex-end;gap:12px}
+@media(max-width:767px){
+ .context-page:not(.context-detail) .context-head{gap:12px}
+ .context-head>.context-search{flex-basis:100%;max-width:none;width:100%;margin:0}
+ .context-head .context-access-bar{justify-content:flex-start}
+ .context-head .context-access-controls{justify-content:flex-start;gap:8px}
+ .context-cards{grid-template-columns:minmax(0,1fr)}
+ .context-card .card-title{font-size:16.5px}
+ .context-card .context-directory-link{min-height:44px}
+ .context-back-row{margin-bottom:16px}
+ .context-detail .context-head{gap:12px}
+}
+/* CTX4-UI-1.7: compact quartet; controls retain independent ownership. */
+.context-page:not(.context-detail){max-width:760px}
+.context-page:not(.context-detail) .context-head{margin-bottom:22px}
+.context-head .context-access-bar{width:100%;display:block}
+.context-head .context-access-controls{width:100%;justify-content:space-between}
+.context-cards{gap:22px;align-items:stretch}
+.context-card{border-radius:21px}
+.context-card .card-open{padding:24px 26px 20px;flex:1}
+.context-card .card-head-button{justify-content:space-between;flex-direction:row-reverse}
+.context-card .card-title{font-size:18px;font-weight:500}
+.context-card .context-directory{margin-top:24px}
+.context-card .context-directory-link,.context-card .input-summary{font-size:14px}
+.context-card .card-footer{margin-inline:26px;padding-block:15px;justify-content:flex-start}
+.context-card .context-access{justify-content:space-between;width:100%;border:0;border-radius:0;padding-inline:0;background:transparent}
+html[data-paia-theme="dark"] .context-card .context-access{background:transparent}
+@media(max-width:767px){.context-cards{align-items:start}.context-card .card-title{font-size:18px}.context-card .card-open{padding:22px}.context-card .card-footer{margin-inline:22px}}

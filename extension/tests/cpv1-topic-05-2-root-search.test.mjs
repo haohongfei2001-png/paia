@@ -78,14 +78,12 @@ test('TOPIC-05.2 Root search qualification does not mutate canonical rows, posti
  const {s}=await setup(OrganizerStore),topic=await s.createTopic({name:'SYNTHETIC NEEDLE topic',operationId:op()}),m=new ThoughtLibraryReadModel(s);await s.continueThinking({topicId:topic.id,body:'SYNTHETIC NEEDLE expression',operationId:op()});const page=await indexed(s,'NEEDLE'),snapshot=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async name=>[name,await t.all(name)])))),before=await snapshot(),original=s.repository.transaction.bind(s.repository);
  s.repository.transaction=(write,...args)=>{assert.equal(write,false);return original(write,...args);};try{const result=await m.qualifySearchPage(page,'NEEDLE');assert.equal(result.items.length,2);}finally{s.repository.transaction=original;}assert.deepEqual(await snapshot(),before);
 });
-test('TOPIC-05.2 failed or stale Root base hydration never publishes an empty complete extent',async()=>{
- for(const mode of ['stale','error']){
-  const input={value:'NEEDLE'},prior=globalThis.document;globalThis.document={getElementById:()=>input};let rendered=0,cleared=0;
-  const collection={terminal:true,loading:false,hydrateWindow:async()=>{if(mode==='stale')collection.stale=true;else collection.error=Error('SYNTHETIC replay failure');return false;},layout:()=>[]};
-  const owner=Object.assign(Object.create(TopicController.prototype),{id:null,rootBaseCollection:collection,rootPreSearch:{items:[{id:'still-reserved'}],complete:true},personalRoot:{render:()=>rendered++,clear:()=>cleared++},onStatus:()=>{}});
-  try{await owner.loadRootSearchBase();assert.equal(rendered,0);if(mode==='stale'){assert.deepEqual(owner.rootPreSearch.items,[]);assert.equal(owner.rootPreSearch.complete,false);}else assert.equal(owner.rootPreSearch.items[0].id,'still-reserved');assert.equal(cleared,mode==='stale'?1:0);}finally{globalThis.document=prior;}
+test('TOPIC-05.2 actual directory hydration failure or stale authority never publishes an empty complete extent',async()=>{
+ for(const mode of ['stale','error']){let rendered=0,cleared=0,refreshed=0;const anchor={key:'item:still-reserved',id:'still-reserved',top:181},collection={windowRevision:1,hydrateWindow:async()=>false,state:()=>({error:mode==='error'?Error('SYNTHETIC replay failure'):null}),stale:mode==='stale'},owner=Object.assign(Object.create(TopicController.prototype),{id:null,serial:1,openIntent:1,homeCollection:collection,paintHome:()=>rendered++,clearHomeRows:()=>cleared++,refresh:()=>refreshed++,updateHomeContinuous:()=>{}});
+  assert.equal(await owner.renderHomeReader(anchor),false);assert.equal(rendered,0);assert.equal(cleared,mode==='stale'?1:0);assert.equal(refreshed,mode==='stale'?1:0);assert.deepEqual(mode==='stale'?owner.rootInvalidationAnchor:owner.homeHydrationAnchor,anchor);
  }
 });
+
 test('TOPIC-05.2 saved-AI matches retain the actual eligible identity/field contract without invented snippets',async()=>{
  const fixture=await completeFixture({texts:['继续']}),{s}=fixture;await s.evaluateFilters();await s.setFilterMode('off');await fixture.runner.wake();const topic=(await rows(s,'topics'))[0],entry=(await rows(s,'thoughts'))[0],m=new ThoughtLibraryReadModel(s);
  await s.foundationWrite(t=>t.put('meta',{id:'aiPresentation:'+topic.id,topicId:topic.id,schemaVersion:AI_SCHEMA_VERSION,revision:1,evidenceEntryIds:[entry.id],protections:{},...Object.fromEntries(AI_FIELDS.map(key=>[key,['blockSummary','currentView'].includes(key)?'':[]])),currentView:'SYNTHETIC_SAVED_FIELD_NEEDLE'}));
@@ -113,20 +111,12 @@ test('TOPIC-05.2 native identity links leave text drags selectable and preserve 
  }finally{Object.assign(globalThis,prior);}
 });
 
-test('TOPIC-05.2 Root query preserves the validated reading anchor before search focus scrolls the page',()=>{
- const prior={document:globalThis.document,scrollY:globalThis.scrollY};
- globalThis.document={getElementById:()=>({value:'SYNTHETIC query'})};globalThis.scrollY=0;
- try{
-  for(const stale of [false,true]){
-   const saved={key:'item:deep-topic',id:'deep-topic',top:181},current={key:'item:first-topic',id:'first-topic',top:164};
-   const collection={query:'',scope:'root',authority:'current-authority',keys:new Set([saved.key,current.key]),terminal:true,snapshot:()=>({items:[]}),releaseBodies(){}};
-   const owner=Object.assign(Object.create(TopicController.prototype),{homeCollection:collection,homeReadingPosition:{scope:'root',authority:stale?'old-authority':'current-authority',anchor:saved},homePage:{page:{items:[]}},serial:0,captureHomeAnchor:()=>current,refresh:()=>assert.fail('timer must be cleared by fixture')});
-   owner.searchRoot();clearTimeout(owner.searchTimer);
-   assert.deepEqual(owner.rootPreSearch.anchor,stale?current:saved,stale?'stale remembered authority cannot restore an old identity':'focus-induced scrolling cannot replace the last actual reading position');
-  }
- }finally{Object.assign(globalThis,prior);}
+test('TOPIC-05.2 original body-free reading anchor requires current scope and authority after query UI retirement',()=>{
+ const saved={key:'item:deep-topic',id:'deep-topic',top:181},current={key:'item:first-topic',id:'first-topic',top:164};
+ for(const mismatch of ['none','authority','scope','identity']){const collection={query:'',scope:'root',authority:'current-authority',keys:new Set([saved.key,current.key])},owner=Object.assign(Object.create(TopicController.prototype),{homeCollection:collection,homeReadingPosition:{scope:mismatch==='scope'?'other':'root',authority:mismatch==='authority'?'old':'current-authority',anchor:saved}});if(mismatch==='identity')collection.keys.delete(saved.key);
+  assert.deepEqual(owner.previousHomeAnchor(),mismatch==='none'?saved:null);owner.rememberHomeAnchor(current);assert.deepEqual(owner.previousHomeAnchor(),current);assert.doesNotMatch(JSON.stringify(owner.homeReadingPosition),/snippet|body|textContent|NEEDLE/);
+ }
 });
-
 
 test('TOPIC-05.3 active Entry AI and Section overlays survive same-column width layout without exposing original overview',()=>{
  const prior={document:globalThis.document,location:globalThis.location,getSelection:globalThis.getSelection,getComputedStyle:globalThis.getComputedStyle};
@@ -184,12 +174,13 @@ test('TOPIC-05.3 cycling back to the same Entry or Section key cannot reactivate
 });
 
 
-test('TOPIC-05.3 existing live search status follows the grid and remains associated with the query outside hideable continuation',async()=>{
+test('TOPIC-05.3 retired Root query has no focus target while truthful directory coverage status stays outside continuation',async()=>{
  const html=await readFile(new URL('../ui/archive.html',import.meta.url),'utf8'),root=html.slice(html.indexOf('<div id="thought-collection"'),html.indexOf('<article id="thought-document"'));
- assert.equal((html.match(/id="library-search-status"/g)||[]).length,1);assert.match(html,/<input id="thought-search"[^>]*aria-describedby="library-search-status"/);
+ assert.equal((html.match(/id="library-search-status"/g)||[]).length,1);assert.doesNotMatch(html,/<input[^>]*id="thought-search"/);
  assert.match(root,/<div id="thought-list"><\/div><p id="library-search-status" role="status"><\/p>/);assert.ok(root.indexOf('id="thought-list"')<root.indexOf('id="library-search-status"'));assert.ok(root.indexOf('id="library-search-status"')<root.indexOf('id="thought-continuous-sentinel"'));
- const source=await readFile(new URL('../ui/topic-workspace.js',import.meta.url),'utf8');assert.match(source,/\$\('library-search-status'\)\.textContent=page\.indexing/);
+ const source=await readFile(new URL('../ui/topic-workspace.js',import.meta.url),'utf8');assert.match(source,/page\.coverage\?\.complete===false\?'继续向下读取全部主题。'/);assert.match(source,/GET_LIBRARY_ROOT_SEARCH/,'shared external lexical service remains available');
 });
+
 test('TOPIC-05.3 actual Root search owner retains complete partial indexing and no-match status without touching the grid',()=>{
  const prior=globalThis.document,status={textContent:''},empty={hidden:false},searches=[];globalThis.document={getElementById:id=>id==='library-search-status'?status:id==='thought-empty'?empty:null};
  const owner=Object.assign(Object.create(TopicController.prototype),{rootPreSearch:null,personalRoot:{focusRef:()=>null,search:(items,query,options)=>searches.push({items,query,complete:options.complete})}}),hit={kind:'topic',topicId:'synthetic-topic'},cases=[
@@ -223,7 +214,7 @@ test('Root search locks displayed geometry before clearing preview text and reta
   dom.owner.search(hits,'new query',{open(){}});assert.equal(dom.owner.searchQuery,'new query');assert.equal(dom.tile.style.height,'443px','a new query replaces results without reviving preview text');
   columns=2;dom.owner.layout();assert.notEqual(dom.tile.style.gridRow,'263 / span 443','a changed column arrangement retires the old position');assert.equal(dom.tile.style.height,'120px','responsive layout measures current safe content afresh');
   dom.owner.render([{...item,name:'SYNTHETIC renamed'}],{preserveSearch:true});const replacement=dom.owner.nodes.get('topic');assert.notEqual(replacement,dom.tile);assert.equal(replacement.style.height,'120px','changed metadata cannot inherit stale height');assert.equal(dom.owner.searchGeometry.rows.get('topic').height,120);
-  natural=180;dom.owner.render([{...item,name:'SYNTHETIC renamed'}]);assert.equal(replacement.style.height,undefined,'normal content-sized render removes the transient height');assert.equal(dom.owner.searchGeometry,null);assert.equal(updates,1);assert.equal(dom.owner.flowHeights.get('topic'),180,'normal flow grows to current content without permanent holes');
+  natural=180;dom.owner.render([{...item,name:'SYNTHETIC renamed'}]);assert.equal(replacement.style.height,undefined,'normal content-sized render removes the transient height');assert.equal(dom.owner.searchGeometry,null);assert.equal(updates,0,'ordinary approved metadata-only Root never starts preview reads');assert.equal(dom.owner.flowHeights.get('topic'),180,'normal flow grows to current content without permanent holes');
   dom.owner.search(hits,'again',{open(){}});dom.owner.clear();assert.equal(dom.owner.searchGeometry,null);assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
  }finally{Object.assign(globalThis,prior);}
 });
@@ -235,68 +226,12 @@ test('Root direct search snapshots every card before synchronous preview removal
  try{dom.owner.search([],'NEEDLE',{open(){}});assert.equal(privateBody,false);assert.equal(dom.tile.style.height,'443px');assert.equal(dom.owner.searchGeometry.rows.get('topic').height,443);}finally{globalThis.document=prior;}
 });
 
-test('real Root controller freezes input geometry through held qualification, base hydration and search pagination',async()=>{
- const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
- const prior=Object.fromEntries(['document','location','getSelection','getComputedStyle','scrollY','innerHeight','innerWidth'].map(key=>[key,globalThis[key]]));
- const dom=searchDOM('topic'),style=()=>({removeProperty(key){delete this[key];}}),pending=[];
- const create=tag=>{const node=dom.create(tag);node.style=style();node.getBoundingClientRect=()=>({height:Number.parseFloat(node.style.height)||120});node.replaceWith=next=>{node.parentElement.insertBefore(next,node);node.remove();};return node;};
- const query={value:'NEEDLE'},status={},empty={},unplaced={setAttribute(){}},errors=[];
- globalThis.document={documentElement:{lang:'en'},body:dom.host,hidden:false,createElement:create,createElementNS:(ns,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){},getElementById:id=>({'thought-search':query,'library-search-status':status,'thought-empty':empty,'thought-list':dom.host,'library-unplaced-list':unplaced,'library-unplaced':unplaced}[id])};
- Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),scrollY:0,innerHeight:800,innerWidth:1000});
- let controller,previews;
- try{
-  const item={id:'topic',name:'SYNTHETIC NEEDLE Topic',revision:1,organizationRevision:1,layoutGeneration:1,sectionOverview:{items:[],complete:false}},body=create('p');body.className='personal-topic-preview';Object.defineProperty(body,'childElementCount',{get:()=>body.children.length});dom.tile.append(body);
-  dom.host.style=style();dom.host.clientWidth=1000;dom.tile.style.gridRow='263 / span 443';dom.tile.style.gridColumn='1';dom.tile.dataset.signature=JSON.stringify(['en',item.name,[],false]);dom.tile.dataset.overviewComplete='false';
-  dom.tile.getBoundingClientRect=()=>({height:Number.parseFloat(dom.tile.style.height)||(body.textContent?443:366),width:300,top:100,bottom:543,left:0,right:300});
-  Object.assign(dom.owner,{items:[item],complete:true,slots:new TopicRootSlots(),columnCount:3,layoutWidth:1000});
-  previews=new PersonalTopicPreviews(dom.host,{nodes:()=>dom.owner.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});dom.owner.previews=previews;previews.update([item]);body.append(create('button'));body.firstElementChild.textContent='SYNTHETIC private original';
-  let hydrate;const collection={query:'',terminal:true,releaseBodies(){},snapshot:()=>({items:[{id:item.id}]}),hydrateWindow:()=>new Promise(resolve=>{hydrate=resolve;}),layout:()=>[{kind:'item',item}]};
-  controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,homeCollection:collection,homePage:{page:{items:[item]}},serial:0,previousHomeAnchor:()=>null,captureHomeAnchor:()=>null,thoughtRootVisible:()=>true,onStatus:(...args)=>errors.push(args),refresh:()=>assert.fail('fixture holds the debounce')});
-  controller.searchRoot();clearTimeout(controller.searchTimer);
-  assert.equal(body.textContent,'','input synchronously releases ordinary preview text before the held search');assert.equal(dom.tile.style.height,'443px');assert.equal(dom.owner.searchGeometry.rows.get('topic').row,'263 / span 443');
-  pending[0]({kind:'root_previews',items:[{topicId:'topic',preview:{text:'SYNTHETIC late private original',sectionId:'section',entryId:'entry'}}]});await new Promise(resolve=>setImmediate(resolve));assert.equal(body.textContent,'','late eligibility cannot refill the search card');assert.equal(previews.items.length,0);
-  const loading=controller.loadRootSearchBase();assert.equal(typeof hydrate,'function');assert.equal(dom.tile.style.gridRow,'263 / span 443');hydrate(true);await loading;
-  assert.equal(dom.tile.style.gridRow,'263 / span 443','base hydration before the first result preserves original row');assert.equal(dom.tile.style.height,'443px');assert.equal(pending.length,1,'base hydration cannot restart ordinary body reads');
-  const hits=[{kind:'topic',topicId:'topic'},{kind:'entry',topicId:'topic',entryId:'entry',snippet:'SYNTHETIC NEEDLE'}];
-  for(const complete of [false,true]){controller.paintRootSearch({items:hits,complete},'NEEDLE');assert.equal(dom.tile.style.gridRow,'263 / span 443');assert.equal(dom.tile.style.height,'443px');assert.equal(body.textContent,'');}
-  const readerBoundary=Symbol('reader installation');
-  Object.assign(controller,{id:null,view:'original',rememberTimeline(){},rememberView(){},saveHomePosition(){},clearActionFeedback(){},timelinePositions:{get(){throw readerBoundary;}},leaveEditors:async()=>true});
-  const originalGeometry=dom.owner.searchGeometry;controller.leaveEditors=async()=>false;assert.equal(await controller.open('topic'),undefined);assert.equal(dom.owner.searchGeometry,originalGeometry,'blocked departure preserves the live geometry and nodes');assert.equal(dom.owner.nodes.size,1);controller.leaveEditors=async()=>true;
-  for(let visit=0;visit<5;visit++){
-   const current=dom.owner.nodes.get('topic'),key=current.dataset.searchHitKey;
-   await assert.rejects(controller.open('topic'),error=>error===readerBoundary);assert.equal(dom.owner.nodes.size,0,'actual open and successful leave release every card');assert.equal(dom.host.textContent,'','successful leave releases all result and preview text');assert.equal(previews.items.length,0);
-   controller.id='topic';controller.id=null;controller.paintRootSearch({items:hits,complete:true},'NEEDLE');
-   const returned=dom.owner.nodes.get('topic');assert.notEqual(returned,current);assert.equal(returned.style.height,'443px','Back reuses only qualified search geometry on fresh nodes');assert.equal(returned.style.gridRow,'263 / span 443');assert.equal(returned.dataset.searchHitKey,key);
-   returned.querySelectorAll('[data-root-match-step]')[1].listeners.get('click')();assert.equal(returned.style.height,'443px','next match after each Back retains the original rectangle');
-  }
-  // Each mismatch starts from the same captured numeric fixture. None may
-  // transfer a previous search rectangle onto newly admitted metadata.
-  const geometry=dom.owner.searchGeometry,session=controller.rootSearchSession;
-  for(const mismatch of ['query','session','metadata','width','columns','normal','clear','primary']){
-   dom.owner.items=[item];dom.owner.searchQuery='NEEDLE';dom.owner.searchGeometry=geometry;dom.owner.columnCount=3;dom.host.clientWidth=1000;
-   dom.owner.clear({searchSession:session});assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
-   let items=[item],options={preserveSearch:true,searchSession:session,query:'NEEDLE'};
-   if(mismatch==='query')options.query='different';if(mismatch==='session')options.searchSession={};if(mismatch==='metadata')items=[{...item,revision:2}];if(mismatch==='width')dom.host.clientWidth=980;
-   if(mismatch==='columns')dom.owner.suspendedSearchGeometry.columns=2;
-   if(mismatch==='normal')options={};if(mismatch==='clear')dom.owner.clear();
-   if(mismatch==='primary'){controller.homePositions=new Map();controller.resetHomeCollection=()=>{};controller.beginRootEntry();assert.equal(controller.rootSearchSession,null);}
-   dom.owner.render(items,options);assert.notEqual(dom.owner.nodes.get('topic').style.height,'443px',mismatch+' cannot restore an obsolete rectangle');assert.equal(dom.owner.suspendedSearchGeometry,null);
-  }
-  dom.host.clientWidth=1000;controller.rootSearchSession=session;query.value='NEEDLE';dom.owner.render([item]);dom.owner.search(hits,'NEEDLE',{open(){}});
-  controller.homeCollection={query:'NEEDLE',releaseBodies(){}};query.value='NEW';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.owner.nodes.get('topic').style.height,'120px');assert.equal(body.textContent,'');
-  controller.rootBaseCollection=collection;collection.stale=true;const invalidated=controller.loadRootSearchBase();await invalidated;assert.deepEqual(errors,[['主题目录已变化，请重试读取。','read_error']]);assert.equal(dom.owner.nodes.size,0,'stale metadata clears the real root');assert.equal(dom.owner.searchGeometry,null);assert.equal(body.textContent,'');
-  // A real source-scope change retires both an old Back reservation and an
-  // already-held base hydration, even if the next source has identical metadata.
-  query.value='NEEDLE';controller.id=null;controller.rootProviderKey='chatgpt';controller.rootSearchSession=session;controller.rootPreSearch={items:[item],complete:true};
-  dom.owner.items=[item];dom.owner.searchQuery='NEEDLE';dom.owner.searchGeometry=geometry;dom.owner.columnCount=3;dom.owner.clear({searchSession:session});
-  let releaseHydration,released=0,refreshed=0;const oldBase={terminal:true,releaseBodies(){released++;},hydrateWindow:()=>new Promise(resolve=>{releaseHydration=resolve;}),layout:()=>[{kind:'item',item}]};
-  controller.rootBaseCollection=oldBase;controller.refresh=async()=>{refreshed++;};
-  const oldRead=controller.loadRootSearchBase();assert.equal(typeof releaseHydration,'function');await controller.changeRootSourceScope('claude');
-  assert.equal(controller.rootSearchSession,null,'source change retires the tab-local search identity');assert.equal(dom.owner.suspendedSearchGeometry,null,'source change drops old numeric Back geometry');assert.equal(controller.rootBaseCollection,null);assert.equal(released,1);assert.equal(refreshed,1);
-  releaseHydration(true);await oldRead;assert.equal(controller.rootPreSearch,null,'old source hydration cannot refill metadata');assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');
-  dom.owner.render([item],{preserveSearch:true,searchSession:session,query:'NEEDLE'});assert.notEqual(dom.owner.nodes.get('topic').style.height,'443px','same metadata in a different source does not revive old geometry');
-
- }finally{clearTimeout(controller?.searchTimer);previews?.dispose();Object.assign(globalThis,prior);}
+test('real Root controller retains qualified metadata during held hydration and rejects later source intent without preview reads',async()=>{
+ const f=metadataRoot();try{const {controller:c,root,items}=f;let release,paints=0;const collection=c.homeCollection;collection.hydrateWindow=()=>new Promise(r=>release=r);c.paintHome=()=>paints++;const read=c.renderHomeReader({key:'item:a',id:'a',top:180});assert.equal(root.nodes.size,10);assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);assert.equal(root.captureReturnGeometry(),null);c.homeCollection={...collection};release(true);assert.equal(await read,false);assert.equal(paints,0,'old source cannot repaint identical current metadata');assert.equal(root.nodes.size,10);
+  c.homeCollection=collection;collection.hydrateWindow=async()=>true;c.paintHome=TopicController.prototype.paintHome;c.homePageState=()=>({items,complete:true});c.updateHomeContinuous=()=>{};c.readKey=()=> 'root';c.restoreHomeAnchor=()=>assert.fail('obsolete intent must not restore an anchor');
+  for(const fence of ['intent','input']){let settle;collection.hydrateWindow=()=>new Promise(r=>settle=r);const reading=c.renderHomeReader({key:'item:a',top:180});if(fence==='intent')c.openIntent++;else c.topicRestoreInputEpoch=(c.topicRestoreInputEpoch||0)+1;settle(true);assert.equal(await reading,true);assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);assert.equal(root.nodes.size,items.length);}
+  assert.equal(root.captureReturnGeometry(),null,'retired preview shell is never persisted');
+ }finally{f.close();}
 });
 
 test('actual metadata invalidation and ordinary Home repaint retain a renamed offscreen card without retaining its body',async()=>{
@@ -320,53 +255,30 @@ test('actual metadata invalidation and ordinary Home repaint retain a renamed of
  }finally{previews?.dispose();Object.assign(globalThis,prior);}
 });
 
+
+function metadataRoot({columns=2}={}){
+ const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY','ResizeObserver'],prior=Object.fromEntries(keys.map(key=>[key,globalThis[key]])),dom=searchDOM('a'),frames=[],controls=new Map();let resized,controller;
+ const create=tag=>{const n=dom.create(tag);n.style={removeProperty(key){delete this[key];}};n.replaceWith=other=>{n.parentElement?.insertBefore(other,n);n.remove();};n.closest=()=>n.classList.contains('personal-topic-block')?n:n.parentElement?.closest?.('.personal-topic-block');n.getBoundingClientRect=()=>{const height=n.classList.contains('personal-topic-block')?(n.dataset.topicId==='a'?155:94):0,top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return {top,bottom:top+height,height,width:300,left:0,right:300};};return n;};
+ const get=id=>{if(id==='thought-list')return dom.host;if(!controls.has(id)){const n=create('div');n.value='';controls.set(id,n);}return controls.get(id);};
+ globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:get,querySelectorAll:()=>[],createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
+ Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=>String(columns)}),innerWidth:1000,innerHeight:720,scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,value)=>globalThis.scrollY+=value,ResizeObserver:class{constructor(fn){resized=fn;}observe(){}unobserve(){}disconnect(){}}});
+ dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.host.getClientRects=()=>[{}];const root=new PersonalTopicRoot(dom.host,{open(){},onResize:()=>controller?.resizeHomeAnchor()});
+ const items=[...'abcdefghij'].map(id=>({id,name:'SYNTHETIC LABEL '+id,revision:1,organizationRevision:1,layoutGeneration:1,sectionOverview:{items:[],complete:true}}));root.render(items,{complete:true});const collection={authority:'A',scope:'root',query:'',state:()=>({}),keys:new Set(items.map(item=>'item:'+item.id)),snapshot:()=>({items:items.map(({id})=>({id,key:'item:'+id}))}),reset(){},releaseBodies(){}};
+ controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:root,homeCollection:collection,homePositions:new Map(),id:null,serial:1,openIntent:1,view:'original',rememberTimeline(){},rememberView(){},leaveEditors:async()=>true,onStatus(){},refresh:async()=>{},thoughtRootVisible:()=>true});
+ return {root,controller,items,collection,get,frames,resize:()=>resized([{target:root.nodes.get('a')}]),columns:value=>columns=value,drain(){while(frames.length)frames.shift()();},close(){root.resize?.disconnect();Object.assign(globalThis,prior);}};
+}
+
 test('actual Root capture clear repaint and Back restore the activated identity across independent column geometry',async()=>{
- const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy'],prior=Object.fromEntries(keys.map(key=>[key,globalThis[key]])),dom=searchDOM('a'),frames=[];
- let position=0,repaint=false;const create=tag=>{const n=dom.create(tag);n.style={removeProperty(key){delete this[key];}};n.getBoundingClientRect=()=>{const top=(n.dataset.topicId==='b'?(repaint?5100:240):(repaint?5000:180))-position;return {top,bottom:top+100,height:100,width:300,left:0,right:300};};return n;};
- const input={value:''},unplaced=create('div');unplaced.hidden=true;globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,querySelectorAll:()=>[],getElementById:id=>id==='thought-list'?dom.host:id==='library-unplaced-list'?unplaced:id==='unplaced-continuous-sentinel'?create('div'):input,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
- Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '3'}),innerWidth:1000,innerHeight:800,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>position+=y});
- try{
-  dom.owner.nodes.clear();dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[];
-  const items=['a','b'].map(id=>({id,name:id,revision:1,sectionOverview:{items:[],complete:true}}));dom.owner.render(items,{complete:true});
-  const target=dom.owner.nodes.get('b'),link=target.querySelector('.personal-topic-link');link.focus();target.querySelector('.personal-topic-preview').append(create('span'));target.querySelector('.personal-topic-preview').children.at(-1).textContent='SYNTHETIC private';
-  const controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,id:null,serial:1,homePositions:new Map(),thoughtRootVisible:()=>true,homeCollection:{scope:'root',authority:'A',keys:new Set(['item:a','item:b']),reset(){}}});
-  const anchor=controller.captureHomeAnchor();controller.clearHomeRows();assert.equal(dom.owner.nodes.size,0);assert.equal(target.querySelector('.personal-topic-preview').textContent,'','departure releases preview text synchronously');
-  repaint=true;dom.owner.render(items,{complete:true});controller.restoreHomeAnchor(anchor);while(frames.length)frames.shift()();
-  assert.equal(dom.owner.nodes.get('b').getBoundingClientRect().top,240,'activated Topic keeps its own viewport coordinate, not another column anchor');assert.equal(document.activeElement.dataset.topicId,'b');
-  // The same ordinary owner also handles a real delete/restore invalidation,
-  // without retaining nodes, bodies, or reserving the deleted identity's hole.
-  for(const cause of ['REMOVE_LIBRARY_TOPIC','RESTORE_LIBRARY_TOPIC']){
-   const savedTop=dom.owner.nodes.get('b').getBoundingClientRect().top;
-   controller.invalidateHomeSnapshot({cause});assert.equal(dom.owner.nodes.size,0);const restore=controller.rootInvalidationAnchor;assert.equal(restore.id,'b');
-   dom.owner.render(cause==='REMOVE_LIBRARY_TOPIC'?items.slice(1):items,{complete:true});controller.homeCollection={scope:'root',authority:'A',keys:new Set(['item:a','item:b']),reset(){}};controller.restoreHomeAnchor(restore);while(frames.length)frames.shift()();
-   assert.equal(dom.owner.nodes.get('b').getBoundingClientRect().top,savedTop);assert.equal(document.activeElement.dataset.topicId,'b');
-  }
-  // No visible focused Topic: fall back to the actual first visible reading row.
-  position=4900;document.activeElement=input;assert.equal(controller.captureHomeAnchor().id,'a');
- }finally{dom.owner.previews?.dispose();Object.assign(globalThis,prior);}
+ const f=metadataRoot();try{const {controller:c,root,items}=f;root.nodes.get('j').querySelector('.personal-topic-link').focus();globalThis.scrollY=330;const anchor=c.captureHomeAnchor(),node=root.nodes.get('j');assert.equal(anchor.id,'j');c.clearHomeRows();assert.equal(root.nodes.size,0);assert.equal(root.host.textContent,'');assert.equal(node.isConnected,false);root.render(items,{complete:true});globalThis.scrollY=0;c.restoreHomeAnchor(anchor);f.drain();assert.equal(root.nodes.get('j').getBoundingClientRect().top,anchor.top);assert.equal(document.activeElement.dataset.topicId,'j');assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);
+  for(const cause of ['REMOVE_LIBRARY_TOPIC','RESTORE_LIBRARY_TOPIC']){const top=root.nodes.get('j').getBoundingClientRect().top;c.invalidateHomeSnapshot({cause});assert.equal(root.nodes.size,0);assert.equal(c.rootInvalidationAnchor.id,'j');root.render(cause==='REMOVE_LIBRARY_TOPIC'?items.slice(1):items,{complete:true});c.homeCollection={...f.collection};c.restoreHomeAnchor(c.rootInvalidationAnchor);f.drain();assert.equal(root.nodes.get('j').getBoundingClientRect().top,top);assert.equal(document.activeElement.dataset.topicId,'j');}
+  document.activeElement=f.get('neutral');globalThis.scrollY=0;assert.equal(c.captureHomeAnchor().id,'a');assert.doesNotMatch(JSON.stringify(anchor),/SYNTHETIC LABEL|preview|body|textContent/);
+ }finally{f.close();}
 });
 
-test('held preview after Back RAFs uses actual Root resize layout without overriding later reader intent',async()=>{
- const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
- const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY','ResizeObserver'],prior=Object.fromEntries(keys.map(k=>[k,globalThis[k]])),dom=searchDOM('a'),frames=[],pending=[];let resized,root,controller;
- const create=tag=>{const n=dom.create(tag);n.style={removeProperty(k){delete this[k];}};Object.defineProperty(n,'childElementCount',{get:()=>n.children.length});n.closest=()=>n.classList.contains('personal-topic-block')?n:n.parentElement?.closest?.('.personal-topic-block');n.getBoundingClientRect=()=>{const card=n.classList.contains('personal-topic-block'),height=card?100+(n.querySelector('.personal-topic-preview')?.childElementCount?77:0):0,top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return{height,top,bottom:top+height,width:300,left:0,right:300};};return n;};
- const input={value:''};globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:id=>id==='thought-list'?dom.host:input,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
- Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=> '1'}),innerWidth:1000,innerHeight:800,scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>globalThis.scrollY+=y,ResizeObserver:class{constructor(fn){resized=fn;}observe(){}unobserve(){}disconnect(){}}});
- try{
-  dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.host.getClientRects=()=>[{}];
-  root=new PersonalTopicRoot(dom.host,{open(){},onResize:()=>controller?.resizeHomeAnchor?.()});root.previews=new PersonalTopicPreviews(dom.host,{nodes:()=>root.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});
-  const items=['a','b'].map(id=>({id,name:id,revision:1,sectionOverview:{items:[],complete:true}}));root.render(items,{complete:true});
-  controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:root,id:null,serial:1,homeCollection:{scope:'root',authority:'A',keys:new Set(['item:a','item:b'])}});
-  root.nodes.get('b').querySelector('.personal-topic-link').focus();const anchor=controller.captureHomeAnchor();controller.restoreHomeAnchor(anchor);while(frames.length)frames.shift()();
-  pending.shift()({kind:'root_previews',items:[{topicId:'a',preview:{text:'SYNTHETIC held original',sectionId:'s',entryId:'e'}}]});await new Promise(resolve=>setImmediate(resolve));
-  resized([{target:root.nodes.get('a')}]);while(frames.length)frames.shift()();assert.equal(root.nodes.get('b').getBoundingClientRect().top,anchor.top,'late qualified body and actual layout preserve the restored identity');assert.equal(document.activeElement.dataset.topicId,'b');
-  for(const fence of ['scroll','input','route','collection','serial','width']){
-   controller.id=null;controller.serial=1;dom.host.clientWidth=1000;controller.homeCollection={scope:'root',authority:'A',keys:new Set(['item:a','item:b'])};controller.restoreHomeAnchor(controller.captureHomeAnchor());while(frames.length)frames.shift()();
-   if(fence==='scroll')globalThis.scrollY+=30;if(fence==='input')controller.cancelHomeFocusScroll();if(fence==='route')controller.id='reader';if(fence==='collection')controller.homeCollection={};if(fence==='serial')controller.serial++;if(fence==='width')dom.host.clientWidth=900;
-   const before=globalThis.scrollY;root.nodes.get('a').querySelector('.personal-topic-preview').replaceChildren();resized([{target:root.nodes.get('a')}]);while(frames.length)frames.shift()();assert.equal(globalThis.scrollY,before,fence+' invalidates delayed correction');
-   root.nodes.get('a').querySelector('.personal-topic-preview').append(create('span'));root.layout();
-  }
- }finally{root?.previews?.dispose();Object.assign(globalThis,prior);}
+test('held metadata resize after Back RAFs preserves identity without overriding later reader intent',async()=>{
+ const f=metadataRoot({columns:1});try{const {controller:c,root}=f;root.nodes.get('b').querySelector('.personal-topic-link').focus();const anchor=c.captureHomeAnchor();c.restoreHomeAnchor(anchor);f.drain();root.nodes.get('a').getBoundingClientRect=()=>({height:232,top:200-globalThis.scrollY,bottom:432-globalThis.scrollY});f.resize();f.drain();assert.equal(root.nodes.get('b').getBoundingClientRect().top,anchor.top);assert.equal(document.activeElement.dataset.topicId,'b');assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);
+  for(const fence of ['scroll','input','route','collection','serial','width']){c.id=null;c.serial=1;root.host.clientWidth=1000;c.homeCollection={...f.collection};c.restoreHomeAnchor(c.captureHomeAnchor());f.drain();if(fence==='scroll')globalThis.scrollY+=30;if(fence==='input')c.cancelHomeFocusScroll();if(fence==='route')c.id='reader';if(fence==='collection')c.homeCollection={};if(fence==='serial')c.serial++;if(fence==='width')root.host.clientWidth=900;const before=globalThis.scrollY;root.layout();c.resizeHomeAnchor();f.drain();assert.equal(globalThis.scrollY,before,fence+' invalidates delayed correction');}
+ }finally{f.close();}
 });
 
 test('actual outer leave then open keeps the Root departure identity for repeated Forward and Back',async()=>{
@@ -409,74 +321,12 @@ test('actual outer leave then open keeps the Root departure identity for repeate
  }finally{dom.owner.previews?.dispose();Object.assign(globalThis,prior);}
 });
 
-test('ordinary Back restores both independent-column anchors using only qualified measured preview heights',async()=>{
- const {PersonalTopicPreviews}=await import('../ui/personal-topic-previews.js');
- const keys=['document','location','getSelection','getComputedStyle','innerWidth','innerHeight','requestAnimationFrame','scrollBy','scrollY'],prior=Object.fromEntries(keys.map(k=>[k,globalThis[k]])),dom=searchDOM('a'),frames=[],pending=[];let previews,columns=2;
- const create=tag=>{const n=dom.create(tag);n.replaceWith=other=>{n.parentElement?.insertBefore(other,n);n.remove();};n.style={removeProperty(k){delete this[k];}};Object.defineProperty(n,'childElementCount',{get:()=>n.children.length});n.getBoundingClientRect=()=>{const preview=n.classList.contains('personal-topic-preview'),ph=preview?(n.children.length?61:Number.parseFloat(n.style.minHeight)||0):0,p=n.querySelector('.personal-topic-preview'),height=preview?ph:94+(p?.getBoundingClientRect().height? p.getBoundingClientRect().height+16:0),top=200+(parseInt(n.style.gridRow)||1)-1-globalThis.scrollY;return {top,bottom:top+height,height,width:300,left:0,right:300};};return n;};
- const controls=new Map(),get=id=>{if(id==='thought-list')return dom.host;if(!controls.has(id)){const n=create('div');n.value='';controls.set(id,n);}return controls.get(id);};
- globalThis.document={body:dom.host,documentElement:{lang:'en'},hidden:false,getElementById:get,createElement:create,createElementNS:(_,tag)=>create(tag),createTextNode:presentationText,addEventListener(){},removeEventListener(){}};
- Object.assign(globalThis,{location:{href:'chrome-extension://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ui/archive.html'},getSelection:()=>({isCollapsed:true}),getComputedStyle:()=>({getPropertyValue:()=>String(columns)}),innerWidth:1000,innerHeight:720,scrollY:0,requestAnimationFrame:fn=>frames.push(fn),scrollBy:(_,y)=>globalThis.scrollY+=y});
- try{
-  dom.owner.nodes.clear();dom.host.replaceChildren();dom.host.style={};dom.host.clientWidth=1000;dom.owner.slots=new TopicRootSlots();dom.owner.items=[];
-  previews=new PersonalTopicPreviews(dom.host,{nodes:()=>dom.owner.nodes,open(){},send:()=>new Promise(resolve=>pending.push(resolve))});dom.owner.previews=previews;
-  const items=[...'abcdefghij'].map(id=>({id,name:'SYNTHETIC LABEL '+id,revision:1,organizationRevision:1,layoutGeneration:1,sectionOverview:{items:[],complete:true}}));dom.owner.render(items,{complete:true});pending.shift()({kind:'root_previews',items:[{topicId:'a',preview:{text:'SYNTHETIC PRIVATE BODY',sectionId:'s',entryId:'e'}}]});await new Promise(resolve=>setImmediate(resolve));dom.owner.layout();
-  globalThis.scrollY=571;void previews.refresh();assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'');assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight,'61px');pending.shift()({kind:'root_previews',items:[]});await new Promise(resolve=>setImmediate(resolve));dom.owner.layout();
-  const collection={authority:'A',scope:'root',keys:new Set(items.map(x=>'item:'+x.id)),snapshot:()=>({items:items.map(({id})=>({id,key:'item:'+id}))})};
-  const controller=Object.assign(Object.create(TopicController.prototype),{personalRoot:dom.owner,homeCollection:collection,homePositions:new Map(),id:null,serial:1,openIntent:1,view:'original',rememberTimeline(){},rememberView(){},leaveEditors:async()=>true});
-  const first=()=>[...dom.owner.nodes.values()].find(n=>{const r=n.getBoundingClientRect();return r.bottom>120&&r.top<innerHeight;});
-  dom.owner.nodes.get('j').querySelector('.personal-topic-link').focus();const before={first:first().dataset.topicId,firstTop:first().getBoundingClientRect().top,clickedTop:dom.owner.nodes.get('j').getBoundingClientRect().top};assert.equal(before.first,'g');
-  for(let visit=0;visit<3;visit++){
-   await controller.leave();assert.equal(dom.owner.nodes.size,0);assert.equal(dom.host.textContent,'');const saved=controller.homePositions.get('home'),returned=saved.returnGeometry;assert.doesNotMatch(JSON.stringify(returned||null),/PRIVATE BODY|SYNTHETIC LABEL|childNodes|textContent/);delete saved.returnGeometry;
-   controller.rootReturnGeometry={...returned,intent:controller.openIntent,inputEpoch:controller.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0};controller.paintHome({items,complete:true},'');controller.restoreHomeAnchor(saved.rootAnchor);while(frames.length)frames.shift()();
-   assert.equal(first().dataset.topicId,before.first);assert.equal(controller.rootReturnGeometry,null,'first real paint consumes the return exactly once');assert.equal(first().getBoundingClientRect().top,before.firstTop,'original first-visible anchor retains its offset');assert.equal(returned.geometry.rows.length,1,'only one measured nonzero shell is retained');assert.equal(dom.owner.nodes.get('j').getBoundingClientRect().top,before.clickedTop,'activated anchor also retains its offset');assert.equal(document.activeElement.dataset.topicId,'j');assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'');
-  }
-  // Search starts from the real returned multi-column viewport, then clears
-  // through the controller and hydration owner, rather than root.render alone.
-  Object.assign(collection,{query:'',terminal:true,releaseBodies(){},restore(){},state:()=>({}),hydrateWindow:async()=>true});
-  controller.createHomeCollection=()=>({...collection});controller.homePageState=()=>({items,complete:true});controller.updateHomeContinuous=()=>{};controller.readKey=()=> 'root';
-  for(let round=0;round<3;round++){
-  controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);
-  assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'','search releases ordinary preview text immediately');
-  controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');
-  get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);await controller.renderHomeReader(controller.rootInvalidationAnchor);while(frames.length)frames.shift()();
-  assert.equal(first().dataset.topicId,before.first,'clearing search restores the original first-visible identity');assert.equal(first().getBoundingClientRect().top,before.firstTop,'clearing search preserves the original independent-column offset');assert.equal(dom.owner.nodes.get('j').getBoundingClientRect().top,before.clickedTop);
-  assert.equal(controller.rootPreSearch,null,'clear consumes the sole pre-search snapshot');assert.equal(dom.owner.searchQuery,'','ordinary mode has no stale search identity');
-  }
-  // A genuine later wheel/input wins over an in-flight clear-search restore.
-  controller.homeCollection=collection;controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);
-  let releaseClear;controller.homeCollection.hydrateWindow=()=>new Promise(resolve=>releaseClear=resolve);const clearing=controller.renderHomeReader(controller.rootInvalidationAnchor);globalThis.scrollY+=30;const userScroll=globalThis.scrollY;controller.topicRestoring=()=>false;controller.topicRestoreInput({type:'wheel',isTrusted:true});controller.cancelHomeAnchor();releaseClear(true);await clearing;while(frames.length)frames.shift()();assert.equal(globalThis.scrollY,userScroll,'late clear hydration cannot override a subsequent user scroll');globalThis.scrollY-=30;
-  const geometry=dom.owner.captureReturnGeometry();
-  for(const mismatch of ['authority','source','session','width','columns','revision','preference']){
-   dom.owner.clear();dom.owner.render(items,{complete:true,returnGeometry:geometry});controller.homeCollection=collection;controller.homePage={page:{items}};get('thought-search').value='SYNTHETIC';controller.searchRoot();clearTimeout(controller.searchTimer);controller.paintRootSearch({items:[],complete:true},'SYNTHETIC');
-   if(mismatch==='authority')controller.rootPreSearch.returnGeometry.authority='different';
-   if(mismatch==='source')controller.rootProviderKey='different';
-   if(mismatch==='session')controller.rootGeometrySession=(controller.rootGeometrySession||0)+1;
-   if(mismatch==='width')dom.host.clientWidth--;
-   if(mismatch==='columns')columns=3;
-   if(mismatch==='revision')controller.rootPreSearch.items=items.map(item=>item.id==='a'?{...item,revision:2}:item);
-   if(mismatch==='preference'){document.documentElement.lang='zh-CN';previews.preferences();}
-   get('thought-search').value='';controller.searchRoot();clearTimeout(controller.searchTimer);assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight||'','',mismatch+' cannot revive a search-exit shell');assert.equal(controller.rootPreSearch,null);
-   controller.rootProviderKey=null;dom.host.clientWidth=1000;columns=2;document.documentElement.lang='en';
-  }
-
-  for(const mismatch of ['revision','count','width','columns','presentation','epoch','cap']){
-   dom.owner.clear();let rows=items,saved=structuredClone(geometry);if(mismatch==='revision')rows=items.map(x=>x.id==='a'?{...x,revision:2}:x);if(mismatch==='count')rows=items.slice(1);if(mismatch==='width')saved.width--;if(mismatch==='columns')saved.columns=3;if(mismatch==='presentation')saved.presentation='different';if(mismatch==='epoch')saved.epoch=(previews.geometryEpoch||0)+1;if(mismatch==='cap')saved.rows=Array(50001).fill(saved.rows[0]);dom.owner.render(rows,{complete:true,returnGeometry:saved});assert.ok(!dom.owner.nodes.get('a')?.querySelector('.personal-topic-preview').style.minHeight,mismatch+' cannot revive a shell');
-  }
-  for(const mismatch of ['source','session','intent','input','authority','scroll','pending-input']){
-   dom.owner.clear();controller.rootReturnGeometry={geometry,source:null,session:controller.rootGeometrySession||0,intent:controller.openIntent,inputEpoch:controller.homeAnchorInputEpoch||0,authority:collection.authority,scroll:globalThis.scrollY||0};
-   if(mismatch==='source')controller.rootReturnGeometry.source='other';if(mismatch==='session')controller.rootReturnGeometry.session++;if(mismatch==='intent')controller.rootReturnGeometry.intent++;if(mismatch==='input')controller.rootReturnGeometry.inputEpoch++;if(mismatch==='authority')controller.rootReturnGeometry.authority='other';if(mismatch==='scroll')controller.rootReturnGeometry.scroll+=30;
-   if(mismatch==='pending-input'){controller.paintHome({items:[],indexing:true},'');assert.ok(controller.rootReturnGeometry,'only bounded indexing retains pending numbers');controller.cancelHomeAnchor();assert.equal(controller.rootReturnGeometry,null);}
-   controller.paintHome({items,complete:true},'');assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight||'','',mismatch+' retires the return');
-  }
-  dom.owner.clear();document.documentElement.lang='zh-CN';previews.preferences();document.documentElement.lang='en';previews.preferences();dom.owner.render(items,{complete:true,returnGeometry:geometry});assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight||'','','a presentation change and back cannot resurrect the former snapshot');
-  dom.owner.clear();let masked=false;document.documentElement.classList={contains:()=>masked};const beforeMask={...geometry,epoch:previews.geometryEpoch};masked=true;previews.preferences();masked=false;previews.preferences();dom.owner.render(items,{complete:true,returnGeometry:beforeMask});assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight||'','','mask and unmask retire old geometry even after presentation matches again');
-  // A newly missing current qualification clears even a previously measured
-  // visible shell. The snapshot never acts as permission to read or show text.
-  dom.owner.clear();globalThis.scrollY=0;const current={...geometry,epoch:previews.geometryEpoch};dom.owner.render(items,{complete:true,returnGeometry:current});assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight,'61px');pending.at(-1)({kind:'root_previews',items:[]});await new Promise(resolve=>setImmediate(resolve));assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').style.minHeight,'');assert.equal(dom.owner.nodes.get('a').querySelector('.personal-topic-preview').textContent,'');
-  dom.owner.items=Array(50001).fill(items[0]);assert.equal(dom.owner.captureReturnGeometry(),null,'capture cannot exceed the existing identity envelope');
-  document.querySelectorAll=()=>[];get('library-unplaced-list').hidden=true;controller.thoughtRootVisible=()=>true;controller.homeCollection={...collection,reset(){}};controller.homePositions.set('home',{returnGeometry:{geometry}});controller.rootReturnGeometry={geometry};controller.invalidateHomeSnapshot({cause:'REMOVE_LIBRARY_TOPIC'});assert.equal(controller.rootReturnGeometry,null);assert.equal(controller.homePositions.get('home').returnGeometry,undefined);assert.equal(dom.owner.nodes.size,0,'actual removal invalidation retains no nodes or shells');
-  controller.homePositions.set('home',{returnGeometry:{geometry}});controller.rootReturnGeometry={geometry};controller.statusEpoch=0;controller.refresh=async()=>{};await controller.changeRootSourceScope('claude');assert.equal(controller.rootReturnGeometry,null);assert.equal(controller.homePositions.get('home').returnGeometry,undefined,'actual source change retires parked geometry');
-  controller.homePositions.set('home',{returnGeometry:{geometry}});controller.rootReturnGeometry={geometry};controller.beginRootEntry();assert.equal(controller.rootReturnGeometry,null);assert.equal(controller.homePositions.has('home'),false,'ordinary Home cannot reuse a previous reading-chain shell');
-
- }finally{previews?.dispose();Object.assign(globalThis,prior);}
+test('ordinary Back restores both independent-column anchors using only body-free current metadata geometry',async()=>{
+ const f=metadataRoot();try{const {controller:c,root,items}=f;globalThis.scrollY=330;root.nodes.get('j').querySelector('.personal-topic-link').focus();const first=()=>[...root.nodes.values()].find(node=>{const r=node.getBoundingClientRect();return r.bottom>120&&r.top<innerHeight;}),before={first:first().dataset.topicId,top:first().getBoundingClientRect().top,activated:root.nodes.get('j').getBoundingClientRect().top};assert.notEqual(before.first,'j','independent-column first-visible and activated anchors are distinct');
+  for(let visit=0;visit<3;visit++){assert.equal(await c.leave(),true);assert.equal(root.nodes.size,0);assert.equal(root.host.textContent,'');const saved=c.homePositions.get('home');assert.doesNotMatch(JSON.stringify(saved),/SYNTHETIC LABEL|PRIVATE BODY|textContent|childNodes|snippet/);assert.equal(saved.returnGeometry.geometry,null,'retired preview geometry never supplies a body cache');c.paintHome({items,complete:true},'');c.restoreHomeAnchor(saved.rootAnchor);f.drain();assert.equal(first().dataset.topicId,before.first);assert.equal(first().getBoundingClientRect().top,before.top);assert.equal(root.nodes.get('j').getBoundingClientRect().top,before.activated);assert.equal(document.activeElement.dataset.topicId,'j');assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);}
+  Object.assign(f.collection,{windowRevision:1,hydrateWindow:()=>new Promise(resolve=>release=resolve),state:()=>({})});let release;c.homeCollection=f.collection;c.homePageState=()=>({items,complete:true});c.updateHomeContinuous=()=>{};c.readKey=()=> 'root';const anchor=c.captureHomeAnchor(),reading=c.renderHomeReader(anchor);globalThis.scrollY+=30;const userScroll=scrollY;c.topicRestoreInputEpoch=(c.topicRestoreInputEpoch||0)+1;c.cancelHomeAnchor();release(true);await reading;f.drain();assert.equal(scrollY,userScroll,'later input wins over held directory hydration');
+  const geometry={rows:[{id:'a',height:61}],width:1000,columns:2,presentation:'old-private-preview',epoch:1};for(const mismatch of ['revision','count','width','columns','presentation','epoch','cap']){root.clear();const stale=structuredClone(geometry);if(mismatch==='width')stale.width--;if(mismatch==='columns')stale.columns=3;if(mismatch==='presentation')stale.presentation='different';if(mismatch==='epoch')stale.epoch++;if(mismatch==='cap')stale.rows=Array(50001).fill(stale.rows[0]);root.render(mismatch==='count'?items.slice(1):mismatch==='revision'?items.map(item=>({...item,revision:2})):items,{complete:true,returnGeometry:stale});assert.equal(root.captureReturnGeometry(),null,mismatch);assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0,mismatch);assert.ok([...root.nodes.values()].every(node=>!node.style.height),mismatch+' cannot revive a former fixed shell');}
+  const render=root.render.bind(root);let admittedGeometry;root.render=(values,options)=>{admittedGeometry=options.returnGeometry;return render(values,options);};for(const mismatch of ['source','session','intent','input','authority','scroll','pending-input']){c.homeCollection=f.collection;root.clear();c.rootReturnGeometry={geometry,source:c.rootProviderKey||null,session:c.rootGeometrySession||0,intent:c.openIntent,inputEpoch:c.homeAnchorInputEpoch||0,authority:f.collection.authority,scroll:globalThis.scrollY||0};if(mismatch==='source')c.rootReturnGeometry.source='other';if(mismatch==='session')c.rootReturnGeometry.session++;if(mismatch==='intent')c.rootReturnGeometry.intent++;if(mismatch==='input')c.rootReturnGeometry.inputEpoch++;if(mismatch==='authority')c.rootReturnGeometry.authority='other';if(mismatch==='scroll')c.rootReturnGeometry.scroll+=30;if(mismatch==='pending-input'){assert.equal(c.paintHome({items:[],indexing:true},''),false);assert.ok(c.rootReturnGeometry);c.cancelHomeAnchor();}c.paintHome({items,complete:true},'');assert.equal(admittedGeometry,null,mismatch+' retires the old return envelope');assert.equal(c.rootReturnGeometry,null);assert.equal(root.host.querySelectorAll('.personal-topic-preview').length,0);}
+  root.items=Array(50001).fill(items[0]);assert.equal(root.captureReturnGeometry(),null,'oversized identities cannot create a retired shell');root.items=items;c.homeCollection=f.collection;c.homePositions.set('home',{returnGeometry:{geometry}});c.rootReturnGeometry={geometry};f.get('library-unplaced-list').hidden=true;c.invalidateHomeSnapshot({cause:'REMOVE_LIBRARY_TOPIC'});assert.equal(c.rootReturnGeometry,null);assert.equal(c.homePositions.get('home').returnGeometry,undefined);assert.equal(root.nodes.size,0);c.homePositions.set('home',{returnGeometry:{geometry}});c.rootReturnGeometry={geometry};c.statusEpoch=0;c.refresh=async()=>{};await c.changeRootSourceScope('claude');assert.equal(c.rootReturnGeometry,null);assert.equal(c.homePositions.get('home').returnGeometry,undefined);c.homePositions.set('home',{returnGeometry:{geometry}});c.beginRootEntry();assert.equal(c.homePositions.has('home'),false);
+ }finally{f.close();}
 });

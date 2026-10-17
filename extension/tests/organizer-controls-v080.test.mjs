@@ -25,7 +25,7 @@ test('reading controls remain local and never scan old request logs or expose us
   t.all=()=>{throw Error('controls must not scan usage history');};return fn(t);
  },stores);
  const controls=await organizerControls(f.s);f.s.repository.transaction=transaction;
- assert.deepEqual(controls,{readingSort:'asc',inputReadingSort:'asc',libraryView:'original'});
+ assert.deepEqual(controls,{readingSort:'desc',inputReadingSort:'desc',libraryView:'original'});
  const publicationFence=['local-control-publication:revision','local-control-publication:reservation','migration','gate','recovery-restore-epoch'];
  const fenced=keys=>[...publicationFence,...publicationFence,...keys];
  assert.deepEqual(reads,[...fenced(['thought-binding:v1','thought-reverse-edit:v1']),...fenced(['library-documents-compat-v2']),...fenced(['organizer-controls'])].map(id=>['meta',id]));
@@ -34,4 +34,16 @@ test('reading controls remain local and never scan old request logs or expose us
  const saved=await meta(f.s,'organizer-controls');for(const key of ['dailyRequests','batchMode','aiOnboardingSeen'])assert.equal(saved[key],prior[key]);
  assert.equal(await meta(f.s,'organizer-budget'),undefined);assert.equal(f.requests.length,0);
  await assert.rejects(()=>setOrganizerControls(f.s,{apiKey:'never'}),{code:'INVALID_OUTPUT'});
+});
+
+test('fresh Topic and Input reading starts newest first while explicit saved oldest-first remains authoritative',async()=>{
+ const f=await completeFixture();try{
+  assert.equal((await organizerControls(f.s)).readingSort,'desc');
+  assert.equal((await organizerControls(f.s)).inputReadingSort,'desc');
+  await setOrganizerControls(f.s,{readingSort:'asc',inputReadingSort:'asc'});
+  assert.equal((await organizerControls(f.s)).readingSort,'asc');
+  await setOrganizerControls(f.s,{libraryView:'ai'});
+  assert.equal((await organizerControls(f.s)).readingSort,'asc');
+  assert.equal((await organizerControls(f.s)).inputReadingSort,'asc');
+ }finally{f.s.repository.db.close();}
 });

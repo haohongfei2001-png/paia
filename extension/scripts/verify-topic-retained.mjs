@@ -23,6 +23,24 @@ export function validateUnion(head,receipts){
  for(const key of ['total','pass','fail','skipped'])assert.equal(receipts.reduce((n,row)=>n+row[key],0),manifest[key]);
  return {version:1,head,scope:manifest.scope,parts:receipts.map(row=>row.part),files,cases,total:manifest.total,pass:manifest.pass,fail:manifest.fail,skipped:manifest.skipped};
 }
+export const contentHeaderKinds=Object.freeze(['native-directory-tab','native-keyboard-history','retired-search-service-only','text200-failure-layout','text200-failure-layout','coarse-controls','coarse-history','saved-ai-original-target','saved-ai-history-early-dismissal','saved-ai-header','back-original-return']);
+export function validateContentHeaderInteractions(rows){
+ assert.deepEqual(rows.map(row=>row.kind),contentHeaderKinds,'every current approved native header interaction occurs exactly once in order');
+ for(const row of rows.filter(row=>row.kind==='text200-failure-layout'))assert.equal(row.contentFocus.length,2);
+ const departure=rows.find(row=>row.kind==='saved-ai-original-target'),returned=rows.find(row=>row.kind==='back-original-return'),retained=rows.find(row=>row.kind==='retired-search-service-only');
+ for(const key of ['entryId','sectionId']){
+  assert.match(departure[key],/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/,'actual synthetic stable '+key);
+  assert.equal(returned[key],departure[key],'return keeps the exact established '+key);
+ }
+ assert.equal(departure.actual.currentSectionId,departure.sectionId,'departure is qualified in the actual selected Section');
+ assert.equal(returned.actual.currentSectionId,departure.sectionId,'return is qualified in the same actual selected Section');
+ assert.ok(Array.isArray(retained.retainedIds)&&retained.retainedIds.includes(departure.entryId),'the established target is the original measurement Entry, not a substituted row');
+ assert.ok(Number.isSafeInteger(departure.bodyLength)&&departure.bodyLength>0,'actual departure body has complete readable text');
+ assert.equal(returned.bodyLength,departure.bodyLength,'return preserves complete body length');
+ assert.match(departure.bodyDigest,/^[a-f0-9]{64}$/,'actual complete body SHA256');
+ assert.equal(returned.bodyDigest,departure.bodyDigest,'actual returned complete body agrees with departure');
+ assert.equal(returned.sameNodes,true,'original retained header owners survive the return');
+}
 async function evidence(part,base,head){
  if(part==='core')for(const variant of ['source','release']){
   const root=await read(join(base,`qa-dvn-topic-root/${variant}.json`)),dense=await read(join(base,`qa-dvn-topic-root/${variant}-dense.json`));
@@ -33,8 +51,7 @@ async function evidence(part,base,head){
   const receipt=await read(join(base,`qa-dvn-topic-${part}/d7/${variant}.json`));
   assert.equal(receipt.result,'PASS');assert.equal(receipt.head,head);assert.equal(receipt.headers.length,12);
   if(part==='content'){
-   assert.deepEqual(receipt.headerInteractions.map(row=>row.kind),['native-keyboard-history','search-clear','text200-failure-layout','text200-failure-layout','coarse-controls','coarse-history','saved-ai-history-early-dismissal','saved-ai-header','back-original-return']);
-   for(const row of receipt.headerInteractions.filter(row=>row.kind==='text200-failure-layout'))assert.equal(row.contentFocus.length,2);
+   validateContentHeaderInteractions(receipt.headerInteractions);
   }
  }
 }
