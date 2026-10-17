@@ -10,6 +10,10 @@ import {readContextTopicScope} from '../core/context-topic-scope.js';
 import {inputProjection} from '../core/thought-evidence.js';
 import {hashText} from '../core/dedupe.js';
 import {ArchiveError} from '../core/constants.js';
+import {readFile} from 'node:fs/promises';
+import {BackupService} from '../core/backup-service.js';
+import {BackupService as HistoricalEncoder} from './harness/historical-backup.mjs';
+import {backupMetaAllowed,validateBackupItem} from '../core/backup-format.js';
 
 const op=()=>crypto.randomUUID(),deadline='2026-10-17T12:00:00.000Z';
 const temporal=(validUntil=deadline)=>({temporalScope:'SYNTHETIC 本阶段\n  精确保留 👩🏽‍💻',uncertainty:'SYNTHETIC 仅为本人有条件的当前陈述',validUntil});
@@ -108,5 +112,22 @@ for(const boundary of ['purged-source','restore-epoch'])test('temporal proposals
   await f.s.foundationWrite(async t=>{if(boundary==='purged-source')await t.delete('records',f.input.originalTextReference);else await t.put('meta',{id:'recovery-restore-epoch',value:op()});});
   const before=await all(f.s);await assert.rejects(maintain(f,{...c,operationId:op(),expectedRevision:1,body:'SYNTHETIC stale temporal update'}));assert.deepEqual(await all(f.s),before);
   const snap=await f.cards.snapshot(),read=await f.reader.shallow(f.readCaller);assert.equal(snap.items.some(item=>item.id===c.itemId),false);assert.equal(read.items.some(item=>item.itemId===c.itemId),false);assert.ok(!JSON.stringify(read).includes(c.temporal.temporalScope));assert.deepEqual(await all(f.s),before);
+ }finally{await f.close();}
+});
+
+
+test('explicit temporal metadata cannot expand the retained Backup interchange or reactivate production export',async()=>{
+ const f=await fixture();try{
+  const c={...f.change,temporal:temporal()};await maintain(f,c);const before=await raw(f),appVersion=JSON.parse(await readFile(new URL('../manifest.json',import.meta.url),'utf8')).version;
+  assert.equal(backupMetaAllowed(CONTEXT_CARDS_ROW),false);
+  assert.throws(()=>validateBackupItem({type:'item',section:'organizationState',value:{id:CONTEXT_CARDS_ROW,data:before}}),{code:'BACKUP_INVALID'},'local automatic metadata retains the original nonportable contract');
+  await assert.rejects(new BackupService(f.s,{appVersion}).beginExport(),{code:'FEATURE_UNAVAILABLE'});
+  const encoder=new HistoricalEncoder(f.s,{appVersion}),start=await encoder.beginExport(),items=[start.header];
+  await assert.rejects(async()=>{for(let sequence=0;;sequence++){const page=await encoder.exportPage({sessionId:start.sessionId,sequence});items.push(...page.items);if(page.done)break;}},{code:'BACKUP_INVALID'},'the retained historical encoder also refuses nonportable local Context receipts');
+  assert.equal(items[0].appVersion,appVersion);
+  assert.equal(items.some(row=>row.section==='organizationState'&&row.value.id===CONTEXT_CARDS_ROW),false);
+  assert.equal(items.some(row=>row.section==='receipts'&&['context-cards','context-topic-access','context-maintenance'].includes(row.value.namespace)),false);
+  for(const privateValue of [c.body,c.temporal.temporalScope,c.temporal.uncertainty])assert.equal(JSON.stringify(items).includes(JSON.stringify(privateValue)),false,'local Context metadata does not become a portable grant or payload');
+  assert.deepEqual(await raw(f),before,'interchange validation changes no temporal body, protection, revision or access');
  }finally{await f.close();}
 });

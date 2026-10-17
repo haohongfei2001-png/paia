@@ -4,7 +4,7 @@ import {contextTemporalProjection} from '../core/context-temporal.js';
 // owns no body, revision, processing opportunity or external-read permission.
 export class ContextTemporalStatus {
  constructor({node,item,isEditing=()=>false,isCurrent=()=>true,clock=()=>Date.now(),schedule=setTimeout,cancel=clearTimeout}){
-  this.node=node;this.item=item;this.isEditing=isEditing;this.isCurrent=isCurrent;this.clock=clock;this.schedule=schedule;this.cancel=cancel;this.generation=0;this.timer=null;this.disposed=false;
+  this.node=node;this.item=item;this.isEditing=isEditing;this.isCurrent=isCurrent;this.clock=clock;this.schedule=(callback,delay)=>schedule(callback,delay);this.cancel=timer=>cancel(timer);this.generation=0;this.timer=null;this.disposed=false;
   node.setAttribute('role','status');this.refresh();
  }
  refresh(){

@@ -32,3 +32,12 @@ test('dispose and route departure clear the note and fence late callbacks',()=>f
  const old=scheduled[0];advance(Date.parse(item().maintenance.temporal.validUntil));setLive(false);old.callback();assert.equal(node.hidden,true);assert.equal(status.timer,null);
  status.dispose();old.callback();assert.equal(node.hidden,true);assert.equal(node.textContent,'');
 }));
+
+test('platform timer functions never receive the status owner as a foreign receiver',()=>{
+ const original=Object.getOwnPropertyDescriptor(globalThis,'document');globalThis.document={documentElement:{lang:'en'}};
+ let owner,scheduled=0,cancelled=0;const node=new PresentationNode('span');
+ try{
+  owner=new ContextTemporalStatus({node,item,clock:()=>Date.parse('2026-10-17T00:00:00.000Z'),schedule:function(callback,delay){assert.equal(this,undefined,'WebIDL timer is called without an application-object receiver');assert.equal(typeof callback,'function');assert.equal(delay,1000);scheduled++;return 42;},cancel:function(timer){assert.equal(this,undefined,'WebIDL cancellation is called without an application-object receiver');assert.ok(timer===null||timer===42);cancelled++;}});
+  assert.equal(scheduled,1);assert.equal(node.hidden,true);owner.dispose();assert.equal(cancelled,2);assert.equal(node.hidden,true);
+ }finally{if(owner&&!owner.disposed)owner.dispose();if(original)Object.defineProperty(globalThis,'document',original);else delete globalThis.document;}
+});
