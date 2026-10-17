@@ -1,4 +1,5 @@
 import {applyArchiveWhiteRoles} from './harness/archive-white-reference.mjs';
+import {assertArchiveDevice} from './harness/archive-device-evidence.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -30,13 +31,24 @@ async function shot(p,name){const path=join(out,name+'.png');await frame(p);awai
 async function shape(p,selectors){return p.evaluate(selectors=>Object.fromEntries(selectors.map(s=>{const n=document.querySelector(s);if(!n)return[s,null];const b=n.getBoundingClientRect(),c=getComputedStyle(n);return [s,{x:b.x,y:b.y,width:b.width,height:b.height,font:c.fontFamily,size:c.fontSize,line:c.lineHeight,color:c.color,background:c.backgroundColor,padding:c.padding,gap:c.gap}];})),selectors);}
 function same(actual,expected,retired={}){for(const s of Object.keys(expected)){assert.ok(actual[s]&&expected[s],s);for(const k of Object.keys(expected[s])){if(retired[s]?.includes(k))continue;const a=actual[s][k],b=expected[s][k];if(typeof a==='number')assert.ok(Math.abs(a-b)<=2,`${s} ${k}: ${a} versus ${b}`);else assert.equal(a,b,s+' '+k);}}}
 const title='SYNTHETIC Selected Archive '+ 'LongLocation'.repeat(12),body='Do not publish unless approved. 中文 👩‍💻 é.\n'+('SYNTHETIC original paragraph.\n'.repeat(100))+'SYNTHETIC_SELECTED_DEEP';
+async function seedArchive(h,p){
+ await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
+ await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
+ await h.open({id:'iah-selected',title,base:1609459200,messages:[{id:'iah-selected-input',text:body}]});await eventually(async()=>(await h.state()).records.length===1);
+ await waitArchiveWindow(p);await p.bringToFront();
+}
+function assertOffline(h){assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);}
+async function deviceEvidence(p,data,label,hasTouch,target=null){
+ const sample=await p.evaluate(target=>{const rect=target?document.querySelector(target)?.getBoundingClientRect():null;return {coarse:matchMedia('(pointer:coarse)').matches,fine:matchMedia('(pointer:fine)').matches,maxTouchPoints:navigator.maxTouchPoints,...(rect?{rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}}:{})};},target);
+ (data.deviceSamples??=[]).push({label,...sample});assertArchiveDevice(sample,{hasTouch,label});return sample;
+}
+
 for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],['release',release]])test('IAH selected baseline/visual/accessibility '+variant,{timeout:90000},async()=>{
- const h=await FakeChatGPT.start({extensionPath:path,headless:true,hasTouch:true,viewport:{width:1440,height:900}}),p=h.archive;const data=evidence.variants[variant]={};const cdp=await h.context.newCDPSession(p);
+ // Fine geometry and coarse accessibility have separate lifetime-fixed devices.
+ // A second CDP owner must not override Playwright's context device state.
+ let h=await FakeChatGPT.start({extensionPath:path,headless:true,hasTouch:false,viewport:{width:1440,height:900}}),p=h.archive;const data=evidence.variants[variant]={};
  try{
-  await p.locator('#enable-consent').click();await eventually(async()=>(await rpc(p,'GET_STATUS')).consented===true);
-  await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:'light',language:'zh-CN'}});
-  await h.open({id:'iah-selected',title,base:1609459200,messages:[{id:'iah-selected-input',text:body}]});await eventually(async()=>(await h.state()).records.length===1);
-  await waitArchiveWindow(p);await p.bringToFront();await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});await frame(p);assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),false,'baseline neutral measured with fine pointer');
+  await seedArchive(h,p);await frame(p);await deviceEvidence(p,data,'baseline neutral measured with fine pointer',false);
   assert.equal(await p.locator('#document-panel').isVisible(),false);assert.equal(await p.locator('#collection-panel h1:visible').count(),0);
   data.neutral=await shape(p,['.sidebar','#archive-root-header','#archive-navigator']);await shot(p,variant+'-neutral-wide');
   if(variant!=='baseline'){
@@ -49,7 +61,7 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
    assert.equal(await p.locator('.archive-navigator-provider').count(),1);assert.equal(await p.locator('.archive-navigator-provider').getAttribute('data-provider-key'),'chatgpt');
    assert.equal(await p.locator('.archive-navigator-provider-title:visible').count(),0,'specific-source tree has no duplicate provider heading');
   }
-  await openArchiveWindow(p);await eventually(()=>p.locator('#document-panel').isVisible());await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:false});await frame(p);assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),false,'baseline Reader measured with fine pointer');
+  await openArchiveWindow(p);await eventually(()=>p.locator('#document-panel').isVisible());await frame(p);await deviceEvidence(p,data,'baseline Reader measured with fine pointer',false);
   data.reader=await shape(p,['.sidebar','#document-page','#document-body','.library-prose']);await shot(p,variant+'-reader-wide');
   data.identity=await shape(p,['#document-title']);
   data.readerFlow=await p.evaluate(()=>{const page=document.getElementById('document-page'),body=document.getElementById('document-body'),block=body.querySelector('.library-block'),pageBox=page.getBoundingClientRect(),bodyBox=body.getBoundingClientRect();return {blockMargin:parseFloat(getComputedStyle(block).marginBottom),bottomPadding:parseFloat(getComputedStyle(page).paddingBottom),outsideBodyReserve:pageBox.bottom-bodyBox.bottom-parseFloat(getComputedStyle(page).paddingBottom)};});
@@ -88,8 +100,8 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   }
   await p.locator('#back').click();await eventually(()=>p.locator('#scope-search').isEnabled());
   if(variant!=='baseline')await p.locator('#archive-source-scope').selectOption(''); // Explicit All preserves this original all-archive journey.
-  const start=performance.now();await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');const row=p.locator('.search-input').first();await eventually(()=>row.isVisible());data.queryMs=performance.now()-start;
-  if(variant==='baseline'){await shot(p,variant+'-results-wide');return;}
+  const start=performance.now();await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');let row=p.locator('.search-input').first();await eventually(()=>row.isVisible());data.queryMs=performance.now()-start;
+  if(variant==='baseline'){await shot(p,variant+'-results-wide');assertOffline(h);return;}
   assert.match(await p.locator('#scope-search').getAttribute('aria-label'),/搜索全部档案/);
   assert.equal(await row.locator('mark.search-match').first().evaluate(n=>{const box=n.closest('.search-excerpt').getBoundingClientRect();const rects=[...n.getClientRects()];return rects.length>0&&rects.every(r=>r.top>=box.top-1&&r.bottom<=box.bottom+1&&r.left>=box.left-1&&r.right<=box.right+1);}),true,'actual deep-result matching text is not visually clipped');
   await row.focus();const arrival=performance.now();await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
@@ -98,29 +110,37 @@ for(const [variant,path]of [['baseline',join(temp,'extension')],['source',root],
   data.backPosition=await p.locator('#back').evaluate(n=>{const nodes=[];for(let e=n;e&&e!==document.body;e=e.parentElement)nodes.push({id:e.id,position:getComputedStyle(e).position});return nodes;});
   assert.ok(!data.backPosition.some(n=>['sticky','fixed'].includes(n.position)),'Back has no sticky/fixed ancestor');
   await p.locator('#back').focus();const back=performance.now();await p.keyboard.press('Enter');await eventually(()=>row.evaluate(n=>document.activeElement===n));data.returnMs=performance.now()-back;
+  assertOffline(h);await h.close();h=null;
+  // Chrome155 loses primary coarse media on extension navigation in headless mode.
+  // Use the same headed touch mode already qualified by Settings in this shard.
+  assert.notEqual(process.env.PAIA_HEADLESS,'1','IAH coarse acceptance requires the qualified headed Chrome mode');
+  h=await FakeChatGPT.start({extensionPath:path,headless:false,hasTouch:true,viewport:{width:1440,height:900}});p=h.archive;data.coarseBrowser={headless:false,version:h.context.browser().version()};
+  await deviceEvidence(p,data,'fresh coarse context before seed',true);
+  await seedArchive(h,p);await deviceEvidence(p,data,'fresh coarse context',true);
+  await p.locator('#archive-source-scope').selectOption('');
+  await p.locator('#scope-search').fill('SYNTHETIC_SELECTED_DEEP');row=p.locator('.search-input').first();await eventually(()=>row.isVisible());
   const targetFailures=[];
   for(const mode of [{name:'wide-dark',width:1440,dark:true,scale:1},{name:'narrow-light',width:320,dark:false,scale:1},{name:'narrow-dark-text200',width:320,dark:true,scale:2}]){
-   await p.setViewportSize({width:mode.width,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:mode.dark?'dark':'light'}});await p.emulateMedia({reducedMotion:'reduce'});await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+   await p.setViewportSize({width:mode.width,height:900});await rpc(p,'UPDATE_PREFERENCES',{changes:{appearance:mode.dark?'dark':'light'}});await p.emulateMedia({reducedMotion:'reduce'});await deviceEvidence(p,data,mode.name+' viewport',true);
    if(mode.scale===2)await p.evaluate(()=>{window.__iahScale=[...document.querySelectorAll('#scope-search,#document-list *,#back,#reader-scope-search')].filter(n=>n instanceof HTMLElement).map(n=>({n,style:n.getAttribute('style'),size:parseFloat(getComputedStyle(n).fontSize),leading:parseFloat(getComputedStyle(n).lineHeight)}));for(const {n,size,leading}of __iahScale){n.style.setProperty('font-size',size*2+'px','important');if(Number.isFinite(leading))n.style.setProperty('line-height',leading*2+'px','important');}});
    await row.scrollIntoViewIfNeeded();await frame(p);
    if(mode.scale===2)assert.equal(await p.locator('.search-excerpt').first().evaluate(n=>parseFloat(getComputedStyle(n).fontSize)),28,'result text is actually doubled from14px to28px');
    const metric=await p.evaluate(()=>({overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,coarse:matchMedia('(pointer: coarse)').matches}));
    assert.ok(metric.overflow<=2,mode.name+' root reflow '+JSON.stringify(metric));assert.equal(metric.reduced,true);assert.equal(metric.coarse,true);
    assert.equal(await row.locator('mark.search-match').first().evaluate(n=>{const box=n.closest('.search-excerpt').getBoundingClientRect();const rects=[...n.getClientRects()];return rects.length>0&&rects.every(r=>r.top>=box.top-1&&r.bottom<=box.bottom+1&&r.left>=box.left-1&&r.right<=box.right+1);}),true,mode.name+' actual matching text stays visible');
-   const box=await row.boundingBox();assert.ok(box.width>=44&&box.height>=44,'coarse result target');data[mode.name]={...metric,row:box};
-   await row.focus();assert.equal(await row.evaluate(n=>document.activeElement===n),true);await shot(p,variant+'-'+mode.name+'-result');
-   await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());
+   const box=(await deviceEvidence(p,data,mode.name+' result target',true,'.search-input')).rect;assert.ok(box.width>=44&&box.height>=44,'coarse result target');data[mode.name]={...metric,row:box};
+   await row.focus();assert.equal(await row.evaluate(n=>document.activeElement===n),true);await shot(p,variant+'-'+mode.name+'-result');await deviceEvidence(p,data,mode.name+' after result screenshot',true);
+   await p.keyboard.press('Enter');await eventually(()=>p.locator('#document-panel').isVisible());await deviceEvidence(p,data,mode.name+' after Enter',true);
    if(mode.scale===2)await p.evaluate(()=>{window.__iahReaderScale=[...document.querySelectorAll('#document-body .library-prose,#document-page h1')].map(n=>({n,style:n.getAttribute('style'),size:parseFloat(getComputedStyle(n).fontSize),leading:parseFloat(getComputedStyle(n).lineHeight)}));for(const {n,size,leading}of __iahReaderScale){n.style.setProperty('font-size',size*2+'px','important');if(Number.isFinite(leading))n.style.setProperty('line-height',leading*2+'px','important');}});
    if(mode.scale===2)assert.equal(await p.evaluate(()=>__iahReaderScale.every(({n,size})=>parseFloat(getComputedStyle(n).fontSize)===size*2)),true,'actual current Reader prose/title text doubles');
    await p.locator('#back').scrollIntoViewIfNeeded();
    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth<=2),mode.name+' Reader root reflows');
-   data[mode.name].pointerBeforeReaderMeasurement=await p.evaluate(()=>matchMedia('(pointer:coarse)').matches);
-   await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});await frame(p);
-   assert.equal(await p.evaluate(()=>matchMedia('(pointer:coarse)').matches),true,'actual coarse media established at Reader target measurement');
-   const backBox=await p.locator('#back').boundingBox();data[mode.name].back=backBox;if(backBox.width<44||backBox.height<44)targetFailures.push({mode:mode.name,control:'Back',width:backBox.width,height:backBox.height});await shot(p,variant+'-'+mode.name+'-reader-back');
-   await p.locator('#back').focus();await p.keyboard.press('Enter');await eventually(()=>row.evaluate(n=>document.activeElement===n));assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_SELECTED_DEEP');
+   await frame(p);
+   const measured=await deviceEvidence(p,data,mode.name+' actual coarse media established at Reader target measurement',true,'#back');data[mode.name].pointerBeforeReaderMeasurement=measured.coarse;
+   const backBox=measured.rect;data[mode.name].back=backBox;if(backBox.width<44||backBox.height<44)targetFailures.push({mode:mode.name,control:'Back',width:backBox.width,height:backBox.height});await shot(p,variant+'-'+mode.name+'-reader-back');await deviceEvidence(p,data,mode.name+' after Reader screenshot',true);
+   await p.locator('#back').focus();await p.keyboard.press('Enter');await eventually(()=>row.evaluate(n=>document.activeElement===n));assert.equal(await p.locator('#scope-search').inputValue(),'SYNTHETIC_SELECTED_DEEP');await deviceEvidence(p,data,mode.name+' after Back',true);
    if(mode.scale===2)await p.evaluate(()=>{for(const {n,style}of __iahScale)if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);delete window.__iahScale;for(const {n,style}of window.__iahReaderScale||[])if(style===null)n.removeAttribute('style');else n.setAttribute('style',style);delete window.__iahReaderScale;});
   }
-  await cdp.detach();data.targetFailures=targetFailures;assert.deepEqual(targetFailures,[],'every affected coarse Back target must be at least44×44');assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
- }finally{await h.close();}
+  data.targetFailures=targetFailures;assert.deepEqual(targetFailures,[],'every affected coarse Back target must be at least44×44');assertOffline(h);
+ }finally{await h?.close();}
 });

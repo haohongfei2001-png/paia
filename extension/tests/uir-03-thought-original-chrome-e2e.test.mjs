@@ -8,6 +8,8 @@ import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 import {waitArchiveWindow} from './harness/archive-navigator.mjs';
+import {installLibraryFixtureObservation,failWithBoundedEvidence} from './harness/uir03-worker-fixture.mjs';
+import {createUIRWorkerFixture} from './harness/uir03-worker-copy.mjs';
 
 const execFileAsync=promisify(execFile);
 const op=()=>crypto.randomUUID();
@@ -18,8 +20,14 @@ const rpc=async(page,type,fields={})=>{
 };
 const nav=thoughtPrimary;
 
-async function ready(h){
+async function ready(h,fixture,variant){
   const page=h.archive;
+  h.libraryWorker=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);assert.ok(h.libraryWorker,'the original native worker is running');
+  await h.libraryWorker.evaluate(installLibraryFixtureObservation);
+  await rpc(page,'GET_STATUS');
+  const originalStore=await h.libraryWorker.evaluate(()=>__uir03Library.owner.store===__uir03Worker.store);
+  assert.equal(originalStore,true,'static bridge references the original worker Store');
+  console.info('UIR03_STATIC_WORKER '+JSON.stringify({variant,workerSha256:fixture.workerSha256,bridgeSha256:fixture.bridgeSha256,originalStore}));
   const action=page.locator('#enable-consent');
   await action.waitFor({state:'visible'});
   await eventually(async()=>!(await action.isDisabled()),'UIR-03 consent action is available');
@@ -30,7 +38,7 @@ async function ready(h){
   return page;
 }
 
-async function seed(page,prefix){
+async function seed(page,h,prefix){
   const names=[
     `${prefix} 一个足够长的稳定主题名称，用于验证标题自然换行而不是固定两行裁切`,
     `${prefix} 稳定主题二`,
@@ -55,14 +63,13 @@ async function seed(page,prefix){
   }
   // Synthesize legacy missing/invalid dates through the real repository only
   // in this isolated fixture; normal creation must retain its actual date.
-  await page.evaluate(async ({topicId,ids})=>{
-    const {LibraryFoundationStore}=await import(chrome.runtime.getURL('core/thought-store.js'));
-    const {invalidateThoughtTopicIndex}=await import(chrome.runtime.getURL('core/thought-read-index.js'));
-    const store=new LibraryFoundationStore(chrome.storage.local);
-    try{await store.foundationWrite(async t=>{
+  await h.libraryWorker.evaluate(async ({topicId,ids})=>{
+    const {invalidateThoughtTopicIndex}=globalThis.__uir03Worker;
+    const store=globalThis.__uir03Library.owner.store;
+    await store.foundationWrite(async t=>{
       for(let i=0;i<ids.length;i++){const row=await t.get('thoughts',ids[i]);row.createdAt=i===0?null:'invalid legacy time';await t.put('thoughts',row);for(const receipt of await t.all('operationReceipts'))if(receipt.ownerId===ids[i]){delete receipt.result.independentExpression;await t.put('operationReceipts',receipt);}}
       await invalidateThoughtTopicIndex(store,t,topicId,{sourceTime:true});
-    });}finally{store.repository.db?.close();}
+    });
   },{topicId:topics[0].id,ids:topics[0].unknownIds});
   topics[0].summary=`${prefix} 这是保留完整来源表达的真实内容线索。 `.repeat(40);
   const current=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[0].id});
@@ -109,11 +116,9 @@ async function installSectionBoundaryEvidence(page,variant){
  },variant);
 }
 
-async function provenanceRoleJourney(page,topics,{release=false}={}){
-  const seeded=await page.evaluate(async({topicId,prefix})=>{
-    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
-    const store=new OrganizerStore(chrome.storage.local);
-    try{
+async function provenanceRoleJourney(page,h,topics,{release=false}={}){
+  const seeded=await h.libraryWorker.evaluate(async({topicId,prefix})=>{
+    const store=globalThis.__uir03Library.owner.store;
       const status=await store.status(),chatId='vs05-role-'+crypto.randomUUID();
       await store.capture({epoch:status.epoch,adapterVersion:'0.3.0',chat:{id:chatId,url:'https://chatgpt.com/c/'+chatId,title:'VS05 synthetic provenance'},
         messages:[['primary','主要表达'],['supporting','补充表达'],['context_only','辅助上下文表达']].map(([role,text],index)=>({sourceMessageId:role,pageOrder:index+1,originalText:prefix+' '+text}))});
@@ -127,7 +132,6 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
       const placed=await store.placeEntry({entryId:entry.id,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:crypto.randomUUID()});
       if(placed.conflict)throw Error('synthetic provenance placement conflict');
       return {id:entry.id,chatId,roles:specs.map(({role,inputId})=>({role,inputId})),sourceRecordIds:[...new Set(evidence.flatMap(row=>row.sourceRecordIds))]};
-    }finally{store.repository.db?.close();}
   },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
   const {id}=seeded,before=await rpc(page,'GET_LIBRARY_ENTRY',{id});
   const destination=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
@@ -264,13 +268,9 @@ async function selectSettledTopicSource(page,scope,value,topic){
 }
 
 async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
- const seeded=await page.evaluate(async ({topicId,prefix})=>{
-  const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
-  const {ImportLedger}=await import(chrome.runtime.getURL('core/import/ledger.js'));
-  const {ImportCoordinator}=await import(chrome.runtime.getURL('core/import/coordinator.js'));
-  const {getOfficialExportAdapter}=await import(chrome.runtime.getURL('core/import/registry.js'));
-  const store=new OrganizerStore(chrome.storage.local);
-  try{
+ const seeded=await h.libraryWorker.evaluate(async ({topicId,prefix})=>{
+  const {ImportLedger,ImportCoordinator,getOfficialExportAdapter}=globalThis.__uir03Worker;
+  const store=globalThis.__uir03Library.owner.store;
    const ledger=new ImportLedger(store),coordinator=new ImportCoordinator({transport:(method,query)=>ledger[method](query,'vs05-browser-scope'),resolveAdapter:getOfficialExportAdapter});
    const id='vs05-browser-claude-'+crypto.randomUUID(),data=[{uuid:id,name:prefix+' Scope shared Claude',current_leaf_message_uuid:id+'-answer',chat_messages:[
     {uuid:id+'-human',sender:'human',created_at:'2026-01-02T03:04:05.000Z',parent_message_uuid:null,content:[{type:'text',text:prefix+' Scope shared Claude'}]},
@@ -287,7 +287,6 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
     const placed=await store.placeEntry({entryId:entry.id,topicId,expectedEntryRevision:entry.revision,expectedTopicRevision:topic.organizationRevision,operationId:crypto.randomUUID()});if(placed.conflict)throw Error('scope fixture conflict');created[name]=entry.id;
    }
    return created;
-  }finally{store.repository.db?.close();}
  },{topicId:topics[1].id,prefix:release?'VS05_ROLE_RELEASE':'VS05_ROLE_SOURCE'});
  const before=await Promise.all([seeded.claude,seeded.mixed].map(id=>rpc(page,'GET_LIBRARY_ENTRY',{id})));
  const topicBefore=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
@@ -333,10 +332,12 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
  assert.equal(await page.locator('#thought-panel input[type="search"]').count(),0,'Root has no retired local Thought search');
  // Preserve the real source-scoped owner contract independently of the retired
  // Root selector. Topic reading above still exercises its actual visible UI.
+ const scopedReads=[];
  const collectScoped=async options=>{
   const items=[],seen=new Set();let cursor=null,current;
   do{
    current=await rpc(page,'LIBRARY_INDEX_PAGE',{options:{mode:'stable',...options,cursor,limit:40}});
+   scopedReads.push({query:!!options.query,provider:options.providerKey??null,cursor:!!cursor,next:!!current.nextCursor,cursorInvalid:current.cursorInvalid===true,complete:current.complete===true,indexing:current.indexing===true,items:current.items.length,placementRowsRead:current.operations?.placementRowsRead??null});if(scopedReads.length>64)scopedReads.shift();
    if(current.cursorInvalid)return {...current,items:[]};
    assert.ok(current.items.length<=40,'source compatibility keeps the existing request bound');assert.ok((current.operations?.placementRowsRead||0)<=40,'source admission reads at most40 placement descriptors per page');
    items.push(...current.items);cursor=current.nextCursor;
@@ -349,7 +350,12 @@ async function topicSourceScopeJourney(page,h,topics,{release=false}={}){
   assert.deepEqual(scoped.items.map(row=>row.id),[topics[1].id],'direct-source compatibility keeps the single mixed Topic without independent-only Topics');
   assert.ok(scoped.items.every(row=>row.readRef?.kind==='topic'),'stable DTO identities come from the existing Topic read references');
  }
- let scopedSearch;await eventually(async()=>{scopedSearch=await collectScoped({providerKey:'claude',query:'Scope shared claude'});return scopedSearch.complete===true&&!scopedSearch.cursorInvalid;},'source lexical compatibility reaches a complete current index');
+ let scopedSearch;
+ try{await eventually(async()=>{scopedSearch=await collectScoped({providerKey:'claude',query:'Scope shared claude'});return scopedSearch.complete===true&&!scopedSearch.cursorInvalid;},'source lexical compatibility reaches a complete current index');}
+ catch(error){
+  const variant=release?'release':'source',fallback={variant,reads:scopedReads,diagnosticUnavailable:true};
+  await failWithBoundedEvidence(error,{fallback,read:async()=>({variant,reads:scopedReads,worker:await h.libraryWorker.evaluate(()=>__uir03Library.read())}),persist:async diagnostic=>{await mkdir('work/ux-r3',{recursive:true});await writeFile(`work/ux-r3/${variant}-lexical-failure.json`,JSON.stringify(diagnostic,null,2));},report:diagnostic=>console.info('UIR03_LEXICAL_FAILURE '+JSON.stringify(diagnostic))});
+ }
  assert.ok(scopedSearch.items.some(row=>row.entryId===seeded.claude),'actual source-scoped lexical owner returns the direct Claude expression');
  assert.ok(scopedSearch.items.every(row=>row.entryId===seeded.claude),'direct-source search never admits independent or nonmatching bodies');
  assert.equal(await rootList.locator('small,.summary').count(),0,'normal metadata blocks publish no misleading source counts or body excerpts');
@@ -592,33 +598,35 @@ async function homeAndOriginalJourney(page,h,topics,{release=false}={}){
     }
   }
 
-  await provenanceRoleJourney(page,topics,{release});
+  await provenanceRoleJourney(page,h,topics,{release});
   await topicSourceScopeJourney(page,h,topics,{release});
   await independentThoughtRelationJourney(page,h,topics,{release});
   await assertOffline(h);
 }
 
 test('UIR-03 Thought home and Topic Original presentation keep existing identity, editing owners and reading width in source and built release Chrome',{timeout:300000},async()=>{
-  let source;
+  let source,sourceFixture;
   try{
-    source=await FakeChatGPT.start({onboarding:true});
-    const page=await ready(source);
-    const topics=await seed(page,'UIR03_SOURCE');
+    sourceFixture=await createUIRWorkerFixture();
+    source=await FakeChatGPT.start({extensionPath:sourceFixture.path,onboarding:true});
+    const page=await ready(source,sourceFixture,'source');
+    const topics=await seed(page,source,'UIR03_SOURCE');
     await homeAndOriginalJourney(page,source,topics);
   }finally{
-    await source?.close();
+    await source?.close();await sourceFixture?.close();
   }
 
   const releasePath=await mkdtemp(join(tmpdir(),'paia-uir03-release-'));
-  let release;
+  let release,releaseFixture;
   try{
     await execFileAsync('python3',['scripts/build_current_release.py',releasePath],{cwd:process.cwd(),maxBuffer:16*1024*1024});
-    release=await FakeChatGPT.start({extensionPath:releasePath,onboarding:true});
-    const page=await ready(release);
-    const topics=await seed(page,'UIR03_RELEASE');
+    releaseFixture=await createUIRWorkerFixture(releasePath);
+    release=await FakeChatGPT.start({extensionPath:releaseFixture.path,onboarding:true});
+    const page=await ready(release,releaseFixture,'release');
+    const topics=await seed(page,release,'UIR03_RELEASE');
     await homeAndOriginalJourney(page,release,topics,{release:true});
   }finally{
-    await release?.close();
+    await release?.close();await releaseFixture?.close();
     await rm(releasePath,{recursive:true,force:true});
   }
 });

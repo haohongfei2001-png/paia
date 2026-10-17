@@ -202,7 +202,10 @@ export function testShard(file,position,total,category){
  // Full39026327007/39031621650 exhausted5's unchanged18m budget. Move
  // only the complete saved-AI presentation file (~82–123s) into measured4
  // reserve (~688–783s total); preserve all historical widths and artifact owners.
- if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return name==='context-cards-chrome-e2e.test.mjs'?10:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?4:shard;}
+ // Full39059013883 completed3's53 cases but reached18m after audits. Move
+ // only whole Working Revision (~186–195s) to10's measured624–742s reserve;
+ // keep Context's dedicated artifact, all file budgets and historical routes.
+ if(category==='browser E2E'&&total===10){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_TEN_UNADMITTED:'+name);return ['context-cards-chrome-e2e.test.mjs','cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'].includes(name)?10:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?4:shard;}
  if(category==='browser E2E'&&total===9){const name=file.replaceAll('\\','/').split('/').at(-1),shard=CURRENT_NINE.get(name);if(!shard)throw Error('CURRENT_NINE_UNADMITTED:'+name);return shard;}
  // Full37830791787: shard1 cancelled at18m with two tail files unreported.
  // Reader/Revisit costs257s; shard6 native636s leaves measured capacity.
