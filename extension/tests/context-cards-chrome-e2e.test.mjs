@@ -438,3 +438,7 @@ for(const variant of ['source','release'])test('CTX4-07 approved final reference
  const {runContextReferenceEquivalence}=await import('./harness/ctx4-final-reference-equivalence.mjs');
  await runContextReferenceEquivalence(variant);
 });
+
+// Explicit Now currentness remains part of the existing complete Context owner.
+// Register every Source/release case without a new historical-only routing path.
+await import('./harness/context-now-currentness-native.mjs');

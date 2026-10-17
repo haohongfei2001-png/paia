@@ -109,6 +109,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/constants.js',
   'core/context-cards.js',
   'core/context-item-lineage.js',
+  'core/context-temporal.js',
   'core/context-topic-access-policy.js',
   'core/context-topic-access.js',
   'core/context-topic-preferences.js',

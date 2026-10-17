@@ -8,7 +8,7 @@ import {promisify} from 'node:util';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {thoughtPrimary,openThoughtReadingOptions} from './harness/current-thought-navigation.mjs';
 import {waitArchiveWindow} from './harness/archive-navigator.mjs';
-import {installLibraryFixtureObservation,failWithBoundedEvidence} from './harness/uir03-worker-fixture.mjs';
+import {awakeLibraryFixtureWorker,installLibraryFixtureObservation,failWithBoundedEvidence} from './harness/uir03-worker-fixture.mjs';
 import {createUIRWorkerFixture} from './harness/uir03-worker-copy.mjs';
 
 const execFileAsync=promisify(execFile);
@@ -22,9 +22,8 @@ const nav=thoughtPrimary;
 
 async function ready(h,fixture,variant){
   const page=h.archive;
-  h.libraryWorker=h.context.serviceWorkers().find(worker=>worker.url()===`chrome-extension://${h.extensionId}/background/service-worker.js`);assert.ok(h.libraryWorker,'the original native worker is running');
+  h.libraryWorker=await awakeLibraryFixtureWorker({context:h.context,extensionId:h.extensionId,wake:()=>rpc(page,'GET_STATUS'),eventually});assert.ok(h.libraryWorker,'the original native worker is running');
   await h.libraryWorker.evaluate(installLibraryFixtureObservation);
-  await rpc(page,'GET_STATUS');
   const originalStore=await h.libraryWorker.evaluate(()=>__uir03Library.owner.store===__uir03Worker.store);
   assert.equal(originalStore,true,'static bridge references the original worker Store');
   console.info('UIR03_STATIC_WORKER '+JSON.stringify({variant,workerSha256:fixture.workerSha256,bridgeSha256:fixture.bridgeSha256,originalStore}));
