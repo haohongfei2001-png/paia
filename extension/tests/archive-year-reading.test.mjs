@@ -97,3 +97,19 @@ test('annual fresh order honors a persisted explicit ascending choice',async()=>
  const t={...f.t,async get(store,id){if(store==='meta'&&id==='organizer-controls')return {inputReadingSort:'asc'};if(store==='meta'&&id===archiveYearMeta('d'))return {epoch:'synthetic',revision:0};if(store==='documents')return {chatKey:'synthetic',value:{id:'d'}};if(store==='libraryDocuments')return {value:{id:'d'}};if(store==='blocks')return {value:{id,documentId:'d',provenance:[]}};return f.t.get(store,id);}};
  const page=await queryPage(t,{}, {documentId:'d',yearReading:{}},{ready:true,eligible:async()=>true});assert.equal(page.readingSort,'asc');assert.equal(page.yearReading.year,2020);assert.deepEqual(page.pageItemIds,['1']);
 });
+
+
+test('saved ascending order and implicit sort seek the same exact annual Input as the page owner',async()=>{
+ const {SmartFilterStore}=await import('../core/smart-filter-store.js');let data={};
+ const store=new SmartFilterStore({async get(k){return {[k]:structuredClone(data[k])};},async set(v){Object.assign(data,structuredClone(v));}},{indexedDB:new IDBFactory()});
+ try{
+  await store.consent(true);await store.capture({epoch:(await store.status()).epoch,adapterVersion:'0.3.0',chat:{id:'implicit-order-target',url:'https://chatgpt.com/c/implicit-order-target',title:'SYNTHETIC exact order'},messages:Array.from({length:135},(_,i)=>({sourceMessageId:'implicit-'+i,pageOrder:i+1,originalText:'SYNTHETIC complete original '+i,presence:{version:1,attachment:'absent',reference:'absent',confidence:'verified'}}))});
+  let snapshot=await store.snapshot();for(let i=0;i<snapshot.records.length;i++)await store.changeRecord(snapshot.records[i].id,row=>{row.sourceSentAt=new Date(Date.UTC(2021,0,1,0,i)).toISOString();});snapshot=await store.snapshot();const original=snapshot.records.find(row=>row.sourceMessageId==='implicit-110'),target=snapshot.library.blocks.find(row=>row.sourceRecordId===original.id),before=structuredClone(snapshot.records);
+  for(const sort of ['asc','desc']){
+   await store.repository.transaction(true,t=>t.put('meta',{id:'organizer-controls',inputReadingSort:sort}));
+   const options={documentId:target.documentId,contextInputId:target.id,sort:null,yearReading:{},qualifyContext:true,limit:40},actual=await store.page(options),explicit=await store.page({...options,sort});
+   assert.equal(actual.readingSort,sort);assert.equal(actual.contextUnavailable,false);assert.ok(actual.pageItemIds.includes(target.id),'a qualified target must occur in its own implicit '+sort+' page');assert.deepEqual(actual.pageItemIds,explicit.pageItemIds,'seek and page traversal honor the same effective order');assert.equal(actual.contextInputRevision,0);
+  }
+  assert.deepEqual((await store.snapshot()).records,before);
+ }finally{await store.repository.close();}
+});

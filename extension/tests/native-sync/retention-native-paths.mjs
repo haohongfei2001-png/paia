@@ -25,6 +25,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/archive-original-query.js",
   "core/archive-query.js",
   "core/archive-removal.js",
+  "core/archive-year-index.js",
   "core/backup-format.js",
   "core/backup-service.js",
   "core/browser-native-sync/checkpoints.js",

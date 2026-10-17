@@ -214,12 +214,8 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
     diagnostics.push({event:'ordinary-restart-before-click',value:await ordinary.getByRole('button',{name:'ordinary Stage 1/2',exact:true}).evaluate(b=>{const n=b.querySelector('.text'),r=b.getBoundingClientRect();return {scrollWidth:n.scrollWidth,clientWidth:n.clientWidth,frameWidth:innerWidth,button:{x:r.x,y:r.y,width:r.width,height:r.height},layoutPending:document.documentElement.hasAttribute('data-layout-pending')};})});
     await settledOrdinarySurface(ordinary);
     await ordinary.getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();
-    await eventually(async()=>await ordinary.locator('#check-text').isVisible()||await ordinary.locator('#status').textContent()==='已插入，未发送。','the original row either inserts or opens its approved complete-text review');
-    if(await ordinary.locator('#check-text').isVisible()){
-     assert.equal(await ordinary.locator('.check-body').textContent(),'ordinary Stage 1/2');
-     assert.equal(await ordinary.evaluate(()=>__ordinaryRestart.requests.filter(x=>['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(x.type)).length),0,'review has not dispatched an insertion; this is not a retry');
-     await settledOrdinarySurface(ordinary);await ordinary.getByRole('button',{name:'填入整条',exact:true}).click();
-    }
+    // Current fixed-board F07 admits eligible short rows on the first click.
+    assert.equal(await ordinary.locator('#check-text').isVisible(),false,'ordinary short reuse does not add a compulsory review');
     await eventually(()=>card().locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.send),0);
     assert.equal(await ordinary.evaluate(()=>__ordinaryRestart.requests.filter(x=>['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(x.type)).length),1,'exactly one ordinary insertion after Stage 3 revocation');
    }catch(error){ordinaryFailure=error;throw error;}finally{
@@ -227,14 +223,26 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
     try{await ordinary.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__ordinaryRestartSend;},null,{timeout:1000});}catch(error){if(!ordinaryFailure)throw error;diagnostics.push({event:'ordinary-restart-cleanup-unavailable',errorName:error.name});}
    }
   });
-  await check('revoked Stage 3 preserves explicit complete-text review with one ordinary insertion',async()=>{
+  await check('revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion',async()=>{
    await card().locator('#close').click();await eventually(()=>!card());await page.locator('[data-paia-prompt-surface]').click();await eventually(()=>!!card());const frame=card(),text='ordinary Stage 1/2\nExplicit complete-text review.';
+   const draft='SYNTHETIC_DRAFT:';await page.evaluate(text=>fixture.set(text,text.length,text.length),draft);const beforeHost=await page.evaluate(()=>({enter:fixture.enter,inputs:fixture.inputs}));
    await surfaceClick(frame,'#new');await frame.getByRole('textbox',{name:'复用文本'}).fill(text);await frame.getByRole('button',{name:'保存',exact:true}).click();await settledOrdinarySurface(frame);
    await frame.evaluate(()=>{globalThis.__completeReviewWrites=0;globalThis.__completeReviewSend=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async function(request,...args){if(request?.type==='PAIA_PROMPT_SURFACE_RPC'&&['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(request.command?.type))__completeReviewWrites++;return __completeReviewSend.call(this,request,...args);};});
    let completeReviewFailure=null;
    try{
-    await frame.getByRole('button',{name:'ordinary Stage 1/2 Explicit complete-text review.',exact:true}).click();await eventually(()=>frame.locator('#check-text').isVisible(),'a multiline expression requires the existing full-text review');assert.equal(await frame.locator('.check-body').textContent(),text);assert.equal(await frame.evaluate(()=>__completeReviewWrites),0);
-    await settledOrdinarySurface(frame);await frame.getByRole('button',{name:'填入整条',exact:true}).click();await eventually(()=>frame.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await frame.evaluate(()=>__completeReviewWrites),1);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);
+    // Approved fixed-board acceptance F07: multiline<=150 inserts the entire
+    // original on its first intentional click, including a nonempty host draft.
+    await frame.getByRole('button',{name:'ordinary Stage 1/2 Explicit complete-text review.',exact:true}).click();
+    await eventually(()=>frame.locator('#status').textContent().then(x=>x==='已插入，未发送。'));
+    assert.equal(await frame.locator('#check-text').isVisible(),false,'eligible multiline reuse has no compulsory review');
+    assert.equal(await frame.evaluate(()=>__completeReviewWrites),1,'one intentional click dispatches exactly one insertion');
+    assert.equal(await page.evaluate(()=>fixture.text()),draft+text,'the real host model retains the draft and exact complete multiline text');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'prompt-textarea','verified insertion restores actual host focus');
+    const nativeInputEvents=(await page.evaluate(()=>fixture.inputs))-beforeHost.inputs;
+    assert.ok(nativeInputEvents>0,'the exact single insertion produces trusted native host input events');
+    diagnostics.push({event:'first-click-multiline-native-input',nativeInputEvents,insertionCommands:1});
+    assert.equal(await page.evaluate(()=>fixture.enter),beforeHost.enter,'the multiline text does not synthesize Enter');
+    assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);
    }catch(error){completeReviewFailure=error;throw error;}finally{try{await frame.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__completeReviewSend;},null,{timeout:1000});}catch(error){if(!completeReviewFailure)throw error;diagnostics.push({event:'complete-review-cleanup-unavailable',errorName:error.name});}}
   });
   assert.equal(failures,0);assert.deepEqual(h.errors,[]);

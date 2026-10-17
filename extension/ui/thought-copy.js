@@ -38,6 +38,7 @@ const english={
  '章节未保存，名称仍保留。再次选择新建章节可重试。':'Section was not saved. Its name is retained; choose New Section again to retry.',
  '新建章节':'New Section','管理主题结构':'Manage Topic structure','内容按章节与手动顺序连续阅读。':'Read continuously in Section and manual order.',
  '章节操作':'Section actions','重命名':'Rename','向上移动':'Move up','向下移动':'Move down','章节名称':'Section name',
+ '合并章节':'Merge Sections','章节版本历史':'Section version history','正文':'Content',
  '已经是第一个章节。':'Already the first Section.','已经是最后一个章节。':'Already the last Section.',
  '加入结果尚未确认，请重试核对先前选择。':'The earlier add result is not confirmed. Retry to check the same selection.',
  '先前选择已加入主题。这里的新选择仍未提交。':'The earlier selection was added. Your new selection here has not been submitted.',

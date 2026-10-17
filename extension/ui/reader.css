@@ -104,7 +104,7 @@ body:has(#document-panel:not([hidden])) #notice button{min-height:44px;color:var
 #document-subtitle{font-size:14px;line-height:1.5;color:var(--muted);margin-block:0 30px}
 @media(max-width:767px){#document-body :is(.library-block,.archive-block){margin-bottom:24px}}
 @media(pointer:coarse){#document-body .reader-margin-actions button{min-width:44px;min-height:44px}}
-@media(min-width:768px) and (pointer:coarse){#document-body :is(.library-block,.archive-block){margin-bottom:48px}.reader-margin-actions{bottom:-48px}}
+@media(min-width:768px) and (pointer:coarse){#document-body :is(.library-block,.archive-block){margin-bottom:18px}.reader-margin-actions{bottom:-48px}}
 
 /* Preserve the existing Reader geometry outside the Archive visual owner. */
 body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) #document-panel .document-page{border:0;background:transparent;width:100%;min-width:0;padding:54px 32px 80px;max-width:calc(var(--prose) + 64px);margin:0 auto;line-height:1.85;overflow-wrap:anywhere}
@@ -115,12 +115,12 @@ body:not(:is([data-paia-space="library"],[data-paia-space="archive"])) :is(#docu
 
 /* D6.2 Reader: document and controls share one flowing, preference-aware column. */
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{width:100%;min-width:0;max-width:none;margin:0;padding:24px var(--archive-gutter) 80px;border:0;border-radius:0;background:transparent;line-height:1.8125;overflow-wrap:anywhere}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px 20px;margin:0 0 48px}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-copy{min-width:0;flex:1 1 320px}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{width:100%;max-width:none;margin:0;font:500 28px/38px var(--title-font);letter-spacing:0;white-space:pre-wrap;overflow-wrap:anywhere}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{display:flex;align-items:center;justify-content:space-between;flex:1 1 0;min-width:0;flex-wrap:wrap;gap:8px;margin:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-copy{min-width:0;flex:1 1 120px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{width:100%;max-width:none;margin:0;font:500 13px/20px var(--title-font);letter-spacing:0;white-space:pre-wrap;overflow-wrap:anywhere}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-subtitle{width:100%;margin:4px 0 0;font-size:12px;line-height:20px;color:var(--muted);white-space:normal;overflow-wrap:anywhere}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-subtitle:empty{display:none}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0;max-width:100%;margin:0 -20px 0 auto}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;min-width:0;max-width:100%;margin:0 0 0 auto}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions:empty{display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #input-time-order{min-width:0;max-width:100%;margin:0;gap:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #input-time-order button{min-height:36px;padding:6px 4px;color:var(--muted);font-size:12px;line-height:20px;white-space:normal;text-align:left;overflow-wrap:anywhere}
@@ -132,11 +132,13 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) #save-status{di
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools{display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot:empty{display:none}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-search-tools{margin-block:0 28px}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin:0 0 48px;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin:0 0 18px;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .block-time{margin:0 0 8px;font-size:12px;line-height:20px;color:var(--quiet);font-variant-numeric:normal;opacity:1}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose{font-family:var(--font);font-size:var(--paia-prose-size,16px);line-height:1.65;min-height:1.65em;margin:0;padding:0;border:0;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .library-prose:focus-visible{outline:2px solid var(--focus);outline-offset:4px}
-body:is([data-paia-space="library"],[data-paia-space="archive"]) .reader-margin-actions{gap:4px}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) .reader-margin-actions{position:absolute;top:0;right:-44px;bottom:auto;width:44px;min-height:44px;margin:0;gap:0;pointer-events:auto}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(.library-block:hover,.library-block:focus-within) .reader-margin-actions{pointer-events:auto}
+body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .reader-margin-actions button{min-width:44px;min-height:44px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:6px}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu button{min-height:36px;line-height:20px;color:var(--text);white-space:normal;overflow-wrap:anywhere}
 body:is([data-paia-space="library"],[data-paia-space="archive"]) #context-menu button.danger{color:var(--danger)}
@@ -151,20 +153,22 @@ body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialo
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools:empty{display:none}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px;color:var(--muted);font-size:12px;line-height:20px;white-space:normal}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back{color:var(--text);font-size:0}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #document-menu{font-size:17px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-compact-tools #back .archive-back-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{margin-bottom:16px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{margin-bottom:0}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{margin-right:0}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin-bottom:48px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-status-slot{margin-top:0;margin-bottom:20px}
 }
 @media(max-width:767px){
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-panel .document-page{padding-top:0;padding-bottom:56px}
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{font-size:24px;line-height:35px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-title{font-size:13px;line-height:20px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading{gap:12px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-heading-actions{flex:1 1 100%;justify-content:flex-end;gap:8px}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) #reader-search-slot{margin-bottom:38px}
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin-bottom:48px}
- body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .reader-margin-actions{min-height:44px;margin-top:8px;flex-wrap:wrap}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body :is(.library-block,.archive-block){margin-bottom:18px}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .reader-margin-actions{right:0;min-height:44px;margin:0;flex-wrap:wrap;pointer-events:auto}
+ body:is([data-paia-space="library"],[data-paia-space="archive"]) #document-body .block-time{min-height:44px;padding-inline-end:48px;display:flex;align-items:center}
  body:is([data-paia-space="library"],[data-paia-space="archive"]) :is(#info-dialog,#revision-dialog){padding:20px 16px}
 }
 @media(max-width:767px),(pointer:coarse){

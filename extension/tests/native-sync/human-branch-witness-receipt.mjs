@@ -43,6 +43,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/archive-navigation-invalidation.js',
   'core/archive-query.js',
   'core/archive-removal.js',
+  'core/archive-year-index.js',
   'core/backup-format.js',
   'core/browser-native-sync/checkpoints.js',
   'core/browser-native-sync/codecs.js',

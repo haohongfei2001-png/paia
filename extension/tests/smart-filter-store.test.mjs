@@ -49,3 +49,27 @@ test('context-only eligibility requires a visible anchor and at most two same-do
  const {s}=await setup();await add(s,'Synthetic informative anchor','synthetic-anchor');await add(s);await s.evaluateFilters();const [anchor,filtered]=(await s.snapshot()).library.blocks;
  assert.equal((await s.inputEligibility(filtered.id,{contextOnly:true})).eligible,false);assert.deepEqual(await s.inputEligibility(filtered.id,{contextOnly:true,anchorId:anchor.id}),{eligible:true,role:'context_only',contentRevision:0});await assert.rejects(s.createThought({provenanceType:'input_derived',inputRefs:[filtered.id],thoughtText:'Should not extract filtered target'}));await s.excludeLibrary(anchor.id,true);assert.equal((await s.inputEligibility(filtered.id,{contextOnly:true,anchorId:anchor.id})).eligible,false);
 });
+
+
+test('saved position cannot renew a filtered search target; explicit context and eligible positions keep their original scope',async()=>{
+ const {s}=await setup();try{
+  await add(s,'请继续','position-filtered',{sourceSentAt:'2024-01-01T00:00:00Z'});
+  await add(s,'SYNTHETIC meaningful independent expression','position-normal',{sourceSentAt:'2024-01-02T00:00:00Z'});
+  for(const record of (await s.snapshot()).records)await s.changeRecord(record.id,row=>{row.sourceSentAt=record.sourceMessageId==='position-normal'?'2024-01-02T00:00:00Z':'2024-01-01T00:00:00Z';});
+  await s.evaluateFilters();const initial=await s.snapshot(),filtered=initial.library.blocks.find(b=>initial.records.find(r=>r.id===b.originalTextReference)?.sourceMessageId==='position-filtered'),normal=initial.library.blocks.find(b=>b.id!==filtered.id);await s.keepInput(normal.id);const before=await s.snapshot();
+  for(const annual of [false,true]){
+   const page={documentId:filtered.documentId,limit:40,...(annual?{yearReading:{}}:{})};
+   const explicit=await s.page({...page,contextInputId:filtered.id});assert.ok(explicit.pageItemIds.includes(filtered.id),'explicit original target remains temporarily visible');
+   const ordinary=await s.page(page),restored=await s.page({...page,contextInputId:filtered.id,contextPositionOnly:true});assert.equal(restored.contextUnavailable,true);assert.deepEqual(restored.pageItemIds,ordinary.pageItemIds,'rejected position returns the unchanged ordinary eligible page');assert.equal(restored.pageItemIds.includes(filtered.id),false,'saved position never renews filtered visibility');if(annual&&restored.pageItemIds.length===0&&restored.yearReading.continuation){const undated=await s.page({...page,yearReading:restored.yearReading.continuation});assert.deepEqual(undated.pageItemIds,[normal.id],'the original undated continuation keeps its eligible Input');}else assert.deepEqual(restored.pageItemIds,[normal.id]);
+   const explicitFalse=await s.page({...page,contextInputId:filtered.id,contextPositionOnly:false});assert.ok(explicitFalse.pageItemIds.includes(filtered.id));
+   const wrongDocument=await s.page({...page,documentId:'wrong-document',contextInputId:filtered.id,contextPositionOnly:true,cursor:explicit.nextCursor});assert.equal(wrongDocument.contextUnavailable,true);assert.equal(wrongDocument.pageItemIds.includes(filtered.id),false);
+   const qualifiedPosition=await s.page({...page,contextInputId:filtered.id,contextPositionOnly:true,qualifyContext:true});assert.equal(qualifiedPosition.contextUnavailable,true);assert.deepEqual(qualifiedPosition.pageItemIds,[],'search qualification cannot make a rejected saved position visible');
+   const eligible=await s.page({...page,contextInputId:normal.id,contextPositionOnly:true});assert.equal(eligible.contextUnavailable,false);assert.deepEqual(eligible.pageItemIds,[normal.id],'eligible exact saved target remains reachable');
+   const all=await s.page({...page,contextInputId:filtered.id,contextPositionOnly:true,includeFiltered:true});assert.equal(all.contextUnavailable,false);assert.ok(all.pageItemIds.includes(filtered.id),'explicit show-all retains its original scope');
+  }
+  for(const contextPositionOnly of ['true',1,null])await assert.rejects(s.page({documentId:normal.documentId,contextInputId:normal.id,contextPositionOnly}),{code:'INVALID_REQUEST'});
+  await assert.rejects(s.page({contextPositionOnly:true}),{code:'INVALID_REQUEST'});
+  await assert.rejects(s.page({view:'archive',documentId:normal.documentId,contextInputId:normal.id,contextPositionOnly:true}),{code:'INVALID_REQUEST'});
+  assert.deepEqual((await s.snapshot()).records,before.records);assert.deepEqual((await s.snapshot()).library,before.library);
+ }finally{await s.repository.close();}
+});

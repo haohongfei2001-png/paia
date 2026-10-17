@@ -57,6 +57,10 @@ function fitSectionActionMenu(menu){
 }
 const revisionLabel=r=>r.reason==='edit'&&r.kind==='topic'&&r.fieldMask?.includes('name')?'主题重命名':r.reason==='edit'&&r.kind==='section'?'章节重命名':({edit:'用户编辑',user_edit:'用户编辑',create:'创建',ai_update:'AI 更新',refresh:'AI 更新',delete:'删除',restore:'恢复',rename:'重命名',merge:'合并',reorder:'调整顺序',place:'添加到主题',unplace:'移出主题',pin:'置顶',update:'更新'}[r.reason]||(r.actor==='ai'?'AI 整理':'用户操作'));
 const stale=e=>e.archiveChanged?tc('档案有更新 · 查看'):e.thoughtEditedAt?tc('已在思想库编辑'):e.freshness==='stale'?(e.integrity==='partial'||e.integrity==='detached'?'部分来源已移除':'来源已更新'):'';
+function automaticPositionIntent(owner){
+ const events=new AbortController(),retire=event=>{if(event.isTrusted===false)return;owner.topicRestoreInputEpoch=(owner.topicRestoreInputEpoch||0)+1;events.abort();};
+ for(const type of ['pointerdown','input'])document.addEventListener?.(type,retire,{capture:true,signal:events.signal});return events;
+}
 export class MetadataEditor {
  constructor(root,row,kind,onStatus){this.root=root;this.row=row;this.kind=kind;this.qualifiedAuthority=typeof row.authority==='string'?row.authority:null;this.qualifiedReadToken=null;this.pendingQualification=null;this.editIntent=0;this.disposed=false;this.onStatus=(...args)=>{if(!this.disposed)onStatus(...args);};this.fields=kind==='topic'?['name','summary']:['title'];this.saved=Object.fromEntries(this.fields.map(f=>[f,row[f]]));this.local={...this.saved};this.revisions=new RevisionSession();this.recovery=new RecoveryDraftSession({epoch:row.recoveryEpoch,kind:kind==='topic'?'topic_metadata':'section_metadata',ownerId:kind==='topic'?row.id:row.topicId+':'+row.sectionId});this.recoveryFailed=false;this.autosave=new AutosaveSession(()=>void this.flush());this.controller=new AbortController();const o={signal:this.controller.signal};root.addEventListener('compositionstart',()=>{this.noteEditIntent();this.composing=true;this.autosave.cancel();},o);root.addEventListener('compositionend',()=>{this.composing=false;this.collect();this.applyPendingQualification();},o);root.addEventListener('input',()=>{this.noteEditIntent();if(!this.composing)this.collect();},o);root.addEventListener('focusout',()=>{if(!this.composing){this.collect();void this.flush();}},o);this.recoveryReady=this.restoreRecovery();}
  // Qualified presentation identity is independent of canonical CAS revision.
@@ -215,9 +219,9 @@ export class TopicController {
  }
  updateTopicContinuous(){const reader=this.topicReader,state=reader?.state();for(const id of ['topic-continuous-before','topic-continuous-after'])$(id).hidden=!this.topicContinuousVisible();if(!state||!this.topicContinuousVisible())return;this.updateTopicSearchCount();
   void this.mountSectionEndWriter();
-  const nextYear=this.topicNextYear;if(nextYear){const explicit=state.nextYear!==null&&!reader.openedYears.includes(state.nextYear);nextYear.hidden=this.view!=='original'||!state.terminalNext||!explicit||state.indexing||state.stale;nextYear.disabled=!!(state.loadingNext||state.loadingPrevious);nextYear.textContent='↓ '+(state.nextYear==='unknown'?(document.documentElement.lang==='en'?'Undated':'日期未记录'):String(state.nextYear)+(document.documentElement.lang==='en'?'':'年'));}
+  const nextYear=this.topicNextYear;if(nextYear){const explicit=state.nextYear!==null&&!reader.openedYears.includes(state.nextYear);nextYear.hidden=this.view!=='original'||!state.terminalNext||!explicit||state.indexing||state.stale;nextYear.disabled=!!(this.annualTransitionBusy||state.loadingNext||state.loadingPrevious);nextYear.textContent='↓ '+(state.nextYear==='unknown'?(document.documentElement.lang==='en'?'Undated':'日期未记录'):String(state.nextYear)+(document.documentElement.lang==='en'?'':'年'));}
   const before=$('topic-continuous-before'),after=$('topic-continuous-after'),pending=state.loadingNext||state.loadingPrevious||state.indexing,unsettled=pending||state.stale;
-  for(const [edge,continuation,error]of [['before',state.continuationPrevious,state.errorPrevious],['after',state.continuationNext,state.errorNext]]){const retry=$('topic-continuous-'+edge+'-retry');retry.hidden=pending||!error&&!continuation;retry.textContent=tc(continuation?'继续载入':'重试加载');}
+  for(const [edge,continuation,error]of [['before',state.continuationPrevious,state.errorPrevious],['after',state.continuationNext,state.errorNext]]){const retry=$('topic-continuous-'+edge+'-retry');retry.hidden=pending||!error&&!continuation;retry.disabled=!!this.annualTransitionBusy;retry.textContent=tc(continuation?'继续载入':'重试加载');}
   before.dataset.terminal=String(!unsettled&&!state.errorPrevious&&!state.continuationPrevious&&!!state.terminalPrevious);after.dataset.terminal=String(!unsettled&&!state.errorNext&&!state.continuationNext&&!state.protectionBlocked&&!!state.terminalNext&&!(state.nextYear!==null&&reader.openedYears.includes(state.nextYear)));
   $('topic-continuous-before-status').textContent=tc(state.loadingPrevious?'正在载入更早内容…':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorPrevious?'更早内容加载中断；当前文字与草稿已保留。':state.continuationPrevious||unsettled?'还有内容待载入，请继续读取。':state.terminalPrevious?'已到主题开头':'向上滚动继续加载');
   $('topic-continuous-after-status').textContent=tc(state.protectionBlocked?'暂缓继续加载：请先保存或完成当前编辑，文字与选择仍保留。':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorNext?'加载中断；当前文字与草稿已保留。':state.continuationNext||unsettled?'还有内容待载入，请继续读取。':state.terminalNext?'已到主题末尾':'向下滚动继续加载');
@@ -225,12 +229,14 @@ export class TopicController {
   clearTimeout(this.topicContinuousTimer);if(state.indexing&&!state.loadingNext&&!state.errorNext)this.topicContinuousTimer=setTimeout(()=>{if(this.topicContinuousVisible())void this.loadTopicContinuous('next');},250);
  }
  async mountSectionEndWriter(){
+  if(this.entryComparison)return;
   // A successful reflow may remove a former scope's empty inline host.
   // Retire only that detached, data-free handle before eligibility can defer
   // the next mount; draft/IME/pending/unknown ownership remains untouched.
   const detached=this.sectionEndWriter;
   if(detached?.field?.isConnected===false&&!detached.hasDraft()){detached.dispose();if(this.sectionEndWriter===detached)this.sectionEndWriter=null;}
-  if(this.endWriterMounting||!this.actions?.compose||this.actions.surface&&!this.actions.surface.inline)return;
+  if(this.endWriterMounting)return this.endWriterMountDone;
+  if(!this.actions?.compose||this.actions.surface&&!this.actions.surface.inline)return;
   const reader=this.topicReader,state=reader?.state();
   if(!this.id||!this.activeSectionId||this.view!=='original'||!state?.initialized||!state.terminalNext||state.nextYear!==null||state.stale||state.indexing||state.errorNext||state.loadingNext||state.loadingPrevious)return;
   if(this.sectionEndWriter?.field?.isConnected)return;
@@ -239,7 +245,7 @@ export class TopicController {
   const host=[...this.originalPane.querySelectorAll('.topic-section')].find(node=>node.dataset.sectionId===this.activeSectionId);if(!host)return;
   const topicId=this.id,sectionId=this.activeSectionId,intent=this.openIntent,owner=this.editor;
   const current=()=>this.id===topicId&&this.activeSectionId===sectionId&&this.view==='original'&&this.openIntent===intent&&this.editor===owner&&host.isConnected;
-  this.endWriterMounting=true;
+  let settleMount;const mountDone=new Promise(resolve=>settleMount=resolve);this.endWriterMountDone=mountDone;this.endWriterMounting=true;
   try{
    const handle=await this.actions.compose({topicId,sectionId,isCurrent:current,inline:{host,onAcknowledged:async({id,submittedBody,field,isCurrent})=>{
     const valid=()=>current()&&isCurrent();if(!valid())return false;
@@ -258,7 +264,7 @@ export class TopicController {
    if(!current()){if(!handle?.hasDraft())handle?.dispose();return;}
    this.sectionEndWriter=handle||null;
   }catch{if(current())this.onStatus('当前章节末端暂时无法编辑，请重试读取。','read_error');}
-  finally{this.endWriterMounting=false;}
+  finally{this.endWriterMounting=false;if(this.endWriterMountDone===mountDone)delete this.endWriterMountDone;settleMount();}
  }
  async qualifySectionHandoff(page,isCurrent){
   const handoff=this.sectionEndHandoff;if(!handoff)return true;
@@ -279,8 +285,31 @@ export class TopicController {
   if(!item){this.sectionEndHandoff=null;return true;}
   handoff.authority=checked.authority;handoff.recoveryEpoch=checked.recoveryEpoch;return true;
  }
+ retirePendingTopicPosition(reader=this.topicReader){
+  if(!reader)return;const pending=reader.pendingPosition;pending?.events?.abort();
+  if(pending&&this.resumeAnchor===pending.anchor)this.resumeAnchor=null;
+  delete reader.pendingPosition;delete reader.pendingInitialPublication;
+ }
+ async compareEntry(id){
+  const topic=this.id,section=this.activeSectionId,intent=this.openIntent,view=this.view,presentation=this.presentationIntent,cue=this.rootCueEpoch||0,claim=Symbol('entry-comparison');
+  const routeCurrent=()=>this.id===topic&&this.activeSectionId===section&&this.openIntent===intent&&this.view===view&&this.presentationIntent===presentation&&(this.rootCueEpoch||0)===cue&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  this.entryComparison=claim;let published=false;const current=()=>this.entryComparison===claim&&routeCurrent();
+  try{
+   if(!current()||!await this.flushReadingNavigation()||!current())return false;
+   if(this.endWriterMounting){await this.endWriterMountDone;if(!current())return false;}
+   const writer=this.sectionEndWriter;
+   if(writer){if(!await writer.leave()||!current()||this.sectionEndWriter!==writer)return false;this.sectionEndWriter=null;}
+   await this.actions.compare(id,{isCurrent:()=>current()||published&&this.entryComparison===undefined&&routeCurrent()});
+   if(current()&&this.actions.comparing&&this.actions.surface){
+    published=true;this.actions.dialog.addEventListener('close',()=>{if(routeCurrent()&&!this.actions.surface)void this.mountSectionEndWriter();},{once:true});return true;
+   }
+   return false;
+  }catch{if(current())this.onStatus?.(tc('内容尚未读完，请重试；已保存内容没有改变。'),'read_error');return false;}
+  finally{if(this.entryComparison===claim){delete this.entryComparison;if(routeCurrent()&&!this.actions.surface)void this.mountSectionEndWriter();}}
+ }
  async renderTopicReader(anchor=null,restore=null,{preserveLiveAnchor=false,beforePaint=null,publicationOwner=null}={}){
   const reader=this.topicReader,serial=this.serial,windowRevision=reader?.windowRevision,cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;if(!reader||reader.publicationOwner&&reader.publicationOwner!==publicationOwner)return false;
+  const deferred=reader.pendingInitialPublication;if(deferred&&!deferred.isCurrent()){this.retirePendingTopicPosition(reader);return false;}
   const current=()=>{
    if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}
    const valid=!this.sectionEndWriter?.hasDraft()&&reader===this.topicReader&&serial===this.serial&&windowRevision===reader.windowRevision&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
@@ -314,15 +343,26 @@ export class TopicController {
   // Continuation reads may outlive scrolling or reflow. Capture the current
   // DOM immediately before paint; never fall back to an already removed anchor.
   if(!await this.qualifySectionHandoff(page,current)||!current()||this.crossSectionProtected(reader.scopeSectionId))return false;
-  const readingAnchor=preserveLiveAnchor?this.topicAnchor():anchor||reader.sectionRestoreAnchor;
-  if(beforePaint&&beforePaint(page)!==true)return false;
+  const readingAnchor=preserveLiveAnchor?this.topicAnchor():anchor||reader.sectionRestoreAnchor,anchorInputEpoch=this.topicRestoreInputEpoch||0;
+  if(deferred&&!deferred.isCurrent()){this.retirePendingTopicPosition(reader);return false;}
+  if(beforePaint&&beforePaint(page)!==true||deferred?.beforePaint&&deferred.beforePaint(page)!==true)return false;
   this.topic=page.topic;this.document=page;this.renderDocument(page);if(this.sectionEndHandoff&&page.items.some(item=>item.entry.id===this.sectionEndHandoff.id))this.sectionEndHandoff=null;this.refreshTopicStamps(page);if(readingAnchor)revealExactRepeat(this.originalPane,readingAnchor.id);reader.measure(this.originalPane);
   this.originalPane.dataset.retainedBodies=String(reader.items.filter(item=>!item.unloaded).length);this.originalPane.dataset.loadedExtent=String(reader.items.length);
-  if(readingAnchor&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(preserveLiveAnchor||anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor,this.topicAnchorEntry(readingAnchor?.id));
+  // The empty scoped writer changes the real scroll extent after its original
+  // flush. Settle that same mount before interpreting a temporary bottom clamp.
+  // Every concurrent caller waits on its one owner; no extra writer is opened.
+  this.observeTopicWindowSpacers();this.updateTopicContinuous();await this.mountSectionEndWriter();if(!current())return false;
+  if(readingAnchor&&anchorInputEpoch===(this.topicRestoreInputEpoch||0)&&(!restore||!restore.cancelled&&this.topicRestore===restore)&&(preserveLiveAnchor||anchor||reader.sectionRestoreInputEpoch===(this.topicRestoreInputEpoch||0)))reader.restoreAnchor(this.originalPane,readingAnchor,this.topicAnchorEntry(readingAnchor?.id));
   // A successful paint consumes this one return attempt, including a return
   // interrupted by deliberate scrolling. Later paging must not replay it.
   if(!anchor)reader.sectionRestoreAnchor=null;
-  this.observeTopicWindowSpacers();this.updateTopicContinuous();this.admitTopicContinuation(reader);return true;
+  const pendingPosition=reader.pendingPosition;
+  if(pendingPosition&&!pendingPosition.consuming){
+   pendingPosition.consuming=true;
+   try{if(deferred?.isCurrent())await this.restorePosition(pendingPosition.anchor,{allowScopeChange:pendingPosition.allowScopeChange});}
+   finally{this.retirePendingTopicPosition(reader);}
+  }else if(!pendingPosition)delete reader.pendingInitialPublication;
+  this.admitTopicContinuation(reader);return true;
  }
  admitReadingSnapshot(){
   this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
@@ -342,7 +382,7 @@ export class TopicController {
   // redraws must not steal it and leave refresh refused with editing inert.
   // A staged AI pane shares that same first paint.
   let settlePublication;
-  this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),publicationOwner=Symbol('topic-publication'),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;reader.publicationOwner=publicationOwner;reader.publicationDone=new Promise(resolve=>settlePublication=resolve);this.topicReader=reader;if(this.view==='original'&&this.loadToken)reader.initialAdmission={token:this.loadToken,epoch:this.statusEpoch,serial:expectedSerial,intent:this.openIntent,cue:this.rootCueEpoch||0,key:this.readKey(),topic:this.id,section:this.activeSectionId};reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
+  this.retirePendingTopicPosition();this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),publicationOwner=Symbol('topic-publication'),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;reader.publicationOwner=publicationOwner;reader.publicationDone=new Promise(resolve=>settlePublication=resolve);this.topicReader=reader;if(this.view==='original'&&this.loadToken)reader.initialAdmission={token:this.loadToken,epoch:this.statusEpoch,serial:expectedSerial,intent:this.openIntent,cue:this.rootCueEpoch||0,key:this.readKey(),topic:this.id,section:this.activeSectionId};reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
   // A held page may finish after Root invalidation or navigation. The worker
   // qualified that read before replying; the UI must also keep its own intent
   // fence through the entire asynchronous reader reset, not only before focus.
@@ -358,8 +398,8 @@ export class TopicController {
    for(let reads=0;prepareInitial&&reader.indexing&&!reader.stale&&!reader.errorNext&&!reader.protectionBlocked&&reads<reader.maxEmptyLoads;reads++){
     if(!current())return {...reader.state(),stale:true};const pending=reader.next();this.updateTopicContinuous();await pending;if(!current())return {...reader.state(),stale:true};
    }
-   const state=reader.state();if(state.errorNext&&!state.items.length)throw state.errorNext;if(prepareInitial&&reader.indexing){this.updateTopicContinuous();return {...state,paintRefused:true};}const painted=await this.renderTopicReader(restoreAnchor||(restored?saved.anchor:null),restore,{beforePaint,publicationOwner});reader.positionRestored=painted===true&&restored&&!reader.stale;if(!current())return {...reader.state(),stale:true};void this.loadRemainingTopicSections(reader);completed=painted===true&&!reader.hydrationError&&!reader.stale;return {...reader.state(),paintRefused:painted!==true};
-  }finally{if(reader.publicationOwner===publicationOwner){delete reader.publicationOwner;delete reader.publicationDone;}settlePublication(completed||view==='original'&&reader.indexing&&!reader.stale&&!reader.hydrationError&&current());if(restore){if(completed&&this.topicRestore===restore)this.finishTopicRestore(restore);else this.cancelTopicRestore(restore);}}
+   const state=reader.state();if(state.errorNext&&!state.items.length)throw state.errorNext;if(prepareInitial&&reader.indexing){reader.pendingInitialPublication={isCurrent:current,beforePaint};this.updateTopicContinuous();return {...state,paintRefused:true};}const painted=await this.renderTopicReader(restoreAnchor||(restored?saved.anchor:null),restore,{beforePaint,publicationOwner});reader.positionRestored=painted===true&&restored&&!reader.stale;if(!current())return {...reader.state(),stale:true};void this.loadRemainingTopicSections(reader);completed=painted===true&&!reader.hydrationError&&!reader.stale;return {...reader.state(),paintRefused:painted!==true};
+  }finally{if(reader.publicationOwner===publicationOwner){delete reader.publicationOwner;delete reader.publicationDone;}settlePublication(completed||view==='original'&&reader.indexing&&!reader.stale&&!reader.hydrationError&&current());if(completed&&current())this.admitTopicContinuation(reader);if(restore){if(completed&&this.topicRestore===restore)this.finishTopicRestore(restore);else this.cancelTopicRestore(restore);}}
  }
  async loadTopicContinuous(direction,{explicit=true}={}){
   const publishing=this.topicReader;
@@ -371,7 +411,7 @@ export class TopicController {
    if(!completion||await completion!==true)return;
    if(publishing!==this.topicReader||publishing.publicationOwner||serial!==this.serial||intent!==this.openIntent||cue!==(this.rootCueEpoch||0)||view!==this.view)return;
   }
-if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReader?.nextYear!==null&&this.topicReader?.errorNext)return this.openNextTopicYear();if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;let failureReader=reader;try{if(!await this.checkAllTracked(serial)||serial!==this.serial||reader!==this.topicReader)return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(serial!==this.serial||reader!==this.topicReader)return;if(reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});failureReader=this.topicReader;await reset;return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});else this.updateTopicContinuous();}catch{
+if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReader?.nextYear!==null&&this.topicReader?.errorNext)return this.openNextTopicYear();if(explicit)this.interruptTopicRestore();else if(this.topicRestoring())return;const reader=this.topicReader;if(!explicit&&(reader?.errorNext||reader?.hydrationError||reader?.errorPrevious||reader?.protectionBlocked||direction==='next'&&reader?.continuationNext||direction==='previous'&&reader?.continuationPrevious||direction==='next'&&this.topicAutoForward===false))return;if(explicit)this.topicAutoForward=direction!=='previous';if(!reader||!this.topicContinuousVisible()||direction==='next'&&reader.loadingNext||direction==='previous'&&reader.loadingPrevious)return;const serial=this.serial,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0,view=this.view,anchor=this.topicAnchor(),sectionAnchor=!anchor?this.topicSectionAnchor():null,sectionSnapshot=sectionAnchor?reader.snapshot(null,sectionAnchor):null;let failureReader=reader;const current=()=>serial===this.serial&&reader===this.topicReader&&intent===this.openIntent&&cueEpoch===(this.rootCueEpoch||0)&&view===this.view;try{if(reader.pendingInitialPublication&&!reader.pendingInitialPublication.isCurrent()){this.retirePendingTopicPosition(reader);return;}if(!await this.checkAllTracked(serial)||!current())return;if(reader.hydrationError){if(explicit)await this.renderTopicReader(anchor);else this.updateTopicContinuous();return;}const priorRevision=reader.bodyRevision,pending=direction==='previous'?reader.previous():reader.next();this.updateTopicContinuous();await pending;if(!current()){this.retirePendingTopicPosition(reader);return;}if(reader.stale){const reset=this.resetTopicReader({anchorId:anchor?.id||reader.items[0]?.entry?.id||null,restoreAnchor:anchor,saved:sectionSnapshot?.sectionAnchor?sectionSnapshot:null,expectedSerial:serial});failureReader=this.topicReader;await reset;return;}if(reader.bodyRevision!==priorRevision||reader.errorNext||reader.errorPrevious||reader.indexing||reader.protectionBlocked)await this.renderTopicReader(anchor,null,{preserveLiveAnchor:true});else this.updateTopicContinuous();}catch{
   // Automatic observers do not await this promise. Keep the strict reader's
   // refusal, then hand its failure to the existing retained-content/retry UI.
   // A retired read must never change a newer route, view or reader's status.
@@ -572,7 +612,27 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  async reverseSetting(){let box=$('thought-reverse-edit');if(!box){const host=document.querySelector('.ux-settings-group[data-group="advanced"]');if(!host)return;const label=element('label','setting');box=element('input');box.type='checkbox';box.id='thought-reverse-edit';label.append(box,document.createTextNode(tc('同时修改档案中的对应完整内容')));host.append(label,element('p','muted',tc('仅对仍与档案完整对应的内容生效；已改写、选段和 AI 稿不反向修改。')));box.onchange=async()=>{const previous=!box.checked;box.disabled=true;try{await request('SET_THOUGHT_REVERSE_EDIT',{enabled:box.checked});}catch{box.checked=previous;this.onStatus('设置尚未保存，已恢复原值。','error');}finally{box.disabled=false;}};}box.disabled=true;try{box.checked=(await request('GET_THOUGHT_REVERSE_EDIT')).enabled;const status=await request('GET_LIBRARY_FOUNDATION_STATUS'),migration=status.bindingMigration;let summary=$('thought-binding-migration');if(!summary){summary=element('p','muted');summary.id='thought-binding-migration';box.parentElement.after(summary);}summary.textContent=migration?.complete?'旧版引用迁移已完成 · 跟随 '+migration.input+' · 独立 '+migration.thought:'旧版引用正在迁移；现有文字按安全规则保留。';}finally{box.disabled=false;}}
  schedulePosition(){clearTimeout(this.positionTimer);if(!this.id||this.view!=='original'||document.hidden||document.querySelector('dialog[open]'))return;this.positionTimer=setTimeout(()=>void this.rememberPosition(),3000);}
  async rememberPosition(){if(!this.id||document.hidden||this.editor?.dirty()||this.editor?.saving||isComposing(this.editor)||document.querySelector('dialog[open]'))return;const topicId=this.id,serial=this.serial,openIntent=this.openIntent;const el=[...$('topic-body').querySelectorAll('[data-entry-field="body"]')].find(n=>n.getBoundingClientRect().bottom>140&&n.getBoundingClientRect().top<innerHeight);if(!el)return;const id=el.closest('[data-entry-id]').dataset.entryId,row=this.editor?.entry.entries.get(id);if(!row)return;let offset=0;const range=document.caretRangeFromPoint?.(Math.max(20,el.getBoundingClientRect().left+4),Math.max(140,el.getBoundingClientRect().top+8));if(range&&el.contains(range.startContainer)){const before=range.cloneRange();before.selectNodeContents(el);before.setEnd(range.startContainer,range.startOffset);offset=before.toString().length;}await request('THOUGHT_POSITION',{position:{topicId,entryId:id,revision:row.revision,offset,sort:this.readingSort,expanded:[]}});if(this.id!==topicId||this.serial!==serial||this.openIntent!==openIntent)return;await request('RECORD_TOPIC_READ',{id:topicId});}
- async restorePosition(anchor){if(anchor?.nearby)announce(tc('原位置已移除，从附近继续。'));if(!anchor?.entryId)return;const el=[...$('topic-body').querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===anchor.entryId)?.querySelector('[data-entry-field="body"]');if(!el)return;const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n,offset=anchor.offset;while(n=walker.nextNode()){if(offset<=n.length){const r=document.createRange();r.setStart(n,offset);r.collapse(true);let rect=r.getBoundingClientRect();if(!rect.height&&offset<n.length){r.setEnd(n,offset+1);rect=r.getBoundingClientRect();}if(!rect.height&&offset>0){r.setStart(n,offset-1);r.setEnd(n,offset);rect=r.getBoundingClientRect();}if(rect.height>0&&Number.isFinite(rect.top))scrollBy(0,rect.top-140);break;}offset-=n.length;}}
+ async restorePosition(anchor,{allowScopeChange=false}={}){
+  if(anchor?.nearby)announce(tc('原位置已移除，从附近继续。'));if(!anchor?.entryId)return false;
+  const topicId=this.id,intent=this.openIntent,view=this.view,cue=this.rootCueEpoch||0,input=this.topicRestoreInputEpoch||0;
+  const current=()=>this.id===topicId&&this.openIntent===intent&&this.view===view&&cue===(this.rootCueEpoch||0)&&input===(this.topicRestoreInputEpoch||0)&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const field=()=>[...$('topic-body').querySelectorAll('[data-entry-id]')].find(n=>n.dataset.entryId===anchor.entryId)?.querySelector('[data-entry-field="body"]');
+  if(!current())return false;
+  // The entry gesture has already happened. Only new human intent during this
+  // automatic asynchronous return retires its later focus/offset publication.
+  const events=automaticPositionIntent(this);
+  try{
+  // A removed saved window may have been truthfully refused. Only a Topic-only
+  // return may resolve the original nearby Entry through the existing owner.
+  if(!field()){
+   const placement=await request('GET_LIBRARY_PLACEMENT',{topicId,entryId:anchor.entryId});
+   if(!current()||placement?.lifecycle!=='active'||placement.topicId!==topicId||placement.entryId!==anchor.entryId||!allowScopeChange&&placement.sectionId!==this.activeSectionId)return false;
+   if(!await this.focusEntry(anchor.entryId,{isCurrent:current})||!current())return false;
+  }
+  const el=field(),row=this.editor?.entry?.entries.get(anchor.entryId);if(!el||!current()||row&&row.revision!==anchor.revision)return false;
+  const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n,offset=anchor.offset;while(n=walker.nextNode()){if(offset<=n.length){const r=document.createRange();r.setStart(n,offset);r.collapse(true);let rect=r.getBoundingClientRect();if(!rect.height&&offset<n.length){r.setEnd(n,offset+1);rect=r.getBoundingClientRect();}if(!rect.height&&offset>0){r.setStart(n,offset-1);r.setEnd(n,offset);rect=r.getBoundingClientRect();}if(rect.height>0&&Number.isFinite(rect.top))scrollBy(0,rect.top-140);return true;}offset-=n.length;}return false;
+  }finally{events.abort();}
+ }
  clearActionFeedback(){$('ai-update-feedback')?.replaceChildren();}
  rootAction(method,...args){return()=>this[method](...args);}
  async openRootTarget(topicId,sectionId=null){
@@ -705,8 +765,12 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   const topicId=this.id,intent=this.openIntent,sectionId=this.activeSectionId,target=this.topicReader?.nextYear;
   const current=()=>topicId===this.id&&intent===this.openIntent&&sectionId===this.activeSectionId&&this.view==='original';
   if(target===null||target===undefined||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing)||this.sectionEndWriter?.hasDraft())return false;
-  this.annualTransitionBusy=true;
+  this.annualTransitionBusy=true;this.updateTopicContinuous();
   try{
+   // The already queued current refresh owns the reader until it settles.
+   // Keep this exact clicked year; never stage its predecessor or a new year.
+   const refreshing=this.refreshRun;if(refreshing){try{await refreshing.promise;}catch{return false;}}
+   if(!current()||this.topicReader?.nextYear!==target||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;
    if(!await this.flushReadingNavigation()||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;
    const reader=this.topicReader;if(!reader||reader.stale||!reader.initialized)return false;
    if(!await this.checkAllTracked(this.serial)||!current()||[this.editor,this.aiEditor,this.dialogEditor].some(isComposing))return false;
@@ -739,7 +803,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   renderTopicSectionProse({body,page,pins,repeats:{enabled:this.view==='ai',presentation:cached,revealId:this.topicNavigationAnchor?.entryId||this.resumeAnchor?.entryId,isCurrent:()=>this.view==='ai'&&this.id===page.topic.id&&this.topicReader===repeatReader&&this.openIntent===repeatIntent&&this.aiTopics?.get(this.id)?.presentation===cached,onChange:()=>{repeatReader?.measure(body);this.updateTopicContinuous();}},sectionActions:(header,section)=>this.renderSectionActions(header,section),entryNode:item=>this.entryNode(item),updateEntry:(node,{entry,placement})=>{
    node.entryMovePlacement=placement?{...placement}:null;
    const sent=node.querySelector('.entry-sent-time');if(sent)sent.textContent=expressionCaption(entry,document.documentElement.lang);
-   const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.actions.compare(entry.id);}
+   const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.compareEntry(entry.id);}
   }});
   }else{
   clearExactRepeats(body);
@@ -766,7 +830,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    const item=part.item,entry=item.entry,prior=existing.get(entry.id),year=pins.has(entry.id)&&prior?.dataset.expressionYear?prior.dataset.expressionYear:expressionYear(entry);current=groupFor(year);
    const retain=prior&&(!entry.large||!prior.querySelector('[data-entry-field="body"]')||pins.has(entry.id)),node=retain?prior:this.entryNode(item);node.dataset.expressionYear=String(year);node.dataset.sectionId=item.placement.sectionId;
    const sent=node.querySelector('.entry-sent-time');if(sent)sent.textContent=expressionCaption(entry,document.documentElement.lang);
-   const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.actions.compare(entry.id);}
+   const staleLabel=node.querySelector('.entry-stale');if(staleLabel){staleLabel.textContent=stale(entry);staleLabel.onclick=()=>this.compareEntry(entry.id);}
    let origin=node.querySelector('.topic-origin-section');const section=sections.get(item.placement.sectionId);
    if(section&&(!section.isDefault||year==='unknown')){if(!origin){origin=element('p','topic-origin-section muted');node.prepend(origin);}origin.textContent=(year==='unknown'?'所属章节：':'')+(section.title||'正文');}else origin?.remove();
    const anchor=rootAnchors.get(item.placement.sectionId);if(anchor&&!placedRootAnchors.has(anchor)){current.children.push(anchor);placedRootAnchors.add(anchor);}
@@ -864,7 +928,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  }
 
  entryNode(item){const e=item.entry,node=element('div','library-entry');node.dataset.entryId=e.id;node.entryMovePlacement=item.placement?{...item.placement}:null;const optOut=host=>mountReverseEditOptOut(host,e,{pauseDrafts:()=>{this.editor?.entry?.autosave?.cancel();this.dialogEditor?.autosave?.cancel();}});if(e.large){node.append(element('p','muted','长内容单独载入，完整正文不会截断保存。'),button('读取完整内容',()=>this.loadLargeEntry(item,node)));optOut(node);return node;}
-  const prose=editable('div',['entryField','body'],e.body,tc('内容正文'));prose.className='entry-prose';prose.contentEditable='false';prose.dataset.placeholder='写下内容…';const meta=element('div','entry-meta');const type=element('select');type.dataset.entryField='type';type.setAttribute('aria-label','内容类型');for(const [value,text]of Object.entries({fact:'事实',event:'事件',preference:'偏好',decision:'决定',judgment:'判断',idea:'想法',goal_plan:'目标与计划',reflection:'反思',creation:'创作'})){const o=element('option','',text);o.value=value;type.append(o);}type.value=e.type;meta.append(type,button(stale(e),()=>this.actions.compare(e.id)));meta.lastElementChild.className='entry-stale';let selectedThought=null;const actions=actionMenu('内容操作',[[tc('加入所选文字'),async()=>{if(!selectedThought){this.onStatus(tc('请先在这条思想中选择文字。'));return;}if(!await this.flushEditors())return;const current=await request('GET_LIBRARY_ENTRY',{id:e.id});if(current.body.slice(selectedThought.start,selectedThought.end)!==selectedThought.text){this.onStatus(tc('这段内容已变化，请重新确认。'));return;}await this.actions.add({kind:'thought',id:e.id,expectedRevision:current.revision,span:{start:selectedThought.start,end:selectedThought.end}},selectedThought.text);} ],[tc('复制当前文字'),()=>this.copyEntryText(e.id,node)],['备注',()=>{note.hidden=false;note.open=true;field.focus();}],...(!item.standalone?[['版本历史',()=>this.revisions('library_entry',e.id,e.id)]]:[]),...([['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>item.placement?.topicId||['add','delete'].includes(key)).map(([key,label])=>[key==='section'?tc(label):label,()=>this.entryActions(e.id,key==='section'?node.entryMovePlacement:item.placement,key)]))]);const rememberSelection=()=>{const selection=getSelection(),range=selection?.rangeCount?selection.getRangeAt(0):null;if(!range||range.collapsed||!prose.contains(range.startContainer)||!prose.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(prose);before.setEnd(range.startContainer,range.startOffset);selectedThought={start:before.toString().length,end:before.toString().length+range.toString().length,text:range.toString()};};actions.classList.add('topic-entry-actions');const moveControl=[...actions.querySelectorAll('button')].find(control=>control.textContent===tc('移动到章节'));moveControl?.classList.add('topic-entry-move');this.updateSectionActionControls(actions);actions.addEventListener('pointerdown',rememberSelection);actions.addEventListener('focusin',rememberSelection);meta.append(actions);
+  const prose=editable('div',['entryField','body'],e.body,tc('内容正文'));prose.className='entry-prose';prose.contentEditable='false';prose.dataset.placeholder='写下内容…';const meta=element('div','entry-meta');const type=element('select');type.dataset.entryField='type';type.setAttribute('aria-label','内容类型');for(const [value,text]of Object.entries({fact:'事实',event:'事件',preference:'偏好',decision:'决定',judgment:'判断',idea:'想法',goal_plan:'目标与计划',reflection:'反思',creation:'创作'})){const o=element('option','',text);o.value=value;type.append(o);}type.value=e.type;const staleControl=element('button','entry-stale',stale(e));staleControl.type='button';staleControl.onclick=()=>this.compareEntry(e.id);meta.append(type,staleControl);let selectedThought=null;const actions=actionMenu('内容操作',[[tc('加入所选文字'),async()=>{if(!selectedThought){this.onStatus(tc('请先在这条思想中选择文字。'));return;}if(!await this.flushEditors())return;const current=await request('GET_LIBRARY_ENTRY',{id:e.id});if(current.body.slice(selectedThought.start,selectedThought.end)!==selectedThought.text){this.onStatus(tc('这段内容已变化，请重新确认。'));return;}await this.actions.add({kind:'thought',id:e.id,expectedRevision:current.revision,span:{start:selectedThought.start,end:selectedThought.end}},selectedThought.text);} ],[tc('复制当前文字'),()=>this.copyEntryText(e.id,node)],['备注',()=>{note.hidden=false;note.open=true;field.focus();}],...(!item.standalone?[['版本历史',()=>this.revisions('library_entry',e.id,e.id)]]:[]),...([['add','添加到主题'],['section','移动到章节'],['up','向上移动'],['down','向下移动'],['removeTopic','从此主题移出'],['delete','删除内容'],['placementVersions','位置与成员版本']].filter(([key])=>item.placement?.topicId||['add','delete'].includes(key)).map(([key,label])=>[key==='section'?tc(label):label,()=>this.entryActions(e.id,key==='section'?node.entryMovePlacement:item.placement,key)]))]);const rememberSelection=()=>{const selection=getSelection(),range=selection?.rangeCount?selection.getRangeAt(0):null;if(!range||range.collapsed||!prose.contains(range.startContainer)||!prose.contains(range.endContainer))return;const before=range.cloneRange();before.selectNodeContents(prose);before.setEnd(range.startContainer,range.startOffset);selectedThought={start:before.toString().length,end:before.toString().length+range.toString().length,text:range.toString()};};actions.classList.add('topic-entry-actions');const moveControl=[...actions.querySelectorAll('button')].find(control=>control.textContent===tc('移动到章节'));moveControl?.classList.add('topic-entry-move');this.updateSectionActionControls(actions);actions.addEventListener('pointerdown',rememberSelection);actions.addEventListener('focusin',rememberSelection);meta.append(actions);
   const note=element('details','entry-note');note.hidden=true;note.addEventListener('toggle',()=>{if(!note.open)note.hidden=true;});note.append(element('summary','','备注'));const field=element('textarea');field.dataset.entryField='note';field.value=e.note;field.setAttribute('aria-label','内容备注');note.append(field);
   const provenance=element('details','entry-provenance');provenance.hidden=true;provenance.append(element('summary','','来源'));const detail=element('div');provenance.append(detail);provenance.addEventListener('toggle',productAction(async()=>{detail.replaceChildren();if(!provenance.open){provenance.hidden=true;return;}const r=await request('GET_LIBRARY_PROVENANCE',{id:e.id});if(!provenance.open)return;detail.append(element('p','',r.count?`主要来源 ${r.primary} · 补充来源 ${r.supporting} · 辅助上下文 ${r.contextOnly??r.items.filter(x=>x.role==='context_only').length}`:r.userCreated?'用户创建的独立内容':'原有来源已不可用，保留独立整理内容'));if(r.items.some(x=>x.role==='context_only'))detail.append(element('p','muted','辅助上下文帮助理解当时的表达，不作为这条内容的直接依据。'));for(const source of r.items){const role=({primary:'主要来源',supporting:'补充来源',context_only:'辅助上下文'})[source.role]||'来源作用未确认';const row=element('p','',role+' · '+(({resolvable:'来源可查看',version_unavailable:'来源已更新；引用的旧版本已不可用',removed:'来源已移除',unavailable:'来源不可用'})[source.availability]||'来源状态未确认'));row.dataset.evidenceRole=source.role;if(source.inputId)row.append(button('查看输入',()=>this.onInput(source.inputId)));const advanced=element('details','source-technical');advanced.append(element('summary','','高级详情'),element('p','',`引用版本 ${source.usedVersion}${source.currentVersion===null?'':' / 当前版本 '+source.currentVersion}`));detail.append(row,advanced);}}));
   const binding=element('p','thought-binding-status',e.bodyBinding==='input'&&e.reverseEditEnabled?tc('同时修改档案'):e.thoughtEditedAt?tc('已在思想库编辑'):'');node.append(binding);optOut(node);
@@ -961,7 +1025,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   const sections=await this.topicSectionRows();if(!current())return;
   this.closeDialog();$('library-dialog-title').textContent=tc('管理主题结构');const host=$('library-dialog-content');
   host.append(element('p','muted',tc('内容按章节与手动顺序连续阅读。')),button(tc('新建章节'),()=>{if(current())return this.createSection();}));
-  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||'正文'));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(label,()=>{if(!current())return;this.closeDialog();return this.sectionActions(section,action);}));if(!section.isDefault)row.append(button(tc('提升为独立主题'),()=>{if(!current())return;this.closeDialog();return this.sectionContextAction(section,'promote');}));host.append(row);}
+  for(const section of sections){const row=element('section','topic-structure-row');row.append(element('h3','',section.title||tc('正文')));for(const [action,label]of [['rename','重命名'],['merge','合并章节'],['up','向上移动'],['down','向下移动'],['revisions','章节版本历史']])row.append(button(tc(label),()=>{if(!current())return;this.closeDialog();return this.sectionActions(section,action);}));if(!section.isDefault)row.append(button(tc('提升为独立主题'),()=>{if(!current())return;this.closeDialog();return this.sectionContextAction(section,'promote');}));host.append(row);}
   $('library-dialog').showModal();
  }
  async createSection(){
@@ -1460,6 +1524,16 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   this.ensurePanes();this.originalPane.hidden=false;this.aiPane.hidden=this.view!=='ai';
   const directory=await this.topicSectionRows();if(serial!==this.serial)return false;
   if(this.explicitSectionId&&!directory.some(row=>row.sectionId===this.explicitSectionId))throw Error('TOPIC_SECTION_UNAVAILABLE');
+  let positionAnchor=null,positionCurrent=()=>true;
+  if(this.view==='original'&&this.resumeAnchor?.entryId&&!this.explicitSectionId&&!this.topicNavigationAnchor&&!this.topicNavigationSection&&!this.topicResetFromStart&&!this.topicReader&&!this.contentResume&&!directory.some(row=>row.sectionId===this.activeSectionId)){
+   const position=this.resumeAnchor,topicId=this.id,intent=this.openIntent,input=this.topicRestoreInputEpoch||0;
+   const current=()=>serial===this.serial&&topicId===this.id&&intent===this.openIntent&&this.view==='original'&&rootCueEpoch===(this.rootCueEpoch||0)&&input===(this.topicRestoreInputEpoch||0)&&this.resumeAnchor===position&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+   if(!current())return false;
+   // Position metadata is not placement authority. Resolve the current original
+   // placement, then let the bounded Section reader qualify its exact body.
+   const placement=await request('GET_LIBRARY_PLACEMENT',{topicId,entryId:position.entryId});if(!current())return false;
+   if(placement?.lifecycle==='active'&&placement.topicId===topicId&&placement.entryId===position.entryId&&directory.some(row=>row.sectionId===placement.sectionId)){this.activeSectionId=placement.sectionId;positionAnchor=position;positionCurrent=current;}
+  }
   if(!directory.some(row=>row.sectionId===this.activeSectionId))this.activeSectionId=directory[0]?.sectionId||null;
   if(!this.activeSectionId)throw Error('TOPIC_SECTION_UNAVAILABLE');
   this.sectionDirectory=directory;this.lastSections??=new Map();this.rememberActiveSection(this.id,this.activeSectionId);this.explicitSectionId=null;
@@ -1512,18 +1586,19 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(presentationRead===false||presentationRead==='deferred')return false;
   }
   $('topic-toolbar').hidden=false;
-  const visible=this.topicReader?.scopeSectionId===this.activeSectionId?this.topicAnchor():null,navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||visible?.id||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
+  const visible=this.topicReader?.scopeSectionId===this.activeSectionId?this.topicAnchor():null,navigationAnchor=this.topicNavigationAnchor,resetFromStart=this.topicResetFromStart,anchorId=resetFromStart?null:(navigationAnchor?.entryId||visible?.id||positionAnchor?.entryId||null),sectionId=this.topicNavigationSection||null,restoreAnchor=resetFromStart?null:(navigationAnchor?.entryId?{id:navigationAnchor.entryId,top:navigationAnchor.top}:visible);this.topicResetFromStart=false;this.topicNavigationAnchor=null;this.topicNavigationSection=null;const timeEdge=this.topicTimeEdge||null;this.topicTimeEdge=null;
   if(!await this.checkAllTracked(serial)||serial!==this.serial)return false;
   const saved=!resetFromStart&&!sectionId&&!timeEdge?(this.topicReader?.snapshot(visible,visible?null:this.topicSectionAnchor())||this.contentResume):null;this.contentResume=null;
   const explicitEntry=navigationAnchor?.prepareInitial===true;
-  const beforePaint=aiPublication||explicitEntry?page=>{
+  const beforePaint=aiPublication||explicitEntry||positionAnchor?page=>{
+   if(positionAnchor&&(!positionCurrent()||page.scopeSectionId!==this.activeSectionId||!page.items.some(item=>item.entry.id===positionAnchor.entryId&&item.entry.revision===positionAnchor.revision&&item.placement?.sectionId===this.activeSectionId)))return false;
    if(explicitEntry&&(!navigationAnchor.isCurrent()||!page.items.some(item=>item.entry.id===navigationAnchor.entryId&&item.placement?.sectionId===this.activeSectionId)))return false;
    if(!aiPublication)return true;
    const staged=aiPublication;if(!staged.current())return false;
    if(staged.projection?.complete&&(staged.projection.recoveryEpoch!==page.recoveryEpoch||staged.projection.authority!==JSON.stringify(page.authority??null)))return false;
    if(!staged.commit())return false;staged.committed=true;return true;
   }:null;
-  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:{})});if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
+  const state=await this.resetTopicReader({anchorId,sectionId,timeEdge,restoreAnchor,saved,expectedSerial:serial,beforePaint,prepareInitial:explicitEntry||!!positionAnchor,...(explicitEntry?{isCurrent:navigationAnchor.isCurrent}:positionAnchor?{isCurrent:positionCurrent}:{})});if(serial!==this.serial||state.stale||state.paintRefused||aiPublication&&!aiPublication.committed)return false;
   this.updateTopicSearchCount();
   if(this.editor&&this.document){for(const m of this.editor.metadata){const row=m.kind==='topic'?this.document.topic:this.document.sections.find(s=>s.sectionId===m.row.sectionId);if(row&&!(m.kind==='topic'&&this.document.kind==='section_reading'))m.receive(row);}this.editor.entry.receive(this.document.items.filter(x=>!x.entry.large).map(x=>x.entry));}
   return true;
@@ -1550,6 +1625,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
      active.dispose();this[key]=null;owners.set(key,null);if(key==='dialogEditor')this.closeDialog();
     }
     if(!current())return false;
+    this.retirePendingTopicPosition();
     if(this.view==='ai')this.originalPane?.replaceChildren();else{this.aiPane?.replaceChildren();this.aiSignature=undefined;}
     for(const id of ['topic-body','topic-heading'])$(id).inert=true;
     if(this.desktopPresentation){this.desktopPresentation.dispose();this.desktopPresentation=null;}return true;
@@ -1655,20 +1731,31 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   if(!freshRoot&&departure)this.saveHomePosition(this.id||'home',departure);
   const previousIntent=this.openIntent;if(!await this.leave()||claim!==this.topicOpenIntent||previousIntent!==this.openIntent)return;const intent=this.openIntent=(this.openIntent||0)+1;this.clearActionFeedback();
   const changed=this.id!==id;if(changed){if(!this.id){this.homeCollection?.releaseBodies();this.personalRoot?.clear({searchSession:this.rootSearchReturnSession()});this.homePage=null;$('thought-list').replaceChildren();}this.topicTimeline?.dispose();this.topicTimeline=null;this.originalMode=this.timelinePositions.get(id)?.mode||'content';this.snapshotRoute=null;this.homeSignature=null;$('topic-body').replaceChildren();$('topic-heading').replaceChildren();this.originalPane=null;this.aiPane=null;this.aiSignature=undefined;this.document=null;this.topic=null;this.topicReader=null;const requested=this.requestedTopicView;this.requestedTopicView=null;this.view=id?(requested||this.aiViewSession.view(id)):'original';if(id&&requested)this.aiViewSession.setView(id,requested);}
-  this.id=id;this.activeSectionId=sectionId||this.lastSections?.get(id)||null;this.explicitSectionId=sectionId;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
-  const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=null,sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
-  if(id&&this.view==='original'&&!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;if(!this.resumeAnchor&&saved?.sort)this.readingSort=saved.sort;
+  this.id=id;const initialSectionId=sectionId||this.lastSections?.get(id)||null;this.activeSectionId=initialSectionId;this.explicitSectionId=sectionId;if(!id){this.aiTopics.clear();if(this.aiState)this.aiState={...this.aiState,topics:[]};}this.topicProviderKey=this.homePositions.get(id||'home')?.providerKey||null;$('ai-presentation-toggle').checked=this.view==='ai';$('ai-presentation-toggle').disabled=!!this.pendingView;$('thought-list').classList.toggle('ai-mode',this.view==='ai');this.onOpen();
+  let positionEvents=id&&this.view==='original'?automaticPositionIntent(this):null;const restoreInputEpoch=this.topicRestoreInputEpoch||0;
+  try{
+  const session=id?this.aiViewSession.position(id,this.view):null,saved=freshRoot?null:this.homePositions.get(id||'home'),sessionAnchor=null;
+  // Root and each Topic own independent reading positions. A lawful Topic
+  // session keeps its own order before deciding whether metadata is optional.
+  if(id&&this.view==='original'&&['asc','desc'].includes(saved?.sort))this.readingSort=saved.sort;
+  const sameSessionResume=!!id&&this.view==='original'&&!!(session||saved)&&(!saved?.sort||saved.sort===this.readingSort),readPosition=()=>id&&this.view==='original'?request('THOUGHT_POSITION',{position:{topicId:id}}).catch(()=>null):Promise.resolve(null);
+  if(id&&this.view==='original'&&!sameSessionResume){this.resumeAnchor=await readPosition();if(intent!==this.openIntent)return;if((this.topicRestoreInputEpoch||0)!==restoreInputEpoch)this.resumeAnchor=null;if(this.resumeAnchor?.sort)this.readingSort=this.resumeAnchor.sort;}else this.resumeAnchor=null;if(!this.resumeAnchor&&saved?.sort)this.readingSort=saved.sort;
   ;if(!id){this.rootProviderKey=saved?.rootProviderKey||null;if(saved){const returned=saved.returnGeometry;delete saved.returnGeometry;this.rootReturnGeometry=returned?{...returned,intent,inputEpoch:this.homeAnchorInputEpoch||0,scroll:globalThis.scrollY||0}:null;;this.rootInvalidationAnchor=saved.rootAnchor||null;if(saved.collection){this.homeCollection=this.createHomeCollection('');this.homeCollection.restore(saved.collection,{scope:this.homeCollectionScope(''),query:''});this.homeDesiredCount=Math.max(40,saved.collection.items.length);this.homeRestoring=true;this.preserveHomeRefresh=true;this.rootInvalidationAnchor=saved.rootAnchor||null;}}}this.cursor=id?(session?.cursor??saved?.cursor??null):null;this.pages=session?.pages||saved?.pages||[];this.history=null;if(sessionAnchor)this.topicNavigationAnchor={entryId:sessionAnchor.id,top:sessionAnchor.top};
-  if(id&&this.view==='original')this.restoreContent(id);const restoreInputEpoch=this.topicRestoreInputEpoch||0;await this.refresh();if(intent!==this.openIntent)return;this.onOpen();
+  if(id&&this.view==='original')this.restoreContent(id);await this.refresh();if(intent!==this.openIntent)return;this.onOpen();
   let sessionAnchorRestored=false;
   if((this.topicRestoreInputEpoch||0)===restoreInputEpoch){
-   const scopedResume=this.view==='original'&&this.topicReader?.scopeSectionId===this.activeSectionId&&(this.topicReader?.positionRestored||this.topicReader?.sectionAnchorRestored||this.topicReader?.sectionRestoreRefused);
+   const scopedResume=this.view==='original'&&this.topicReader?.scopeSectionId===this.activeSectionId&&(this.topicReader?.positionRestored||this.topicReader?.sectionAnchorRestored);
    if(scopedResume)sessionAnchorRestored=true;
    else if(this.view==='original'&&sessionAnchor)sessionAnchorRestored=this.topicReader?.restoreAnchor(this.originalPane,sessionAnchor,this.topicAnchorEntry(sessionAnchor.id))===true;
    else scrollTo(0,session?.scroll??saved?.scroll??0);
   }
-  if(id&&this.view==='original'&&sameSessionResume){await readPosition().then(async anchor=>{if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;if(!sessionAnchorRestored&&(sessionAnchor||anchor?.sort&&anchor.sort!==this.readingSort)){if(anchor?.sort)this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;this.topicNavigationAnchor=null;await this.refresh();if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;}if(!sessionAnchorRestored)await this.restorePosition(anchor);this.resumeAnchor=null;if(intent===this.openIntent&&this.id===id&&this.view==='original')this.schedulePosition();});}
-  else if(id&&this.view==='original'&&this.resumeAnchor){await this.restorePosition(this.resumeAnchor);this.resumeAnchor=null;this.schedulePosition();}
+  if(id&&this.view==='original'&&sameSessionResume){await readPosition().then(async anchor=>{if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;if(!sessionAnchorRestored&&(sessionAnchor||anchor?.sort&&anchor.sort!==this.readingSort)){if(anchor?.sort)this.readingSort=anchor.sort;this.cursor=null;this.pages=[];this.resumeAnchor=anchor;this.topicNavigationAnchor=null;await this.refresh();if(intent!==this.openIntent||this.id!==id||this.view!=='original'||(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)return;}if(!sessionAnchorRestored)await this.restorePosition(anchor,{allowScopeChange:!sectionId&&(!initialSectionId||!this.sectionDirectory?.some(row=>row.sectionId===initialSectionId))});this.resumeAnchor=null;if(intent===this.openIntent&&this.id===id&&this.view==='original')this.schedulePosition();});}
+  else if(id&&this.view==='original'&&this.resumeAnchor&&(this.topicRestoreInputEpoch||0)===restoreInputEpoch){
+   const allowScopeChange=!sectionId&&(!initialSectionId||!this.sectionDirectory?.some(row=>row.sectionId===initialSectionId)),reader=this.topicReader;
+   if(reader?.indexing&&reader.pendingInitialPublication?.isCurrent()){
+    reader.pendingPosition={anchor:this.resumeAnchor,allowScopeChange,events:positionEvents};positionEvents=null;
+   }else{await this.restorePosition(this.resumeAnchor,{allowScopeChange});this.resumeAnchor=null;this.schedulePosition();}
+  }
   if(intent===this.openIntent){
    const entryPending=[...(this.entryRemovalAttempts?.values()||[])].find(row=>row.topicId===id&&(!row.result||row.restore&&!row.restored));
    if(entryPending&&this.view==='original'){const presentation=this.presentationIntent;this.entryRemovalNotice(entryPending,()=>this.id===id&&this.openIntent===intent&&this.presentationIntent===presentation&&this.view==='original');}
@@ -1676,5 +1763,6 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(pending&&this.view==='original'){const presentation=this.presentationIntent;this.placementRecoveryNotice(pending,()=>this.id===id&&this.openIntent===intent&&this.presentationIntent===presentation&&this.view==='original');}
    return intent;
   }
+  }finally{positionEvents?.abort();if(intent===this.openIntent&&(this.topicRestoreInputEpoch||0)!==restoreInputEpoch)this.resumeAnchor=null;}
  }
 }

@@ -82,3 +82,11 @@ test('real Section query continuation keeps canonical counts and exact hydration
   assert.equal(retiredReads,0,'the current presenter never reads a retired Topic search control');assert.deepEqual(f.draft,{body:'SYNTHETIC unsaved 原文',selection:[2,5]});
  }finally{f.close();await s.repository.close();}
 });
+
+test('year retry stays disabled until its original annual final qualification releases busy ownership',()=>{
+ const f=fixture();try{
+  const action={hidden:false,disabled:false,textContent:''};f.owner.topicNextYear=action;f.owner.view='original';Object.assign(f.state,{nextYear:2021,errorNext:Error('SYNTHETIC transient read failure'),loadingNext:false});f.owner.annualTransitionBusy=true;
+  f.owner.updateTopicContinuous();assert.equal(!!action.hidden,false);assert.equal(action.disabled,true,'visible next-year retry cannot advertise readiness while its handler still owns final qualification');assert.equal(f.node('after','-retry').disabled,true);
+  f.owner.annualTransitionBusy=false;f.owner.updateTopicContinuous();assert.equal(action.disabled,false);assert.equal(f.node('after','-retry').disabled,false);assert.equal(f.node('after','-retry').hidden,false);assert.equal(f.owner.originalPane,f.draft);
+ }finally{f.close();}
+});

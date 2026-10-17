@@ -100,8 +100,8 @@ async function installSectionBoundaryEvidence(page,variant){
     frontier:{terminal:document.getElementById('topic-continuous-after')?.dataset.terminal,hidden:document.getElementById('topic-continuous-after')?.hidden},documentState:document.getElementById('thought-document')?.dataset.state,inert:document.getElementById('topic-body')?.inert,bodyHidden:body?.hidden,mounted:body?.querySelectorAll('[data-entry-id]').length||0,mountedIds:[...body?.querySelectorAll('[data-entry-id]')||[]].map(node=>node.dataset.entryId),before:{hidden:document.getElementById('topic-continuous-before')?.hidden,terminal:document.getElementById('topic-continuous-before')?.dataset.terminal},sections:[...body?.querySelectorAll('.topic-section')||[]].map(node=>node.dataset.sectionId),active:{tag:document.activeElement?.tagName,id:document.activeElement?.id,entryId:document.activeElement?.closest('[data-entry-id]')?.dataset.entryId,editable:document.activeElement?.contentEditable},editors:{editor:editor(owner?.editor),ai:editor(owner?.aiEditor),dialog:editor(owner?.dialogEditor)},writer:owner?.sectionEndWriter?{hasDraft:owner.sectionEndWriter.hasDraft(),connected:owner.sectionEndWriter.field?.isConnected}:null};
   };
   trace.record=(name,detail={})=>{try{events.push({at:performance.now(),name,detail,state:trace.snapshot()});if(events.length>64)events.shift();}catch(error){events.push({name,diagnosticError:String(error)});if(events.length>64)events.shift();}};
-  for(const name of ['createTopicReader','updateTopicContinuous','openNextTopicYear']){
-   const original=ThoughtWorkspace.prototype[name];ThoughtWorkspace.prototype[name]=function(...args){trace.owner=this;trace.record(name+':start');const result=original.apply(this,args);trace.record(name+':returned');if(name==='openNextTopicYear'&&result?.then)result.then(value=>trace.record(name+':settled',{value}),error=>trace.record(name+':rejected',{code:error?.code,name:error?.name}));return result;};
+  for(const name of ['open','flushEditors','createTopicReader','updateTopicContinuous','openNextTopicYear']){
+   const original=ThoughtWorkspace.prototype[name];ThoughtWorkspace.prototype[name]=function(...args){trace.owner=this;trace.record(name+':start');const result=original.apply(this,args);trace.record(name+':returned');if(['open','flushEditors','openNextTopicYear'].includes(name)&&result?.then)result.then(value=>trace.record(name+':settled',{value}),error=>trace.record(name+':rejected',{code:error?.code,name:error?.name}));return result;};
   }
   document.addEventListener('click',event=>{if(event.target.closest?.('#topic-next-year'))trace.record('year-click',{trusted:event.isTrusted});},true);
   document.addEventListener('change',event=>{if(event.target.id==='topic-source-scope')trace.record('source-change',{selected:event.target.value,trusted:event.isTrusted});},true);
@@ -133,8 +133,13 @@ async function provenanceRoleJourney(page,topics,{release=false}={}){
   const destination=await rpc(page,'GET_LIBRARY_TOPIC',{id:topics[1].id});
   await installSectionBoundaryEvidence(page,release?'release':'source');
   await page.setViewportSize({width:1440,height:900});
-  await page.locator('#back').click();
-  await eventually(()=>page.locator('#thought-list').isVisible(),'return to Topic scanning after original reading');
+  try{
+   await page.locator('#back').click();
+   await eventually(()=>page.locator('#thought-list').isVisible(),'return to Topic scanning after original reading');
+  }catch(error){
+   const diagnostic=await page.evaluate(()=>({state:__uir03SectionBoundary.snapshot(),events:__uir03SectionBoundary.events,route:{space:document.body.dataset.paiaSpace,history:history.state,thoughtListHidden:document.getElementById('thought-list')?.hidden,thoughtDocumentHidden:document.getElementById('thought-document')?.hidden},dialogs:[...document.querySelectorAll('dialog[open]')].map(n=>({id:n.id})),status:{save:document.getElementById('save-status')?.textContent}}));
+   console.info('UIR03_BACK_FAILURE '+JSON.stringify(diagnostic));throw error;
+  }
   await page.locator('.personal-topic-link[data-topic-id="'+topics[1].id+'"]').click();
   const entry=page.locator('#original-reading-body [data-entry-id="'+id+'"]');
   await eventually(()=>page.evaluate(({name,sectionId})=>{

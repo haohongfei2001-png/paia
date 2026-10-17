@@ -16,7 +16,7 @@ const rpc=async(page,type,fields={})=>{
  const reply=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});
  assert.equal(reply?.ok,true,JSON.stringify(reply));return reply.data;
 };
-async function fixture(variant,count=2){
+async function fixture(variant,count=2,{requireUnicodeTarget=true}={}){
  const h=await FakeChatGPT.start(variant==='release'?{extensionPath:releaseRoot}:{}),p=h.archive;
  try{
   await p.setViewportSize({width:390,height:844});
@@ -37,7 +37,12 @@ async function fixture(variant,count=2){
   await rpc(p,'SET_ENABLED',{enabled:false});await p.bringToFront();await openArchiveWindow(p,{text:title});
   await eventually(()=>p.locator('.library-prose').count().then(n=>n===Math.min(count,40)));
   await eventually(()=>p.locator('#document-page').evaluate(node=>!node.inert),'Reader route is admitted');assert.equal(await p.locator('input[type=search]:visible').count(),0);
-  const field=p.locator('.library-prose').first(),id=await field.getAttribute('data-edit-id');
+  const captured=await h.state(),original=captured.records.find(row=>row.sourceMessageId===messages[0].id);
+  assert.ok(original,'the exact first synthetic Source is captured');
+  const matches=captured.library.blocks.filter(row=>row.originalTextReference===original.id);assert.equal(matches.length,1,'one canonical Working Input owns the Unicode Source');
+  const id=matches[0].id,field=p.locator('.library-prose[data-edit-id="'+id+'"]');assert.equal(original.originalText,messages[0].text);
+  if(requireUnicodeTarget){await field.waitFor({state:'visible'});assert.equal(await field.textContent(),messages[0].text,'descending presentation never changes the exact Unicode target');}
+  else{assert.equal(count,101,'only the large bounded-window removal journey has no Unicode edit target');assert.equal(await p.locator('#input-time-toggle').getAttribute('data-current-sort'),'desc');assert.equal(await field.count(),0,'the oldest Unicode Input is honestly outside the current newest40 window');}
   return {h,p,field,id,documentId};
  }catch(error){await h.close();throw error;}
 }
@@ -69,7 +74,7 @@ for(const variant of ['source','release']){
   try{
    const before=await h.state(),inputBefore=await rpc(p,'GET_INPUT',{id});await assertEditable(p);
    await field.evaluate(el=>{
-    globalThis.__directNodes=[document.getElementById('document-title'),...document.querySelectorAll('.library-prose')];
+    globalThis.__directNodes=[document.getElementById('document-title'),...document.querySelectorAll('.library-prose')];globalThis.__directField=el;
     el.focus();const start=el.firstChild.textContent.indexOf('👩‍💻'),end=start+'👩‍💻 é'.length;
     getSelection().setBaseAndExtent(el.firstChild,start,el.firstChild,end);
     globalThis.__directRange={node:el.firstChild,start,end,text:getSelection().toString()};
@@ -78,7 +83,7 @@ for(const variant of ['source','release']){
    for(const width of [1440,1280,1024,768,390,320]){
     await p.setViewportSize({width,height:844});await settleReaderPresentation(p,width);await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));
     await assertEditable(p);
-    assert.equal(await p.evaluate(()=>__directNodes.every(node=>node.isConnected)&&document.activeElement===__directNodes[1]),true,'resize keeps the same active editor nodes');
+    assert.equal(await p.evaluate(()=>__directNodes.every(node=>node.isConnected)&&document.activeElement===__directField),true,'resize keeps the same active editor nodes');
     // Compare against the captured DOM range, not a re-derived normalized string.
     assert.equal(await p.evaluate(()=>{const s=getSelection();return s.anchorNode===__directRange.node&&s.focusNode===__directRange.node&&s.anchorOffset===__directRange.start&&s.focusOffset===__directRange.end&&s.toString()===__directRange.text;}),true,'complete emoji and combining selection survives resize');
     const overflow=await p.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(overflow<=2,`${width}px Reader overflow ${overflow}`);
@@ -99,7 +104,7 @@ for(const variant of ['source','release']){
    for(const width of [768,1440,320]){await p.setViewportSize({width,height:844});await assertEditable(p);assert.equal(await field.textContent(),'SYNTHETIC 未完成拼音 ni');}
    await pause(900);assert.equal((await rpc(p,'GET_INPUT',{id})).revision,inputBefore.revision,'unfinished composition has no partial persisted revision');
    await p.locator('#back').click();assert.equal(await p.locator('#document-panel').isVisible(),true,'Back cannot discard unfinished composition');
-   assert.equal(await p.evaluate(()=>document.querySelector('.library-prose')===__directNodes[1]),true);
+   assert.equal(await p.evaluate(()=>__directField.isConnected&&document.querySelector('[data-edit-id="'+__directField.dataset.editId+'"]')===__directField),true);
    assert.equal((await rpc(p,'GET_INPUT',{id})).revision,inputBefore.revision);
    const finalText='SYNTHETIC 完整中文 👩‍💻 é 保持换行。\n结束组合后才保存。';
    await field.evaluate((el,text)=>{el.textContent=text;el.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:text}));el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));},finalText);
@@ -141,6 +146,11 @@ for(const variant of ['source','release']){
  test(`D1 narrow failed direct edit retains full buffer, cross-Input copy/boundary and retry without an Edit mode (${variant})`,{timeout:90000},async()=>{
   const {h,p,field,id}=await fixture(variant);
   try{
+   // This original range is explicitly Source0 -> Source1, independent of
+   // the approved default newest-first Reader order. Use its real sort control.
+   const canonical=await h.state(),expected=['dvn-direct-message-000','dvn-direct-message-001'].map(messageId=>{const source=canonical.records.find(row=>row.sourceMessageId===messageId);assert.ok(source);const owners=canonical.library.blocks.filter(row=>row.originalTextReference===source.id);assert.equal(owners.length,1);return {id:owners[0].id,text:source.originalText};});
+   await settleReaderPresentation(p);const compact=p.locator('#archive-compact-navigation'),sort=p.locator('#input-time-toggle');if(await sort.getAttribute('data-current-sort')!=='asc'){if(!await sort.isVisible()&&!await compact.evaluate(node=>node.open))await compact.locator(':scope > summary').click();await sort.click();}
+   await eventually(async()=>await sort.getAttribute('data-current-sort')==='asc'&&JSON.stringify(await p.locator('.library-prose').evaluateAll(nodes=>nodes.map(node=>({id:node.dataset.editId,text:node.innerText}))))===JSON.stringify(expected),'the actual Source0/Source1 canonical Inputs settle in their explicit oldest-first order');if(await compact.evaluate(node=>node.open))await p.keyboard.press('Escape');assert.equal(await field.getAttribute('data-edit-id'),expected[0].id);
    const before=await h.state(),worker=h.context.serviceWorkers().find(w=>w.url().endsWith('/background/service-worker.js'));
    await worker.evaluate(()=>{const put=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(value,...args){if(this.name==='blocks'&&value?.value?.libraryText?.includes('SYNTHETIC_DIRECT_FAILED')){IDBObjectStore.prototype.put=put;throw new DOMException('Synthetic direct-edit storage failure','QuotaExceededError');}return put.call(this,value,...args);};});
    const draft='SYNTHETIC_DIRECT_FAILED 完整草稿 👩‍💻 é\n'+('未保存段落完整保留。\n'.repeat(60))+'SYNTHETIC 完整尾标记 END 👩‍💻 é';await field.fill(draft);
@@ -159,7 +169,7 @@ for(const variant of ['source','release']){
   }finally{await h.close();}
  });
  test(`D1 responsive presentation cannot reopen the editor-owned pending whole-Conversation removal lock (${variant})`,{timeout:90000},async()=>{
-  const {h,p}=await fixture(variant,101);
+  const {h,p}=await fixture(variant,101,{requireUnicodeTarget:false});
   try{
    const before=await h.state(),mountedIds=await p.locator('.library-prose').evaluateAll(nodes=>nodes.map(el=>el.dataset.editId));assert.equal(mountedIds.length,40);
    await p.evaluate(()=>{const send=chrome.runtime.sendMessage.bind(chrome.runtime);globalThis.__directRemovalWrites=0;globalThis.__directPageReads=0;chrome.runtime.sendMessage=async message=>{

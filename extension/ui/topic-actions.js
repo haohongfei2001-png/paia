@@ -151,11 +151,11 @@ export class TopicActions {
   if(inline)return installInline();
   if(current()&&!workspacePreview)draft.focus();
  }
- async compare(id,{source=false}={}){
-  const intent=this.beginOpen();if(!await this.flush()||intent!==this.openIntent)return;const result=await request('COMPARE_THOUGHT_INPUT',{id});if(intent!==this.openIntent||!this.open(source?tc('查看当时记录'):tc('查看档案当前文字')))return;
+ async compare(id,{source=false,isCurrent=()=>true}={}){
+  if(!isCurrent())return;const intent=this.beginOpen();if(!await this.flush()||intent!==this.openIntent||!isCurrent())return;const result=await request('COMPARE_THOUGHT_INPUT',{id});if(intent!==this.openIntent||!isCurrent()||!this.open(source?tc('查看当时记录'):tc('查看档案当前文字')))return;
   const owner=this.surface;this.comparing=true;
   if(source){for(const item of result.sources||[])owner.content.append(element('p','muted',item.sourceSentAt?new Date(item.sourceSentAt).toLocaleString():tc('发送时间未知')),element('pre','topic-selection-preview',item.body));if(!result.sources?.length)owner.content.append(element('p','',tc('当时记录已不可用。')));return;}
   owner.content.append(element('h3','',tc('这条思想')),element('pre','topic-selection-preview',result.entry.thoughtText),element('h3','',tc('档案当前文字')),element('pre','topic-selection-preview',result.input?.body||tc('当前档案不可用')),button(tc('保留我的修改'),()=>this.close(true,owner)));
-  if(result.input)owner.content.append(button(tc('恢复为档案当前文字'),async()=>{if(!this.currentSurface(owner)||!confirm(tc('用已展示的档案当前文字替换这条思想，并保留人工旧版？')))return;try{const saved=await request('RESTORE_THOUGHT_INPUT',{edit:{id,operationId:op(),expectedRevision:result.entry.revision,expectedInputRevision:result.input.revision}});if(saved.conflict){if(this.currentSurface(owner))owner.feedback.textContent=tc('档案刚有更新，请核对后再保存。');return;}this.close(true,owner);this.notify(tc('已恢复为档案当前文字，并保留旧版本。'));}catch{if(this.currentSurface(owner))owner.feedback.textContent=tc('恢复尚未完成，请重试。');}}));
+  if(result.input)owner.content.append(button(tc('恢复为档案当前文字'),async()=>{if(!this.currentSurface(owner)||!isCurrent()||!confirm(tc('用已展示的档案当前文字替换这条思想，并保留人工旧版？')))return;try{const saved=await request('RESTORE_THOUGHT_INPUT',{edit:{id,operationId:op(),expectedRevision:result.entry.revision,expectedInputRevision:result.input.revision}});if(!this.currentSurface(owner)||!isCurrent())return;if(saved.conflict){owner.feedback.textContent=tc('档案刚有更新，请核对后再保存。');return;}this.close(true,owner);this.notify(tc('已恢复为档案当前文字，并保留旧版本。'));}catch{if(this.currentSurface(owner)&&isCurrent())owner.feedback.textContent=tc('恢复尚未完成，请重试。');}}));
  }
 }
