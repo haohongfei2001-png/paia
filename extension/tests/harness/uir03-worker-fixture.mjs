@@ -1,3 +1,22 @@
+// Loading the archive page does not certify Playwright's MV3 worker target.
+// One ordinary status request wakes the registered worker; the original bounded
+// eventual helper then observes that exact target. No Store or worker is created.
+export async function awakeLibraryFixtureWorker({context,extensionId,wake,eventually}){
+ const url=`chrome-extension://${extensionId}/background/service-worker.js`;
+ let worker,awake=false,failure;
+ // The same existing deadline bounds a missing status response and the target
+ // publication. Late settlement cannot start another request or install traces.
+ Promise.resolve().then(wake).then(()=>{awake=true;},error=>{failure={error};});
+ await eventually(()=>{
+  if(failure)throw failure.error;
+  if(!awake)return false;
+  const matches=context.serviceWorkers().filter(candidate=>candidate.url()===url);
+  if(matches.length>1)throw Error('Ambiguous original native worker');
+  worker=matches[0];return !!worker;
+ },'the original native worker is running');
+ return worker;
+}
+
 // Injected into the disposable native worker. Observe and reuse the original
 // LibraryRunner/Store; no replacement store, retry, drain, or public RPC exists.
 export function installLibraryFixtureObservation(){
