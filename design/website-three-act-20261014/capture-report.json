@@ -1,0 +1,1130 @@
+{
+  "zh": {
+    "errors": [],
+    "frames": {
+      "archive": [
+        {
+          "name": "archive",
+          "x": 660,
+          "y": 292.484375,
+          "width": 602,
+          "height": 518,
+          "opacity": "1",
+          "scrollHeight": 534,
+          "clientHeight": 518
+        },
+        {
+          "name": "thought",
+          "x": 750,
+          "y": 369.484375,
+          "width": 200,
+          "height": 285,
+          "opacity": "0",
+          "scrollHeight": 403,
+          "clientHeight": 283
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394.484375,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 426.27313232421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404.484375,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949.484375,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "topics": [
+        {
+          "name": "archive",
+          "x": -269.989990234375,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 685,
+          "y": 415.0837707519531,
+          "width": 192.8228759765625,
+          "height": 283.8548278808594,
+          "opacity": "1",
+          "scrollHeight": 393,
+          "clientHeight": 278
+        },
+        {
+          "name": "writing",
+          "x": 885.6475219726562,
+          "y": 375,
+          "width": 193.30438232421875,
+          "height": 284.17047119140625,
+          "opacity": "1",
+          "scrollHeight": 278,
+          "clientHeight": 278
+        },
+        {
+          "name": "learning",
+          "x": 1097,
+          "y": 424.69451904296875,
+          "width": 188.9501953125,
+          "height": 281.29864501953125,
+          "opacity": "1",
+          "scrollHeight": 278,
+          "clientHeight": 278
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "original": [
+        {
+          "name": "archive",
+          "x": -270,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 757,
+          "y": 229,
+          "width": 479,
+          "height": 658,
+          "opacity": "1",
+          "scrollHeight": 942,
+          "clientHeight": 656
+        },
+        {
+          "name": "writing",
+          "x": 1287.9627685546875,
+          "y": 309,
+          "width": 166.8248291015625,
+          "height": 237.796875,
+          "opacity": "0",
+          "scrollHeight": 231,
+          "clientHeight": 228
+        },
+        {
+          "name": "learning",
+          "x": 1423.9560546875,
+          "y": 339,
+          "width": 170.6663818359375,
+          "height": 240.251953125,
+          "opacity": "0",
+          "scrollHeight": 231,
+          "clientHeight": 228
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "organized": [
+        {
+          "name": "archive",
+          "x": -270,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 757,
+          "y": 229,
+          "width": 479,
+          "height": 658,
+          "opacity": "1",
+          "scrollHeight": 942,
+          "clientHeight": 656
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "orb": [
+        {
+          "name": "archive",
+          "x": -280,
+          "y": 772.2584228515625,
+          "width": 252.66909790039062,
+          "height": 206.27874755859375,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 190
+        },
+        {
+          "name": "thought",
+          "x": -259.989990234375,
+          "y": 706.3698120117188,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588.010009765625,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "capsule": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0287475585938,
+          "width": 297.3420715332031,
+          "height": 339.7646484375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 706.3798217773438,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "board": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0187377929688,
+          "width": 297.34259033203125,
+          "height": 339.78021240234375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 706.3798217773438,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "context": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0187377929688,
+          "width": 297.34259033203125,
+          "height": 339.78021240234375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 686.4393310546875,
+          "width": 256.4185791015625,
+          "height": 332.12213134765625,
+          "opacity": "0",
+          "scrollHeight": 459,
+          "clientHeight": 318
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1336.379150390625,
+          "y": 539,
+          "width": 433.35498046875,
+          "height": 404.42022705078125,
+          "opacity": "0",
+          "scrollHeight": 390,
+          "clientHeight": 390
+        },
+        {
+          "name": "context",
+          "x": 692,
+          "y": 343.010009765625,
+          "width": 590,
+          "height": 448,
+          "opacity": "1",
+          "scrollHeight": 463,
+          "clientHeight": 448
+        }
+      ],
+      "overview": [
+        {
+          "name": "archive",
+          "x": 135,
+          "y": 349,
+          "width": 290,
+          "height": 325,
+          "opacity": "1",
+          "scrollHeight": 338,
+          "clientHeight": 325
+        },
+        {
+          "name": "thought",
+          "x": 468,
+          "y": 337,
+          "width": 397,
+          "height": 505,
+          "opacity": "1",
+          "scrollHeight": 733,
+          "clientHeight": 503
+        },
+        {
+          "name": "writing",
+          "x": 934.2415771484375,
+          "y": 243,
+          "width": 145.6732177734375,
+          "height": 169.785400390625,
+          "opacity": "0",
+          "scrollHeight": 231,
+          "clientHeight": 163
+        },
+        {
+          "name": "learning",
+          "x": 1120,
+          "y": 246.55667114257812,
+          "width": 142.8582763671875,
+          "height": 167.41818237304688,
+          "opacity": "0",
+          "scrollHeight": 259,
+          "clientHeight": 163
+        },
+        {
+          "name": "chat",
+          "x": 906,
+          "y": 404,
+          "width": 399,
+          "height": 390,
+          "opacity": "1",
+          "scrollHeight": 390,
+          "clientHeight": 390
+        },
+        {
+          "name": "context",
+          "x": 135,
+          "y": 716,
+          "width": 290,
+          "height": 137,
+          "opacity": "1",
+          "scrollHeight": 151,
+          "clientHeight": 137
+        }
+      ]
+    },
+    "phone_overflow": false
+  },
+  "en": {
+    "errors": [],
+    "frames": {
+      "archive": [
+        {
+          "name": "archive",
+          "x": 660,
+          "y": 292,
+          "width": 602,
+          "height": 518,
+          "opacity": "1",
+          "scrollHeight": 544,
+          "clientHeight": 518
+        },
+        {
+          "name": "thought",
+          "x": 750,
+          "y": 369,
+          "width": 200,
+          "height": 285,
+          "opacity": "0",
+          "scrollHeight": 403,
+          "clientHeight": 283
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "topics": [
+        {
+          "name": "archive",
+          "x": -270,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 685,
+          "y": 415.0837707519531,
+          "width": 192.8228759765625,
+          "height": 283.8548278808594,
+          "opacity": "1",
+          "scrollHeight": 393,
+          "clientHeight": 278
+        },
+        {
+          "name": "writing",
+          "x": 885.6475219726562,
+          "y": 375,
+          "width": 193.30438232421875,
+          "height": 284.17047119140625,
+          "opacity": "1",
+          "scrollHeight": 278,
+          "clientHeight": 278
+        },
+        {
+          "name": "learning",
+          "x": 1097,
+          "y": 424.69451904296875,
+          "width": 188.9501953125,
+          "height": 281.29864501953125,
+          "opacity": "1",
+          "scrollHeight": 289,
+          "clientHeight": 278
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "original": [
+        {
+          "name": "archive",
+          "x": -270,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 757,
+          "y": 229,
+          "width": 479,
+          "height": 658,
+          "opacity": "1",
+          "scrollHeight": 942,
+          "clientHeight": 656
+        },
+        {
+          "name": "writing",
+          "x": 1287.9627685546875,
+          "y": 309,
+          "width": 166.8248291015625,
+          "height": 237.796875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 228
+        },
+        {
+          "name": "learning",
+          "x": 1423.9560546875,
+          "y": 339,
+          "width": 170.6663818359375,
+          "height": 240.251953125,
+          "opacity": "0",
+          "scrollHeight": 376,
+          "clientHeight": 228
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "organized": [
+        {
+          "name": "archive",
+          "x": -270,
+          "y": 729.8692626953125,
+          "width": 284.07470703125,
+          "height": 289.75250244140625,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 276
+        },
+        {
+          "name": "thought",
+          "x": 757,
+          "y": 229,
+          "width": 479,
+          "height": 658,
+          "opacity": "1",
+          "scrollHeight": 942,
+          "clientHeight": 656
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1380,
+          "y": 404,
+          "width": 600,
+          "height": 480,
+          "opacity": "0",
+          "scrollHeight": 480,
+          "clientHeight": 480
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "orb": [
+        {
+          "name": "archive",
+          "x": -280,
+          "y": 772.2584228515625,
+          "width": 252.66909790039062,
+          "height": 206.27874755859375,
+          "opacity": "0",
+          "scrollHeight": 305,
+          "clientHeight": 190
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 706.3798217773438,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "capsule": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0187377929688,
+          "width": 297.34259033203125,
+          "height": 339.78021240234375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 706.3798217773438,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "board": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0187377929688,
+          "width": 297.34259033203125,
+          "height": 339.78021240234375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 706.3798217773438,
+          "width": 258.2267761230469,
+          "height": 334.42156982421875,
+          "opacity": "0",
+          "scrollHeight": 469,
+          "clientHeight": 324
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 588,
+          "y": 283,
+          "width": 715,
+          "height": 557,
+          "opacity": "1",
+          "scrollHeight": 557,
+          "clientHeight": 557
+        },
+        {
+          "name": "context",
+          "x": 165,
+          "y": 949,
+          "width": 500,
+          "height": 390,
+          "opacity": "0",
+          "scrollHeight": 405,
+          "clientHeight": 390
+        }
+      ],
+      "context": [
+        {
+          "name": "archive",
+          "x": -210,
+          "y": 609.0187377929688,
+          "width": 297.34259033203125,
+          "height": 339.78021240234375,
+          "opacity": "0",
+          "scrollHeight": 343,
+          "clientHeight": 330
+        },
+        {
+          "name": "thought",
+          "x": -260,
+          "y": 686.4393310546875,
+          "width": 256.4185791015625,
+          "height": 332.12213134765625,
+          "opacity": "0",
+          "scrollHeight": 459,
+          "clientHeight": 318
+        },
+        {
+          "name": "writing",
+          "x": 905.5771484375,
+          "y": 394,
+          "width": 193.310791015625,
+          "height": 276.25701904296875,
+          "opacity": "0",
+          "scrollHeight": 268,
+          "clientHeight": 268
+        },
+        {
+          "name": "learning",
+          "x": 1115,
+          "y": 425.78875732421875,
+          "width": 188.68408203125,
+          "height": 273.17010498046875,
+          "opacity": "0",
+          "scrollHeight": 289,
+          "clientHeight": 268
+        },
+        {
+          "name": "chat",
+          "x": 1336.38916015625,
+          "y": 539,
+          "width": 433.35498046875,
+          "height": 404.42022705078125,
+          "opacity": "0",
+          "scrollHeight": 390,
+          "clientHeight": 390
+        },
+        {
+          "name": "context",
+          "x": 692,
+          "y": 343,
+          "width": 590,
+          "height": 448,
+          "opacity": "1",
+          "scrollHeight": 463,
+          "clientHeight": 448
+        }
+      ],
+      "overview": [
+        {
+          "name": "archive",
+          "x": 135,
+          "y": 349,
+          "width": 290,
+          "height": 325,
+          "opacity": "1",
+          "scrollHeight": 338,
+          "clientHeight": 325
+        },
+        {
+          "name": "thought",
+          "x": 468,
+          "y": 337,
+          "width": 397,
+          "height": 505,
+          "opacity": "1",
+          "scrollHeight": 733,
+          "clientHeight": 503
+        },
+        {
+          "name": "writing",
+          "x": 934.2415771484375,
+          "y": 243,
+          "width": 145.6732177734375,
+          "height": 169.785400390625,
+          "opacity": "0",
+          "scrollHeight": 319,
+          "clientHeight": 163
+        },
+        {
+          "name": "learning",
+          "x": 1120,
+          "y": 246.55667114257812,
+          "width": 142.8582763671875,
+          "height": 167.41818237304688,
+          "opacity": "0",
+          "scrollHeight": 376,
+          "clientHeight": 163
+        },
+        {
+          "name": "chat",
+          "x": 906,
+          "y": 404,
+          "width": 399,
+          "height": 390,
+          "opacity": "1",
+          "scrollHeight": 390,
+          "clientHeight": 390
+        },
+        {
+          "name": "context",
+          "x": 135,
+          "y": 716,
+          "width": 290,
+          "height": 137,
+          "opacity": "1",
+          "scrollHeight": 151,
+          "clientHeight": 137
+        }
+      ]
+    },
+    "phone_overflow": false
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "zh": {
+    "baseline": "fb90d4406dfdacf6873dd0d0dadb7bf00b13b177",
+    "expressions": [
+      "先比较素材找回和内容生成，看看创作者更需要什么。",
+      "第一版只解决一个反复发生的问题，不做多人协作。",
+      "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+      "保留这个取舍：先找回，再决定是否创造更多。"
+    ],
+    "hero_text": "\nPAIA / 01\n个人 AI 输入档案\n你的表达，不止于对话。\n保存你对 AI 说过的话。找回、串联、复用，让下一次从这里开始。\n添加到 Chrome →查看演示 ↗\n适用于 Chrome · 支持 ChatGPT 网页版\n↓看见你的积累\nPAIA / DESKTOP三个空间，同一份积累\n\nPAIAInput ArchiveThought LibraryAI Context你的私人空间\n搜索全部档案⌄ 产品探索\n产品的第一步2026.09.24\n用户研究与判断2026.09.10\n下一步，从哪里开始2026.08.26\n› 写作与学习\n产品的第一步···2026.08 — 2026.09 · ChatGPT\n2026.08.12 · 09:42先比较素材找回和内容生成，看看创作者更需要什么。\n2026.08.26 · 11:18第一版只解决一个反复发生的问题，不做多人协作。\n2026.09.10 · 18:03判断标准不是功能多少，而是下一次任务能否接上这次积累。\n工作文字可以修改，原始来源仍然保留。\n\n好的表达，再用一次。你的个人提示词 ↗\n\n表达有来源。思考有来处。下一次，有起点。01 — 04\n",
+    "closing_text": "你的输入始终属于你保存你对 AI 说过的话。决定下一次 AI 可以使用什么。把散落的表达留成自己的积累。找回原话，继续思考，把对 AI 的允许范围掌握在自己手里。添加到 Chrome →使用帮助",
+    "sha256": "9d5ee6b0d38b00202651637ae2ba50ecb4bb3481676a252ea0067d908f3bbcbf",
+    "context": "directory labels only; no private bodies"
+  },
+  "en": {
+    "baseline": "fb90d4406dfdacf6873dd0d0dadb7bf00b13b177",
+    "expressions": [
+      "Compare material retrieval with content generation. Find out what creators need most.",
+      "Solve one recurring problem in the first release. Leave collaboration for later.",
+      "Success is not more features. It is whether the next task can build on this one.",
+      "Keep this trade-off: recover first, then decide whether to create more."
+    ],
+    "hero_text": "\nPAIA / 01\nPERSONAL AI INPUT ARCHIVE\nYour words.Beyond the chat.\nKeep what you tell AI.Find it. Connect it. Reuse it.Begin with what you already know.\nAdd to Chrome →View demo ↗\nFor Chrome · Works with ChatGPT Web\n↓See what stays with you\nPAIA / DESKTOPTHREE SPACES. ONE CONTINUITY.\n\nPAIAInput ArchiveThought LibraryAI ContextYour private space\nSearch all inputs⌄ Product exploration\nA product’s first step2026.09.24\nResearch and decisions2026.09.10\nWhere to begin next2026.08.26\n› Writing and learning\nA product’s first step···2026.08 — 2026.09 · ChatGPT\n2026.08.12 · 09:42Compare material retrieval with content generation. Find out what creators need most.\n2026.08.26 · 11:18Solve one recurring problem in the first release. Leave collaboration for later.\n2026.09.10 · 18:03Success is not more features. It is whether the next task can build on this one.\nEdit your working text. The original source stays intact.\n\nGood words. Ready again.YOUR PERSONAL PROMPTS ↗\n\nWords with a source. Ideas with a history. A place to begin again.01 — 04\n",
+    "closing_text": "YOUR INPUTS STAY YOURSKeep what you tell AI.Decide what AI can use next.Make scattered expressions an archive of your own. Return to your words, keep developing your ideas, and decide what a connected AI may use.Add to Chrome →Help",
+    "sha256": "35da122c4636afdbb024e4accf1ecbbc932a1811a9f179a1bf0db227c928c84e",
+    "context": "directory labels only; no private bodies"
+  }
+}

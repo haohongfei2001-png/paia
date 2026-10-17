@@ -1,0 +1,40 @@
+{
+  "zh": {
+    "baseline": "fb90d4406dfdacf6873dd0d0dadb7bf00b13b177",
+    "source_path": "zh/index.html",
+    "outer_markup_before": {
+      "hero": "a9d134f811d0a204ae4c6d09f351307b4a3142c84aa56623dd53a09da1b50a87",
+      "close": "3c8c76105e70cfef91a4fe14b78285e425949425194048e87f3063133edad951",
+      "header": "d202b542a38d08106d6dd3e0d758ea3c446072394d0ff813c2fc703c4a91cf09",
+      "footer": "82cfc9d993cd9c9684de2af25f8bbbc451d13764f1e9b44b8e90a7020c2a266d"
+    },
+    "prototype_sha256": "a6a1da658937355ea7cbd4195387ae5b2154ad284d06ef070a7bb0de55390390",
+    "expressions": [
+      "先比较素材找回和内容生成，看看创作者更需要什么。",
+      "第一版只解决一个反复发生的问题，不做多人协作。",
+      "判断标准不是功能多少，而是下一次任务能否接上这次积累。",
+      "保留这个取舍：先找回，再决定是否创造更多。"
+    ],
+    "context": "directory-only, no private example bodies",
+    "byte_size": 357899
+  },
+  "en": {
+    "baseline": "fb90d4406dfdacf6873dd0d0dadb7bf00b13b177",
+    "source_path": "index.html",
+    "outer_markup_before": {
+      "hero": "e623dedf1a25532195668878bbee111f52f41f413c30d3587271d7a62d43d54e",
+      "close": "122f5f61bd8c2cfab3e4813ab857c9637d95e97c57b7d3d26de748f214a945f3",
+      "header": "74d5850d4d097a580288faaf6831e8f35041d77a87728a0198b50c7912f7bc0e",
+      "footer": "80cd19724148efc81c2c445a7edfa2a467488ffa051bc4d1df4077fcbfdb72a7"
+    },
+    "prototype_sha256": "5230a6bbb2858c6fcd1c4ac321a8aa0a29787f8d04964838a3bb993bc579d175",
+    "expressions": [
+      "Compare material retrieval with content generation. Find out what creators need most.",
+      "Solve one recurring problem in the first release. Leave collaboration for later.",
+      "Success is not more features. It is whether the next task can build on this one.",
+      "Keep this trade-off: recover first, then decide whether to create more."
+    ],
+    "context": "directory-only, no private example bodies",
+    "byte_size": 358061
+  }
+}
