@@ -226,7 +226,21 @@ export class TopicController {
   $('topic-continuous-before-status').textContent=tc(state.loadingPrevious?'正在载入更早内容…':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorPrevious?'更早内容加载中断；当前文字与草稿已保留。':state.continuationPrevious||unsettled?'还有内容待载入，请继续读取。':state.terminalPrevious?'已到主题开头':'向上滚动继续加载');
   $('topic-continuous-after-status').textContent=tc(state.protectionBlocked?'暂缓继续加载：请先保存或完成当前编辑，文字与选择仍保留。':state.indexing?'正在准备主题索引…':pending?'正在继续载入…':state.errorNext?'加载中断；当前文字与草稿已保留。':state.continuationNext||unsettled?'还有内容待载入，请继续读取。':state.terminalNext?'已到主题末尾':'向下滚动继续加载');
   this.desktopPresentation?.sync();
-  clearTimeout(this.topicContinuousTimer);if(state.indexing&&!state.loadingNext&&!state.errorNext)this.topicContinuousTimer=setTimeout(()=>{if(this.topicContinuousVisible())void this.loadTopicContinuous('next');},250);
+  clearTimeout(this.topicContinuousTimer);
+  if(state.indexing&&!state.loadingNext&&!state.loadingPrevious&&!state.stale&&!state.errorNext&&!state.errorPrevious&&!reader.hydrationError&&!state.protectionBlocked){
+   const deferred=reader.pendingInitialPublication,serial=this.serial,intent=this.openIntent,epoch=this.statusEpoch,cue=this.rootCueEpoch||0,inputEpoch=this.topicRestoreInputEpoch||0,view=this.view;
+   // A qualified bounded metadata page already made progress. Yield to the
+   // event loop before continuing that same initial publication; a polling
+   // delay per40 rows otherwise adds26 seconds for a5000-entry Section.
+   const progress=deferred?.isCurrent()&&reader.pageMeta?.yearMetadata?.pending===true&&reader.pageMeta?.operations?.descriptorRowsRead>0&&reader.pageMeta?.operations?.hydratedEntries===0&&!!reader.nextCursor;
+   this.topicContinuousTimer=setTimeout(()=>{
+    if(reader!==this.topicReader||serial!==this.serial||intent!==this.openIntent||epoch!==this.statusEpoch||view!==this.view||cue!==(this.rootCueEpoch||0)||inputEpoch!==(this.topicRestoreInputEpoch||0)||!this.topicContinuousVisible()||this.topicRestoring()||reader.publicationOwner||this.leavePublication||this.departureFlush)return;
+    if(deferred&&(reader.pendingInitialPublication!==deferred||!deferred.isCurrent()))return;
+    const live=reader.state();if(!live.indexing||live.loadingNext||live.loadingPrevious||live.stale||live.errorNext||live.errorPrevious||reader.hydrationError||live.protectionBlocked)return;
+    // Preparation is automatic, never a new human paging or restore intent.
+    void this.loadTopicContinuous('next',{explicit:false});
+   },progress?0:250);
+  }
  }
  async mountSectionEndWriter(){
   if(this.entryComparison)return;
@@ -284,6 +298,21 @@ export class TopicController {
   const item=checked.items?.find(item=>item.entry.id===handoff.id&&item.placement?.sectionId===handoff.sectionId);
   if(!item){this.sectionEndHandoff=null;return true;}
   handoff.authority=checked.authority;handoff.recoveryEpoch=checked.recoveryEpoch;return true;
+ }
+ async settleSectionHandoffForNavigation(isCurrent){
+  const handoff=this.sectionEndHandoff;if(!handoff)return true;
+  const owner=this.editor,entry=owner?.entry;
+  const current=()=>isCurrent()&&this.sectionEndHandoff===handoff&&handoff.owner===owner&&this.editor===owner&&handoff.topicId===this.id&&handoff.sectionId===this.activeSectionId&&handoff.authority===this.document?.authority&&handoff.recoveryEpoch===this.document?.recoveryEpoch&&handoff.field.isConnected&&handoff.field.closest('[data-entry-id]')?.dataset.entryId===handoff.id&&entry&&!entry.disposed&&!entry.failed&&!entry.conflicted&&!entry.saving&&!isComposing(owner)&&entry.entries.has(handoff.id)&&!entry.protectedIds().has(handoff.id);
+  if(!current())return false;
+  try{
+   const row=await request('GET_LIBRARY_ENTRY',{id:handoff.id});if(!current())return false;
+   const page=await request('GET_LIBRARY_SECTION_READING',{options:{topicId:handoff.topicId,scopeSectionId:handoff.sectionId,anchorId:handoff.id,sort:'asc',query:'',limit:1}});if(!current())return false;
+   const ref=page.items?.find(item=>item.entry.id===handoff.id&&item.placement?.sectionId===handoff.sectionId),tracked=entry.entries.get(handoff.id);
+   if(page.cursorInvalid||page.unavailable||!ref||page.authority!==handoff.authority||page.recoveryEpoch!==handoff.recoveryEpoch||row.recoveryEpoch!==page.recoveryEpoch||row.lifecycle!=='active'||row.revision!==ref.entry.revision||row.revision!==tracked.revision||['body','note','type'].some(key=>row[key]!==tracked.saved[key]||row[key]!==tracked.local[key]))return false;
+   // Only the temporary ACK pin ends here. The same tracked editor, native
+   // field and Undo journal remain owned until the ordinary navigation paint.
+   this.sectionEndHandoff=null;return true;
+  }catch{return false;}
  }
  retirePendingTopicPosition(reader=this.topicReader){
   if(!reader)return;const pending=reader.pendingPosition;pending?.events?.abort();
@@ -382,7 +411,7 @@ export class TopicController {
   // redraws must not steal it and leave refresh refused with editing inert.
   // A staged AI pane shares that same first paint.
   let settlePublication;
-  this.retirePendingTopicPosition();this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),publicationOwner=Symbol('topic-publication'),restored=!!saved&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;reader.publicationOwner=publicationOwner;reader.publicationDone=new Promise(resolve=>settlePublication=resolve);this.topicReader=reader;if(this.view==='original'&&this.loadToken)reader.initialAdmission={token:this.loadToken,epoch:this.statusEpoch,serial:expectedSerial,intent:this.openIntent,cue:this.rootCueEpoch||0,key:this.readKey(),topic:this.id,section:this.activeSectionId};reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
+  this.retirePendingTopicPosition();this.cancelTopicRestore();const reader=this.createTopicReader({anchorId,sectionId,timeEdge}),publicationOwner=Symbol('topic-publication'),restored=!!saved&&(!anchorId||saved.extent?.some(item=>item.entry?.id===anchorId))&&reader.restore(saved),cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;reader.publicationOwner=publicationOwner;reader.publicationDone=new Promise(resolve=>settlePublication=resolve);this.topicReader=reader;if(this.view==='original'&&this.loadToken)reader.initialAdmission={token:this.loadToken,epoch:this.statusEpoch,serial:expectedSerial,intent:this.openIntent,cue:this.rootCueEpoch||0,key:this.readKey(),topic:this.id,section:this.activeSectionId};reader.sectionRestoreInputEpoch=this.topicRestoreInputEpoch||0;let restore=restored||anchorId||sectionId?this.beginTopicRestore(reader,expectedSerial):null,completed=false;
   // A held page may finish after Root invalidation or navigation. The worker
   // qualified that read before replying; the UI must also keep its own intent
   // fence through the entire asynchronous reader reset, not only before focus.
@@ -423,21 +452,42 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   // separate legacy continuation must never supplement those labels.
  }
  async navigateAISection(sectionId){
-  const topicId=this.id,intent=this.openIntent,transition=this.sectionIntent=(this.sectionIntent||0)+1;
-  const current=()=>this.id===topicId&&this.view==='ai'&&intent===this.openIntent&&transition===this.sectionIntent;
+  const topicId=this.id,intent=this.openIntent,cue=this.rootCueEpoch||0;
   const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
-  if(!topicId||!current()||composing()||!await this.flushReadingNavigation()||!current()||composing())return false;
-  const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId)||this.crossSectionProtected(sectionId))return false;
-  const previous={section:this.activeSectionId,reader:this.topicReader,document:this.document,resume:this.contentResume,directory:this.sectionDirectory};
-  this.activeSectionId=sectionId;this.sectionDirectory=rows;this.topicReader=null;this.contentResume=null;this.rememberActiveSection(topicId,sectionId);
-  const rollback=()=>{if(!current())return;this.activeSectionId=previous.section;this.topicReader=previous.reader;this.document=previous.document;this.contentResume=previous.resume;this.sectionDirectory=previous.directory;this.rememberActiveSection(topicId,previous.section);this.renderSectionNav();};
-  try{await this.refresh();}catch(error){rollback();throw error;}if(!current())return false;
-  // refresh may truthfully defer a paint while the old native editor begins IME.
-  // Only the scope actually committed with the displayed AI editor admits a
-  // new directory label; a composing newly painted destination remains valid.
-  let painted;try{painted=JSON.parse(this.aiScopeKey);}catch{}
-  if(this.readFailed||!Array.isArray(painted)||painted[0]!==topicId||painted[1]!==sectionId){rollback();return false;}
-  this.renderSectionNav();return true;
+  const route=()=>this.id===topicId&&this.view==='ai'&&intent===this.openIntent&&cue===(this.rootCueEpoch||0);
+  if(!topicId||!route()||composing())return false;
+  const transition=this.sectionIntent=(this.sectionIntent||0)+1,current=()=>route()&&transition===this.sectionIntent;
+  const refreshing=this.refreshRun;
+  if(refreshing&&refreshing!==this.aiSectionNavigationRun?.refreshRun){
+   // Settle an existing save/background owner before selecting another scope.
+   // A newer explicit destination must still supersede a held navigation read.
+   const focus=this.entryFocusIntent,presentation=this.presentationIntent;
+   try{await refreshing.promise;}catch{return false;}
+   if(!current()||focus!==this.entryFocusIntent||presentation!==this.presentationIntent||composing())return false;
+  }
+  const prior=this.aiSectionNavigationRun,inherited=prior&&!prior.published&&prior.topicId===topicId&&prior.intent===intent;
+  const previous=inherited?prior.previous:{section:this.activeSectionId,reader:this.topicReader,document:this.document,resume:this.contentResume,directory:this.sectionDirectory};
+  const run={topicId,intent,previous,published:false,refreshRun:null};this.aiSectionNavigationRun=run;let changed=false;
+  try{
+   if(!current()||composing()||!await this.flushReadingNavigation()||!current()||composing())return false;
+   const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId))return false;
+   if(sectionId!==this.activeSectionId&&!await this.settleSectionHandoffForNavigation(()=>current()&&!composing()))return false;
+   if(!current()||composing()||this.crossSectionProtected(sectionId))return false;
+   changed=true;this.activeSectionId=sectionId;this.sectionDirectory=rows;this.topicReader=null;this.contentResume=null;this.rememberActiveSection(topicId,sectionId);
+   const reading=this.refresh();run.refreshRun=this.refreshRun;await reading;if(!current())return false;
+   // A deferred paint cannot relabel the old composing native editor. Only the
+   // actually committed AI scope admits the destination directory label.
+   let painted;try{painted=JSON.parse(this.aiScopeKey);}catch{}
+   if(this.readFailed||!Array.isArray(painted)||painted[0]!==topicId||painted[1]!==sectionId)return false;
+   run.published=true;this.renderSectionNav();return true;
+  }finally{
+   if(this.aiSectionNavigationRun===run){
+    if(!run.published&&(changed||inherited)&&current()){
+     this.activeSectionId=previous.section;this.topicReader=previous.reader;this.document=previous.document;this.contentResume=previous.resume;this.sectionDirectory=previous.directory;this.rememberActiveSection(topicId,previous.section);this.renderSectionNav();
+    }
+    delete this.aiSectionNavigationRun;
+   }
+  }
  }
  async navigateTopicSection(sectionId,{isCurrent=()=>true}={}){
   const topicId=this.id,intent=this.openIntent,cueEpoch=this.rootCueEpoch||0;
@@ -466,7 +516,9 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(composing())return false;
    if(!await this.flushReadingNavigation()||!current()||composing())return false;
    if(!await this.checkAllTracked(serial)||!current()||composing())return false;
-   const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId)||this.crossSectionProtected(sectionId))return false;
+   const rows=await this.topicSectionRows();if(!current()||composing()||!rows.some(row=>row.sectionId===sectionId))return false;
+   if(sectionId!==this.activeSectionId&&!await this.settleSectionHandoffForNavigation(()=>current()&&!composing()))return false;
+   if(!current()||composing()||this.crossSectionProtected(sectionId))return false;
    if(!inherited||this.topicReader===run.previous.reader&&this.activeSectionId===run.previous.section)run.previous=snapshot();
    this.rememberContent();changed=true;this.activeSectionId=sectionId;this.sectionDirectory=rows;this.lastSections??=new Map();this.rememberActiveSection(topicId,sectionId);this.restoreContent(topicId);
    const saved=this.contentResume;this.contentResume=null;
@@ -843,7 +895,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   placeChildren(body,ordered);
   }
   const rows=page.items.filter(item=>!item.entry.large).map(item=>item.entry);
-  if(this.editor){this.editor.entry.addRows(rows);this.editor.entry.releaseRows(new Set(rows.map(row=>row.id)));this.editor.entry.receive(rows);}
+  if(this.editor){this.editor.entry.addRows(rows);this.editor.entry.releaseRows(new Set([...rows.map(row=>row.id),...pins]));this.editor.entry.receive(rows);}
   else{const entry=new LibraryEntryEditor(body,rows,this.onStatus,()=>{if(this.editor?.entry===entry&&this.id===page.topic.id&&!this.departureFlush)void this.refresh();});entry.importHistory(this.history);this.editor=new DocumentSession(entry,metadata);}
   this.applyLayout();this.renderSectionNav(page);if(this.desktopAppearance&&!this.desktopPresentation)this.enableDesktopPresentation();else this.desktopPresentation?.sync();
  }
@@ -851,13 +903,19 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  async changeReadingSort(sort,{fromStart=false,timeEdge=null}={}){
   if(!this.id||this.view!=='original'||!['asc','desc'].includes(sort)||this.readingSortBusy)return;
   if(fromStart&&this.topicProviderKey)return;
-  const topicId=this.id,anchor=fromStart?null:this.topicAnchor(),controls=$('topic-time-order'),buttons=[...controls.querySelectorAll('button')];
+  const topicId=this.id,intent=this.openIntent,section=this.activeSectionId,cue=this.rootCueEpoch,presentation=this.presentationIntent,controls=$('topic-time-order'),buttons=[...controls.querySelectorAll('button')];
+  const current=()=>this.id===topicId&&this.view==='original'&&this.openIntent===intent&&this.activeSectionId===section&&this.rootCueEpoch===cue&&this.presentationIntent===presentation&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
   this.readingSortBusy=true;controls.setAttribute('aria-busy','true');buttons.forEach(b=>b.disabled=true);
   try{
-   if(!await this.flushReadingNavigation()||this.id!==topicId||this.view!=='original')return;
+   // Retained return rows can precede admission of their actual editor. Wait
+   // for that one publication before the existing flush and preference write.
+   const refreshing=this.refreshRun;
+   if(refreshing){try{await refreshing.promise;}catch{return;}if(this.refreshRun&&this.refreshRun!==refreshing)return;}
+   if(!current()||!await this.flushReadingNavigation()||!current())return;
+   const anchor=fromStart?null:this.topicAnchor();
    try{await request('SET_ORGANIZER_CONTROLS',{changes:{readingSort:sort}});}
    catch{showLocalFailure('时间排序偏好尚未保存，阅读位置保持不变。请重试。');return;}
-   if(this.id!==topicId||this.view!=='original')return;
+   if(!current())return;
    this.sortPreferenceChosen=true;this.readingSort=sort;this.topicNavigationAnchor=anchor?{entryId:anchor.id,top:anchor.top}:null;
    if(fromStart){this.topicResetFromStart=true;this.topicNavigationSection=null;this.resumeAnchor=null;this.topicTimeEdge=timeEdge||(sort==='asc'?'earliest':'latest');;}
    this.cursor=null;this.pages=[];await this.refresh();

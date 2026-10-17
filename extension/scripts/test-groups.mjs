@@ -177,7 +177,11 @@ export function testShard(file,position,total,category){
  file=file.replaceAll('\\','/');
  const currentName=browserName(file);
  if(category==='browser E2E'&&approvedUIBrowser.has(currentName)){
-  if(total===10)return 10;if(total===9)return 9;if([4,5,6,7].includes(total))return 4;
+  // Full39007610360: Context alone took~696s after Archive; adding all four
+  // new owners exhausted10's unchanged18m budget. Only these new whole files
+  // use measured6/8 spare capacity; all96 previous routes remain frozen.
+  if(total===10)return ['nib-approved-fixed-chrome-e2e.test.mjs','topic-selected-section-chrome-e2e.test.mjs'].includes(currentName)?6:8;
+  if(total===9)return 9;if([4,5,6,7].includes(total))return 4;
  }
  // Freeze the original96 sorted positions, rather than subtracting insertions
  // from an ambiguous caller-supplied historical/current corpus index.
