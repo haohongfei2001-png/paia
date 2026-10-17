@@ -1,0 +1,147 @@
+{
+  "contract": "PAIA-FLOAT-UI-1.1",
+  "approved_direction": "B 句瓣; A/C/D are exploration only",
+  "approved_on": "2026-10-18",
+  "approval_timezone": "Asia/Shanghai",
+  "design_delivered_on": "2026-10-17",
+  "design_research_base": "8525b6bb068e454602b11cdca761906322380995",
+  "plan_adoption_inspected_main": "2cc827e8e4bed9d7d7a2a57fce1d6a8f5724c3a8",
+  "evidence_scope": "offline design prototype; no production implementation or acceptance by this adoption",
+  "files": [
+    {
+      "path": "PAIA_输入锚定_交互原型.html",
+      "approved_source_bytes": 66763,
+      "approved_source_sha256": "2745c2a8f1f44018755ddc182626c0ec548f0fe2feca4a98557af44841285b3e",
+      "published_bytes": 66725,
+      "published_sha256": "f1e5fa1414561d0e5af7b744c7da672a5118bf0d5560cf8c7bb9475e390b85c6",
+      "public_derivation": "one private Drive link target replaced by ../../../PRODUCT_INTENT_CONTRACT.md; no visual/interaction change",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "PAIA_独立设计评审.html",
+      "approved_source_bytes": 488252,
+      "approved_source_sha256": "1c83b44c25f484dabe2f67f42d44ed8f65b308ca45b6ae6d8da03cc319d33db8",
+      "published_bytes": 488214,
+      "published_sha256": "62c6d4b1b8f723192404d402f79c2b41beb39dd432dd13157489e6dd7a027a23",
+      "public_derivation": "one private Drive link target replaced by ../../../PRODUCT_INTENT_CONTRACT.md; no visual/interaction change",
+      "role": "offline evidence / limitations"
+    },
+    {
+      "path": "assets/PAIA_句瓣_浅色.svg",
+      "approved_source_bytes": 635,
+      "approved_source_sha256": "13caefae3340b336edf1890de2d283a7948f0786849ed390756639b57dcbe079",
+      "published_bytes": 635,
+      "published_sha256": "13caefae3340b336edf1890de2d283a7948f0786849ed390756639b57dcbe079",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "assets/PAIA_句瓣_深色.svg",
+      "approved_source_bytes": 635,
+      "approved_source_sha256": "d9d4b304f02dc29e08c0f0d97982005f4cd700cb57816b49461dc9a5390b2e75",
+      "published_bytes": 635,
+      "published_sha256": "d9d4b304f02dc29e08c0f0d97982005f4cd700cb57816b49461dc9a5390b2e75",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "assets/PAIA_视觉参数.json",
+      "approved_source_bytes": 2649,
+      "approved_source_sha256": "981abfe43ea7e2e649d53cdaa1865e7dfc8bbe397004172608768ce79893158b",
+      "published_bytes": 2649,
+      "published_sha256": "981abfe43ea7e2e649d53cdaa1865e7dfc8bbe397004172608768ce79893158b",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "assets/PAIA_浏览器验证记录.json",
+      "approved_source_bytes": 4109,
+      "approved_source_sha256": "4da7f6f7e0b4a153c1d5354cb9834c2f379bfb3c5cb0d17ec898a5970137b471",
+      "published_bytes": 4109,
+      "published_sha256": "4da7f6f7e0b4a153c1d5354cb9834c2f379bfb3c5cb0d17ec898a5970137b471",
+      "public_derivation": "byte-identical",
+      "role": "offline evidence / limitations"
+    },
+    {
+      "path": "screenshots/PAIA_方向对比_AB.jpg",
+      "approved_source_bytes": 91508,
+      "approved_source_sha256": "256801397a32ebb9d7a6fdacf186d4f357ab87f9a1b010e2ea7c61dcea86f075",
+      "published_bytes": 91508,
+      "published_sha256": "256801397a32ebb9d7a6fdacf186d4f357ab87f9a1b010e2ea7c61dcea86f075",
+      "public_derivation": "byte-identical",
+      "role": "rejected exploration / comparison only"
+    },
+    {
+      "path": "screenshots/PAIA_方向对比_CD.jpg",
+      "approved_source_bytes": 90403,
+      "approved_source_sha256": "5e78eeb5f8c0455d967c8b66435f246dc85c3fd5fdaef5da89bc1569d61c0d7a",
+      "published_bytes": 90403,
+      "published_sha256": "5e78eeb5f8c0455d967c8b66435f246dc85c3fd5fdaef5da89bc1569d61c0d7a",
+      "public_derivation": "byte-identical",
+      "role": "rejected exploration / comparison only"
+    },
+    {
+      "path": "screenshots/PAIA_浅色_入口.jpg",
+      "approved_source_bytes": 83894,
+      "approved_source_sha256": "ef851ef8d4517011ed18d58909b57787acd3ddf758058835dd14ed0e640dfb5a",
+      "published_bytes": 83894,
+      "published_sha256": "ef851ef8d4517011ed18d58909b57787acd3ddf758058835dd14ed0e640dfb5a",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_浅色_胶囊.jpg",
+      "approved_source_bytes": 85389,
+      "approved_source_sha256": "fa643d65aed5f143f4b0c8f44040582dbdc05b7a5146a834173ab8d3105db909",
+      "published_bytes": 85389,
+      "published_sha256": "fa643d65aed5f143f4b0c8f44040582dbdc05b7a5146a834173ab8d3105db909",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_浅色_浮板.jpg",
+      "approved_source_bytes": 89708,
+      "approved_source_sha256": "eeed63def07812ff34cbaea16bf9345deb02015237d843e712f0c4d91b0c65dc",
+      "published_bytes": 89708,
+      "published_sha256": "eeed63def07812ff34cbaea16bf9345deb02015237d843e712f0c4d91b0c65dc",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_深色_入口_长内容.jpg",
+      "approved_source_bytes": 96099,
+      "approved_source_sha256": "c162f0cf16bb8c042b291c4b3a9ff3bba2ed412ed8ed5faee438ffa8416171ba",
+      "published_bytes": 96099,
+      "published_sha256": "c162f0cf16bb8c042b291c4b3a9ff3bba2ed412ed8ed5faee438ffa8416171ba",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_深色_胶囊_长句.jpg",
+      "approved_source_bytes": 98317,
+      "approved_source_sha256": "8bca844439f28a398eb2f9d5aa23153383690ce4dff2c731ef11a14e6df5d8ab",
+      "published_bytes": 98317,
+      "published_sha256": "8bca844439f28a398eb2f9d5aa23153383690ce4dff2c731ef11a14e6df5d8ab",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_深色_浮板_长内容.jpg",
+      "approved_source_bytes": 95794,
+      "approved_source_sha256": "512ee135bef52ca40a5a4e2489afba7a43756cb4b9211c6cc5c9813bd2914727",
+      "published_bytes": 95794,
+      "published_sha256": "512ee135bef52ca40a5a4e2489afba7a43756cb4b9211c6cc5c9813bd2914727",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    },
+    {
+      "path": "screenshots/PAIA_浅色_输入框增高.jpg",
+      "approved_source_bytes": 93987,
+      "approved_source_sha256": "2ce6ded25044d2995f3ca083765113c970e8c64450f813fda33696d359a55737",
+      "published_bytes": 93987,
+      "published_sha256": "2ce6ded25044d2995f3ca083765113c970e8c64450f813fda33696d359a55737",
+      "public_derivation": "byte-identical",
+      "role": "approved B visual reference"
+    }
+  ]
+}

@@ -1,3 +1,11 @@
+# Floating-input design adoption — 2026-10-18 / plan updated only
+
+The owner approved final **B「句瓣」 / PAIA-FLOAT-UI-1.1** on2026-10-18 (Asia/Shanghai) and requested integration into the existing development plan. Current floating-input authority is [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). Only B’s final SVG/tokens and neutral information surfaces are selected: entry40/target44, capsule272×44, board336×312, one shared anchor above/outside the composer. A/C/D and the old glass poster are historical references, not alternate production targets.
+
+Keep **PAIA-CONSUMER-PRODUCT-v1 / Prompt / CPV1-NIBV4 S0–S4**, all existing implementation/merge/verification records and the current coordinated next task. This adoption updates documents, bounded routing pointers and sanitized references only; it executes no runtime, resets no stages and claims no native/installed/performance acceptance. Earlier NOT_STARTED/adaptive-height/material/Popup paragraphs keep their dated scope and cannot restore superseded requirements or already replaced controls. Mac development and periodic inspection remain stopped; new Sync feature work remains paused. Existing pending exact-main, human/device/live-provider and installation gates remain as recorded below.
+
+## Existing programme record — preserved
+
 # UI integration recorded — 2026-10-17 / merged-main Full pending
 
 PR [291](https://github.com/haohongfei2001-png/paia/pull/291) was normally merged as main `f4ad4bb513cb265ac61270834a8b7a730c09dee7`, with parents `8525b6bb068e454602b11cdca761906322380995` and `72e4cd50cf80a4a94035d5bc53bb0972d298aebf`. Its tree `4cb7732b9d74de4f79b36ac3f7ca35b26b55c811` exactly matches the independently reviewed candidate and tested PR merge `c18d8c4c40b1476047729f45776671dd31793b46`. Required `3e862954` ancestry is preserved.
