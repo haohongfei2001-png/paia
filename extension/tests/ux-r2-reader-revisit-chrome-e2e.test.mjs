@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {resolve} from 'node:path';
 import {FakeChatGPT,eventually,pause} from './harness/fake-chatgpt.mjs';
 import {openArchiveWindow} from './harness/archive-navigator.mjs';
 import {openRawDocument,openRawInputOriginal,returnRawToInput} from './harness/raw-source-navigation.mjs';
@@ -17,6 +19,10 @@ async function openSourceDeletion(p,inputId){
 }
 function offline(h){assert.equal(h.externalRequests,0);assert.equal(h.extensionNetworkRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);}
 async function shot(p,name){await mkdir('work/ux-r2',{recursive:true});await p.screenshot({path:`work/ux-r2/${name}.png`,fullPage:false});}
+async function recordRevisitFailure(page,variant){
+ let evidence;try{evidence=await page.locator('html').evaluate(()=>{const toggle=document.getElementById('revisit-old-toggle'),gate=globalThis.__revisitPolicyGate;return {view:history.state?.paiaReader?.view,panelHidden:document.getElementById('revisit-panel')?.hidden,checked:toggle?.checked,disabled:toggle?.disabled,cards:document.querySelectorAll('.revisit-card').length,gate:gate?{closed:gate.closed,held:Object.keys(gate.held),released:gate.released,reads:gate.reads,writes:gate.writes,saveHeld:!!gate.saveRelease}:null};},null,{timeout:1000});}catch(error){evidence={unavailable:error.name};}
+ await mkdir('work/ux-r2',{recursive:true});await writeFile(`work/ux-r2/revisit-policy-${variant}-failure.json`,JSON.stringify(evidence,null,2));
+}
 
 test('UX-R2 overlapping startup reads wait for the rendered Reader; late stale failures cannot move or fail the resumed page',{timeout:90000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});try{
@@ -100,7 +106,7 @@ test('UX-R2 live capture scope, remove/undo/recapture, opt-in exclusions and pur
   await navigate(p,{view:'revisit'});await p.locator('#revisit-old-toggle').check();await eventually(async()=>(await rpc(p,'PAIA_READER_POLICY')).revisit.oldContent,'old-content revisit opt-in persisted');await p.locator('#revisit-refresh').click();await eventually(()=>p.locator('.revisit-card').filter({hasText:'UXR2_NORMAL'}).isVisible(),'eligible revisit card visible');const card=p.locator('.revisit-card').filter({hasText:'UXR2_NORMAL'});await card.locator('summary').click();await card.getByRole('button',{name:'不主动回顾这个对话',exact:true}).click();await eventually(async()=>!(await p.locator('.revisit-card').filter({hasText:'UXR2_NORMAL'}).count()),'conversation revisit exclusion applied');assert.equal((await rpc(p,'SEARCH_INPUTS',{options:{query:'UXR2_NORMAL'}})).items.length,1,'Revisit exclusion leaves explicit search usable');
   await p.locator('.revisit-close').click();await eventually(()=>p.locator('#collection-panel').isVisible(),'collection panel restored');await navigate(p,{view:'library',documentId:b.documentId});await openSourceDeletion(p,b.id);await p.locator('#info-content button').filter({hasText:'永久删除来源'}).click();await eventually(()=>p.locator('.reader-confirm').isVisible());assert.match(await p.locator('.reader-confirm').textContent(),/无法撤销|外部平台/);assert.match(await p.evaluate(()=>document.activeElement.textContent),/取消/);await p.locator('.reader-confirm .danger').click();await eventually(async()=>(await h.state()).records.length===2);await eventually(async()=>!(await p.locator('#info-dialog').evaluate(el=>el.open)),'purge closes the Source dialog after the archive refresh');assert.equal(await p.locator('#info-content').textContent(),'');await shot(p,'reader-empty-after-purge');
   await h.render(sourcePage,chat);await pause(900);assert.equal((await h.state()).records.length,2);await navigate(p,{view:'revisit'});assert.equal(await p.locator('#reader-revisit-settings').evaluate(node=>node.parentElement.id),'revisit-panel','capture exclusions use the existing Revisit owner');await eventually(()=>p.locator('#reader-capture-list button').isVisible(),'capture exclusion listed after purge');await p.locator('#reader-capture-list button').click();await eventually(()=>p.locator('.reader-confirm').isVisible());await p.locator('.reader-confirm .primary').click();await eventually(async()=>(await rpc(p,'PAIA_READER_POLICY')).capture.excludedChats.length===0,'capture exclusion remains explicitly reversible after Source purge');offline(h);
- }finally{await h.close();}
+ }catch(error){try{await recordRevisitFailure(h.archive,'live-capture');}catch{}throw error;}finally{await h.close();}
 });
 
 test('UX-R2 topic exclusion removes related Input previews; Revisit visual matrix and keyboard remain usable',{timeout:120000},async()=>{
@@ -370,4 +376,25 @@ test('VS07 Revisit revokes delayed real reads on leave and cannot revive purged 
   assert.equal((await rpc(p,'SEARCH_INPUTS',{options:{query:canary}})).items.length,0);
   assert.equal((await h.state()).records.length,0);offline(h);
  }finally{await h.close();}
+});
+
+
+for(const variant of ['source','release'])test('UX-R2 explicit Revisit preference owns delayed status and policy replies '+variant,{timeout:90000},async()=>{
+ const extensionPath=resolve(variant==='release'?'work/current-release':'.');if(variant==='release')execFileSync('python3',['scripts/build_current_release.py',extensionPath],{stdio:'pipe'});
+ const h=await FakeChatGPT.start({onboarding:true,extensionPath});let failed=false;
+ try{
+  const p=await ready(h);assert.equal((await rpc(p,'PAIA_READER_POLICY')).revisit.oldContent,false);
+  await p.evaluate(()=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime),gate={original,closed:false,held:{},released:{},reads:{},writes:0,saveRelease:null};globalThis.__revisitPolicyGate=gate;chrome.runtime.sendMessage=async message=>{
+   if(message.type==='PAIA_READER_CONFIGURE'&&Object.hasOwn(message.change||{},'oldContent')){gate.writes++;if(!gate.closed&&!gate.saveRelease)await new Promise(resolve=>gate.saveRelease=resolve);}
+   const reply=await original(message),type=message.type;if(type==='PAIA_READER_POLICY'||type==='PAIA_REVISIT_STATUS'){gate.reads[type]=(gate.reads[type]||0)+1;if(!gate.closed&&!gate.held[type])await new Promise(resolve=>gate.held[type]=()=>{gate.released[type]=true;resolve();});}return reply;
+  };});
+  await navigate(p,{view:'revisit'});await eventually(()=>p.evaluate(()=>['PAIA_READER_POLICY','PAIA_REVISIT_STATUS'].every(type=>typeof __revisitPolicyGate.held[type]==='function')),'both original pre-edit read owners are held');
+  const toggle=p.locator('#revisit-old-toggle');await toggle.check();await eventually(()=>p.evaluate(()=>typeof __revisitPolicyGate.saveRelease==='function'),'one explicit original preference write is pending');
+  assert.equal(await toggle.isChecked(),true);assert.equal(await toggle.isDisabled(),true);assert.equal(await p.evaluate(()=>__revisitPolicyGate.writes),1);
+  await p.evaluate(()=>__revisitPolicyGate.held.PAIA_REVISIT_STATUS());await eventually(()=>p.evaluate(()=>history.state?.paiaReader?.view==='revisit'),'the old status continuation has finished the original navigation');
+  assert.equal(await toggle.isChecked(),true,'late false status cannot roll back the pending explicit true choice');assert.equal(await toggle.isDisabled(),true);
+  await p.evaluate(()=>__revisitPolicyGate.saveRelease());await eventually(async()=>await toggle.isEnabled()&&await toggle.isChecked()&&(await rpc(p,'PAIA_READER_POLICY')).revisit.oldContent,'the one original preference write is acknowledged');
+  await p.evaluate(()=>__revisitPolicyGate.held.PAIA_READER_POLICY());await p.evaluate(()=>Promise.resolve());assert.equal(await toggle.isChecked(),true,'late false settings policy cannot undo the acknowledged current preference');assert.equal((await rpc(p,'PAIA_READER_POLICY')).revisit.oldContent,true);assert.equal(await p.evaluate(()=>__revisitPolicyGate.writes),1);offline(h);
+ }catch(error){failed=true;try{await recordRevisitFailure(h.archive,variant);}catch{}throw error;}
+ finally{try{await h.archive.locator('html').evaluate(()=>{const gate=globalThis.__revisitPolicyGate;if(gate){gate.closed=true;gate.saveRelease?.();for(const release of Object.values(gate.held))release();chrome.runtime.sendMessage=gate.original;delete globalThis.__revisitPolicyGate;}},null,{timeout:1000});}catch(error){if(!failed)throw error;}finally{await h.close();}}
 });
