@@ -392,11 +392,18 @@ async function revealCommittedExpression(page,topic,entryId){
  const same=state=>state.topicId===topic.id&&state.sectionId===topic.defaultSectionId&&state.reader?.scope===topic.defaultSectionId&&state.provider===null&&state.reader.provider===null&&state.view==='original';
  await eventually(async()=>{const state=await read(),reader=state.reader;return same(state)&&state.documentState==='ready'&&!state.inert&&reader.initialized&&!reader.loadingNext&&!reader.loadingPrevious&&!reader.hydrating&&!reader.indexing&&!reader.stale&&!reader.errorNext;},'the committed expression keeps a qualified same-Topic/Section all-source reader',30000);
  const openedYears=(await read()).reader.openedYears;
+ const check=state=>{assert.equal(same(state),true);assert.deepEqual(state.reader.openedYears,openedYears,'revealing the committed expression never opens another year');assert.equal(state.reader.stale,false);assert.equal(state.reader.errorNext,null);assert.equal(state.reader.errorPrevious,null);};
+ const mounted=async()=>{await eventually(async()=>{const state=await read();check(state);assert.ok(state.reader.ids.includes(entryId),'the admitted committed expression remains in the same qualified reader');return state.mountedIds.includes(entryId)&&await target.count()===1;},'the already-admitted exact committed expression finishes its original reader paint',30000);};
  for(let turn=0;turn<8;turn++){
-  const state=await read();assert.equal(same(state),true);assert.deepEqual(state.reader.openedYears,openedYears,'revealing the committed expression never opens another year');assert.equal(state.reader.stale,false);assert.equal(state.reader.errorNext,null);
-  if(await target.count()===1)return;
-  await before.waitFor({state:'visible'});if(await target.count()===1)return;
-  const ready=await read();assert.equal(ready.before.hidden,false);assert.equal(ready.reader.reportedTerminalPrevious,false,'the actual current reader has a legitimate previous range');
+  const state=await read();check(state);
+  if(state.reader.ids.includes(entryId)){await mounted();return;}
+  await eventually(async()=>{const current=await read();check(current);return current.reader.ids.includes(entryId)||await before.isVisible();},'the same qualified reader exposes its target or actual previous frontier',30000);
+  const ready=await read();check(ready);
+  // The real previous owner publishes canonical IDs/terminal state before
+  // renderTopicReader finishes hydration and generation-qualified DOM paint.
+  // An admitted target needs that paint, not another nonexistent frontier.
+  if(ready.reader.ids.includes(entryId)){await mounted();return;}
+  assert.equal(ready.before.hidden,false);assert.equal(ready.reader.reportedTerminalPrevious,false,'the actual current reader has a legitimate previous range');
   await before.focus();assert.equal(await page.evaluate(()=>document.activeElement?.id),'topic-continuous-before');await before.press('Enter');
   await eventually(async()=>{const next=await read();assert.equal(same(next),true);assert.deepEqual(next.reader.openedYears,openedYears);assert.equal(next.reader.errorNext,null);assert.equal(next.reader.errorPrevious,null);const advanced=next.mounted>ready.mounted||JSON.stringify(next.reader.ids)!==JSON.stringify(ready.reader.ids)||ready.reader.terminalPrevious===false&&next.reader.terminalPrevious===true;return next.serial===ready.serial&&advanced&&!next.reader.loadingNext&&!next.reader.loadingPrevious&&!next.reader.hydrating&&!next.reader.indexing&&!next.reader.stale;},'native previous reading advances a qualified range or exhausts its current year',30000);
   // Exhausting an empty unknown-year frontier is only intermediate progress.

@@ -246,7 +246,7 @@ async function selectArchive(page){
  await eventually(()=>page.locator('#scope-search').isEnabled(),'Archive search owner ready');
 }
 
-async function openNormalReader(page){
+async function openNormalReader(page,{onWindowWait=()=>{}}={}){
  await openArchiveWindow(page,{text:D7_READER_FIXTURE.title,label:'D7 ordinary root to project to Reader'});
  await eventually(async()=>await page.locator('#document-panel').isVisible()&&await page.locator('#document-page').evaluate(node=>!node.inert)&&await page.locator('.library-prose').count()>0,'D7 current Reader has qualified its initial year');
  assert.equal(await page.locator('#input-time-toggle').getAttribute('data-current-sort'),'desc','approved fresh Reader opens the newest actual year first');
@@ -264,12 +264,32 @@ async function openNormalReader(page){
  if(!repeated)assert.deepEqual(observed,expected,'all four original annual Inputs remain reachable once in the approved descending order');
  else assert.deepEqual(await page.evaluate(()=>__d7ObservedAnnualBodies),expected,'same-document restoration retains this journey’s already-proven four exact annual inputs');
  const mounted=expected.slice(-2),mountedTimes=times.slice(-2);
+ // Re-entering a saved annual session first admits its anchor year, then
+ // asynchronously restores already-opened years. Exact content, not one
+ // visible anchor or Navigator selection, completes this two-page fixture.
+ onWindowWait();await eventually(async()=>JSON.stringify(await page.locator('.library-prose').allTextContents())===JSON.stringify(mounted),'the saved annual window finishes restoring both exact original Inputs');
  assert.equal(await page.locator('#reader-scope-search,#reader-scope-search-host').count(),0,'retired Reader Find is absent');assert.equal(await page.locator('#scope-search').isVisible(),false,'Archive discovery search is absent during Reader');
  await eventually(()=>page.locator('.archive-navigator-window[aria-current="page"]').isVisible(),'existing selected path is ready without moving its group');
  assert.deepEqual(await page.locator('.library-prose').allTextContents(),mounted,'the original bounded window contains the exact final two yearly Inputs');
  const dates=await page.evaluate(times=>times.map(at=>new Date(at).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})+' '+new Date(at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'UTC'})),mountedTimes);
  assert.deepEqual(await page.locator('#document-body .block-time').allTextContents(),dates,'exact native captured source times');assert.equal(await page.locator('#document-search-tools').isVisible(),false,'empty query has no phantom search area');
  await page.evaluate(({bodies,all})=>{globalThis.__d7ObservedAnnualDocument=history.state.paiaReader.documentId;globalThis.__d7ObservedAnnualBodies=all;globalThis.__d7ExpectedBodies=bodies;globalThis.__d7ReaderNode=document.querySelector('.library-prose');globalThis.__d7ControlNodes=['scope-search','back','input-time-toggle','document-menu','save-status'].map(id=>[id,document.getElementById(id)]);},{bodies:mounted,all:expected});
+}
+
+async function openNormalReaderWithHeldRestoration(page){
+ const target={year:Number(D7_READER_FIXTURE.times[0].slice(0,4)),body:D7_READER_FIXTURE.bodies[0]};
+ await page.evaluate(({year})=>{const original=chrome.runtime.sendMessage.bind(chrome.runtime),documentId=globalThis.__d7ObservedAnnualDocument;if(!documentId)throw Error('D7_RESTORED_ANNUAL_SESSION_REQUIRED');const gate={original,release:null,released:false};globalThis.__d7RestorationGate=gate;chrome.runtime.sendMessage=async message=>{const reply=await original(message);if(!gate.released&&message.type==='GET_PAGE'&&message.page?.documentId===documentId&&message.page?.yearReading?.year===year&&!gate.release)await new Promise(resolve=>gate.release=()=>{gate.released=true;resolve();});return reply;};},target);
+ let settled=false,failed=false,windowWait=false;const opening=openNormalReader(page,{onWindowWait:()=>windowWait=true}).then(value=>{settled=true;return {value};},error=>{settled=true;return {error};});
+ try{
+  await eventually(()=>page.evaluate(()=>!!__d7RestorationGate.release),'the original already-opened year restoration read is held');
+  await eventually(async()=>await page.locator('#document-panel').isVisible()&&await page.locator('#document-page').evaluate(node=>!node.inert)&&await page.locator('.library-prose').count()===1,'the restored anchor is visible before its second original year');
+  assert.equal((await page.locator('.library-prose').allTextContents()).includes(target.body),false,'held original year cannot already be painted');
+  await eventually(()=>windowWait,'the real helper reaches its exact final-window wait while the original year read is held');
+  assert.equal(settled,false,'one visible anchor cannot complete the exact annual window helper');
+  await page.evaluate(()=>__d7RestorationGate.release());const result=await opening;if(result.error)throw result.error;
+  return {kind:'held-original-year-restoration',year:target.year,anchorVisibleBeforeRelease:true,helperWaited:true,exactOriginalWindow:true};
+ }catch(error){failed=true;throw error;}
+ finally{try{await page.locator('html').evaluate(()=>{const gate=globalThis.__d7RestorationGate;if(gate){gate.released=true;gate.release?.();chrome.runtime.sendMessage=gate.original;delete globalThis.__d7RestorationGate;}},null,{timeout:1000});}catch(error){if(!failed)throw error;}await opening;}
 }
 
 async function d7ReaderReady(page,documentId,input=null){
@@ -425,7 +445,7 @@ export async function compareD7Archive(h,variant,{matrix='full',directory='work/
   for(const row of rows){let cdp=null;
    if(Date.now()-started>230000)throw Error('D7 matrix exhausted its bounded execution budget; remaining declared rows stay PENDING, never PASS');
    try{
-    if(row.screen==='A02'&&!readerOpened){await page.setViewportSize({width:1440,height:1000});await openNormalReader(page);readerOpened=true;}
+    if(row.screen==='A02'&&!readerOpened){await page.setViewportSize({width:1440,height:1000});if(matrix==='full')observations.push(await openNormalReaderWithHeldRestoration(page));else await openNormalReader(page);readerOpened=true;}
     await page.evaluate(()=>document.activeElement?.blur());await page.setViewportSize({width:row.width,height:row.height});await rpc(page,'UPDATE_PREFERENCES',{changes:{appearance:row.theme,language:'zh-CN'}});await eventually(()=>page.evaluate(theme=>document.documentElement.dataset.paiaTheme===theme,row.theme),'D7 theme settled');await page.emulateMedia({reducedMotion:'reduce'});await settleD7Presentation(page,row);
     const defaultMenu=page.locator('#archive-compact-navigation');if(await visible(defaultMenu)&&await defaultMenu.evaluate(node=>node.open))await defaultMenu.locator('summary').click();assert.equal(await defaultMenu.evaluate(node=>node.open),false,'default comparison starts with the existing disclosure closed');await page.mouse.move(0,0);
     if(row.stress==='text200')await page.evaluate(()=>{globalThis.__d7TextZoom=[...document.querySelectorAll('#document-title,#document-subtitle,#document-body .library-prose,#document-body .block-time,#reader-scope-search,#input-time-toggle,#document-menu,#archive-navigator-toggle')].map(node=>({node,properties:['font-size','line-height'].map(name=>({name,prior:node.style.getPropertyValue(name),priority:node.style.getPropertyPriority(name),value:parseFloat(getComputedStyle(node).getPropertyValue(name))}))}));for(const {node,properties}of __d7TextZoom)for(const {name,value}of properties)node.style.setProperty(name,`${value*2}px`,'important');});
