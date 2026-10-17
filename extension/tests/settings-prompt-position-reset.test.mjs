@@ -47,7 +47,7 @@ async function hostFixture(f,id=7,transform=async(_request,data)=>data){
  };
  const html=element('html');html.classList={contains:()=>false};html.isConnected=true;
  const composer={closest(){return this;},getBoundingClientRect:()=>f.composerBounds||({left:600,right:1264,top:760,bottom:884})};
- const document={documentElement:html,hidden:false,createElement:element,get activeElement(){return activeElement;},
+ const document={documentElement:html,hidden:false,createElement:element,createElementNS:(_ns,tag)=>element(tag),get activeElement(){return activeElement;},
   addEventListener:(key,fn)=>documentHandlers.set(key,fn),removeEventListener:key=>documentHandlers.delete(key)};
  const sandbox={document,location:{href:f.tabs.get(id).url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>`${String(id).padStart(8,'0')}-1111-4111-8111-111111111111`},
   getComputedStyle:()=>({colorScheme:'light'}),matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),
@@ -221,7 +221,7 @@ test('a reset arriving before the first HOST reply prevents old initialization f
 
 test('v4 refuses a tall-composer band instead of placing the board beside or below it',{timeout:5000},()=>{
  const sandbox={};vm.runInNewContext(layoutSource,sandbox);
- for(const form of [{left:800,right:1200,top:50,bottom:850},{left:80,right:480,top:50,bottom:850},{left:800,right:1400,top:-50,bottom:950},{left:-200,right:480,top:-50,bottom:950}]){const actual=sandbox.PAIAPromptLayout(1280,900,form,null,true);assert.ok(actual);assert.equal(actual.card,null);}
+ for(const form of [{left:800,right:1200,top:50,bottom:850},{left:80,right:480,top:50,bottom:850},{left:800,right:1400,top:-50,bottom:950},{left:-200,right:480,top:-50,bottom:950}]){const actual=sandbox.PAIAPromptLayout(1280,900,form,null,true);assert.equal(actual,null);}
 });
 
 test('unavailable geometry retains editor, IME and focus across reset and recovers in the same frame',{timeout:5000},async()=>{

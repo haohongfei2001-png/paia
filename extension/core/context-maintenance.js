@@ -4,7 +4,7 @@ import {validContextTemporal} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
-import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,fenceContextLineage,CONTEXT_LINEAGE_LIMITS,contextEvidenceIdentity} from './context-item-lineage.js';
+import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,fenceContextLineage,CONTEXT_LINEAGE_LIMITS,contextEvidenceIdentity,contextEvidenceKey,releaseContextLineage} from './context-item-lineage.js';
 
 // Structural owner only. No runtime instantiation, caller authentication,
 // extractor, provider, transport, background job, worker route or processing grant exists.
@@ -18,8 +18,9 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
 const opaque=x=>bounded(x,200);
 const signalOK=x=>typeof AbortSignal!=='undefined'&&x instanceof AbortSignal;
-function scopeFor(c){return {card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId))};}
-function validScope(x){return exact(x,['card','topics','inputs'])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length);}
+function scopeFor(c){return {card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.filter(e=>e.kind!=='humanEntry').map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)),...(c.evidence.some(e=>e.kind==='humanEntry')?{authoredEntries:c.evidence.filter(e=>e.kind==='humanEntry').map(e=>({entryId:e.entryId,selectedFields:['body']})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{})};}
+function validScope(x){const authored=Object.hasOwn(x||{},'authoredEntries');return exact(x,['card','topics','inputs',...(authored?['authoredEntries']:[])])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,authored?0:1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length)&&(!authored||array(x.authoredEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.authoredEntries.length+x.inputs.length<=CONTEXT_LINEAGE_LIMITS.inputs&&new Set(x.authoredEntries.map(e=>e?.entryId)).size===x.authoredEntries.length&&x.authoredEntries.every(e=>exact(e,['entryId','selectedFields'])&&idOK(e.entryId)&&same(e.selectedFields,['body'])));}
+
 export function validateContextMaintenanceChange(c){
  need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence',...(Object.hasOwn(c||{},'temporal')?['temporal']:[])])&&(!Object.hasOwn(c,'temporal')||validContextTemporal(c.temporal))&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,80)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
  need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
@@ -112,6 +113,7 @@ export class ContextMaintenanceService {
   for(const source of phaseSources){if(source.aborted)cancelPhase();else source.addEventListener('abort',cancelPhase);}
   const phaseTimer=setTimeout(()=>deadline.abort(),Math.max(0,authority.expiresAt-Date.now()));
   const historical=work=>cancellable(work,[...new Set([signal,deadline.signal].filter(Boolean))]);
+  let captured=null;
   try{
   need(contextLineageReady(this.#s));const database=this.#s.repository.db;
   const digest=await historical(()=>hashText(serialized)),scopeDigest=await historical(()=>hashText(JSON.stringify(scope))),associationDigest=await historical(()=>hashText(JSON.stringify(c.associationIds))),query={operationId:c.operationId,digest,epoch:c.epoch,associationDigest};
@@ -119,7 +121,7 @@ export class ContextMaintenanceService {
   const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database);
   if(prior)return prior;
   this.#current(caller,authority,phase.signal);
-  const captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,signal:phase.signal}),[phase.signal]);this.#current(caller,authority,phase.signal);
+  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,signal:phase.signal}),[phase.signal]);this.#current(caller,authority,phase.signal);
   const current=await this.#verify(caller,scope,[phase.signal]);need(identity(current)===identity(authority));this.#current(caller,current,phase.signal);
   let transaction=null,expiryTimer=null;
   const abort=()=>{try{transaction?.abort();}catch{}};
@@ -148,8 +150,8 @@ export class ContextMaintenanceService {
     // verified request must cover the target's entire old lineage as well as
     // any newly supplied correction; no hidden whole-profile read is added.
     for(const provenance of [item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean))for(const old of provenance.evidence){
-     const scoped=current.scope.inputs.find(x=>x.inputId===old.inputId),live=captured.provenance.evidence.find(x=>x.inputId===old.inputId&&x.topicId===old.topicId);
-     if(!current.scope.topics.includes(old.topicId)||!scoped||!old.selectedFields.every(f=>scoped.selectedFields.includes(f))||!live||!old.selectedFields.every(f=>live.selectedFields.includes(f))||!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id)))return conflict();
+     const authored=old.kind==='humanEntry',scoped=authored?current.scope.authoredEntries?.find(x=>x.entryId===old.entryId):current.scope.inputs.find(x=>x.inputId===old.inputId),live=captured.provenance.evidence.find(x=>contextEvidenceKey(x)===contextEvidenceKey(old)&&x.topicId===old.topicId);
+     if(!current.scope.topics.includes(old.topicId)||!scoped||!old.selectedFields.every(f=>scoped.selectedFields.includes(f))||!live||!old.selectedFields.every(f=>live.selectedFields.includes(f))||(authored?old.entryCreatedAt!==live.entryCreatedAt||old.birthOperationId!==live.birthOperationId:!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id))))return conflict();
     }
    }
    if(c.operation==='REMOVE_CANDIDATE'){
@@ -164,8 +166,8 @@ export class ContextMaintenanceService {
     // Every checked Input/field must belong to this Item's actual registered
     // Source closure. Mere Source overlap or a copied association cannot ACK
     // unrelated evidence. Checking a proper subset never claims full coverage.
-    for(const actual of captured.provenance.evidence){const prior=item.maintenance.provenance.evidence.find(e=>e.inputId===actual.inputId&&e.topicId===actual.topicId);
-     if(!prior||!actual.selectedFields.every(field=>prior.selectedFields.includes(field))||!same(actual.sourceRecordIds,prior.sourceRecordIds)||!same(actual.sourceIdentityTokens,prior.sourceIdentityTokens))return conflict();
+    for(const actual of captured.provenance.evidence){const prior=item.maintenance.provenance.evidence.find(e=>contextEvidenceKey(e)===contextEvidenceKey(actual)&&e.topicId===actual.topicId);
+     if(!prior||!actual.selectedFields.every(field=>prior.selectedFields.includes(field))||(actual.kind==='humanEntry'?actual.entryCreatedAt!==prior.entryCreatedAt||actual.birthOperationId!==prior.birthOperationId:!same(actual.sourceRecordIds,prior.sourceRecordIds)||!same(actual.sourceIdentityTokens,prior.sourceIdentityTokens)))return conflict();
     }
     outcome=result(item,'no_change');
    }else if(item&&(item.lifecycle==='removed'||item.protected))outcome=result(item,item.lifecycle==='removed'?'removed':'protected');
@@ -188,7 +190,7 @@ export class ContextMaintenanceService {
    await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return outcome;
   });}finally{clearTimeout(expiryTimer);transaction=null;for(const value of signals)value.removeEventListener('abort',abort);}
-  }finally{clearTimeout(phaseTimer);for(const source of phaseSources)source.removeEventListener('abort',cancelPhase);}
+  }finally{releaseContextLineage(captured?.captured);clearTimeout(phaseTimer);for(const source of phaseSources)source.removeEventListener('abort',cancelPhase);}
  }
  async outcome(caller,input){
   need(exact(input,['operationId','digest','epoch','scope'])&&uuid(input.operationId)&&digestOK(input.digest)&&epochOK(input.epoch)&&validScope(input.scope),'INVALID_REQUEST');
