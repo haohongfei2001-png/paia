@@ -188,9 +188,10 @@ console.log('CURRENT_TEN_BASELINE_COVERAGE_PASS total=96 Context whole-file isol
 // The actual execution census includes every newly admitted whole file. Never
 // use the frozen historical view to remove a file from current acceptance.
 if(allCurrent.length!==100||new Set(allCurrent).size!==100||APPROVED_UI_BROWSER_FILES.length!==4||new Set(APPROVED_UI_BROWSER_FILES).size!==4)throw Error('APPROVED_UI_CURRENT_CENSUS_INVALID');
+const approvedTen=new Map([['archive-year-chrome-e2e.test.mjs',8],['topic-year-chrome-e2e.test.mjs',8],['topic-selected-section-chrome-e2e.test.mjs',6],['nib-approved-fixed-chrome-e2e.test.mjs',6]]);
 for(const file of APPROVED_UI_BROWSER_FILES){
  if(!names.has(file)||group(file)!=='browser E2E'||!allCurrent.includes(file))throw Error('APPROVED_UI_NATIVE_NOT_CURRENT:'+file);
- for(const width of [4,5,6,7,9,10])if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==(width===10?10:width===9?9:4))throw Error('APPROVED_UI_NATIVE_NOT_ROUTED:'+file);
+ for(const width of [4,5,6,7,9,10])if(testShard(file,allCurrent.indexOf(file),width,'browser E2E')!==(width===10?approvedTen.get(file):width===9?9:4))throw Error('APPROVED_UI_NATIVE_NOT_ROUTED:'+file);
 }
 for(const width of [4,5,6,7,9,10]){
  const actual=Array.from({length:width},(_,slot)=>allCurrent.filter((file,position)=>testShard('tests/'+file,position,width,'browser E2E')===slot+1)).flat();

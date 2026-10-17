@@ -1,3 +1,9 @@
+# Current local UI integration successor — 2026-10-17, incomplete
+
+Final locally verified PR291 successor retains all approved design and privacy boundaries. Complete default4 unit7316/7316PASS0skip; original10k import28.178s versus unchanged120s after measured absent-index-delete repair. Current original UIR04import Source/release2/2PASS21.603s; selectedSection/TopicYear Source/release4/4PASS18.528s; independent final reviews CLEAN. Prior R98 performance failure and all earlier native/Full failures remain preserved. Source package16457guards/490resources and development audit pass. Exact changed-head Full, safe normal merge, exact-main Full and updating the existing0.50 installation remain pending; see the owning [live breakpoint](implementation/SECTION-UI-LOCAL-CHECKPOINT-20261016.md). Sole checkout, original stash and savedNow0dc6 remain intact. Continue Now and approved authored Entry Context/remaining executable plans afterward; Syncnewfeatures PAUSED. Not installed or wholeprogramme complete.
+
+## Preserved preceding checkpoint
+
 # Current integration successor — 2026-10-17T05:37:28.093723+00:00, incomplete
 
 PR291 remains publisheda590/OPEN/unmerged; local4f0d and successor changes are unpushed. Final production independent integration review CLEAN. Actual final uninstrumented UXR3 whole28/28 PASS0skip (including100kInputs/5000Thoughts); complete Original+D2 pair8/8, affected dwell/comparison2/2, NIB+S0 whole31/31 and all8Prompt Source/release capture/strictparity pass under their recorded identities. More overlap is repaired and independently inspected; owner visual/physical/live-provider claims remain unqualified. Historical failures and131/131 remain preserved.

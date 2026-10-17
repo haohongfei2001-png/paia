@@ -202,3 +202,130 @@ for(const mode of ['clean Section click','latest Section click','invalid late ca
  assert.equal(f.targetReads.filter(id=>id!=='A').length,successful?1:0,'retired, composing or rejected waits cannot dispatch a target read');assert.equal(Object.hasOwn(f.owner,'sectionNavigationRun'),false);assert.equal(Object.hasOwn(f.owner,'sectionRefreshWait'),false);assert.equal(f.owner.refreshRun,null);
  if(editor)assert.equal(f.owner.editor,editor);if(writer)assert.equal(f.owner.sectionEndWriter,writer);if(mode==='refresh rejects')assert.match(String(refreshResult),/SYNTHETIC_QUEUED_REFRESH_OWNER_REJECTED/);
 },{rejectQueued:mode==='refresh rejects'}));
+
+// Actual AI navigation and queued refresh owners. Only the transport and DOM
+// painting are synthetic. In particular, readKey still includes the Section;
+// a destination refresh is never stubbed to return a foreign scope's promise.
+async function withQueuedAISectionRefresh(run,{holdScopes=['A','C'],holdCReader=false}={}){
+ const keys=['chrome','document','scrollY','requestAnimationFrame'],prior=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const node=()=>({dataset:{},hidden:false,children:[{}],isConnected:true,classList:{toggle(){}},setAttribute(){},querySelector:()=>null,querySelectorAll:()=>[],replaceChildren(...children){this.children=children;},append(...children){this.children.push(...children);},prepend(...children){this.children.unshift(...children);}}),nodes=new Map();
+ const dom=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);};
+ globalThis.document={documentElement:{lang:'en'},getElementById:dom,createElement:()=>node(),getSelection:()=>null,addEventListener(){}};
+ globalThis.scrollY=0;globalThis.requestAnimationFrame=()=>0;
+ let releaseB,enteredB,releaseDestination,releaseCReader,enteredCReader;
+ const heldB=new Promise(resolve=>releaseB=resolve),startedB=new Promise(resolve=>enteredB=resolve),heldDestination=new Promise(resolve=>releaseDestination=resolve);
+ const heldC=new Promise(resolve=>releaseCReader=resolve),startedC=new Promise(resolve=>enteredCReader=resolve);
+ const topic={id:'topic',name:'SYNTHETIC queued AI Topic',revision:1,summary:'',recoveryEpoch:'epoch',authority:'authority'},sections=['A','B','C'].map(sectionId=>({sectionId,topicId:'topic',title:sectionId,revision:1}));
+ const presentation={topicId:'topic',schemaVersion:1,revision:2,recoveryEpoch:'epoch',preferences:[{text:'SYNTHETIC saved B field',evidenceEntryIds:['B-entry']}],evidenceEntryIds:['B-entry']};
+ const page=scope=>({kind:'section_reading',scopeSectionId:scope,topic,authority:'authority',recoveryEpoch:'epoch',coverage:{activeGeneration:'generation-'+scope},sections:[sections.find(row=>row.sectionId===scope)],items:[{entry:{id:scope+'-entry',revision:1,body:'SYNTHETIC canonical '+scope,lifecycle:'active'},placement:{topicId:'topic',sectionId:scope}}],nextCursor:null,previousCursor:null,indexing:false});
+ const paints=[],scopeReads=[],flushes=[],readers=[],statuses=[];let bLoads=0,holdB=false,firstRefresh,queuedRefresh;
+ const aiEditor={row:structuredClone(presentation),admittedFields:new Set(['preferences']),sectionEvidence:new Set(['B-entry']),journal:{undo:[{synthetic:'retained original B edit'}],redo:[]},composing:false,disposed:false,dirty:()=>false,collect(){},async flush(){flushes.push('B');return true;},async refreshEvidence(){},readingReflowBlocked(){return this.composing;},deferReadingRefresh(){},dispose(){this.disposed=true;}};
+ globalThis.chrome={runtime:{sendMessage:async message=>{
+  if(message.type==='GET_AI_PRESENTATION_STATUS')return {ok:true,data:{topics:[{topicId:'topic',presentation:structuredClone(presentation)}]}};
+  if(message.type==='GET_ORGANIZER_CONTROLS')return {ok:true,data:{libraryView:'ai',readingSort:'asc'}};
+  if(message.type==='GET_LIBRARY_SECTION_PROJECTION')return {ok:true,data:{topic,items:sections.map(row=>({...row,id:row.sectionId}))}};
+  if(message.type==='GET_LIBRARY_TOPIC_READING_METADATA')return {ok:true,data:topic};
+  assert.equal(message.type,'GET_LIBRARY_SECTION_READING');const options=message.options,scope=options.scopeSectionId;scopeReads.push(structuredClone(options));
+  if(holdScopes.includes(scope))await heldDestination;
+  if(options.anchorId&&options.anchorId!==scope+'-entry')return {ok:true,data:{cursorInvalid:true,anchorUnavailable:true}};
+  return {ok:true,data:page(scope)};
+ }}};
+ const owner=Object.assign(Object.create(TopicController.prototype),{
+  id:'topic',topic,activeSectionId:'B',view:'ai',originalMode:'content',readingSort:'asc',topicProviderKey:null,rootProviderKey:null,cursor:null,
+  serial:1,statusEpoch:1,statusReadSerial:0,openIntent:1,rootCueEpoch:1,presentationIntent:1,entryFocusIntent:1,sectionIntent:0,preferencesLoaded:true,
+  originalPane:node(),aiPane:node(),readRetry:{hidden:true},aiEditor,aiTopics:new Map([['topic',{presentation:structuredClone(presentation)}]]),aiScopeKey:JSON.stringify(['topic','B',true,['preferences'],'generation-B','epoch']),
+  topicProtectedIds:()=>new Set(),topicAnchor:()=>null,topicSectionAnchor:()=>null,checkAllTracked:async()=>true,
+  syncOriginalTabs(){},syncReadingControls(){},ensurePanes(){},renderAITopicStatus(){},filterAIReading(){},renderSectionNav(){},queueOptionalStatus(){},updateTopicSearchCount(){},
+  updateTopicContinuous(){},refreshTopicStamps(){},observeTopicWindowSpacers(){},loadRemainingTopicSections(){},onStatus:(...args)=>statuses.push(args),
+  renderDocument(received){paints.push(received.scopeSectionId);},
+  createTopicReader({anchorId,sectionId}){
+   const scope=this.activeSectionId,reader=new ContinuousTopicReader({load:async options=>{
+    if(scope==='B'&&holdB&&++bLoads===1){enteredB();await heldB;}
+    if(scope==='C'&&holdCReader){enteredCReader();await heldC;}
+    const reply=await chrome.runtime.sendMessage({type:'GET_LIBRARY_SECTION_READING',options});return reply.data;
+   }});reader.reset({topicId:'topic',scopeSectionId:scope,anchorId,sectionId,sort:'asc'});readers.push(reader);return reader;
+  }
+ });
+ owner.document=page('B');owner.topicReader=null;
+ try{
+  assert.equal((await owner.resetTopicReader({sectionId:'B'})).paintRefused,false,'the original B reader is actually qualified and published before the save refresh');
+  assert.equal(owner.topicReader.scopeSectionId,'B');assert.equal(owner.document.scopeSectionId,'B');holdB=true;
+  firstRefresh=owner.refresh();await Promise.race([startedB,firstRefresh.then(()=>{throw Error('the actual B refresh did not reach its canonical reader: '+JSON.stringify(statuses));})]);
+  const existing=owner.refreshRun;queuedRefresh=owner.refresh();assert.equal(owner.refreshRun,existing);assert.equal(existing.queued,true,'the actual second save request queues the same B refresh owner');
+  return await run({owner,aiEditor,existing,paints,scopeReads,flushes,readers,statuses,releaseB,releaseDestination,releaseCReader,startedC,settleB:async()=>{releaseB();await Promise.all([firstRefresh,queuedRefresh]);},state:()=>({scope:owner.activeSectionId,flushes:flushes.length,destinationReads:scopeReads.filter(row=>row.scopeSectionId!=='B').length,runIsExisting:owner.refreshRun===existing})});
+ }finally{
+  releaseB();releaseDestination();releaseCReader();await Promise.allSettled([firstRefresh,queuedRefresh]);clearTimeout(owner.topicContinuousTimer);
+  for(const [key,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
+ }
+}
+
+test('AI Section navigation settles the actual queued B refresh before starting destination qualification',()=>withQueuedAISectionRefresh(async f=>{
+ const navigation=f.owner.navigateAISection('A');
+ await new Promise(resolve=>setImmediate(resolve));const before=f.state();
+ await f.settleB();f.releaseDestination();const accepted=await navigation;
+ // Keep the result separate: an ordering failure is not proof that this exact
+ // transport schedule reproduces the hosted native false-navigation outcome.
+ assert.equal(accepted,true,'the final actual qualified A publication must arrive');
+ assert.equal(f.owner.activeSectionId,'A');assert.equal(f.owner.topicReader.scopeSectionId,'A');assert.equal(f.owner.document.scopeSectionId,'A');assert.equal(JSON.parse(f.owner.aiScopeKey)[1],'A');assert.equal(f.paints.at(-1),'A');
+ assert.deepEqual(before,{scope:'B',flushes:0,destinationReads:0,runIsExisting:true},'a clean click must settle the original queued save owner before flush, scope mutation or another read owner');
+}));
+
+for(const retireWhileCPending of [false,true])test('a newer explicit AI destination supersedes held A without waiting or clearing C: '+retireWhileCPending,()=>withQueuedAISectionRefresh(async f=>{
+ await f.settleB();const publishedB=f.owner.document;
+ let first,newer;
+ try{
+  first=f.owner.navigateAISection('A');await new Promise(resolve=>setImmediate(resolve));
+  const runA=f.owner.aiSectionNavigationRun;assert.ok(runA);assert.equal(runA.refreshRun,f.owner.refreshRun);assert.equal(f.owner.document,publishedB);assert.equal(f.paints.includes('A'),false);
+  newer=f.owner.navigateAISection('C');
+  if(retireWhileCPending){
+   const reached=await Promise.race([f.startedC.then(()=>true),new Promise(resolve=>setImmediate(()=>resolve(false)))]);
+   assert.equal(reached,true,'C must reach its original reader even while A qualification is still held');
+   const runC=f.owner.aiSectionNavigationRun;assert.ok(runC);assert.notEqual(runC,runA);
+   f.releaseDestination();assert.equal(await first,false);
+   assert.equal(f.owner.aiSectionNavigationRun,runC,'the old A finally cannot clear the current held C navigation owner');
+   assert.equal(f.owner.document,publishedB);f.releaseCReader();assert.equal(await newer,true);
+  }else{
+   const completed=await Promise.race([newer.then(value=>({done:true,value})),new Promise(resolve=>setImmediate(()=>resolve({done:false})))]);
+   assert.deepEqual(completed,{done:true,value:true},'C must qualify and publish without waiting for the held A reply');
+   const publishedC=f.owner.document,readerC=f.owner.topicReader;f.releaseDestination();assert.equal(await first,false);
+   assert.equal(f.owner.document,publishedC);assert.equal(f.owner.topicReader,readerC);
+  }
+  assert.equal(f.owner.activeSectionId,'C');assert.equal(JSON.parse(f.owner.aiScopeKey)[1],'C');assert.equal(f.owner.document.scopeSectionId,'C');assert.equal(f.owner.topicReader.scopeSectionId,'C');assert.equal(f.paints.at(-1),'C');assert.equal(f.paints.includes('A'),false);assert.equal(f.owner.aiSectionNavigationRun,undefined);
+ }finally{f.releaseDestination();f.releaseCReader();await Promise.allSettled([first,newer]);}
+},{holdScopes:['A'],holdCReader:retireWhileCPending}));
+
+for(const refusal of ['early IME','IME during flush','refused dirty flush'])test('refused C during held AI A keeps the actual published scope and native B owner: '+refusal,()=>withQueuedAISectionRefresh(async f=>{
+ await f.settleB();const publishedB=f.owner.document,readerB=f.owner.topicReader,journal=f.aiEditor.journal;
+ let first;
+ try{
+  first=f.owner.navigateAISection('A');await new Promise(resolve=>setImmediate(resolve));const runA=f.owner.aiSectionNavigationRun,intentA=f.owner.sectionIntent;
+  assert.ok(runA);assert.equal(f.owner.document,publishedB);
+  if(refusal==='early IME')f.aiEditor.composing=true;
+  else if(refusal==='IME during flush')f.aiEditor.flush=async()=>{f.aiEditor.composing=true;return true;};
+  else{f.aiEditor.dirty=()=>true;f.aiEditor.flush=async()=>false;}
+  assert.equal(await f.owner.navigateAISection('C'),false);
+  assert.equal(f.owner.aiEditor,f.aiEditor);assert.equal(f.aiEditor.disposed,false);assert.equal(f.aiEditor.journal,journal);assert.equal(journal.undo.length,1);assert.equal(f.owner.document,publishedB);assert.equal(f.paints.includes('A')||f.paints.includes('C'),false);
+  if(refusal==='early IME'){
+   assert.equal(f.owner.sectionIntent,intentA,'a composing preflight cannot retire a valid older A intent');assert.equal(f.owner.aiSectionNavigationRun,runA);
+   f.aiEditor.composing=false;f.releaseDestination();assert.equal(await first,true);assert.equal(f.owner.document.scopeSectionId,'A');
+  }else{
+   assert.equal(f.owner.activeSectionId,'B');assert.equal(f.owner.topicReader,readerB);assert.equal(f.owner.aiSectionNavigationRun,undefined);
+   f.releaseDestination();assert.equal(await first,false);assert.equal(f.owner.document,publishedB);assert.equal(f.owner.topicReader,readerB);assert.equal(JSON.parse(f.owner.aiScopeKey)[1],'B');
+  }
+  assert.equal(f.scopeReads.some(options=>options.scopeSectionId==='C'),false,'refused C cannot request or publish its destination');
+ }finally{f.releaseDestination();await Promise.allSettled([first]);}
+},{holdScopes:['A']}));
+
+for(const boundary of ['route','IME','new destination intent'])test('queued AI Section wait rejects '+boundary+' without dispatching an obsolete target',()=>withQueuedAISectionRefresh(async f=>{
+ const navigation=f.owner.navigateAISection('A');await new Promise(resolve=>setImmediate(resolve));
+ const before=f.state();let newer;
+ if(boundary==='route'){f.owner.openIntent++;f.owner.id='other';f.owner.activeSectionId='other-section';}
+ if(boundary==='IME')f.aiEditor.composing=true;
+ if(boundary==='new destination intent')newer=f.owner.navigateAISection('C');
+ await f.settleB();f.releaseDestination();const accepted=await navigation;
+ assert.equal(accepted,false,'the retired or composing action cannot establish an A publication');
+ if(newer){assert.equal(await newer,true);assert.equal(f.owner.activeSectionId,'C');assert.equal(f.owner.topicReader.scopeSectionId,'C');assert.equal(f.owner.document.scopeSectionId,'C');assert.equal(JSON.parse(f.owner.aiScopeKey)[1],'C');}
+ assert.equal(f.paints.includes('A'),false,'an obsolete target must never paint');
+ assert.deepEqual(before,{scope:'B',flushes:0,destinationReads:0,runIsExisting:true},'waiting leaves the original current scope and save owner intact');
+ assert.equal(f.scopeReads.some(options=>options.scopeSectionId==='A'),false,'retirement while awaiting B cannot begin obsolete A qualification');
+}));
