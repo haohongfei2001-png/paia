@@ -181,9 +181,9 @@ console.log('PENDING_HISTORY_CURRENT_COVERAGE_PASS previous=95 added=1 total=96;
 
 // Retain nine-route history and qualify the actual ten-job union separately.
 const ten=Array.from({length:10},(_,slot)=>current.filter((name,position)=>testShard(name,position,10,'browser E2E')===slot+1));
-if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==current.join('|')||new Set(ten.flat()).size!==current.length||ten[9].join('|')!=='context-cards-chrome-e2e.test.mjs|cpv1-02-dvn-working-revision-chrome-e2e.test.mjs')throw Error('CURRENT_TEN_INCOMPLETE');
-for(const [position,name]of current.entries())if(testShard(name,position,10,'browser E2E')!==(['context-cards-chrome-e2e.test.mjs','cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'].includes(name)?10:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?4:testShard(name,position,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
-console.log('CURRENT_TEN_BASELINE_COVERAGE_PASS total=96 Context artifact preserved; measured saved-AI presentation5-to4 and Working Revision3-to10 only; other routes preserved');
+if(ten.some(part=>!part.length)||ten.flat().sort().join('|')!==current.join('|')||new Set(ten.flat()).size!==current.length||ten[9].join('|')!=='context-cards-chrome-e2e.test.mjs')throw Error('CURRENT_TEN_INCOMPLETE');
+for(const [position,name]of current.entries())if(testShard(name,position,10,'browser E2E')!==(name==='context-cards-chrome-e2e.test.mjs'?10:name==='cpv1-02-dvn-working-revision-chrome-e2e.test.mjs'?1:name==='cpv1-02-4-reader-chrome-e2e.test.mjs'?3:name==='uir-03-ai-presentation-chrome-e2e.test.mjs'?4:testShard(name,position,9,'browser E2E')))throw Error('CURRENT_TEN_SHIFTED_UNREVIEWED_ROUTE:'+name);
+console.log('CURRENT_TEN_BASELINE_COVERAGE_PASS total=96 Context artifact preserved; measured saved-AI presentation5-to4, Working Revision3-to1 via prior10, and Reader1-to3 only; other routes preserved');
 
 // The actual execution census includes every newly admitted whole file. Never
 // use the frozen historical view to remove a file from current acceptance.

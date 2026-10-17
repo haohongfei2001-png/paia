@@ -1,4 +1,5 @@
 import {ArchiveError} from './constants.js';
+import {validContextTemporal} from './context-temporal.js';
 import {hashText} from './dedupe.js';
 import {idOK,revisionOK} from './thought-model.js';
 import {inputProjection} from './thought-evidence.js';
@@ -38,7 +39,7 @@ export function validContextEvidenceSpec(x){
 }
 export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&unique(xs.map(x=>x.inputId))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
 export function validContextMaintenance(x){
- if(!lineageExact(x,['version','associationIds','provenance',...(Object.hasOwn(x||{},'invalidation')?['invalidation']:[])])||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
+ if(!lineageExact(x,['version','associationIds','provenance',...(Object.hasOwn(x||{},'invalidation')?['invalidation']:[]),...(Object.hasOwn(x||{},'temporal')?['temporal']:[])])||Object.hasOwn(x,'temporal')&&!validContextTemporal(x.temporal)||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
  return validContextProvenance(x.provenance)&&(!Object.hasOwn(x,'invalidation')||validContextProvenance(x.invalidation));
 }
 function validContextProvenance(p){

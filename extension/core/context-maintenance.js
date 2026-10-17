@@ -1,5 +1,6 @@
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
+import {validContextTemporal} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
@@ -20,7 +21,7 @@ const signalOK=x=>typeof AbortSignal!=='undefined'&&x instanceof AbortSignal;
 function scopeFor(c){return {card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId))};}
 function validScope(x){return exact(x,['card','topics','inputs'])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length);}
 export function validateContextMaintenanceChange(c){
- need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence'])&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,80)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
+ need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence',...(Object.hasOwn(c||{},'temporal')?['temporal']:[])])&&(!Object.hasOwn(c,'temporal')||validContextTemporal(c.temporal))&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,80)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
  need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
 }
 // A declared local-domain outcome, not an inferred equality or model wire.
@@ -177,7 +178,9 @@ export class ContextMaintenanceService {
      item.lifecycle='active';
     }
     const associationIds=[...new Set([...item.maintenance.associationIds,...c.associationIds])];need(associationIds.length<=CONTEXT_LINEAGE_LIMITS.associations,'CONTEXT_LIMIT');
-    item.body=c.body;item.section=c.section;item.maintenance={version:1,associationIds,provenance:captured.provenance};item.revision++;item.updatedAt=this.#s.clock();
+    // An UPDATE without explicit time evidence clears an older deadline; it
+    // cannot silently certify the new body using the prior proposal's time.
+    item.body=c.body;item.section=c.section;item.maintenance={version:1,associationIds,provenance:captured.provenance,...(Object.hasOwn(c,'temporal')?{temporal:structuredClone(c.temporal)}:{})};item.revision++;item.updatedAt=this.#s.clock();
     need(validContextCards(row),'CONTEXT_LIMIT');this.#current(caller,current,phase.signal);
     await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
    }
