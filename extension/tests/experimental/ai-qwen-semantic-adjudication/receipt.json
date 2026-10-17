@@ -15,7 +15,8 @@
     "populationClaim": "NO_POPULATION_CLAIM"
   },
   "implementationDigests": {
-    "cli.mjs": "6123d03115500c525ba2bc68fb92e49e3bbd24a2e7ea8ac41d894b2202ea0749",
+    "cli.mjs": "5c621c57b146a22008f7b29a635bde587f66956fe150544f6467df21d80ffd18",
+    "output-writer.mjs": "e08a0110fdc5d8e9ecabd4a81f116169a04b05dd387e00da1e9dca3ede3291ca",
     "schema.mjs": "3e01d3beb13c017b9e4536b90b06c556464428d0b87a5dbcb8b3c69c3eabf1b8",
     "trusted.mjs": "a37bb67ae6bbfdb5d8f4a8b8a43d7888282c3c6cdc6a42e792c6aac698089ef1",
     "validator.mjs": "d95c7ee25598507d3f30ade057f20533ac355ecff59c74138b67384a2f20e5d0",

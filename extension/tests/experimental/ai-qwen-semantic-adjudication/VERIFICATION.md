@@ -117,3 +117,24 @@ node extension/tests/experimental/ai-qwen-semantic-adjudication/mutation-tests.m
 人类仍需逐项判断草案是否忠于原意、三风格是否合适、反例理由是否正确，以及未决关系如何处理。任何新的人类评审都需要真实来源与回执，不可由此工具或 AI 自填。
 
 `independentHumanReview`、`authorAcceptance`、`modelQualityQualification`、`modelExecution` 继续 **`NOT_RUN`**；`semanticCorrectness` 为 **`NOT_VERIFIED`**；12 个公开合成主题不代表真实作者群体。本分支供 dot 审查整合，没有执行合并或部署。
+
+## 2026-10-17 独立整合审查与文件竞争修复
+
+原 Pro 交付 HEAD `ddb9056ddf3db23a328cb531917c1238a7861017` 保留为原始历史，原新增范围为 19 文件。独立审查先在未修改的该 HEAD 重跑上述完整命令：**91/91 PASS**，零 fail/cancel/skip/todo，`5869.860608 ms`；原真实变异仍为 **13/13 KILLED**。对最新 main `75905c3555d7e7929b5a96f706b9cf9ec1d9c699` 的未提交合并试验没有冲突，合并树 `dd9a58d43a9130cf6bdb2a59285f67cc2560ba99` 也通过 **91/91**，`6425.039761 ms`。这些是原版证据，不是下述修复版的测试次数。
+
+在原版实际函数上，用子进程 preload 仅安排真实文件系统竞争，复现了两个缺口：
+
+1. 原 `cli.mjs:81–82,118–125`：原子 mkdir 完成后，把刚创建的目录重命名、原路径替换为指向仓库内已有目录的符号链接。原版随后按绝对路径写入四个文件，并以退出码 0 返回 `VALID`；原新目录为空，仓库内替代目标收到全部文件。
+2. 原 `cli.mjs:45–47`：lstat 普通输入后、open 前，将它换成 FIFO。原 `O_RDONLY | O_NOFOLLOW` 会等待 FIFO 对端，尚未到后面的类型/inode 检查。独立控制在 1500ms 命中 `ETIMEDOUT`、`SIGTERM`，stdout/stderr 均为空。这是原失败，不是通过。
+
+最小修复仍只在本专项目录：输入增加 `O_NONBLOCK` 后 fstat；输出新加 `output-writer.mjs`，继承已打开目录 fd，在独立子进程中以 cwd inode 为锚、只对固定名称作相对 `wx` 写入。写入前后核对实际路径、inode、当前 UID 和目录 0700/文件 0600，不修改外部权限；禁止替换路径重定向写入。完成回执最后写，持有其 fd 直到最后核对，观察到竞争时将自己的回执 inode 清空而不操作替代目录。父 cwd 不改变，子进程环境为空，错误/超时不泄露输入或路径。父进程超时杀停工作进程并等待关闭。新增一个源文件后，专项总范围为 **20 文件**，没有把原 19 文件记录改写为 20。
+
+最终修复版实际执行原完整命令：**105/105 PASS**，`10012.813774 ms`，零 fail/cancel/skip/todo。其中 validator 45、CLI 56、offline 1、delivery 2、原 held-out 冻结审计 1。新增 14 条实际控制涵盖输入 FIFO 竞争、mkdir 后 symlink、写入前 symlink、启动前普通目录替换、原 inode 移进仓库、receipt 写入竞争、输出 leaf 独占、子进程启动/退出/超时、父 cwd 并发保持、空环境/禁网，以及目录/文件权限变化。既有第二文件写入失败测试改为对真实写入子进程注入同一失败，未删除失败断言或放宽超时。
+
+修复过程的首轮新增 CLI 测试为 51 项，保留 **49 PASS / 2 FAIL**：一次 EPIPE 覆盖了子进程已给出的 `OUTPUT_CHANGED`，另一次 inode 移动控制因 /tmp 与仓库分属不同文件系统触发 EXDEV。前者修正错误归因；后者改用仓库外同文件系统的私有 sibling 目录完成真实 rename，未跳过该控制。后续 51/51、53/53 和完整 103/103 属各自中间受测字节，最终身份以上述 105/105 为准。
+
+最终变异命令仍先执行全部 45 项原验证器测试，再真实移除 13 个检查；结果 **13 KILLED / 0 SURVIVED / 0 INVALID**。独立重跑报告 SHA-256 为 `c447fdcd91f0327481ed15f4d9bce003401985c0cb6a4e92d2c6c53dbbe5eae6`；原 `mutation-report.json` 保留其原身份。两份报告仅有 STRICT_JSON / NUMBER_FORMAT 的 mutatedSourceDigest 不同：runner 为临时 trusted.mjs 写入真实 parser/fixture 的绝对 file URL，独立工作区路径不同会改变这两个变异源码摘要；baselineSourceDigest、13 个实际目标、测试结果与其他变异摘要均相同，不能声称跨工作区报告逐字节相同。原 `adjudication.json`、`schema.json`、`report.json` 字节与原交付相同，只有 `receipt.json` 更新实际 CLI 摘要并增加新写入模块摘要。仍为 12 Topic / 36 Entry / 36 obligation / 36 annotation、277 Entry 规则（含 108 风格规则）、30 关系、26 未决项和覆盖全部 12 Topic 的 16 反例。21 个既有冻结/formatter/readback 文件在原基准、Pro HEAD、最新 main 与审查工作区逐字节相同。
+
+功能路径使用 POSIX Node 目录 fd/cwd，不使用 `/proc` 或 Linux-only 分支；这里只在 Linux Node v24.19.0 运行，**macOS 实测未运行**。不支持目录 fd 继承的平台会安全失败而非降级成路径写入。使用可信私有输出父目录；同 UID 对手可在首次 mkdir/open 间替换普通目录，或移动原 inode、在核对之间/返回后直接改动文件，纯 Node 没有永久重命名锁。本修复保证被测试的两种竞争稳定拒绝，并防止钉住 fd 后的路径替换重定向；不把它扩称为完整同权限攻击隔离或物理存储可靠性证明。
+
+以上仍只是离线机械整合审查。人类语义审查、作者接受、模型执行/质量、macOS 实机、生产浏览器/发布全套均没有因此取得通过资格。`AI_AUTHORED_DRAFT`、`NOT_VERIFIED`、四项 `NOT_RUN` 和 `NO_POPULATION_CLAIM` 原样保留。

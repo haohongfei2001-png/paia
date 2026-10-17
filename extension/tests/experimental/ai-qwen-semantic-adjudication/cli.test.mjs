@@ -337,8 +337,7 @@ test('a private-assignment object is not a valid public draft and is not echoed'
 
 test('mid-write filesystem failure preserves the partial output and emits no completion receipt', async () => {
   const parent = await freshCase();
-  const preload = join(parent, 'fail-second-output-write.mjs');
-  await writeFile(preload, [
+  const preload = await writerPreload(parent, [
     "import fs from 'node:fs/promises';",
     "import {syncBuiltinESMExports} from 'node:module';",
     'const original = fs.writeFile;',
@@ -349,8 +348,7 @@ test('mid-write filesystem failure preserves the partial output and emits no com
     '  return original(...args);',
     '};',
     'syncBuiltinESMExports();',
-    '',
-  ].join('\n'), {flag: 'wx', mode: 0o600});
+  ].join('\n'));
   const directory = join(parent, 'partial-draft');
   rejected(run(['draft', '--out=' + directory], {preload}), 'OUTPUT_INCOMPLETE');
   assert.deepEqual(await readdir(directory), ['adjudication.json']);
@@ -359,4 +357,314 @@ test('mid-write filesystem failure preserves the partial output and emits no com
   await absent(join(directory, 'receipt.json'));
   rejected(run(['draft', '--out=' + directory]), 'OUTPUT_EXISTS');
   assert.deepEqual(await readFile(join(directory, 'adjudication.json')), partial);
+});
+
+test('a regular input replaced with a FIFO before open rejects without blocking', async () => {
+  const parent = await freshCase();
+  const path = join(parent, 'racing-input.json');
+  await writeFile(path, validBytes, {flag: 'wx'});
+  const preload = join(parent, 'swap-input-to-fifo.mjs');
+  await writeFile(preload, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    "import {execFileSync} from 'node:child_process';",
+    'const original = fs.open;',
+    'fs.open = async (path, ...args) => {',
+    '  if (path === ' + JSON.stringify(path) + ') {',
+    "    await fs.rename(path, path + '.original');",
+    "    execFileSync('mkfifo', [path]);",
+    '  }',
+    '  return original(path, ...args);',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'), {flag: 'wx', mode: 0o600});
+  rejected(run(['validate', '--input=' + path], {preload}), 'INPUT_CHANGED');
+  assert.equal((await lstat(path)).isFIFO(), true);
+  assert.deepEqual(await readFile(path + '.original'), validBytes);
+});
+
+
+async function writerPreload(parent, source) {
+  const worker = join(parent, 'worker-preload.mjs');
+  await writeFile(worker, source, {flag: 'wx', mode: 0o600});
+  const preload = join(parent, 'parent-preload.mjs');
+  await writeFile(preload, [
+    "import cp from 'node:child_process';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = cp.spawn;',
+    'cp.spawn = (executable, args, options) => original(executable,',
+    '  args[0]?.endsWith("/output-writer.mjs") ? ["--import", ' + JSON.stringify(worker) + ', ...args] : args, options);',
+    'syncBuiltinESMExports();',
+  ].join('\n'), {flag: 'wx', mode: 0o600});
+  return preload;
+}
+
+async function repositoryTarget(t, parent) {
+  const target = join(moduleDirectory, 'cli-race-target-' + basename(parent));
+  await mkdir(target);
+  t.after(() => rm(target, {recursive: true, force: true}));
+  await writeFile(join(target, 'sentinel.txt'), canary, {flag: 'wx'});
+  return target;
+}
+
+async function assertUntouchedTarget(target) {
+  assert.deepEqual(await readdir(target), ['sentinel.txt']);
+  assert.equal(await readFile(join(target, 'sentinel.txt'), 'utf8'), canary);
+}
+
+test('replacement symlink immediately after output mkdir rejects before any output', async t => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const target = await repositoryTarget(t, parent);
+  const preload = join(parent, 'swap-mkdir.mjs');
+  await writeFile(preload, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.mkdir;',
+    'fs.mkdir = async (path, ...args) => {',
+    '  const result = await original(path, ...args);',
+    '  if (path === ' + JSON.stringify(output) + ') {',
+    "    await fs.rename(path, path + '.original');",
+    '    await fs.symlink(' + JSON.stringify(target) + ', path, "dir");',
+    '  }',
+    '  return result;',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'), {flag: 'wx'});
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  await assertUntouchedTarget(target);
+  assert.deepEqual(await readdir(output + '.original'), []);
+});
+
+test('writer cwd is inode anchored when output becomes a repository symlink immediately before write', async t => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const target = await repositoryTarget(t, parent);
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.writeFile;',
+    'let swapped = false;',
+    'fs.writeFile = async (...args) => {',
+    '  if (!swapped) {',
+    '    swapped = true;',
+    '    await fs.rename(' + JSON.stringify(output) + ', ' + JSON.stringify(output + '.original') + ');',
+    '    await fs.symlink(' + JSON.stringify(target) + ', ' + JSON.stringify(output) + ', "dir");',
+    '  }',
+    '  return original(...args);',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  await assertUntouchedTarget(target);
+  assert.deepEqual(await readdir(output + '.original'), ['adjudication.json']);
+  assert.deepEqual(await readFile(join(output + '.original', 'adjudication.json')), validBytes);
+});
+
+test('a different ordinary directory substituted before worker launch cannot match inherited directory fd', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = join(parent, 'replace-before-spawn.mjs');
+  await writeFile(preload, [
+    "import cp from 'node:child_process';",
+    "import fs from 'node:fs';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = cp.spawn;',
+    'cp.spawn = (executable, args, options) => {',
+    '  if (args[0]?.endsWith("/output-writer.mjs")) {',
+    '    fs.renameSync(' + JSON.stringify(output) + ', ' + JSON.stringify(output + '.original') + ');',
+    '    fs.mkdirSync(' + JSON.stringify(output) + ');',
+    '  }',
+    '  return original(executable, args, options);',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'), {flag: 'wx'});
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  assert.deepEqual(await readdir(output), []);
+  assert.deepEqual(await readdir(output + '.original'), []);
+});
+
+test('moving the owned inode into the repository stops subsequent writes and cannot produce a receipt', async t => {
+  // A sibling directory keeps this actual rename on the repository filesystem.
+  const parent = await mkdtemp(join(fileURLToPath(new URL('../../../../../', import.meta.url)), '.paia-semantic-race-'));
+  t.after(() => rm(parent, {recursive: true, force: true}));
+  const output = join(parent, 'output');
+  const moved = join(moduleDirectory, 'cli-moved-inode-' + basename(parent));
+  t.after(() => rm(moved, {recursive: true, force: true}));
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.writeFile;',
+    'let moved = false;',
+    'fs.writeFile = async (...args) => {',
+    '  const result = await original(...args);',
+    '  if (!moved) { moved = true; await fs.rename(' + JSON.stringify(output) + ', ' + JSON.stringify(moved) + '); }',
+    '  return result;',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  assert.deepEqual(await readdir(moved), ['adjudication.json']);
+  assert.deepEqual(await readFile(join(moved, 'adjudication.json')), validBytes);
+});
+
+test('a directory replacement during receipt write invalidates that owned receipt inode', async t => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const target = await repositoryTarget(t, parent);
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.open;',
+    'fs.open = async (path, ...args) => {',
+    '  const handle = await original(path, ...args);',
+    '  if (path === "receipt.json") {',
+    '    const write = handle.writeFile.bind(handle);',
+    '    handle.writeFile = async (...values) => {',
+    '      const result = await write(...values);',
+    '      await fs.rename(' + JSON.stringify(output) + ', ' + JSON.stringify(output + '.original') + ');',
+    '      await fs.symlink(' + JSON.stringify(target) + ', ' + JSON.stringify(output) + ', "dir");',
+    '      return result;',
+    '    };',
+    '  }',
+    '  return handle;',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  await assertUntouchedTarget(target);
+  assert.equal((await readFile(join(output + '.original', 'receipt.json'))).length, 0);
+});
+
+test('writer process errors are stable and never echo private-looking diagnostics', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = await writerPreload(parent, 'process.stderr.write(' + JSON.stringify(canary) + '); process.exit(1);');
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_WORKER_FAILED');
+  assert.deepEqual(await readdir(output), []);
+});
+
+test('an unresponsive writer is killed and returns a bounded stable failure', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const pidFile = join(parent, 'worker.pid');
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs';",
+    'fs.writeFileSync(' + JSON.stringify(pidFile) + ', String(process.pid));',
+    'await new Promise(() => { setInterval(() => {}, 1000); });',
+  ].join('\n'));
+  await writeFile(preload, [
+    '\nconst originalTimeout = globalThis.setTimeout;',
+    'globalThis.setTimeout = (callback, ms, ...args) => originalTimeout(callback, ms === 30000 ? 1000 : ms, ...args);',
+  ].join('\n'), {flag: 'a'});
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_WORKER_TIMEOUT');
+  const pid = Number(await readFile(pidFile, 'utf8'));
+  assert.throws(() => process.kill(pid, 0), {code: 'ESRCH'});
+  assert.deepEqual(await readdir(output), []);
+});
+
+test('concurrent output workers preserve the parent process cwd', async () => {
+  const {run: runApi} = await import('./cli.mjs');
+  const cwd = process.cwd();
+  const parent = await freshCase();
+  const reports = await Promise.all(['one', 'two'].map(name => runApi(['draft', '--out=' + join(parent, name)])));
+  assert.equal(process.cwd(), cwd);
+  assert.deepEqual(reports[0], reports[1]);
+  assert.deepEqual(await snapshot(join(parent, 'one')), await snapshot(join(parent, 'two')));
+});
+
+test('exclusive worker writes preserve a concurrently created output leaf and leave no receipt', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.writeFile;',
+    'let inserted = false;',
+    'fs.writeFile = async (path, ...args) => {',
+    '  if (!inserted) { inserted = true; await original(path, ' + JSON.stringify(canary) + ', {flag: "wx"}); }',
+    '  return original(path, ...args);',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_INCOMPLETE');
+  assert.deepEqual(await readdir(output), ['adjudication.json']);
+  assert.equal(await readFile(join(output, 'adjudication.json'), 'utf8'), canary);
+});
+
+test('the output worker succeeds with an empty environment and network entry points disabled', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = await writerPreload(parent, [
+    "import assert from 'node:assert/strict';",
+    "import http from 'node:http'; import https from 'node:https';",
+    "import net from 'node:net'; import dns from 'node:dns';",
+    "import tls from 'node:tls'; import dgram from 'node:dgram';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'assert.deepEqual(Object.keys(process.env), []);',
+    'const deny = () => { throw Error("NETWORK_FORBIDDEN"); };',
+    'globalThis.fetch = deny;',
+    'globalThis.WebSocket = class { constructor() { deny(); } };',
+    'http.request = http.get = https.request = https.get = deny;',
+    'net.connect = net.createConnection = net.Socket.prototype.connect = deny;',
+    'tls.connect = dgram.createSocket = deny;',
+    'dns.lookup = dns.resolve = dns.promises.lookup = dns.promises.resolve = deny;',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  successful(run(['draft', '--out=' + output], {preload}));
+  assert.deepEqual((await readdir(output)).sort(), expectedDraftFiles);
+});
+
+test('a writer that cannot start rejects without leaking the operating-system error', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = join(parent, 'writer-start-failure.mjs');
+  await writeFile(preload, [
+    "import cp from 'node:child_process';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = cp.spawn;',
+    'cp.spawn = (executable, args, options) => original(',
+    '  args[0]?.endsWith("/output-writer.mjs") ? ' + JSON.stringify(join(parent, canary)) + ' : executable, args, options);',
+    'syncBuiltinESMExports();',
+  ].join('\n'), {flag: 'wx'});
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_WORKER_FAILED');
+  assert.deepEqual(await readdir(output), []);
+});
+
+test('output directory permissions changed during a write are rejected without repairing external permissions', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.writeFile;',
+    'fs.writeFile = async (...args) => {',
+    '  const result = await original(...args);',
+    '  await fs.chmod(".", 0o755);',
+    '  return result;',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  assert.deepEqual(await readdir(output), ['adjudication.json']);
+  assert.equal((await stat(output)).mode & 0o777, 0o755);
+});
+
+test('output leaf permissions changed during a write are rejected without completing a receipt', async () => {
+  const parent = await freshCase();
+  const output = join(parent, 'output');
+  const preload = await writerPreload(parent, [
+    "import fs from 'node:fs/promises';",
+    "import {syncBuiltinESMExports} from 'node:module';",
+    'const original = fs.writeFile;',
+    'fs.writeFile = async (path, ...args) => {',
+    '  const result = await original(path, ...args);',
+    '  await fs.chmod(path, 0o644);',
+    '  return result;',
+    '};',
+    'syncBuiltinESMExports();',
+  ].join('\n'));
+  rejected(run(['draft', '--out=' + output], {preload}), 'OUTPUT_CHANGED');
+  assert.deepEqual(await readdir(output), ['adjudication.json']);
+  assert.equal((await stat(join(output, 'adjudication.json'))).mode & 0o777, 0o644);
 });
