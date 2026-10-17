@@ -1,3 +1,13 @@
+# Merged-main Full failed; Browser6 ownership repair — 2026-10-17 / INCOMPLETE
+
+Exact main `2cc827e8e4bed9d7d7a2a57fce1d6a8f5724c3a8` actually ran [Full39036406089](https://github.com/haohongfei2001-png/paia/actions/runs/39036406089) and failed Browser6: IAH Source Reader coarse media was false, and UIR03 Source scoped lexical index did not complete. Browser6 passed80/82 with no skips; the other nine Browser shards, four Unit shards, both macOS gates, Sync native and build/privacy passed. Full/Integration remain failed. The previous PR291 candidate success and state-only main commit do not replace exact-main qualification.
+
+The current test-only repair separates immutable fine/coarse device contexts and seeds synthetic UIR03 data through the existing worker Store. It preserves original target, keyboard, reflow, completeness, timeout and privacy assertions, adds deterministic real-owner negatives and bounded body-free failure metadata, and changes no runtime or workflow. The exact original lexical interleaving is not known; a genuine independent-publisher failure mechanism is reproduced without clearing the original runner latch. See the owning MAIN-UI-CERTIFICATION-REPAIR-20261017 receipt. Current native/full CI, independent final review and subsequent exact-main Full remain required.
+
+Saved Now branch `codex/context-now-currentness-20261017` remains at `97a2e802f4def595b2a6eb30d373bd33f6fa9385`, unmerged and preserved. The reviewed local integration is separate; it will be advanced to qualified UI main and receive its own complete gates. Version0.52.0 remains unchanged by this test-only repair. Human full-window visual acceptance and external/device/product qualifications remain open; input-only privacy, human membership/order and paused Sync are unchanged.
+
+## Preserved preceding checkpoint
+
 # UI integration recorded — 2026-10-17 / merged-main Full pending
 
 PR [291](https://github.com/haohongfei2001-png/paia/pull/291) was normally merged as main `f4ad4bb513cb265ac61270834a8b7a730c09dee7`, with parents `8525b6bb068e454602b11cdca761906322380995` and `72e4cd50cf80a4a94035d5bc53bb0972d298aebf`. Its tree `4cb7732b9d74de4f79b36ac3f7ca35b26b55c811` exactly matches the independently reviewed candidate and tested PR merge `c18d8c4c40b1476047729f45776671dd31793b46`. Required `3e862954` ancestry is preserved.
