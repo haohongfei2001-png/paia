@@ -143,7 +143,43 @@ export class AIReadingEditor {
  async protectRecovery(){if(this.recoveryForeign)return false;const operation=this.recoverySnapshot();if(!operation){const token=this.recoveryLast?.token;if(token)void this.recovery.clear(token);this.recoveryLast=null;return true;}const signature=JSON.stringify(operation);if(!this.recoveryLast||this.recoveryLast.signature!==signature)this.recoveryLast={signature,token:crypto.randomUUID()};try{await this.recovery.protect(operation,this.recoveryLast.token);this.recoveryFailed=false;return true;}catch{this.recoveryFailed=true;return false;}}
  async restoreRecovery(){let draft;try{draft=await this.recovery.load();}catch{if(this.admittedFields!=null){this.recoveryForeign=true;this.conflicted=true;this.onStatus('恢复草稿暂时无法核对，已有内容仍保留，请稍后重新读取再编辑。','error');}return false;}if(!draft)return false;const operation=draft.operation;if(operation?.type!=='AI_RECOVERY_SNAPSHOT'||operation.topicId!==this.row.topicId||!operation.values||typeof operation.values!=='object'){await this.recovery.clear(draft.token).catch(()=>{});return false;}const entries=Object.entries(operation.values).filter(([field])=>this.nodes.has(field));if(this.admittedFields!=null&&Object.entries(operation.values).some(([field,value])=>!this.nodes.has(field)&&JSON.stringify(this.row[field])!==JSON.stringify(value))){this.recoveryForeign=true;this.conflicted=true;this.onStatus('另一个阅读范围仍有未保存的 AI 整理修改。已保留原草稿，请返回对应范围处理后再编辑。','conflict');return false;}if(!entries.length){await this.recovery.clear(draft.token).catch(()=>{});return false;}if(entries.every(([field,value])=>JSON.stringify(this.row[field])===JSON.stringify(value))){await this.recovery.clear(draft.token).catch(()=>{});return false;}for(const [field,value]of entries){this.nodes.get(field).forEach((node,i)=>node.textContent=Array.isArray(value)?value[i]?.text||'':value);this.draft[field]=structuredClone(value);}if(this.row.revision!==operation.baseRevision){this.conflicted=true;this.onStatus('检测到上次未完成的 AI 整理人工修改，但已保存版本同时变化。草稿已恢复到页面，未自动覆盖。','conflict');return false;}this.recoveryLast={signature:JSON.stringify(operation),token:draft.token};this.onStatus('正在恢复上次未完成的修改…');this.failed=false;return this.flush();}
  get recoveryPending(){return !!this.recovery?.pending||this.excerptEditors.some(e=>e.recoveryPending);}
- async flush(){this.autosave.cancel();if(this.composing||this.disposed)return false;for(const editor of this.excerptEditors){editor.collect();if(!await editor.flush()&&editor.dirty())return false;}if(this.composing||this.disposed||this.conflicted)return false;if(this.pending){await this.pending;return this.dirty()?this.flush():true;}if(this.failed)return false;await this.protectRecovery();this.pending=(async()=>{for(const field of this.nodes.keys()){const value=this.values(field);if(JSON.stringify(value)===JSON.stringify(this.row[field]))continue;try{const r=await request('EDIT_AI_PRESENTATION',{edit:this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision})});this.row[field]=value;this.row.revision=r.revision;this.onStatus('已保存 · 此字段由你维护');await this.protectRecovery();}catch(e){this.failed=true;this.conflicted=e.code==='STALE_BASE';this.onStatus(this.conflicted?'此字段已有较新的版本，当前草稿仍在页面。请重新读取已保存版本，或保留草稿后再编辑。':this.recoveryFailed?'AI整理修改尚未保存，恢复草稿也未能写入。请保持此页打开并复制或重试。':'AI整理修改尚未保存，恢复草稿已保存在本机。请重试本地保存，不会调用 AI。',this.conflicted?'conflict':'error');return false;}}return true;})();let ok;try{ok=await this.pending;}finally{this.pending=null;}return ok&&this.dirty()?this.flush():ok;}
+ async flush(){
+  this.autosave.cancel();
+  const unavailable=()=>this.composing||this.disposed,stopped=()=>unavailable()||this.conflicted||this.failed;
+  if(unavailable())return false;
+  if(this.pending){const ok=await this.pending;return ok&&this.dirty()?this.flush():ok;}
+  // Own the whole save before its first await, including excerpt/recovery work.
+  // A second blur/refresh must join this owner, never race an older field ACK.
+  const task=Promise.resolve().then(async()=>{
+   for(const editor of this.excerptEditors){
+    if(unavailable())return false;
+    editor.collect();const ok=await editor.flush();
+    if(unavailable()||!ok&&editor.dirty())return false;
+   }
+   if(stopped())return false;
+   await this.protectRecovery();
+   for(const field of this.nodes.keys()){
+    if(stopped())return false;
+    const value=this.values(field);if(JSON.stringify(value)===JSON.stringify(this.row[field]))continue;
+    try{
+     const r=await request('EDIT_AI_PRESENTATION',{edit:this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision})});
+     this.row[field]=value;this.row.revision=r.revision;
+     // A sent operation still has its exact ACK, but retirement or a new IME
+     // session cannot authorize sampling/sending the next field after that ACK.
+     if(stopped())return false;
+     this.onStatus('已保存 · 此字段由你维护');await this.protectRecovery();
+    }catch(e){
+     this.failed=true;this.conflicted=e.code==='STALE_BASE';
+     if(!this.disposed)this.onStatus(this.conflicted?'此字段已有较新的版本，当前草稿仍在页面。请重新读取已保存版本，或保留草稿后再编辑。':this.recoveryFailed?'AI整理修改尚未保存，恢复草稿也未能写入。请保持此页打开并复制或重试。':'AI整理修改尚未保存，恢复草稿已保存在本机。请重试本地保存，不会调用 AI。',this.conflicted?'conflict':'error');
+     return false;
+    }
+   }
+   return !stopped();
+  });
+  this.pending=task;
+  let ok;try{ok=await task;}finally{if(this.pending===task)this.pending=null;}
+  return ok&&this.dirty()?this.flush():ok;
+ }
  get composing(){return !!this.ownComposing||this.excerptEditors.some(e=>e.surface?.composing);}
  set composing(value){this.ownComposing=value;}
  get saving(){return !!this.pending||this.excerptEditors.some(e=>e.saving);}

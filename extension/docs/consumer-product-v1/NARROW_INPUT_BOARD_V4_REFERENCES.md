@@ -1,55 +1,43 @@
-# Floating input — exact approved visual and retained behavior references
+# Floating input — approved B 句瓣 reference identity
 
-**PAIA-FLOAT-UI-1.0 / OWNER_APPROVED / 2026-10-16.** Product interpretation belongs to [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), not generated poster labels. Original V4 provenance, source mappings and evidence remain byte-identical in [PRE_FIXED](NARROW_INPUT_BOARD_V4_REFERENCES_PRE_FIXED_2026-10-16.md), blob `f060d414a0b8c47109a7a70b31e9d898efe9d935`. Old v4 six-state/adaptive material is historical comparison, not the final visual target.
+**PAIA-FLOAT-UI-1.1 / OWNER_APPROVED / 2026-10-18.** Only **B「句瓣」 in the final composer-anchored interaction experience** is the current floating-input design. The source was delivered on2026-10-17 and approved on2026-10-18 (Asia/Shanghai). Read [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) and [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) together.
 
-## 1. Sole approved new visual
+The immediately preceding PAIA-FLOAT-UI-1.0 REFERENCES is preserved byte-for-byte in [PRE_JUBAN](NARROW_INPUT_BOARD_V4_REFERENCES_PRE_JUBAN_2026-10-18.md), Git blob `7da4618b7d663704a4f05188dae85399dfdff1e5`. Its nonconflicting requirements and incorporated earlier history remain effective; [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) identifies the finite replacements. The archived smoky-blue glass target is historical, not a second current design authority.
 
-The owner selected the final generated sheet immediately before “可以，把这一版写进开发计划”, after the product review and “按照以上重新设计”. No other generated picture in the conversation is approved by that selection.
+## 1. Current checked-in reference bundle
 
-[View the checked-in sanitized component reference](design/narrow-input-board-v4/approved-2026-10-16/README.md). Its small sphere/capsule/panel crop is extracted from the exact original, not redrawn; source crop coordinates, resampling, byte count and hashes are recorded there. It contains no mock personal host sidebar and is a viewing aid, not a production screenshot or a substitute for the high-resolution original.
+Open [the bundle README](design/narrow-input-board-v4/approved-2026-10-18/README.md) and [hash manifest](design/narrow-input-board-v4/approved-2026-10-18/manifest.json). The self-contained HTMLs can be downloaded and opened locally; no build, live user account or model service is needed for the design reference. The HTML reproduces a synthetic ChatGPT-like host and is not a production extension.
 
-![Selected generated component reference; poster scale is not CSS scale](design/narrow-input-board-v4/approved-2026-10-16/approved-components.webp)
-
-| Identity | Value |
+| Reference | Authority / use |
 |---|---|
-| Original artifact | `a_clean_minimal_high_end_ui_ux_concept_poster_bo.png` |
-| Original bytes | `1617064` |
-| Original dimensions | `1536×1024` raster pixels; not CSS geometry |
-| SHA-256 | `1aa39ae29f0a416163525ee8bfca2fb2edc03b19d84b26755752ce5e8499d698` |
-| Owner-conversation artifact identifier | `file_0000000057588230964e8b4c557f8c27` |
-| Visual status | Selected design approved; actual implementation fidelity not certified |
+| [Final interactive prototype](design/narrow-input-board-v4/approved-2026-10-18/PAIA_输入锚定_交互原型.html) | Select B’s main interaction view. Three states, shared composer anchor, light/dark and interaction feedback; A/C/D studio views are rejected exploration |
+| [Visual tokens](design/narrow-input-board-v4/approved-2026-10-18/assets/PAIA_视觉参数.json) | Exact final geometry, typography, theme and motion values; its old baseline/scope fields describe the design snapshot |
+| [Light SVG](design/narrow-input-board-v4/approved-2026-10-18/assets/PAIA_句瓣_浅色.svg) / [dark SVG](design/narrow-input-board-v4/approved-2026-10-18/assets/PAIA_句瓣_深色.svg) | Exact approved two-stroke paths and optical matrix; use these rather than a font glyph or repainted sphere |
+| [Independent design review](design/narrow-input-board-v4/approved-2026-10-18/PAIA_独立设计评审.html) | Decision reasoning, native-size screenshots and limitations; explanatory evidence, not production PASS |
+| [Browser verification record](design/narrow-input-board-v4/approved-2026-10-18/assets/PAIA_浏览器验证记录.json) |16 checks of the offline prototype and their actual scope; not a host adapter or performance certification |
+| [Nine screenshots](design/narrow-input-board-v4/approved-2026-10-18/README.md#screenshots) | Seven final state/context views plus two direction comparisons; the B view is selected, A/C/D are not implementation choices |
 
-The original remains in the owner's conversation delivery. The identifier is provenance, not a public URL or guaranteed connector path. Do not copy the private Drive source, real accounts or personal mock-sidebar labels into the public repository. Recover the exact original through authorized attachment/Library handoff when a full-resolution comparison is needed; verify its hash before use. No filename-only substitution, recreated reference or invented sandbox/download URL.
+The main B view and token/SVG files control production interpretation. In particular use **19px** for the capsule mark, not the comparison miniature’s18px. The prototype’s full40px SVG envelope and44px hit area include the deliberately inset optical silhouette. Do not scale the raw paths to fill all40px or equalize their shapes.
 
-Its selected features are smoky-blue/deep-indigo translucent depth in the sphere, a smaller related capsule cue, and a near-neutral frosted-white compact panel with single original-expression rows. The sheet is not a screenshot of an installed PAIA/ChatGPT account. Host labels/model branding, marketing scene layout, poster scale, gear appearance and capsule placeholder-like demo copy do not establish actual product controls.
+## 2. Exact source and public derivation
 
-## 2. Palette observations, not guessed optical parameters
+The original approved prototype has **66763bytes**, SHA-256 `2745c2a8f1f44018755ddc182626c0ec548f0fe2feca4a98557af44841285b3e`. The approved visual-token SHA-256 is `981abfe43ea7e2e649d53cdaa1865e7dfc8bbe397004172608768ce79893158b`. The final light/dark SVG SHA-256 values are respectively `13caefae3340b336edf1890de2d283a7948f0786849ed390756639b57dcbe079` and `d9d4b304f02dc29e08c0f0d97982005f4cd700cb57816b49461dc9a5390b2e75`.
 
-Pixel samples from the five palette-circle centers in the original1536×1024 image:
+For public check-in, each HTML changes exactly one **reference link target**: the non-public Drive document URL is replaced by `../../../PRODUCT_INTENT_CONTRACT.md`. This is a public alternative reference, not a mirror of the private Drive document. Visible text, SVG, styles, scripts and embedded screenshots are unchanged. Other included assets are byte-identical. The manifest separately records approved-source and published bytes/SHA-256; do not claim the sanitized HTML has the original file hash. No private Drive contents, Library identifiers, real archive, identifying conversation, credentials or session material are included.
 
-| Position (x,y) | RGB / hex | Intended role |
-|---|---|---|
-| (1425,709) | (127,145,171) / `#7f91ab` | Smoky blue middle tone inside the sphere |
-| (1425,754) | (39,58,95) / `#273a5f` | Localized deep-indigo depth, not a panel fill |
-| (1425,799) | (138,143,184) / `#8a8fb8` | Restrained internal lavender transition |
-| (1425,844) | (203,212,225) / `#cbd4e1` | Cool neutral transition/edge |
-| (1425,889) | (246,247,248) / `#f6f7f8` | Near-neutral light material |
+The original HTML/token/review baseline `8525b6bb068e454602b11cdca761906322380995` remains a dated design-research snapshot. Plan adoption inspected main `2cc827e8e4bed9d7d7a2a57fce1d6a8f5724c3a8`, tree `31f36101488be18d1a8c1b439c3ace6d0fb37fae`; future work must check main again. An old source link inside the preserved prototype is provenance, not precedence over this amended contract.
 
-These are reproducible raster observations, not recovered CSS alpha/roughness/physical shader values or a new global PAIA theme. Preserve their relationship and the approved image rather than painting five opaque color sectors. Typography/readability, reduced-transparency and current dark/system roles remain authoritative. The panel must not inherit the sphere's saturated pattern.
+## 3. Selected and rejected scope
 
-## 3. Accepted V6 geometry/behavior, not its old sphere material
+- **Selected:** B’s unequal solid quote-like strokes; no permanent base/glow/glass. Neutral solid capsule and board;14px/22px rows,18px radius, exact theme roles and restrained feedback. All three states share the composer-top anchor.
+- **Not selected:** A restrained geometric direction, C organic softness and D line-drawn cute direction. Their comparison views are decision history; there is no product appearance selector or blended theme.
+- **Superseded:** the2026-10-16 smoky-blue/indigo glass poster and its neutral-frosted material, earlier V6 glossy lens, V7, pastel/rainbow/mascot explorations, older board typography/radius and adaptive normal heights. The old [approved glass crop](design/narrow-input-board-v4/approved-2026-10-16/approved-components.webp) remains historical evidence.
+- **Preserved:** fixed ordinary dimensions, single-line complete expressions, direct eligible<=150 use, no automatic Send, full lawful manual/search semantics and all original privacy/target/restore boundaries. The prior reference history is retained through PRE_JUBAN and its PRE_FIXED chain.
 
-| Artifact | Bytes | SHA-256 |
-|---|---:|---|
-| `PAIA_悬浮输入_V6_交互原型.html` | 63779 | `f826a210e30e8a7cf0d587b0da432b675f81e4e925498cd196c966c3b21b78f6` |
-| `PAIA_悬浮输入_V6_设计与实施规格.md` | 12119 | `3cb7872d8a77f29af72939c8bfb582bdd14d50fd775cbcd076a4cbed7ad7e92f` |
+## 4. Evidence limits and production boundary
 
-These original owner-delivery bytes were available and identity-checked during adoption. V6 supplies fixed336×312, six44px single-line rows, one-click eligible insertion, optional same-board detail/edit, unified150-character boundary, input avoidance and calm120/80ms motion. Its old glossy/concentric lens interpretation is superseded by the selected picture. Its proposed prototype narrow-layout constants do not mandate a second production position owner.
+The browser screenshots are actual Chrome renders of the offline HTML on a reconstructed host, not an installed extension in a real ChatGPT account. The pointer indication in some captures belongs to browser operation, not PAIA. The mixed approximately24-minute inspection includes16 recorded functional/layout checks; it is not a continuous15-minute user comfort study. No real click-to-paint p95, physical120Hz, actual-host IME or installed extension acceptance is proved.
 
-V6's specification reports111 historical local synthetic checks. This task did not rerun those checks; its standalone result JSON was not available in the current mounted files, so no fresh report/hash verification is claimed. Preserve the reported environment/limitations. The HTML's sample arrays, local memory, simulated text writer, review toolbar and fake host are not production architecture or proof of performance, security, native Mac/IME or live-provider behavior.
+Never transplant synthetic candidate arrays or search/ranking, fake sidebar/conversation, host/send DOM, global CSS, review/theme/form controls, scene offsets or composer-height cap. Prototype textarea `execCommand`/`setRangeText`, selection cache and timing counters do not replace the existing production candidate/layout/private-frame/receiver owners. A token’s demo host background does not authorize repainting ChatGPT.
 
-## 4. Review and handoff
-
-Compare native40px orb plus enlarged material detail, native272×44 capsule and336×312 board, on unchanged light/dark/complex hosts. Only the orb carries appreciable colored depth. List rows are text-first and neutral; no eyes, send controls, categories, repeated spheres, title/subtitle or fabricated shortcut semantics. Avoid a new glossy-bead or white-pastel translation even if source and release match.
-
-Use the exact approved original for final material fidelity; the checked-in crop plus SPEC/PLAN provide explicit behavior, geometry, color roles and owner mapping for independent safe implementation. A missing original blocks exact full-resolution fidelity claims only. Do not claim old v2/v4 material parity satisfies this later approval, or request repeated approval for an already selected direction. No runtime, formal logo change, website update, private source upload or installation follows from these references.
+Current scoped contracts govern privacy, live target validation and retained capabilities. Approved assets govern the selected appearance. Neither class can be used to bypass the other, turn offline evidence into production PASS, or reopen the accepted aesthetic direction.

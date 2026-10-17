@@ -1,0 +1,177 @@
+{
+  "baseline": "8525b6bb068e454602b11cdca761906322380995",
+  "environment": "Chrome / reconstructed offline ChatGPT scene",
+  "elapsedMinutes": 24,
+  "checks": [
+    {
+      "test": "选区末端插入且保留草稿",
+      "pass": true,
+      "observed": {
+        "focus": "composerInput",
+        "panels": 1,
+        "text": "甲乙丙先检查我的前提。丁"
+      }
+    },
+    {
+      "test": "当前 Chrome 原生撤销",
+      "pass": true,
+      "observed": "甲乙丙丁"
+    },
+    {
+      "test": "双击不重复插入",
+      "pass": true,
+      "observed": {
+        "focus": "composerInput",
+        "mode": "board",
+        "text": "给我一个具体例子。"
+      }
+    },
+    {
+      "test": "搜索空结果仍固定外框",
+      "pass": true,
+      "observed": {
+        "height": 312,
+        "rows": 0
+      }
+    },
+    {
+      "test": "省略长句单击完整插入并跟随增高",
+      "pass": true,
+      "observed": {
+        "focus": "composerInput",
+        "gap": 12,
+        "height": 312,
+        "text": "请先独立判断我的前提是否成立，指出遗漏的关键变量，再结合实际使用场景给出建议；不要仅仅复述我的描述，也不要为了完整而加入无关功能。"
+      }
+    },
+    {
+      "test": "键盘上键选最后一条并滚入可视区域",
+      "pass": true,
+      "observed": {
+        "bottom": 759,
+        "count": 10,
+        "listBottom": 759,
+        "row": "9",
+        "scroll": 174
+      }
+    },
+    {
+      "test": "胶囊272×44、同锚点与12px间距",
+      "pass": true,
+      "observed": {
+        "gap": 12,
+        "height": 44,
+        "rightOffset": 4,
+        "width": 272
+      }
+    },
+    {
+      "test": "胶囊正文直接插入且保持胶囊",
+      "pass": true,
+      "observed": {
+        "text": "先检查我的前提。",
+        "mode": "capsule",
+        "focus": "composerInput"
+      }
+    },
+    {
+      "test": "胶囊独立开板并收回胶囊，每次只出现一个壳",
+      "pass": true,
+      "observed": {
+        "sequence": [
+          "capsule",
+          "board",
+          "capsule"
+        ],
+        "shells": 1
+      }
+    },
+    {
+      "test": "输入框增高到249px仍保持336×312浮板与12px间距",
+      "pass": true,
+      "observed": {
+        "composerHeight": 249,
+        "panelWidth": 336,
+        "panelHeight": 312,
+        "panelTop": 334,
+        "gap": 12,
+        "rightOffset": 4
+      }
+    },
+    {
+      "test": "390×700实际视口不横向溢出",
+      "pass": true,
+      "observed": {
+        "composer": {
+          "height": 99,
+          "width": 358,
+          "x": 16,
+          "y": 572
+        },
+        "frame": [
+          390,
+          700
+        ],
+        "gap": 12,
+        "panel": {
+          "height": 312,
+          "width": 336,
+          "x": 38,
+          "y": 248
+        }
+      }
+    },
+    {
+      "test": "900×420短窗口保留宽度并让候选滚动",
+      "pass": true,
+      "observed": {
+        "composerBottom": 391,
+        "gap": 12,
+        "height": 210,
+        "listHeight": 164,
+        "listScrollHeight": 266,
+        "top": 70,
+        "width": 336
+      }
+    },
+    {
+      "test": "900×260空间不足时暂以44px入口显示",
+      "pass": true,
+      "observed": {
+        "fallbackTop": 76,
+        "composerTop": 132,
+        "panelHidden": true,
+        "hitHeight": 44
+      }
+    },
+    {
+      "test": "窗口恢复空间后恢复原336×312浮板",
+      "pass": true,
+      "observed": {
+        "fallback": false,
+        "height": 312,
+        "hidden": false,
+        "mode": "board"
+      }
+    },
+    {
+      "test": "900×240连入口也放不下时暂隐且保留板状态",
+      "pass": true,
+      "observed": {
+        "composerBottom": 211,
+        "fallbackHidden": true,
+        "mode": "board",
+        "panelHidden": true
+      }
+    },
+    {
+      "test": "默认入口直接开板，没有胶囊必经步骤",
+      "pass": true,
+      "observed": {
+        "capsules": 0,
+        "mode": "board",
+        "shells": 1
+      }
+    }
+  ]
+}
