@@ -30,11 +30,15 @@ const selectorPairs=[
  ['detailFooter','.context-detail-footer','.context-detail-footer'],['detailToolbar','.context-editor-toolbar','.context-editor-toolbar'],['groupItems','.context-group-items','.context-group-items'],['itemFooter','.context-item-footer','.context-item-footer'],['topicRow','.context-topic-row','.context-topic-row'],['topicRead','.context-topic-open','.context-topic-open'],['inputsToolbar','.context-inputs-toolbar','.context-inputs-toolbar'],['detailCaption','.context-gate-caption','.context-gate-caption'],['detailSubtitle','.context-detail .context-subtitle','.context-detail .context-subtitle'],['detailEyebrow','.context-detail .context-eyebrow','.context-detail .context-eyebrow'],['feedback','.item-feedback.error','.item-feedback.error']
 ];
 const styleKeys=['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor','borderTopWidth','borderTopColor','borderRadius','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginBottom','gap','minHeight'];
-async function metrics(page,side){return page.evaluate(({pairs,keys,side})=>{
+async function metrics(page,side,{topicCount=null}={}){return page.evaluate(({pairs,keys,side,topicCount})=>{
+ // Read readiness and the exact native state atomically. A queued refresh may
+ // start after a preceding wait/animation frame; it must not become the frame
+ // compared with the approved stable scene. Stable refusals remain measurable.
+ if(side==='actual'&&topicCount!==null&&(history.state?.paiaReader?.view!=='memory'||history.state.paiaReader.contextCard!=='inputs'||document.querySelector('.context-page')?.inert!==false||document.querySelector('.context-inputs')?.getAttribute('aria-busy')!=='false'||document.querySelectorAll('.topic-access').length!==topicCount))return null;
  const result={viewport:{width:innerWidth,height:innerHeight,ratio:devicePixelRatio},theme:document.documentElement.dataset.paiaTheme,overflow:document.documentElement.scrollWidth>innerWidth,groups:{}};
  for(const [name,reference,actual]of pairs)result.groups[name]=[...document.querySelectorAll(side==='reference'?reference:actual)].filter(el=>el.getClientRects().length).map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,rect[key]+(key==='y'?scrollY:0)])),style:Object.fromEntries(keys.map(key=>[key,style[key]])),textLength:el.textContent.length,disabled:el.disabled===true,pressed:el.getAttribute('aria-pressed'),on:el.dataset.on??null,paused:el.dataset.paused??null};});
  return result;
-},{pairs:selectorPairs,keys:styleKeys,side});}
+},{pairs:selectorPairs,keys:styleKeys,side,topicCount});}
 function compare(reference,actual,scene){
  const failures=[],record=(selector,index,field,expected,observed)=>failures.push({selector,index,field,expected,actual:observed});
  if(actual.overflow)record('document',0,'horizontalOverflow',false,true);
@@ -137,7 +141,7 @@ export async function runContextReferenceEquivalence(variant){
    }
    if(card==='inputs')await page.waitForFunction(count=>document.querySelector('.context-inputs')?.getAttribute('aria-busy')==='false'&&document.querySelectorAll('.topic-access').length===count&&[...document.querySelectorAll('.topic-access')].every(node=>!node.disabled),referenceState.topics.length);
    await runContextReferencePair(()=>settle(prototype),()=>settle(page));
-   const [expected,actual]=await runContextReferencePair(()=>metrics(prototype,'reference'),()=>metrics(page,'actual'));const mismatches=compare(expected,actual,scene);
+   const expected=await metrics(prototype,'reference');let actual;await eventually(async()=>{const measured=await metrics(page,'actual',{topicCount:card==='inputs'?referenceState.topics.length:null});if(!measured)return false;actual=measured;return true;},'the original Context owner supplies one settled native metric snapshot');const mismatches=compare(expected,actual,scene);
    // Persist this frame before any invariant can abort the remaining scenes.
    await writeFile(join(out,'current-capture.json'),JSON.stringify({binding,id,reference:expected,actual,mismatches},null,2));
    if(['info','rules','now'].includes(card))await assertContextReadingPreferences(page,referenceState.items[card]);

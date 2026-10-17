@@ -29,6 +29,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   await openCapturedReader(p);
   assert.equal(await p.locator('#document-filter-toggle,#document-search-include-filtered,.filtered-input-note').count(),0,'Reader has no show-all or Smart Filter chrome');
   const before=await h.state(),first=p.locator('.library-prose').first(),removedId=await first.getAttribute('data-edit-id');
+  await p.evaluate(async()=>{const {DocumentEditor}=await import('./library.js');globalThis.__removalTrace=[];for(const method of ['exclude','dispose']){const original=DocumentEditor.prototype[method];DocumentEditor.prototype[method]=function(...args){const row={method,phase:'start',disposed:!!this.disposed,undo:this.undoStack?.length};__removalTrace.push(row);const result=original.apply(this,args);if(method==='dispose')return result;return Promise.resolve(result).then(value=>{__removalTrace.push({method,phase:'end',result:value,disposed:!!this.disposed,undo:this.undoStack?.length,current:args[2]?.isCurrent?.()});return value;});};}});
   await eventually(async()=>await p.locator('.library-block .reader-more').count()===3,'Reader actions mounted');
   assert.equal(await p.locator('.library-block .reading-copy,.library-block .input-remove').count(),0);
   await first.evaluate(el=>{const range=document.createRange();range.setStart(el.firstChild,0);range.setEnd(el.firstChild,Math.min(8,el.firstChild.length));getSelection().removeAllRanges();getSelection().addRange(range);});
@@ -38,7 +39,7 @@ test('CPV1-02.4 Reader keeps actions contextual and removal reversible', {timeou
   assert.equal(await p.getByRole('menuitem',{name:'复制这条输入'}).count(),1);
   await p.getByRole('menuitem',{name:'从档案移除'}).click();
   await eventually(async()=>(await h.state()).library.blocks.find(b=>b.id===removedId).excluded);
-  await p.locator('#notice').getByRole('button',{name:'撤销'}).click();
+  try{await p.locator('#notice').getByRole('button',{name:'撤销'}).click();}catch(error){console.log('READER_REMOVAL_OWNER_TRACE',JSON.stringify(await p.evaluate(()=>({trace:__removalTrace,notice:document.getElementById('notice').textContent,error:document.getElementById('error').textContent,status:document.getElementById('save-status').textContent}))));throw error;}
   await eventually(async()=>!(await h.state()).library.blocks.find(b=>b.id===removedId).excluded);
   assert.deepEqual((await h.state()).records,before.records);
   assert.deepEqual(h.errors,[]);
@@ -53,7 +54,8 @@ test('CPV1-02.4 Reader bounds long conversations and restores preceding range', 
   c.messages=Array.from({length:205},(_,i)=>({id:'cpv1-reader-'+String(i).padStart(3,'0'),text:'Synthetic continuous reading '+i}));
   await h.open(c);
   await eventually(async()=>(await h.state()).records.length===205,'205 synthetic inputs captured');
-  await openCapturedReader(p);await p.locator('#input-time-toggle').click();
+  await openCapturedReader(p);if(await p.locator('#input-time-toggle').getAttribute('data-current-sort')!=='asc')await p.locator('#input-time-toggle').click();
+  await eventually(async()=>await p.locator('#input-time-toggle').getAttribute('data-current-sort')==='asc'&&await p.locator('.library-prose').first().textContent()==='Synthetic continuous reading 0'&&await p.locator('.library-prose').last().textContent()==='Synthetic continuous reading 39','the explicit ascending order paints its actual first bounded range');
   const rows=p.locator('.library-prose'),index=async edge=>Number((await (edge==='first'?rows.first():rows.last()).textContent()).match(/reading (\d+)/)?.[1]??-1);
   const scrollUntil=async(edge,expected,label)=>eventually(async()=>{if(edge==='last'&&await index('last')>=expected||edge==='first'&&await index('first')<=expected)return true;await p.evaluate(edge==='last'?()=>window.scrollTo(0,document.body.scrollHeight):()=>window.scrollTo(0,document.querySelector('#document-body').offsetTop));return false;},label,30000);
   await eventually(async()=>await rows.count()===40);
@@ -307,7 +309,7 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   await eventually(()=>window.isVisible(),'captured Conversation is visible');
   await window.click();
   await eventually(()=>p.locator('.library-prose').first().isVisible(),'Reader opens');
-  const prose=p.locator('.library-prose').first();
+  const prose=p.locator('.library-prose').first(),removedId=await prose.getAttribute('data-edit-id');
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.textContent='未完成的输入';el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:'未完成的输入',isComposing:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});
   assert.equal(await p.getByRole('menuitem',{name:/^(查看原始内容|View original content)$/}).count(),0,'retired source entry cannot bypass the composing Reader');await p.keyboard.press('Escape');
   assert.equal((await h.state()).records[0].originalText,'Synthetic source kept','immutable Source remains independently retained');
@@ -318,8 +320,9 @@ test('VS-04 source purge refuses an unfinished Reader IME edit', {timeout:60000}
   assert.equal((await h.state()).records.length,1,'immutable Source remains present');
   assert.equal(await prose.textContent(),'未完成的输入','the composing text remains visible after refused purge');
   await prose.evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true})));
-  await p.locator('#scope-search').evaluate(el=>{el.value='未完成的输入';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  await eventually(()=>p.locator('#scope-search').inputValue().then(value=>value!=='未完成的输入'),'discovery navigation is refused until IME save');
+  assert.equal(await p.locator('input[type=search]:visible').count(),0,'the retired Reader search is not an alternate navigation entry');
+  await p.locator('#back').click();
+  assert.equal(await p.locator('#document-panel').isVisible(),true,'the actual Back to discovery refuses unfinished IME before any search can begin');
   assert.equal(await p.locator('#document-panel').isVisible(),true);assert.equal(await p.locator('.search-input').count(),0,'unfinished text is not presented as indexed data');
   assert.equal(await prose.textContent(),'未完成的输入','search preserves composing text');
   await prose.evaluate(el=>{el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:20,clientY:20}));});

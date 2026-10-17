@@ -38,3 +38,10 @@ for(const mutation of ['window shift','expanded body','stale reader','new protec
 test('unchanged annual window still qualifies all164 references and explicitly opens the165th unknown Entry',()=>withAnnualTransition(async f=>{
  f.release();assert.equal(await f.transition,true);assert.equal(f.reader.items.length,165);assert.equal(f.reader.items.at(-1).entry.id,'entry-164');assert.deepEqual(f.reader.openedYears,[2023,2021,'unknown']);assert.ok(f.reader.state().retainedBodies<=120);assert.equal(f.counts().painted,1);
 }));
+
+for(const boundary of ['same year','changed year','retired route'])test(`explicit annual intent waits for the existing refresh and keeps its exact clicked year: ${boundary}`,async()=>{
+ let release,flushes=0;const gate=new Promise(resolve=>release=resolve),reader={nextYear:'unknown',initialized:true,stale:false},owner=Object.assign(Object.create(TopicController.prototype),{id:'topic',openIntent:1,activeSectionId:'section',view:'original',topicReader:reader,refreshRun:{promise:gate},updateTopicContinuous(){},flushReadingNavigation:async()=>{flushes++;return false;},checkAllTracked:async()=>true});
+ const pending=owner.openNextTopicYear();for(let i=0;i<4;i++)await Promise.resolve();assert.equal(flushes,0,'an in-flight refresh cannot race annual staging or flush against its temporary reader');assert.equal(owner.annualTransitionBusy,true);
+ if(boundary==='changed year')reader.nextYear=2020;if(boundary==='retired route')owner.openIntent++;
+ release();assert.equal(await pending,false);assert.equal(flushes,boundary==='same year'?1:0,'only the still-current exact year reaches its original save/IME gate');assert.equal(owner.annualTransitionBusy,false);
+});

@@ -7,6 +7,7 @@ import {runWithPreDispatchReadRetry} from './harness/pre-dispatch-read-retry.mjs
 import {thoughtPrimary} from './harness/current-thought-navigation.mjs';
 const rpc=async(p,type,fields={})=>{const result=await p.evaluate(m=>chrome.runtime.sendMessage(m),{type,...fields});assert.equal(result?.ok,true,JSON.stringify(result));return result.data;};
 const offset=160;
+const selectedExtension=process.env.PAIA_TOPIC_POSITION_EXTENSION_PATH,positionEvidence='work/topic-return-position'+(selectedExtension?'/release':'');
 // Observe native completion, never substitute RPC/restore results or wait for geometry success.
 function observeTopicCompletion(TopicController){
  const state=globalThis.__topicCompletion={sequence:0,current:null,events:[]};let activeOwner=null;
@@ -14,7 +15,7 @@ function observeTopicCompletion(TopicController){
  const track=(promise,scope,kind,done=()=>{})=>{scope.pending++;record(kind+'-start',{sequence:scope.sequence});promise.then(value=>{scope.pending--;done(value);record(kind+'-end',{sequence:scope.sequence});},error=>{scope.pending--;scope.failed=true;record(kind+'-error',{sequence:scope.sequence,name:error?.name||'Error'});});return promise;};
  const open=TopicController.prototype.open,restore=TopicController.prototype.restorePosition;
  TopicController.prototype.open=function(id,...args){const scope={sequence:++state.sequence,topicId:id,intent:null,claim:null,pending:0,completed:false,failed:false};state.current=scope;activeOwner=this;const promise=open.call(this,id,...args);scope.claim=this.topicOpenIntent;return track(promise,scope,'open',intent=>{scope.intent=intent;scope.completed=Number.isSafeInteger(intent)&&scope.claim===this.topicOpenIntent&&this.openIntent===intent&&this.id===id;});};
- TopicController.prototype.restorePosition=function(anchor){const scope=state.current,promise=restore.call(this,anchor);if(scope&&scope.claim===this.topicOpenIntent&&scope.topicId===this.id){scope.intent=this.openIntent;return track(promise,scope,'restore');}return promise;};
+ TopicController.prototype.restorePosition=function(anchor,...args){const scope=state.current,promise=restore.call(this,anchor,...args);if(scope&&scope.claim===this.topicOpenIntent&&scope.topicId===this.id){scope.intent=this.openIntent;return track(promise,scope,'restore');}return promise;};
  for(const name of ['topicAnchor','rememberView','readRefresh']){const original=TopicController.prototype[name];TopicController.prototype[name]=function(...args){const value=original.apply(this,args);record(name,{topicId:this.id,intent:this.openIntent,epoch:this.statusEpoch,key:this.readKey(),anchor:name==='topicAnchor'?value:undefined,visible:!!this.originalPane?.getClientRects().length,connected:this.originalPane?.isConnected});return value;};}
  const create=TopicController.prototype.createTopicReader;TopicController.prototype.createTopicReader=function(...args){const reader=create.apply(this,args),restoreAnchor=reader.restoreAnchor;reader.restoreAnchor=function(root,anchor,entry){const before={anchor,visible:!!root?.getClientRects().length,connected:root?.isConnected,scrollY},result=restoreAnchor.call(this,root,anchor,entry);record('anchor-restore',{...before,result,after:scrollY});return result;};return reader;};
  const send=chrome.runtime.sendMessage;
@@ -23,7 +24,7 @@ function observeTopicCompletion(TopicController){
 }
 
 async function fixture(){
- const h=await FakeChatGPT.start({headless:true}),p=h.archive;
+ const h=await FakeChatGPT.start({headless:true,...(selectedExtension?{extensionPath:selectedExtension}:{})}),p=h.archive;
  p.on('console',message=>{const text=message.text();if(text.startsWith('SECTION_FIXTURE_ACQUISITIONS '))console.log(text);});
  try{await p.setViewportSize({width:1440,height:1000});await p.locator('#enable-consent').click();
  await eventually(async()=>{const status=await rpc(p,'GET_STATUS');return status.consented===true&&status.enabled===true;},'consent is durably acknowledged before independent Section setup');
@@ -56,9 +57,9 @@ async function exact(p,s,entry=s.target,at=offset){
  await field(p,entry.id).waitFor();await p.waitForFunction(id=>history.state?.paiaReader?.topicId===id&&document.querySelector('.workspace')?.dataset.state==='ready'&&!document.querySelector('.workspace').inert&&globalThis.__topicCompletion?.current?.topicId===id&&__topicCompletion.current.completed&&!__topicCompletion.current.failed&&__topicCompletion.current.pending===0,s.topicId,{timeout:14000});await settled(p);const saved=await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId}}),row=await rpc(p,'GET_LIBRARY_ENTRY',{id:entry.id});
  assert.equal(saved.entryId,entry.id);assert.equal(saved.revision,row.revision);assert.equal(saved.offset,at);const place=await geometry(p,entry.id,at);assert.ok(place&&Number.isFinite(place.top));assert.equal(place.sectionId,s.sectionId);
  assert.ok(Math.abs(place.top-140)<=2||(Math.abs(place.scrollY-place.maxScroll)<=2&&place.top>=140&&place.top<place.viewport),'exact text offset aligns to reading edge unless bounded by remaining scroll range: '+JSON.stringify(place));return {saved,place};
- }catch(error){try{await mkdir('work/topic-return-position',{recursive:true});const trace=await p.locator('html').evaluate(()=>({completion:globalThis.__topicCompletion,scrollY,route:history.state?.paiaReader?.topicId}),null,{timeout:1000});await writeFile('work/topic-return-position/exact-failure-'+Date.now()+'.json',JSON.stringify({trace,error:error.message},null,2));}catch(diagnostic){console.error('TOPIC_EXACT_DIAGNOSTIC_UNAVAILABLE',diagnostic?.name||'Error');}throw error;}
+ }catch(error){try{await mkdir(positionEvidence,{recursive:true});const trace=await p.locator('html').evaluate(()=>({completion:globalThis.__topicCompletion,scrollY,route:history.state?.paiaReader?.topicId}),null,{timeout:1000});await writeFile(positionEvidence+'/exact-failure-'+Date.now()+'.json',JSON.stringify({trace,error:error.message},null,2));}catch(diagnostic){console.error('TOPIC_EXACT_DIAGNOSTIC_UNAVAILABLE',diagnostic?.name||'Error');}throw error;}
 }
-async function evidence(f,name,data){assert.equal(f.h.externalRequests,0);assert.equal(f.h.extensionNetworkRequests,0);assert.equal(f.h.deepSeekRequests.length,0);assert.deepEqual(f.h.errors,[]);await mkdir('work/topic-return-position',{recursive:true});await writeFile('work/topic-return-position/'+name+'.json',JSON.stringify({...data,completion:await f.p.evaluate(()=>globalThis.__topicCompletion)},null,2));}
+async function evidence(f,name,data){assert.equal(f.h.externalRequests,0);assert.equal(f.h.extensionNetworkRequests,0);assert.equal(f.h.deepSeekRequests.length,0);assert.deepEqual(f.h.errors,[]);await mkdir(positionEvidence,{recursive:true});await writeFile(positionEvidence+'/'+name+'.json',JSON.stringify({...data,extensionPath:selectedExtension||'source',completion:await f.p.evaluate(()=>globalThis.__topicCompletion)},null,2));}
 async function delayedPositionCannotOverrideUser(p,s){
  await back(p);await p.locator(`.personal-topic-link[data-topic-id="${s.topicId}"]`).waitFor();
  await rpc(p,'THOUGHT_POSITION',{position:{topicId:s.topicId,entryId:s.target.id,revision:s.target.revision,offset:0,sort:'desc',expanded:[]}});
