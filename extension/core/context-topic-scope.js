@@ -215,6 +215,9 @@ async function scopeMetadata(store,t,topicId,admitted){
  return {context,target,topics,reservations,legacyRows,topicIds,entryIds,inputIds,sections,eligible,entries};
 }
 
+// Internal owner reuse for same-transaction, bounded dependency witnesses; no grant.
+export {scopeMetadata as readContextScopeMetadata};
+
 async function scopeRead(store,budget,fn,stores){
  const database=budget.database||store.repository.db;
  requireFact(database&&store.repository.db===database&&!budget.signal?.aborted,'not_ready');

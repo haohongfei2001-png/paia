@@ -1,3 +1,4 @@
+import {createMaintenanceServiceResponseOwner} from './maintenance-service-response.js';
 import {savedFinancialCancellation} from './domain-result-receipt.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {canonical,equal,fail,digest} from './contracts.js';
@@ -18,7 +19,7 @@ export const requireMaintenanceServiceClient=value=>{if(!clients.has(value))fail
 // The opportunity means only that this available runtime may check its backlog.
 // It supplies NO day/window, tier, quota, allowance or financial reservation.
 // Those facts belong exclusively to the authenticated original service ledger.
-export function createMaintenanceServiceClient(configuration){
+export function createMaintenanceServiceClient(configuration,store=null){
  let c;try{
   if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration)))return null;
   const ds=Object.getOwnPropertyDescriptors(configuration),keys=Reflect.ownKeys(ds),required=['origin','scope','contractVersion','routeVersion','service','processing',...callbacks];
@@ -26,6 +27,7 @@ export function createMaintenanceServiceClient(configuration){
   c=Object.fromEntries(keys.map(k=>[k,ds[k].value]));if(Object.hasOwn(c,'fetch')&&typeof c.fetch!=='function'||!callbacks.every(k=>typeof c[k]==='function')||!['scope','contractVersion','routeVersion'].every(k=>token(c[k]))||!c.service||!c.processing)return null;
   const url=new URL(c.origin);if(url.origin!==c.origin||url.protocol!=='https:'||url.port||url.username||url.password)return null;
  }catch{return null;}
+ let responses=null;try{if(!Object.hasOwn(c.service,'responseAdapter')){responses=createMaintenanceServiceResponseOwner(store);c.service={...c.service,responseAdapter:responses.adapter};}}catch{return null;}
  const transport=(factory,path)=>factory({endpoint:c.origin+path,...(c.fetch?{fetch:c.fetch}:{})}),declarations=transport(createClientDeclarationTransport,'/api/declarations'),reservations=transport(createClientReservationTransport,'/api/reservations'),results=transport(createClientResultTransport,'/api/results'),status=transport(createClientOperationStatusTransport,'/api/operation-status');
  if([declarations,reservations,results,status].some(x=>!x))return null;
  let disposed=false;const active=new Set(),opportunities=new WeakSet(),controller=new AbortController(),current=()=>{if(disposed||controller.signal.aborted||c.isCurrent()!==true)fail('UNAVAILABLE');};
@@ -73,11 +75,18 @@ export function createMaintenanceServiceClient(configuration){
     current();await foundation.read(t=>preflight(t,null,retainJob));return recovered;
    })();const flight={origin:c.origin,task};recoveries.set(foundation.s,flight);task.finally(()=>{if(recoveries.get(foundation.s)===flight)recoveries.delete(foundation.s);}).catch(()=>{});return task;
   },
-  async prepareChild(foundation,job,payload,{signal,assertCurrent,assertBeforeSend,isCurrent}){
+  usesExistingContext(){
+   // A current-profile feature probe only. The original readProfile phase stays
+   // after Filter preparation and independently binds the exact qualified wire.
+   if(!responses)return false;current();const manifest=snapshot(c.currentProfile());current();responses.assertProfile(manifest);return responses.usesExistingContext();
+  },
+  async prepareChild(foundation,job,payload,{signal,assertCurrent,assertBeforeSend,isCurrent,workBudget=null}){
+   let responseBound=false;try{
    current();await assertCurrent();const metadata=await foundation.read(async t=>{const stored=await foundation.job(t,job.id);await foundation.current(t,stored);const index=stored.childIds.indexOf(payload.childOperationId);if(index<0)fail('STALE_BASE');return foundation.childRequest(stored,index);});
    if(!equal(Object.fromEntries(Object.keys(metadata).map(k=>[k,payload[k]])),metadata))fail('STALE_BASE');
    const childIdentity=Object.fromEntries(['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'].map(k=>[k,metadata[k]]));
-   const manifest=snapshot(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
+   const manifest=snapshot(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();responses?.assertProfile(manifest);
+   if(responses){await responses.bind(payload,()=>{current();return isCurrent()===true;},{read:fn=>foundation.read(fn),workBudget});responseBound=true;await assertCurrent();}
    if(manifest.profile.jobType!=='AI_MAINTENANCE'||manifest.profile.contractVersion!==c.contractVersion||manifest.profile.routeVersion!==c.routeVersion||manifest.profile.thinking.enabled!==false)fail('UNAVAILABLE');
    const compiler=createQwenRequestProfileCompiler({profile:manifest.profile,known:manifest.known}),outputCap=Math.min(ENVELOPES.AI_MAINTENANCE.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
    if(compiled.status!=='COMPILED_PARTIAL')fail('UNAVAILABLE');
@@ -111,9 +120,10 @@ export function createMaintenanceServiceClient(configuration){
     provider=owner.foundationProvider(bound,providers);if(!provider)fail('UNAVAILABLE');
     await foundation.reserveMaintenanceServerChild(job.id,provider);registered=true;await assertCurrent();return {provider,dispose:operation.dispose,scheduling:Object.freeze({nextEligibilityAt:reservation.window.nextEligibilityAt,observedAt:reservation.reservedAt})};
    }catch(error){if(registered)try{await foundation.cancelServer(job.id);}catch{/* Original hold remains unresolved. */}operation.dispose();throw error;}
+   }catch(error){if(responseBound)responses.discard(payload.childOperationId);throw error;}
   },
-  async report(foundation,job){current();const s=await foundation.status(job.id),request=s.attempts.find(r=>r.financialRequest)?.financialRequest;if(!terminal.has(s.state)||!request)fail('RESULT_PENDING');const proofs=await c.readProofs(structuredClone(request));current();return foundation.reportResult(job.id,proofs,results);},
-  dispose(){disposed=true;controller.abort();/* In-flight finally retains cancellation proofs until its original cleanup. */}
+  async report(foundation,job){current();const s=await foundation.status(job.id),request=s.attempts.find(r=>r.financialRequest)?.financialRequest;if(!terminal.has(s.state)||!request)fail('RESULT_PENDING');const proofs=await c.readProofs(structuredClone(request));current();const reported=await foundation.reportResult(job.id,proofs,results);responses?.release(job.id);return reported;},
+  dispose(){disposed=true;controller.abort();responses?.dispose();/* In-flight finally retains cancellation proofs until its original cleanup. */}
  };
  clients.add(client);return Object.freeze(client);
 }

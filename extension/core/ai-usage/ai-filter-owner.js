@@ -45,6 +45,9 @@ export class AIMaintenanceFilterOwner {
  constructor(store,authority=null){this.#store=store;this.#authority=authority;}
  #retire(state){state.active=false;state.proof=null;this.#states.delete(state);}
  release(handle){const state=this.#handles.get(handle);if(state)this.#retire(state);}
+ // Read-only original-handle fence for an already selected service packet.
+ // Never resolves a replacement grant or reads bodies; stale handles retire.
+ assertCurrent(handle){this.#live(this.#handles.get(handle));return true;}
  #time(){const value=Date.parse(this.#store.clock());if(!integer(value)||this.#last!==null&&value<this.#last){for(const state of this.#states)this.#retire(state);fail('STALE_BASE');}this.#last=value;for(const state of this.#states)if(value>=state.created+300000)this.#retire(state);return value;}
  #ready(){if(typeof this.#authority?.resolve!=='function'||typeof this.#authority?.isCurrent!=='function')fail();}
  #current(grant){this.#ready();if(this.#authority.isCurrent(grant)!==true)fail('STALE_BASE');}

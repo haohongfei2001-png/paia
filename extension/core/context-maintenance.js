@@ -15,6 +15,27 @@ export const CONTEXT_MAINTENANCE_LIMITS=Object.freeze({requestBytes:96*1024,pend
 const PREFIX='context-maintenance:',NAMESPACE='context-maintenance',SECTION_LIMIT=80;
 const requestWithinBudget=c=>new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes;
 const attempts=new WeakMap();
+// A restrictive local route policy, never a processing grant or wire field.
+// Existing callers keep their association-qualified operation contract. The
+// first source ADD profile has no existing-Item semantic interpretation yet.
+const freshInputPolicies=new WeakSet();
+export function createContextFreshInputPolicy(){const policy=Object.freeze({});freshInputPolicies.add(policy);return policy;}
+// Only the exact original result object carries this transaction-local fence.
+// It is never a response/receipt field and cannot survive a JSON clone.
+const settlementFences=new WeakMap(),stagedItems=new WeakMap();
+export const contextMaintenanceSettlementFence=result=>settlementFences.get(result)??null;
+// An authentic owner outcome can account for only its own exact staged Item.
+// No JSON object, model field or caller flag can synthesize this transition.
+export function contextMaintenanceStagedItem(result,store,transaction,before){
+ const held=stagedItems.get(result);
+ if(!held||held.store!==store||held.database!==store.repository.db||held.transaction!==transaction||!same(held.before,before))return null;
+ return structuredClone(held.after);
+}
+export function contextMaintenanceTransition(result,store,transaction=null){
+ const held=stagedItems.get(result);
+ if(!held||held.store!==store||held.repository!==store.repository||held.database!==store.repository.db||transaction!==null&&held.transaction!==transaction)return null;
+ return structuredClone({...held.proof,settled:held.settled});
+}
 const fail=(code='CONTEXT_INVALIDATED')=>{throw new ArchiveError(code);};
 const need=(x,code)=>{if(!x)fail(code);};
 const bounded=(x,n)=>typeof x==='string'&&x.length>0&&x.length<=n&&!x.includes('\0');
@@ -59,6 +80,18 @@ export function validateContextMaintenanceChange(c){
  need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence',...(Object.hasOwn(c||{},'temporal')?['temporal']:[])])&&(!Object.hasOwn(c,'temporal')||validContextTemporal(c.temporal))&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,SECTION_LIMIT)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
  need(requestWithinBudget(c),'INVALID_REQUEST');return c;
 }
+// Negative-only admission for the source ADD-only profile. An existing automatic
+// Item with intersecting Input lineage requires qualified existing-Item/claim
+// interpretation that the selected profile does not yet carry. All original
+// evidence identities (including authored/bound Entries) are negative facts.
+// Refusal is uncertainty,
+// not semantic equality or a permanent Input ban. Original callers retain their
+// association contract. Never match Source IDs, text, card, Topic or revision.
+// The canonical row/provenance bounds apply; no additional body read is needed.
+export function hasContextInputLineage(row,evidence,excludeItemId=null){
+ const keys=new Set(evidence.map(contextEvidenceKey));
+ return keys.size>0&&row.items.some(item=>item.id!==excludeItemId&&item.origin==='automatic'&&[item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).some(p=>p.evidence.some(e=>keys.has(contextEvidenceKey(e)))));
+}
 // A declared local-domain outcome, not an inferred equality or model wire.
 export function validateContextMaintenanceNoChange(c){return validateContextMaintenanceOutcome(c,'NO_CHANGE');}
 export function validateContextMaintenanceInvalidation(c){return validateContextMaintenanceOutcome(c,'REMOVE_CANDIDATE');}
@@ -93,8 +126,8 @@ async function cancellable(work,signals){
  * Scope and processing flags in request JSON are never accepted as authority.
  */
 export class ContextMaintenanceService {
- #s;#cards;#verifier;#attempts;#writeTransaction;
- constructor(store,{processingVerifier=null,writeTransaction=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
+ #s;#cards;#verifier;#attempts;#writeTransaction;#freshInputPolicy;
+ constructor(store,{processingVerifier=null,writeTransaction=null,freshInputPolicy=null}={}){need((writeTransaction===null||typeof writeTransaction==='function')&&(freshInputPolicy===null||freshInputPolicies.has(freshInputPolicy)),'INVALID_REQUEST');this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#freshInputPolicy=freshInputPolicy;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
  async #verify(caller,scope,signals=[]){
   const timeout=new AbortController(),timer=setTimeout(()=>timeout.abort(),CONTEXT_MAINTENANCE_LIMITS.verificationMs);
   try{
@@ -132,9 +165,9 @@ export class ContextMaintenanceService {
    need(typeof this.#verifier?.verify==='function'&&typeof this.#verifier?.isCurrent==='function');
    need(signal===null||signalOK(signal),'INVALID_REQUEST');
    const c=structuredClone(validate(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
-   if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
+   if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal&&prior.freshInputPolicy===this.#freshInputPolicy,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
    need(this.#attempts.size<CONTEXT_MAINTENANCE_LIMITS.pending,'CONTEXT_LIMIT');
-   const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
+   const attempt={serialized,caller,verifier:this.#verifier,signal,freshInputPolicy:this.#freshInputPolicy,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
    if(signal?.aborted)abort();else signal?.addEventListener('abort',abort);
    const timer=setTimeout(abort,CONTEXT_MAINTENANCE_LIMITS.requestMs);
    attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal,attempt)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
@@ -161,7 +194,7 @@ export class ContextMaintenanceService {
   const abort=()=>{try{transaction?.abort();}catch{}};
   const signals=[...new Set([phase.signal,current.revocationSignal])];
   for(const value of signals)value.addEventListener('abort',abort);
-  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);return await this.#writeTransaction(async t=>{
+  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);const written=await this.#writeTransaction(async t=>{
    need(contextLineageReady(this.#s)&&this.#s.repository.db===database);transaction=t.tx;
    const clearDeadline=()=>{clearTimeout(expiryTimer);expiryTimer=null;};
    transaction.addEventListener('complete',clearDeadline,{once:true});transaction.addEventListener('abort',clearDeadline,{once:true});
@@ -179,6 +212,9 @@ export class ContextMaintenanceService {
    const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];let item=associated||target,outcome;
    if(associated&&target&&associated.id!==target.id)return conflict();
    if(item?.origin==='manual'||item&&(item.card!==c.card||!associated))return conflict();
+   const fresh=this.#freshInputPolicy!==null&&!item&&c.expectedRevision===0,originalItem=this.#freshInputPolicy!==null&&item?structuredClone(item):null;let intendedItem=null;
+   const beforeCounters=originalItem?{thoughtSequence:(await t.get('meta','thought-sequence'))?.value??0,backupGeneration:(await t.get('meta','backup-data-generation'))?.value??0}:null;
+   if(fresh&&hasContextInputLineage(row,c.evidence))return conflict();
    if(item){
     // A known association/revision is not processing authority. The explicit
     // verified request must cover the target's entire old lineage as well as
@@ -198,7 +234,7 @@ export class ContextMaintenanceService {
     // invalidation, never a human tombstone or permission change.
     item.lifecycle='invalidated';item.maintenance.invalidation=captured.provenance;
     item.revision++;item.updatedAt=this.#s.clock();need(validContextCards(row),'CONTEXT_LIMIT');
-    await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,'invalidated');
+    intendedItem=structuredClone(item);await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,'invalidated');
    }else if(c.operation==='NO_CHANGE'){
     if(!item||item.id!==c.itemId||item.card!==c.card||item.lifecycle!=='active'||item.protected||item.revision!==c.expectedRevision||!c.associationIds.every(id=>item.maintenance.associationIds.includes(id)))return conflict();
     // Every checked Input/field must belong to this Item's actual registered
@@ -207,7 +243,7 @@ export class ContextMaintenanceService {
     for(const actual of captured.provenance.evidence){const prior=item.maintenance.provenance.evidence.find(e=>contextEvidenceKey(e)===contextEvidenceKey(actual)&&e.topicId===actual.topicId);
      if(!prior||!actual.selectedFields.every(field=>prior.selectedFields.includes(field))||(['humanEntry','boundEntry'].includes(actual.kind)?actual.entryCreatedAt!==prior.entryCreatedAt||actual.birthOperationId!==prior.birthOperationId||actual.kind==='boundEntry'&&(actual.inputId!==prior.inputId||!same(actual.sourceRecordIds,prior.sourceRecordIds)||!same(actual.sourceIdentityTokens,prior.sourceIdentityTokens)):!same(actual.sourceRecordIds,prior.sourceRecordIds)||!same(actual.sourceIdentityTokens,prior.sourceIdentityTokens)))return conflict();
     }
-    outcome=result(item,'no_change');
+    intendedItem=structuredClone(item);outcome=result(item,'no_change');
    }else if(item&&(item.lifecycle==='removed'||item.protected))outcome=result(item,item.lifecycle==='removed'?'removed':'protected');
    else if(associated&&associated.id!==c.itemId)outcome=result(associated,'duplicate');
    else{
@@ -222,16 +258,43 @@ export class ContextMaintenanceService {
     // cannot silently certify the new body using the prior proposal's time.
     item.body=c.body;item.section=c.section;item.maintenance={version:1,associationIds,provenance:captured.provenance,...(Object.hasOwn(c,'temporal')?{temporal:structuredClone(c.temporal)}:{})};item.revision++;item.updatedAt=this.#s.clock();
     need(validContextCards(row),'CONTEXT_LIMIT');this.#current(caller,current,phase.signal);
-    await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
+    intendedItem=structuredClone(item);await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
    }
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
-   await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
+   const savedReceipt={id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome};const intendedReceipt=originalItem?structuredClone(savedReceipt):null;await t.put('operationReceipts',savedReceipt);
    // Bound human fields and selected Topic/Section interpretation settle with their
    // original Input/Source authority after both Item and receipt are staged.
    // This owner also serves direct callers without a session settlement guard.
    if(c.evidence.some(e=>e.kind==='boundEntry'||e.humanSection||e.humanTopic))await fenceContextLineage(this.#s,captured.captured,{transaction:t});
+   // Recheck after both original Item and receipt writes, in this same atomic
+   // transaction. An unresolved existing lineage cannot publish an ADD
+   // or receipt even when the request was interpreted before that Item appeared.
+   if(fresh){
+    const fence=async transaction=>{
+     need(transaction===t&&contextLineageReady(this.#s)&&this.#s.repository.db===database);
+     this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
+     await fenceContextLineage(this.#s,captured.captured,{transaction:t});
+     const finalRow=await this.#cards.row(t),own=finalRow.items.find(item=>item.id===c.itemId);
+     // Exclude only this exact newly created operation result, never an Item
+     // with a copied ID but replaced association, body, protection or lineage.
+     need(own?.origin==='automatic'&&own.lifecycle==='active'&&!own.protected&&!own.userEdited&&own.revision===1&&own.card===c.card&&own.body===c.body&&own.section===c.section&&same(own.maintenance.associationIds,c.associationIds)&&same(own.maintenance.provenance,captured.provenance)&&same(own.maintenance.temporal,c.temporal));
+     need(!hasContextInputLineage(finalRow,c.evidence,c.itemId));
+     this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return true;
+    };
+    await fence(t);settlementFences.set(outcome,fence);
+   }
+   if(originalItem&&intendedItem){
+    const fence=async transaction=>{
+     need(transaction===t&&contextLineageReady(this.#s)&&this.#s.repository.db===database);
+     this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
+     await fenceContextLineage(this.#s,captured.captured,{transaction:t});
+     need(same((await this.#cards.row(t)).items.find(x=>x.id===originalItem.id),intendedItem));
+     this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return true;
+    };
+    await fence(t);settlementFences.set(outcome,fence);stagedItems.set(outcome,{store:this.#s,repository:this.#s.repository,database,transaction:t,before:originalItem,after:intendedItem,settled:false,proof:{operationId:c.operationId,itemId:c.itemId,beforeItem:originalItem,afterItem:intendedItem,receipt:intendedReceipt,before:beforeCounters,staged:{...beforeCounters},committed:{...beforeCounters,backupGeneration:beforeCounters.backupGeneration+1}}});
+   }
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return outcome;
-  });}finally{clearTimeout(expiryTimer);transaction=null;for(const value of signals)value.removeEventListener('abort',abort);}
+  });const transition=stagedItems.get(written);if(transition)transition.settled=true;return written;}finally{clearTimeout(expiryTimer);transaction=null;for(const value of signals)value.removeEventListener('abort',abort);}
   }finally{releaseContextLineage(captured?.captured);clearTimeout(phaseTimer);for(const source of phaseSources)source.removeEventListener('abort',cancelPhase);}
  }
  async outcome(caller,input){

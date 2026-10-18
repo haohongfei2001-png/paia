@@ -9,6 +9,14 @@ import {queueSearch} from './library-search.js';
 import {readFormationEvidence,formationEntryDescriptor,readableFormationSection,validateFormationSources,FORMATION_WORK_LIMITS} from './topic-formation-evidence.js';
 import {evaluateTopicFormation,formationParameters} from './topic-formation-policy.js';
 
+// Proof of the original receipt-only Topic reuse, held off every wire/receipt.
+// No cloned result or another Store/transaction can claim these counter changes.
+const maintenanceReceiptTransitions=new WeakMap();
+export function topicFormationMaintenanceReceipt(result,store,transaction=null){
+ const held=maintenanceReceiptTransitions.get(result);
+ if(!held||held.store!==store||held.repository!==store.repository||held.database!==store.repository.db||transaction!==null&&held.transaction!==transaction)return null;
+ return freeze(structuredClone({...held.proof,settled:held.settled}));
+}
 const unique=xs=>[...new Set(xs)];
 const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
 const assertActive=signal=>{if(signal?.aborted)fail();};
@@ -123,7 +131,10 @@ export class TopicFormationService {
   if(prior){await this.read(current,t=>this.authorizeTopics(t,current,prior.topicIds||[]));assertActive(state.signal);if(state.cancelled)fail();return prior;}
   if(state.prior)fail();
   const {prepared,plan,projection,entryPlans,snapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan}=state,digest=await hashText(JSON.stringify(operation));
-  return this.#writeTransaction(async t=>{
+  const written=await this.#writeTransaction(async t=>{
+   const receiptOnly=plan.outcome==='reuse'&&plan.reason==='same_identity'&&entryPlans.length===0&&!candidatePlan&&!consumePlan&&!plan.newSection;
+   const before=receiptOnly?{thoughtSequence:(await t.get('meta','thought-sequence'))?.value??0,backupGeneration:(await t.get('meta','backup-data-generation'))?.value??0}:null;
+   let reuseActive=false;
    const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();return replay;}
    const active=()=>{assertActive(state.signal);if(state.cancelled)fail();};active();
    await this.retrieval.guard.check(t,prepared);await this.authorizeTopics(t,prepared,topicIds);
@@ -138,7 +149,7 @@ export class TopicFormationService {
    let topic=null,section=null;
    if(plan.outcome==='create')topic=await this.#createTopic(t,plan,prepared,nameTokens[0],operation.operationId);
    else if(plan.outcome==='reuse'){
-    topic=await resolveTopicIdentity(t,plan.topicId);if(topic.id!==plan.topicId||!['active','dormant'].includes(topic.lifecycle)||topic.layoutJobId||!await this.store.sourcePresent(t,topic.sourceRecordIds))fail();
+    topic=await resolveTopicIdentity(t,plan.topicId);reuseActive=topic.lifecycle==='active';if(topic.id!==plan.topicId||!['active','dormant'].includes(topic.lifecycle)||topic.layoutJobId||!await this.store.sourcePresent(t,topic.sourceRecordIds))fail();
     if(topic.lifecycle==='dormant'){
      if(topic.protections?.lifecycle?.locked)fail();const before=structuredClone(topic);setTopicLifecycle(topic,'active',{actor:'ai',operationId:operation.operationId,at:this.store.clock()});topic.revision++;topic.organizationRevision++;await t.put('topics',topic);await queueSearch(t,'topic',topic);await journal(this.store,t,{kind:'topic',entityId:topic.id,before,after:topic,fieldMask:['lifecycle'],actor:'ai',reason:'activity',important:true,operationId:operation.operationId,sourceRecordIds:topic.sourceRecordIds||[]});
     }
@@ -169,8 +180,17 @@ export class TopicFormationService {
     }
    }
    if(consumePlan){await this.candidates.consumePreparedInTransaction(t,consumePlan);result.consumedCandidateId=request.candidateId;}
-   result.entryIds=unique(result.entryIds);result.createdEntryIds=unique(result.createdEntryIds);result.checks.humanIntent=!proof.blocked;await this.authorizeTopics(t,prepared,result.topicIds);active();await saveReceipt(this.store,t,operation,digest,result);active();return result;
+   result.entryIds=unique(result.entryIds);result.createdEntryIds=unique(result.createdEntryIds);result.checks.humanIntent=!proof.blocked;await this.authorizeTopics(t,prepared,result.topicIds);active();
+   if(receiptOnly&&reuseActive&&((await t.get('meta','thought-sequence'))?.value??0)!==before.thoughtSequence)fail();
+   await saveReceipt(this.store,t,operation,digest,result);active();
+   if(receiptOnly&&reuseActive){
+    const after={thoughtSequence:(await t.get('meta','thought-sequence'))?.value??0,backupGeneration:(await t.get('meta','backup-data-generation'))?.value??0};
+    if(after.thoughtSequence!==before.thoughtSequence+1||after.backupGeneration!==before.backupGeneration)fail();
+    maintenanceReceiptTransitions.set(result,{store:this.store,repository:this.store.repository,database:this.store.repository.db,transaction:t,settled:false,proof:{operationId:operation.operationId,digest,inputIds:request.scope.map(x=>x.inputId).sort(),topicId:topic.id,before,staged:after,committed:{thoughtSequence:after.thoughtSequence,backupGeneration:after.backupGeneration+1}}});
+   }
+   return result;
   });
+  const transition=maintenanceReceiptTransitions.get(written);if(transition)transition.settled=true;return written;
  }
  async #createTopic(t,plan,prepared,nameToken,operationId){
   const store=this.store,id=store.uuid(),sectionId=store.uuid(),at=store.clock(),sourceRecordIds=unique(prepared.evidence.filter(e=>plan.sourceInputIds.includes(e.inputId)).flatMap(e=>e.sourceRecordIds));

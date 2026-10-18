@@ -124,6 +124,7 @@ export class SmartFilterStore extends IAStore {
  }
  prepareAIMaintenanceFilter(t,scope){return this.#aiFilter.prepare(t,scope);}
  releaseAIMaintenanceFilter(handle){this.#aiFilter.release(handle);}
+ assertAIMaintenanceFilterCurrent(handle){return this.#aiFilter.assertCurrent(handle);}
  commitAIMaintenanceFilter(t,handle,decisions){return this.#aiFilter.commit(t,handle,decisions);}
  // Conservative Maintenance participation uses the existing transaction owner.
  // It never attributes a model response to the deterministic classifier and
