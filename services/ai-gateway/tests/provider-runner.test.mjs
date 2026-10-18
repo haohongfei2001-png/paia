@@ -32,14 +32,14 @@ test('disabled and missing tokenizer never read a credential or open any connect
  const f=providerFixture();const missing=createPostgresProviderRunner({...f.config,tokenize:undefined,get providerCredential(){reads++;throw Error();}});
  assert.equal((await missing.run(f.input)).reason,'QUALIFIED_TOKENIZER_UNAVAILABLE');assert.equal(reads,0);assert.equal(sends,0);assert.equal(f.connected(),0);
 });
-test('actual original DISPATCHED commit precedes the sole fixed physical request; parsed response never settles money',async t=>{
+test('actual original DISPATCHED commit precedes the sole fixed physical request; trusted usage settles through the original owner',async t=>{
  const f=providerFixture();assert.equal((await f.reserve()).decision,'reserved');
  const calls=wire(t,f,{onStart:()=>{assert.equal(f.saved().rows[0].state,'DISPATCHED');assert.equal(f.calls.filter(c=>c.role==='ledger'&&c.sql==='COMMIT').length,2);}});
  const result=await f.runner().run(f.input);assert.equal(result.decision,'response_received',JSON.stringify(result));safe(result);
  assert.deepEqual({...result.value},{action:'KEEP'});assert.equal(result.usage.neutral.inputTokens,100);assert.equal(calls.length,1);
  assert.equal(calls[0].hostname,f.manifest.profile.endpoint.host);assert.equal(calls[0].path,'/compatible-mode/v1/chat/completions');assert.equal(calls[0].agent,false);assert.equal(calls[0].rejectUnauthorized,true);
  const body=JSON.parse(calls[0].written);assert.equal(body.n,1);assert.equal(body.enable_thinking,false);assert.deepEqual(JSON.parse(body.messages[1].content),f.input.payload);
- const row=f.saved().rows[0];assert.equal(row.state,'DISPATCHED');assert.equal(row.reservationMicros,700);assert.equal(row.settlement,undefined);
+ const row=f.saved().rows[0];assert.equal(row.state,'SETTLED');assert.equal(row.reservationMicros,700);assert.equal(row.settlement.usdMicros,120);assert.equal(row.resultCommitted,undefined);
  const repeat=await f.runner().run(f.input);assert.equal(repeat.decision,'deny');assert.equal(calls.length,1);
 });
 test('SSE actual terminator and EOF preserve original usage decoder and bounded derivative',async t=>{
@@ -51,7 +51,7 @@ test('SSE actual terminator and EOF preserve original usage decoder and bounded 
 test('concurrent fresh server instances produce one durable claim and one physical attempt',async t=>{
  const f=providerFixture();await f.reserve();const calls=wire(t,f);
  const results=await Promise.all([f.runner().run(f.input),f.runner().run(f.input)]);
- assert.equal(calls.length,1);assert.equal(results.filter(r=>r.decision==='response_received').length,1);assert.equal(f.events().size,1);assert.equal(f.saved().rows.length,1);
+ assert.equal(calls.length,1);assert.equal(results.filter(r=>r.decision==='response_received').length,1);assert.equal(f.events().size,2);assert.equal(f.saved().rows.length,1);
 });
 test('lost evidence COMMIT acknowledgement yields zero sends, no replay and retained original hold',async t=>{
  let armed=false;const f=providerFixture({after:({sql,role})=>{if(armed&&role==='publisher'&&sql==='COMMIT'){armed=false;throw Error('SYNTHETIC lost ack');}}});
@@ -119,7 +119,7 @@ test('client cancellation after initiation remains one unknown attempt and no re
 });
 test('post-send original authority revocation suppresses a valid private derivative',async t=>{
  const f=providerFixture();await f.reserve();const calls=wire(t,f,{onResponse:()=>{f.grants.get(f.input.bundle.request.operationId).authorized=false;}});
- const result=await f.runner().run(f.input);assert.equal(result.decision,'outcome_unknown');assert.equal(result.value,undefined);assert.equal(calls.length,1);assert.equal(f.saved().rows[0].state,'DISPATCHED');safe(result);
+ const result=await f.runner().run(f.input);assert.equal(result.decision,'outcome_unknown');assert.equal(result.value,undefined);assert.equal(calls.length,1);assert.equal(f.saved().rows[0].state,'SETTLED');assert.equal(f.saved().rows[0].settlement.usdMicros,120);safe(result);
 });
 test('send-fence COMMIT acknowledgement loss after initiation never replays and retains unknown spend',async t=>{
  let publisherCommits=0;const f=providerFixture({after:({role,sql})=>{if(role==='publisher'&&sql==='COMMIT'&&++publisherCommits===2)throw Error('SYNTHETIC fence lost ack');}});
@@ -132,7 +132,7 @@ test('current route rebinding after DISPATCHED commit cannot send the earlier pr
  assert.equal(calls.length,0);assert.equal(result.decision,'outcome_unknown');assert.equal(f.saved().rows[0].reservationMicros,700);
 });
 test('late response revalidation COMMIT acknowledgement cannot expose an expired derivative',async t=>{
- let commits=0;const f=providerFixture({after:async({role,sql})=>{if(role==='publisher'&&sql==='COMMIT'&&++commits===3)await new Promise(r=>setTimeout(r,1100));}});
+ let commits=0;const f=providerFixture({after:async({role,sql})=>{if(role==='publisher'&&sql==='COMMIT'&&++commits===4)await new Promise(r=>setTimeout(r,1100));}});
  await f.reserve();const calls=wire(t,f);const result=await f.runner().run(f.input);
  assert.equal(calls.length,1);assert.equal(result.decision,'outcome_unknown');assert.equal(result.value,undefined);
 });
@@ -173,7 +173,7 @@ test('exact reserved input is accepted; one token over it stops this runner and 
 });
 test('revocation after final read-only COMMIT linearization does not retract an already authorized derivative',async t=>{
  let commits=0;const f=providerFixture({after:async({role,sql})=>{
-  if(role==='publisher'&&sql==='COMMIT'&&++commits===3){
+  if(role==='publisher'&&sql==='COMMIT'&&++commits===4){
    // Model a real server COMMIT releasing final SHARE locks before its ACK:
    // revocation linearizes afterward. Delivery remains authorized by that
    // committed fence; the consumer must still apply its own revision/CAS gate.

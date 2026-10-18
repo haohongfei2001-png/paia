@@ -113,6 +113,19 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node tests/run-provider-postgres-tests.mjs 2>&1 | tee evidence/provider-postgres.tap
+      - name: Provider HTTP composition and result finalization protocols
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          npm run check:deployment-source 2>&1 | tee evidence/deployment-source.log
+          node --test --test-reporter=tap tests/provider-entry.test.mjs tests/provider-deployment.test.mjs tests/provider-settlement.test.mjs ../../extension/tests/ai-cost-02-result-finalization.test.mjs 2>&1 | tee evidence/provider-completion-protocol.tap
+      - name: Actual provider usage settlement and historical accounting
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node tests/run-provider-settlement-postgres-tests.mjs 2>&1 | tee evidence/provider-settlement-postgres.tap
       - name: Retain exact-head development test evidence
         if: always()
         uses: actions/upload-artifact@v4

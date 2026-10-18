@@ -14,6 +14,6 @@ import {fail} from './contracts.js';
 export class BudgetWindowReservation extends AtomicReservationLedger {
  constructor({service}={}){
   if(!service||!['transact','verifyRequest','verifySettlement','clock'].every(key=>typeof service[key]==='function'))fail('UNAVAILABLE');
-  super({transact:service.transact.bind(service),verify:service.verifyRequest.bind(service),verifySettlement:service.verifySettlement.bind(service),clock:service.clock.bind(service),windowPolicy:'bounded-v1'});
+  super({transact:service.transact.bind(service),verify:service.verifyRequest.bind(service),verifySettlement:service.verifySettlement.bind(service),verifyResult:typeof service.verifyResult==='function'?service.verifyResult.bind(service):undefined,clock:service.clock.bind(service),windowPolicy:'bounded-v1'});
  }
 }

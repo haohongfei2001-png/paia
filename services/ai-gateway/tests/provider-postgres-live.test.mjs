@@ -70,7 +70,7 @@ after(async()=>{await Promise.all(pools.map(p=>p.end()));try{if(createdSchema)aw
 
 test('independent real roles/connections yield one durable dispatch and one mocked physical send',async t=>{
  const sends=wire(t);const results=await Promise.all([runner().run(f.input),runner().run(f.input)]);
- assert.equal(sends(),1);assert.equal(results.filter(r=>r.decision==='response_received').length,1);assert.equal(await eventCount(),1);assert.equal((await state()).rows[0].state,'DISPATCHED');assert.equal((await state()).rows[0].reservationMicros,700);
+ assert.equal(sends(),1);assert.equal(results.filter(r=>r.decision==='response_received').length,1);assert.equal(await eventCount(),2);assert.equal((await state()).rows[0].state,'SETTLED');assert.equal((await state()).rows[0].settlement.usdMicros,120);assert.equal((await state()).rows[0].reservationMicros,700);
 });
 test('real INSERT claim or original DISPATCHED COMMIT lost acknowledgement each yields zero send',async t=>{
  const sends=wire(t);const events=pool(eventRole,async(sql,args,run)=>{const result=await run();if(sql==='COMMIT')throw Error('SYNTHETIC lost event ack');return result;});
@@ -119,11 +119,11 @@ test('event claim serializes cancel absence check without adding financial write
  assert.equal((await claim).decision,'claimed');assert.equal((await cancel).decision,'deny');assert.equal((await state()).rows[0].state,'RESERVED');assert.equal((await state()).rows[0].reservationMicros,700);
 });
 
-test('current real DB time before a durable watermark suppresses the response and retains the hold',async t=>{
+test('current real DB time before a durable watermark suppresses output and preserves settled expenditure',async t=>{
  let tx=0,watermark;
  const events=pool(eventRole,async(sql,args,run)=>{
   const result=await run();
-  if(sql.startsWith('BEGIN')&&++tx===3){
+  if(sql.startsWith('BEGIN')&&++tx===4){
    // Do not change the machine or database clock. Install a future durable
    // watermark in this disposable fixture to represent rollback relative to
    // a previously committed observation; the actual clock stays within grants.
@@ -134,7 +134,7 @@ test('current real DB time before a durable watermark suppresses the response an
  const sends=wire(t),result=await runner(pool(ledgerRole),events).run(f.input);
  assert.equal(sends(),1);assert.equal(result.decision,'outcome_unknown');assert.equal(result.value,undefined);
  const current=Number((await query('SELECT floor(extract(epoch FROM clock_timestamp())*1000)::text AS value')).rows[0].value);
- assert.ok(current<watermark);assert.equal((await state()).lastNow,watermark);assert.equal((await state()).rows[0].reservationMicros,700);
+ assert.ok(current<watermark);assert.equal((await state()).lastNow,watermark);assert.equal((await state()).rows[0].reservationMicros,700);assert.equal((await state()).rows[0].settlement.usdMicros,120);
 });
 test('one input token above the real original reservation stops the runner without enlarging or releasing its hold',async t=>{
  const body=completion();body.usage.prompt_tokens=101;body.usage.total_tokens=121;

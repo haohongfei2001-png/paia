@@ -48,7 +48,7 @@ export function validateWindowHistory(state,now){
   if(row.state!=='RESERVED'&&row.state!=='CANCELLED_BEFORE_DISPATCH'&&(!integer(row.dispatchedAt)||row.dispatchedAt<row.reservedAt||row.dispatchedAt>now||typeof row.dispatchedDayId!=='string'||typeof row.dispatchedTimeZone!=='string'))fail('BUDGET_STATE_INVALID');
   if(row.state==='SETTLED'&&(!integer(row.settledAt)||row.settledAt<row.dispatchedAt||row.settledAt>now||!integer(row.settlement?.usdMicros)))fail('BUDGET_STATE_INVALID');
   if(row.dispatchedAt!==undefined&&calendar(getFormat(row.dispatchedTimeZone),row.dispatchedAt,tier).dayId!==row.dispatchedDayId)fail('BUDGET_STATE_INVALID');
-  if(row.resultCommitted&&(!integer(row.resultCommittedAt)||row.resultCommittedAt<row.dispatchedAt||row.resultCommittedAt>now||typeof row.resultDayId!=='string'||typeof row.resultTimeZone!=='string'||row.settlement?.outcome!=='COMMITTED'||calendar(getFormat(row.resultTimeZone),row.resultCommittedAt,tier).dayId!==row.resultDayId))fail('BUDGET_STATE_INVALID');
+  if(row.resultCommitted&&(!integer(row.resultCommittedAt)||row.resultCommittedAt<row.dispatchedAt||row.resultCommittedAt>now||typeof row.resultDayId!=='string'||typeof row.resultTimeZone!=='string'||row.settlement?.outcome!=='COMMITTED'&&row.resultResolution?.outcome!=='COMMITTED'||calendar(getFormat(row.resultTimeZone),row.resultCommittedAt,tier).dayId!==row.resultDayId))fail('BUDGET_STATE_INVALID');
  }
 }
 function sameDay(row,now,kind,formats){
