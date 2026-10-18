@@ -81,6 +81,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm install --no-audit --no-fund
+      - name: Install locked offline service test imports
+        working-directory: services/ai-gateway
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Run unit shard
         env:
           PAIA_TEST_SHARD: ${{ matrix.shard }}

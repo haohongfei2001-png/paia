@@ -153,7 +153,7 @@ test('CTX4-03 actual worker keeps Topic choices local, durable, strictly fenced 
   enableChange=changeFor(await topicItem(topic.id),true);
   enableResult=await rpc(types[1],{change:enableChange});
   assert.deepEqual(enableResult,{ok:true,topicId:topic.id,enabled:true,revision:1,noOp:false,externalAllowed:false});
-  await turn();assert.deepEqual(notifications,[{type:'PAIA_CONTEXT_CARDS_CHANGED'}]);
+  await turn();assert.deepEqual(notifications,[{type:'PAIA_PROMPT_ASSIST_CHANGED'},{type:'PAIA_CONTEXT_CARDS_CHANGED'}],'body-free local Assist invalidation precedes the original Context notification');
   enabledPreferences=await raw('meta',CONTEXT_TOPIC_ACCESS_ROW);
   assert.deepEqual(enabledPreferences.choices,[{topicId:topic.id,enabled:true,revision:1,binding:enableChange.expectedBinding}]);
   const selected=await topicItem(topic.id);
@@ -194,7 +194,7 @@ test('CTX4-03 actual worker keeps Topic choices local, durable, strictly fenced 
   notifications.length=0;
   const disable=changeFor(await topicItem(topic.id),false),disabled=await rpc(types[1],{change:disable});
   assert.deepEqual(disabled,{ok:true,topicId:topic.id,enabled:false,revision:2,noOp:false,externalAllowed:false});
-  await turn();assert.deepEqual(notifications,[{type:'PAIA_CONTEXT_CARDS_CHANGED'}]);
+  await turn();assert.deepEqual(notifications,[{type:'PAIA_PROMPT_ASSIST_CHANGED'},{type:'PAIA_CONTEXT_CARDS_CHANGED'}],'body-free local Assist invalidation precedes the original Context notification');
   assert.equal((await topicItem(topic.id)).enabled,false);await summary(0);
   assert.deepEqual(await reopenedRows(),baseline);
   const persisted=await reopened.repository.transaction(false,tx=>tx.get('meta',CONTEXT_TOPIC_ACCESS_ROW));
@@ -225,3 +225,4 @@ test('CTX4-03 actual worker keeps Topic choices local, durable, strictly fenced 
   for(const name of ['organizerJobs','organizerUsage'])assert.deepEqual(await finalStore.repository.transaction(false,tx=>tx.all(name)),[],`${name} has no provider work`);
  });
 });
+

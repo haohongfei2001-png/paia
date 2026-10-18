@@ -6,6 +6,7 @@
 // The explicit verifier below is the existing CTX4-05 SYNTHETIC native verifier;
 // it is not evidence of production processing entitlement.
 import test,{after} from 'node:test';
+import {matchesCurrentContextSnapshot} from './context-snapshot-poll.mjs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
@@ -129,12 +130,12 @@ for(const variant of ['source','release']){
   assert.equal(await field(p,seed.id).evaluate(node=>node===__nowField&&document.activeElement===node),true);assert.equal((await read(p)).items.find(x=>x.id===seed.id).body,BODY);
   if(mode==='ime'){await field(p,seed.id).press('Control+Enter');assert.equal((await read(p)).items.find(x=>x.id===seed.id).body,BODY);await field(p,seed.id).dispatchEvent('compositionend');await field(p,seed.id).press('Control+Enter');}
   else await p.evaluate(()=>__nowRelease());
-  await eventually(async()=>(await read(p)).items.find(x=>x.id===seed.id)?.body===HUMAN,'the actual original save acknowledges full human text');
+  await eventually(()=>matchesCurrentContextSnapshot(message=>p.evaluate(m=>chrome.runtime.sendMessage(m),message),snapshot=>snapshot.items.find(x=>x.id===seed.id)?.body===HUMAN),'the actual original save acknowledges full human text');
   const saved=(await read(p)).items.find(x=>x.id===seed.id);assert.equal(saved.protected,true);assert.equal(saved.userEdited,true);assert.equal(saved.temporalStatus,'unknown');assert.deepEqual(saved.temporal,seed.temporal);
   assert.equal(await field(p,seed.id).evaluate(node=>node===__nowField),true);assert.equal(await warning(p,seed.id).isHidden(),true);
   if(mode==='pending-native-draft')assert.equal(await p.evaluate(()=>__nowSaveCalls),1,'deadline does not introduce another save/retry owner');
   await item(p,seed.id).locator('.item-menu summary').click();await item(p,seed.id).getByRole('button',{name:'撤销上次修改',exact:true}).click();
-  await eventually(async()=>(await read(p)).items.find(x=>x.id===seed.id)?.body===BODY,'original human Undo restores the exact automatic text');
+  await eventually(()=>matchesCurrentContextSnapshot(message=>p.evaluate(m=>chrome.runtime.sendMessage(m),message),snapshot=>snapshot.items.find(x=>x.id===seed.id)?.body===BODY),'original human Undo restores the exact automatic text');
   const undone=(await read(p)).items.find(x=>x.id===seed.id);assert.equal(undone.protected,true);assert.equal(undone.temporalStatus,'unknown','human Undo never restores automatic authority');assert.equal(await warning(p,seed.id).isHidden(),true);
   await f.finish();await f.evidence(mode);
  });
