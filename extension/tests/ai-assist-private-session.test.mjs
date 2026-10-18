@@ -12,19 +12,19 @@ import {invalidateSemanticJobs} from '../core/ai-usage/semantic-invalidation.js'
 const authority=async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}});
 const suggestion=JSON.stringify({version:1,kind:'SUGGESTION',text:'Explain the next step.',condition:''});
 const all=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)]))));
-async function fixture({ids=[],output=suggestion,unsubscribeError=null,interferingSubscriber=false}={}){
+async function fixture({ids=[],output=suggestion,unsubscribeError=null,interferingSubscriber=false,intent='explicit',automatic=false}={}){
  const {s}=await setup(OrganizerStore);await s.finishFoundation();let now=1000,calls=0;
  const sender={id:'synthetic-extension',tab:{id:1},frameId:0,documentId:'synthetic-document',documentLifecycle:'active',url:'https://chatgpt.com/c/synthetic'};
  const binding={url:sender.url,conversation:'/c/synthetic',cycle:1,replyId:'reply-one',revision:1};
  const snapshot={completed:true,text:'Synthetic current completed answer.',blocks:1,excluded:false};
  const live={binding,snapshot};
  const lease=new AssistReplyLease({runtimeId:sender.id,tabs:{get:async()=>({url:sender.url,incognito:false,active:true})},probe:async(_host,{snapshot:read})=>({ready:true,binding:structuredClone(live.binding),...(read?{snapshot:structuredClone(live.snapshot)}:{})}),current:(_host,b)=>JSON.stringify(b)===JSON.stringify(live.binding),clock:()=>now});
- lease.configure({replyAccess:true,remoteProcessing:true});
+ lease.configure({replyAccess:true,remoteProcessing:true,automatic});
  const provider={describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return output;}};
  if(interferingSubscriber){const subscribe=lease.onInvalidate.bind(lease);let removeSession;subscribe(()=>removeSession?.());lease.onInvalidate=fn=>{removeSession=subscribe(fn);return removeSession;};}
  if(unsubscribeError){const subscribe=lease.onInvalidate.bind(lease);lease.onInvalidate=fn=>{const remove=subscribe(fn);return ()=>{remove();throw unsubscribeError;};};}
  const contextAbort=new AbortController(),contextExpires=Date.now()+600000,contextProcessing={resolve:async(_t,scope)=>({version:1,store:s,scope,epoch:'synthetic-context-processing',processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal}),isCurrent:()=>!contextAbort.signal.aborted};
- const session=new LocalAssistSession(s,{lease,provider,resolveAuthority:authority,contextSelector:()=>ids,contextProcessing,clock:()=>now});
+ const session=new LocalAssistSession(s,{lease,provider,intent,resolveAuthority:authority,contextSelector:()=>ids,contextProcessing,clock:()=>now});
  const cap=await lease.observe(sender);return {s,lease,session,cap,sender,live,provider,ids,contextProcessing,revokeContext:()=>contextAbort.abort(),calls:()=>calls,time:x=>now=x};
 }
 test('reply-only actual Foundation plan/dispatch/atomic result and ten activations share one result without fake Source',async()=>{const f=await fixture(),before=await all(f.s),handles=await Promise.all(Array.from({length:10},()=>f.session.prepare({lease:f.cap})));assert.equal(new Set(handles).size,1);const results=await Promise.all(handles.map(h=>f.session.run(h)));assert.equal(f.calls(),1);assert.equal(results[0].text,'Explain the next step.');const rows=await all(f.s),job=rows.organizerJobs[0];assert.equal(job.kind,'ai_assist_result_v1');assert.deepEqual(job.items,[]);assert.deepEqual(job.coverage,[]);assert.equal(job.resultCommitted,true);assert.equal(rows.organizerUsage[0].attemptCount,1);assert.equal(rows.organizerWorkItems[0].outcome,'SUGGESTION');for(const n of ['records','blocks','inputStates','thoughts','placements','documents','libraryDocuments']){assert.ok(Object.hasOwn(rows,n),n+' exists');assert.deepEqual(rows[n],before[n]);}assert.ok(!JSON.stringify(rows).includes(f.live.snapshot.text));assert.ok(!JSON.stringify(rows).includes('Explain the next step.'));assert.equal((await readDomainCommitEvidence(f.session.foundation,job.id)).status,'UNSUPPORTED');});
@@ -165,3 +165,7 @@ test('unchanged and irrelevant Context allow actual insertion with one generatio
  const result=await f.session.insert(handle,{operationId:crypto.randomUUID(),controller:{async insert(request){await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:crypto.randomUUID(),expectedRevision:0,body:'Synthetic unrelated manual context',section:'Synthetic'});return owner.insert(request);}}});
  assert.equal(result.status,'inserted');assert.equal(writes,1);assert.equal(f.calls(),1);assert.equal((await all(f.s)).organizerUsage[0].attemptCount,1);owner.dispose();f.session.dispose();
 });
+
+// Automatic source attestation is private to the original reply lease.
+test('automatic intent cannot borrow a manual lease or a content-shaped automatic boolean',async()=>{const f=await fixture({intent:'automatic_assist'});await assert.rejects(f.session.prepare({lease:f.cap}),{code:'UNAVAILABLE'});await assert.rejects(f.session.prepare({lease:{automatic:true,...f.cap}}));assert.equal(f.calls(),0);assert.equal((await all(f.s)).organizerJobs.length,0);});
+test('automatic original private lease uses the genuine Foundation result path and mode revocation invalidates it',async()=>{const f=await fixture({intent:'automatic_assist',automatic:true}),h=await f.session.prepare({lease:f.cap});assert.equal((await f.session.run(h)).kind,'SUGGESTION');assert.equal(f.calls(),1);f.lease.configure({replyAccess:true,remoteProcessing:true,automatic:false});await assert.rejects(f.session.result(h));assert.equal(f.calls(),1);});

@@ -3,7 +3,8 @@ import {equal,fail,unitKey} from './contracts.js';
 import {hashText} from '../dedupe.js';
 import {inputProjection} from '../thought-evidence.js';
 import {contextLineageAdmission,validContextEvidenceSpecs,contextEvidenceKey,contextEvidenceIdentity} from '../context-item-lineage.js';
-import {createContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight} from '../context-topic-scope.js';
+import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight} from '../context-topic-scope.js';
+import {assertMaintenanceQualification,maintenanceQualificationReceipt,maintenanceQualificationWorkBudget,chargeMaintenanceQualificationHash} from './maintenance-qualification.js';
 import {authoredContextEvidence} from '../context-authored-entry.js';
 import {boundContextEvidence} from '../context-bound-entry.js';
 import {structuralContextProperty} from './structural-context-mapping.js';
@@ -162,7 +163,7 @@ export function createMaintenanceServiceResponseAdapter(){
  const releaseChild=id=>{const held=children.get(id);if(held){children.delete(id);held.signal?.removeEventListener('abort',held.abort);held.payload=null;held.foundation=null;held.store=null;}};
  const current=held=>{let live=false;try{live=!disposed&&!!held.payload&&children.get(held.payload.childOperationId)===held&&held.isCurrent()===true;}catch{/* A throwing currentness owner is denial, never a retained body lease. */}if(!live){if(held.payload)releaseChild(held.payload.childOperationId);fail('UNAVAILABLE');}};
  const consumed=(held,facet)=>{held.decoded.add(facet);if(held.facets.every(f=>held.decoded.has(f)))releaseChild(held.payload.childOperationId);};
- async function decode(facet,raw,metadata,binding){
+ async function decode(facet,raw,metadata,binding,qualification=null){
   const correlation=snapshot(binding);requireFact(Object.keys(correlation).length===3&&['logicalJobId','childOperationId','operationReceiptId'].every(k=>typeof correlation[k]==='string'&&correlation[k].length>0));
   const held=children.get(correlation.childOperationId);requireFact(held,'UNAVAILABLE');current(held);
   try{const payload=held.payload,v=validateWire(raw,payload,correlation);requireFact(!held.receipt||held.receipt===correlation.operationReceiptId,'STALE_BASE');held.receipt=correlation.operationReceiptId;
@@ -173,22 +174,24 @@ export function createMaintenanceServiceResponseAdapter(){
   if(facet==='topic')value=topicValue(v.topic,payload.material,m,v.citations);
   else if(facet==='filter'){
    requireFact(sameIds(v.filter.decisions.map(d=>d.inputId),m.inputIds));for(const d of v.filter.decisions)requireFact(payload.material.inputs.some(i=>i.inputId===d.inputId));value=v.filter.decisions;
-  }else value=await contextValue(held,v.context,m,correlation,units,current);
+  }else value=await contextValue(held,v.context,m,correlation,units,current,qualification);
   current(held);consumed(held,facet);return {binding:correlation,value};
   }catch(error){if(readMaintenanceResponseDefer(error)){current(held);consumed(held,facet);}else if(!['STORAGE_FAILED','STORAGE_FULL'].includes(error?.code))releaseChild(correlation.childOperationId);throw error;}
  }
- return Object.freeze({adapter:Object.freeze(Object.fromEntries(['topic','context','filter'].map(facet=>[facet,(raw,metadata,binding)=>decode(facet,raw,metadata,binding)]))),
+ return Object.freeze({adapter:Object.freeze(Object.fromEntries(['topic','context','filter'].map(facet=>[facet,(raw,metadata,binding,qualification)=>decode(facet,raw,metadata,binding,qualification)]))),
   registerChild(foundation,payload,isCurrent,signal=null){requireFact(!disposed&&typeof isCurrent==='function'&&foundation?.s&&(!signal||signal instanceof AbortSignal&&!signal.aborted),'UNAVAILABLE');const copied=freeze(snapshot(payload));requireFact(!children.has(copied.childOperationId)&&children.size<16,'UNAVAILABLE');const abort=()=>releaseChild(copied.childOperationId);children.set(copied.childOperationId,{foundation,store:foundation.s,payload:copied,isCurrent,receipt:null,facets:[...new Set(copied.coverage.map(u=>u.facet))],decoded:new Set(),signal,abort});signal?.addEventListener('abort',abort,{once:true});current(children.get(copied.childOperationId));},
   releaseChild,
   releaseJob(jobId){for(const [id,held]of children)if(held.payload.logicalJobId===jobId)releaseChild(id);},
   dispose(){disposed=true;for(const id of children.keys())releaseChild(id);}
  });
 }
-async function contextValue(held,context,metadata,binding,units,current){
+async function contextValue(held,context,metadata,binding,units,current,qualification){
  const material=held.payload.material,mapped=new Map(units.map(u=>[u.key,{unit:u,...unitMaterial(u,material,metadata)}]));
  requireFact(sameIds([...new Set([...mapped.values()].flatMap(m=>m.inputs))],metadata.inputIds),'STALE_BASE');
  const all=context.groups.flatMap(g=>g.unitKeys);requireFact(sameIds(all,units.map(u=>u.key)));
- const groups=[],deferredUnits=[],budget=createContextScopeWorkBudget({database:held.store.repository.db});
+ const check=()=>{current(held);if(qualification)assertMaintenanceQualification(qualification,held.store);return true;};
+ if(qualification){const receipt=maintenanceQualificationReceipt(qualification,held.store),scope=receipt.scope;requireFact(['child','post-topic'].includes(scope.phase)&&scope.binding.logicalJobId===binding.logicalJobId&&scope.binding.childOperationId===binding.childOperationId,'STALE_BASE');}
+ const groups=[],deferredUnits=[],budget=qualification?forkContextScopeWorkBudget(maintenanceQualificationWorkBudget(qualification,held.store),{database:held.store.repository.db,qualification,isCurrent:check}):createContextScopeWorkBudget({database:held.store.repository.db});
  const admitted=await held.foundation.read(t=>contextLineageAdmission(held.store,contextScopeTransactionReader(held.store,t,budget)));current(held);
  for(const g of context.groups){
   const selected=g.unitKeys.map(key=>mapped.get(key)),groupUnits=selected.map(m=>m.unit);requireFact(selected.every(Boolean));
@@ -207,6 +210,9 @@ async function contextValue(held,context,metadata,binding,units,current){
    continue;
   }
   requireFact(g.itemId===''&&g.expectedRevision===0&&g.body.trim()&&g.section.trim());
+  // Material capture requires the exact original local field capability, never
+  // a provider claim or a fresh independent budget for the response phase.
+  requireFact(qualification,'UNAVAILABLE');check();
   let topicId=g.topicId;
   if(topicId==='$result'){const result=metadata.topicResult;requireFact(result&&['create','reuse'].includes(result.outcome)&&Array.isArray(result.topicIds)&&result.topicIds.length===1);topicId=result.topicIds[0];}
   else requireFact(topicId&&[...(material.identities||[]).flatMap(t=>[t.id,t.canonicalId]),...(material.placements||[]).map(p=>p.topicId),...(material.authoredEntries||[]).map(e=>e.topicId),...(material.boundEntries||[]).map(e=>e.topicId),...(material.structuralTopics||[]).map(e=>e.topicId),...(material.structuralSections||[]).map(e=>e.topicId)].includes(topicId));
@@ -214,7 +220,7 @@ async function contextValue(held,context,metadata,binding,units,current){
   const inputIds=[...new Set(selected.flatMap(m=>m.inputs))],authored=[...new Map(selected.flatMap(m=>m.authored).map(e=>[e.entryId,e])).values()],bound=[...new Map(selected.flatMap(m=>m.bound).map(e=>[e.entryId,e])).values()],structures=selected.flatMap(m=>m.structures);
   requireFact(inputIds.length+authored.length+bound.length<=16);
   const preflight=await readContextProcessingPreflight(held.store,{topicId,inputIds,...(authored.length?{entryIds:authored.map(e=>e.entryId)}:{}),expectedAuthority:admitted.authority},budget);current(held);requireFact(preflight.available,'STALE_BASE');
-  const inputDigests=new Map();for(const inputId of inputIds){const sent=material.inputs.find(i=>i.inputId===inputId);requireFact(sent);inputDigests.set(inputId,await hashText(sent.body));current(held);}
+  const inputDigests=new Map();for(const inputId of inputIds){const sent=material.inputs.find(i=>i.inputId===inputId);requireFact(sent);chargeMaintenanceQualificationHash(qualification,held.store,sent.body);inputDigests.set(inputId,await hashText(sent.body));check();}
   const evidence=await held.foundation.read(async transaction=>{const t=contextScopeTransactionReader(held.store,transaction,budget),now=await contextLineageAdmission(held.store,t,admitted.epoch);requireFact(now.authority===admitted.authority&&now.gate===admitted.gate,'STALE_BASE');const result=[];
    for(const inputId of inputIds){const sent=material.inputs.find(i=>i.inputId===inputId),p=await inputProjection(held.store,t,inputId);requireFact(sent&&p&&sent.revision===p.contentRevision&&sent.body===p.body,'STALE_BASE');const structural=structures.filter(s=>s.entries.some(e=>e.inputId===inputId));requireFact(structural.length<=1);result.push({topicId,inputId,selectedFields:['body'],fieldDigests:{body:inputDigests.get(inputId)},expectedTopicBinding:structuredClone(preflight.binding),expectedRemovalSequence:p.lastRemovalSequence,...(structural.length?{[structuralContextProperty(structural[0])]:structuredClone(structural[0])}:{})});}
    for(const e of authored)result.push(authoredContextEvidence(e,preflight.binding,e.fieldDigests??e.bodyDigest));

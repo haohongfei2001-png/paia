@@ -71,11 +71,11 @@ const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
 const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);
 promptSurface.next=promptNext;
-const promptAssist=new AssistPromptCommands(store,chrome);
+const promptAssist=new AssistPromptCommands(store,chrome,{surface:promptSurface});
 promptSurface.assist=promptAssist;
 chrome.tabs?.onRemoved?.addListener(id=>{promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);});
 chrome.tabs?.onUpdated?.addListener((id,change)=>{if(change.url||change.status==='loading'){promptNext.removeTab(id);promptAssist.removeTab(id);}archiveArrival.changedTab(id,change);});
-chrome.runtime.onInstalled?.addListener(()=>{void promptNext.configure(false).catch(()=>{});void promptAssist.configure({replyAccess:false,remoteProcessing:false}).catch(()=>{});});
+// Missing new suggestion preferences are off; installation/update never resets a user preference.
 const legacyUsage = new LegacyUsageRecords(store);
 const passport = new PassportService(store);
 const revisit = new RevisitService(store);

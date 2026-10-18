@@ -1,10 +1,11 @@
+import {maintenanceQualificationWorkBudget} from './maintenance-qualification.js';
 import {CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS} from '../context-cards.js';
 import {CONTEXT_READ_LIMITS} from '../context-read.js';
 import {contextTemporalProjection,validContextTemporal} from '../context-temporal.js';
 import {ContextTopicAccessService} from '../context-topic-access.js';
 import {contextTopicOperationId,sameContextTopicBinding} from '../context-topic-preferences.js';
 import {captureContextEvidence,contextLineageAdmission,fenceContextLineage,releaseContextLineage,validContextMaintenance,validContextEvidenceSpecs,contextEvidenceKey,CONTEXT_LINEAGE_LIMITS} from '../context-item-lineage.js';
-import {createContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
+import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {readAuthoredEntryContext,authoredSelectedFields,authoredSelectedText,authoredContextEvidence} from '../context-authored-entry.js';
 import {readBoundEntryContext,boundSelectedText,boundContextEvidence} from '../context-bound-entry.js';
 import {structuralContextProperty,structuralContextEvidence,readStructuralContextEvidence} from './structural-context-mapping.js';
@@ -74,6 +75,19 @@ export async function selectMaintenanceExistingContext(store,t,scope,{limits=sto
 }
 export function maintenanceExistingContextScope(handle){return state(handle).selected.map(descriptor);}
 export function maintenanceExistingContextSummary(handle){const h=state(handle),n=h.captured?h.items.length:h.selected.length;return {version:1,coverage:'selected_processing_scope',selectedItems:n,omittedItems:h.omitted+(h.captured?h.selected.length-n:0),complete:h.omitted+(h.captured?h.selected.length-n:0)===0};}
+// Body-free qualification closure. It advances only through original-owner
+// write capabilities rooted at the sent admission; it never refreshes content.
+export async function maintenanceExistingContextQualification(store,t,handle,{publications=[]}={}){
+ const h=state(handle);need(h.store===store);live(h);const published=publishedExpected(h,t,publications),admission=await contextLineageAdmission(store,t,h.admission.epoch);
+ need(admission.gate===h.admission.gate&&(!h.selected.length||h.captured&&!h.items.length||admission.authority===published.authority));
+ const entries=new Set(),structures=[],selected=h.captured?h.items.map(x=>x.original):h.selected;for(const topicId of new Set(selected.flatMap(m=>m.maintenance.provenance.evidence.map(e=>e.topicId)))){
+  let current;try{current=await topicClosure(h,t,topicId);}catch(error){live(h);if(h.captured||!['UNAVAILABLE','STALE_BASE'].includes(error?.code))throw error;continue;}
+  const before=h.snapshot?.closures.find(x=>x.topicId===topicId);if(before)need(closureEqual(current,expectedClosure(before,published.writes)));for(const row of current.entries)entries.add(row.id);
+ }
+ for(const m of [...h.scope.structuralTopics,...h.scope.structuralSections])structures.push({store:m.kind==='topic'?'topics':'sections',recordId:m.recordId,selectedFields:[m.kind==='topic'?'name':'title']});
+ live(h);return {entryIds:[...entries].sort(),structures};
+}
+
 
 // Prove the complete graph the ORIGINAL lineage owner will read is already
 // inside this child. No sibling Input body is acquired or hashed to discover
@@ -98,13 +112,17 @@ async function topicClosure(h,t,topicId){
  return {topicId,binding,placements,entries,dependencies,provenance};
 }
 async function negativeRows(t){const rows=[];await t.scanPrimary('meta','memory:',r=>{if(['config','topic','section','entry','input'].includes(r.kind))rows.push(copy(r));});return rows;}
+// Current Input qualification cannot authorize legacy Source annotations or
+// conversation titles. Freeze only the original text actually used by lineage;
+// exact identity/removal facts stay in the separate original indexed rows.
+const sourceMaterial=row=>row?{id:row.id,value:{originalText:row.value?.originalText}}:row;
 async function sourceSnapshot(h,t,inputIds){
  const inputs=[],sources=new Map();let retainedBytes=0;const retain=value=>{retainedBytes+=bytes(value);need(retainedBytes<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'BUDGET_EXCEEDED');return value;};const memory=new MemoryService(h.store),filter=await t.get('meta','smart-filter');
  for(const inputId of inputIds){
   const p=await inputProjection(h.store,t,inputId),grant=h.scope.inputs.find(x=>x.inputId===inputId);need(p&&grant&&!await h.store.isFiltered(t,p.block,filter)&&await memory.safeSources(t,p.sourceRecordIds));
   const fields=Object.fromEntries(grant.selectedFields.map(f=>[f,p[f]]));need(Object.values(fields).every(x=>typeof x==='string'));
   inputs.push(retain({inputId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,fields,state:await t.get('inputStates',inputId),index:await t.get('blockIndex',inputId)}));
-  for(const id of p.sourceRecordIds)if(!sources.has(id)){need(sources.size<CONTEXT_LINEAGE_LIMITS.sources,'BUDGET_EXCEEDED');sources.set(id,retain({id,index:await t.get('recordIndex',id),record:await t.get('records',id)}));}
+  for(const id of p.sourceRecordIds)if(!sources.has(id)){need(sources.size<CONTEXT_LINEAGE_LIMITS.sources,'BUDGET_EXCEEDED');sources.set(id,retain({id,index:await t.get('recordIndex',id),record:sourceMaterial(await t.get('records',id))}));}
  }
  return {inputs,sources:[...sources.values()],filter,restrictions:await negativeRows(t)};
 }
@@ -143,11 +161,11 @@ async function evidenceFor(h,t,m,material,closures,inputHashes,sources){
  need(validContextEvidenceSpecs([...result.values()]));return [...result.values()];
 }
 function semanticItem(item,index){return {itemRef:'c'+index,itemId:item.id,revision:item.revision,card:item.card,origin:item.origin,protected:item.protected,userEdited:item.userEdited,lifecycle:item.lifecycle,body:item.body,section:item.section,...contextTemporalProjection(item)};}
-export async function captureMaintenanceExistingContext(store,handle,{read:reader,signal=null,assertProcessing,scope,material,limits=store.organizerBudget?.limits,publications=[],settledItems=[]}={}){
+export async function captureMaintenanceExistingContext(store,handle,{read:reader,signal=null,assertProcessing,scope,material,limits=store.organizerBudget?.limits,publications=[],settledItems=[],qualification=null}={}){
  const h=state(handle);need(h.store===store&&typeof reader==='function'&&typeof assertProcessing==='function'&&(signal===null||signal instanceof AbortSignal),'UNAVAILABLE');
  need(equal(selectedScope(scope),h.scope)&&equal(scope.existingContextItems||[],maintenanceExistingContextScope(handle)),'UNAVAILABLE');
  if(h.captured){live(h);await reader(t=>assertMaintenanceExistingContext(store,t,handle,{publications,settledItems}));return handle;}
- need(!h.read&&list(settledItems,0),'UNAVAILABLE');h.read=reader;h.signal=signal;h.assertProcessing=assertProcessing;h.budget.signal=signal;h.limits=limits;
+ need(!h.read&&list(settledItems,0),'UNAVAILABLE');h.read=reader;h.signal=signal;h.assertProcessing=assertProcessing;h.budget=qualification?forkContextScopeWorkBudget(maintenanceQualificationWorkBudget(qualification,store),{database:h.database,signal,qualification,isCurrent:()=>{live(h);return true;}}):h.budget;h.budget.signal=signal;h.limits=limits;
  if(signal){const abort=()=>releaseMaintenanceExistingContext(handle);signal.addEventListener('abort',abort,{once:true});h.removeAbort=()=>signal.removeEventListener('abort',abort);}
  try{
   need(limits&&['maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>=0),'UNAVAILABLE');

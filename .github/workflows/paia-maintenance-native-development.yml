@@ -8,6 +8,16 @@ on:
     paths:
       - 'extension/core/**'
       - 'extension/background/**'
+      - 'extension/content/prompt-assist.js'
+      - 'extension/content/prompt-next.js'
+      - 'extension/content/prompt-surface.js'
+      - 'extension/ui/prompt-surface.js'
+      - 'extension/ui/prompt-assist-state.js'
+      - 'extension/ui/prompt-assist-view.js'
+      - 'extension/ui/settings-assist-state.js'
+      - 'extension/ui/settings-assist.js'
+      - 'extension/ui/settings-next.js'
+      - 'extension/tests/ai-assist-automatic-r3-chrome-e2e.test.mjs'
       - 'extension/ui/context-cards.js'
       - 'extension/ui/context-cards.css'
       - 'extension/ui/context-connections-view.js'
@@ -138,3 +148,42 @@ jobs:
           JS
       # Screenshots stay in this ephemeral job only. No artifact or cache upload.
       # Generation alone is not human-visible fidelity acceptance.
+
+  offline-native-automatic-assist:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact direct versions; transitive versions have no lock
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only existing runner Chrome and record original source identity
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          node --version
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          sha256sum tests/ai-assist-automatic-r3-chrome-e2e.test.mjs background/assist-consent.js background/prompt-assist.js background/prompt-next.js content/prompt-surface.js ui/prompt-surface.js
+          printf '%s\n' 'scope=actual offline source R3 automatic local capsule and direct insertion; no real account, provider or visual acceptance'
+      - name: Run complete original automatic R3 native file
+        run: node --test --test-reporter=tap tests/ai-assist-automatic-r3-chrome-e2e.test.mjs
+      # Source-only original file. No screenshot/artifact/cache upload or service.

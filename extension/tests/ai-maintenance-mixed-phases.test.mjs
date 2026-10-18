@@ -66,7 +66,7 @@ async function mixedFixture({authored=true,placement=true}={}){
   for(const m of metadata.authoredEntries||[]){const scope=await readContextTopicScope(f.s,{topicId:m.topicId});assert.equal(scope.available,true);evidence.push(authoredContextEvidence(m,scope.binding,m.fieldDigests??m.bodyDigest));}
   return {binding,value:[{units:metadata.units,change:{operationId:op(),epoch:evidence[0].expectedTopicBinding.epoch,itemId:op(),card:'info',expectedRevision:0,body:response.body??response.fixture.contextProposal.body,section:'Synthetic mixed',associationIds:[op()],evidence}}]};
  };
- const resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{grants.push(structuredClone(scope));events.push('grant:'+!!scope.authoredEntries+':'+!!scope.placements);return resolve(t,scope);};
+ const resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose!=='ai-maintenance-payload')return resolve(t,scope);grants.push(structuredClone(scope));events.push('grant:'+!!scope.authoredEntries+':'+!!scope.placements);return resolve(t,scope);};
  let grant;const window={acquire:async r=>grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-mixed-phases',reservationId:'synthetic-mixed-phases',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal},isCurrent:r=>r===grant};
  const constructor={...f.constructor,window,processing:f.materialProcessing},session=new LocalMaintenanceSession(f.s,constructor);return {...f,constructor,session,input,topic,human,grants,events};
 }

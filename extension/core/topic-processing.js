@@ -1,3 +1,4 @@
+import {assertMaintenanceQualification,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
 import {fail,keys,idOK,same} from './thought-model.js';
 import {topicIdentityBase,assertTopicIdentityBase} from './topic-identity.js';
 import {checkEvidenceInTransaction} from './thought-evidence.js';
@@ -6,7 +7,9 @@ import {checkEvidenceInTransaction} from './thought-evidence.js';
 // No production resolver is installed by this slice. A future trusted service
 // must authorize the exact bounded Input scope and return its current epoch.
 export class TopicProcessingGuard {
- constructor(store,{resolveProcessing=null}={}){this.store=store;this.resolveProcessing=resolveProcessing;}
+ constructor(store,{resolveProcessing=null,resolveQualification=null}={}){if(resolveQualification!==null&&typeof resolveQualification!=='function')fail();this.store=store;this.resolveProcessing=resolveProcessing;this.resolveQualification=resolveQualification;}
+ qualification(){if(this.resolveQualification===null)return null;const token=this.resolveQualification();assertMaintenanceQualification(token,this.store);return token;}
+ reader(t){const token=this.qualification();return token===null?t:maintenanceQualificationReader(token,this.store,t,{topicLabels:true});}
  async processing(t,evidence,topicIds=[]){
   if(typeof this.resolveProcessing!=='function')fail();
   const request=Object.freeze({purpose:'personal-topic-identity',inputIds:Object.freeze(evidence.map(e=>e.inputId)),topicIds:Object.freeze([...topicIds])});
@@ -15,6 +18,7 @@ export class TopicProcessingGuard {
   return processing.epoch;
  }
  async authority(t,evidence,{checkEvidence=true}={}){
+  t=this.reader(t);
   const processingEpoch=await this.processing(t,evidence);
   const gate=await t.get('meta','gate'),library=await t.get('meta','thought-library');
   if(!gate?.enabled||library?.sealed)fail();
@@ -26,7 +30,7 @@ export class TopicProcessingGuard {
   for(const s of scope){keys(s,['inputId','role','selectedFields'],['inputId','role','selectedFields']);if(!idOK(s.inputId)||!['primary','supporting'].includes(s.role))fail();}
   await this.store.finishFoundation();
   const authority=await this.store.run(()=>this.store.repository.transaction(false,t=>this.authority(t,scope,{checkEvidence:false})));
-  const evidence=await this.store.evidenceFor(scope);
+  const evidence=await this.store.evidenceFor(scope,{qualification:this.qualification()});
   await this.store.run(()=>this.store.repository.transaction(false,t=>this.check(t,{evidence,authority})));
   return {evidence,authority};
  }

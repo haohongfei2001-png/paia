@@ -171,7 +171,8 @@ export class AIUsageFoundation {
   const assisted=Object.hasOwn(request,'assistIntent'),assistIntent=assisted?validateAssistIntent(type,request.assistIntent):null;
   if(type==='AI_ASSIST'&&!candidates&&(!assisted||typeof this.resolveAssistIntent!=='function'))fail('UNAVAILABLE');
   const styled=Object.hasOwn(request,'organizeStyle'),organizeStyle=styled?validateOrganizeStyle(type,request.organizeStyle):null;
-  if(!JOB_TYPES.includes(type)||!['explicit','maintenance'].includes(intent)||type!=='AI_MAINTENANCE'&&intent!=='explicit'||!opaque(contractVersion)||!opaque(routeVersion)||!Array.isArray(items)||!reply&&!items.length||items.length>100)fail();
+  const automaticReply=intent==='automatic_assist'&&type==='AI_ASSIST'&&reply&&assisted&&!candidates&&typeof this.resolveAssistIntent==='function';
+  if(!JOB_TYPES.includes(type)||!['explicit','maintenance','automatic_assist'].includes(intent)||intent==='automatic_assist'&&!automaticReply||type!=='AI_MAINTENANCE'&&intent!=='explicit'&&!automaticReply||!opaque(contractVersion)||!opaque(routeVersion)||!Array.isArray(items)||!reply&&!items.length||items.length>100)fail();
   const seen=new Set();for(const item of items){exact(item,['key','signature','descriptor']);if(typeof item.key!=='string'||item.key.length>450||typeof item.signature!=='string'||item.signature.length>16000||seen.has(item.key))fail();seen.add(item.key);}
   const coverage=reply&&Array.isArray(request.coverage)&&!request.coverage.length?[]:validateCoverage(request.coverage,type);if(coverage.some(u=>!seen.has(u.key))||items.some(i=>!coverage.some(u=>u.key===i.key))||type==='AI_MAINTENANCE'&&coverage.every(u=>u.facet==='filter'))fail();
   const children=(request.children||[coverage]).map(c=>reply&&!c.length?[]:validateCoverage(c,type)).sort((a,b)=>canonical(a).localeCompare(canonical(b)));

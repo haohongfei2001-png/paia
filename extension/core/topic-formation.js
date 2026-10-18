@@ -38,16 +38,16 @@ export class TopicFormationService {
  #decision;
  #parameters;
  #writeTransaction;
- constructor(store,{resolveProcessing=null,decision=null,parameters=null,writeTransaction=null}={}){
+ constructor(store,{resolveProcessing=null,decision=null,parameters=null,writeTransaction=null,resolveQualification=null}={}){
   if(writeTransaction!==null&&typeof writeTransaction!=='function')fail();
   // Constructor-private delegation only; the original callback retains every
   // domain guard and can share its native transaction with exact facet ACK.
   this.#writeTransaction=writeTransaction??(fn=>store.foundationWrite(fn));
-  this.store=store;this.retrieval=new TopicIdentityRetrieval(store,{resolveProcessing});this.candidates=new HiddenTopicCandidates(store,{resolveProcessing});
+  this.store=store;this.retrieval=new TopicIdentityRetrieval(store,{resolveProcessing,resolveQualification});this.candidates=new HiddenTopicCandidates(store,{resolveProcessing,resolveQualification});
   if(decision!==null){keys(decision,['version','assess'],['version','assess']);if(typeof decision.assess!=='function'||typeof decision.version!=='string'||!/^[-a-zA-Z0-9_.]{1,80}$/.test(decision.version))fail();this.#decision=Object.freeze({...decision});}
   this.#parameters=parameters===null?null:formationParameters(parameters);
  }
- async read(prepared,fn){return this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.retrieval.guard.check(t,prepared);return fn(t);}));}
+ async read(prepared,fn){return this.store.run(()=>this.store.repository.transaction(false,async t=>{const reader=this.retrieval.guard.reader(t);await this.retrieval.guard.check(reader,prepared);return fn(reader);}));}
  async authorizeTopics(t,prepared,ids){for(let i=0;i<ids.length;i+=100)if(await this.retrieval.guard.processing(t,prepared.evidence,ids.slice(i,i+100))!==prepared.authority.processingEpoch)fail();}
  // Local constructor-owned material seam. Opaque handles cannot mint
  // processing permission, a provider decision, or domain mutation authority.
@@ -55,7 +55,7 @@ export class TopicFormationService {
   const identities=[],constraints=[];let cursor=null,last;
   do{assertActive(signal);last=await this.retrieval.page({scope:scope,cursor});for(const item of last.items)(item.kind==='identity'?identities:constraints).push(item);cursor=last.nextCursor;}while(cursor);
   const prepared=await this.retrieval.prepareCoverage({scope:scope,coverage:last.coverage}),topicIds=unique(identities.flatMap(x=>[x.id,x.canonicalId])),sections=[];
-  const snapshot=await this.read(prepared,t=>readFormationEvidence(this.store,t,prepared,entryIds));await validateFormationSources(snapshot);
+  const snapshot=await this.read(prepared,t=>readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared,entryIds));await validateFormationSources(snapshot,{store:this.store,qualification:this.retrieval.guard.qualification()});
   for(const topicId of unique(identities.filter(x=>x.available).map(x=>x.canonicalId))){
    let after=null;do{assertActive(signal);const page=await this.read(prepared,async t=>{await this.authorizeTopics(t,prepared,[topicId]);const topic=await resolveTopicIdentity(t,topicId);const page=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),after,100);for(const item of page.rows)item.value=await readableFormationSection(this.store,t,item.value);return page;});
     for(const {value:section}of page.rows)if(section.lifecycle==='active'&&!section.redirectTo)sections.push({id:section.id,topicId:section.topicId,sectionId:section.sectionId,title:section.title,isDefault:!!section.isDefault,lifecycle:section.lifecycle,revision:section.revision,layoutGeneration:section.layoutGeneration});after=page.next;
@@ -76,7 +76,7 @@ export class TopicFormationService {
   if(finalRead!==null&&typeof finalRead!=='function')fail();
   const m=this.#materials.get(handle);if(!m)fail();assertActive(m.signal);
   const current=await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,m.topicIds);return readFormationEvidence(this.store,t,m.prepared,m.snapshot.entries.map(e=>e.id));});
-  if(!same(current,m.snapshot))fail();await validateFormationSources(current);assertActive(m.signal);
+  if(!same(current,m.snapshot))fail();await validateFormationSources(current,{store:this.store,qualification:this.retrieval.guard.qualification()});assertActive(m.signal);
   // Hashes complete outside IDB, then the original authority/identity/restore
   // generation is checked again before releasing any selected Working bytes.
   // A trusted caller may join its additional material fence to this exact
@@ -114,7 +114,7 @@ export class TopicFormationService {
   // Exact-excerpt dedupe may reuse an Entry. Authorize every dependency before
   // adding membership, rather than using a body match as processing authority.
   const implicit=await this.read(prepared,async t=>{const out=[];for(const {item}of entryPlans)if(item){const row=await t.edge('thoughts','byExact',item.exactKey);if(row?.lifecycle==='active')out.push(row.id);}return unique(out);});
-  const finalSnapshot=await this.read(prepared,t=>readFormationEvidence(this.store,t,prepared,unique([...(request.entryIds||[]),...implicit])));
+  const finalSnapshot=await this.read(prepared,t=>readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared,unique([...(request.entryIds||[]),...implicit])));
   if(!same(snapshot.inputs,finalSnapshot.inputs)||!same(snapshot.sources,finalSnapshot.sources))fail();
   let candidatePlan=null,consumePlan=null;
   if(plan.outcome==='candidate'){
@@ -142,14 +142,14 @@ export class TopicFormationService {
   const seal=()=>{recording=false;publicationState.stagedAuthority=JSON.stringify(rootExpected);const after=structuredClone(rootExpected);if(transaction.backupChanged)after[5]=(after[5]||0)+1;publicationState.afterAuthority=JSON.stringify(after);publicationState.writes=[...intents.values()].filter(x=>['thoughts','placements','dependencies','provenance'].includes(x.store)).map(x=>({...x,value:x.store==='thoughts'&&x.value?Object.fromEntries(entryMetadata.filter(k=>Object.hasOwn(x.value,k)).map(k=>[k,structuredClone(x.value[k])])):structuredClone(x.value)}));publicationState.frozen=true;};
   // Original owner capability, never provider/schema data. A joined owner may
   // recheck this exact processing/evidence grant after staging its own ACK.
-  const finalFence=async t=>{if(t!==transaction)fail();await this.retrieval.guard.check(t,prepared);const source=await readFormationEvidence(this.store,t,prepared);if(!same(source.inputs,snapshot.inputs)||!same(source.sources,snapshot.sources))fail();await this.authorizeTopics(t,prepared,unique([...topicIds,...committedTopicIds]));assertActive(state.signal);if(state.cancelled)fail();if(rootExpected&&await rootReadAuthority(t)!==JSON.stringify(rootExpected))fail();for(const {store,id,value}of intents.values())if(!same((await t.get(store,id))??null,value))fail();return true;};
+  const finalFence=async t=>{if(t!==transaction)fail();await this.retrieval.guard.check(t,prepared);const source=await readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared);if(!same(source.inputs,snapshot.inputs)||!same(source.sources,snapshot.sources))fail();await this.authorizeTopics(t,prepared,unique([...topicIds,...committedTopicIds]));assertActive(state.signal);if(state.cancelled)fail();if(rootExpected&&await rootReadAuthority(t)!==JSON.stringify(rootExpected))fail();for(const {store,id,value}of intents.values())if(!same((await t.get(store,id))??null,value))fail();return true;};
   try{const result=await this.#writeTransaction(async t=>{
-   transaction=t;publication=Object.freeze({});const beforeAuthority=await rootReadAuthority(t);rootExpected=JSON.parse(beforeAuthority);publicationState={store:this.store,database:this.store.repository.db,transaction:t,operationId:operation.operationId,beforeAuthority,stagedAuthority:null,afterAuthority:null,writes:[],frozen:false,committed:false};publications.set(publication,publicationState);recording=true;
+   transaction=t;const originalGet=t.get.bind(t),qualifiedRead=this.retrieval.guard.reader(Object.assign(Object.create(t),{get:originalGet}));t.get=(table,id)=>['blocks','records','inputStates'].includes(table)?qualifiedRead.get(table,id):originalGet(table,id);publication=Object.freeze({});const beforeAuthority=await rootReadAuthority(t);rootExpected=JSON.parse(beforeAuthority);publicationState={store:this.store,database:this.store.repository.db,transaction:t,operationId:operation.operationId,beforeAuthority,stagedAuthority:null,afterAuthority:null,writes:[],frozen:false,committed:false};publications.set(publication,publicationState);recording=true;
    const put=t.put.bind(t),remove=t.delete.bind(t);t.put=async(store,value,key)=>{record(store,key===undefined?value?.id:key,value);depth++;try{return await put(store,value,key);}finally{depth--;}};t.delete=async(store,id)=>{record(store,id,null);depth++;try{return await remove(store,id);}finally{depth--;}};
    const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();committedTopicIds=[...(replay.topicIds||[])];await finalFence(t);seal();return replay;}
    const active=()=>{assertActive(state.signal);if(state.cancelled)fail();};active();
    await this.retrieval.guard.check(t,prepared);await this.authorizeTopics(t,prepared,topicIds);
-   if(!same(snapshot,await readFormationEvidence(this.store,t,prepared,snapshot.entries.map(e=>e.id))))fail();
+   if(!same(snapshot,await readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared,snapshot.entries.map(e=>e.id))))fail();
    if(!await this.retrieval.checkConstraintProof(t,prepared,proof)&&plan.outcome!=='unassigned')fail();
    for(const {entry,item}of entryPlans)if(item){
     for(const evidence of item.evidence)if((await t.all('thoughtSuppressions','byScope',evidence.scopeToken)).some(x=>x.status==='active'))fail();

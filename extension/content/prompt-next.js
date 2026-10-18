@@ -7,25 +7,14 @@
  const listeners=[],same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
  const listen=(node,event,fn,options)=>{node.addEventListener(event,fn,options);listeners.push(()=>node.removeEventListener(event,fn,options));};
  const rpc=async(type,fields={})=>{const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_'+type,...fields});if(!r?.ok)throw Error('unavailable');return r.data;};
- function hide(){host?.remove();host=null;frame=null;nonce=null;}
+ function hide(){globalThis.PAIAPromptSurface?.offerSuggestion({source:'local',available:false});host=null;frame=null;nonce=null;}
  function invalidate(){const old=candidate;epoch++;candidate=null;binding=null;hide();clearTimeout(timer);clearTimeout(showTimer);if(old)void rpc('INVALIDATE',{id:old}).catch(()=>{});}
  function idle(){const state=globalThis.PAIAPromptSurface?.nextPlacement();return !document.hidden&&!composing&&performance.now()-lastActivity>=800&&!!state&&!state.dragging;}
- function layout(){
-  if(!host)return false;
-  const state=globalThis.PAIAPromptSurface?.nextPlacement();
-  if(!state||state.dragging){hide();return false;}
-  const p=globalThis.PAIANextPromptLayout(Math.min(innerWidth,document.documentElement.clientWidth),innerHeight,state.orb,state.card,state.form,height);
-  if(!p){hide();return false;}
-  const style=`position:fixed;left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;z-index:2147483646;color-scheme:${state.dark?'dark':'light'};`;
-  if(host.getAttribute('style')!==style)host.setAttribute('style',style);return true;
- }
- async function show(manual=false){
-  if(!candidate||!binding||!authorization||host||!idle())return {shown:false};
-  const ticket=epoch,id=candidate;
-  try{const result=await rpc('PRESENT',{id});if(ticket!==epoch||host||!result.safe||!idle())return {shown:false};
-   nonce=crypto.randomUUID();host=document.createElement('div');host.dataset.paiaNextPrompt='';const shadow=host.attachShadow({mode:'closed'});
-   frame=document.createElement('iframe');frame.title=result.sourceType==='PROMPT_FAMILY'?'来自常用 Prompt 的本轮建议':'来自本条回复的可选回复';frame.allow='clipboard-write';frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce;frame.style.cssText='border:0;width:100%;height:100%;color-scheme:inherit;background:transparent;';shadow.append(frame);document.documentElement.append(host);
-   if(!layout())return {shown:false};return {shown:true};
+ function layout(){return !!globalThis.PAIAPromptSurface?.nextPlacement();}
+ async function show(){
+  if(!candidate||!binding||!authorization||!idle())return {shown:false};const ticket=epoch;
+  try{const result=await rpc('PRESENT',{id:candidate});if(ticket!==epoch||!result.safe||!idle())return {shown:false};
+   return {shown:globalThis.PAIAPromptSurface?.offerSuggestion({source:'local',available:true})===true};
   }catch{return {shown:false};}
  }
  async function sync(){
@@ -91,7 +80,7 @@
   }
  };
  chrome.runtime.onMessage.addListener(messages);
- const storage=(changes,area)=>{if(area==='session'&&changes.promptNextAuthorizationV1){authorization=null;invalidate();reader.reset();offered='';void sync();}};
+ const storage=(changes,area)=>{if(area==='local'&&changes.promptNextAutomaticPreferenceV2){authorization=null;invalidate();reader.reset();offered='';void sync();}};
  chrome.storage.onChanged.addListener(storage);
  globalThis.PAIANextPromptController={dispose(){disposed=true;++syncEpoch;authorization=null;invalidate();observer.disconnect();composer.dispose();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);chrome.storage.onChanged.removeListener(storage);}};
  void sync();

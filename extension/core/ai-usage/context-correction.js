@@ -98,25 +98,26 @@ export async function readContextEditMapping(store,t,d){
 export const contextEditScope=m=>({kind:m.kind,itemId:m.itemId,revision:m.revision,card:m.card,selectedFields:[...m.selectedFields],proof:structuredClone(m.proof),inputIds:m.provenance.evidence.map(e=>e.inputId).sort()});
 export const contextEditEvidence=m=>m.provenance.evidence.map(({contentRevision,sourceRecordIds,sourceIdentityTokens,...spec})=>structuredClone(spec));
 const editDescriptor=m=>({kind:'context_item',entityId:m.itemId,revision:m.revision,contextEdit:m.proof});
+const metadataWithout=(row,fields)=>Object.fromEntries(Object.keys(row).filter(key=>!fields.includes(key)).map(key=>[key,row[key]]));
 async function editSnapshot(store,t,m){
  if(!equal(await readContextEditMapping(store,t,editDescriptor(m)),m))fail('STALE_BASE');
  const item=(await t.get('meta','context-cards:v1')).items.find(i=>i.id===m.itemId),receipt=await t.get('operationReceipts',m.proof.receiptId),inputs=[],topics=[],memberships=[],sources=[],legacy=[];
  const filter=await t.get('meta','smart-filter');
- for(const e of m.provenance.evidence){const input=await inputProjection(store,t,e.inputId);if(!input||await store.isFiltered(t,input.block,filter))fail('STALE_BASE');inputs.push(input);}
+ for(const e of m.provenance.evidence){const input=await inputProjection(store,t,e.inputId);if(!input||await store.isFiltered(t,input.block,filter))fail('STALE_BASE');inputs.push({inputId:input.inputId,documentId:input.documentId,contentRevision:input.contentRevision,lastRemovalSequence:input.lastRemovalSequence,body:input.body,note:input.note,sourceRecordIds:input.sourceRecordIds,identities:input.identities});}
  for(const topicId of [...new Set(m.provenance.evidence.map(e=>e.topicId))].sort()){
-  const topic=await t.get('topics',topicId);topics.push(topic);
+  const topic=await t.get('topics',topicId);topics.push(metadataWithout(topic,['name','nameKey','summary']));
   const placements=await t.all('placements','byTopicOrder',prefix([topicId,topic.activeLayoutGeneration,0]),17);if(placements.length>16)fail('BUDGET_EXCEEDED');
-  const entries=[];for(const p of placements){const e=await t.get('thoughts',p.entryId);if(!e)fail('STALE_BASE');const {thoughtText,title,note,...metadata}=e;entries.push(metadata);}
+  const entries=[];for(const p of placements){const e=await t.get('thoughts',p.entryId);if(!e)fail('STALE_BASE');entries.push(metadataWithout(e,['thoughtText','title','note']));}
   memberships.push({placements,entries});
  }
- for(const id of m.sourceRecordIds)sources.push({index:await t.get('recordIndex',id),record:await t.get('records',id)});
+ for(const id of m.sourceRecordIds){const row=await t.get('records',id);sources.push({index:await t.get('recordIndex',id),record:row?{id:row.id,value:{originalText:row.value?.originalText}}:row});}
  // Original legacy restrictions are part of the final transaction fence too.
  // The reader supplied by the session charges these bounded local reads.
  await t.scanPrimary('meta','memory:',row=>{if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
  return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,filter};
 }
-export async function captureContextEditMaterial(store,m,{read,signal}){
- const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal});
+export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null}){
+ const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget});
  try{
   if(!equal(lineage.provenance,m.provenance))fail('STALE_BASE');
   const snapshot=await read(async t=>{await fenceContextLineage(store,lineage.captured,{transaction:t});return editSnapshot(store,t,m);});

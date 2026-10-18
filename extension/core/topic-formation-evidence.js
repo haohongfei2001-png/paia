@@ -1,3 +1,4 @@
+import {assertMaintenanceQualification,chargeMaintenanceQualificationHash} from './ai-usage/maintenance-qualification.js';
 import {fail,keys,idOK,prefix,same} from './thought-model.js';
 import {inputProjection} from './thought-evidence.js';
 import {hashText} from './dedupe.js';
@@ -91,7 +92,7 @@ export async function readableFormationSection(store,t,row){
  }
  return safe;
 }
-export async function validateFormationSources(snapshot){for(const source of snapshot.sources)if(await hashText(source.originalText)!==source.contentHash)fail();}
+export async function validateFormationSources(snapshot,{store=null,qualification=null}={}){for(const source of snapshot.sources){if(qualification!==null)chargeMaintenanceQualificationHash(qualification,store,source.originalText);if(await hashText(source.originalText)!==source.contentHash)fail();if(qualification!==null)assertMaintenanceQualification(qualification,store);}}
 // Canonical Source/Input lineage, never model-supplied counts. Stable identity,
 // exact copied content and known revisions are one contribution. Ambiguous
 // edited merged spans contribute zero instead of counting every Source.

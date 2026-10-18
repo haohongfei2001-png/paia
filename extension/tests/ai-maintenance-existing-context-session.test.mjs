@@ -95,7 +95,7 @@ for(const operation of ['UPDATE','ADD'])for(const mutation of ['protected','remo
 
 test('ordinary existing Item state crosses only its independent exact field grant',async()=>{
  const f=await unchangedFixture(),resolve=f.materialProcessing.resolve,scopes=[];
- f.materialProcessing.resolve=async(t,scope)=>{scopes.push(structuredClone(scope));assert.equal(scope.existingContextItems.length,1);const selected=scope.existingContextItems[0];assert.equal(selected.itemId,f.original.itemId);assert.deepEqual(selected.selectedFields,['body','section']);assert.equal(Object.hasOwn(selected,'body'),false);assert.equal(Object.hasOwn(selected,'section'),false);assert.equal(Object.hasOwn(selected,'provenance'),false);return resolve(t,scope);};
+ f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose!=='ai-maintenance-payload')return resolve(t,scope);scopes.push(structuredClone(scope));assert.equal(scope.existingContextItems.length,1);const selected=scope.existingContextItems[0];assert.equal(selected.itemId,f.original.itemId);assert.deepEqual(selected.selectedFields,['body','section']);assert.equal(Object.hasOwn(selected,'body'),false);assert.equal(Object.hasOwn(selected,'section'),false);assert.equal(Object.hasOwn(selected,'provenance'),false);return resolve(t,scope);};
  f.session.dispose();f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const result=await f.session.run(await f.session.prepare(f.batchOptions));
  assert.equal(result.state,'COMMITTED',JSON.stringify(result));assert.ok(scopes.length>=2);assert.ok(scopes.every(s=>JSON.stringify(s)===JSON.stringify(scopes[0])));assert.equal(f.calls.length,1);
  const item=f.calls[0].material.existingContextItems[0];assert.equal(item.itemId,f.original.itemId);assert.equal(item.body,f.original.body);assert.equal(item.section,f.original.section);for(const key of ['associationIds','provenance','currentEvidence','currentProvenance','sources'])assert.equal(Object.hasOwn(item,key),false);
@@ -104,7 +104,7 @@ test('ordinary existing Item state crosses only its independent exact field gran
 
 for(const missing of ['existing-item','temporal'])test('Input processing never supplies missing '+missing+' field authority',async()=>{
  const f=await unchangedFixture(missing==='temporal'?{card:'now',temporal:{temporalScope:'SYNTHETIC current plan',uncertainty:null,validUntil:'2099-01-01T00:00:00.000Z'}}:{}),resolve=f.materialProcessing.resolve;
- f.materialProcessing.resolve=async(t,scope)=>{const raw=await resolve(t,scope),wrong=structuredClone(scope);if(missing==='existing-item')delete wrong.existingContextItems;else wrong.existingContextItems[0].selectedFields=['body','section'];return {...raw,scope:wrong};};
+ f.materialProcessing.resolve=async(t,scope)=>{if(scope.purpose!=='ai-maintenance-payload')return resolve(t,scope);const raw=await resolve(t,scope),wrong=structuredClone(scope);if(missing==='existing-item')delete wrong.existingContextItems;else wrong.existingContextItems[0].selectedFields=['body','section'];return {...raw,scope:wrong};};
  f.session.dispose();f.session=new LocalMaintenanceSession(f.s,{...f.constructor,service:f.service});const before=await read(f.s,'meta',CONTEXT_CARDS_ROW),result=await f.session.run(await f.session.prepare(f.batchOptions));assert.equal(result.state,'UNAVAILABLE');assert.equal(f.calls.length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),before);assert.equal((await ack(f)).length,0);f.session.dispose();
 });
 

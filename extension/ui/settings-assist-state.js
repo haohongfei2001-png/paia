@@ -10,7 +10,7 @@ export class SettingsAssistState {
  async configure(field,enabled){
   if(!this.editable||!fields.includes(field)||typeof enabled!=='boolean')return false;
   const requested=Object.fromEntries(fields.map(k=>[k,k===field?enabled:this.value[k]]));++this.epoch;this.busy=true;this.feedback='saving';this.emit();let saved=false;
-  try{const value=snapshot(await this.send(WRITE,{...requested,expectedGeneration:this.value.generation}));if(fields.some(k=>value[k]!==requested[k]))throw Error('UNCONFIRMED_ASSIST_STATE');this.value=value;this.error=false;this.feedback='saved';saved=true;}
+  try{const value=snapshot(await this.send(WRITE,{...requested,expectedGeneration:this.value.generation,consentVersion:2}));if(fields.some(k=>value[k]!==requested[k]))throw Error('UNCONFIRMED_ASSIST_STATE');this.value=value;this.error=false;this.feedback='saved';saved=true;}
   catch{try{this.value=snapshot(await this.send(READ));this.error=false;}catch{this.error=true;}this.feedback=this.error?'save-unknown':'save-error';}
   finally{this.busy=false;this.emit();if(this.pending){this.pending=false;const feedback=this.feedback;await this.load();if(!this.error&&feedback.startsWith('save-')){this.feedback=feedback;this.emit();}}}return saved;
  }

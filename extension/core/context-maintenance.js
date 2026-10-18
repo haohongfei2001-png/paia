@@ -1,7 +1,8 @@
+import {maintenanceQualificationFacts,assertMaintenanceQualification,maintenanceQualificationWorkBudget} from './ai-usage/maintenance-qualification.js';
 import {rootReadAuthority} from './organizer/root-read.js';
 import {inputProjection} from './thought-evidence.js';
 import {MemoryService} from './memory/service.js';
-import {createContextScopeWorkBudget,contextScopeTransactionReader} from './context-topic-scope.js';
+import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight} from './context-topic-scope.js';
 import {validStructuralContextEvidence,structuralContextGroups,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
 import {validBoundFields,boundContextEvidence} from './context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields,authoredContextEvidence} from './context-authored-entry.js';
@@ -11,7 +12,7 @@ import {validContextTemporal,CONTEXT_TEMPORAL_TEXT_LIMIT} from './context-tempor
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
-import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,fenceContextLineage,CONTEXT_LINEAGE_LIMITS,contextEvidenceIdentity,contextEvidenceKey,releaseContextLineage} from './context-item-lineage.js';
+import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validContextEvidenceSpecs,captureContextEvidence,contextLineageReady,contextLineageRead,contextLineageAdmission,fenceContextLineage,CONTEXT_LINEAGE_LIMITS,contextEvidenceIdentity,contextEvidenceKey,releaseContextLineage} from './context-item-lineage.js';
 
 // Structural owner only. No runtime instantiation, caller authentication,
 // extractor, provider, transport, background job, worker route or processing grant exists.
@@ -24,6 +25,7 @@ const fail=(code='CONTEXT_INVALIDATED')=>{throw new ArchiveError(code);};
 const need=(x,code)=>{if(!x)fail(code);};
 const bounded=(x,n)=>typeof x==='string'&&x.length>0&&x.length<=n&&!x.includes('\0');
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const sourceMaterial=row=>row?{id:row.id,value:{originalText:row.value?.originalText}}:row;
 function structuralClosureCovered(old,live,scope){
  const selected=old.humanTopic||old.humanSection;if(!selected)return true;
  const property=structuralContextProperty(selected),current=live?.[property],granted=scope[property==='humanTopic'?'structuralTopics':'structuralSections'];
@@ -35,17 +37,18 @@ function structuralClosureCovered(old,live,scope){
 // Private selected-field/source snapshot. This does not discover Inputs or
 // expand the verifier scope; authored/bound/structural fields remain fenced by
 // the original lineage owner. Source originals stay local and are never DTOs.
-async function selectedMaterialSnapshot(store,transaction,evidence,budget){
+async function selectedMaterialSnapshot(store,transaction,evidence,budget,qualification=null){
  const t=contextScopeTransactionReader(store,transaction,budget),inputs=[],sources=new Map(),filter=await t.get('meta','smart-filter'),memory=new MemoryService(store),restrictions=[];
  let retainedBytes=0;const retain=value=>{retainedBytes+=new TextEncoder().encode(JSON.stringify(value)).byteLength;need(retainedBytes<=CONTEXT_LINEAGE_LIMITS.hashBytes,'CONTEXT_LIMIT');return value;};
  for(const spec of evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind))){
   const p=await inputProjection(store,t,spec.inputId);need(p&&!await store.isFiltered(t,p.block,filter)&&await memory.safeSources(t,p.sourceRecordIds));
   const selected={inputId:p.inputId,documentId:p.documentId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,fields:Object.fromEntries(spec.selectedFields.map(field=>[field,p[field]]))};
   need(Object.values(selected.fields).every(text=>typeof text==='string'));inputs.push(retain(selected));
-  for(const id of p.sourceRecordIds)if(!sources.has(id))sources.set(id,retain({id,index:await t.get('recordIndex',id),record:await t.get('records',id)}));
+  for(const id of p.sourceRecordIds)if(!sources.has(id))sources.set(id,retain({id,index:await t.get('recordIndex',id),record:sourceMaterial(await t.get('records',id))}));
  }
  await t.scanPrimary('meta','memory:',row=>{if(['config','topic','section','entry','input'].includes(row.kind))restrictions.push(retain(row));});
- return {inputs,sources:[...sources.values()],filter,restrictions};
+ const qualificationFacts=qualification?await maintenanceQualificationFacts(qualification,store,t,retain):null;
+ return {inputs,sources:[...sources.values()],filter,restrictions,qualificationFacts};
 }
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
 const opaque=x=>bounded(x,200);
@@ -113,8 +116,8 @@ async function cancellable(work,signals){
  * Scope and processing flags in request JSON are never accepted as authority.
  */
 export class ContextMaintenanceService {
- #s;#cards;#verifier;#attempts;#writeTransaction;
- constructor(store,{processingVerifier=null,writeTransaction=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
+ #s;#cards;#verifier;#attempts;#writeTransaction;#resolveQualification;
+ constructor(store,{processingVerifier=null,writeTransaction=null,resolveQualification=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');need(resolveQualification===null||typeof resolveQualification==='function','INVALID_REQUEST');this.#resolveQualification=resolveQualification;this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
  async #verify(caller,scope,signals=[]){
   const timeout=new AbortController(),timer=setTimeout(()=>timeout.abort(),CONTEXT_MAINTENANCE_LIMITS.verificationMs);
   try{
@@ -175,10 +178,20 @@ export class ContextMaintenanceService {
   const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database);
   if(prior)return prior;
   this.#current(caller,authority,phase.signal);
-  const workBudget=createContextScopeWorkBudget({signal:phase.signal,database});
-  const material=await cancellable(()=>contextLineageRead(this.#s,t=>selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),undefined,database),[phase.signal]);this.#current(caller,authority,phase.signal);
-  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,signal:phase.signal,workBudget}),[phase.signal]);this.#current(caller,authority,phase.signal);
-  await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),material));},undefined,database),[phase.signal]);
+  const qualification=this.#resolveQualification===null?null:this.#resolveQualification();if(qualification!==null)assertMaintenanceQualification(qualification,this.#s);
+  const budgetOptions={signal:phase.signal,database,qualification,isCurrent:()=>{this.#current(caller,authority,phase.signal);return true;}},workBudget=qualification?forkContextScopeWorkBudget(maintenanceQualificationWorkBudget(qualification,this.#s),budgetOptions):createContextScopeWorkBudget(budgetOptions);
+  // The added exact final-facts snapshot must obey the original metadata-only
+  // rejection order. Sharing this budget cannot acquire body rows before the
+  // original off-scope, exclusion, Topic restriction and tombstone preflight.
+  const admission=await contextLineageRead(this.#s,t=>contextLineageAdmission(this.#s,contextScopeTransactionReader(this.#s,t,workBudget),c.epoch),['meta'],database);
+  for(const topicId of scope.topics){
+   const specs=c.evidence.filter(e=>e.topicId===topicId),entryIds=specs.filter(e=>e.kind==='humanEntry').map(e=>e.entryId);
+   const preflight=await cancellable(()=>readContextProcessingPreflight(this.#s,{topicId,inputIds:specs.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>e.inputId),...(entryIds.length?{entryIds}:{}),expectedAuthority:admission.authority},workBudget),[phase.signal]);
+   need(preflight.available&&specs.every(e=>same(e.expectedTopicBinding,preflight.binding)));this.#current(caller,authority,phase.signal);
+  }
+  const material=await cancellable(()=>contextLineageRead(this.#s,async t=>{await fenceContextLineage(this.#s,admission,{transaction:t});return selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification);},undefined,database),[phase.signal]);this.#current(caller,authority,phase.signal);
+  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,expectedAuthority:admission.authority,signal:phase.signal,workBudget}),[phase.signal]);this.#current(caller,authority,phase.signal);
+  await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));},undefined,database),[phase.signal]);
 
   const current=await this.#verify(caller,scope,[phase.signal]);need(identity(current)===identity(authority));this.#current(caller,current,phase.signal);
   let transaction=null,transactionReader=null,expiryTimer=null,expectedItem=null,publication=null,publicationState=null;
@@ -192,7 +205,7 @@ export class ContextMaintenanceService {
    need(transaction&&t===transactionReader&&t.tx===transaction&&contextLineageReady(this.#s)&&this.#s.repository.db===database);
    this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);
    await fenceContextLineage(this.#s,captured.captured,{transaction:t});
-   need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),material));
+   need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));
    need(expectedItem&&same((await this.#cards.row(t)).items.find(item=>item.id===expectedItem.id),expectedItem));need(publicationState&&await rootReadAuthority(t)===publicationState.beforeAuthority);
    this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);return true;
   };

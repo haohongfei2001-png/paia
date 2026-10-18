@@ -1,3 +1,4 @@
+import {assertMaintenanceQualification,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
 import {readAuthoredEntryContext} from './context-authored-entry.js';
 import {ContextCardsService} from './context-cards.js';
 import {hashText} from './dedupe.js';
@@ -21,8 +22,16 @@ import {idOK,revisionOK,prefix,validateFields,ENTRY_FIELDS} from './thought-mode
 export const CONTEXT_TOPIC_SCOPE_LIMITS=Object.freeze({refs:4096,page:100,reads:131072,hashFields:8192,hashBytes:8*1024*1024});
 export const CONTEXT_PROCESSING_PREFLIGHT_LIMITS=Object.freeze({inputs:CONTEXT_TOPIC_SCOPE_LIMITS.refs});
 const {refs:MAX_REFS,page:PAGE,reads:MAX_READS,hashFields:MAX_HASH_FIELDS,hashBytes:MAX_HASH_BYTES}=CONTEXT_TOPIC_SCOPE_LIMITS;
-const workBudgets=new WeakSet(),workCurrent=new WeakMap();
-export function createContextScopeWorkBudget({signal=null,database=null,isCurrent=null}={}){if(isCurrent!==null&&typeof isCurrent!=='function')refuse('stale_authority');const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);if(isCurrent)workCurrent.set(value,isCurrent);return value;}
+const workBudgets=new WeakSet(),workCurrent=new WeakMap(),workQualification=new WeakMap(),workRoots=new WeakMap(),workParents=new WeakMap();
+export function createContextScopeWorkBudget({signal=null,database=null,isCurrent=null,qualification=null}={}){if(isCurrent!==null&&typeof isCurrent!=='function')refuse('stale_authority');const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);if(isCurrent)workCurrent.set(value,isCurrent);if(qualification!==null){assertMaintenanceQualification(qualification);workQualification.set(value,qualification);}return value;}
+// Different original owner phases retain their own signal/currentness fence,
+// while these aliases share one exact request ledger. No phase resets work.
+export function forkContextScopeWorkBudget(parent,{signal=parent?.signal??null,database=parent?.database??null,isCurrent=null,qualification=null}={}){
+ requireFact(budgetValid(parent)&&database===parent.database,'scope_budget');currentWork(parent);
+ const value=createContextScopeWorkBudget({signal,database,isCurrent,qualification}),root=workRoots.get(parent)||parent;
+ for(const field of ['reads','hashBytes','hashFields'])Object.defineProperty(value,field,{enumerable:true,configurable:false,get:()=>root[field],set:n=>{root[field]=n;}});
+ value.seen=root.seen;workRoots.set(value,root);workParents.set(value,parent);return value;
+}
 const budgetValid=x=>workBudgets.has(x)&&Number.isSafeInteger(x.reads)&&x.reads>=0&&x.reads<=MAX_READS&&Number.isSafeInteger(x.hashBytes)&&x.hashBytes>=0&&x.hashBytes<=MAX_HASH_BYTES&&Number.isSafeInteger(x.hashFields)&&x.hashFields>=0&&x.hashFields<=MAX_HASH_FIELDS;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
@@ -35,7 +44,7 @@ const refuse=reason=>{throw Object.assign(new Error('Context Topic scope unavail
 const requireFact=(condition,reason='invalid_facts')=>{if(!condition)refuse(reason);};
 // Trusted capability, kept outside the budget DTO. Every awaited row boundary
 // rechecks synchronously; a Promise or truthy object is never current authority.
-function currentWork(budget){if(budget.signal?.aborted)refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
+function currentWork(budget){const parent=workParents.get(budget);if(parent)currentWork(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);if(budget.signal?.aborted)refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
 function add(set,id){requireFact(idOK(id));set.add(id);if(set.size>MAX_REFS)refuse('scope_budget');}
 function validIds(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');requireFact(value.every(idOK)&&new Set(value).size===value.length);return value;}
 function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');return value;}
@@ -47,18 +56,20 @@ function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_RE
 const budgetReaders=new WeakMap();
 export function contextScopeTransactionReader(store,transaction,budget){
  requireFact(budgetValid(budget),'scope_budget');currentWork(budget);
- return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget);
+ return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget,store);
 }
-function reader(transaction,compare,budget){
+function reader(transaction,compare,budget,store){
+ let ancestor=transaction,alreadyAccounted=false;for(let depth=0;ancestor&&depth<16;depth++,ancestor=Object.getPrototypeOf(ancestor)){const held=budgetReaders.get(ancestor);if(held&&(workRoots.get(held)||held)===(workRoots.get(budget)||budget)){alreadyAccounted=true;break;}}
+ const qualification=workQualification.get(budget);if(qualification)transaction=maintenanceQualificationReader(qualification,store,transaction,{account:false});
  const {seen}=budget;
- const account=(store,row)=>{currentWork(budget);if(row){if(store==='blocks'){requireFact(plain(row.value),'input_unavailable');bounded(row.value.provenance);}for(const key of ['sourceRecordIds','inputRefs','selectedFields','roles'])if(Object.hasOwn(row,key))bounded(row[key]);}if(++budget.reads>MAX_READS)refuse('scope_budget');if(!row)return;requireFact(typeof row.id==='string');const ids=seen.get(store)||new Set();ids.add(row.id);seen.set(store,ids);if(ids.size>MAX_REFS)refuse('scope_budget');};
+ const account=(store,row)=>{currentWork(budget);if(row){if(store==='blocks'){requireFact(plain(row.value),'input_unavailable');bounded(row.value.provenance);}for(const key of ['sourceRecordIds','inputRefs','selectedFields','roles'])if(Object.hasOwn(row,key))bounded(row[key]);}if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');if(!row)return;requireFact(typeof row.id==='string');const ids=seen.get(store)||new Set();ids.add(row.id);seen.set(store,ids);if(ids.size>MAX_REFS)refuse('scope_budget');};
  const t=Object.create(transaction);
- t.get=async(store,id)=>{currentWork(budget);const row=await transaction.get(store,id);account(store,row);currentWork(budget);return row;};
- t.has=async(store,id)=>{currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');const result=await transaction.has(store,id);currentWork(budget);return result;};
- t.edge=async(...args)=>{currentWork(budget);const row=await transaction.edge(...args);account(args[0],row);currentWork(budget);return row;};
- t.rangePage=async(...args)=>{currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);currentWork(budget);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);currentWork(budget);return page;};
+ t.get=async(store,id)=>{currentWork(budget);if(!alreadyAccounted&&budget.reads>=MAX_READS)refuse('scope_budget');const row=await transaction.get(store,id);account(store,row);currentWork(budget);return row;};
+ t.has=async(store,id)=>{currentWork(budget);if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');const result=await transaction.has(store,id);currentWork(budget);return result;};
+ t.edge=async(...args)=>{currentWork(budget);if(!alreadyAccounted&&budget.reads>=MAX_READS)refuse('scope_budget');const row=await transaction.edge(...args);account(args[0],row);currentWork(budget);return row;};
+ t.rangePage=async(...args)=>{currentWork(budget);if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);currentWork(budget);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);currentWork(budget);return page;};
  t.count=async(store,index,range)=>{
-  currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');
+  currentWork(budget);if((!alreadyAccounted||!index&&range!==undefined)&&++budget.reads>MAX_READS)refuse('scope_budget');
   // Repository.count's primary-store overload counts the whole store. Keep
   // the exact native primary range here, within the same readonly transaction.
   const count=index||range===undefined?await transaction.count(store,index,range):await new Promise((resolve,reject)=>{const request=transaction.tx.objectStore(store).count(range);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(new Error('Scope count unavailable'));});
@@ -243,7 +254,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
  };
  try{const material=await scopeRead(store,readBudget,async transaction=>{
   try{
-   const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget);
+   const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget,store);
    const admitted=await admission(store,t),{authority:currentAuthority,epoch,filter}=admitted;
    if(options.expectedAuthority!=null&&options.expectedAuthority!==currentAuthority)refuse('stale_authority');
    capturedAdmission={authority:currentAuthority,epoch,gate:admitted.gate};
@@ -286,7 +297,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
   requireFact(store.repository.db,'not_ready');
   await scopeRead(store,readBudget,async transaction=>{
    try{
-    const current=await admission(store,reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget));
+    const current=await admission(store,reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget,store));
     requireFact(current.authority===capturedAdmission.authority&&current.epoch===capturedAdmission.epoch&&current.gate===capturedAdmission.gate,'stale_authority');
    }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
   },['meta']);
@@ -309,7 +320,7 @@ export async function readContextProcessingPreflight(store,options={},workBudget
  try{
   const result=await scopeRead(store,budget,async tx=>{
    try{
-   const t=reader(tx,(a,b)=>store.repository.factory.cmp(a,b),budget),a=await admission(store,t);captured=a;
+   const t=reader(tx,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);captured=a;
    requireFact(a.authority===options.expectedAuthority,'stale_authority');
    const m=await scopeMetadata(store,t,options.topicId,a);
    requireFact(options.inputIds.every(id=>m.inputIds.has(id)),'input_unavailable');
@@ -330,6 +341,6 @@ export async function readContextProcessingPreflight(store,options={},workBudget
    return {available:true,kind:'processing_preflight',reason:'metadata_admitted',externalAllowed:false,bodyEligibility:'not_checked',binding};
    }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
   });
-  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);return result;
+  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);return result;
  }catch(error){return denied(unavailableReasons.has(error?.scopeReason)?error.scopeReason:reason);}
 }

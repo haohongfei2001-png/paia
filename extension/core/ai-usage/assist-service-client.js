@@ -24,13 +24,13 @@ export function createAssistServiceClient(configuration){
  let c;try{
   if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration)))return null;
   const ds=Object.getOwnPropertyDescriptors(configuration),keys=Reflect.ownKeys(ds),required=['origin','profile','routeVersion',...callbacks];
-  if(!keys.every(k=>[...required,'fetch','contextSelector','contextProcessing'].includes(k))||!required.every(k=>keys.includes(k))||keys.some(k=>!Object.hasOwn(ds[k],'value')))return null;
+  if(!keys.every(k=>[...required,'fetch','contextSelector','contextProcessing','contextDiscovery'].includes(k))||!required.every(k=>keys.includes(k))||keys.some(k=>!Object.hasOwn(ds[k],'value')))return null;
   c=Object.fromEntries(keys.map(k=>[k,ds[k].value]));if(Object.hasOwn(c,'fetch')&&typeof c.fetch!=='function'||!callbacks.every(k=>typeof c[k]==='function')||!validOrganizeCacheProfile(c.profile)||!token(c.routeVersion))return null;
   if(Object.hasOwn(c,'contextSelector')&&typeof c.contextSelector!=='function')return null;
-  if(Object.hasOwn(c,'contextProcessing')){
-   const value=c.contextProcessing;if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return null;
+  for(const key of ['contextProcessing','contextDiscovery'])if(Object.hasOwn(c,key)){
+   const value=c[key];if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return null;
    const ds=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(ds);if(keys.length!==2||!['resolve','isCurrent'].every(k=>keys.includes(k)&&Object.hasOwn(ds[k],'value')&&typeof ds[k].value==='function'))return null;
-   c.contextProcessing=Object.freeze({resolve:ds.resolve.value,isCurrent:ds.isCurrent.value});
+   c[key]=Object.freeze({resolve:ds.resolve.value,isCurrent:ds.isCurrent.value});
   }
   c.profile=freeze(snapshot(c.profile));const url=new URL(c.origin);if(url.origin!==c.origin||url.protocol!=='https:'||url.port||url.username||url.password)return null;
  }catch{return null;}
@@ -45,7 +45,7 @@ export function createAssistServiceClient(configuration){
   if(row?.executionKind!=='server-backed'||row.financialSettlement?.state!=='SETTLED'&&!savedFinancialCancellation(row))fail('OUTCOME_UNKNOWN');
  }
  const client={
-  sessionOptions:Object.freeze({resolveAuthority:c.resolveAuthority,contextSelector:c.contextSelector??null,contextProcessing:c.contextProcessing??null,contractVersion:c.profile.contractVersion,routeVersion:c.routeVersion}),
+  sessionOptions:Object.freeze({resolveAuthority:c.resolveAuthority,contextSelector:c.contextSelector??null,contextProcessing:c.contextProcessing??null,contextDiscovery:c.contextDiscovery??null,contractVersion:c.profile.contractVersion,routeVersion:c.routeVersion}),
   available:()=>!disposed,onInvalidate:fn=>c.onInvalidate(fn),
   async recover(foundation,{retainJob,isCurrent}){
    current();let pending=recoveries.get(foundation.s);if(pending){if(pending.origin!==c.origin)fail('RESULT_ORIGIN_MISMATCH');return pending.task;}
@@ -83,16 +83,20 @@ export function createAssistServiceClient(configuration){
      if(!integer(measurement.inputTokens)||c.isCurrentTokenizer(measurement)!==true)fail('UNAVAILABLE');
      const request=await foundation.serverRequest(job.id,job.childIds[index],{inputTokens:measurement.inputTokens,outputCap,maxCompletionTokens:compiled.requestControls.max_completion_tokens});
      const proofs=freeze(snapshot(await c.readProofs(structuredClone(request)),{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192}));if(!exact(proofs,['principalToken','entitlementToken'])||!Object.values(proofs).every(x=>typeof x==='string'&&x.length>0&&x.length<=8192))fail('UNAVAILABLE');
-     const payloadDigest=await hashText(canonical(payload)),authorization=freeze({authorizationId:'assist:'+job.childIds[index],childIdentity:structuredClone(childIdentity),reservationRequest:structuredClone(request),payloadDigest,expiresAt:Math.min(manifest.profile.validity.expiresAt,measurement.expiresAt)});let reservation=null;
-     const qualified=()=>live()&&c.isCurrentTokenizer(measurement)===true;
+     const payloadDigest=await hashText(canonical(payload)),authorization=freeze({authorizationId:'assist:'+job.childIds[index],childIdentity:structuredClone(childIdentity),reservationRequest:structuredClone(request),payloadDigest,expiresAt:Math.min(manifest.profile.validity.expiresAt,measurement.expiresAt)});let reservation=null,entitlement=null;
+     // Tier comes only from the original service's authenticated status projection
+     // for this exact reserved request. It is not decoded JWT/client preference
+     // authority and never replaces the original provider's signed-proof checks.
+     const proCurrent=()=>{const now=c.clock();return !!entitlement&&entitlement.tier==='pro'&&integer(now)&&now>=entitlement.observedAt&&now<entitlement.verifiedUntil;};
+     const qualified=()=>live()&&c.isCurrentTokenizer(measurement)===true&&(!reservation||proCurrent());
      const owner=createQwenQualifiedRequestOwner({clock:c.clock,
       resolveProfile:async q=>{await assertCurrent();return c.readProfile(q);},
       authorizePayload:async q=>{await assertCurrent();if(!qualified()||!equal(q.childIdentity,childIdentity)||!equal(q.reservationRequest,request)||q.payloadDigest!==payloadDigest)fail('STALE_BASE');return structuredClone(authorization);},
       tokenize:async q=>{await assertCurrent();const value=await c.tokenize(q);if(!equal(value,measurement))fail('STALE_BASE');return value;},
-      readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');const observation=await status.query({request,...proofs});await assertCurrent();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;return structuredClone(reservation);},
+      readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');const observation=await status.query({request,...proofs});await assertCurrent();const known=observedClientOperationStatus(observation,status),identity=known?.authenticatedIdentity;if(!known||known.origin!==c.origin||!equal(known.request,request)||!observation.reservation)fail('OUTCOME_UNKNOWN');if(!identity||identity.tier!=='pro'||entitlement&&!['principalId','libraryId','operationId','jobType','tier','principalGeneration','entitlementGeneration','authorityGeneration','requestHash'].every(k=>identity[k]===entitlement[k]))fail('UNAVAILABLE');entitlement??=identity;if(!proCurrent())fail('UNAVAILABLE');reservation=observation.reservation;return structuredClone(reservation);},
       readCurrentBinding:()=>({now:c.clock(),profile:c.currentProfile(),authorization:qualified()?authorization:null,tokenizer:qualified()?measurement:null,reservation})
      });
-     const stage={owner,input:{childIdentity,reservationRequest:request,payload:structuredClone(payload),stream:false},request,proofs};stages.push(stage);
+     const stage={owner,proCurrent,input:{childIdentity,reservationRequest:request,payload:structuredClone(payload),stream:false},request,proofs};stages.push(stage);
      stage.declaration=await owner.prepareDeclaration(stage.input);if(stage.declaration.status!=='DECLARED_LOCAL')fail('UNAVAILABLE');
     }
     staged=await foundation.write(async t=>{await preflight(t,replyKey,sessionId);const stored=await foundation.job(t,job.id);await foundation.current(t,stored);const previous=await t.get('meta',FLIGHT),replyPrevious=await t.get('meta',REPLY+replyKey),marker={id:FLIGHT,version:1,jobId:job.id,childId:job.childIds[0],origin:c.origin,evaluationKey:stored.replyObligation.evaluationKey,replyKey,financialRequest:structuredClone(clientDeclarationRequestData(stages[0].request))},replyMarker={id:REPLY+replyKey,version:1,sessionId};await t.put('meta',marker);await t.put('meta',replyMarker);return {previous,replyPrevious,marker,replyMarker};});
@@ -101,7 +105,7 @@ export function createAssistServiceClient(configuration){
      await assertCurrent();if((await stage.owner.reserveDeclaration(stage.declaration,reservations)).status!=='RESERVED_SERVICE')fail('OUTCOME_UNKNOWN');
      await assertCurrent();const bound=await stage.owner.bind(stage.input);if(bound.status!=='BOUND_LOCAL')fail('OUTCOME_UNKNOWN');
      let provider;const send=c.fetch??globalThis.fetch,providers=createClientProviderTransport({endpoint:c.origin+'/api/provider',fetch:async request=>{
-      const requireLocalCurrent=await assertBeforeSend();if(request.signal.aborted||typeof requireLocalCurrent!=='function')fail('CANCELLED');const binding=qwenFoundationProviderData(provider);if(!binding)fail('UNAVAILABLE');binding.current();requireLocalCurrent();return send(request);
+      const requireLocalCurrent=await assertBeforeSend();if(request.signal.aborted||typeof requireLocalCurrent!=='function')fail('CANCELLED');if(!stage.proCurrent())fail('UNAVAILABLE');const binding=qwenFoundationProviderData(provider);if(!binding)fail('UNAVAILABLE');binding.current();requireLocalCurrent();return send(request);
      }});
      provider=stage.owner.foundationProvider(bound,providers);if(!provider)fail('UNAVAILABLE');operation.providers.push(provider);
     }

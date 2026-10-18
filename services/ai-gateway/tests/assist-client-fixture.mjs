@@ -24,15 +24,15 @@ import {createPostgresOperationStatusService} from '../operation-status-service.
 // Actual signed issuers + actual HTTP parsers/owners/ledger. SQL locking is the
 // existing deterministic protocol simulator, NOT real PostgreSQL evidence.
 // Only the external HTTPS completion is synthetic; no callback makes a receipt.
-export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,defer=false,unknownUsage=false}={}){
+export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=null,holdProvider=null,loseReservation=false,dropRevocation=false,loseProvider=false,loseResult=false,defer=false,unknownUsage=false,condition='',tier='pro',statusTransform=null}={}){
  const losses={reservation:loseReservation,provider:loseProvider,result:loseResult};
  const local=await setup(OrganizerStore);await local.s.finishFoundation();
  const sender={id:'synthetic-extension',tab:{id:1},frameId:0,documentId:'synthetic-document',documentLifecycle:'active',url:'https://chatgpt.com/c/synthetic'};
  const snapshot={completed:true,text:'SYNTHETIC newly completed reply.',blocks:1,excluded:false};
  let binding={url:sender.url,conversation:'/c/synthetic',cycle:1,replyId:'reply-one',revision:1},authorization=null,ready=false;
  const nonce=crypto.randomUUID(),surfaceState={open:true,nonce,url:sender.url},frame={id:sender.id,tab:{id:1},frameId:2,documentId:'synthetic-frame',documentLifecycle:'active',url:'chrome-extension://'+sender.id+'/ui/prompt-surface.html#'+nonce};
- const sessionStorage={},listeners=new Set(),broadcasts=[],insertions=[];
- const api={runtime:{id:sender.id,getURL:p=>'chrome-extension://'+sender.id+'/'+p,sendMessage:async r=>{broadcasts.push(r);},getContexts:async()=>[{documentId:frame.documentId,tabId:1,windowId:1,frameId:2,documentUrl:frame.url,incognito:false}]},storage:{session:{get:async k=>({[k]:sessionStorage[k]}),set:async r=>{const changes=Object.fromEntries(Object.entries(r).map(([key,newValue])=>[key,{oldValue:sessionStorage[key],newValue}]));Object.assign(sessionStorage,r);for(const listener of listeners)listener(changes,'session');}},onChanged:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)}},windows:{get:async()=>({focused:true,incognito:false})},tabs:{get:async()=>({id:1,windowId:1,url:sender.url,active:true,incognito:false}),query:async()=>[],sendMessage:async(_id,r)=>{
+ const sessionStorage={},localStorage={},listeners=new Set(),broadcasts=[],insertions=[];
+ const api={runtime:{id:sender.id,getURL:p=>'chrome-extension://'+sender.id+'/'+p,sendMessage:async r=>{broadcasts.push(r);},getContexts:async()=>[{documentId:frame.documentId,tabId:1,windowId:1,frameId:2,documentUrl:frame.url,incognito:false}]},storage:{local:{get:async k=>({[k]:localStorage[k]}),set:async r=>{const changes=Object.fromEntries(Object.entries(r).map(([key,newValue])=>[key,{oldValue:localStorage[key],newValue}]));Object.assign(localStorage,r);for(const listener of listeners)listener(changes,'local');}},session:{get:async k=>({[k]:sessionStorage[k]}),set:async r=>{const changes=Object.fromEntries(Object.entries(r).map(([key,newValue])=>[key,{oldValue:sessionStorage[key],newValue}]));Object.assign(sessionStorage,r);for(const listener of listeners)listener(changes,'session');}},onChanged:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)}},windows:{get:async()=>({focused:true,incognito:false})},tabs:{get:async()=>({id:1,windowId:1,url:sender.url,active:true,incognito:false}),query:async()=>[],sendMessage:async(_id,r)=>{
   if(r.type==='PAIA_PROMPT_SURFACE_PROBE')return {...surfaceState};
   if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'){surfaceState.open=false;return {closed:true,nonce,form:'orb'};}
   if(r.type==='PAIA_PROMPT_ASSIST_PROBE')return {generation:authorization,ready:ready&&r.generation===authorization,binding:ready?structuredClone(binding):null,...(r.snapshot&&ready?{snapshot:structuredClone(snapshot)}:{})};
@@ -50,19 +50,19 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
   request.end=body=>{const payload=JSON.parse(JSON.parse(body).messages[1].content);lastPayload=payload;queueMicrotask(async()=>{try{
    await holdProvider?.(payload);await beforeResponse?.(server);
    if(done)return;done=true;
-   const value=defer?{version:1,kind:'DEFER',reason:'NO_USEFUL_SUGGESTION',text:'',condition:''}:{version:1,kind:'SUGGESTION',text:'SYNTHETIC explain the next step.',condition:'If you want more detail.',reason:''},data=completion({...unknownUsage?{usage:null}:{},choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]});
+   const value=defer?{version:1,kind:'DEFER',reason:'NO_USEFUL_SUGGESTION',text:'',condition:''}:{version:1,kind:'SUGGESTION',text:'SYNTHETIC explain the next step.',condition,reason:''},data=completion({...unknownUsage?{usage:null}:{},choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]});
    const incoming=Readable.from([Buffer.from(JSON.stringify(data))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>request.emit('close'));
   }catch(error){request.destroy(error);}});};
   options.signal.addEventListener('abort',()=>request.destroy(Error('SYNTHETIC abort')),{once:true});return request;
  });
- const selected=[],contextRequests=[],contextAbort=new AbortController(),contextExpires=Date.now()+600000;
- const contextProcessing={resolve:async(_t,scope)=>{contextRequests.push(structuredClone(scope));return {version:1,store:local.s,scope,epoch:'SYNTHETIC-context-processing',processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal};},isCurrent:()=>!contextAbort.signal.aborted};
+ const selected=[],contextRequests=[],contextAbort=new AbortController(),contextExpires=Date.now()+600000;let contextEpoch='SYNTHETIC-context-processing';
+ const contextProcessing={resolve:async(_t,scope)=>{contextRequests.push(structuredClone(scope));return {version:1,store:local.s,scope,epoch:contextEpoch,processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal};},isCurrent:receipt=>receipt.epoch===contextEpoch&&!contextAbort.signal.aborted};
  const configuration={origin:'https://service.invalid',profile:{contractVersion:manifest.profile.contractVersion,modelVersion:manifest.profile.model.resolutionVersion,promptVersion:await hashText(canonical(manifest.wire))},routeVersion:manifest.profile.routeVersion,clock:()=>server.now,
   resolveAuthority:async(_t,r)=>({allowed:live,principalId:'SYNTHETIC-principal',libraryId:'SYNTHETIC-library',consentEpoch:'SYNTHETIC-consent',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),
   contextSelector:()=>selected,contextProcessing,
   onInvalidate:fn=>{listener=fn;return ()=>{};},
   readProfile:async()=>JSON.parse(JSON.stringify(manifest)),currentProfile:()=>JSON.parse(JSON.stringify(manifest)),tokenize:server.config.tokenize,isCurrentTokenizer:()=>live,
-  readProofs:async request=>{server.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));publication.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));const {request:_,...proofs}=server.bundle(request,{entitlement:{tier:'pro'}});return proofs;},
+  readProofs:async request=>{server.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));publication.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));const {request:_,...proofs}=server.bundle(request,{entitlement:{tier}});return proofs;},
   fetch:async request=>{
    const path=new URL(request.url).pathname,data=await request.clone().json();calls.push({path,data});
    if(dropRevocation&&path==='/api/declarations'&&data.action==='revoke')throw Error('SYNTHETIC worker lost before revocation transport');
@@ -72,16 +72,17 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
    if(path==='/api/declarations')for(const [id,row]of publication.rows())server.grants.set(id,row);
    if(path==='/api/provider')await afterResponse?.({server,configuration,revoke:()=>{live=false;}});
    if(path==='/api/reservations'&&data.action==='reserve'&&losses.reservation||path==='/api/provider'&&losses.provider||path==='/api/results'&&losses.result)throw Error('SYNTHETIC lost HTTP acknowledgement');
+   if(path==='/api/operation-status'&&statusTransform){const value=await response.clone().json();return Response.json(await statusTransform(value),{status:response.status,headers:response.headers});}
    return response;
   }
  };
  let commands=new AssistPromptCommands(local.s,api,{configuration});
  const settings={id:sender.id,url:api.runtime.getURL('ui/archive.html')};
- const enable=async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_CONFIGURE',replyAccess:true,remoteProcessing:true,expectedGeneration:(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},settings)).generation},settings);authorization=(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender)).generation;ready=true;};
+ const enable=async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_CONFIGURE',consentVersion:2,replyAccess:true,remoteProcessing:true,expectedGeneration:(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},settings)).generation},settings);authorization=(await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender)).generation;ready=true;};
  const surface=new PromptSurfaceCommands(new PromptReuseCommands(new PromptReuseService(local.s),api),api);surface.assist=commands;
- const rpc=command=>surface.handle({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command},frame),run=()=>rpc({type:'assist_activate'});
+ const rpc=command=>surface.handle({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command},frame),run=async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_READY',generation:authorization},sender);const value=await rpc({type:'assist_current'});if(!value.result)throw Object.assign(Error('NO_CURRENT_SUGGESTION'),{code:'UNAVAILABLE'});return value.result;};
  await enable();
- return {...local,server,api,sender,settings,surface,frame,surfaceState,selected,contextRequests,revokeContext:()=>contextAbort.abort(),rpc,run,enable,configuration,calls,broadcasts,insertions,snapshot,get commands(){return commands;},get binding(){return binding;},restoreAcks:()=>{for(const key of Object.keys(losses))losses[key]=false;},restore:()=>{live=true;},physical:()=>physical,payload:()=>lastPayload,
+ return {...local,server,api,sender,settings,surface,frame,surfaceState,selected,contextRequests,revokeContext:()=>contextAbort.abort(),advanceContextAuthority:()=>{contextEpoch='SYNTHETIC-'+crypto.randomUUID();},rpc,run,enable,configuration,calls,broadcasts,insertions,snapshot,get commands(){return commands;},get binding(){return binding;},restoreAcks:()=>{for(const key of Object.keys(losses))losses[key]=false;},restore:()=>{live=true;},physical:()=>physical,payload:()=>lastPayload,
   newerReply:async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_INVALIDATE',generation:authorization},sender);binding={...binding,replyId:'reply-'+crypto.randomUUID(),cycle:binding.cycle+1,revision:binding.revision+1};},
   restart:async()=>{commands.dispose();commands=new AssistPromptCommands(local.s,api,{configuration});surface.assist=commands;const status=await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender);authorization=status.generation;ready=false;},
   ready:value=>{ready=value;},revoke:(notify=true)=>{live=false;if(notify)listener?.();}};
