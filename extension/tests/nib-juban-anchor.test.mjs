@@ -8,8 +8,8 @@ const tokens=JSON.parse(tokenSource),nonce='11111111-1111-4111-8111-111111111111
 
 // Production host + production layout in a small DOM. This proves wiring and
 // state ownership, not native paint, hit-testing, focus or OS IME acceptance.
-async function fixture({width=1280,collapsedForm='orb'}={}){
- const nodes=[],sent=[],rafs=[],resizeObservers=[],messages=new Set();let focused=null;
+async function fixture({width=1280,collapsedForm='orb',deferRetirement=false}={}){
+ const nodes=[],sent=[],rafs=[],resizeObservers=[],messages=new Set(),retirements=[];let focused=null;
  let bounds={left:40,right:width-40,top:700,bottom:884},currentForm={getBoundingClientRect:()=>({...bounds})};
  const composer={closest:()=>currentForm};
  const element=tag=>{
@@ -20,6 +20,7 @@ async function fixture({width=1280,collapsedForm='orb'}={}){
    attachShadow(){return this.shadow=element('shadow');},remove(){this.isConnected=false;},focus(){focused=this;},
    getBoundingClientRect(){const style=attributes.get('style')||'',number=name=>Number(new RegExp(name+':([\\d.-]+)px').exec(style)?.[1]||0),x=number('left'),y=number('top'),width=number('width'),height=number('height');return {x,y,width,height,left:x,right:x+width,top:y,bottom:y+height};},
    setPointerCapture(id){this.pointer=id;},hasPointerCapture(id){return this.pointer===id;},releasePointerCapture(){this.pointer=null;}};
+  if(deferRetirement&&tag==='iframe')node.animate=(_frames,options)=>{assert.equal(options.duration,80);return {finished:new Promise(resolve=>retirements.push(resolve))};};
   nodes.push(node);return node;
  };
  const root=element('html');root.isConnected=true;
@@ -33,6 +34,8 @@ async function fixture({width=1280,collapsedForm='orb'}={}){
   chrome:{runtime:{id:'ext',getURL:path=>'chrome-extension://ext/'+path,onMessage:{addListener:fn=>messages.add(fn),removeListener:fn=>messages.delete(fn)},sendMessage:async request=>{sent.push(structuredClone(request));return {ok:true,data:request.state||{version:1,open:false,position:{x:0,y:1},collapsedForm}};}}}};
  const context=vm.createContext(sandbox);vm.runInContext(layoutSource,context);vm.runInContext(hostSource,context);
  const f={nodes,sent,resizeObservers,sandbox,composer,get form(){return currentForm;},get focus(){return focused;},get host(){return nodes.find(node=>node.dataset.paiaPromptSurface==='');},get orb(){return nodes.find(node=>node.tag==='button');},get frame(){return nodes.findLast(node=>node.tag==='iframe'&&node.isConnected);},
+  focusChild(node){focused=node;},
+  async finishRetirement(){for(const done of retirements.splice(0))done();await tick();},
   async flush(){for(let i=0;i<4;i++){await tick();while(rafs.length)rafs.shift()();}},
   click(){const r=this.host.getBoundingClientRect();this.orb.handlers.get('click')({isTrusted:true,detail:1,clientX:r.x+22,clientY:r.y+22});},
   receive(request,sender={id:'ext'}){let response;for(const fn of messages)fn(request,sender,value=>response=value);return response;},
@@ -59,7 +62,7 @@ test('capsule and board preserve the same private frame, nonce and logical close
  const f=await fixture({collapsedForm:'capsule'}),frame=f.frame,anchor=f.host.getBoundingClientRect();assert.equal(f.orb.hidden,true);assert.equal(frame.getBoundingClientRect().width,272);assert.equal(frame.getBoundingClientRect().height,44);assert.equal(frame.getBoundingClientRect().right,anchor.right);
  f.receive({type:'PAIA_PROMPT_SURFACE_FORM',nonce,form:'board'});await f.flush();assert.equal(f.frame,frame);assert.equal(f.orb.hidden,false);assert.equal(f.orb.getAttribute('aria-expanded'),'true');assert.deepEqual(f.host.getBoundingClientRect(),anchor);
  f.click();await f.flush();assert.equal(f.frame,frame);f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});await f.flush();assert.equal(f.frame,frame);assert.equal(f.orb.hidden,true);assert.equal(f.orb.getAttribute('aria-expanded'),'false');assert.equal(f.focus,frame);assert.equal(frame.getBoundingClientRect().width,272);assert.equal(frame.src,'chrome-extension://ext/ui/prompt-surface.html#'+nonce);
- assert.match(hostSource,/:host\(\[data-expanded=false\]\) iframe\{border:0/);assert.match(css,/#capsule\{[^}]+box-shadow:inset 0 0 0 1px var\(--line\)/,'capsule stroke cannot shift its exact right-hand 44px target');assert.match(uiSource,/if\(closed\)document\.getElementById\('capsule-expand'\)\.focus\(\)/);
+ assert.match(hostSource,/:host\(\[data-expanded=false\]\) iframe\{border:0/);assert.match(css,/#capsule\{[^}]+box-shadow:inset 0 0 0 1px var\(--line\)/,'capsule stroke cannot shift its exact right-hand 44px target');assert.match(uiSource,/if\(retainedCapsule\)document\.getElementById\('capsule-expand'\)\.focus\(\)/);
  f.sandbox.PAIAPromptSurface.dispose();
 });
 
@@ -106,7 +109,7 @@ test('guarded capsule close restores focus only after the original pending contr
  const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
  for(const outcome of ['closed','refused','editing','composing','search-composing']){
   const events=[],expand={disabled:false,attributes:{},setAttribute(k,v){this.attributes[k]=v;},focus(){assert.equal(this.disabled,false,'a disabled capsule target cannot receive native focus');events.push('focus');}},html={dataset:{surfaceForm:'board'}};
-  const context=vm.createContext({composing:outcome==='composing',searchComposing:outcome==='search-composing',editing:outcome==='editing',busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;events.push('pending:'+value);},tell:()=>events.push('notice'),rpc:async command=>{assert.equal(command.type,'close');events.push('rpc');if(outcome==='refused')throw Error('refused');}});
+  const context=vm.createContext({nonce,composing:outcome==='composing',searchComposing:outcome==='search-composing',editing:outcome==='editing',busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;events.push('pending:'+value);},tell:()=>events.push('notice'),rpc:async command=>{assert.equal(command.type,'close');events.push('rpc');if(outcome==='refused')throw Error('refused');return {closed:true,nonce,form:'capsule'};}});
   vm.runInContext(source,context);await context.requestClose({});
   if(outcome==='closed'){assert.deepEqual(events,['pending:true','rpc','pending:false','focus']);assert.equal(html.dataset.surfaceForm,'capsule');assert.equal(expand.attributes['aria-expanded'],'false');}
   else{assert.ok(!events.includes('focus'));assert.equal(html.dataset.surfaceForm,'board');if(outcome!=='refused')assert.ok(!events.includes('rpc'));}
@@ -118,4 +121,23 @@ test('same-point native reopening observes its one action without a fallback cli
  const section=native.slice(native.indexOf('// No second mouse.move:'),native.indexOf("for(const key of ['Enter','Space'])"));
  assert.match(section,/await page.mouse.down\(\);await page.mouse.up\(\);await eventually\(\(\)=>!!card\(\)/);
  assert.match(section,/await readyCard\(\)/);assert.doesNotMatch(section,/await open\(|orb.click\(|page.mouse.move\(/);
+});
+
+test('delayed real host retirement cannot let the closing child steal the retained orb keyboard focus',async()=>{
+ const f=await fixture({deferRetirement:true});f.click();await f.flush();const prior=f.frame;
+ const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
+ const expand={disabled:false,setAttribute(){},focus(){assert.equal(this.disabled,false);f.focusChild(this);}},html={dataset:{surfaceForm:'board'}};
+ const context=vm.createContext({nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;},tell(){},rpc:async command=>{assert.equal(command.type,'close');const ack=f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});assert.equal(prior.isConnected,true,'original 80ms animation deliberately not settled');assert.equal(f.focus,f.orb,'host already restored its original target');return ack;}});
+ vm.runInContext(source,context);await context.requestClose({});assert.equal(f.focus,f.orb,'child must not refocus its retiring iframe');
+ await f.finishRetirement();assert.equal(prior.isConnected,false);assert.equal(f.focus,f.orb);assert.equal(html.dataset.surfaceForm,'board','retiring frame does not masquerade as retained capsule');f.sandbox.PAIAPromptSurface.dispose();
+});
+
+test('only an exact retained capsule ACK can focus the enabled child target',async()=>{
+ const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
+ for(const ack of [undefined,{}, {closed:true},{closed:true,nonce,form:'orb'},{closed:false,nonce,form:'capsule'},{closed:true,nonce:'stale',form:'capsule'},{closed:true,nonce,form:'board'},{closed:true,nonce,form:'capsule'}]){
+  const events=[],expand={disabled:false,setAttribute(){},focus(){assert.equal(this.disabled,false);events.push('focus');}},html={dataset:{surfaceForm:'board'}};
+  const context=vm.createContext({nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(v){expand.disabled=v;events.push('pending:'+v);},tell(){events.push('notice');},rpc:async()=>ack});
+  vm.runInContext(source,context);await context.requestClose({});const retained=ack?.closed===true&&ack.nonce===nonce&&ack.form==='capsule';
+  assert.equal(events.includes('focus'),retained);assert.equal(html.dataset.surfaceForm,retained?'capsule':'board');assert.equal(expand.disabled,false);
+ }
 });

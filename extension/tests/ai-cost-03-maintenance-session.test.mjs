@@ -160,19 +160,31 @@ test('old standalone Context receipt fastreturn is not this job ACK',async()=>{
 });
 
 
-for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' settles an ignored-signal provider; late actual proposal never decodes or ACKs',async()=>{
+for(const stop of ['timeout','dispose','window-revoke'])test('bounded '+stop+' settles an ignored-signal provider; late actual proposal never decodes or ACKs',async t=>{
  const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
  let release,entered,physical,controls;const admitted=new Promise(r=>{entered=r;});f.state.held=new Promise(r=>{release=r;});
  const execute=f.provider.execute.bind(f.provider);f.provider.execute=(request,execution)=>{controls=execution;physical=execute(request);entered();return physical;};
- const h=await f.session.prepare(options),running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
+ const h=await f.session.prepare(options);t.mock.timers.enable({apis:['setTimeout']});const running=f.session.run(h);await Promise.race([admitted,running.then(result=>{assert.fail('Maintenance settled before provider entry: '+result.state);})]);
  assert.equal(controls.timeoutMs,25);assert.ok(controls.signal instanceof AbortSignal);assert.equal(controls.signal.aborted,false);
- if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();
+ t.mock.timers.tick(24);await Promise.resolve();assert.equal(controls.signal.aborted,false,'the original25ms budget is not exhausted at24ms');
+ if(stop==='dispose')f.session.dispose();else if(stop==='window-revoke')f.clock.abort();else t.mock.timers.tick(1);
  const result=await running;assert.equal(result.state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');nonAuthority(result);assert.equal(controls.signal.aborted,true);
  const rows=await read(f.s,'organizerUsage');assert.equal(rows.length,1);assert.equal(rows[0].attemptCount,1);assert.equal(rows[0].state,'OUTCOME_UNKNOWN');assert.equal(rows[0].spendState,'RESERVATION_RETAINED');assert.equal((await ack(f)).length,0);
  const before=await snapshot(f.s),writes=f.s.repository.metrics.writes;release();await physical;await Promise.resolve();
  assert.equal(f.responses.length,1,'actual late complete proposal returned');assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);assert.deepEqual(await snapshot(f.s),before);assert.equal(f.s.repository.metrics.writes,writes);assert.equal(f.calls.length,1);
  assert.equal((await f.session.run(h)).state,stop==='timeout'?'OUTCOME_UNKNOWN':'UNAVAILABLE');
  if(stop==='timeout'){const restart=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await restart.run(await restart.prepare(options))).state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,1);assert.deepEqual(await snapshot(f.s),before);}
+});
+
+test('the original25ms Maintenance deadline can expire during final authority before provider entry',async t=>{
+ const f=await fixture();f.s.organizerBudget.limits.timeoutMs=25;
+ t.mock.timers.enable({apis:['setTimeout']});let armed=false,expired=false;
+ const schedule=globalThis.setTimeout,resolve=f.materialProcessing.resolve;
+ t.mock.method(globalThis,'setTimeout',(callback,delay,...args)=>{if(delay===25)armed=true;return schedule(callback,delay,...args);});
+ f.materialProcessing.resolve=async(...args)=>{const result=await resolve(...args);if(armed&&!expired){expired=true;t.mock.timers.tick(24);assert.equal(f.calls.length,0);t.mock.timers.tick(1);}return result;};
+ const session=new LocalMaintenanceSession(f.s,f.constructor),h=await session.prepare(options),result=await session.run(h);assert.equal(armed,true);assert.equal(expired,true);assert.equal(result.state,'OUTCOME_UNKNOWN');nonAuthority(result);assert.equal(f.calls.length,0,'expired pre-provider authority cannot dispatch');
+ const rows=await read(f.s,'organizerUsage');assert.equal(rows.length,1);assert.equal(rows[0].attemptCount,1);assert.equal(rows[0].state,'OUTCOME_UNKNOWN');assert.equal(rows[0].spendState,'RESERVATION_RETAINED');assert.equal((await ack(f)).length,0);
+ assert.equal((await session.run(h)).state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,0);assert.equal(f.state.topicAssessments,0);assert.equal(f.state.contextOperations,0);
 });
 
 test('41 actual independent Source Inputs require a third partition and refuse without consuming a window or truncating coverage',async()=>{

@@ -1,4 +1,4 @@
-// Literal frozen targets versus actual extension UI. No runtime CSS/DOM painting.
+// Frozen approved B references and actual extension UI. No runtime CSS/DOM painting.
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -7,37 +7,39 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {FakeChatGPT,eventually} from '../tests/harness/fake-chatgpt.mjs';
 import {routeComposer} from '../tests/harness/prompt-composer.mjs';
-const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,'work/prompt-convergence'),masters=join(root,'docs/consumer-product-v1/prompt-reuse-visual-v2/screens');
+import {readApprovedAuthority,selectedStates,STATES,RUNTIME_FILES,assertGeometry,assertComputed,assertEntryComputed,assertGlyphAndMotion} from './prompt-convergence-authority.mjs';
+const root=fileURLToPath(new URL('..',import.meta.url)),out=join(root,'work/prompt-convergence'),historicalScreens=join(root,'docs/consumer-product-v1/prompt-reuse-visual-v2/screens');
 await mkdir(out,{recursive:true});
 const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
 const prompts=['帮我把这件事拆成下一步可以执行的任务','检查一下有没有逻辑漏洞','不要重新设计，继续修改现有方案','用更简单的话解释','比较这两个方案的主要差别','整理成待办清单'];
-const files=(await readdir(masters)).filter(x=>x.endsWith('.svg')).sort();
-const selected=process.env.PAIA_VISUAL_STATES?.trim() ? process.env.PAIA_VISUAL_STATES.split(',') : undefined;
-if(selected)assert.ok(selected.length&&selected.every(id=>files.some(file=>file.startsWith(id+'-'))),'unknown visual state');
+const authority=await readApprovedAuthority(root),selected=selectedStates(process.env.PAIA_VISUAL_STATES);
+const files=(await readdir(historicalScreens)).filter(x=>x.endsWith('.svg')).sort();
+assert.deepEqual(files.map(file=>file.replace('.svg','')),STATES,'retain all eight original functional scenarios');
+for(const reference of authority.references)await writeFile(join(out,'approved-B-'+reference.path.split('/').at(-1)),reference.bytes);
 const settleFrame=async f=>{await f.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await eventually(()=>f.evaluate(()=>!document.documentElement.hasAttribute('data-layout-pending')));};
 const clickFrame=async(f,locator)=>{await settleFrame(f);await locator.click();};
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
 for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(',')){
  if(variant==='release')execFileSync('python3',['scripts/build_current_release.py'],{cwd:root,stdio:'inherit'});
  const extensionPath=variant==='source'?root:join(root,'work/current-release');
- const hashes={};for(const file of ['content/prompt-surface.js','core/prompt-surface-layout.js','ui/prompt-surface.css','ui/prompt-surface.js'])hashes[file]=createHash('sha256').update(await readFile(join(extensionPath,file))).digest('hex');
+ const hashes={},runtime={};for(const file of RUNTIME_FILES){const bytes=await readFile(join(extensionPath,file));hashes[file]=createHash('sha256').update(bytes).digest('hex');runtime[file]=bytes.toString('utf8');}assertGlyphAndMotion(runtime,authority);
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true});
- const receipt={sha,hashes,variant,visualMaster:2,evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',screens:[]};
+ const receipt={sha,hashes,variant,authority:authority.identity,coverage:selected.length===STATES.length?'ALL_EIGHT_STATES':'EXPLICIT_SELECTED_STATES',evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',screens:[]};
  try{
   await h.archive.locator('#enable-consent').click();
   await eventually(async()=>{const state=await h.state();return state.settings?.consentVersion===1&&state.settings?.enabled===true;},'original consent owner durably acknowledges explicit acceptance');
-  // Frozen Chinese targets use the real saved language preference on every OS.
+  // The retained Chinese synthetic scenarios use the real saved language preference on every OS.
   await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
   const ids=[];for(const text of prompts){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');ids.push((await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'create',text,revision:q.revision}})).id);}
   for(const id of ids){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'pin',id,revision:q.revision}});}
   await routeComposer(h.context,root);
   for(let i=0;i<files.length;i++){
-   if(selected&&!selected.includes(files[i].slice(0,2)))continue;
+   if(!selected.includes(files[i].replace('.svg','')))continue;
    const file=files[i],name=file.replace('.svg',''),compact=i===6,dark=i===5,viewport=compact?{width:390,height:844}:{width:1440,height:900};
-   const svg=await readFile(join(masters,file),'utf8');
-   const target=await h.context.newPage();await target.setViewportSize(viewport);await target.goto('file://'+join(masters,file));await target.screenshot({path:join(out,'target-'+name+'.png')});await target.close();
-   // A saved, bounded site placement is fixture data, not a style override.
+   const svg=await readFile(join(historicalScreens,file),'utf8');
+   const target=await h.context.newPage();await target.setViewportSize(viewport);await target.goto('file://'+join(historicalScreens,file));await target.screenshot({path:join(out,'historical-v2-'+name+'.png')});await target.close();
+   // Retain the historical saved-position fixture as a negative control: it cannot move the approved composer anchor.
    const x=i===0?1229:compact?316:1232,y=i===0?659:compact?258:224;
    await engineering.evaluate(state=>chrome.storage.local.set({promptSurfaceV1:state}),{version:1,open:i!==0,position:{x:x/(viewport.width-44),y:y/(viewport.height-44)}});
    const page=await h.context.newPage();page.on('pageerror',e=>h.errors.push(e.message));await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:dark?'dark':'light',reducedMotion:'reduce'});
@@ -51,14 +53,14 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
     document.getElementById('blur').textContent='';document.getElementById('send').textContent='';fixture.set('');
    },{host,compact,dark});
    await page.addStyleTag({content:`html{color-scheme:${dark?'dark':'light'}}body{margin:0;background:${dark?'#151922':'#f8f9fb'};font:16px/24px "Noto Sans CJK SC",system-ui,sans-serif;color:${dark?'#eef2f8':'#1f2937'}}#host-art{position:fixed;inset:0;pointer-events:none}form{position:fixed;left:${compact?20:340}px;top:${compact?694:750}px;width:${compact?350:760}px;height:94px;margin:0;padding:0}#mount{position:absolute;left:22px;top:18px;right:55px}.ProseMirror{outline:0;min-height:24px}.ProseMirror p{margin:0}.ProseMirror p:has(br:only-child):before{content:'Message AI…';position:absolute;pointer-events:none}#send{position:absolute;right:16px;bottom:9px;width:36px;height:36px;border:0;background:transparent}#blur{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0}`});
-   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});let f;
-   if(i!==0){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await orb.click();await eventually(()=>page.frames().some(x=>x.url().includes('prompt-surface.html#')));f=page.frames().find(x=>x.url().includes('prompt-surface.html#'));await eventually(()=>f.locator('.row').count().then(n=>n===6));await eventually(()=>f.locator('#refresh').isEnabled());await settleFrame(f);assert.equal(await f.evaluate(()=>document.documentElement.lang),'zh-CN','frozen target language uses the saved preference');}
+   const orb=page.locator('[data-paia-prompt-surface]');await orb.waitFor({state:'visible'});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const entryBeforeOpen=await orb.boundingBox();let f;
+   if(i!==0){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await orb.click();await eventually(()=>page.frames().some(x=>x.url().includes('prompt-surface.html#')));f=page.frames().find(x=>x.url().includes('prompt-surface.html#'));await eventually(()=>f.locator('.row').count().then(n=>n===6));await eventually(()=>f.locator('#refresh').isEnabled());await settleFrame(f);assert.equal(await f.evaluate(()=>document.documentElement.lang),'zh-CN','synthetic scenario language uses the saved preference');}
    if(compact){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'hide',id:ids[5],revision:q.revision}});await clickFrame(f,f.locator('#surface-more'));await clickFrame(f,f.locator('#refresh'));await eventually(()=>f.locator('.row').count().then(n=>n===5));await eventually(()=>f.locator('#refresh').isEnabled());assert.equal(await f.locator('#surface-tools').isHidden(),true,'refresh returns from More to the ordinary compact list');assert.equal(await f.locator('#surface-more').getAttribute('aria-expanded'),'false');}
    await page.locator('#blur').focus();if(f){const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);}await page.mouse.move(compact?10:500,100);
    if(i===2)await f.locator('.row').nth(1).hover();
    if(i===3){const row=f.locator('.row').nth(1);await row.hover();await clickFrame(f,row.locator('.more'));await clickFrame(f,row.locator('xpath=following-sibling::*[1]').getByRole('button',{name:'编辑',exact:true}));await f.locator('#editor textarea').waitFor({state:'visible'});}
    if(i===4){await settleFrame(f);const row=f.locator('.row').nth(1);await row.hover();await clickFrame(f,row.locator('.more'));const handle=row.locator('xpath=following-sibling::*[1]').locator('.handle'),target=f.locator('.row').nth(2);await handle.scrollIntoViewIfNeeded();await target.scrollIntoViewIfNeeded();const from=await handle.boundingBox(),to=await target.boundingBox();assert.ok(from&&to,'the current management drag owner and exact target are real');await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+20,to.y+8,{steps:8});await eventually(()=>row.getAttribute('class').then(value=>value.includes('moving')),'native management drag owns the moving expression');}
-   if(i===7){await page.locator('#prompt-textarea').focus();assert.ok(prompts[0].length<=150,'the visual fixture is eligible for first-click full insertion');await clickFrame(f,f.locator('.insert').first());assert.equal(await f.locator('.check-body:visible').count(),0,'eligible clipping does not create a mandatory review step');await eventually(()=>page.evaluate(text=>fixture.text()===text&&!!document.activeElement?.closest('#mount'),prompts[0]),'first deliberate click inserts exact full text and restores the host editor focus');assert.equal(await page.evaluate(()=>fixture.enter),0,'insertion synthesizes no Enter');await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);assert.equal(await f.locator('#status button').count(),0);await page.screenshot({path:join(out,variant+'-08-inserted-feedback.png'),animations:'disabled',caret:'hide'});await eventually(()=>f.locator('#status').textContent().then(x=>x===''));assert.equal(await f.locator('#status').isVisible(),false);await settleFrame(f);await f.locator('header').hover();await page.mouse.move(500,100);await eventually(()=>f.locator('.row:hover').count().then(n=>n===0),'settled inserted view has no hovered row');}
+   if(i===7){await page.locator('#prompt-textarea').focus();assert.ok(prompts[0].length<=150,'the visual fixture is eligible for first-click full insertion');await clickFrame(f,f.locator('.insert').first());assert.equal(await f.locator('.check-body:visible').count(),0,'eligible clipping does not create a mandatory review step');await eventually(()=>page.evaluate(text=>fixture.text()===text&&!!document.activeElement?.closest('#mount'),prompts[0]),'first deliberate click inserts exact full text and restores the host editor focus');assert.equal(await page.evaluate(()=>fixture.enter),0,'insertion synthesizes no Enter');await eventually(()=>f.locator('#status').textContent().then(x=>x.includes('已插入，未发送')));const box=await(await f.frameElement()).boundingBox();await page.mouse.move(box.x+100,box.y+4);await page.mouse.move(500,100);assert.equal(await f.locator('#status button').count(),0);assert.equal(await f.locator('.row[data-inserted=true]').count(),1,'one original row owns transient success before capture');await page.screenshot({path:join(out,variant+'-08-inserted-feedback.png'),animations:'disabled',caret:'hide'});assert.equal(await f.locator('.row[data-inserted=true]').count(),1,'transient feedback screenshot is captured inside the original 480ms window');await eventually(()=>f.locator('#status').textContent().then(x=>x===''));assert.equal(await f.locator('#status').isVisible(),false);await settleFrame(f);await f.locator('header').hover();await page.mouse.move(500,100);await eventually(()=>f.locator('.row:hover').count().then(n=>n===0),'settled inserted view has no hovered row');}
    await page.waitForTimeout(200);
    if(i===4){assert.equal(await f.locator('.edit-shortcut').count(),0,'the retired permanent editing shortcut stays absent');assert.equal(await f.locator('.moving .more').evaluate(el=>getComputedStyle(el).opacity),'0','native drag keeps the actual secondary management control quiet');}
    if(i===7){const hit=await f.locator('.insert').last().evaluate(el=>{const r=el.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return at===el||el.contains(at);});assert.equal(hit,true,'inserted status/footer must not cover the last prompt target');}
@@ -68,23 +70,30 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    const disjoint=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
    for(const box of [orbBox,cardBox].filter(Boolean)){assert.ok(disjoint(box,formBox));assert.ok(box.x>=0&&box.x+box.width<=viewport.width);}
    assert.equal(orbBox.width,44);assert.equal(orbBox.height,44);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.text()),i===7?prompts[0]:'');
-   if(f){assert.equal(await f.evaluate(()=>getComputedStyle(document.documentElement).color),dark?'rgb(233, 238, 246)':'rgb(29, 39, 56)');assert.ok(await f.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+   let computed=null;
+   if(f){
+    computed=await f.evaluate(()=>{const root=getComputedStyle(document.documentElement),text=getComputedStyle(document.querySelector('.insert .text')),header=document.querySelector('header');return {color:root.color,candidateColor:text.color,variables:Object.fromEntries(['--line','--hover','--active','--focus','--panel','--muted','--inserted','--inserted-text'].map(key=>[key,root.getPropertyValue(key)])),fontSize:parseFloat(text.fontSize),lineHeight:parseFloat(text.lineHeight),headerFontSize:parseFloat(getComputedStyle(header.querySelector('span')).fontSize),headerHeight:header.getBoundingClientRect().height,rowHeights:[...document.querySelectorAll('.row')].filter(el=>el.getBoundingClientRect().height>0).map(el=>el.getBoundingClientRect().height)};});
+    Object.assign(computed,await(await f.frameElement()).evaluate(el=>{const s=getComputedStyle(el);return {radius:parseFloat(s.borderTopLeftRadius),surface:s.backgroundColor,border:s.borderTopColor};}));
+    assertComputed(computed,dark?'dark':'light',authority.tokens);assert.ok(await f.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   }
+   assertGeometry({orb:orbBox,card:cardBox,composer:formBox,viewport,entryBeforeOpen},authority.tokens);
+   const entryComputed=await orb.evaluate(el=>{const s=getComputedStyle(el);return Object.fromEntries(['--brand','--surface','--line','--hover','--active','--muted'].map(key=>[key,s.getPropertyValue(key)]));});assertEntryComputed(entryComputed,dark?'dark':'light',authority.tokens);
    if(i===0||i===5){
     await orb.hover();await page.screenshot({path:join(out,variant+'-orb-hover-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});
     await page.locator('#blur').focus();await page.keyboard.press('Tab');await page.screenshot({path:join(out,variant+'-orb-focus-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});
     await page.locator('#blur').focus();await page.mouse.move(500,100);
-    // Pattern belongs to the controlled host only, proving real backdrop participation.
+    // Pattern belongs only to the synthetic host. This records B visibility over a busy host, not obsolete glass acceptance.
     await page.evaluate(box=>{const p=document.createElement('div');p.id='material-backdrop';p.style.cssText=`position:fixed;left:${box.x-32}px;top:${box.y-32}px;width:108px;height:108px;background:linear-gradient(118deg,#e0eaf3,#fbfcfd 28%,#ddd9eb 52%,#d4e7df 75%,#fafbfd);`;document.body.append(p);},orbBox);
     await page.screenshot({path:join(out,variant+'-orb-backdrop-'+(dark?'dark':'light')+'.png'),clip:{x:orbBox.x-32,y:orbBox.y-32,width:108,height:108},animations:'disabled',caret:'hide'});
    }
-   receipt.screens.push({name,...(i===7?{phase:'settled verified success; feedback cleared',transientFeedbackMs:1800}:{}),typography:f?await f.locator('.insert').first().evaluate(el=>({font:getComputedStyle(el).font,body:getComputedStyle(document.body).font})):null,viewport,theme:dark?'dark':'light',dpr:await page.evaluate(()=>devicePixelRatio),scale:1,prompts:compact?prompts.slice(0,5):prompts,orb:orbBox,card:cardBox,composer:formBox,targetSha256:createHash('sha256').update(svg).digest('hex')});
+   receipt.screens.push({name,...(i===7?{phase:'settled verified success; feedback cleared',feedbackDesignMs:authority.tokens.motion.inserted_feedback_ms,feedbackTiming:'DESIGN_VALUE_NOT_MEASURED_LATENCY'}:{}),typography:f?await f.locator('.insert').first().evaluate(el=>({font:getComputedStyle(el).font,body:getComputedStyle(document.body).font})):null,viewport,theme:dark?'dark':'light',dpr:await page.evaluate(()=>devicePixelRatio),scale:1,prompts:compact?prompts.slice(0,5):prompts,orb:orbBox,card:cardBox,composer:formBox,entryBeforeOpen,computed,entryComputed,historicalHostAndV2ReferenceSha256:createHash('sha256').update(svg).digest('hex')});
    console.log('CAPTURE',variant,name);
    if(i===4)await page.mouse.up();
    if(i===1||i===5){await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#surface-tools').isVisible(),true);assert.equal(await f.locator('#list').evaluate(node=>getComputedStyle(node).visibility),'hidden','More never paints candidate prose under its own text');await page.screenshot({path:join(out,variant+'-more-view-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#list').evaluate(node=>getComputedStyle(node).visibility),'visible');}
    await page.close();
    if(compact){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'show',id:ids[5],revision:q.revision}});}
   }
-  if(variant==='source'){const material=await h.context.newPage();await material.setViewportSize({width:1280,height:1400});await material.goto('file://'+join(masters,'../material.html'));await material.screenshot({path:join(out,'master-material-v2.png'),fullPage:true});for(const id of ['close-light','close-dark','capsule','conditional','interaction','backdrop','capsule-dark'])await material.locator('#'+id).screenshot({path:join(out,'master-'+id+'.png')});await material.close();}
+  if(variant==='source'){const material=await h.context.newPage();await material.setViewportSize({width:1280,height:1400});await material.goto('file://'+join(historicalScreens,'../material.html'));await material.screenshot({path:join(out,'historical-v2-material.png'),fullPage:true});for(const id of ['close-light','close-dark','capsule','conditional','interaction','backdrop','capsule-dark'])await material.locator('#'+id).screenshot({path:join(out,'historical-v2-'+id+'.png')});await material.close();}
   assert.deepEqual(h.errors,[]);assert.deepEqual({external:h.externalRequests,provider:h.deepSeekRequests.length,extension:h.extensionNetworkRequests,history:h.historyRequests},{external:0,provider:0,extension:0,history:0});receipt.capture='PASS';
  }catch(error){receipt.capture='FAIL';receipt.error=error.stack;throw error;}finally{await writeFile(join(out,variant+'.json'),JSON.stringify(receipt,null,2));await h.close();}
 }

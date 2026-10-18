@@ -110,7 +110,7 @@ iframe{border:1px solid var(--line);border-radius:18px;background:var(--surface)
   if(r.type==='PAIA_PROMPT_SURFACE_POSITION_RESET'&&Number.isSafeInteger(r.positionGeneration)&&r.positionGeneration>=0)reconcilePosition({position:null,positionGeneration:r.positionGeneration});
   if(r.type==='PAIA_PROMPT_SURFACE_DIAGNOSTIC_PROBE'&&r.url===location.href){layout();reply({status:availability});}
   if(r.type==='PAIA_PROMPT_SURFACE_PROBE'){reply({open:!!frame?.isConnected&&!host.hidden,expanded:open,nonce,url:location.href,dark:dark(),dragging:!!drag});}
-  if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'&&r.nonce===nonce){close(true);reply({closed:true});}
+  if(r.type==='PAIA_PROMPT_SURFACE_CLOSE'&&r.nonce===nonce){close(true);reply({closed:true,nonce:r.nonce,form:collapsedForm});}
   // An open private card already receives the original ARCHIVE_CHANGED query.
   // Display-only notification must not replace its edit with a second HOST read.
   if(r.type==='PAIA_PROMPT_SURFACE_ACTIVATE'&&!(r.reason==='display-preferences'&&frame&&open)||r.type==='ARCHIVE_CHANGED'&&!frame)void activate();

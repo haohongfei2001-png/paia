@@ -163,6 +163,7 @@ export class AIReadingEditor {
     const value=this.values(field);if(JSON.stringify(value)===JSON.stringify(this.row[field]))continue;
     try{
      const r=await request('EDIT_AI_PRESENTATION',{edit:this.revisions.attempt({topicId:this.row.topicId,field,value,expectedRevision:this.row.revision})});
+     if(r.revision>this.row.revision)this.row.protections={...this.row.protections,[field]:true};
      this.row[field]=value;this.row.revision=r.revision;
      // A sent operation still has its exact ACK, but retirement or a new IME
      // session cannot authorize sampling/sending the next field after that ACK.

@@ -65,7 +65,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    },null,{timeout:1000}):null;
    const host=await page.locator('html').evaluate(()=>{const view=globalThis.fixture?.view,selection=view?.state?.selection;return {documentFocused:document.hasFocus(),visibility:document.visibilityState,focusTag:document.activeElement?.tagName,focusEditable:document.activeElement?.isContentEditable===true,editorFocused:view?.hasFocus(),selection:selection?{from:selection.from,to:selection.to,empty:selection.empty}:null,bodyLength:view?.state?.doc?.textContent.length};},null,{timeout:1000});
    let uncertainCommandCalls=null,timer;try{if(world)uncertainCommandCalls=await Promise.race([world.run('Number.isSafeInteger(globalThis.__promptUncertainCalls)?globalThis.__promptUncertainCalls:null'),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('DIAGNOSTIC_TIMEOUT')),1000);})]);}catch{}finally{clearTimeout(timer);}
-   await writeFile(join(receiptDir,variant+'-case-failure.json'),JSON.stringify({name,child,host,uncertainCommandCalls},null,2)+'\n');
+   const diagnostic=JSON.stringify({name,child,host,uncertainCommandCalls},null,2)+'\n';await writeFile(join(receiptDir,variant+'-case-failure.json'),diagnostic);await writeFile(join(receiptDir,variant+'-case-failure-'+String(failures).padStart(2,'0')+'.json'),diagnostic);
   };
   // Resolve the current closed-shadow iframe within the existing readiness budget.
   // Only an actually detached Frame permits reacquisition; all other errors fail.
@@ -100,7 +100,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
    await page.mouse.down();await page.mouse.up();await eventually(()=>!!card(),'same-point idle click reopens without another action');await readyCard();assert.deepEqual(await orb.boundingBox(),anchor);const opened=await (await card().frameElement()).boundingBox();assert.equal(opened.y+opened.height,anchor.y);
 
    for(const key of ['Enter','Space']){
-    await page.locator('#blur').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);await page.keyboard.press(key);await eventually(()=>!card(),key+' closes');await page.keyboard.press(key);await eventually(()=>!!card(),key+' reopens');await open();assert.deepEqual(await orb.boundingBox(),anchor);
+    await page.locator('#blur').focus();await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.hasAttribute('data-paia-prompt-surface')),true);await page.keyboard.press(key);await eventually(()=>!card(),key+' closes');assert.equal(await page.evaluate(()=>document.activeElement?.hasAttribute('data-paia-prompt-surface')),true,key+' close retains host entry focus after the old frame retires');await page.keyboard.press(key);await eventually(()=>!!card(),key+' reopens');await open();assert.deepEqual(await orb.boundingBox(),anchor);
    }
    // A sub-threshold pointer excursion remains an ordinary click.
    const b=await orb.boundingBox();await page.mouse.move(b.x+22,b.y+22);await page.mouse.down();await page.mouse.move(b.x+24,b.y+24);await page.mouse.up();await eventually(()=>!card(),'short pointer movement still toggles');await open();

@@ -233,3 +233,16 @@ test('only an authenticated private frame selects a strict device-local collapse
  for(const form of ['sidebar','',null,{}])await assert.rejects(send(form),{code:'FORBIDDEN'});
  await assert.rejects(f.s.handle({...f.request,command:{type:'surface_form',form:'orb'}},{...f.sender,frameId:0}),{code:'FORBIDDEN'});
 });
+
+test('private close relays only the original nonce-bound host form, never a child-selected or stale form',async()=>{
+ for(const form of ['orb','capsule']){
+  const f=fixture();f.api.tabs.sendMessage=async(...args)=>{f.sent.push(args);return args[1].type==='PAIA_PROMPT_SURFACE_PROBE'?{open:true,nonce,url}:{closed:true,nonce,form};};
+  assert.deepEqual(await f.s.handle({...f.request,command:{type:'close'}},f.sender),{closed:true,nonce,form});
+  assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce},{frameId:0}]);assert.equal(f.calls.length,0);assert.equal(f.writes.length,0);
+  await assert.rejects(()=>f.s.handle({...f.request,command:{type:'close',form:'capsule'}},f.sender),e=>e.code==='FORBIDDEN');
+ }
+ for(const ack of [undefined,null,{}, {closed:true},{closed:false,nonce,form:'capsule'},{closed:true,nonce:'stale',form:'capsule'},{closed:true,nonce,form:'board'},{closed:true,nonce,form:'capsule',body:'unrelated'}]){
+  const f=fixture();f.api.tabs.sendMessage=async(_tab,message)=>message.type==='PAIA_PROMPT_SURFACE_PROBE'?{open:true,nonce,url}:ack;
+  await assert.rejects(()=>f.s.handle({...f.request,command:{type:'close'}},f.sender),e=>e.code==='FORBIDDEN');assert.equal(f.calls.length,0);assert.equal(f.writes.length,0);
+ }
+});

@@ -214,8 +214,14 @@ async function requestClose(event){
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
  // Freeze admission while the existing authenticated close RPC is in flight.
- let closed=false;pending(true);try{await rpc({type:'close'});document.documentElement.dataset.surfaceForm='capsule';document.getElementById('capsule-expand').setAttribute('aria-expanded','false');closed=true;}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
- if(closed)document.getElementById('capsule-expand').focus();
+ let retainedCapsule=false;pending(true);try{
+  const closed=await rpc({type:'close'});
+  if(closed?.closed!==true||closed.nonce!==nonce||!['orb','capsule'].includes(closed.form))throw Error('unconfirmed close');
+  if(closed.form==='capsule'){document.documentElement.dataset.surfaceForm='capsule';document.getElementById('capsule-expand').setAttribute('aria-expanded','false');retainedCapsule=true;}
+ }catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ // Orb retirement already restored the host target. The still-animating child
+ // must not take it back before removal, or the next native Enter/Space is lost.
+ if(retainedCapsule)document.getElementById('capsule-expand').focus();
 }
 function closeSurfaceTools(){document.getElementById('surface-tools').hidden=true;document.getElementById('surface-more').setAttribute('aria-expanded','false');}
 function paintHistoryControls(){

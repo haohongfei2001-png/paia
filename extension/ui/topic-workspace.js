@@ -1638,10 +1638,12 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    }
    const commit=()=>{
    if(!canPaint()){defer();return false;}
-   if(this.aiEditor&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
    if(canRetainSectionAIEditor(this.aiEditor,cached,projection,this.aiScopeKey,scopeKey)){
-    this.aiEditor.row=structuredClone(cached);this.aiScopeKey=scopeKey;this.filterAIReading();return true;
+    // Fresh qualification is identical except for the reader generation. Keep
+    // the exact live row/nodes: a late human input or save owns them already.
+    this.aiScopeKey=scopeKey;this.filterAIReading();return true;
    }
+   if(this.aiEditor&&!this.aiEditor.dirty()&&!this.aiEditor.saving&&!this.aiEditor.recoveryPending&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
    this.aiEditor?.dispose();this.aiEditor=null;this.aiScopeKey=scopeKey;this.aiPane.replaceChildren();
    if(!cached){
     const draft=this.aiTopics.get(this.id)?.userDraft;
