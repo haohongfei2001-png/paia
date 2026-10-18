@@ -17,7 +17,7 @@ const limitKeys=['maxBytes','maxFrames','maxDepth','maxKeys','maxStringBytes','i
 const correspondence=['id','jobType','contractVersion','routeVersion','endpoint','model','apiProfileId','usageProfile','tokenizerProfileId','decodingPolicyId','responseSchemaDigest','qualityReceiptRefs'];
 const encoder=new TextEncoder(),failures=new WeakSet();
 const stop=reason=>{const e=Object.freeze({reason});failures.add(e);throw e;};
-const unavailable=reason=>({status:'UNAVAILABLE',reason,sourceKind:'SYNTHETIC_PROFILE',qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false});
+const unavailable=(reason,sourceKind='SYNTHETIC_PROFILE')=>({status:'UNAVAILABLE',reason,sourceKind,qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false});
 
 // Finite own-data metadata only. Accessors, prototypes, cycles, sparse arrays
 // and symbols are refused without reading their values. Proxy traps cannot be
@@ -63,11 +63,11 @@ function readableBinding(b){
  return createQwenJsonUsageParser({binding:b,httpStatus:200}).finish({transportComplete:false,cancelled:true}).reason==='TRANSPORT_INCOMPLETE';
 }
 
-function prepare(options){
+function prepare(options,kind){
  const o=snapshot(options);
  if(!exact(o,['profile','known']))stop('PROFILE_UNAVAILABLE');
  const p=o.profile,k=o.known;
- if(!exact(p,['version','kind',...correspondence,'thinking','qualifiedLimits','validity'])||p.version!==1||p.kind!=='synthetic-request-profile-v1'||!exact(k,[...correspondence,'thinkingControl']))stop('PROFILE_UNAVAILABLE');
+ if(!exact(p,['version','kind',...correspondence,'thinking','qualifiedLimits','validity'])||p.version!==1||p.kind!==kind||!exact(k,[...correspondence,'thinkingControl']))stop('PROFILE_UNAVAILABLE');
  if(!own(ENVELOPES,p.jobType)||!['id','contractVersion','routeVersion','apiProfileId','tokenizerProfileId','decodingPolicyId'].every(key=>token(p[key]))||!digest(p.responseSchemaDigest)||!list(p.qualityReceiptRefs))stop('PROFILE_UNAVAILABLE');
  if(correspondence.some(key=>canonical(p[key])!==canonical(k[key])))stop('PROFILE_CORRESPONDENCE_MISMATCH');
  const e=p.endpoint,m=p.model,t=p.thinking,v=p.validity;
@@ -85,12 +85,12 @@ function prepare(options){
 // now/inputTokens are explicit fixture observations, not a trusted clock/tokenizer.
 // childIdentity is the six neutral identity fields of Foundation.childRequest;
 // this compiler never dispatches it or replaces its evidence/permission owner.
-export function createQwenRequestProfileCompiler(options){
+function createControlsCompiler(options,kind,sourceKind){
  let profile,initialReason='PROFILE_UNAVAILABLE';
- try{profile=prepare(options);}catch(e){initialReason=failures.has(e)?e.reason:'PROFILE_UNAVAILABLE';}
+ try{profile=prepare(options,kind);}catch(e){initialReason=failures.has(e)?e.reason:'PROFILE_UNAVAILABLE';}
  return Object.freeze({
   compile(options){
-   if(!profile)return unavailable(initialReason);
+   if(!profile)return unavailable(initialReason,sourceKind);
    try{
     const o=snapshot(options);
     if(!exact(o,['childIdentity','inputTokens','outputCap','stream','now']))stop('REQUEST_UNAVAILABLE');
@@ -102,12 +102,17 @@ export function createQwenRequestProfileCompiler(options){
     const t=profile.thinking,headroom=Math.max(10,t.overshootHeadroom);
     if(o.inputTokens>limits.inputTokens||o.outputCap>envelope.output||t.requestedMaxCompletionTokens>limits.billableOutputCap-headroom)stop('REQUEST_BOUND');
     const b=binding(profile,c.childOperationId,limits);if(!readableBinding(b))stop('PARSER_BINDING_UNAVAILABLE');
-    return {status:'COMPILED_PARTIAL',reason:'NONE',sourceKind:'SYNTHETIC_PROFILE',qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false,
+    return {status:'COMPILED_PARTIAL',reason:'NONE',sourceKind,qualification:'NOT_ESTABLISHED',wireComplete:false,inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false,
      childIdentity:structuredClone(c),profileId:profile.id,endpoint:structuredClone(profile.endpoint),model:structuredClone(profile.model),apiProfileId:profile.apiProfileId,tokenizerProfileId:profile.tokenizerProfileId,decodingPolicyId:profile.decodingPolicyId,responseSchemaDigest:profile.responseSchemaDigest,qualityReceiptRefs:[...profile.qualityReceiptRefs],
      thinkingPolicy:structuredClone(t),billableOutputCap:limits.billableOutputCap,headroom,
      requestControls:{stream:o.stream,max_completion_tokens:t.requestedMaxCompletionTokens,...(o.stream?{stream_options:{include_usage:true}}:{})},binding:b};
-   }catch(e){return unavailable(failures.has(e)?e.reason:'REQUEST_UNAVAILABLE');}
+   }catch(e){return unavailable(failures.has(e)?e.reason:'REQUEST_UNAVAILABLE',sourceKind);}
   },
   dispose(){profile=null;initialReason='PROFILE_DISPOSED';}
  });
 }
+
+// Source metadata uses the identical original controls/parser implementation.
+// This entry point is still unqualified mechanics, never a private capability.
+export function createQwenRequestProfileCompiler(options){return createControlsCompiler(options,'synthetic-request-profile-v1','SYNTHETIC_PROFILE');}
+export function createQwenSourceProfileControls(options){return createControlsCompiler(options,'source-request-profile-v1','SOURCE_METADATA_ONLY');}

@@ -5,7 +5,7 @@ import {snapshot,freeze,exact,integer,token} from './qwen-request-data.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
 import {validOrganizeCacheProfile} from '../organizer/organize-cache-qualification.js';
-import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
+import {createQwenManifestCompiler,readQwenProfileManifest,readQwenTokenMeasurement} from './qwen-profile-source-adapter.js';
 import {createQwenQualifiedRequestOwner,qwenFoundationProviderData} from './qwen-qualified-request.js';
 import {createClientDeclarationTransport} from './client-declaration-transport.js';
 import {createClientReservationTransport} from './client-reservation-transport.js';
@@ -72,14 +72,14 @@ export function createAssistServiceClient(configuration){
     for(const [index,payload]of children.entries()){
      await assertCurrent();const metadata=await foundation.read(async t=>{const stored=await foundation.job(t,job.id);await foundation.current(t,stored);return foundation.childRequest(stored,index);});
      const childIdentity=Object.fromEntries(['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'].map(k=>[k,metadata[k]]));
-     const manifest=snapshot(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
+     const manifest=readQwenProfileManifest(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
      if(manifest.profile.contractVersion!==c.profile.contractVersion||manifest.profile.routeVersion!==c.routeVersion||manifest.profile.model.resolutionVersion!==c.profile.modelVersion||await hashText(canonical(manifest.wire))!==c.profile.promptVersion)fail('UNAVAILABLE');
-     const compiler=createQwenRequestProfileCompiler({profile:manifest.profile,known:manifest.known});
+     const compiler=createQwenManifestCompiler(manifest);
      const outputCap=Math.min(ENVELOPES.AI_ASSIST.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
      if(compiled.status!=='COMPILED_PARTIAL')fail('UNAVAILABLE');
      const body=canonical({model:manifest.profile.model.requested,messages:[{role:'system',content:manifest.wire.instructions},{role:'user',content:canonical(payload)}],response_format:manifest.wire.responseFormat,...compiled.requestControls,...manifest.wire.thinkingControls,n:1});
      const envelope={method:'POST',endpoint:{scheme:'https',host:manifest.profile.endpoint.host,path:manifest.profile.endpoint.path},headers:{'Content-Type':'application/json'},body},requestDigest=await hashText(canonical(envelope));
-     const measurement=snapshot(await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:structuredClone(envelope)}));await assertCurrent();
+     const measurement=readQwenTokenMeasurement(manifest,await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:structuredClone(envelope)}));await assertCurrent();
      if(!integer(measurement.inputTokens)||c.isCurrentTokenizer(measurement)!==true)fail('UNAVAILABLE');
      const request=await foundation.serverRequest(job.id,job.childIds[index],{inputTokens:measurement.inputTokens,outputCap,maxCompletionTokens:compiled.requestControls.max_completion_tokens});
      const proofs=freeze(snapshot(await c.readProofs(structuredClone(request)),{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192}));if(!exact(proofs,['principalToken','entitlementToken'])||!Object.values(proofs).every(x=>typeof x==='string'&&x.length>0&&x.length<=8192))fail('UNAVAILABLE');

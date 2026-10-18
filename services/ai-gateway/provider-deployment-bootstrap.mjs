@@ -57,6 +57,10 @@ export function createProviderDeploymentGateway({readEnvironment=()=>process.env
  };
  const resolveRunner=async()=>{
   if(closed||blocked)return {reason:'PROVIDER_STOPPED'};
+  // Only the shipped static registry has this loader. Environment data selects
+  // a reviewed identifier, never imports a module or supplies qualification.
+  if(registry===installedProviderRegistry){try{const environment=readEnvironment();if(environment?.PAIA_PROVIDER_ENABLED==='true')await bounded(registry.prepare(environment.PAIA_PROVIDER_CAPABILITY_ID),STARTUP_WAIT_MS);}catch{return {reason:'PROVIDER_PROFILE_UNAVAILABLE'};}}
+  if(closed||blocked)return {reason:'PROVIDER_STOPPED'};
   const input=snapshot();
   if(!current||!sameProviderDeploymentSnapshot(current.input,input)){
    const prior=current,entry={input,pools:[],operations:new Set(),raw:null,runner:null,failed:false,retired:null,watch:null,reason:input.reason??'PROVIDER_UNAVAILABLE'};

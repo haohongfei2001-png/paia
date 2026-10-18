@@ -6,7 +6,7 @@ import {canonical,equal,fail,digest,unitKey} from './contracts.js';
 import {snapshot,freeze,exact,integer,token} from './qwen-request-data.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
-import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
+import {createQwenManifestCompiler,readQwenProfileManifest,readQwenTokenMeasurement} from './qwen-profile-source-adapter.js';
 import {createQwenQualifiedRequestOwner,qwenFoundationProviderData} from './qwen-qualified-request.js';
 import {createClientDeclarationTransport} from './client-declaration-transport.js';
 import {createClientReservationTransport} from './client-reservation-transport.js';
@@ -116,19 +116,19 @@ function createMaintenanceServiceClientOwned(configuration){
    current();const filterConsent=service.filter?.captureConsent?.()??null;payload=freeze(snapshot(payload));await assertCurrent();const metadata=await foundation.read(async t=>{const stored=await foundation.job(t,job.id);await foundation.current(t,stored);const index=stored.childIds.indexOf(payload.childOperationId);if(index<0)fail('STALE_BASE');return foundation.childRequest(stored,index);});
    if(!equal(Object.fromEntries(Object.keys(metadata).map(k=>[k,payload[k]])),metadata))fail('STALE_BASE');
    const childIdentity=Object.fromEntries(['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'].map(k=>[k,metadata[k]]));
-   const manifest=snapshot(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
+   const manifest=readQwenProfileManifest(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
    if(manifest.profile.jobType!=='AI_MAINTENANCE'||manifest.profile.contractVersion!==c.contractVersion||manifest.profile.routeVersion!==c.routeVersion||manifest.profile.thinking.enabled!==false||!equal(manifest.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');
-   const compiler=createQwenRequestProfileCompiler({profile:manifest.profile,known:manifest.known}),outputCap=Math.min(ENVELOPES.AI_MAINTENANCE.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
+   const compiler=createQwenManifestCompiler(manifest),outputCap=Math.min(ENVELOPES.AI_MAINTENANCE.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
    if(compiled.status!=='COMPILED_PARTIAL')fail('UNAVAILABLE');
    const body=canonical({model:manifest.profile.model.requested,messages:[{role:'system',content:manifest.wire.instructions},{role:'user',content:canonical(payload)}],response_format:manifest.wire.responseFormat,...compiled.requestControls,...manifest.wire.thinkingControls,n:1}),envelope={method:'POST',endpoint:{scheme:'https',host:manifest.profile.endpoint.host,path:manifest.profile.endpoint.path},headers:{'Content-Type':'application/json'},body},requestDigest=await hashText(canonical(envelope));
-   const measurement=snapshot(await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:structuredClone(envelope)}));await assertCurrent();
+   const measurement=readQwenTokenMeasurement(manifest,await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:structuredClone(envelope)}));await assertCurrent();
    if(!integer(measurement.inputTokens)||c.isCurrentTokenizer(measurement)!==true)fail('UNAVAILABLE');
    const request=await foundation.serverRequest(job.id,metadata.childOperationId,{inputTokens:measurement.inputTokens,outputCap,maxCompletionTokens:compiled.requestControls.max_completion_tokens});
    const proofs=freeze(snapshot(await c.readProofs(structuredClone(request)),{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192}));if(!exact(proofs,['principalToken','entitlementToken'])||!Object.values(proofs).every(x=>typeof x==='string'&&x.length>0&&x.length<=8192))fail('UNAVAILABLE');
    const payloadDigest=await hashText(canonical(payload)),authorization=freeze({authorizationId:'maintenance:'+metadata.childOperationId,childIdentity:structuredClone(childIdentity),reservationRequest:structuredClone(request),payloadDigest,expiresAt:Math.min(manifest.profile.validity.expiresAt,measurement.expiresAt)});let reservation=null,identityObservation=null,retired=false,registered=false,filterState=null;
    const live=()=>!disposed&&!retired&&isCurrent()===true&&c.isCurrentTokenizer(measurement)===true;
    const owner=createQwenQualifiedRequestOwner({clock:c.clock,
-    resolveProfile:async q=>{await assertCurrent();const profile=snapshot(await c.readProfile(q));if(!equal(profile.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');return profile;},
+    resolveProfile:async q=>{await assertCurrent();const profile=readQwenProfileManifest(await c.readProfile(q));if(!equal(profile.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');return profile;},
     authorizePayload:async q=>{await assertCurrent();if(!live()||!equal(q.childIdentity,childIdentity)||!equal(q.reservationRequest,request)||q.payloadDigest!==payloadDigest)fail('STALE_BASE');return structuredClone(authorization);},
     tokenize:async q=>{await assertCurrent();const v=await c.tokenize(q);if(!equal(v,measurement))fail('STALE_BASE');return v;},
     readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');if(filterConsent&&payload.coverage.some(u=>u.facet==='filter')){const connection=prepareMaintenanceIdentityConnection(c.filterIdentity,{request,...proofs});if(connection!==null)await connection;await assertCurrent();}const identityTicket=c.filterIdentity?.beginObservation(request)??null;let observation;try{observation=await status.query({request,...proofs},identityTicket);await assertCurrent();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;identityObservation=observedClientOperationStatus(observation,status);c.filterIdentity?.observe(observation,status,identityTicket);}finally{c.filterIdentity?.releaseObservation(identityTicket);}

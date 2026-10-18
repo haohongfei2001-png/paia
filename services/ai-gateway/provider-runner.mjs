@@ -1,3 +1,4 @@
+import {readQwenProfileManifest} from '../../extension/core/ai-usage/qwen-profile-source-adapter.js';
 import {Pool} from 'pg';
 import {createPostgresReservationService} from './reservation-service.mjs';
 import {createPostgresProviderEvidencePublisher} from './postgres-provider-evidence.mjs';
@@ -25,7 +26,7 @@ export function createPostgresProviderRunner(options={}){
   if(!Number.isSafeInteger(options.maxConcurrent)||options.maxConcurrent<1||options.maxConcurrent>16)return stopped('PROVIDER_CAPACITY_UNCONFIGURED');
   if(typeof options.isCurrent!=='function')return stopped('PROVIDER_PROFILE_UNAVAILABLE');
   if(!(options.reservationPool instanceof Pool)||!(options.evidencePool instanceof Pool)||options.reservationPool===options.evidencePool)return stopped('DEDICATED_POOLS_REQUIRED');
-  manifest=freeze(snapshot(options.manifest));
+  manifest=freeze(readQwenProfileManifest(options.manifest));
   if(!manifest?.profile?.endpoint||!manifest.tokenizer||!manifest.wire||!manifest.route)return stopped('PROVIDER_PROFILE_UNAVAILABLE');
   tokenize=options.tokenize;isCurrent=options.isCurrent;
   publisher=createPostgresProviderEvidencePublisher({pool:options.evidencePool,identityConfig:options.identityConfig,profileId:options.profileId,maxConcurrent:options.maxConcurrent});

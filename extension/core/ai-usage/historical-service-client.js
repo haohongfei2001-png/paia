@@ -4,7 +4,7 @@ import {canonical,equal,fail} from './contracts.js';
 import {snapshot,freeze,exact,integer,token} from './qwen-request-data.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
-import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
+import {createQwenManifestCompiler,readQwenProfileManifest,readQwenTokenMeasurement} from './qwen-profile-source-adapter.js';
 import {createQwenQualifiedRequestOwner,qwenFoundationProviderData} from './qwen-qualified-request.js';
 import {createClientDeclarationTransport} from './client-declaration-transport.js';
 import {createClientReservationTransport} from './client-reservation-transport.js';
@@ -71,15 +71,15 @@ export function createHistoricalServiceClient(configuration){
    current();await assertCurrent();
    const old=await foundation.status(job.id);if(old.state!=='PLANNED'||old.attempts.length)fail('OUTCOME_UNKNOWN');
    const childIdentity={logicalJobId:job.id,childOperationId:job.childIds[0],type:'AI_ASSIST',contractVersion:c.contractVersion,routeVersion:c.routeVersion,automaticRetries:0};
-   const manifest=snapshot(await c.readProfile({childIdentity:clone(childIdentity)}));await assertCurrent();
-   const compiler=createQwenRequestProfileCompiler({profile:manifest.profile,known:manifest.known});
+   const manifest=readQwenProfileManifest(await c.readProfile({childIdentity:clone(childIdentity)}));await assertCurrent();
+   const compiler=createQwenManifestCompiler(manifest);
    const outputCap=Math.min(ENVELOPES.AI_ASSIST.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
    if(compiled.status!=='COMPILED_PARTIAL')fail('UNAVAILABLE');
    // Premeasure the exact original Qwen wire. Its owner independently rebuilds
    // and compares the digest/count before declaration and again before binding.
    const body=canonical({model:manifest.profile.model.requested,messages:[{role:'system',content:manifest.wire.instructions},{role:'user',content:canonical(payload)}],response_format:manifest.wire.responseFormat,...compiled.requestControls,...manifest.wire.thinkingControls,n:1});
    const envelope={method:'POST',endpoint:{scheme:'https',host:manifest.profile.endpoint.host,path:manifest.profile.endpoint.path},headers:{'Content-Type':'application/json'},body};
-   const requestDigest=await hashText(canonical(envelope)),measurement=snapshot(await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)}));await assertCurrent();
+   const requestDigest=await hashText(canonical(envelope)),measurement=readQwenTokenMeasurement(manifest,await c.tokenize({profileId:manifest.profile.id,tokenizerProfileId:manifest.tokenizer.profileId,qualificationRef:manifest.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)}));await assertCurrent();
    if(!integer(measurement.inputTokens)||c.isCurrentTokenizer(measurement)!==true)fail('UNAVAILABLE');
    const request=await foundation.serverRequest(job.id,job.childIds[0],{inputTokens:measurement.inputTokens,outputCap,maxCompletionTokens:compiled.requestControls.max_completion_tokens});
    const proofs=snapshot(await c.readProofs(clone(request)),{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192});

@@ -13,6 +13,7 @@ import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
 import {ROUTE_FIELDS,quoteRequestBound} from './ratebook.js';
 import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
+import {installedQwenManifestCapability,inspectInstalledQwenSourceProfile,compileInstalledQwenRequest,isInstalledQwenMeasurement} from './qwen-source-profile.js';
 import {boundedSchema,exact,failureReason,freeze,integer,snapshot,stop,token} from './qwen-request-data.js';
 
 const foundationProviders=new WeakMap(),foundationResponses=new WeakMap(),reservationDenials=new WeakMap();
@@ -50,10 +51,10 @@ export function createQwenQualifiedRequestOwner(options){
  }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),prepareDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),publishDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revokeDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),reserveDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),foundationProvider:()=>null,revoke:()=>false,dispose(){}});}
  const profiles=new Map(),operations=new Map(),handles=new WeakMap(),declarations=new WeakMap(),declarationOperations=new Map(),providerRetirements=new Set();let disposed=false,lastNow=0,inFlight=0;
  function now(){if(disposed)stop('OWNER_DISPOSED');const n=clock();if(!integer(n)||n<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=n;return n;}
- function active(entry){const n=now();if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,n);return n;}
+ function active(entry){const n=now();if(entry.revoked||entry.sourceCapability&&!inspectInstalledQwenSourceProfile(entry.sourceCapability))stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,n);return n;}
  async function profile(c,r,stream){
   const raw=await resolveProfile(freeze({childIdentity:clone(c)}));now();
-  const m=snapshot(raw),p=m.profile;
+  const sourceCapability=installedQwenManifestCapability(raw),m=snapshot(raw),p=m.profile;
   if(!exact(m,['version','profile','known','route','wire','tokenizer'])||m.version!==1||!p||!token(p.id))stop('PROFILE_UNAVAILABLE');
   if(p.validity?.revoked===true){
    const prior=profiles.get(p.id);if(prior)prior.revoked=true;else if(profiles.size<LIMITS.profiles)profiles.set(p.id,{revoked:true});
@@ -68,13 +69,14 @@ export function createQwenQualifiedRequestOwner(options){
   const tc=w.thinkingControls;
   if(p.thinking?.enabled?(!exact(tc,['enable_thinking','thinking_budget'])||tc.enable_thinking!==true||tc.thinking_budget!==p.thinking.thinkingBudget||p.jobType!=='AI_ORGANIZE'):(!exact(tc,['enable_thinking'])||tc.enable_thinking!==false))stop('THINKING_UNAVAILABLE');
   if(!exact(t,['profileId','qualificationRef','protocolOverheadTokens','maxWireBytes'])||t.profileId!==p.tokenizerProfileId||!token(t.qualificationRef)||!integer(t.protocolOverheadTokens)||t.protocolOverheadTokens<1||!integer(t.maxWireBytes)||t.maxWireBytes<1||t.maxWireBytes>LIMITS.wireBytes)stop('TOKENIZER_UNAVAILABLE');
-  const compiler=createQwenRequestProfileCompiler({profile:p,known:m.known});
-  const compiled=compiler.compile({childIdentity:c,inputTokens:r.inputTokens,outputCap:r.outputCap,stream,now:now()});compiler.dispose();
+  let compiled;
+  if(sourceCapability)compiled=compileInstalledQwenRequest(sourceCapability,{childIdentity:c,inputTokens:r.inputTokens,outputCap:r.outputCap,stream});
+  else{const compiler=createQwenRequestProfileCompiler({profile:p,known:m.known});compiled=compiler.compile({childIdentity:c,inputTokens:r.inputTokens,outputCap:r.outputCap,stream,now:now()});compiler.dispose();}
   if(compiled.status!=='COMPILED_PARTIAL')stop('PROFILE_UNAVAILABLE');
   if(compiled.billableOutputCap!==r.outputCap||compiled.requestControls.max_completion_tokens!==r.maxCompletionTokens)stop('RESERVATION_BINDING_MISMATCH');
   const signature=canonical(m);let entry=profiles.get(p.id);
-  if(entry){if(entry.revoked)stop('PROFILE_REVOKED');if(entry.signature!==signature)stop('PROFILE_REBOUND');}
-  else{if(profiles.size>=LIMITS.profiles)stop('PROFILE_CAPACITY');entry={manifest:freeze(m),signature,revoked:false};profiles.set(p.id,entry);}
+  if(entry){if(entry.revoked)stop('PROFILE_REVOKED');if(entry.signature!==signature||entry.sourceCapability!==sourceCapability)stop('PROFILE_REBOUND');}
+  else{if(profiles.size>=LIMITS.profiles)stop('PROFILE_CAPACITY');entry={manifest:freeze(m),signature,sourceCapability,revoked:false};profiles.set(p.id,entry);}
   active(entry);return {entry,compiled};
  }
  function checkReservation(row,r,entry,at){
@@ -128,7 +130,9 @@ export function createQwenQualifiedRequestOwner(options){
     // to the separately qualified service, never this extension-local owner.
     const envelope=freeze({method:'POST',endpoint:{scheme:'https',host:m.profile.endpoint.host,path:m.profile.endpoint.path},headers:{'Content-Type':'application/json'},body});
     const requestDigest=await hashText(canonical(envelope));active(entry);
-    const measurement=snapshot(await tokenize(freeze({profileId:m.profile.id,tokenizerProfileId:m.tokenizer.profileId,qualificationRef:m.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)})));
+    const rawMeasurement=await tokenize(freeze({profileId:m.profile.id,tokenizerProfileId:m.tokenizer.profileId,qualificationRef:m.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)}));
+    if(entry.sourceCapability&&!isInstalledQwenMeasurement(rawMeasurement,entry.sourceCapability))stop('TOKENIZER_SOURCE_UNAVAILABLE');
+    const measurement=snapshot(rawMeasurement);
     const at=active(entry);
     if(!exact(measurement,['profileId','tokenizerProfileId','qualificationRef','requestDigest','contentTokens','protocolOverheadTokens','inputTokens','expiresAt'])||measurement.profileId!==m.profile.id||measurement.tokenizerProfileId!==m.tokenizer.profileId||measurement.qualificationRef!==m.tokenizer.qualificationRef||measurement.requestDigest!==requestDigest||!['contentTokens','protocolOverheadTokens','inputTokens','expiresAt'].every(k=>integer(measurement[k]))||measurement.protocolOverheadTokens!==m.tokenizer.protocolOverheadTokens||measurement.inputTokens!==measurement.contentTokens+measurement.protocolOverheadTokens||measurement.inputTokens!==r.inputTokens||measurement.expiresAt<=at||measurement.expiresAt>m.profile.validity.expiresAt)stop('TOKENIZER_BINDING_MISMATCH');
   return {c,r,entry,compiled,payloadDigest,auth,envelope,requestDigest,measurement};
