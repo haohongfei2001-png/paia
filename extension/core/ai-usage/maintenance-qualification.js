@@ -30,6 +30,7 @@ function metadataValue(value,key){
 }
 const pick=(row,keys)=>named(row,keys,metadataValue);
 const entryMetadata=row=>pick(row,['id','revision','contentRevision','bodyBinding','workingInputId','bindingRevision','bindingLength','lifecycle','sourceRecordIds','inputRefs']);
+const inputMirrorMetadata=row=>({...entryMetadata(row),provenanceType:scalar(own(row,'provenanceType'))});
 const journalMetadata=row=>pick(row,['id','kind','entityId','entityKey','documentId','sequence','baseRevision','afterRevision','operationId','fieldMask','actor','reason','important','sourceRecordIds']);
 const structureMetadata=row=>pick(row,['id','topicId','sectionId','revision','organizationRevision','activeLayoutGeneration','layoutGeneration','lifecycle']);
 const thoughtClosureMetadata=row=>pick(row,['id','storageSchema','family','type','formation','origin','revision','contentRevision','fieldRevisions','organizationRevision','dependencyRevision','createdAt','updatedAt','updatedSequence','createdSequence','hasHumanAction','userEdited','protections','authorship','organizationIntents','lifecycle','freshness','integrity','staleReasons','sourceRecordIds','inputRefs','exactSignature','topics','types','bodyBinding','provenanceType','workingInputId','bindingRevision','bindingLength','thoughtEditedAt','lifecycleKey','activeKey','listKey','negativeUpdatedSequence']);
@@ -65,6 +66,7 @@ async function localTopicClosure(t,seed,selectedInputs,selectedEntries){
  return {seed:structuredClone(seed),topic:structureMetadata(topic),placements,entries:sorted(entries),births:sorted(births),dependencies:sorted(dependencies),provenance:sorted(provenance),added:added.sort()};
 }
 async function assertLocalClosures(t,held){
+ for(const [id,expected]of held.inputMirrors||[]){const entry=inputMirrorMetadata(await t.get('thoughts',id)),dependencies=sorted((await t.all('dependencies','byTarget',prefix(['entry',id]))).map(dependencyMetadata)),provenance=sorted((await t.all('provenance','byOwner',prefix(['entry',id]))).map(provenanceMetadata));need(equal({entry,dependencies,provenance},expected),'STALE_BASE');}
  for(const expected of held.localClosures.values())need(equal(await localTopicClosure(t,expected.seed,new Set(held.inputs.keys()),held.originalEntries),expected),'STALE_BASE');
 }
 // This closure is metadata only. Reading a canonical row is not permission to
@@ -92,6 +94,24 @@ async function metadataClosure(store,t,request,selection={}){
  // owner publication may contribute qualification-only Entry fields. Every
  // old dependency stays inside this child's independently selected Inputs.
  const selectedInputs=new Set(selection.inputIds||[]),selectedEntries=new Set(entries.keys()),localClosures=new Map(),topicIds=[...new Set(selection.topicIds||[])];
+ // A current Input can already have an original complete mirror even when its
+ // Entry has no pending semantic delta. Discover only that exact metadata link;
+ // it contributes local qualification fields, never payload or ACK coverage.
+ const inputMirrors=new Map();
+ if(selection.inputMirrorInputs){need(Array.isArray(selection.inputMirrorInputs)&&selection.inputMirrorInputs.every(id=>selectedInputs.has(id)));
+  for(const inputId of selection.inputMirrorInputs){const range=prefix([inputId,'entry']),count=await t.count('dependencies','byInputTarget',range);need(Number.isSafeInteger(count)&&count<=CONTEXT_TOPIC_SCOPE_LIMITS.refs,'BUDGET_EXCEEDED');
+   for(const dependency of await t.all('dependencies','byInputTarget',range)){const d=dependencyMetadata(dependency);need(d.inputId===inputId&&d.targetKind==='entry');const e=thoughtClosureMetadata(await t.get('thoughts',d.targetId));if(!e||e.lifecycle!=='active'||e.bodyBinding!=='input'||e.provenanceType!=='input_original'||e.workingInputId!==inputId)continue;
+    // Already selected Entries receive the same three independent fields below.
+    // Their original mapping/Domain proof owns eligibility; do not add a second
+    // mirror proof and rescan it for every field read.
+    if(entries.has(e.id))continue;
+    const deps=(await t.all('dependencies','byTarget',prefix(['entry',e.id]))).map(dependencyMetadata),proofs=(await t.all('provenance','byOwner',prefix(['entry',e.id]))).map(provenanceMetadata);
+    need(deps.length&&deps.every(x=>selectedInputs.has(x.inputId)&&x.selectedFields?.every(f=>f==='body'))&&proofs.length&&proofs.every(x=>selectedInputs.has(x.inputId))&&proofs.some(x=>x.inputId===inputId&&x.role==='primary'&&x.contributionType==='exact_excerpt'&&x.span?.full===true&&x.span.field==='body'));
+    await addEntry(e.id);selectedEntries.add(e.id);
+    inputMirrors.set(e.id,{entry:inputMirrorMetadata(e),dependencies:sorted(deps),provenance:sorted(proofs)});
+   }
+  }
+ }
  need(topicIds.length<=8,'BUDGET_EXCEEDED');
  for(const seed of selection.localTopicSeeds||[]){need(selectedEntries.has(seed.entryId)&&topicIds.includes(seed.topicId));if(localClosures.has(seed.topicId))continue;const topic=await t.get('topics',seed.topicId);need(topic);const range=prefix([topic.id,topic.activeLayoutGeneration,0]),count=await t.count('placements','byTopicOrder',range);need(count<=CONTEXT_TOPIC_SCOPE_LIMITS.refs,'BUDGET_EXCEEDED');let extra=false;for(const p of await t.all('placements','byTopicOrder',range)){const row=await t.get('thoughts',p.entryId);need(row);if(row.bodyBinding!=='input'&&!selectedEntries.has(row.id))extra=true;}if(!extra)continue;const closure=await localTopicClosure(t,seed,selectedInputs,selectedEntries);localClosures.set(seed.topicId,closure);for(const id of closure.added)await addEntry(id);}
  for(const topicId of topicIds){
@@ -111,9 +131,11 @@ async function metadataClosure(store,t,request,selection={}){
  }
  const inputs=new Map(),sources=new Set();for(const id of selection.inputIds||[]){need(idOK(id)&&!inputs.has(id));const state=await t.get('inputStates',id);need(state?.id===id&&state.removalState==='active'&&!state.sourcePurged);inputs.set(id,pick(state,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']));for(const source of state.sourceRecordIds||[])sources.add(source);}
  need(inputs.size<=20&&sources.size<=128,'BUDGET_EXCEEDED');
+ for(const mirror of inputMirrors.values())need([...mirror.entry.sourceRecordIds,...mirror.dependencies.flatMap(x=>x.sourceRecordIds||[]),...mirror.provenance.flatMap(x=>x.sourceRecordIds||[])].every(id=>sources.has(id))); 
  const scope={inputs:[...inputs].map(([inputId,m])=>({inputId,revision:m.contentRevision,selectedFields:['body','note']})),sources:[...sources].sort().map(sourceRecordId=>({sourceRecordId,selectedFields:['originalText']})),entries:[...entries.values()].map(x=>({entryId:x.id,revision:x.revision,selectedFields:[...ENTRY_FIELDS]})).sort((a,b)=>a.entryId.localeCompare(b.entryId)),structures:[...structures.values()].map(x=>({store:x.table,recordId:x.metadata.id,revision:x.metadata.revision,selectedFields:x.selectedFields})).sort((a,b)=>a.recordId.localeCompare(b.recordId)),journals:[...journals.values()].map(({metadata:m,selectedFields})=>({journalId:m.id,entityKind:m.kind,entityId:m.entityId,sequence:m.sequence,baseRevision:m.baseRevision??null,afterRevision:m.afterRevision??null,selectedFields:selectedFields.flatMap(f=>['before.'+f,'after.'+f])})).sort((a,b)=>a.journalId.localeCompare(b.journalId))};
+ if(inputMirrors.size)scope.inputMirrorQualifications=[...inputMirrors.values()].sort((a,b)=>a.entry.id.localeCompare(b.entry.id));
  if(localClosures.size)scope.localQualificationTopics=[...localClosures.values()].map(c=>({seed:c.seed,topic:c.topic,placements:c.placements,entries:c.entries.map(entryMetadata),births:c.births,dependencies:c.dependencies,provenance:c.provenance,additionalEntryIds:c.added}));
- need(size(scope)<=32768,'BUDGET_EXCEEDED');return {scope,entries,structures,journals,inputs,sources,localClosures,originalEntries:selectedEntries};
+ need(size(scope)<=32768,'BUDGET_EXCEEDED');return {scope,entries,structures,journals,inputs,sources,localClosures,inputMirrors,originalEntries:selectedEntries};
 }
 function scopeData(value){
  let bytes=0,keys=0;const seen=new WeakSet(),encoder=new TextEncoder(),charge=n=>{bytes+=n;need(bytes<=32768,'BUDGET_EXCEEDED');};
@@ -185,7 +207,7 @@ export function chargeMaintenanceQualificationHash(token,store,text){const r=qua
 export async function maintenanceQualificationFacts(token,store,transaction,retain){
  need(typeof retain==='function');const r=qualified(token,store),t=maintenanceQualificationReader(token,store,transaction),facts=[];
  const add=value=>facts.push(retain(value));
- await assertLocalClosures(contextScopeTransactionReader(store,transaction,r.workBudget),r.held);for(const closure of r.held.localClosures.values())add({localQualificationTopic:closure});
+ await assertLocalClosures(contextScopeTransactionReader(store,transaction,r.workBudget),r.held);for(const closure of r.held.localClosures.values())add({localQualificationTopic:closure});for(const mirror of r.held.inputMirrors.values())add({inputMirrorQualification:mirror});
  for(const selected of r.receipt.scope.entries){const row=await t.get('thoughts',selected.entryId);need(row);add({table:'thoughts',id:selected.entryId,metadata:entryMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row[field==='body'?'thoughtText':field]]))});}
  for(const selected of r.receipt.scope.inputs){const row=await t.get('blocks',selected.inputId),state=await t.get('inputStates',selected.inputId);need(row&&state);add({table:'blocks',id:selected.inputId,state:pick(state,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),fields:Object.fromEntries(selected.selectedFields.map(field=>[field,row.value?.[field==='body'?'libraryText':field]]))});}
  for(const selected of r.receipt.scope.sources){const row=await t.get('records',selected.sourceRecordId);need(row);add({table:'records',id:selected.sourceRecordId,fields:{originalText:row.value?.originalText}});}
@@ -193,7 +215,7 @@ export async function maintenanceQualificationFacts(token,store,transaction,reta
  for(const selected of r.receipt.scope.journals){const row=await t.get('revisions',selected.journalId);need(row);add({table:'revisions',id:selected.journalId,metadata:journalMetadata(row),fields:Object.fromEntries(selected.selectedFields.map(field=>{const [side,key]=field.split('.');return [field,row[side]?.[key]];}))});}
  r.current();return facts;
 }
-export function releaseMaintenanceQualification(token){const r=capabilities.get(token);if(!r)return;r.released=true;for(const key of ['entries','structures','journals','inputs','sources','localClosures','originalEntries'])r.held[key].clear();capabilities.delete(token);}
+export function releaseMaintenanceQualification(token){const r=capabilities.get(token);if(!r)return;r.released=true;for(const key of ['entries','structures','journals','inputs','sources','localClosures','inputMirrors','originalEntries'])r.held[key].clear();capabilities.delete(token);}
 export async function withMaintenanceQualification(store,transaction,request,options,fn){
  need(typeof fn==='function');if(!request.items.some(x=>['library_entry','placement','topic','section'].includes(x.descriptor.kind)))return fn(transaction);
  const token=await createMaintenanceQualification(store,transaction,request,options);try{const result=await fn(maintenanceQualificationReader(token,store,transaction));assertMaintenanceQualification(token,store);need(await rootReadAuthority(transaction)===maintenanceQualificationReceipt(token,store).scope.rootAuthority,'STALE_BASE');assertMaintenanceQualification(token,store);return result;}finally{releaseMaintenanceQualification(token);}
