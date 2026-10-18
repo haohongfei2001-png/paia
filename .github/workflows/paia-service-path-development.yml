@@ -61,6 +61,12 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node --test --test-reporter=tap tests/maintenance-client-path.test.mjs tests/maintenance-client-recovery.test.mjs tests/maintenance-cold-independent-negative.test.mjs tests/maintenance-cadence.test.mjs tests/maintenance-worker-entry.test.mjs ../../extension/tests/ai-usage-semantic-receipt.test.mjs 2>&1 | tee evidence/maintenance-client-protocol.tap
+      - name: Source-owned Maintenance response and exact Context witnesses
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/maintenance-source-response.test.mjs tests/maintenance-source-negative-intent.test.mjs tests/maintenance-source-settlement-fence.test.mjs tests/maintenance-source-filter-response.test.mjs tests/maintenance-source-filter-authority.test.mjs tests/maintenance-source-existing-context.test.mjs ../../extension/tests/ai-cost-03-section-topic-reconciliation.test.mjs ../../extension/tests/ai-cost-03-existing-context-witness.test.mjs ../../extension/tests/ai-maintenance-existing-transition.test.mjs ../../extension/tests/ai-maintenance-topic-wire.test.mjs tests/maintenance-source-topic-wire.test.mjs tests/maintenance-source-human-context.test.mjs tests/maintenance-source-combined-context.test.mjs ../../extension/tests/ai-maintenance-human-context-response.test.mjs ../../extension/tests/ai-maintenance-human-context-final-guard.test.mjs ../../extension/tests/ai-cost-03-existing-context-empty-plan.test.mjs 2>&1 | tee evidence/maintenance-source-protocol.tap
       - name: Explicit Assist consent, current reply and insertion path
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
