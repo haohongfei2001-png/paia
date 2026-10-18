@@ -91,6 +91,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/browser-native-sync/topic-desired-journal.js",
   "core/browser-native-sync/value.js",
   "core/constants.js",
+  "core/context-authored-entry.js",
   "core/context-cards.js",
   "core/context-item-lineage.js",
   "core/context-package.js",

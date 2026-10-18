@@ -12,7 +12,7 @@ async function fixture(change,run){
  const owner=Object.assign(Object.create(TopicController.prototype),{serial:1,id:'topic',view:'ai',topic,activeSectionId:'section',aiScopeKey:JSON.stringify(['topic','section',true,['currentView'],'old-generation','epoch']),aiTopics:new Map([['topic',{presentation:cached}]]),aiEditor:editor,readingHistoryOwner:editor,originalPane:node(),aiPane:node(),syncReadingControls(){},ensurePanes(){},updateViewStatus:async()=>({}),filterAIReading(){},topicAnchor:()=>null,topicSectionAnchor:()=>null,resetTopicReader:async({beforePaint})=>{assert.equal(beforePaint(page),true);return {stale:false};}});
  globalThis.document={documentElement:{lang:'en'},getElementById:id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);}};
  const reads=[];globalThis.chrome={runtime:{sendMessage:async message=>{reads.push(message);if(message.type==='GET_LIBRARY_SECTION_PROJECTION')return {ok:true,data:{topic,items:[section]}};if(message.type==='GET_LIBRARY_SECTION_READING')return {ok:true,data:page};throw Error('unexpected request '+message.type);}}};
- try{await change?.({owner,editor,cached,page});await run({owner,editor,cached,reads});}finally{for(const [key,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+ try{await change?.({owner,editor,cached,page});await run({owner,editor,cached,reads,page});}finally{for(const [key,descriptor]of prior)if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
 }
 test('fresh generation-only qualification preserves the actual saved-field editor, native owner and Undo journal',()=>fixture(null,async({owner,editor,cached,reads})=>{
  const journal=editor.journal;assert.equal(await owner.readContentRefresh(),true);assert.equal(owner.aiEditor,editor);assert.equal(owner.readingHistoryOwner,editor);assert.equal(editor.journal,journal);assert.equal(journal.undo.length,1);assert.equal(JSON.parse(owner.aiScopeKey)[4],'new-generation');assert.deepEqual(editor.row,cached);assert.ok(reads.filter(row=>row.type==='GET_LIBRARY_SECTION_READING').length>=3,'fresh initial, exact evidence and final scope qualification all execute');
@@ -22,6 +22,10 @@ for(const [reason,change]of Object.entries({
  section:({owner})=>owner.aiScopeKey=JSON.stringify(['topic','other',true,['currentView'],'old-generation','epoch']),
  epoch:({editor})=>editor.row.recoveryEpoch='old-epoch',
  revision:({cached})=>cached.revision++,
+ rowIdentity:({cached})=>cached.id='other-row',
+ protection:({cached})=>cached.protections={currentView:true},
+ fieldRevision:({cached})=>cached.fieldRevisions={currentView:2},
+ unknownCanonicalField:({cached})=>cached.futureAuthority='changed',
  field:({cached})=>cached.currentView='SYNTHETIC external edit',
  schema:({cached})=>cached.schemaVersion++,
  stale:({cached})=>cached.stale=true,
@@ -46,8 +50,9 @@ for(const [reason,change]of Object.entries({
    return response;
   };
  },
-})){test('generation change still retires '+reason+' saved-field authority',()=>fixture(change,async({owner})=>{
- // Dirty editors retain their existing flush barrier before the replacement.
+})){test('generation change '+(['dirty','saving'].includes(reason)?'preserves active ':'still retires ')+reason+' saved-field authority',()=>fixture(change,async({owner,editor,page})=>{
  owner.aiEditor.flush=async()=>true;
- await assert.rejects(owner.readContentRefresh(),/original editor retired/);
+ if(['dirty','saving'].includes(reason)){
+  assert.equal(await owner.readContentRefresh(),true);assert.equal(owner.aiEditor,editor);assert.equal(JSON.parse(owner.aiScopeKey)[4],'new-generation');
+ }else await assert.rejects(owner.readContentRefresh(),/original editor retired/);
 }));}

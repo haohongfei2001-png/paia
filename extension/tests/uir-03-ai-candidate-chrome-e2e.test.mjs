@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fixture,rpc,authority,savedRow,editSaved,refusedAI,setAIView,openTopic,noApproval,quiet,screenshotMatrix} from './harness/consumer-ai-browser.mjs';
 import {eventually} from './harness/fake-chatgpt.mjs';
+import {proveLateSavedAIPublication} from './harness/saved-ai-publication-browser.mjs';
 import {installSavedAIDiagnostic,savedAIEvidence,persistSavedAIEvidence,failSavedAI,releaseSavedAI} from './harness/saved-ai-evidence.mjs';
 
 async function reviewCandidate(p){assert.equal(await p.locator('#ai-reading-body [data-ai-candidate]').count(),0,'full-Topic candidate is outside selected Section prose');await p.locator('[data-topic-candidate-review]').click();const panel=p.locator('#library-dialog[open] [data-ai-candidate]');await panel.waitFor();assert.equal(await p.locator('#library-dialog-title').textContent(),'主题级已保存候选');return panel;}
@@ -48,7 +49,7 @@ test('VS-05 all six authored AI lists and deliberately empty overview survive hi
    for(let i=0;i<2;i++){await setAIView(p,false);await setAIView(p,true);}
    await openTopic(p,topic);await setAIView(p,true);
    assert.deepEqual(await savedRow(p,topic.id),before,'collapsed and reopened fields retain all text/newlines and deliberate empty string without new revisions');
-   const evidence=await savedAIEvidence(f,variant);assert.equal(evidence.journal.length,7);assert.equal(new Set(evidence.journal.map(row=>row.operationId)).size,7);await persistSavedAIEvidence(evidence);await proveHeldSavedAIOwner(f,variant);await quiet(f.h);
+   const evidence=await savedAIEvidence(f,variant);assert.equal(evidence.journal.length,7);assert.equal(new Set(evidence.journal.map(row=>row.operationId)).size,7);await persistSavedAIEvidence(evidence);await proveHeldSavedAIOwner(f,variant);await proveLateSavedAIPublication(f,variant);await quiet(f.h);
   }catch(error){await failSavedAI(error,f,variant);}finally{await f.h.close();}
  }
 });

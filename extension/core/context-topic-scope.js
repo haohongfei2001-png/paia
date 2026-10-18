@@ -1,3 +1,4 @@
+import {readAuthoredEntryContext} from './context-authored-entry.js';
 import {ContextCardsService} from './context-cards.js';
 import {hashText} from './dedupe.js';
 import {contextTopicOperationReservation,contextTopicSelectionBinding,evaluateContextTopicAccess} from './context-topic-access-policy.js';
@@ -11,7 +12,8 @@ import {validateMemoryRow} from './memory/model.js';
 import {FILTER_VERSIONS} from './smart-filter.js';
 import {idOK,revisionOK,prefix,validateFields,ENTRY_FIELDS} from './thought-model.js';
 
-// A local, body-free prerequisite, never an external read or a grant. The caller
+// A local prerequisite, never an external read or a grant. Canonical owner
+// validation may inspect body fields; selected material is not retained here. The caller
 // supplies only a stable Topic ID and optional freshness token. All permission
 // facts come from one coherent material transaction. Selected-field hashing runs
 // after it closes, followed by a metadata-only freshness/consent fence. Do not
@@ -39,12 +41,19 @@ function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_RE
 // transaction facade so their exact eligibility semantics remain the authority
 // without allowing an unbounded getAll. It retains no body cache. All pages and
 // point reads count against real per-store and total-work limits; no truncation.
+const budgetReaders=new WeakMap();
+export function contextScopeTransactionReader(store,transaction,budget){
+ requireFact(budgetValid(budget),'scope_budget');
+ return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget);
+}
 function reader(transaction,compare,budget){
  const {seen}=budget;
  const account=(store,row)=>{if(budget.signal?.aborted)refuse('stale_authority');if(row){if(store==='blocks'){requireFact(plain(row.value),'input_unavailable');bounded(row.value.provenance);}for(const key of ['sourceRecordIds','inputRefs','selectedFields','roles'])if(Object.hasOwn(row,key))bounded(row[key]);}if(++budget.reads>MAX_READS)refuse('scope_budget');if(!row)return;requireFact(typeof row.id==='string');const ids=seen.get(store)||new Set();ids.add(row.id);seen.set(store,ids);if(ids.size>MAX_REFS)refuse('scope_budget');};
  const t=Object.create(transaction);
  t.get=async(store,id)=>{if(budget.signal?.aborted)refuse('stale_authority');const row=await transaction.get(store,id);account(store,row);return row;};
  t.has=async(store,id)=>{if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');return transaction.has(store,id);};
+ t.edge=async(...args)=>{const row=await transaction.edge(...args);account(args[0],row);return row;};
+ t.rangePage=async(...args)=>{if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);return page;};
  t.count=async(store,index,range)=>{
   if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');
   // Repository.count's primary-store overload counts the whole store. Keep
@@ -73,7 +82,7 @@ function reader(transaction,compare,budget){
  t.scanPrimary=(store,keyPrefix,consume)=>scan(store,null,IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true),after=>transaction.primaryRangePage(store,{prefix:keyPrefix,after,limit:PAGE}),consume);
  t.scanRange=(store,index,range,consume)=>scan(store,index,range,after=>transaction.rangePage(store,index,range,after,PAGE),consume);
  t.all=async(store,index,range)=>{const rows=[];await t.scanRange(store,index,range,row=>rows.push(row));return rows;};
- return t;
+ budgetReaders.set(t,budget);return t;
 }
 function topicProjection(row){
  requireFact(plain(row)&&idOK(row.id)&&stamp(row.createdAt)&&revisionOK(row.revision)&&revisionOK(row.organizationRevision)&&revisionOK(row.activeLayoutGeneration)&&row.activeLayoutGeneration>0&&['candidate','active','dormant','merged','removed'].includes(row.lifecycle),'topic_unavailable');
@@ -283,12 +292,14 @@ export async function readContextTopicScope(store,options={},workBudget=null){
  finally{hashWork.length=0;}
 }
 
-// Distinct body-free negative-admission probe for explicit internal processing.
-// It is never a full Topic scope, external grant, Input body, or eligibility
-// certificate. Missing/incomplete facts refuse; no caller flag weakens policy.
+// Negative-admission probe for explicit internal processing. Input bodies stay
+// unacquired; authored canonical validation can inspect body/journal fields but
+// retains no selected material and computes no selected-field hashes. This is
+// neither a full material eligibility certificate nor a processing grant.
 export async function readContextProcessingPreflight(store,options={},workBudget=null){
  const denied=reason=>({available:false,kind:'processing_preflight',reason,externalAllowed:false,bodyEligibility:'not_checked'});
- if(!plain(options)||Object.keys(options).sort().join(',')!=='expectedAuthority,inputIds,topicId'||!idOK(options.topicId)||!token(options.expectedAuthority)||!Array.isArray(options.inputIds)||!options.inputIds.length||options.inputIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.inputIds).length!==options.inputIds.length||!options.inputIds.every(idOK)||new Set(options.inputIds).size!==options.inputIds.length)return denied('invalid_request');
+ if(!plain(options)||!['expectedAuthority,inputIds,topicId','entryIds,expectedAuthority,inputIds,topicId'].includes(Object.keys(options).sort().join(','))||!idOK(options.topicId)||!token(options.expectedAuthority)||!Array.isArray(options.inputIds)||!options.inputIds.length&&!options.entryIds?.length||options.inputIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.inputIds).length!==options.inputIds.length||!options.inputIds.every(idOK)||new Set(options.inputIds).size!==options.inputIds.length)return denied('invalid_request');
+ if(options.entryIds!==undefined&&(!Array.isArray(options.entryIds)||!options.entryIds.length||options.entryIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.entryIds).length!==options.entryIds.length||!options.entryIds.every(idOK)||new Set(options.entryIds).size!==options.entryIds.length))return denied('invalid_request');
  if(!store?.repository?.db||!store.controlCache)return denied('not_ready');
  if(workBudget!==null&&!budgetValid(workBudget))return denied('scope_budget');
  const budget=workBudget||createContextScopeWorkBudget({database:store.repository.db});let captured,reason='invalid_facts';
@@ -299,6 +310,7 @@ export async function readContextProcessingPreflight(store,options={},workBudget
    requireFact(a.authority===options.expectedAuthority,'stale_authority');
    const m=await scopeMetadata(store,t,options.topicId,a);
    requireFact(options.inputIds.every(id=>m.inputIds.has(id)),'input_unavailable');
+   for(const entryId of options.entryIds||[]){const authored=await readAuthoredEntryContext(store,t,entryId);requireFact(m.entryIds.has(entryId)&&authored?.topicId===options.topicId,'entry_unavailable');}
    const scope={complete:true,legacyComplete:true,eligibility:'unknown',topicIds:[...m.topicIds],entryIds:[...m.entryIds],inputIds:[...m.inputIds],sections:[...m.sections.values()]};
    const verdict=evaluateContextTopicAccess({context:m.context,topics:[...m.topics.values()],topicId:m.target.id,selection:null,legacyRows:m.legacyRows,scope,capturedAuthority:a.authority,currentAuthority:a.authority,organizationReservations:[...m.reservations.values()]});
    if(verdict.reason==='legacy_restricted')refuse('legacy_restricted');requireFact(verdict.reason==='content_unavailable','invalid_facts');requireFact(m.eligible,'content_unavailable');
