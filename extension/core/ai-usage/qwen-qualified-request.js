@@ -7,7 +7,7 @@
 import {canonical} from './contracts.js';
 import {clientDeclarationData,clientDeclarationCanonical,CLIENT_DECLARATION_REQUEST_FIELDS as REQUEST} from './client-declaration.js';
 import {clientDeclarationTransportOrigin,isClientDeclarationTransport} from './client-declaration-transport.js';
-import {clientReservationTransportOrigin,observedClientReservation} from './client-reservation-transport.js';
+import {clientReservationTransportOrigin,observedClientReservation,observedClientReservationDenial} from './client-reservation-transport.js';
 import {clientProviderTransportOrigin,observedClientProviderResponse} from './client-provider-transport.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
@@ -15,7 +15,8 @@ import {ROUTE_FIELDS,quoteRequestBound} from './ratebook.js';
 import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
 import {boundedSchema,exact,failureReason,freeze,integer,snapshot,stop,token} from './qwen-request-data.js';
 
-const foundationProviders=new WeakMap(),foundationResponses=new WeakMap();
+const foundationProviders=new WeakMap(),foundationResponses=new WeakMap(),reservationDenials=new WeakMap();
+export const qwenReservationDenial=value=>reservationDenials.get(value)??null;
 export const qwenFoundationProviderData=provider=>foundationProviders.get(provider)??null;
 export const qwenFoundationResponse=(provider,response)=>{const r=foundationResponses.get(response);return r?.provider===provider?r:null;};
 
@@ -223,6 +224,7 @@ export function createQwenQualifiedRequestOwner(options){
     // Unknown reserve ACK retains the same operation; never automatic replay.
     let settle;h.reservationPromise=new Promise(resolve=>{settle=resolve;});
     transport.reserve({request:h.r,...h.proofs}).then(receipt=>{
+     const denial=observedClientReservationDenial(receipt,transport);if(denial&&same(denial.request,h.r)&&h.r.jobType==='AI_MAINTENANCE'){const answer=declarationResult('MAINTENANCE_CADENCE','MAINTENANCE_CADENCE',{nextEligibilityAt:denial.nextEligibilityAt,observedAt:denial.observedAt});reservationDenials.set(answer,freeze({origin:denial.origin,request:clone(h.r),observedAt:denial.observedAt,nextEligibilityAt:denial.nextEligibilityAt}));return answer;}
      const observed=observedClientReservation(receipt,transport);
      if(!observed||observed.action!=='reserve'||!same(observed.request,h.r))return declarationResult('RESERVATION_UNKNOWN','COMMIT_OUTCOME_UNKNOWN');
      h.serviceReservation=receipt;return declarationResult('RESERVED_SERVICE');

@@ -13,7 +13,7 @@ nav{flex:0 0 auto;min-height:44px;display:flex;flex-wrap:wrap;align-items:center
 #editor{overflow:auto;flex:1 1 auto;min-height:0;padding:10px 14px}#editor.inline-editor{flex:none;margin:3px 0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}#editor.inline-editor label{margin:0}.editing-row{display:none}.editor-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 textarea{display:block;width:100%;min-height:44px;height:44px;max-height:180px;resize:vertical;background:transparent;border:0;border-radius:10px;padding:9px 13px;line-height:1.5714285714}textarea:focus-visible{outline:0}label{display:block;overflow-wrap:anywhere;margin:8px 0}label:has(input[type=checkbox]){display:flex;align-items:center;min-height:44px;gap:8px}input[type=checkbox]{min-width:24px;min-height:24px}.empty{padding:16px}
 .actions{display:flex;justify-content:flex-end;flex-wrap:wrap;padding:0 4px 3px}.actions button{padding:4px 10px;font-size:.86rem;min-height:44px;color:var(--muted)}.actions button:first-child{color:var(--action)}
-#check-text{flex:1 1 auto;min-height:0;overflow:auto;padding:8px 12px;background:var(--panel)}#check-text p{margin:0 0 6px;color:var(--muted);font-size:.86rem}.check-body{white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto;user-select:text;margin:0;padding:8px;border-radius:8px;line-height:1.5714285714}#check-text .actions{padding-top:6px}
+:is(#check-text,#prompt-assist){flex:1 1 auto;min-height:0;overflow:auto;padding:8px 12px;background:var(--panel)}:is(#check-text,#prompt-assist) p{margin:0 0 6px;color:var(--muted);font-size:.86rem}.check-body{white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto;user-select:text;margin:0;padding:8px;border-radius:8px;line-height:1.5714285714}:is(#check-text,#prompt-assist) .actions{padding-top:6px}
 :root[data-paia-theme=light]{color-scheme:light}:root[data-paia-theme=dark]{color-scheme:dark;color:#e9ebf0;--line:#454850;--hover:#363940;--active:#41454e;--focus:#a4b8d8;--panel:#2b2c30;--muted:#a5aab4;--thumb:#454850;--action:#b6c6df;--inserted:#384354;--inserted-text:#e9ebf0}
 @media(prefers-color-scheme:dark){:root:not([data-paia-theme]){color-scheme:dark;color:#e9ebf0;--line:#454850;--hover:#363940;--active:#41454e;--focus:#a4b8d8;--panel:#2b2c30;--muted:#a5aab4;--thumb:#454850;--action:#b6c6df;--inserted:#384354;--inserted-text:#e9ebf0}}
 @media(pointer:coarse){.row{padding-left:4px}.more,.copy-shortcut,.edit-shortcut{flex-basis:44px;min-width:44px;width:44px;min-height:44px;opacity:1;pointer-events:auto}.grip{flex-basis:44px;width:44px;min-width:44px;opacity:1;pointer-events:auto}nav button,.actions button,.tools button{min-width:44px;min-height:44px}}
@@ -67,10 +67,12 @@ button:active,.row:has(.insert:active){background:var(--active)}:root[data-focus
 
 /* More reuses the content flow above status and bottom tools. Keep the
    original list/editor DOM and private state, excluding it from native focus. */
-#card:has(> #surface-tools:not([hidden])) > :is(#list,#editor,#check-text){display:none}
+#card:has(> #surface-tools:not([hidden])) > :is(#list,#editor,#check-text,#prompt-assist){display:none}
 
 /* Exact R3 quiet separators remain weaker than the external outline. */
 :root{--row-rule:#edf0f3}
 :root[data-paia-theme=dark]{--row-rule:#3b3d43}
 @media(prefers-color-scheme:dark){:root:not([data-paia-theme]){--row-rule:#3b3d43}}
 @media(forced-colors:active){:root,:root[data-paia-theme],:root:not([data-paia-theme]){--row-rule:CanvasText}}
+
+#prompt-assist .assist-condition{color:inherit;white-space:pre-wrap;overflow-wrap:anywhere}

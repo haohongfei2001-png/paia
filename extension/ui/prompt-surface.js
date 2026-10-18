@@ -1,4 +1,5 @@
 import {quickPromptEligible,promptGraphemeCount} from '../core/prompt-reuse-preferences.js';
+import {mountPromptAssist} from './prompt-assist-view.js';
 import {createIcon} from './icons.js';
 import {PromptHistorySession} from './prompt-history-session.js';
 import {PromptListSession} from '../core/prompt-family.js';
@@ -7,6 +8,7 @@ import {resolveAppearance,resolveLanguage} from './ux-r1-state.js';
 if(location.hash.startsWith('#next-')){void import('./prompt-next.js');}else{
 const nonce=location.hash.slice(1),session=new PromptListSession(),list=document.getElementById('list'),editor=document.getElementById('editor'),status=document.getElementById('status');
 const checkText=document.getElementById('check-text'),searchInput=document.getElementById('search-query'),history=new PromptHistorySession(({query,cursor,searchSnapshot})=>rpc({type:'PAIA_PROMPT_HISTORY_QUERY',query,cursor,searchSnapshot}));
+let assistSurface=null;
 let candidateTarget=null,candidateReady=false,candidateRequest=0;
 let mode='candidates',projectionGeneration=0,searchComposing=false,searchLoading=false,historyFailure=false,searchTimer=null;
 let checking=null,checkingRequest=null,copyRequest=null,layoutScheduled=false,lastMeasuredHeight=0,lastMinimumHeight=0,lastAppearance=null,lastLanguage=null,layoutPending=false,layoutDirty=false,pointerGesture=false,layoutTicket=0,disposed=false;
@@ -23,6 +25,7 @@ const attempted=new Set();
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
+ '本轮 AI 建议':'Current AI suggestion','正在准备本轮建议；常用输入仍可使用。':'Preparing a suggestion. Saved prompts remain available.','本轮 AI 建议暂不可用；常用输入仍可使用。':'AI suggestions are unavailable. Saved prompts remain available.','请先在 PAIA 设置中分别允许本轮回复读取与远端处理。':'In PAIA settings, separately allow current-reply access and remote processing.','启用后等待当前回复完成，再明确请求建议。':'Wait for a reply to finish after enabling, then explicitly request a suggestion.','本轮没有必要的新建议。':'No new suggestion is necessary for this reply.','本轮回复或相关 Context 已变化，请重新请求。':'The current reply or relevant Context changed. Request a suggestion again.',
  '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用表达':'Expand frequent expressions','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
  '为当前任务选择历史候选':'Select historical candidates for this task','采用已准备的历史候选':'Use prepared historical candidates','候选已准备；返回常用输入后可明确采用。':'Candidates are ready. Return to frequent inputs to use them explicitly.','历史候选暂不可用；常用输入和本机搜索仍可使用。':'Historical candidates are unavailable. Frequent inputs and local search remain available.',
  '选择代表原文':'Choose representative original','选择此 Family 的代表原文。':'Choose the original expression that represents this Family.','正在读取当前原文…':'Reading current original expressions…','原文已变化，请取消后重新选择。':'The original expressions changed. Cancel and choose again.',
@@ -55,8 +58,9 @@ systemAppearance.addEventListener('change',()=>applyDisplay());
 async function rpc(command){const r=await chrome.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command});if(!r?.ok)throw Error(r?.error||'UNAVAILABLE');return r.data;}
 const button=(text,fn,label=text)=>{const b=document.createElement('button');b.type='button';bindCopy(b,text);bindCopy(b,label,'aria-label');if(busy||refreshing){b.dataset.pendingDisabled='0';b.disabled=true;}trackActivation(b);b.addEventListener('click',e=>{if(e.isTrusted&&e.detail<2)void fn(e);});return b;};
 function pending(value){busy=value;for(const b of document.querySelectorAll('button,textarea,input')){if((b===searchInput||b.id==='search-clear')&&mode==='search')continue;if(value){if(!('pendingDisabled' in b.dataset))b.dataset.pendingDisabled=b.disabled?'1':'0';b.disabled=true;}else if('pendingDisabled' in b.dataset){b.disabled=b.dataset.pendingDisabled==='1';delete b.dataset.pendingDisabled;}}}
-let feedbackTimer;
-const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
+let feedbackTimer,feedbackOwner=null;
+const assistFeedbackOwner=Object.freeze({});
+const tell=(text,temporary=false,owner=null)=>{feedbackOwner=owner;clearTimeout(feedbackTimer);status.dataset.quiet=String(temporary);status.replaceChildren(...(text?[copyText(text)]:[]));if(temporary)feedbackTimer=setTimeout(()=>tell(''),480);};
 async function refresh(internal=false){
  if(mode==='search'){if(!editing&&!checking)await runHistory();return;}
  if(checking||editing||(busy&&internal!==true)||drag||refreshing)return;
@@ -102,6 +106,7 @@ function paintCapsule(){
 }
 async function setSurfaceForm(form){
  if(editing||checking||busy||refreshing||drag||composing||searchComposing)return;
+ void assistSurface?.dismiss();
  pending(true);try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);if(form==='board'&&document.hasFocus?.())list.querySelector('.insert:not(:disabled)')?.focus();}
 }
 function clipped(item,node){return /[\r\n\t]/.test(item.text)||/^\s|\s$| {2}/.test(item.text)||node.scrollWidth>node.clientWidth+1;}
@@ -217,6 +222,7 @@ async function requestClose(event){
  if(composing||searchComposing||event?.isComposing||event?.keyCode===229)return;
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
+ void assistSurface?.dismiss();
  // Freeze admission while the existing authenticated close RPC is in flight.
  pending(true);try{
   const closed=await rpc({type:'close'});
@@ -275,6 +281,10 @@ const candidateAdopt=button('采用已准备的历史候选',async()=>{
  catch{if(ticket===epoch)tell('历史候选暂不可用；常用输入和本机搜索仍可使用。');}finally{if(ticket===epoch)pending(false);}
 });candidateAdopt.id='history-candidates-adopt';candidateAdopt.hidden=true;
 document.getElementById('surface-tools').append(candidateRefresh,candidateAdopt);
+assistSurface=mountPromptAssist({card:document.getElementById('card'),list,tools:document.getElementById('surface-tools'),send:rpc,button,bindCopy,tell:text=>tell(text,false,assistFeedbackOwner),clearFeedback:()=>{if(feedbackOwner===assistFeedbackOwner)tell('');},canActivate:()=>!disposed&&!editing&&!checking&&!busy&&!refreshing&&!drag&&!composing&&!searchComposing,changed:scheduleLayout});
+// A new explicit action abandons only this transient Assist view. Local prompts
+// remain usable while a remote suggestion is pending; no background auto-retry.
+for(const actionType of ['click','input','focusin'])document.getElementById('card').addEventListener(actionType,event=>{if(event.isTrusted&&assistSurface.active&&!assistSurface.panel.contains(event.target)&&!assistSurface.open.contains(event.target))void assistSurface.dismiss();},true);
 let candidateAvailable=false;
 function paintCandidateControls(){candidateRefresh.hidden=!candidateAvailable||mode!=='search';candidateRefresh.disabled=!history.query.trim();candidateAdopt.hidden=!candidateReady||mode!=='candidates';}
 void rpc({type:'history_candidates_status'}).then(value=>{if(!disposed){candidateAvailable=value.available===true;paintCandidateControls();}},()=>{});
@@ -301,7 +311,7 @@ async function openPaia(){if(busy||editing||drag||composing||searchLoading)retur
 document.getElementById('open-paia').addEventListener('click',openPaia);
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
-chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;if(document.documentElement.dataset.surfaceForm==='capsule')void setSurfaceForm('board');else void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_ASSIST_CHANGED'){if(s.id===chrome.runtime.id&&!s.tab)assistSurface?.invalidate();return;}if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing&&!assistSurface?.active});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;if(document.documentElement.dataset.surfaceForm==='capsule')void setSurfaceForm('board');else void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;assistSurface?.invalidate();invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 const next=document.createElement('button');next.id='next-reopen';bindCopy(next,'本轮建议');next.hidden=true;document.getElementById('surface-tools').append(next);
 let nextAvailabilityEpoch=0;
@@ -311,7 +321,7 @@ chrome.runtime.onMessage.addListener((r,s)=>{if(s.id===chrome.runtime.id&&!s.tab
 
 // An inactive cross-origin frame retains its last focused element. Reveal controls only while this document actually owns focus.
 const reflectFocus=()=>document.documentElement.toggleAttribute('data-focused',document.hasFocus());
-window.addEventListener('pagehide',()=>{disposed=true;invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
+window.addEventListener('pagehide',()=>{disposed=true;assistSurface?.dispose();invalidateSplit();++candidateRequest;++epoch;copyRequest=null;checkingRequest=null;++layoutTicket;});
 window.addEventListener('focus',reflectFocus);window.addEventListener('blur',reflectFocus);reflectFocus();
 
 }

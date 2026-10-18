@@ -8,6 +8,7 @@ on:
     paths:
       - 'extension/core/**'
       - 'extension/background/**'
+      - 'extension/content/**'
       - 'extension/ui/**'
       - 'extension/tests/**'
       - 'services/ai-gateway/tests/**'
@@ -54,6 +55,18 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node --test --test-reporter=tap ../../extension/tests/ai-context-edit-mapping.test.mjs 2>&1 | tee evidence/context-restore-protocol.tap
+      - name: Original Maintenance worker and service cadence
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/maintenance-client-path.test.mjs tests/maintenance-client-recovery.test.mjs tests/maintenance-cold-independent-negative.test.mjs tests/maintenance-cadence.test.mjs tests/maintenance-worker-entry.test.mjs ../../extension/tests/ai-usage-semantic-receipt.test.mjs 2>&1 | tee evidence/maintenance-client-protocol.tap
+      - name: Explicit Assist consent, current reply and insertion path
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/assist-client-path.test.mjs tests/assist-client-recovery.test.mjs tests/assist-client-boundaries.test.mjs tests/assist-client-content-ack.test.mjs ../../extension/tests/assist-consent.test.mjs ../../extension/tests/assist-content-bridge.test.mjs ../../extension/tests/assist-service-configuration.test.mjs ../../extension/tests/assist-service-response.test.mjs ../../extension/tests/prompt-assist-state.test.mjs ../../extension/tests/prompt-assist-presenter.test.mjs ../../extension/tests/settings-assist-state.test.mjs 2>&1 | tee evidence/assist-client-protocol.tap
       - name: Retain exact scoped evidence
         if: always()
         uses: actions/upload-artifact@v4

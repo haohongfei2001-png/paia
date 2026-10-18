@@ -1,3 +1,4 @@
+import {clientDeclarationRequestData} from './client-declaration.js';
 import {qualifiedCoverageId} from './assist-intent-binding.js';
 import {equal,exact,fail,isAssistResultJob,isHistoricalCandidateJob,isPrivateResultJob,opaque,unitKey,validateCoverage} from './contracts.js';
 
@@ -6,6 +7,21 @@ import {equal,exact,fail,isAssistResultJob,isHistoricalCandidateJob,isPrivateRes
 export function savedFinancialCancellation(row){
  try{const a=row?.financialCancellationEvidence;exact(a,['decision','operationId','state','reservationMicros','window','financialAuthority','dispatchAllowed','retryAllowed'],['decision','operationId','state','reservationMicros','financialAuthority','dispatchAllowed','retryAllowed']);
   return row.executionKind==='server-backed'&&row.financialCancellation===true&&a.decision==='cancelled'&&a.operationId===row.childId&&a.operationId===row.financialRequest?.operationId&&a.state==='CANCELLED_BEFORE_DISPATCH'&&Number.isSafeInteger(a.reservationMicros)&&a.reservationMicros>=0&&['financialAuthority','dispatchAllowed','retryAllowed'].every(k=>a[k]===false);
+ }catch{return false;}
+}
+
+// The Maintenance recovery owner records this witness in the same transaction
+// as authentic financial enrichment. It preserves the exact original cancelled
+// service-planned child, rather than rewriting its already-issued domain event.
+function savedMaintenanceRecoveryWitness(job,row,child,index){
+ try{
+  const w=row.maintenanceRecoveryWitness;exact(w,['version','marker','prior','domainChild']);
+  const p=w.prior,m=w.marker;exact(m,['id','version','jobId','origin','requests']);
+  exact(p,['id','kind','version','jobId','childId','parentReservationId','executionKind','sequence','state','stateKey','windowIds','attemptCount','spendState','effectiveResultCount']);
+  if(job.type!=='AI_MAINTENANCE'||job.kind!=='ai_usage_v1'||w.version!==1||!equal(w.domainChild,child)||child.executionKind!=='service-planned'||child.state!=='CANCELLED_BEFORE_DISPATCH'||child.operationReceiptId!==null||m.id!=='aiu:maintenance-service-preflight:v1'||m.version!==1||m.jobId!==job.id||m.origin!==row.serviceOrigin||!Array.isArray(m.requests)||m.requests.length!==job.childIds.length||m.requests.length<1||m.requests.length>2||!m.requests[index])return false;
+  if(p.id!==row.id||p.kind!=='ai_usage_v1'||p.version!==1||p.jobId!==job.id||p.childId!==child.operationId||p.parentReservationId!==job.id||p.executionKind!=='service-planned'||p.sequence!==index||p.state!=='CANCELLED_BEFORE_DISPATCH'||p.stateKey!==1||!equal(p.windowIds,[])||p.attemptCount!==0||p.spendState!=='NOT_RESERVED'||p.effectiveResultCount!==0)return false;
+  for(const [i,value]of m.requests.entries())if(value!==null){const r=clientDeclarationRequestData(value);if(r.jobType!=='AI_MAINTENANCE'||r.jobId!==job.id||r.operationId!==job.childIds[i]||r.childIndex!==i||r.childCount!==job.childIds.length||r.scopeFingerprint!==job.scopeFingerprint||r.contractVersion!==job.contractVersion||r.routeVersion!==job.routeVersion||['principalId','libraryId','consentEpoch'].some(k=>r[k]!==job.authority[k]))return false;}
+  return equal(m.requests[index],row.financialRequest);
  }catch{return false;}
 }
 
@@ -64,7 +80,7 @@ export async function savedDomainResultReceipt(t,job){
   // The original local cancellation can have no attempt row. An exact
   // original-owner recovery adds financial evidence without rewriting that
   // already-issued FAILED domain event or claiming a recovered body.
-  const financialOnly=c.state==='CANCELLED_BEFORE_DISPATCH'&&c.executionKind===null&&c.operationReceiptId===null&&r.outcome==='FAILED'&&row.executionKind==='server-backed'&&(savedFinancialCancellation(row)||row.financialSettlement?.state==='SETTLED'&&row.financialSettlementEvidence?.receiptId===row.operationReceiptId);
+  const financialOnly=c.state==='CANCELLED_BEFORE_DISPATCH'&&(c.executionKind===null||savedMaintenanceRecoveryWitness(job,row,c,i))&&c.operationReceiptId===null&&r.outcome==='FAILED'&&row.executionKind==='server-backed'&&(savedFinancialCancellation(row)||row.financialSettlement?.state==='SETTLED'&&row.financialSettlementEvidence?.receiptId===row.operationReceiptId);
   if(row.kind!=='ai_usage_v1'||row.version!==1||row.jobId!==job.id||row.childId!==c.operationId||row.sequence!==i||row.state!==c.state||!financialOnly&&(row.executionKind!==c.executionKind||(row.operationReceiptId??null)!==c.operationReceiptId))fail('RESULT_CONFLICT');
  }
  return structuredClone(r);
