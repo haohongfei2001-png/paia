@@ -14,7 +14,11 @@ def verify_static_presentation(root,check):
     from launch_checks import Text,find
     fixture=json.loads((root/'website/presentation_invariants.json').read_text())
     for name,sha in fixture['unchanged'].items():
-        check(hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,'presentation unchanged: '+name)
+        data = (root/name).read_bytes()
+        if name == 'assets/website/launch.css':
+            from cool_neutral_white_checks import restore_approved_environment
+            data = restore_approved_environment(root, data)
+        check(hashlib.sha256(data).hexdigest()==sha,'presentation unchanged except approved environment: '+name)
     for name,expectations in fixture['home_text'].items():
         source=(root/name).read_text();p=Fragments(source)
         for selector,text in expectations.items():

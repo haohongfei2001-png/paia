@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "authorization": "Owner selected A cold-neutral white actual-site comparison and explicitly requested production replacement. This is not approval of the intervening assistant-generated expanded palette.",
+  "source_main": "fd6d83d976b24bd3e430eb34f8b0496679c7789d",
+  "path": "assets/website/launch.css",
+  "marker": "/* HARMONY_20261013",
+  "baseline_sha256": "5c256e180daca7710b0debcaeefe196143ec66db8330bb32ebf6166f9dd17a50",
+  "selected_sha256": "4cbb8512aebfa433d64747eed8abe8796bbc5c23062fe7e6ca9a55c2ee0b036a",
+  "substitutions": [
+    {
+      "before": ":root {\n  --harmony-paper:#ffffff;",
+      "after": ":root {\n  /* Owner-selected A cold-neutral white: environment only; product colors stay. */\n  --bg:#ffffff;\n  --harmony-paper:#ffffff;",
+      "occurrences": 1
+    },
+    {
+      "before": "--harmony-ground:#fbfdff;",
+      "after": "--harmony-ground:#ffffff;",
+      "occurrences": 1
+    },
+    {
+      "before": "background:linear-gradient(118deg,#fcfdff 8%,#f8fbff 56%,#eff5fc);",
+      "after": "background:linear-gradient(118deg,#ffffff 8%,#fcfcfd 56%,#f6f7f9);",
+      "occurrences": 1
+    },
+    {
+      "before": "background:radial-gradient(ellipse,#d8e6f6ad,transparent 70%);",
+      "after": "background:radial-gradient(ellipse,#e2e5eaad,transparent 70%);",
+      "occurrences": 1
+    },
+    {
+      "before": "background:linear-gradient(135deg,#eef5fdc2,#f9fcff);",
+      "after": "background:linear-gradient(135deg,#f1f3f6c2,#fdfefe);",
+      "occurrences": 1
+    },
+    {
+      "before": "background:linear-gradient(#fbfdff,#f3f8ff 48%,#fbfdff);",
+      "after": "background:linear-gradient(#ffffff,#f7f8fa 48%,#ffffff);",
+      "occurrences": 1
+    },
+    {
+      "before": "body .art-refined .pc-prompts { padding-block:86px 88px;background:#fbfdff; }",
+      "after": "body .art-refined .pc-prompts { padding-block:86px 88px;background:#ffffff; }",
+      "occurrences": 1
+    },
+    {
+      "before": "background:radial-gradient(ellipse at 24% 51%,#e8f1fc70,transparent 65%);",
+      "after": "background:radial-gradient(ellipse at 24% 51%,#e8ebf070,transparent 65%);",
+      "occurrences": 1
+    },
+    {
+      "before": "body .art-refined .pc-context { padding-block:88px;background:#fbfdff;border-top-color:#eaf0f8; }",
+      "after": "body .art-refined .pc-context { padding-block:88px;background:#ffffff;border-top-color:#eaf0f8; }",
+      "occurrences": 1
+    },
+    {
+      "before": "background:linear-gradient(145deg,#eaf2fc,#f7faff);box-shadow:none;",
+      "after": "background:linear-gradient(145deg,#f1f3f6,#fcfdfe);box-shadow:none;",
+      "occurrences": 1
+    },
+    {
+      "before": "body .art-refined .pc-sync { padding-block:50px;background:#fbfdff; }",
+      "after": "body .art-refined .pc-sync { padding-block:50px;background:#ffffff; }",
+      "occurrences": 1
+    },
+    {
+      "before": "body .core-close { padding-block:66px;background:linear-gradient(115deg,#edf4fc,#f5f9fe); }",
+      "after": "body .core-close { padding-block:66px;background:linear-gradient(115deg,#f4f6f8,#fbfcfd); }",
+      "occurrences": 1
+    },
+    {
+      "before": "body .invitation { background:linear-gradient(115deg,#eef4fd,#f5f8fd);border:1px solid #e7eef8;box-shadow:none; }",
+      "after": "body .invitation { background:linear-gradient(115deg,#f4f6f8,#fbfcfd);border:1px solid #e7eef8;box-shadow:none; }",
+      "occurrences": 1
+    },
+    {
+      "before": "body .release-download { box-shadow:var(--harmony-close);background:linear-gradient(135deg,#fff,#f8fbff); }",
+      "after": "body .release-download { box-shadow:var(--harmony-close);background:linear-gradient(135deg,#fff,#fcfdfe); }",
+      "occurrences": 1
+    }
+  ]
+}
