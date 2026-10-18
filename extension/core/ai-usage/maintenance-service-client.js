@@ -1,3 +1,4 @@
+import {createMaintenanceServiceResponseAdapter,MAINTENANCE_SERVICE_RESPONSE_SCHEMA} from './maintenance-service-response.js';
 import {savedFinancialCancellation} from './domain-result-receipt.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {canonical,equal,fail,digest} from './contracts.js';
@@ -28,6 +29,8 @@ export function createMaintenanceServiceClient(configuration){
  }catch{return null;}
  const transport=(factory,path)=>factory({endpoint:c.origin+path,...(c.fetch?{fetch:c.fetch}:{})}),declarations=transport(createClientDeclarationTransport,'/api/declarations'),reservations=transport(createClientReservationTransport,'/api/reservations'),results=transport(createClientResultTransport,'/api/results'),status=transport(createClientOperationStatusTransport,'/api/operation-status');
  if([declarations,reservations,results,status].some(x=>!x))return null;
+ let service;try{const ds=Object.getOwnPropertyDescriptors(c.service),keys=Reflect.ownKeys(ds);if(![Object.prototype,null].includes(Object.getPrototypeOf(c.service))||keys.some(k=>!['version','topic','context','filter'].includes(k)||!Object.hasOwn(ds[k],'value'))||!['version','topic','context'].every(k=>keys.includes(k)))return null;service=Object.fromEntries(keys.map(k=>[k,ds[k].value]));}catch{return null;}
+ const responses=createMaintenanceServiceResponseAdapter();
  let disposed=false;const active=new Set(),opportunities=new WeakSet(),controller=new AbortController(),current=()=>{if(disposed||controller.signal.aborted||c.isCurrent()!==true)fail('UNAVAILABLE');};
  const window=Object.freeze({acquire:async({jobType,requestDigest})=>{current();if(jobType!=='AI_MAINTENANCE'||!token(requestDigest))fail('UNAVAILABLE');const opportunity=Object.freeze({version:1,kind:'service-opportunity',requestDigest,revocationSignal:controller.signal});opportunities.add(opportunity);return opportunity;},isCurrent:grant=>{try{current();return opportunities.has(grant);}catch{return false;}}});
  async function preflight(t,jobId=null,retainJob=null){
@@ -44,10 +47,12 @@ export function createMaintenanceServiceClient(configuration){
   if(previous.recovery){if(!equal(previous.recovery,job.maintenanceRecovery))fail('OUTCOME_UNKNOWN');return {recovery:previous.recovery};}
  }
  const client={
-  sessionOptions:Object.freeze({authority:c.resolveAuthority,service:c.service,processing:c.processing,window}),
+  sessionOptions:Object.freeze({authority:c.resolveAuthority,service:Object.freeze({...service,responseAdapter:responses.adapter}),processing:c.processing,window}),
   options:Object.freeze({scope:c.scope,contractVersion:c.contractVersion,routeVersion:c.routeVersion}),
   available:()=>{try{current();return true;}catch{return false;}},
-  onInvalidate:fn=>c.onInvalidate(()=>{controller.abort();fn();}),
+  onInvalidate:fn=>c.onInvalidate(()=>{controller.abort();responses.dispose();fn();}),
+  releaseResponseJob:jobId=>responses.releaseJob(jobId),
+  releaseResponseChild:childId=>responses.releaseChild(childId),
   async assertCanPlan(foundation,retainJob,isCurrent=()=>true){
    current();const recovered=await client.recover(foundation,{retainJob,isCurrent});if(recovered)return recovered;
    current();const prior=await foundation.read(async t=>{const marker=await t.get('meta',FLIGHT);if(!marker||marker.origin!==c.origin||retainJob?.(marker.jobId))return null;const job=await t.get('organizerJobs',marker.jobId);return job&&terminal.has(job.state)&&job.domainResultReceipt&&!job.maintenanceCadenceDenial&&job.resultReport?.state!=='ACKNOWLEDGED'?{id:job.id}:null;});
@@ -74,11 +79,11 @@ export function createMaintenanceServiceClient(configuration){
    })();const flight={origin:c.origin,task};recoveries.set(foundation.s,flight);task.finally(()=>{if(recoveries.get(foundation.s)===flight)recoveries.delete(foundation.s);}).catch(()=>{});return task;
   },
   async prepareChild(foundation,job,payload,{signal,assertCurrent,assertBeforeSend,isCurrent}){
-   current();await assertCurrent();const metadata=await foundation.read(async t=>{const stored=await foundation.job(t,job.id);await foundation.current(t,stored);const index=stored.childIds.indexOf(payload.childOperationId);if(index<0)fail('STALE_BASE');return foundation.childRequest(stored,index);});
+   current();payload=freeze(snapshot(payload));await assertCurrent();const metadata=await foundation.read(async t=>{const stored=await foundation.job(t,job.id);await foundation.current(t,stored);const index=stored.childIds.indexOf(payload.childOperationId);if(index<0)fail('STALE_BASE');return foundation.childRequest(stored,index);});
    if(!equal(Object.fromEntries(Object.keys(metadata).map(k=>[k,payload[k]])),metadata))fail('STALE_BASE');
    const childIdentity=Object.fromEntries(['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'].map(k=>[k,metadata[k]]));
    const manifest=snapshot(await c.readProfile({childIdentity:structuredClone(childIdentity)}));await assertCurrent();
-   if(manifest.profile.jobType!=='AI_MAINTENANCE'||manifest.profile.contractVersion!==c.contractVersion||manifest.profile.routeVersion!==c.routeVersion||manifest.profile.thinking.enabled!==false)fail('UNAVAILABLE');
+   if(manifest.profile.jobType!=='AI_MAINTENANCE'||manifest.profile.contractVersion!==c.contractVersion||manifest.profile.routeVersion!==c.routeVersion||manifest.profile.thinking.enabled!==false||!equal(manifest.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');
    const compiler=createQwenRequestProfileCompiler({profile:manifest.profile,known:manifest.known}),outputCap=Math.min(ENVELOPES.AI_MAINTENANCE.output,manifest.profile.qualifiedLimits.billableOutputCap),compiled=compiler.compile({childIdentity,inputTokens:0,outputCap,stream:false,now:c.clock()});compiler.dispose();
    if(compiled.status!=='COMPILED_PARTIAL')fail('UNAVAILABLE');
    const body=canonical({model:manifest.profile.model.requested,messages:[{role:'system',content:manifest.wire.instructions},{role:'user',content:canonical(payload)}],response_format:manifest.wire.responseFormat,...compiled.requestControls,...manifest.wire.thinkingControls,n:1}),envelope={method:'POST',endpoint:{scheme:'https',host:manifest.profile.endpoint.host,path:manifest.profile.endpoint.path},headers:{'Content-Type':'application/json'},body},requestDigest=await hashText(canonical(envelope));
@@ -89,7 +94,7 @@ export function createMaintenanceServiceClient(configuration){
    const payloadDigest=await hashText(canonical(payload)),authorization=freeze({authorizationId:'maintenance:'+metadata.childOperationId,childIdentity:structuredClone(childIdentity),reservationRequest:structuredClone(request),payloadDigest,expiresAt:Math.min(manifest.profile.validity.expiresAt,measurement.expiresAt)});let reservation=null,retired=false,registered=false;
    const live=()=>!disposed&&!retired&&isCurrent()===true&&c.isCurrentTokenizer(measurement)===true;
    const owner=createQwenQualifiedRequestOwner({clock:c.clock,
-    resolveProfile:async q=>{await assertCurrent();return c.readProfile(q);},
+    resolveProfile:async q=>{await assertCurrent();const profile=snapshot(await c.readProfile(q));if(!equal(profile.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');return profile;},
     authorizePayload:async q=>{await assertCurrent();if(!live()||!equal(q.childIdentity,childIdentity)||!equal(q.reservationRequest,request)||q.payloadDigest!==payloadDigest)fail('STALE_BASE');return structuredClone(authorization);},
     tokenize:async q=>{await assertCurrent();const v=await c.tokenize(q);if(!equal(v,measurement))fail('STALE_BASE');return v;},
     readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');const observation=await status.query({request,...proofs});await assertCurrent();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;
@@ -109,11 +114,11 @@ export function createMaintenanceServiceClient(configuration){
     await assertCurrent();const bound=await owner.bind(input);if(bound.status!=='BOUND_LOCAL')fail('OUTCOME_UNKNOWN');
     let provider;const send=c.fetch??globalThis.fetch,providers=createClientProviderTransport({endpoint:c.origin+'/api/provider',fetch:async req=>{const requireLocalCurrent=await assertBeforeSend();if(req.signal.aborted||typeof requireLocalCurrent!=='function')fail('CANCELLED');const binding=qwenFoundationProviderData(provider);if(!binding)fail('UNAVAILABLE');binding.current();requireLocalCurrent();return send(new Request(req,{signal:AbortSignal.any([req.signal,signal])}));}});
     provider=owner.foundationProvider(bound,providers);if(!provider)fail('UNAVAILABLE');
-    await foundation.reserveMaintenanceServerChild(job.id,provider);registered=true;await assertCurrent();return {provider,dispose:operation.dispose,scheduling:Object.freeze({nextEligibilityAt:reservation.window.nextEligibilityAt,observedAt:reservation.reservedAt})};
+    await foundation.reserveMaintenanceServerChild(job.id,provider);registered=true;await assertCurrent();responses.registerChild(foundation,payload,()=>!disposed&&!controller.signal.aborted&&isCurrent()===true&&c.isCurrentTokenizer(measurement)===true&&c.clock()<authorization.expiresAt,signal);return {provider,dispose:operation.dispose,scheduling:Object.freeze({nextEligibilityAt:reservation.window.nextEligibilityAt,observedAt:reservation.reservedAt})};
    }catch(error){if(registered)try{await foundation.cancelServer(job.id);}catch{/* Original hold remains unresolved. */}operation.dispose();throw error;}
   },
   async report(foundation,job){current();const s=await foundation.status(job.id),request=s.attempts.find(r=>r.financialRequest)?.financialRequest;if(!terminal.has(s.state)||!request)fail('RESULT_PENDING');const proofs=await c.readProofs(structuredClone(request));current();return foundation.reportResult(job.id,proofs,results);},
-  dispose(){disposed=true;controller.abort();/* In-flight finally retains cancellation proofs until its original cleanup. */}
+  dispose(){disposed=true;controller.abort();responses.dispose();/* In-flight finally retains cancellation proofs until its original cleanup. */}
  };
  clients.add(client);return Object.freeze(client);
 }

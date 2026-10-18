@@ -1,3 +1,11 @@
+# Structured Maintenance code checkpoint — 2026-10-18
+
+The separate development successor to `8275d54b1061922aacf827ea3900fddaacf4a64e` now owns the closed Maintenance response schema/adapter, exact Section-rename Topic reconciliation and private same-child Topic-to-Context result bridge. Original CAS/ACK, full human structural evidence and final independent Topic/Input/Source fences remain. Source protocol verification passes137/137; Section qualification passes277/277; source/build/privacy checks pass. Exact scope, overlapping checks, retained failures and subsequent integrated rerun are in [the checkpoint](implementation/MAINTENANCE-STRUCTURED-CHECKPOINT-20261018.md).
+
+Continue approved implementation: ordinary existing Context Item baseline qualification and its non-ADD semantic mappings remain actual code work, followed by individually bounded pending mappings. Native/source-release/visual/performance/real-use acceptance remains deferred; default-null identity/profile/tokenizer/endpoint/financial configuration remains a separate activation prerequisite. No main integration, installation, service activation or whole-plan completion is claimed. R3/YEAR-HARMONY authority, original privacy/human-content protections and paused new Sync scope are preserved.
+
+## Preserved preceding checkpoint
+
 # Maintenance and Assist source paths — 2026-10-18
 
 The reviewed integration now connects the original Organize, Maintenance and explicit Assist actions to their existing session, signed service, financial and local domain-result owners. Maintenance receives opportunities only from exact newly committed original-repository semantic receipts; read-only, replayed, no-op and unrelated writes cannot borrow a concurrent dirty counter. Its cold recovery binds the original repository/database and complete fixed sibling set, retains UNKNOWN holds and prior domain truth, and never recreates lost output or automatically starts a fresh paid cycle. Assist has separate default-off session permissions, original Prompt/Settings controls, current-reply qualification, no-send insertion and bounded cancellation/recovery.

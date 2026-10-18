@@ -123,8 +123,13 @@ export class TopicFormationService {
   if(prior){await this.read(current,t=>this.authorizeTopics(t,current,prior.topicIds||[]));assertActive(state.signal);if(state.cancelled)fail();return prior;}
   if(state.prior)fail();
   const {prepared,plan,projection,entryPlans,snapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan}=state,digest=await hashText(JSON.stringify(operation));
+  let transaction=null,committedTopicIds=[];
+  // Original owner capability, never provider/schema data. A joined owner may
+  // recheck this exact processing/evidence grant after staging its own ACK.
+  const finalFence=async t=>{if(t!==transaction)fail();await this.retrieval.guard.check(t,prepared);const source=await readFormationEvidence(this.store,t,prepared);if(!same(source.inputs,snapshot.inputs)||!same(source.sources,snapshot.sources))fail();await this.authorizeTopics(t,prepared,unique([...topicIds,...committedTopicIds]));assertActive(state.signal);if(state.cancelled)fail();return true;};
   return this.#writeTransaction(async t=>{
-   const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();return replay;}
+   transaction=t;
+   const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();committedTopicIds=[...(replay.topicIds||[])];await finalFence(t);return replay;}
    const active=()=>{assertActive(state.signal);if(state.cancelled)fail();};active();
    await this.retrieval.guard.check(t,prepared);await this.authorizeTopics(t,prepared,topicIds);
    if(!same(snapshot,await readFormationEvidence(this.store,t,prepared,snapshot.entries.map(e=>e.id))))fail();
@@ -169,8 +174,8 @@ export class TopicFormationService {
     }
    }
    if(consumePlan){await this.candidates.consumePreparedInTransaction(t,consumePlan);result.consumedCandidateId=request.candidateId;}
-   result.entryIds=unique(result.entryIds);result.createdEntryIds=unique(result.createdEntryIds);result.checks.humanIntent=!proof.blocked;await this.authorizeTopics(t,prepared,result.topicIds);active();await saveReceipt(this.store,t,operation,digest,result);active();return result;
-  });
+   result.entryIds=unique(result.entryIds);result.createdEntryIds=unique(result.createdEntryIds);result.checks.humanIntent=!proof.blocked;await this.authorizeTopics(t,prepared,result.topicIds);active();committedTopicIds=[...result.topicIds];await saveReceipt(this.store,t,operation,digest,result);await finalFence(t);active();return result;
+  },finalFence);
  }
  async #createTopic(t,plan,prepared,nameToken,operationId){
   const store=this.store,id=store.uuid(),sectionId=store.uuid(),at=store.clock(),sourceRecordIds=unique(prepared.evidence.filter(e=>plan.sourceInputIds.includes(e.inputId)).flatMap(e=>e.sourceRecordIds));

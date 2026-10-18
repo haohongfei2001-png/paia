@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS} from '../../../extension/core/ai-usage/maintenance-service-response.js';
+import {maintenanceSourceResponse} from './maintenance-source-response-fixture.mjs';
 import https from 'node:https';
 import {EventEmitter} from 'node:events';
 import {Readable} from 'node:stream';
@@ -19,10 +21,11 @@ import {createOperationStatusHandler} from '../operation-status-entry.mjs';
 import {createPostgresOperationStatusService} from '../operation-status-service.mjs';
 // Actual signed identity/declaration/HTTP/ledger/provider/domain owners. Only
 // SQL transactions and Qwen HTTPS are simulated; not live PostgreSQL evidence.
-export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null}={}){
+export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null,transformResponse=null}={}){
  const local=(filter?await filterMaintenanceFixture():mixed?await mixedMaintenanceFixture():await localMaintenanceFixture({inputs}));local.session.dispose();
  const server=providerFixture(),publication=publicationProtocol(server),calls=[];let live=true,listener=null,physical=0;
- const schema={type:'object',properties:{data:{type:'string',minLength:1,maxLength:60000},childOperationId:{type:'string',minLength:1,maxLength:200}},required:['data','childOperationId'],additionalProperties:false},manifest=server.manifest;
+ const schema=structuredClone(MAINTENANCE_SERVICE_RESPONSE_SCHEMA),manifest=server.manifest;
+ manifest.wire.instructions=MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS;
  manifest.profile.jobType='AI_MAINTENANCE';manifest.known.jobType='AI_MAINTENANCE';manifest.profile.contractVersion='synthetic-aiu-1';manifest.known.contractVersion='synthetic-aiu-1';manifest.profile.routeVersion='synthetic-maintenance-1';manifest.known.routeVersion='synthetic-maintenance-1';
  manifest.wire.responseFormat.json_schema.schema=schema;manifest.profile.responseSchemaDigest=await hashText(canonical(schema));manifest.known.responseSchemaDigest=manifest.profile.responseSchemaDigest;
  manifest.profile.qualifiedLimits.inputTokens=12000;manifest.profile.qualifiedLimits.billableOutputCap=2000;manifest.profile.thinking.requestedMaxCompletionTokens=1990;
@@ -31,11 +34,11 @@ export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=f
  t.mock.method(https,'request',(options,callback)=>{
   physical++;assert.equal(options.hostname,manifest.profile.endpoint.host);const req=new EventEmitter();let done=false;
   req.destroy=e=>{if(!done){done=true;queueMicrotask(()=>{req.emit('error',e);req.emit('close');});}return req;};
-  req.end=body=>{const payload=JSON.parse(JSON.parse(body).messages[1].content);queueMicrotask(async()=>{try{await beforeSend?.({payload,local,server});if(done)return;const value=await local.provider.execute(payload);if(malformed)value.fixture.topicAssessment.forbidden=true;done=true;
-   const incoming=Readable.from([Buffer.from(JSON.stringify(completion({choices:[{index:0,message:{role:'assistant',content:JSON.stringify({data:JSON.stringify(value),childOperationId:payload.childOperationId})},finish_reason:'stop'}]})))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>req.emit('close'));}catch(error){req.destroy(error);}});};
+  req.end=body=>{const payload=JSON.parse(JSON.parse(body).messages[1].content);queueMicrotask(async()=>{try{await beforeSend?.({payload,local,server});if(done)return;const original=await local.provider.execute(payload),value=maintenanceSourceResponse(payload,original);if(malformed)value.citations[0].inputId='SYNTHETIC-unknown-input';await transformResponse?.({value,payload,local,server});done=true;
+   const incoming=Readable.from([Buffer.from(JSON.stringify(completion({choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]})))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>req.emit('close'));}catch(error){req.destroy(error);}});};
   options.signal.addEventListener('abort',()=>req.destroy(Error('SYNTHETIC abort')),{once:true});return req;
  });
- const original=local.service.responseAdapter,service={...local.service,responseAdapter:Object.fromEntries(Object.entries(original).map(([facet,adapt])=>[facet,async(response,metadata,binding)=>{const value=JSON.parse(response.value.data);if(response.value.childOperationId!==binding.childOperationId)throw Error('synthetic swapped child');if(value.fixture)value.fixture.binding=structuredClone(binding);return adapt(value,metadata,binding);}]))};
+ const {responseAdapter:unusedAdapter,...service}=local.service;
  const configuration={origin:'https://service.invalid',scope:'synthetic-maintenance',contractVersion:'synthetic-aiu-1',routeVersion:'synthetic-maintenance-1',service,processing:local.materialProcessing,clock:()=>server.now,
   resolveAuthority:async(_t,r)=>({allowed:live,principalId:'SYNTHETIC-principal',libraryId:'SYNTHETIC-library',consentEpoch:'SYNTHETIC-consent',jobTypes:['AI_MAINTENANCE'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),isCurrent:()=>live,onInvalidate:fn=>{listener=fn;return ()=>{listener=null;};},
   readProfile:async()=>structuredClone(manifest),currentProfile:()=>structuredClone(manifest),tokenize:server.config.tokenize,isCurrentTokenizer:()=>live,

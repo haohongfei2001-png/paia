@@ -13,7 +13,7 @@ export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=n
   else if(d.kind==='library_entry'&&unit.facet==='context'&&qualifiedAuthored.has(unit.key))continue;
   else if(['library_entry','placement'].includes(d.kind)&&unit.facet==='context'&&qualifiedBound.has(unit.key))continue;
   else if(d.kind==='placement'&&unit.facet==='context'&&qualifiedPlacements.has(unit.key))continue;
-  else if(d.kind==='topic'&&unit.facet==='topic'&&qualifiedStructuralTopics.has(unit.key))continue;
+  else if(['section','topic'].includes(d.kind)&&unit.facet==='topic'&&qualifiedStructuralTopics.has(unit.key))continue;
   else if(['section','topic'].includes(d.kind)&&unit.facet==='context'&&qualifiedStructural.has(unit.key))continue;
   else if(d.kind==='context_item'&&unit.facet==='context'&&qualifiedContextEdits.has(unit.key))continue;
   else if(['library_entry','topic','section','placement','context_item'].includes(d.kind))unsupported.push(unit);

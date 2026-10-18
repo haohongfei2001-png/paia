@@ -103,7 +103,7 @@ export class AIUsageFoundation {
       if(!Array.isArray(admitted)||admitted.length>1||admitted.length===1&&!equal(validateCoverage(admitted,job.type),[row.unit]))fail('INVALID_REQUEST');mappingAvailable=admitted.length===1;
      }
     }
-    if((reconsiderStructuralContexts&&row.unit.facet==='context'||reconsiderStructuralTopics&&row.unit.facet==='topic'&&known?.descriptor?.kind==='topic')&&maintenanceRouteVersion!==job.routeVersion&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&row.retryCondition===({context:'CONTEXT_MAPPING_UNAVAILABLE',topic:'TOPIC_MAPPING_UNAVAILABLE'})[row.unit.facet]&&known?.signature===row.signature&&['section','topic'].includes(known.descriptor?.kind)&&!known.descriptor.removed&&!known.descriptor.fenceOnly){
+    if((reconsiderStructuralContexts&&row.unit.facet==='context'||reconsiderStructuralTopics&&row.unit.facet==='topic')&&maintenanceRouteVersion!==job.routeVersion&&!changed&&!acknowledged&&job.type==='AI_MAINTENANCE'&&row.retryCondition===({context:'CONTEXT_MAPPING_UNAVAILABLE',topic:'TOPIC_MAPPING_UNAVAILABLE'})[row.unit.facet]&&known?.signature===row.signature&&['section','topic'].includes(known.descriptor?.kind)&&!known.descriptor.removed&&!known.descriptor.fenceOnly){
      const dirty=await t.get('meta',DIRTY_PREFIX+row.unit.key);
      if(dirty?.signature===row.signature&&(dirty.pendingFacets||['topic','context']).includes(row.unit.facet)){
       const admitted=await this.#qualifyMaintenanceStructures(t,{items:[{key:known.descriptor.key,signature:known.signature,descriptor:structuredClone(known.descriptor)}],coverage:[structuredClone(row.unit)]});assertOwner();
@@ -120,7 +120,7 @@ export class AIUsageFoundation {
     if(!changed&&!acknowledged&&!mappingAvailable)continue;assertOwner();
     const boundRow=mappingAvailable&&row.unit.facet==='context'&&(known.descriptor.sourceRecordIds||[]).length?await t.get('thoughts',known.descriptor.kind==='placement'?(await t.get('placements',known.descriptor.recordId||known.descriptor.entityId))?.entryId:known.descriptor.entityId):null;
     const boundFields=boundRow&&['note','title'].some(f=>(boundRow[f]??'').trim()||boundRow.fieldRevisions?.[f]>0);
-    const history={...row,...(mappingAvailable?{reconsideredBecause:known.descriptor.kind==='context_item'?'HUMAN_CONTEXT_EDIT_MAPPER_V1':known.descriptor.kind==='topic'?(row.unit.facet==='topic'?'HUMAN_TOPIC_RECONCILIATION_V1':'HUMAN_TOPIC_CONTEXT_MAPPER_V1'):known.descriptor.kind==='section'?'HUMAN_SECTION_CONTEXT_MAPPER_V1':boundFields?'BOUND_ENTRY_CONTEXT_MAPPER_V1':known.descriptor.kind==='placement'?'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1':!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    const history={...row,...(mappingAvailable?{reconsideredBecause:known.descriptor.kind==='context_item'?'HUMAN_CONTEXT_EDIT_MAPPER_V1':known.descriptor.kind==='topic'?(row.unit.facet==='topic'?'HUMAN_TOPIC_RECONCILIATION_V1':'HUMAN_TOPIC_CONTEXT_MAPPER_V1'):known.descriptor.kind==='section'?(row.unit.facet==='topic'?'HUMAN_SECTION_RECONCILIATION_V1':'HUMAN_SECTION_CONTEXT_MAPPER_V1'):boundFields?'BOUND_ENTRY_CONTEXT_MAPPER_V1':known.descriptor.kind==='placement'?'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1':!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
     if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
     if(!prior)await t.put('organizerWorkItems',history);
     await t.delete('organizerWorkItems',row.id);archived++;if(mappingAvailable)reconsidered++;assertOwner();
@@ -845,7 +845,7 @@ export class AIUsageFoundation {
    if(this.#qualifyMaintenanceStructures){
     const admitted=await this.#qualifyMaintenanceStructures(t,structuredClone({items:job.items,coverage:job.coverage}));assertOwner();if(!Array.isArray(admitted))fail();
     if(admitted.length){const checked=validateCoverage(admitted,job.type);
-     if(checked.some(u=>!(u.facet==='context'||u.facet==='topic'&&job.items.find(i=>i.key===u.key)?.descriptor.kind==='topic')||!unsupported.some(v=>equal(u,v))||!['section','topic'].includes(job.items.find(i=>i.key===u.key)?.descriptor.kind)))fail();
+     if(checked.some(u=>!['context','topic'].includes(u.facet)||!unsupported.some(v=>equal(u,v))||!['section','topic'].includes(job.items.find(i=>i.key===u.key)?.descriptor.kind)))fail();
      unsupported=unsupported.filter(u=>!checked.some(v=>equal(u,v)));
     }
    }

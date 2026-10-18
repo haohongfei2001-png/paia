@@ -52,9 +52,9 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
  if(!Array.isArray(structuralSections)||structuralSections.length>50)fail('BUDGET_EXCEEDED');
  for(const m of structuralSections){
   const {title,...proof}=m||{};
-  if(!validStructuralContextEvidence(proof)||typeof m.title!=='string'||m.title.length>300||JSON.stringify(m.selectedFields)!=='["title"]'||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['section',m.sectionId]))||!view.sections?.some(s=>s.id===m.recordId&&s.revision===m.sectionRevision&&s.title===m.title)||!Array.isArray(m.entries)||!m.entries.length||m.entries.length>20||!m.entries.every(e=>entries.some(x=>x.entryId===e.entryId&&x.revision===e.revision&&x.workingInputId===e.inputId)&&inputs.some(i=>i.inputId===e.inputId&&i.revision===e.inputRevision)))fail('UNAVAILABLE');
+  if(!validStructuralContextEvidence(proof)||typeof m.title!=='string'||m.title.length>300||JSON.stringify(m.selectedFields)!=='["title"]'||!metadata.coverage?.some(u=>['topic','context'].includes(u.facet)&&u.key===JSON.stringify(['section',m.sectionId]))||!view.sections?.some(s=>s.id===m.recordId&&s.revision===m.sectionRevision&&s.title===m.title)||!Array.isArray(m.entries)||!m.entries.length||m.entries.length>20||!m.entries.every(e=>entries.some(x=>x.entryId===e.entryId&&x.revision===e.revision&&x.workingInputId===e.inputId)&&inputs.some(i=>i.inputId===e.inputId&&i.revision===e.inputRevision)))fail('UNAVAILABLE');
  }
- if((metadata.coverage||[]).some(u=>u.facet==='context'&&u.key?.startsWith('["section",')&&!structuralSections.some(m=>u.key===JSON.stringify(['section',m.sectionId])))||new Set(structuralSections.map(m=>m.recordId)).size!==structuralSections.length)fail('UNAVAILABLE');
+ if((metadata.coverage||[]).some(u=>['topic','context'].includes(u.facet)&&u.key?.startsWith('["section",')&&!structuralSections.some(m=>u.key===JSON.stringify(['section',m.sectionId])))||new Set(structuralSections.map(m=>m.recordId)).size!==structuralSections.length)fail('UNAVAILABLE');
  if(!Array.isArray(structuralTopics)||structuralTopics.length>50)fail('BUDGET_EXCEEDED');
  for(const m of structuralTopics){
   const {name,...proof}=m||{};

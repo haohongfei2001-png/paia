@@ -146,7 +146,7 @@ test('real COMMITTED domain truth and its child remain byte-for-byte unchanged o
 });
 
 test('a real COMMITTED child survives a sibling Context failure and cold financial closure',async t=>{
- const f=await maintenanceServiceFixture(t,{inputs:21,configure:({local})=>{let n=0;local.state.contextHook=async()=>{if(++n===2)throw Error('SYNTHETIC second child Context rejection');};}}),result=await f.run();assert.equal(result.state,'PARTIAL');const before=await job(f,result.jobId),usage=await usageRows(f.s,result.jobId),committed=usage.find(r=>r.state==='COMMITTED'),acks=await acknowledgements(f,result.jobId);assert.ok(committed,'actual first child domain commit');
+ const f=await maintenanceServiceFixture(t,{inputs:21,transformResponse:({value,local})=>{if(local.calls.length===2)value.context.groups[0].topicId='SYNTHETIC-unknown-topic';}}),result=await f.run();assert.equal(result.state,'PARTIAL');const before=await job(f,result.jobId),usage=await usageRows(f.s,result.jobId),committed=usage.find(r=>r.state==='COMMITTED'),acks=await acknowledgements(f,result.jobId);assert.ok(committed,'actual first child domain commit');
  const cold=createConfiguredMaintenanceSession(f.s,f.configuration);assert.equal((await cold.opportunity()).state,'RECOVERED');assert.deepEqual((await usageRows(f.s,result.jobId)).find(r=>r.childId===committed.childId),committed);assert.deepEqual(await acknowledgements(f,result.jobId),acks);assert.deepEqual((await job(f,result.jobId)).committedCoverage,before.committedCoverage);assert.equal((await job(f,result.jobId)).domainResultReceipt.outcome,'FAILED');assert.equal(f.physical(),2);
 });
 

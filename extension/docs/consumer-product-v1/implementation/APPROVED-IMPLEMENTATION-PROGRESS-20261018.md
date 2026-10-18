@@ -1,3 +1,13 @@
+# Source-owned Maintenance and original-owner checkpoint
+
+The new independently reviewed development slice preserves source baseline `8275d54b1061922aacf827ea3900fddaacf4a64e` and closes the ordinary fixture-response dependency, exact Section Topic rename gap and same-child committed Topic bridge. Its closed response contract binds the qualified profile before reservation; runtime DEFER retains actual pending obligations; source response registrations are explicitly consumed/released. Original final transactions reject the six reproduced Topic epoch/Source-byte drifts without changing human structure or scope.
+
+[The exact checkpoint](MAINTENANCE-STRUCTURED-CHECKPOINT-20261018.md) records frozen code identities, local137/137 source protocols,277/277 Section tests, original-owner regressions, final integrated evidence and standard source/release/privacy checks. Counts overlap and remain scoped. Node24 local evidence is not Node22/native/live-provider qualification. The separate first-time stale semantic-view probes already passed under existing guards and remain positive negative-controls, not historical failures.
+
+Next actual code work is bounded independently granted existing Context Item state, with real UPDATE/REMOVE_CANDIDATE/NO_CHANGE through original owners; current absent-baseline cases remain explicit DEFER. Continue other approved mappings only with exact authority/evidence. Already implemented R3/Assist/native interactions await their required concentrated acceptance; real identity/entitlement/profile/tokenizer/resources/permissions/allowance and CTX4-06 transport retain external activation gates. New Sync work stays paused. No original receipt, failure, branch or main state is overwritten or relabelled.
+
+## Preserved preceding checkpoint
+
 # Maintenance and Assist integrated development checkpoint
 
 Local reviewed code tree `f408282fb2abf9a6724e6dac1cbca5c47a565f56` was published unchanged as `ab6ac945d5f4b0b7ca9a3b5a5872e43f63e3fde0`, with parents a7713f36 and adopted main43ec1075. Its 26 application-icon paths exactly preserve main43ec. The active-opportunity, cold-recovery and Assist boundary repairs have independent CLEAN reviews; original REDs remain in the owning receipts. No integration conflict added an unreviewed owner implementation.
