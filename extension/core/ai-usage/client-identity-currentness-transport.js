@@ -5,9 +5,15 @@ import {hashText} from '../dedupe.js';
 import {parseQwenWireJson} from './qwen-wire-primitives.js';
 // A dedicated, bounded metadata stream. A pulse confirms transport liveness;
 // it NEVER extends the single original signed snapshot's identity lifetime.
-const transports=new WeakMap(),connections=new WeakMap();
+const transports=new WeakMap(),connections=new WeakMap(),reservations=new WeakMap();
+// Source-only pre-acquisition tickets count against the SAME eight transport
+// slots while a fresh issuer proof is pending. Copying a ticket cannot open it.
+export const reserveClientIdentityCurrentnessTransport=t=>transports.get(t)?.reserve()??null;
+export const releaseClientIdentityCurrentnessTransport=(t,r)=>transports.get(t)?.release(r)??false;
+export const openReservedClientIdentityCurrentnessTransport=(t,r,b)=>transports.get(t)?.openReserved(r,b)??Promise.resolve(null);
 const fields=['version','principalId','libraryId','operationId','jobType','tier','principalGeneration','entitlementGeneration','authorityGeneration','observedAt','verifiedUntil','requestHash'];
 const flags=['financialAuthority','dispatchAllowed','retryAllowed'];
+export const clientIdentityCurrentnessTransportDrained=t=>transports.get(t)?.drained()===true;
 export const clientIdentityCurrentnessTransportOrigin=t=>transports.get(t)?.origin??null;
 export const readClientIdentityCurrentnessConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&value.isCurrent()?m:null;};
 export function createClientIdentityCurrentnessTransport(options){
@@ -21,8 +27,11 @@ export function createClientIdentityCurrentnessTransport(options){
   endpoint=u.href;origin=u.origin;
  }catch{return null;}
  const active=new Set(),occupied=new Set();let disposed=false,transport,opening=0;
- async function open(input){
-  if(disposed||occupied.size+opening>=8)return null;opening++;
+ const reserve=()=>{if(disposed||occupied.size+opening>=8)return null;const ticket=Object.freeze(Object.create(null));opening++;reservations.set(ticket,{transport,active:true});return ticket;};
+ const release=ticket=>{const held=reservations.get(ticket);if(!held||held.transport!==transport||!held.active)return false;held.active=false;opening--;return true;};
+ async function open(input,ticket=null){
+  if(ticket!==null){const held=reservations.get(ticket);if(!held||held.transport!==transport||!held.active)return null;held.active=false;if(disposed){opening--;return null;}}
+  else {if(disposed||occupied.size+opening>=8)return null;opening++;}
   let bundle,requestHash;
   try{bundle=snapshot(input,{maxBytes:24576,maxKeys:32,maxDepth:2,maxString:8192});
    if(!exact(bundle,['request','principalToken','entitlementToken'])||!['principalToken','entitlementToken'].every(k=>typeof bundle[k]==='string'&&bundle[k].length>0&&bundle[k].length<=8192))return null;
@@ -74,7 +83,7 @@ export function createClientIdentityCurrentnessTransport(options){
   })();
   return result;
  }
- transport=Object.freeze({open,dispose(){disposed=true;for(const close of [...active])close();}});transports.set(transport,{origin});return transport;
+ transport=Object.freeze({open,dispose(){disposed=true;for(const close of [...active])close();}});transports.set(transport,{origin,reserve,release,drained:()=>occupied.size+opening===0,openReserved:(ticket,bundle)=>open(bundle,ticket)});return transport;
 }
 // Status identity may be observed after the channel's snapshot. It must still
 // name exactly that connection's request and all authenticated generations.

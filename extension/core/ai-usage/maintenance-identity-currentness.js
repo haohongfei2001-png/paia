@@ -7,8 +7,8 @@ import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransp
 // Revoke is deny-only; reconnect never revives an old operation or old receipt.
 const owners=new WeakSet(),preparations=new WeakMap(),lifecycles=new WeakMap();
 export const isMaintenanceIdentityCurrentness=value=>owners.has(value);
-function createCurrentness({origin,clock=()=>NaN,transport=null}={}){
- const channels=new Map(),spent=new Set();
+function createCurrentness({origin,clock=()=>NaN,transport=null,ownTransport=true,onDisposed=null}={}){
+ const channels=new Map(),spent=new Set();let disposeCalled=false;
  let connected=null,remove=null,serial=0,connectionEpoch=0,last=-1,disposed=false;const leases=new Map(),revoked=new Set(),seen=new WeakMap(),tickets=new WeakMap(),pending=new Set();
  const clear=()=>{serial++;leases.clear();};
  const disconnect=()=>{connectionEpoch++;pending.clear();const old=remove;remove=null;connected=null;clear();const entries=[...channels.values()];channels.clear();for(const e of entries){try{e.remove?.();e.connection?.close();}catch{}}try{old?.();}catch{}};
@@ -29,7 +29,7 @@ function createCurrentness({origin,clock=()=>NaN,transport=null}={}){
   },
   isCurrent(identity){if(!live())return false;const l=leases.get(identity?.operationId),now=time();return !!l&&l.identity===identity&&l.serial===serial&&!revoked.has(generation(identity))&&now!==null&&now>=identity.observedAt&&now<identity.verifiedUntil&&(!transport||identityMatchesCurrentnessConnection(channels.get(identity.operationId)?.connection,transport,identity));},
   revoke(identity){const l=leases.get(identity?.operationId);if(!l||l.identity!==identity)return false;revoked.add(generation(identity));clear();if(revoked.size>32){disposed=true;disconnect();}return true;},
-  dispose(){disposed=true;disconnect();revoked.clear();spent.clear();transport?.dispose();}
+  dispose(){if(disposeCalled)return;disposeCalled=true;disposed=true;disconnect();revoked.clear();spent.clear();if(ownTransport)transport?.dispose();onDisposed?.();}
  });owners.add(owner);
  if(transport)lifecycles.set(owner,{claimed:false,isDisposed:()=>disposed,dispose:()=>owner.dispose()});
  if(transport)preparations.set(owner,async bundle=>{
@@ -88,4 +88,9 @@ export function claimMaintenanceIdentityChannel(owner){
 }
 export function disposeUnclaimedMaintenanceIdentityChannel(owner){
  const state=lifecycles.get(owner);if(state&&!state.claimed)state.dispose();
+}
+
+export function createSharedMaintenanceIdentityChannelCurrentness({origin,clock,transport,onDisposed=null}={}){
+ if(!transport||clientIdentityCurrentnessTransportOrigin(transport)!==origin)return null;
+ return createCurrentness({origin,clock,transport,ownTransport:false,onDisposed});
 }

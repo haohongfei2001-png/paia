@@ -15,6 +15,7 @@ import {MemoryService} from '../memory/service.js';
 import {prefix,revisionOK} from '../thought-model.js';
 import {KNOWN_PREFIX} from './delta.js';
 import {ASSIST_LIMITS} from './assist-response.js';
+import {matchAssistSectionLabels} from './assist-section-relevance.js';
 import {canonical,equal,exact,opaque,fail} from './contracts.js';
 import {snapshot as ownDataSnapshot} from './qwen-request-data.js';
 
@@ -118,24 +119,24 @@ async function buildScope(h,t,candidates){
 }
 function capability(value){if(value===null)return null;need(value&&[Object.prototype,null].includes(Object.getPrototypeOf(value)),'UNAVAILABLE');const ds=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(ds);need(keys.length===2&&['resolve','isCurrent'].every(k=>keys.includes(k)&&Object.hasOwn(ds[k],'value')&&typeof ds[k].value==='function'),'UNAVAILABLE');return Object.freeze({resolve:ds.resolve.value,isCurrent:ds.isCurrent.value});}
 function trackReceipt(h,handle,receipt,{discovery=false}={}){const receiptKey=discovery?'discoveryReceipt':'receipt',removeKey=discovery?'removeDiscoveryAbort':'removeAbort',timerKey=discovery?'discoveryExpiryTimer':'expiryTimer';h[removeKey]?.();clearTimeout(h[timerKey]);h[receiptKey]=receipt;const abort=()=>{try{h.onRevoke?.();}finally{releaseAssistContext(handle);}};receipt.revocationSignal.addEventListener('abort',abort,{once:true});h[removeKey]=()=>receipt.revocationSignal.removeEventListener('abort',abort);const schedule=()=>{if(Date.now()>=receipt.expiresAt){abort();return;}h[timerKey]=setTimeout(schedule,Math.min(receipt.expiresAt-Date.now(),2147483647));h[timerKey]?.unref?.();};schedule();}
-// Conservative lexical relevance only. Generic/empty labels are not facts or
-// a claim to semantic understanding. Reply bytes come solely from the current
-// original Assist lease, after its independent reply consent and size check.
-const genericLabels=new Set(['info','information','context','general','other','misc','miscellaneous','personal','now','rules','notes','default','其他','其它','默认','信息','个人信息','我的信息','现在','我的现在','通用']);
+// Reply normalization is local to its original independently granted lease.
 const normalized=s=>s.normalize('NFKC').replace(/\s+/gu,' ').trim().toLowerCase();
-function labelMatches(reply,label){const phrase=normalized(label);if([...phrase].length<2||genericLabels.has(phrase)||!/[\p{L}\p{N}]/u.test(phrase))return false;let at=-1;while((at=reply.indexOf(phrase,at+1))!==-1){const before=reply.slice(0,at).at(-1)||'',after=reply.slice(at+phrase.length)[0]||'',first=[...phrase][0],last=[...phrase].at(-1);if(!(/[\p{Script=Latin}\p{N}]/u.test(first)&&/[\p{Script=Latin}\p{N}]/u.test(before))&&!(/[\p{Script=Latin}\p{N}]/u.test(last)&&/[\p{Script=Latin}\p{N}]/u.test(after)))return true;}return false;}
 async function discover(h,t,handle,base){
  if(!base.discovery.length)return {items:base.items,seeds:base.seeds};need(h.discovery&&typeof h.replyText==='string'&&h.replyText.length<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'UNAVAILABLE');
  const scope={purpose:'assist-context-discovery',version:1,binding:copy(h.binding),contextItems:base.discovery.map(m=>({itemId:m.id,revision:m.revision,card:m.card,selectedFields:['section']}))};need(bytes(scope)+bytes(h.scope)<=32768,'RESOURCE_LIMIT');
  const receipt=grant(h,await h.discovery.resolve(t,copy(scope)),scope);alive(h);trackReceipt(h,handle,receipt,{discovery:true});alive(h);
- const row=await t.get('meta',CONTEXT_CARDS_ROW),matches=[],reply=h.replyText;
- for(const m of base.discovery){alive(h);const item=row?.items.find(x=>x.id===m.id);need(item&&equal(metadata(item),m));need(h.budget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields&&h.budget.hashBytes+320<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');const label=own(item,'section');need(typeof label==='string'&&label.length<=80&&!label.includes('\u0000'),'UNAVAILABLE');h.budget.hashFields++;h.budget.hashBytes+=new TextEncoder().encode(label).byteLength;if(labelMatches(reply,label))matches.push(m);alive(h);}
+ const row=await t.get('meta',CONTEXT_CARDS_ROW),labels=[];
+ for(const m of base.discovery){alive(h);const item=row?.items.find(x=>x.id===m.id);need(item&&equal(metadata(item),m));need(h.budget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields&&h.budget.hashBytes+320<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');const label=own(item,'section');need(typeof label==='string'&&label.length<=80&&!label.includes('\u0000'),'UNAVAILABLE');h.budget.hashFields++;h.budget.hashBytes+=new TextEncoder().encode(label).byteLength;labels.push(label);alive(h);}
+ // One bounded calculation over independently granted labels. Its output is
+ // only an index; exact metadata/selected-body authority remains here.
+ alive(h);const matching=matchAssistSectionLabels(h.replyText,labels);alive(h);
+ const matches=matching.decisions.filter(x=>x.disposition==='MATCH').map(x=>base.discovery[x.index]);
  const items=[...base.items,...matches];need(items.length<=ASSIST_CONTEXT_LIMITS.items,'RESOURCE_LIMIT');return {items,seeds:base.seeds};
 }
 function entrySpecsFields(entry,evidence){return [...new Set(['body','title','note',...evidence.filter(e=>entryEvidence(e)&&e.entryId===entry.id).flatMap(e=>e.selectedFields)])].sort();}
 export function assistContextScope(handle){return copy(state(handle).scope);}
 function grant(h,raw,scope=h.scope){const keys=['version','store','scope','epoch','processing','expiresAt','revocationSignal'];exact(raw,keys);need([Object.prototype,null].includes(Object.getPrototypeOf(raw))&&Reflect.ownKeys(raw).length===keys.length&&Reflect.ownKeys(raw).every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))&&raw.version===1&&raw.store===h.store&&opaque(raw.epoch)&&raw.processing===true&&Number.isSafeInteger(raw.expiresAt)&&raw.expiresAt>Date.now()&&raw.revocationSignal instanceof AbortSignal&&!raw.revocationSignal.aborted,'UNAVAILABLE');let actualScope;try{actualScope=ownDataSnapshot(raw.scope,{maxBytes:32768});}catch{fail('UNAVAILABLE');}need(equal(actualScope,scope),'UNAVAILABLE');return Object.freeze({...raw,scope:copy(scope)});}
-async function authorize(h,t){if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await h.processing.resolve(t,copy(h.scope)));if(h.receipt)need(current.epoch===h.receipt.epoch&&current.expiresAt===h.receipt.expiresAt&&current.revocationSignal===h.receipt.revocationSignal&&equal(current.scope,h.receipt.scope),'UNAVAILABLE');else h.receipt=current;alive(h);}
+async function authorize(h,t){alive(h);if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await h.processing.resolve(t,copy(h.scope)));if(h.receipt)need(current.epoch===h.receipt.epoch&&current.expiresAt===h.receipt.expiresAt&&current.revocationSignal===h.receipt.revocationSignal&&equal(current.scope,h.receipt.scope),'UNAVAILABLE');else h.receipt=current;alive(h);}
 async function material(h,t){
  if(!h.evidence.length)return null;
  const inputs=[],sources=[],entries=[],structures=[],memory=new MemoryService(h.store),filter=await t.get('meta','smart-filter');let retained=0;const retain=value=>{retained+=bytes(value);need(retained<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');return value;};

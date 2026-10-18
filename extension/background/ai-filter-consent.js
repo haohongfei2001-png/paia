@@ -1,5 +1,9 @@
 import {ArchiveError} from '../core/constants.js';
 export const AI_FILTER_CONSENT_KEY='aiFilterAuthorizationV1';
+const consentEpochReaders=new WeakMap();
+// Stable only within the stored browser-session opt-in generation. This reader
+// accepts an original current snapshot; a DTO or a copied owner cannot use it.
+export const readAIFilterConsentEpoch=(owner,snapshot)=>consentEpochReaders.get(owner)?.(snapshot)??null;
 const fail=code=>{throw new ArchiveError(code);};
 const exact=(x,keys)=>!!x&&[Object.prototype,null].includes(Object.getPrototypeOf(x))&&Reflect.ownKeys(x).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(x,k)||{},'value'));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -9,7 +13,7 @@ const valid=x=>exact(x,['version','optIn','remoteProcessing','generation'])&&x.v
 export class AIFilterConsent {
  #api;#consented;#value=null;#observed=null;#serial=0;#writes=0;#changing=false;#blocked=false;#disposed=false;#tail=Promise.resolve();#instance=crypto.randomUUID();#listeners=new Set();#snapshots=new WeakMap();#storage;#pending=null;
  constructor(api,{consented=async()=>false}={}){
-  this.#api=api;this.#consented=consented;
+  this.#api=api;this.#consented=consented;consentEpochReaders.set(this,snapshot=>this.isCurrent(snapshot)?this.#observed.generation:null);
   this.#storage=(changes,area)=>{if(area==='session'&&Object.hasOwn(changes||{},AI_FILTER_CONSENT_KEY)){const value=changes[AI_FILTER_CONSENT_KEY]?.newValue??null;if(!this.#pending||!same(value,this.#pending))this.invalidate();}};api.storage?.onChanged?.addListener(this.#storage);
  }
  onInvalidate(fn){if(typeof fn!=='function'||this.#listeners.size>=8)fail('RESOURCE_LIMIT');this.#listeners.add(fn);return ()=>this.#listeners.delete(fn);}
