@@ -1,0 +1,153 @@
+{
+  "id": "PAIA-FLOAT-UI-1.2-R3",
+  "selected": "One shared skin; original quarter-circle as control corner; relocate existing toolbar",
+  "original_reference_sha256": "dec1e0d19d373a0a6ae4219514bf9dc183f5ebe84773c8b7512f5ff96aa69c0e",
+  "verified_source_subtree_before_manifest": "07b207747c76d7a2ee6c2766f50481c0b7547fbb",
+  "source_file_count_before_manifest": 29,
+  "location_rule": "Source, SVG and verification summary are checked into the independent design directory. Listed generated HTML/PNG/full reports/patch are provided in the conversation ZIP, not claimed stored in GitHub. Tests and export scripts regenerate current outputs; earlier initial report is preserved historical evidence.",
+  "render_method": "Actual offline Chromium144.0.7559.96 screenshots; no image-generation model used for these screenshots. 1440x960 CSS viewport plus390px narrow view; DPR1,2 and3 detail crops.",
+  "verification": {
+    "regression_pass": 30,
+    "fusion_pass": 19,
+    "fusion_blocked": 1,
+    "block": "file:// navigation disallowed by managed browser policy; exact HTML exercised with page.set_content",
+    "native_extension": false
+  },
+  "artifacts": [
+    {
+      "path": "PAIA_Float_R3.html",
+      "bytes": 59718,
+      "sha256": "fd8c886ad8e106b30adf096fe8cc3ec0357c493e207c5ec339239e9b2f949c22"
+    },
+    {
+      "path": "evidence/three-states-light.png",
+      "bytes": 91002,
+      "sha256": "1acc39593b89426b2cdd801d643c6c9b6d5410d5a6182bb0e8522c72d0e62cdc",
+      "pixels": [
+        1440,
+        999
+      ]
+    },
+    {
+      "path": "evidence/three-states-dark.png",
+      "bytes": 91062,
+      "sha256": "878e11b97ac2b5836024f6235b0cc1920f3642eeb8b84c2d9b6961361e0ba42f",
+      "pixels": [
+        1440,
+        999
+      ]
+    },
+    {
+      "path": "evidence/three-states-light-dpr2.png",
+      "bytes": 231264,
+      "sha256": "12ff419dfb8dc32788ef0c4e1225742f41a87704e53add1ee40e5b472f8043d0",
+      "pixels": [
+        2880,
+        1998
+      ]
+    },
+    {
+      "path": "evidence/fused-corner-detail.png",
+      "bytes": 16969,
+      "sha256": "4463d0936adfa1a2f684ad7799d85ff8f4cc436709967b69bba2d704a353854e",
+      "pixels": [
+        582,
+        384
+      ]
+    },
+    {
+      "path": "evidence/capsule-detail.png",
+      "bytes": 21453,
+      "sha256": "35082a97741899824dc6195463d8d15bd651a88cca825711d21c410a940f5877",
+      "pixels": [
+        882,
+        204
+      ]
+    },
+    {
+      "path": "evidence/long-conversation-light.png",
+      "bytes": 130319,
+      "sha256": "fd955648e2ad92d375f108028f5aaad53acd54a8713d80dd349aa9bebf958ed1",
+      "pixels": [
+        1440,
+        960
+      ]
+    },
+    {
+      "path": "evidence/editor-dark.png",
+      "bytes": 124359,
+      "sha256": "f9303ad68aa1ab498d181d15814c9a5993c85e89f4762cc7a9a4f591127d1a2a",
+      "pixels": [
+        1440,
+        960
+      ]
+    },
+    {
+      "path": "evidence/narrow-light.png",
+      "bytes": 53900,
+      "sha256": "4d86be2ace1b8804ad2dfdb9b4ffd839b32cb10d3bbcebf74b09ab1c78d0c052",
+      "pixels": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "evidence/alternative-a-shared-last-row.png",
+      "bytes": 90140,
+      "sha256": "f6c6492e81d69643870360a842481864a90a0d522515f5d061bccad7234af67d",
+      "pixels": [
+        1440,
+        999
+      ]
+    },
+    {
+      "path": "evidence/alternative-c-added-footer.png",
+      "bytes": 90859,
+      "sha256": "23eb1a7963ba98977bd77c9807006ad35b84144b311dbdef583e45bfd499b858",
+      "pixels": [
+        1440,
+        999
+      ]
+    },
+    {
+      "path": "evidence/baseline-r2.png",
+      "bytes": 91105,
+      "sha256": "f644edd4e6e8c0b1dba221f17c6a0512edc66f7d0f8b3b04e4ff43af08029b5c",
+      "pixels": [
+        1440,
+        999
+      ]
+    },
+    {
+      "path": "evidence/verification.json",
+      "bytes": 6392,
+      "sha256": "bdc891f6aa155e9ee3e12fe80681b66a055699c9ead1f8b41e0c54beb9991fcd"
+    },
+    {
+      "path": "evidence/fusion-verification.json",
+      "bytes": 5947,
+      "sha256": "c67f3d20eef020a42965bab186dc976260b96dc1f7318b94df9a1c9233eea136"
+    },
+    {
+      "path": "evidence/fusion-verification-initial.json",
+      "bytes": 5928,
+      "sha256": "a6b0fbea8d4669ac6754c4bb17092e2573934558e4ef5d96fe8cf73479d01dc8"
+    },
+    {
+      "path": "evidence/fusion-motion-samples.json",
+      "bytes": 30420,
+      "sha256": "401548c427210d522163cc85c8a8eed6451e51500192cabc30394cc3079ee87b"
+    },
+    {
+      "path": "evidence/alternatives.json",
+      "bytes": 986,
+      "sha256": "f91eef20d508cd734f0c98a5b7ead8f836d6b95c3da4460bdb023de36534e008"
+    },
+    {
+      "path": "component-no-hints.patch",
+      "bytes": 8645,
+      "sha256": "70c8928b9a8a06a004e5353ba537a7f5d48f14d4c7c02a1b44d069d3c9d42ae9"
+    }
+  ],
+  "self_hash_excluded": true
+}
