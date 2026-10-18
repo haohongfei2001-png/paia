@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>PAIA · 形态融合 R3</title>
+<link rel="stylesheet" href="demo.css"><link rel="stylesheet" href="component.css"><link rel="stylesheet" href="fusion.css">
+<script defer src="component.js"></script><script defer src="fusion.js"></script><script defer src="demo.js"></script>
+</head>
+<body>
+<header class="bench-top">
+ <div class="bench-brand"><strong>PAIA</strong><span>双卡入口 · 形态融合 R3</span></div>
+ <div class="bench-controls"><div class="bench-segment" aria-label="原型视图"><button id="view-interactive" type="button" aria-pressed="true">交互</button><button id="view-compare" type="button" aria-pressed="false">三态对照</button></div><button class="bench-theme" id="theme" type="button" aria-label="切换到深色"></button></div>
+</header>
+<main class="stage" id="stage" data-view="interactive" aria-label="参考图复原的演示宿主"></main>
+<footer class="bench-footer"><p>独立设计原型，非安装扩展。<br>表达只放入本页示例输入框，不发送、不连接账号。</p><details><summary>环境检查</summary><div class="environment"><label>场景 <select id="scene"><option value="home">新对话</option><option value="long">长对话</option></select></label><label>示例 <select id="language"><option value="en">English</option><option value="zh">中文</option></select></label><label>文字 <select id="text-scale"><option value="1">100%</option><option value="2">200%</option></select></label><label><input type="checkbox" id="reduced">减弱动效</label><label><input type="checkbox" id="solid">不透明回退</label><button id="recommend" type="button">显示推荐</button><button id="grow" type="button">多行草稿</button><button id="reset" type="button">重置示例</button></div></details></footer>
+<div id="bench-status" role="status" aria-live="polite"></div>
+</body></html>
