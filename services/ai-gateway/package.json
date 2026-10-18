@@ -6,7 +6,9 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "node --test --test-reporter=tap tests/postgres-ledger.test.mjs",
-    "test:postgres": "node tests/run-postgres-tests.mjs"
+    "test:postgres": "node tests/run-postgres-tests.mjs",
+    "test:service": "node --test tests/request-entry.test.mjs tests/reservation-service.test.mjs",
+    "test:service:postgres": "node tests/run-service-postgres-tests.mjs"
   },
   "dependencies": { "pg": "8.23.1" }
 }

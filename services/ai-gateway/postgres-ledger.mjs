@@ -167,6 +167,15 @@ const ACCESS_SQL = `SELECT c.relrowsecurity, c.relforcerowsecurity,
   JOIN pg_catalog.pg_roles r ON r.rolname = current_user
   WHERE n.nspname = 'paia_ai_private' AND c.relname = 'budget_snapshot' AND c.relkind = 'r'`;
 const LOCK_SQL = `SELECT schema_version, snapshot FROM ${TABLE} WHERE ledger_key = $1 FOR UPDATE`;
+// The guarded path records database publication time in the same atomic UPDATE.
+// The authority rows stay locked through COMMIT; the returned receipt still
+// cannot authorize dispatch if COMMIT acknowledgement arrives after expiry.
+const GUARDED_WRITE_SQL = `WITH publication AS MATERIALIZED (
+  SELECT floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint AS millis
+) UPDATE ${TABLE} SET snapshot = jsonb_set($1::jsonb, '{lastNow}', to_jsonb(publication.millis)),
+  updated_at = clock_timestamp() FROM publication
+  WHERE ledger_key = $2 AND schema_version = $3
+  AND publication.millis >= $4::bigint AND publication.millis < $5::bigint`;
 const WRITE_SQL = `UPDATE ${TABLE} SET snapshot = $1::jsonb, updated_at = clock_timestamp()
   WHERE ledger_key = $2 AND schema_version = $3`;
 
@@ -185,8 +194,10 @@ export class PostgresLedgerStorage {
   // Invoke before serving traffic. Each transaction repeats the guard so a
   // warm process cannot continue after an incompatible schema/role change.
   async checkReady() { await this.transact(async () => undefined); }
-  async transact(callback) {
+  async transact(callback, publicationGuard = null) {
     if (typeof callback !== 'function') fail('POSTGRES_CALLBACK_REQUIRED');
+    if (publicationGuard !== null && (!publicationGuard || typeof publicationGuard.lock !== 'function' ||
+        typeof publicationGuard.beforePublish !== 'function')) fail('POSTGRES_AUTHORITY_REQUIRED');
     let client, began = false, commitStarted = false, discard = false;
     try { client = await this.#pool.connect(); } catch { fail('POSTGRES_UNAVAILABLE'); }
     // Handle checked-out socket errors without leaking raw DB/connection data.
@@ -238,15 +249,29 @@ export class PostgresLedgerStorage {
         }),
       });
       let answer;
-      try { answer = await callback(transaction); } catch (error) {
+      try {
+        // Guard comes only from the fixed service composition, not request data.
+        const authority = publicationGuard ? await publicationGuard.lock(client) : undefined;
+        answer = await callback(transaction, authority);
+      } catch (error) {
         // Preserve the original owner's budget/identity/rebound error, without
         // trying the callback a second time.
         throw { callbackError: error };
       } finally { open = false; }
       if (poisoned) throw poisonError;
       if (changed) {
-        const written = await client.query(WRITE_SQL, [pendingJson, LEDGER_KEY, SCHEMA_VERSION]);
-        if (written.rowCount !== 1) fail('POSTGRES_WRITE_FAILED');
+        let written;
+        if (publicationGuard) {
+          let bound;
+          try { bound = await publicationGuard.beforePublish(client); } catch (error) { throw { callbackError: error }; }
+          if (!bound || !integer(bound.notBefore) || !integer(bound.expiresAt) ||
+              bound.notBefore < pending.lastNow || bound.expiresAt <= bound.notBefore) fail('POSTGRES_AUTHORITY_EXPIRED');
+          written = await client.query(GUARDED_WRITE_SQL, [pendingJson, LEDGER_KEY, SCHEMA_VERSION, bound.notBefore, bound.expiresAt]);
+          if (written.rowCount !== 1) fail('POSTGRES_AUTHORITY_EXPIRED');
+        } else {
+          written = await client.query(WRITE_SQL, [pendingJson, LEDGER_KEY, SCHEMA_VERSION]);
+          if (written.rowCount !== 1) fail('POSTGRES_WRITE_FAILED');
+        }
       }
       commitStarted = true;
       await client.query('COMMIT');
