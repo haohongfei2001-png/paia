@@ -40,12 +40,12 @@ jobs:
           test -n "$CHROME_BIN"
           echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
           "$CHROME_BIN" --version
-      - name: Run the original single synthetic Source journey
+      - name: Run the held Settings control and original synthetic Source journey
         run: |
           set -o pipefail
           mkdir -p work/raw-source-original
-          node --test --test-name-pattern='^UX-R2 IME saves only complete text;' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs 2>&1 | tee work/raw-source-original/journey.tap
-      - name: Retain synthetic diagnostics and exact single-journey result
+          node --test --test-name-pattern='^UX-R2 Raw Settings original initialization commits before unique Original$|^UX-R2 IME saves only complete text;' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs 2>&1 | tee work/raw-source-original/journey.tap
+      - name: Retain synthetic diagnostics and both exact journey results
         if: always()
         uses: actions/upload-artifact@v4
         with:

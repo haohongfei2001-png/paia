@@ -78,6 +78,76 @@ test('UX-R2 true dwell position survives another capture, tab reopen, paging and
  }catch(error){await mkdir('work/ux-r2',{recursive:true});await writeFile('work/ux-r2/dwell-return-failure.json',JSON.stringify(await h.archive.evaluate(()=>({trace:globalThis.__dwellReadTrace,history:history.state,ids:[...document.querySelectorAll('.library-prose')].map(node=>node.dataset.editId),text:document.body.innerText.slice(-2400)})),null,2));throw error;}finally{await h.close();}
 });
 
+// Synthetic-only controls for the native Raw entry regression. The gate holds
+// before dispatching Memory status, then after the original migration response.
+function installRawSettingsInitializationGate(expectedInputId){
+ const original=chrome.runtime.sendMessage,counts={memory:0,migration:0,group:0,source:0,original:0},events=[];
+ const route=()=>({reader:history.state?.paiaReader?.view||null,shell:history.state?.paiaShell?.view||null,group:history.state?.paiaReader?.settingsGroup||null});
+ const gate={counts,events,memoryHeld:false,memoryReleased:false,memoryReturned:false,migrationHeld:false,migrationReleased:false,originalTargetMatches:true};
+ const record=event=>{events.push({event,route:route(),memoryReturned:gate.memoryReturned,migrationReleased:gate.migrationReleased});if(events.length>40)events.shift();};
+ const memory=new Promise(resolve=>gate.releaseMemory=()=>{if(!gate.memoryReleased){gate.memoryReleased=true;record('memory:released');resolve();}});
+ const migration=new Promise(resolve=>gate.releaseMigration=()=>{if(!gate.migrationReleased){gate.migrationReleased=true;record('migration:released');resolve();}});
+ const click=event=>{if(event.target.closest?.('[data-settings-group],#ux-settings-group-back')){counts.group++;record('group:click');}if(event.target.closest?.('#settings-source-records')){counts.source++;record('source:click');}};
+ document.addEventListener('click',click,true);
+ chrome.runtime.sendMessage=async function(message,...rest){
+  if(message.type==='PAIA_MEMORY_STATUS'){counts.memory++;gate.memoryHeld=true;record('memory:held');await memory;}
+  if(message.type==='PAIA_ARCHIVE_ORIGINAL_PAGE'){counts.original++;gate.originalTargetMatches&&=message.page?.target?.kind==='input'&&message.page.target.ref===expectedInputId;record('original:request');}
+  const result=await original.call(this,message,...rest);
+  if(message.type==='PAIA_MEMORY_STATUS'){gate.memoryReturned=true;record('memory:returned');}
+  if(message.type==='GET_MIGRATION_STATUS'){counts.migration++;gate.migrationHeld=true;record('migration:held');await migration;}
+  return result;
+ };
+ gate.read=()=>({counts:{...counts},events:events.slice(),route:route(),memoryHeld:gate.memoryHeld,memoryReleased:gate.memoryReleased,memoryReturned:gate.memoryReturned,migrationHeld:gate.migrationHeld,migrationReleased:gate.migrationReleased,originalTargetMatches:gate.originalTargetMatches});
+ gate.restore=()=>{gate.releaseMemory();gate.releaseMigration();chrome.runtime.sendMessage=original;document.removeEventListener('click',click,true);delete globalThis.__rawSettingsInitialization;};
+ globalThis.__rawSettingsInitialization=gate;
+}
+async function readRawSettingsInitializationMetadata(){
+ const matches=(await indexedDB.databases()).filter(row=>row.name==='paia-archive');
+ if(matches.length!==1||!Number.isSafeInteger(matches[0].version)||matches[0].version<1)throw Error('Original archive database unavailable');
+ const request=indexedDB.open(matches[0].name,matches[0].version);
+ const db=await new Promise((resolve,reject)=>{request.onupgradeneeded=()=>{request.transaction.abort();reject(Error('Original archive database disappeared'));};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(Error('Original archive database read failed'));});
+ try{return await new Promise((resolve,reject)=>{const transaction=db.transaction(['meta'],'readonly'),meta=transaction.objectStore('meta'),memory=meta.get('memory:config'),generation=meta.get('backup-data-generation');transaction.oncomplete=()=>resolve({memoryConfigPresent:memory.result!==undefined,generation:Number.isSafeInteger(generation.result?.value)?generation.result.value:null});transaction.onabort=()=>reject(Error('Original archive metadata read aborted'));transaction.onerror=()=>reject(Error('Original archive metadata read failed'));});}finally{db.close();}
+}
+
+test('UX-R2 Raw Settings original initialization commits before unique Original',{timeout:90000},async()=>{
+ const h=await FakeChatGPT.start({onboarding:true}),evidence={head:process.env.GITHUB_SHA||null,instrumentedPreTestWake:true,metadataOnly:true,phases:[]};let p=h.archive,worker,opening,settled=false,openingError,primaryError,gateInstalled=false,phase='worker-wake';
+ const checkpoint=async name=>{phase=name;const state=await p.locator('html').evaluate(()=>globalThis.__rawSettingsInitialization?.read()||null,null,{timeout:1000});evidence.phases.push({phase:name,...state});return state;};
+ const metadata=async()=>{let value,failure,done=false;worker.evaluate(readRawSettingsInitializationMetadata).then(result=>{value=result;done=true;},error=>{failure=error;done=true;});await eventually(()=>{if(failure)throw failure;return done;},'original worker readonly metadata read completes');return value;};
+ try{
+  worker=await awakeLibraryFixtureWorker({context:h.context,extensionId:h.extensionId,wake:()=>rpc(p,'GET_STATUS'),eventually});evidence.preTestWakeCompleted=true;phase='synthetic-capture';
+  p=await ready(h);await p.setViewportSize({width:1440,height:900});
+  const original='SYNTHETIC RAW SETTINGS 原始输入完整保留。',chat={id:'raw-settings-held',title:'Synthetic Raw Settings barrier',base:1609459200,messages:[{id:'raw-settings-held-one',text:original}]};
+  await h.open(chat);await eventually(async()=>(await h.state()).records.length===1,'one synthetic Source captured');await p.bringToFront();await openArchiveWindow(p,{text:chat.title});await input(p).waitFor();
+  const before=await h.state(),id=before.library.blocks[0].id;assert.equal(before.library.blocks.length,1);await eventually(()=>p.evaluate(()=>history.state?.paiaReader?.view==='library'&&!!history.state.paiaReader.documentId),'original Input Reader route commits');
+  phase='fresh-memory-metadata';evidence.initialMetadata=await metadata();assert.equal(evidence.initialMetadata.memoryConfigPresent,false,'fresh fixture has not initialized Memory; never delete or rebuild it');
+  phase='hold-memory-request';await p.evaluate(installRawSettingsInitializationGate,id);gateInstalled=true;
+  opening=openRawInputOriginal(p,id).then(()=>{settled=true;},error=>{openingError=error;settled=true;});
+  await eventually(()=>p.evaluate(()=>globalThis.__rawSettingsInitialization.memoryHeld),'original Memory status is held before transport dispatch');
+  let state=await checkpoint('memory-pre-dispatch');assert.equal(await p.locator('#settings-panel').isVisible(),true);assert.equal(state.route.reader,'library');assert.equal(state.route.shell,'library');assert.deepEqual(state.counts,{memory:1,migration:0,group:0,source:0,original:0});assert.equal(settled,false);assert.equal(state.memoryReturned,false);
+  evidence.heldMetadata=await metadata();assert.equal(evidence.heldMetadata.memoryConfigPresent,false,'held request has not created Memory config');
+  phase='await-migration-response';await p.evaluate(()=>globalThis.__rawSettingsInitialization.releaseMemory());
+  await eventually(()=>p.evaluate(()=>globalThis.__rawSettingsInitialization.migrationHeld),'the original final Settings response is held before route commit');
+  state=await checkpoint('migration-response-held');assert.equal(state.memoryReturned,true);assert.equal(state.route.reader,'library');assert.equal(state.route.shell,'library');assert.deepEqual(state.counts,{memory:1,migration:1,group:0,source:0,original:0});assert.equal(settled,false);
+  evidence.initializedMetadata=await metadata();assert.equal(evidence.initializedMetadata.memoryConfigPresent,true,'real original Memory initialization remains enabled');
+  phase='open-unique-original';await p.evaluate(()=>globalThis.__rawSettingsInitialization.releaseMigration());await eventually(()=>settled,'unique Original helper completes after original Settings initialization');if(openingError)throw openingError;
+  state=await checkpoint('unique-original-open');assert.equal(await p.locator('#info-content .source-original').count(),1);assert.equal((await p.locator('#info-content .source-original').innerText())===original,true,'exact synthetic Original text is retained');assert.equal(await p.locator('#info-content [contenteditable]').count(),0);assert.equal(await p.locator('#info-content [data-original-input-id]').count(),0);assert.deepEqual(state.counts,{memory:1,migration:1,group:1,source:1,original:1});assert.equal(state.originalTargetMatches,true);
+  const group=state.events.find(row=>row.event==='group:click');assert.ok(group);assert.equal(group.route.reader,'settings');assert.equal(group.route.shell,'settings');assert.equal(group.route.group,'content','the changed Data group cannot supply the initial navigation commit');assert.equal(group.memoryReturned,true);assert.equal(group.migrationReleased,true);assert.ok(state.events.indexOf(group)>state.events.findIndex(row=>row.event==='migration:released'));
+  assert.equal(JSON.stringify((await h.state()).records)===JSON.stringify(before.records),true,'navigation and initialization never change immutable Source');assert.equal(await p.locator('#error').isVisible(),false);offline(h);evidence.result='PASS';
+ }catch(error){primaryError=error;evidence.result='FAIL';evidence.failedPhase=phase;evidence.errorName=error.name;throw error;}
+ finally{
+  let cleanupError;
+  if(gateInstalled){try{await checkpoint('final-state');}catch(error){evidence.diagnosticUnavailable=error.name;}
+   try{await p.locator('html').evaluate(()=>{globalThis.__rawSettingsInitialization?.releaseMemory();globalThis.__rawSettingsInitialization?.releaseMigration();},null,{timeout:1000});if(opening)await eventually(()=>settled,'original Raw helper settles after held reads are released');}catch(error){cleanupError=error;}
+   try{await p.locator('html').evaluate(()=>globalThis.__rawSettingsInitialization?.restore(),null,{timeout:1000});}catch(error){cleanupError??=error;}
+  }
+  evidence.settled=settled;evidence.network={external:h.externalRequests,extension:h.extensionNetworkRequests,provider:h.deepSeekRequests.length};evidence.consoleErrorCount=h.errors.length;
+  try{await h.close();}catch(error){cleanupError??=error;}
+  if(cleanupError){evidence.cleanupErrorName=cleanupError.name;if(!primaryError)evidence.result='FAIL';}
+  try{await mkdir('work/raw-source-original',{recursive:true});await writeFile('work/raw-source-original/settings-initialization.json',JSON.stringify(evidence,null,2));}catch(error){cleanupError??=error;}
+  if(!primaryError&&cleanupError)throw cleanupError;
+ }
+});
+
 test('UX-R2 IME saves only complete text; failed save preserves buffer, retry/undo/revision/Source and narrow direct editing work',{timeout:180000},async()=>{
  const h=await FakeChatGPT.start({onboarding:true});let observedWorker;try{
   if(process.env.PAIA_RAW_DEVELOPMENT_TRACE==='1'){observedWorker=await awakeLibraryFixtureWorker({context:h.context,extensionId:h.extensionId,wake:()=>rpc(h.archive,'GET_STATUS'),eventually});await observedWorker.evaluate(installRawGenerationObservation);}

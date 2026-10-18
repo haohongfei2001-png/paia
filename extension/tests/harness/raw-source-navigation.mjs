@@ -13,8 +13,18 @@ export async function rawDocumentMenu(page){
  await button.click();
 }
 export async function openRawDocument(page,documentId){
+ // Current callers enter from an Input Reader or a fresh Archive tab. A
+ // pre-existing Settings route cannot witness a new same-page navigation.
+ assert.notEqual(await page.evaluate(()=>history.state?.paiaReader?.view),'settings','Raw navigation helper must start outside Settings');
  const result=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId,limit:1}}),canonical=result.conversations.find(row=>row.id===documentId);assert.ok(canonical);
- await thoughtPrimary(page,'settings');await page.locator('#settings-panel').waitFor({state:'visible'});const data=page.locator('[data-settings-group="data"]');if(!await data.isVisible()){await page.locator('#ux-settings-group-back').click();await data.waitFor({state:'visible'});}await data.click();await page.locator('#ux-settings-data-group').waitFor({state:'visible'});await page.locator('#settings-source-records').click();
+ await thoughtPrimary(page,'settings');await page.locator('#settings-panel').waitFor({state:'visible'});
+ // Settings renders before its original initialization reads finish. Wait for
+ // that navigation's commit before any group click: changing groups can commit
+ // its own route early and must not stand in for the original read completion.
+ await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='settings'&&history.state?.paiaShell?.view==='settings'),'original Settings navigation commits before selecting Data');
+ const data=page.locator('[data-settings-group="data"]');if(!await data.isVisible()){await page.locator('#ux-settings-group-back').click();await data.waitFor({state:'visible'});}await data.click();await page.locator('#ux-settings-data-group').waitFor({state:'visible'});
+ await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='settings'&&history.state.paiaReader.settingsGroup==='data'&&history.state?.paiaShell?.view==='settings'),'Settings Data selection commits before opening Source records');
+ await page.locator('#settings-source-records').click();
  await eventually(()=>page.locator('body').getAttribute('data-paia-space').then(value=>value==='archive'));
  const window=await waitArchiveWindow(page,{text:canonical.userTitle||canonical.originalConversationTitle});assert.equal(await window.getAttribute('data-document-id'),documentId);await window.click();
  await eventually(async()=>await page.locator('#document-body .original-prose').count()>0&&await page.evaluate(id=>history.state?.paiaReader?.documentId===id,documentId),'same canonical raw Source document is rendered');
