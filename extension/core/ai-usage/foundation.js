@@ -93,7 +93,9 @@ export class AIUsageFoundation {
      }
     }
     if(!changed&&!acknowledged&&!mappingAvailable)continue;assertOwner();
-    const history={...row,...(mappingAvailable?{reconsideredBecause:known.descriptor.kind==='placement'?'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1':!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
+    const boundRow=mappingAvailable&&row.unit.facet==='context'&&(known.descriptor.sourceRecordIds||[]).length?await t.get('thoughts',known.descriptor.kind==='placement'?(await t.get('placements',known.descriptor.recordId||known.descriptor.entityId))?.entryId:known.descriptor.entityId):null;
+    const boundFields=boundRow&&['note','title'].some(f=>(boundRow[f]??'').trim()||boundRow.fieldRevisions?.[f]>0);
+    const history={...row,...(mappingAvailable?{reconsideredBecause:boundFields?'BOUND_ENTRY_CONTEXT_MAPPER_V1':known.descriptor.kind==='placement'?'MANUAL_PLACEMENT_CONTEXT_MAPPER_V1':!known.descriptor.sourceRecordIds.length&&!known.descriptor.inputIds.length?'AUTHORED_ENTRY_CONTEXT_MAPPER_V1':row.unit.facet==='topic'?'RESTORED_ENTRY_TOPIC_MAPPER_V1':'RESTORED_ENTRY_CONTEXT_MAPPER_V1'}:{}),id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);
     if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
     if(!prior)await t.put('organizerWorkItems',history);
     await t.delete('organizerWorkItems',row.id);archived++;if(mappingAvailable)reconsidered++;assertOwner();

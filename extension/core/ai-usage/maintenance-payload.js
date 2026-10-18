@@ -1,12 +1,13 @@
+import {validBoundFields} from '../context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields} from '../context-authored-entry.js';
 import {fail,exact} from './contracts.js';
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // Internal purpose-scoped domain DTO, not a Qwen wire or financial grant.
 // Source originals stay in the original formation owner's local proof.
-export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[]){
+export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[]){
  const view=material?.view;
- if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
- if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
+ if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!Array.isArray(boundEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
+ if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length+boundEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
  const inputs=view.inputs.map((input,index)=>{
   if(typeof input.id!=='string'||input.role!=='primary'||!Number.isSafeInteger(input.revision)||input.revision<0||typeof input.fields?.body!=='string'||Object.keys(input.fields).length!==1)fail('UNAVAILABLE');
   return {ref:'i'+index,inputId:input.id,revision:input.revision,body:input.fields.body};
@@ -34,7 +35,18 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
   return structuredClone(e);
  });
  if(new Set(authored.map(e=>e.entryId)).size!==authored.length||authored.some(e=>entries.some(i=>i.entryId===e.entryId)))fail('UNAVAILABLE');
- const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
+ // Bound human fields always accompany the original independently qualified Input
+ // and complete Entry body. Source closure stays local, outside the provider DTO.
+ const bound=boundEntries.map(e=>{
+  const fields=e.selectedFields;
+  exact(e,['kind','entryId','entryRevision','entryCreatedAt','birthOperationId','inputId','inputContentRevision','expectedRemovalSequence','sourceRecordIds','sourceIdentityTokens','selectedFields','fieldRevisions','fieldOperationIds','fields','fieldDigests','topicId','topicRevision','topicOrganizationRevision','sectionId','sectionRevision','layoutGeneration','placementId','placementRevision','membershipOperationId','rank','sectionRank']);
+  if(e.kind!=='boundEntry'||!validBoundFields(fields)||!['entryId','birthOperationId','inputId','topicId','sectionId','membershipOperationId'].every(k=>typeof e[k]==='string'&&e[k].length>0)||typeof e.entryCreatedAt!=='string'||!Number.isFinite(Date.parse(e.entryCreatedAt))||!['entryRevision','inputContentRevision','expectedRemovalSequence','topicRevision','topicOrganizationRevision','sectionRevision','layoutGeneration','placementRevision'].every(k=>Number.isSafeInteger(e[k])&&e[k]>=0)||e.layoutGeneration<1||e.placementId!==JSON.stringify([e.topicId,e.layoutGeneration,e.entryId])||!/^\d{12}$/.test(e.rank)||!/^\d{12}$/.test(e.sectionRank))fail('UNAVAILABLE');
+  for(const key of ['fieldRevisions','fieldOperationIds','fields','fieldDigests'])exact(e[key],fields);
+  if(!fields.every(f=>Number.isSafeInteger(e.fieldRevisions[f])&&e.fieldRevisions[f]>=0&&typeof e.fieldOperationIds[f]==='string'&&e.fieldOperationIds[f].length>=8&&typeof e.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(e.fieldDigests[f]))||!entries.some(x=>x.entryId===e.entryId&&x.revision===e.entryRevision&&x.workingInputId===e.inputId)||!inputs.some(x=>x.inputId===e.inputId&&x.revision===e.inputContentRevision)||!metadata.coverage?.some(u=>u.facet==='context'&&[JSON.stringify(['library_entry',e.entryId]),JSON.stringify(['placement',e.placementId])].includes(u.key)))fail('UNAVAILABLE');
+  const {sourceRecordIds,sourceIdentityTokens,...dto}=e;return structuredClone(dto);
+ });
+ if(new Set(bound.map(e=>JSON.stringify([e.entryId,e.topicId]))).size!==bound.length||bound.some(e=>authored.some(x=>x.entryId===e.entryId)))fail('UNAVAILABLE');
+ const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
  const payload={...structuredClone(metadata),material:bounded};
  if(bytes(bounded)>limits.maxContentBytes||bytes(payload)>limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
  return payload;
