@@ -1,3 +1,11 @@
+# Integrated recovery: final review and development evidence
+
+Exact recovery `3ab537cd0e5158b7471768686a02e1ff80462a6d` / tree `51f7b39d27d145a85c32ec48a89ed27ad1c17bd7` received final independent CLEAN review with 16 independent probes; the author 132-case focused record was read, not represented as another independent rerun. Original Source/send/repository boundaries remain intact. Integrated [run 39110823940](https://github.com/haohongfei2001-png/paia/actions/runs/39110823940) on `3ffa94b7961bdff04101d82a5f0be0c43667780c` passes the 115-case historical protocol pack in Node22, including the 30 recovery cases; these overlap the preceding local evidence.
+
+This remains synthetic client HTTPS/SQL transport with real original handlers and signature checks. The separate cancellation service uses actual PostgreSQL evidence; neither proves live identity/profile/tokenizer/provider activation or native user acceptance. The default configuration and all earlier failure/UNKNOWN boundaries remain as recorded below.
+
+## Preserved preceding checkpoint
+
 # Historical candidates: explicit cold financial recovery
 
 2026-10-18. Original-owner source implementation with focused synthetic/protocol evidence. No installed, deployed, operational or whole-programme qualification is claimed.

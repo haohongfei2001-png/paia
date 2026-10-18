@@ -1,3 +1,11 @@
+# Cancellation development qualification
+
+Frozen `c10282cad18d2a8bd39f70a9319e2d13192042d8` received independent CLEAN review with 162 scoped/owner/adversarial checks, zero skips. Exact `3ffa94b7961bdff04101d82a5f0be0c43667780c` [run 39110823940](https://github.com/haohongfei2001-png/paia/actions/runs/39110823940) now passes all 12 service PostgreSQL 17.11 cases, including the four added withdrawal, deleted declaration, concurrent principal revocation and provider-event serialization cases. Artifact 12129444487 is verified with SHA256 `296cf8ae811049b65d8212425bc81fd3de659db1a72f9f8145701bc8a764a8ae`. This is an actual disposable synthetic database, providerDispatch false, not hosted production activation.
+
+Original run 39110525479 passed those same 12 database cases but failed an old bootstrap status-code assertion. The successor keeps expired signed identity at 403/AUTHORIZATION with an unchanged hold, and separately tests expired content plus valid identity through the real bootstrap. Its 30-case file passes; no runtime or financial condition changed. The initial NOT_RUN text below belongs to the frozen source checkpoint.
+
+## Preserved preceding checkpoint
+
 # Original unsent reservation cancellation
 
 2026-10-18. A bounded correction to the original reservation endpoint and PostgreSQL authority owner. No new endpoint, ledger, identity mode, permission, credential, deployment or paid request.

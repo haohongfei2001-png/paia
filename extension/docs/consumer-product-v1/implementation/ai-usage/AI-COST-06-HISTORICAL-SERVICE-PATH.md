@@ -1,3 +1,11 @@
+# Integrated historical path: development evidence
+
+The final historical source review at `24fa93c70a4a4e5ca33ae217684ded957f8fefcf` is CLEAN. Its original Source/repository send fences are preserved in the independently reviewed cold-recovery successor `3ab537cd0e5158b7471768686a02e1ff80462a6d`; that successor adds the original complete body-free financial request to the preflight row and supplies explicit authenticated recovery. The earlier missing-request/blocked-cold behavior below is preserved as the source-time checkpoint, not the current recovery implementation.
+
+Exact `3ffa94b7961bdff04101d82a5f0be0c43667780c` [run 39110823940](https://github.com/haohongfei2001-png/paia/actions/runs/39110823940) passes all 115 combined historical protocol cases in Node22, using real original RPC/handlers/signatures with synthetic HTTPS/SQL. It does not establish real client-to-PostgreSQL transport or native Chrome. Current packaged configuration remains null; live resources, qualification and other session wiring are still unavailable. The separate server cancellation cases use actual PostgreSQL and are recorded in their own receipt.
+
+## Preserved preceding checkpoint
+
 # Historical candidates: original worker-to-service development path
 
 2026-10-18. Source implementation and focused synthetic integration evidence. Not installed, deployed, operationally qualified or whole-programme completion.
