@@ -19,10 +19,12 @@ export function createPostgresReservationService({pool,identityConfig,profileId}
  let storage,config;
  try{config=structuredClone(identityConfig);storage=new PostgresLedgerStorage({pool});}catch{/* Default closed; no ambient credentials or fake authority. */}
  const execute=async(action,input,eventId=null)=>{
+  let bundle,guard,observedAt;
   try{
    if(!storage||!config)return deny('SERVICE_UNCONFIGURED');
-   const bundle=bundleSnapshot(input),guard=new PostgresRequestAuthority({identityConfig:config,profileId,bundle,action,eventId});
+   bundle=bundleSnapshot(input);guard=new PostgresRequestAuthority({identityConfig:config,profileId,bundle,action,eventId});
    const result=await storage.transact(async(transaction,authority)=>{
+    observedAt=authority.now;
     const owner=new BudgetWindowReservation({service:{
      // One original owner transaction inside this one guarded PG transaction.
      // No nested connection, independent ledger, or public callback is exposed.
@@ -39,6 +41,7 @@ export function createPostgresReservationService({pool,identityConfig,profileId}
   }catch(error){
    if(error?.code==='POSTGRES_COMMIT_OUTCOME_UNKNOWN')return {decision:'outcome_unknown',reason:'COMMIT_OUTCOME_UNKNOWN',financialAuthority:false,dispatchAllowed:false,retryAllowed:false};
    const reason=SAFE_CODES.has(error?.code)?error.code:error?.code?.startsWith('IDENTITY_')||['AUTHORIZATION','ENTITLEMENT_INVALID','REQUEST_INVALID'].includes(error?.code)?'AUTHORIZATION':'SERVICE_UNAVAILABLE';
+   if(action==='reserve'&&reason==='MAINTENANCE_CADENCE'&&bundle?.request.jobType==='AI_MAINTENANCE'&&Number.isSafeInteger(observedAt)&&Number.isSafeInteger(error.nextEligibilityAt)&&error.nextEligibilityAt>observedAt)return {...deny(reason),request:structuredClone(bundle.request),observedAt,nextEligibilityAt:error.nextEligibilityAt};
    return deny(reason);
   }
  };

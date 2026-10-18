@@ -82,8 +82,8 @@ export function planSemanticDeltaWrite(before,after,known,previous,sequence){
  return {row,dirty};
 }
 export async function flushSemanticWrites(t){
- if(!t.semanticChanges?.size&&!t.aiUsageBoundaryChanged)return;
- let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false;const changedEvidence=new Map();
+ if(!t.semanticChanges?.size&&!t.aiUsageBoundaryChanged)return false;
+ let sequence=integer((await t.get('meta',DELTA_COUNTER))?.value),human=false,changed=false,eligible=false;const changedEvidence=new Map();
  for(const {before,after}of (t.semanticChanges||new Map()).values()){
   const key=after.key;if(same(before,after))continue;
   let ownerPresent=false,live=null,topicPresent=false,topic=null;
@@ -104,9 +104,11 @@ export async function flushSemanticWrites(t){
   // Removed evidence never waits for paid cleanup. The known tombstone/fence
   // invalidates outstanding handles even if create/delete coalesces to no work.
   if(dirty===null){await t.delete('meta',DIRTY_PREFIX+key);continue;}
-  await t.put('meta',dirty);
+  await t.put('meta',dirty);eligible=true;
  }
  if(changed)await t.put('meta',{id:DELTA_COUNTER,value:sequence});
  if(human)await t.put('meta',{id:HUMAN_FENCE,value:integer((await t.get('meta',HUMAN_FENCE))?.value)+1});
  if(changed||t.aiUsageBoundaryChanged)t.aiUsageInvalidation=await invalidateSemanticJobs(t,changedEvidence);
+ // Observation only; repository settlement, not this return, proves commit.
+ return eligible;
 }

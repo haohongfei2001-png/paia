@@ -1,3 +1,13 @@
+# Current implementation continuation — 2026-10-18
+
+The original user/session source paths for Organize, Maintenance and explicit Assist are integrated with independent boundary reviews and exact [development run 39117468229](https://github.com/haohongfei2001-png/paia/actions/runs/39117468229). Continue the existing programme with broad acceptance deferred; these synthetic client-path checks do not activate the default-null service configuration or complete the product.
+
+The next bounded code work is the source-owned Maintenance structured response mapping and qualified Section-rename Topic reconciliation. A complete ordinary Input-to-Topic/Context result must use the existing domain owners rather than fixture-only interpretation; genuine existing-Item reuse needs its own supplied, qualified request state. Preserve original budgets, paid-attempt identities, exact subset ACKs, human fields and order. Real identity/profile/tokenizer/resources and any required endpoint/allowance approval remain separate activation prerequisites. New Sync features stay paused.
+
+The current R3 design and adopted application icons remain the approved visual target. Necessary privacy/data-loss/financial checks and high-fidelity development continue; no unchanged Full or broad database matrix is rerun for this status update. See [STATUS](STATUS.md) for actual code, build and evidence boundaries.
+
+## Preserved preceding programme record
+
 # Current R3 and service implementation — 2026-10-18
 
 The current floating-input authority is **PAIA-FLOAT-UI-1.3 / R3**, adopted on main `fd6d83d976b24bd3e430eb34f8b0496679c7789d`. Its 47 incoming design/document files and prior implementation history were preserved at integration. The original UI owners now implement the shared 48px fixed anchor, 272×48 capsule and 336×328 fused board with bottom actions. Actual Source [development run39101627663](https://github.com/haohongfei2001-png/paia/actions/runs/39101627663) passes opening/collapse, complete six-row clipping, native hit testing and insertion without Send/network activity. All9 screenshots were compared to the approved R3 reference; independent bounded development review is CLEAN. The earlier1.2 evidence remains historical. Animation, real-site/release visual parity and final owner acceptance remain open.

@@ -24,6 +24,26 @@ export const sortOf=r=>[r.sourceSentAt?0:1,r.sourceSentAt||'',r.conversationOrde
 export const tombstoneId=t=>typeof t==='string'?'snapshot:'+t:'source:'+t.sourceIdentityHash;
 const stripDoc=d=>{const v=structuredClone(d);delete v.sourceRecordIds;return v;};
 
+// Process-local one-shot observation of a real eligible delta in this exact
+// transaction. No DTO field, durable row, provider grant or additional read.
+const semanticWriteReceipts=new WeakMap();
+export function consumeCommittedSemanticWrite(repository,result){
+ const receipt=result&&typeof result==='object'?semanticWriteReceipts.get(result):null;
+ if(!receipt||receipt.repository!==repository||receipt.used)return false;
+ receipt.used=true;return true;
+}
+function bindSemanticWriteReceipt(repository,result){
+ if(!result||typeof result!=='object')return;
+ const receipt={repository,used:false};semanticWriteReceipts.set(result,receipt);
+ // The original single-field owner returns its one batch item's exact object.
+ // Share one token with that alias; never invoke getters or walk result bodies.
+ try{const items=Object.getOwnPropertyDescriptor(result,'items')?.value;
+  if(!Array.isArray(items)||Object.getOwnPropertyDescriptor(items,'length')?.value!==1)return;
+  const item=Object.getOwnPropertyDescriptor(items,'0')?.value;
+  if(item&&typeof item==='object')semanticWriteReceipts.set(item,receipt);
+ }catch{/* An optional observation cannot change a committed operation result. */}
+}
+
 // Only this owner can mint scope identity. Public wrapper promises and tx-like
 // objects are not evidence of either native identity or transaction settlement.
 // Capture original platform accessors once. Calling them requires native IDB
@@ -289,7 +309,7 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
+  try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
   }finally{if(write)writeState.active--;}
  }
  async initialize(){

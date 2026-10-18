@@ -165,7 +165,7 @@ def verify_assets(root, check):
     for path, record in lock.items():
         check(hashlib.sha256((root / path).read_bytes()).hexdigest() == record['sha256'], 'asset digest: ' + path)
     expected = {
-        'paia-icon-v1.png': '3c1ba79d902d14ce5216850583c233f09e632a3f0524d93335cc0e85be6dc3e4',
+        'paia-icon-v1.png': 'c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d',
         'paia-logo-v1.webp': 'e94ce73c20a46d40aa60d33eb87065906f256527da4948062c9ff30f6923a137',
     }
     for name, digest in expected.items():

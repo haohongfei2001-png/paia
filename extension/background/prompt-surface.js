@@ -97,6 +97,7 @@ export class PromptSurfaceCommands{
    // A nonce-only signal reaches extension documents, never the host page or another card.
    // The addressed card runs the same guard as its own Close and Escape controls.
    if(closing){await api.runtime.sendMessage({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce:r.nonce});return {};}
+   if(r.state?.open===false)await this.assist?.cancelTab(tab.id);
    return this.hostGeometry(r.state);
   }
   if(r.type!=='PAIA_PROMPT_SURFACE_RPC'||!own(r,['type','nonce','command'])||typeof r.nonce!=='string'||!/^[a-f0-9-]{36}$/.test(r.nonce)||(!Number.isInteger(sender.frameId)||sender.frameId<=0)||sender.url!==api.runtime.getURL('ui/prompt-surface.html')+'#'+r.nonce)fail();
@@ -106,8 +107,14 @@ export class PromptSurfaceCommands{
   this.frames.set(tab.id,{id:sender.frameId,nonce:r.nonce});
   const c=r.command;if(!c||typeof c.type!=='string')fail();
   if(['next_available','next_reopen'].includes(c.type))return this.next.card(c,tab);
+  if(['assist_status','assist_activate','assist_result','assist_insert','assist_dismiss','assist_cancel'].includes(c.type)){
+   if(typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
+   const source={tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url};
+   return this.assist.card(c,tab,{identity:JSON.stringify(source),assertCurrent:()=>this.currentSelectionTarget(source)});
+  }
   if(c.type==='surface_form'){
    if(!own(c,['type','form'])||Object.keys(c).length!==2||!['orb','capsule','board'].includes(c.form))fail();
+   if(c.form!=='board')await this.assist?.cancel(JSON.stringify({tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url}));
    if(c.form!=='board')await this.geometry(async()=>{await this.consent();const saved=await this.readGeometry();await this.consent();await api.storage.local.set({[KEY]:{...saved,collapsedForm:c.form}});});
    await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_FORM',nonce:r.nonce,form:c.form},{frameId:0});return {form:c.form};
   }
@@ -140,6 +147,7 @@ export class PromptSurfaceCommands{
    await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:r.nonce,height:c.height,...(hasMinimum?{minimumHeight:c.minimumHeight}:{}),...(hasAppearance?{appearance:c.appearance}:{}),...(hasLanguage?{language:c.language}:{})},{frameId:0});return {};
   }
   if(c.type==='close'&&own(c,['type'])){
+   await this.assist?.cancel(JSON.stringify({tabId:tab.id,windowId:tab.windowId,frameId:sender.frameId,nonce:r.nonce,documentId:sender.documentId,url:tab.url}));
    this.candidates.delete(tab.id);
    const closed=await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});
    // The original host alone knows whether this exact frame was retained.

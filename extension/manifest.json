@@ -59,7 +59,9 @@
         "content/prompt-surface.js",
         "adapter/chatgpt-current-reply.js",
         "core/prompt-next-layout.js",
-        "content/prompt-next.js"
+        "content/prompt-next.js",
+        "content/assist-result-runtime.js",
+        "content/prompt-assist.js"
       ],
       "run_at": "document_start",
       "all_frames": false,

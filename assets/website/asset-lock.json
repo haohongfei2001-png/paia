@@ -52,8 +52,8 @@
     "role": "Exact architecture crop, no text; not claimed as a high-resolution original photograph."
   },
   "assets/website/brand/paia-icon-v1.png": {
-    "source": "Owner-selected PAIA small-icon variant: black sketch with low-saturation faded-red mailbox (2026-09-29)",
-    "sha256": "3c1ba79d902d14ce5216850583c233f09e632a3f0524d93335cc0e85be6dc3e4",
+    "source": "Owner-approved final editable mailbox package (2026-10-18); see design/brand/mailbox-final-20261018/manifest.json",
+    "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d",
     "role": "Canonical small website icon only (favicon, header/footer mark and compact PAIA mark). Large PAIA logo artwork remains unchanged."
   },
   "assets/website/brand/paia-logo-v1.webp": {

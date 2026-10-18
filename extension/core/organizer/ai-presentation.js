@@ -338,7 +338,7 @@ async function bindAdoptedLocalCache(s,t,{row,topic,current,resolved,checkpoint}
 
 // Private local proof qualification only. No RPC, financial admission or durable
 // authority format is expanded; both confirmation and adoption reuse this owner.
-const atomicCacheJobBinding=j=>manifestCanonical(j&&{id:j.id,kind:j.kind,version:j.version,commitMode:j.commitMode,type:j.type,childIds:j.childIds,childCoverage:j.childCoverage,coverage:j.coverage,items:j.items,contractVersion:j.contractVersion,routeVersion:j.routeVersion,authority:j.authority,organizeStyle:j.organizeStyle,organizeSemanticKey:j.organizeSemanticKey,cancelEpoch:j.cancelEpoch});
+const atomicCacheJobBinding=j=>manifestCanonical(j&&{id:j.id,kind:j.kind,version:j.version,commitMode:j.commitMode,type:j.type,childIds:j.childIds,childCoverage:j.childCoverage,coverage:j.coverage,items:j.items,contractVersion:j.contractVersion,routeVersion:j.routeVersion,...(Object.hasOwn(j,'organizeRequestKey')?{organizeRequestKey:j.organizeRequestKey}:{}),authority:j.authority,organizeStyle:j.organizeStyle,organizeSemanticKey:j.organizeSemanticKey,cancelEpoch:j.cancelEpoch});
 const atomicCacheAttemptBinding=r=>manifestCanonical(r&&{id:r.id,kind:r.kind,version:r.version,jobId:r.jobId,childId:r.childId,sequence:r.sequence,attemptCount:r.attemptCount,executionKind:r.executionKind,provider:r.provider,parentReservationId:r.parentReservationId,operationReceiptId:r.operationReceiptId});
 const atomicCacheProofCurrent=(s,token,p)=>localCacheProofs.get(token)===p&&p.store===s&&p.isCurrent()===true;
 const atomicCacheControlsCurrent=(s,p)=>localOrganizeCacheControlsCurrent(s,p.prepared);

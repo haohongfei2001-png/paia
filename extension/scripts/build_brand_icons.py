@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
-"""Reproduce the approved compact PAIA brand icons; never redesign the artwork.
+"""Verify or restore the owner-approved mailbox icons without resampling.
 
-Run from any directory with Python 3 and Pillow 12.3.0 already installed:
-    python3 extension/scripts/build_brand_icons.py
-
-The committed source/output hashes are a review boundary. --check needs only
-Python's standard library and validates the frozen bytes without rewriting them.
-Pillow is a maintenance tool only, not a packaged extension dependency.
+The final package has distinct optical sizes. Copy their exact bytes rather than
+shrinking one Desktop image or upscaling a 64px source. --check writes nothing.
+This is maintenance tooling, never an extension runtime dependency.
 """
-
 import argparse
 import hashlib
-import io
 import json
 from pathlib import Path
 import struct
 import sys
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PROVENANCE = ROOT / 'extension/icons/brand-icons-provenance.json'
+SOURCE_ROOT = 'design/brand/mailbox-final-20261018'
 SIZES = (16, 32, 48, 128)
+SOURCE_SIZES = (16, 32, 48, 64, 128)
+BRAND_ID = 'PAIA-MAILBOX-FINAL-20261018'
 
 
 def validate_png(data, expected, label):
@@ -34,64 +31,59 @@ def validate_png(data, expected, label):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--check', action='store_true', help='Verify frozen assets; do not write files or require Pillow.')
+    parser.add_argument('--check', action='store_true', help='Verify approved bytes without writing.')
     args = parser.parse_args()
-    record = json.loads(PROVENANCE.read_text())
+    record = json.loads(PROVENANCE.read_text(encoding='utf-8'))
+    authority_path = SOURCE_ROOT + '/manifest.json'
+    if record['schema_version'] != 2 or record['brand_id'] != BRAND_ID or record['authority_manifest'] != authority_path:
+        raise ValueError('Unexpected mailbox adoption authority')
+    authority = json.loads((ROOT / authority_path).read_text(encoding='utf-8'))
+    if authority['brand_id'] != BRAND_ID:
+        raise ValueError('Mailbox authority identity differs')
     sources = record['sources']
-    expected_sources = {f'extension/ui/assets/paia-logo-{size}.png' for size in (32, 64)}
+    expected_sources = {f'{SOURCE_ROOT}/png/paia-{s}.png' for s in SOURCE_SIZES}
     if set(sources) != expected_sources:
-        raise ValueError('Only the two existing Desktop brand assets may be used')
+        raise ValueError('Exactly the five approved optical sources are required')
     source_bytes = {}
-    for path, source_record in sources.items():
-        source_bytes[path] = (ROOT / path).read_bytes()
-        validate_png(source_bytes[path], source_record, path)
-    source_lock = json.loads((ROOT / record['desktop_asset_manifest']).read_text())
-    if source_lock['included_icon']['sha256'] != sources['extension/ui/assets/paia-logo-32.png']['sha256']:
-        raise ValueError('32px source does not match the existing Desktop brand lock')
+    for size in SOURCE_SIZES:
+        path = f'{SOURCE_ROOT}/png/paia-{size}.png'
+        entry = sources[path]
+        if entry != authority['sources'][path] or entry['dimensions'] != [size, size]:
+            raise ValueError(f'{path}: source differs from the independent adoption record')
+        data = (ROOT / path).read_bytes()
+        validate_png(data, entry, path)
+        source_bytes[path] = data
 
-    output_paths = [f'extension/icons/icon{size}.png' for size in SIZES]
-    if set(record['outputs']) != set(output_paths):
-        raise ValueError('Provenance must describe exactly the four extension icons')
-    for size, path in zip(SIZES, output_paths):
-        if record['outputs'][path]['dimensions'] != [size, size]:
-            raise ValueError(f'{path}: the declared size must match its filename')
-        expected_source = f'extension/ui/assets/paia-logo-{32 if size <= 32 else 64}.png'
-        if record['outputs'][path]['source'] != expected_source:
-            raise ValueError(f'{path}: unexpected source asset')
-
-    if args.check:
-        for path in output_paths:
-            validate_png((ROOT / path).read_bytes(), record['outputs'][path], path)
-        print('PASS: approved source and all four frozen extension icons match.')
-        return
-
-    import PIL
-    from PIL import Image
-
-    if PIL.__version__ != record['generation']['pillow_version']:
-        raise ValueError(f"Regeneration requires Pillow {record['generation']['pillow_version']}; found {PIL.__version__}")
+    expected_icons = {f'extension/icons/icon{s}.png': s for s in SIZES}
+    expected_ui = {f'extension/ui/assets/paia-logo-{s}.png': s for s in (32, 64)}
+    if set(record['outputs']) != set(expected_icons) or set(record['ui_outputs']) != set(expected_ui):
+        raise ValueError('Exactly four action icons and two existing UI marks are required')
     outputs = {}
-    for size, path in zip(SIZES, output_paths):
-        source = source_bytes[record['outputs'][path]['source']]
-        if size == 32:
-            data = source  # Keep the approved default-size Desktop asset byte-exact.
-        else:
-            with Image.open(io.BytesIO(source)) as image:
-                image = image.convert('RGB').resize((size, size), Image.Resampling.LANCZOS)
-                encoded = io.BytesIO()
-                image.save(encoded, format='PNG', optimize=False, compress_level=9)
-                data = encoded.getvalue()
-        validate_png(data, record['outputs'][path], path)
+    for path, size in {**expected_icons, **expected_ui}.items():
+        entry = {**record['outputs'], **record['ui_outputs']}[path]
+        expected_source = f'{SOURCE_ROOT}/png/paia-{size}.png'
+        approved = authority['targets'][path]
+        if entry['source'] != expected_source or entry['dimensions'] != [size, size]:
+            raise ValueError(f'{path}: incorrect optical source or dimensions')
+        if any(entry[k] != approved[k] for k in ('source', 'dimensions', 'sha256')):
+            raise ValueError(f'{path}: output differs from the adoption record')
+        data = source_bytes[expected_source]
+        validate_png(data, entry, path)
+        if args.check:
+            validate_png((ROOT / path).read_bytes(), entry, path)
         outputs[path] = data
-    # Validate every generated result before replacing any committed asset.
-    for path, data in outputs.items():
-        (ROOT / path).write_bytes(data)
-    print('Wrote the four approved extension brand icons with matching hashes.')
+
+    # Every source and output is validated before any write is attempted.
+    if not args.check:
+        for path, data in outputs.items():
+            (ROOT / path).write_bytes(data)
+    print('PASS: five approved optical sources, four action icons and two UI marks match.' if args.check else
+          'Restored all six runtime brand images from exact approved optical sources.')
 
 
 if __name__ == '__main__':
     try:
         main()
-    except (OSError, ValueError, KeyError, ImportError) as error:
+    except (OSError, ValueError, KeyError, TypeError, struct.error) as error:
         print(f'Brand icon verification failed: {error}', file=sys.stderr)
         sys.exit(1)

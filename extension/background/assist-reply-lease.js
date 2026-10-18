@@ -1,8 +1,8 @@
 import {canonical,equal,fail,digest} from '../core/ai-usage/contracts.js';
 import {ASSIST_LIMITS} from '../core/ai-usage/assist-response.js';
 const id=x=>typeof x==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}$/.test(x);
-// Dormant constructor-owned bridge. There is no worker RPC, Next authorization
-// import, Settings writer or persistent reply body in this owner.
+// Original private lease, connected only by the distinct Assist commands.
+// No Next authorization or persistent reply body enters this owner.
 export class AssistReplyLease {
  #listeners=new Set();#leases=new Map();#caps=new WeakMap();#epoch=0;#access=false;#remote=false;#session=crypto.randomUUID();#accessEpoch=crypto.randomUUID();#remoteEpoch=crypto.randomUUID();#disposed=false;#last=0;
  constructor({runtimeId,tabs,probe,current,clock=()=>performance.now()}={}){this.runtimeId=runtimeId;this.tabs=tabs;this.probe=probe;this.current=current;this.clock=clock;}
@@ -25,6 +25,7 @@ export class AssistReplyLease {
  isCurrent(cap){try{return this.#valid(this.#caps.get(cap));}catch{return false;}}
  metadata(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');return {binding:structuredClone(r.binding),host:structuredClone(r.host),replyBinding:structuredClone(r.b)};}
  async snapshot(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const tab=await this.tabs.get(r.host.tabId);if(!this.#valid(r))fail('STALE_BASE');if(tab?.active!==true||tab?.incognito||tab?.url!==r.host.url)fail('STALE_BASE');const result=await this.probe(r.host,{snapshot:true});if(!this.#valid(r)||result?.ready!==true||!equal(result.binding,r.b))fail('STALE_BASE');return structuredClone(result.snapshot);}
+ async replyKey(cap){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const key=await digest([r.host.url,r.b.replyId]);if(!this.#valid(r))fail('STALE_BASE');return key;}
  async evaluationKey(cap,dependencies,contractVersion,routeVersion){const r=this.#caps.get(cap);if(!this.#valid(r))fail('STALE_BASE');const key=await digest([this.#session,r.host,r.b,this.#accessEpoch,this.#remoteEpoch,dependencies,contractVersion,routeVersion]);if(!this.#valid(r))fail('STALE_BASE');return key;}
  dispose(){this.#disposed=true;for(const fn of [...this.#listeners]){try{fn();}catch{}}this.#listeners.clear();this.#epoch++;this.#leases.clear();this.#caps=new WeakMap();}
 }

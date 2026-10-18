@@ -33,7 +33,7 @@ test('all six shipped R1 glyph sources are byte-identical to approved R3 assets'
 });
 test('R3 private More and persistent error share flow above the relocated toolbar',()=>{
  assert.match(css,/#surface-tools\{position:relative;inset:auto;flex:1 1 auto;min-height:0/);
- assert.match(css,/#card:has\(> #surface-tools:not\(\[hidden\]\)\) > :is\(#list,#editor,#check-text\)\{display:none\}/);
+ assert.match(css,/#card:has\(> #surface-tools:not\(\[hidden\]\)\) > :is\(#list,#editor,#check-text,#prompt-assist\)\{display:none\}/);
  assert.ok(html.indexOf('id="status"')>html.indexOf('id="surface-tools"'));assert.ok(html.indexOf('<header')>html.indexOf('id="status"'));
  assert.match(host,/border:1px solid transparent;border-radius:0;background:transparent/,'the full48px button rectangle remains the hit target; only its decoration is circular');
 });

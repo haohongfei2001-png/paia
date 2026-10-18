@@ -1,19 +1,22 @@
+import {assistServicePayload,validateAssistServiceResponse} from './assist-service-response.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../idb-repository.js';
+import {requireAssistServiceClient} from './assist-service-client.js';
 import {AIUsageFoundation} from './foundation.js';
 import {exact,equal,canonical,fail,localProviderDescriptor} from './contracts.js';
 import {KNOWN_PREFIX} from './delta.js';
 import {readContextCards} from '../context-cards.js';
 import {ASSIST_LIMITS,assembleAssistPayload,assertAssistPayload,validateAssistResponse} from './assist-response.js';
-// No production instance exists. Constructor capabilities are trusted host
-// dependencies, never worker DTOs. Reply/result bytes never enter storage.
+// The configured worker composes these original local lease/result owners.
+// Capabilities are trusted host dependencies; reply/result bytes stay transient.
 export class LocalAssistSession {
- #lease;#provider;#selector;#states=new Map();#handles=new WeakMap();#disposed=false;#generation=0;#clock;#last=0;#unsubscribe;
- constructor(store,{lease,provider=null,resolveAuthority=null,contextSelector=()=>[],contractVersion='assist-local-v1',routeVersion='unavailable',clock=()=>performance.now()}={}){
-  this.#lease=lease;this.#unsubscribe=lease.onInvalidate(()=>this.#invalidate());this.#provider=provider;this.#selector=contextSelector;this.#clock=clock;this.contractVersion=contractVersion;this.routeVersion=routeVersion;
+ #store;#service;#lease;#provider;#selector;#states=new Map();#handles=new WeakMap();#disposed=false;#generation=0;#clock;#last=0;#unsubscribe;
+ constructor(store,{lease,provider=null,service=null,resolveAuthority=null,contextSelector=()=>[],contractVersion='assist-local-v1',routeVersion='unavailable',clock=()=>performance.now()}={}){
+  this.#store=store;this.#service=service===null?null:requireAssistServiceClient(service);this.#lease=lease;this.#unsubscribe=lease.onInvalidate(()=>this.#invalidate());this.#provider=provider;this.#selector=contextSelector;this.#clock=clock;this.contractVersion=contractVersion;this.routeVersion=routeVersion;
   this.foundation=new AIUsageFoundation(store,{resolveAuthority,resolveAssistIntent:(t,r)=>this.#resolve(t,r),assistResult:(t,r)=>this.#commit(t,r)});
  }
  #now(){const n=this.#clock();if(!Number.isFinite(n)||n<0||n<this.#last){this.dispose();fail('UNAVAILABLE');}this.#last=n;return n;}
- #invalidate(){this.#generation++;for(const s of this.#states.values()){s.controller.abort();s.published=null;s.validated=null;s.snapshot=null;s.payload=null;}this.#states.clear();this.#handles=new WeakMap();}
- #valid(s){return !!s&&!this.#disposed&&s.generation===this.#generation&&this.#states.get(s.key)===s&&this.#now()-s.created<ASSIST_LIMITS.ttl&&this.#lease.isCurrent(s.lease)===true;}
+ #invalidate(){this.#generation++;for(const s of this.#states.values()){s.controller.abort();if(this.#service&&s.job)void this.foundation.cancelServer(s.job.id).catch(()=>{});s.published=null;s.validated=null;s.snapshot=null;s.payload=null;}this.#states.clear();this.#handles=new WeakMap();}
+ #valid(s){return !!s&&!s.controller.signal.aborted&&!this.#disposed&&s.generation===this.#generation&&this.#states.get(s.key)===s&&this.#now()-s.created<ASSIST_LIMITS.ttl&&this.#lease.isCurrent(s.lease)===true;}
  #get(handle){const s=this.#handles.get(handle);if(!this.#valid(s))fail('STALE_BASE');return s;}
  // Retire only unusable, idle private memory; durable jobs/attempts remain the
  // no-redispatch authority. A planning or running operation owns its slot.
@@ -43,19 +46,23 @@ export class LocalAssistSession {
   const current=await this.#context(t,s.contextIds);if(!equal(current,s.context)||!this.#valid(s))fail('STALE_BASE');
   return {allowed:true,remoteProcessing:true,binding:structuredClone(binding),scope:structuredClone(scope)};
  }
- async prepare({lease}={}){
-  if(this.#disposed)fail('UNAVAILABLE');await this.#retireInvalid();if(this.#states.size>=8&&![...this.#states.values()].some(s=>s.lease===lease&&this.#valid(s)))fail('RESOURCE_LIMIT');
+ async prepare({lease,assertCurrent=null}={}){
+  if(this.#service&&typeof assertCurrent!=='function')fail('UNAVAILABLE');if(assertCurrent)await assertCurrent();
+  if(this.#disposed)fail('UNAVAILABLE');const recoveryGeneration=this.#generation;if(this.#service)await this.#service.recover(this.foundation,{retainJob:id=>[...this.#states.values()].some(s=>s.job?.id===id&&(s.running||s.validated||s.published)),isCurrent:()=>!this.#disposed&&this.#generation===recoveryGeneration});await this.#retireInvalid();if(this.#states.size>=8&&![...this.#states.values()].some(s=>s.lease===lease&&this.#valid(s)))fail('RESOURCE_LIMIT');
   const generation=this.#generation,meta=this.#lease.metadata(lease),snapshot=await this.#lease.snapshot(lease);
   const selected=await this.foundation.read(async t=>{const ids=structuredClone(await this.#selector(t,{replyBinding:meta.replyBinding}));return {ids,context:await this.#context(t,ids)};});
   const payload=assembleAssistPayload(snapshot,selected.context.context),key=await this.#lease.evaluationKey(lease,{items:selected.context.items.map(x=>({key:x.key,signature:x.signature})),permissions:selected.context.permissions},this.contractVersion,this.routeVersion);
   if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
-  const old=this.#states.get(key);if(old){await old.ready;if(!this.#valid(old))fail('STALE_BASE');return old.handle;}
+  const old=this.#states.get(key);if(old){await old.ready;if(!this.#valid(old))fail('STALE_BASE');old.assertSurface=assertCurrent;return old.handle;}
   await this.#retireInvalid();if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
   // A same-key preparation may have published while retirement awaited IDB.
-  const concurrent=this.#states.get(key);if(concurrent){await concurrent.ready;if(!this.#valid(concurrent))fail('STALE_BASE');return concurrent.handle;}
+  const concurrent=this.#states.get(key);if(concurrent){await concurrent.ready;if(!this.#valid(concurrent))fail('STALE_BASE');concurrent.assertSurface=assertCurrent;return concurrent.handle;}
   if(this.#states.size>=8)fail('RESOURCE_LIMIT');
+  const replyKey=this.#service?await this.#lease.replyKey(lease):null;if(this.#service)await this.#service.assertCanPlan(this.foundation,replyKey,meta.binding.sessionId);
+  if(this.#disposed||generation!==this.#generation||!this.#lease.isCurrent(lease))fail('STALE_BASE');
+  const finalConcurrent=this.#states.get(key);if(finalConcurrent){await finalConcurrent.ready;if(!this.#valid(finalConcurrent))fail('STALE_BASE');finalConcurrent.assertSurface=assertCurrent;return finalConcurrent.handle;}if(this.#states.size>=8)fail('RESOURCE_LIMIT');
   const handle=Object.freeze({}),items=selected.context.items,obligation={version:1,evaluationKey:key},coverage=items.map(i=>({key:i.key,facet:'assist',scope:key}));
-  const s={key,handle,lease,binding:meta.binding,replyBinding:meta.replyBinding,generation,created:this.#now(),contextIds:selected.ids,context:selected.context,items,coverage,obligation,payload,snapshot,controller:new AbortController(),planning:true,job:null,validated:null,published:null,running:null};
+  const s={key,replyKey,handle,lease,assertSurface:assertCurrent,serviceRegistered:false,binding:meta.binding,replyBinding:meta.replyBinding,generation,created:this.#now(),contextIds:selected.ids,context:selected.context,items,coverage,obligation,payload,snapshot,controller:new AbortController(),planning:true,job:null,validated:null,published:null,running:null};
   this.#states.set(key,s);this.#handles.set(handle,s);
   try{s.ready=this.foundation.plan({type:'AI_ASSIST',intent:'explicit',items,coverage,replyObligation:obligation,assistIntent:s.binding,contractVersion:this.contractVersion,routeVersion:this.routeVersion}).then(job=>{s.job=job;});await s.ready;if(!this.#valid(s))fail('STALE_BASE');return handle;}catch(e){if(this.#states.get(key)===s)this.#states.delete(key);this.#handles.delete(handle);throw e;}finally{s.planning=false;}
  }
@@ -74,8 +81,9 @@ export class LocalAssistSession {
   }finally{clearTimeout(timer);s.controller.signal.removeEventListener('abort',abort);}
  }
  async #qualified(s){
+  if(s.assertSurface)await s.assertSurface();
   if(!this.#valid(s))fail('STALE_BASE');const snapshot=await this.#lease.snapshot(s.lease);if(!equal(snapshot,s.snapshot)||!this.#valid(s))fail('STALE_BASE');
-  await this.foundation.read(async t=>{const job=await this.foundation.job(t,s.job.id);await this.foundation.current(t,job);});if(!this.#valid(s))fail('STALE_BASE');
+  await this.foundation.read(async t=>{const job=await this.foundation.job(t,s.job.id);await this.foundation.current(t,job);});if(s.assertSurface)await s.assertSurface();if(!this.#valid(s))fail('STALE_BASE');
  }
  async #commit(t,r){
   const s=[...this.#states.values()].find(x=>x.job?.id===r.logicalJobId);if(!this.#valid(s)||!s.validated||s.validated.childId!==r.childOperationId||s.validated.receipt!==r.operationReceiptId||!equal(s.obligation,r.replyObligation))fail('STALE_BASE');
@@ -84,9 +92,10 @@ export class LocalAssistSession {
  }
  run(handle){const s=this.#get(handle);if(s.running)return s.running;const task=this.#run(s);s.running=task;return task.finally(()=>{if(s.running===task)s.running=null;});}
  async #run(s){
-  await this.#qualified(s);if(s.published)return structuredClone(s.published);
+  await this.#qualified(s);if(s.published){if(this.#service)try{await this.#service.report(this.foundation,s.job);}catch{/* Replay only the original body-free report. */}await this.#qualified(s);return structuredClone(s.published);}
   const status=await this.foundation.status(s.job.id);if(status.state==='COMMITTED'&&!s.validated)fail('UNAVAILABLE');
-  if(status.state!=='COMMITTED'){
+  if(this.#service){await this.#runService(s,status);}
+  else if(status.state!=='COMMITTED'){
    const descriptor=localProviderDescriptor(this.#provider);await this.foundation.reserve(s.job.id,{reservationId:'private-assist:'+s.key,executionKind:descriptor.executionKind});
    const childId=s.job.childIds[0];await this.foundation.dispatch(s.job.id,childId,{describe:()=>descriptor,execute:async usage=>{
     await this.#qualified(s);const payload={...s.payload,usage};assertAssistPayload(payload);if(!this.#valid(s))fail('STALE_BASE');
@@ -97,6 +106,44 @@ export class LocalAssistSession {
   const current=await this.foundation.status(s.job.id);await this.#qualified(s);if(current.state!=='COMMITTED'||current.attempts.length!==1||current.attempts[0].state!=='COMMITTED'||!this.#valid(s)||!s.validated)fail('STALE_BASE');
   s.published=Object.freeze({...s.validated.value});return structuredClone(s.published);
  }
+ async #runService(s,prior){
+  const report=async()=>{try{await this.#service.report(this.foundation,s.job);}catch{/* Body-free result stays pending; no physical retry. */}};
+  if(prior.state==='COMMITTED'){await report();return;}
+  if(!s.validated){
+   if(prior.state!=='PLANNED'||prior.attempts.length)fail('OUTCOME_UNKNOWN');
+   let operation;
+   try{
+    await this.#qualified(s);
+    const usage=await this.foundation.read(async t=>{const job=await this.foundation.job(t,s.job.id);await this.foundation.current(t,job);return this.foundation.childRequest(job,0);});
+    const payload=assistServicePayload({...s.payload,usage});
+    operation=await this.#service.prepare(this.foundation,s.job,[payload],{replyKey:s.replyKey,sessionId:s.binding.sessionId,assertCurrent:()=>this.#qualified(s),isCurrent:()=>this.#valid(s)&&!s.controller.signal.aborted,
+     assertBeforeSend:async()=>{const repository=this.#store.repository,fence=observeRepositoryWriteFence(repository);await this.#qualified(s);return ()=>{if(this.#store.repository!==repository||!this.#valid(s)||s.controller.signal.aborted)fail('STALE_BASE');requireRepositoryWriteFence(repository,fence);};}
+    });
+    s.serviceRegistered=true;await this.#qualified(s);
+    const childId=s.job.childIds[0],response=await this.foundation.dispatch(s.job.id,childId,operation.providers[0],{signal:s.controller.signal,timeoutMs:this.#store.organizerBudget.limits.timeoutMs});
+    if(response.state!=='RESPONSE_RECORDED')fail('OUTCOME_UNKNOWN');
+    await this.#qualified(s);
+    const value=validateAssistServiceResponse(response.value),status=await this.foundation.status(s.job.id),receipt=status.attempts.find(r=>r.childId===childId);
+    if(receipt?.state!=='RESPONSE_RECORDED'||receipt.executionKind!=='server-backed'||!receipt.operationReceiptId)fail('OUTCOME_UNKNOWN');
+    s.validated={childId,receipt:receipt.operationReceiptId,value};
+   }catch(error){if(operation)try{await this.foundation.cancelServer(s.job.id);}catch{/* UNKNOWN retains the original hold. */}await report();throw error;}
+   finally{operation?.dispose();}
+  }
+  // A failed local transaction may reuse only this exact retained result.
+  await this.#qualified(s);await this.foundation.commitAssistResult(s.job.id);await report();
+ }
+ async stop(handle){const s=this.#handles.get(handle);if(!s)return {stopped:true};s.controller.abort();
+  // Before original financial registration, prepare owns the exact publication
+  // outcome. Abort immediately, but do not turn a proven never-published plan
+  // into an irreversible terminal receipt. Attempted publication keeps its
+  // original marker; prepare cancels any registration completed across this edge.
+  if(this.#service&&!s.serviceRegistered)return {stopped:true};
+  return s.job?this.#service?this.foundation.cancelServer(s.job.id):this.foundation.cancel(s.job.id):{stopped:true};
+ }
+ async qualify(handle){const s=this.#get(handle);await this.#qualified(s);if(!s.published)fail('UNAVAILABLE');return true;}
+ async recover(){if(!this.#service)fail('UNAVAILABLE');const generation=this.#generation;return this.#service.recover(this.foundation,{retainJob:id=>[...this.#states.values()].some(s=>s.job?.id===id&&(s.running||s.validated||s.published)),isCurrent:()=>!this.#disposed&&generation===this.#generation});}
+ async status(handle){const s=this.#get(handle);return this.foundation.status(s.job.id);}
+ get available(){return !this.#disposed&&this.#service?.available()===true;}
  async result(handle){const s=this.#get(handle);await this.#qualified(s);if(!s.published)fail('UNAVAILABLE');return structuredClone(s.published);}
  async insert(handle,{controller,operationId,conditionPresented=false}={}){const s=this.#get(handle),value=await this.result(handle);if(value.kind!=='SUGGESTION')fail('UNAVAILABLE');if(typeof operationId!=='string'||!operationId||operationId.length>200)fail();return controller.insert({binding:s.replyBinding,text:value.text,condition:value.condition,operationId,conditionPresented,qualify:async()=>{await this.#qualified(s);return this.#valid(s)&&s.published?.text===value.text;},isCurrent:()=>this.#valid(s)&&s.published?.text===value.text});}
  dismiss(handle){const s=this.#handles.get(handle);if(s){s.controller.abort();s.published=null;s.validated=null;s.snapshot=null;s.payload=null;this.#states.delete(s.key);this.#handles.delete(handle);}}
