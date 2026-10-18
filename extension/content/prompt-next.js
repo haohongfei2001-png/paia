@@ -24,25 +24,26 @@
    if(authorization)scan();
   }catch{if(ticket===syncEpoch){authorization=null;invalidate();reader.reset();}}
  }
- function scan(mutated=false){
+ function resume(){if(disposed||!candidate||!binding||!authorization)return;clearTimeout(showTimer);const ticket=epoch;showTimer=setTimeout(()=>{if(ticket===epoch)void show();},850);}
+ function scan(mutated=false,allowOffer=true){
   if(disposed)return;
-  if(location.href!==url){url=location.href;authorization=null;invalidate();reader.reset();offered='';void sync();return;}
+  if(location.href!==url){authorization=null;invalidate();reader.reset();offered='';if(allowOffer){url=location.href;void sync();}return;}
   if(!authorization)return;
   const observed=reader.observe(performance.now(),mutated),next=observed.binding||null;
   if(binding&&!same(binding,next)||observed.invalidated&&candidate)invalidate();
   binding=next;
   if(host)layout();
-  clearTimeout(timer);
+  if(allowOffer)clearTimeout(timer);
   if(!next)return;
-  if(!observed.ready){timer=setTimeout(()=>scan(),620);return;}
-  const key=JSON.stringify(next);if(offered===key)return;offered=key;
+  if(!observed.ready){if(allowOffer)timer=setTimeout(()=>scan(),620);return;}
+  const key=JSON.stringify(next);if(!allowOffer||offered===key)return;offered=key;
   const snapshot=reader.snapshot();if(!snapshot)return;
   const ticket=epoch,auth=authorization;
   void rpc('OFFER',{binding:next,authorization:auth,snapshot}).then(result=>{
    if(disposed||ticket!==epoch||authorization!==auth||!same(binding,next)||!result.available)return;
    candidate=result.id;
-   // A single bounded idle opportunity, never a stale display queue.
-   showTimer=setTimeout(()=>{if(ticket===epoch)void show();},850);
+   // A bounded idle check; later host idle events recheck only this candidate.
+   resume();
   }).catch(()=>{if(ticket===epoch){authorization=null;invalidate();reader.reset();offered='';void sync();}});
  }
  const replyMutation=records=>{const current=reader.current;return records.some(r=>current&&(r.target===current||current.contains(r.target))||r.type==='childList'&&[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches?.('[data-message-author-role],[data-testid^="conversation-turn"],[data-testid="stop-button"],[data-testid="continue-button"]')));};
@@ -54,9 +55,9 @@
  const observe=()=>observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['data-message-id','data-message-author-role','data-is-streaming','data-testid','hidden','aria-hidden','disabled']});
  if(document.documentElement)observe();else listen(document,'DOMContentLoaded',observe);
  // Only activity timestamps and an IME boolean. Draft text is never collected here.
- for(const event of ['beforeinput','input','keydown','pointerdown'])listen(document,event,e=>{if(composer.find()?.contains(e.target)){lastActivity=performance.now();if(host&&!inserting)hide();}},true);
+ for(const event of ['beforeinput','input','keydown','pointerdown'])listen(document,event,e=>{if(composer.find()?.contains(e.target)){lastActivity=performance.now();if(host&&!inserting)hide();resume();}},true);
  listen(document,'compositionstart',e=>{if(composer.find()?.contains(e.target)){composing=true;lastActivity=performance.now();hide();}},true);
- listen(document,'compositionend',()=>{composing=false;lastActivity=performance.now();},true);
+ listen(document,'compositionend',()=>{composing=false;lastActivity=performance.now();resume();},true);
  listen(document,'click',e=>{if(e.isTrusted&&e.target.closest?.('[data-testid^="conversation-turn"] button,article button,[data-testid="continue-button"],[data-testid="stop-button"]')){reader.invalidate();invalidate();offered='';}},true);
  listen(window,'pagehide',()=>{authorization=null;invalidate();reader.reset();});listen(window,'popstate',()=>scan());listen(window,'resize',layout);listen(window,'scroll',layout,{passive:true});
  listen(document,'visibilitychange',()=>{if(document.hidden){reader.invalidate();invalidate();}else void sync();});
@@ -64,7 +65,13 @@
   if(s.id!==chrome.runtime.id||s.tab)return;
   if(r.type==='PAIA_PROMPT_NEXT_AUTH_CHANGED'){authorization=null;invalidate();reader.reset();offered='';void sync();return;}
   if(r.type==='PAIA_PROMPT_NEXT_PROBE'){
-   scan();reply({authorization,binding,candidate,nonce,idle:idle(),dark:globalThis.PAIAPromptSurface?.nextPlacement()?.dark===true});return;
+   scan(false,false);reply({authorization,binding,candidate,nonce,idle:idle(),dark:globalThis.PAIAPromptSurface?.nextPlacement()?.dark===true});return;
+  }
+  if(r.type==='PAIA_PROMPT_NEXT_CONSUMED'){
+   scan(false,false);
+   if(Object.keys(r).length!==5||!['inserted','uncertain'].includes(r.status)||r.id!==candidate||r.authorization!==authorization||!same(r.binding,binding)){reply({retired:false});return;}
+   // Leave the observed completion key consumed. No new snapshot or authority.
+   epoch++;candidate=null;hide();clearTimeout(timer);clearTimeout(showTimer);globalThis.PAIAPromptSurface?.retireSuggestion({source:'local',status:r.status});reply({retired:true});return;
   }
   if(r.type==='PAIA_PROMPT_NEXT_HIDE'&&r.nonce===nonce){hide();reply({hidden:true});return;}
   if(r.type==='PAIA_PROMPT_NEXT_RESIZE'&&r.nonce===nonce){height=Math.max(44,Math.min(400,r.height));layout();reply({resized:true});return;}
@@ -82,6 +89,6 @@
  chrome.runtime.onMessage.addListener(messages);
  const storage=(changes,area)=>{if(area==='local'&&changes.promptNextAutomaticPreferenceV2){authorization=null;invalidate();reader.reset();offered='';void sync();}};
  chrome.storage.onChanged.addListener(storage);
- globalThis.PAIANextPromptController={dispose(){disposed=true;++syncEpoch;authorization=null;invalidate();observer.disconnect();composer.dispose();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);chrome.storage.onChanged.removeListener(storage);}};
+ globalThis.PAIANextPromptController={resume,dispose(){disposed=true;++syncEpoch;authorization=null;invalidate();observer.disconnect();composer.dispose();listeners.forEach(fn=>fn());chrome.runtime.onMessage.removeListener(messages);chrome.storage.onChanged.removeListener(storage);}};
  void sync();
 })();

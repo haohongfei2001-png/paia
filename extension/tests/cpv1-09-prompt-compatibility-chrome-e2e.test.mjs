@@ -23,8 +23,11 @@ for(const runtime of ['source','release'])test('bounded current composer compati
    priorCardURL=card.url();return card;
   };
   const closeCard=async card=>{
-   await card.locator('#close').click();
-   await eventually(()=>card.isDetached()&&promptFrames().length===0,'original authenticated Close removes its actual frame');
+   // R3 retains one 48px host toggle; the retired private Close is hidden.
+   const target=await orb.boundingBox(),draft=await page.locator('form [contenteditable="true"]').textContent();assert.deepEqual([target.width,target.height],[48,48]);assert.equal(await card.locator('#close').isHidden(),true);
+   await orb.click();
+   await eventually(()=>card.isDetached()&&promptFrames().length===0,'original authenticated same-point Close removes its actual frame');
+   assert.equal(await orb.getAttribute('aria-expanded'),'false');assert.equal(await orb.evaluate(n=>document.activeElement===n),true,'authenticated close restores focus to the original host control');assert.equal(await page.locator('form [contenteditable="true"]').textContent(),draft);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
   };
   await t.test('id-less current form displays orb and inserts with capture paused',async()=>{
    assert.equal(await page.locator('#prompt-textarea').count(),0);await orb.waitFor({state:'visible'});assert.equal(await status(),'visible');await page.evaluate(()=>{fixture.view.dom.removeAttribute('data-composer-markdown');fixture.view.dom.removeAttribute('role');});assert.equal(await status(),'visible');await page.evaluate(()=>fixture.set('AB',1));await page.waitForTimeout(60);await orb.click();const card=await openedCard();await card.getByRole('button',{name:text,exact:true}).click();await eventually(()=>card.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await page.evaluate(()=>fixture.text()),'A'+text+'B');await closeCard(card);

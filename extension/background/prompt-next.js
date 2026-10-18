@@ -54,6 +54,15 @@ export class NextPromptCommands{
   if(group.family){const selected=await this.service.resolve({id:group.family.id,text:group.family.text});if(selected.generation!==group.family.generation)fail();}
   return this.assertCurrent(group);
  }
+ retireConsumed(group,status){
+  if(!['inserted','uncertain'].includes(status))return;
+  group.retired=true;
+  if(this.groups.get(group.tabId)!==group)return;
+  // This body-free notice can only retire the exact original host opportunity.
+  // Keep the original attempt/outcome tombstone, including checked legacy copy.
+  try{void this.api.tabs.sendMessage(group.tabId,{type:'PAIA_PROMPT_NEXT_CONSUMED',id:group.id,binding:group.binding,authorization:group.authorization,status},{documentId:group.documentId}).catch(()=>{});}catch{};
+  void this.api.runtime.sendMessage({type:'PAIA_PROMPT_NEXT_CHANGED'}).catch(()=>{});
+ }
  async handle(r,sender){
   const api=this.api,popup=sender.id===api.runtime.id&&(!sender.tab||sender.frameId===0&&!sender.tab.incognito)&&sender.url===api.runtime.getURL('ui/popup.html');
   const archiveURL=api.runtime.getURL('ui/archive.html');
@@ -94,9 +103,9 @@ export class NextPromptCommands{
   }
   if(r.type==='PAIA_PROMPT_NEXT_PRESENT'){
    if(!own(r,['type','id']))fail();const tab=await this.top(sender),g=this.groups.get(tab.id);if(g?.id!==r.id||g.documentId!==sender.documentId)fail();
-   const {live}=await this.assertCurrent(g),safe=live.idle===true&&await this.surface.isIdle(tab.id);
+   const {live}=await this.assertCurrent(g),safe=!g.retired&&live.idle===true&&await this.surface.isIdle(tab.id);
    // The idle probe yields; do not qualify a replaced/revoked Family or reply.
-   await this.assertCurrent(g);return {safe,sourceType:g.sourceType};
+   await this.assertCurrent(g);return {safe:safe&&!g.retired,sourceType:g.sourceType};
   }
   // Extension frame only: same resource, distinct nonce and independently bound host.
   if(r.type!=='PAIA_PROMPT_NEXT_RPC'||!own(r,['type','nonce','command'])||!uuid(r.nonce)||sender.id!==api.runtime.id||!sender.tab||sender.tab.incognito||!Number.isInteger(sender.frameId)||sender.frameId<=0||sender.url!==api.runtime.getURL('ui/prompt-surface.html')+'#next-'+r.nonce)fail();
@@ -118,24 +127,24 @@ export class NextPromptCommands{
    await this.resolveFamily(g);
    result=await Promise.race([api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:c.operationId,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);
   }catch{result={status:'uncertain'};}finally{clearTimeout(timer);}
-  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);return {status,verified:status==='inserted'};
+  const status=result?.status==='inserted'&&result.verified===true?'inserted':result?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
  }
  async card(command,tab,{assertCurrent=async()=>{}}={}){
   if(['next_current','next_result','next_insert'].includes(command?.type)){
    const keys=command.type==='next_current'?['type']:command.type==='next_result'?['type','id']:['type','id','operationId','conditionPresented'];if(!own(command,keys)||Object.keys(command).length!==keys.length)fail();
-   await assertCurrent();const g=this.groups.get(tab.id);if(!g){if(command.type==='next_current')return {result:null};fail();}await this.resolveFamily(g);await assertCurrent();
+   await assertCurrent();const g=this.groups.get(tab.id);if(!g||g.retired){if(command.type==='next_current')return {result:null};fail();}await this.resolveFamily(g);await assertCurrent();
    const choice=command.type==='next_current'?g.choices.find(x=>!g.attempted.has(x.id)&&quickPromptEligible(x.text)):g.choices.find(x=>x.id===command.id);
    if(!choice||g.condition||!quickPromptEligible(choice.text)){if(command.type==='next_current')return {result:null};fail();}
    const result={id:choice.id,kind:'SUGGESTION',text:choice.text,condition:''};if(command.type==='next_current')return {result};if(command.type==='next_result')return result;
    if(!uuid(command.operationId)||command.conditionPresented!==true||g.attempted.has(choice.id))fail();
    g.attempted.add(choice.id);let timer,response;try{await this.resolveFamily(g);await assertCurrent();response=await Promise.race([this.api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_NEXT_INSERT',id:g.id,text:choice.text,sourceType:g.sourceType,operationId:command.operationId,binding:g.binding,authorization:g.authorization},{documentId:g.documentId}),new Promise(resolve=>{timer=setTimeout(()=>resolve({status:'uncertain'}),2000);})]);}catch{response={status:'uncertain'};}finally{clearTimeout(timer);}
-   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);return {status,verified:status==='inserted'};
+   const status=response?.status==='inserted'&&response.verified===true?'inserted':response?.status==='failed'?'failed':'uncertain';g.outcomes.set(choice.id,status);this.retireConsumed(g,status);return {status,verified:status==='inserted'};
   }
   if(command?.type==='next_available'&&own(command,['type'])){
-   const g=this.groups.get(tab.id);if(!g)return {available:false};try{await this.assertCurrent(g);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
+   const g=this.groups.get(tab.id);if(!g||g.retired)return {available:false};try{await this.assertCurrent(g);return {available:true};}catch{if(this.groups.get(tab.id)===g)this.groups.delete(tab.id);return {available:false};}
   }
   if(command?.type==='next_reopen'&&own(command,['type'])){
-   const g=this.groups.get(tab.id);if(!g)fail();await this.assertCurrent(g);
+   const g=this.groups.get(tab.id);if(!g||g.retired)fail();await this.assertCurrent(g);
    if(!await this.surface.isIdle(tab.id))fail();
    // The idle probe yields: authorization or the current reply may change.
    await this.resolveFamily(g);
