@@ -1,3 +1,4 @@
+import {domainResultReceipt} from './domain-result-receipt.js';
 import {isAssistResultJob,isHistoricalCandidateJob} from './contracts.js';
 import {prefix} from '../thought-model.js';
 const LIMIT=100;
@@ -42,11 +43,17 @@ export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
   let dispatched=false,unknown=false;
   for(const receipt of receipts){if(!receipt)continue;
    if(receipt.state==='COMMITTED'){dispatched||=receipt.attemptCount>0;continue;}
-   if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState='RESERVATION_RETAINED';}
+   if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState=receipt.financialSettlement?.state==='SETTLED'?'SETTLED_SERVICE':'RESERVATION_RETAINED';}
    else{receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';}
    await t.put('organizerUsage',receipt);
   }
-  job.cancelEpoch++;job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;await t.put('organizerJobs',job);cancelled++;
+  job.cancelEpoch++;job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;
+  // Original semantic invalidation is also a terminal domain writer. Known
+  // failures are recorded here, atomically; unknown spend stays unresolved.
+  // Existing noncanonical legacy IDs still invalidate under their original
+  // rules, but cannot acquire a new Foundation result identity.
+  if(/^aiu:job:[a-f0-9]{64}$/.test(job.id)){const result=await domainResultReceipt(t,job);if(result)job.domainResultReceipt=result;}
+  await t.put('organizerJobs',job);cancelled++;
  }
  return {status:unsupported?'INCOMPLETE':'CHECKED',checked:page.rows.length,cancelled,unsupported};
 }

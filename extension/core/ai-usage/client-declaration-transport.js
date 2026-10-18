@@ -1,9 +1,10 @@
 // Fixed metadata-only HTTP bridge. No provider body, content store, login or key.
 import {clientDeclarationData,clientDeclarationRequestData} from './client-declaration.js';
 import {snapshot,exact,freeze} from './qwen-request-data.js';
-const transports=new WeakSet(),MAX_RESPONSE_BYTES=4096,DEADLINE_MS=5000;
+const transports=new WeakMap(),MAX_RESPONSE_BYTES=4096,DEADLINE_MS=5000;
 const closed=()=>({decision:'deny',reason:'TRANSPORT_UNAVAILABLE',dispatchAllowed:false,financialAuthority:false,retryAllowed:false});
 const unknown=()=>({decision:'outcome_unknown',reason:'TRANSPORT_OUTCOME_UNKNOWN',dispatchAllowed:false,financialAuthority:false,retryAllowed:false});
+export const clientDeclarationTransportOrigin=value=>transports.get(value)??null;
 export const isClientDeclarationTransport=value=>value!==null&&typeof value==='object'&&transports.has(value);
 export function createClientDeclarationTransport(options){
  let endpoint,send;
@@ -45,5 +46,5 @@ export function createClientDeclarationTransport(options){
   })();
  }
  const transport=Object.freeze({publish:(bundle,declaration)=>execute('publish',bundle,declaration),revoke:(bundle,declaration)=>execute('revoke',bundle,declaration)});
- transports.add(transport);return transport;
+ transports.set(transport,new URL(endpoint).origin);return transport;
 }

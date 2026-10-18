@@ -126,6 +126,30 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node tests/run-provider-settlement-postgres-tests.mjs 2>&1 | tee evidence/provider-settlement-postgres.tap
+      - name: Authenticated result and client-owner protocols
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/result-entry.test.mjs tests/result-ledger.test.mjs tests/result-service.test.mjs ../../extension/tests/ai-cost-02-client-domain-result.test.mjs ../../extension/tests/qwen-foundation-service-result.test.mjs 2>&1 | tee evidence/result-bridge-protocol.tap
+      - name: Actual original-ledger domain result concurrency
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node tests/result-postgres-run.mjs 2>&1 | tee evidence/result-postgres.tap
+      - name: Authenticated operation status protocols
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/operation-status.test.mjs tests/operation-status-entry.test.mjs 2>&1 | tee evidence/operation-status-protocol.tap
+      - name: Actual unknown financial outcome reconciliation
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node tests/run-operation-status-postgres-tests.mjs 2>&1 | tee evidence/operation-status-postgres.tap
       - name: Retain exact-head development test evidence
         if: always()
         uses: actions/upload-artifact@v4
