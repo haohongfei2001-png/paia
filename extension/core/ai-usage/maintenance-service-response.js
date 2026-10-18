@@ -23,6 +23,10 @@ export function bindMaintenanceResponseExistingContext(adapter,childId,handle){c
 // This is negative-only ADD preparation; the final Context source policy remains
 // mandatory. No model flag, cloned plan or existing-Item update is accepted.
 export function bindMaintenanceResponseEmptyExistingContext(adapter,childId,handle){const owner=emptyBindings.get(adapter?.context);if(!owner||!owner.accepts())return false;assertMaintenanceExistingContextEmptyPlan(owner.store,handle);owner.bindings.set(childId,handle);return true;}
+// A committed empty-plan child has no existing-Item transition witness. Only
+// its exact private sent binding and already decoded ADD groups can admit a
+// saved sibling response on continuation; absence of a witness is not proof.
+export function maintenanceResponseEmptyExistingContextReadyForSibling(adapter,store,childId,handle){const owner=emptyBindings.get(adapter?.context);return !!owner&&owner.store===store&&owner.ready(childId,handle);}
 const humanCoverage=units=>units.length>0&&units.every(u=>u.facet==='context'&&['library_entry','placement','section','topic'].includes(JSON.parse(u.key)[0]));
 const ordinaryCoverage=units=>units.length>0&&units.every(u=>['topic','context'].includes(u.facet)&&JSON.parse(u.key)[0]==='input');
 
@@ -176,7 +180,11 @@ export function createMaintenanceServiceResponseOwner(store){
   // This only interprets this exact paid child, without allocating an operation.
   live(s);return {binding:{...binding},value:structuredClone(value.filter)};
  }
- const adapter=Object.freeze({topic,context,filter});contextPolicies.set(context,createContextFreshInputPolicy());existingBindings.set(context,existing);emptyBindings.set(context,{store,bindings:emptyExisting,accepts:()=>!disposed&&profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA});
+ const adapter=Object.freeze({topic,context,filter});contextPolicies.set(context,createContextFreshInputPolicy());existingBindings.set(context,existing);emptyBindings.set(context,{store,bindings:emptyExisting,accepts:()=>!disposed&&profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA,ready(childId,handle){
+  const s=children.get(childId);
+  if(disposed||!s||s.schema!==MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA||!handle||s.emptyHandle!==handle||emptyExisting.get(childId)!==handle||s.existingHandle||!s.responseDigest||!s.groups?.length||s.groups.some(g=>g.operation!=='ADD'))return false;
+  assertMaintenanceExistingContextEmptyPlan(store,handle);live(s);return true;
+ }});
  return Object.freeze({adapter,bind,
   assertProfile(manifest){const schema=manifest?.wire?.responseFormat?.json_schema?.schema;profileSchema=[MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].find(s=>equal(schema,s));if(!profileSchema)fail('UNAVAILABLE');},
   usesExistingContext(metadata){return existingProfile(profileSchema)&&(profileSchema!==MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA||metadata===undefined||ordinaryCoverage(metadata.coverage));},

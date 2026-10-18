@@ -198,3 +198,44 @@ sharing one Input, human existing-Item qualification and authentic correction
 witness wiring remain separate original-owner code successors. No helper file
 was modified here, nor any Filter decision, scheduler, money/store/schema owner,
 workflow, permission, paid provider, deployment, installation or remote state.
+
+## Unified mixed continuation repair — 2026-10-18
+
+Independent review of `195a024a` found a real local continuation defect despite
+its 28 owning passes. After both physical responses and financial settlements,
+a one-time STORAGE_FAILED at the Human Context ACK correctly rolled back only
+that Human Item. Ordinary Topic and ADD remained committed. A second same-session
+run then stopped at the first COMMITTED child's missing existing-Item witness,
+although this genuine empty plan deliberately has no such witness. It could not
+consume the already recorded Human response. Original review evidence remains
+`/tmp/paia-review-mixed-195a024a-continuation-accounting.log`; exact local replay
+before this repair is `/tmp/paia-combined-continuation-repair-red.log` (0/1).
+
+The continuation branch now distinguishes the source owner's private empty-plan
+binding. It requires the same adapter, Store, child and authentic original plan,
+the exact saved combined-schema sent child, its response digest and decoded ADD
+groups, plus the original plan/database and processing currentness checks. No
+absence-of-witness fallback is granted. The original nonempty private transition
+readiness remains unchanged. This branch is considered only after Foundation
+reports the child COMMITTED; it adds no write authority, request, reservation or
+snapshot refresh. Human mapping, current evidence and all final owner fences are
+still repeated when consuming the saved response.
+
+The exact five independent reviewer probes are now in normal discovered file
+`services/ai-gateway/tests/maintenance-source-combined-independent-review.test.mjs`,
+with their original assertions retained. The positive also asserts two
+declarations, two reservations, two physical sends, two COMMITTED local receipts
+with attemptCount 1 and SETTLED_SERVICE/SETTLED financial state, unchanged
+synthetic 120 USD micros per provider settlement, and exactly one logical result
+report. Two added cases revoke the original ordinary processing grant or edit the
+Human body between rollback and continuation; both refuse the saved Human write,
+retain the two real charges, and make no further request or result report.
+
+Local Node v24.19.0 evidence: the original five reviewer probes plus the existing
+28 combined/empty cases passed **33/33**, zero skips/cancellations, in
+`/tmp/paia-combined-continuation-repair-first.log`. The final seven reviewer and
+continuation cases passed **7/7**, zero skips/cancellations, in
+`/tmp/paia-combined-continuation-repair-final.log`. These counts overlap and are
+not additive. The repair is isolated directly on `195a024a`; no unreviewed Topic
+selection leaf or later Human existing-Item qualification is included. Independent
+repair review and the parent's scoped Node22/build/privacy evidence remain open.

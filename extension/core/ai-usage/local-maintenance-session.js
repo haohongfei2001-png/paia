@@ -15,7 +15,7 @@ import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService,topicFormationMaintenanceReceipt} from '../topic-formation.js';
 import {ContextMaintenanceService,contextMaintenanceSettlementFence,structuralContextRequestWithinBudget,validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation} from '../context-maintenance.js';
-import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext,bindMaintenanceResponseEmptyExistingContext} from './maintenance-service-response.js';
+import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext,bindMaintenanceResponseEmptyExistingContext,maintenanceResponseEmptyExistingContextReadyForSibling} from './maintenance-service-response.js';
 
 const TYPE='AI_MAINTENANCE';
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
@@ -677,7 +677,11 @@ export class LocalMaintenanceSession {
    const ordered=await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);return job.childIds.map((id,i)=>({id,following:this.#following(state,job.childCoverage[i])})).sort((a,b)=>Number(a.following)-Number(b.following)).map(x=>x.id);});this.#current(state);
    for(const childId of ordered){
     let status=await this.#foundation.status(state.job.id);this.#current(state);let receipt=status.attempts.find(r=>r.childId===childId);
-    if(receipt?.state==='COMMITTED'){const existing=state.existingContext.get(childId);if(state.existingEnabled.get(childId)&&(!existing||!maintenanceExistingContextReadyForSibling(this.#store,existing)))break;continue;}
+    if(receipt?.state==='COMMITTED'){
+     const existing=state.existingContext.get(childId);
+     if(state.existingEnabled.get(childId)&&!(existing?maintenanceExistingContextReadyForSibling(this.#store,existing):maintenanceResponseEmptyExistingContextReadyForSibling(this.#service.responseAdapter,this.#store,childId,state.existingPlans.get(childId))))break;
+     continue;
+    }
     const metadata=await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);return this.#foundation.childRequest(job,job.childIds.indexOf(childId));});this.#current(state);
     if(this.#following(state,metadata.coverage)){
      if(topicFailed||state.request.coverage.some(u=>u.facet==='topic'&&!status.committedCoverage.includes(unitKey(u))))continue;
