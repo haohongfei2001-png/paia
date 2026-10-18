@@ -7,6 +7,7 @@ import {AssistPromptCommands} from './prompt-assist.js';
 import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
 import {ContextConnections} from './context-connections.js';
+import {installContextConnectionLifecycle} from './context-connection-lifecycle.js';
 import {TopicSectionPromotionCommands} from './topic-section-promotion-commands.js';
 import {installToolbarEntry} from './toolbar-entry.js';
 import {createConfiguredHistoricalCandidateSession} from '../core/ai-usage/configured-historical-session.js';
@@ -160,6 +161,7 @@ const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:
 privacyReady.catch(()=>{});
 ready.catch(() => {});
 installCaptureRecovery(chrome, ready);
+installContextConnectionLifecycle(contextConnections,chrome,ready);
 const backupReady=ready.then(()=>backups.recoverSettings());backupReady.catch(()=>{});
 const originalReady=Promise.all([ready,privacyReady,backupReady]).then(()=>Promise.all([originalOrganizer.reconcileInterrupted(),aiOrganizer.reconcileInterrupted(),boundedOrganizer.reconcileInterrupted()]));
 originalReady.catch(()=>{});
@@ -290,6 +292,7 @@ async function handle(request, sender) {
       if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
       if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
       const options=request.options,keys=request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?['expectedRevision','port']:['id','action','expectedRevision'];
+      if(options&&Object.hasOwn(options,'authorizationPolicyId')){if(typeof options.authorizationPolicyId!=='string'||request.type==='PAIA_CONTEXT_CONNECTIONS_CHANGE'&&options.action!=='reconnect')throw new ArchiveError('INVALID_REQUEST');keys.push('authorizationPolicyId');}
       if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).length!==keys.length||Object.keys(options).some(key=>!keys.includes(key)))throw new ArchiveError('INVALID_REQUEST');
       return request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?contextConnections.pair(options,{replaceStale:request.type==='PAIA_CONTEXT_CONNECTIONS_REPAIR'}):contextConnections.change(options);
     }

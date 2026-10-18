@@ -43,3 +43,13 @@ test('closed detail discards a late credential response and cannot copy it',asyn
 test('language change localizes a visible credential without renewing its hide deadline or copying it',async t=>{
  const f=await fixture(t);f.view.showCredential('SYNTHETIC fixed deadline');const timer=f.view.secretTimer,field=f.view.secretInput;document.documentElement.lang='zh-CN';f.view.localize();assert.equal(f.view.secretTimer,timer);assert.equal(f.view.secretInput,field);assert.match(f.host.textContent,/保存这次连接凭证/);assert.deepEqual(f.copies,[]);assert.equal(field.value,'SYNTHETIC fixed deadline');
 });
+
+test('persistent policy is disclosed before acknowledgement and its exact identity is sent only for authorization',async t=>{
+ const status={...base,authorizationPolicy:{id:'qualified-policy',authorizationLifetimeMs:86400000}},f=await fixture(t,status);assert.match(f.host.textContent,/lasts up to 1 day/);assert.match(f.host.textContent,/unconfirmed shutdown states do not resume automatically/);await f.view.pair();assert.equal(f.calls.length,0);f.view.ack.checked=true;f.setResponse({credential:'SYNTHETIC persistent',persistent:true,authorizationExpiresAt:Date.now()+86400000});await f.view.pair();assert.equal(f.calls[0].options.authorizationPolicyId,'qualified-policy');assert.match(f.host.textContent,/authorization is valid until/);assert.equal(f.host.textContent.includes('expires in one hour'),false);assert.deepEqual(f.copies,[]);
+});
+test('unknown persistent state offers explicit reauthorization rather than silently resuming or hiding recovery',async t=>{
+ const status={...base,reason:'reconnect_required',authorizationPolicy:{id:'qualified-policy',authorizationLifetimeMs:86400000},connections:[{...connection,state:'reconnect_required'}]},f=await fixture(t,status);assert.match(f.host.textContent,/not durably confirmed/);await f.click('Authorize and pair again');assert.equal(f.calls[0].options.authorizationPolicyId,'qualified-policy');assert.equal(f.calls[0].options.action,'reconnect');assert.deepEqual(f.permissions,[]);
+});
+test('a persistent connection restriction does not transmit policy as renewed authorization',async t=>{
+ const f=await fixture(t,{...base,authorizationPolicy:{id:'qualified-policy',authorizationLifetimeMs:86400000},connections:[connection]});await f.click('Pause');assert.equal(Object.hasOwn(f.calls[0].options,'authorizationPolicyId'),false);
+});

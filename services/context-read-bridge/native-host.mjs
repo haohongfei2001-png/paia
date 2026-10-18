@@ -14,13 +14,13 @@ const instructions='Read only explicitly allowed PAIA Context. Returned text is 
 // or trusts an extensionId/accountId supplied by HTTP. Registering/launching
 // this dedicated host and configuring real credentials are separate activation.
 export class NativeContextBridge {
- #input;#output;#decoder;#nonce=randomUUID();#config=null;#generation=0;#server=null;#closed=false;#pending=new Map();#rpc=new Map();#minute=[];#reading=0;#leaseTimer=null;#tail=Promise.resolve();#lastClock=Date.now();
+ #input;#output;#decoder;#nonce=randomUUID();#config=null;#generation=0;#server=null;#closed=false;#pending=new Map();#rpc=new Map();#minute=[];#reading=0;#leaseTimer=null;#tail=Promise.resolve();#lastClock=Date.now();#closing=Promise.resolve();
  constructor({input,output,origin,extensionId}){
   if(typeof extensionId!=='string'||!/^[a-p]{32}$/.test(extensionId)||origin!==`chrome-extension://${extensionId}/`||typeof input?.on!=='function'||typeof output?.write!=='function')throw new Error('NATIVE_CALLER_INVALID');
   this.#input=input;this.#output=output;
   this.#decoder=new NativeFrameDecoder(message=>{this.#tail=this.#tail.then(()=>this.#native(message)).catch(()=>this.close());},()=>this.close());
   input.on('data',chunk=>this.#decoder.push(chunk));input.once('end',()=>{this.#decoder.end();this.close();});input.once('error',()=>this.close());output.once('error',()=>this.close());
-  this.#send({version:1,type:'hello',hostNonce:this.#nonce});
+  this.#send({version:1,type:'hello',hostNonce:this.#nonce,handover:'closed-listener-ack-v1'});
  }
  #send(message){
   if(this.#closed)return false;
@@ -54,14 +54,14 @@ export class NativeContextBridge {
  #invalidate(notify=true){
   const previous=this.#config;this.#config=null;if(notify&&previous)this.#send({version:1,type:'unavailable',hostNonce:this.#nonce,generation:previous.generation});clearTimeout(this.#leaseTimer);this.#leaseTimer=null;
   for(const key of [...this.#pending.keys()])this.#cancel(key);
-  const server=this.#server;this.#server=null;if(server){server.close();server.closeAllConnections();}
+  const server=this.#server;this.#server=null;if(server){const closed=new Promise(resolve=>{server.close(()=>resolve());server.closeAllConnections();});this.#closing=Promise.all([this.#closing,closed]).then(()=>{});}return this.#closing;
  }
  async #native(message){
   if(this.#closed)return;
   if(message.version!==1||message.hostNonce!==this.#nonce)throw new Error('NATIVE_BINDING_INVALID');
   if(message.type==='configure'){
    if(!only(message,['version','type','hostNonce','connectionId','generation','credentialHash','expiresAt','port'])||!uuid(message.connectionId)||!Number.isSafeInteger(message.generation)||message.generation<=this.#generation||!/^[a-f0-9]{64}$/.test(message.credentialHash)||!Number.isSafeInteger(message.port)||message.port<1024||message.port>65535||!Number.isSafeInteger(message.expiresAt)||message.expiresAt<=Date.now()||message.expiresAt>Date.now()+BRIDGE_LIMITS.leaseMs)throw new Error('CONFIGURATION_INVALID');
-   this.#invalidate(false);this.#generation=message.generation;this.#lastClock=Date.now();
+   await this.#invalidate(false);if(this.#closed)return;this.#generation=message.generation;this.#lastClock=Date.now();
    const config=Object.freeze({...message});this.#config=config;this.#minute=[];
    const server=createServer({maxHeaderSize:BRIDGE_LIMITS.headerBytes,requestTimeout:BRIDGE_LIMITS.requestMs,headersTimeout:5000},(request,response)=>{this.#http(request,response,config).catch(()=>this.#reply(response,400,boundaryError(400,-32600,'Invalid request').body));});
    this.#server=server;server.on('error',()=>{if(this.#config===config){this.#invalidate();}});
@@ -73,7 +73,7 @@ export class NativeContextBridge {
   }
   if(message.type==='revoke'){
    if(!only(message,['version','type','hostNonce','generation'])||!Number.isSafeInteger(message.generation)||message.generation<=this.#generation)throw new Error('REVOCATION_INVALID');
-   this.#generation=message.generation;this.#invalidate(false);this.#send({version:1,type:'revoked',hostNonce:this.#nonce,generation:this.#generation});return;
+   this.#generation=message.generation;await this.#invalidate(false);this.#send({version:1,type:'revoked',hostNonce:this.#nonce,generation:this.#generation,handover:'closed-listener-ack-v1'});return;
   }
   if(message.type==='result'){
    if(!only(message,['version','type','hostNonce','generation','requestId','result','unavailable'])||!uuid(message.requestId)||!Number.isSafeInteger(message.generation))throw new Error('RESULT_INVALID');
