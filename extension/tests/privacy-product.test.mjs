@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
+import {reviewedContextSource} from './harness/privacy-reviewed-context.mjs';
 const root=new URL('../',import.meta.url);
 test('privacy: manifest keeps an exact reviewed required and optional permission allowlist',async()=>{
  const m=JSON.parse(await readFile(new URL('manifest.json',root),'utf8'));
@@ -15,6 +16,7 @@ test('privacy: manifest keeps an exact reviewed required and optional permission
 test('privacy: runtime ships no fake environment hooks, analytics or credential/history APIs',async()=>{
  for(const folder of ['adapter','content','core','background','ui'])for(const name of await readdir(new URL(folder+'/',root)))if(name.endsWith('.js')) {
   let source=await readFile(new URL(folder+'/'+name,root),'utf8');
+  source=reviewedContextSource(folder,name,source);
   if(folder==='ui'&&name==='context-workspace.js')assert.doesNotMatch(source,/navigator\.clipboard|PAIA_CONTEXT_MANUAL/);
   if(folder==='ui'&&name==='reading-actions.js'){const explicit='navigator.clipboard.writeText(text)';assert.equal(source.split(explicit).length-1,1);source=source.replace(explicit,'EXPLICIT_USER_TEXT_COPY(text)');}
   if(folder==='core'&&name==='prompt-clipboard.js'){const explicit='globalThis.navigator.clipboard';assert.equal(source.split(explicit).length-1,1);assert.equal(source.split('clipboard.writeText(text)').length-1,1);assert.doesNotMatch(source,/clipboard\.(?!writeText\b)[A-Za-z_$]|clipboard\s*\[/);source=source.replace(explicit,'EXPLICIT_PROMPT_WRITE_ONLY_CLIPBOARD');}

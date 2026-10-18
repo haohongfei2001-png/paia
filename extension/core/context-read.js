@@ -12,8 +12,9 @@ import {normalizeSearch,searchExcerpt} from './search-service.js';
 import {idOK,revisionOK} from './thought-model.js';
 import {ArchiveError} from './constants.js';
 
-// Domain boundary only. No worker route, transport, credential, connection
-// activation, persistent cache or default connection authority is installed.
+// Original read domain. The separate source-owned ContextConnections host
+// supplies authenticated capabilities; default configuration remains null.
+// This domain never installs a transport or creates credentials.
 export const CONTEXT_READ_LIMITS=Object.freeze({page:20,scan:20,chunk:8192,outputBytes:256*1024,materialBytes:8*1024*1024,cursors:64,cursorMs:300000,verificationMs:1000,requestMs:10000});
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const only=(x,keys)=>plain(x)&&Reflect.ownKeys(x).every(k=>keys.includes(k));
@@ -62,17 +63,51 @@ function boundedReader(transaction,compare){
  * isCurrent(caller, receipt, store) -> synchronous true only while that exact
  * authenticated caller, local account/store binding and generation remain live.
  * The host must own authentication, current account membership and revocation.
- * A JSON caller's claimed IDs/permissions are not proof. No such live host is
- * provided here; tests inject explicitly synthetic authority into actual stores.
+ * A JSON caller's claimed IDs/permissions are not proof. The separately
+ * composed ContextConnections host remains default-deny until qualified.
+ * Tests inject explicitly synthetic authority into actual stores.
  *
  * Results are data, never executable instructions. Complete readTopic pages
  * cover whole-bound user Inputs only, not AI Thought prose or Archive tails.
  */
 export class ContextReadService {
- #s;#cards;#access;#verifier;#previewCapability;#cursors=new Map();
+ #s;#cards;#access;#verifier;#previewCapability;#cursors=new Map();#results=new WeakMap();
  constructor(store,{connectionVerifier=null,localPreviewCapability=null}={}){
   this.#s=store;this.#cards=new ContextCardsService(store);this.#access=new ContextTopicAccessService(store);this.#verifier=connectionVerifier;this.#previewCapability=plain(localPreviewCapability)?localPreviewCapability:null;
  }
+ // Transport composition may await several original reads. Retain only private,
+ // body-free authority witnesses, then publish synchronously after one final
+ // original-store fence. A DTO, cloned result or preview cannot mint this proof.
+ async publishResults(caller,results,publish){
+  need(Array.isArray(results)&&results.length>0&&results.length<=128&&new Set(results).size===results.length&&typeof publish==='function','invalid_request');
+  const deadline=Date.now()+CONTEXT_READ_LIMITS.requestMs;
+  const proofs=results.map(result=>{const proof=this.#results.get(result);need(proof&&proof.caller===caller&&proof.expiresAt>Date.now(),'stale_authority');return proof;});
+  try{
+   const receipt=await this.#verify(caller);this.#current(caller,receipt);
+   need(proofs.every(proof=>proof.connection===identity(receipt)),'connection_changed');
+   return await this.#read(async t=>{
+    for(const deep of new Set(proofs.map(proof=>proof.deep))){
+     const current=await this.#snapshot(deep,t);
+     need(proofs.filter(proof=>proof.deep===deep).every(proof=>proof.fence===current.fence),'stale_authority');
+    }
+    need(Date.now()<deadline&&proofs.every(proof=>proof.expiresAt>Date.now()),'timeout');
+    if(this.#verifier.fenceInTransaction){
+     need(typeof this.#verifier.fenceInTransaction==='function','connection_changed');
+     need(await this.#verifier.fenceInTransaction(caller,receipt,this.#s,t)===true,'connection_changed');
+    }
+    need(Date.now()<deadline&&proofs.every(proof=>proof.expiresAt>Date.now()),'timeout');
+    this.#current(caller,receipt);
+    // The trusted source host supplies its synchronous native port primitive.
+    // Send while the original readonly transaction still holds the meta lock:
+    // a queued scope/content writer cannot commit between this fence and send.
+    // A callback contract is not authority for arbitrary caller-supplied code.
+    const value=publish();
+    if(value&&typeof value.then==='function'){Promise.resolve(value).catch(()=>{});refuse('invalid_request');}
+    return value;
+   },['meta']);
+  }finally{for(const result of results)this.#results.delete(result);}
+ }
+ releaseResults(results){if(Array.isArray(results))for(const result of results)this.#results.delete(result);}
  shallow(caller,options={}){return this.#run('shallow',caller,options);}
  topics(caller,options={}){return this.#run('topics',caller,options);}
  searchTopic(caller,options={}){return this.#run('searchTopic',caller,options);}
@@ -250,6 +285,8 @@ export class ContextReadService {
    while(this.#cursors.size>=CONTEXT_READ_LIMITS.cursors)this.#cursors.delete(this.#cursors.keys().next().value);
    nextCursor=crypto.randomUUID();this.#cursors.set(nextCursor,{caller,signature,connection:preview?'local_scope_preview':identity(current),fence:captured.fence,position,expiresAt:Math.min(Date.now()+CONTEXT_READ_LIMITS.cursorMs,preview?Infinity:current.expiresAt)});
   }
-  return {available:true,reason:'read_ready',items,nextCursor,complete,coverage:kind==='readTopic'?'whole_bound_user_inputs':kind==='searchTopic'?'whole_bound_user_input_matches':kind==='topics'?'permitted_topics':'open_context_items',externalAllowed:!preview,...(preview?{scopeVersion}:{} )};
+  const result={available:true,reason:'read_ready',items,nextCursor,complete,coverage:kind==='readTopic'?'whole_bound_user_inputs':kind==='searchTopic'?'whole_bound_user_input_matches':kind==='topics'?'permitted_topics':'open_context_items',externalAllowed:!preview,...(preview?{scopeVersion}:{} )};
+  if(!preview)this.#results.set(result,{caller,deep,fence:captured.fence,connection:identity(current),expiresAt:Math.min(Date.now()+CONTEXT_READ_LIMITS.requestMs,current.expiresAt)});
+  return result;
  }
 }

@@ -4,6 +4,7 @@ import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-
 import {AssistPromptCommands} from './prompt-assist.js';
 import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
+import {ContextConnections} from './context-connections.js';
 import {TopicSectionPromotionCommands} from './topic-section-promotion-commands.js';
 import {installToolbarEntry} from './toolbar-entry.js';
 import {createConfiguredHistoricalCandidateSession} from '../core/ai-usage/configured-historical-session.js';
@@ -56,6 +57,7 @@ const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:ai
 const configuredMaintenance=readMaintenanceServiceConfiguration(store);
 const maintenanceConfiguration=configuredMaintenance===null?null:{...configuredMaintenance,service:{...configuredMaintenance.service,filter:aiFilterRuntime.serviceFilter}};
 const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
+const contextConnections=new ContextConnections(store,chrome);
 const localScopePreviewCapability=Object.freeze({});
 const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
@@ -277,7 +279,19 @@ async function handle(request, sender) {
     case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
     case 'PAIA_AI_FILTER_STATUS':
     case 'PAIA_AI_FILTER_CONFIGURE': return aiFilterRuntime.handle(request,sender);
-    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
+    case 'PAIA_CONTEXT_CONNECTIONS_STATUS': {
+      if(Object.keys(request).some(key=>key!=='type'))throw new ArchiveError('INVALID_REQUEST');return contextConnections.status();
+    }
+    case 'PAIA_CONTEXT_CONNECTIONS_PAIR':
+    case 'PAIA_CONTEXT_CONNECTIONS_REPAIR':
+    case 'PAIA_CONTEXT_CONNECTIONS_CHANGE': {
+      if(sender.url!==chrome.runtime.getURL('ui/archive.html')||(sender.frameId!==undefined&&sender.frameId!==0)||sender.tab?.incognito)throw new ArchiveError('FORBIDDEN');
+      if(Object.keys(request).some(key=>!['type','options'].includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      const options=request.options,keys=request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?['expectedRevision','port']:['id','action','expectedRevision'];
+      if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).length!==keys.length||Object.keys(options).some(key=>!keys.includes(key)))throw new ArchiveError('INVALID_REQUEST');
+      return request.type!=='PAIA_CONTEXT_CONNECTIONS_CHANGE'?contextConnections.pair(options,{replaceStale:request.type==='PAIA_CONTEXT_CONNECTIONS_REPAIR'}):contextConnections.change(options);
+    }
+    case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');const connectionStatus=await contextConnections.status(),maintenance=maintenanceRunner.status();return {...snapshot,maintenance,connectionStatus,connections:connectionStatus.connectedCount,capabilities:{...snapshot.capabilities,automatic:maintenance.available,external:connectionStatus.connectedCount>0}};}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
     case 'PAIA_CONTEXT_TOPICS_PAGE':
@@ -487,7 +501,7 @@ async function handle(request, sender) {
     case 'UPDATE_DOCUMENT': return store.updateDocument(request.id, request.changes);
     case 'GET_MEMORY_CONTEXT': return store.memoryContext();
     case 'GET_STATE': return recoverySnapshot(()=>store.snapshot());
-    case 'CONSENT': {if(request.accepted!==true)aiFilterRuntime.invalidate();return store.consent(request.accepted);}
+    case 'CONSENT': {if(request.accepted!==true){contextConnections.invalidate();aiFilterRuntime.invalidate();}return store.consent(request.accepted);}
     case 'SET_ENABLED': return store.setEnabled(request.enabled);
     case 'UPDATE_RECORD': return store.update(request.id, request.changes);
     case 'TRASH_RECORD': return store.trash(request.id);

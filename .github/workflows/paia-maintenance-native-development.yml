@@ -8,6 +8,10 @@ on:
     paths:
       - 'extension/core/**'
       - 'extension/background/**'
+      - 'extension/ui/context-cards.js'
+      - 'extension/ui/context-cards.css'
+      - 'extension/ui/context-connections-view.js'
+      - 'extension/tests/context-connections-chrome-e2e.test.mjs'
       - 'extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'
       - 'extension/tests/harness/**'
       - 'extension/scripts/build_current_release.py'
@@ -85,3 +89,52 @@ jobs:
           }
           JS
       # No artifact upload, cache, service container, credentials or paid runner.
+
+  offline-native-context-connections:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact direct versions; transitive versions have no lock
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only existing runner Chrome
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          node --version
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          sha256sum tests/context-connections-chrome-e2e.test.mjs ui/context-connections-view.js ui/context-cards.css background/context-connections.js
+      - name: Actual offline Source and release Context connection detail
+        run: node --test --test-reporter=tap tests/context-connections-chrome-e2e.test.mjs
+      - name: Print only body-free layout observations
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          for (const variant of ['source', 'release']) {
+            try { console.log(await readFile(`work/context-connections/${variant}/body-free-layout.json`, 'utf8')); }
+            catch (error) { if (error.code !== 'ENOENT') throw error; console.log(`${variant}: no completed layout evidence`); }
+          }
+          JS
+      # Screenshots stay in this ephemeral job only. No artifact or cache upload.
+      # Generation alone is not human-visible fidelity acceptance.

@@ -8,6 +8,7 @@ import {ContextTopicInputs} from './context-topics.js';
 import {copyReadingText} from './reading-actions.js';
 import {ContextItemBasis} from './context-item-basis.js';
 import {ContextTemporalStatus} from './context-temporal-status.js';
+import {ContextConnectionsView} from './context-connections-view.js';
 
 const copy=(zh,en)=>document.documentElement.lang==='en'?en:zh;
 const names={info:['我的信息','My Information'],rules:['我的规则','My Rules'],now:['我的现在','My Now'],inputs:['我的输入','My Inputs']};
@@ -112,7 +113,7 @@ export class ContextItemEditor {
 }
 
 export class ContextCardsPage {
- constructor({host,onNavigate,onInput=null}){this.host=host;this.onNavigate=onNavigate;this.onInput=onInput;this.card=null;this.snapshot=null;this.inputs=null;this.editors=new Map();this.journal=new UndoJournal();this.accessCommit=new ContextCommitSession();this.deleteCommit=new ContextCommitSession();this.reorderCommit=new ContextCommitSession();this.moveCommit=new ContextCommitSession();this.movePreparing=false;this.lastMove=null;this.busy=false;this.active=false;this.readGeneration=0;this.openGeneration=0;this.searchQuery='';this.searchGeneration=0;this.searchComposing=false;document.addEventListener('paia:preferences-applied',()=>{if(this.active&&editable(this.card)&&this.page){this.localizeEditable();this.paintAccess();}});}
+ constructor({host,onNavigate,onInput=null}){this.host=host;this.onNavigate=onNavigate;this.onInput=onInput;this.card=null;this.snapshot=null;this.inputs=null;this.editors=new Map();this.journal=new UndoJournal();this.accessCommit=new ContextCommitSession();this.deleteCommit=new ContextCommitSession();this.reorderCommit=new ContextCommitSession();this.moveCommit=new ContextCommitSession();this.movePreparing=false;this.lastMove=null;this.busy=false;this.active=false;this.readGeneration=0;this.openGeneration=0;this.searchQuery='';this.searchGeneration=0;this.searchComposing=false;document.addEventListener('paia:preferences-applied',()=>{if(this.active&&editable(this.card)&&this.page){this.localizeEditable();this.paintAccess();}else if(this.active&&this.card==='connections'&&this.page){this.page.querySelector('h1').textContent=label(this.card);const back=this.page.querySelector('.context-back')?.querySelector('span');if(back)back.textContent=copy('AI 上下文','AI Context');const preview=this.page.querySelector('.context-scope-preview-open');if(preview)preview.replaceChildren(contextDetailIcon('eye'),copy('预览 AI 可读内容','Preview AI-readable content'));}});}
  async open(card=null){
   card=routes[card]?card:null;const generation=++this.openGeneration,rebuild=!this.active||!this.page||this.renderedCard!==card;this.active=true;this.card=card;
   if(this.homeTarget){if(card===this.homeTarget.card&&!this.homeTarget.entered)this.homeTarget.entered=generation;else this.homeTarget=null;}
@@ -125,7 +126,7 @@ export class ContextCardsPage {
   const generation=++this.readGeneration;
   try{const snapshot=await request('PAIA_CONTEXT_CARDS_SNAPSHOT',this.card?{}:{mode:'home'});if(generation!==this.readGeneration||!this.active)return;this.snapshot=snapshot;
    if(rebuild||!this.page||this.renderedCard!==this.card){this.render();if(this.inputs)await this.inputs.refresh();if(this.homeSearch)await this.homeSearch.restore();return;}
-   this.localizeEditable();this.paintAccess();
+   this.localizeEditable();this.paintAccess();const maintenance=this.page.querySelector('.maintenance');if(maintenance)maintenance.textContent=this.maintenanceText();this.connectionsView?.update(snapshot.connectionStatus);
    if(!this.card)this.paintHomeEntries();
    else if(editable(this.card)){
     for(const [id,editor]of this.editors){const item=snapshot.items.find(x=>x.id===id&&x.card===this.card);editor.outsideCard=snapshot.items.some(x=>x.id===id&&x.card!==this.card);editor.receive(item,snapshot.epoch);if(!item&&!editor.fresh&&!editor.dirty()&&!editor.composing&&!editor.saving&&!editor.commit.pending&&!editor.recoveryPending){editor.dispose();editor.root.remove();this.editors.delete(id);}}
@@ -140,6 +141,7 @@ export class ContextCardsPage {
   this.host.querySelector('h1')?.focus({preventScroll:true});
  }
  renderLoadFailure(){
+  this.connectionsView?.close();this.connectionsView=null;
   this.homeSearch?.close();this.homeSearch=null;
   // Navigation reached this method only after the shared leave guard succeeded.
   // Do not expose an outgoing card's editors under a failed destination route.
@@ -152,8 +154,9 @@ export class ContextCardsPage {
   panel.append(header,failure,button(copy('重试','Retry'),()=>void this.open(this.card),'standard-button'));this.host.replaceChildren(panel);
  }
  access(key){const b=button('',()=>void this.toggle(key),'context-access'+(key==='global'?' global':''));b.dataset.key=key;return b;}
+ maintenanceText(){const value=this.snapshot?.maintenance;if(!value?.available)return copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.');if(value.running)return copy('人工修改始终保留；正在检查自动补充。','Your edits are protected. Automatic updates are being checked.');if(value.remainingWork===true)return copy('人工修改始终保留；还有内容等待自动补充。','Your edits are protected. Some automatic updates are pending.');return value.remainingWork===false?copy('人工修改始终保留；本次检查已处理完毕。','Your edits are protected. This check is complete.'):copy('人工修改始终保留；自动补充已准备，待处理状态尚未检查。','Your edits are protected. Automatic updates are ready; pending work has not been checked.');}
  inputCount(){const value=this.snapshot.topicChoices;return !value?copy('0 个主题开放','0 topics open'):!value.available?copy('主题选择暂不可用','Topic choices unavailable'):`${value.selectedCount} ${copy('个主题已选择','topics selected')}`;}
- inputDescription(){const value=this.snapshot.topicChoices;return value&&!value.available?copy('暂时无法读取主题选择，已有设置仍保留。','Topic choices cannot be read right now. Existing settings are retained.'):value?.available&&value.selectedCount?copy('主题选择已保留，外部读取目前不可用。','Topic choices are retained. External reading is unavailable.'):copy('还没有开放的主题','No open topics yet');}
+ inputDescription(){const value=this.snapshot.topicChoices;return value&&!value.available?copy('暂时无法读取主题选择，已有设置仍保留。','Topic choices cannot be read right now. Existing settings are retained.'):value?.available&&value.selectedCount?(this.snapshot.connections>0?copy('已连接的 AI 仍须遵守总权限和主题选择。','Connected AI still follows Global access and Topic choices.'):copy('主题选择已保留，当前没有在线连接。','Topic choices are retained; no connection is online.')):copy('还没有开放的主题','No open topics yet');}
  paintInputSummary(node){const value=this.snapshot.topicChoices;if(value?.available&&value.selectedNames?.length){node.replaceChildren(element('span','',value.selectedNames.join(' · ')));if(value.remainingSelectedCount)node.append(element('span','more-topics',` +${value.remainingSelectedCount}`));}else node.textContent=this.inputDescription();}
  homeEntryText(key){return key==='inputs'?copy('选择主题','Choose topics'):this.snapshot.counts[key]===0?copy('添加内容','Add content'):copy('查看内容','View content');}
  paintHomeEntries(){
@@ -171,7 +174,7 @@ export class ContextCardsPage {
   const entry=button('',()=>void this.onNavigate(key),'context-directory-link'),text=element('span','context-entry-label',this.homeEntryText(key));text.dataset.card=key;entry.append(text,createIcon('chevron-right'));directory.append(entry);content.append(directory);
   const footer=element('div','card-footer');footer.append(this.access(key));card.append(content,footer);return card;
  }
- paintAccess(){for(const b of this.host.querySelectorAll('.context-access')){const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&!this.snapshot.access.global.enabled;b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+(value.enabled?copy('已开放','Enabled'):copy('仅自己','Only me')));b.title=copy('仅保存开放设置；外部 AI 连接尚不可用。','Saves access preferences only. External AI connections are unavailable.');const track=element('span','context-switch');track.setAttribute('aria-hidden','true');b.replaceChildren(element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('已开放','Enabled'):copy('AI 可读','AI readable')):copy('仅自己','Only me')),track);b.disabled=this.busy;}
+ paintAccess(){for(const b of this.host.querySelectorAll('.context-access')){const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&!this.snapshot.access.global.enabled;b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+(value.enabled?copy('已开放','Enabled'):copy('仅自己','Only me')));b.title=this.snapshot.connections>0?copy('只控制已连接 AI 的读取范围，不改变独立的自动处理授权。','Controls connected AI reading scope, not independent automatic processing permission.'):copy('仅保存开放设置；当前没有在线的外部 AI 连接。','Saves access preferences only. No external AI connection is online.');const track=element('span','context-switch');track.setAttribute('aria-hidden','true');b.replaceChildren(element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('已开放','Enabled'):copy('AI 可读','AI readable')):copy('仅自己','Only me')),track);b.disabled=this.busy;}
   if(this.gateCaption&&detailDescriptions[this.card])this.gateCaption.textContent=this.busy?copy('正在核对设置…','Checking preferences…'):!this.snapshot.access[this.card].enabled?(this.card==='inputs'?copy('本地阅读不改变访问选择','Local reading does not change access choices'):copy('内容仍可自由编辑','Content remains editable')):!this.snapshot.access.global.enabled?copy('总权限已暂停，选择已保留','Global access is paused; choices are retained'):copy('访问设置 · 本地预览可核对','Access preferences · Inspect the local preview');
   if(this.globalNote&&this.card!=='connections'){this.globalNote.hidden=!!this.inputs||this.snapshot.access.global.enabled;this.globalNote.textContent=Object.values(this.snapshot.access).some(x=>x.enabled)?copy('AI 访问已暂停，开放设置已保留。','AI access is paused. Your choices are retained.'):copy('AI 访问尚未开启。','AI access is off.');}}
  async openScopePreview(){
@@ -183,13 +186,14 @@ export class ContextCardsPage {
   }finally{this.previewOpening=false;}
  }
  render(){
+  this.connectionsView?.close();this.connectionsView=null;
   this.homeSearch?.close();this.homeSearch=null;
   this.scopePreview?.close();
   this.inputs?.close();this.inputs=null;this.renderedCard=this.card;this.searchQuery='';++this.searchGeneration;this.searchComposing=false;this.searchForm=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=element('section','context-page'+(this.card?' context-detail':''));this.host.replaceChildren(this.page);
   if(this.card){const back=button('',()=>void this.onNavigate(null),'context-back');back.append(createIcon('back'),element('span','',copy('AI 上下文','AI Context')));if(detailDescriptions[this.card]){const row=element('div','context-back-row'),crumb=element('nav','context-breadcrumb');crumb.setAttribute('aria-label',copy('当前位置','Current location'));crumb.append(back);row.append(crumb);this.page.append(row);}else this.page.append(back);}
   const head=element('header','context-head'),title=element('h1',this.card?'':'context-semantic-title',this.card?label(this.card):copy('AI 上下文','AI Context'));title.tabIndex=-1;head.append(title);if(this.card&&this.card!=='connections'){const right=element('div','context-detail-right');this.gateCaption=element('p','context-gate-caption');right.append(this.access(this.card),this.gateCaption);head.append(right);}this.page.append(head);let accessBar;if(!this.card){accessBar=element('div','context-access-bar');const controls=element('div','context-access-controls');controls.append(this.access('global'));accessBar.append(controls);head.append(accessBar);}
   const preview=button(copy('预览 AI 可读内容','Preview AI-readable content'),()=>void this.openScopePreview(),'context-scope-preview-open');preview.prepend(contextDetailIcon('eye'));if(this.card==='connections')this.page.append(preview);
-  if(editable(this.card))this.page.append(element('p','maintenance',copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.')));
+  if(editable(this.card))this.page.append(element('p','maintenance',this.maintenanceText()));
   this.globalNote=element('p','global-note');this.page.append(this.globalNote);
   this.message=element('div','context-notice');this.message.setAttribute('role','status');
   if(!this.card){
@@ -200,7 +204,7 @@ export class ContextCardsPage {
   }else if(this.card==='inputs'&&this.snapshot.capabilities.inputs){
    this.inputs=new ContextTopicInputs({host:this.page,access:this.snapshot.access});
   }else if(this.card==='connections'){
-   this.page.append(element('p','empty-detail',copy('还没有连接的 AI。','No AI is connected.')),element('p','quiet-footnote',copy('外部连接目前不可用。开放设置只保存在本机，不会发送内容。','External connections are unavailable. Access preferences stay on this device; no content is sent.')));
+   const host=element('div','context-connections-detail');this.page.append(host);this.connectionsView=new ContextConnectionsView({host,status:this.snapshot.connectionStatus});
   }else this.page.append(element('p','empty-detail',copy('此页目前不可用。开放设置已保存在本机，不会向外部提供内容。','This page is not available yet. Access preferences are saved locally; no content is shared.')));
   if(detailDescriptions[this.card]){const footer=element('footer','context-detail-footer');footer.append(preview);this.page.append(footer);}this.page.append(this.message);this.paintAccess();
  }
@@ -267,7 +271,7 @@ export class ContextCardsPage {
   const set=(node,text)=>{if(node&&node.textContent!==text)node.textContent=text;};
   set(this.page.querySelector('h1'),label(this.card));set(this.page.querySelector('.context-subtitle'),copy(...detailDescriptions[this.card]));set(this.page.querySelector('.context-crumb-current'),'/ '+label(this.card));set(this.page.querySelector('.context-toolbar-label'),copy('由你维护的内容','Content you maintain'));set(this.page.querySelector('.context-local-boundary'),copy('编辑保存在本机；保存状态见各条内容。','Edits stay on this device; each item shows its save status.'));
   set(this.page.querySelector('.context-back')?.querySelector('span'),copy('AI 上下文','AI Context'));
-  set(this.page.querySelector('.maintenance'),copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.'));
+  set(this.page.querySelector('.maintenance'),this.maintenanceText());
   set(this.empty,copy('还没有内容，可以先写一条。','No content yet. Write something to start.'));set(this.add?.querySelector('.context-add-label'),copy(...itemCopy[this.card].add));
   for(const editor of this.editors.values()){
    editor.temporalStatus?.refresh();const card=editor.saved.card||this.card;set(editor.root.querySelector('.context-item-origin'),copy('本地内容 · 由你核对','Local content · Yours to review'));
@@ -363,6 +367,6 @@ export class ContextCardsPage {
    const previous=this.snapshot;await this.refresh({force:true});if(change.kind==='move'){this.moveNotice(this.snapshot===previous?copy('移动已保存，但列表刷新失败。','Move saved, but the list could not refresh.'):copy('移动已确认。','Move confirmed.'));if(this.snapshot===previous)this.message?.append(button(copy('重新读取','Retry reading'),()=>void this.refresh()));return true;}if(change.kind==='reorder'&&this.snapshot===previous){this.notice(copy('顺序已保存，但列表刷新失败。请重试读取。','Order was saved, but the list could not refresh. Retry reading.'));this.message?.append(button(copy('重新读取','Retry reading'),()=>void this.refresh()));return true;}this.notice(copy('上次操作已确认。','The previous operation is confirmed.'),change.kind==='delete');return true;
   }catch{this.unconfirmed(copy('上次操作仍未确认，请稍后重试。','The previous operation is still unconfirmed. Retry later.'));return false;}finally{this.busy=false;this.paintAccess();this.paintReorder();}
  }
- async leave(){if(this.homeSearch?.composing)return false;if(this.movePreparing)return false;if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}if(this.accessCommit.pending||this.deleteCommit.pending||this.reorderCommit.pending||this.moveCommit?.pending){this.unconfirmed(copy('请先核对尚未确认的操作。','Check the unconfirmed operation before leaving.'));return false;}if(!await this.flush()){if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}this.leaveBlocked=true;this.notice(copy('文字尚未保存，已保留在当前页。','Unsaved text is retained on this page.'));return false;}if(this.inputs&&!this.inputs.leave())return false;this.homeSearch?.close();this.homeSearch=null;++this.readGeneration;++this.openGeneration;for(const editor of this.editors.values())editor.basis?.close();if(this.page)this.page.inert=true;return true;}
- close(){this.homeSearch?.close();this.homeSearch=null;this.homeSearchState=null;this.homeTarget=null;this.scopePreview?.close();this.searchQuery='';this.searchForm=null;++this.searchGeneration;this.active=false;++this.readGeneration;++this.openGeneration;this.renderedCard=this.card;this.inputs?.close();this.inputs=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=null;}
+ async leave(){if(this.homeSearch?.composing)return false;if(this.movePreparing)return false;if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}if(this.accessCommit.pending||this.deleteCommit.pending||this.reorderCommit.pending||this.moveCommit?.pending){this.unconfirmed(copy('请先核对尚未确认的操作。','Check the unconfirmed operation before leaving.'));return false;}if(!await this.flush()){if(this.inputs?.busy||this.inputs?.pending){this.inputs.unconfirmed();return false;}this.leaveBlocked=true;this.notice(copy('文字尚未保存，已保留在当前页。','Unsaved text is retained on this page.'));return false;}if(this.inputs&&!this.inputs.leave())return false;this.connectionsView?.close();this.connectionsView=null;this.homeSearch?.close();this.homeSearch=null;++this.readGeneration;++this.openGeneration;for(const editor of this.editors.values())editor.basis?.close();if(this.page)this.page.inert=true;return true;}
+ close(){this.connectionsView?.close();this.connectionsView=null;this.homeSearch?.close();this.homeSearch=null;this.homeSearchState=null;this.homeTarget=null;this.scopePreview?.close();this.searchQuery='';this.searchForm=null;++this.searchGeneration;this.active=false;++this.readGeneration;++this.openGeneration;this.renderedCard=this.card;this.inputs?.close();this.inputs=null;for(const editor of this.editors.values())editor.dispose();this.editors.clear();this.page=null;}
 }
