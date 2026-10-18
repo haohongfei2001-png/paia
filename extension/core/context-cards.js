@@ -1,3 +1,4 @@
+import {KNOWN_PREFIX} from './ai-usage/delta.js';
 import {prepareContextProtectionCorrection,recordContextProtectionCorrection} from './ai-usage/context-correction.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedText} from './context-authored-entry.js';
@@ -129,7 +130,7 @@ export class ContextCardsService {
   // Reject before preparing or writing; local ordering cannot weaken restore.
   if(['reorder','move'].includes(c.kind)&&this.syncJournal)fail('FEATURE_UNAVAILABLE');
   let staged=null,correction=null;
-  if(c.kind==='put'&&c.expectedRevision>0){const before=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return (await this.row(t)).items.find(x=>x.id===c.itemId);}));correction=await prepareContextProtectionCorrection(before,c,digest);}
+  if(['put','delete','restore'].includes(c.kind)&&c.expectedRevision>0){const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {before:(await this.row(t)).items.find(x=>x.id===c.itemId),removalReceipt:c.kind==='restore'?await t.get('operationReceipts','context:'+c.deletedBy):null,removalWitness:c.kind==='restore'?(await t.get('meta',KNOWN_PREFIX+JSON.stringify(['context_item',c.itemId])))?.descriptor?.contextRemoval:null};}));correction=await prepareContextProtectionCorrection(captured.before,c,digest,captured.removalReceipt,captured.removalWitness);}
   if(this.syncJournal){
    const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId)};}));
    if(captured.receipt){const r=captured.receipt;if(r.namespace!=='context-cards'||r.digest!==digest||r.epoch!==c.epoch)fail();return r.result;}

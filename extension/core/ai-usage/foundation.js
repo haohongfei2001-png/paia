@@ -10,10 +10,11 @@ import {unsupportedMaintenanceCoverage} from './maintenance-batch.js';
 import {assertAssistIntent,validateAssistIntent,validateHistoricalIntent,qualifiedCoverageId} from './assist-intent-binding.js';
 import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX,HUMAN_FENCE,deltaDescription,deltaSignature} from './delta.js';
-import {JOB_TYPES,CHILD_LIMITS,fail,opaque,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor,ASSIST_RESULT_KIND,validateReplyObligation,isAssistResultJob,HISTORICAL_CANDIDATE_KIND,validateCandidateObligation,isHistoricalCandidateJob,isPrivateResultJob} from './contracts.js';
+import {JOB_TYPES,CHILD_LIMITS,fail,opaque,token,integer,exact,equal,canonical,digest,unitKey,validateCoverage,validateAuthority,localProviderDescriptor,ASSIST_RESULT_KIND,validateReplyObligation,isAssistResultJob,HISTORICAL_CANDIDATE_KIND,validateCandidateObligation,isHistoricalCandidateJob,isPrivateResultJob} from './contracts.js';
 const ATOMIC='ai_organize_atomic_v1';
 const atomicJob=j=>j?.kind===ATOMIC&&j.version===1&&j.commitMode==='organize-atomic-v1'&&j.type==='AI_ORGANIZE'&&j.childIds?.length>=2&&j.childIds.length<=4;
-const knownJob=j=>j?.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j)||isPrivateResultJob(j);
+const validOrganizeRequestKey=j=>!Object.hasOwn(j,'organizeRequestKey')||j.type==='AI_ORGANIZE'&&token(j.organizeRequestKey);
+const knownJob=j=>!!j&&validOrganizeRequestKey(j)&&(j.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j)||isPrivateResultJob(j));
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1',HISTORICAL_FLIGHT='aiu:historical-service-preflight:v1';
 const terminal=new Set(['COMMITTED','CANCELLED_BEFORE_DISPATCH','REJECTED','EXPIRED_UNCOMMITTED']);
 const coverId=(key,facet,scope)=>'aiu:coverage:'+canonical([key,facet,scope]);
@@ -39,7 +40,7 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // path has no default endpoint, identity, registry or automatic paid retry.
 export class AIUsageFoundation {
  #createdMaintenancePlans=new WeakMap();
- #serverProviders=new Map();#resultReports=new Map();#historicalRecovery=new WeakMap();
+ #serverProviders=new Map();#resultReports=new Map();#historicalRecovery=new WeakMap();#organizeRecovery=new WeakMap();
  #qualifyMaintenanceEntries;#qualifyMaintenancePlacements;#qualifyMaintenanceStructures;#qualifyMaintenanceContextEdits;
  constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
@@ -129,6 +130,7 @@ export class AIUsageFoundation {
  async counters(){return this.read(async t=>await t.get('meta',COUNTERS)||{id:COUNTERS,skippedNoDelta:0,localResolved:0,cacheIntent:0,physicalAttempt:0});}
  async cacheIntent(){await this.write(t=>count(t,'cacheIntent'));}
  async current(t,job,{allowCancelled=false}={}){
+  if(!validOrganizeRequestKey(job))fail('RESULT_BINDING_MISMATCH');
   await assertAssistIntent(this,t,job);
   await assertOrganizeStyle(this.s,t,job);
   if(!equal(await this.authority(t,job.type,job),job.authority)||!allowCancelled&&job.cancelEpoch!==0)fail('CANCELLED');
@@ -144,8 +146,9 @@ export class AIUsageFoundation {
  async plan(request){
   // Capture caller-owned evidence before any authority or storage await.
   request=structuredClone(request);
-  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','assistIntent','commitMode','replyObligation','historicalIntent','candidateObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
+  exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','organizeRequestKey','assistIntent','commitMode','replyObligation','historicalIntent','candidateObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
   const {type,items,contractVersion,routeVersion,intent}=request;
+  if(!validOrganizeRequestKey(request))fail();const organizeRequest=Object.hasOwn(request,'organizeRequestKey')?{organizeRequestKey:request.organizeRequestKey}:{};
   const reply=Object.hasOwn(request,'replyObligation');const replyObligation=reply?validateReplyObligation(request.replyObligation):null;if(reply&&(type!=='AI_ASSIST'||typeof this.assistResult!=='function'||Object.hasOwn(request,'children')||Object.hasOwn(request,'commitMode')))fail();
   const candidates=Object.hasOwn(request,'candidateObligation'),candidateObligation=candidates?validateCandidateObligation(request.candidateObligation):null;
   if(candidates&&(type!=='AI_ASSIST'||reply||typeof this.candidateResult!=='function'||typeof this.resolveHistoricalIntent!=='function'||Object.hasOwn(request,'assistIntent')||Object.hasOwn(request,'children')||Object.hasOwn(request,'commitMode')))fail();
@@ -165,7 +168,7 @@ export class AIUsageFoundation {
   if(atomic&&(children.length<2||coverage.some(u=>u.facet!=='organize')))fail();
   const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{}),...(historical?{historicalIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});return {authority};});
   const scope=items.map(i=>({key:i.key,signature:i.signature})).sort((a,b)=>a.key.localeCompare(b.key));
-  const identity={...resultBinding,...(atomic?{commitMode:request.commitMode}:{}),...(assisted&&!reply?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
+  const identity={...organizeRequest,...resultBinding,...(atomic?{commitMode:request.commitMode}:{}),...(assisted&&!reply?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
   const scopeFingerprint=await digest({type,scope,coverage,children});
   const organizeSemanticKey=styled?await digest({...identity,style:styleSemantics(organizeStyle)}):null;
   const id='aiu:job:'+await digest(styled?{...identity,organizeStyle}:identity);
@@ -173,10 +176,10 @@ export class AIUsageFoundation {
   const targetScopes=[...new Set(coverage.map(c=>c.scope))].sort();
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
-  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,scopeFingerprint,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
+  const proposed={...organizeRequest,...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,scopeFingerprint,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   let created=false;const result=await this.write(async t=>{
    await this.current(t,proposed);
-   const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();
+   const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();if(prior.organizeRequestKey!==proposed.organizeRequestKey)fail('RESULT_BINDING_MISMATCH');
     if(!equal(prior.authority,proposed.authority)&&prior.cancelEpoch===0&&['PLANNED','RESERVED'].includes(prior.state)){
      for(const childId of prior.childIds){const r=await t.get('organizerUsage',receiptId(childId));if(await t.get('meta',dispatchFenceId(childId))||r&&(r.attemptCount!==0||r.state!=='RESERVED'&&!(r.executionKind==='local'&&['PLANNED','COMMITTED'].includes(r.state))))fail('OUTCOME_UNKNOWN');}
      // Rebind a never-dispatched plan to current local fences without changing
@@ -332,6 +335,70 @@ export class AIUsageFoundation {
   });
   this.#historicalRecovery.delete(handle);return result;
  }
+ // Organize recovery captures the complete ORIGINAL sibling set. It authorizes
+ // authenticated financial metadata only, never body recovery or dispatch.
+ async #organizeRecoverySnapshot(t,origin,topicId){
+  const meta=await t.get('meta','aiu:organize-service-preflight:v1:'+topicId);if(!meta)return null;
+  exact(meta,['id','version','jobId','origin','organizeRequestKey','requests']);
+  const job=await this.job(t,meta.jobId);await this.#resultAuthority(t,job);
+  if(meta.version!==1||meta.origin!==origin||job.type!=='AI_ORGANIZE'||!token(meta.organizeRequestKey)||job.organizeRequestKey!==meta.organizeRequestKey||job.coverage.some(u=>u.scope!==topicId)||!Array.isArray(meta.requests)||meta.requests.length!==job.childIds.length)fail('RESULT_BINDING_MISMATCH');
+  const rows=[],dispatches=[];
+  for(const [i,childId]of job.childIds.entries()){
+   const request=clientDeclarationRequestData(meta.requests[i]);this.#assertServerBinding(job,i,{request});
+   const row=await t.get('organizerUsage',receiptId(childId)),dispatch=await t.get('meta',dispatchFenceId(childId));
+   if(row&&(row.executionKind!=='server-backed'||row.jobId!==job.id||row.childId!==childId||row.sequence!==i||![0,1].includes(row.attemptCount)||row.serviceOrigin!==origin||!equal(row.financialRequest,request))||dispatch&&!equal(dispatch,{id:dispatchFenceId(childId),version:1,jobId:job.id,childId}))fail('RESULT_BINDING_MISMATCH');
+   rows.push(row??null);dispatches.push(dispatch??null);
+  }
+  const flight=await t.get('meta',job.flightId);if(flight?.jobId!==job.id)fail('RESULT_BINDING_MISMATCH');return {meta,job,rows,dispatches,flight};
+ }
+ async organizeRecovery(origin,topicId){
+  if(!opaque(topicId))fail();const saved=await this.read(t=>this.#organizeRecoverySnapshot(t,origin,topicId));if(!saved)return null;
+  const closed=terminal.has(saved.job.state)&&await this.read(t=>savedDomainResultReceipt(t,saved.job))&&saved.rows.every(r=>r?.financialSettlement?.state==='SETTLED'||savedFinancialCancellation(r));
+  if(closed)return {closed:true,jobId:saved.job.id,state:saved.job.state};
+  const handle=freezeData({jobId:saved.job.id,origin,topicId,requests:structuredClone(saved.meta.requests)});this.#organizeRecovery.set(handle,saved);return handle;
+ }
+ async #organizeRecoveryCurrent(t,handle){
+  const saved=this.#organizeRecovery.get(handle);if(!saved)fail('UNAVAILABLE');
+  const current=await this.#organizeRecoverySnapshot(t,handle.origin,handle.topicId);if(!equal(current,saved))fail('RESULT_CONFLICT');return saved;
+ }
+ async queryOrganizeRecovery(handle,index,proofs,transport,isCurrent){
+  proofs=this.#recoveryProofs(proofs);if(!this.#organizeRecovery.has(handle)||!integer(index)||index>=handle.requests.length||typeof isCurrent!=='function'||clientOperationStatusTransportOrigin(transport)!==handle.origin)fail('UNAVAILABLE');
+  const sent=await this.read(async t=>{const repository=this.s.repository,token=observeRepositoryWriteFence(repository);await this.#organizeRecoveryCurrent(t,handle);if(isCurrent()!==true||this.s.repository!==repository)fail('CANCELLED');requireRepositoryWriteFence(repository,token);return {pending:transport.query({request:handle.requests[index],...proofs})};});return sent.pending;
+ }
+ #organizeObservation(handle,index,observation,status){
+  const observed=observedClientOperationStatus(observation,status);if(!this.#organizeRecovery.has(handle)||!observed||observed.origin!==handle.origin||clientOperationStatusTransportOrigin(status)!==handle.origin||!equal(observed.request,handle.requests[index]))fail('RESULT_BINDING_MISMATCH');return observed;
+ }
+ async cancelOrganizeRecovery(handle,index,proofs,observation,status,reservations,isCurrent){
+  proofs=this.#recoveryProofs(proofs);this.#organizeObservation(handle,index,observation,status);
+  if(!['RESERVED','CANCELLED_BEFORE_DISPATCH'].includes(observation.state)||observation.providerEvidenceRecorded!==false||clientReservationTransportOrigin(reservations)!==handle.origin||typeof isCurrent!=='function')fail('OUTCOME_UNKNOWN');
+  const sent=await this.read(async t=>{const repository=this.s.repository,token=observeRepositoryWriteFence(repository);await this.#organizeRecoveryCurrent(t,handle);if(isCurrent()!==true||this.s.repository!==repository)fail('CANCELLED');requireRepositoryWriteFence(repository,token);return {pending:reservations.cancel({request:handle.requests[index],...proofs})};});return sent.pending;
+ }
+ async reconcileOrganizeRecovery(handle,observations,status,{cancellations,reservations,isCurrent}={}){
+  if(!this.#organizeRecovery.has(handle)||!Array.isArray(observations)||observations.length!==handle.requests.length||!Array.isArray(cancellations)||cancellations.length!==observations.length||typeof isCurrent!=='function')fail('UNAVAILABLE');
+  for(const [i,o]of observations.entries()){
+   this.#organizeObservation(handle,i,o,status);if(o.state==='SETTLED')continue;
+   const ack=observedClientReservation(cancellations[i],reservations);
+   if(!['RESERVED','CANCELLED_BEFORE_DISPATCH'].includes(o.state)||o.providerEvidenceRecorded!==false||!ack||ack.action!=='cancel'||ack.origin!==handle.origin||!equal(ack.request,handle.requests[i])||cancellations[i].state!=='CANCELLED_BEFORE_DISPATCH'||cancellations[i].reservationMicros!==o.reservationMicros||Object.hasOwn(cancellations[i],'window')&&!equal(cancellations[i].window,o.window))fail('OUTCOME_UNKNOWN');
+  }
+  const result=await this.write(async t=>{
+   const saved=await this.#organizeRecoveryCurrent(t,handle);if(isCurrent()!==true)fail('CANCELLED');const job=structuredClone(saved.job),previous=job.domainResultReceipt??null;
+   if(job.state==='COMMITTED')fail('RESULT_CONFLICT');if(previous&&previous.outcome!=='FAILED')fail('RESULT_CONFLICT');const finalRows=[];
+   for(const [i,o]of observations.entries()){
+    const before=saved.rows[i],request=handle.requests[i],settled=o.state==='SETTLED',financial=settled?{state:'SETTLED',receiptId:o.financialSettlement.receiptId,outcome:o.financialSettlement.outcome,settledSpendMicros:o.financialSettlement.usdMicros,effectiveResults:0}:null;
+    if(before?.financialSettlement&&!equal(before.financialSettlement,financial)||settled&&before?.financialCancellation||before?.financialSettlementEvidence&&!equal(before.financialSettlementEvidence,o.financialSettlement))fail('RESULT_CONFLICT');
+    const row=before?structuredClone(before):{id:receiptId(request.operationId),kind:KIND,version:1,jobId:job.id,childId:request.operationId,parentReservationId:job.id,executionKind:'server-backed',sequence:i,windowIds:[],attemptCount:0,effectiveResultCount:0,financialRequest:structuredClone(request),serviceOrigin:handle.origin};
+    row.state=previous?previous.children[i].state:settled?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';row.stateKey=1;row.effectiveResultCount=0;
+    if(settled){row.attemptCount=1;row.operationReceiptId=financial.receiptId;row.financialSettlement=financial;row.financialSettlementEvidence=structuredClone(o.financialSettlement);row.spendState='SETTLED_SERVICE';}
+    else{row.attemptCount=before?.attemptCount??(saved.dispatches[i]?1:0);row.financialCancellation=true;row.financialCancellationEvidence=structuredClone(cancellations[i]);row.spendState='RELEASED_SERVICE_BEFORE_DISPATCH';}
+    await t.put('organizerUsage',row);finalRows.push(row);
+   }
+   if(previous){await savedDomainResultReceipt(t,job);await t.put('organizerJobs',job);}
+   else{job.cancelEpoch++;job.state=observations.some(o=>o.state==='SETTLED')?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=1;await this.#putJob(t,job);}
+   await this.#resultAuthority(t,job);
+   for(const row of finalRows)if(!equal(await t.get('organizerUsage',row.id),row))fail('RESULT_CONFLICT');
+   if(!equal(await t.get('meta',saved.meta.id),saved.meta)||!equal(await this.job(t,job.id),job)||!equal(await t.get('meta',job.flightId),saved.flight)||isCurrent()!==true)fail('RESULT_CONFLICT');return safeJob(job);
+  });this.#organizeRecovery.delete(handle);return result;
+ }
  async cancelServer(id){
   await this.cancel(id);
   const candidates=await this.read(async t=>{const job=await this.job(t,id),rows=[];for(const childId of job.childIds){const row=await t.get('organizerUsage',receiptId(childId));if(row?.executionKind==='server-backed'&&row.state==='CANCELLED_BEFORE_DISPATCH'&&row.attemptCount===0&&!row.financialCancellation)rows.push(row);}return rows;});
@@ -341,7 +408,7 @@ export class AIUsageFoundation {
   }
   return this.status(id);
  }
- async job(t,id){const job=await t.get('organizerJobs',id);if(!knownJob(job))fail();return job;}
+ async job(t,id){const job=await t.get('organizerJobs',id);if(!knownJob(job))fail();if(!validOrganizeRequestKey(job))fail('RESULT_BINDING_MISMATCH');return job;}
  async status(id){if(!opaque(id))fail();return this.read(async t=>{const job=await this.job(t,id),attempts=[];for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt)attempts.push(receipt);}return {...safeJob(job),attempts};});}
  async serverRequest(id,childId,bounds){
   const b=snapshotData(bounds,{maxBytes:256,maxKeys:3,maxDepth:1,maxString:40});
@@ -386,7 +453,7 @@ export class AIUsageFoundation {
  async dispatch(id,childId,provider,execution=null){
   const server=qwenFoundationProviderData(provider),descriptor=server?provider.describe():localProviderDescriptor(provider);if(execution!==null){exact(execution,['signal','timeoutMs']);if(!(execution.signal instanceof AbortSignal)||!integer(execution.timeoutMs)||execution.timeoutMs!==this.s.organizerBudget.limits.timeoutMs)fail();execution=Object.freeze({signal:execution.signal,timeoutMs:execution.timeoutMs});}
   const prepared=await this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
-   if(index<0||!receipt||receipt.jobId!==id||execution!==null&&!isHistoricalCandidateJob(job))fail();
+   if(index<0||!receipt||receipt.jobId!==id||execution!==null&&!isHistoricalCandidateJob(job)&&job.type!=='AI_ORGANIZE')fail();
    if(terminal.has(job.state))return {reused:true,state:job.state,childId};
    if((await t.get('meta',job.flightId))?.jobId!==id)fail('REQUEST_ALREADY_IN_FLIGHT');
    if(receipt.state!=='RESERVED')return {reused:true,state:receipt.state,childId};

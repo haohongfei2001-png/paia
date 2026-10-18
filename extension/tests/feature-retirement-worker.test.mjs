@@ -11,11 +11,14 @@ const retired = [
   'PAIA_PASSPORT_CREATE','PAIA_PRODUCT_SIGNAL','PAIA_CORE_LOOP_ACTION','RESPONSE_VIEW','RESPONSE_ARM',
 ];
 const ai = ['GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK',
-  'START_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE',
+  'START_BOUNDED_ORGANIZER',
   'UPDATE_ORIGINAL_LIBRARY_VIEW','SET_ORIGINAL_LIBRARY_AUTO_UPDATE','PREVIEW_AI_LIBRARY_UPDATE'];
+
+const configuredAI=['UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE'];
 
 test('retired command policy keeps restoration, saved content and revocation available',()=>{
   for (const type of retired) assert.throws(()=>assertFeatureAvailable({type}),{code:'FEATURE_UNAVAILABLE'});
+  for(const type of configuredAI)assert.equal(unavailableFeatureCode({type}),null);
   for (const type of ai) assert.throws(()=>assertFeatureAvailable({type}),{code:'AI_SERVICE_UNAVAILABLE'});
   for (const type of ['PAIA_BACKUP_BEGIN_RESTORE','PAIA_BACKUP_STAGE','PAIA_BACKUP_PREVIEW','PAIA_BACKUP_RESTORE','PAIA_BACKUP_CANCEL','PAIA_MEMORY_STATUS','PAIA_MEMORY_EXCLUDE','PAIA_PASSPORT_STATUS','PAIA_PASSPORT_REVOKE','PAIA_PASSPORT_CLEAR_AUDITS','GET_INPUT','EDIT_DOCUMENT','THOUGHT_EDIT_HISTORY','EDIT_AI_PRESENTATION','GET_AI_PRESENTATION_REVISIONS','GET_AI_PRESENTATION_STATUS']) assert.equal(unavailableFeatureCode({type}),null,type);
   assert.equal(unavailableFeatureCode({type:'CONTINUE_THINKING',thought:{body:'SYNTHETIC independent'}}),null);
@@ -61,7 +64,7 @@ test('actual worker refuses withdrawn commands, preserves capture/edit data and 
   assert.equal((await send({type:'CAPTURE',epoch,adapterVersion:'0.3.0',contentVersion:'0.12.0',chat:{id:'retirement',url,title:'SYNTHETIC retained archive'},messages:[{sourceMessageId:'retained-message',pageOrder:1,originalText:'SYNTHETIC immutable input'}]},content)).ok,true);
   const before=await rpc('GET_STATE'),block=before.library.blocks[0];
   for(const type of retired) assert.equal((await send({type,options:{},grant:{},signal:{},confirm:true})).error,'FEATURE_UNAVAILABLE',type);
-  for(const type of ai) assert.equal((await send({type,config:{apiKey:'SYNTHETIC_NEW_UNUSED'},userActionId:'SYNTHETIC'})).error,'AI_SERVICE_UNAVAILABLE',type);
+  for(const type of [...ai,...configuredAI]) assert.equal((await send({type,config:{apiKey:'SYNTHETIC_NEW_UNUSED'},userActionId:'SYNTHETIC'})).error,'AI_SERVICE_UNAVAILABLE',type);
   assert.equal((await send({type:'CONTINUE_THINKING',thought:{operationId:'synthetic-relation',body:'SYNTHETIC',relation:{id:'old'}}})).error,'FEATURE_UNAVAILABLE');
   assert.equal((await send({type:'PAIA_MEMORY_SETTINGS',options:{externalAccess:true}})).error,'FEATURE_UNAVAILABLE');
   const after=await rpc('GET_STATE');assert.deepEqual(after.records,before.records);assert.deepEqual(after.library.blocks,before.library.blocks);
@@ -78,5 +81,5 @@ test('UI request policy prevents accidental retired messages before transport',a
   const {request}=await import('../ui/common.js');
   for(const type of retired) await assert.rejects(request(type),{code:'FEATURE_UNAVAILABLE'});
   for(const type of ai) await assert.rejects(request(type),{code:'AI_SERVICE_UNAVAILABLE'});
-  assert.equal(calls,0);await request('GET_STATUS');assert.equal(calls,1);
+  assert.equal(calls,0);for(const type of configuredAI)await request(type);assert.equal(calls,2);await request('GET_STATUS');assert.equal(calls,3);
 });

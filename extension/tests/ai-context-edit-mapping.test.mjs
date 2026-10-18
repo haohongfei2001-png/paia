@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {setup,inputEdit} from './harness/thought-m1.mjs';
+import {setup,inputEdit,capture} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW} from '../core/context-cards.js';
 import {ContextMaintenanceService} from '../core/context-maintenance.js';
@@ -40,9 +40,9 @@ const usages=s=>s.repository.transaction(false,t=>t.all('organizerUsage'));
 const acks=s=>s.repository.transaction(false,async t=>(await t.all('organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED'));
 
 import {parameters} from './harness/topic-03.mjs';
-async function editedFixture({fields=['body']}={}){
- const f=await fixture(),c=await request(f,{fields});await put(f,c);
- const change={kind:'put',operationId:op(),epoch:c.epoch,itemId:c.itemId,card:c.card,expectedRevision:1,body:'SYNTHETIC human correction retaining derived meaning',section:c.section};await f.cards.change(change);
+async function editedFixture({fields=['body'],card='info',initialEdit=true}={}){
+ const f=await fixture(),c=await request(f,{fields,card});await put(f,c);
+ const change={kind:'put',operationId:op(),epoch:c.epoch,itemId:c.itemId,card:c.card,expectedRevision:1,body:'SYNTHETIC human correction retaining derived meaning',section:c.section};if(initialEdit)await f.cards.change(change);
  const calls=[],scopes=[],controller=new AbortController(),caller=Object.freeze({id:op()}),expiresAt=Date.now()+600000,state={allowed:true,originalAllowed:true,processingHook:null,providerHook:null,adapterHook:null};
  const processing={resolve:async(_t,scope)=>{scopes.push(structuredClone(scope));return {version:1,store:f.s,caller,scope:state.processingHook?state.processingHook(structuredClone(scope)):scope,epoch:'synthetic-context-edit',processing:state.allowed,expiresAt,revocationSignal:controller.signal};},isCurrent:()=>state.allowed&&!controller.signal.aborted};
  const verifier={verify:async(_caller,store,scope)=>({version:1,store,scope,accountId:'synthetic-account',processorId:'synthetic-processor',authorizationGeneration:1,processing:state.allowed,expiresAt,revocationSignal:controller.signal}),isCurrent:()=>state.allowed&&!controller.signal.aborted};
@@ -56,6 +56,20 @@ test('genuine human Context edit uses current original Input and independently s
  assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);assert.deepEqual(f.calls[0].material.contextItems[0].fields,{body:f.change.body,section:f.change.section});assert.deepEqual(f.scopes[0].contextItems[0].selectedFields,['body','section']);assert.equal(f.calls[0].material.inputs[0].body,'SYNTHETIC eligible source body');
  const done=(await acks(f.s)).filter(a=>a.unit.key===f.key);assert.equal(done.length,1);assert.equal(done[0].unit.facet,'context');assert.equal(done[0].outcome,'NO_CHANGE');assert.deepEqual(await row(f),before);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets,['topic']);assert.equal((await usages(f.s)).filter(a=>a.attemptCount===1).length,1);assert.ok((await usages(f.s)).every(a=>a.effectiveResultCount===0));
  assert.doesNotMatch(JSON.stringify(f.calls[0].material),/sourceRecordIds|sourceIdentityTokens/);f.session.dispose();
+});
+
+async function restoredFixture(options={}){
+ const f=await editedFixture(options),item=(await row(f)).items.find(i=>i.id===f.c.itemId),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:item.revision};
+ assert.equal((await f.cards.change(deletion)).ok,true);
+ const restoration={kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:item.revision+1,deletedBy:deletion.operationId};
+ assert.equal((await f.cards.change(restoration)).ok,true);return {...f,deletion,restoration};
+}
+test('current human restoration rechecks the original complete lineage and settles only protected Context',async()=>{
+ const f=await restoredFixture(),before=await row(f),humanReceipt=await raw(f.s,'operationReceipts','context:'+f.restoration.operationId),result=await f.session.run(await f.session.prepare(options));
+ assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,1);
+ const selected=f.calls[0].material.contextItems[0];assert.equal(selected.revision,4);assert.equal(selected.proof.kind,'restore');assert.equal(selected.proof.receiptId,humanReceipt.id);assert.deepEqual(selected.fields,{body:f.change.body,section:f.change.section});
+ assert.equal(f.calls[0].material.inputs[0].body,'SYNTHETIC eligible source body');assert.deepEqual(await row(f),before);assert.deepEqual(await raw(f.s,'operationReceipts',humanReceipt.id),humanReceipt);
+ const done=(await acks(f.s)).filter(a=>a.unit.key===f.key);assert.deepEqual(done.map(a=>[a.unit.facet,a.outcome]),[['context','NO_CHANGE']]);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets,['topic']);assert.ok((await usages(f.s)).every(a=>a.effectiveResultCount===0));f.session.dispose();
 });
 
 for(const refusal of ['denied','original-input-denied','missing-context','missing-input','body-only','wrong-item','wrong-revision','wrong-proof'])test('independent '+refusal+' permission neither hashes selected Context nor dispatches',async()=>{
@@ -100,11 +114,11 @@ for(const defect of ['input-body','input-excluded','input-state','source-purge',
 for(const variant of ['second-body','section','clear-to-replacement'])test('original repeated protected '+variant+' edit retains lineage and current receipt',async()=>{
  const f=await editedFixture(),c={...f.change,operationId:op(),expectedRevision:2,...(variant==='section'?{section:'SYNTHETIC corrected classification'}:{body:variant==='second-body'?'SYNTHETIC a later human correction':'SYNTHETIC complete pasted replacement'})};await f.cards.change(c);const before=await row(f),result=await f.session.run(await f.session.prepare(options));assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls[0].material.contextItems[0].revision,3);assert.equal(f.calls[0].material.contextItems[0].proof.receiptId,'context:'+c.operationId);assert.equal(f.calls[0].material.inputs.length,1);assert.deepEqual(await row(f),before);assert.equal((await acks(f.s)).length,1);f.session.dispose();
 });
-for(const variant of ['cosmetic','unchanged','manual','note-lineage','restore'])test('unsupported '+variant+' stays pending without a fabricated Context ACK',async()=>{
+for(const variant of ['cosmetic','unchanged','manual','note-lineage','restore-missing-removal-receipt'])test('unsupported '+variant+' stays pending without a fabricated Context ACK',async()=>{
  const f=await editedFixture({fields:variant==='note-lineage'?['body','note']:['body']});
  if(variant==='cosmetic'||variant==='unchanged')await f.cards.change({...f.change,operationId:op(),expectedRevision:2,body:f.change.body+(variant==='cosmetic'?'  ':'')});
  if(variant==='manual'){await f.cards.change({kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2});await f.cards.change({...f.change,itemId:op(),operationId:op(),expectedRevision:0});}
- if(variant==='restore'){const operationId=op();await f.cards.change({kind:'delete',operationId,epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2});await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:operationId});}
+ if(variant==='restore-missing-removal-receipt'){const operationId=op();await f.cards.change({kind:'delete',operationId,epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2});await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:operationId});await f.s.foundationWrite(t=>t.delete('operationReceipts','context:'+operationId));}
  const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
 });
 for(const defect of ['new-item','wrong-item','missing-evidence','wrong-field','new-association','NO_CHANGE','REMOVE_CANDIDATE'])test('adapter '+defect+' cannot turn correction into unrelated result',async()=>{
@@ -142,8 +156,8 @@ test('source purge remains with the original B-02 protected human owner',async()
 });
 import {AIUsageFoundation} from '../core/ai-usage/foundation.js';
 import {readMaintenanceBatch} from '../core/ai-usage/maintenance-batch.js';
-for(const changed of [false,true])test('old Context correction DEFER '+(changed?'requalifies only Context on a different admitted route':'does not retry on the same route'),async()=>{
- const f=await editedFixture(),ai=new AIUsageFoundation(f.s,{resolveAuthority:usageAuthority}),batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),groups=[];
+for(const restored of [false,true])for(const changed of [false,true])test('old Context '+(restored?'restoration':'correction')+' DEFER '+(changed?'requalifies only Context on a different admitted route':'does not retry on the same route'),async()=>{
+ const f=await (restored?restoredFixture():editedFixture()),ai=new AIUsageFoundation(f.s,{resolveAuthority:usageAuthority}),batch=await readMaintenanceBatch(ai,options),job=await ai.plan(batch.request),groups=[];
  await ai.read(async t=>{const saved=await ai.job(t,job.id);for(let i=0;i<saved.childIds.length;i++)for(const facet of ['topic','context']){const units=saved.childCoverage[i].filter(u=>u.facet===facet);if(units.length)groups.push({childId:saved.childIds[i],facet,units,retryCondition:facet==='topic'?'TOPIC_MAPPING_UNAVAILABLE':'CONTEXT_MAPPING_UNAVAILABLE'});}});
  await ai.deferMaintenanceBeforeDispatch(job.id,{groups},{signal:f.controller.signal,isCurrent:()=>true,plan:job});const oldJob=await raw(f.s,'organizerJobs',job.id),deferred=await f.s.repository.transaction(false,async t=>(await t.all('organizerWorkItems')).filter(r=>r.state==='DEFERRED'));
  const result=await f.session.run(await f.session.prepare({...options,routeVersion:changed?'synthetic-correction-new-route':options.routeVersion}));if(changed)assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));else assert.equal(result.state,'DEFERRED');
@@ -182,4 +196,114 @@ for(const phase of ['held-provider','final-settlement'])test('receipt shape drif
  if(phase==='held-provider')f.state.providerHook=async()=>{reached=true;await mutation(f.s,'operationReceipts',id,r=>delete r.createdAt);};
  else f.s.repository.transaction=(write,fn,stores)=>original(write,async t=>{if(write){const put=t.put.bind(t);t.put=async(n,r,...rest)=>{const result=await put(n,r,...rest);if(!reached&&n==='meta'&&r.id==='aiu:counters:v1'&&r.localResolved>0){reached=true;const receipt=await t.get('operationReceipts',id);receipt.untrusted=undefined;await put('operationReceipts',receipt);}return result;};}return fn(t);},stores);
  try{const result=await f.session.run(await f.session.prepare(options));assert.equal(reached,true);assert.equal(f.calls.length,1);assert.notEqual(result.processedState,'COMMITTED');assert.equal((await acks(f.s)).length,0);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets.slice().sort(),['context','topic']);}finally{f.s.repository.transaction=original;f.session.dispose();}
+});
+
+for(const card of ['info','rules','now'])test('restoring an unedited automatic '+card+' Item uses its current human restore, never local creation ACK',async()=>{
+ const f=await restoredFixture({card,initialEdit:false}),before=await row(f),result=await f.session.run(await f.session.prepare(options));
+ assert.equal(result.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.equal(f.calls[0].material.contextItems[0].revision,3);assert.equal(f.calls[0].material.contextItems[0].fields.body,f.c.body);assert.deepEqual(await row(f),before);assert.deepEqual((await acks(f.s)).map(a=>a.unit.facet),['context']);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets,['topic']);f.session.dispose();
+});
+for(const defect of ['missing','namespace','schemaVersion','id','owner','epoch','digest','revision','future-revision','lifecycle','deletedBy','createdAt','unknown','undefined-extra'])test('current restore rejects '+defect+' original deletion receipt before provider',async()=>{
+ const f=await restoredFixture(),id='context:'+f.deletion.operationId;
+ if(defect==='missing')await f.s.foundationWrite(t=>t.delete('operationReceipts',id));else await mutation(f.s,'operationReceipts',id,r=>{
+  if(defect==='namespace')r.namespace='context-maintenance';if(defect==='schemaVersion')r.schemaVersion=2;if(defect==='id')r.id='context:'+op();if(defect==='owner')r.ownerId=op();if(defect==='epoch')r.epoch='another-epoch';if(defect==='digest')r.digest='0'.repeat(64);if(defect==='revision')r.result.revision--;if(defect==='future-revision')r.result.revision++;if(defect==='lifecycle')r.result.lifecycle='active';if(defect==='deletedBy')r.result.deletedBy=op();if(defect==='createdAt')r.createdAt='invalid';if(defect==='unknown')r.unrecognized=true;if(defect==='undefined-extra')r.result.unrecognized=undefined;
+ });
+ if(defect==='id')await f.s.foundationWrite(t=>t.delete('operationReceipts',id));
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);assert.deepEqual((await raw(f.s,'meta',DIRTY_PREFIX+f.key)).pendingFacets.slice().sort(),['context','topic']);f.session.dispose();
+});
+for(const defect of ['input-body','input-excluded','input-state','source-purge','source-missing','source-hidden','source-body','context-body','context-order','context-provenance','context-delete','restore','legacy-input','placement'])test('restoration retains original currentness refusal for '+defect,async()=>{
+ const f=await restoredFixture(),h=await f.session.prepare(options);await alter(f,defect);const result=await f.session.run(h);assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+for(const defect of ['missing-removal','wrong-owner','wrong-revision','fake-active','another-item','other-source'])test('original restore preparer cannot mint from '+defect+' removal authority',async()=>{
+ const f=await editedFixture(),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(deletion);const id='context:'+deletion.operationId;
+ if(defect==='missing-removal')await f.s.foundationWrite(t=>t.delete('operationReceipts',id));
+ else if(defect==='other-source')await alter(f,'source-purge');
+ else if(defect==='another-item'){const c=await request(f,{body:'SYNTHETIC different Item'});const owner=authority(f.s);await owner.service.maintain(owner.caller,c);const d={...deletion,operationId:op(),itemId:c.itemId,expectedRevision:1};await f.cards.change(d);const receipt=await raw(f.s,'operationReceipts','context:'+d.operationId);await f.s.foundationWrite(t=>t.put('operationReceipts',{...receipt,id}));}
+ else await mutation(f.s,'operationReceipts',id,r=>{if(defect==='wrong-owner')r.ownerId=op();if(defect==='wrong-revision')r.result.revision--;if(defect==='fake-active'){r.result.lifecycle='active';r.result.deletedBy=null;}});
+ await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+test('duplicate human restoration keeps its original receipt and settles exact Context at most once',async()=>{
+ const f=await restoredFixture(),receipt=await raw(f.s,'operationReceipts','context:'+f.restoration.operationId),known=await raw(f.s,'meta',KNOWN_PREFIX+f.key);await f.cards.change(f.restoration);assert.deepEqual(await raw(f.s,'meta',KNOWN_PREFIX+f.key),known);
+ const h=await f.session.prepare(options);assert.equal((await f.session.run(h)).processedState,'COMMITTED');const checked=await acks(f.s),usage=await usages(f.s),before=await row(f);await f.cards.change(f.restoration);await f.session.run(h);const next=await f.session.run(await f.session.prepare(options));assert.notEqual(next.processedState,'COMMITTED');assert.equal(f.calls.length,1);assert.deepEqual(await acks(f.s),checked);assert.deepEqual(await usages(f.s),usage);assert.deepEqual(await row(f),before);assert.deepEqual(await raw(f.s,'operationReceipts',receipt.id),receipt);f.session.dispose();
+});
+for(const defect of ['removal-receipt','restore-receipt','body','source','revoke'])test('last restoration authority await cannot publish '+defect+' drift',async()=>{
+ const f=await restoredFixture();f.session.dispose();let hit=false,grant,allowed=true;
+ const authority=async(t,r)=>{const result=await usageAuthority(t,r);if(!hit&&(await t.all('organizerWorkItems')).some(x=>x.state==='ACKNOWLEDGED'&&x.unit.key===f.key)){hit=true;
+  if(defect==='removal-receipt'||defect==='restore-receipt'){const id='context:'+(defect==='removal-receipt'?f.deletion.operationId:f.restoration.operationId),receipt=await t.get('operationReceipts',id);receipt.digest='0'.repeat(64);await t.put('operationReceipts',receipt);}
+  if(defect==='body')await alter(f,'context-body',t);if(defect==='source')await alter(f,'source-purge',t);if(defect==='revoke'){allowed=false;f.controller.abort();}
+ }return {...result,allowed};};
+ const caller=Object.freeze({id:op()}),expiresAt=Date.now()+600000,processing={resolve:async(_t,scope)=>({version:1,store:f.s,caller,scope,epoch:'synthetic-final-restore',processing:true,expiresAt,revocationSignal:f.controller.signal}),isCurrent:()=>!f.controller.signal.aborted};f.service.context.caller=caller;
+ const session=new LocalMaintenanceSession(f.s,{authority,processing,provider:f.provider,service:f.service,window:{acquire:async r=>grant=Object.freeze({version:1,kind:'fixture',dayId:'synthetic-day',windowId:op(),reservationId:op(),tier:'free',requestDigest:r.requestDigest,revocationSignal:f.controller.signal}),isCurrent:r=>r===grant}});
+ const before=await row(f),result=await session.run(await session.prepare(options));assert.equal(hit,true);assert.notEqual(result.processedState,'COMMITTED');assert.equal((await acks(f.s)).length,0);assert.deepEqual(await row(f),before);session.dispose();
+});
+
+test('a valid deletion receipt cannot authorize changed human body before restoration',async()=>{
+ const f=await editedFixture(),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(deletion);await alter(f,'context-body');
+ await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+
+for(const defect of ['missing-legacy-proof','digest','revision','receipt','epoch','unknown','other-item'])test('restore refuses '+defect+' removal witness instead of guessing historical completion',async()=>{
+ const f=await editedFixture(),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(deletion);
+ if(defect==='other-item'){
+  const g=await restoredFixture(),foreign=await raw(g.s,'meta',KNOWN_PREFIX+g.key);await mutation(f.s,'meta',KNOWN_PREFIX+f.key,r=>{r.descriptor.contextRemoval={version:1,kind:'removal',beforeRevision:2,receiptId:'context:'+deletion.operationId,receiptDigest:r.descriptor.contextRemoval.receiptDigest,epoch:'initial',semanticDigest:foreign.descriptor.contextEdit.removalSemanticDigest,updatedAt:r.descriptor.contextRemoval.updatedAt};});g.session.dispose();
+ }else await mutation(f.s,'meta',KNOWN_PREFIX+f.key,r=>{const p=r.descriptor.contextRemoval;if(defect==='missing-legacy-proof')delete r.descriptor.contextRemoval;if(defect==='digest')p.semanticDigest='0'.repeat(64);if(defect==='revision')p.beforeRevision++;if(defect==='receipt')p.receiptId='context:'+op();if(defect==='epoch')p.epoch='another';if(defect==='unknown')p.unexpected=undefined;});
+ await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});const known=await raw(f.s,'meta',KNOWN_PREFIX+f.key);assert.equal(known.descriptor.contextEdit,undefined);
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+test('the same deletion receipt cannot authenticate another live Source lineage before restore',async()=>{
+ const f=await editedFixture();await f.s.capture(capture((await f.s.status()).epoch,'synthetic-restore-other-source','SYNTHETIC other independent source'));
+ const input=(await f.s.snapshot()).library.blocks.find(i=>i.id!==f.input.id),topic=await f.s.createTopic({operationId:op(),name:'SYNTHETIC other processing Topic'}),current=await f.s.input(input.id);await f.s.addToTopics({operationId:op(),kind:'input',id:input.id,expectedRevision:current.revision,topicIds:[topic.id]});
+ const other={...f,input,topic},c=await request(other),owner=authority(f.s);await owner.service.maintain(owner.caller,c);const otherItem=(await row(f)).items.find(i=>i.id===c.itemId);
+ const deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(deletion);await mutation(f.s,'meta',CONTEXT_CARDS_ROW,r=>{r.items.find(i=>i.id===f.c.itemId).maintenance.provenance=structuredClone(otherItem.maintenance.provenance);});
+ await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});assert.equal((await raw(f.s,'meta',KNOWN_PREFIX+f.key)).descriptor.contextEdit,undefined);
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+for(const stage of ['delete','restore'])for(const defect of (stage==='delete'?['body','order']:['body','receipt','witness']))test('original '+stage+' digest await cannot mint after '+defect+' drift',async()=>{
+ const f=await editedFixture(),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2},restoration={kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId};
+ if(stage==='restore')await f.cards.change(deletion);const proto=Object.getPrototypeOf(crypto.subtle),original=proto.digest;let hit=false;
+ proto.digest=async function(a,b){const result=await original.call(this,a,b),text=new TextDecoder().decode(b);if(!hit&&text.includes('"lifecycle":"removed"')&&text.includes(f.change.body)){hit=true;
+  if(defect==='body')await alter(f,'context-body');if(defect==='order')await alter(f,'context-order');
+  if(defect==='receipt'){if(stage==='restore')await mutation(f.s,'operationReceipts','context:'+deletion.operationId,r=>r.digest='0'.repeat(64));else await alter(f,'context-order');}
+  if(defect==='witness'){if(stage==='restore')await mutation(f.s,'meta',KNOWN_PREFIX+f.key,r=>r.descriptor.contextRemoval.semanticDigest='0'.repeat(64));else await alter(f,'context-order');}
+ }return result;};
+ try{await f.cards.change(stage==='restore'?restoration:deletion);}finally{proto.digest=original;}
+ assert.equal(hit,true);if(stage==='delete')await f.cards.change(restoration);
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+for(const defect of ['body','removal-receipt','source','revoke'])test('held restoration provider cannot settle '+defect+' drift or replay',async()=>{
+ const f=await restoredFixture();let release,entered;const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);f.state.providerHook=async()=>{entered();await gate;};const h=await f.session.prepare(options),running=f.session.run(h);await started;
+ if(defect==='removal-receipt')await mutation(f.s,'operationReceipts','context:'+f.deletion.operationId,r=>r.result.revision--);else await alter(f,defect==='body'?'context-body':defect==='source'?'source-purge':'revoke');release();const result=await running;assert.notEqual(result.processedState,'COMMITTED');assert.equal((await acks(f.s)).length,0);await f.session.run(h);assert.equal(f.calls.length,1);f.session.dispose();
+});
+import {backupMetaAllowed,validateBackupItem,projectBackupEntity} from '../core/backup-format.js';
+import {assertManualContextCurrentPhysicalShape} from '../core/browser-native-sync/manual-context-current-shape.js';
+test('restoration witnesses and both human receipts remain nonportable metadata, not Sync grants',async()=>{
+ const f=await restoredFixture(),known=await raw(f.s,'meta',KNOWN_PREFIX+f.key),dirty=await raw(f.s,'meta',DIRTY_PREFIX+f.key);
+ for(const value of [known,dirty]){assert.equal(backupMetaAllowed(value.id),false);assert.throws(()=>validateBackupItem({type:'item',section:'organizationState',value:{id:value.id,data:value}}),{code:'BACKUP_INVALID'});}
+ for(const operationId of [f.deletion.operationId,f.restoration.operationId]){const receipt=await raw(f.s,'operationReceipts','context:'+operationId);assert.throws(()=>validateBackupItem({type:'item',section:'receipts',value:projectBackupEntity('receipts',receipt)}),{code:'BACKUP_INVALID'});}
+ const canonical=await row(f);assert.throws(()=>assertManualContextCurrentPhysicalShape(canonical),{code:'BNS_GROUP_CANONICAL_UNREPRESENTED'});
+ f.session.dispose();
+});
+
+for(const refusal of ['denied','original-input-denied','missing-context','missing-input','wrong-removal-proof'])test('restoration needs independent '+refusal+' authority and never locally settles',async()=>{
+ const f=await restoredFixture();if(refusal==='denied')f.state.allowed=false;if(refusal==='original-input-denied')f.state.originalAllowed=false;
+ f.state.processingHook=scope=>{if(refusal==='missing-context')delete scope.contextItems;if(refusal==='missing-input')scope.inputs=[];if(refusal==='wrong-removal-proof')scope.contextItems[0].proof.removalSemanticDigest='0'.repeat(64);return scope;};
+ const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+test('old same-Item deletion digest cannot replace the next adjacent removal revision',async()=>{
+ const f=await editedFixture(),first={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(first);const witness=(await raw(f.s,'meta',KNOWN_PREFIX+f.key)).descriptor.contextRemoval;
+ await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:first.operationId});const second={...first,operationId:op(),expectedRevision:4};await f.cards.change(second);
+ await mutation(f.s,'meta',KNOWN_PREFIX+f.key,r=>r.descriptor.contextRemoval=witness);await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:5,deletedBy:second.operationId});
+ assert.equal((await raw(f.s,'meta',KNOWN_PREFIX+f.key)).descriptor.contextEdit,undefined);const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
+});
+
+for(const field of ['receipt','witness'])test('restore digest await rejects undefined-extra '+field+' shape drift',async()=>{
+ const f=await editedFixture(),deletion={kind:'delete',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:2};await f.cards.change(deletion);
+ const proto=Object.getPrototypeOf(crypto.subtle),original=proto.digest;let hit=false;
+ proto.digest=async function(a,b){const result=await original.call(this,a,b),text=new TextDecoder().decode(b);if(!hit&&text.includes('"lifecycle":"removed"')&&text.includes(f.change.body)){hit=true;
+  if(field==='receipt')await mutation(f.s,'operationReceipts','context:'+deletion.operationId,r=>r.unexpected=undefined);
+  else await mutation(f.s,'meta',KNOWN_PREFIX+f.key,r=>r.descriptor.contextRemoval.unexpected=undefined);
+ }return result;};
+ try{await f.cards.change({kind:'restore',operationId:op(),epoch:f.c.epoch,itemId:f.c.itemId,expectedRevision:3,deletedBy:deletion.operationId});}finally{proto.digest=original;}
+ assert.equal(hit,true);const result=await f.session.run(await f.session.prepare(options));assert.notEqual(result.processedState,'COMMITTED');assert.equal(f.calls.length,0);assert.equal((await acks(f.s)).length,0);f.session.dispose();
 });

@@ -47,7 +47,7 @@ export async function domainResultReceipt(t,job){
    outcome=effective?'COMMITTED':'FAILED';
   }
  }
- return {version:1,receiptId:'aiu:domain:'+job.id,jobId:job.id,outcome,localState:job.state,binding:{principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,jobType:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion},children};
+ return {version:1,receiptId:'aiu:domain:'+job.id,jobId:job.id,outcome,localState:job.state,binding:{principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,jobType:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,...(Object.hasOwn(job,'organizeRequestKey')?{organizeRequestKey:job.organizeRequestKey}:{})},children};
 }
 
 // Replay reads the ORIGINAL transactional event. Later edits or a later job's
@@ -55,7 +55,7 @@ export async function domainResultReceipt(t,job){
 export async function savedDomainResultReceipt(t,job){
  const r=job.domainResultReceipt;if(!r)return null;
  exact(r,['version','receiptId','jobId','outcome','localState','binding','children']);
- if(!/^aiu:job:[a-f0-9]{64}$/.test(job.id)||r.version!==1||r.receiptId!=='aiu:domain:'+job.id||!opaque(r.receiptId)||r.jobId!==job.id||!['COMMITTED','FAILED'].includes(r.outcome)||r.localState!==job.state||!terminal.has(r.localState)||!equal(r.binding,{principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,jobType:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion})||!Array.isArray(r.children)||r.children.length!==job.childIds.length)fail('RESULT_CONFLICT');
+ if(!/^aiu:job:[a-f0-9]{64}$/.test(job.id)||r.version!==1||r.receiptId!=='aiu:domain:'+job.id||!opaque(r.receiptId)||r.jobId!==job.id||!['COMMITTED','FAILED'].includes(r.outcome)||r.localState!==job.state||!terminal.has(r.localState)||!equal(r.binding,{principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,jobType:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,...(Object.hasOwn(job,'organizeRequestKey')?{organizeRequestKey:job.organizeRequestKey}:{})})||!Array.isArray(r.children)||r.children.length!==job.childIds.length)fail('RESULT_CONFLICT');
  if(r.outcome==='COMMITTED'&&r.localState!=='COMMITTED')fail('RESULT_CONFLICT');
  for(let i=0;i<r.children.length;i++){
   const c=r.children[i];exact(c,['operationId','state','executionKind','operationReceiptId']);const row=await t.get('organizerUsage','aiu:attempt:'+job.childIds[i]);

@@ -25,7 +25,7 @@ import {qualifySectionAI,canRetainSectionAIEditor} from './topic-section-ai.js';
 import {stageTopicYearWindow,stageTopicYearExtent} from './topic-year-requalification.js';
 import {ContinuousCollection,continuousItemKey} from './continuous-collection.js';
 import {ContinuousTopicReader} from './continuous-topic-reader.js';
-import {request,element} from './common.js';
+import {request,element,statusLabel} from './common.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {AutosaveSession,RevisionSession,textOf} from './editor-primitives.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
@@ -1656,7 +1656,7 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!cached){
     const draft=this.aiTopics.get(this.id)?.userDraft;
     if(draft){const box=element('section','ai-user-draft');box.append(element('p','','主题级人工整理仍保存在原范围。'),button('保留主题级人工整理为独立内容',async()=>{if(!await this.flushReadingNavigation())return;await this.checked('RECOVER_AI_PRESENTATION_DRAFT',{options:{topicId:this.id,expectedRevision:draft.revision,operationId:op()}});await this.refresh();}));this.aiPane.append(box);}
-    else this.aiPane.append(element('p','muted','AI 服务尚未上线。尚无已保存的 AI整理。'));
+    else this.aiPane.append(element('p','muted',this.aiState?.serviceAvailable===true?'尚无已保存的 AI整理。':'AI 服务尚未上线。尚无已保存的 AI整理。'));
     this.renderSectionNav();return true;
    }
    if(!projection.complete||!projection.admittedFields.size)this.aiPane.append(element('p','muted',projection.complete?'当前章节暂无可独立归属的已保存 AI 整理。':'当前章节的整理范围暂时无法核对，请重试读取。'));
@@ -1757,11 +1757,63 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
  async searchTopic(){if(this.id&&this.view==='original'&&this.originalMode==='years'&&this.topicTimeline){await this.topicTimeline.changeQuery('');return;}return this.searchContent();}
  rememberView(){this.rememberContent();if(this.id){const anchor=this.topicAnchor();this.aiViewSession.remember(this.id,this.view,{scroll:Math.max(0,scrollY||0),cursor:this.cursor,pages:this.pages,query:''||'',anchor});}}
  ensureAITopicStatus(){let host=$('ai-topic-status');if(host)return host;host=element('section','ai-topic-status');host.id='ai-topic-status';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.hidden=true;const row=$('topic-heading')?.closest('.topic-title-row');if(row)row.after(host);else $('thought-document')?.prepend(host);return host;}
+ runningAIPresentation(state=this.aiState){const runtime=state?.runtime;return runtime?.topicId===this.id&&['preparing','running'].includes(runtime.phase)&&['preparing','running'].includes(runtime.state)?runtime:null;}
  renderAITopicStatus(state=null,selected=this.id?this.aiTopics.get(this.id):null){
   const host=this.ensureAITopicStatus();host.hidden=!this.id||this.view!=='ai';
   if(host.hidden){host.textContent='';delete host.dataset.state;return;}
-  host.dataset.state='service-unavailable';
-  host.textContent='AI 服务尚未上线。'+(this.statusUnavailable?.includes('ai')?'已保存内容状态暂时无法确认，请重试读取。':selected?.presentation?'已保存的整理仍可阅读、编辑和查看历史。':'已有内容保留，不会自动生成或覆盖。');
+  if((state||this.aiState)?.serviceAvailable!==true||this.statusUnavailable?.includes('ai')){
+   host.dataset.state='service-unavailable';
+   host.textContent='AI 服务尚未上线。'+(this.statusUnavailable?.includes('ai')?'已保存内容状态暂时无法确认，请重试读取。':selected?.presentation?'已保存的整理仍可阅读、编辑和查看历史。':'已有内容保留，不会自动生成或覆盖。');return;
+  }
+  const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,sectionId=this.activeSectionId;
+  const current=()=>topicId===this.id&&intent===this.openIntent&&presentation===this.presentationIntent&&sectionId===this.activeSectionId&&this.view==='ai';
+  const action=this.aiOrganizeActions?.get(topicId)||this.runningAIPresentation(state||this.aiState),notice=this.aiOrganizeNotice?.topicId===topicId&&this.aiOrganizeNotice.intent===intent?this.aiOrganizeNotice:null,runtime=(state||this.aiState)?.runtime,stopping=action?.phase==='stopping'||this.aiOrganizeStops?.has(topicId);
+  host.dataset.state=action?.phase||notice?.state||'ready';
+  host.textContent=action?(action.stopError||(notice?.state==='failed'?notice.text+'。':''))+(stopping?'正在停止本次整理；已有内容保留。':action.phase==='preparing'?'正在核对当前主题的整理范围…':'正在整理当前主题；已有内容保留。'):notice?.text||(runtime?.topicId===topicId&&runtime.errorCode?statusLabel(runtime.errorCode):selected?.presentation?'已保存的整理仍可阅读和编辑。':'尚无已保存的 AI整理。');
+  const refresh=button(selected?.presentation?'更新 AI整理':'生成 AI整理',()=>{if(current())return this.refreshAIPresentation();});refresh.dataset.aiOrganizeRefresh='true';refresh.disabled=!!action;host.append(refresh);
+  if(action&&action.phase!=='preparing'){const stop=button('停止本次整理',()=>{if(current())return this.stopAIPresentation(topicId);});stop.disabled=stopping;host.append(stop);}
+ }
+ async stopAIPresentation(topicId){
+  const action=this.aiOrganizeActions?.get(topicId),runtime=this.runningAIPresentation(),intent=this.openIntent,presentation=this.presentationIntent;
+  const current=()=>this.id===topicId&&this.openIntent===intent&&this.presentationIntent===presentation&&this.view==='ai'&&this.aiOrganizeActions?.get(topicId)===action;
+  if((action||runtime)?.phase!=='running'||!current()||this.aiOrganizeStops?.has(topicId))return false;
+  this.aiOrganizeStops??=new Set();this.aiOrganizeStops.add(topicId);if(action){action.phase='stopping';delete action.stopError;}this.renderAITopicStatus();
+  try{const result=await request('STOP_AI_PRESENTATION',{topicId});if(result?.error)throw {code:result.error};if(current())await this.updateViewStatus({strict:false,isCurrent:current});return true;}
+  catch(error){if(current()){if(action){action.phase='running';action.stopError=statusLabel(error?.code||'UNAVAILABLE')+'。';}else this.aiOrganizeNotice={topicId,intent,text:statusLabel(error?.code||'UNAVAILABLE'),state:'failed'};}return false;}
+  finally{this.aiOrganizeStops.delete(topicId);if(current())this.renderAITopicStatus();}
+ }
+ async refreshAIPresentation(){
+  const topicId=this.id,intent=this.openIntent,presentation=this.presentationIntent,sectionId=this.activeSectionId,epoch=this.statusEpoch,departure=this.homeDepartureToken;
+  const current=()=>topicId===this.id&&intent===this.openIntent&&presentation===this.presentationIntent&&sectionId===this.activeSectionId&&epoch===this.statusEpoch&&departure===this.homeDepartureToken&&this.view==='ai';
+  const composing=()=>[this.editor,this.aiEditor,this.dialogEditor].some(isComposing);
+  const protectedEdit=()=>composing()||this.sectionEndWriter?.hasDraft()||[this.editor,this.aiEditor,this.dialogEditor].some(editor=>editor?.dirty?.()||editor?.saving||editor?.recoveryPending);
+  if(!topicId||!current()||composing()||this.aiState?.serviceAvailable!==true||this.statusUnavailable?.includes('ai')||this.aiOrganizeActions?.has(topicId)||this.runningAIPresentation())return false;
+  this.aiOrganizeActions??=new Map();const action={phase:'preparing'};this.aiOrganizeActions.set(topicId,action);this.aiOrganizeNotice=null;this.renderAITopicStatus();
+  const notice=(text,state='failed')=>{if(current())this.aiOrganizeNotice={topicId,intent,text,state};};
+  let sent=false;
+  try{
+   if(!await this.flushReadingNavigation()||!current()||protectedEdit()){notice('请先完成并保存当前编辑，再整理。');return false;}
+   const scope=await request('GET_AI_PRESENTATION_SCOPE',{options:{topicId}});
+   // Scope reads are not an authorization to replay a click after navigation,
+   // new human work, or IME. The worker still owns every exact scope/CAS fence.
+   if(!current()||protectedEdit()){notice('当前编辑已变化，请保存后重新整理。');return false;}
+   if(scope?.blockedReason==='NO_DELTA'){notice('当前主题没有需要更新的整理内容。','ready');return false;}
+   if(scope?.available!==true||scope?.blockedReason){notice(statusLabel(scope?.blockedReason||'AI_SERVICE_UNAVAILABLE'));return false;}
+   if(scope.topicId!==topicId||scope.complete!==true||typeof scope.scopeBinding!=='string'||!/^[a-f0-9]{64}$/.test(scope.scopeBinding)){notice('当前整理范围无法完整核对，请重试读取。');return false;}
+   action.phase='running';this.renderAITopicStatus();sent=true;
+   const result=await request('UPDATE_AI_PRESENTATION',{topicId,userActionId:op(),scopeBinding:scope.scopeBinding});
+   if(!current())return false;
+   if(result?.error){notice(statusLabel(result.error));return false;}
+   if(result?.completed!==true||result.topicId!==topicId){notice('本次整理结果尚未确认，已有内容保留。');return false;}
+   notice(result.noDelta?'当前主题没有需要更新的整理内容。':result.cached?'已读取当前有效的整理。':result.candidateCreated?'新的整理候选已保存，可查看后再决定是否采用。':'本次整理结果已保存。','ready');return true;
+  }catch(error){notice(statusLabel(error?.code||'UNAVAILABLE'));return false;}
+  finally{
+   if(this.aiOrganizeActions.get(topicId)===action)this.aiOrganizeActions.delete(topicId);
+   if(current()){
+    this.renderAITopicStatus();
+    if(sent){if(protectedEdit())await this.updateViewStatus({strict:false,isCurrent:current});else await this.refresh();}
+   }
+  }
  }
  async switchView(view,{restoreFocus=null}={}){
   if(!['original','ai'].includes(view))return;const transition=this.presentationIntent=(this.presentationIntent||0)+1;if(!this.id){this.requestedTopicView=view;return;}if(this.viewSwitchPromise){await this.viewSwitchPromise;if(transition!==this.presentationIntent)return;return this.switchView(view,{restoreFocus});}if(view===this.view)return;

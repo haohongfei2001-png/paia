@@ -1,0 +1,64 @@
+name: PAIA Service Path Development Evidence
+
+# Scoped synthetic client wiring evidence. No database service, real provider,
+# credentials or deployment; original mandatory/full workflows are unchanged.
+on:
+  push:
+    branches: ['evidence/service-paths-20261018']
+    paths:
+      - 'extension/core/**'
+      - 'extension/background/**'
+      - 'extension/ui/**'
+      - 'extension/tests/**'
+      - 'services/ai-gateway/tests/**'
+      - '.github/workflows/paia-service-path-development.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  service-paths:
+    if: github.ref == 'refs/heads/evidence/service-paths-20261018'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/ai-gateway
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked test dependencies
+        id: install
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Record exact development identity
+        run: |
+          mkdir -p evidence
+          node --input-type=module <<'JS'
+          import {writeFile} from 'node:fs/promises';
+          await writeFile('evidence/identity.json', JSON.stringify({head:process.env.GITHUB_SHA,runId:process.env.GITHUB_RUN_ID,attempt:process.env.GITHUB_RUN_ATTEMPT,nodeVersion:process.version,syntheticDataOnly:true,providerDispatch:false,providerTransport:'synthetic-https-intercept',databaseTransport:'synthetic-sql-pool',qualification:'scoped-client-development'},null,2));
+          JS
+      - name: Original Organize action, service and recovery boundaries
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/organize-client-path.test.mjs tests/organize-client-recovery.test.mjs tests/organize-worker-rpc.test.mjs ../../extension/tests/organize-service-configuration.test.mjs ../../extension/tests/topic-organize-service-action.test.mjs 2>&1 | tee evidence/organize-client-protocol.tap
+      - name: Original Context restoration witness and current authority
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap ../../extension/tests/ai-context-edit-mapping.test.mjs 2>&1 | tee evidence/context-restore-protocol.tap
+      - name: Retain exact scoped evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-path-development-${{ github.sha }}-${{ github.run_attempt }}
+          path: services/ai-gateway/evidence/
+          if-no-files-found: error
+          retention-days: 7

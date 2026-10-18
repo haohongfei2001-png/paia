@@ -10,7 +10,7 @@ const retired = new Set([
 ]);
 const aiUnavailable = new Set([
   'GET_DEEPSEEK_STATUS','SAVE_DEEPSEEK_CREDENTIAL','CLEAR_DEEPSEEK',
-  'START_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE',
+  'START_BOUNDED_ORGANIZER',
   'UPDATE_ORIGINAL_LIBRARY_VIEW','SET_ORIGINAL_LIBRARY_AUTO_UPDATE','PREVIEW_AI_LIBRARY_UPDATE',
 ]);
 const retiredMemorySettings = new Set(['budget','retentionDays','onboarded','includeUnorganizedInputs']);
