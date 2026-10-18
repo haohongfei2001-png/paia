@@ -1,0 +1,64 @@
+/* R2 geometry only. R1 glyph, palette, data adapter and management are unchanged. */
+.paia[data-geometry=r2] {
+  --capsule-width:272px;
+  --board-gap:8px;
+}
+/* ONE surface and ONE continuous stadium outline; no connecting SVG/neck. */
+.paia[data-geometry=r2] .ps-unified-skin {
+  position:absolute;right:0;bottom:0;width:48px;height:48px;
+  border:1px solid var(--border);border-radius:24px;background:var(--surface);
+  box-shadow:var(--anchor-shadow);pointer-events:none;z-index:0;
+  transition:width 80ms var(--ease);
+}
+.paia[data-geometry=r2][data-mode=capsule][data-space=full] .ps-unified-skin {
+  width:var(--capsule-width);transition-duration:120ms;
+}
+.paia[data-geometry=r2] .ps-anchor,
+.paia[data-geometry=r2] .ps-anchor:hover,
+.paia[data-geometry=r2] .ps-anchor:active {
+  border-color:transparent;background:transparent;box-shadow:none;
+}
+/* Keep the original 1px transparent border and SVG(-1,-1): exact R1 glyph bounds. */
+.paia[data-geometry=r2] .ps-anchor::before {
+  content:"";position:absolute;inset:3px;border-radius:50%;pointer-events:none;
+}
+.paia[data-geometry=r2] .ps-anchor:hover::before {background:var(--hover);}
+.paia[data-geometry=r2] .ps-anchor:active::before {background:var(--pressed);}
+.paia[data-geometry=r2] .ps-anchor:focus-visible {outline-offset:-4px;}
+.paia[data-geometry=r2] .ps-anchor svg {z-index:1;}
+/* Clip the text reveal to the SAME width as the skin. Text itself never translates. */
+.paia[data-geometry=r2] .ps-capsule {
+  inset:auto 0 0 auto;width:48px;height:48px;border-radius:24px;
+  overflow:hidden;z-index:1;visibility:hidden;opacity:0;
+  transition:width 80ms var(--ease),opacity 80ms linear,visibility 0s linear 80ms;
+}
+.paia[data-geometry=r2][data-mode=capsule][data-space=full] .ps-capsule {
+  width:var(--capsule-width);visibility:visible;opacity:1;
+  transition:width 120ms var(--ease),opacity 80ms linear,visibility 0s;
+}
+.paia[data-geometry=r2] .ps-use-capsule {
+  right:48px;top:0;width:calc(var(--capsule-width) - 48px);height:48px;
+  padding:0 12px 0 16px;border-radius:24px 0 0 24px;
+}
+/* Clearly separate panel: same right edge, 8px open air ABOVE the whole circle. */
+.paia[data-geometry=r2] .ps-board {
+  right:0;bottom:calc(48px + var(--board-gap));z-index:2;
+  transform:none;transform-origin:100% 100%;
+  transition:opacity 80ms linear,visibility 0s linear 80ms;
+}
+.paia[data-geometry=r2][data-mode=board][data-space=full] .ps-board {
+  transition:opacity 120ms linear,visibility 0s;
+}
+/* Board-open tooltip stays below the panel, away from its last row and controls. */
+.paia[data-geometry=r2][data-mode=board] .ps-tooltip {right:56px;bottom:10px;z-index:5;}
+.paia[data-geometry=r2][data-space=entry] .ps-capsule,
+.paia[data-geometry=r2][data-space=hidden] .ps-capsule {width:48px;visibility:hidden;opacity:0;}
+@media (prefers-reduced-motion:reduce) {
+  .paia[data-geometry=r2] * {transition:none !important;}
+}
+.paia[data-geometry=r2][data-reduce=true] * {transition:none !important;}
+@media (forced-colors:active) {
+  .paia[data-geometry=r2] .ps-unified-skin {background:Canvas;border:1px solid ButtonText;box-shadow:none;}
+  .paia[data-geometry=r2] .ps-anchor {border-color:transparent;box-shadow:none;}
+  .paia[data-geometry=r2] .ps-anchor:focus-visible {outline:2px solid Highlight;}
+}

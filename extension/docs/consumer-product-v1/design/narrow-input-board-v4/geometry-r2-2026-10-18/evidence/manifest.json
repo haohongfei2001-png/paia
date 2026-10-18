@@ -1,0 +1,88 @@
+{
+  "id": "PAIA-FLOAT-UI-1.2-R2",
+  "selected": "Unified stadium capsule + right-aligned independent board with8px gap",
+  "r1_subtree": "5d72b58df3528cc15c42c9fb862f5c7f9c85b114",
+  "original_reference_png_sha256": "dec1e0d19d373a0a6ae4219514bf9dc183f5ebe84773c8b7512f5ff96aa69c0e",
+  "source_identity": "See verification-summary.json and exact Git blobs",
+  "image_method": "Actual offline Chromium captures;1440x960 CSS viewport; defaultDPR1, named DPR2 image, DPR3 detail crops;390px narrow viewport",
+  "artifact_location": "Generated files below are delivered in the conversation ZIP, not stored as repository binaries. Scripts regenerate them. Source/SVG/receipts are checked in.",
+  "rejected_image": "rejected-embedded-b.png is decision evidence only, never a runtime design option",
+  "artifacts": [
+    {
+      "path": "PAIA_Float_R2.html",
+      "bytes": 59293,
+      "sha256": "9446b06f4714d578bd610f28601c1e6df02d473f8a9ae4fcac609cbd842e7313"
+    },
+    {
+      "path": "evidence/three-states-light.png",
+      "bytes": 91105,
+      "sha256": "f644edd4e6e8c0b1dba221f17c6a0512edc66f7d0f8b3b04e4ff43af08029b5c"
+    },
+    {
+      "path": "evidence/three-states-dark.png",
+      "bytes": 92136,
+      "sha256": "44d87d36f3a9cc1def78dc546a8a54f32bbc37c4fa775babb1615cf75c1405b4"
+    },
+    {
+      "path": "evidence/three-states-light-dpr2.png",
+      "bytes": 231766,
+      "sha256": "20a66facf738b4736b748db04c504e8a16256fedcafa285e369e63a6431e2460"
+    },
+    {
+      "path": "evidence/capsule-detail.png",
+      "bytes": 21418,
+      "sha256": "fdc6e97bcf37b505822e0266f94fd70d7cf854441074cd76e375752fa3dde720"
+    },
+    {
+      "path": "evidence/board-gap-detail.png",
+      "bytes": 22687,
+      "sha256": "55b71c4fce5aeebf1663a9100f7a53cb3945ce872ebdc9b587876bf3b7015824"
+    },
+    {
+      "path": "evidence/long-conversation-light.png",
+      "bytes": 127449,
+      "sha256": "a948dbea5243663da578758430f0064547304d1eeb4d4d79e952feece7e9fda9"
+    },
+    {
+      "path": "evidence/editor-dark.png",
+      "bytes": 120862,
+      "sha256": "23f0da6b0b16ab035e4683f4cbacd31e16288fa912f2ecc0d73f6a852b3f39ae"
+    },
+    {
+      "path": "evidence/narrow-light.png",
+      "bytes": 53330,
+      "sha256": "21d73f1568f0eaf1f2ebe6e0784899198b7c50510f1e46210a892ec6e6f13462"
+    },
+    {
+      "path": "evidence/selected-separate-a.png",
+      "bytes": 91105,
+      "sha256": "f644edd4e6e8c0b1dba221f17c6a0512edc66f7d0f8b3b04e4ff43af08029b5c"
+    },
+    {
+      "path": "evidence/rejected-embedded-b.png",
+      "bytes": 91260,
+      "sha256": "40f89e5af5dbe09a960d4593f7cb9ce4cd17aaea33484d2003a55392ba92f2d2"
+    },
+    {
+      "path": "evidence/geometry-decision.json",
+      "bytes": 1072,
+      "sha256": "c1342aaf541eed8b1ce1f17581037fa898b765a84b3640f9db67e484e1f159a4"
+    },
+    {
+      "path": "evidence/motion-samples.json",
+      "bytes": 14928,
+      "sha256": "33a8b4509e61f731031888313dbef1aced94614f30f3e7dedcdb3576d79106b5"
+    },
+    {
+      "path": "evidence/verification.json",
+      "bytes": 6412,
+      "sha256": "fa1ca07781e13e15b160dd38269234cd426ab96d3d39a18d37c4c42c6a864bee"
+    },
+    {
+      "path": "evidence/geometry-verification.json",
+      "bytes": 3085,
+      "sha256": "2ed4ecb4d259926a28a5cdfbeb1dbfef00e5e7a9bb0c4ec9b59c4e21ce017b89"
+    }
+  ],
+  "self_hash_excluded": true
+}
