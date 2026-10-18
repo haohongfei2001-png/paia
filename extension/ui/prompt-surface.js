@@ -48,7 +48,7 @@ function applyDisplay(preferences=displayPreferences){
  for(const [node,entries]of copyBindings){if(!node.isConnected){copyBindings.delete(node);continue;}for(const [attribute,value]of entries){if(attribute)node.setAttribute(attribute,localize(value));else node.textContent=localize(value);}}
  document.title=localize('PAIA 常用输入');scheduleLayout();
 }
-for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#capsule-expand','展开常用表达','aria-label'],['#capsule-expand','展开常用表达','title'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
 document.getElementById('open-search').replaceChildren(createIcon('search'));
 systemAppearance.addEventListener('change',()=>applyDisplay());
 
@@ -92,13 +92,12 @@ new MutationObserver(scheduleLayout).observe(document.getElementById('card'),{ch
 const currentItems=()=>mode==='search'?history.items:showOversized?structuredClone(oversizedItems):session.current();
 const selectionRef=item=>item.ref??{kind:item.edited?'manual_reuse':'prompt_family',id:item.id,revision,generation:projectionGeneration};
 function paintCapsule(){
- document.getElementById('capsule-expand').setAttribute('aria-expanded',String(document.documentElement.dataset.surfaceForm!=='capsule'));
  const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text)),text=document.getElementById('capsule-text'),use=document.getElementById('capsule-use');
  if(!text||!use)return;text.textContent=item?.text||localize('没有可快速复用的表达。');use.disabled=busy||!item||attempted.has(item.id);
 }
 async function setSurfaceForm(form){
- if(editing||checking||busy||drag||composing||searchComposing)return;
- try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}
+ if(editing||checking||busy||refreshing||drag||composing||searchComposing)return;
+ pending(true);try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
 }
 function clipped(item,node){return /[\r\n\t]/.test(item.text)||/^\s|\s$| {2}/.test(item.text)||node.scrollWidth>node.clientWidth+1;}
 function leaveCheck(restoreFocus=true){
@@ -214,14 +213,13 @@ async function requestClose(event){
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
  // Freeze admission while the existing authenticated close RPC is in flight.
- let retainedCapsule=false;pending(true);try{
+ pending(true);try{
   const closed=await rpc({type:'close'});
   if(closed?.closed!==true||closed.nonce!==nonce||!['orb','capsule'].includes(closed.form))throw Error('unconfirmed close');
-  if(closed.form==='capsule'){document.documentElement.dataset.surfaceForm='capsule';document.getElementById('capsule-expand').setAttribute('aria-expanded','false');retainedCapsule=true;}
+  if(closed.form==='capsule')document.documentElement.dataset.surfaceForm='capsule';
  }catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
- // Orb retirement already restored the host target. The still-animating child
- // must not take it back before removal, or the next native Enter/Space is lost.
- if(retainedCapsule)document.getElementById('capsule-expand').focus();
+ // The authenticated host ACK restores its same persistent circle in both
+ // collapsed forms. A retained or retiring child must never take focus back.
 }
 function closeSurfaceTools(){document.getElementById('surface-tools').hidden=true;document.getElementById('surface-more').setAttribute('aria-expanded','false');}
 function paintHistoryControls(){
@@ -277,7 +275,6 @@ function paintCandidateControls(){candidateRefresh.hidden=!candidateAvailable||m
 void rpc({type:'history_candidates_status'}).then(value=>{if(!disposed){candidateAvailable=value.available===true;paintCandidateControls();}},()=>{});
 trackActivation(document.getElementById('capsule-use'));
 document.getElementById('capsule-use').addEventListener('click',e=>{if(!e.isTrusted)return;const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text));if(item)void insert(item,e.currentTarget,false,activationKey(e));});
-document.getElementById('capsule-expand').addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm('board');});
 for(const form of ['orb','capsule'])document.getElementById('collapse-'+form).addEventListener('click',e=>{if(e.isTrusted)void setSurfaceForm(form);});
 document.getElementById('long-expressions').addEventListener('click',()=>{if(busy||editing||checking||composing)return;showOversized=!showOversized;mode='candidates';paintHistoryControls();render();});
 document.getElementById('surface-more').addEventListener('click',()=>{if(busy||composing||searchComposing||drag)return;const tools=document.getElementById('surface-tools');tools.hidden=!tools.hidden;document.getElementById('surface-more').setAttribute('aria-expanded',String(!tools.hidden));scheduleLayout();});
@@ -299,7 +296,7 @@ async function openPaia(){if(busy||editing||drag||composing||searchLoading)retur
 document.getElementById('open-paia').addEventListener('click',openPaia);
 document.getElementById('new').addEventListener('click',()=>edit(null));document.getElementById('refresh').addEventListener('click',refresh);document.getElementById('hidden').addEventListener('click',()=>{if(editing||busy)return;hidden=!hidden;void refresh();});document.getElementById('close').addEventListener('click',e=>{if(e.isTrusted)void requestClose(e);});
 document.getElementById('card').addEventListener('keydown',e=>{if(e.isTrusted&&e.key==='Escape'&&!composing&&!e.isComposing&&e.keyCode!==229){e.preventDefault();void requestClose(e);}});
-chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
+chrome.runtime.onMessage.addListener((r,s,reply)=>{if(r?.type==='PAIA_PROMPT_NEXT_ACTIVITY'){if(s.id===chrome.runtime.id&&!s.tab&&r.nonce===nonce)reply({idle:!editing&&!busy&&!composing&&!drag&&!refreshing});return;}if(r?.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'){if(s.id!==chrome.runtime.id||s.tab||r.nonce!==nonce)return;if(document.documentElement.dataset.surfaceForm==='capsule')void setSurfaceForm('board');else void requestClose();reply({received:true});return;}if(!['PAIA_PROMPT_CHANGED','ARCHIVE_CHANGED'].includes(r?.type))return;invalidateRepresentative();invalidateSplit();if(mode!=='search')history.invalidate();if(copyRequest){copyRequest=null;pending(false);}if(mode==='search'){const displayTicket=++displayEpoch;void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(!disposed&&displayTicket===displayEpoch)applyDisplay(q.displayPreferences);},()=>{});++epoch;history.invalidate();if(searchLoading){searchLoading=false;pending(false);}if(checkingRequest!==null){checkingRequest=null;pending(false);}if(checking)leaveCheck(false);if(!editing){render();tell('内容已变化，请刷新。');}return;}if(refreshing)return;const ticket=++epoch,displayTicket=++displayEpoch;if(checkingRequest!==null){checkingRequest=null;pending(false);tell('此表达已变化，请刷新。');}void rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden}).then(q=>{if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(!editing){revision=q.revision;projectionGeneration=q.generation;candidateTarget=q.target;}session.reconcile(q);const longCurrent=new Map((q.oversizedItems||[]).map(item=>[item.id,item]));oversizedItems=oversizedItems.filter(item=>longCurrent.get(item.id)?.text===item.text);paintCapsule();if(checking&&!session.current().some(x=>x.id===checking.item.id&&x.text===checking.item.text)){leaveCheck();tell('此表达已变化，请刷新。');}if(!editing&&!drag){const ids=new Set(session.current().map(x=>x.id));for(const row of [...list.querySelectorAll('.row')])if(!ids.has(row.dataset.id)){if(row.nextElementSibling?.className==='tools')row.nextElementSibling.remove();row.remove();}}},()=>{if(ticket!==epoch)return;if(checking)leaveCheck(false);if(!editing){list.replaceChildren();tell('内容已变化，请刷新。');}});});
 void refresh();
 const next=document.createElement('button');next.id='next-reopen';bindCopy(next,'本轮建议');next.hidden=true;document.getElementById('surface-tools').append(next);
 let nextAvailabilityEpoch=0;

@@ -4,7 +4,7 @@ import {validContextTopicBinding,contextTopicDigest} from './context-topic-prefe
 
 // Only the original source-free human owner. This module grants no processing,
 // creates no Input/Source, and never retains body material or writes an owner.
-export const AUTHORED_CONTEXT_LIMITS=Object.freeze({memberships:4096,page:100});
+export const AUTHORED_CONTEXT_LIMITS=Object.freeze({memberships:4096,restoreHistory:4096,page:100});
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const exact=(x,keys)=>plain(x)&&Reflect.ownKeys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -32,6 +32,38 @@ export async function sourceFreeHumanEntryProof(t,row){
  return await t.count('dependencies','byTarget',prefix(['entry',row.id]))===0&&await t.count('provenance','byOwner',prefix(['entry',row.id]))===0;
 }
 
+// Body edits and lifecycle restores share one retained journal authority chain.
+// Every before-image must match the immediately preceding after-image; row
+// revision gaps may be human placement changes, never a missing content link.
+async function authoredBodyAuthority(t,row,birth,current){
+ const entityKey='library_entry:'+row.id;
+ const valid=j=>j&&j.kind==='library_entry'&&j.entityId===row.id&&j.entityKey===entityKey&&j.documentId===row.id&&j.actor==='user'&&empty(j.sourceRecordIds)&&operation(j.operationId)&&revisionOK(j.baseRevision)&&revisionOK(j.afterRevision)&&j.afterRevision>=j.baseRevision&&revisionOK(j.sequence)&&j.sequence>0&&same(j.listKey,[entityKey,j.sequence]);
+ let reads=0;const previous=j=>reads++<AUTHORED_CONTEXT_LIMITS.restoreHistory?t.edge('revisions','byList',IDBKeyRange.bound([entityKey],[entityKey,j.sequence],false,true),'prev'):null;
+ if(row.contentRevision!==row.fieldRevisions.body||current.reason==='restore'&&ENTRY_FIELDS.some(f=>row.authorship[f].operationId!==current.operationId||row.protections[f].reason!=='restore'||row.authorship[f].at!==row.protections[f].at))return false;
+ let journal=current,edits=0;const operations=new Set();
+ while(valid(journal)&&!operations.has(journal.operationId)){
+  operations.add(journal.operationId);
+  if(journal.id===birth.id)return same(journal,birth)&&(edits?row.fieldRevisions.body>=edits:row.fieldRevisions.body===0);
+  const before=journal.before,after=journal.after;
+  if(!human(after?.bodyAuthorship)||!locked(after?.bodyProtection)||after.bodyAuthorship.operationId!==journal.operationId||after.bodyProtection.operationId!==journal.operationId||after.bodyAuthorship.at!==after.bodyProtection.at)return false;
+  if(journal.reason==='edit'){
+   // Coalesced A -> B -> A edits are genuine: require exact owner linkage,
+   // not unequal body bytes or a one-row revision span.
+   if(!same(journal.fieldMask,['body'])||journal.important!==false||journal.afterRevision<=journal.baseRevision||before?.lifecycle!=='active'||after.lifecycle!=='active'||after.bodyProtection.reason!=='user_edit'||!same(after,{...before,body:after.body,bodyAuthorship:after.bodyAuthorship,bodyProtection:after.bodyProtection,thoughtEditedAt:after.thoughtEditedAt}))return false;
+   edits++;const authority=await previous(journal);
+   if(!valid(authority)||authority.sequence>=journal.sequence||authority.afterRevision>journal.baseRevision||!same(authority.after,before))return false;
+   journal=authority;continue;
+  }
+  if(journal.reason!=='restore'||journal.important!==true||!same(journal.fieldMask,['lifecycle'])||journal.afterRevision!==journal.baseRevision+1||before?.lifecycle!=='removed'||after.lifecycle!=='active'||after.bodyProtection.reason!=='restore'||journal.operationId===before.bodyAuthorship?.operationId||!same(after,{...before,lifecycle:'active',bodyAuthorship:after.bodyAuthorship,bodyProtection:after.bodyProtection}))return false;
+  const removal=await previous(journal);
+  if(!valid(removal)||removal.sequence>=journal.sequence||operations.has(removal.operationId)||removal.reason!=='remove'||removal.important!==true||!same(removal.fieldMask,['lifecycle'])||removal.afterRevision!==removal.baseRevision+1||removal.afterRevision!==journal.baseRevision||removal.before?.lifecycle!=='active'||!same(removal.after,{...removal.before,lifecycle:'removed'})||!same(removal.after,before))return false;
+  operations.add(removal.operationId);const authority=await previous(removal);
+  if(!valid(authority)||authority.sequence>=removal.sequence||authority.afterRevision>removal.baseRevision||!same(authority.after,removal.before))return false;
+  journal=authority;
+ }
+ return false;
+}
+
 export async function readAuthoredEntryContext(store,t,entryId,descriptor=null){
  const row=await t.get('thoughts',entryId);
  if(!await sourceFreeHumanEntryProof(t,row)||row.id!==entryId||!row.thoughtText.trim()||row.title||row.note||row.formation!=='explicit'||ENTRY_FIELDS.filter(f=>f!=='body').some(f=>row.fieldRevisions[f]!==0))return null;
@@ -42,10 +74,7 @@ export async function readAuthoredEntryContext(store,t,entryId,descriptor=null){
  const journal=descriptor?await t.get('revisions',descriptor.journalId):await t.edge('revisions','byList',prefix(['library_entry:'+entryId]),'prev');
  if(!journal||journal.kind!=='library_entry'||journal.entityId!==entryId||journal.actor!=='user'||!empty(journal.sourceRecordIds)||!revisionOK(journal.baseRevision)||!revisionOK(journal.afterRevision)||journal.afterRevision>row.revision||descriptor&&journal.afterRevision!==descriptor.revision||journal.operationId!==row.authorship.body.operationId||!same(journal.after,entrySnapshot(row)))return null;
  const baseline=journal.id===birth.id&&row.fieldRevisions.body===0&&row.protections.body.reason==='user_created'&&row.authorship.body.at===row.createdAt;
- // Real journals coalesce edits across intervening placement revisions. The
- // row span is not a body-edit count and need not be exactly one revision.
- const bodyEdit=journal.reason==='edit'&&same(journal.fieldMask,['body'])&&journal.afterRevision>journal.baseRevision&&row.fieldRevisions.body>0&&row.protections.body.reason==='user_edit';
- if(!baseline&&!bodyEdit)return null;
+ if(!baseline&&!await authoredBodyAuthority(t,row,birth,journal))return null;
  const count=await t.count('placements','byEntry',prefix([entryId]));
  if(!revisionOK(count)||count>AUTHORED_CONTEXT_LIMITS.memberships)return null;
  let after=null,total=0;const current=[];

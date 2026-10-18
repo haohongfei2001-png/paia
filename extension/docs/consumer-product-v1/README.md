@@ -1,6 +1,6 @@
 # PAIA Consumer Product v1
 
-Current floating-input amendment: **PAIA-FLOAT-UI-1.1 / B「句瓣」 / 2026-10-18**. See the existing [NIB plan](NARROW_INPUT_BOARD_V4_PLAN.md) and [approved references](NARROW_INPUT_BOARD_V4_REFERENCES.md). Programme execution is routed by current [STATUS](STATUS.md) and [AUTHORITY](AUTHORITY.md); the package/activation statements below describe the original planning baseline. This scoped adoption changes no runtime or global schedule.
+Current floating-input amendment: **PAIA-FLOAT-UI-1.2 / fixed circular anchor with horizontal translucent double cards / 2026-10-18**. This is the last `PAIA_三态悬浮入口_最终精修.png` selected by the owner and supersedes B「句瓣」 for this local surface. See the existing [NIB plan](NARROW_INPUT_BOARD_V4_PLAN.md), [finite adoption ledger](NARROW_INPUT_BOARD_V4_ADOPTION.md) and [approved references](NARROW_INPUT_BOARD_V4_REFERENCES.md). Programme execution is routed by current [STATUS](STATUS.md) and [AUTHORITY](AUTHORITY.md); the package/activation statements below describe the original planning baseline. This scoped adoption changes no runtime or global schedule.
 
 Status: planning package. This branch contains documentation only.
 
@@ -24,7 +24,7 @@ No standalone Figma/prototype phase is required. Production implementation itsel
 - UX_CONTRACT.md — consumer-grade interaction and presentation contract.
 - PROMPT_REUSE_SURFACE.md — owner-approved stable product/interaction contract for personal high-frequency prompt reuse across supported AI pages.
 - PROMPT_REUSE_STAGE_3A.md — owner-approved B-04-3A, local Reply → Next Action detector, transient capsule and Stage 3A evaluation/development contract.
-- [NARROW_INPUT_BOARD_V4_SPEC.md](NARROW_INPUT_BOARD_V4_SPEC.md) / [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) / [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) — current PAIA-FLOAT-UI-1.1 composer-anchored B「句瓣」 authority and existing S0–S4 plan.
+- [NARROW_INPUT_BOARD_V4_SPEC.md](NARROW_INPUT_BOARD_V4_SPEC.md) / [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) / [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) — current PAIA-FLOAT-UI-1.2 fixed-circle horizontal double-card authority and existing S0–S4 plan; exact older contracts are retained in PRE_DOUBLE_CARD archives.
 - prompt-reuse-visual-v1/ — historical Prompt visual reference; superseded where the current NIB adoption ledger specifies a later decision.
 - TECHNICAL_PLAN.md — keep/refactor/rewrite/add strategy and migration boundaries.
 - MASTER_PLAN.md — twelve vertical slices and detailed round sequence.

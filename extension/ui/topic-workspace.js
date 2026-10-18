@@ -1630,20 +1630,28 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    if(!current())return false;
    const scopeKey=JSON.stringify([this.id,sectionId,projection?.complete===true,[...(projection?.admittedFields||[])].sort(),projection?.generation,projection?.recoveryEpoch]);
    const defer=()=>{const active=this.aiEditor,topicId=this.id,intent=this.openIntent;if(!active||!cached)return false;active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.activeSectionId!==sectionId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});return true;};
-   const canPaint=()=>current()&&![this.editor,this.aiEditor,this.dialogEditor].some(isComposing)&&(!cached||!this.aiEditor?.readingReflowBlocked());
-   if(cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
+   const active=this.aiEditor,withdrawAuthority=!!active&&!active.recoveryOnly&&(!cached||projection?.complete!==true||cached.recoveryEpoch!==active.row?.recoveryEpoch||[...(active.admittedFields||active.nodes.keys())].some(field=>!projection.admittedFields.has(field))||[...(active.sectionEvidence||[])].some(id=>!projection.sectionEvidence.has(id)));
+   const canPaint=()=>current()&&![this.editor,...(withdrawAuthority?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
+   if(!withdrawAuthority&&cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
    if(!canPaint())return false;
-   if(this.aiEditor&&(this.aiEditor.dirty()||this.aiEditor.saving)){
+   if(this.aiEditor&&!this.aiEditor.recoveryOnly&&!withdrawAuthority&&(this.aiEditor.dirty()||this.aiEditor.saving)){
     this.aiEditor.collect();if(!await this.aiEditor.flush()&&this.aiEditor.dirty())return false;if(!canPaint())return false;
    }
    const commit=()=>{
    if(!canPaint()){defer();return false;}
+   if(this.aiEditor?.recoveryOnly){
+    // Refresh cannot silently lose a failed draft, retry it, or mount a second
+    // writer. A protected draft can transfer only to a freshly qualified view.
+    if(this.aiEditor.dirty()||this.aiEditor.recoveryPending||!projection?.complete||!projection.admittedFields.size){this.aiEditor.mountRecovery();return true;}
+    this.aiEditor.dispose();this.aiEditor=null;
+   }
    if(canRetainSectionAIEditor(this.aiEditor,cached,projection,this.aiScopeKey,scopeKey)){
     // Fresh qualification is identical except for the reader generation. Keep
     // the exact live row/nodes: a late human input or save owns them already.
     this.aiScopeKey=scopeKey;this.filterAIReading();return true;
    }
    if(this.aiEditor&&!this.aiEditor.dirty()&&!this.aiEditor.saving&&!this.aiEditor.recoveryPending&&this.aiScopeKey===scopeKey&&cached&&this.aiEditor.row.revision>=cached.revision){this.filterAIReading();return true;}
+   if(this.aiEditor?.withdraw?.()){this.aiScopeKey=scopeKey;this.readingHistoryOwner=null;return true;}
    this.aiEditor?.dispose();this.aiEditor=null;this.aiScopeKey=scopeKey;this.aiPane.replaceChildren();
    if(!cached){
     const draft=this.aiTopics.get(this.id)?.userDraft;

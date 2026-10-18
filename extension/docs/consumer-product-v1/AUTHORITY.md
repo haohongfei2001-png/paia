@@ -1,3 +1,11 @@
+# Current floating-input authority — PAIA-FLOAT-UI-1.2, 2026-10-18
+
+The owner-approved fixed-circle, horizontal double-card design on main `34f5188d52ada449b99ac88fb6451db8dabcea6f` is the current finite floating-input target. The six current NARROW_INPUT_BOARD_V4 documents and `PAIA_FLOAT_UI_1_2_REFERENCE_MANIFEST.json` identify its actual reference and distinguish proposed CSS calibration from approved artwork. Their preceding B句瓣 records are retained as history, not the active visual target.
+
+Follow the owner's current product-first order in MASTER_PLAN and STATUS: prepare the bounded installable candidate with necessary safety/build checks, then complete the larger acceptance campaign after the owner's trial. Unexecuted checks remain NOT_RUN; existing protection, privacy, human-work and permission rules remain effective. This does not claim that the design image or a build proves native startup, visual fidelity or whole-programme completion.
+
+## Preserved preceding authority record
+
 # Scoped floating-input authority — approved B 句瓣, 2026-10-18
 
 The owner approved final **B「句瓣」 / PAIA-FLOAT-UI-1.1** on2026-10-18 (Asia/Shanghai) and requested integration into the existing development plan. Current floating-input authority is [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). Only B’s final SVG/tokens and neutral information surfaces are selected: entry40/target44, capsule272×44, board336×312, one shared anchor above/outside the composer. A/C/D and the old glass poster are historical references, not alternate production targets.

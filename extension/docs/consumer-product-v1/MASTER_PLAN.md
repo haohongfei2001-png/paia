@@ -1,3 +1,21 @@
+# Owner clarification — complete approved implementation before delivery, 2026-10-18
+
+The owner clarified that the requested outcome is completion of the current development plan's functionality and interfaces, with broad tests and acceptance deferred. An early UI preview does not satisfy that request. Do not ask the owner to install the0.55 intermediate package as a substitute for completing remaining implementation. Retain the completed1.2 double-card and human-recovery code, then close the finite approved implementation gaps through their existing owners before preparing the requested installation.
+
+Keep minimum data-loss/privacy/permission/build safety checks. The larger visual, browser, performance and sustained-use campaign remains deferred, not deleted or passed. Distinguish actual missing code from already implemented features awaiting acceptance and from external account/provider/device prerequisites. The existing pause on new Sync functionality remains explicit pending any separate change of scope. The previous preview checkpoint is preserved as historical work, not the final delivery definition.
+
+## Preserved intermediate execution record
+
+# Current execution order — product candidate before broad acceptance, 2026-10-18
+
+The owner now prioritizes completing the approved non-Sync product scope into an installable candidate, followed by a small pre-install check and owner installation before the larger acceptance campaign. Continue the existing programme and its original owners; no new plan or product scope is created. The current floating-input target is **PAIA-FLOAT-UI-1.2**, as adopted on main34f5188d: permanent circular anchor and horizontal translucent double cards. B句瓣 is preserved implementation history, not current visual acceptance.
+
+Develop coherent product slices with directly affected small tests and necessary review. Before installation retain package/build/startup/core-flow checks, privacy/permission boundaries and loss-of-human-work protections, with a backup and rollback procedure. Defer broad cross-browser longevity, full visual matrices and comprehensive performance qualification until after the owner installs; preserve their tests and thresholds and label unexecuted checks NOT_RUN. Existing failed runs remain failed. Required branch protections are not bypassed: a separately identified trial candidate may be packaged if protected main cannot yet merge. No installation or actual device success is claimed by this ordering change.
+
+The current integration retains545's runtime reliability/Authored changes and all15 exact documents from main34f. Finish the finite1.2 visual replacement through the existing S0/S1/S2/S4-local owners; retain completed Now and authored restore work. Real provider/account/financial activation still requires its original prerequisites, new Sync features remain paused, and input-only privacy/human content/order remain mandatory.
+
+## Preserved preceding execution records
+
 # Scoped Prompt plan amendment — B 句瓣, 2026-10-18
 
 The owner approved final **B「句瓣」 / PAIA-FLOAT-UI-1.1** on2026-10-18 (Asia/Shanghai) and requested integration into the existing development plan. Current floating-input authority is [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). Only B’s final SVG/tokens and neutral information surfaces are selected: entry40/target44, capsule272×44, board336×312, one shared anchor above/outside the composer. A/C/D and the old glass poster are historical references, not alternate production targets.

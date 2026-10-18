@@ -1,3 +1,17 @@
+# Trial integration checkpoint — 2026-10-18
+
+The 0.55.0 local trial combines the reviewed 1.2 double-card runtime with the restore owner below. This does not relabel any prior native gate as passed.
+
+## Preserved restore qualification
+
+# Authored Context restore continuity — 2026-10-18 / successor native pending
+
+A separate 0.54.2 successor retains the exact PR295 repair tree and adds only the reviewed authored journal-continuity owner, its unit/native regressions and synchronized package identity. Code tree `249be9110daad6f4959475f6d6a555dc8d02d13a` passed7657/7657 default-four units, zero failures/skips, standard release513 files/16528 guardrails/489 runtime resources, Source16592/493 and privacy59/59; all commands exited0 at01:00:56UTC. The owner/version subset passes100/100 and is not added to that full-suite count.
+
+Original-owner genuine restores now qualify only through the complete bounded body/removal/restoration history plus fresh current authority. Independent review repaired an earlier disguised-journal counterexample before this frozen candidate. The three reviewed owner/test blobs remain exact. Two added native phases per Source/release remain NOT_RUN. PR295 c76 is still independently in certification; this successor does not update its head, replace its pending gates, certify main6cc or establish human visual acceptance. See [the owning receipt](ai-usage/AI-COST-03-AUTHORED-RESTORE-CONTINUITY.md). Input-only privacy, human ownership/order, paused Sync, all original failures and the separately open revoked-draft storage-failure gap remain.
+
+## Preserved earlier runtime qualification
+
 # Prompt theme and status clearance — 2026-10-18 / 0.54.1 follow-up
 
 PR295 exact `c76bba7d02d07002e0f9c26d19278dba5054763d` completed Full39084449356 with nine Browser shards and all four Unit shards (7605/7605, zero failures/skips), both macOS gates, Sync native and build/privacy passing. Browser6 first failed Source/release Save clicks because the persistent status message intercepted pointer events, then was cancelled at the 18-minute job boundary; Full/Integration remain FAILED. Prompt Foundation39084449385 separately failed the old v2 theme-color oracle; Prompt Visual39084449408 and D739084449439 passed. Original failures retain their identities.

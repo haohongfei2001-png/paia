@@ -28,7 +28,7 @@ test('position is bounded device-only metadata, with no website or archive body 
 test('safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,640,1280])for(const height of [500,800])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.9}]){
-  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,44);assert.equal(g.card.y+g.card.h,form.top-56);assert.equal(g.card.w,width<=400?width-32:336);
+  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,48);assert.equal(g.card.y+g.card.h,form.top-36);assert.equal(g.card.w,Math.min(336,width-32,form.right-(width<=530?0:4)-36));
  }
 });
 test('surface publishes only one static extension frame, no host library bridge or new privileged host',async()=>{
@@ -53,9 +53,9 @@ test('open geometry uses one visible anchor, projects the attached card into saf
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,390,1280])for(const height of [500,844,900])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.4}]){
   const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
-  assert.equal(g.orb.x,g.card.x+g.card.w-44);assert.equal(g.orb.y,g.card.y+g.card.h);
+  assert.equal(g.orb.x,g.card.x+g.card.w-12);assert.equal(g.orb.y,g.card.y+g.card.h-24);
   for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
-  const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
+  const saved={x:g.orb.x/(width-48),y:g.orb.y/(height-48)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
  }
 });
 
@@ -69,19 +69,19 @@ test('SPA geometry save binds the initial sender URL to the exact live document,
 
 test('open surface preserves legacy metadata without moving the common composer anchor',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
- const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,1216);assert.equal(g.card.y+g.card.h,714);assert.equal(g.orb.y,g.card.y+g.card.h);assert.equal(g.card.x+g.card.w,1260);assert.ok(g.card.y+g.card.h<=900);
+ const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,1212);assert.equal(g.card.y+g.card.h,734);assert.equal(g.orb.y,g.card.y+g.card.h-24);assert.equal(g.card.x+g.card.w,1224);assert.ok(g.card.y+g.card.h<=900);
 });
 
 test('saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,1280])for(const form of [{left:16,right:width-16,top:940,bottom:1040},{left:16,right:width-16,top:-200,bottom:-20},{left:width+20,right:width+400,top:300,bottom:500},{left:-400,right:-20,top:300,bottom:500}])for(const position of [{x:0,y:0},{x:1,y:1},{x:.5,y:.5}]){
-  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);if(form.top<0){assert.equal(g,null);continue;}assert.ok(g);assert.ok(g.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
+  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);if(form.top<0){assert.equal(g,null);continue;}assert.ok(g);if(form.right<0)assert.equal(g.card,null,'body yields when the fixed circle has no safe left space');else assert.ok(g.card);for(const r of [g.orb,g.card].filter(Boolean))assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
  }
 });
 
 async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
  const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map();let failHost=false;
- const rect={x:500,y:100,width:44,height:44,left:500,right:544,top:100,bottom:144};
+ const rect={x:500,y:700,width:44,height:44,left:500,right:544,top:700,bottom:744};
  const element=tag=>{
   const attrs=new Map(),handlers=new Map(),node={tag,dataset:{},style:{},hidden:false,isConnected:false,handlers,
    setAttribute(k,v){attrs.set(k,v);},getAttribute:k=>attrs.get(k),addEventListener(k,v){handlers.set(k,v);},removeEventListener(){},
@@ -93,9 +93,9 @@ async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
  const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
   matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
   requestAnimationFrame:animationFrame,PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
-  PAIAPromptLayout:()=>({orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:350}}),
   chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return failHost&&r.type==='PAIA_PROMPT_SURFACE_HOST'?{ok:false,error:'CONSENT_REQUIRED'}:{ok:true,data:{version:1,open:false,position:null,...(displayPreferences?{displayPreferences}:{})}};}}}};
  sandbox.window={addEventListener:(k,f)=>windowHandlers.set(k,f),removeEventListener:k=>windowHandlers.delete(k)};
+ vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
  const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
 }
@@ -152,14 +152,14 @@ test('host close request rejects navigation or consent changes during its live p
  const f=fixture();await f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'live-document'});assert.equal(f.calls.length,0);
 });
 
-test('approved B presentation uses the exact solid mark and accessible owner',async()=>{
+test('approved double-card presentation uses one persistent circle and accessible owner',async()=>{
  const f=await hostFixture(),style=f.nodes.find(n=>n.tag==='style').textContent;
  assert.equal(f.orb.getAttribute('aria-label'),'展开常用表达');
  assert.equal(f.orb.getAttribute('aria-expanded'),'false');
- assert.match(style,/width:44px;height:44px/);assert.match(style,/width:40px;height:40px/);
+ assert.match(style,/width:48px;height:48px/);assert.match(style,/border-radius:50%/);
  assert.doesNotMatch(style,/backdrop-filter|radial-gradient|linear-gradient/);
  for(const color of ['637397','a2b0d1','ffffff','2b2b2b','e5e5e5','454545'])assert.ok(style.includes('#'+color));
- assert.equal(f.nodes.filter(n=>n.tag==='path').length,2);assert.match(style,/transition-delay:650ms/);
+ assert.equal(f.nodes.filter(n=>n.tag==='rect').length,2);assert.match(style,/transition-delay:650ms/);
  assert.doesNotMatch(style,/inset:-3px|width:14px;height:10px|\.reflection|#fffffffa|#c8dcfff0/);
  assert.equal(f.nodes.some(n=>n.className==='reflection'),false);
  assert.match(style,/button:focus-visible\{outline:2px solid/);
@@ -175,7 +175,7 @@ test('approved B presentation uses the exact solid mark and accessible owner',as
  await assert.rejects(()=>f.s.handle({...f.request,nonce:'22222222-2222-4222-8222-222222222222',command:{type:'measure',height:134}},f.sender));assert.equal(f.writes.length,0);assert.equal(f.calls.length,0);
  });
  test('host measurement accepts only current private nonce and preserves the frame',async()=>{
- const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe'),calls=[];f.sandbox.PAIAPromptLayout=(...args)=>{calls.push(args[5]);return {orb:{x:500,y:100,w:44,h:44},card:{x:204,y:132,w:336,h:134}};};
+ const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe'),calls=[];const layout=f.sandbox.PAIAPromptLayout;f.sandbox.PAIAPromptLayout=(...args)=>{calls.push(args[5]);return layout(...args);};
  const receive=(r,s={id:'ext'})=>f.listeners.get('message')(r,s,()=>{});
  receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'foreign'});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'ext',tab:{id:7}});assert.equal(calls.length,0);
  receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,appearance:'system'});assert.equal(calls.length,0);receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200,appearance:'dark'});assert.equal(calls.length,0);

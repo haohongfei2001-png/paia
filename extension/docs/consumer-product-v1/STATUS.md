@@ -1,3 +1,39 @@
+# Owner clarification — complete approved implementation before delivery, 2026-10-18
+
+The owner clarified that the requested outcome is completion of the current development plan's functionality and interfaces, with broad tests and acceptance deferred. An early UI preview does not satisfy that request. Do not ask the owner to install the0.55 intermediate package as a substitute for completing remaining implementation. Retain the completed1.2 double-card and human-recovery code, then close the finite approved implementation gaps through their existing owners before preparing the requested installation.
+
+Keep minimum data-loss/privacy/permission/build safety checks. The larger visual, browser, performance and sustained-use campaign remains deferred, not deleted or passed. Distinguish actual missing code from already implemented features awaiting acceptance and from external account/provider/device prerequisites. The existing pause on new Sync functionality remains explicit pending any separate change of scope. The previous preview checkpoint is preserved as historical work, not the final delivery definition.
+
+## Preserved intermediate execution record
+
+# 0.55.0 trial candidate — latest double-card design, 2026-10-18
+
+The owner now prioritizes trying the current product before the larger acceptance campaign. The local candidate combines the approved1.2 fixed circle/double cards, the reviewed authored restore owner and the bounded withdrawn-human-draft recovery fix. Related small tests and standard release packaging succeeded; exact scope, overlapping evidence and remaining work are recorded in [the trial receipt](implementation/DOUBLE-CARD-TRIAL-20261018.md).
+
+This is a separately identified trial candidate, not main/full certification or whole-programme completion. Native startup/open/collapse/insertion and real screenshots are NOT_RUN; no old B/current-main success is substituted. All original failed/cancelled runs and post-install test obligations remain. Existing permissions, input-only boundaries, human order and paused Sync features remain unchanged.
+
+## Preserved execution-order and implementation records
+
+# Current execution order — product candidate before broad acceptance, 2026-10-18
+
+The owner now prioritizes completing the approved non-Sync product scope into an installable candidate, followed by a small pre-install check and owner installation before the larger acceptance campaign. Continue the existing programme and its original owners; no new plan or product scope is created. The current floating-input target is **PAIA-FLOAT-UI-1.2**, as adopted on main34f5188d: permanent circular anchor and horizontal translucent double cards. B句瓣 is preserved implementation history, not current visual acceptance.
+
+Develop coherent product slices with directly affected small tests and necessary review. Before installation retain package/build/startup/core-flow checks, privacy/permission boundaries and loss-of-human-work protections, with a backup and rollback procedure. Defer broad cross-browser longevity, full visual matrices and comprehensive performance qualification until after the owner installs; preserve their tests and thresholds and label unexecuted checks NOT_RUN. Existing failed runs remain failed. Required branch protections are not bypassed: a separately identified trial candidate may be packaged if protected main cannot yet merge. No installation or actual device success is claimed by this ordering change.
+
+The current integration retains545's runtime reliability/Authored changes and all15 exact documents from main34f. Finish the finite1.2 visual replacement through the existing S0/S1/S2/S4-local owners; retain completed Now and authored restore work. Real provider/account/financial activation still requires its original prerequisites, new Sync features remain paused, and input-only privacy/human content/order remain mandatory.
+
+## Preserved preceding execution records
+
+# Authored Context restore continuity — 2026-10-18 / 0.54.2 candidate
+
+This separate compatible successor repairs current source-free human Entry admission after genuine remove/restore. It follows PR295 head `c76bba7d02d07002e0f9c26d19278dba5054763d` without changing that in-flight candidate. The original journal must prove a bounded, exact chain of human body edits and paired remove/restore operations back to birth; fresh processing permission and all existing membership, Source, epoch, final authority and ACK fences remain. Old Context, grants, handles and acknowledgements do not revive. See [the restore-continuity receipt](implementation/ai-usage/AI-COST-03-AUTHORED-RESTORE-CONTINUITY.md).
+
+The three owner/test blobs match the independently reviewed restore slice. On its integrated 0.54.2 code tree, complete default-four units pass7657/7657, zero failures/skips; Source16592/493, standard release16528/489/513 and privacy59/59 also pass, all exit0. The overlapping owner/version subset passes100/100. Two new native phases per Source/release variant are written but NOT_RUN; they require the successor's own exact-head certification. At this checkpoint PR295 Full39084449356, D739084449439 and Foundation39084449385 remain pending; its Visual39084449408 passed all eight strict Source/release parity states, with human acceptance still PENDING. Main6cc's original Browser8 failure remains failed. No successor merge or installation is claimed.
+
+Input-only privacy, human membership/order, existing budgets and paused Sync features remain unchanged. The separate failed-storage recovery gap, human visual/physical/live-provider qualification and whole-programme acceptance remain open.
+
+## Preserved earlier runtime qualification
+
 # Prompt theme and status clearance — 2026-10-18 / 0.54.1 follow-up
 
 PR295 exact `c76bba7d02d07002e0f9c26d19278dba5054763d` completed Full39084449356 with nine Browser shards and all four Unit shards (7605/7605, zero failures/skips), both macOS gates, Sync native and build/privacy passing. Browser6 first failed Source/release Save clicks because the persistent status message intercepted pointer events, then was cancelled at the 18-minute job boundary; Full/Integration remain FAILED. Prompt Foundation39084449385 separately failed the old v2 theme-color oracle; Prompt Visual39084449408 and D739084449439 passed. Original failures retain their identities.
