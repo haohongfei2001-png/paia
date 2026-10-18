@@ -1,3 +1,13 @@
+# Reviewed core and disposable PostgreSQL evidence — 2026-10-18
+
+The final core `57d6e66f7e3dc83de771ac3118fbb4cfb6f7362c` received independent CLEAN review after both retained clock/usage REDs were repaired. Independent original counterexamples plus 22 runner controls pass 24/24. The implementation and scope below are preserved as the original slice record.
+
+Exact evidence head `e54dd3b83b9cfe6f6107fc43e49574adf204b0ba`, tree `dac05b331c715d4ddabaa72f4694fab93cb4611d`, [run 39103096290](https://github.com/haohongfei2001-png/paia/actions/runs/39103096290) attempt 1, now passes all 10 real PostgreSQL cases and 32 provider protocol cases, zero failures/skips. PostgreSQL 17.11, exact head/run, synthetic data only and `providerTransport:synthetic-https-intercept` are recorded in the artifact identity. Artifact 12127043540 SHA256 is `b6e4efc0ddc08bfe613c440f542b327bce877d741be946697c172d0d3674f1ed`; its identity, archive integrity and actual case results were read back. `providerDispatch:false` means no real provider call; physical-send assertions observe the intercepted synthetic HTTPS function.
+
+This closes the stated disposable-PG development check for this exact core, not live deployment/TLS, real tokenizer/model qualification, usage settlement, domain-result acceptance or broad product certification. The default-off actual HTTP/registry composition and successful usage settlement remain successor implementation work. The earlier NOT_RUN/pending text below describes its original pre-evidence checkpoint and is not rewritten as historical success.
+
+## Preserved original slice record
+
 # Source-only once-send provider boundary
 
 This slice adds a durable claim/dispatch/send owner and a bounded Qwen response

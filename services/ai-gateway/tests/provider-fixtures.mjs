@@ -41,7 +41,7 @@ export function providerFixture({hook,after,at}={}){
    else if(sql.includes('INSERT INTO paia_ai_private.operation_evidence')){
     if(role!=='publisher')throw Error('fixture privilege denial');
     if(clock<args[5]||clock>=args[6]||pendingEvents.has(args[0]))result={rows:[]};
-    else{pendingEvents.set(args[0],{operation_id:args[1],request_hash:args[2],event:args[3],evidence:null,expires_at_ms:String(args[4])});result={rows:[{event_id:args[0]}]};}
+    else{pendingEvents.set(args[0],{operation_id:args[1],request_hash:args[2],event:args[3],evidence:args[7]===undefined?null:JSON.parse(args[7]),expires_at_ms:String(args[4])});result={rows:[{event_id:args[0]}]};}
    }else if(sql.startsWith('WITH publication')){
     if(role!=='ledger')throw Error('fixture privilege denial');
     if(clock<args[3]||clock>=args[4])result={rowCount:0};

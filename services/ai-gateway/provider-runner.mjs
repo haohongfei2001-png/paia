@@ -3,7 +3,8 @@ import {createPostgresReservationService} from './reservation-service.mjs';
 import {createPostgresProviderEvidencePublisher} from './postgres-provider-evidence.mjs';
 import {snapshotProviderInput,prepareProviderRequest} from './provider-request.mjs';
 import {createPinnedQwenTransport} from './provider-transport.mjs';
-import {readProviderResponse} from './provider-response.mjs';
+import {readProviderResponse,observedProviderUsage} from './provider-response.mjs';
+import {createPostgresProviderSettlementService} from './provider-settlement.mjs';
 import {requireSynchronous} from './signed-identity.mjs';
 import {snapshot,freeze} from '../../extension/core/ai-usage/qwen-request-data.js';
 
@@ -17,7 +18,7 @@ const stopped=reason=>Object.freeze({run:async()=>deny(reason),revoke(){},dispos
 // extension path installs this runner. A future reviewed bootstrap must provide
 // real qualified inputs; all existing entries stay default-off and unchanged.
 export function createPostgresProviderRunner(options={}){
- let manifest,tokenize,isCurrent,service,publisher,transport;
+ let manifest,tokenize,isCurrent,service,publisher,transport,settlementService;
  try{
   if(options?.enabled!==true)return stopped('PROVIDER_DISABLED');
   if(typeof options.tokenize!=='function')return stopped('QUALIFIED_TOKENIZER_UNAVAILABLE');
@@ -29,6 +30,7 @@ export function createPostgresProviderRunner(options={}){
   tokenize=options.tokenize;isCurrent=options.isCurrent;
   publisher=createPostgresProviderEvidencePublisher({pool:options.evidencePool,identityConfig:options.identityConfig,profileId:options.profileId,maxConcurrent:options.maxConcurrent});
   service=createPostgresReservationService({pool:options.reservationPool,identityConfig:options.identityConfig,profileId:options.profileId});
+  settlementService=createPostgresProviderSettlementService({pool:options.reservationPool,identityConfig:options.identityConfig,profileId:options.profileId});
   transport=createPinnedQwenTransport({endpoint:manifest.profile.endpoint,credential:options.providerCredential});
  }catch{return stopped('PROVIDER_CONFIG_INVALID');}
  let disposed=false;const active=new Set();
@@ -36,11 +38,12 @@ export function createPostgresProviderRunner(options={}){
  const shutdown=()=>{disposed=true;for(const control of active)control.abort();};
  return Object.freeze({
   async run(value,{signal}={}){
-   let control,abort,timer,ticket,input;
-   const unknown=reason=>({decision:'outcome_unknown',reason,reservation:'HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF',...flags});
+   let control,abort,timer,ticket,input,accountingAttempted=false,financialSettlement=null,financialAckUnknown=false;
+   const financial=()=>financialSettlement?{reservation:'SETTLED',financialSettlement,resultFinalization:financialSettlement.outcome==='VALIDATED'?'PENDING_DOMAIN_PROOF':'FAILED'}:financialAckUnknown?{reservation:'ACKNOWLEDGEMENT_UNKNOWN'}:{};
+   const unknown=reason=>({decision:'outcome_unknown',reason,reservation:'HELD_PENDING_INDEPENDENT_FINANCIAL_PROOF',...financial(),...flags});
    const retainUnknown=async reason=>{
     control?.abort();
-    if(ticket){const event=await publisher.unknown(ticket);if(event.decision==='published')await service.record(input.bundle,event.eventId);}
+    if(ticket&&!accountingAttempted){const event=await publisher.unknown(ticket);if(event.decision==='published')await service.record(input.bundle,event.eventId);}
     return unknown(reason);
    };
    try{
@@ -70,12 +73,24 @@ export function createPostgresProviderRunner(options={}){
     if(send.decision!=='started')return retainUnknown(send.reason??'SEND_OUTCOME_UNKNOWN');
     const response=await Promise.race([send.pending,abortPromise]);
     const received=await readProviderResponse(response,claim.material,{signal:control.signal});
-    if(received.decision!=='response_received'){if(received.reason==='PROVIDER_USAGE_OVER_CAP')shutdown();return retainUnknown(received.reason);}
+    if(!observedProviderUsage(received,claim.material)){if(received.reason==='PROVIDER_USAGE_OVER_CAP')shutdown();return retainUnknown(received.reason);}
+    // Known physical consumption is accounted independently of content consent,
+    // schema success, or later result publication. Never accept a caller DTO.
+    accountingAttempted=true;
+    const published=await publisher.publishUsage(ticket,received);
+    if(published.decision!=='published')return unknown(published.decision==='outcome_unknown'?'USAGE_PUBLICATION_COMMIT_UNKNOWN':'USAGE_PUBLICATION_FAILED');
+    const settled=await settlementService.settle(input.bundle.request,published.eventId);
+    if(settled.decision!=='recorded'||settled.state!=='SETTLED'){
+     financialAckUnknown=settled.decision==='outcome_unknown';
+     return unknown(financialAckUnknown?'SETTLEMENT_COMMIT_UNKNOWN':'SETTLEMENT_FAILED');
+    }
+    financialSettlement={state:'SETTLED',receiptId:published.eventId,outcome:published.outcome,settledSpendMicros:settled.settledSpendMicros,effectiveResults:settled.effectiveResults};
+    if(received.decision!=='response_received')return unknown(received.reason);
     // Recheck current source declarations before exposing a private derivative.
     // The client still owns its current-revision/CAS fence and protected commit.
     const checked=await publisher.revalidate(ticket,live);
     if(checked.decision!=='current'||!live())return retainUnknown('RESPONSE_AUTHORITY_CHANGED');
-    return {...received,checkedAt:checked.checkedAt,...flags};
+    return {...received,checkedAt:checked.checkedAt,...financial(),...flags};
    }catch{return ticket?retainUnknown('PROVIDER_OUTCOME_UNKNOWN'):deny('PROVIDER_REQUEST_UNAVAILABLE');}
    finally{clearTimeout(timer);if(abort)signal?.removeEventListener('abort',abort);if(control){control.abort();active.delete(control);}}
   },

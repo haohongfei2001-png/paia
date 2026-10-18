@@ -6,6 +6,8 @@ import {PostgresRequestAuthority} from './postgres-authority.mjs';
 import {snapshotBundle} from './request-entry.mjs';
 import {snapshotClientDeclaration,clientDeclarationHash} from './client-declaration.mjs';
 import {requestBindingHash,requireSynchronous} from './signed-identity.mjs';
+import {observedProviderUsage} from './provider-response.mjs';
+import {ProviderAccountingGuard,providerSettlementEvidence,reservedProviderRow} from './provider-settlement.mjs';
 import {equal,canonical} from '../../extension/core/ai-usage/contracts.js';
 
 const flags=Object.freeze({financialAuthority:false,dispatchAllowed:false,retryAllowed:false});
@@ -41,12 +43,18 @@ const INSERT=`WITH publication AS MATERIALIZED (
  SELECT $1,$2,$3,$4,NULL,$5::bigint FROM publication
  WHERE publication.millis >= $6::bigint AND publication.millis < $7::bigint
  ON CONFLICT(event_id) DO NOTHING RETURNING event_id`;
-const safe=new Set(['AUTHORITY_MISSING','AUTHORITY_EXPIRED','AUTHORITY_UNSAFE_ROLE_OR_SCHEMA','AUTHORIZATION','OPERATION_REBOUND','OUTCOME_OR_ATTEMPT_PENDING','PROVIDER_CAPACITY','PROVIDER_EVIDENCE_CONFLICT','PROVIDER_BINDING_EXPIRED','PROVIDER_STOPPED','SERVICE_UNCONFIGURED']);
+const INSERT_USAGE=`WITH publication AS MATERIALIZED (
+ SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS millis
+) INSERT INTO paia_ai_private.operation_evidence(event_id,operation_id,request_hash,event,evidence,expires_at_ms)
+ SELECT $1,$2,$3,$4,$8::jsonb,$5::bigint FROM publication
+ WHERE publication.millis >= $6::bigint AND publication.millis < $7::bigint
+ ON CONFLICT(event_id) DO NOTHING RETURNING event_id`;
+const safe=new Set(['PROVIDER_ACCOUNTING_BINDING','PROVIDER_ACCOUNTING_CLOCK','PROVIDER_USAGE_UNQUALIFIED','PROVIDER_USAGE_OVER_CAP','PROVIDER_BILLING_CURRENCY_UNQUALIFIED','AUTHORITY_MISSING','AUTHORITY_EXPIRED','AUTHORITY_UNSAFE_ROLE_OR_SCHEMA','AUTHORIZATION','OPERATION_REBOUND','OUTCOME_OR_ATTEMPT_PENDING','PROVIDER_CAPACITY','PROVIDER_EVIDENCE_CONFLICT','PROVIDER_BINDING_EXPIRED','PROVIDER_STOPPED','SERVICE_UNCONFIGURED']);
 const failure=error=>error?.code==='POSTGRES_COMMIT_OUTCOME_UNKNOWN'?{decision:'outcome_unknown',reason:'COMMIT_OUTCOME_UNKNOWN',...flags}:deny(safe.has(error?.code)?error.code:'SERVICE_UNAVAILABLE');
 
 async function publisherRole(client){
  // Pin unread relations too before inspecting their RLS and privileges.
- await client.query('LOCK TABLE paia_ai_private.operation_evidence IN ACCESS SHARE MODE');
+ await client.query('LOCK TABLE paia_ai_private.budget_snapshot,paia_ai_private.service_control,paia_ai_private.principal_authority,paia_ai_private.route_authority,paia_ai_private.request_authority,paia_ai_private.operation_evidence IN ACCESS SHARE MODE');
  const {rows}=await client.query(ACCESS,[TABLES]);
  if(rows.length!==TABLES.length||new Set(rows.map(r=>r.relname)).size!==TABLES.length||rows.some(r=>!TABLES.includes(r.relname)||r.relrowsecurity!==true||r.relforcerowsecurity!==true||r.rolsuper!==false||r.rolbypassrls!==false||r.is_owner!==false||r.unsafe_privileges!==false))fail('AUTHORITY_UNSAFE_ROLE_OR_SCHEMA');
 }
@@ -66,8 +74,7 @@ class DeclarationGuard {
 }
 function currentMaterial(row,material,facts){
  if(!equal(material.identity.reservation.route,facts.route))fail('OPERATION_REBOUND');
- const reserved=structuredClone(row);reserved.state='RESERVED';
- for(const key of ['dispatchedAt','dispatchedDayId','dispatchedTimeZone'])delete reserved[key];
+ const reserved=reservedProviderRow(row);
  if(hash(canonical(reserved))!==material.identity.reservation.reservationDigest)fail('OPERATION_REBOUND');
 }
 function rowFrom(state,request,allowed){
@@ -93,6 +100,8 @@ export function createPostgresProviderEvidencePublisher({pool,identityConfig,pro
     let material;
     await storage.transact(async(transaction,authority)=>{
      const state=await transaction.get(LEDGER_KEY),row=rowFrom(state,request,['RESERVED']);
+     // No new paid request on a route whose actual conversion cannot settle.
+     if(row.quote.nativeCurrency!=='USD')fail('PROVIDER_BILLING_CURRENCY_UNQUALIFIED');
      // Finite concurrency uses the ORIGINAL durable occupations, not another
      // resettable process/account counter. Unknown attempts continue to occupy.
      const occupied=new Set(state.rows.filter(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state)).map(r=>r.request.operationId));
@@ -144,7 +153,7 @@ export function createPostgresProviderEvidencePublisher({pool,identityConfig,pro
     pending=Promise.resolve(pending);pending.catch(()=>{});
     commitStarted=true;await client.query('COMMIT');began=false;
     if(discard)fail('PROVIDER_STOPPED');
-    return {decision:'started',pending,...flags};
+    owned.sendAcknowledged=true;return {decision:'started',pending,...flags};
    }catch(error){
     if(commitStarted)discard=true;else if(began)try{await client.query('ROLLBACK');}catch{discard=true;}
     return started?{decision:'outcome_unknown',reason:'SEND_OUTCOME_UNKNOWN',...flags}:failure(error);
@@ -156,7 +165,7 @@ export function createPostgresProviderEvidencePublisher({pool,identityConfig,pro
    try{
     const guard=new DeclarationGuard({identityConfig:config,profileId,bundle:owned.bundle},owned.declaration);guard.material=owned.material;
     const checked=await storage.transact(async(transaction,authority)=>{
-     const state=await transaction.get(LEDGER_KEY),row=rowFrom(state,owned.bundle.request,['DISPATCHED']);
+     const state=await transaction.get(LEDGER_KEY),row=rowFrom(state,owned.bundle.request,['DISPATCHED','SETTLED']);
      if(authority.now<state.lastNow)fail('AUTHORITY_EXPIRED');
      currentMaterial(row,owned.material,authority.facts);
      const monotonic=performance.now(),bound=await guard.beforePublish(guard.client);
@@ -166,9 +175,32 @@ export function createPostgresProviderEvidencePublisher({pool,identityConfig,pro
     return {decision:'current',checkedAt:checked.notBefore,...flags};
    }catch(error){return failure(error);}
   },
+  async publishUsage(ticket,response){
+   const owned=tickets.get(ticket);
+   if(!owned||!owned.sendAcknowledged||owned.usageAttempted)return deny('OUTCOME_OR_ATTEMPT_PENDING');
+   const observed=observedProviderUsage(response,owned.material);
+   if(!observed)return deny('PROVIDER_USAGE_UNQUALIFIED');
+   // A failed/unknown acknowledgement never permits a second physical request
+   // or a new publication with different usage. Durable evidence can be read by
+   // the separate settlement-only service without replaying this ticket.
+   owned.usageAttempted=true;
+   try{
+    const request=owned.bundle.request,guard=new ProviderAccountingGuard({identityConfig:config,profileId,request,publishing:true});
+    let evidence;
+    await storage.transact(async transaction=>{
+     const state=await transaction.get(LEDGER_KEY),row=guard.bind(state);
+     await publisherRole(guard.client);
+     evidence=providerSettlementEvidence(row,owned.material,observed);
+     const bound=await guard.beforePublish(guard.client);
+     const result=await guard.client.query(INSERT_USAGE,[evidence.receiptId,request.operationId,requestBindingHash(request),'SETTLEMENT',Number.MAX_SAFE_INTEGER,bound.notBefore,bound.expiresAt,JSON.stringify(evidence)]);
+     if(result.rows?.length!==1||result.rows[0].event_id!==evidence.receiptId)fail('PROVIDER_EVIDENCE_CONFLICT');
+    },guard);
+    return {decision:'published',eventId:evidence.receiptId,outcome:evidence.outcome,...flags};
+   }catch(error){return failure(error);}
+  },
   async unknown(ticket){
    const owned=tickets.get(ticket);
-   if(!owned||!owned.consumed||owned.unknown)return deny('OUTCOME_OR_ATTEMPT_PENDING');
+   if(!owned||!owned.consumed||owned.unknown||owned.usageAttempted)return deny('OUTCOME_OR_ATTEMPT_PENDING');
    owned.unknown=true;
    try{
     const {bundle,declaration}=owned,eventId='provider-unknown:'+hash(bundle.request.operationId);

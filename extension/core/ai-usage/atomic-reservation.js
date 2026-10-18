@@ -3,6 +3,7 @@ import {evaluateAdmission,ENVELOPES} from './admission-policy.js';
 import {quoteRequestBound,quoteUsage} from './ratebook.js';
 import {normalizeUsage} from './usage-normalization.js';
 import {budgetWindow,validateWindowHistory,windowUsage,checkMaintenanceCadence} from './budget-window-policy.js';
+import {snapshotResultEvidence,validateResultHistory,resolveLedgerResult} from './result-finalization.js';
 
 // Accounting mechanics only, NOT an extension financial authority.
 // transact must serialize all principals against ONE durable budget snapshot and
@@ -21,14 +22,14 @@ const occupied=r=>r.state==='SETTLED'?r.settlement.usdMicros:r.reservationMicros
 // Missing, never-reserved children are not an unresolved financial attempt.
 // Only a committed result, active child or still-viable validated result holds
 // a slot; all known failed/cancelled children release it without refunding spend.
-const quotaJob=rows=>rows.some(r=>r.resultCommitted)||rows.some(r=>!['SETTLED','CANCELLED_BEFORE_DISPATCH'].includes(r.state))||rows.some(r=>r.state==='SETTLED'&&r.settlement?.outcome==='VALIDATED')&&!rows.some(r=>r.settlement?.outcome==='FAILED'||r.state==='CANCELLED_BEFORE_DISPATCH');
+const quotaJob=rows=>rows.some(r=>r.resultResolution)?rows.some(r=>r.resultResolution?.outcome==='COMMITTED'):rows.some(r=>r.resultCommitted)||rows.some(r=>!['SETTLED','CANCELLED_BEFORE_DISPATCH'].includes(r.state))||rows.some(r=>r.state==='SETTLED'&&r.settlement?.outcome==='VALIDATED')&&!rows.some(r=>r.settlement?.outcome==='FAILED'||r.state==='CANCELLED_BEFORE_DISPATCH');
 const result=r=>({operationId:r.request.operationId,state:r.state,reservationMicros:r.reservationMicros,dispatchAllowed:false,...(r.window?{window:structuredClone(r.window),financialAuthority:false}:{})});
 function validateRequest(r){
  exact(r,fields);
  if(!fields.filter(k=>!['childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'].includes(k)).every(k=>opaque(r[k]))||!Object.hasOwn(ENVELOPES,r.jobType)||!['childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'].every(k=>integer(r[k]))||r.childCount<1||r.childIndex>=r.childCount)fail();
 }
 export class AtomicReservationLedger {
- constructor({transact,verify,verifySettlement,clock,windowPolicy=null}={}){if(![null,'bounded-v1'].includes(windowPolicy))fail('UNAVAILABLE');this.transact=transact;this.verify=verify;this.verifySettlement=verifySettlement;this.clock=clock;this.windowPolicy=windowPolicy;}
+ constructor({transact,verify,verifySettlement,verifyResult,clock,windowPolicy=null}={}){if(![null,'bounded-v1'].includes(windowPolicy))fail('UNAVAILABLE');this.transact=transact;this.verify=verify;this.verifySettlement=verifySettlement;this.verifyResult=verifyResult;this.clock=clock;this.windowPolicy=windowPolicy;}
  async transaction(request,action){
   validateRequest(request);const r=structuredClone(request);
   if(typeof this.transact!=='function'||typeof this.verify!=='function'||typeof this.clock!=='function')fail('UNAVAILABLE');
@@ -37,6 +38,7 @@ export class AtomicReservationLedger {
    const state=await t.get(KEY)||{version:1,lastNow:0,rows:[],...(this.windowPolicy?{windowPolicyVersion:1}:{})};
    if(state.version!==1||!integer(state.lastNow)||!Array.isArray(state.rows)||state.rows.length>LIMIT)fail('BUDGET_STATE_INVALID');
    if(now<state.lastNow)fail('CLOCK_ROLLBACK');
+   validateResultHistory(state,now);
    if(this.windowPolicy)validateWindowHistory(state,now);else if(state.windowPolicyVersion!==undefined)fail('WINDOW_POLICY_REQUIRED');
    // Verification is injected by the trusted service, never accepted from the
    // request. It must bind current authority to this exact immutable request.
@@ -51,6 +53,7 @@ export class AtomicReservationLedger {
   const prior=state.rows.find(x=>x.request.operationId===r.operationId);
   if(prior){if(!equal(prior.request,r))fail('OPERATION_REBOUND');return result(prior);}
   const siblings=state.rows.filter(x=>x.request.jobId===r.jobId);
+  if(siblings.some(x=>x.resultResolution))fail('RESULT_TERMINAL');
   if(siblings.some(x=>!equal(binding(x.request),binding(r))))fail('JOB_REBOUND');
   if(siblings.some(x=>x.request.childIndex===r.childIndex))fail('CHILD_ALREADY_RESERVED');
   if(siblings.some(x=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(x.state)))fail('OUTCOME_OR_ATTEMPT_PENDING');
@@ -79,7 +82,7 @@ export class AtomicReservationLedger {
    if(typeof this.verifySettlement!=='function')fail('UNQUALIFIED_SETTLEMENT');
    const proof=await this.verifySettlement(structuredClone(r),structuredClone(e),now);
    if(proof?.verifiedSettlementFacts!==true||!equal(proof.request,r)||!equal(proof.evidence,e))fail('UNQUALIFIED_SETTLEMENT');
-   if(state.rows.some(x=>x!==row&&[x.settlement?.receiptId,x.unknownReceipt?.receiptId].includes(e.receiptId)))fail('RECEIPT_REBOUND');
+   if(state.rows.some(x=>x.resultResolution?.receiptId===e.receiptId||x!==row&&[x.settlement?.receiptId,x.unknownReceipt?.receiptId].includes(e.receiptId)))fail('RECEIPT_REBOUND');
    if(row.state==='SETTLED'){if(!equal(row.settlement,e))fail('SETTLEMENT_CONFLICT');return {...result(row),settledSpendMicros:e.usdMicros,effectiveResults:row.resultCommitted?1:0};}
    if(!['DISPATCHED','OUTCOME_UNKNOWN'].includes(row.state))fail('SETTLEMENT_STATE');
    if(e.pricingVersion!==row.quote.pricingVersion||e.fxVersion!==row.quote.fxVersion||e.nativeCurrency!==row.quote.nativeCurrency)fail('SETTLEMENT_PRICING');
@@ -104,6 +107,18 @@ export class AtomicReservationLedger {
     row.resultCommitted=true;if(window){row.resultCommittedAt=now;row.resultDayId=window.dayId;row.resultTimeZone=window.timeZone;}
    }else if(e.committedChildren.length)fail('RESULT_SCOPE_INCOMPLETE');
    row.settlement=e;row.state='SETTLED';if(window)row.settledAt=now;return {...result(row),settledSpendMicros:e.usdMicros,effectiveResults:row.resultCommitted?1:0};
+  });
+ }
+ // Domain outcome is separately attested after immutable paid usage settles.
+ // A provider schema success, HTTP field or constructor alone is not this proof.
+ async finalizeResult(request,evidence){
+  const e=snapshotResultEvidence(evidence);
+  return this.transaction(request,async(state,r,_facts,now,window)=>{
+   if(typeof this.verifyResult!=='function')fail('UNQUALIFIED_RESULT');
+   const proof=await this.verifyResult(structuredClone(r),structuredClone(e),now);
+   if(proof?.verifiedResultFacts!==true||!equal(proof.request,r)||!equal(proof.evidence,e))fail('UNQUALIFIED_RESULT');
+   const row=resolveLedgerResult(state,r,e,now,window);
+   return {...result(row),resultOutcome:row.resultResolution.outcome,effectiveResults:row.resultCommitted?1:0,financialAuthority:false,retryAllowed:false};
   });
  }
  // Record only simulated lifecycle facts. This method does not send requests,
