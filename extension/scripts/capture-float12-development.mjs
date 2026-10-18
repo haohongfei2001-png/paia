@@ -99,8 +99,8 @@ try{
    await capture('inserted','board');
   }
   // Busy pixels belong to the host only; they expose production glass opacity.
-  await page.addStyleTag({content:'body{background:linear-gradient(125deg,#d9e3ed 0%,#f8f9fb 28%,#ddd8ea 52%,#d6e8de 76%,#f8f9fb 100%)}'});
-  await capture('board-backdrop','board',{background:'synthetic-gradient'});
+  await page.addStyleTag({content:'body{background:repeating-linear-gradient(90deg,transparent 0 31px,#8895b24d 32px 33px,transparent 34px 64px),repeating-linear-gradient(0deg,transparent 0 23px,#b6a5bf66 24px 25px,transparent 26px 48px),linear-gradient(125deg,#d9e3ed,#ddd8ea 52%,#d6e8de);min-height:100vh}'});
+  await capture('board-backdrop','board',{background:'synthetic-grid-gradient'});
   await orb.click();
   await eventually(()=>orb.getAttribute('data-surface-form').then(form=>form==='capsule'));
   assert.deepEqual(await orb.boundingBox(),anchor,'the original circle closes the board without moving');

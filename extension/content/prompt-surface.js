@@ -82,22 +82,26 @@ button{position:relative;z-index:2;box-sizing:border-box;width:48px;height:48px;
 button:hover{background:var(--hover)}button:active{background:var(--active)}button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 .hint{position:absolute;right:54px;top:11px;white-space:nowrap;font:12px/16px Arial,"PingFang SC","Microsoft YaHei",sans-serif;padding:6px 9px;background:var(--surface);border:1px solid var(--line);border-radius:7px;color:var(--muted);box-shadow:0 2px 5px #00000007;opacity:0;pointer-events:none;transition:opacity 90ms}
 button:hover .hint,button:focus-visible .hint{opacity:1;transition-delay:650ms}
-iframe{z-index:0;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:0 12px 32px -12px rgba(0,0,0,.21), 0 3px 10px -4px rgba(0,0,0,.08);box-sizing:border-box;animation:appear .12s ease-out}
+iframe{z-index:0;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:0 8px 24px -12px rgba(0,0,0,.12), 0 2px 7px -4px rgba(0,0,0,.06);box-sizing:border-box;animation:appear .12s ease-out}
 @keyframes appear{from{opacity:0}to{opacity:1}}
-:host([data-theme=dark]) iframe{box-shadow:0 16px 36px -10px #0008, 0 2px 9px #0003}
+:host([data-theme=dark]) iframe{box-shadow:0 10px 28px -12px #0004, 0 2px 7px -4px #0002}
 :host([data-expanded=false]) iframe{border:0;box-shadow:0 2px 7px #00000005}
-.junction{position:absolute;left:-18px;top:-12px;width:48px;height:60px;z-index:1;pointer-events:none;overflow:visible;display:none;fill:var(--surface)}.junction path{display:none}:host([data-joined=true]) .junction{display:block}:host([data-surface-form=capsule]) .capsule-neck,:host([data-surface-form=board]) .board-neck{display:block}
+:host([data-surface-form=board][data-joined=true]) button{border-color:transparent;box-shadow:none}.anchor-edge,.join-edge{fill:none;stroke:var(--line);stroke-width:1;pointer-events:none}.anchor-edge{display:none}:host([data-surface-form=board][data-joined=true]) .anchor-edge{display:block}
+.junction{position:absolute;left:-18px;top:-12px;width:48px;height:60px;z-index:1;pointer-events:none;overflow:visible;display:none;fill:var(--surface)}.junction path{display:none}:host([data-joined=true]) .junction{display:block}:host([data-surface-form=capsule]) .capsule-neck,:host([data-surface-form=board]) :is(.board-neck,.join-edge){display:block}
 @media(prefers-reduced-motion:reduce){iframe{animation:none}.hint,.card-rear{transition:none}}
 @media(prefers-reduced-transparency:reduce){:host{--card-front:#9aa4bd;--card-rear:#c0c6d4}:host([data-theme=dark]){--card-front:#b0bbd7;--card-rear:#8997b7}}
-@media(forced-colors:active){button{color:ButtonText;background:Canvas;border-color:ButtonText;box-shadow:none}.card-front,.card-rear{fill:Canvas;stroke:ButtonText;stroke-width:1}.hint,iframe{background:Canvas;color:CanvasText;border-color:CanvasText;box-shadow:none}.junction{fill:Canvas}button:focus-visible{outline-color:Highlight}}`;
+@media(forced-colors:active){button{color:ButtonText;background:Canvas;border-color:ButtonText;box-shadow:none}.card-front,.card-rear{fill:Canvas;stroke:ButtonText;stroke-width:1}.hint,iframe{background:Canvas;color:CanvasText;border-color:CanvasText;box-shadow:none}.junction{fill:Canvas}.anchor-edge,.join-edge{stroke:CanvasText}button:focus-visible{outline-color:Highlight}}`;
   orb=document.createElement('button');orb.type='button';orb.setAttribute('aria-expanded','false');
   // Only static geometry enters the host's closed shadow. Both cards persist
   // across every mode; the private expression body remains in its own frame.
   const svgNS='http:'+'//www.w3.org/2000/svg',mark=document.createElementNS(svgNS,'svg');
   mark.setAttribute('class','orb');mark.setAttribute('viewBox','0 0 48 48');mark.setAttribute('width','48');mark.setAttribute('height','48');mark.setAttribute('aria-hidden','true');mark.setAttribute('focusable','false');
   rearCard=document.createElementNS(svgNS,'rect');rearCard.setAttribute('class','card-rear');frontCard=document.createElementNS(svgNS,'rect');frontCard.setAttribute('class','card-front');mark.append(rearCard,frontCard);
+  // A decorative outer contour replaces only the inward board-facing arc. The
+  // real circular button, focus ring and pointer target remain unchanged.
+  const anchorEdge=document.createElementNS(svgNS,'path');anchorEdge.setAttribute('class','anchor-edge');anchorEdge.setAttribute('d','M24 .5 A23.5 23.5 0 1 1 2.29 32.99');mark.append(anchorEdge);
   const junction=document.createElementNS(svgNS,'svg');junction.setAttribute('class','junction');junction.setAttribute('viewBox','-18 -12 48 60');junction.setAttribute('aria-hidden','true');junction.setAttribute('focusable','false');
-  for(const [name,d] of [['capsule-neck','M-8 12 Q0 20 8 12 L8 36 Q0 28 -8 36 Z'],['board-neck','M-8 -12 H12 Q12 0 24 0 V24 H-8 Z']]){const path=document.createElementNS(svgNS,'path');path.setAttribute('class',name);path.setAttribute('d',d);junction.append(path);}
+  for(const [name,d] of [['capsule-neck','M-8 12 Q0 20 8 12 L8 36 Q0 28 -8 36 Z'],['board-neck','M-18 -12 H12 Q12 0 24 0 V24 H12 L2.29 32.99 C-.77 25.6 -4 23.5 -12 23.5 H-18 Z'],['join-edge','M11.5 -12 C11.5 -5.37 17.37 .5 24 .5 M-18 23.5 H-12 C-4 23.5 -.77 25.6 2.29 32.99']]){const path=document.createElementNS(svgNS,'path');path.setAttribute('class',name);path.setAttribute('d',d);junction.append(path);}
   hint=document.createElement('span');hint.className='hint';hint.setAttribute('aria-hidden','true');orb.append(mark,hint);labelHost();host.dataset.theme=dark()?'dark':'light';root.append(style,junction,orb);document.documentElement.append(host);
   listen(orb,'click',e=>{if(!e.isTrusted||e.detail>1)return;if(suppress&&e.detail!==0){suppress=false;return;}suppress=false;if(frame)requestClose();else expand();});
   listen(orb,'pointerdown',e=>{if(!e.isTrusted||e.button!==0||e.isPrimary===false||drag)return;suppress=false;drag={x:e.clientX,y:e.clientY,start:host.getBoundingClientRect(),moved:false,pointerId:e.pointerId};orb.setPointerCapture(e.pointerId);});

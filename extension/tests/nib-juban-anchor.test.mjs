@@ -90,7 +90,7 @@ test('one static accessible double-card component replaces both old B glyphs wit
 });
 
 test('scoped themes preserve readable roles with restrained translucent cards and stationary shell motion',()=>{
- for(const theme of ['light','dark']){const t=tokens[theme];for(const role of ['surface','text','muted','border','hover','active','inserted_surface','inserted_text'])assert.ok(css.includes(t[role]),theme+' '+role);assert.ok(hostSource.includes(t.brand));assert.ok(hostSource.includes(t.panel_shadow));}
+ for(const theme of ['light','dark']){const t=tokens[theme];for(const role of ['surface','text','muted','border','hover','active','inserted_surface','inserted_text'])assert.ok(css.includes(t[role]),theme+' '+role);assert.ok(hostSource.includes(t.brand));}
  assert.match(css,/font:14px\/1\.5714285714 Arial,"PingFang SC","Microsoft YaHei",sans-serif/);assert.match(css,/header span\{font-size:12px/);assert.match(hostSource,/border-radius:\$\{open\?18:23\}px/);assert.doesNotMatch(hostSource,/translateY\(/);assert.match(hostSource,/duration:80/);assert.match(hostSource,/transition:transform 120ms ease-out/);assert.match(hostSource,/transition-delay:650ms/);assert.match(hostSource,/animation:appear \.12s/);assert.match(hostSource,/@media\(prefers-reduced-motion:reduce\)/);assert.match(css,/@media\(forced-colors:active\)/);assert.doesNotMatch(hostSource+css,/radial-gradient|linear-gradient|backdrop-filter/);
 });
 
@@ -203,4 +203,37 @@ test('double-card shape changes suppress repeated entry keys and second-click to
  assert.match(css,/#card\{position:relative;padding-right:12px\}/);assert.match(css,/#surface-tools\{position:absolute;inset:44px 12px 0 0/,'the whole internal tools view shares the circle exclusion strip');
  assert.match(css,/#status\[data-quiet=true\][^}]+clip-path:inset\(50%\)/);assert.match(css,/#status:not\(:empty\)\{position:relative/,'persistent actionable status stays in flex flow');
  f.sandbox.PAIAPromptSurface.dispose();
+});
+
+// Actual 2fe8 native comparison against the approved 1.2 image identified the
+// absent row rules, heavy shadow and inner circle arc. These are finite code
+// contracts; the following native screenshots still establish actual paint.
+test('1.2 material calibration restores quiet rules without replacing verified insertion feedback',()=>{
+ assert.match(css,/\.row:not\(:last-child\):not\(\[data-inserted=true\]\):after\{display:block;background:var\(--row-rule,rgba\(37,37,37,\.055\)\)\}/);
+ assert.match(css,/--row-rule:rgba\(237,237,237,\.065\)/);assert.match(css,/--row-rule:CanvasText/);
+ assert.match(css,/\.row:last-child:after\{display:none\}/);assert.match(css,/\.row\[data-inserted=true\]:after,#capsule-use\[data-inserted=true\]:after\{content:"✓"/);
+ assert.doesNotMatch(css,/\.row:after\{display:none\}/);
+ assert.match(hostSource,/box-shadow:0 8px 24px -12px rgba\(0,0,0,\.12\), 0 2px 7px -4px rgba\(0,0,0,\.06\)/);
+ assert.match(hostSource,/box-shadow:0 10px 28px -12px #0004, 0 2px 7px -4px #0002/);
+});
+test('1.2 joined contour removes only the inward arc and keeps both original card rectangles',async()=>{
+ const f=await fixture(),anchor=f.host.getBoundingClientRect(),edge=f.nodes.find(n=>n.getAttribute('class')==='anchor-edge'),bridge=f.nodes.find(n=>n.getAttribute('class')==='join-edge');
+ assert.equal(edge.getAttribute('d'),'M24 .5 A23.5 23.5 0 1 1 2.29 32.99');
+ assert.equal(bridge.getAttribute('d'),'M11.5 -12 C11.5 -5.37 17.37 .5 24 .5 M-18 23.5 H-12 C-4 23.5 -.77 25.6 2.29 32.99');
+ assert.match(hostSource,/:host\(\[data-surface-form=board\]\[data-joined=true\]\) button\{border-color:transparent;box-shadow:none\}/);
+ assert.match(hostSource,/\.anchor-edge,\.join-edge\{fill:none;stroke:var\(--line\);stroke-width:1;pointer-events:none\}/);
+ assert.match(hostSource,/\.anchor-edge,\.join-edge\{stroke:CanvasText\}/);
+ assert.equal(f.nodes.filter(n=>n.tag==='rect').length,2);f.click();await f.flush();assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.getAttribute('aria-expanded'),'true');f.sandbox.PAIAPromptSurface.dispose();
+});
+
+test('joined contour yields to a complete circle when the open board has insufficient room',async()=>{
+ const f=await fixture();f.click();await f.flush();assert.equal(f.host.dataset.joined,'true');
+ f.resize(140);await f.flush();assert.equal(f.host.dataset.surfaceForm,'board');assert.equal(f.host.dataset.joined,'false');assert.equal(f.frame.hidden,true);assert.equal(f.orb.hidden,false);
+ assert.match(hostSource,/:host\(\[data-surface-form=board\]\[data-joined=true\]\) \.anchor-edge\{display:block\}/);
+ assert.doesNotMatch(hostSource,/:host\(\[data-surface-form=board\]\) (?:button\{border-color:transparent|\.anchor-edge\{display:block)/);
+ f.resize(700);await f.flush();assert.equal(f.host.dataset.joined,'true');f.sandbox.PAIAPromptSurface.dispose();
+});
+test('forced colors separator wins over both explicit and media-derived dark theme selectors',()=>{
+ const forced='@media(forced-colors:active){:root,:root[data-paia-theme],:root:not([data-paia-theme]){--row-rule:CanvasText}}';
+ assert.ok(css.includes(forced));assert.ok(css.lastIndexOf(forced)>css.lastIndexOf('--row-rule:rgba(237,237,237,.065)'));
 });
