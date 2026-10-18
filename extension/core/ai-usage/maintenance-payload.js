@@ -1,10 +1,11 @@
+import {validStructuralContextEvidence} from './structural-context-mapping.js';
 import {validBoundFields} from '../context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields} from '../context-authored-entry.js';
 import {fail,exact} from './contracts.js';
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // Internal purpose-scoped domain DTO, not a Qwen wire or financial grant.
 // Source originals stay in the original formation owner's local proof.
-export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[]){
+export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[],structuralSections=[]){
  const view=material?.view;
  if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!Array.isArray(boundEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
  if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length+boundEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
@@ -46,7 +47,15 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
   const {sourceRecordIds,sourceIdentityTokens,...dto}=e;return structuredClone(dto);
  });
  if(new Set(bound.map(e=>JSON.stringify([e.entryId,e.topicId]))).size!==bound.length||bound.some(e=>authored.some(x=>x.entryId===e.entryId)))fail('UNAVAILABLE');
- const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
+ // Exact human structural scope accompanies genuine Input evidence. The title
+ // is a changed interpretation hint, never substituted for the Input body.
+ if(!Array.isArray(structuralSections)||structuralSections.length>50)fail('BUDGET_EXCEEDED');
+ for(const m of structuralSections){
+  const {title,...proof}=m||{};
+  if(!validStructuralContextEvidence(proof)||typeof m.title!=='string'||m.title.length>300||JSON.stringify(m.selectedFields)!=='["title"]'||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['section',m.sectionId]))||!view.sections?.some(s=>s.id===m.recordId&&s.revision===m.sectionRevision&&s.title===m.title)||!Array.isArray(m.entries)||!m.entries.length||m.entries.length>20||!m.entries.every(e=>entries.some(x=>x.entryId===e.entryId&&x.revision===e.revision&&x.workingInputId===e.inputId)&&inputs.some(i=>i.inputId===e.inputId&&i.revision===e.inputRevision)))fail('UNAVAILABLE');
+ }
+ if((metadata.coverage||[]).some(u=>u.facet==='context'&&u.key?.startsWith('["section",')&&!structuralSections.some(m=>u.key===JSON.stringify(['section',m.sectionId])))||new Set(structuralSections.map(m=>m.recordId)).size!==structuralSections.length)fail('UNAVAILABLE');
+ const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(structuralSections.length?{structuralSections:structuredClone(structuralSections)}:{}),...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
  const payload={...structuredClone(metadata),material:bounded};
  if(bytes(bounded)>limits.maxContentBytes||bytes(payload)>limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
  return payload;

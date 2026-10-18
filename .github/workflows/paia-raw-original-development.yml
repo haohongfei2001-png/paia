@@ -1,0 +1,55 @@
+name: PAIA Raw Original Development Evidence
+
+on:
+  push:
+    branches: ['evidence/raw-original-20261018']
+    paths:
+      - '.github/workflows/paia-raw-original-development.yml'
+      - 'extension/tests/harness/raw-generation-observer.mjs'
+      - 'extension/tests/harness/raw-source-navigation.mjs'
+      - 'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  raw-original:
+    if: github.ref == 'refs/heads/evidence/raw-original-20261018'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PAIA_RAW_DEVELOPMENT_TRACE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Record existing Chrome identity
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Run the original single synthetic Source journey
+        run: |
+          set -o pipefail
+          mkdir -p work/raw-source-original
+          node --test --test-name-pattern='^UX-R2 IME saves only complete text;' tests/ux-r2-reader-revisit-chrome-e2e.test.mjs 2>&1 | tee work/raw-source-original/journey.tap
+      - name: Retain synthetic diagnostics and exact single-journey result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-original-development-${{ github.sha }}-${{ github.run_attempt }}
+          path: extension/work/raw-source-original/
+          if-no-files-found: error
+          retention-days: 7
