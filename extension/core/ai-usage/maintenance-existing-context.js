@@ -1,3 +1,6 @@
+import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedFields} from '../context-authored-entry.js';
+import {readBoundEntryContext,boundContextEvidenceMatches} from '../context-bound-entry.js';
+import {structuralContextEvidence,readStructuralContextEvidence} from './structural-context-mapping.js';
 import {topicFormationMaintenanceReceipt} from '../topic-formation.js';
 import {contextMaintenanceStagedItem,contextMaintenanceTransition} from '../context-maintenance.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
@@ -15,9 +18,30 @@ export const MAINTENANCE_EXISTING_CONTEXT_LIMITS=Object.freeze({items:32,inputs:
 const plans=new WeakMap(),witnesses=new WeakMap(),bytes=x=>new TextEncoder().encode(JSON.stringify(x)).length;
 const allEvidence=item=>[item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence);
 const inputIdsFor=item=>[...new Set(allEvidence(item).map(e=>e.inputId).filter(idOK))].sort();
-const relevant=(row,inputIds)=>row.items.filter(item=>item.origin==='automatic'&&allEvidence(item).some(e=>inputIds.includes(e.inputId))).sort((a,b)=>a.id.localeCompare(b.id));
-const supported=(item,inputIds)=>item.lifecycle==='active'&&!item.protected&&!item.userEdited&&item.maintenance.provenance.evidence.every(e=>!e.kind&&!e.humanSection&&!e.humanTopic&&equal(e.selectedFields,['body'])&&inputIds.includes(e.inputId));
-const scopeFor=(item,inputIds)=>({itemId:item.id,revision:item.revision,card:item.card,lifecycle:item.lifecycle,protected:item.protected,selectedFields:supported(item,inputIds)?['body','section',...(item.maintenance.temporal?['temporal']:[])]:[],inputIds:inputIdsFor(item)});
+const humanGroups=['authoredEntries','boundEntries','structuralSections','structuralTopics'];
+const authoredScope=m=>m?{...m,selectedFields:[...authoredSelectedFields(m)]}:null;
+const structure=e=>e.humanTopic||e.humanSection;
+const structuralMappings=plan=>[...plan.structuralSections,...plan.structuralTopics];
+const relevant=(row,plan)=>row.items.filter(item=>item.origin==='automatic'&&allEvidence(item).some(e=>plan.inputIds.includes(e.inputId)||e.kind==='humanEntry'&&plan.authoredEntries.some(m=>m.entryId===e.entryId)||e.kind==='boundEntry'&&plan.boundEntries.some(m=>m.entryId===e.entryId)||structure(e)&&structuralMappings(plan).some(m=>m.recordId===structure(e).recordId))).sort((a,b)=>a.id.localeCompare(b.id));
+const supported=(item,plan)=>item.lifecycle==='active'&&!item.protected&&!item.userEdited&&item.maintenance.provenance.evidence.every(e=>{
+ if(e.kind==='humanEntry')return plan.authoredEntries.some(m=>authoredContextEvidenceMatches(e,m));
+ if(e.kind==='boundEntry')return plan.inputIds.includes(e.inputId)&&plan.boundEntries.some(m=>boundContextEvidenceMatches(e,m));
+ return !e.kind&&equal(e.selectedFields,['body'])&&plan.inputIds.includes(e.inputId)&&(!structure(e)||structuralMappings(plan).some(m=>equal(structuralContextEvidence(m,structure(e).fieldDigests),structure(e))));
+});
+const scopeFor=(item,plan)=>({itemId:item.id,revision:item.revision,card:item.card,lifecycle:item.lifecycle,protected:item.protected,selectedFields:supported(item,plan)?['body','section',...(item.maintenance.temporal?['temporal']:[])]:[],inputIds:inputIdsFor(item)});
+// These are metadata selections from the original request, not another grant.
+// Original mappers and lineage owners still establish every current field.
+function selectionOptions({inputIds,authoredEntries=[],boundEntries=[],structuralSections=[],structuralTopics=[]}){
+ if(!lineageArray(inputIds,MAINTENANCE_EXISTING_CONTEXT_LIMITS.inputs)||!inputIds.every(idOK)||new Set(inputIds).size!==inputIds.length)fail('INVALID_REQUEST');
+ const selected={inputIds,authoredEntries,boundEntries,structuralSections,structuralTopics};
+ for(const key of humanGroups){
+  const values=selected[key],entry=key==='authoredEntries'||key==='boundEntries',identity=m=>key==='boundEntries'?JSON.stringify([m?.entryId,m?.topicId]):key==='authoredEntries'?m?.entryId:m?.recordId;
+  if(!lineageArray(values,MAINTENANCE_EXISTING_CONTEXT_LIMITS.inputs)||!values.every(m=>m&&typeof m==='object'&&!Array.isArray(m)&&idOK(m.topicId)&&idOK(entry?m.entryId:m.recordId)&&(!entry||m.kind===(key==='authoredEntries'?'humanEntry':'boundEntry')))||new Set(values.map(identity)).size!==values.length)fail('INVALID_REQUEST');
+ }
+ if(!inputIds.length&&!authoredEntries.length)fail('INVALID_REQUEST');
+ if(inputIds.length+authoredEntries.length+boundEntries.length>MAINTENANCE_EXISTING_CONTEXT_LIMITS.inputs||bytes(selected)>MAINTENANCE_EXISTING_CONTEXT_LIMITS.snapshotBytes)fail('BUDGET_EXCEEDED');
+ return selected;
+}
 const frozen=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))frozen(child);Object.freeze(value);}return value;};
 function requirePlan(store,handle){const plan=plans.get(handle);if(!plan||plan.store!==store||plan.database!==store.repository.db||!contextLineageReady(store))fail('STALE_BASE');return plan;}
 function current(held){
@@ -35,12 +59,12 @@ function requireWitness(store,handle){const held=witnesses.get(handle);if(!held|
 // Only this finite metadata projection belongs in request.existingContextItems.
 // The original row stays private, including withdrawn bodies, and is never a
 // provider DTO. Keeping the exact row also catches unjournaled same-revision drift.
-export async function planMaintenanceExistingContext(store,t,{epoch,inputIds}){
- if(!contextLineageReady(store)||!lineageArray(inputIds,MAINTENANCE_EXISTING_CONTEXT_LIMITS.inputs,1)||!inputIds.every(idOK)||new Set(inputIds).size!==inputIds.length)fail('INVALID_REQUEST');
- const selected=[...inputIds],admission=await contextLineageAdmission(store,t,epoch),row=await new ContextCardsService(store).row(t);
- if(!equal(selected,inputIds))fail('INVALID_REQUEST');const items=relevant(row,selected);
+export async function planMaintenanceExistingContext(store,t,options){
+ if(!contextLineageReady(store))fail('INVALID_REQUEST');
+ const selected=selectionOptions(options),held=structuredClone(selected),admission=await contextLineageAdmission(store,t,options.epoch),row=await new ContextCardsService(store).row(t);
+ if(!equal(held,selected))fail('INVALID_REQUEST');const items=relevant(row,held);
  if(items.length>MAINTENANCE_EXISTING_CONTEXT_LIMITS.items)fail('BUDGET_EXCEEDED');
- const handle=Object.freeze({}),plan={store,database:store.repository.db,epoch:admission.epoch,inputIds:[...inputIds].sort(),admission,items:structuredClone(items),scope:items.map(item=>scopeFor(item,inputIds))};
+ const handle=Object.freeze({}),plan={store,database:store.repository.db,epoch:admission.epoch,...held,inputIds:[...held.inputIds].sort(),admission,items:structuredClone(items),scope:items.map(item=>scopeFor(item,held))};
  plans.set(handle,plan);return handle;
 }
 export function maintenanceExistingContextScope(handle){const plan=plans.get(handle);if(!plan)fail('STALE_BASE');return frozen(structuredClone(plan.scope));}
@@ -54,7 +78,7 @@ export function assertMaintenanceExistingContextEmptyPlan(store,planHandle){cons
 // Key-only admission precedes membership values; Source unions are checked from
 // metadata before inputProjection/readableEntry can acquire record bodies.
 function snapshotReader(base,plan,budget){
- const rows=new Map(),sets=new Map(),queries=new Map();let retained=bytes({items:plan.items,rows:[],queries:[]});
+ const rows=new Map(),sets=new Map(),queries=new Map();let retained=bytes({items:plan.items,rows:[],queries:[]})+(humanGroups.some(key=>plan[key].length)?bytes(Object.fromEntries(humanGroups.map(key=>[key,plan[key]]))):0);
  const charge=n=>{if(retained+n>MAINTENANCE_EXISTING_CONTEXT_LIMITS.snapshotBytes)fail('BUDGET_EXCEEDED');retained+=n;};charge(0);
  const add=(kind,id,limit)=>{const ids=sets.get(kind)||new Set();if(!ids.has(id)){if(ids.size>=limit)fail('BUDGET_EXCEEDED');ids.add(id);sets.set(kind,ids);}};
  const sources=ids=>{if(!lineageArray(ids,128)||!ids.every(idOK))fail('STALE_BASE');for(const id of ids)add('sources',id,MAINTENANCE_EXISTING_CONTEXT_LIMITS.sources);};
@@ -70,6 +94,7 @@ function snapshotReader(base,plan,budget){
  t.get=async(name,id)=>{if(name==='records')add('sources',id,MAINTENANCE_EXISTING_CONTEXT_LIMITS.sources);const value=await base.get(name,id);record(name,id,value);return value;};
  t.has=async(name,id)=>{const value=await base.has(name,id),key=JSON.stringify(['has',name,id]);if(!rows.has(key)){const entry=['has',name,id,value];charge(bytes(entry)+1);rows.set(key,entry);}else if(rows.get(key)[3]!==value)fail('STALE_BASE');return value;};
  const rangeKey=(name,index,range)=>JSON.stringify([name,index??null,range?[range.lower??null,range.upper??null,!!range.lowerOpen,!!range.upperOpen]:null]);
+ const query=(key,value)=>{if(queries.has(key)){if(!equal(queries.get(key),value))fail('STALE_BASE');return;}charge(bytes([key,value])+1);queries.set(key,structuredClone(value));};
  async function admitRange(name,index,range){
   if(name!=='placements')return;
   const key=rangeKey(name,index,range);if(queries.has(key))return;
@@ -78,16 +103,25 @@ function snapshotReader(base,plan,budget){
   // Their union avoids counting shared membership twice across owner indexes.
   const keys=await base.keys(name,index,range);budget.reads+=1+keys.length;if(budget.reads>CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('BUDGET_EXCEEDED');if(keys.length!==count||!keys.every(idOK))fail('STALE_BASE');
   for(const id of keys)add('memberships',id,MAINTENANCE_EXISTING_CONTEXT_LIMITS.memberships);
-  charge(bytes([key,keys])+1);queries.set(key,keys);
+  query(key,keys);
  }
  t.scanPrimary=async(name,keyPrefix,consume)=>{await admitRange(name,null,IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true));return base.scanPrimary(name,keyPrefix,row=>{record(name,row.id,row);return consume(row);});};
  t.scanRange=async(name,index,range,consume)=>{await admitRange(name,index,range);return base.scanRange(name,index,range,row=>{record(name,row.id,row);return consume(row);});};
  t.all=async(name,index,range)=>{const found=[];await t.scanRange(name,index,range,row=>found.push(row));return found;};
+ // Human owners additionally use zero-count provenance proofs, journal edges
+ // and paged memberships. Trace the exact query, including an absent result;
+ // row-only tracing cannot detect a newly inserted closure or newer edge.
+ if(humanGroups.some(key=>plan[key].length)){
+  t.count=async(name,index,range)=>{const value=await base.count(name,index,range);query('count:'+rangeKey(name,index,range),value);return value;};
+  t.edge=async(name,index,range,direction)=>{await admitRange(name,index,range);const value=await base.edge(name,index,range,direction);query('edge:'+JSON.stringify([rangeKey(name,index,range),direction??null]),value?.id??null);if(value)record(name,value.id,value);return value;};
+  t.rangePage=async(name,index,range,after,limit)=>{await admitRange(name,index,range);const page=await base.rangePage(name,index,range,after,limit);for(const {value}of page.rows)record(name,value.id,value);query('page:'+JSON.stringify([rangeKey(name,index,range),after??null,limit??null]),{rows:page.rows.map(({key,value})=>[key,value.id]),next:page.next});return page;};
+ }
+
  return {t,value:()=>({items:plan.items,rows:[...rows].sort(([a],[b])=>a.localeCompare(b)).map(([,v])=>v),queries:[...queries].sort(([a],[b])=>a.localeCompare(b))})};
 }
 async function snapshot(store,base,plan,budget,expectedItems=plan.items){
  const recorded=snapshotReader(base,{...plan,items:expectedItems},budget),t=recorded.t;
- const admission=await contextLineageAdmission(store,t,plan.epoch),row=await new ContextCardsService(store).row(t),items=relevant(row,plan.inputIds);
+ const admission=await contextLineageAdmission(store,t,plan.epoch),row=await new ContextCardsService(store).row(t),items=relevant(row,plan);
  if(!equal(items,expectedItems)||!equal(admission,plan.admission))fail('STALE_BASE');
  const filter=await t.get('meta','smart-filter'),memory=new MemoryService(store);
  const readInput=async id=>{
@@ -96,10 +130,22 @@ async function snapshot(store,base,plan,budget,expectedItems=plan.items){
   const input=await inputProjection(store,t,id);if(!input||await store.isFiltered(t,input.block,filter)||!await memory.safeSources(t,input.sourceRecordIds))fail('STALE_BASE');
  };
  for(const id of plan.inputIds)await readInput(id);
+ // Match independently selected current human metadata before the original
+ // readableContextItems owner may expose any automatic Item body. All owner
+ // dependency reads flow through this same bounded trace, including journals.
+ const checked=new Set();
+ for(const item of plan.items.filter(item=>supported(item,plan)))for(const e of item.maintenance.provenance.evidence){
+  const key=e.kind==='humanEntry'?JSON.stringify([e.kind,e.entryId]):e.kind==='boundEntry'?JSON.stringify([e.kind,e.entryId,e.topicId]):structure(e)?JSON.stringify(['structure',structure(e)]):null;
+  if(!key||checked.has(key))continue;checked.add(key);
+  if(e.kind==='humanEntry'){const expected=plan.authoredEntries.find(m=>authoredContextEvidenceMatches(e,m)),current=authoredScope(await readAuthoredEntryContext(store,t,e.entryId));if(!equal(current,authoredScope(expected)))fail('STALE_BASE');}
+  else if(e.kind==='boundEntry'){const expected=plan.boundEntries.find(m=>boundContextEvidenceMatches(e,m)),current=await readBoundEntryContext(store,t,e.entryId,null,e.topicId);if(!equal(current,expected))fail('STALE_BASE');}
+  else if(!await readStructuralContextEvidence(store,t,structure(e)))fail('STALE_BASE');
+ }
+
  // Body-free negatives need only the exact selected Item and current Inputs.
  // Potential automatic body reads require the whole original eligibility graph,
  // including other Topics/Sections reached through shared Entry membership.
- const topicIds=[...new Set(plan.items.filter(item=>supported(item,plan.inputIds)).flatMap(allEvidence).map(e=>e.topicId))].sort();
+ const topicIds=[...new Set(plan.items.filter(item=>supported(item,plan)).flatMap(allEvidence).map(e=>e.topicId))].sort();
  for(const topicId of topicIds){
   let scope;try{scope=await readContextScopeMetadata(store,t,topicId,admission);}catch(error){if(error?.code==='BUDGET_EXCEEDED'||error?.scopeReason==='scope_budget')fail('BUDGET_EXCEEDED');fail('UNAVAILABLE');}
   for(const entry of scope.entries){const current=await store.readableEntry(t,entry.id);await readDependencyInputs(store,t,current);await memory.safeSources(t,current.sourceRecordIds);}
@@ -122,11 +168,12 @@ export async function captureMaintenanceExistingContext(store,planHandle,{proces
  if(typeof assertProcessing!=='function'||typeof read!=='function'||!limits||!Number.isSafeInteger(limits.maxContentBytes)||limits.maxContentBytes<1)fail('INVALID_REQUEST');
  const contentLimit=Math.min(limits.maxContentBytes,MAINTENANCE_EXISTING_CONTEXT_LIMITS.contentBytes),scope=processingReceipt?.scope;
  if(scope?.purpose!=='ai-maintenance-payload'||!Array.isArray(scope.inputs)||!equal(scope.inputs.map(i=>i.inputId).sort(),plan.inputIds)||!scope.inputs.every(i=>equal(i.selectedFields,['body']))||!scope.facets?.includes('context')||!equal(scope.existingContextItems,plan.scope))fail('UNAVAILABLE');
+ if(humanGroups.some(key=>!equal(scope[key]??[],plan[key])))fail('UNAVAILABLE');
  const held={store,database:plan.database,plan,planHandle,processingReceipt,processingScope:structuredClone(scope),assertProcessing,signal,budget:createContextScopeWorkBudget({signal,database:plan.database}),lineage:null};
  current(held);
  try{
   held.snapshot=await read(transaction=>snapshot(store,contextScopeTransactionReader(store,transaction,held.budget),plan,held.budget));current(held);
-  const candidates=plan.items.filter(item=>supported(item,plan.inputIds)),readable=await readableContextItems(store,candidates,{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
+  const candidates=plan.items.filter(item=>supported(item,plan)),readable=await readableContextItems(store,candidates,{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
   held.lineage=readable.captured;current(held);if(readable.automaticEvaluation)fail(readable.automaticEvaluation.reason==='budget_exceeded'?'BUDGET_EXCEEDED':'UNAVAILABLE');
   const allowed=new Set(readable.items.map(item=>item.id));
   held.records=plan.items.map((item,index)=>{
@@ -193,7 +240,7 @@ export async function settleMaintenanceExistingContextTopic(store,handle,result,
  const {expected,plan}=await topicTransitionExpected(held,proof,'committed');
  const check=async transaction=>{const t=contextScopeTransactionReader(store,transaction,held.budget);await topicReceipt(t,result,proof);if(!equal(await snapshot(store,t,plan,held.budget),expected))fail('STALE_BASE');current(held);};
  await read(check);current(held);
- const readable=await readableContextItems(store,held.plan.items.filter(item=>supported(item,held.plan.inputIds)),{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
+ const readable=await readableContextItems(store,held.plan.items.filter(item=>supported(item,held.plan)),{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
  try{
   if(readable.automaticEvaluation||!equal(readable.items.map(i=>i.id).sort(),held.records.filter(r=>r.state==='available').map(r=>held.plan.items[held.records.indexOf(r)].id).sort()))fail('STALE_BASE');
   await read(check);current(held);
@@ -232,7 +279,7 @@ export async function settleMaintenanceExistingContextContext(store,handle,resul
  const {expected,plan}=await contextTransitionExpected(held,proof,'committed');
  const check=async transaction=>{const t=contextScopeTransactionReader(store,transaction,held.budget);await assertSettledContextReceipts(held,t);await contextReceipt(t,result,proof);if(!equal(await snapshot(store,t,plan,held.budget,expected.items),expected))fail('STALE_BASE');current(held);};
  await read(check);current(held);
- const readable=await readableContextItems(store,expected.items.filter(item=>supported(item,held.plan.inputIds)),{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
+ const readable=await readableContextItems(store,expected.items.filter(item=>supported(item,held.plan)),{epoch:plan.epoch,expectedAuthority:plan.admission.authority,retainAuthoredCapture:true});
  try{
   const allowed=held.records.flatMap((record,index)=>record.state==='available'&&expected.items.find(i=>i.id===held.plan.items[index].id)?.lifecycle==='active'?[held.plan.items[index].id]:[]).sort();
   if(readable.automaticEvaluation||!equal(readable.items.map(i=>i.id).sort(),allowed))fail('STALE_BASE');await read(check);current(held);
