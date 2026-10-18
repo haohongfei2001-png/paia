@@ -1,39 +1,41 @@
-# Floating input — approved B 句瓣 and finite supersession
+# Floating input — final horizontal double-card adoption
 
-**PAIA-FLOAT-UI-1.1 / OWNER_APPROVED / 2026-10-18 (Asia/Shanghai).** Owner direction: “可以，用这一版修改开发计划”. The approved target is **B「句瓣」 in the final composer-anchored interactive design delivered on 2026-10-17**. The earlier glass-poster approval is superseded for appearance. Exact source and public-reference identities are in [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md).
+**PAIA-FLOAT-UI-1.2 / OWNER_APPROVED / PLAN_UPDATED / 2026-10-18 (Asia/Shanghai).** The owner selected the last `PAIA_三态悬浮入口_最终精修.png` and instructed: **“把这一版写进 github，修改开发计划”.** This is the current scoped visual authority, replacing B「句瓣」. It is not a new product programme or a claim that the runtime now matches the image.
 
-## Preserved authority
+Read [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). The checked-in [component reference](PAIA_FLOAT_UI_1_2_APPROVED_COMPONENTS.webp) is a documented crop/resize/encoding of that exact final image; the [manifest](PAIA_FLOAT_UI_1_2_REFERENCE_MANIFEST.json) distinguishes it from the original PNG.
 
-The immediately preceding PAIA-FLOAT-UI-1.0 ADOPTION is preserved byte-for-byte in [PRE_JUBAN](NARROW_INPUT_BOARD_V4_ADOPTION_PRE_JUBAN_2026-10-18.md), Git blob `369be972c7c464970d589aee3d87ab0cd91f7ad1`. Its nonconflicting requirements and incorporated earlier history remain effective; [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md) identifies the finite replacements. The archived smoky-blue glass target is historical, not a second current design authority.
+## 1. Preserve the complete predecessor
 
-The earlier [PRE_FIXED adoption](NARROW_INPUT_BOARD_V4_ADOPTION_PRE_FIXED_2026-10-16.md), blob `f36f701810cc70a6d6193aca960b5fc2d42f197f`, remains incorporated through that archive, including the 2026-10-11 execution authorization. All nonconflicting product, data, privacy, permission, human-work, coordination and entry-replacement decisions remain. Private Drive intent and later explicit scoped owner decisions outrank illustrative artwork. Current [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md) and [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md) retain the original **CPV1-NIBV4 S0–S4** identifiers.
+The entire immediately preceding adoption is preserved byte-for-byte in [PRE_DOUBLE_CARD](NARROW_INPUT_BOARD_V4_ADOPTION_PRE_DOUBLE_CARD_2026-10-18.md), blob `62ab80be78f17eb4790f2a7639eaa99e17fee6da`. The corresponding five predecessor contracts are preserved beside it. **All nonconflicting requirements and incorporated PRE_JUBAN/PRE_FIXED history remain effective in full.** This finite amendment supersedes only the conflicts below, including older summary pointers that still describe B as current. Historical approvals, test results, failures and implementation receipts are not rewritten.
 
-## Approval ledger
+The sole programme remains **PAIA-CONSUMER-PRODUCT-v1 / Prompt / CPV1-NIBV4 S0–S4**. Current STATUS and actual main/receipts control execution and completion. The new visual delta is approved, not an instruction to reset previously implemented stages, repeat existing foundations, pause other lanes or create an eighth plan.
 
-| Aspect | Current decision | Not implied |
+## 2. Finite replacement ledger
+
+| Area | Current approved requirement | Specifically superseded |
 |---|---|---|
-| Identity | Quiet personal input tool for reusing the user’s own expressions | Assistant, chat composer, voice/status character, agent or prompt marketplace |
-| Selected form | B 句瓣; exact two-stroke SVG and optical correction | A/C/D themes, a blended design, font quotation glyph or a global PAIA logo replacement |
-| Anchor | One right-aligned anchor above/outside the complete host composer; 12px gap; desktop 4px right inset, <=530px 0px | Inside-composer morphing, unrelated screen position, compulsory ball→capsule→board path or simultaneous widgets |
-| Geometry | Entry SVG40/target44; capsule272×44 with mark19; board336×312/radius18; header44 and six rows44 | Poster-sized object, content-driven normal height, 18px comparison mark or old20px board radius |
-| Information | 14px actual expression text,22px candidate line height,12px header label; one line per candidate | Titles/summaries, repeated decoration, scores/frequency/shortcut labels or six-item data cap |
-| Surface | Neutral solid light/dark panels; muted blue entry only; exact approved token roles | Glass/blur/glow/highlight, panel color wash, host recoloring or continuous motion |
-| Use | First click inserts exact current lawful<=150 body, even when visually ellipsized; no Send | Second insert/copy chooser, compulsory clipped-text check, automatic clipboard fallback or wrong target |
-| Draft / lifecycle | Preserve selected wording and insert at valid selection end; keep board open; collapse to prior collapsed form; stable order | Selection replacement, idle/blur/insertion collapse, candidate reshuffle or discarded dirty work |
-| Retained capabilities | Same-board optional details/edit/more; complete existing manual/search/target/undo safety | Deleting manual work, rewriting source history, replacing the candidate service or expanding permissions |
-| Evidence / execution | Design approved and existing plan updated; existing runtime authority and statuses retained | B already implemented, new production PASS, service/installation/deployment or global schedule change |
+| Local entry identity | A persistent circular button containing exactly two equal, horizontal, translucent rounded cards | B's unequal quote/petal strokes, exact B SVG matrix and B-only optical envelope/mark-size authority |
+| Card orientation | Front-facing landscape rectangles, approximately 1.4–1.6 width/height, no rotation or perspective | Tilted, portrait, slanted, fanned, equal-stroke or quotation substitutes |
+| Three internal states | Foreground card fixed; rear card barely left in collapsed, farther left in capsule, very slightly upper-left in board | Three independent glyphs, an X/arrow replacement, large jumps, vertical offset in the first two states |
+| Anchor | The same visible circle and hit target remain at the same relative composer position, size and z-order in all states | The old instruction forbidding a permanent circle; board/capsule layouts that move, resize, swallow or replace the toggle |
+| Capsule | Preserve the selected capsule silhouette and its delicate circle junction; extend left from the fixed circle | Redrawing the capsule to accommodate a different mark, extra arrows, badges or a second independent widget |
+| Board pairing | Extend upper-left; form a small, smooth lower-right connection to the circle without moving it | A disconnected lower-right button, forced tail, pointed notch, double border/shadow or unrelated floating panel |
+| Material | Quiet near-white surfaces, restrained translucent gray-blue/slightly lavender cards, fine edges and soft shadows | The blanket prohibition on subtle transparency and card highlights; opaque B-only surfaces as fidelity authority |
+| Scope | Local floating-input presentation only; preserve existing behaviour and owners | Global PAIA logo/app/website replacement, host-page redesign, new control architecture, broader capture or AI permissions |
+| Evidence | Selected design plus plan/reference adoption | Native fidelity, installed release, latency/120Hz, provider qualification or complete S0–S4 acceptance |
 
-## Explicit replacement map
+The original 2026-10-16 glass poster, V6 lens, earlier smoke/petal/logo explorations and intermediate generated showcase boards are **not revived**. In particular, the intermediate images with colored row icons, diagonal cards, arrows, specification insets or a different host composition are not approved substitutes. Glass is a restrained material in this selected double-card design, not a license to restore an older sphere.
 
-1. **2026-10-16 glass appearance** in SPEC§1/§3, PLAN S0, REFERENCES, ADOPTION and ACCEPTANCE F01/F02 is replaced by B’s exact SVG, optical scale and neutral solid surfaces. The old poster image/palette, frosted-white wording, V6 lens/ring details and 13.3px/20px tokens are history, not fallback acceptance targets.
-2. **Spatial ambiguity and arbitrary free screen position** are replaced by the common composer-top anchor. Preserve the actual position/reset owner and compatible preference data. All ordinary forms share one right edge; capsule extends left, board opens up, and composer growth moves the current shell. No new independent coordinate preference or host size constraint is approved.
-3. The earlier **fixed336×312 and direct-use amendment remains**: original adaptive-height G02/G03 and compulsory clipping/multiline CHECK_TEXT are still superseded. Optional review/range operations and all receiver/content safeguards remain. This is not a test waiver.
-4. **The final main B view and visual JSON/SVGs outrank comparison miniatures**. Main capsule mark19px supersedes the comparison’s18px; board radius18 and text14px/22px replace earlier values. A/C/D and their comparison screenshots remain rejected exploration. Reference link sanitization changes no visual or interaction design.
-5. **One-line ellipsis is display only**. Unified <=150 grapheme eligibility and complete-history query before quick projection remain; six is view capacity. Preserve long-only/partial truth, PAIA continuation, original bodies and human intent. Valid selected draft text is preserved; insertion occurs at its end.
-6. **Prototype-only content/code** is not a production instruction: synthetic host and data, design controls, scene geometry offsets/height cap, textarea writer/undo fallback and function timers do not replace real owners or prove native/performance acceptance.
+## 3. Geometry and retained functionality
 
-## Preserved scope and completion semantics
+The existing composer-relative layout owner, outside-composer placement, safe gap/right inset, growth tracking, narrow-space recovery and one fixed ordinary board per view mode remain. The selected circle must remain available at the same point while the board is open. Nominal 48px circle and card/offset starting values in SPEC are implementation calibration, not falsely measured pixel tokens from the raster. Distinguish visible board body, circular target and total private-frame envelope. Previous 272×44/336×312 dimensions are existing engineering geometry, not permission to force the final artwork back into B; adjust only the affected visual envelope through the original owner and keep normal content-count-independent sizing.
 
-The prior full finite ledger and all nonconflicting requirements remain incorporated. Do not reset completed original work, discard manual/Family identities, weaken Source/Working/tombstone/purge/revision/CAS/restore constraints, alter capture, introduce another storage/query/writer owner, activate dormant providers, expand Stage3A reading, change Context grants, reopen retired exports/Profile/Material Tray, or restore Side Panel/large dual carriers. All original S3 live and S4 retained-control gates remain.
+No missing control in an illustrative screenshot authorizes deleting search, optional full text, editing, more, pin/order/hide/split or other lawful manual work. Preserve these in the same board without adding decorative rows or a new permanent toolbar. Existing accessibility, useful target sizes, focus, IME, dirty-work and restoration rules remain.
 
-Design selection is approved now. **Production implementation of this visual delta, exact native fidelity, installed use, latency and sustained comfort remain separate evidence.** The final prototype’s 16 Chrome checks and approximately24-minute mixed inspection establish only their stated offline-design scope, not a continuous comfort study or live ChatGPT extension acceptance. Keep all historical PASS/FAIL/incomplete records; do not seek the same design approval again or start another aesthetic exploration. This is the existing Prompt lane within the seven-plan programme.
+Direct exact <=150-grapheme reuse, full-history search before quick projection, stable identities/order, source removal/purge, current revision/permission/receiver checks, selected-draft preservation, native undo, UNKNOWN/no replay and **no automatic Send or clipboard fallback** are unchanged. All original Family/Manual/History/Reply boundaries, independent Stage3A controls, S3 live-service/budget gates, S4 entry replacement and seven-lane ownership remain.
+
+## 4. Execution boundary
+
+This request updates the six canonical NIB documents, their index pointer, exact predecessor archives and a sanitized component reference/manifest. It does not edit runtime, tests, CI, package/manifest versions, website, private Drive, accounts or installations.
+
+At inspection, PR #295 contains authored Entry work and a fixed-anchor B implementation. Preserve its correct behaviour and concurrent ownership; apply only the visual delta at its existing Prompt integration boundary. The old B implementation and its test evidence cannot be relabelled as acceptance of this new appearance. The owner has already made the design choice: proceed to bounded implementation when the current owner reaches the integration boundary, not another aesthetic selection exercise.
