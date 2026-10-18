@@ -1,3 +1,11 @@
+# Authored Context restore continuity — 2026-10-18 / successor native pending
+
+A separate 0.54.2 successor retains the exact PR295 repair tree and adds only the reviewed authored journal-continuity owner, its unit/native regressions and synchronized package identity. Code tree `249be9110daad6f4959475f6d6a555dc8d02d13a` passed7657/7657 default-four units, zero failures/skips, standard release513 files/16528 guardrails/489 runtime resources, Source16592/493 and privacy59/59; all commands exited0 at01:00:56UTC. The owner/version subset passes100/100 and is not added to that full-suite count.
+
+Original-owner genuine restores now qualify only through the complete bounded body/removal/restoration history plus fresh current authority. Independent review repaired an earlier disguised-journal counterexample before this frozen candidate. The three reviewed owner/test blobs remain exact. Two added native phases per Source/release remain NOT_RUN. PR295 c76 is still independently in certification; this successor does not update its head, replace its pending gates, certify main6cc or establish human visual acceptance. See [the owning receipt](ai-usage/AI-COST-03-AUTHORED-RESTORE-CONTINUITY.md). Input-only privacy, human ownership/order, paused Sync, all original failures and the separately open revoked-draft storage-failure gap remain.
+
+## Preserved preceding checkpoint
+
 # Authored Context and B 句瓣 — 2026-10-18 / 0.54.1 qualification repair
 
 PR294 is merged as main `6cc5bd682076bd98b64421c69310eca750f7b806`, tree `39229b98869e8098872b81e16cf0bae5ff25a086`, after exact-d1a Full39079496026/D739079496055 passed. Exact-main Full39080866509 subsequently FAILED Browser8 release's empty-summary save (six list ACKs, revision7, recovery ACK but zero EDIT); the other nine Browser shards and remaining component gates passed. PR295 original6edf Full39080235098 separately failed Browser2 reload-fixture and Browser6 native orb Enter-reopen; Foundation failed the keyboard journey, and Visual stopped at the historical v2 color oracle. These original failures remain failed.

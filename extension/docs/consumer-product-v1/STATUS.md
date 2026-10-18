@@ -1,3 +1,13 @@
+# Authored Context restore continuity — 2026-10-18 / 0.54.2 candidate
+
+This separate compatible successor repairs current source-free human Entry admission after genuine remove/restore. It follows PR295 head `c76bba7d02d07002e0f9c26d19278dba5054763d` without changing that in-flight candidate. The original journal must prove a bounded, exact chain of human body edits and paired remove/restore operations back to birth; fresh processing permission and all existing membership, Source, epoch, final authority and ACK fences remain. Old Context, grants, handles and acknowledgements do not revive. See [the restore-continuity receipt](implementation/ai-usage/AI-COST-03-AUTHORED-RESTORE-CONTINUITY.md).
+
+The three owner/test blobs match the independently reviewed restore slice. On its integrated 0.54.2 code tree, complete default-four units pass7657/7657, zero failures/skips; Source16592/493, standard release16528/489/513 and privacy59/59 also pass, all exit0. The overlapping owner/version subset passes100/100. Two new native phases per Source/release variant are written but NOT_RUN; they require the successor's own exact-head certification. At this checkpoint PR295 Full39084449356, D739084449439 and Foundation39084449385 remain pending; its Visual39084449408 passed all eight strict Source/release parity states, with human acceptance still PENDING. Main6cc's original Browser8 failure remains failed. No successor merge or installation is claimed.
+
+Input-only privacy, human membership/order, existing budgets and paused Sync features remain unchanged. The separate failed-storage recovery gap, human visual/physical/live-provider qualification and whole-programme acceptance remain open.
+
+## Preserved preceding checkpoint
+
 # Authored Context and B 句瓣 — 2026-10-18 / 0.54.1 qualification repair
 
 PR294 is merged as main `6cc5bd682076bd98b64421c69310eca750f7b806`, tree `39229b98869e8098872b81e16cf0bae5ff25a086`, after exact-d1a Full39079496026/D739079496055 passed. Exact-main Full39080866509 subsequently FAILED Browser8 release's empty-summary save (six list ACKs, revision7, recovery ACK but zero EDIT); the other nine Browser shards and remaining component gates passed. PR295 original6edf Full39080235098 separately failed Browser2 reload-fixture and Browser6 native orb Enter-reopen; Foundation failed the keyboard journey, and Visual stopped at the historical v2 color oracle. These original failures remain failed.
