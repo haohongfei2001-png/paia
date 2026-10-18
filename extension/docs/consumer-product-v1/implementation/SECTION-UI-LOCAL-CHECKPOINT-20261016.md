@@ -1,3 +1,13 @@
+# Prompt theme and status clearance — 2026-10-18 / 0.54.1 follow-up
+
+PR295 exact `c76bba7d02d07002e0f9c26d19278dba5054763d` completed Full39084449356 with nine Browser shards and all four Unit shards (7605/7605, zero failures/skips), both macOS gates, Sync native and build/privacy passing. Browser6 first failed Source/release Save clicks because the persistent status message intercepted pointer events, then was cancelled at the 18-minute job boundary; Full/Integration remain FAILED. Prompt Foundation39084449385 separately failed the old v2 theme-color oracle; Prompt Visual39084449408 and D739084449439 passed. Original failures retain their identities.
+
+The reviewed follow-up shares the frozen approved B palette assertion with the native theme journey and restores persistent status to the existing card flex flow, retaining its bounded scrolling and interactive Copy action. Quiet 480ms feedback stays out of layout. The original dirty/save/cancel/IME/theme scenarios remain, with additional native rectangle, hit-target and focus checks. The combined focused suite passes47/47; standard release16528/489/513, Source16592/493 and privacy59/59 pass. Both code reviews are CLEAN. These are focused local results; new-head native geometry and complete required CI remain pending. See [the integration receipt](AUTHORED-JUBAN-INTEGRATION-20261018.md) for original traces, exact scope and limits.
+
+Exact-c76 Browser8 passes41/41: Source/release held-owner and changed-generation late-publication records each show one EDIT, one successful ACK and one user journal increment. This qualifies that saved-AI repair on c76, without erasing main6cc's failed run. Separate PR296 remains dependent and unmerged; its a19 Browser8 has a new UX-R2 Raw Input Original qualification failure under investigation. Human visual, physical120Hz/NIB50ms, live-provider and installation acceptance remain open. Input-only privacy, human membership/order and paused Sync features are unchanged.
+
+## Preserved preceding checkpoint
+
 # Authored Context and B 句瓣 — 2026-10-18 / 0.54.1 qualification repair
 
 PR294 is merged as main `6cc5bd682076bd98b64421c69310eca750f7b806`, tree `39229b98869e8098872b81e16cf0bae5ff25a086`, after exact-d1a Full39079496026/D739079496055 passed. Exact-main Full39080866509 subsequently FAILED Browser8 release's empty-summary save (six list ACKs, revision7, recovery ACK but zero EDIT); the other nine Browser shards and remaining component gates passed. PR295 original6edf Full39080235098 separately failed Browser2 reload-fixture and Browser6 native orb Enter-reopen; Foundation failed the keyboard journey, and Visual stopped at the historical v2 color oracle. These original failures remain failed.

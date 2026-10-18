@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
-import {readApprovedAuthority,verifyReference,selectedStates,STATES,RUNTIME_FILES,rgb,assertGeometry,assertComputed,assertEntryComputed,measuredCrop,assertCompleteReceipts,assertExactPixels,assertGlyphAndMotion} from '../scripts/prompt-convergence-authority.mjs';
+import {readApprovedAuthority,verifyReference,selectedStates,STATES,RUNTIME_FILES,rgb,assertGeometry,assertComputed,assertThemePalette,assertEntryComputed,measuredCrop,assertCompleteReceipts,assertExactPixels,assertGlyphAndMotion} from '../scripts/prompt-convergence-authority.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),authority=await readApprovedAuthority(root),tokens=authority.tokens;
 const clone=x=>structuredClone(x);
 const desktop=()=>({viewport:{width:1440,height:900},orb:{x:1052,y:694,width:44,height:44},entryBeforeOpen:{x:1052,y:694,width:44,height:44},card:{x:760,y:382,width:336,height:312},composer:{x:340,y:750,width:760,height:94}});
@@ -83,4 +83,27 @@ test('transient V08 images are measured inside the unchanged duration, displayed
  assert.match(capture,/transient feedback screenshot is captured inside the original 480ms window/);
  assert.match(compare,/suffix='08-inserted-feedback.png';assertExactPixels/);
  assert.match(compare,/actual transient feedback/);assert.match(compare,/observedInsideWindow:true/);
+});
+
+
+test('native dynamic theme journey uses the same pinned B authority and preserves original transition/dirty/order checks',async()=>{
+ const source=await readFile(new URL('./cpv1-09-prompt-surface-chrome-e2e.test.mjs',import.meta.url),'utf8');
+ assert.match(source,/readApprovedAuthority\(root\)/);assert.match(source,/assertThemePalette\(actual,theme,approvedThemeAuthority\.tokens\)/);
+ assert.doesNotMatch(source,/rgb\(233, 238, 246\)|rgb\(29, 39, 56\)/);
+ assert.match(source,/\['dark','light','dark','light'\]/);assert.match(source,/assert\.deepEqual\(await f\.locator\('\.row'\)/);
+ assert.equal((source.match(/inputValue\(\),'unsaved theme transition'/g)||[]).length,2);
+ assert.match(source,/variant\+'-theme-transitions.json'/);
+});
+for(const theme of ['light','dark'])test('dynamic '+theme+' theme rejects historical color, low contrast, stale opposite mode and missing candidate',()=>{
+ const valid=computed(theme);assertThemePalette(valid,theme,tokens);
+ for(const mutate of [
+  c=>c.color=theme==='light'?'rgb(29, 39, 56)':'rgb(233, 238, 246)',
+  c=>c.candidateColor=theme==='light'?'rgb(29, 39, 56)':'rgb(233, 238, 246)',
+  c=>c.color=c.surface,
+  c=>c.candidateColor=c.surface,
+  c=>c.surface=c.color,
+  c=>Object.assign(c,computed(theme==='light'?'dark':'light')),
+  c=>c.candidateColor=null,
+  c=>c.surface=null,
+ ]){const changed=clone(valid);mutate(changed);assert.throws(()=>assertThemePalette(changed,theme,tokens));}
 });

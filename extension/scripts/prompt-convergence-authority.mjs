@@ -78,16 +78,20 @@ export function assertGeometry(screen,tokens){
   near(card.x+card.width,orb.x+orb.width,'common right edge');near(card.y+card.height,orb.y,'board above unchanged entry, zero gap');
  }
 }
-export function assertComputed(computed,theme,tokens){
- assert.ok(theme==='light'||theme==='dark');const palette=tokens[theme],type=tokens.typography;
+export function assertThemePalette(computed,theme,tokens){
+ assert.ok(theme==='light'||theme==='dark');const palette=tokens[theme];
  assert.equal(computed.color,rgb(palette.text),'approved B text role');
  assert.equal(computed.candidateColor,rgb(palette.text),'actual candidate text role');
+ assert.equal(computed.surface,rgb(palette.surface),'approved B panel surface');
+}
+export function assertComputed(computed,theme,tokens){
+ assertThemePalette(computed,theme,tokens);const palette=tokens[theme],type=tokens.typography;
  for(const [variable,key] of Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}))assert.equal(computed.variables[variable].trim().toLowerCase(),palette[key],variable);
  near(computed.fontSize,type.candidate_and_capsule_font_size,'candidate font');near(computed.lineHeight,type.candidate_line_height,'candidate line height');near(computed.headerFontSize,type.header_font_size,'header font');
  near(computed.headerHeight,tokens.geometry.header_height,'header height');
  for(const h of computed.rowHeights)near(h,tokens.geometry.candidate_row_height,'candidate row height');
  assert.ok(computed.rowHeights.length>0,'nonempty candidate geometry');
- near(computed.radius,tokens.geometry.board_radius,'board radius');assert.equal(computed.surface,rgb(palette.surface));assert.equal(computed.border,rgb(palette.border));
+ near(computed.radius,tokens.geometry.board_radius,'board radius');assert.equal(computed.border,rgb(palette.border));
 }
 export function assertEntryComputed(computed,theme,tokens){
  const palette=tokens[theme];assert.ok(palette);
