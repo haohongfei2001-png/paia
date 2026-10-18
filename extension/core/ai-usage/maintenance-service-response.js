@@ -5,8 +5,9 @@ import {snapshot} from './qwen-request-data.js';
 import {MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_UNAVAILABLE_TOPIC,validateMaintenanceServiceResponse} from './maintenance-service-response-schema.js';
 import {hashText} from '../dedupe.js';
 import {inputProjection} from '../thought-evidence.js';
-import {prefix} from '../thought-model.js';
-import {readContextTopicScope,createContextScopeWorkBudget} from '../context-topic-scope.js';
+import {createContextScopeWorkBudget} from '../context-topic-scope.js';
+import {readMaintenanceContextTopicSelection} from './maintenance-context-topic-selection.js';
+import {topicFormationContextSelection} from '../topic-formation.js';
 import {createContextFreshInputPolicy,hasContextInputLineage,validateContextMaintenanceChange} from '../context-maintenance.js';
 import {readContextCards} from '../context-cards.js';
 import {readMaintenanceExistingContext,resolveMaintenanceExistingContext,assertMaintenanceExistingContext,assertMaintenanceExistingContextEmptyPlan} from './maintenance-existing-context.js';
@@ -14,7 +15,7 @@ import {validContextTemporal} from '../context-temporal.js';
 
 // Bind the negative-only final-owner policy to this exact local adapter. No
 // configuration boolean, model field or cloned JSON can disable or forge it.
-const contextPolicies=new WeakMap(),existingBindings=new WeakMap(),emptyBindings=new WeakMap();
+const contextPolicies=new WeakMap(),existingBindings=new WeakMap(),emptyBindings=new WeakMap(),topicBindings=new WeakMap();
 const existingProfile=schema=>[MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].includes(schema),topicProfile=schema=>[MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].includes(schema);
 export const maintenanceResponseContextPolicy=adapter=>contextPolicies.get(adapter?.context)??null;
 export function bindMaintenanceResponseExistingContext(adapter,childId,handle){const bindings=existingBindings.get(adapter?.context);if(!bindings)fail('UNAVAILABLE');bindings.set(childId,handle);}
@@ -27,6 +28,13 @@ export function bindMaintenanceResponseEmptyExistingContext(adapter,childId,hand
 // its exact private sent binding and already decoded ADD groups can admit a
 // saved sibling response on continuation; absence of a witness is not proof.
 export function maintenanceResponseEmptyExistingContextReadyForSibling(adapter,store,childId,handle){const owner=emptyBindings.get(adapter?.context);return !!owner&&owner.store===store&&owner.ready(childId,handle);}
+// Only the actual source adapter can receive original local owner bindings.
+// These calls cannot register a proof: stage/settle require its genuine result.
+const topicOwner=(adapter,store)=>{const owner=topicBindings.get(adapter?.context);if(owner&&owner.store!==store)fail('STALE_BASE');return owner;};
+export const bindMaintenanceResponseTopicOperation=(adapter,store,binding)=>topicOwner(adapter,store)?.bindOperation(binding)??false;
+export const stageMaintenanceResponseTopicResult=(adapter,store,t,childId,result)=>topicOwner(adapter,store)?.stage(t,childId,result)??null;
+export const settleMaintenanceResponseTopicResult=(adapter,store,childId,result)=>topicOwner(adapter,store)?.settle(childId,result)??false;
+export const assertMaintenanceResponseContextTopic=(adapter,store,t,childId)=>topicOwner(adapter,store)?.assertContext(t,childId)??false;
 const humanCoverage=units=>units.length>0&&units.every(u=>u.facet==='context'&&['library_entry','placement','section','topic'].includes(JSON.parse(u.key)[0]));
 const ordinaryCoverage=units=>units.length>0&&units.every(u=>['topic','context'].includes(u.facet)&&JSON.parse(u.key)[0]==='input');
 
@@ -39,6 +47,17 @@ export function createMaintenanceServiceResponseOwner(store){
  const children=new Map(),existing=new Map(),emptyExisting=new Map();let disposed=false,profileSchema=MAINTENANCE_SERVICE_RESPONSE_SCHEMA;
  const live=s=>{if(disposed||s.isCurrent()!==true)fail('STALE_BASE');};
  const read=(s,fn)=>{live(s);return store.repository.transaction(false,async t=>{live(s);const value=await fn(t);live(s);return value;});};
+ const requireTopicProof=(s,result,transaction=null,settled=true)=>{
+  live(s);const proof=topicFormationContextSelection(result,store,transaction);
+  if(!proof||proof.settled!==settled||!s.topicOperation||proof.operationId!==s.topicOperation.operationId||!equal(proof.inputIds,s.inputs.map(i=>i.inputId).sort())||proof.receipt.id!==proof.operationId)fail('STALE_BASE');
+  return proof;
+ };
+ const assertTopicReceipt=async(s,t,result,transaction=null,settled=true)=>{
+  const proof=requireTopicProof(s,result,transaction,settled);
+  if(!equal(await t.get('operationReceipts',proof.operationId),proof.receipt))fail('STALE_BASE');live(s);return proof;
+ };
+ const requireSelection=s=>{if(!s.topicSelection||s.pendingTopic||s.topicSelection.operationId!==s.topicOperation?.operationId)fail('STALE_BASE');return s.topicSelection;};
+ const assertContextTopic=async(s,t)=>{const selected=requireSelection(s),proof=await assertTopicReceipt(s,t,selected.result);if(!equal(proof,selected.proof))fail('STALE_BASE');return true;};
  const project=async(s,t,input)=>{
   const p=await inputProjection(store,t,input.inputId);live(s);
   if(!p||p.contentRevision!==input.revision||await store.isFiltered(t,p.block,await t.get('meta','smart-filter')))fail('STALE_BASE');
@@ -111,30 +130,26 @@ export function createMaintenanceServiceResponseOwner(store){
   if(s.groups)return {binding:{...binding},value:structuredClone(s.groups)};
   const job=await read(s,t=>t.get('organizerJobs',s.jobId));
   if(!job||!s.units.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))))fail('STALE_BASE');
-  const scopeBudget=createContextScopeWorkBudget({database:store.repository.db}),scopes=new Map(),evidence=new Map();
-  for(const input of s.inputs){
-   const selected=await read(s,async t=>{
-    const p=await project(s,t,input);if(!equal(evidenceSnapshot(p),{revision:input.revision,removalSequence:input.removalSequence,sourceRecordIds:input.sourceRecordIds,sourceIdentityTokens:input.sourceIdentityTokens}))fail('STALE_BASE');
-    const dependencies=await t.all('dependencies','byInputTarget',prefix([input.inputId,'entry']),101);if(dependencies.length>100)fail('BUDGET_EXCEEDED');
-    const topics=new Set();let count=0;
-    for(const d of dependencies){
-     if(d.status!=='valid'||!d.selectedFields?.includes('body')||!d.roles?.includes('primary'))continue;
-     const entry=await t.get('thoughts',d.targetId);
-     if(!entry||entry.lifecycle!=='active'||entry.bodyBinding!=='input'||entry.workingInputId!==input.inputId||entry.inputRefs?.length!==1||entry.provenanceType!=='input_original'||entry.integrity!=='complete')continue;
-     const placements=await t.all('placements','byEntry',prefix([entry.id]),101);count+=placements.length;if(count>100)fail('BUDGET_EXCEEDED');
-     for(const placement of placements){
-      const target=await t.get('topics',placement.topicId),section=target&&await t.get('sections',JSON.stringify([target.id,target.activeLayoutGeneration,placement.sectionId]));
-      if(placement.lifecycle==='active'&&!placement.excludedByUser&&target?.lifecycle==='active'&&!target.redirectTo&&!target.layoutJobId&&target.activeLayoutGeneration===placement.layoutGeneration&&section?.lifecycle==='active'&&!section.redirectTo)topics.add(target.id);
-     }
-    }
-    if(topics.size!==1)fail('STALE_BASE');return {p,topicId:[...topics][0]};
-   });
-   if(await hashText(selected.p.body)!==input.digest)fail('STALE_BASE');live(s);
-   if(!scopes.has(selected.topicId)){
-    if(scopes.size>=8)fail('BUDGET_EXCEEDED');const scope=await readContextTopicScope(store,{topicId:selected.topicId},scopeBudget);live(s);if(!scope.available)fail('STALE_BASE');scopes.set(selected.topicId,scope);
+  const scopeBudget=createContextScopeWorkBudget({database:store.repository.db}),evidence=new Map();
+  if(s.existingHandle)await read(s,t=>assertMaintenanceExistingContext(store,t,s.existingHandle));
+  const selectedTopics=new Map();
+  for(const proposal of value.context){
+   if(!s.existingHandle||proposal.operation==='ADD'){
+    const main=requireSelection(s);for(const id of proposal.inputIds)selectedTopics.set(id,main.proof.topicId);
+   }else{
+    const item=resolveMaintenanceExistingContext(s.existingHandle,proposal.ref);
+    if(item.state!=='available'||item.revision!==proposal.expectedRevision||item.card!==proposal.card)fail('STALE_BASE');
+    const old=[item.provenance,item.invalidation].filter(Boolean).flatMap(p=>p.evidence);
+    if(!equal([...new Set(old.map(e=>e.inputId))].sort(),[...proposal.inputIds].sort())||old.some(e=>e.kind||e.humanSection||e.humanTopic||!equal(e.selectedFields,['body'])))fail('STALE_BASE');
+    for(const id of proposal.inputIds){const topics=[...new Set(old.filter(e=>e.inputId===id).map(e=>e.topicId))];if(topics.length!==1)fail('STALE_BASE');selectedTopics.set(id,topics[0]);}
    }
-   const scope=scopes.get(selected.topicId);if(!scope.scope.inputIds.includes(input.inputId))fail('STALE_BASE');
-   evidence.set(input.inputId,{topicId:selected.topicId,inputId:input.inputId,selectedFields:['body'],fieldDigests:{body:input.digest},expectedTopicBinding:scope.binding,expectedRemovalSequence:input.removalSequence});
+  }
+  for(const input of s.inputs){
+   const selected=await readMaintenanceContextTopicSelection(store,{input,scopeBudget,
+    read:fn=>read(s,async t=>{await assertContextTopic(s,t);if(s.existingHandle)await assertMaintenanceExistingContext(store,t,s.existingHandle);const value=await fn(t);await assertContextTopic(s,t);return value;}),
+    assertSelection:(_t,inputId)=>{const proof=requireTopicProof(s,requireSelection(s).result);if(!proof.inputIds.includes(inputId))fail('STALE_BASE');return selectedTopics.get(inputId);}
+   });live(s);
+   evidence.set(input.inputId,{topicId:selected.topicId,inputId:input.inputId,selectedFields:['body'],fieldDigests:{body:input.digest},expectedTopicBinding:selected.scope.binding,expectedRemovalSequence:input.removalSequence});
   }
   // No Item content is sent or retained. Unresolved existing Item lineage is a local
   // negative-only guard before allocating a fresh identity; the original
@@ -185,6 +200,28 @@ export function createMaintenanceServiceResponseOwner(store){
   if(disposed||!s||s.schema!==MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA||!handle||s.emptyHandle!==handle||emptyExisting.get(childId)!==handle||s.existingHandle||!s.responseDigest||!s.groups?.length||s.groups.some(g=>g.operation!=='ADD'))return false;
   assertMaintenanceExistingContextEmptyPlan(store,handle);live(s);return true;
  }});
+ topicBindings.set(context,{store,
+  bindOperation(binding){
+   exact(binding,['logicalJobId','childOperationId','operationId','inputIds']);const s=children.get(binding.childOperationId);
+   if(!s||s.humanMapper||s.jobId!==binding.logicalJobId||!equal(binding.inputIds,s.inputs.map(i=>i.inputId).sort())||typeof binding.operationId!=='string'||!binding.operationId)fail('STALE_BASE');live(s);
+   if(s.topicOperation&&!equal(s.topicOperation,binding))fail('STALE_BASE');s.topicOperation=structuredClone(binding);return true;
+  },
+  async stage(t,childId,result){
+   const s=children.get(childId);if(!s||s.humanMapper)fail('STALE_BASE');live(s);
+   if(!['create','reuse'].includes(result?.outcome))return null;
+   const proof=await assertTopicReceipt(s,t,result,t,false);if(s.topicSelection)fail('STALE_BASE');
+   s.pendingTopic={result,transaction:t,proof};
+   return async transaction=>{if(transaction!==t||s.pendingTopic?.result!==result||s.pendingTopic.transaction!==t)fail('STALE_BASE');if(!equal(await assertTopicReceipt(s,t,result,t,false),proof))fail('STALE_BASE');return true;};
+  },
+  async settle(childId,result){
+   const s=children.get(childId);if(!s||s.humanMapper)fail('STALE_BASE');live(s);
+   if(!['create','reuse'].includes(result?.outcome))return false;
+   const pending=s.pendingTopic;if(!pending||pending.result!==result||s.topicSelection)fail('STALE_BASE');
+   const proof=await read(s,t=>assertTopicReceipt(s,t,result));if(!equal({...proof,settled:false},pending.proof))fail('STALE_BASE');
+   live(s);s.topicSelection={operationId:proof.operationId,result,proof};s.pendingTopic=null;return true;
+  },
+  async assertContext(t,childId){const s=children.get(childId);if(!s)fail('STALE_BASE');if(s.humanMapper)return false;return assertContextTopic(s,t);}
+ });
  return Object.freeze({adapter,bind,
   assertProfile(manifest){const schema=manifest?.wire?.responseFormat?.json_schema?.schema;profileSchema=[MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].find(s=>equal(schema,s));if(!profileSchema)fail('UNAVAILABLE');},
   usesExistingContext(metadata){return existingProfile(profileSchema)&&(profileSchema!==MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA||metadata===undefined||ordinaryCoverage(metadata.coverage));},

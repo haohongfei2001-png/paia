@@ -30,5 +30,6 @@ export async function receipt(t,request,digest) {
  if(prior.digest!==digest)fail();return prior.result;
 }
 export async function saveReceipt(store,t,request,digest,result) {
- await t.put('operationReceipts',{id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:result.id||request.id||'library',operationSequence:await nextSequence(t),createdAt:humanClock(store,t),digest,result});
+ const row={id:request.operationId,namespace:'thought-library',schemaVersion:1,ownerId:result.id||request.id||'library',operationSequence:await nextSequence(t),createdAt:humanClock(store,t),digest,result},intended=structuredClone(row);
+ await t.put('operationReceipts',row);return intended;
 }

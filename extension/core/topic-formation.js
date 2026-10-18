@@ -11,10 +11,18 @@ import {evaluateTopicFormation,formationParameters} from './topic-formation-poli
 
 // Proof of the original receipt-only Topic reuse, held off every wire/receipt.
 // No cloned result or another Store/transaction can claim these counter changes.
-const maintenanceReceiptTransitions=new WeakMap();
+const maintenanceReceiptTransitions=new WeakMap(),contextTopicSelections=new WeakMap();
 export function topicFormationMaintenanceReceipt(result,store,transaction=null){
  const held=maintenanceReceiptTransitions.get(result);
  if(!held||held.store!==store||held.repository!==store.repository||held.database!==store.repository.db||transaction!==null&&held.transaction!==transaction)return null;
+ return freeze(structuredClone({...held.proof,settled:held.settled}));
+}
+// Exact main Topic of a genuine original commit, before additional destinations.
+// This proves no counter allowance or permission. A prior/JSON/cloned result has
+// no proof, and an unknown commit ACK never becomes settled.
+export function topicFormationContextSelection(result,store,transaction=null){
+ const held=contextTopicSelections.get(result);
+ if(!held||held.store!==store||held.repository!==store.repository||held.database!==store.repository.db||transaction!==null&&held.transaction!==transaction||!same(result,held.proof.receipt.result))return null;
  return freeze(structuredClone({...held.proof,settled:held.settled}));
 }
 const unique=xs=>[...new Set(xs)];
@@ -182,7 +190,8 @@ export class TopicFormationService {
    if(consumePlan){await this.candidates.consumePreparedInTransaction(t,consumePlan);result.consumedCandidateId=request.candidateId;}
    result.entryIds=unique(result.entryIds);result.createdEntryIds=unique(result.createdEntryIds);result.checks.humanIntent=!proof.blocked;await this.authorizeTopics(t,prepared,result.topicIds);active();
    if(receiptOnly&&reuseActive&&((await t.get('meta','thought-sequence'))?.value??0)!==before.thoughtSequence)fail();
-   await saveReceipt(this.store,t,operation,digest,result);active();
+   const intendedReceipt=await saveReceipt(this.store,t,operation,digest,result);active();
+   if(topic)contextTopicSelections.set(result,{store:this.store,repository:this.store.repository,database:this.store.repository.db,transaction:t,settled:false,proof:{operationId:operation.operationId,inputIds:request.scope.map(x=>x.inputId).sort(),topicId:topic.id,receipt:intendedReceipt}});
    if(receiptOnly&&reuseActive){
     const after={thoughtSequence:(await t.get('meta','thought-sequence'))?.value??0,backupGeneration:(await t.get('meta','backup-data-generation'))?.value??0};
     if(after.thoughtSequence!==before.thoughtSequence+1||after.backupGeneration!==before.backupGeneration)fail();
@@ -190,7 +199,8 @@ export class TopicFormationService {
    }
    return result;
   });
-  const transition=maintenanceReceiptTransitions.get(written);if(transition)transition.settled=true;return written;
+  const transition=maintenanceReceiptTransitions.get(written);if(transition)transition.settled=true;
+  const selection=contextTopicSelections.get(written);if(selection)selection.settled=true;return written;
  }
  async #createTopic(t,plan,prepared,nameToken,operationId){
   const store=this.store,id=store.uuid(),sectionId=store.uuid(),at=store.clock(),sourceRecordIds=unique(prepared.evidence.filter(e=>plan.sourceInputIds.includes(e.inputId)).flatMap(e=>e.sourceRecordIds));

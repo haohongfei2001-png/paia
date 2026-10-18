@@ -15,7 +15,7 @@ import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService,topicFormationMaintenanceReceipt} from '../topic-formation.js';
 import {ContextMaintenanceService,contextMaintenanceSettlementFence,structuralContextRequestWithinBudget,validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation} from '../context-maintenance.js';
-import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext,bindMaintenanceResponseEmptyExistingContext,maintenanceResponseEmptyExistingContextReadyForSibling} from './maintenance-service-response.js';
+import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext,bindMaintenanceResponseEmptyExistingContext,maintenanceResponseEmptyExistingContextReadyForSibling,bindMaintenanceResponseTopicOperation,stageMaintenanceResponseTopicResult,settleMaintenanceResponseTopicResult,assertMaintenanceResponseContextTopic} from './maintenance-service-response.js';
 
 const TYPE='AI_MAINTENANCE';
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
@@ -567,7 +567,9 @@ export class LocalMaintenanceSession {
   const put=t.put.bind(t);t.put=async(...args)=>{check();const value=await put(...args);check();return value;};
   if(facet==='filter'&&a.state.filterHandles.get(a.childId))for(const method of ['get','count']){const read=t[method].bind(t);t[method]=async(...args)=>{check();const value=await read(...args);check();return value;};}
   const existing=['context','topic'].includes(facet)?a.state.existingContext.get(a.childId):null;if(existing)await assertMaintenanceExistingContext(this.#store,t,existing);
+  if(facet==='context')await assertMaintenanceResponseContextTopic(this.#service.responseAdapter,this.#store,t,a.childId);
   const result=await a.callback(t);this.#current(a.state);
+  const topicFence=facet==='topic'?await stageMaintenanceResponseTopicResult(this.#service.responseAdapter,this.#store,t,a.childId,result):null;
   if(following.length)a.following=await this.#captureFollowing(a.state,t);
   if(facet==='context'||facet==='topic'&&this.#structures(a.state,a.units).length)await this.#checkEntryMapping(a.state,a.units,t);
   if(facet==='filter'?result?.ok!==true||result.disposition!==(a.outcome==='COMMITTED'?'committed':'no_change')||!equal(result.inputIds,this.#inputs(a.state,a.units)):facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!==(this.#contextEdits(a.state,a.units).length?'protected':'no_change'):!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
@@ -576,13 +578,14 @@ export class LocalMaintenanceSession {
   if(facet==='filter'&&a.state.filterHandles.get(a.childId)){if(typeof result.isCurrent!=='function')fail('STALE_BASE');a.ownerCurrent=result.isCurrent;check();}
   const contextFence=facet==='context'?contextMaintenanceSettlementFence(result):null;
   if(facet==='context'&&result.disposition==='created'&&maintenanceResponseContextPolicy(this.#service.responseAdapter)&&!contextFence)fail('STALE_BASE');
-  a.result=result;return {committed:true,coverage:r.units,...(contextFence||existing||['topic','context'].includes(facet)&&(this.#structures(a.state,a.units).length||this.#contextEdits(a.state,a.units).length)?{fenceAfterSettlement:async transaction=>{
+  a.result=result;return {committed:true,coverage:r.units,...(contextFence||topicFence||existing||['topic','context'].includes(facet)&&(this.#structures(a.state,a.units).length||this.#contextEdits(a.state,a.units).length)?{fenceAfterSettlement:async transaction=>{
    if(transaction!==t)fail('STALE_BASE');
    // The same original transaction has now staged all publication, exact ACK,
    // usage, job and NO_CHANGE counter writes. Revalidate full structural scope
    // and current authority here, never on a guessed last table write.
    await this.#foundation.current(t,await this.#foundation.job(t,a.state.job.id));
    await this.#checkStructuralMapping(a.state,a.units,t);await this.#checkContextMapping(a.state,a.units,t);
+   if(topicFence)await topicFence(t);if(facet==='context')await assertMaintenanceResponseContextTopic(this.#service.responseAdapter,this.#store,t,a.childId);
    if(contextFence)await contextFence(t);if(existing){if(facet==='context'){await assertMaintenanceExistingContext(this.#store,t,existing,result);await assertMaintenanceExistingContextContextStage(this.#store,t,existing,result);}else if(topicFormationMaintenanceReceipt(result,this.#store,t))await assertMaintenanceExistingContextTopicStage(this.#store,t,existing,result);}check();return true;
   }}:{}),isCurrent:()=>{try{check();return this.#active===a;}catch{return false;}}};
  }
@@ -597,12 +600,13 @@ export class LocalMaintenanceSession {
   const key=canonical([childId,'topic',units]);let prepared=state.prepared.get(key);
   let original;
   const committed=await this.#invoke(state,childId,receipt,'topic',units,async()=>{
-   if(!prepared){const operationId=this.#store.uuid(),existing=state.existingContext.get(childId);if(existing)bindMaintenanceExistingContextTopicOperation(this.#store,existing,childId,operationId);prepared=await this.#topic.prepare({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,units).map(e=>e.entryId),operationId},{signal:state.controller.signal});this.#current(state);state.prepared.set(key,prepared);}
+   if(!prepared){const operationId=this.#store.uuid(),existing=state.existingContext.get(childId);bindMaintenanceResponseTopicOperation(this.#service.responseAdapter,this.#store,{logicalJobId:state.job.id,childOperationId:childId,operationId,inputIds});if(existing)bindMaintenanceExistingContextTopicOperation(this.#store,existing,childId,operationId);prepared=await this.#topic.prepare({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,units).map(e=>e.entryId),operationId},{signal:state.controller.signal});this.#current(state);state.prepared.set(key,prepared);}
    const structural=this.#structures(state,units);if(structural.length&&(prepared.outcome!=='reuse'||prepared.reason!=='same_identity'))fail('STALE_BASE');
    original=await this.#topic.commit(prepared);
   },this.#structures(state,units).length?'NO_CHANGE':'COMMITTED');
   const existing=state.existingContext.get(childId);
   if(existing&&topicFormationMaintenanceReceipt(original,this.#store))try{await settleMaintenanceExistingContextTopic(this.#store,existing,original,{read:fn=>this.#foundation.read(fn)});}catch{this.#current(state);/* Original Topic is committed; unchanged Context witness remains pending. */}
+  try{await settleMaintenanceResponseTopicResult(this.#service.responseAdapter,this.#store,childId,original);}catch{this.#current(state);/* The real Topic/ACK remains committed; no unproved Context selection is installed. */}
   return committed;
  }
  async #contextFacet(state,childId,receipt,units){
