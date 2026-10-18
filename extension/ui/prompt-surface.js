@@ -60,7 +60,7 @@ const tell=(text,temporary=false)=>{clearTimeout(feedbackTimer);status.dataset.q
 async function refresh(internal=false){
  if(mode==='search'){if(!editing&&!checking)await runHistory();return;}
  if(checking||editing||(busy&&internal!==true)||drag||refreshing)return;
- refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);}
+ refreshing=true;pending(true);const ticket=++epoch,displayTicket=++displayEpoch;try{const q=await rpc({type:'PAIA_PROMPT_QUERY',includeHidden:hidden});if(ticket!==epoch)return;if(displayTicket===displayEpoch)applyDisplay(q.displayPreferences);if(q.surfaceForm)document.documentElement.dataset.surfaceForm=q.surfaceForm;revision=q.revision;projectionGeneration=q.generation;manualOrder=q.manualOrder;oversizedItems=q.oversizedItems||[];session.open(q);candidateTarget=q.target;attempted.clear();render();tell('');}catch{tell('暂时不可用。请在 PAIA 启用授权后刷新。');}finally{refreshing=false;pending(false);if(document.hasFocus?.()&&document.activeElement===document.body&&document.documentElement.dataset.surfaceForm!=='capsule')list.querySelector('.insert:not(:disabled)')?.focus();}
 }
 // The board retains one fixed ordinary rectangle in every internal view.
 // Accessibility minimums may constrain its viewport, never its content identity.
@@ -69,13 +69,18 @@ function contentHeight(node){
  for(const child of node.children){if(child.hidden||getComputedStyle(child).display==='none')continue;const css=getComputedStyle(child);total+=child.getBoundingClientRect().height+(parseFloat(css.marginTop)||0)+(parseFloat(css.marginBottom)||0);}
  return total;
 }
+// Only flow boxes consume the board budget; quiet live feedback is absolute.
+function flowHeight(node){
+ const style=getComputedStyle(node);if(style.display==='none'||['absolute','fixed'].includes(style.position))return 0;
+ return node.getBoundingClientRect().height+(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0);
+}
 function measureLayout(){
  layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card');if(!card.clientWidth)return;
  const header=document.querySelector('header'),content=checking?checkText:editing&&list.hidden?editor:list;
- const chrome=header.getBoundingClientRect().height+status.getBoundingClientRect().height;
- const row=list.querySelector('.row'),line=row?row.getBoundingClientRect().height:Math.max(44,parseFloat(getComputedStyle(card).fontSize)*1.55+22);
- const minimumHeight=Math.min(1024,Math.ceil(chrome+line+4));
- const height=Math.max(312,minimumHeight);
+ const chrome=flowHeight(header)+flowHeight(status);
+ const row=list.querySelector('.row'),line=Math.max(44,row?.getBoundingClientRect().height||0,parseFloat(getComputedStyle(card).fontSize)*1.55);
+ const minimumHeight=Math.min(1024,Math.ceil(chrome+line+16));
+ const height=Math.max(328,minimumHeight);
  const appearance=document.documentElement.dataset.paiaTheme||resolveAppearance(displayPreferences.appearance,systemAppearance.matches);
  if(height===lastMeasuredHeight&&minimumHeight===lastMinimumHeight&&appearance===lastAppearance&&language===lastLanguage){restoreListReturn();return;}lastMeasuredHeight=height;lastMinimumHeight=minimumHeight;lastAppearance=appearance;lastLanguage=language;
  const ticket=++layoutTicket;let acknowledged=false;layoutPending=true;document.documentElement.setAttribute('data-layout-pending','');
@@ -97,7 +102,7 @@ function paintCapsule(){
 }
 async function setSurfaceForm(form){
  if(editing||checking||busy||refreshing||drag||composing||searchComposing)return;
- pending(true);try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ pending(true);try{const result=await rpc({type:'surface_form',form});document.documentElement.dataset.surfaceForm=result.form==='orb'?'board':result.form;paintCapsule();}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);if(form==='board'&&document.hasFocus?.())list.querySelector('.insert:not(:disabled)')?.focus();}
 }
 function clipped(item,node){return /[\r\n\t]/.test(item.text)||/^\s|\s$| {2}/.test(item.text)||node.scrollWidth>node.clientWidth+1;}
 function leaveCheck(restoreFocus=true){

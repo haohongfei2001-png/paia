@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {readApprovedAuthority,verifyReference,selectedStates,STATES,RUNTIME_FILES,rgb,assertGeometry,assertComputed,assertThemePalette,assertEntryComputed,measuredCrop,assertCompleteReceipts,assertExactPixels,assertGlyphAndMotion} from '../scripts/prompt-convergence-authority.mjs';
+import {assertProductionR3} from './harness/prompt-r3-authority.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),authority=await readApprovedAuthority(root),tokens=authority.tokens;
 const clone=x=>structuredClone(x);
 const desktop=()=>({viewport:{width:1440,height:900},orb:{x:1052,y:694,width:44,height:44},entryBeforeOpen:{x:1052,y:694,width:44,height:44},card:{x:760,y:382,width:336,height:312},composer:{x:340,y:750,width:760,height:94}});
@@ -11,7 +12,7 @@ const compact=()=>({viewport:{width:390,height:844},orb:{x:326,y:638,width:44,he
 const computed=theme=>({color:rgb(tokens[theme].text),candidateColor:rgb(tokens[theme].text),variables:Object.fromEntries(Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}).map(([key,value])=>[key,tokens[theme][value]])),fontSize:14,lineHeight:22,headerFontSize:12,headerHeight:44,rowHeights:Array(6).fill(44),radius:18,surface:rgb(tokens[theme].surface),border:rgb(tokens[theme].border)});
 const receipt=variant=>({capture:'PASS',sha:'a'.repeat(40),variant,authority:clone(authority.identity),ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',hashes:Object.fromEntries(RUNTIME_FILES.map(f=>[f,'1'.repeat(64)])),screens:STATES.map(name=>({name}))});
 
-test('the active capture and report use the adopted B authority rather than historical v2 expectations', async()=>{
+test('historical B capture and report keep their own authority rather than relabeling old evidence', async()=>{
   const capture=await readFile(new URL('../scripts/capture-prompt-convergence.mjs',import.meta.url),'utf8');
   const compare=await readFile(new URL('../scripts/compare-prompt-convergence.mjs',import.meta.url),'utf8');
   assert.match(capture,/readApprovedAuthority/);
@@ -64,13 +65,15 @@ test('one changed pixel or alpha fails exact source/release parity; empty images
  for(let i=0;i<4;i++){const b=clone(a);b.data[i]^=1;assert.throws(()=>assertExactPixels(a,b,'changed'));}
  assert.throws(()=>assertExactPixels({width:0,height:0,data:Buffer.alloc(0)},{width:0,height:0,data:Buffer.alloc(0)},'empty'));
 });
-test('actual runtime binds exact approved glyph, capsule and all motion identities; mutations are rejected',async()=>{
+test('actual runtime binds exact adopted R3 glyph, shared skin, bottom tools and motion; mutations are rejected',async()=>{
  const runtime=Object.fromEntries(await Promise.all(RUNTIME_FILES.map(async file=>[file,await readFile(join(root,file),'utf8')])));
- assertGlyphAndMotion(runtime,authority);
- for(const [file,before,after] of [['content/prompt-surface.js',authority.glyph.paths[0],authority.glyph.paths[0]+'M0 0L40 40'],['ui/prompt-surface.html',authority.glyph.transform,authority.glyph.transform+' translate(9 0)'],['ui/prompt-surface.html',authority.glyph.paths[1],authority.glyph.paths[1]+'M0 0L40 40'],['content/prompt-surface.js',authority.glyph.transform,authority.glyph.transform+' translate(9 0)'],['ui/prompt-surface.html',authority.glyph.transform,'matrix(1 0 0 1 0 0)'],['ui/prompt-surface.css','width:19px;height:19px','width:18px;height:18px'],['ui/prompt-surface.js',"setTimeout(()=>tell(''),480)","setTimeout(()=>tell(''),1800)"]]){
-  const changed={...runtime,[file]:runtime[file].replace(before,after)};assert.notEqual(changed[file],runtime[file]);
-  assert.throws(()=>assertGlyphAndMotion(changed,authority));
- }
+ assertProductionR3(runtime);
+ for(const [file,before,after] of [
+  ['core/prompt-surface-layout.js','intrinsic=328','intrinsic=312'],['core/prompt-surface-layout.js','x:14.75','x:15'],['core/prompt-surface-layout.js','boardVisible?-5.25','boardVisible?-5'],
+  ['content/prompt-surface.js','#93a2be','#ff0000'],['content/prompt-surface.js','--speed:120ms','--speed:240ms'],['content/prompt-surface.js','--speed:80ms','--speed:180ms'],['content/prompt-surface.js','--rear-edge-alpha:.26','--rear-edge-alpha:.38'],['content/prompt-surface.js',"['front','.2']","['front','.8']"],
+  ['ui/prompt-surface.css','margin:7px 0;padding:0 12px','margin:0;padding:7px 12px'],['ui/prompt-surface.css','padding:2px 55px 0 15px','padding:2px 12px 0 15px'],['ui/prompt-surface.css','right:48px','right:36px'],
+  ['ui/prompt-surface.js',"setTimeout(()=>tell(''),480)","setTimeout(()=>tell(''),1800)"]
+ ]){const changed={...runtime,[file]:runtime[file].replaceAll(before,after)};assert.notEqual(changed[file],runtime[file]);assert.throws(()=>assertProductionR3(changed));}
 });
 
 for(const theme of ['light','dark'])test('actual '+theme+' entry and candidate colors cannot hide behind correct board root tokens',()=>{

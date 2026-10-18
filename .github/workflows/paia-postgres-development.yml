@@ -62,7 +62,7 @@ jobs:
           const pool = new Pool(disposablePostgresConfig(process.env.PAIA_LEDGER_TEST_DATABASE_URL, process.env.PAIA_LEDGER_TEST_DISPOSABLE));
           try {
             const version = (await pool.query('SHOW server_version')).rows[0].server_version;
-            await writeFile('evidence/identity.json', JSON.stringify({head: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, serverVersion: version, schemaVersion: 1, syntheticDataOnly: true, providerDispatch: false}, null, 2));
+            await writeFile('evidence/identity.json', JSON.stringify({head: process.env.GITHUB_SHA, runId: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, serverVersion: version, schemaVersion: 1, syntheticDataOnly: true, providerDispatch: false, providerTransport: 'synthetic-https-intercept'}, null, 2));
           } finally { await pool.end(); }
           JS
       - name: Protocol and failure-injection tests
@@ -101,6 +101,18 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node tests/run-client-declaration-postgres-tests.mjs 2>&1 | tee evidence/declaration-postgres.tap
+      - name: Once-send provider owner and bounded decoder protocols
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node --test --test-reporter=tap tests/provider-evidence.test.mjs tests/provider-response.test.mjs tests/provider-runner.test.mjs 2>&1 | tee evidence/provider-protocol.tap
+      - name: Actual provider claim and original-ledger concurrency
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          node tests/run-provider-postgres-tests.mjs 2>&1 | tee evidence/provider-postgres.tap
       - name: Retain exact-head development test evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -4,8 +4,10 @@ This slice implements a bounded Vercel Node Web Standard HTTP entry and composes
 actual signed-identity verification, actual PostgreSQL authority-row locks, and
 the existing `BudgetWindowReservation` / `AtomicReservationLedger`. It does not
 change that sole financial accounting owner or the extension/domain owners.
-There is no provider transport, issuer, subscription backend, permission bridge,
-production resource, deployment, approved spending amount, or configured root.
+The authenticated client declaration bridge is now implemented in
+[CLIENT-DECLARATIONS.md](CLIENT-DECLARATIONS.md). Provider dispatch, actual issuer
+and subscription integration, production resources, deployment, an approved
+spending amount and configured roots remain unestablished.
 
 The checked-in `api/reservations.mjs` exports `fetch(Request) -> Response` and is
 closed with `SERVICE_UNCONFIGURED` by default. The source-only bootstrap in
@@ -66,11 +68,14 @@ Its metadata rows must be maintained by independently qualified owners:
   remains authoritative; these are not facts copied from client JSON.
 - `request_authority`: an exact complete original request, its canonical binding
   hash, current content/consent generation, authorization and at most 60-second
-  validity interval. Only a qualified original-owner consent/content bridge can
-  publish this grant. It must coordinate upstream revocation/current revisions
-  with these actual service-authority rows. A cached extension assertion, a
-  stale async read or an eventual-consistency mirror does not qualify. Such a
-  bridge is NOT implemented here; without it there must be no authorized rows.
+  validity interval. The authenticated declaration publisher now binds the
+  original client content owner to this row, with its final current-content
+  fence and immutable operation/expiry. Client/domain owners remain responsible
+  for local body permission and currentness; the server independently verifies
+  signed identity, current security state and financial authority. This is not
+  server attestation of local body facts. Local invalidation is immediate; remote
+  revocation takes effect at the acknowledged server transaction. Offline changes
+  cannot instantly revoke remote state. No row is seeded by configuration.
 - `operation_evidence`: immutable body-free provider-runner/reconciler facts,
   bound to exact request hash and operation; settlement also binds the receipt
   ID and the original complete metadata evidence. Only an independently
@@ -193,8 +198,10 @@ DB-time refusal, actual COMMIT plus lost acknowledgement, append-only bound
 server events/settlement, cancel-vs-event insertion, and least privilege tests.
 It runs separately from the original native suite and refuses existing schema.
 No local real database or broad/full run was performed for this slice. Native
-results, independent review, deployment, actual publisher/bridge/issuer/profile,
-Qwen usage/retention/quality and commercial approval all remain separate gates.
+results for this initial slice were separate at that checkpoint. Subsequent
+authenticated declaration implementation and actual disposable PostgreSQL
+evidence are recorded in CLIENT-DECLARATIONS.md. Deployment, actual issuer/profile,
+Qwen usage/retention/quality and commercial approval remain separate gates.
 
 Primary references: [Vercel Node Web Standard entry](https://vercel.com/docs/functions/runtimes/node-js),
 [PostgreSQL locking](https://www.postgresql.org/docs/17/explicit-locking.html),

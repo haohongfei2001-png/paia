@@ -1,0 +1,21 @@
+{
+  "id": "PAIA-FLOAT-UI-1.2-R3",
+  "browser": "144.0.7559.96",
+  "scope": "Offline prototype only; native extension not verified",
+  "regression": {
+    "passed": 30,
+    "failed": 0,
+    "sha256": "bdc891f6aa155e9ee3e12fe80681b66a055699c9ead1f8b41e0c54beb9991fcd"
+  },
+  "fusion": {
+    "passed": 19,
+    "failed": 0,
+    "blocked": 1,
+    "sha256": "c67f3d20eef020a42965bab186dc976260b96dc1f7318b94df9a1c9233eea136"
+  },
+  "blocked_reason": "Managed Chromium prohibits file:// navigation. Exact HTML bytes rendered and exercised via page.set_content; no policy bypass or successful direct-open claim.",
+  "runtime_source_unchanged_between_initial_and_final_fusion_reports": true,
+  "production_runtime_changed": false,
+  "canonical_plans_changed": false,
+  "installed_or_deployed": false
+}

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
-const [hostSource,layoutSource,uiSource,css,html,tokenSource]=await Promise.all(['content/prompt-surface.js','core/prompt-surface-layout.js','ui/prompt-surface.js','ui/prompt-surface.css','ui/prompt-surface.html','docs/consumer-product-v1/design/narrow-input-board-v4/approved-2026-10-18/assets/PAIA_视觉参数.json'].map(read));
+const [hostSource,layoutSource,uiSource,css,html,tokenSource]=await Promise.all(['content/prompt-surface.js','core/prompt-surface-layout.js','ui/prompt-surface.js','ui/prompt-surface.css','ui/prompt-surface.html','docs/consumer-product-v1/design/narrow-input-board-v4/fusion-r3-2026-10-18/tokens-r1.json'].map(read));
 const tokens=JSON.parse(tokenSource),nonce='11111111-1111-4111-8111-111111111111',tick=()=>new Promise(setImmediate);
 
 // Production host + production layout in a small DOM. This proves wiring and
@@ -50,7 +50,7 @@ test('trusted same-point open/close keeps its target and waits for the original 
   const f=await fixture({width}),anchor=f.host.getBoundingClientRect();assert.equal(anchor.right,width-40-(width<=530?0:4));
   assert.equal(f.orb.getAttribute('aria-expanded'),'false');f.click();await f.flush();const frame=f.frame;
   assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.getAttribute('aria-expanded'),'true');assert.equal(f.orb.getAttribute('aria-label'),'收起常用表达');
-  const card=frame.getBoundingClientRect();assert.equal(card.width,Math.min(336,anchor.right-36));assert.equal(card.height,312);assert.equal(card.bottom,anchor.top+24);assert.equal(card.right,anchor.left+12);
+  const card=frame.getBoundingClientRect();assert.equal(card.width,Math.min(336,anchor.right));assert.equal(card.height,328);assert.equal(card.bottom,anchor.bottom);assert.equal(card.right,anchor.right);
   f.click();await f.flush();assert.equal(f.frame,frame);assert.deepEqual(f.sent.filter(x=>x.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE'),[{type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce}]);
   f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:'stale'});f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce},{id:'foreign'});assert.equal(f.frame,frame);
   f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});await f.flush();assert.equal(f.frame,undefined);assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.getAttribute('aria-expanded'),'false');assert.equal(f.focus,f.orb);
@@ -59,17 +59,17 @@ test('trusted same-point open/close keeps its target and waits for the original 
 });
 
 test('capsule and board preserve the same private frame, nonce and logical close focus target',async()=>{
- const f=await fixture({collapsedForm:'capsule'}),frame=f.frame,anchor=f.host.getBoundingClientRect();assert.equal(f.orb.hidden,false);assert.equal(frame.getBoundingClientRect().width,224);assert.equal(frame.getBoundingClientRect().height,44);assert.equal(frame.getBoundingClientRect().right,anchor.left);
+ const f=await fixture({collapsedForm:'capsule'}),frame=f.frame,anchor=f.host.getBoundingClientRect();assert.equal(f.orb.hidden,false);assert.equal(frame.getBoundingClientRect().width,336);assert.equal(frame.getBoundingClientRect().height,328);assert.equal(frame.getBoundingClientRect().right,anchor.right);
  f.receive({type:'PAIA_PROMPT_SURFACE_FORM',nonce,form:'board'});await f.flush();assert.equal(f.frame,frame);assert.equal(f.orb.hidden,false);assert.equal(f.orb.getAttribute('aria-expanded'),'true');assert.deepEqual(f.host.getBoundingClientRect(),anchor);
- f.click();await f.flush();assert.equal(f.frame,frame);f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});await f.flush();assert.equal(f.frame,frame);assert.equal(f.orb.hidden,false);assert.equal(f.orb.getAttribute('aria-expanded'),'false');assert.equal(f.focus,f.orb);assert.equal(frame.getBoundingClientRect().width,224);assert.equal(frame.src,'chrome-extension://ext/ui/prompt-surface.html#'+nonce);
- assert.match(hostSource,/:host\(\[data-expanded=false\]\) iframe\{border:0/);assert.match(css,/#capsule\{[^}]+box-shadow:inset 0 0 0 1px var\(--line\)/,'capsule owns only its private body stroke');assert.doesNotMatch(uiSource,/getElementById\('capsule-expand'\)/);
+ f.click();await f.flush();assert.equal(f.frame,frame);f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});await f.flush();assert.equal(f.frame,frame);assert.equal(f.orb.hidden,false);assert.equal(f.orb.getAttribute('aria-expanded'),'false');assert.equal(f.focus,f.orb);assert.equal(frame.getBoundingClientRect().width,336);assert.equal(frame.src,'chrome-extension://ext/ui/prompt-surface.html#'+nonce);
+ assert.match(frame.getAttribute('style'),/clip-path:inset\(280px 0 0 64px round 24px\)/);assert.match(css,/#capsule\{[^}]+background:transparent/,'capsule content shares the one host skin');assert.doesNotMatch(uiSource,/getElementById\('capsule-expand'\)/);
  f.sandbox.PAIAPromptSurface.dispose();
 });
 
 test('ResizeObserver follows the complete composer and growth moves the same frame without persistence',async()=>{
  const f=await fixture();f.click();await f.flush();const frame=f.frame,before=f.placement(),writes=f.sent.length;
  assert.equal(f.resizeObservers.length,1);assert.deepEqual(f.resizeObservers[0].targets,[f.form]);assert.ok(!f.resizeObservers[0].targets.includes(f.composer));
- f.resize(550);await f.flush();const after=f.placement();assert.equal(before.orb.y-after.orb.y,150);assert.equal(before.card.y-after.card.y,150);assert.equal(after.card.h,312);assert.equal(f.frame,frame);assert.equal(f.sent.length,writes);
+ f.resize(550);await f.flush();const after=f.placement();assert.equal(before.orb.y-after.orb.y,150);assert.equal(before.card.y-after.card.y,150);assert.equal(after.card.h,328);assert.equal(f.frame,frame);assert.equal(f.sent.length,writes);
  const oldForm=f.form;f.replaceForm();await f.flush();assert.notEqual(f.form,oldForm);assert.deepEqual(f.resizeObservers[0].targets,[f.form]);f.sandbox.PAIAPromptSurface.dispose();assert.deepEqual(f.resizeObservers[0].targets,[]);
 });
 
@@ -86,12 +86,13 @@ test('one static accessible double-card component replaces both old B glyphs wit
  const f=await fixture(),svg=f.nodes.find(node=>node.tag==='svg'),cards=f.nodes.filter(node=>node.tag==='rect');
  assert.equal(cards.length,2);assert.equal(svg.getAttribute('viewBox'),'0 0 48 48');assert.equal(svg.getAttribute('width'),'48');assert.equal(svg.getAttribute('height'),'48');assert.equal(svg.getAttribute('aria-hidden'),'true');assert.equal(svg.getAttribute('focusable'),'false');
  assert.doesNotMatch(html,/capsule-expand|<svg|<path|capsule-cue/);assert.doesNotMatch(hostSource,/PAIA_PROMPT_QUERY|textContent=.*item|innerHTML|postMessage|localStorage|sessionStorage/);
- const junction=f.nodes.find(node=>node.getAttribute('class')==='junction');assert.equal(junction.getAttribute('aria-hidden'),'true');assert.match(hostSource,/\.junction\{[^}]*pointer-events:none/);f.sandbox.PAIAPromptSurface.dispose();
+ const skin=f.nodes.find(node=>node.className==='surface-skin');assert.equal(skin.getAttribute('aria-hidden'),'true');assert.match(hostSource,/\.surface-skin\{[^}]*pointer-events:none/);assert.equal(f.nodes.some(node=>node.getAttribute('class')==='junction'),false);f.sandbox.PAIAPromptSurface.dispose();
 });
 
-test('scoped themes preserve readable roles with restrained translucent cards and stationary shell motion',()=>{
- for(const theme of ['light','dark']){const t=tokens[theme];for(const role of ['surface','text','muted','border','hover','active','inserted_surface','inserted_text'])assert.ok(css.includes(t[role]),theme+' '+role);assert.ok(hostSource.includes(t.brand));}
- assert.match(css,/font:14px\/1\.5714285714 Arial,"PingFang SC","Microsoft YaHei",sans-serif/);assert.match(css,/header span\{font-size:12px/);assert.match(hostSource,/border-radius:\$\{open\?18:23\}px/);assert.doesNotMatch(hostSource,/translateY\(/);assert.match(hostSource,/duration:80/);assert.match(hostSource,/transition:transform 120ms ease-out/);assert.match(hostSource,/transition-delay:650ms/);assert.match(hostSource,/animation:appear \.12s/);assert.match(hostSource,/@media\(prefers-reduced-motion:reduce\)/);assert.match(css,/@media\(forced-colors:active\)/);assert.doesNotMatch(hostSource+css,/radial-gradient|linear-gradient|backdrop-filter/);
+test('R3 scoped material retains exact light/dark roles and stationary matched clipping',()=>{
+ for(const value of ['#fff','#292b31','#6d7480','#dce0e7','#edf0f3','#f3f5f8','#e9edf3','#2b2c30','#e9ebf0','#a5aab4','#454850','#3b3d43'])assert.ok(css.includes(value),value);
+ for(const value of ['#93a2be','#8192b1','#899bb9','#667c9f','#c1cee5','#a0b3d2','#d4dff2','#9eb4d6'])assert.ok(hostSource.includes(value),value);
+ assert.match(css,/14px\/1\.55 -apple-system/);assert.match(css,/header span\{font-size:12px/);assert.match(hostSource,/18px 18px 24px 18px/);assert.doesNotMatch(hostSource,/translateY\(/);assert.match(hostSource,/duration:80/);assert.match(hostSource,/--speed:120ms/);assert.match(hostSource,/transition:clip-path var\(--speed\) var\(--ease\)/);assert.doesNotMatch(hostSource,/transition-delay|\.hint/);assert.match(hostSource,/@media\(prefers-reduced-motion:reduce\)/);assert.match(css,/@media\(forced-colors:active\)/);assert.doesNotMatch(hostSource+css,/radial-gradient|linear-gradient|backdrop-filter/);
 });
 
 test('verified insertion tints only its original row or capsule and keeps unconfirmed outcomes unchanged',async()=>{
@@ -153,18 +154,18 @@ test('double-card production geometry keeps one 48px circle and fixed foreground
  for(const form of ['capsule','board','capsule','orb']){
   f.receive({type:'PAIA_PROMPT_SURFACE_FORM',nonce,form});await f.flush();
   assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.hidden,false);
-  for(const card of cards)assert.deepEqual(['x','y','width','height','rx'].map(key=>card.getAttribute(key)),['15','17','21','14','3']);
+  for(const card of cards)assert.deepEqual(['x','y','width','height','rx'].map(key=>card.getAttribute(key)),['14.75','17','21','14','3.25']);
   assert.equal(front.getAttribute('transform'),undefined);
-  assert.equal(rear.getAttribute('transform'),form==='board'?'translate(-5 -1.5)':form==='capsule'?'translate(-4.5 0)':'translate(-2 0)');
+  assert.equal(rear.getAttribute('transform'),form==='board'?'translate(-5.25 -1.5)':form==='capsule'?'translate(-5 0)':'translate(-2.5 0)');
  }
  f.sandbox.PAIAPromptSurface.dispose();
 });
 test('double-card capsule uses a separate private body and leaves close focus on the stable host circle',async()=>{
  const f=await fixture({collapsedForm:'capsule'}),frame=f.frame,anchor=f.host.getBoundingClientRect();
- assert.equal(f.orb.hidden,false);assert.equal(frame.getBoundingClientRect().right,anchor.left);assert.equal(frame.getBoundingClientRect().top,anchor.top+2);
+ assert.equal(f.orb.hidden,false);assert.equal(frame.getBoundingClientRect().right,anchor.right);assert.equal(frame.getBoundingClientRect().bottom,anchor.bottom);
  f.click();await f.flush();assert.equal(f.frame,frame);assert.equal(f.sent.at(-1).type,'PAIA_PROMPT_SURFACE_REQUEST_CLOSE');
  f.receive({type:'PAIA_PROMPT_SURFACE_FORM',nonce,form:'board'});await f.flush();
- const board=frame.getBoundingClientRect();assert.equal(board.bottom,anchor.top+24);assert.equal(board.right,anchor.left+12);assert.equal(board.height,312);
+ const board=frame.getBoundingClientRect();assert.equal(board.bottom,anchor.bottom);assert.equal(board.right,anchor.right);assert.equal(board.height,328);
  f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});await f.flush();assert.equal(f.frame,frame);assert.equal(f.focus,f.orb);assert.equal(f.orb.hidden,false);assert.deepEqual(f.host.getBoundingClientRect(),anchor);
  f.sandbox.PAIAPromptSurface.dispose();
 });
@@ -199,41 +200,31 @@ test('double-card shape changes suppress repeated entry keys and second-click to
  for(const key of ['Enter',' '])f.orb.handlers.get('keydown')({isTrusted:true,repeat:true,key,preventDefault(){prevented++;}});
  f.orb.handlers.get('click')({isTrusted:true,detail:2});assert.equal(prevented,2);assert.equal(f.sent.filter(x=>x.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE').length,0);
  f.click();await f.flush();assert.equal(f.sent.filter(x=>x.type==='PAIA_PROMPT_SURFACE_REQUEST_CLOSE').length,1);assert.deepEqual(f.host.getBoundingClientRect(),anchor);
- assert.match(css,/#capsule-use\{[^}]*margin-right:8px/,'the private capsule insertion target stops before the inert joining neck');
- assert.match(css,/#card\{position:relative;padding-right:12px\}/);assert.match(css,/#surface-tools\{position:absolute;inset:44px 12px 0 0/,'the whole internal tools view shares the circle exclusion strip');
+ assert.match(css,/#capsule-use\{[^}]*right:48px/,'the private capsule insertion target stops before the full fixed toggle');
+ assert.match(css,/#card\{position:relative;padding:1px/);assert.match(css,/header\{height:48px;min-height:48px;flex:0 0 48px;padding:2px 55px 0 15px/,'the relocated toolbar reserves the complete shared corner');
  assert.match(css,/#status\[data-quiet=true\][^}]+clip-path:inset\(50%\)/);assert.match(css,/#status:not\(:empty\)\{position:relative/,'persistent actionable status stays in flex flow');
  f.sandbox.PAIAPromptSurface.dispose();
 });
 
-// Actual 2fe8 native comparison against the approved 1.2 image identified the
-// absent row rules, heavy shadow and inner circle arc. These are finite code
-// contracts; the following native screenshots still establish actual paint.
-test('1.2 material calibration restores quiet rules without replacing verified insertion feedback',()=>{
- assert.match(css,/\.row:not\(:last-child\):not\(\[data-inserted=true\]\):after\{display:block;background:var\(--row-rule,rgba\(37,37,37,\.055\)\)\}/);
- assert.match(css,/--row-rule:rgba\(237,237,237,\.065\)/);assert.match(css,/--row-rule:CanvasText/);
- assert.match(css,/\.row:last-child:after\{display:none\}/);assert.match(css,/\.row\[data-inserted=true\]:after,#capsule-use\[data-inserted=true\]:after\{content:"✓"/);
- assert.doesNotMatch(css,/\.row:after\{display:none\}/);
- assert.match(hostSource,/box-shadow:0 8px 24px -12px rgba\(0,0,0,\.12\), 0 2px 7px -4px rgba\(0,0,0,\.06\)/);
- assert.match(hostSource,/box-shadow:0 10px 28px -12px #0004, 0 2px 7px -4px #0002/);
+// R3 explicitly replaces the old neck/inner-arc and material oracles. The
+// earlier1.2 native evidence remains historical; these are production-unit checks.
+test('R3 material uses exact quiet rules without replacing verified insertion feedback',()=>{
+ assert.match(css,/background:var\(--row-rule\);left:4px;right:4px/);assert.match(css,/--row-rule:#edf0f3/);assert.match(css,/--row-rule:#3b3d43/);assert.match(css,/--row-rule:CanvasText/);
+ assert.match(css,/\.row:last-child:after\{display:none\}/);assert.match(css,/\.row\[data-inserted=true\]:after,#capsule-use\[data-inserted=true\]:after\{content:"✓"/);assert.doesNotMatch(css,/\.row:after\{display:none\}/);
+ assert.match(hostSource,/--panel-shadow:0 2px 5px #17253e04,0 10px 28px #17253e0c/);assert.match(hostSource,/--panel-shadow:0 2px 5px #00000012,0 12px 32px #00000028/);
 });
-test('1.2 joined contour removes only the inward arc and keeps both original card rectangles',async()=>{
- const f=await fixture(),anchor=f.host.getBoundingClientRect(),edge=f.nodes.find(n=>n.getAttribute('class')==='anchor-edge'),bridge=f.nodes.find(n=>n.getAttribute('class')==='join-edge');
- assert.equal(edge.getAttribute('d'),'M24 .5 A23.5 23.5 0 1 1 2.29 32.99');
- assert.equal(bridge.getAttribute('d'),'M11.5 -12 C11.5 -5.37 17.37 .5 24 .5 M-18 23.5 H-12 C-4 23.5 -.77 25.6 2.29 32.99');
- assert.match(hostSource,/:host\(\[data-surface-form=board\]\[data-joined=true\]\) button\{border-color:transparent;box-shadow:none\}/);
- assert.match(hostSource,/\.anchor-edge,\.join-edge\{fill:none;stroke:var\(--line\);stroke-width:1;pointer-events:none\}/);
- assert.match(hostSource,/\.anchor-edge,\.join-edge\{stroke:CanvasText\}/);
- assert.equal(f.nodes.filter(n=>n.tag==='rect').length,2);f.click();await f.flush();assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.getAttribute('aria-expanded'),'true');f.sandbox.PAIAPromptSurface.dispose();
+test('R3 one skin replaces the neck and independent circle rim while preserving both cards',async()=>{
+ const f=await fixture(),anchor=f.host.getBoundingClientRect(),skin=f.nodes.find(n=>n.className==='surface-skin');
+ assert.equal(f.nodes.some(n=>['anchor-edge','join-edge','junction'].includes(n.getAttribute('class'))),false);
+ assert.match(skin.getAttribute('style'),/width:48px;height:48px;border-radius:24px/);
+ assert.equal(f.nodes.filter(n=>n.tag==='rect').length,2);f.click();await f.flush();assert.deepEqual(f.host.getBoundingClientRect(),anchor);assert.equal(f.orb.getAttribute('aria-expanded'),'true');assert.match(skin.getAttribute('style'),/width:336px;height:328px;border-radius:18px 18px 24px 18px/);assert.match(f.frame.getAttribute('style'),/clip-path:inset\(0px 0 0 0px round 18px 18px 24px 18px\)/);f.sandbox.PAIAPromptSurface.dispose();
 });
-
-test('joined contour yields to a complete circle when the open board has insufficient room',async()=>{
- const f=await fixture();f.click();await f.flush();assert.equal(f.host.dataset.joined,'true');
- f.resize(140);await f.flush();assert.equal(f.host.dataset.surfaceForm,'board');assert.equal(f.host.dataset.joined,'false');assert.equal(f.frame.hidden,true);assert.equal(f.orb.hidden,false);
- assert.match(hostSource,/:host\(\[data-surface-form=board\]\[data-joined=true\]\) \.anchor-edge\{display:block\}/);
- assert.doesNotMatch(hostSource,/:host\(\[data-surface-form=board\]\) (?:button\{border-color:transparent|\.anchor-edge\{display:block)/);
- f.resize(700);await f.flush();assert.equal(f.host.dataset.joined,'true');f.sandbox.PAIAPromptSurface.dispose();
+test('R3 shared skin yields to a complete circle when the logical open board has insufficient room',async()=>{
+ const f=await fixture();f.click();await f.flush();assert.equal(f.host.dataset.surfaceForm,'board');const skin=f.nodes.find(n=>n.className==='surface-skin');
+ f.resize(140);await f.flush();assert.equal(f.host.dataset.surfaceForm,'orb');assert.equal(f.orb.getAttribute('aria-expanded'),'true');assert.equal(f.frame.hidden,true);assert.equal(f.orb.hidden,false);assert.match(skin.getAttribute('style'),/width:48px;height:48px;border-radius:24px/);
+ f.resize(700);await f.flush();assert.equal(f.host.dataset.surfaceForm,'board');assert.equal(f.frame.hidden,false);f.sandbox.PAIAPromptSurface.dispose();
 });
 test('forced colors separator wins over both explicit and media-derived dark theme selectors',()=>{
  const forced='@media(forced-colors:active){:root,:root[data-paia-theme],:root:not([data-paia-theme]){--row-rule:CanvasText}}';
- assert.ok(css.includes(forced));assert.ok(css.lastIndexOf(forced)>css.lastIndexOf('--row-rule:rgba(237,237,237,.065)'));
+ assert.ok(css.includes(forced));assert.ok(css.lastIndexOf(forced)>css.lastIndexOf('--row-rule:#3b3d43'));
 });

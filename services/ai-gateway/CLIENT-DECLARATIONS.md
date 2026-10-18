@@ -112,3 +112,24 @@ Focused synthetic tests use actual original owners, signed RSA proofs and pg
 Pool composition with a no-network protocol transport. The source-only live
 PostgreSQL cases are separate; local synthetic success is not real PostgreSQL,
 live service, TLS deployment, provider, Full or installed-product qualification.
+
+## Recorded development evidence — 2026-10-18
+
+Independent review of candidate `3f8376eedddde1a1ea07a295d19e632486ac552d`
+closed the final-bind revocation race and client-transport extra-field disclosure
+found by real negative controls. The 134 independent checks and 198 author checks
+overlap and are not a complete-suite total.
+
+[Run39101005277](https://github.com/haohongfei2001-png/paia/actions/runs/39101005277),
+attempt1, uses exact `be2f03bffd7f56b0fa9eb673929ab1bb2cce18d8` and PostgreSQL17.11.
+All8 declaration database cases pass with zero failures/skips: independent
+publisher connections and reservation role; publish/revoke races and revoke-first;
+changed declaration/cross-principal refusal; expired terminal tombstone; lost real
+COMMIT acknowledgement; least-privilege refusal; separated role requirements;
+and final SQL-clock expiry. The 72 declaration protocol checks and existing
+17 protocol/6 database/76 service protocol/8 service database checks also pass
+separately. Artifact12126940352 has SHA256
+`9a9826ca428debeb16067d14007fd17925aee3b9bbd00e52cff0c81f07fd0206`.
+The identity receipt records syntheticDataOnly true and providerDispatch false.
+This is real disposable PostgreSQL evidence, not production activation, hosted
+TLS qualification, paid provider execution or whole-product acceptance.
