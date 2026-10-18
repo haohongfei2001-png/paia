@@ -1,0 +1,90 @@
+{
+  "scope": "Actual Chromium renders of the offline R1 component, not installed extension screenshots",
+  "git_assets": "Source, six vector SVGs, scripts, geometry and verification reports are checked in. Raster screenshots and generated self-contained HTML/inspection sheet are delivered in the review archive and can be reproduced using the checked-in scripts. No compressed raster preview is checked in.",
+  "reproduce": "python verify.py; python export_assets.py (icon sheet: render generated icon-review.html at 1000x470 CSS/DPR2)",
+  "screenshots": [
+    {
+      "path": "editor-dark.png",
+      "bytes": 121407,
+      "sha256": "675d329bef7c1d6f16a72c62f3338a0fa35bf24493f646b6afb315bfb1692515",
+      "pixels": [
+        1440,
+        960
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "icon-size-review.png",
+      "bytes": 133438,
+      "sha256": "bda652a64ec7163706a8a6e4add29e243b3c4f199fc8794d60537fd7d2174878",
+      "pixels": [
+        2000,
+        964
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "long-conversation-light.png",
+      "bytes": 127230,
+      "sha256": "463781ed3b8371c257fc95667c92e0064b2768adbc2d79670e7777ae2d9831c2",
+      "pixels": [
+        1440,
+        960
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "narrow-light.png",
+      "bytes": 52965,
+      "sha256": "12662284806492f08dc3ef47a1ec4b7a9bf9250407aeffda11df1ac16b71fdb5",
+      "pixels": [
+        390,
+        844
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "three-states-dark.png",
+      "bytes": 93739,
+      "sha256": "fd12da9f6d5eb5a94b4aaf00c540f1aa1d63592901b2debcf9c67a696d998429",
+      "pixels": [
+        1440,
+        999
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "three-states-light-dpr2.png",
+      "bytes": 238327,
+      "sha256": "72a9e4385e8840087f9ad77fd41753bf09f2c2a389e323d288cc43630f90a32f",
+      "pixels": [
+        2880,
+        1998
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    },
+    {
+      "path": "three-states-light.png",
+      "bytes": 93934,
+      "sha256": "8edf91a14f52b7cd3d50dfe308a3908ef3b65c9e2205571c4ec6ca1cf59603ba",
+      "pixels": [
+        1440,
+        999
+      ],
+      "checked_into_git": false,
+      "included_in_delivered_archive": true
+    }
+  ],
+  "single_file": {
+    "path": "../PAIA_Float_R1.html",
+    "sha256": "e447ad490e60af6e1b589e0533e3660e4220eecde404ec84082d730fb6a02b0c",
+    "checked_into_git": false,
+    "included_in_delivered_archive": true
+  }
+}
