@@ -1,4 +1,4 @@
-import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches} from './context-authored-entry.js';
+import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from './context-authored-entry.js';
 import {ArchiveError} from './constants.js';
 import {validContextTemporal} from './context-temporal.js';
 import {hashText} from './dedupe.js';
@@ -56,7 +56,7 @@ export const contextLineageSourceIds=item=>[...new Set([item.maintenance.provena
 // delivery of the same qualified facts. Renames/layout/access epochs and
 // revisions of unselected fields do not make unchanged selected text novel.
 export function contextEvidenceIdentity(p){
- return JSON.stringify(p.evidence.map(e=>e.kind==='humanEntry'?{kind:'humanEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,bodyFieldRevision:e.bodyFieldRevision,bodyOperationId:e.bodyOperationId,fieldDigests:e.fieldDigests,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:{topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()}).sort((a,b)=>contextEvidenceKey(a).localeCompare(contextEvidenceKey(b))||a.topicId.localeCompare(b.topicId)));
+ return JSON.stringify(p.evidence.map(e=>e.kind==='humanEntry'?{kind:'humanEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,...(e.fieldRevisions?{selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds}:{bodyFieldRevision:e.bodyFieldRevision,bodyOperationId:e.bodyOperationId}),fieldDigests:e.fieldDigests,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:{topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()}).sort((a,b)=>contextEvidenceKey(a).localeCompare(contextEvidenceKey(b))||a.topicId.localeCompare(b.topicId)));
 }
 export function contextLineageReady(store){return !!store?.repository?.db&&!!store.controlCache&&typeof store.readableEntry==='function'&&typeof store.isFiltered==='function';}
 export async function contextLineageRead(store,fn,stores,database=store?.repository?.db){
@@ -73,7 +73,7 @@ export async function fenceContextLineage(store,captured,{transaction=null,rowSe
   const now=await contextLineageAdmission(store,t,captured.epoch);
   need(now.authority===captured.authority&&now.gate===captured.gate);
   if(rowSerialized!==null)need(JSON.stringify(await t.get('meta','context-cards:v1'))===rowSerialized);
-  for(const [entryId,held]of authoredCaptures.get(captured)?.rows||[]){need(same(await readAuthoredEntryContext(store,t,entryId),held.mapping));need((await t.get('thoughts',entryId))?.thoughtText===held.body);}
+  for(const [entryId,held]of authoredCaptures.get(captured)?.rows||[]){need(same(await readAuthoredEntryContext(store,t,entryId),held.mapping));need(same(authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(held.mapping)),held.fields));}
  };
  need(contextLineageReady(store));return transaction?fence(transaction):contextLineageRead(store,fence,authoredCaptures.has(captured)?undefined:['meta'],captured.database||store.repository.db);
 }
@@ -120,8 +120,10 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
   }
   for(const entryId of entryIds){
    const requested=specs.filter(s=>s.kind==='humanEntry'&&s.entryId===entryId);if(!requested.some(s=>scopes.get(s.topicId)?.scope.entryIds.includes(entryId)))continue;
-   const mapping=await readAuthoredEntryContext(store,t,entryId);if(!mapping)continue;
-   const body=(await t.get('thoughts',entryId))?.thoughtText;need(typeof body==='string');workBudget.hashBytes+=new TextEncoder().encode(body).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');authored.set(entryId,{mapping,body,bodyDigest:null});
+   // Canonical qualification is not permission to materialize newly added
+   // fields. Match the verifier-approved evidence selection before any hash.
+   const mapping=await readAuthoredEntryContext(store,t,entryId);if(!mapping||!requested.some(spec=>authoredContextEvidenceMatches(spec,mapping)))continue;
+   const fields=authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(mapping));for(const text of Object.values(fields)){need(typeof text==='string');workBudget.hashBytes+=new TextEncoder().encode(text).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}authored.set(entryId,{mapping,fields,fieldDigests:{}});
   }
   return {rows,authored};
  },undefined,database);
@@ -129,13 +131,13 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
  try{
   // WebCrypto runs only after the material transaction has definitively closed.
   for(const row of material.rows.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);row.text[field]='';need(!workBudget.signal?.aborted);}
-  for(const held of material.authored.values()){need(!workBudget.signal?.aborted);held.bodyDigest=await hashText(held.body);need(!workBudget.signal?.aborted);}
+  for(const held of material.authored.values())for(const [field,text]of Object.entries(held.fields)){need(!workBudget.signal?.aborted);held.fieldDigests[field]=await hashText(text);need(!workBudget.signal?.aborted);}
   await fenceContextLineage(store,captured);
   const results=groups.map(group=>{
    const evidence=[];let eligible=group.epoch===captured.epoch;
    for(const spec of group.evidence){
     const scope=scopes.get(spec.topicId);
-    if(spec.kind==='humanEntry'){const held=material.authored.get(spec.entryId);if(!scope||!scope.scope.entryIds.includes(spec.entryId)||!sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)||!held||!authoredContextEvidenceMatches(spec,held.mapping)||spec.fieldDigests.body!==held.bodyDigest){eligible=false;continue;}evidence.push(structuredClone(spec));continue;}
+    if(spec.kind==='humanEntry'){const held=material.authored.get(spec.entryId);if(!scope||!scope.scope.entryIds.includes(spec.entryId)||!sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)||!held||!authoredContextEvidenceMatches(spec,held.mapping)||!same(spec.fieldDigests,held.fieldDigests)){eligible=false;continue;}evidence.push(structuredClone(spec));continue;}
     const row=material.rows.get(spec.inputId);
     const valid=scope&&scope.scope.inputIds.includes(spec.inputId)&&sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)&&row&&row.removalSequence===spec.expectedRemovalSequence&&spec.selectedFields.every(f=>row.hashes[f]===spec.fieldDigests[f])&&(!Object.hasOwn(spec,'sourceRecordIds')||same(spec.sourceRecordIds,row.sourceRecordIds)&&same(spec.sourceIdentityTokens,row.sourceIdentityTokens));
     if(!valid){eligible=false;continue;}

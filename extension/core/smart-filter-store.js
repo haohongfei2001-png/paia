@@ -1,3 +1,4 @@
+import {AIMaintenanceFilterOwner} from './ai-usage/ai-filter-owner.js';
 import {advanceArchiveYearIndex,archiveYearKey,archiveYearPrefix} from './archive-year-index.js';
 import {inputProjection} from './thought-evidence.js';
 import {qualifiedInputSearch,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
@@ -21,7 +22,8 @@ const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.cont
 export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
 
 export class SmartFilterStore extends IAStore {
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;}
+ #aiFilter;
+ constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);}
  write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -115,15 +117,18 @@ export class SmartFilterStore extends IAStore {
    for(const item of batch){const row=await t.get('filterInputs',item.row.id),b=(await t.get('blocks',item.row.id))?.value,meta=await t.get('inputStates',item.row.id);
     if(!row||!b||row.evaluationRevision!==item.row.evaluationRevision||meta?.contentRevision!==item.contentRevision)continue;
     const protectedInput=row.userEdited||row.filterOverride==='keep';Object.assign(row,protectedInput?{decision:'keep',reasonCode:'user_protected',...FILTER_VERSIONS}:item.decision);
-    row.failed=false;row.pendingKey=1;row.basedOnContentRevision=item.contentRevision;row.evaluatedAt=this.clock();row.decisionSequence=++state.decisionSequence;delete row.filteredKey;if(row.decision==='filter')row.filteredKey=[0,-row.decisionSequence,row.id];await t.put('filterInputs',row);processed++;
+    delete row.aiDecision;row.failed=false;row.pendingKey=1;row.basedOnContentRevision=item.contentRevision;row.evaluatedAt=this.clock();row.decisionSequence=++state.decisionSequence;delete row.filteredKey;if(row.decision==='filter')row.filteredKey=[0,-row.decisionSequence,row.id];await t.put('filterInputs',row);processed++;
    }
    await t.put('meta',state);return {processed};
   });
  }
+ prepareAIMaintenanceFilter(t,scope){return this.#aiFilter.prepare(t,scope);}
+ releaseAIMaintenanceFilter(handle){this.#aiFilter.release(handle);}
+ commitAIMaintenanceFilter(t,handle,decisions){return this.#aiFilter.commit(t,handle,decisions);}
  // Conservative Maintenance participation uses the existing transaction owner.
  // It never attributes a model response to the deterministic classifier and
  // never creates a human keep override. The Foundation records NO_CHANGE.
- async maintenanceFilterSnapshot(t,inputIds){
+ async maintenanceFilterSnapshot(t,inputIds,{contentBounds=false}={}){
   if(!Array.isArray(inputIds)||!inputIds.length||inputIds.length>20||new Set(inputIds).size!==inputIds.length||inputIds.some(id=>!idOK(id)))invalid();
   const state=await t.get('meta','smart-filter');
   if(state?.mode!=='light'||state.phase!=='active'||!Object.entries(FILTER_VERSIONS).every(([k,v])=>state[k]===v))throw new ArchiveError('UNAVAILABLE');
@@ -135,7 +140,7 @@ export class SmartFilterStore extends IAStore {
    const light=decideLight({text:p.body,...row});
    if(light.decision!=='uncertain'||!['context_insufficient','rule_no_match'].includes(light.reasonCode))throw new ArchiveError('STALE_BASE');
    for(const key of p.identities)if(await t.get('filterIntents',key))throw new ArchiveError('STALE_BASE');
-   items.push({inputId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,identities:p.identities,row});
+   items.push({inputId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,identities:p.identities,row,...(contentBounds?{bodyBytes:new TextEncoder().encode(p.body).length}:{})});
   }
   return {policyEpoch:state.policyEpoch,items};
  }
@@ -155,7 +160,7 @@ export class SmartFilterStore extends IAStore {
  }
  async updateProtectedFilterRow(t,b,reason,userEdited){
   const meta=await t.get('inputStates',b.id);const row=await t.get('filterInputs',b.id)||this.initialFilter(b,meta,true);
-  row.filterOverride='keep';row.userEdited||=userEdited;row.overrideReason=reason;row.overrideAt=this.clock();row.evaluationRevision++;row.failed=false;row.pendingKey=1;row.decision='keep';row.reasonCode='user_protected';delete row.filteredKey;await t.put('filterInputs',row);
+  delete row.aiDecision;row.filterOverride='keep';row.userEdited||=userEdited;row.overrideReason=reason;row.overrideAt=this.clock();row.evaluationRevision++;row.failed=false;row.pendingKey=1;row.decision='keep';row.reasonCode='user_protected';delete row.filteredKey;await t.put('filterInputs',row);
  }
  async keepInput(id){if(!idOK(id))throw new ArchiveError('INVALID_REQUEST');const journal=this.filterIntentJournal,prepared=journal?await journal.prepareKeep(this,id):null;try{return await this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b||b.excluded||b.branchStatus)invalid();await this.protect(t,b,'restored_from_filter',false,prepared);if(journal)await journal.commit(t,prepared);return {ok:true};});}finally{journal?.release(prepared);}}
  protectUserInput(id){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const b=(await t.get('blocks',id))?.value;if(!b)invalid();await this.protect(t,b,'user_edit',true);return {ok:true};});}
@@ -174,7 +179,8 @@ export class SmartFilterStore extends IAStore {
   if(b.excluded||b.branchStatus)return false;
   if((snapshot?.mode??state.mode)!=='light')return false;
   const row=await t.get('filterInputs',b.id),meta=await t.get('inputStates',b.id);
-  if(!validFilterDecision(row,meta)||snapshot&&row.decisionSequence>snapshot.sequence)return false;
+  if(!validFilterDecision(row,meta))return this.#aiFilter.hidden(t,b,row,meta,snapshot);
+  if(snapshot&&row.decisionSequence>snapshot.sequence)return false;
   for(const key of await sourceKeys(t,b))if(await t.get('filterIntents',key))return false;
   return true;
  }

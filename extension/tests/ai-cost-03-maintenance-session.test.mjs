@@ -528,54 +528,52 @@ test('manual Placement payload rejects incomplete, duplicate, foreign, malformed
  for(const defect of ['missing','duplicate','extra','entry-revision','target','input','layout','budget']){let ps=structuredClone(sent.placements);if(defect==='missing')ps=[];if(defect==='duplicate')ps.push(ps[0]);if(defect==='extra')ps[0].unapproved='synthetic';if(defect==='entry-revision')ps[0].entryRevision++;if(defect==='target')ps[0].topicId=op();if(defect==='input')ps[0].inputId=op();if(defect==='layout')ps[0].layoutGeneration++;if(defect==='budget')ps[0].sectionId='x'.repeat(limits.maxContentBytes);assert.throws(()=>createMaintenancePayload(metadata,material,limits,ps),undefined,defect);}
 });
 
-test('mixed Topic work leaves supported human Placement Context dirty for a fresh admitted opportunity',async()=>{
+test('mixed Topic and human Placement Context complete within the original two-child opportunity',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC updated current Input before mixed maintenance'});
- const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor);
+ const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor),before=await read(f.s,'placements',f.placement.id);
  const h=await session.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}),r=await session.run(h);
- assert.equal(r.state,'PARTIAL');assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(r.pendingPlacementUnits,1);
- assert.equal(r.complete,false);assert.equal(r.nextCursor,null);assert.equal(r.remainingWork,true);
- assert.equal(f.calls.length,2);assert.equal(f.calls[1].material.placements?.length??0,0);
- assert.equal((await ack(f)).some(a=>a.unit.key===key),false,'withheld Placement has no ACK');
- const pending=(await read(f.s,'organizerWorkItems')).filter(x=>x.unit?.key===key);
- assert.equal(pending.some(x=>x.unit.facet==='context'&&x.state==='DEFERRED'),false,'supported Context is not falsely classified unsupported');
- const beforeCalls=f.calls.length;await session.run(h);assert.equal(f.calls.length,beforeCalls,'settled handle never auto-dispatches backlog');session.dispose();
- const next=new LocalMaintenanceSession(f.s,f.constructor),nextHandle=await next.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}),result=await next.run(nextHandle);
- assert.equal(result.processedState,'COMMITTED',JSON.stringify(result));assert.equal(f.calls.length,3);
- assert.equal(f.calls[2].material.placements.length,1);assert.equal((await ack(f)).filter(a=>a.unit.key===key&&a.unit.facet==='context').length,1);
+ assert.equal(r.state,'PARTIAL');assert.equal(r.processedState,'COMMITTED',JSON.stringify(r));assert.equal(r.pendingPlacementUnits??0,0);
+ assert.equal(r.complete,true);assert.equal(r.nextCursor,null);assert.equal(r.remainingWork,true,'unsupported Placement Topic remains separate');
+ assert.equal(h.childCount,2);assert.equal(f.calls.length,3);assert.equal(f.calls[1].material.placements?.length??0,0);assert.equal(f.calls[2].material.placements.length,1);
+ assert.deepEqual(await read(f.s,'placements',f.placement.id),before);assert.equal((await ack(f)).filter(a=>a.unit.key===key&&a.unit.facet==='context').length,1);
+ assert.equal((await read(f.s,'organizerWorkItems')).some(x=>x.unit?.key===key&&x.unit.facet==='context'&&x.state==='DEFERRED'),false);
+ const beforeCalls=f.calls.length;await session.run(h);assert.equal(f.calls.length,beforeCalls,'settled handle never repeats either child');session.dispose();
+ const next=new LocalMaintenanceSession(f.s,f.constructor),result=await next.run(await next.prepare({...options,routeVersion:'synthetic-mixed-placement-v1'}));
+ assert.equal(result.state,'DEFERRED');assert.equal(f.calls.length,beforeCalls);next.dispose();
 });
 
-for(const failure of ['unknown','denied-next-window'])test('mixed Placement backlog preserves '+failure+' admission and financial boundaries',async()=>{
+for(const failure of ['unknown','denied-second-grant'])test('mixed Placement preserves '+failure+' admission and financial boundaries',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC changed Input for admission refusal'});
- const key=JSON.stringify(['placement',f.placement.id]),session=new LocalMaintenanceSession(f.s,f.constructor);
+ const key=JSON.stringify(['placement',f.placement.id]);
  if(failure==='unknown'){const execute=f.provider.execute;f.provider.execute=async request=>{await execute(request);throw Error('SYNTHETIC unknown physical outcome');};}
- const h=await session.prepare(options),result=await session.run(h),calls=f.calls.length;
+ else {const resolve=f.materialProcessing.resolve;f.materialProcessing.resolve=async(t,scope)=>({...await resolve(t,scope),processing:!scope.placements});}
+ const session=new LocalMaintenanceSession(f.s,{...f.constructor,processing:f.materialProcessing}),h=await session.prepare(options),result=await session.run(h),calls=f.calls.length;
  if(failure==='unknown'){
   assert.equal(result.state,'OUTCOME_UNKNOWN');assert.equal((await session.run(h)).state,'OUTCOME_UNKNOWN');
-  const next=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await next.run(await next.prepare(options))).state,'OUTCOME_UNKNOWN');
+  const next=new LocalMaintenanceSession(f.s,f.constructor);assert.equal((await next.run(await next.prepare(options))).state,'OUTCOME_UNKNOWN');next.dispose();
  }else{
-  assert.equal(result.processedState,'COMMITTED');
-  const next=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async()=>{throw Object.assign(Error('SYNTHETIC no new opportunity'),{code:'UNAVAILABLE'});},isCurrent:()=>false}});
-  await assert.rejects(next.prepare(options),{code:'UNAVAILABLE'});
+  assert.equal(result.state,'UNAVAILABLE');assert.equal((await session.run(h)).state,'UNAVAILABLE');
+  const receipts=(await read(f.s,'organizerUsage')).filter(x=>x.jobId===h.jobId);assert.equal(receipts.filter(x=>x.attemptCount===0&&x.state==='RESERVED').length,1);
  }
- assert.equal(f.calls.length,calls);assert.equal((await ack(f)).some(a=>a.unit.key===key),false);
- assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='DEFERRED'),false);
+ assert.equal(f.calls.length,calls);assert.equal(calls,2);assert.equal((await ack(f)).some(a=>a.unit.key===key),false);
+ assert.equal((await read(f.s,'organizerWorkItems')).some(r=>r.unit?.key===key&&r.unit.facet==='context'&&r.state==='DEFERRED'),false);session.dispose();
 });
 
-test('Topic work for a different Input also withholds Placement and preserves the incoming scan boundary',async()=>{
+test('Topic work for a different Input reserves a separate exact Placement child',async()=>{
  const f=await placedEntryFixture();await f.s.capture(capture((await f.s.status()).epoch,'synthetic-unrelated-input','SYNTHETIC independently changed Input'));
  const session=new LocalMaintenanceSession(f.s,f.constructor),cursor='aiu:delta:pending:';
- const handle=await session.prepare({...options,cursor});assert.equal(handle.pendingPlacementUnits,1);assert.equal(handle.complete,false);assert.equal(handle.nextCursor,cursor);
- const job=await read(f.s,'organizerJobs',handle.jobId);assert.ok(job.coverage.some(u=>u.facet==='topic'));
- assert.equal(job.coverage.some(u=>u.key===JSON.stringify(['placement',f.placement.id])),false);assert.equal(f.calls.length,1,'prepare has no physical call');
+ const handle=await session.prepare({...options,cursor});assert.equal(handle.pendingPlacementUnits??0,0);assert.equal(handle.complete,true);assert.equal(handle.childCount,2);
+ const job=await read(f.s,'organizerJobs',handle.jobId),key=JSON.stringify(['placement',f.placement.id]);assert.ok(job.coverage.some(u=>u.facet==='topic'));
+ const child=job.childCoverage.find(us=>us.some(u=>u.key===key));assert.deepEqual(child.map(u=>u.facet),['context']);assert.equal(f.calls.length,1,'prepare has no physical call');session.dispose();
 });
 
-test('concurrent ACK before plan retains Placement backlog in passive handle and result',async()=>{
+test('concurrent completed mixed ACK gives a passive no-delta handle without replay',async()=>{
  const f=await placedEntryFixture();await inputEdit(f.s,f.input.id,{libraryText:'SYNTHETIC mixed passive race'});
  const first=new LocalMaintenanceSession(f.s,f.constructor),h=await first.prepare(options);let grant;
  const second=new LocalMaintenanceSession(f.s,{...f.constructor,window:{acquire:async r=>{await first.run(h);return grant={version:1,kind:'fixture',dayId:'synthetic-day',windowId:'synthetic-later',reservationId:'synthetic-later',tier:'free',requestDigest:r.requestDigest,revocationSignal:f.clock.signal};},isCurrent:r=>r===grant}});
  const next=await second.prepare({...options,routeVersion:'synthetic-other-route'}),before=await snapshot(f.s),result=await second.run(next);
- for(const value of [next,result]){assert.equal(value.state,'PARTIAL');assert.equal(value.processedState,'NO_DELTA');assert.equal(value.pendingPlacementUnits,1);assert.equal(value.complete,false);assert.equal(value.nextCursor,null);assert.equal(value.remainingWork,true);}
- assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,2);second.dispose();assert.equal((await second.run(next)).state,'UNAVAILABLE');
+ for(const value of [next,result]){assert.equal(value.state,'NO_DELTA');assert.equal(value.pendingPlacementUnits??0,0);assert.equal(value.complete,true);assert.equal(value.nextCursor,null);assert.equal(value.remainingWork,true);}
+ assert.deepEqual(await snapshot(f.s),before);assert.equal(f.calls.length,3);second.dispose();assert.equal((await second.run(next)).state,'UNAVAILABLE');first.dispose();
 });
 
 for(const mutation of ['edit','exclude'])test('final shared material fence blocks late Input '+mutation+' before physical dispatch',async()=>{

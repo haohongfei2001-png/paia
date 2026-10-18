@@ -1,4 +1,4 @@
-import {readAuthoredEntryContext,authoredContextEvidenceMatches} from './context-authored-entry.js';
+import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedText} from './context-authored-entry.js';
 import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {hashText} from './dedupe.js';
 import {contextTemporalProjection} from './context-temporal.js';
@@ -110,9 +110,9 @@ export class ContextCardsService {
    const t=contextLineageBudgetReader(this.s,transaction,readable.captured);if(readable.captured)await fenceContextLineage(this.s,readable.captured,{transaction:t});
    const current=await this.admitted(t,captured.epoch);if(current!==captured.epoch||await rootReadAuthority(t)!==captured.authority||JSON.stringify(await t.get('meta',CONTEXT_CARDS_ROW))!==captured.rowSerialized)fail('CONTEXT_INVALIDATED');
    if(item.origin==='automatic')for(const evidence of item.maintenance.provenance.evidence){
-    const authored=evidence.kind==='humanEntry',mapping=authored?await readAuthoredEntryContext(this.s,t,evidence.entryId):null,projection=authored?(mapping?{body:(await t.get('thoughts',evidence.entryId)).thoughtText}:null):await inputProjection(this.s,t,evidence.inputId),topic=await t.get('topics',evidence.topicId);if(!projection||!topic||authored&&!authoredContextEvidenceMatches(evidence,mapping))fail('CONTEXT_INVALIDATED');
+    const authored=evidence.kind==='humanEntry',mapping=authored?await readAuthoredEntryContext(this.s,t,evidence.entryId):null,projection=authored?(mapping?authoredSelectedText(await t.get('thoughts',evidence.entryId),evidence.selectedFields):null):await inputProjection(this.s,t,evidence.inputId),topic=await t.get('topics',evidence.topicId);if(!projection||!topic||authored&&!authoredContextEvidenceMatches(evidence,mapping))fail('CONTEXT_INVALIDATED');
     const fields=evidence.selectedFields.map(field=>{const text=projection[field];if(typeof text!=='string')fail('CONTEXT_INVALIDATED');const excerpt=Array.from(text.slice(0,480)).slice(0,240).join('');return {field,excerpt,truncated:excerpt.length<text.length};});
-    result.evidence.push({topicId:evidence.topicId,topicName:await new MemoryService(this.s).safeLabel(t,topic,'name'),...(authored?{kind:'humanEntry',entryId:evidence.entryId,bodyFieldRevision:mapping.bodyFieldRevision}:{inputId:evidence.inputId,contentRevision:projection.contentRevision}),fields});
+    result.evidence.push({topicId:evidence.topicId,topicName:await new MemoryService(this.s).safeLabel(t,topic,'name'),...(authored?{kind:'humanEntry',entryId:evidence.entryId,...(mapping.fieldRevisions?{fieldRevisions:structuredClone(mapping.fieldRevisions)}:{bodyFieldRevision:mapping.bodyFieldRevision})}:{inputId:evidence.inputId,contentRevision:projection.contentRevision}),fields});
    }
   });
   // No async work follows the final read fence. A provenance lookup is not a

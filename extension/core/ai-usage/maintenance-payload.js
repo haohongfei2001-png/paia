@@ -1,3 +1,4 @@
+import {validAuthoredFields,authoredSelectedFields} from '../context-authored-entry.js';
 import {fail,exact} from './contracts.js';
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // Internal purpose-scoped domain DTO, not a Qwen wire or financial grant.
@@ -21,11 +22,15 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
   if(!['placementId','entryId','topicId','sectionId','inputId'].every(k=>typeof p[k]==='string'&&p[k].length>0)||!['revision','entryRevision','topicRevision','topicOrganizationRevision','sectionRevision'].every(k=>Number.isSafeInteger(p[k])&&p[k]>=0)||!Number.isSafeInteger(p.layoutGeneration)||p.layoutGeneration<1||p.placementId!==JSON.stringify([p.topicId,p.layoutGeneration,p.entryId])||!entries.some(e=>e.entryId===p.entryId&&e.revision===p.entryRevision&&e.workingInputId===p.inputId)||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['placement',p.placementId])))fail('UNAVAILABLE');
  }
  if(new Set(placements.map(p=>p.placementId)).size!==placements.length||(metadata.coverage||[]).some(u=>u.facet==='context'&&u.key?.startsWith('["placement",')&&!placements.some(p=>u.key===JSON.stringify(['placement',p.placementId]))))fail('UNAVAILABLE');
- // Authored material is a typed, source-free body under its own explicit
- // processing selection. It is never represented as an Input or Source.
+ // Authored material stays source-free and field-scoped. A whole-Entry
+ // coverage key is admitted only after every meaningful/edited field is sent.
  const authored=authoredEntries.map(e=>{
-  exact(e,['kind','entryId','entryRevision','entryCreatedAt','birthOperationId','bodyFieldRevision','bodyOperationId','topicId','topicRevision','topicOrganizationRevision','sectionId','sectionRevision','layoutGeneration','placementId','placementRevision','membershipOperationId','rank','sectionRank','body','bodyDigest']);
-  if(e.kind!=='humanEntry'||!['entryId','birthOperationId','bodyOperationId','topicId','sectionId','membershipOperationId'].every(k=>typeof e[k]==='string'&&e[k].length>0)||typeof e.entryCreatedAt!=='string'||!Number.isFinite(Date.parse(e.entryCreatedAt))||typeof e.body!=='string'||!e.body.trim()||!/^([a-f0-9]{64})$/.test(e.bodyDigest)||!['entryRevision','bodyFieldRevision','topicRevision','topicOrganizationRevision','sectionRevision','layoutGeneration','placementRevision'].every(k=>Number.isSafeInteger(e[k])&&e[k]>=0)||e.layoutGeneration<1||e.placementId!==JSON.stringify([e.topicId,e.layoutGeneration,e.entryId])||!/^\d{12}$/.test(e.rank)||!/^\d{12}$/.test(e.sectionRank)||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['library_entry',e.entryId])))fail('UNAVAILABLE');
+  const extended=Object.hasOwn(e,'selectedFields'),selected=authoredSelectedFields(e);
+  exact(e,['kind','entryId','entryRevision','entryCreatedAt','birthOperationId',...(extended?['selectedFields','fieldRevisions','fieldOperationIds','fields','fieldDigests']:['bodyFieldRevision','bodyOperationId','body','bodyDigest']),'topicId','topicRevision','topicOrganizationRevision','sectionId','sectionRevision','layoutGeneration','placementId','placementRevision','membershipOperationId','rank','sectionRank']);
+  if(!validAuthoredFields(selected)||extended&&selected.length===1&&selected[0]==='body')fail('UNAVAILABLE');
+  if(extended){for(const key of ['fieldRevisions','fieldOperationIds','fields','fieldDigests'])exact(e[key],selected);if(!selected.every(f=>Number.isSafeInteger(e.fieldRevisions[f])&&e.fieldRevisions[f]>=0&&typeof e.fieldOperationIds[f]==='string'&&e.fieldOperationIds[f].length>=8&&typeof e.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(e.fieldDigests[f])))fail('UNAVAILABLE');}
+  else if(typeof e.body!=='string'||!e.body.trim()&&e.bodyFieldRevision===0||!/^[a-f0-9]{64}$/.test(e.bodyDigest)||!Number.isSafeInteger(e.bodyFieldRevision)||e.bodyFieldRevision<0||typeof e.bodyOperationId!=='string'||e.bodyOperationId.length<8)fail('UNAVAILABLE');
+  if(e.kind!=='humanEntry'||!['entryId','birthOperationId','topicId','sectionId','membershipOperationId'].every(k=>typeof e[k]==='string'&&e[k].length>0)||typeof e.entryCreatedAt!=='string'||!Number.isFinite(Date.parse(e.entryCreatedAt))||!['entryRevision','topicRevision','topicOrganizationRevision','sectionRevision','layoutGeneration','placementRevision'].every(k=>Number.isSafeInteger(e[k])&&e[k]>=0)||e.layoutGeneration<1||e.placementId!==JSON.stringify([e.topicId,e.layoutGeneration,e.entryId])||!/^\d{12}$/.test(e.rank)||!/^\d{12}$/.test(e.sectionRank)||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['library_entry',e.entryId])))fail('UNAVAILABLE');
   return structuredClone(e);
  });
  if(new Set(authored.map(e=>e.entryId)).size!==authored.length||authored.some(e=>entries.some(i=>i.entryId===e.entryId)))fail('UNAVAILABLE');
