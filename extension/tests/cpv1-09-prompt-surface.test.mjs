@@ -8,7 +8,7 @@ function fixture(){const sent=[],writes=[],calls=[],storage={};let consent=true;
  return {s,api,sender,request,sent,writes,calls,preferences,reads,revoke(){consent=false;}};
 }
 test('surface frames require exact origin, nonce, current host, positive frame and consent',async()=>{
- const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'system',language:'system'},surfaceForm:'board'});
+ const f=fixture();assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'system',language:'system'},surfaceForm:'board',automaticSuggestion:false});
  for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:0},{...f.sender,frameId:undefined},{...f.sender,url},{...f.sender,tab:{id:7,incognito:true}},{...f.sender,url:f.sender.url+'x'}])await assert.rejects(()=>f.s.handle(f.request,sender));
  f.api.tabs.sendMessage=async()=>({open:true,nonce,url:url+'/changed'});await assert.rejects(()=>f.s.handle(f.request,f.sender));f.revoke();await assert.rejects(()=>f.s.handle(f.request,f.sender),e=>e.code==='CONSENT_REQUIRED');
 });
@@ -80,7 +80,7 @@ test('saved open anchor remains viewport-bounded when scrolling moves the compos
 });
 
 async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
- const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map();let failHost=false;
+ const nodes=[],sent=[],listeners=new Map(),windowHandlers=new Map(),documentHandlers=new Map(),timers=new Map();let failHost=false,timerId=0;
  const rect={x:500,y:700,width:44,height:44,left:500,right:544,top:700,bottom:744};
  const element=tag=>{
   const attrs=new Map(),handlers=new Map(),node={tag,dataset:{},style:{},hidden:false,isConnected:false,handlers,
@@ -90,15 +90,22 @@ async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
  };
  const html=element('html');html.classList={contains:()=>false};
  const document={documentElement:html,createElement:element,createElementNS:(_ns,tag)=>element(tag),addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
- const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
+ const sandbox={document,performance:{now:()=>10000},setTimeout:(fn,ms)=>{const id=++timerId;timers.set(id,{fn,ms});return id;},clearTimeout:id=>timers.delete(id),location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
   matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
   requestAnimationFrame:animationFrame,PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
   chrome:{runtime:{id:'ext',getURL:p=>'chrome-extension://ext/'+p,onMessage:{addListener:f=>listeners.set('message',f),removeListener(){}},sendMessage:async r=>{sent.push(r);return failHost&&r.type==='PAIA_PROMPT_SURFACE_HOST'?{ok:false,error:'CONSENT_REQUIRED'}:{ok:true,data:{version:1,open:false,position:null,...(displayPreferences?{displayPreferences}:{})}};}}}};
  sandbox.window={addEventListener:(k,f)=>windowHandlers.set(k,f),removeEventListener:k=>windowHandlers.delete(k)};
  vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  vm.runInNewContext(await readFile(new URL('../content/prompt-surface.js',import.meta.url),'utf8'),sandbox);await new Promise(setImmediate);
- const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
+ const orb=nodes.find(n=>n.tag==='button');return {orb,nodes,sent,sandbox,listeners,windowHandlers,documentHandlers,timers,failHost(){failHost=true;},fire(type,fields={}){orb.handlers.get(type)?.({isTrusted:true,button:0,pointerId:1,clientX:522,clientY:122,preventDefault(){},...fields});}};
 }
+
+test('disposing the host cancels its pending presentation timer and removes composer activity listeners',async()=>{
+ const f=await hostFixture(),host=f.nodes.find(n=>n.dataset.paiaPromptSurface==='');
+ f.documentHandlers.get('compositionend')();assert.equal(f.timers.size,1);const timer=[...f.timers.values()][0];assert.equal(timer.ms,850);
+ f.sandbox.PAIAPromptSurface.dispose();assert.equal(f.timers.size,0);assert.equal(f.documentHandlers.size,0);assert.equal(f.windowHandlers.size,0);assert.equal(host.isConnected,false);
+ const calls=f.sent.length,nodes=f.nodes.length;timer.fn();assert.equal(f.sent.length,calls);assert.equal(f.nodes.length,nodes,'a callback already queued before disposal cannot remount a surface');assert.equal(f.timers.size,0);
+});
 
 test('open orb requests the private card close policy instead of only focusing or destroying its frame',async()=>{
  const f=await hostFixture();f.fire('click');const frame=f.nodes.find(n=>n.tag==='iframe');assert.equal(frame.isConnected,true);
@@ -190,11 +197,22 @@ test('measure acknowledgements follow layout and cannot authorize a superseded n
 
 test('surface exposes only normalized display preferences through the original read-only meta owner',async()=>{
  const f=fixture();Object.assign(f.preferences,{appearance:'dark',language:'en'});
- assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'dark',language:'en'},surfaceForm:'board'});
+ assert.deepEqual(await f.s.handle(f.request,f.sender),{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'dark',language:'en'},surfaceForm:'board',automaticSuggestion:false});
  assert.deepEqual(f.reads,[{w:false,stores:['meta']}]);assert.equal(f.writes.length,0);
  Object.assign(f.preferences,{appearance:'not-a-theme',language:'private-value'});
  assert.deepEqual((await f.s.handle(f.request,f.sender)).displayPreferences,{appearance:'system',language:'system'});
  assert.equal(f.writes.length,0);assert.ok(!JSON.stringify(f.sent).includes('DO_NOT_EXPOSE'));
+});
+
+test('private query exposes only a strict automatic-presentation boolean and never host suggestion bodies',async()=>{
+ for(const [automaticSuggestion,expected] of [[undefined,false],[null,false],[false,false],[true,true],[0,false],[1,false],['true',false],[{text:'PRIVATE_SUGGESTION_BODY'},false]]){
+  const f=fixture();f.api.tabs.sendMessage=async(...args)=>{f.sent.push(args);return {open:true,nonce,url,dark:false,automaticSuggestion,text:'PRIVATE_SUGGESTION_BODY',suggestion:{text:'PRIVATE_SUGGESTION_BODY'}};};
+  const result=await f.s.handle(f.request,f.sender);
+  assert.deepEqual(result,{items:[],generation:0,target:{url,documentId:'private-current',nonce},theme:'light',displayPreferences:{appearance:'system',language:'system'},surfaceForm:'board',automaticSuggestion:expected});
+  assert.equal(typeof result.automaticSuggestion,'boolean');assert.ok(!JSON.stringify(result).includes('PRIVATE_SUGGESTION_BODY'));
+  assert.ok(f.sent.length>0);for(const [tabId,message,target]of f.sent){assert.equal(tabId,7);assert.deepEqual(message,{type:'PAIA_PROMPT_SURFACE_PROBE'});assert.deepEqual(target,{frameId:0});}
+  assert.equal(f.writes.length,0);assert.ok(!JSON.stringify(f.sent).includes('DO_NOT_EXPOSE'));
+ }
 });
 
 test('first collapsed host reads only display choices and cannot persist them as geometry',async()=>{

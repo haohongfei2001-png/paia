@@ -7,7 +7,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
 async function fixture(){
  const f=await completeFixture({texts:['Explain sorting','Explain sorting']}),service=new PromptReuseService(f.s),stored={},sends=[];
  let binding={url,conversation:'/c/family-owner',cycle:1,replyId:'reply-1',revision:0},result={status:'inserted',verified:true};
- const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async()=>{}},storage:{session:{get:async()=>({...stored}),set:async x=>Object.assign(stored,x)}},tabs:{get:async()=>({id:1,url}),query:async()=>[],sendMessage:async(_id,r)=>{sends.push(r);if(r.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await commands.authorization()).generation,binding,nonce,idle:true};return result;}}};
+ const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async()=>{}},storage:{local:{get:async()=>({...stored}),set:async x=>Object.assign(stored,x)}},tabs:{get:async()=>({id:1,url}),query:async()=>[],sendMessage:async(_id,r)=>{sends.push(r);if(r.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await commands.authorization()).generation,binding,nonce,idle:true};return result;}}};
  const commands=new NextPromptCommands(service,api,{isIdle:async()=>true}),top={id:'extension',url,tab:{id:1},frameId:0,documentId:'host-doc'},popup={id:'extension',url:api.runtime.getURL('ui/popup.html')},frame={id:'extension',url:api.runtime.getURL('ui/prompt-surface.html')+'#next-'+nonce,tab:{id:1},frameId:3};
  await commands.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled:true},popup);
  const offer=async(text='Next, ask me to explain sorting.')=>commands.handle({type:'PAIA_PROMPT_NEXT_OFFER',binding:{...binding},authorization:(await commands.authorization()).generation,snapshot:{completed:true,text,blocks:1,excluded:false}},top);
@@ -20,7 +20,7 @@ test('actual warm Family offers exact original text, bounded identity and verifi
  const group=f.commands.groups.get(1);assert.equal(group.family.text,'Explain sorting');assert.equal(JSON.stringify([...f.commands.groups.values()]).includes('Next, ask me'),false);assert.equal(JSON.stringify(f.stored).includes('sorting'),false);
  const result=await f.rpc({type:'insert',id:view.choices[0].id,operationId:crypto.randomUUID()});assert.equal(result.verified,true);assert.equal(f.sends.find(r=>r.type==='PAIA_PROMPT_NEXT_INSERT').text,'Explain sorting');assert.equal(f.requests.length,0);
 });
-test('authoritative Direct and Choice never wait for unavailable or pending Family view',async()=>{const f=await fixture();f.service.nextFamilyView=()=>{throw Error('Family path must not be touched');};for(const text of ['登录完成后告诉我“已登录”。','请选择：继续/停止。']){assert.equal((await f.offer(text)).available,true);assert.notEqual((await f.rpc({type:'get'})).type,'PROMPT_FAMILY_MATCH');}});
+test('authoritative Direct never waits for Family and ambiguous Choice honestly defers without consulting it',async()=>{const f=await fixture();f.service.nextFamilyView=()=>{throw Error('Family path must not be touched');};assert.equal((await f.offer('回复“已登录”。')).available,true);assert.notEqual((await f.rpc({type:'get'})).type,'PROMPT_FAMILY_MATCH');assert.deepEqual(await f.offer('请选择：继续/停止。'),{available:false,reason:'AMBIGUOUS_QUICK_CHOICE'});assert.equal(f.commands.groups.size,0);assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_INSERT'),false);});
 for(const action of ['edit','hide','purge'])test('actual '+action+' invalidates Family get/reopen/copy/insert before dispatch',async()=>{
  const f=await fixture(),q=await f.warm();await f.offer();const v=await f.rpc({type:'get'});f.failInsert();await f.rpc({type:'insert',id:v.choices[0].id,operationId:crypto.randomUUID()});
  if(action==='purge')for(const row of await rows(f.s,'records'))await f.s.permanentDelete(row.id);else await new PromptReuseService(f.s).change({action,id:q.items[0].id,revision:q.revision,...(action==='edit'?{text:'Explain graphs'}:{})});
@@ -75,3 +75,4 @@ for(const boundary of ['nonce','frame','document','authorization','reply','extra
  if(boundary==='extra')request.command.extra=true;
  await assert.rejects(()=>f.commands.handle(request,sender));assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_HIDE'),false);
 });
+

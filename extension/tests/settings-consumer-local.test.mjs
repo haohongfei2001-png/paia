@@ -86,11 +86,12 @@ test('Settings locale and reopen leave History labels with their existing owner'
  const read={dataset:{historyCopy:'阅读 Input Archive'},value:'',get textContent(){return this.value;},set textContent(value){writes++;this.value=value;}},editor={value:'SYNTHETIC é 👩🏽‍💻 draft'};
  const host={querySelectorAll:selector=>selector==='[data-history-copy]'?[read]:[]},doc={documentElement:{lang:'zh-CN'},activeElement:editor,querySelector:()=>null};globalThis.document=doc;
  try{for(const language of ['zh-CN','en','zh-CN']){doc.documentElement.lang=language;refreshHistoryCopy(host);const expected=language==='zh-CN'?'阅读 Input Archive':'Read Input Archive';assert.equal(read.textContent,expected);const before=writes;
-  const context={document:doc,syncSettingsCopy(){},captureConsent:null,style:null,promptPosition:null,promptNext:null,about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
+  let assistSyncs=0;const context={document:doc,syncSettingsCopy(){},captureConsent:null,style:null,promptPosition:null,promptNext:null,promptAssist:{sync(){assistSyncs++;}},about:null,settingsDetails:null,$:id=>id==='history-read'?read:null,copy:(zh,en)=>language==='zh-CN'?zh:en,setIconLabel(){},request(){rpcs++;throw Error('unexpected RPC');}};
   // Group changes/reopen invoke this actual production function without always
   // dispatching another History preferences event. History alone owns its copy.
   const consentStart=source.indexOf('function tuneOnboarding(){'),consentEnd=source.indexOf('\nfunction preferenceSelect',consentStart);assert.ok(consentStart>=0&&consentEnd>consentStart);
   runInNewContext(source.slice(consentStart,consentEnd)+source.slice(start,end)+';syncSettingsLocale();syncSettingsLocale();',context);
-  assert.equal(read.textContent,expected);assert.equal(writes,before,'Settings cannot overwrite History-owned nodes');assert.equal(doc.activeElement,editor);assert.equal(editor.value,'SYNTHETIC é 👩🏽‍💻 draft');assert.equal(rpcs,0);
+  assert.equal(assistSyncs,2,'each actual locale/reopen sync reaches the existing Assist owner');assert.equal(read.textContent,expected);assert.equal(writes,before,'Settings cannot overwrite History-owned nodes');assert.equal(doc.activeElement,editor);assert.equal(editor.value,'SYNTHETIC é 👩🏽‍💻 draft');assert.equal(rpcs,0);
  }}finally{globalThis.document=previous;}
 });
+

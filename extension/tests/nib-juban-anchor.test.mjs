@@ -25,7 +25,7 @@ async function fixture({width=1280,collapsedForm='orb',deferRetirement=false}={}
  };
  const root=element('html');root.isConnected=true;
  const document={documentElement:root,createElement:element,createElementNS:(_namespace,tag)=>element(tag),querySelectorAll:()=>[{getBoundingClientRect:()=>({top:0,bottom:50,width,height:50})}],addEventListener(){},removeEventListener(){}};
- const sandbox={document,location:{href:'https://chatgpt.com/c/synthetic-juban'},navigator:{language:'zh-CN'},innerWidth:width,innerHeight:900,
+ const sandbox={document,setTimeout,clearTimeout,performance,location:{href:'https://chatgpt.com/c/synthetic-juban'},navigator:{language:'zh-CN'},innerWidth:width,innerHeight:900,
   crypto:{randomUUID:()=>nonce},matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),
   requestAnimationFrame:fn=>rafs.push(fn),MutationObserver:class{observe(){}disconnect(){}},
   ResizeObserver:class{constructor(callback){this.callback=callback;this.targets=[];resizeObservers.push(this);}observe(node){this.targets.push(node);}disconnect(){this.targets=[];}},
@@ -111,9 +111,11 @@ test('guarded capsule close preserves host focus while re-enabling the original 
  const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
  for(const outcome of ['closed','refused','editing','composing','search-composing']){
   const events=[],expand={disabled:false,attributes:{},setAttribute(k,v){this.attributes[k]=v;},focus(){assert.equal(this.disabled,false,'a disabled capsule target cannot receive native focus');events.push('focus');}},html={dataset:{surfaceForm:'board'}};
-  const context=vm.createContext({assistSurface:{dismiss:()=>events.push('assist-dismiss')},nonce,composing:outcome==='composing',searchComposing:outcome==='search-composing',editing:outcome==='editing',busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;events.push('pending:'+value);},tell:()=>events.push('notice'),rpc:async command=>{assert.equal(command.type,'close');events.push('rpc');if(outcome==='refused')throw Error('refused');return {closed:true,nonce,form:'capsule'};}});
+  const suggestion={id:nonce,text:'Synthetic retained suggestion'},assistSurface={state:{result:suggestion},dismiss(){this.state.result=null;events.push('assist-dismiss');}};
+  const context=vm.createContext({assistSurface,nonce,composing:outcome==='composing',searchComposing:outcome==='search-composing',editing:outcome==='editing',busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;events.push('pending:'+value);},tell:()=>events.push('notice'),rpc:async command=>{assert.equal(command.type,'close');events.push('rpc');if(outcome==='refused')throw Error('refused');return {closed:true,nonce,form:'capsule'};}});
   vm.runInContext(source,context);await context.requestClose({});
-  if(outcome==='closed'){assert.deepEqual(events,['assist-dismiss','pending:true','rpc','pending:false']);assert.equal(html.dataset.surfaceForm,'capsule');assert.equal(expand.disabled,false);}
+  assert.equal(events.includes('assist-dismiss'),false,'presentation close never cancels the current automatic opportunity');assert.equal(assistSurface.state.result,suggestion);
+  if(outcome==='closed'){assert.deepEqual(events,['pending:true','rpc','pending:false']);assert.equal(html.dataset.surfaceForm,'capsule');assert.equal(expand.disabled,false);}
   else{assert.ok(!events.includes('focus'));assert.equal(html.dataset.surfaceForm,'board');if(outcome!=='refused'){assert.ok(!events.includes('rpc'));assert.ok(!events.includes('assist-dismiss'));}}
  }
 });
@@ -129,8 +131,9 @@ test('delayed real host retirement cannot let the closing child steal the retain
  const f=await fixture({deferRetirement:true});f.click();await f.flush();const prior=f.frame;
  const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
  const expand={disabled:false,setAttribute(){},focus(){assert.equal(this.disabled,false);f.focusChild(this);}},html={dataset:{surfaceForm:'board'}};
- const context=vm.createContext({assistSurface:{dismiss:()=>{f.assistDismissed=(f.assistDismissed??0)+1;}},nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;},tell(){},rpc:async command=>{assert.equal(command.type,'close');const ack=f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});assert.equal(prior.isConnected,true,'original 80ms animation deliberately not settled');assert.equal(f.focus,f.orb,'host already restored its original target');return ack;}});
- vm.runInContext(source,context);await context.requestClose({});assert.equal(f.assistDismissed,1);assert.equal(f.focus,f.orb,'child must not refocus its retiring iframe');
+ const suggestion={id:nonce,text:'Synthetic retained suggestion'},assistSurface={state:{result:suggestion},dismissed:0,dismiss(){this.dismissed++;this.state.result=null;}};
+ const context=vm.createContext({assistSurface,nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(value){expand.disabled=value;},tell(){},rpc:async command=>{assert.equal(command.type,'close');const ack=f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});assert.equal(prior.isConnected,true,'original 80ms animation deliberately not settled');assert.equal(f.focus,f.orb,'host already restored its original target');return ack;}});
+ vm.runInContext(source,context);await context.requestClose({});assert.equal(assistSurface.dismissed,0);assert.equal(assistSurface.state.result,suggestion,'retiring the private presentation does not cancel the automatic opportunity');assert.equal(f.focus,f.orb,'child must not refocus its retiring iframe');
  await f.finishRetirement();assert.equal(prior.isConnected,false);assert.equal(f.focus,f.orb);assert.equal(html.dataset.surfaceForm,'board','retiring frame does not masquerade as retained capsule');f.sandbox.PAIAPromptSurface.dispose();
 });
 
@@ -138,9 +141,10 @@ test('only an exact retained capsule ACK changes form and no child ACK steals ho
  const source=uiSource.slice(uiSource.indexOf('async function requestClose('),uiSource.indexOf('\nfunction closeSurfaceTools('));
  for(const ack of [undefined,{}, {closed:true},{closed:true,nonce,form:'orb'},{closed:false,nonce,form:'capsule'},{closed:true,nonce:'stale',form:'capsule'},{closed:true,nonce,form:'board'},{closed:true,nonce,form:'capsule'}]){
   const events=[],expand={disabled:false,setAttribute(){},focus(){assert.equal(this.disabled,false);events.push('focus');}},html={dataset:{surfaceForm:'board'}};
-  const context=vm.createContext({assistSurface:{dismiss:()=>events.push('assist-dismiss')},nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(v){expand.disabled=v;events.push('pending:'+v);},tell(){events.push('notice');},rpc:async()=>ack});
+  const suggestion={id:nonce,text:'Synthetic retained suggestion'},assistSurface={state:{result:suggestion},dismiss(){this.state.result=null;events.push('assist-dismiss');}};
+  const context=vm.createContext({assistSurface,nonce,composing:false,searchComposing:false,editing:false,busy:false,refreshing:false,drag:null,document:{documentElement:html,getElementById:()=>expand},pending(v){expand.disabled=v;events.push('pending:'+v);},tell(){events.push('notice');},rpc:async()=>ack});
   vm.runInContext(source,context);await context.requestClose({});const retained=ack?.closed===true&&ack.nonce===nonce&&ack.form==='capsule';
-  assert.equal(events[0],'assist-dismiss');assert.equal(events.includes('focus'),false);assert.equal(html.dataset.surfaceForm,retained?'capsule':'board');assert.equal(expand.disabled,false);
+  assert.deepEqual(events.filter(event=>event.startsWith('pending:')),['pending:true','pending:false']);assert.equal(events.includes('assist-dismiss'),false);assert.equal(assistSurface.state.result,suggestion,'an invalid or valid presentation ACK is never suggestion cancellation');assert.equal(events.includes('focus'),false);assert.equal(html.dataset.surfaceForm,retained?'capsule':'board');assert.equal(expand.disabled,false);
  }
 });
 
@@ -177,7 +181,8 @@ test('double-card authenticated capsule opening and board closing use original g
  for(const guard of [null,'editing','checking','busy','refreshing','drag','composing','searchComposing']){
   const f=await fixture({collapsedForm:'capsule'}),frame=f.frame,anchor=f.host.getBoundingClientRect(),calls=[];let listener;
   f.orb.focus();
-  const state={assistSurface:{dismissed:0,dismiss(){this.dismissed++;}},nonce,editing:false,checking:null,busy:false,refreshing:false,drag:null,composing:false,searchComposing:false,
+  const suggestion={id:nonce,text:'Synthetic retained suggestion'};
+  const state={assistSurface:{state:{result:suggestion},dismissed:0,dismiss(){this.dismissed++;this.state.result=null;}},nonce,editing:false,checking:null,busy:false,refreshing:false,drag:null,composing:false,searchComposing:false,
    document:{documentElement:{dataset:{surfaceForm:'capsule'}}},chrome:{runtime:{id:'ext',onMessage:{addListener:fn=>listener=fn}}},paintCapsule(){},tell(){},
    pending(value){state.busy=value;},rpc:async command=>{calls.push(command);return command.type==='surface_form'?f.receive({type:'PAIA_PROMPT_SURFACE_FORM',nonce,form:command.form}):f.receive({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce});}};
   if(guard)state[guard]=true;const context=vm.createContext(state);vm.runInContext(formSource+'\n'+closeSource+'\n'+listenerSource,context);
@@ -188,10 +193,10 @@ test('double-card authenticated capsule opening and board closing use original g
   else{
    assert.deepEqual(JSON.parse(JSON.stringify(calls)),[{type:'surface_form',form:'board'}]);assert.equal(state.document.documentElement.dataset.surfaceForm,'board');assert.equal(f.frame,frame);assert.equal(f.focus,f.orb);assert.deepEqual(f.host.getBoundingClientRect(),anchor);
    listener({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext'},()=>{});await f.flush();assert.equal(calls[1].type,'close');assert.equal(state.document.documentElement.dataset.surfaceForm,'capsule');assert.equal(f.frame,frame);assert.equal(f.focus,f.orb);assert.deepEqual(f.host.getBoundingClientRect(),anchor);
-   // Explicit private Close always closes, even while the capsule is retained.
-   await context.requestClose();assert.equal(state.assistSurface.dismissed,3);assert.equal(calls[2].type,'close');assert.equal(f.focus,f.orb);
+   // Private Close changes presentation only, including the retained capsule.
+   await context.requestClose();assert.equal(state.assistSurface.dismissed,0);assert.equal(calls[2].type,'close');assert.equal(f.focus,f.orb);
   }
-  assert.ok(!calls.some(command=>/INSERT|SEND/.test(command.type)));f.sandbox.PAIAPromptSurface.dispose();
+  assert.equal(state.assistSurface.dismissed,0);assert.equal(state.assistSurface.state.result,suggestion,'opening, closing and blocked gestures retain the same suggestion');assert.ok(!calls.some(command=>/INSERT|SEND/.test(command.type)));f.sandbox.PAIAPromptSurface.dispose();
  }
 });
 

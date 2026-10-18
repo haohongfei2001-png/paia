@@ -5,7 +5,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});retur
 async function fixture(){
  const url='https://chatgpt.com/c/reopen-fixture',stored={},sends=[],notifications=[],entered=deferred(),idle=deferred();
  let consented=true,binding={url,conversation:'/c/reopen-fixture',cycle:1,replyId:'reply-1',revision:1};
- const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async message=>{notifications.push(message);}},storage:{session:{get:async()=>({...stored}),set:async x=>Object.assign(stored,x)}},tabs:{get:async()=>({id:1,url,incognito:false}),query:async()=>[],sendMessage:async(id,message,options)=>{sends.push({id,message,options});if(message.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await commands.authorization()).generation,binding:{...binding},idle:true};return {opened:true};}}};
+ const api={runtime:{id:'extension',getURL:p=>'chrome-extension://extension/'+p,sendMessage:async message=>{notifications.push(message);}},storage:{local:{get:async()=>({...stored}),set:async x=>Object.assign(stored,x)}},tabs:{get:async()=>({id:1,url,incognito:false}),query:async()=>[],sendMessage:async(id,message,options)=>{sends.push({id,message,options});if(message.type==='PAIA_PROMPT_NEXT_PROBE')return {authorization:(await commands.authorization()).generation,binding:{...binding},idle:true};return {opened:true};}}};
  const commands=new NextPromptCommands({s:{status:async()=>({consented})}},api,{isIdle:async id=>{assert.equal(id,1);entered.resolve();return idle.promise;}});
  const popup={id:'extension',url:api.runtime.getURL('ui/popup.html')};
  const configure=enabled=>commands.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled},popup);
@@ -47,3 +47,4 @@ test('old candidate or document invalidation cannot remove or announce a current
  assert.deepEqual(await f.commands.card({type:'next_available'},{id:1}),{available:true});
  assert.deepEqual(f.notifications,[]);
 });
+

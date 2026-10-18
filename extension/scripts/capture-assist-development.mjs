@@ -44,9 +44,11 @@ const assertOff=value=>{assert.equal(value.replyAccess,false);assert.equal(value
 // The install owner can write a disabled record; neither absence nor status alone
 // proves no grant. Keep the validated record private for exact baseline comparison.
 function inspectAssistAuthorizationStorage({session,local}){
- const key='promptAssistAuthorizationV1',fail=()=>{throw Error('INVALID_ASSIST_AUTHORIZATION_STORAGE');};
+ const key='promptAssistAuthorizationV1',automaticKey='promptAssistAutomaticPreferenceV2',fail=()=>{throw Error('INVALID_ASSIST_AUTHORIZATION_STORAGE');};
  const plain=value=>value!==null&&typeof value==='object'&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
- if(!plain(session)||!plain(local)||Object.hasOwn(local,key))fail();
+ // This historical manual capture certifies absent durable permissions only.
+ // Any automatic preference, even malformed or disabled, is outside that proof.
+ if(!plain(session)||!plain(local)||Object.hasOwn(local,key)||Object.hasOwn(local,automaticKey)||Object.hasOwn(session,automaticKey))fail();
  if(!Object.hasOwn(session,key))return {sessionPresent:false,localPresent:false,record:null};
  const entry=Object.getOwnPropertyDescriptor(session,key);if(!Object.hasOwn(entry,'value')||!entry.enumerable)fail();
  const value=entry.value,fields=['version','replyAccess','remoteProcessing','generation'];
@@ -57,7 +59,7 @@ function inspectAssistAuthorizationStorage({session,local}){
  return {sessionPresent:true,localPresent:false,record:{version:value.version,replyAccess:value.replyAccess,remoteProcessing:value.remoteProcessing,generation:value.generation}};
 }
 const authorizationStorage=async page=>inspectAssistAuthorizationStorage(await page.evaluate(async()=>{
- const key='promptAssistAuthorizationV1';return {session:await chrome.storage.session.get(key),local:await chrome.storage.local.get(key)};
+ const keys=['promptAssistAuthorizationV1','promptAssistAutomaticPreferenceV2'];return {session:await chrome.storage.session.get(keys),local:await chrome.storage.local.get(keys)};
 }));
 const assertAuthorizationUnchanged=(actual,baseline)=>assert.equal(isDeepStrictEqual(actual,baseline),true,'original authorization storage must remain exactly unchanged');
 
