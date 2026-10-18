@@ -1,3 +1,5 @@
+import {MAINTENANCE_EXISTING_CONTEXT_LIMITS} from './maintenance-existing-context.js';
+import {validContextTemporal} from '../context-temporal.js';
 import {validStructuralContextEvidence} from './structural-context-mapping.js';
 import {validBoundFields} from '../context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields} from '../context-authored-entry.js';
@@ -5,7 +7,7 @@ import {fail,exact} from './contracts.js';
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // Internal purpose-scoped domain DTO, not a Qwen wire or financial grant.
 // Source originals stay in the original formation owner's local proof.
-export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[],structuralSections=[],structuralTopics=[],contextItems=[]){
+export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[],structuralSections=[],structuralTopics=[],contextItems=[],existingContextItems=[],existingContextSummary=null){
  const view=material?.view;
  if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!Array.isArray(boundEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
  if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length+boundEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
@@ -69,7 +71,17 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
   if(m.kind!=='contextEdit'||!Number.isSafeInteger(m.revision)||m.revision<2||!['info','rules','now'].includes(m.card)||JSON.stringify(m.selectedFields)!=='["body","section"]'||!m.selectedFields.every(f=>typeof m.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(m.fieldDigests[f]))||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['context_item',m.itemId]))||!Array.isArray(m.inputIds)||!m.inputIds.length||!m.inputIds.every(id=>inputs.some(i=>i.inputId===id)))fail('UNAVAILABLE');
  }
  if((metadata.coverage||[]).some(u=>u.key?.startsWith('["context_item",')&&(u.facet!=='context'||!contextItems.some(m=>u.key===JSON.stringify(['context_item',m.itemId])))))fail('UNAVAILABLE');
- const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(contextItems.length?{contextItems:structuredClone(contextItems)}:{}),...(structuralTopics.length?{structuralTopics:structuredClone(structuralTopics)}:{}),...(structuralSections.length?{structuralSections:structuredClone(structuralSections)}:{}),...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
+ // Existing automatic Items are independently selected/granted by the session.
+ // This closed semantic DTO contains no Source originals, association IDs or
+ // local provenance. A serialized DTO is never a writable-item capability.
+ if(!Array.isArray(existingContextItems)||existingContextItems.length>MAINTENANCE_EXISTING_CONTEXT_LIMITS.items)fail('BUDGET_EXCEEDED');
+ for(const item of existingContextItems){
+  const temporal=Object.hasOwn(item,'temporal');exact(item,['itemRef','itemId','revision','card','origin','protected','userEdited','lifecycle','body','section',...(temporal?['temporal','temporalStatus']:[])]);
+  if(!/^c[0-9]+$/.test(item.itemRef)||typeof item.itemId!=='string'||!item.itemId||!Number.isSafeInteger(item.revision)||item.revision<1||!['info','rules','now'].includes(item.card)||item.origin!=='automatic'||item.protected!==false||item.userEdited!==false||!['active','invalidated'].includes(item.lifecycle)||typeof item.body!=='string'||!item.body.trim()||item.body.length>8192||typeof item.section!=='string'||!item.section.trim()||item.section.length>80||temporal&&(!validContextTemporal(item.temporal)||!['expired','not_expired','unknown'].includes(item.temporalStatus))||contextItems.length||!metadata.coverage?.some(u=>u.facet==='context'))fail('UNAVAILABLE');
+ }
+ if(new Set(existingContextItems.map(x=>x.itemId)).size!==existingContextItems.length||new Set(existingContextItems.map(x=>x.itemRef)).size!==existingContextItems.length)fail('UNAVAILABLE');
+ if(existingContextSummary!==null){exact(existingContextSummary,['version','coverage','selectedItems','omittedItems','complete']);if(existingContextSummary.version!==1||existingContextSummary.coverage!=='selected_processing_scope'||existingContextSummary.selectedItems!==existingContextItems.length||!Number.isSafeInteger(existingContextSummary.omittedItems)||existingContextSummary.omittedItems<0||existingContextSummary.complete!==(existingContextSummary.omittedItems===0))fail('UNAVAILABLE');}
+ const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(existingContextItems.length?{existingContextItems:structuredClone(existingContextItems)}:{}),...(existingContextSummary&&(existingContextSummary.selectedItems||existingContextSummary.omittedItems)?{existingContextSummary:structuredClone(existingContextSummary)}:{}),...(contextItems.length?{contextItems:structuredClone(contextItems)}:{}),...(structuralTopics.length?{structuralTopics:structuredClone(structuralTopics)}:{}),...(structuralSections.length?{structuralSections:structuredClone(structuralSections)}:{}),...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
  const payload={...structuredClone(metadata),material:bounded};
  if(bytes(bounded)>limits.maxContentBytes||bytes(payload)>limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
  return payload;

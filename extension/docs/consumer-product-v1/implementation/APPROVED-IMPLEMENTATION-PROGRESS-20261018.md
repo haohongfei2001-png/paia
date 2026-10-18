@@ -1,3 +1,13 @@
+# Bounded existing Context and exact publication checkpoint
+
+The next frozen development slice implements same-scope independently granted old automatic Items and their formal UPDATE, REMOVE_CANDIDATE and checked NO_CHANGE mappings. Original Topic/Context write intents produce private exact before/expected-after capabilities; only original commit plus ACK can advance authority. Complete granted Input/Source final fences, shared work budgets and exact successful dispositions remain mandatory. The full [checkpoint](MAINTENANCE-EXISTING-CONTEXT-CHECKPOINT-20261018.md) links the three owning receipts, preserved genuine failures and scoped 481/96/187/168/72 local passes with build/privacy checks. Limited independent read-only review found no proved blocker to saving the slice.
+
+[Native development run 39158831672](https://github.com/haohongfei2001-png/paia/actions/runs/39158831672), on unchanged P0 runtime plus the new restricted CI workflow, is FAILED: Source/release each have mixed and mixed-race leaf failures. Four leaves plus two parent suites yield 142/148 pass. The full log is retained; original-owner diagnosis continues without weakening the oracle. The fixture-based native file is not formal-adapter/P1 end-to-end qualification. Idle-expiry retention, partial-excerpt child rollback and cross-source old-state retrieval remain open and accurately bounded in the receipt.
+
+Continue the [latest seven approved lanes](LATEST-SEVEN-LANE-REMAINING-ENGINEERING-20261018.md), excluding paused Sync and historical mobile scope. Assist selection, Pro Filter independent permission/scope, candidate/lifecycle/promotion, neutral Context connection/status and production assembly are continuing implementation. Real client/transport selection and external identity/profile/tokenizer/endpoint/allowance activation remain distinct prerequisites; existing UI is preserved and broad acceptance stays deferred.
+
+## Preserved preceding checkpoint
+
 # Source-owned Maintenance and original-owner checkpoint
 
 The new independently reviewed development slice preserves source baseline `8275d54b1061922aacf827ea3900fddaacf4a64e` and closes the ordinary fixture-response dependency, exact Section Topic rename gap and same-child committed Topic bridge. Its closed response contract binds the qualified profile before reservation; runtime DEFER retains actual pending obligations; source response registrations are explicitly consumed/released. Original final transactions reject the six reproduced Topic epoch/Source-byte drifts without changing human structure or scope.

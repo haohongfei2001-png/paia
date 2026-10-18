@@ -172,8 +172,13 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
   return {captured,results};
  }catch(error){releaseContextLineage(captured);throw error;}finally{for(const row of material.rows.values())if(row)row.text={};}
 }
-export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null}={}){
- need(validContextEvidenceSpecs(evidence));const result=await assess(store,[{epoch,evidence}],{epoch,expectedAuthority,workBudget:createContextScopeWorkBudget({signal,database:store.repository.db})});if(!result.results[0].eligible){releaseContextLineage(result.captured);fail();}
+export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null,workBudget=null}={}){
+ need(validContextEvidenceSpecs(evidence));
+ // A trusted caller may share the original branded work budget across its
+ // metadata/current-material phase and this qualification. Never reset it or
+ // accept an unbranded allowance, another database, or a different abort lease.
+ if(workBudget!==null){try{contextScopeTransactionReader(store,{},workBudget);}catch{fail('budget_exceeded');}need(workBudget.database===store.repository.db&&(signal===null||workBudget.signal===signal));if(workBudget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads||workBudget.hashBytes>=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>=CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}
+ const result=await assess(store,[{epoch,evidence}],{epoch,expectedAuthority,workBudget:workBudget??createContextScopeWorkBudget({signal,database:store.repository.db})});if(!result.results[0].eligible){releaseContextLineage(result.captured);fail();}
  return {captured:result.captured,provenance:{epoch,evidence:result.results[0].evidence}};
 }
 export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null,retainAuthoredCapture=false}={}){

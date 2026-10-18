@@ -91,3 +91,48 @@ test('remote client refuses a fixture/open schema before tokenizing, declaring o
 test('throwing currentness owner releases the private child binding',async()=>{const f=fixture();f.owner.releaseChild(f.payload.childOperationId);let throwing=false;f.owner.registerChild(f.foundation,f.payload,()=>{if(throwing)throw Error('SYNTHETIC currentness failure');return true;});throwing=true;await assert.rejects(f.decode(),{code:'UNAVAILABLE'});assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));});
 
 for(const key of ['identities','sections','constraints','entries'])test('fresh '+key+' cannot replace the exact sent semantic snapshot',async()=>{const f=fixture();f.view[key].push({id:'SYNTHETIC-changed',revision:1,name:'SYNTHETIC changed interpretation'});await assert.rejects(f.decode(),{code:'STALE_BASE'});assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));});
+
+async function existingFixture({inputs=1,id='synthetic-existing-child'}={}){
+ const {localMaintenanceFixture}=await import('../../services/ai-gateway/tests/maintenance-local-fixture.mjs'),{CONTEXT_CARDS_ROW}=await import('../core/context-cards.js');
+ const local=await localMaintenanceFixture({inputs});try{assert.equal((await local.session.run(await local.session.prepare({scope:'synthetic-maintenance',contractVersion:'synthetic-aiu-1',routeVersion:'synthetic-maintenance-1'}))).state,'COMMITTED');}finally{local.session.dispose();}
+ const row=await local.s.repository.transaction(false,t=>t.get('meta',CONTEXT_CARDS_ROW)),item=row.items[0],sentInputs=local.calls[0].material.inputs;
+ const semantic={itemRef:'c0',itemId:item.id,revision:item.revision,card:item.card,origin:item.origin,protected:item.protected,userEdited:item.userEdited,lifecycle:item.lifecycle,body:item.body,section:item.section};
+ const evidence=item.maintenance.provenance.evidence.map(({contentRevision,sourceRecordIds,sourceIdentityTokens,...e})=>e),metadataItem={...clone(semantic),epoch:item.maintenance.provenance.epoch,associationIds:[...item.maintenance.associationIds],provenance:clone(item.maintenance.provenance),currentEvidence:clone(evidence),currentProvenance:clone(item.maintenance.provenance)};
+ const coverage=sentInputs.map(i=>({key:JSON.stringify(['input',i.inputId]),facet:'context',scope:'synthetic-existing-scope'})),payload={logicalJobId:'synthetic-existing-job',childOperationId:id,type:'AI_MAINTENANCE',contractVersion:'synthetic-contract',routeVersion:'synthetic-route',automaticRetries:0,coverage,material:{version:1,purpose:'AI_MAINTENANCE',inputs:clone(sentInputs),identities:[],sections:[],constraints:[],existingContextItems:[clone(semantic)],existingContextSummary:{version:1,coverage:'selected_processing_scope',selectedItems:1,omittedItems:0,complete:true}}};
+ const binding={logicalJobId:payload.logicalJobId,childOperationId:id,operationReceiptId:'synthetic-existing-receipt-'+id},group={operation:'UPDATE',reason:'',unitKeys:coverage.map(u=>u.key),topicId:'',itemId:item.id,expectedRevision:item.revision,card:item.card,body:'SYNTHETIC refreshed baseline',section:'Synthetic refresh',temporal:{present:false,temporalScope:'',uncertainty:'',validUntil:''}},response={accepted:true,operationReceiptId:binding.operationReceiptId,value:{version:1,logicalJobId:payload.logicalJobId,childOperationId:id,citations:[],topic:emptyTopic(),context:{status:'APPLY',reason:'',groups:[group]},filter:{status:'NONE',reason:'',decisions:[]}}};
+ const foundation={s:local.s,read:fn=>local.s.repository.transaction(false,fn)},metadata={units:coverage,inputIds:sentInputs.map(i=>i.inputId),existingContextItems:[metadataItem]},owner=createMaintenanceServiceResponseAdapter();owner.registerChild(foundation,payload,()=>true);
+ return {owner,foundation,payload,binding,response,group,metadata,item,metadataItem,decode:()=>owner.adapter.context(response,metadata,binding)};
+}
+const asOutcome=(f,operation)=>Object.assign(f.group,{operation,body:'',section:''});
+const catchDefer=async work=>{let error;try{await work();}catch(e){error=e;}const deferred=readMaintenanceResponseDefer(error);assert.ok(deferred,'must be authentic exact coverage DEFER');return deferred;};
+
+test('existing source UPDATE uses exact sent stable target and original associations without generating a replacement Item',async()=>{
+ const f=await existingFixture(),result=await f.decode(),change=result.value[0].change;assert.equal(change.itemId,f.item.id);assert.equal(change.expectedRevision,f.item.revision);assert.equal(change.epoch,f.item.maintenance.provenance.epoch);assert.deepEqual(clone(change.associationIds),f.item.maintenance.associationIds);assert.deepEqual(clone(change.evidence),f.metadataItem.currentEvidence);assert.equal(Object.hasOwn(change,'temporal'),false);assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));
+});
+for(const [name,change]of [
+ ['revision',f=>f.group.expectedRevision++],['card',f=>f.group.card='rules'],['sent semantic body',f=>f.metadataItem.body='SYNTHETIC changed unsent body'],['display reference',f=>f.metadataItem.itemRef='c9'],['private epoch',f=>f.metadataItem.epoch=crypto.randomUUID()],['manual origin',f=>{f.payload.material.existingContextItems[0].origin='manual';f.metadataItem.origin='manual';}],['protected state',f=>{f.payload.material.existingContextItems[0].protected=true;f.metadataItem.protected=true;}],['human edited state',f=>{f.payload.material.existingContextItems[0].userEdited=true;f.metadataItem.userEdited=true;}],['removed lifecycle',f=>{f.payload.material.existingContextItems[0].lifecycle='removed';f.metadataItem.lifecycle='removed';}]
+])test('existing source rejects wrong '+name+' and releases private body registration',async()=>{
+ const f=await existingFixture();change(f);
+ // Re-register mutated semantic fixtures so the production public/private
+ // comparison and lifecycle guard each exercise their intended exact boundary.
+ if(['manual origin','protected state','human edited state','removed lifecycle'].includes(name)){f.owner.releaseChild(f.payload.childOperationId);f.owner.registerChild(f.foundation,f.payload,()=>true);}
+ await assert.rejects(f.decode(),{code:'STALE_BASE'});assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));
+});
+
+test('NO_CHANGE may check a real prior Input subset while the unrelated remainder stays deferred',async()=>{
+ const f=await existingFixture({inputs:2});asOutcome(f,'NO_CHANGE');f.group.unitKeys=[f.payload.coverage[0].key];f.response.value.context.groups.push({operation:'DEFER',reason:'Unprocessed subset',unitKeys:[f.payload.coverage[1].key],topicId:'',itemId:'',expectedRevision:0,card:'info',body:'',section:'',temporal:{present:false,temporalScope:'',uncertainty:'',validUntil:''}});
+ const deferred=await catchDefer(f.decode);assert.equal(deferred.groups.length,1);assert.equal(deferred.groups[0].operation,'NO_CHANGE');assert.equal(deferred.groups[0].change.evidence.length,1);assert.equal(deferred.groups[0].change.evidence[0].inputId,JSON.parse(f.group.unitKeys[0])[1]);assert.deepEqual(clone(deferred.units),[f.payload.coverage[1]]);assert.doesNotThrow(()=>f.owner.registerChild(f.foundation,f.payload,()=>true));
+});
+
+test('REMOVE_CANDIDATE refuses a partial old lineage even when revision and associations are exact',async()=>{
+ const f=await existingFixture({inputs:2});asOutcome(f,'REMOVE_CANDIDATE');f.group.unitKeys=[f.payload.coverage[0].key];f.response.value.context.groups.push({operation:'DEFER',reason:'Unprocessed subset',unitKeys:[f.payload.coverage[1].key],topicId:'',itemId:'',expectedRevision:0,card:'info',body:'',section:'',temporal:{present:false,temporalScope:'',uncertainty:'',validUntil:''}});
+ const deferred=await catchDefer(f.decode);assert.equal(deferred.groups.length,0);assert.equal(deferred.units.length,2);
+});
+for(const operation of ['NO_CHANGE','REMOVE_CANDIDATE'])test(operation+' cannot substitute another Source family for the prior registered lineage',async()=>{
+ const f=await existingFixture();asOutcome(f,operation);f.metadataItem.provenance.evidence[0].sourceRecordIds=[crypto.randomUUID()];const deferred=await catchDefer(f.decode);assert.equal(deferred.groups.length,0);assert.deepEqual(clone(deferred.units),f.payload.coverage);
+});
+
+test('same display ref c0 in another physical child cannot target the first child Item or borrow its baseline',async()=>{
+ const a=await existingFixture({id:'synthetic-child-a'}),b=await existingFixture({id:'synthetic-child-b'});assert.equal(a.payload.material.existingContextItems[0].itemRef,b.payload.material.existingContextItems[0].itemRef);assert.notEqual(a.item.id,b.item.id);
+ a.owner.registerChild(b.foundation,b.payload,()=>true);b.group.itemId=a.item.id;asOutcome(b,'NO_CHANGE');const deferred=await catchDefer(()=>a.owner.adapter.context(b.response,b.metadata,b.binding));assert.equal(deferred.groups.length,0);assert.deepEqual(clone(deferred.units),b.payload.coverage);assert.equal((await a.decode()).value[0].change.itemId,a.item.id);assert.doesNotThrow(()=>a.owner.registerChild(b.foundation,b.payload,()=>true));
+});

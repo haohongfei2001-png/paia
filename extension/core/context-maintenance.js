@@ -1,3 +1,7 @@
+import {rootReadAuthority} from './organizer/root-read.js';
+import {inputProjection} from './thought-evidence.js';
+import {MemoryService} from './memory/service.js';
+import {createContextScopeWorkBudget,contextScopeTransactionReader} from './context-topic-scope.js';
 import {validStructuralContextEvidence,structuralContextGroups,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
 import {validBoundFields,boundContextEvidence} from './context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields,authoredContextEvidence} from './context-authored-entry.js';
@@ -14,7 +18,8 @@ import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validC
 export const CONTEXT_MAINTENANCE_LIMITS=Object.freeze({requestBytes:96*1024,pending:64,verificationMs:1000,requestMs:10000});
 const PREFIX='context-maintenance:',NAMESPACE='context-maintenance',SECTION_LIMIT=80;
 const requestWithinBudget=c=>new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes;
-const attempts=new WeakMap();
+const attempts=new WeakMap(),publications=new WeakMap();
+export function readContextMaintenancePublication(token,store,{transaction=null}={}){const p=publications.get(token);if(!p||p.store!==store||p.database!==store.repository.db||!p.frozen||!p.committed&&transaction!==p.transaction)return null;return structuredClone({operationId:p.operationId,beforeAuthority:p.beforeAuthority,authority:p.committed?p.afterAuthority:p.stagedAuthority,writes:[]});}
 const fail=(code='CONTEXT_INVALIDATED')=>{throw new ArchiveError(code);};
 const need=(x,code)=>{if(!x)fail(code);};
 const bounded=(x,n)=>typeof x==='string'&&x.length>0&&x.length<=n&&!x.includes('\0');
@@ -26,6 +31,21 @@ function structuralClosureCovered(old,live,scope){
  // original Topic/Section owner. Current proof and its independent grant must
  // cover that same selection before novelty or any receipt can be published.
  return !!current&&current.topicId===selected.topicId&&(property==='humanTopic'||current.sectionId===selected.sectionId)&&selected.selectedFields.every(f=>current.selectedFields.includes(f))&&!!granted?.some(s=>same(s,current));
+}
+// Private selected-field/source snapshot. This does not discover Inputs or
+// expand the verifier scope; authored/bound/structural fields remain fenced by
+// the original lineage owner. Source originals stay local and are never DTOs.
+async function selectedMaterialSnapshot(store,transaction,evidence,budget){
+ const t=contextScopeTransactionReader(store,transaction,budget),inputs=[],sources=new Map(),filter=await t.get('meta','smart-filter'),memory=new MemoryService(store),restrictions=[];
+ let retainedBytes=0;const retain=value=>{retainedBytes+=new TextEncoder().encode(JSON.stringify(value)).byteLength;need(retainedBytes<=CONTEXT_LINEAGE_LIMITS.hashBytes,'CONTEXT_LIMIT');return value;};
+ for(const spec of evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind))){
+  const p=await inputProjection(store,t,spec.inputId);need(p&&!await store.isFiltered(t,p.block,filter)&&await memory.safeSources(t,p.sourceRecordIds));
+  const selected={inputId:p.inputId,documentId:p.documentId,contentRevision:p.contentRevision,lastRemovalSequence:p.lastRemovalSequence,sourceRecordIds:p.sourceRecordIds,sourceIdentityTokens:p.identities,fields:Object.fromEntries(spec.selectedFields.map(field=>[field,p[field]]))};
+  need(Object.values(selected.fields).every(text=>typeof text==='string'));inputs.push(retain(selected));
+  for(const id of p.sourceRecordIds)if(!sources.has(id))sources.set(id,retain({id,index:await t.get('recordIndex',id),record:await t.get('records',id)}));
+ }
+ await t.scanPrimary('meta','memory:',row=>{if(['config','topic','section','entry','input'].includes(row.kind))restrictions.push(retain(row));});
+ return {inputs,sources:[...sources.values()],filter,restrictions};
 }
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
 const opaque=x=>bounded(x,200);
@@ -137,7 +157,7 @@ export class ContextMaintenanceService {
    const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
    if(signal?.aborted)abort();else signal?.addEventListener('abort',abort);
    const timer=setTimeout(abort,CONTEXT_MAINTENANCE_LIMITS.requestMs);
-   attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal,attempt)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
+   attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal,attempt)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED','STALE_BASE','UNAVAILABLE'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
   }catch(error){return Promise.reject(error);}
  }
  async #apply(caller,c,serialized,signal,attempt){
@@ -155,14 +175,32 @@ export class ContextMaintenanceService {
   const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database);
   if(prior)return prior;
   this.#current(caller,authority,phase.signal);
-  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,signal:phase.signal}),[phase.signal]);this.#current(caller,authority,phase.signal);
+  const workBudget=createContextScopeWorkBudget({signal:phase.signal,database});
+  const material=await cancellable(()=>contextLineageRead(this.#s,t=>selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),undefined,database),[phase.signal]);this.#current(caller,authority,phase.signal);
+  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,signal:phase.signal,workBudget}),[phase.signal]);this.#current(caller,authority,phase.signal);
+  await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),material));},undefined,database),[phase.signal]);
+
   const current=await this.#verify(caller,scope,[phase.signal]);need(identity(current)===identity(authority));this.#current(caller,current,phase.signal);
-  let transaction=null,expiryTimer=null;
+  let transaction=null,transactionReader=null,expiryTimer=null,expectedItem=null,publication=null,publicationState=null;
+  const publicationToken=()=>publication;
+  const seal=()=>{publicationState.stagedAuthority=publicationState.beforeAuthority;const after=JSON.parse(publicationState.beforeAuthority);if(transactionReader.backupChanged)after[5]=(after[5]||0)+1;publicationState.afterAuthority=JSON.stringify(after);publicationState.frozen=true;};
+  // Constructor-private capability: never read from a request or model DTO.
+  // The expected target is fixed before its first write and survives until the
+  // complete joined transaction settles, including its external exact ACK.
+  const expectedTarget=()=>expectedItem?{itemId:expectedItem.id,item:structuredClone(expectedItem)}:null;
+  const finalFence=async t=>{
+   need(transaction&&t===transactionReader&&t.tx===transaction&&contextLineageReady(this.#s)&&this.#s.repository.db===database);
+   this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);
+   await fenceContextLineage(this.#s,captured.captured,{transaction:t});
+   need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget),material));
+   need(expectedItem&&same((await this.#cards.row(t)).items.find(item=>item.id===expectedItem.id),expectedItem));need(publicationState&&await rootReadAuthority(t)===publicationState.beforeAuthority);
+   this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);return true;
+  };
   const abort=()=>{try{transaction?.abort();}catch{}};
   const signals=[...new Set([phase.signal,current.revocationSignal])];
   for(const value of signals)value.addEventListener('abort',abort);
-  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);return await this.#writeTransaction(async t=>{
-   need(contextLineageReady(this.#s)&&this.#s.repository.db===database);transaction=t.tx;
+  try{need(contextLineageReady(this.#s)&&this.#s.repository.db===database);const committedResult=await this.#writeTransaction(async t=>{
+   need(contextLineageReady(this.#s)&&this.#s.repository.db===database);transaction=t.tx;transactionReader=t;publication=Object.freeze({});publicationState={store:this.#s,database,transaction:t,operationId:c.operationId,beforeAuthority:await rootReadAuthority(t),frozen:false,committed:false};publications.set(publication,publicationState);
    const clearDeadline=()=>{clearTimeout(expiryTimer);expiryTimer=null;};
    transaction.addEventListener('complete',clearDeadline,{once:true});transaction.addEventListener('abort',clearDeadline,{once:true});
    // An explicit-call deadline can only abort this transaction; it never
@@ -172,7 +210,7 @@ export class ContextMaintenanceService {
    const originalPut=t.put.bind(t);t.put=async(...args)=>{this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);const value=await originalPut(...args);this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return value;};
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
    await fenceContextLineage(this.#s,captured.captured,{transaction:t});this.#current(caller,current,phase.signal);
-   const replay=await this.#receipt(t,query,current,scopeDigest,c);this.#current(caller,current,phase.signal);if(replay)return replay;
+   const replay=await this.#receipt(t,query,current,scopeDigest,c);this.#current(caller,current,phase.signal);if(replay){expectedItem=structuredClone((await this.#cards.row(t)).items.find(item=>item.id===replay.itemId));await finalFence(t);seal();return replay;}
    const row=await this.#cards.row(t);this.#current(caller,current,phase.signal);
    const matches=row.items.filter(x=>x.origin==='automatic'&&x.maintenance.associationIds.some(id=>c.associationIds.includes(id)));
    if(matches.length>1)return conflict();
@@ -198,7 +236,7 @@ export class ContextMaintenanceService {
     // invalidation, never a human tombstone or permission change.
     item.lifecycle='invalidated';item.maintenance.invalidation=captured.provenance;
     item.revision++;item.updatedAt=this.#s.clock();need(validContextCards(row),'CONTEXT_LIMIT');
-    await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,'invalidated');
+    expectedItem=structuredClone(item);await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,'invalidated');
    }else if(c.operation==='NO_CHANGE'){
     if(!item||item.id!==c.itemId||item.card!==c.card||item.lifecycle!=='active'||item.protected||item.revision!==c.expectedRevision||!c.associationIds.every(id=>item.maintenance.associationIds.includes(id)))return conflict();
     // Every checked Input/field must belong to this Item's actual registered
@@ -222,16 +260,17 @@ export class ContextMaintenanceService {
     // cannot silently certify the new body using the prior proposal's time.
     item.body=c.body;item.section=c.section;item.maintenance={version:1,associationIds,provenance:captured.provenance,...(Object.hasOwn(c,'temporal')?{temporal:structuredClone(c.temporal)}:{})};item.revision++;item.updatedAt=this.#s.clock();
     need(validContextCards(row),'CONTEXT_LIMIT');this.#current(caller,current,phase.signal);
-    await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
+    expectedItem=structuredClone(item);await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
    }
+   if(expectedItem===null)expectedItem=structuredClone(item);
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
    await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
    // Bound human fields and selected Topic/Section interpretation settle with their
    // original Input/Source authority after both Item and receipt are staged.
    // This owner also serves direct callers without a session settlement guard.
-   if(c.evidence.some(e=>e.kind==='boundEntry'||e.humanSection||e.humanTopic))await fenceContextLineage(this.#s,captured.captured,{transaction:t});
-   this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return outcome;
-  });}finally{clearTimeout(expiryTimer);transaction=null;for(const value of signals)value.removeEventListener('abort',abort);}
+   await finalFence(t);
+   this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);seal();return outcome;
+  },finalFence,expectedTarget,publicationToken);publicationState.committed=true;publicationState.transaction=null;return committedResult;}finally{if(publicationState&&!publicationState.committed)publications.delete(publication);clearTimeout(expiryTimer);transaction=null;transactionReader=null;for(const value of signals)value.removeEventListener('abort',abort);}
   }finally{releaseContextLineage(captured?.captured);clearTimeout(phaseTimer);for(const source of phaseSources)source.removeEventListener('abort',cancelPhase);}
  }
  async outcome(caller,input){

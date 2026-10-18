@@ -2,12 +2,12 @@ import {snapshot,freeze,boundedSchema} from './qwen-request-data.js';
 import {equal,fail,unitKey} from './contracts.js';
 import {hashText} from '../dedupe.js';
 import {inputProjection} from '../thought-evidence.js';
-import {contextLineageAdmission,validContextEvidenceSpecs} from '../context-item-lineage.js';
+import {contextLineageAdmission,validContextEvidenceSpecs,contextEvidenceKey,contextEvidenceIdentity} from '../context-item-lineage.js';
 import {createContextScopeWorkBudget,contextScopeTransactionReader,readContextProcessingPreflight} from '../context-topic-scope.js';
 import {authoredContextEvidence} from '../context-authored-entry.js';
 import {boundContextEvidence} from '../context-bound-entry.js';
 import {structuralContextProperty} from './structural-context-mapping.js';
-import {validateContextMaintenanceChange} from '../context-maintenance.js';
+import {validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation,CONTEXT_MAINTENANCE_LIMITS} from '../context-maintenance.js';
 
 // This is the source-owned provider DTO. Every object is closed and every field
 // required; empty strings/arrays are explicit sentinels, not missing authority.
@@ -33,7 +33,7 @@ const temporalSchema=object({present:{type:'boolean'},temporalScope:str(512),unc
 const schema=object({version:number(1,1),logicalJobId:str(200,1),childOperationId:str(200,1),citations:array(citation(),100),topic:topicSchema,context:object({status:choice(['APPLY','DEFER','NONE']),reason:str(160),groups:array(object({operation:choice(['ADD','UPDATE','NO_CHANGE','REMOVE_CANDIDATE','DEFER']),reason:str(160),unitKeys:array(str(450,1),50,1),topicId:str(),itemId:str(),expectedRevision:number(),card:choice(['info','rules','now']),body:str(8192),section:str(80),temporal:temporalSchema}),50)}),filter:object({status:choice(['DECIDE','DEFER','NONE']),reason:str(160),decisions:array(object({inputId:str(200,1),decision:choice(['FILTER','KEEP','INSUFFICIENT'])}),20)})});
 export const MAINTENANCE_SERVICE_RESPONSE_SCHEMA=freeze(snapshot(JSON.parse(JSON.stringify(schema))));
 boundedSchema(MAINTENANCE_SERVICE_RESPONSE_SCHEMA);
-export const MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS='Return exactly the qualified Maintenance response schema. Copy logicalJobId and childOperationId from this request. Use only the sent material and exact coverage keys. ASSESS preserves original Topic evidence and relations; all Topic citations and entry spans are indexes into the top-level citations table, whose exact sent Input body offsets are never inferred. Unused Topic fields use unresolved, empty name/boundaryKey, empty evidence/relations/entries, empty/unknown/none claims and default empty section. NONE is only for absent facets. DEFER requires a nonempty reason and empty results. Context groups must cover each context coverage key exactly once. ADD uses empty itemId and expectedRevision 0. UPDATE is only for the exact selected contextItems item and revision. Never invent existing Context Item state. Use topicId "$result" only for the sole Topic created/reused by this same child; otherwise use an exact sent Topic ID. Existing authored, bound, placement and structural evidence stays in its sent Topic. Explicit DEFER groups use empty topicId/itemId/body/section, expectedRevision 0, card info and absent temporal. Absent temporal uses present false and all empty strings. Section default uses empty sectionId/name/citations/relations, aspectReason unknown and returnReason none; existing uses only sectionId. Additional Entry Topic placements use topic.additional with the exact entryIndex. No unselected fields, permission, authority or financial claims are valid.';
+export const MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS='Return exactly the qualified Maintenance response schema. Copy logicalJobId and childOperationId from this request. Use only the sent material and exact coverage keys. ASSESS preserves original Topic evidence and relations; all Topic citations and entry spans are indexes into the top-level citations table, whose exact sent Input body offsets are never inferred. Unused Topic fields use unresolved, empty name/boundaryKey, empty evidence/relations/entries, empty/unknown/none claims and default empty section. NONE is only for absent facets. DEFER requires a nonempty reason and empty results. Context groups must cover each context coverage key exactly once. ADD uses empty itemId and expectedRevision 0. Existing UPDATE, NO_CHANGE and REMOVE_CANDIDATE must use the exact sent existingContextItems itemId, revision and card, with empty topicId; itemRef is only a display label and never replaces itemId. UPDATE requires a new body and section; absent temporal clears any old deadline. NO_CHANGE and REMOVE_CANDIDATE use empty body/section and absent temporal. NO_CHANGE checks only its exact selected prior-evidence subset; REMOVE_CANDIDATE requires the complete original lineage. Selected contextItems corrections retain their separate UPDATE path. Never invent existing Context Item state or use a same-name match. Use topicId "$result" only for the sole Topic created/reused by this same child; otherwise use an exact sent Topic ID. Existing authored, bound, placement and structural evidence stays in its sent Topic. Explicit DEFER groups use empty topicId/itemId/body/section, expectedRevision 0, card info and absent temporal. Absent temporal uses present false and all empty strings. Section default uses empty sectionId/name/citations/relations, aspectReason unknown and returnReason none; existing uses only sectionId. Additional Entry Topic placements use topic.additional with the exact entryIndex. No unselected fields, permission, authority or financial claims are valid.';
 const deferred=new WeakMap(),conditions={topic:'TOPIC_MAPPING_UNAVAILABLE',context:'CONTEXT_MAPPING_UNAVAILABLE',filter:'FILTER_OWNER_UNAVAILABLE'};
 export const readMaintenanceResponseDefer=value=>deferred.get(value)??null;
 function defer(binding,facet,units,groups=[]){const error=Object.freeze({code:'MAINTENANCE_RESPONSE_DEFER'});deferred.set(error,freeze(snapshot({binding,facet,units,retryCondition:conditions[facet],groups})));throw error;}
@@ -106,6 +106,55 @@ function unitMaterial(unit,material,metadata){
  fail('INVALID_RESPONSE');
 }
 
+// The public stable Item ID is the wire target reference. itemRef is only its
+// bounded display label; comparing the complete sent DTO below binds that label
+// too. Private lineage comes solely from this child's original captured handle,
+// never from a model-selected database lookup or the summary's completeness.
+const existingPrivateKeys=['epoch','associationIds','provenance','invalidation','currentEvidence','currentProvenance'];
+const evidenceAt=(xs,e)=>xs.find(x=>contextEvidenceKey(x)===contextEvidenceKey(e)&&x.topicId===e.topicId);
+function sameSourceFamily(old,live){
+ if(!live||!old.selectedFields.every(f=>live.selectedFields.includes(f)))return false;
+ if(['humanEntry','boundEntry'].includes(old.kind)&&(!['humanEntry','boundEntry'].includes(live.kind)||old.entryCreatedAt!==live.entryCreatedAt||old.birthOperationId!==live.birthOperationId))return false;
+ return old.kind==='humanEntry'||sameIds(old.sourceRecordIds,live.sourceRecordIds)&&sameIds(old.sourceIdentityTokens,live.sourceIdentityTokens);
+}
+function selectedExistingEvidence(baseline,selected){
+ const inputs=[...new Set(selected.flatMap(m=>m.inputs))],authored=[...new Map(selected.flatMap(m=>m.authored).map(e=>[e.entryId,e])).values()],bound=[...new Map(selected.flatMap(m=>m.bound).map(e=>[e.entryId,e])).values()],structures=selected.flatMap(m=>m.structures);
+ const evidence=baseline.currentEvidence.filter(e=>e.kind==='humanEntry'?authored.some(a=>a.entryId===e.entryId):e.kind==='boundEntry'?bound.some(b=>b.entryId===e.entryId):inputs.includes(e.inputId));
+ // A coverage key must have its own selected evidence. Reusing one Item ID
+ // cannot turn unrelated Input/Entry/Placement units into a checked result.
+ if(!sameIds(inputs,[...new Set(evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>e.inputId))])||!sameIds(authored.map(e=>e.entryId),evidence.filter(e=>e.kind==='humanEntry').map(e=>e.entryId))||!sameIds(bound.map(e=>e.entryId),evidence.filter(e=>e.kind==='boundEntry').map(e=>e.entryId)))return null;
+ for(const m of selected){if(m.topicId!==null&&m.inputs.some(id=>!evidence.some(e=>e.inputId===id&&e.topicId===m.topicId)))return null;}
+ for(const e of evidence){const structure=e.humanTopic||e.humanSection;if(structure&&!structures.some(s=>equal(s,structure)))return null;}
+ for(const s of structures)for(const entry of s.entries)if(!evidence.some(e=>e.inputId===entry.inputId&&e.topicId===s.topicId&&equal(e[structuralContextProperty(s)],s)))return null;
+ return validContextEvidenceSpecs(evidence)?structuredClone(evidence):null;
+}
+function existingContextGroup(held,g,selected,metadata){
+ const sent=(held.payload.material.existingContextItems||[]).find(x=>x.itemId===g.itemId);
+ if(!sent)return null;
+ const baseline=(metadata.existingContextItems||[]).find(x=>x.itemId===g.itemId);
+ requireFact(baseline&&equal(sent,without(baseline,existingPrivateKeys)),'STALE_BASE');
+ requireFact(sent.revision===g.expectedRevision&&sent.card===g.card&&sent.origin==='automatic'&&sent.protected===false&&sent.userEdited===false&&['active','invalidated'].includes(sent.lifecycle),'STALE_BASE');
+ requireFact(g.topicId===''&&baseline.epoch===baseline.provenance?.epoch&&baseline.epoch===baseline.currentProvenance?.epoch&&validContextEvidenceSpecs(baseline.currentEvidence),'STALE_BASE');
+ if(g.operation!=='UPDATE'&&sent.lifecycle!=='active')return null;
+ const evidence=selectedExistingEvidence(baseline,selected);if(!evidence)return null;
+ const current=evidence.map(e=>evidenceAt(baseline.currentProvenance.evidence,e));
+ requireFact(current.every((e,i)=>e&&equal(without(e,['contentRevision','sourceRecordIds','sourceIdentityTokens']),without(evidence[i],['contentRevision','sourceRecordIds','sourceIdentityTokens']))),'STALE_BASE');
+ const prior=[baseline.provenance,baseline.invalidation].filter(Boolean).flatMap(p=>p.evidence);
+ if(g.operation==='NO_CHANGE'){
+  // A real proper subset is allowed, but the Item's untouched lineage is not
+  // claimed checked and no Item/provenance/revision mutation is constructed.
+  if(current.some(e=>{const old=evidenceAt(baseline.provenance.evidence,e);return !old||!e.selectedFields.every(f=>old.selectedFields.includes(f))||!sameSourceFamily({...old,selectedFields:e.selectedFields},e);}))return null;
+ }else{
+  const required=g.operation==='REMOVE_CANDIDATE'||sent.lifecycle==='invalidated'?prior:prior.filter(e=>e.humanTopic||e.humanSection);
+  for(const old of required){const live=evidenceAt(current,old),structure=old.humanTopic||old.humanSection;if(!sameSourceFamily(old,live))return null;if(structure){const actual=live[structuralContextProperty(structure)];if(!actual||actual.topicId!==structure.topicId||structure.kind!=='topic'&&actual.sectionId!==structure.sectionId||!structure.selectedFields.every(f=>actual.selectedFields.includes(f)))return null;}}
+  if(sent.lifecycle==='invalidated'&&(!baseline.invalidation||contextEvidenceIdentity({epoch:baseline.epoch,evidence:current})===contextEvidenceIdentity(baseline.invalidation)))return null;
+ }
+ const common={operationId:held.store.uuid(),epoch:baseline.epoch,itemId:sent.itemId,card:sent.card,expectedRevision:sent.revision,associationIds:[...baseline.associationIds],evidence};
+ if(g.operation==='UPDATE'){requireFact(g.body.trim()&&g.section.trim());const change={...common,body:g.body,section:g.section,...temporal(g.temporal)};if(new TextEncoder().encode(JSON.stringify(change)).byteLength>CONTEXT_MAINTENANCE_LIMITS.requestBytes)return null;validateContextMaintenanceChange(change);return change;}
+ requireFact(g.body===''&&g.section===''&&!g.temporal.present);temporal(g.temporal);
+ const change={operation:g.operation,...common};if(new TextEncoder().encode(JSON.stringify(change)).byteLength>CONTEXT_MAINTENANCE_LIMITS.requestBytes)return null;(g.operation==='NO_CHANGE'?validateContextMaintenanceNoChange:validateContextMaintenanceInvalidation)(change);return change;
+}
+
 // Each registration is an exact already-qualified physical child, private to
 // this client. No body is persisted and no repository-wide discovery occurs.
 export function createMaintenanceServiceResponseAdapter(){
@@ -150,9 +199,13 @@ async function contextValue(held,context,metadata,binding,units,current){
    const c=corrections[0].correction;requireFact(selected.length===1&&corrections.length===1&&g.operation==='UPDATE'&&g.itemId===c.itemId&&g.expectedRevision===c.revision&&g.card===c.card&&g.topicId===''&&!g.temporal.present);
    const change={operationId:held.store.uuid(),epoch:c.proof.epoch,itemId:c.itemId,card:c.card,expectedRevision:c.revision,body:g.body,section:g.section,associationIds:[...c.associationIds],evidence:structuredClone(c.evidence)};validateContextMaintenanceChange(change);groups.push({units:groupUnits,operation:'UPDATE',change});continue;
   }
-  // Existing automatic Item state is not in an ordinary Input payload. An
-  // explicit unsupported request cannot manufacture a baseline or ACK.
-  if(g.operation!=='ADD'){requireFact(g.itemId!==''&&g.expectedRevision>0&&g.body===''&&g.section===''&&g.topicId===''&&!g.temporal.present);deferredUnits.push(...groupUnits);continue;}
+  if(g.operation!=='ADD'){
+   requireFact(g.itemId!==''&&g.expectedRevision>0&&g.topicId==='');
+   if(g.operation!=='UPDATE')requireFact(g.body===''&&g.section===''&&!g.temporal.present);
+   const change=existingContextGroup(held,g,selected,metadata);
+   if(change)groups.push({units:groupUnits,operation:g.operation,change});else deferredUnits.push(...groupUnits);
+   continue;
+  }
   requireFact(g.itemId===''&&g.expectedRevision===0&&g.body.trim()&&g.section.trim());
   let topicId=g.topicId;
   if(topicId==='$result'){const result=metadata.topicResult;requireFact(result&&['create','reuse'].includes(result.outcome)&&Array.isArray(result.topicIds)&&result.topicIds.length===1);topicId=result.topicIds[0];}

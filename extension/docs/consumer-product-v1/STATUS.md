@@ -1,3 +1,11 @@
+# Bounded existing Context checkpoint — 2026-10-18
+
+The independent development branch now implements bounded, independently granted existing automatic Context state, formal UPDATE/REMOVE_CANDIDATE/NO_CHANGE mapping and exact original-owner before/expected-after publication fences. Original human protection, source/processing authority and successful-disposition ACK rules remain. Frozen local checks pass 481 owner/session, 96 helper/owner, 187 signed source/adapter, 168 Section/Topic/payload and 72 structural Context cases; counts overlap. Source/release/privacy checks pass, and limited independent review supports saving this code checkpoint. [Exact scope and evidence](implementation/MAINTENANCE-EXISTING-CONTEXT-CHECKPOINT-20261018.md).
+
+The first actual bounded native CI on preceding P0 runtime is FAILED: four mixed/mixed-race leaf failures across Source/release (142/148 total pass; two additional failures are parents). Original-owner diagnosis continues; these local passes do not resolve the native failures. Idle-expiry retry material reclamation, partial-excerpt separate facet progress and cross-source old-fact retrieval remain open. The [latest-seven-lane inventory](implementation/LATEST-SEVEN-LANE-REMAINING-ENGINEERING-20261018.md) separates remaining code, deferred acceptance and external choices/activation. Independent Assist, Filter and Context work continues, with no whole-plan completion, live service, main merge or new Sync claim.
+
+## Preserved preceding checkpoint
+
 # Structured Maintenance code checkpoint — 2026-10-18
 
 The separate development successor to `8275d54b1061922aacf827ea3900fddaacf4a64e` now owns the closed Maintenance response schema/adapter, exact Section-rename Topic reconciliation and private same-child Topic-to-Context result bridge. Original CAS/ACK, full human structural evidence and final independent Topic/Input/Source fences remain. Source protocol verification passes137/137; Section qualification passes277/277; source/build/privacy checks pass. Exact scope, overlapping checks, retained failures and subsequent integrated rerun are in [the checkpoint](implementation/MAINTENANCE-STRUCTURED-CHECKPOINT-20261018.md).

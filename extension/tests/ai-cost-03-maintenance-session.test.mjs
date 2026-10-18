@@ -542,7 +542,7 @@ for(const defect of ['reason','journal','history-collision','abort'])test('manua
 test('manual Placement payload rejects incomplete, duplicate, foreign, malformed and over-budget metadata',async()=>{
  const f=await placedEntryFixture(),session=new LocalMaintenanceSession(f.s,f.constructor);await session.run(await session.prepare(options));
  const {material:sent,...metadata}=f.calls[1],material={sourceCount:1,view:{...sent,inputs:sent.inputs.map(i=>({id:i.inputId,revision:i.revision,role:'primary',fields:{body:i.body}})),entries:sent.entries.map(e=>({id:e.entryId,revision:e.revision,body:e.body,bodyBinding:e.bodyBinding,workingInputId:e.workingInputId}))}},limits=f.s.organizerBudget.limits;
- assert.deepEqual(createMaintenancePayload(metadata,material,limits,sent.placements).material,sent);
+ assert.deepEqual(createMaintenancePayload(metadata,material,limits,sent.placements,[],[],[],[],[],sent.existingContextItems,sent.existingContextSummary).material,sent);
  for(const defect of ['missing','duplicate','extra','entry-revision','target','input','layout','budget']){let ps=structuredClone(sent.placements);if(defect==='missing')ps=[];if(defect==='duplicate')ps.push(ps[0]);if(defect==='extra')ps[0].unapproved='synthetic';if(defect==='entry-revision')ps[0].entryRevision++;if(defect==='target')ps[0].topicId=op();if(defect==='input')ps[0].inputId=op();if(defect==='layout')ps[0].layoutGeneration++;if(defect==='budget')ps[0].sectionId='x'.repeat(limits.maxContentBytes);assert.throws(()=>createMaintenancePayload(metadata,material,limits,ps),undefined,defect);}
 });
 
