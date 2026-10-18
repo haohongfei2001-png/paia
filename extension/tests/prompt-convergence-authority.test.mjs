@@ -3,16 +3,17 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
-import {readApprovedAuthority,verifyReference,selectedStates,STATES,RUNTIME_FILES,rgb,assertGeometry,assertComputed,assertThemePalette,assertEntryComputed,measuredCrop,assertCompleteReceipts,assertExactPixels,assertGlyphAndMotion} from '../scripts/prompt-convergence-authority.mjs';
+import {readApprovedAuthority,verifyReference,selectedStates,STATES,RUNTIME_FILES,rgb,assertGeometry,assertComputed,assertThemePalette,assertEntryComputed,measuredCrop,assertCompleteReceipts,assertExactPixels,assertGlyphAndMotion,assertCapsuleReceipt} from '../scripts/prompt-convergence-authority.mjs';
 import {assertProductionR3} from './harness/prompt-r3-authority.mjs';
 const root=fileURLToPath(new URL('..',import.meta.url)),authority=await readApprovedAuthority(root),tokens=authority.tokens;
 const clone=x=>structuredClone(x);
-const desktop=()=>({viewport:{width:1440,height:900},orb:{x:1052,y:694,width:44,height:44},entryBeforeOpen:{x:1052,y:694,width:44,height:44},card:{x:760,y:382,width:336,height:312},composer:{x:340,y:750,width:760,height:94}});
-const compact=()=>({viewport:{width:390,height:844},orb:{x:326,y:638,width:44,height:44},entryBeforeOpen:{x:326,y:638,width:44,height:44},card:{x:34,y:326,width:336,height:312},composer:{x:20,y:694,width:350,height:94}});
-const computed=theme=>({color:rgb(tokens[theme].text),candidateColor:rgb(tokens[theme].text),variables:Object.fromEntries(Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}).map(([key,value])=>[key,tokens[theme][value]])),fontSize:14,lineHeight:22,headerFontSize:12,headerHeight:44,rowHeights:Array(6).fill(44),radius:18,surface:rgb(tokens[theme].surface),border:rgb(tokens[theme].border)});
-const receipt=variant=>({capture:'PASS',sha:'a'.repeat(40),variant,authority:clone(authority.identity),ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',hashes:Object.fromEntries(RUNTIME_FILES.map(f=>[f,'1'.repeat(64)])),screens:STATES.map(name=>({name}))});
+const desktop=()=>({viewport:{width:1440,height:900},orb:{x:1048,y:690,width:48,height:48},entryBeforeOpen:{x:1048,y:690,width:48,height:48},card:{x:760,y:410,width:336,height:328},composer:{x:340,y:750,width:760,height:94}});
+const compact=()=>({viewport:{width:390,height:844},orb:{x:322,y:634,width:48,height:48},entryBeforeOpen:{x:322,y:634,width:48,height:48},card:{x:34,y:354,width:336,height:328},composer:{x:20,y:694,width:350,height:94}});
+const computed=theme=>({color:rgb(tokens[theme].text),candidateColor:rgb(tokens[theme].text),variables:Object.fromEntries(Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}).map(([key,value])=>[key,tokens[theme][value]])),fontSize:14,lineHeight:21.7,headerFontSize:12,headerHeight:48,rowHeights:Array(6).fill(44),radii:[18,18,24,18],surface:rgb(tokens[theme].surface),border:rgb(tokens[theme].border)});
+const capsuleReceipt=theme=>({theme,capsule:{x:824,y:690,width:272,height:48},use:{x:824,y:690,width:224,height:48},anchor:{x:1048,y:690,width:48,height:48},hitCorners:[true,true,true,true],insertion:'VERIFIED_FULL_TEXT',send:0,enter:0,privateFrameRetained:true});
+const receipt=variant=>({capture:'PASS',sha:'a'.repeat(40),variant,authority:clone(authority.identity),ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',hashes:Object.fromEntries(RUNTIME_FILES.map(f=>[f,'1'.repeat(64)])),screens:STATES.map(name=>({name})),capsules:['light','dark'].map(capsuleReceipt)});
 
-test('historical B capture and report keep their own authority rather than relabeling old evidence', async()=>{
+test('current capture binds R3 without relabeling historical B evidence', async()=>{
   const capture=await readFile(new URL('../scripts/capture-prompt-convergence.mjs',import.meta.url),'utf8');
   const compare=await readFile(new URL('../scripts/compare-prompt-convergence.mjs',import.meta.url),'utf8');
   assert.match(capture,/readApprovedAuthority/);
@@ -22,7 +23,7 @@ test('historical B capture and report keep their own authority rather than relab
 });
 
 test('frozen approved references retain exact manifest identity and reject altered bytes or identity',()=>{
- assert.equal(authority.references.length,10);
+ assert.equal(authority.references.length,30);
  for(const reference of authority.references)verifyReference(reference.bytes,reference);
  const ref=authority.references[0],changed=Buffer.from(ref.bytes);changed[0]^=1;
  assert.throws(()=>verifyReference(changed,ref),/digest/);
@@ -34,10 +35,10 @@ test('all eight original states are explicit; selected diagnostics cannot invent
  for(const value of ['','09','01,01','03,','UNKNOWN'])if(value)assert.throws(()=>selectedStates(value));
 });
 for(const theme of ['light','dark']){
- test('B '+theme+' computed palette and typography are accepted',()=>assertComputed(computed(theme),theme,tokens));
+ test('R3 '+theme+' computed palette and typography are accepted',()=>assertComputed(computed(theme),theme,tokens));
  test('historical '+theme+' palette is rejected',()=>{const value=computed(theme);value.color=theme==='light'?'rgb(29, 39, 56)':'rgb(233, 238, 246)';assert.throws(()=>assertComputed(value,theme,tokens),/text role/);});
 }
-for(const [field,value] of [['radius',20],['fontSize',13],['lineHeight',20],['headerFontSize',14],['headerHeight',40]])test('reject mismatched '+field,()=>{const c=computed('light');c[field]=value;assert.throws(()=>assertComputed(c,'light',tokens));});
+for(const [field,value] of [['radii',[18,18,18,18]],['fontSize',13],['lineHeight',20],['headerFontSize',14],['headerHeight',40]])test('reject mismatched '+field,()=>{const c=computed('light');c[field]=value;assert.throws(()=>assertComputed(c,'light',tokens));});
 test('old border, shortened row and empty candidate measurements are rejected',()=>{
  for(const mutate of [c=>c.variables['--line']='#c0c0c0',c=>c.rowHeights[5]=36,c=>c.rowHeights=[]]){const c=computed('light');mutate(c);assert.throws(()=>assertComputed(c,'light',tokens));}
 });
@@ -48,16 +49,16 @@ for(const [name,make] of [['desktop',desktop],['compact',compact]])test(name+' c
 });
 for(const [name,mutate] of [['old 350px board',s=>s.card.height=350],['shifted anchor',s=>s.entryBeforeOpen.x-=10],['board over target',s=>s.card.y+=44],['composer overlap',s=>s.orb.y=s.composer.y],['missing before-open evidence',s=>delete s.entryBeforeOpen],['offscreen board',s=>s.card.x=-1]])test('reject '+name,()=>{const s=desktop();mutate(s);assert.throws(()=>assertGeometry(s,tokens));});
 test('orb-only crop remains complete and invalid or empty geometry is rejected',()=>{
- const s=desktop();s.card=null;assertGeometry(s,tokens);assert.deepEqual(measuredCrop(s),{x:1028,y:670,width:92,height:92});
+ const s=desktop();s.card=null;assertGeometry(s,tokens);assert.deepEqual(measuredCrop(s),{x:1024,y:666,width:96,height:96});
  assert.throws(()=>measuredCrop({...s,orb:null}));assert.throws(()=>measuredCrop({...s,orb:{...s.orb,width:NaN}}));
 });
-test('complete receipts require all original states and the fifth HTML runtime hash',()=>{
+test('complete receipts require all original states and the original HTML and six inherited SVG runtime hashes',()=>{
  assert.deepEqual(assertCompleteReceipts(receipt('source'),receipt('release')),{complete:true,states:8});
  for(const mutate of [r=>r.screens=[],r=>r.screens.pop(),r=>r.screens[7]=r.screens[0],r=>delete r.hashes['ui/prompt-surface.html'],r=>r.capture='UNKNOWN',r=>r.authority.contract='Visual Master v2']){const a=receipt('source'),b=receipt('release');mutate(a);mutate(b);assert.throws(()=>assertCompleteReceipts(a,b));}
  const a=receipt('source'),b=receipt('release');b.hashes['ui/prompt-surface.html']='2'.repeat(64);assert.throws(()=>assertCompleteReceipts(a,b));
 });
 test('explicit partial diagnostics cannot acquire complete-coverage status',()=>{
- const a=receipt('source'),b=receipt('release');a.screens=[a.screens[2]];b.screens=[b.screens[2]];
+ const a=receipt('source'),b=receipt('release');a.screens=[a.screens[2]];b.screens=[b.screens[2]];a.capsules=[];b.capsules=[];
  assert.deepEqual(assertCompleteReceipts(a,b,[STATES[2]]),{complete:false,states:1});assert.throws(()=>assertCompleteReceipts(a,b,[]));
 });
 test('one changed pixel or alpha fails exact source/release parity; empty images cannot pass',()=>{
@@ -67,13 +68,13 @@ test('one changed pixel or alpha fails exact source/release parity; empty images
 });
 test('actual runtime binds exact adopted R3 glyph, shared skin, bottom tools and motion; mutations are rejected',async()=>{
  const runtime=Object.fromEntries(await Promise.all(RUNTIME_FILES.map(async file=>[file,await readFile(join(root,file),'utf8')])));
- assertProductionR3(runtime);
+ assertGlyphAndMotion(runtime,authority);
  for(const [file,before,after] of [
   ['core/prompt-surface-layout.js','intrinsic=328','intrinsic=312'],['core/prompt-surface-layout.js','x:14.75','x:15'],['core/prompt-surface-layout.js','boardVisible?-5.25','boardVisible?-5'],
   ['content/prompt-surface.js','#93a2be','#ff0000'],['content/prompt-surface.js','--speed:120ms','--speed:240ms'],['content/prompt-surface.js','--speed:80ms','--speed:180ms'],['content/prompt-surface.js','--rear-edge-alpha:.26','--rear-edge-alpha:.38'],['content/prompt-surface.js',"['front','.2']","['front','.8']"],
   ['ui/prompt-surface.css','margin:7px 0;padding:0 12px','margin:0;padding:7px 12px'],['ui/prompt-surface.css','padding:2px 55px 0 15px','padding:2px 12px 0 15px'],['ui/prompt-surface.css','right:48px','right:36px'],
   ['ui/prompt-surface.js',"setTimeout(()=>tell(''),480)","setTimeout(()=>tell(''),1800)"]
- ]){const changed={...runtime,[file]:runtime[file].replaceAll(before,after)};assert.notEqual(changed[file],runtime[file]);assert.throws(()=>assertProductionR3(changed));}
+ ]){const changed={...runtime,[file]:runtime[file].replaceAll(before,after)};assert.notEqual(changed[file],runtime[file]);assert.throws(()=>assertGlyphAndMotion(changed,authority));}
 });
 
 for(const theme of ['light','dark'])test('actual '+theme+' entry and candidate colors cannot hide behind correct board root tokens',()=>{
@@ -89,7 +90,7 @@ test('transient V08 images are measured inside the unchanged duration, displayed
 });
 
 
-test('native dynamic theme journey uses the same pinned B authority and preserves original transition/dirty/order checks',async()=>{
+test('native dynamic theme journey uses the same pinned R3 authority and preserves original transition/dirty/order checks',async()=>{
  const source=await readFile(new URL('./cpv1-09-prompt-surface-chrome-e2e.test.mjs',import.meta.url),'utf8');
  assert.match(source,/readApprovedAuthority\(root\)/);assert.match(source,/assertThemePalette\(actual,theme,approvedThemeAuthority\.tokens\)/);
  assert.doesNotMatch(source,/rgb\(233, 238, 246\)|rgb\(29, 39, 56\)/);
@@ -110,3 +111,13 @@ for(const theme of ['light','dark'])test('dynamic '+theme+' theme rejects histor
   c=>c.surface=null,
  ]){const changed=clone(valid);mutate(changed);assert.throws(()=>assertThemePalette(changed,theme,tokens));}
 });
+
+test('R3 receipts reject the previous B contract and preserve exact inherited asset identity',async()=>{
+ const a=receipt('source'),b=receipt('release');a.authority.contract=b.authority.contract='PAIA-FLOAT-UI-1.1';assert.throws(()=>assertCompleteReceipts(a,b));
+ const runtime=Object.fromEntries(await Promise.all(RUNTIME_FILES.map(async file=>[file,await readFile(join(root,file),'utf8')])));
+ for(const file of RUNTIME_FILES.filter(x=>x.endsWith('.svg'))){const changed={...runtime,[file]:runtime[file].replace('width="21"','width="22"')};assert.notEqual(changed[file],runtime[file]);assert.throws(()=>assertGlyphAndMotion(changed,authority));}
+});
+
+for(const [name,mutate] of [
+ ['second outline envelope',v=>v.capsule.width=276],['narrowed text target',v=>v.use.width=216],['moved right control',v=>v.anchor.x++],['occluded corner',v=>v.hitCorners[3]=false],['second-step insertion',v=>v.insertion='DETAIL_ONLY'],['automatic Send',v=>v.send=1],['replacement iframe',v=>v.privateFrameRetained=false],
+])test('R3 capsule rejects '+name,()=>{const value=capsuleReceipt('light');mutate(value);assert.throws(()=>assertCapsuleReceipt(value));});

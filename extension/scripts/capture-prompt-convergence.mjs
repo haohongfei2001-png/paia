@@ -1,4 +1,4 @@
-// Frozen approved B references and actual extension UI. No runtime CSS/DOM painting.
+// Adopted R3 references and actual extension UI. No runtime CSS/DOM painting.
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -15,7 +15,7 @@ const prompts=['帮我把这件事拆成下一步可以执行的任务','检查�
 const authority=await readApprovedAuthority(root),selected=selectedStates(process.env.PAIA_VISUAL_STATES);
 const files=(await readdir(historicalScreens)).filter(x=>x.endsWith('.svg')).sort();
 assert.deepEqual(files.map(file=>file.replace('.svg','')),STATES,'retain all eight original functional scenarios');
-for(const reference of authority.references)await writeFile(join(out,'approved-B-'+reference.path.split('/').at(-1)),reference.bytes);
+for(const reference of authority.references)await writeFile(join(out,'adopted-R3-'+reference.path.split('/').at(-1)),reference.bytes);
 const settleFrame=async f=>{await f.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await eventually(()=>f.evaluate(()=>!document.documentElement.hasAttribute('data-layout-pending')));};
 const clickFrame=async(f,locator)=>{await settleFrame(f);await locator.click();};
 const rpc=async(p,type,fields={})=>{const r=await p.evaluate(x=>chrome.runtime.sendMessage(x),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
@@ -24,7 +24,7 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
  const extensionPath=variant==='source'?root:join(root,'work/current-release');
  const hashes={},runtime={};for(const file of RUNTIME_FILES){const bytes=await readFile(join(extensionPath,file));hashes[file]=createHash('sha256').update(bytes).digest('hex');runtime[file]=bytes.toString('utf8');}assertGlyphAndMotion(runtime,authority);
  const h=await FakeChatGPT.start({extensionPath,headless:true,launchThroughPort:true});
- const receipt={sha,hashes,variant,authority:authority.identity,coverage:selected.length===STATES.length?'ALL_EIGHT_STATES':'EXPLICIT_SELECTED_STATES',evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',screens:[]};
+ const receipt={sha,hashes,variant,authority:authority.identity,coverage:selected.length===STATES.length?'ALL_EIGHT_STATES':'EXPLICIT_SELECTED_STATES',evidence:'SYNTHETIC_BROWSER',ownerAcceptance:'PENDING',realChatGPT:'DEFERRED_EXTERNAL_EVIDENCE',motionQualification:'SIX_DIRECTION_NATIVE_SAMPLING_PENDING',capsules:[],screens:[]};
  try{
   await h.archive.locator('#enable-consent').click();
   await eventually(async()=>{const state=await h.state();return state.settings?.consentVersion===1&&state.settings?.enabled===true;},'original consent owner durably acknowledges explicit acceptance');
@@ -69,27 +69,44 @@ for(const variant of (process.env.PAIA_VISUAL_VARIANTS||'source,release').split(
    await page.screenshot({path:join(out,variant+'-orb-close-'+name+'.png'),clip:{x:Math.max(0,orbBox.x-32),y:Math.max(0,orbBox.y-32),width:108,height:108},animations:'disabled',caret:'hide'});
    const disjoint=(a,b)=>a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y;
    for(const box of [orbBox,cardBox].filter(Boolean)){assert.ok(disjoint(box,formBox));assert.ok(box.x>=0&&box.x+box.width<=viewport.width);}
-   assert.equal(orbBox.width,44);assert.equal(orbBox.height,44);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.text()),i===7?prompts[0]:'');
+   assert.equal(orbBox.width,48);assert.equal(orbBox.height,48);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.text()),i===7?prompts[0]:'');
    let computed=null;
    if(f){
     computed=await f.evaluate(()=>{const root=getComputedStyle(document.documentElement),text=getComputedStyle(document.querySelector('.insert .text')),header=document.querySelector('header');return {color:root.color,candidateColor:text.color,variables:Object.fromEntries(['--line','--hover','--active','--focus','--panel','--muted','--inserted','--inserted-text'].map(key=>[key,root.getPropertyValue(key)])),fontSize:parseFloat(text.fontSize),lineHeight:parseFloat(text.lineHeight),headerFontSize:parseFloat(getComputedStyle(header.querySelector('span')).fontSize),headerHeight:header.getBoundingClientRect().height,rowHeights:[...document.querySelectorAll('.row')].filter(el=>el.getBoundingClientRect().height>0).map(el=>el.getBoundingClientRect().height)};});
-    Object.assign(computed,await(await f.frameElement()).evaluate(el=>{const s=getComputedStyle(el);return {radius:parseFloat(s.borderTopLeftRadius),surface:s.backgroundColor,border:s.borderTopColor};}));
+    Object.assign(computed,await(await f.frameElement()).evaluate(el=>{const skin=el.getRootNode().querySelector('.surface-skin');if(!skin)throw Error('original shared skin missing');const s=getComputedStyle(skin);return {radii:[s.borderTopLeftRadius,s.borderTopRightRadius,s.borderBottomRightRadius,s.borderBottomLeftRadius].map(parseFloat),surface:s.backgroundColor,border:s.borderTopColor};}));
     assertComputed(computed,dark?'dark':'light',authority.tokens);assert.ok(await f.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    }
    assertGeometry({orb:orbBox,card:cardBox,composer:formBox,viewport,entryBeforeOpen},authority.tokens);
    const entryComputed=await orb.evaluate(el=>{const s=getComputedStyle(el);return Object.fromEntries(['--brand','--surface','--line','--hover','--active','--muted'].map(key=>[key,s.getPropertyValue(key)]));});assertEntryComputed(entryComputed,dark?'dark':'light',authority.tokens);
    if(i===0||i===5){
-    await orb.hover();await page.screenshot({path:join(out,variant+'-orb-hover-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});
+    await orb.hover();await page.waitForTimeout(700);assert.equal(await orb.getAttribute('title'),null,'no retired native hover instruction');assert.equal(await page.locator('[role=tooltip]').count(),0,'no replacement host tooltip');await page.screenshot({path:join(out,variant+'-orb-hover-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});
     await page.locator('#blur').focus();await page.keyboard.press('Tab');await page.screenshot({path:join(out,variant+'-orb-focus-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});
     await page.locator('#blur').focus();await page.mouse.move(500,100);
-    // Pattern belongs only to the synthetic host. This records B visibility over a busy host, not obsolete glass acceptance.
+    // Pattern belongs only to the synthetic host. This records R3 visibility over a busy host, not obsolete glass acceptance.
     await page.evaluate(box=>{const p=document.createElement('div');p.id='material-backdrop';p.style.cssText=`position:fixed;left:${box.x-32}px;top:${box.y-32}px;width:108px;height:108px;background:linear-gradient(118deg,#e0eaf3,#fbfcfd 28%,#ddd9eb 52%,#d4e7df 75%,#fafbfd);`;document.body.append(p);},orbBox);
     await page.screenshot({path:join(out,variant+'-orb-backdrop-'+(dark?'dark':'light')+'.png'),clip:{x:orbBox.x-32,y:orbBox.y-32,width:108,height:108},animations:'disabled',caret:'hide'});
    }
    receipt.screens.push({name,...(i===7?{phase:'settled verified success; feedback cleared',feedbackDesignMs:authority.tokens.motion.inserted_feedback_ms,feedbackTiming:'DESIGN_VALUE_NOT_MEASURED_LATENCY'}:{}),typography:f?await f.locator('.insert').first().evaluate(el=>({font:getComputedStyle(el).font,body:getComputedStyle(document.body).font})):null,viewport,theme:dark?'dark':'light',dpr:await page.evaluate(()=>devicePixelRatio),scale:1,prompts:compact?prompts.slice(0,5):prompts,orb:orbBox,card:cardBox,composer:formBox,entryBeforeOpen,computed,entryComputed,historicalHostAndV2ReferenceSha256:createHash('sha256').update(svg).digest('hex')});
    console.log('CAPTURE',variant,name);
    if(i===4)await page.mouse.up();
-   if(i===1||i===5){await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#surface-tools').isVisible(),true);assert.equal(await f.locator('#list').evaluate(node=>getComputedStyle(node).visibility),'hidden','More never paints candidate prose under its own text');await page.screenshot({path:join(out,variant+'-more-view-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#list').evaluate(node=>getComputedStyle(node).visibility),'visible');}
+   if(i===1||i===5){await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#surface-tools').isVisible(),true);assert.equal(await f.locator('#list').isVisible(),false,'More never paints candidate prose under its own text');await page.screenshot({path:join(out,variant+'-more-view-'+(dark?'dark':'light')+'.png'),animations:'disabled',caret:'hide'});await clickFrame(f,f.locator('#surface-more'));assert.equal(await f.locator('#list').isVisible(),true);}
+   if(i===1||i===5){
+    const theme=dark?'dark':'light',sameFrame=f;
+    await clickFrame(f,f.locator('#surface-more'));await clickFrame(f,f.locator('#collapse-capsule'));
+    await eventually(()=>f.locator('html').getAttribute('data-surface-form').then(x=>x==='capsule'));
+    await settleFrame(f);const capsule=await f.locator('#capsule').boundingBox(),use=await f.locator('#capsule-use').boundingBox(),anchor=await orb.boundingBox();
+    assert.ok(capsule&&use&&anchor);assert.equal(capsule.width,272);assert.equal(capsule.height,48);assert.equal(use.width,224);assert.equal(use.height,48);
+    assert.equal(capsule.x+capsule.width,anchor.x+anchor.width);assert.equal(capsule.y+capsule.height,anchor.y+anchor.height);
+    assert.equal(use.x+use.width,anchor.x,'original left text / right control partition');
+    const hits=await f.locator('#capsule-use').evaluate(el=>{const r=el.getBoundingClientRect();return [[16,16],[r.width-16,16],[16,r.height-16],[r.width-16,r.height-16]].map(([x,y])=>{const hit=document.elementFromPoint(r.x+x,r.y+y);return hit===el||el.contains(hit);});});assert.deepEqual(hits,[true,true,true,true]);
+    assert.equal(await f.locator('#capsule-text').textContent(),prompts[0]);assert.equal(await page.evaluate(()=>fixture.text()),'');
+    await page.screenshot({path:join(out,variant+'-r3-capsule-'+theme+'.png'),animations:'disabled',caret:'hide'});
+    await clickFrame(f,f.locator('#capsule-use'));
+    await eventually(()=>page.evaluate(text=>fixture.text()===text,prompts[0]),'one capsule text click inserts the complete original expression');assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
+    await orb.click();await eventually(()=>f.locator('html').getAttribute('data-surface-form').then(x=>x==='board'));assert.equal(page.frames().find(x=>x.url().includes('prompt-surface.html#')),sameFrame,'right control retains the same original private frame');
+    assert.equal(await page.evaluate(()=>fixture.text()),prompts[0],'right control does not change inserted draft');
+    receipt.capsules.push({theme,capsule,use,anchor,hitCorners:hits,insertion:'VERIFIED_FULL_TEXT',send:0,enter:0,privateFrameRetained:true});
+   }
    await page.close();
    if(compact){const q=await rpc(engineering,'PAIA_PROMPT_QUERY');await rpc(engineering,'PAIA_PROMPT_CHANGE',{change:{action:'show',id:ids[5],revision:q.revision}});}
   }

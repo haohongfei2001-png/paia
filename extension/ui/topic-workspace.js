@@ -1631,7 +1631,11 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
    const scopeKey=JSON.stringify([this.id,sectionId,projection?.complete===true,[...(projection?.admittedFields||[])].sort(),projection?.generation,projection?.recoveryEpoch]);
    const defer=()=>{const active=this.aiEditor,topicId=this.id,intent=this.openIntent;if(!active||!cached)return false;active.deferReadingRefresh(async()=>{if(active.disposed||this.aiEditor!==active||this.id!==topicId||this.activeSectionId!==sectionId||this.view!=='ai'||this.openIntent!==intent)return;await this.refresh();});return true;};
    const active=this.aiEditor,withdrawAuthority=!!active&&!active.recoveryOnly&&(!cached||projection?.complete!==true||cached.recoveryEpoch!==active.row?.recoveryEpoch||[...(active.admittedFields||active.nodes.keys())].some(field=>!projection.admittedFields.has(field))||[...(active.sectionEvidence||[])].some(id=>!projection.sectionEvidence.has(id)));
-   const canPaint=()=>current()&&![this.editor,...(withdrawAuthority?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
+   // Different destination fields during an explicit Section handoff do not
+   // revoke the old Section's live composition. Original evidence refresh above
+   // still retires actually forbidden material before this presentation fence.
+   const crossingSection=()=>{const run=this.aiSectionNavigationRun;return run?.topicId===topic.id&&run.intent===this.openIntent&&!run.published&&run.previous?.section!==sectionId;};
+   const canPaint=()=>current()&&![this.editor,...(withdrawAuthority&&!crossingSection()?[]:[this.aiEditor]),this.dialogEditor].some(isComposing)&&(withdrawAuthority||!cached||!this.aiEditor?.readingReflowBlocked());
    if(!withdrawAuthority&&cached&&this.aiEditor?.readingReflowBlocked()){defer();return 'deferred';}
    if(!canPaint())return false;
    if(this.aiEditor&&!this.aiEditor.recoveryOnly&&!withdrawAuthority&&(this.aiEditor.dirty()||this.aiEditor.saving)){
