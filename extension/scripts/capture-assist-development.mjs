@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {isDeepStrictEqual} from 'node:util';
 import {FakeChatGPT,eventually} from '../tests/harness/fake-chatgpt.mjs';
 import {routeComposer} from '../tests/harness/prompt-composer.mjs';
 import {readAssistServiceConfiguration} from '../core/ai-usage/assist-service-configuration.js';
@@ -39,10 +40,27 @@ const frames=page=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(
 const network=h=>({external:h.externalRequests,provider:h.deepSeekRequests.length,extension:h.extensionNetworkRequests,history:h.historyRequests});
 const assertZeroNetwork=h=>assert.deepEqual(network(h),{external:0,provider:0,extension:0,history:0});
 const assertOff=value=>{assert.equal(value.replyAccess,false);assert.equal(value.remoteProcessing,false);assert.equal(value.serviceAvailable,false);};
-const authorizationStorage=page=>page.evaluate(async()=>{
- const key='promptAssistAuthorizationV1',session=await chrome.storage.session.get(key),local=await chrome.storage.local.get(key);
- return {sessionPresent:Object.hasOwn(session,key),localPresent:Object.hasOwn(local,key)};
-});
+// Pure evidence guard, exercised directly by the companion deterministic tests.
+// The install owner can write a disabled record; neither absence nor status alone
+// proves no grant. Keep the validated record private for exact baseline comparison.
+function inspectAssistAuthorizationStorage({session,local}){
+ const key='promptAssistAuthorizationV1',fail=()=>{throw Error('INVALID_ASSIST_AUTHORIZATION_STORAGE');};
+ const plain=value=>value!==null&&typeof value==='object'&&[Object.prototype,null].includes(Object.getPrototypeOf(value));
+ if(!plain(session)||!plain(local)||Object.hasOwn(local,key))fail();
+ if(!Object.hasOwn(session,key))return {sessionPresent:false,localPresent:false,record:null};
+ const entry=Object.getOwnPropertyDescriptor(session,key);if(!Object.hasOwn(entry,'value')||!entry.enumerable)fail();
+ const value=entry.value,fields=['version','replyAccess','remoteProcessing','generation'];
+ if(!plain(value)||Reflect.ownKeys(value).length!==fields.length||Reflect.ownKeys(value).some(field=>!fields.includes(field)))fail();
+ const descriptors=Object.getOwnPropertyDescriptors(value);
+ if(fields.some(field=>!Object.hasOwn(descriptors[field],'value')||!descriptors[field].enumerable))fail();
+ if(value.version!==1||value.replyAccess!==false||value.remoteProcessing!==false||typeof value.generation!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(value.generation))fail();
+ return {sessionPresent:true,localPresent:false,record:{version:value.version,replyAccess:value.replyAccess,remoteProcessing:value.remoteProcessing,generation:value.generation}};
+}
+const authorizationStorage=async page=>inspectAssistAuthorizationStorage(await page.evaluate(async()=>{
+ const key='promptAssistAuthorizationV1';return {session:await chrome.storage.session.get(key),local:await chrome.storage.local.get(key)};
+}));
+const assertAuthorizationUnchanged=(actual,baseline)=>assert.equal(isDeepStrictEqual(actual,baseline),true,'original authorization storage must remain exactly unchanged');
+
 const screenshot=async(page,filename,observation)=>{
  await frames(page);await page.screenshot({path:join(out,filename),animations:'disabled',caret:'hide'});
  receipt.screens.push({filename,sha256:hash(await readFile(join(out,filename))),viewport:page.viewportSize(),dpr:await page.evaluate(()=>devicePixelRatio),...observation});
@@ -59,7 +77,8 @@ try{
  await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'en'}});
  await until(()=>h.archive.locator('html').getAttribute('lang').then(value=>value==='en'),'original language preference applied');
  const before=await rpc(h.archive,'PAIA_PROMPT_ASSIST_STATUS');assertOff(before);
- assert.deepEqual(await authorizationStorage(h.archive),{sessionPresent:false,localPresent:false});
+ const authorizationBefore=await authorizationStorage(h.archive);
+ receipt.authorizationBaseline={sessionRecord:authorizationBefore.sessionPresent?'PREEXISTING_DISABLED':'ABSENT',localRecordPresent:false};
  const nextBefore=await rpc(h.archive,'PAIA_PROMPT_NEXT_STATUS');assert.equal(nextBefore.enabled,false);
  phase='seed-one-local-prompt';
  const engineering=await h.context.newPage();await engineering.goto('chrome-extension://'+h.extensionId+'/ui/prompt-reuse-test.html');
@@ -98,7 +117,8 @@ try{
  assert.equal(await orb.getAttribute('data-surface-form'),'board');await assertAnchor();
  await settle(frame);const shell=await(await frame.frameElement()).boundingBox();
  assert.equal(shell.width,restingShell.width);assert.ok(shell.height>=restingShell.height,'status uses the original bounded flow');assert.equal(shell.x+shell.width,anchor.x+anchor.width);assert.equal(shell.y+shell.height,anchor.y+anchor.height);assert.ok(shell.x>=0&&shell.y>=0&&shell.x+shell.width<=960&&shell.y+shell.height<=720);
- assert.deepEqual(await rpc(h.archive,'PAIA_PROMPT_ASSIST_STATUS'),before,'explicit unavailable action cannot grant either permission');assertZeroNetwork(h);
+ assert.equal(isDeepStrictEqual(await rpc(h.archive,'PAIA_PROMPT_ASSIST_STATUS'),before),true,'explicit unavailable action cannot grant either permission');
+ assertAuthorizationUnchanged(await authorizationStorage(h.archive),authorizationBefore);assertZeroNetwork(h);
  await screenshot(page,'source-more-assist-unavailable.png',{state:'MORE_ACTION_TO_ASSIST_UNAVAILABLE',savedPromptUsable:true,anchor,shell});
  phase='saved-prompt-insertion';
  await page.locator('#prompt-textarea').focus();await clickFrame(frame,saved.locator('.insert'));
@@ -123,12 +143,12 @@ try{
  assert.notEqual(await reply.getAttribute('aria-describedby'),await remote.getAttribute('aria-describedby'));
  assert.equal(await settings.locator('#settings-assist-status').textContent(),'AI service is not configured. Saved prompts and local suggestions remain available.');
  assert.equal(await settings.locator('#settings-assist-consent').isVisible(),false,'opening Settings must not open an authorization action');
- const after=await rpc(settings,'PAIA_PROMPT_ASSIST_STATUS');assertOff(after);assert.deepEqual(after,before,'opening Settings cannot grant or rotate permissions');
- assert.deepEqual(await authorizationStorage(settings),{sessionPresent:false,localPresent:false});
+ const after=await rpc(settings,'PAIA_PROMPT_ASSIST_STATUS');assertOff(after);assert.equal(isDeepStrictEqual(after,before),true,'opening Settings cannot grant or rotate permissions');
+ assertAuthorizationUnchanged(await authorizationStorage(settings),authorizationBefore);
  assert.deepEqual(await rpc(settings,'PAIA_PROMPT_NEXT_STATUS'),nextBefore,'independent local Next remains off and unchanged');
  const controls=await section.locator('input[role="switch"]').evaluateAll(nodes=>nodes.map(node=>{const r=node.labels[0].getBoundingClientRect();return{id:node.id,checked:node.checked,x:r.x,y:r.y,width:r.width,height:r.height};}));
  assert.ok(controls.every(r=>r.x>=0&&r.y>=0&&r.x+r.width<=960&&r.y+r.height<=720),'both real permission labels fit the screenshot');
- receipt.authorization={replyAccess:false,remoteProcessing:false,serviceAvailable:false,openingSettingsChangedAuthorization:false,sessionRecordCreated:false,localRecordCreated:false,nextUnchanged:true,controls};
+ receipt.authorization={replyAccess:false,remoteProcessing:false,serviceAvailable:false,openingSettingsChangedAuthorization:false,sessionRecord:authorizationBefore.sessionPresent?'PREEXISTING_DISABLED':'ABSENT',sessionRecordCreatedByActions:false,sessionRecordUnchanged:true,localRecordPresent:false,nextUnchanged:true,controls};
  await screenshot(settings,'source-settings-assist-consents.png',{state:'ORIGINAL_SETTINGS_AI_GROUP',controls});
  phase='final-original-boundaries';
  assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal(await page.evaluate(()=>fixture.enter),0);
