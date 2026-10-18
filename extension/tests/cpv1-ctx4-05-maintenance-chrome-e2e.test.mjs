@@ -885,6 +885,50 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
  });
 }
 
+// Repository-only native terminal mechanism leaves. These keep the original
+// Source/release owners above intact and use a separate disposable native DB.
+// They do not claim a production identity-processing capability or a paid job.
+async function installRepositoryTerminal(page){
+ await page.evaluate(async()=>{
+  const {ArchiveRepository,registerRepositoryFinalReadFence}=await import(chrome.runtime.getURL('core/idb-repository.js'));
+  const check=(ok,label)=>{if(!ok)throw Error(label);},same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  globalThis.__repositoryTerminalNative=async mode=>{
+   check(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'original native IndexedDB required');
+   const name='paia-terminal-native-'+crypto.randomUUID(),repository=new ArchiveRepository({},{indexedDB,name});await repository.open();
+   const source={id:'selected-source',value:{originalText:'SYNTHETIC terminal Source'}},receipt={id:'selected-operation',result:{state:'committed'}};
+   await repository.transaction(true,t=>t.put('records',source));
+   const snapshot=()=>repository.transaction(false,async t=>Object.fromEntries(await Promise.all(repository.stores.map(async n=>[n,await t.all(n)]))));
+   const before=await snapshot();let current=true,expiresAt=Date.now()+60000,finalized=false,completed=false,aborted=false,caught=false,rejected=false,firstChecked=false,release;
+   try{
+    try{await repository.transaction(true,async t=>{
+     check(t.tx instanceof IDBTransaction,'original transaction');t.tx.addEventListener('complete',()=>{completed=true;},{once:true});t.tx.addEventListener('abort',()=>{aborted=true;},{once:true});
+     const put=t.put.bind(t);t.put=async(n,row,...rest)=>{const result=await put(n,row,...rest);if(n==='meta'&&row.id==='backup-data-generation'){
+      finalized=true;if(mode==='finalizer-source')await put('records',{id:source.id,value:{originalText:'SYNTHETIC changed after finalizer'}});if(mode==='finalizer-revoke')current=false;if(mode==='finalizer-expiry')expiresAt=Date.now()-1;
+     }return result;};
+     await t.put('operationReceipts',receipt);
+     if(mode==='native-auto-complete-control'){
+      // This deliberately demonstrates the original native hazard: an arbitrary
+      // await can let the transaction complete before a later rejection/abort.
+      await new Promise(resolve=>t.tx.addEventListener('complete',resolve,{once:true}));throw Error('late callback failure after real completion');
+     }
+     const isCurrent=()=>current&&Date.now()<expiresAt;
+     const plan=mode==='non-idb-promise'?async function*(){await new Promise(resolve=>{release=resolve;});return true;}:function*(){
+      check(finalized,'all original finalizers completed first');const actual=yield {method:'get',table:'records',key:source.id};check(same(actual,source),'original captured Source');firstChecked=true;return true;
+     };
+     registerRepositoryFinalReadFence(repository,t,{plan,isCurrent});
+     if(mode==='caught-terminal-write')registerRepositoryFinalReadFence(repository,t,{isCurrent,plan:function*(){check(firstChecked,'first fence already verified Source');t.put('records',{id:source.id,value:{originalText:'SYNTHETIC forbidden write'}}).catch(()=>{caught=true;});return true;}});
+     if(mode==='second-fence-revoke')registerRepositoryFinalReadFence(repository,t,{isCurrent:()=>true,plan:function*(){yield {method:'get',table:'records',key:source.id};current=false;return true;}});
+    });}catch{rejected=true;}finally{release?.();}
+    const after=await snapshot();
+    if(mode==='native-auto-complete-control'){check(rejected&&completed&&!aborted,'real automatic native completion preceded late failure');check(after.operationReceipts.some(row=>row.id===receipt.id),'late abort cannot roll back committed control');}
+    else if(mode==='complete'){check(!rejected&&completed&&!aborted&&firstChecked,'legitimate closed-plan transaction committed');check(after.operationReceipts.some(row=>row.id===receipt.id),'original receipt committed');check(same(after.records,before.records),'Source unchanged');}
+    else{check(rejected&&aborted&&!completed,'closed terminal refusal aborted original native transaction');check(same(after,before),'all native stores rolled back');if(mode==='caught-terminal-write')check(caught,'second fence caught the write rejection but could not commit');}
+    return {passed:true,nativeFactory:true,mode,rejected,completed,aborted,caught,firstChecked};
+   }finally{await repository.close();await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase(name);request.onsuccess=resolve;request.onerror=()=>reject(Error('terminal fixture cleanup'));request.onblocked=()=>reject(Error('terminal fixture cleanup blocked'));});}
+  };
+ });
+}
+
 for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dormant maintenance transaction and lineage fences',{timeout:180000},async t=>{
  const output=join(root,'work','ctx4-05',variant),temporary=await mkdtemp(join(tmpdir(),'paia-ctx4-05-native-'));
  const reports=[];let harness;
@@ -917,6 +961,8 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
    const report=await page.evaluate(scenario=>globalThis.__maintenanceNative(scenario),scenario);assert.equal(report.passed,true);
    await writeFile(join(output,'maintenance-'+(scenario.denied?'denied':scenario.phase||scenario.adapterMode||'complete')+'-'+(scenario.mode||'storage')+'.json'),JSON.stringify(report,null,2));
   });
+  await installRepositoryTerminal(page);
+  for(const mode of ['complete','finalizer-source','finalizer-revoke','finalizer-expiry','caught-terminal-write','non-idb-promise','second-fence-revoke','native-auto-complete-control'])await t.test('repository-terminal-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryTerminalNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-terminal-'+mode+'.json'),JSON.stringify(report,null,2));});
   assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),appSettings,'Isolated fixtures preserve actual app settings');
   assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.externalRequests,0);assert.equal(harness.deepSeekRequests.length,0);
   assert.deepEqual(harness.errors,[]);
