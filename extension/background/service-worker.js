@@ -1,3 +1,6 @@
+import {createAIFilterRuntime} from './ai-filter-commands.js';
+import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
+import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
 import {AssistPromptCommands} from './prompt-assist.js';
 import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
@@ -48,8 +51,11 @@ import {unavailableAIProvider,unavailableAICredentials} from '../core/organizer/
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
-const store = new IndexedArchiveStore(chrome.storage.local);
-const maintenanceRunner=createMaintenanceRunner(store);
+const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
+const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
+const configuredMaintenance=readMaintenanceServiceConfiguration(store);
+const maintenanceConfiguration=configuredMaintenance===null?null:{...configuredMaintenance,service:{...configuredMaintenance.service,filter:aiFilterRuntime.serviceFilter}};
+const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
 const localScopePreviewCapability=Object.freeze({});
 const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
@@ -245,7 +251,7 @@ async function handle(request, sender) {
     const allowed=request.type==='PAIA_SETTINGS_AI_STYLE'?['type']:['type','changes'];if(Object.keys(request).some(key=>!allowed.includes(key)))throw new ArchiveError('INVALID_REQUEST');
   }
   if(request.type==='PURGE_SOURCE'&&(request.confirm!==true||Object.keys(request).some(key=>!['type','id','confirm'].includes(key))))throw new ArchiveError('INVALID_REQUEST');
-  const needsConsent=request.type==='START_BOUNDED_ORGANIZER'||request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
+  const needsConsent=request.type.startsWith('PAIA_AI_FILTER_')||request.type==='START_BOUNDED_ORGANIZER'||request.type==='EDIT_DOCUMENT'&&request.edit?.removeScope!==undefined||request.type.startsWith('PAIA_ARCHIVE_')||request.type.startsWith('PAIA_RECOVERY_')||['PURGE_SOURCE','PURGE_RECORD','ADD_TO_TOPICS','CONTINUE_THINKING','COMPARE_THOUGHT_INPUT','RESTORE_THOUGHT_INPUT','THOUGHT_EDIT_HISTORY','THOUGHT_POSITION','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT'].includes(request.type)||request.type.startsWith('PAIA_CONTEXT_')||request.type.startsWith('PAIA_READER_')||request.type.startsWith('PAIA_MEMORY_')||request.type.startsWith('PAIA_REVISIT_')||request.type.startsWith('PAIA_INTEGRITY_')||request.type.startsWith('PAIA_BACKUP_')||request.type==='PAIA_CORE_LOOP_ACTION'||request.type.includes('LIBRARY')||request.type.includes('AI_PRESENTATION')||request.type==='TOPIC_DOCUMENT_PAGE'||request.type==='PAIA_PASSPORT_CREATE'||request.type==='PAIA_CONTEXT_BIND';
   if(needsConsent&&request.type!=='GET_LIBRARY_FOUNDATION_STATUS'&&!(await store.status()).consented)throw new ArchiveError('CONSENT_REQUIRED');
   assertFeatureAvailable(request);
   if(['START_BOUNDED_ORGANIZER','STOP_BOUNDED_ORGANIZER','GET_BOUNDED_ORGANIZER','UPDATE_AI_PRESENTATION','GET_AI_PRESENTATION_SCOPE','GET_AI_PRESENTATION_OPERATION_OUTCOME','STOP_AI_PRESENTATION','GET_AI_PRESENTATION_STATUS','EDIT_AI_PRESENTATION','UPDATE_ORIGINAL_LIBRARY_VIEW','STOP_ORIGINAL_LIBRARY_VIEW','GET_ORIGINAL_ORGANIZER_STATUS'].includes(request.type))await originalReady;
@@ -269,6 +275,8 @@ async function handle(request, sender) {
       return contextScopePreview.preview(localScopePreviewCapability,{kind:request.kind,options:request.options});
     }
     case 'PAIA_CONTEXT_CARDS_DRAFTS': return withRecoveryFence(async()=>{const captured=await contextCards.recoveryBatchFence(),drafts=[];for(const ref of await recoveryDraftStore().list('context_item')){const draft=await loadRecoveryDraft(ref);if(draft)drafts.push(draft);}await contextCards.recoveryBatchFence(captured);return drafts;});
+    case 'PAIA_AI_FILTER_STATUS':
+    case 'PAIA_AI_FILTER_CONFIGURE': return aiFilterRuntime.handle(request,sender);
     case 'PAIA_CONTEXT_CARDS_SNAPSHOT': {if(Object.keys(request).some(key=>!['type','mode'].includes(key)))throw new ArchiveError('INVALID_REQUEST');const snapshot=await contextCards.snapshot(request.mode);if(snapshot.automaticEvaluation?.complete===false)throw new ArchiveError('CONTEXT_INVALIDATED');return snapshot;}
     case 'PAIA_CONTEXT_CARDS_CHANGE': return contextCards.change(request.change);
     case 'PAIA_CONTEXT_CARDS_OUTCOME': return contextCards.outcome(request.query);
@@ -479,7 +487,7 @@ async function handle(request, sender) {
     case 'UPDATE_DOCUMENT': return store.updateDocument(request.id, request.changes);
     case 'GET_MEMORY_CONTEXT': return store.memoryContext();
     case 'GET_STATE': return recoverySnapshot(()=>store.snapshot());
-    case 'CONSENT': return store.consent(request.accepted);
+    case 'CONSENT': {if(request.accepted!==true)aiFilterRuntime.invalidate();return store.consent(request.accepted);}
     case 'SET_ENABLED': return store.setEnabled(request.enabled);
     case 'UPDATE_RECORD': return store.update(request.id, request.changes);
     case 'TRASH_RECORD': return store.trash(request.id);

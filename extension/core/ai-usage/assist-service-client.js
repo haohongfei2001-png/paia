@@ -16,7 +16,7 @@ const recoveries=new WeakMap(),clients=new WeakSet(),FLIGHT='aiu:assist-service-
 // This body-free reader-session fence is not a consumption or spend record.
 const REPLY='aiu:assist-reply-session:v1:';
 const terminal=new Set(['COMMITTED','REJECTED','EXPIRED_UNCOMMITTED','CANCELLED_BEFORE_DISPATCH']);
-const callbacks=['clock','resolveAuthority','onInvalidate','readProfile','currentProfile','tokenize','isCurrentTokenizer','readProofs','contextSelector'];
+const callbacks=['clock','resolveAuthority','onInvalidate','readProfile','currentProfile','tokenize','isCurrentTokenizer','readProofs'];
 export const requireAssistServiceClient=value=>{if(!clients.has(value))fail('UNAVAILABLE');return value;};
 // This is a client composition of the original declaration, Qwen, financial and
 // result owners. It cannot issue identities, qualify profiles or settle money.
@@ -24,8 +24,14 @@ export function createAssistServiceClient(configuration){
  let c;try{
   if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration)))return null;
   const ds=Object.getOwnPropertyDescriptors(configuration),keys=Reflect.ownKeys(ds),required=['origin','profile','routeVersion',...callbacks];
-  if(!keys.every(k=>[...required,'fetch'].includes(k))||!required.every(k=>keys.includes(k))||keys.some(k=>!Object.hasOwn(ds[k],'value')))return null;
+  if(!keys.every(k=>[...required,'fetch','contextSelector','contextProcessing'].includes(k))||!required.every(k=>keys.includes(k))||keys.some(k=>!Object.hasOwn(ds[k],'value')))return null;
   c=Object.fromEntries(keys.map(k=>[k,ds[k].value]));if(Object.hasOwn(c,'fetch')&&typeof c.fetch!=='function'||!callbacks.every(k=>typeof c[k]==='function')||!validOrganizeCacheProfile(c.profile)||!token(c.routeVersion))return null;
+  if(Object.hasOwn(c,'contextSelector')&&typeof c.contextSelector!=='function')return null;
+  if(Object.hasOwn(c,'contextProcessing')){
+   const value=c.contextProcessing;if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return null;
+   const ds=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(ds);if(keys.length!==2||!['resolve','isCurrent'].every(k=>keys.includes(k)&&Object.hasOwn(ds[k],'value')&&typeof ds[k].value==='function'))return null;
+   c.contextProcessing=Object.freeze({resolve:ds.resolve.value,isCurrent:ds.isCurrent.value});
+  }
   c.profile=freeze(snapshot(c.profile));const url=new URL(c.origin);if(url.origin!==c.origin||url.protocol!=='https:'||url.port||url.username||url.password)return null;
  }catch{return null;}
  const transport=(factory,path)=>factory({endpoint:c.origin+path,...(c.fetch?{fetch:c.fetch}:{})}),declarations=transport(createClientDeclarationTransport,'/api/declarations'),reservations=transport(createClientReservationTransport,'/api/reservations'),results=transport(createClientResultTransport,'/api/results'),status=transport(createClientOperationStatusTransport,'/api/operation-status');
@@ -39,7 +45,7 @@ export function createAssistServiceClient(configuration){
   if(row?.executionKind!=='server-backed'||row.financialSettlement?.state!=='SETTLED'&&!savedFinancialCancellation(row))fail('OUTCOME_UNKNOWN');
  }
  const client={
-  sessionOptions:Object.freeze({resolveAuthority:c.resolveAuthority,contextSelector:c.contextSelector,contractVersion:c.profile.contractVersion,routeVersion:c.routeVersion}),
+  sessionOptions:Object.freeze({resolveAuthority:c.resolveAuthority,contextSelector:c.contextSelector??null,contextProcessing:c.contextProcessing??null,contractVersion:c.profile.contractVersion,routeVersion:c.routeVersion}),
   available:()=>!disposed,onInvalidate:fn=>c.onInvalidate(fn),
   async recover(foundation,{retainJob,isCurrent}){
    current();let pending=recoveries.get(foundation.s);if(pending){if(pending.origin!==c.origin)fail('RESULT_ORIGIN_MISMATCH');return pending.task;}

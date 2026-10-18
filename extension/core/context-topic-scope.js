@@ -21,8 +21,8 @@ import {idOK,revisionOK,prefix,validateFields,ENTRY_FIELDS} from './thought-mode
 export const CONTEXT_TOPIC_SCOPE_LIMITS=Object.freeze({refs:4096,page:100,reads:131072,hashFields:8192,hashBytes:8*1024*1024});
 export const CONTEXT_PROCESSING_PREFLIGHT_LIMITS=Object.freeze({inputs:CONTEXT_TOPIC_SCOPE_LIMITS.refs});
 const {refs:MAX_REFS,page:PAGE,reads:MAX_READS,hashFields:MAX_HASH_FIELDS,hashBytes:MAX_HASH_BYTES}=CONTEXT_TOPIC_SCOPE_LIMITS;
-const workBudgets=new WeakSet();
-export function createContextScopeWorkBudget({signal=null,database=null}={}){const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);return value;}
+const workBudgets=new WeakSet(),workCurrent=new WeakMap();
+export function createContextScopeWorkBudget({signal=null,database=null,isCurrent=null}={}){if(isCurrent!==null&&typeof isCurrent!=='function')refuse('stale_authority');const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);if(isCurrent)workCurrent.set(value,isCurrent);return value;}
 const budgetValid=x=>workBudgets.has(x)&&Number.isSafeInteger(x.reads)&&x.reads>=0&&x.reads<=MAX_READS&&Number.isSafeInteger(x.hashBytes)&&x.hashBytes>=0&&x.hashBytes<=MAX_HASH_BYTES&&Number.isSafeInteger(x.hashFields)&&x.hashFields>=0&&x.hashFields<=MAX_HASH_FIELDS;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
@@ -33,6 +33,9 @@ const unavailableReasons=new Set(['invalid_request','not_ready','storage_unavail
 const unavailable=reason=>({available:false,reason,externalAllowed:false,binding:null,scope:emptyScope(),snapshot:null});
 const refuse=reason=>{throw Object.assign(new Error('Context Topic scope unavailable'),{scopeReason:reason});};
 const requireFact=(condition,reason='invalid_facts')=>{if(!condition)refuse(reason);};
+// Trusted capability, kept outside the budget DTO. Every awaited row boundary
+// rechecks synchronously; a Promise or truthy object is never current authority.
+function currentWork(budget){if(budget.signal?.aborted)refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
 function add(set,id){requireFact(idOK(id));set.add(id);if(set.size>MAX_REFS)refuse('scope_budget');}
 function validIds(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');requireFact(value.every(idOK)&&new Set(value).size===value.length);return value;}
 function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');return value;}
@@ -43,41 +46,41 @@ function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_RE
 // point reads count against real per-store and total-work limits; no truncation.
 const budgetReaders=new WeakMap();
 export function contextScopeTransactionReader(store,transaction,budget){
- requireFact(budgetValid(budget),'scope_budget');
+ requireFact(budgetValid(budget),'scope_budget');currentWork(budget);
  return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget);
 }
 function reader(transaction,compare,budget){
  const {seen}=budget;
- const account=(store,row)=>{if(budget.signal?.aborted)refuse('stale_authority');if(row){if(store==='blocks'){requireFact(plain(row.value),'input_unavailable');bounded(row.value.provenance);}for(const key of ['sourceRecordIds','inputRefs','selectedFields','roles'])if(Object.hasOwn(row,key))bounded(row[key]);}if(++budget.reads>MAX_READS)refuse('scope_budget');if(!row)return;requireFact(typeof row.id==='string');const ids=seen.get(store)||new Set();ids.add(row.id);seen.set(store,ids);if(ids.size>MAX_REFS)refuse('scope_budget');};
+ const account=(store,row)=>{currentWork(budget);if(row){if(store==='blocks'){requireFact(plain(row.value),'input_unavailable');bounded(row.value.provenance);}for(const key of ['sourceRecordIds','inputRefs','selectedFields','roles'])if(Object.hasOwn(row,key))bounded(row[key]);}if(++budget.reads>MAX_READS)refuse('scope_budget');if(!row)return;requireFact(typeof row.id==='string');const ids=seen.get(store)||new Set();ids.add(row.id);seen.set(store,ids);if(ids.size>MAX_REFS)refuse('scope_budget');};
  const t=Object.create(transaction);
- t.get=async(store,id)=>{if(budget.signal?.aborted)refuse('stale_authority');const row=await transaction.get(store,id);account(store,row);return row;};
- t.has=async(store,id)=>{if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');return transaction.has(store,id);};
- t.edge=async(...args)=>{const row=await transaction.edge(...args);account(args[0],row);return row;};
- t.rangePage=async(...args)=>{if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);return page;};
+ t.get=async(store,id)=>{currentWork(budget);const row=await transaction.get(store,id);account(store,row);currentWork(budget);return row;};
+ t.has=async(store,id)=>{currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');const result=await transaction.has(store,id);currentWork(budget);return result;};
+ t.edge=async(...args)=>{currentWork(budget);const row=await transaction.edge(...args);account(args[0],row);currentWork(budget);return row;};
+ t.rangePage=async(...args)=>{currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);currentWork(budget);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);currentWork(budget);return page;};
  t.count=async(store,index,range)=>{
-  if(budget.signal?.aborted)refuse('stale_authority');if(++budget.reads>MAX_READS)refuse('scope_budget');
+  currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');
   // Repository.count's primary-store overload counts the whole store. Keep
   // the exact native primary range here, within the same readonly transaction.
   const count=index||range===undefined?await transaction.count(store,index,range):await new Promise((resolve,reject)=>{const request=transaction.tx.objectStore(store).count(range);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(new Error('Scope count unavailable'));});
-  requireFact(revisionOK(count),'incomplete_page');return count;
+  currentWork(budget);requireFact(revisionOK(count),'incomplete_page');return count;
  };
  async function scan(store,index,range,next,consume){
   const expected=await t.count(store,index,range);if(expected>MAX_REFS)refuse('scope_budget');
   let after=null,total=0;
   do{
-   if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await next(after);
+   currentWork(budget);if(++budget.reads>MAX_READS)refuse('scope_budget');const page=await next(after);currentWork(budget);
    requireFact(plain(page)&&Array.isArray(page.rows)&&page.rows.length<=PAGE&&Object.hasOwn(page,'next'),'incomplete_page');
    requireFact(page.next===null||page.rows.length>0,'incomplete_page');
    let previous=after;
    for(const item of page.rows){
     requireFact(plain(item)&&Object.hasOwn(item,'key')&&item.value&&item.key!==undefined,'incomplete_page');
     if(previous!==null)requireFact(compare(previous,item.key)<0,'incomplete_page');
-    previous=item.key;if(++total>MAX_REFS)refuse('scope_budget');account(store,item.value);await consume(item.value);
+    previous=item.key;if(++total>MAX_REFS)refuse('scope_budget');account(store,item.value);await consume(item.value);currentWork(budget);
    }
    if(page.next!==null)requireFact(compare(page.next,previous)===0&&(after===null||compare(after,page.next)<0),'incomplete_page');
    after=page.next;
   }while(after!==null);
-  requireFact(total===expected,'incomplete_page');return total;
+  currentWork(budget);requireFact(total===expected,'incomplete_page');return total;
  }
  t.scanPrimary=(store,keyPrefix,consume)=>scan(store,null,IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true),after=>transaction.primaryRangePage(store,{prefix:keyPrefix,after,limit:PAGE}),consume);
  t.scanRange=(store,index,range,consume)=>scan(store,index,range,after=>transaction.rangePage(store,index,range,after,PAGE),consume);
@@ -232,7 +235,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
  // Only these selected strings survive the material transaction, for this call
  // alone. Bound UTF-8 bytes and hash work before retaining any task. No durable
  // cache, body DTO or alternative hash implementation is introduced.
- const queueHash=(text,expected,currentMirror=false)=>{
+ const queueHash=(text,expected,currentMirror=false)=>{currentWork(readBudget);
   requireFact(typeof text==='string','input_unavailable');
   if(readBudget.hashFields>=MAX_HASH_FIELDS||text.length>MAX_HASH_BYTES-readBudget.hashBytes)refuse('hash_budget');
   hashBytes=new TextEncoder().encode(text).byteLength;readBudget.hashBytes+=hashBytes;readBudget.hashFields++;if(readBudget.hashBytes>MAX_HASH_BYTES)refuse('hash_budget');
@@ -278,7 +281,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
   }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
  });
   // WebCrypto must never be awaited inside a live IndexedDB transaction.
-  for(const work of hashWork){if(readBudget.signal?.aborted)refuse('stale_authority');let digest;try{digest=await hashText(work.text);}catch{refuse('hash_unavailable');}if(readBudget.signal?.aborted)refuse('stale_authority');if(!work.currentMirror&&digest!==work.expected)material.scope.eligibility='ineligible';work.text='';}
+  for(const work of hashWork){currentWork(readBudget);let digest;try{digest=await hashText(work.text);}catch{refuse('hash_unavailable');}currentWork(readBudget);if(!work.currentMirror&&digest!==work.expected)material.scope.eligibility='ineligible';work.text='';}
   hashWork.length=0;
   requireFact(store.repository.db,'not_ready');
   await scopeRead(store,readBudget,async transaction=>{

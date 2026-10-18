@@ -39,18 +39,18 @@ test('lost result ACK reports the original metadata again without a provider ret
 });
 
 import {ContextCardsService} from '../../../extension/core/context-cards.js';
-const contextPut=(id,revision,body)=>({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:revision,body,section:'Synthetic'});
+const contextPut=(id,revision,body)=>({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:revision,body,section:'Synthetic'});
 test('same live prospective reply retains cache for unrelated Context changes but qualifies a new explicit relevant scope',async t=>{
  const f=await assistServiceFixture(t),cards=new ContextCardsService(f.s),relevant=crypto.randomUUID(),unrelated=crypto.randomUUID();
  await cards.change(contextPut(relevant,0,'SYNTHETIC relevant current context'));await cards.change(contextPut(unrelated,0,'SYNTHETIC unrelated context'));
- for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(relevant);
- const first=await f.run();assert.equal(f.physical(),1);assert.deepEqual(f.payload().context,['SYNTHETIC relevant current context']);
+ for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(relevant);
+ const first=await f.run();assert.equal(f.physical(),1);assert.deepEqual(f.payload().context,[JSON.stringify({card:'rules',body:'SYNTHETIC relevant current context',section:'Synthetic'})]);
  await cards.change(contextPut(unrelated,1,'SYNTHETIC unrelated changed'));assert.equal((await f.run()).id,first.id);assert.equal(f.physical(),1);
- await cards.change(contextPut(relevant,1,'SYNTHETIC relevant changed'));await assert.rejects(f.rpc({type:'assist_result',id:first.id}));const second=await f.run();assert.notEqual(second.id,first.id);assert.equal(f.physical(),2);assert.deepEqual(f.payload().context,['SYNTHETIC relevant changed']);
+ await cards.change(contextPut(relevant,1,'SYNTHETIC relevant changed'));await assert.rejects(f.rpc({type:'assist_result',id:first.id}));const second=await f.run();assert.notEqual(second.id,first.id);assert.equal(f.physical(),2);assert.deepEqual(f.payload().context,[JSON.stringify({card:'rules',body:'SYNTHETIC relevant changed',section:'Synthetic'})]);
 });
 test('final insertion requalifies selected independent Context after the worker-to-content handoff',async t=>{
- const f=await assistServiceFixture(t),cards=new ContextCardsService(f.s),id=crypto.randomUUID();await cards.change(contextPut(id,0,'SYNTHETIC insertion dependency'));for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(id);const result=await f.run(),send=f.api.tabs.sendMessage;
- f.api.tabs.sendMessage=async(tab,message,...rest)=>{if(message.type==='PAIA_PROMPT_ASSIST_INSERT')await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'info',expectedRevision:1,enabled:false});return send(tab,message,...rest);};
+ const f=await assistServiceFixture(t),cards=new ContextCardsService(f.s),id=crypto.randomUUID();await cards.change(contextPut(id,0,'SYNTHETIC insertion dependency'));for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(id);const result=await f.run(),send=f.api.tabs.sendMessage;
+ f.api.tabs.sendMessage=async(tab,message,...rest)=>{if(message.type==='PAIA_PROMPT_ASSIST_INSERT')f.revokeContext();return send(tab,message,...rest);};
  const outcome=await f.rpc({type:'assist_insert',id:result.id,operationId:crypto.randomUUID(),conditionPresented:true});assert.notEqual(outcome.status,'inserted');assert.equal(f.insertions.length,0);assert.equal(f.physical(),1);
 });
 

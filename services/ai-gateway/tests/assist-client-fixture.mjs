@@ -55,10 +55,11 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
   }catch(error){request.destroy(error);}});};
   options.signal.addEventListener('abort',()=>request.destroy(Error('SYNTHETIC abort')),{once:true});return request;
  });
- const selected=[];
+ const selected=[],contextRequests=[],contextAbort=new AbortController(),contextExpires=Date.now()+600000;
+ const contextProcessing={resolve:async(_t,scope)=>{contextRequests.push(structuredClone(scope));return {version:1,store:local.s,scope,epoch:'SYNTHETIC-context-processing',processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal};},isCurrent:()=>!contextAbort.signal.aborted};
  const configuration={origin:'https://service.invalid',profile:{contractVersion:manifest.profile.contractVersion,modelVersion:manifest.profile.model.resolutionVersion,promptVersion:await hashText(canonical(manifest.wire))},routeVersion:manifest.profile.routeVersion,clock:()=>server.now,
   resolveAuthority:async(_t,r)=>({allowed:live,principalId:'SYNTHETIC-principal',libraryId:'SYNTHETIC-library',consentEpoch:'SYNTHETIC-consent',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}}),
-  contextSelector:()=>selected,
+  contextSelector:()=>selected,contextProcessing,
   onInvalidate:fn=>{listener=fn;return ()=>{};},
   readProfile:async()=>JSON.parse(JSON.stringify(manifest)),currentProfile:()=>JSON.parse(JSON.stringify(manifest)),tokenize:server.config.tokenize,isCurrentTokenizer:()=>live,
   readProofs:async request=>{server.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));publication.principals.set([request.principalId,request.libraryId].join('/'),server.principal(request));const {request:_,...proofs}=server.bundle(request,{entitlement:{tier:'pro'}});return proofs;},
@@ -80,7 +81,7 @@ export async function assistServiceFixture(t,{beforeResponse=null,afterResponse=
  const surface=new PromptSurfaceCommands(new PromptReuseCommands(new PromptReuseService(local.s),api),api);surface.assist=commands;
  const rpc=command=>surface.handle({type:'PAIA_PROMPT_SURFACE_RPC',nonce,command},frame),run=()=>rpc({type:'assist_activate'});
  await enable();
- return {...local,server,api,sender,settings,surface,frame,surfaceState,selected,rpc,run,enable,configuration,calls,broadcasts,insertions,snapshot,get commands(){return commands;},get binding(){return binding;},restoreAcks:()=>{for(const key of Object.keys(losses))losses[key]=false;},restore:()=>{live=true;},physical:()=>physical,payload:()=>lastPayload,
+ return {...local,server,api,sender,settings,surface,frame,surfaceState,selected,contextRequests,revokeContext:()=>contextAbort.abort(),rpc,run,enable,configuration,calls,broadcasts,insertions,snapshot,get commands(){return commands;},get binding(){return binding;},restoreAcks:()=>{for(const key of Object.keys(losses))losses[key]=false;},restore:()=>{live=true;},physical:()=>physical,payload:()=>lastPayload,
   newerReply:async()=>{await commands.handle({type:'PAIA_PROMPT_ASSIST_INVALIDATE',generation:authorization},sender);binding={...binding,replyId:'reply-'+crypto.randomUUID(),cycle:binding.cycle+1,revision:binding.revision+1};},
   restart:async()=>{commands.dispose();commands=new AssistPromptCommands(local.s,api,{configuration});surface.assist=commands;const status=await commands.handle({type:'PAIA_PROMPT_ASSIST_STATUS'},sender);authorization=status.generation;ready=false;},
   ready:value=>{ready=value;},revoke:(notify=true)=>{live=false;if(notify)listener?.();}};

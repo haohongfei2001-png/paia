@@ -79,7 +79,7 @@ class OperationStatusAuthority {
  }
 }
 const safe=new Set(['OPERATION_REBOUND','OPERATION_STATUS_AUTHORITY','OPERATION_STATUS_BINDING','OPERATION_STATUS_CLOCK','OPERATION_STATUS_EXPIRED','CLOCK_ROLLBACK','AUTHORITY_UNSAFE_ROLE_OR_SCHEMA','PROVIDER_ACCOUNTING_BINDING','PROVIDER_ACCOUNTING_CLOCK','PROVIDER_USAGE_UNQUALIFIED','SETTLEMENT_CONFLICT','SETTLEMENT_OVER_BOUND','SETTLEMENT_PRICING','SETTLEMENT_COST_MISMATCH','USAGE_INVALID','RESULT_HISTORY_INVALID','BUDGET_STATE_INVALID','WINDOW_HISTORY_UNQUALIFIED','POSTGRES_AUTHORITY_EXPIRED']);
-function metadata(request,row,providerEvidenceRecorded,observedAt){
+function metadata(request,row,providerEvidenceRecorded,observedAt,authenticatedIdentity=null){
  // A missing row/event is NOT no-consumption evidence. No monetary zero, new
  // operation, refreshed window, provider ticket or replay capability is issued.
  if(!row)return {decision:'queried',operationId:request.operationId,jobId:request.jobId,state:'NOT_FOUND',financialOutcome:'UNKNOWN',providerEvidenceRecorded,observedAt,reservation:null,...flags};
@@ -92,7 +92,7 @@ function metadata(request,row,providerEvidenceRecorded,observedAt){
   reservedAt:row.reservedAt,reservationMicros:row.reservationMicros,window:structuredClone(row.window),
   heldSpendMicros:settled||cancelled?0:row.reservationMicros,settledSpendMicros:settled?row.settlement.usdMicros:null,
   financialSettlement:structuredClone(row.settlement??null),unknownReceipt:structuredClone(row.unknownReceipt??null),
-  resultResolution:structuredClone(row.resultResolution??null),effectiveResults:row.resultCommitted===true?1:0,...flags};
+  resultResolution:structuredClone(row.resultResolution??null),effectiveResults:row.resultCommitted===true?1:0,authenticatedIdentity,...flags};
 }
 // No current-content callback, caller-provided evidence, pool or verifier. One
 // original ledger transaction may reconcile ONLY a preexisting immutable event
@@ -126,7 +126,16 @@ export function createPostgresOperationStatusService({pool,identityConfig,profil
       state=await transaction.get(LEDGER_KEY);row=state.rows.find(value=>value.request.operationId===request.operationId);
      }
     }
-    const observedAt=await guard.finishRead();return metadata(request,row,providerEvidenceRecorded,observedAt);
+    const observedAt=await guard.finishRead();let authenticatedIdentity=null;
+    // The existing authenticated status query may carry a short, exact current
+    // identity observation for local Filter qualification. This is never a
+    // dispatch/financial lease and cannot revive a historical cancelled row.
+    const c=guard.control,expiry=Number(c.expires_at_ms);
+    if(row?.state==='RESERVED'&&providerEvidenceRecorded===false&&c.enabled===true&&text(c.generation)&&typeof c.expires_at_ms==='string'&&/^(?:0|[1-9][0-9]{0,15})$/.test(c.expires_at_ms)&&Number.isSafeInteger(expiry)&&expiry>observedAt){
+     const identity=guard.verify(observedAt),verifiedUntil=Math.min(identity.verifiedUntil,expiry);
+     if(verifiedUntil>observedAt)authenticatedIdentity={version:1,...identity,verifiedUntil,authorityGeneration:c.generation,observedAt,requestHash:requestBindingHash(request)};
+    }
+    return metadata(request,row,providerEvidenceRecorded,observedAt,authenticatedIdentity);
    },guard);
   }catch(error){
    if(error?.code==='POSTGRES_COMMIT_OUTCOME_UNKNOWN')return {decision:'outcome_unknown',reason:'COMMIT_OUTCOME_UNKNOWN',...flags};

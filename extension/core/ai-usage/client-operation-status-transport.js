@@ -1,9 +1,10 @@
+import {hashText} from '../dedupe.js';
 // Point-in-time, metadata-only financial observation. Never a dispatch lease,
 // retry permission, inferred refund or replacement for the original ledger.
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {snapshot,exact,freeze,integer} from './qwen-request-data.js';
 import {fixedGatewayHttp} from './client-gateway-http.js';
-import {equal,opaque} from './contracts.js';
+import {canonical,equal,opaque} from './contracts.js';
 import {budgetWindow} from './budget-window-policy.js';
 import {quoteRequestBound} from './ratebook.js';
 import {normalizeUsage} from './usage-normalization.js';
@@ -57,16 +58,20 @@ function projection(v,request){
 }
 export function createClientOperationStatusTransport(options){
  const http=fixedGatewayHttp(options,'/api/operation-status',{bytes:24576,millis:5000});if(!http)return null;let transport;
- async function query(bundle){
+ async function query(bundle,witness=null){
   try{
    const b=snapshot(bundle,{maxBytes:24576,maxKeys:32,maxDepth:2,maxString:8192});
    if(!exact(b,['request','principalToken','entitlementToken'])||!['principalToken','entitlementToken'].every(k=>typeof b[k]==='string'&&b[k].length>0&&b[k].length<=8192))return unknown();
    b.request=clientDeclarationRequestData(b.request);freeze(b);
    const {status,value:v}=await http.send({action:'query',...b});
-   if(status!==200||!exact(v,v.state==='NOT_FOUND'?base:[...base,...existing])||v.decision!=='queried'||v.operationId!==b.request.operationId||v.jobId!==b.request.jobId||!integer(v.observedAt)||!Object.keys(flags).every(k=>v[k]===false))return unknown();
+   if(status!==200||!exact(v,v.state==='NOT_FOUND'?base:[...base,...existing,...(Object.hasOwn(v,'authenticatedIdentity')?['authenticatedIdentity']:[])])||v.decision!=='queried'||v.operationId!==b.request.operationId||v.jobId!==b.request.jobId||!integer(v.observedAt)||!Object.keys(flags).every(k=>v[k]===false))return unknown();
    if(v.state==='NOT_FOUND'){if(v.financialOutcome!=='UNKNOWN'||v.providerEvidenceRecorded!==null||v.reservation!==null)return unknown();}
    else if(!projection(v,b.request))return unknown();
-   const response=freeze(v);observations.set(response,freeze({transport,origin:http.origin,request:b.request}));return response;
+   if(Object.hasOwn(v,'authenticatedIdentity')&&v.authenticatedIdentity!==null){
+    const i=v.authenticatedIdentity,keys=['version','principalId','libraryId','operationId','jobType','tier','principalGeneration','entitlementGeneration','authorityGeneration','observedAt','verifiedUntil','requestHash'];
+    if(!exact(i,keys)||i.version!==1||!['principalId','libraryId','operationId','jobType'].every(k=>i[k]===b.request[k])||!['free','pro'].includes(i.tier)||!['principalGeneration','entitlementGeneration','authorityGeneration'].every(k=>opaque(i[k]))||i.observedAt!==v.observedAt||!integer(i.verifiedUntil)||i.verifiedUntil<=i.observedAt||i.verifiedUntil-i.observedAt>60000||v.state!=='RESERVED'||v.providerEvidenceRecorded!==false||!v.reservation||v.window.windowId.split(':')[0]!==i.tier||i.requestHash!==await hashText(canonical(b.request)))return unknown();
+   }
+   const response=freeze(v);observations.set(response,freeze({transport,origin:http.origin,request:b.request,witness,...(v.authenticatedIdentity?{authenticatedIdentity:v.authenticatedIdentity}:{})}));return response;
   }catch{return unknown();}
  }
  transport=Object.freeze({query});transports.set(transport,http.origin);return transport;

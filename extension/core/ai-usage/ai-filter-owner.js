@@ -1,3 +1,4 @@
+import {requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded} from '../idb-repository.js';
 // Original SmartFilterStore's default-off AI visibility facet. No Provider,
 // remote dispatch, entitlement minting, Source writer or canonical body store.
 // The private adapter is installed only by a separately qualified service. Its
@@ -12,6 +13,46 @@ const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
 const bytes=x=>new TextEncoder().encode(x).length;
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const freeze=value=>{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}return value;};
+// Original writer capabilities contain bounded metadata only. Completing a
+// different transaction, cloning a token or supplying a DTO cannot mint one.
+const visibilityPublications=new WeakMap();
+export function readAIMaintenanceFilterVisibility(token,store){
+ const state=visibilityPublications.get(token);if(!state||state.store!==store||state.repository!==store.repository||state.database!==store.repository.db||state.aborted)return null;
+ try{requireRepositoryTransactionSucceeded(state.repository,state.transaction);}catch{return null;}return structuredClone(state.data);
+}
+function visibilityPublication(store,t,data){
+ if(typeof t?.tx?.addEventListener!=='function')fail('UNAVAILABLE');requireRepositoryTransactionScope(store.repository,t);
+ const token=Object.freeze(Object.create(null)),state={store,repository:store.repository,transaction:t,database:store.repository.db,data:freeze(structuredClone(data)),aborted:false};visibilityPublications.set(token,state);
+t.tx.addEventListener('abort',()=>{state.aborted=true;},{once:true});return token;
+}
+const factKey=(store,key)=>JSON.stringify([store,key]);
+// Original Source annotations are not the current Input's granted note. The
+// original qualifier uses only Source existence and originalText; identity and
+// removal facts are captured separately from recordIndex and tombstones.
+const factValue=(store,value)=>store==='records'&&value?{id:value.id,value:{originalText:value.value?.originalText}}:value;
+const countRange=range=>range instanceof IDBKeyRange?{lower:structuredClone(range.lower),upper:structuredClone(range.upper),lowerOpen:range.lowerOpen,upperOpen:range.upperOpen}:structuredClone(range);
+const queryRange=range=>range&&typeof range==='object'&&Object.hasOwn(range,'lowerOpen')?IDBKeyRange.bound(range.lower,range.upper,range.lowerOpen,range.upperOpen):range;
+// The global sequence is an allocator, not sent candidate semantics. Its
+// current value is frozen afresh before this writer's first put and checked
+// exactly at settlement; independent scopes may allocate between operations.
+function comparableFacts(facts){return facts.gets.map(x=>{if(x.store!=='meta'||x.key!=='smart-filter')return x;const value={...x.value};delete value.decisionSequence;return {...x,value};});}
+function sameFacts(a,b){return !!a&&!!b&&same(comparableFacts(a),comparableFacts(b))&&same(a.counts,b.counts);}
+// Existing proof ceiling and 8-candidate/2-neighbor scope derive the bounded
+// private row budget. These snapshots contain authorized text, not just metadata.
+export const AI_FILTER_FACT_LIMITS=Object.freeze({rowBytes:65536,totalBytes:9*65536,gets:4+8*9+2*8,counts:8*2});
+async function assertFacts(t,facts,current){
+ for(const {store,key,value}of facts.gets){current();const row=await t.get(store,key);current();const actual=factValue(store,row);if(!same(actual,value))fail('STALE_BASE');}
+ for(const {store,index,range,value}of facts.counts){current();const actual=await t.count(store,index,queryRange(range));current();if(actual!==value)fail('STALE_BASE');}
+ current();return true;
+}
+function expectedFacts(facts,writes){
+ const expected={gets:facts.gets.map(x=>({...x})),counts:facts.counts};
+ for(const {store,key,value}of writes){const held=expected.gets.find(x=>x.store===store&&same(x.key,key));if(!held)fail('STALE_BASE');held.value=value;}
+ let total=0;for(const held of [...expected.gets,...expected.counts]){const size=bytes(JSON.stringify(held));if(size>AI_FILTER_FACT_LIMITS.rowBytes||(total+=size)>AI_FILTER_FACT_LIMITS.totalBytes)fail('BUDGET_EXCEEDED');}
+ return freeze(structuredClone(expected));
+}
+
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&[Object.prototype,null].includes(Object.getPrototypeOf(x));
 function exact(x,keys){if(!plain(x)||Reflect.ownKeys(x).length!==keys.length||keys.some(k=>!Object.hasOwn(Object.getOwnPropertyDescriptor(x,k)||{},'value')))fail('INVALID_REQUEST');}
 function list(x,max){if(!Array.isArray(x)||!x.length||x.length>max||Reflect.ownKeys(x).length!==x.length+1||Array.from({length:x.length},(_,i)=>Object.getOwnPropertyDescriptor(x,String(i))).some(d=>!d||!Object.hasOwn(d,'value'))||x.some(v=>!id(v))||new Set(x).size!==x.length)fail('INVALID_REQUEST');return [...x].sort();}
@@ -43,7 +84,7 @@ function permission(value,s){
 export class AIMaintenanceFilterOwner {
  #store;#authority;#handles=new WeakMap();#last=null;#states=new Set();#preparing=0;
  constructor(store,authority=null){this.#store=store;this.#authority=authority;}
- #retire(state){state.active=false;state.proof=null;this.#states.delete(state);}
+ #retire(state){state.active=false;state.proof=null;state.facts=null;state.expectedFacts=null;this.#states.delete(state);}
  release(handle){const state=this.#handles.get(handle);if(state)this.#retire(state);}
  #time(){const value=Date.parse(this.#store.clock());if(!integer(value)||this.#last!==null&&value<this.#last){for(const state of this.#states)this.#retire(state);fail('STALE_BASE');}this.#last=value;for(const state of this.#states)if(value>=state.created+300000)this.#retire(state);return value;}
  #ready(){if(typeof this.#authority?.resolve!=='function'||typeof this.#authority?.isCurrent!=='function')fail();}
@@ -56,10 +97,17 @@ export class AIMaintenanceFilterOwner {
    if(!state.active||this.#time()>=state.created+300000)fail('STALE_BASE');
   }catch(error){this.#retire(state);throw error;}
  }
- async #read(t,s,previous=null,guard=raw=>{if(raw)this.#current(raw);}){
-  this.#ready();guard();const raw=await this.#authority.resolve(t,Object.freeze(request(s)));guard(raw);
+ async #read(t,s,previous=null,guard=raw=>{if(raw)this.#current(raw);},visibility=null){
+  this.#ready();guard();const readOnly=visibility!==null&&typeof this.#authority.resolveVisibility==='function',raw=await (readOnly?this.#authority.resolveVisibility(t,freeze({...request(s),purpose:'ai-maintenance-filter-visibility',...visibility})):this.#authority.resolve(t,Object.freeze(request(s))));guard(raw);
   const grant=permission(raw,s);if(previous&&!same(previous,grant))fail('STALE_BASE');
-  const check=()=>guard(raw),guarded=method=>async(...args)=>{check();const v=await t[method](...args);check();return v;};
+  let retainedBytes=0;const charge=held=>{const size=bytes(JSON.stringify(held));if(size>AI_FILTER_FACT_LIMITS.rowBytes||retainedBytes+size>AI_FILTER_FACT_LIMITS.totalBytes)fail('BUDGET_EXCEEDED');retainedBytes+=size;};
+  const facts={gets:[],counts:[]},gets=new Map(),counts=new Map(),check=()=>guard(raw),guarded=method=>async(...args)=>{
+   check();const v=await t[method](...args);check();
+   if(method==='get'){const [store,key]=args,k=factKey(store,key),value=factValue(store,v),prior=gets.get(k);if(prior&&!same(prior.value,value))fail('STALE_BASE');if(!prior){if(facts.gets.length>=AI_FILTER_FACT_LIMITS.gets)fail('BUDGET_EXCEEDED');charge({store,key,value});const held={store,key:structuredClone(key),value:structuredClone(value)};gets.set(k,held);facts.gets.push(held);}}
+   else {const [store,index,rawRange]=args,range=countRange(rawRange),k=JSON.stringify([store,index,range]),prior=counts.get(k);if(prior&&prior.value!==v)fail('STALE_BASE');if(!prior){if(facts.counts.length>=AI_FILTER_FACT_LIMITS.counts)fail('BUDGET_EXCEEDED');charge({store,index,range,value:v});const held={store,index,range,value:v};counts.set(k,held);facts.counts.push(held);}}return v;
+  };
+  // Only rows already read by the original exact 8-candidate/2-neighbor
+  // qualification are retained. Final checks acquire no new input or source.
   const g={get:guarded('get'),count:guarded('count')};
   const gate=await g.get('meta','gate'),control=await this.#store.control(g),library=await g.get('meta','thought-library'),restore=await g.get('meta','recovery-restore-epoch');check();
   if(gate?.enabled!==true||control.settings?.enabled!==true||control.settings.consentVersion!==CONSENT_VERSION||control.settings.epoch!==gate.epoch||!integer(gate.epoch)||library?.phase!=='active'||library.schemaVersion!==1||library.verified!==true||library.sealed!==0||restore&&!id(restore.value))fail('STALE_BASE');
@@ -77,12 +125,12 @@ export class AIMaintenanceFilterOwner {
    let nearby=false;for(const n of neighbors){if(n.documentId!==b.documentId)continue;const cmp=this.#store.repository.factory.cmp(ix.listKey,n.position);if(await g.count('blockIndex','byList',IDBKeyRange.bound(cmp<0?ix.listKey:n.position,cmp<0?n.position:ix.listKey))<=3)nearby=true;}
    if(!nearby)fail('STALE_BASE');item.row=cleanRow(item.row);item.position=ix.listKey;
   }
-  const proof={gateEpoch:gate.epoch,restore:restore?.value??null,snapshot,neighbors};if(bytes(JSON.stringify(proof))>65536)fail('BUDGET_EXCEEDED');check();return {grant,raw,proof,check};
+  const proof={gateEpoch:gate.epoch,restore:restore?.value??null,snapshot,neighbors};if(bytes(JSON.stringify(proof))>65536)fail('BUDGET_EXCEEDED');check();return {grant,raw,proof,check,facts:freeze(facts)};
  }
  async prepare(t,value){
   const s=scope(value),created=this.#time();if(this.#states.size+this.#preparing>=8)fail('BUDGET_EXCEEDED');this.#preparing++;
   try{const guard=raw=>{if(this.#time()>=created+300000)fail('STALE_BASE');if(raw)this.#current(raw);};const read=await this.#read(t,s,null,guard);read.check();
-   const handle=Object.freeze(Object.create(null)),state={scope:s,grant:read.grant,raw:read.raw,proof:read.proof,created,operationId:this.#store.uuid(),active:true};this.#handles.set(handle,state);this.#states.add(state);return handle;
+   const handle=Object.freeze(Object.create(null)),state={scope:s,grant:read.grant,raw:read.raw,proof:read.proof,facts:read.facts,created,operationId:this.#store.uuid(),active:true};this.#handles.set(handle,state);this.#states.add(state);return handle;
   }finally{this.#preparing--;}
  }
  async commit(t,handle,decisions){
@@ -95,21 +143,31 @@ export class AIMaintenanceFilterOwner {
   catch(error){if(['STALE_BASE','UNAVAILABLE','INVALID_REQUEST'].includes(error?.code))this.#retire(saved);throw error;}
   read.check();
   const committedProof=structuredClone(saved.proof);for(const item of committedProof.snapshot.items)item.row.aiOperationId=saved.operationId;
-  const replay=same(read.proof,committedProof);if(!replay&&!same(read.proof,saved.proof))fail('STALE_BASE');
-  if(replay&&!same(saved.decisions,decisions))fail('STALE_BASE');
-  const current=()=>read.check();current();
-  const filtered=decisions.filter(d=>d.decision==='FILTER').length,result=()=>({ok:true,disposition:filtered?'committed':'no_change',inputIds:[...saved.scope.candidateIds],filtered,isCurrent:()=>{try{current();return true;}catch{return false;}}});
-  if(replay)return result();
-  current();const state=await t.get('meta','smart-filter');current();if(!integer(state?.decisionSequence)||state.decisionSequence>=Number.MAX_SAFE_INTEGER-decisions.length)fail('STALE_BASE');
-  for(const d of decisions){current();const row=await t.get('filterInputs',d.inputId);current();delete row.aiDecision;delete row.filteredKey;row.aiOperationId=saved.operationId;
-   if(d.decision==='FILTER'){const sequence=++state.decisionSequence;row.aiDecision={version:1,policy:read.grant.policy,authority:read.grant.epochs,scope:saved.scope,proof:committedProof,sequence};row.filteredKey=[0,-sequence,row.id];}
-   current();await t.put('filterInputs',row);current();
+  const replay=same(read.proof,committedProof);if(!replay&&!same(read.proof,saved.proof)||!sameFacts(read.facts,replay?saved.expectedFacts:saved.facts))fail('STALE_BASE');
+  const current=()=>read.check();current();const filtered=decisions.filter(d=>d.decision==='FILTER').length,writes=[];
+  let expected=replay?freeze(structuredClone(read.facts)):saved.expectedFacts,data=saved.visibilityData;
+  if(!replay){
+   // Freeze the entire expected result before the first put. Do not absorb a
+   // changed live row while building the writer's allowed-after state.
+   const held=read.facts.gets.find(x=>x.store==='meta'&&x.key==='smart-filter'),state=structuredClone(held?.value);if(!integer(state?.decisionSequence)||state.decisionSequence>=Number.MAX_SAFE_INTEGER-decisions.length)fail('STALE_BASE');
+   const published=[];
+   for(const d of decisions){
+    const prior=read.facts.gets.find(x=>x.store==='filterInputs'&&x.key===d.inputId),row=structuredClone(prior?.value);if(!row)fail('STALE_BASE');delete row.aiDecision;delete row.filteredKey;row.aiOperationId=saved.operationId;
+    if(d.decision==='FILTER'){const sequence=++state.decisionSequence;row.aiDecision={version:1,policy:read.grant.policy,authority:read.grant.epochs,scope:saved.scope,proof:committedProof,sequence};row.filteredKey=[0,-sequence,row.id];published.push({inputId:d.inputId,sequence});}
+    writes.push({store:'filterInputs',key:d.inputId,value:row});
+   }
+   writes.push({store:'meta',key:'smart-filter',value:state});expected=expectedFacts(read.facts,writes);
+   data=freeze(structuredClone({operationId:saved.operationId,scope:saved.scope,decisions:saved.decisions,epochs:read.grant.epochs,policy:read.grant.policy,proof:committedProof,filtered:published}));
+   saved.expectedFacts=expected;saved.visibilityData=data;
   }
-  current();await t.put('meta',state);current();
-  return result();
+  if(!expected||!data)fail('STALE_BASE');
+  const publication=visibilityPublication(this.#store,t,data),fenceAfterSettlement=async transaction=>{if(transaction!==t)fail('STALE_BASE');return assertFacts(t,expected,current);};
+  for(const {store,value}of writes){current();await t.put(store,structuredClone(value));current();}
+  await fenceAfterSettlement(t);current();
+  return {ok:true,disposition:filtered?'committed':'no_change',inputIds:[...saved.scope.candidateIds],filtered,visibilityPublication:publication,fenceAfterSettlement,isCurrent:()=>{try{current();return true;}catch{return false;}}};
  }
  async hidden(t,b,row,meta,readingSnapshot){
   const d=row?.aiDecision;if(!d||d.version!==1||!integer(d.sequence)||readingSnapshot&&d.sequence>readingSnapshot.sequence||row.basedOnContentRevision!==meta?.contentRevision)return false;
-  try{const s=scope(d.scope),read=await this.#read(t,s);if(!s.candidateIds.includes(b.id)||!same(read.grant.policy,d.policy)||!same(read.grant.epochs,d.authority)||!same(read.proof,d.proof))return false;read.check();return true;}catch{return false;}
+  try{const s=scope(d.scope),read=await this.#read(t,s,null,undefined,{operationId:row.aiOperationId,inputId:b.id,decision:structuredClone(d)});if(!s.candidateIds.includes(b.id)||!same(read.grant.policy,d.policy)||!same(read.grant.epochs,d.authority)||!same(read.proof,d.proof))return false;read.check();return true;}catch{return false;}
  }
 }

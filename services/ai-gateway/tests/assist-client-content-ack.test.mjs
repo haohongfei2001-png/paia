@@ -24,9 +24,9 @@ async function content(f){
  return {message,inserted:()=>inserted,sent:()=>sent};
 }
 test('actual content script and result controller reject Context revoke during final qualification ACK',async t=>{
- const f=await assistServiceFixture(t),cards=new ContextCardsService(f.s),id=crypto.randomUUID();await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected context.',section:'Synthetic'});for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(id);
+ const f=await assistServiceFixture(t),cards=new ContextCardsService(f.s),id=crypto.randomUUID();await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected context.',section:'Synthetic'});for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});f.selected.push(id);
  const c=await content(f),result=await f.run();assert.equal(result.kind,'SUGGESTION');const handle=f.commands.handle.bind(f.commands);let changed=false;
- f.commands.handle=async(...args)=>{const response=await handle(...args);if(args[0].type==='PAIA_PROMPT_ASSIST_QUALIFY'&&!changed){changed=true;await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'info',expectedRevision:1,enabled:false});await f.commands.contextChanged();}return response;};
+ f.commands.handle=async(...args)=>{const response=await handle(...args);if(args[0].type==='PAIA_PROMPT_ASSIST_QUALIFY'&&!changed){changed=true;f.revokeContext();await f.commands.contextChanged();}return response;};
  const outcome=await f.rpc({type:'assist_insert',id:result.id,operationId:crypto.randomUUID(),conditionPresented:true});assert.equal(changed,true);assert.notEqual(outcome.status,'inserted');assert.equal(c.inserted(),0);assert.equal(c.sent(),0);
 });
 

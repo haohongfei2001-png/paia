@@ -96,6 +96,14 @@ export function requireRepositoryTransactionDataMethods(repository,scope){
   if(originalOwnDescriptor(scope,name)||!descriptor||descriptor.value!==expected.value||descriptor.get!==expected.get||descriptor.set!==expected.set||descriptor.writable!==expected.writable||descriptor.enumerable!==expected.enumerable||descriptor.configurable!==expected.configurable)throw new ArchiveError('BNS_HUMAN_RETENTION_REQUIRED');
  }
 }
+// Internal domain-owner settlement evidence, without claiming native BNS
+// retention qualification for non-native mechanism fixtures. The original
+// repository callback, finalizers and success path must all have unwound.
+export function requireRepositoryTransactionSucceeded(repository,scope){
+ const r=scopeRecord(repository,scope);
+ if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound||r.identity.nativeTransaction&&r.trustedNativeOutcome!=='completed')throw new ArchiveError('STALE_BASE');
+ return true;
+}
 export function requireRepositoryTransactionCommitted(repository,scope){
  const r=scopeRecord(repository,scope);
  // Settlement also includes abort. Only the original successful transaction

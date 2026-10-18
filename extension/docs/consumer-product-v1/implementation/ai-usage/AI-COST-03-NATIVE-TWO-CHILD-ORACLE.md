@@ -19,8 +19,10 @@ The exact Placement Context unit must have one ACK and no fake DEFER. The unsupp
 
 Frozen corrected test SHA-256: `4baa0e6eefe5031e01c142196af9d71e0b73002a33f458a1a773cab7f42837b7`. The minimal successor diff is `/tmp/paia-native-two-child-oracle.diff`, SHA-256 `fd0087fde100c3019d112be3bb061d2fd37cd9e3b3ba001afa3be88afceef314`.
 
-## Scoped validation and pending gate
+## Scoped validation and native outcome
 
 Syntax check passes. The two corresponding original Node whole-session positive tests pass 2/2 in 1394.221031 ms, log `/tmp/paia-native-oracle-unit-controls.tap`, SHA-256 `ef9b61c526045316359b83baac59d858a52e1f8824e333f4ea9094139bee1c17`. A temporary copy of the same actual-owner mixed test, adding the exact new-opportunity full-snapshot assertion, passes 1/1 in 957.306837 ms; `/tmp/paia-native-new-opportunity-oracle-probe.tap`, SHA-256 `bbb3cbe619fefc918a175c05ce7d1a2b603430de2f9622fc5978920b2c257da5`. These are synthetic fake-IndexedDB controls, not native evidence.
 
-The complete unchanged native Source/release case set must run on the corrected test identity before qualification. The parent owns that exact-head remote CI and its final receipt. Local Chromium launch was not retried after the previously reported environment denial. No runtime, workflow, installation, provider activation or external account change was made by this test correction.
+The complete native Source/release file passed **148/148**, zero failed, cancelled or skipped, in 117975.710413 ms on remote CI `39160602435`, exact head `22acbe9c142a7bb1fdffc3866e1f817abdd5d4ef`. The parent independently read the full log `paia-native-oracle-ci-39160602435.log`, SHA-256 `fbdc0b28bc57fe0fbeef21b2de2a865c26838e750a9061f0cd76bd1b79dc01e2`; Node22.23.3 and Chrome155.0.8059.39 ran the original fixture-mapper path. This qualifies that complete native fixture set on that head; it is not a live-provider, new authenticated source-mapper, successor Filter or whole-product qualification. Both historical failures above retain their original identities.
+
+Local Chromium launch was not retried after the previously reported environment denial. No runtime, workflow, installation, provider activation or external account change was made by this test correction.

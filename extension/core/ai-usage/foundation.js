@@ -1,4 +1,4 @@
-import {observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionScope} from '../idb-repository.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded} from '../idb-repository.js';
 import {qwenFoundationProviderData,qwenFoundationResponse,qwenReservationDenial} from './qwen-qualified-request.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {clientOperationStatusTransportOrigin,observedClientOperationStatus} from './client-operation-status-transport.js';
@@ -16,6 +16,15 @@ const atomicJob=j=>j?.kind===ATOMIC&&j.version===1&&j.commitMode==='organize-ato
 const validOrganizeRequestKey=j=>!Object.hasOwn(j,'organizeRequestKey')||j.type==='AI_ORGANIZE'&&token(j.organizeRequestKey);
 const validMaintenanceRequestKey=j=>!Object.hasOwn(j,'maintenanceRequestKey')||j.type==='AI_MAINTENANCE'&&/^aiu:(?:cadence|recovery):[a-f0-9]{64}$/.test(j.maintenanceRequestKey);
 const knownJob=j=>!!j&&validOrganizeRequestKey(j)&&validMaintenanceRequestKey(j)&&(j.kind==='ai_usage_v1'&&!Object.hasOwn(j,'commitMode')||atomicJob(j)||isPrivateResultJob(j));
+// Private evidence of this original Filter mutation and exact ACK sharing
+// one successful transaction. An older durable ACK cannot qualify a later
+// independent domain token, even under the same live reservation.
+const maintenanceFilterSettlements=new WeakMap();
+export function readMaintenanceFilterSettlement(token,foundation,publication){
+ const held=maintenanceFilterSettlements.get(token);if(!held||held.foundation!==foundation||held.repository!==foundation.s.repository||held.publication!==publication)return null;
+ try{requireRepositoryTransactionSucceeded(held.repository,held.transaction);}catch{return null;}
+ return structuredClone(held.data);
+}
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1',HISTORICAL_FLIGHT='aiu:historical-service-preflight:v1',ASSIST_FLIGHT='aiu:assist-service-preflight:v1';
 const terminal=new Set(['COMMITTED','CANCELLED_BEFORE_DISPATCH','REJECTED','EXPIRED_UNCOMMITTED']);
 const coverId=(key,facet,scope)=>'aiu:coverage:'+canonical([key,facet,scope]);
@@ -924,10 +933,14 @@ export class AIUsageFoundation {
    if(typeof this.assistResult!=='function')fail('UNAVAILABLE');
    const result=await this.assistResult(t,Object.freeze({logicalJobId:id,childOperationId:childId,operationReceiptId:receipt.operationReceiptId,replyObligation:structuredClone(job.replyObligation)}));
    if(result?.committed!==true||!['SUGGESTION','DEFER'].includes(result.outcome)||typeof result.isCurrent!=='function')fail('STALE_BASE');
+   if(Object.hasOwn(result,'fenceAfterSettlement')&&typeof result.fenceAfterSettlement!=='function')fail('STALE_BASE');
    await this.current(t,job);if(result.isCurrent()!==true)fail('STALE_BASE');
    await t.put('organizerWorkItems',{id:'aiu:assist-result:'+id,kind:ASSIST_RESULT_KIND,version:1,jobId:id,childId,state:'ACKNOWLEDGED',stateKey:1,sequence:0,replyObligation:structuredClone(job.replyObligation),outcome:result.outcome,sourceRecordIds:job.sourceRecordIds});
    receipt.state='COMMITTED';receipt.stateKey=1;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
    job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await this.#putJob(t,job);
+   // The same private Assist result owner rechecks its already captured facts
+   // after joined ACK/usage/job writes. No provider DTO supplies this closure.
+   if(result.fenceAfterSettlement)await result.fenceAfterSettlement(t);
    if(result.isCurrent()!==true)fail('STALE_BASE');return safeJob(job);
   });
  }
@@ -983,7 +996,13 @@ export class AIUsageFoundation {
    // This fence follows every settlement write, including NO_CHANGE counters;
    // nothing asynchronous or mutating follows it before the final owner check.
    if(Object.hasOwn(result,'fenceAfterSettlement')&&(typeof result.fenceAfterSettlement!=='function'||await result.fenceAfterSettlement(t)!==true))fail('STALE_BASE');
-   assertOwner();return settled;
+   assertOwner();
+   if(facet==='filter'&&Object.hasOwn(result,'filterPublication')){
+    if(job.type!=='AI_MAINTENANCE'||!result.filterPublication||typeof result.filterPublication!=='object'||typeof result.captureFilterSettlement!=='function'||typeof result.fenceAfterSettlement!=='function'||typeof result.isCurrent!=='function')fail('STALE_BASE');
+    const token=Object.freeze({});maintenanceFilterSettlements.set(token,{foundation:this,repository:this.s.repository,transaction:t,publication:result.filterPublication,data:{jobId:job.id,childId,units:structuredClone(remaining),outcome}});
+    if(result.captureFilterSettlement(token)!==true)fail('STALE_BASE');assertOwner();
+   }
+   return settled;
  }
  async settleFacet(t,job,index,remaining,{outcome,local=false}){
    const id=job.id;

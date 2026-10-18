@@ -1,3 +1,4 @@
+import {readAIMaintenanceFilterVisibility} from './ai-filter-owner.js';
 import {selectMaintenanceExistingContext,maintenanceExistingContextScope,captureMaintenanceExistingContext,maintenanceExistingContextPayload,maintenanceExistingContextMetadata,maintenanceExistingContextSummary,assertMaintenanceExistingContext,releaseMaintenanceExistingContext} from './maintenance-existing-context.js';
 import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../idb-repository.js';
 import {readMaintenanceResponseDefer} from './maintenance-service-response.js';
@@ -319,7 +320,7 @@ export class LocalMaintenanceSession {
   if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const partial=(batch.pendingBatchUnits??0)>0||pendingPlacementUnits||pendingAuthoredUnits||pendingBoundUnits||pendingStructuralUnits,state=partial?'PARTIAL':job.state,processed=partial?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
-  const state={progress,request,entryMapping,placementMapping,authoredMapping,boundMapping,structuralMapping,contextMapping,contextMaterial:new Map(),existingContext:new Map(),existingSettled:new Map(),existingPublicationStart:new Map(),publications:[],releasedChildren:new Set(),failedChildren:new Set(),followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),boundMaterial:new Map(),structuralMaterial:new Map(),structuralInputs:new Map(),authoredBudget:createContextScopeWorkBudget({signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),filterHandles:new Map(),outputs:new Map(),topicResults:new Map(),contextDeferred:new Map(),deferredUnits:new Set(),processing:new Map(),processingCleanup:new Set(),completed:false};
+  const state={progress,request,entryMapping,placementMapping,authoredMapping,boundMapping,structuralMapping,contextMapping,contextMaterial:new Map(),existingContext:new Map(),existingSettled:new Map(),existingPublicationStart:new Map(),publications:[],releasedChildren:new Set(),failedChildren:new Set(),followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),boundMaterial:new Map(),structuralMaterial:new Map(),structuralInputs:new Map(),authoredBudget:createContextScopeWorkBudget({signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),filterHandles:new Map(),filterQualifications:new Map(),filterPublications:new Map(),outputs:new Map(),topicResults:new Map(),contextDeferred:new Map(),deferredUnits:new Set(),processing:new Map(),processingCleanup:new Set(),completed:false};
   const revoked=()=>{this.#releaseFilters(state);state.controller.abort();state.outputs.clear();this.#remote?.releaseResponseJob(state.job.id);state.topicResults.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
@@ -470,9 +471,9 @@ export class LocalMaintenanceSession {
  // Scope selection is body-free and cannot extend the already granted child.
  // The Store alone resolves Pro/opt-in/policy authority. No model field can
  // qualify a handle, and failed qualification is never retried after dispatch.
- async #preparePositiveFilter(state,metadata,payload,processing,{check,stopped}){
+ async #preparePositiveFilter(state,metadata,payload,processing,{check,stopped,authorizeFilter=null}){
   if(!this.#filterEnabled(state)||typeof this.#service.filter.selectScope!=='function'||!metadata.coverage.some(u=>u.facet==='filter')||state.filterHandles.has(metadata.childOperationId))return;
-  const childId=metadata.childOperationId;state.filterHandles.set(childId,null);let handle=null;
+  const childId=metadata.childOperationId;state.filterHandles.set(childId,null);let handle=null,qualification=null;const originalCheck=check;check=()=>{originalCheck();if(qualification)this.#assertProcessing(qualification);};
   const release=()=>{if(handle){const pending=handle;handle=null;this.#store.releaseAIMaintenanceFilter(pending);}};
   try{
    check();
@@ -481,6 +482,10 @@ export class LocalMaintenanceSession {
    const selected=await this.#service.filter.selectScope(frozen({candidateIds:[...candidateIds],inputIds:[...inputIds]}));check();const scope=responseSnapshot(selected,8192);check();
    exact(scope,['candidateIds','neighborIds']);
    if(!Array.isArray(scope.candidateIds)||!equal([...scope.candidateIds].sort(),candidateIds)||candidateIds.length>8||!Array.isArray(scope.neighborIds)||!scope.neighborIds.length||scope.neighborIds.length>2||new Set(scope.neighborIds).size!==scope.neighborIds.length||scope.neighborIds.some(id=>!inputIds.includes(id)||candidateIds.includes(id)))fail('INVALID_REQUEST');
+   // Only the original authenticated child reservation can qualify remote
+   // Pro filtering. The constructor's local/test tier is never a substitute.
+   qualification=await this.#filterQualification(state,metadata,scope);check();
+   if(this.#remote){if(typeof authorizeFilter!=='function')fail('UNAVAILABLE');syncTrue(authorizeFilter(frozen(structuredClone(scope)),qualification));check();}
    const prepared=await this.#foundation.read(async t=>{
     check();
     const guarded=method=>async(...args)=>{check();const result=await t[method](...args);check();return result;};
@@ -495,9 +500,31 @@ export class LocalMaintenanceSession {
    if(!['STALE_BASE','UNAVAILABLE','INVALID_REQUEST','BUDGET_EXCEEDED'].includes(error?.code))throw error;
   }
  }
+ async #publishFilterVisibility(state,status){
+  if(!this.#remote)return;
+  for(const [childId,held]of state.filterPublications){
+   if(!held.units.every(u=>status.committedCoverage.includes(unitKey(u))))continue;
+   // The original token is unreadable until its own transaction completes.
+   // Exact durable Foundation ACK coverage also handles a lost return ACK;
+   // neither a callback return nor a provider DTO can publish visibility.
+   if(readAIMaintenanceFilterVisibility(held.token,this.#store)){
+    try{syncTrue(await this.#remote.publishFilterVisibility(childId,held.token,held.settlement));this.#current(state);}catch{/* Fail open visibly if the exact read-only lease has expired/revoked. */}
+   }
+   // Filter is terminal even when another facet needs validated local retry.
+   // Retire only its write capability; the independently published read lease
+   // and other domain continuations have separate lifetimes.
+   this.#releaseFilters(state,childId);
+  }
+ }
  #releaseFilters(state,childId=null){
   if(!state?.filterHandles)return;
+  if(childId===null)state.filterPublications.clear();else state.filterPublications.delete(childId);
+  for(const [id,qualification]of state.filterQualifications)if(childId===null||id===childId){qualification.remove();state.filterQualifications.delete(id);}
   for(const [id,prepared]of state.filterHandles)if(childId===null||id===childId){if(prepared)this.#store.releaseAIMaintenanceFilter(prepared.handle);state.filterHandles.set(id,null);}
+  // A reservation capability may exist even if optional Filter preparation
+  // never installed a handle. Response decode and Qwen disposal are earlier
+  // boundaries and cannot retire authority needed for validated local retry.
+  if(childId===null)this.#remote?.releaseFilterJob(state.job.id);else this.#remote?.releaseFilterChild(childId);
  }
  #transport(state){
   const original=this.#provider,descriptor=localProviderDescriptor(original);
@@ -521,8 +548,10 @@ export class LocalMaintenanceSession {
   const assertCurrent=async()=>{check();await this.#checkPayload(state,handle,metadata,processing);check();};
   try{
    const stopped=new Promise((_,reject)=>{const stop=()=>reject(Object.assign(Error('MAINTENANCE_STOPPED'),{code:'OUTCOME_UNKNOWN'}));controller.signal.addEventListener('abort',stop,{once:true});if(controller.signal.aborted)stop();});stopped.catch(()=>{});
-   await this.#preparePositiveFilter(state,metadata,payload,processing,{check,stopped});
-   prepared=await this.#remote.prepareChild(this.#foundation,state.job,payload,{signal:controller.signal,assertCurrent,isCurrent:()=>{try{check();return true;}catch{return false;}},assertBeforeSend:async()=>{const repository=this.#store.repository,token=observeRepositoryWriteFence(repository);await assertCurrent();return ()=>{check();if(this.#store.repository!==repository)fail('STALE_BASE');requireRepositoryWriteFence(repository,token);};}});
+   prepared=await this.#remote.prepareChild(this.#foundation,state.job,payload,{processing,signal:controller.signal,assertCurrent,isCurrent:()=>{try{check();return true;}catch{return false;}},assertBeforeSend:async()=>{const repository=this.#store.repository,token=observeRepositoryWriteFence(repository);await assertCurrent();return ()=>{check();if(this.#store.repository!==repository)fail('STALE_BASE');requireRepositoryWriteFence(repository,token);};}});
+   // Keep the exact already-tokenized payload and original deadline. Positive
+   // Filter preparation follows real reservation, before any physical send.
+   await this.#preparePositiveFilter(state,metadata,payload,processing,{check,stopped,authorizeFilter:prepared.authorizeFilter});
    state.scheduling=prepared.scheduling;await assertCurrent();const result=await this.#foundation.dispatch(state.job.id,metadata.childOperationId,prepared.provider,{signal:controller.signal,timeoutMs});
    await assertCurrent();if(result.state==='RESPONSE_RECORDED'){
     const status=await this.#foundation.status(state.job.id),receipt=status.attempts.find(r=>r.childId===metadata.childOperationId);check();
@@ -531,7 +560,7 @@ export class LocalMaintenanceSession {
     state.outputs.set(metadata.childOperationId,{jobId:state.job.id,childId:metadata.childOperationId,operationReceiptId:receipt.operationReceiptId,response});
    }
    return result;
-  }catch(error){this.#remote.releaseResponseChild(metadata.childOperationId);try{await this.#foundation.cancelServer(state.job.id);}catch{/* Unknown/cancellation ACK loss retains original holds. */}throw error;}
+  }catch(error){this.#releaseFilters(state,metadata.childOperationId);this.#remote.releaseResponseChild(metadata.childOperationId);try{await this.#foundation.cancelServer(state.job.id);}catch{/* Unknown/cancellation ACK loss retains original holds. */}throw error;}
   finally{clearTimeout(timer);for(const signal of sources)signal.removeEventListener('abort',abort);prepared?.dispose();if(handle)this.#topic.releaseMaterial(handle);}
  }
 
@@ -576,7 +605,8 @@ export class LocalMaintenanceSession {
   a.entered=true;const abort=()=>{try{t.tx.abort();}catch{}},signals=[a.state.controller.signal,a.state.grant.revocationSignal,a.state.processing.get(a.childId).revocationSignal];
   for(const s of signals)s.addEventListener('abort',abort);
   const cleanup=()=>{for(const s of signals)s.removeEventListener('abort',abort);};t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
-  const check=()=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));if(a.ownerCurrent)syncTrue(a.ownerCurrent());};
+  const filterQualification=facet==='filter'?a.state.filterQualifications.get(a.childId)?.receipt:null;
+  const check=()=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));if(filterQualification)this.#assertProcessing(filterQualification);if(a.ownerCurrent)syncTrue(a.ownerCurrent());};
   const put=t.put.bind(t);t.put=async(...args)=>{check();const value=await put(...args);check();return value;};
   if(facet==='filter'&&a.state.filterHandles.get(a.childId))for(const method of ['get','count']){const read=t[method].bind(t);t[method]=async(...args)=>{check();const value=await read(...args);check();return value;};}
   const result=await a.callback(t);this.#current(a.state);
@@ -586,8 +616,8 @@ export class LocalMaintenanceSession {
   if(facet==='topic'&&this.#structures(a.state,a.units).length)assertStructuralTopicResult(result,this.#structures(a.state,a.units)[0]);
   if(a.expectedDisposition!==null&&result?.disposition!==a.expectedDisposition)fail('STALE_BASE');
   if(facet==='context'){if(a.contextChange&&result.itemId!==a.contextChange.itemId)fail('STALE_BASE');const expected=a.expectedTarget?.();if(!expected||expected.itemId!==result.itemId||expected.item.revision!==result.revision)fail('STALE_BASE');await this.#checkExistingContext(a.state,a.childId,t,'settlement',expected,a.publication?.());}
-  if(facet==='filter'&&a.state.filterHandles.get(a.childId)){if(typeof result.isCurrent!=='function')fail('STALE_BASE');a.ownerCurrent=result.isCurrent;check();}
-  a.result=result;return {committed:true,coverage:r.units,...(a.finalFence||['topic','context'].includes(facet)&&(this.#structures(a.state,a.units).length||this.#contextEdits(a.state,a.units).length)?{fenceAfterSettlement:async transaction=>{
+  if(facet==='filter'&&a.state.filterHandles.get(a.childId)){if(typeof result.isCurrent!=='function'||typeof result.fenceAfterSettlement!=='function'||!result.visibilityPublication)fail('STALE_BASE');a.ownerCurrent=result.isCurrent;a.finalFence=result.fenceAfterSettlement;a.state.filterPublications.set(a.childId,{token:result.visibilityPublication,units:structuredClone(r.units)});check();}
+  a.result=result;return {committed:true,coverage:r.units,...(facet==='filter'&&result.visibilityPublication?{filterPublication:result.visibilityPublication,captureFilterSettlement:token=>{const held=a.state.filterPublications.get(a.childId);if(!held||held.token!==result.visibilityPublication)fail('STALE_BASE');held.settlement=token;return true;}}:{}),...(a.finalFence||['topic','context'].includes(facet)&&(this.#structures(a.state,a.units).length||this.#contextEdits(a.state,a.units).length)?{fenceAfterSettlement:async transaction=>{
    if(transaction!==t)fail('STALE_BASE');
    // The same original transaction has now staged all publication, exact ACK,
    // usage, job and NO_CHANGE counter writes. Revalidate full structural scope
@@ -646,6 +676,18 @@ export class LocalMaintenanceSession {
   if(contextDeferred.length)results.push(await this.#defer(state,childId,'context',contextDeferred,deferReason.context));
   return results;
  }
+ async #filterQualification(state,metadata,scope){
+  const inputIds=[...scope.candidateIds,...scope.neighborIds].sort(),base=state.processing.get(metadata.childOperationId);this.#processingCurrent(state,base);
+  const request={purpose:'ai-maintenance-filter-qualification',logicalJobId:base.scope.logicalJobId,childOperationId:metadata.childOperationId,principalId:base.scope.principalId,libraryId:base.scope.libraryId,consentEpoch:base.scope.consentEpoch,candidateIds:[...scope.candidateIds].sort(),neighborIds:[...scope.neighborIds].sort(),inputs:inputIds.map(inputId=>({inputId,selectedFields:['body','note']})),facets:['filter'],coverage:structuredClone(metadata.coverage.filter(u=>u.facet==='filter'))};
+  const receipt=await this.#foundation.read(async t=>{
+   await this.#foundation.current(t,await this.#foundation.job(t,state.job.id));this.#processingCurrent(state,base);
+   const raw=await this.#processing.resolve(t,frozen(structuredClone(request)));this.#processingCurrent(state,base);
+   exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
+   if(Reflect.ownKeys(raw).some(k=>!Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))||raw.version!==1||raw.store!==this.#store||raw.caller!==this.#service.context.caller||!Object.isFrozen(raw.caller)||!opaque(raw.epoch)||raw.processing!==true||!Number.isSafeInteger(raw.expiresAt)||raw.expiresAt<=Date.now()||!(raw.revocationSignal instanceof AbortSignal)||raw.revocationSignal.aborted||!equal(responseSnapshot(raw.scope,32768),request))fail('UNAVAILABLE');
+   const qualified=Object.freeze({...raw,scope:frozen(structuredClone(request))});this.#assertProcessing(qualified);return qualified;
+  });
+  this.#processingCurrent(state,receipt);const abort=()=>this.#releaseFilters(state,metadata.childOperationId),remove=()=>receipt.revocationSignal.removeEventListener('abort',abort);receipt.revocationSignal.addEventListener('abort',abort,{once:true});state.filterQualifications.set(metadata.childOperationId,{receipt,remove});this.#assertProcessing(receipt);return receipt;
+ }
  #filterEnabled(state){return (this.#remote!==null||state.grant.tier==='pro')&&this.#service.filter?.enabled===true&&typeof this.#service.responseAdapter?.filter==='function';}
  async #filterFacet(state,childId,receipt,units){
   const expected=state.prepared.get(canonical([childId,'filter-snapshot'])),positive=state.filterHandles.get(childId);
@@ -677,7 +719,7 @@ export class LocalMaintenanceSession {
   const results=[];
   try{
    const initial=await this.#foundation.status(state.job.id);this.#current(state);
-   if(initial.state==='COMMITTED'){state.completed=true;this.#retire(state);return this.#settled(state);}
+   if(initial.state==='COMMITTED'){await this.#publishFilterVisibility(state,initial);this.#current(state);state.completed=true;this.#retire(state);return this.#settled(state);}
    if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){this.#releaseFilters(state);state.outputs.clear();this.#remote?.releaseResponseJob(state.job.id);state.topicResults.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});}
    try{await this.#preflightPayloads(state);}catch(error){
     // An impossible unsent structural envelope must not hold the library flight
@@ -726,7 +768,7 @@ export class LocalMaintenanceSession {
      catch(e){this.#current(state);const deferred=this.#adapterDefer({state,childId,receipt,units},facet,e);if(deferred){results.push(await this.#defer(state,childId,facet,deferred.units,deferred.retryCondition));continue;}if(facet==='filter'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);this.#releaseFilters(state,childId);}if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);}results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
     }
    }
-   const final=await this.#foundation.status(state.job.id);this.#current(state);
+   const final=await this.#foundation.status(state.job.id);this.#current(state);await this.#publishFilterVisibility(state,final);this.#current(state);
    for(const {childId,coverage}of children)if(state.failedChildren.has(childId)||coverage.every(u=>final.committedCoverage.includes(unitKey(u))||state.deferredUnits.has(canonical([childId,unitKey(u)]))))this.#releaseConsumedChild(state,childId);
    if(this.#remote&&['COMMITTED','EXPIRED_UNCOMMITTED','REJECTED','CANCELLED_BEFORE_DISPATCH'].includes(final.state))try{await this.#remote.report(this.#foundation,state.job);}catch{/* Durable body-free result remains pending; no paid retry. */}
    this.#current(state);

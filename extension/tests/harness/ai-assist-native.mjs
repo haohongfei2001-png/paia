@@ -139,16 +139,17 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
     {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js'));
    const f=__assistNative,local={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},isolatedStore=new OrganizerStore(local,{name:'assist-final-authority-'+crypto.randomUUID()});await isolatedStore.consent(true);
    const cards=new ContextCardsService(isolatedStore),results=[];let calls=0;
-   for(const key of ['global','info'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
+   for(const key of ['global','rules'])await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key,expectedRevision:0,enabled:true});
    for(const change of ['edit','revoke']){
-    const id=crypto.randomUUID();await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
-    const session=new LocalAssistSession(isolatedStore,{lease:f.lease,contextSelector:()=>[id],contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+    const contextAbort=new AbortController(),contextExpires=Date.now()+600000,contextProcessing={resolve:async(_t,scope)=>({version:1,store:isolatedStore,scope,epoch:'synthetic-native-context',processing:true,expiresAt:contextExpires,revocationSignal:contextAbort.signal}),isCurrent:()=>!contextAbort.signal.aborted};
+    const id=crypto.randomUUID();await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:0,body:'SYNTHETIC selected insertion Context',section:'Synthetic'});
+    const session=new LocalAssistSession(isolatedStore,{lease:f.lease,contextSelector:()=>[id],contextProcessing,contractVersion:'assist-insert-'+change,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_INSERT',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
     try{const lease=await f.lease.observe(f.sender),handle=await session.prepare({lease});await session.run(handle);
      const result=await session.insert(handle,{operationId:crypto.randomUUID(),controller:{insert:async request=>{
       const {isCurrent,qualify,...transport}=request,capability=crypto.randomUUID();
       __assistInsertCapabilities.set(capability,{isCurrent,qualify:async()=>{
-       if(change==='edit')await cards.change({kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:1,body:'SYNTHETIC changed selected Context',section:'Synthetic'});
-       else await cards.change({kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'info',expectedRevision:1,enabled:false});
+       if(change==='edit')await cards.change({kind:'put',card:'rules',operationId:crypto.randomUUID(),epoch:'initial',itemId:id,expectedRevision:1,body:'SYNTHETIC changed selected Context',section:'Synthetic'});
+       else contextAbort.abort();
        return qualify();
       }});
       try{return await __privateAssistInsert({...transport,capability});}finally{__assistInsertCapabilities.delete(capability);}
