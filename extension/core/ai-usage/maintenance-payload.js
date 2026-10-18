@@ -5,7 +5,7 @@ import {fail,exact} from './contracts.js';
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 // Internal purpose-scoped domain DTO, not a Qwen wire or financial grant.
 // Source originals stay in the original formation owner's local proof.
-export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[],structuralSections=[],structuralTopics=[]){
+export function createMaintenancePayload(metadata,material,limits,placements=[],authoredEntries=[],boundEntries=[],structuralSections=[],structuralTopics=[],contextItems=[]){
  const view=material?.view;
  if(!Array.isArray(view?.inputs)||!Array.isArray(authoredEntries)||!Array.isArray(boundEntries)||!view.inputs.length&&!authoredEntries.length||!Number.isSafeInteger(material.sourceCount)||material.sourceCount<(view.inputs.length?1:0)||!view.inputs.length&&material.sourceCount!==0||material.sourceCount>20)fail('BUDGET_EXCEEDED');
  if(!limits||!['maxInputs','maxContentBytes','maxRequestBytes'].every(k=>Number.isSafeInteger(limits[k])&&limits[k]>0)||view.inputs.length+authoredEntries.length+boundEntries.length>Math.min(20,limits.maxInputs))fail('BUDGET_EXCEEDED');
@@ -61,7 +61,15 @@ export function createMaintenancePayload(metadata,material,limits,placements=[],
   if(!validStructuralContextEvidence(proof)||m.kind!=='topic'||typeof name!=='string'||name.length>300||!metadata.coverage?.some(u=>['topic','context'].includes(u.facet)&&u.key===JSON.stringify(['topic',m.topicId]))||!view.identities?.some(t=>t.id===m.topicId&&t.revision===m.topicRevision&&t.name===name)||!m.entries.every(e=>entries.some(x=>x.entryId===e.entryId&&x.revision===e.revision&&x.workingInputId===e.inputId)&&inputs.some(i=>i.inputId===e.inputId&&i.revision===e.inputRevision)))fail('UNAVAILABLE');
  }
  if((metadata.coverage||[]).some(u=>['topic','context'].includes(u.facet)&&u.key?.startsWith('["topic",')&&!structuralTopics.some(m=>u.key===JSON.stringify(['topic',m.topicId])))||new Set(structuralTopics.map(m=>m.recordId)).size!==structuralTopics.length)fail('UNAVAILABLE');
- const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(structuralTopics.length?{structuralTopics:structuredClone(structuralTopics)}:{}),...(structuralSections.length?{structuralSections:structuredClone(structuralSections)}:{}),...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
+ // A selected correction is still an automatic Item with retained Source
+ // closure. Only the separately granted fields cross this purpose boundary.
+ if(!Array.isArray(contextItems)||contextItems.length>1)fail('BUDGET_EXCEEDED');
+ for(const m of contextItems){
+  exact(m,['kind','itemId','revision','card','selectedFields','proof','inputIds','fields','fieldDigests']);exact(m.fields,['body','section']);exact(m.fieldDigests,['body','section']);
+  if(m.kind!=='contextEdit'||!Number.isSafeInteger(m.revision)||m.revision<2||!['info','rules','now'].includes(m.card)||JSON.stringify(m.selectedFields)!=='["body","section"]'||!m.selectedFields.every(f=>typeof m.fields[f]==='string'&&/^[a-f0-9]{64}$/.test(m.fieldDigests[f]))||!metadata.coverage?.some(u=>u.facet==='context'&&u.key===JSON.stringify(['context_item',m.itemId]))||!Array.isArray(m.inputIds)||!m.inputIds.length||!m.inputIds.every(id=>inputs.some(i=>i.inputId===id)))fail('UNAVAILABLE');
+ }
+ if((metadata.coverage||[]).some(u=>u.key?.startsWith('["context_item",')&&(u.facet!=='context'||!contextItems.some(m=>u.key===JSON.stringify(['context_item',m.itemId])))))fail('UNAVAILABLE');
+ const bounded={version:1,purpose:'AI_MAINTENANCE',inputs,...(contextItems.length?{contextItems:structuredClone(contextItems)}:{}),...(structuralTopics.length?{structuralTopics:structuredClone(structuralTopics)}:{}),...(structuralSections.length?{structuralSections:structuredClone(structuralSections)}:{}),...(bound.length?{boundEntries:bound}:{}),...(authored.length?{authoredEntries:authored}:{}),...(placements.length?{placements:structuredClone(placements)}:{}),...(entries.length?{entries}:{}),identities:structuredClone(view.identities),sections:structuredClone(view.sections),constraints:structuredClone(view.constraints)};
  const payload={...structuredClone(metadata),material:bounded};
  if(bytes(bounded)>limits.maxContentBytes||bytes(payload)>limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
  return payload;
