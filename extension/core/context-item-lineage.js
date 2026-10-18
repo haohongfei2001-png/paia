@@ -1,3 +1,4 @@
+import {validStructuralContextEvidence,readStructuralContextEvidence,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
 import {readBoundEntryContext,validBoundContextEvidence,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
 import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from './context-authored-entry.js';
 import {ArchiveError} from './constants.js';
@@ -40,28 +41,33 @@ const entryEvidence=e=>['humanEntry','boundEntry'].includes(e?.kind);
 const inputEvidence=e=>!entryEvidence(e);
 const entryMaterialKey=e=>e.kind==='boundEntry'?JSON.stringify([e.kind,e.entryId,e.topicId]):e.entryId;
 export const contextEvidenceKey=e=>JSON.stringify([entryEvidence(e)?e.kind:'input',entryEvidence(e)?e.entryId:e?.inputId]);
+const structureOf=s=>s.humanTopic||s.humanSection;
+const structuralPairs=xs=>xs.every(s=>!structureOf(s)||structureOf(s).entries.every(e=>xs.some(x=>x.inputId===e.inputId&&same(structureOf(x),structureOf(s)))));
 const boundPairs=xs=>xs.every(e=>e?.kind!=='boundEntry'||xs.some(input=>input&&inputEvidence(input)&&input.inputId===e.inputId&&input.topicId===e.topicId&&Array.isArray(input.selectedFields)&&input.selectedFields.includes('body')&&input.expectedRemovalSequence===e.expectedRemovalSequence&&same(input.expectedTopicBinding,e.expectedTopicBinding)&&(!input.sourceRecordIds||same(input.sourceRecordIds,e.sourceRecordIds)&&same(input.sourceIdentityTokens,e.sourceIdentityTokens))));
 export function releaseContextLineage(captured){authoredCaptures.delete(captured);}
 export function contextLineageBudgetReader(store,transaction,captured){const held=authoredCaptures.get(captured);return held?contextScopeTransactionReader(store,transaction,held.budget):transaction;}
-const specKeys=['topicId','inputId','selectedFields','fieldDigests','expectedTopicBinding','expectedRemovalSequence'];
+const specKeys=x=>['topicId','inputId','selectedFields','fieldDigests','expectedTopicBinding','expectedRemovalSequence',...(Object.hasOwn(x||{},'humanSection')?['humanSection']:[]),...(Object.hasOwn(x||{},'humanTopic')?['humanTopic']:[])];
 export function validContextEvidenceSpec(x){
- return x?.kind==='boundEntry'?validBoundContextEvidence(x):x?.kind==='humanEntry'?validAuthoredContextEvidence(x):lineageExact(x,specKeys)&&idOK(x.topicId)&&idOK(x.inputId)&&fields(x.selectedFields)&&hashes(x.fieldDigests,x.selectedFields)&&validContextTopicBinding(x.expectedTopicBinding)&&x.expectedTopicBinding.topicId===x.topicId&&revisionOK(x.expectedRemovalSequence);
+ return x?.kind==='boundEntry'?validBoundContextEvidence(x):x?.kind==='humanEntry'?validAuthoredContextEvidence(x):lineageExact(x,specKeys(x))&&idOK(x.topicId)&&idOK(x.inputId)&&fields(x.selectedFields)&&hashes(x.fieldDigests,x.selectedFields)&&validContextTopicBinding(x.expectedTopicBinding)&&x.expectedTopicBinding.topicId===x.topicId&&revisionOK(x.expectedRemovalSequence)&&(!(Object.hasOwn(x,'humanSection')&&Object.hasOwn(x,'humanTopic')))&&(!(Object.hasOwn(x,'humanSection')||Object.hasOwn(x,'humanTopic'))||validStructuralContextEvidence(structureOf(x))&&Object.hasOwn(x,structuralContextProperty(structureOf(x)))&&structureOf(x).topicId===x.topicId&&same(x.selectedFields,['body'])&&structureOf(x).entries.some(e=>e.inputId===x.inputId));
 }
-export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&boundPairs(xs)&&unique(xs.map(contextEvidenceKey))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
+export function validContextEvidenceSpecs(xs){return lineageArray(xs,CONTEXT_LINEAGE_LIMITS.inputs,1)&&xs.every(validContextEvidenceSpec)&&structuralPairs(xs)&&boundPairs(xs)&&unique(xs.map(contextEvidenceKey))&&new Set(xs.map(x=>x.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics;}
 export function validContextMaintenance(x){
  if(!lineageExact(x,['version','associationIds','provenance',...(Object.hasOwn(x||{},'invalidation')?['invalidation']:[]),...(Object.hasOwn(x||{},'temporal')?['temporal']:[])])||Object.hasOwn(x,'temporal')&&!validContextTemporal(x.temporal)||x.version!==1||!lineageArray(x.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)||!x.associationIds.every(contextTopicOperationId)||!unique(x.associationIds))return false;
  return validContextProvenance(x.provenance)&&(!Object.hasOwn(x,'invalidation')||validContextProvenance(x.invalidation));
 }
 function validContextProvenance(p){
- return lineageExact(p,['epoch','evidence'])&&contextTopicEpoch(p.epoch)&&lineageArray(p.evidence,CONTEXT_LINEAGE_LIMITS.inputs,1)&&unique(p.evidence.map(contextEvidenceKey))&&new Set(p.evidence.map(e=>e?.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics&&boundPairs(p.evidence)&&p.evidence.every(e=>e?.kind==='boundEntry'?validBoundContextEvidence(e)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds)&&e.expectedTopicBinding.epoch===p.epoch:e?.kind==='humanEntry'?validAuthoredContextEvidence(e)&&e.expectedTopicBinding.epoch===p.epoch:lineageExact(e,[...specKeys,'contentRevision','sourceRecordIds','sourceIdentityTokens'])&&validContextEvidenceSpec(Object.fromEntries(specKeys.map(k=>[k,e[k]])))&&e.expectedTopicBinding.epoch===p.epoch&&revisionOK(e.contentRevision)&&ids(e.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds));
+ return lineageExact(p,['epoch','evidence'])&&contextTopicEpoch(p.epoch)&&lineageArray(p.evidence,CONTEXT_LINEAGE_LIMITS.inputs,1)&&unique(p.evidence.map(contextEvidenceKey))&&new Set(p.evidence.map(e=>e?.topicId)).size<=CONTEXT_LINEAGE_LIMITS.topics&&boundPairs(p.evidence)&&structuralPairs(p.evidence)&&p.evidence.every(e=>e?.kind==='boundEntry'?validBoundContextEvidence(e)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds)&&e.expectedTopicBinding.epoch===p.epoch:e?.kind==='humanEntry'?validAuthoredContextEvidence(e)&&e.expectedTopicBinding.epoch===p.epoch:lineageExact(e,[...specKeys(e),'contentRevision','sourceRecordIds','sourceIdentityTokens'])&&validContextEvidenceSpec(Object.fromEntries(specKeys(e).map(k=>[k,e[k]])))&&e.expectedTopicBinding.epoch===p.epoch&&revisionOK(e.contentRevision)&&ids(e.sourceRecordIds,CONTEXT_LINEAGE_LIMITS.sources,1)&&sourceFamiliesMatch(e.sourceIdentityTokens,e.sourceRecordIds));
 }
 export const contextLineageSourceIds=item=>[...new Set([item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence.flatMap(e=>e.kind==='humanEntry'?[]:e.sourceRecordIds)))].sort();
 // Evidence identity ignores ordering and ambient grant/operation/time changes.
 // Re-evaluation needs changed material or source/Topic identity, not another
 // delivery of the same qualified facts. Renames/layout/access epochs and
 // revisions of unselected fields do not make unchanged selected text novel.
+// Explicitly selected human Topic/Section interpretation is instead bound below to
+// its actual title digest, human operation and complete current membership.
+const structuralEvidenceIdentity=s=>({...((s.kind==='topic')?{kind:'topic'}:{sectionId:s.sectionId}),topicId:s.topicId,operationId:s.operationId,selectedFields:[...s.selectedFields].sort(),fieldDigests:{...s.fieldDigests},entries:s.entries.map(e=>({entryId:e.entryId,inputId:e.inputId,membershipOperationId:e.membershipOperationId,...(s.kind==='topic'?{sectionId:e.sectionId}:{})})).sort((a,b)=>a.entryId.localeCompare(b.entryId))});
 export function contextEvidenceIdentity(p){
- return JSON.stringify(p.evidence.map(e=>e.kind==='boundEntry'?{kind:'boundEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,inputId:e.inputId,selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds,fieldDigests:e.fieldDigests,expectedRemovalSequence:e.expectedRemovalSequence,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:e.kind==='humanEntry'?{kind:'humanEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,...(e.fieldRevisions?{selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds}:{bodyFieldRevision:e.bodyFieldRevision,bodyOperationId:e.bodyOperationId}),fieldDigests:e.fieldDigests,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:{topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()}).sort((a,b)=>contextEvidenceKey(a).localeCompare(contextEvidenceKey(b))||a.topicId.localeCompare(b.topicId)));
+ return JSON.stringify(p.evidence.map(e=>e.kind==='boundEntry'?{kind:'boundEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,inputId:e.inputId,selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds,fieldDigests:e.fieldDigests,expectedRemovalSequence:e.expectedRemovalSequence,sourceRecordIds:e.sourceRecordIds,sourceIdentityTokens:e.sourceIdentityTokens,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:e.kind==='humanEntry'?{kind:'humanEntry',topicId:e.topicId,entryId:e.entryId,entryCreatedAt:e.entryCreatedAt,birthOperationId:e.birthOperationId,...(e.fieldRevisions?{selectedFields:e.selectedFields,fieldRevisions:e.fieldRevisions,fieldOperationIds:e.fieldOperationIds}:{bodyFieldRevision:e.bodyFieldRevision,bodyOperationId:e.bodyOperationId}),fieldDigests:e.fieldDigests,topicCreatedAt:e.expectedTopicBinding.createdAt,membershipOperationId:e.membership.operationId}:{...(structureOf(e)?{[structuralContextProperty(structureOf(e))]:structuralEvidenceIdentity(structureOf(e))}:{}),topicId:e.topicId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort(),fieldDigests:Object.fromEntries(Object.entries(e.fieldDigests).sort(([a],[b])=>a.localeCompare(b))),topicCreatedAt:e.expectedTopicBinding.createdAt,sourceRecordIds:[...e.sourceRecordIds].sort(),sourceIdentityTokens:[...e.sourceIdentityTokens].sort()}).sort((a,b)=>contextEvidenceKey(a).localeCompare(contextEvidenceKey(b))||a.topicId.localeCompare(b.topicId)));
 }
 export function contextLineageReady(store){return !!store?.repository?.db&&!!store.controlCache&&typeof store.readableEntry==='function'&&typeof store.isFiltered==='function';}
 export async function contextLineageRead(store,fn,stores,database=store?.repository?.db){
@@ -78,6 +84,7 @@ export async function fenceContextLineage(store,captured,{transaction=null,rowSe
   const now=await contextLineageAdmission(store,t,captured.epoch);
   need(now.authority===captured.authority&&now.gate===captured.gate);
   if(rowSerialized!==null)need(JSON.stringify(await t.get('meta','context-cards:v1'))===rowSerialized);
+  for(const held of authoredCaptures.get(captured)?.structures?.values()||[]){const current=await readStructuralContextEvidence(store,t,held.spec);need(current&&same(current.mapping,held.mapping)&&same(current.fields,held.fields)&&same(current.inputs,held.inputs));}
   for(const held of authoredCaptures.get(captured)?.rows.values()||[]){const entryId=held.mapping.entryId,bound=held.mapping.kind==='boundEntry';need(same(bound?await readBoundEntryContext(store,t,entryId,null,held.mapping.topicId):await readAuthoredEntryContext(store,t,entryId),held.mapping));need(same(bound?boundSelectedText(await t.get('thoughts',entryId),held.mapping.selectedFields):authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(held.mapping)),held.fields));}
  };
  need(contextLineageReady(store));return transaction?fence(transaction):contextLineageRead(store,fence,authoredCaptures.has(captured)?undefined:['meta'],captured.database||store.repository.db);
@@ -111,7 +118,7 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
  const material=await contextLineageRead(store,async transaction=>{
   const t=contextScopeTransactionReader(store,transaction,workBudget);
   await fenceContextLineage(store,captured,{transaction:t});
-  const rows=new Map(),authored=new Map(),memory=new MemoryService(store),filter=await t.get('meta','smart-filter');
+  const rows=new Map(),authored=new Map(),structures=new Map(),memory=new MemoryService(store),filter=await t.get('meta','smart-filter');
   for(const inputId of inputs){
    if(!specs.some(s=>s.inputId===inputId&&scopes.get(s.topicId)?.scope.inputIds.includes(inputId))){rows.set(inputId,null);continue;}
    const raw=await t.get('blocks',inputId),state=await t.get('inputStates',inputId);
@@ -135,13 +142,19 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
     const fields=bound?boundSelectedText(await t.get('thoughts',entryId),mapping.selectedFields):authoredSelectedText(await t.get('thoughts',entryId),authoredSelectedFields(mapping));for(const text of Object.values(fields)){need(typeof text==='string');workBudget.hashBytes+=new TextEncoder().encode(text).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}authored.set(key,{mapping,fields,fieldDigests:{}});
    }
   }
-  return {rows,authored};
+  for(const spec of specs.filter(s=>structureOf(s))){
+   const key=JSON.stringify(structureOf(spec));if(structures.has(key))continue;
+   const held=await readStructuralContextEvidence(store,t,structureOf(spec));if(!held)continue;
+   for(const text of Object.values(held.fields)){workBudget.hashBytes+=new TextEncoder().encode(text).byteLength;workBudget.hashFields++;if(workBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||workBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('budget_exceeded');}
+   structures.set(key,{...held,spec:structuredClone(structureOf(spec)),fieldDigests:{}});
+  }
+  return {rows,authored,structures};
  },undefined,database);
- authoredCaptures.set(captured,{rows:material.authored,budget:workBudget});
+ authoredCaptures.set(captured,{rows:material.authored,structures:material.structures,budget:workBudget});
  try{
   // WebCrypto runs only after the material transaction has definitively closed.
   for(const row of material.rows.values())if(row)for(const field of Object.keys(row.text)){need(!workBudget.signal?.aborted);row.hashes[field]=await hashText(row.text[field]);row.text[field]='';need(!workBudget.signal?.aborted);}
-  for(const held of material.authored.values())for(const [field,text]of Object.entries(held.fields)){need(!workBudget.signal?.aborted);held.fieldDigests[field]=await hashText(text);need(!workBudget.signal?.aborted);}
+  for(const held of [...material.authored.values(),...material.structures.values()])for(const [field,text]of Object.entries(held.fields)){need(!workBudget.signal?.aborted);held.fieldDigests[field]=await hashText(text);need(!workBudget.signal?.aborted);}
   await fenceContextLineage(store,captured);
   const results=groups.map(group=>{
    const evidence=[];let eligible=group.epoch===captured.epoch;
@@ -149,9 +162,10 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
     const scope=scopes.get(spec.topicId);
     if(entryEvidence(spec)){const held=material.authored.get(entryMaterialKey(spec)),matches=spec.kind==='boundEntry'?boundContextEvidenceMatches:authoredContextEvidenceMatches;if(!scope||!scope.scope.entryIds.includes(spec.entryId)||!sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)||!held||!matches(spec,held.mapping)||!same(spec.fieldDigests,held.fieldDigests)){eligible=false;continue;}evidence.push(structuredClone(spec));continue;}
     const row=material.rows.get(spec.inputId);
-    const valid=scope&&scope.scope.inputIds.includes(spec.inputId)&&sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)&&row&&row.removalSequence===spec.expectedRemovalSequence&&spec.selectedFields.every(f=>row.hashes[f]===spec.fieldDigests[f])&&(!Object.hasOwn(spec,'sourceRecordIds')||same(spec.sourceRecordIds,row.sourceRecordIds)&&same(spec.sourceIdentityTokens,row.sourceIdentityTokens));
+    const structure=structureOf(spec)?material.structures.get(JSON.stringify(structureOf(spec))):null;
+    const valid=(!structureOf(spec)||structure&&same(structure.fieldDigests,structureOf(spec).fieldDigests))&&scope&&scope.scope.inputIds.includes(spec.inputId)&&sameContextTopicBinding(scope.binding,spec.expectedTopicBinding)&&row&&row.removalSequence===spec.expectedRemovalSequence&&spec.selectedFields.every(f=>row.hashes[f]===spec.fieldDigests[f])&&(!Object.hasOwn(spec,'sourceRecordIds')||same(spec.sourceRecordIds,row.sourceRecordIds)&&same(spec.sourceIdentityTokens,row.sourceIdentityTokens));
     if(!valid){eligible=false;continue;}
-    evidence.push({...Object.fromEntries(specKeys.map(k=>[k,structuredClone(spec[k])])),contentRevision:row.contentRevision,sourceRecordIds:[...row.sourceRecordIds],sourceIdentityTokens:[...row.sourceIdentityTokens]});
+    evidence.push({...Object.fromEntries(specKeys(spec).map(k=>[k,structuredClone(spec[k])])),contentRevision:row.contentRevision,sourceRecordIds:[...row.sourceRecordIds],sourceIdentityTokens:[...row.sourceIdentityTokens]});
    }
    return {eligible,evidence};
   });
@@ -174,7 +188,7 @@ export async function readableContextItems(store,items,{epoch,expectedAuthority=
   for(let index=0;index<automatic.length;){
    const batch=[],topics=new Set(),inputs=new Set();
    while(index<automatic.length){const item=automatic[index],ts=new Set(topics),ins=new Set(inputs);for(const e of item.maintenance.provenance.evidence){ts.add(e.topicId);ins.add(contextEvidenceKey(e));}if(batch.length&&(ts.size>CONTEXT_LINEAGE_LIMITS.readTopics||ins.size>CONTEXT_LINEAGE_LIMITS.readInputs))break;batch.push(item);for(const id of ts)topics.add(id);for(const id of ins)inputs.add(id);index++;}
-   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});if(captured){const held=authoredCaptures.get(captured).rows;for(const [id,value]of authoredCaptures.get(assessed.captured).rows)held.set(id,value);releaseContextLineage(assessed.captured);}else captured=assessed.captured;
+   const assessed=await assess(store,batch.map(x=>x.maintenance.provenance),{epoch,expectedAuthority:captured?.authority??expectedAuthority,workBudget});if(captured){const held=authoredCaptures.get(captured).rows;for(const [id,value]of authoredCaptures.get(assessed.captured).rows)held.set(id,value);for(const [id,value]of authoredCaptures.get(assessed.captured).structures)authoredCaptures.get(captured).structures.set(id,value);releaseContextLineage(assessed.captured);}else captured=assessed.captured;
    for(let i=0;i<batch.length;i++)if(assessed.results[i].eligible)allowed.add(batch[i].id);
   }
   await fenceContextLineage(store,captured,{rowSerialized});if(!retainAuthoredCapture)releaseContextLineage(captured);

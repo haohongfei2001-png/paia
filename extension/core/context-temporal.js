@@ -1,5 +1,6 @@
 // Explicit provider evidence only. No inferred deadline, timer, writer or grant.
-const text=value=>value===null||typeof value==='string'&&value.length>0&&value.length<=512&&!value.includes('\0');
+export const CONTEXT_TEMPORAL_TEXT_LIMIT=512;
+const text=value=>value===null||typeof value==='string'&&value.length>0&&value.length<=CONTEXT_TEMPORAL_TEXT_LIMIT&&!value.includes('\0');
 function instant(value){
  if(typeof value!=='string')return null;
  const at=Date.parse(value);if(!Number.isFinite(at))return null;
