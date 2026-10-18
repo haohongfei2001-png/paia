@@ -211,10 +211,20 @@ test('source build check resolves full monorepo and rejects a standalone api/ser
  assert.notEqual(detached.status,0);assert.match(detached.stderr,/ERR_MODULE_NOT_FOUND/);
 });
 
-test('shared lifecycle retains original reserve/cancel entry and expired-grant hold semantics',async t=>{
+test('shared lifecycle refuses expired identity and retains the original cancellation hold',async t=>{
  const h=harness(t),bundle=h.p.admit(request('lifecycle-parity'));
  assert.equal((await h.gateway.fetch(http(bundle))).status,200);
  const body=JSON.stringify({action:'cancel',...bundle});
  const before=h.p.saved();h.p.setClock(h.f.now+60000);
- const response=await h.gateway.fetch(http(bundle,{body}));assert.equal(response.status,503);noAuthority(await response.json());assert.deepEqual(h.p.saved(),before);assert.equal(h.p.saved().rows[0].state,'RESERVED');
+ const response=await h.gateway.fetch(http(bundle,{body}));assert.equal(response.status,403);const denial=await response.json();assert.equal(denial.reason,'AUTHORIZATION');noAuthority(denial);assert.deepEqual(h.p.saved(),before);assert.equal(h.p.saved().rows[0].state,'RESERVED');
+});
+
+test('shared lifecycle cancels an unsent row with expired content but still-current signed identity',async t=>{
+ const h=harness(t),bundle=h.p.admit(request('content-expiry-cancel'));
+ assert.equal((await h.gateway.fetch(http(bundle))).status,200);
+ const before=structuredClone(h.p.saved());h.p.grants.get(bundle.request.operationId).expires_at_ms=String(h.f.now);
+ const response=await h.gateway.fetch(http(bundle,{body:JSON.stringify({action:'cancel',...bundle})}));assert.equal(response.status,200);
+ const result=await response.json();assert.equal(result.decision,'cancelled');assert.equal(result.state,'CANCELLED_BEFORE_DISPATCH');noAuthority(result);
+ assert.deepEqual(h.p.saved().rows,[{...before.rows[0],state:'CANCELLED_BEFORE_DISPATCH'}]);
+ const cancelled=structuredClone(h.p.saved()),reserve=await h.gateway.fetch(http(bundle));assert.equal(reserve.status,503);noAuthority(await reserve.json());assert.deepEqual(h.p.saved(),cancelled);
 });
