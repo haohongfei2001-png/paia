@@ -1,0 +1,87 @@
+name: PAIA Maintenance Native Development Evidence
+
+# Bounded offline development regression, not Full or visual qualification.
+# Existing mandatory, candidate and certification workflows are unchanged.
+on:
+  push:
+    branches: ['codex/native-maintenance-structured-20261018']
+    paths:
+      - 'extension/core/**'
+      - 'extension/background/**'
+      - 'extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'
+      - 'extension/tests/harness/**'
+      - 'extension/scripts/build_current_release.py'
+      - 'extension/scripts/package_assets.py'
+      - 'extension/package.json'
+      - '.github/workflows/paia-maintenance-native-development.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-maintenance-native-development-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  offline-native-maintenance:
+    if: github.ref == 'refs/heads/codex/native-maintenance-structured-20261018' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing exact direct dependency versions without scripts
+        # extension/package.json pins direct versions but has no tracked lock.
+        # Transitive dependencies are not fully locked; do not claim otherwise.
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Use only the standard runner's existing Chrome
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+      - name: Record exact scoped development identity
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          printf 'tree=%s\n' "$(git rev-parse HEAD^{tree})"
+          node --version
+          npm ls --depth=0
+          sha256sum tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs core/context-maintenance.js core/context-item-lineage.js core/topic-formation.js core/ai-usage/local-maintenance-session.js core/ai-usage/maintenance-service-response.js
+          printf '%s\n' 'scope=offline synthetic native Source/release Maintenance; no provider, database service, deployment or visual qualification'
+      - name: Run the complete original Source and release Maintenance native file
+        run: node --test --test-reporter=tap tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs
+      - name: Print body-free mechanism evidence to the ordinary job log
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {readdir, readFile} from 'node:fs/promises';
+          for (const variant of ['source', 'release']) {
+            const directory = `work/ctx4-05/${variant}`;
+            let names;
+            try { names = await readdir(directory); }
+            catch (error) { if (error.code === 'ENOENT') { console.log(`${variant}: no completed mechanism evidence`); continue; } throw error; }
+            for (const name of names.filter(name => name.endsWith('.json')).sort()) {
+              console.log(`${variant}/${name}`);
+              console.log(await readFile(`${directory}/${name}`, 'utf8'));
+            }
+          }
+          JS
+      # No artifact upload, cache, service container, credentials or paid runner.
