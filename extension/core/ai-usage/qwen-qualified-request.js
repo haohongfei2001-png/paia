@@ -1,0 +1,167 @@
+// Dormant LOCAL binding mechanics, not a deployed qualification/trust root.
+// Constructor callbacks are existing-owner integration seams; request booleans,
+// profile names, digest equality and fixture callbacks establish no live trust.
+// No network, credential, Archive reader, ledger write or dispatch is present.
+import {canonical} from './contracts.js';
+import {hashText} from '../dedupe.js';
+import {ENVELOPES} from './admission-policy.js';
+import {ROUTE_FIELDS,quoteRequestBound} from './ratebook.js';
+import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
+import {boundedSchema,exact,failureReason,freeze,integer,snapshot,stop,token} from './qwen-request-data.js';
+
+const CHILD=['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'];
+const REQUEST=['operationId','jobId','principalId','libraryId','scopeFingerprint','contractVersion','routeVersion','consentEpoch','jobType','childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'];
+const NUMERIC=['childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'];
+const LIMITS=Object.freeze({profiles:16,operations:128,inFlight:8,wireBytes:262144,validityMs:86400000});
+const encoder=new TextEncoder(),same=(a,b)=>canonical(a)===canonical(b);
+const authority=Object.freeze({sourceKind:'LOCAL_INJECTED_OWNERS',qualification:'NOT_ESTABLISHED',inputBoundQualified:false,financialAuthority:false,dispatchAllowed:false});
+const unavailable=reason=>Object.freeze({status:'UNAVAILABLE',reason,wireComplete:false,...authority});
+const clone=v=>structuredClone(v);
+function identities(c,r){
+ if(!exact(c,CHILD)||!CHILD.filter(k=>k!=='automaticRetries').every(k=>token(c[k]))||c.automaticRetries!==0||!Object.hasOwn(ENVELOPES,c.type))stop('CHILD_BINDING_MISMATCH');
+ if(!exact(r,REQUEST)||!REQUEST.filter(k=>!NUMERIC.includes(k)).every(k=>token(r[k]))||!NUMERIC.every(k=>integer(r[k]))||r.childCount<1||r.childCount>ENVELOPES[c.type].children||r.childIndex>=r.childCount||r.operationId!==c.childOperationId||r.jobId!==c.logicalJobId||r.jobType!==c.type||r.contractVersion!==c.contractVersion||r.routeVersion!==c.routeVersion)stop('RESERVATION_BINDING_MISMATCH');
+}
+function validity(v,now){
+ if(!exact(v,['verifiedAt','expiresAt','revoked'])||!integer(v.verifiedAt)||!integer(v.expiresAt)||v.expiresAt<=v.verifiedAt||v.expiresAt-v.verifiedAt>LIMITS.validityMs||v.revoked!==false||now<v.verifiedAt||now>=v.expiresAt)stop('PROFILE_UNAVAILABLE');
+}
+function authorization(a,c,r,payloadDigest,now){
+ if(!exact(a,['authorizationId','childIdentity','reservationRequest','payloadDigest','expiresAt'])||!token(a.authorizationId)||!same(a.childIdentity,c)||!same(a.reservationRequest,r)||a.payloadDigest!==payloadDigest||!integer(a.expiresAt)||a.expiresAt<=now||a.expiresAt-now>LIMITS.validityMs)stop('PAYLOAD_AUTHORITY_UNAVAILABLE');
+}
+
+export function createQwenQualifiedRequestOwner(options){
+ // Do not access constructor getters. Injected functions are capability seams,
+ // separate from untrusted request data; their authentication is NOT implemented.
+ let clock,resolveProfile,authorizePayload,tokenize,readReservation,readCurrentBinding;
+ try{
+  const keys=['clock','resolveProfile','authorizePayload','tokenize','readReservation','readCurrentBinding'];
+  if(!options||![Object.prototype,null].includes(Object.getPrototypeOf(options))||Reflect.ownKeys(options).length!==keys.length)stop('OWNER_UNAVAILABLE');
+  const callbacks=keys.map(k=>{const d=Object.getOwnPropertyDescriptor(options,k);if(!d||!Object.hasOwn(d,'value')||typeof d.value!=='function')stop('OWNER_UNAVAILABLE');return d.value;});
+  [clock,resolveProfile,authorizePayload,tokenize,readReservation,readCurrentBinding]=callbacks;
+ }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),revoke:()=>false,dispose(){}});}
+ const profiles=new Map(),operations=new Map(),handles=new WeakMap();let disposed=false,lastNow=0,inFlight=0;
+ function now(){if(disposed)stop('OWNER_DISPOSED');const n=clock();if(!integer(n)||n<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=n;return n;}
+ function active(entry){const n=now();if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,n);return n;}
+ async function profile(c,r,stream){
+  const raw=await resolveProfile(freeze({childIdentity:clone(c)}));now();
+  const m=snapshot(raw),p=m.profile;
+  if(!exact(m,['version','profile','known','route','wire','tokenizer'])||m.version!==1||!p||!token(p.id))stop('PROFILE_UNAVAILABLE');
+  if(p.validity?.revoked===true){
+   const prior=profiles.get(p.id);if(prior)prior.revoked=true;else if(profiles.size<LIMITS.profiles)profiles.set(p.id,{revoked:true});
+   stop('PROFILE_REVOKED');
+  }
+  validity(p.validity,now());
+  if(!exact(m.route,ROUTE_FIELDS)||!ROUTE_FIELDS.every(k=>token(m.route[k]))||m.route.provider!=='qwen'||m.route.model!==p.model?.requested||m.route.resolutionVersion!==p.model?.resolutionVersion||m.route.region!==p.endpoint?.region||m.route.deployment!==p.endpoint?.deployment||m.route.profile!==p.apiProfileId||m.route.tokenizer!==p.tokenizerProfileId||m.route.api!=='chat-completions')stop('ROUTE_BINDING_MISMATCH');
+  const w=m.wire,t=m.tokenizer;
+  if(!exact(w,['instructions','responseFormat','thinkingControls'])||typeof w.instructions!=='string'||!w.instructions.length||w.instructions.length>8192||!exact(w.responseFormat,['type','json_schema'])||w.responseFormat.type!=='json_schema'||!exact(w.responseFormat.json_schema,['name','strict','schema'])||!token(w.responseFormat.json_schema.name)||w.responseFormat.json_schema.strict!==true)stop('WIRE_PROFILE_UNAVAILABLE');
+  boundedSchema(w.responseFormat.json_schema.schema);
+  if(await hashText(canonical(w.responseFormat.json_schema.schema))!==p.responseSchemaDigest)stop('SCHEMA_BINDING_MISMATCH');now();
+  const tc=w.thinkingControls;
+  if(p.thinking?.enabled?(!exact(tc,['enable_thinking','thinking_budget'])||tc.enable_thinking!==true||tc.thinking_budget!==p.thinking.thinkingBudget||p.jobType!=='AI_ORGANIZE'):(!exact(tc,['enable_thinking'])||tc.enable_thinking!==false))stop('THINKING_UNAVAILABLE');
+  if(!exact(t,['profileId','qualificationRef','protocolOverheadTokens','maxWireBytes'])||t.profileId!==p.tokenizerProfileId||!token(t.qualificationRef)||!integer(t.protocolOverheadTokens)||t.protocolOverheadTokens<1||!integer(t.maxWireBytes)||t.maxWireBytes<1||t.maxWireBytes>LIMITS.wireBytes)stop('TOKENIZER_UNAVAILABLE');
+  const compiler=createQwenRequestProfileCompiler({profile:p,known:m.known});
+  const compiled=compiler.compile({childIdentity:c,inputTokens:r.inputTokens,outputCap:r.outputCap,stream,now:now()});compiler.dispose();
+  if(compiled.status!=='COMPILED_PARTIAL')stop('PROFILE_UNAVAILABLE');
+  if(compiled.billableOutputCap!==r.outputCap||compiled.requestControls.max_completion_tokens!==r.maxCompletionTokens)stop('RESERVATION_BINDING_MISMATCH');
+  const signature=canonical(m);let entry=profiles.get(p.id);
+  if(entry){if(entry.revoked)stop('PROFILE_REVOKED');if(entry.signature!==signature)stop('PROFILE_REBOUND');}
+  else{if(profiles.size>=LIMITS.profiles)stop('PROFILE_CAPACITY');entry={manifest:freeze(m),signature,revoked:false};profiles.set(p.id,entry);}
+  active(entry);return {entry,compiled};
+ }
+ function checkReservation(row,r,entry,at){
+  if(!exact(row,['request','state','reservedAt','window','reservationMicros','quote','pricing'],['request','state','reservedAt','reservationMicros','quote','pricing'])||!same(row.request,r)||row.state!=='RESERVED'||!integer(row.reservedAt)||row.reservedAt>at||!integer(row.reservationMicros)||!exact(row.pricing,['book','route','fx','now'])||row.pricing.now!==row.reservedAt||!same(row.pricing.route,entry.manifest.route))stop('RESERVATION_UNAVAILABLE');
+  let quote;try{quote=quoteRequestBound({book:row.pricing.book,route:row.pricing.route,fx:row.pricing.fx,now:at,inputTokens:r.inputTokens,billableOutputCap:r.outputCap});}catch{stop('RESERVATION_UNAVAILABLE');}
+  if(!same(quote,row.quote)||quote.usdReservationMicros!==row.reservationMicros)stop('RESERVATION_UNAVAILABLE');
+  return quote;
+ }
+ async function reservation(r,entry){
+  const row=snapshot(await readReservation(freeze(clone(r))),{allowUndefined:true}),quote=checkReservation(row,r,entry,active(entry));
+  const reservationDigest=await hashText(canonical(row));active(entry);
+  return freeze({row,proof:{request:clone(r),reservedAt:row.reservedAt,reservationMicros:row.reservationMicros,quote:clone(quote),route:clone(row.pricing.route),reservationDigest}});
+ }
+ async function authorize(c,r,payload,payloadDigest,entry){
+  const proof=snapshot(await authorizePayload(freeze({childIdentity:clone(c),reservationRequest:clone(r),payload:clone(payload),payloadDigest})));
+  authorization(proof,c,r,payloadDigest,active(entry));return freeze(proof);
+ }
+ // A mandatory constructor capability supplies ONE synchronous coherent view
+ // of all four current owners. No Promise, boolean or echoed request is proof.
+ // Implementations must read owner-backed state in one serialization domain;
+ // a real cross-process service needs its own transaction/fence qualification.
+ // This comparison and subsequent publication contain no await or callbacks.
+ function finalFence(entry,c,r,auth,measurement,financial,payloadDigest,requestDigest){
+  active(entry);
+  const current=snapshot(readCurrentBinding(freeze({childIdentity:clone(c),reservationRequest:clone(r),profileId:entry.manifest.profile.id,payloadDigest,requestDigest})),{allowUndefined:true});
+  if(!exact(current,['now','profile','authorization','tokenizer','reservation']))stop('CURRENTNESS_UNAVAILABLE');
+  if(disposed)stop('OWNER_DISPOSED');const at=current.now;
+  if(!integer(at)||at<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=at;
+  if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,at);
+  if(current.profile?.profile?.id===entry.manifest.profile.id&&current.profile.profile.validity?.revoked===true){entry.revoked=true;stop('PROFILE_REVOKED');}
+  if(!same(current.profile,entry.manifest))stop('PROFILE_AUTHORITY_CHANGED');
+  if(!same(current.authorization,auth))stop('PAYLOAD_AUTHORITY_CHANGED');
+  if(!same(current.tokenizer,measurement))stop('TOKENIZER_AUTHORITY_CHANGED');
+  if(!same(current.reservation,financial.row))stop('RESERVATION_CHANGED');
+  authorization(auth,c,r,payloadDigest,at);
+  if(at>=measurement.expiresAt)stop('BINDING_EXPIRED');
+  checkReservation(current.reservation,r,entry,at);return at;
+ }
+ const owner={
+  async bind(value){
+   let entered=false;
+   try{
+    now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;const o=snapshot(value);
+    if(!exact(o,['childIdentity','reservationRequest','payload','stream'])||typeof o.stream!=='boolean'||!o.payload||Array.isArray(o.payload)||typeof o.payload!=='object')stop('REQUEST_UNAVAILABLE');
+    const c=o.childIdentity,r=o.reservationRequest;identities(c,r);
+    const {entry,compiled}=await profile(c,r,o.stream),m=entry.manifest;
+    const payloadDigest=await hashText(canonical(o.payload));active(entry);
+    const auth=await authorize(c,r,o.payload,payloadDigest,entry);
+    const body=canonical({model:m.profile.model.requested,messages:[{role:'system',content:m.wire.instructions},{role:'user',content:canonical(o.payload)}],response_format:m.wire.responseFormat,...compiled.requestControls,...m.wire.thinkingControls,n:1});
+    if(encoder.encode(body).length>m.tokenizer.maxWireBytes)stop('WIRE_BOUND');
+    // Keep endpoint components as data: constructing a transport URL belongs
+    // to the separately qualified service, never this extension-local owner.
+    const envelope=freeze({method:'POST',endpoint:{scheme:'https',host:m.profile.endpoint.host,path:m.profile.endpoint.path},headers:{'Content-Type':'application/json'},body});
+    const requestDigest=await hashText(canonical(envelope));active(entry);
+    const measurement=snapshot(await tokenize(freeze({profileId:m.profile.id,tokenizerProfileId:m.tokenizer.profileId,qualificationRef:m.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)})));
+    const at=active(entry);
+    if(!exact(measurement,['profileId','tokenizerProfileId','qualificationRef','requestDigest','contentTokens','protocolOverheadTokens','inputTokens','expiresAt'])||measurement.profileId!==m.profile.id||measurement.tokenizerProfileId!==m.tokenizer.profileId||measurement.qualificationRef!==m.tokenizer.qualificationRef||measurement.requestDigest!==requestDigest||!['contentTokens','protocolOverheadTokens','inputTokens','expiresAt'].every(k=>integer(measurement[k]))||measurement.protocolOverheadTokens!==m.tokenizer.protocolOverheadTokens||measurement.inputTokens!==measurement.contentTokens+measurement.protocolOverheadTokens||measurement.inputTokens!==r.inputTokens||measurement.expiresAt<=at||measurement.expiresAt>m.profile.validity.expiresAt)stop('TOKENIZER_BINDING_MISMATCH');
+    const financial=await reservation(r,entry);
+    // Re-read the owning authorities after asynchronous token/financial work.
+    // These are read-only seams; no attempt or financial reservation is minted.
+    const checked=await profile(c,r,o.stream);if(checked.entry!==entry)stop('PROFILE_REBOUND');
+    const finalAuth=await authorize(c,r,o.payload,payloadDigest,entry);if(!same(auth,finalAuth))stop('PAYLOAD_AUTHORITY_CHANGED');
+    const finalFinancial=await reservation(r,entry);if(!same(financial,finalFinancial))stop('RESERVATION_CHANGED');
+    const finalNow=active(entry);if(finalNow>=auth.expiresAt||finalNow>=measurement.expiresAt)stop('BINDING_EXPIRED');
+    const identity=freeze({childIdentity:clone(c),profileId:m.profile.id,payloadDigest,requestDigest,authorizationId:auth.authorizationId,authorizationExpiresAt:auth.expiresAt,tokenizer:measurement,reservation:financial.proof});
+    const identityDigest=await hashText(canonical(identity));const ready=active(entry);
+    if(ready>=auth.expiresAt||ready>=measurement.expiresAt)stop('BINDING_EXPIRED');
+    const checkedAt=finalFence(entry,c,r,auth,measurement,financial,payloadDigest,requestDigest);
+    const old=operations.get(r.operationId);if(old&&old!==identityDigest)stop('OPERATION_REBOUND');
+    if(!old&&operations.size>=LIMITS.operations)stop('OPERATION_CAPACITY');operations.set(r.operationId,identityDigest);
+    const result=freeze({status:'BOUND_LOCAL',reason:'NONE',checkedAt,wireComplete:true,localBindingComplete:true,...authority,envelope,identity,identityDigest,expiresAt:Math.min(auth.expiresAt,measurement.expiresAt,m.profile.validity.expiresAt),usageBinding:compiled.binding});
+    // Weak identity association stores metadata only, never a private payload.
+    handles.set(result,{entry,c,r,auth,measurement,financial,stream:o.stream,identityDigest});return result;
+   }catch(e){return unavailable(failureReason(e));}finally{if(entered)inFlight--;}
+  },
+  async revalidate(result){
+   let entered=false;
+   try{
+    now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;
+    const h=handles.get(result);if(!h)stop('BINDING_UNAVAILABLE');const at=active(h.entry);if(at>=result.expiresAt)stop('BINDING_EXPIRED');
+    const checked=await profile(h.c,h.r,h.stream);if(checked.entry!==h.entry)stop('PROFILE_REBOUND');
+    const row=await reservation(h.r,h.entry);if(!same(row.proof,result.identity.reservation)||operations.get(h.r.operationId)!==h.identityDigest)stop('RESERVATION_CHANGED');
+    const payload=snapshot(JSON.parse(JSON.parse(result.envelope.body).messages[1].content));
+    const proof=await authorize(h.c,h.r,payload,result.identity.payloadDigest,h.entry);
+    if(proof.authorizationId!==result.identity.authorizationId||proof.expiresAt!==result.identity.authorizationExpiresAt)stop('PAYLOAD_AUTHORITY_CHANGED');
+    if(active(h.entry)>=result.expiresAt)stop('BINDING_EXPIRED');
+    const checkedAt=finalFence(h.entry,h.c,h.r,h.auth,h.measurement,h.financial,result.identity.payloadDigest,result.identity.requestDigest);
+    // Fresh content/financial metadata validity, never a dispatch capability.
+    return freeze({status:'CURRENT_LOCAL',reason:'NONE',checkedAt,wireComplete:true,...authority,identityDigest:h.identityDigest});
+   }catch(e){return unavailable(failureReason(e));}finally{if(entered)inFlight--;}
+  },
+  revoke(id){
+   if(disposed||!token(id))return false;const entry=profiles.get(id);
+   if(entry){entry.revoked=true;return true;}
+   if(profiles.size>=LIMITS.profiles)return false;profiles.set(id,{revoked:true});return true;
+  },
+  dispose(){disposed=true;profiles.clear();operations.clear();}
+ };
+ return Object.freeze(owner);
+}

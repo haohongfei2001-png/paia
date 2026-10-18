@@ -1,3 +1,11 @@
+# Current approved implementation progress — 2026-10-18
+
+Continue completing the existing approved functionality/interfaces before delivery; an early preview is not the requested outcome. The integrated0.55 Development code now includes reviewed source-free Entry body/title/note, ordered mixed Maintenance children, bounded positive filtering through the original session, and local financial/request-binding mechanics. Real service/financial authority remains unavailable. Input-bound human fields and remaining semantic mappings are still under implementation; CTX4-06 real client/transport remains externally blocked and new Sync features paused.
+
+Actual Source Chrome development run39091109419 produced9 screenshots and passed fixed-anchor/open/collapse/insertion/no-Send checks. Approved-reference comparison and independent review closed the finite row-rule/shadow/junction calibration; animation, real-site/release visual parity and owner final acceptance remain open. Current build/privacy and exact0.55 backup compatibility checks pass. See [the implementation checkpoint](implementation/APPROVED-IMPLEMENTATION-PROGRESS-20261018.md) for exact identities, retained review failures, overlapping small tests and remaining scope. No main merge, installation, all-plan completion or broad acceptance is claimed.
+
+## Preserved preceding owner clarification and checkpoints
+
 # Owner clarification — complete approved implementation before delivery, 2026-10-18
 
 The owner clarified that the requested outcome is completion of the current development plan's functionality and interfaces, with broad tests and acceptance deferred. An early UI preview does not satisfy that request. Do not ask the owner to install the0.55 intermediate package as a substitute for completing remaining implementation. Retain the completed1.2 double-card and human-recovery code, then close the finite approved implementation gaps through their existing owners before preparing the requested installation.

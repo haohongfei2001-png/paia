@@ -44,7 +44,7 @@ export class LocalMaintenanceSession {
   this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},...(service.filter?{filter:{...service.filter}}:{}),responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,qualifyMaintenanceEntries:async(t,request)=>{const entries=await this.#entryMapping(request,t),authored=await this.#authoredMapping(request,t);return request.coverage.filter(u=>['topic','context'].includes(u.facet)&&entries.has(u.key)||u.facet==='context'&&authored.has(u.key));},qualifyMaintenancePlacements:async(t,request)=>{const placements=await this.#placementMapping(request,t);return request.coverage.filter(u=>u.facet==='context'&&placements.has(u.key));},committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context'),filter:(t,r)=>this.#commit(t,r,'filter')}});
   if(service!==null){
-   exact(service,['version','topic','context','responseAdapter','filter'],['version','topic','context','responseAdapter']);if(service.filter!==undefined){exact(service.filter,['enabled']);if(service.filter.enabled!==true)fail();}if(service.version!==1)fail();
+   exact(service,['version','topic','context','responseAdapter','filter'],['version','topic','context','responseAdapter']);if(service.filter!==undefined){exact(service.filter,['enabled','selectScope'],['enabled']);if(service.filter.enabled!==true||service.filter.selectScope!==undefined&&typeof service.filter.selectScope!=='function')fail();}if(service.version!==1)fail();
    exact(service.topic,['resolveProcessing','decisionVersion','parameters']);exact(service.context,['processingVerifier','caller']);
    const adapter=service.responseAdapter;if(adapter!==null){exact(adapter,['topic','context','filter'],['topic','context']);if(adapter.filter!==undefined&&typeof adapter.filter!=='function')fail();if(typeof adapter.topic!=='function'||typeof adapter.context!=='function')fail();}
    this.#topic=new TopicFormationService(store,{resolveProcessing:service.topic.resolveProcessing,parameters:service.topic.parameters,decision:adapter===null?null:{version:service.topic.decisionVersion,assess:async view=>{
@@ -63,9 +63,10 @@ export class LocalMaintenanceSession {
   }
  }
  #current(state){
-  if(!state||state.generation!==this.#generation||this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted||state.grant.revocationSignal.aborted)fail('UNAVAILABLE');
+  try{if(!state||state.generation!==this.#generation||this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted||state.grant.revocationSignal.aborted)fail('UNAVAILABLE');
   if(Object.entries(state.grantBinding).some(([key,value])=>state.grant[key]!==value))fail('UNAVAILABLE');syncTrue(this.#window.isCurrent(state.grant));
   for(const receipt of state.processing.values())try{this.#assertProcessing(receipt);}catch(error){state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();throw error;}
+  }catch(error){this.#releaseFilters(state);throw error;}
  }
  #correlation(a){return {logicalJobId:a.state.job.id,childOperationId:a.childId,operationReceiptId:a.receipt.operationReceiptId};}
  // Only restoration of a current Input-bound Entry is admitted for Topic and Context.
@@ -208,8 +209,8 @@ export class LocalMaintenanceSession {
   if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const state=pendingPlacementUnits||pendingAuthoredUnits?'PARTIAL':job.state,processed=pendingPlacementUnits||pendingAuthoredUnits?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
-  const state={progress,request,entryMapping,placementMapping,authoredMapping,followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),authoredBudget:createContextScopeWorkBudget({signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
-  const revoked=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
+  const state={progress,request,entryMapping,placementMapping,authoredMapping,followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),authoredBudget:createContextScopeWorkBudget({signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),filterHandles:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
+  const revoked=()=>{this.#releaseFilters(state);state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
  #passiveHandle(batch,generation,deferredUnits=0){
@@ -256,7 +257,7 @@ export class LocalMaintenanceSession {
   });
   this.#processingCurrent(state,receipt);const prior=state.processing.get(metadata.childOperationId);
   if(prior&&(prior.epoch!==receipt.epoch||prior.expiresAt!==receipt.expiresAt||prior.revocationSignal!==receipt.revocationSignal||!equal(prior.scope,receipt.scope)))fail('UNAVAILABLE');
-  if(!prior){const abort=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();};receipt.revocationSignal.addEventListener('abort',abort,{once:true});state.processingCleanup.add(()=>receipt.revocationSignal.removeEventListener('abort',abort));}
+  if(!prior){const abort=()=>{this.#releaseFilters(state);state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();};receipt.revocationSignal.addEventListener('abort',abort,{once:true});state.processingCleanup.add(()=>receipt.revocationSignal.removeEventListener('abort',abort));}
   state.processing.set(metadata.childOperationId,receipt);return receipt;
  }
  async #preparePayload(state,metadata){
@@ -296,14 +297,49 @@ export class LocalMaintenanceSession {
  async #executeBounded(state,provider,request,materialHandle,processing){
   this.#current(state);const timeoutMs=this.#store.organizerBudget.limits.timeoutMs;
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1)fail('UNAVAILABLE');
-  const controller=new AbortController(),sources=[state.controller.signal,state.grant.revocationSignal,processing.revocationSignal];let timer,rejectStop;
+  const controller=new AbortController(),sources=[state.controller.signal,state.grant.revocationSignal,processing.revocationSignal],deadline=performance.now()+timeoutMs;let timer,rejectStop;
   const stopped=new Promise((_,reject)=>{rejectStop=()=>{controller.abort();reject(Object.assign(Error('MAINTENANCE_STOPPED'),{code:'OUTCOME_UNKNOWN'}));};});
   for(const source of sources){source.addEventListener('abort',rejectStop,{once:true});if(source.aborted)rejectStop();}
   timer=setTimeout(rejectStop,timeoutMs);
+  const live=()=>{if(controller.signal.aborted||performance.now()>=deadline){rejectStop();fail('OUTCOME_UNKNOWN');}},check=()=>{live();this.#processingCurrent(state,processing);live();};
   try{
-   const work=Promise.resolve().then(async()=>{await this.#checkPayload(state,materialHandle,request,processing);this.#processingCurrent(state,processing);if(controller.signal.aborted)fail('OUTCOME_UNKNOWN');return provider.execute(request,Object.freeze({signal:controller.signal,timeoutMs}));});
-   const value=await Promise.race([work,stopped]);this.#processingCurrent(state,processing);return value;
+   // The original deadline starts before every optional filter hook and is
+   // shared with material revalidation and the physical provider, never reset.
+   const work=Promise.resolve().then(async()=>{check();await this.#preparePositiveFilter(state,request,request,processing,{check,stopped});check();await this.#checkPayload(state,materialHandle,request,processing);check();return provider.execute(request,Object.freeze({signal:controller.signal,timeoutMs}));});
+   const value=await Promise.race([work,stopped]);check();return value;
   }finally{clearTimeout(timer);for(const source of sources)source.removeEventListener('abort',rejectStop);}
+ }
+ // Scope selection is body-free and cannot extend the already granted child.
+ // The Store alone resolves Pro/opt-in/policy authority. No model field can
+ // qualify a handle, and failed qualification is never retried after dispatch.
+ async #preparePositiveFilter(state,metadata,payload,processing,{check,stopped}){
+  if(!this.#filterEnabled(state)||typeof this.#service.filter.selectScope!=='function'||!metadata.coverage.some(u=>u.facet==='filter')||state.filterHandles.has(metadata.childOperationId))return;
+  const childId=metadata.childOperationId;state.filterHandles.set(childId,null);let handle=null;
+  const release=()=>{if(handle){const pending=handle;handle=null;this.#store.releaseAIMaintenanceFilter(pending);}};
+  try{
+   check();
+   const candidateIds=this.#inputs(state,metadata.coverage.filter(u=>u.facet==='filter')),inputIds=payload.material.inputs.map(i=>i.inputId).sort();
+   if(!candidateIds?.length||!state.prepared.get(canonical([childId,'filter-snapshot']))||!equal(inputIds,processing.scope.inputs.map(i=>i.inputId).sort()))return;
+   const selected=await this.#service.filter.selectScope(frozen({candidateIds:[...candidateIds],inputIds:[...inputIds]}));check();const scope=responseSnapshot(selected,8192);check();
+   exact(scope,['candidateIds','neighborIds']);
+   if(!Array.isArray(scope.candidateIds)||!equal([...scope.candidateIds].sort(),candidateIds)||candidateIds.length>8||!Array.isArray(scope.neighborIds)||!scope.neighborIds.length||scope.neighborIds.length>2||new Set(scope.neighborIds).size!==scope.neighborIds.length||scope.neighborIds.some(id=>!inputIds.includes(id)||candidateIds.includes(id)))fail('INVALID_REQUEST');
+   const prepared=await this.#foundation.read(async t=>{
+    check();
+    const guarded=method=>async(...args)=>{check();const result=await t[method](...args);check();return result;};
+    // Race within the original read callback too: an uncooperative
+    // authority must not hold the Store queue and prevent unknown settlement.
+    const prepare=async()=>{try{handle=await this.#store.prepareAIMaintenanceFilter({get:guarded('get'),count:guarded('count')},scope);check();return handle;}catch(error){release();throw error;}};
+    return Promise.race([prepare(),stopped]);
+   });
+   check();state.filterHandles.set(childId,{handle:prepared});handle=null;
+  }catch(error){
+   release();check();
+   if(!['STALE_BASE','UNAVAILABLE','INVALID_REQUEST','BUDGET_EXCEEDED'].includes(error?.code))throw error;
+  }
+ }
+ #releaseFilters(state,childId=null){
+  if(!state?.filterHandles)return;
+  for(const [id,prepared]of state.filterHandles)if(childId===null||id===childId){if(prepared)this.#store.releaseAIMaintenanceFilter(prepared.handle);state.filterHandles.set(id,null);}
  }
  #transport(state){
   const original=this.#provider,descriptor=localProviderDescriptor(original);
@@ -312,10 +348,10 @@ export class LocalMaintenanceSession {
    let response;try{
     const assembled=await this.#preparePayload(state,request);try{response=responseSnapshot(await this.#executeBounded(state,original,assembled.payload,assembled.handle,assembled.processing),this.#store.organizerBudget.limits.maxOutputBytes);}finally{if(assembled.handle)this.#topic.releaseMaterial(assembled.handle);}this.#current(state);
     if(response?.accepted===true&&opaque(response.operationReceiptId))state.outputs.set(request.childOperationId,{jobId:state.job.id,childId:request.childOperationId,operationReceiptId:response.operationReceiptId,response});
-    else {state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();}
+    else {this.#releaseFilters(state,request.childOperationId);state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();}
     // Only the existing neutral receipt fields cross the Foundation owner.
     return {accepted:response?.accepted===true,operationReceiptId:response?.operationReceiptId};
-   }catch(e){state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();throw e;}
+   }catch(e){this.#releaseFilters(state,request.childOperationId);state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();throw e;}
   }};
  }
  #following(state,units){return units.some(u=>state.followingKeys.has(u.key));}
@@ -347,13 +383,16 @@ export class LocalMaintenanceSession {
   a.entered=true;const abort=()=>{try{t.tx.abort();}catch{}},signals=[a.state.controller.signal,a.state.grant.revocationSignal,a.state.processing.get(a.childId).revocationSignal];
   for(const s of signals)s.addEventListener('abort',abort);
   const cleanup=()=>{for(const s of signals)s.removeEventListener('abort',abort);};t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
-  const put=t.put.bind(t);t.put=async(...args)=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));const value=await put(...args);this.#processingCurrent(a.state,a.state.processing.get(a.childId));return value;};
+  const check=()=>{this.#processingCurrent(a.state,a.state.processing.get(a.childId));if(a.ownerCurrent)syncTrue(a.ownerCurrent());};
+  const put=t.put.bind(t);t.put=async(...args)=>{check();const value=await put(...args);check();return value;};
+  if(facet==='filter'&&a.state.filterHandles.get(a.childId))for(const method of ['get','count']){const read=t[method].bind(t);t[method]=async(...args)=>{check();const value=await read(...args);check();return value;};}
   const result=await a.callback(t);this.#current(a.state);
   if(following.length)a.following=await this.#captureFollowing(a.state,t);
   if(facet==='context')await this.#checkEntryMapping(a.state,a.units,t);
-  if(facet==='filter'?result?.ok!==true||result.disposition!=='no_change':facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!=='no_change':!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
+  if(facet==='filter'?result?.ok!==true||result.disposition!==(a.outcome==='COMMITTED'?'committed':'no_change')||!equal(result.inputIds,this.#inputs(a.state,a.units)):facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!=='no_change':!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
   if(a.expectedDisposition!==null&&result?.disposition!==a.expectedDisposition)fail('STALE_BASE');
-  a.result=result;return {committed:true,coverage:r.units,isCurrent:()=>{try{this.#processingCurrent(a.state,a.state.processing.get(a.childId));return this.#active===a;}catch{return false;}}};
+  if(facet==='filter'&&a.state.filterHandles.get(a.childId)){if(typeof result.isCurrent!=='function')fail('STALE_BASE');a.ownerCurrent=result.isCurrent;check();}
+  a.result=result;return {committed:true,coverage:r.units,isCurrent:()=>{try{check();return this.#active===a;}catch{return false;}}};
  }
  async #invoke(state,childId,receipt,facet,units,work,outcome='COMMITTED',expectedDisposition=null){
   this.#current(state);if(this.#active)fail('REQUEST_ALREADY_IN_FLIGHT');
@@ -394,15 +433,16 @@ export class LocalMaintenanceSession {
  }
  #filterEnabled(state){return state.grant.tier==='pro'&&this.#service.filter?.enabled===true&&typeof this.#service.responseAdapter?.filter==='function';}
  async #filterFacet(state,childId,receipt,units){
-  const expected=state.prepared.get(canonical([childId,'filter-snapshot']));
-  if(!this.#filterEnabled(state)||!expected)return this.#defer(state,childId,'filter',units,'FILTER_OWNER_UNAVAILABLE');
+  const expected=state.prepared.get(canonical([childId,'filter-snapshot'])),positive=state.filterHandles.get(childId);
+  if(!this.#filterEnabled(state)||!expected||typeof this.#service.filter.selectScope==='function'&&!positive)return this.#defer(state,childId,'filter',units,'FILTER_OWNER_UNAVAILABLE');
   const inputIds=this.#inputs(state,units);if(!inputIds||!equal(inputIds,expected.items.map(i=>i.inputId)))fail('STALE_BASE');
   const key=canonical([childId,'filter']);let decisions=state.groups.get(key);
   if(!decisions){decisions=await this.#decode({state,childId,receipt},'filter',Object.freeze({inputIds:[...inputIds],units:structuredClone(units)}));this.#current(state);
    if(!Array.isArray(decisions)||decisions.length!==inputIds.length)fail('STALE_BASE');
-   for(const d of decisions){exact(d,['inputId','decision']);if(!['KEEP','INSUFFICIENT'].includes(d.decision))fail('STALE_BASE');}
-   if(!equal(decisions.map(d=>d.inputId).sort(),inputIds))fail('STALE_BASE');state.groups.set(key,decisions);
+   for(const d of decisions){exact(d,['inputId','decision']);if(!(positive?['FILTER','KEEP','INSUFFICIENT']:['KEEP','INSUFFICIENT']).includes(d.decision))fail('STALE_BASE');}
+   if(!equal(decisions.map(d=>d.inputId).sort(),inputIds))fail('STALE_BASE');state.groups.set(key,frozen(decisions));
   }
+  if(positive)return this.#invoke(state,childId,receipt,'filter',units,()=>this.#writeDomain(t=>this.#store.commitAIMaintenanceFilter(t,positive.handle,decisions),'filter'),decisions.some(d=>d.decision==='FILTER')?'COMMITTED':'NO_CHANGE');
   return this.#invoke(state,childId,receipt,'filter',units,()=>this.#writeDomain(t=>this.#store.noChangeMaintenanceFilter(t,expected,decisions),'filter'),'NO_CHANGE');
  }
  async #defer(state,childId,facet,units,retryCondition){await this.#foundation.commitFacet(state.job.id,childId,{facet,units,outcome:'DEFER',retryCondition});this.#current(state);return {facet,units:units.length,state:'DEFERRED'};}
@@ -419,7 +459,7 @@ export class LocalMaintenanceSession {
   try{
    const initial=await this.#foundation.status(state.job.id);this.#current(state);
    if(initial.state==='COMMITTED'){state.completed=true;this.#retire(state);return this.#settled(state);}
-   if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){state.outputs.clear();state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});}
+   if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){this.#releaseFilters(state);state.outputs.clear();state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});}
    await this.#preflightPayloads(state);this.#current(state);
    await this.#foundation.reserve(state.job.id,{reservationId:state.grant.reservationId,executionKind:state.grant.kind});this.#current(state);
    const children=[];let topicFailed=false,followingUnavailable=false;
@@ -442,7 +482,7 @@ export class LocalMaintenanceSession {
       followingUnavailable=true;results.push({facet:'context',units:metadata.coverage.length,state:'FAILED',reason:'UNAVAILABLE'});break;
      }
     }
-    if(receipt?.state==='RESERVED'){const dispatched=await this.#foundation.dispatch(state.job.id,childId,this.#transport(state));this.#current(state);if(dispatched.state!=='RESPONSE_RECORDED'){state.outputs.delete(childId);state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id,facets:results});}}
+    if(receipt?.state==='RESERVED'){const dispatched=await this.#foundation.dispatch(state.job.id,childId,this.#transport(state));this.#current(state);if(dispatched.state!=='RESPONSE_RECORDED'){this.#releaseFilters(state,childId);state.outputs.delete(childId);state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id,facets:results});}}
     status=await this.#foundation.status(state.job.id);this.#current(state);receipt=status.attempts.find(r=>r.childId===childId);
     if(!receipt||!['RESPONSE_RECORDED','VALIDATED'].includes(receipt.state))return outcome('UNAVAILABLE',{jobId:state.job.id,facets:results});
     const job=await this.#foundation.read(t=>this.#foundation.job(t,state.job.id));this.#current(state);const coverage=job.childCoverage[job.childIds.indexOf(childId)];children.push({childId,receipt,coverage});
@@ -457,19 +497,19 @@ export class LocalMaintenanceSession {
     for(const {childId,receipt,coverage}of children){
      const latest=await this.#foundation.status(state.job.id);this.#current(state);const units=coverage.filter(u=>u.facet===facet&&!latest.committedCoverage.includes(unitKey(u)));if(!units.length)continue;
      try{if(facet==='context')results.push(...await this.#contextFacet(state,childId,receipt,units));else results.push(await this.#filterFacet(state,childId,receipt,units));}
-     catch(e){this.#current(state);if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))state.outputs.delete(childId);results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
+     catch(e){this.#current(state);if(facet==='filter'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))this.#releaseFilters(state,childId);if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))state.outputs.delete(childId);results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
     }
    }
    const final=await this.#foundation.status(state.job.id);this.#current(state);
    if(final.state==='COMMITTED'){state.completed=true;this.#retire(state);}
    if(followingUnavailable)return outcome('UNAVAILABLE',{jobId:state.job.id,facets:results,...state.progress,remainingWork:true});
    return final.state==='COMMITTED'?this.#settled(state,results):outcome('PARTIAL',{jobId:state.job.id,facets:results,...state.progress,remainingWork:true});
-  }catch(e){if(!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.outputs.clear();state.authoredMaterial.clear();}else{const current=await this.#foundation.status(state.job.id).catch(()=>null);if(!current||current.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){state.outputs.clear();state.authoredMaterial.clear();}}return outcome(safeError(e),{jobId:state.job.id,facets:results});}
+  }catch(e){if(!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){this.#releaseFilters(state);state.outputs.clear();state.authoredMaterial.clear();}else{const current=await this.#foundation.status(state.job.id).catch(()=>null);if(!current||current.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){this.#releaseFilters(state);state.outputs.clear();state.authoredMaterial.clear();}}return outcome(safeError(e),{jobId:state.job.id,facets:results});}
  }
  // Listener cleanup cannot change an already durable domain outcome.
  #retire(state){
   const errors=[],cleanup=fn=>{try{fn();}catch(error){errors.push(error);}};
-  state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.outputs.clear();state.processing.clear();
+  cleanup(()=>this.#releaseFilters(state));state.filterHandles.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.outputs.clear();state.processing.clear();
   cleanup(state.removeRevocation);for(const clean of state.processingCleanup)cleanup(clean);state.processingCleanup.clear();
   this.#jobs.delete(state.job.id);return errors;
  }
