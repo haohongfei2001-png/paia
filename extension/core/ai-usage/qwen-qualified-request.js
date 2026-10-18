@@ -1,16 +1,23 @@
 // Dormant LOCAL binding mechanics, not a deployed qualification/trust root.
 // Constructor callbacks are existing-owner integration seams; request booleans,
 // profile names, digest equality and fixture callbacks establish no live trust.
-// Explicit metadata-only declaration transport is optional. No Archive read,
-// provider dispatch, credential issuer or financial reservation is present.
+// Explicit configured same-origin service transports are optional. They require
+// original private handles and actual service ACKs; no default URL, credential
+// issuer, qualified production registry or new Archive-reading grant exists.
 import {canonical} from './contracts.js';
 import {clientDeclarationData,clientDeclarationCanonical,CLIENT_DECLARATION_REQUEST_FIELDS as REQUEST} from './client-declaration.js';
-import {isClientDeclarationTransport} from './client-declaration-transport.js';
+import {clientDeclarationTransportOrigin,isClientDeclarationTransport} from './client-declaration-transport.js';
+import {clientReservationTransportOrigin,observedClientReservation} from './client-reservation-transport.js';
+import {clientProviderTransportOrigin,observedClientProviderResponse} from './client-provider-transport.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
 import {ROUTE_FIELDS,quoteRequestBound} from './ratebook.js';
 import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
 import {boundedSchema,exact,failureReason,freeze,integer,snapshot,stop,token} from './qwen-request-data.js';
+
+const foundationProviders=new WeakMap(),foundationResponses=new WeakMap();
+export const qwenFoundationProviderData=provider=>foundationProviders.get(provider)??null;
+export const qwenFoundationResponse=(provider,response)=>{const r=foundationResponses.get(response);return r?.provider===provider?r:null;};
 
 const CHILD=['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'];
 const NUMERIC=['childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'];
@@ -38,9 +45,9 @@ export function createQwenQualifiedRequestOwner(options){
   const keys=['clock','resolveProfile','authorizePayload','tokenize','readReservation','readCurrentBinding'];
   if(!options||![Object.prototype,null].includes(Object.getPrototypeOf(options))||Reflect.ownKeys(options).length!==keys.length)stop('OWNER_UNAVAILABLE');
   const callbacks=keys.map(k=>{const d=Object.getOwnPropertyDescriptor(options,k);if(!d||!Object.hasOwn(d,'value')||typeof d.value!=='function')stop('OWNER_UNAVAILABLE');return d.value;});
-  [clock,resolveProfile,authorizePayload,tokenize,readReservation,readCurrentBinding]=callbacks;
- }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),prepareDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),publishDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revokeDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revoke:()=>false,dispose(){}});}
- const profiles=new Map(),operations=new Map(),handles=new WeakMap(),declarations=new WeakMap(),declarationOperations=new Map();let disposed=false,lastNow=0,inFlight=0;
+  [clock,resolveProfile,authorizePayload,tokenize,readReservation,readCurrentBinding]=callbacks;options=null;
+ }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),prepareDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),publishDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revokeDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),reserveDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),foundationProvider:()=>null,revoke:()=>false,dispose(){}});}
+ const profiles=new Map(),operations=new Map(),handles=new WeakMap(),declarations=new WeakMap(),declarationOperations=new Map(),providerRetirements=new Set();let disposed=false,lastNow=0,inFlight=0;
  function now(){if(disposed)stop('OWNER_DISPOSED');const n=clock();if(!integer(n)||n<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=n;return n;}
  function active(entry){const n=now();if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,n);return n;}
  async function profile(c,r,stream){
@@ -132,6 +139,7 @@ export function createQwenQualifiedRequestOwner(options){
    // This is the same exact declaration/operation. Never remint or retry a send.
    h.revokePromise=h.transport.revoke({request:h.r,...h.proofs},h.declaration).catch(()=>({decision:'outcome_unknown'}));
   }
+  h.retireContent?.();
  }
  const owner={
   async bind(value){
@@ -198,12 +206,78 @@ export function createQwenQualifiedRequestOwner(options){
     Promise.resolve(pending).then(receipt=>{
      try{if(h.revoked)stop('DECLARATION_REVOKED');finalFence(h.entry,h.c,h.r,h.auth,h.measurement,null,h.payloadDigest,h.requestDigest);}
      catch{invalidateDeclaration(h);return declarationResult('UNAVAILABLE','DECLARATION_REVOKED');}
-     if(receipt.decision==='published'&&receipt.generation===h.declarationDigest&&receipt.requestHash===h.declaration.requestHash)return declarationResult('PUBLISHED_CLIENT_DECLARATION','NONE',{declarationDigest:h.declarationDigest,expiresAt:receipt.expiresAt});
+     if(receipt.decision==='published'&&receipt.generation===h.declarationDigest&&receipt.requestHash===h.declaration.requestHash){h.published=true;return declarationResult('PUBLISHED_CLIENT_DECLARATION','NONE',{declarationDigest:h.declarationDigest,expiresAt:receipt.expiresAt});}
      if(receipt.decision==='outcome_unknown')return declarationResult('PUBLICATION_UNKNOWN','COMMIT_OUTCOME_UNKNOWN');
      return declarationResult('UNAVAILABLE','PUBLICATION_DENIED');
     },()=>declarationResult('PUBLICATION_UNKNOWN','TRANSPORT_OUTCOME_UNKNOWN')).then(settle);
     return await h.publication;
    }catch(e){invalidateDeclaration(h);return declarationResult('UNAVAILABLE',failureReason(e));}
+  },
+  async reserveDeclaration(handle,transport){
+   const h=declarations.get(handle);
+   try{
+    if(!h||!h.published||!h.proofs||clientReservationTransportOrigin(transport)!==clientDeclarationTransportOrigin(h.transport))stop('RESERVATION_UNAVAILABLE');
+    finalFence(h.entry,h.c,h.r,h.auth,h.measurement,null,h.payloadDigest,h.requestDigest);
+    if(h.reservationPromise){if(h.reservationTransport!==transport)stop('OPERATION_REBOUND');return await h.reservationPromise;}
+    h.reservationTransport=transport;
+    // Unknown reserve ACK retains the same operation; never automatic replay.
+    let settle;h.reservationPromise=new Promise(resolve=>{settle=resolve;});
+    transport.reserve({request:h.r,...h.proofs}).then(receipt=>{
+     const observed=observedClientReservation(receipt,transport);
+     if(!observed||observed.action!=='reserve'||!same(observed.request,h.r))return declarationResult('RESERVATION_UNKNOWN','COMMIT_OUTCOME_UNKNOWN');
+     h.serviceReservation=receipt;return declarationResult('RESERVED_SERVICE');
+    },()=>declarationResult('RESERVATION_UNKNOWN','TRANSPORT_OUTCOME_UNKNOWN')).then(settle);
+    return await h.reservationPromise;
+   }catch(e){return declarationResult('UNAVAILABLE',failureReason(e));}
+  },
+  foundationProvider(bound,transport){
+   const h=handles.get(bound),d=h&&declarationOperations.get(h.r.operationId);
+   try{
+    if(!h||d?.retired||!d?.published||!d.serviceReservation||!d.proofs||clientProviderTransportOrigin(transport)!==clientDeclarationTransportOrigin(d.transport))stop('PROVIDER_UNAVAILABLE');
+    const reserved=observedClientReservation(d.serviceReservation,d.reservationTransport);
+    if(!reserved||!same(reserved.request,h.r)||reserved.reservationMicros!==h.financial.row.reservationMicros)stop('RESERVATION_UNAVAILABLE');
+    finalFence(h.entry,h.c,h.r,h.auth,h.measurement,h.financial,bound.identity.payloadDigest,bound.identity.requestDigest);
+    if(d.foundationProvider)return d.providerTransport===transport?d.foundationProvider:null;
+    // Own the body in a clearable cell, never in an immutable captured handle or
+    // a cached fulfilled Promise. Durable identity/fences remain metadata only.
+    const payloadDigest=bound.identity.payloadDigest,requestDigest=bound.identity.requestDigest;
+    let body=bound.envelope.body,started=false,retired=false,provider;
+    bound=null;
+    const contentCurrent=()=>{if(retired)stop('OWNER_DISPOSED');finalFence(h.entry,h.c,h.r,h.auth,h.measurement,null,payloadDigest,requestDigest);return true;};
+    const current=()=>{if(retired)stop('OWNER_DISPOSED');finalFence(h.entry,h.c,h.r,h.auth,h.measurement,h.financial,payloadDigest,requestDigest);return true;};
+    const retireContent=()=>{retired=true;body=null;d.retired=true;};
+    const retire=()=>{retireContent();transport=null;d.proofs=null;d.transport=null;d.reservationTransport=null;d.serviceReservation=null;d.foundationProvider=null;d.providerTransport=null;d.retireContent=null;providerRetirements.delete(retire);};
+    const metadata=freeze({request:clone(h.r),origin:reserved.origin,current,contentCurrent,retireContent,retire});
+    provider=Object.freeze({
+     describe:()=>({providerId:'qwen-service',version:'1',executionKind:'server-backed'}),
+     execute(request){
+      try{
+       if(started||retired)return Promise.resolve(freeze({accepted:false}));
+       const q=snapshot(request),c=Object.fromEntries(CHILD.map(k=>[k,q[k]]));if(!same(c,h.c))stop('CHILD_BINDING_MISMATCH');
+       const input={bundle:{request:h.r,...d.proofs},declaration:d.declaration,childIdentity:h.c,payload:snapshot(JSON.parse(JSON.parse(body).messages[1].content)),stream:h.stream};
+       current();started=true;
+       // Exactly one physical client send, immediately after the original fence.
+       const sentTransport=transport,sent=sentTransport.execute(input);body=null;
+       return sent.then(response=>{
+        const observed=observedClientProviderResponse(response,sentTransport);
+        if(!observed||!same(observed.request,h.r))return freeze({accepted:false});
+        let live=true;try{contentCurrent();}catch{live=false;}
+        const accepted=live&&response.decision==='response_received',financial=observed.financialSettlement;
+        const result=freeze({accepted,operationReceiptId:financial.receiptId,...(accepted?{value:response.value}:{})});
+        foundationResponses.set(result,freeze({provider,request:clone(h.r),origin:observed.origin,financialSettlement:clone(financial),localOutcome:accepted?'RESPONSE_RECORDED':financial.outcome==='FAILED'?'REJECTED':'EXPIRED_UNCOMMITTED'}));return result;
+       },()=>freeze({accepted:false}));
+      }catch{return Promise.resolve(freeze({accepted:false}));}
+     },
+     async cancelReservation(){
+      if(started||!d.proofs||!d.reservationTransport)return null;
+      const receipt=await d.reservationTransport.cancel({request:h.r,...d.proofs}),observed=observedClientReservation(receipt,d.reservationTransport);
+      if(!observed||observed.action!=='cancel'||!same(observed.request,h.r))return null;
+      return receipt;
+     },
+     cancellation(receipt){const r=observedClientReservation(receipt,d.reservationTransport);return r?.action==='cancel'&&same(r.request,h.r)?freeze({request:clone(h.r),origin:r.origin,state:'CANCELLED_BEFORE_DISPATCH'}):null;}
+    });
+    foundationProviders.set(provider,metadata);providerRetirements.add(retire);d.retireContent=retireContent;d.foundationProvider=provider;d.providerTransport=transport;return provider;
+   }catch{return null;}
   },
   async revokeDeclaration(handle){
    const h=declarations.get(handle);if(!h)return declarationResult('UNAVAILABLE','DECLARATION_UNAVAILABLE');
@@ -232,7 +306,14 @@ export function createQwenQualifiedRequestOwner(options){
    if(entry){entry.revoked=true;for(const h of declarationOperations.values())if(h.entry===entry)invalidateDeclaration(h);return true;}
    if(profiles.size>=LIMITS.profiles)return false;profiles.set(id,{revoked:true});return true;
   },
-  dispose(){disposed=true;for(const h of declarationOperations.values())invalidateDeclaration(h);profiles.clear();operations.clear();declarationOperations.clear();}
+  dispose(){
+   disposed=true;
+   for(const h of declarationOperations.values()){invalidateDeclaration(h);h.proofs=null;}
+   for(const retire of providerRetirements)retire();
+   profiles.clear();operations.clear();declarationOperations.clear();
+   // Drop constructor capabilities too: their host closures can own private data.
+   clock=resolveProfile=authorizePayload=tokenize=readReservation=readCurrentBinding=null;
+  }
  };
  return Object.freeze(owner);
 }

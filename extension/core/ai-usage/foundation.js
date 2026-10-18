@@ -1,3 +1,7 @@
+import {qwenFoundationProviderData,qwenFoundationResponse} from './qwen-qualified-request.js';
+import {clientResultTransportOrigin,isClientResultTransport} from './client-result-transport.js';
+import {snapshot as snapshotData,freeze as freezeData,exact as exactData} from './qwen-request-data.js';
+import {domainResultReceipt,savedDomainResultReceipt} from './domain-result-receipt.js';
 import {unsupportedMaintenanceCoverage} from './maintenance-batch.js';
 import {assertAssistIntent,validateAssistIntent,validateHistoricalIntent,qualifiedCoverageId} from './assist-intent-binding.js';
 import {validateOrganizeStyle,styleSemantics,assertOrganizeStyle} from './organize-style-binding.js';
@@ -27,10 +31,11 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 }
 
 // Trusted local owner integration, intentionally not a worker/public command.
-// Only constructor-injected domain owners can commit. There is no production
-// financial service, registry entry, SDK, HTTP path or automatic paid retry.
+// Only constructor-injected domain owners can commit. The explicit Qwen service
+// path has no default endpoint, identity, registry or automatic paid retry.
 export class AIUsageFoundation {
  #createdMaintenancePlans=new WeakMap();
+ #serverProviders=new Map();#resultReports=new Map();
  #qualifyMaintenanceEntries;#qualifyMaintenancePlacements;#qualifyMaintenanceStructures;#qualifyMaintenanceContextEdits;
  constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
@@ -157,13 +162,14 @@ export class AIUsageFoundation {
   const snapshot=await this.read(async t=>{await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});if(styled)await assertOrganizeStyle(this.s,t,{type,organizeStyle});const authority=await this.authority(t,type,{items,coverage,...(assisted?{assistIntent}:{}),...(historical?{historicalIntent}:{})});for(const item of items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||!equal(known.descriptor,item.descriptor)||known.descriptor.removed)fail('STALE_BASE');}await assertAssistIntent(this,t,{type,items,coverage,...resultBinding,...(assisted?{assistIntent}:{})});return {authority};});
   const scope=items.map(i=>({key:i.key,signature:i.signature})).sort((a,b)=>a.key.localeCompare(b.key));
   const identity={...resultBinding,...(atomic?{commitMode:request.commitMode}:{}),...(assisted&&!reply?{assistIntent}:{}),type,scope,coverage,children,contractVersion,routeVersion,principalId:snapshot.authority.principalId,libraryId:snapshot.authority.libraryId,consentEpoch:snapshot.authority.consentEpoch};
+  const scopeFingerprint=await digest({type,scope,coverage,children});
   const organizeSemanticKey=styled?await digest({...identity,style:styleSemantics(organizeStyle)}):null;
   const id='aiu:job:'+await digest(styled?{...identity,organizeStyle}:identity);
   const childIds=await Promise.all(children.map((c,index)=>digest([id,index,c]).then(hash=>'aiu:child:'+hash)));
   const targetScopes=[...new Set(coverage.map(c=>c.scope))].sort();
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
-  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
+  const proposed={...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,scopeFingerprint,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
   let created=false;const result=await this.write(async t=>{
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();
@@ -180,7 +186,7 @@ export class AIUsageFoundation {
     let stale=false;try{await this.current(t,job);}catch(error){if(!['CANCELLED','STALE_BASE'].includes(error.code))throw error;stale=true;}
     if(!stale||!['PLANNED','RESERVED'].includes(job.state))fail('REQUEST_ALREADY_IN_FLIGHT');
     for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.attemptCount)fail('OUTCOME_UNKNOWN');if(receipt){receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';await t.put('organizerUsage',receipt);}}
-    job.cancelEpoch++;job.state='CANCELLED_BEFORE_DISPATCH';job.stateKey=1;await t.put('organizerJobs',job);
+    job.cancelEpoch++;job.state='CANCELLED_BEFORE_DISPATCH';job.stateKey=1;await this.#putJob(t,job);
    }}
    const allCovered=[];for(const unit of coverage){const saved=await t.get('organizerWorkItems',qualifiedCoverageId(unit,proposed)),item=items.find(i=>i.key===unit.key);if(saved?.signature===item.signature)allCovered.push(unitKey(unit));}
    if(!privateResult&&allCovered.length===coverage.length){await count(t,'skippedNoDelta');return {id:null,type,state:'NO_DELTA',childIds:[],committedCoverage:allCovered,cancelEpoch:0};}
@@ -191,13 +197,100 @@ export class AIUsageFoundation {
   });
   if(created&&type==='AI_MAINTENANCE')this.#createdMaintenancePlans.set(result,canonical({id,authority:proposed.authority,coverage:proposed.coverage,childIds:proposed.childIds}));return result;
  }
+ async #putJob(t,job){
+  const receipt=await domainResultReceipt(t,job);
+  if(job.domainResultReceipt&&(!receipt||!equal(job.domainResultReceipt,receipt)))fail('RESULT_CONFLICT');
+  if(receipt)job.domainResultReceipt=receipt;
+  await t.put('organizerJobs',job);
+ }
+ async #resultAuthority(t,job){
+  // Historical metadata replay has no content read or new result admission.
+  // Current principal/library/consent and enabled gate still govern transport.
+  const now=await this.authority(t,job.type,job);
+  if(['principalId','libraryId','consentEpoch'].some(k=>now[k]!==job.authority[k]))fail('CANCELLED');
+ }
+ async domainResult(id){
+  if(!opaque(id))fail();
+  return this.read(async t=>{const job=await this.job(t,id);await this.#resultAuthority(t,job);
+   const receipt=await savedDomainResultReceipt(t,job);
+   return {status:receipt?'LOCAL_DOMAIN_RESULT':terminal.has(job.state)?'MISSING_RECEIPT':'PENDING',receipt,financialAuthority:false,dispatchAllowed:false};
+  });
+ }
+ async #resultEvidence(t,job){
+  const local=await savedDomainResultReceipt(t,job);if(!local)fail('RESULT_PENDING');
+  const rows=[];for(const childId of job.childIds)rows.push(await t.get('organizerUsage',receiptId(childId)));
+  if(rows.some(r=>!r||r.executionKind!=='server-backed')||new Set(rows.map(r=>r.serviceOrigin)).size!==1)fail('FINANCIAL_RECEIPT_UNAVAILABLE');
+  const children=[];
+  for(let i=0;i<rows.length;i++){
+   const r=rows[i];this.#assertServerBinding(job,i,{request:r.financialRequest});
+   if(r.state==='CANCELLED_BEFORE_DISPATCH'&&r.attemptCount===0&&r.financialCancellation===true)children.push({operationId:r.childId,receiptId:null});
+   else{const f=r.financialSettlement;if(!f||f.state!=='SETTLED'||!opaque(f.receiptId)||f.receiptId!==r.operationReceiptId||!['VALIDATED','FAILED'].includes(f.outcome)||f.effectiveResults!==0||local.outcome==='COMMITTED'&&f.outcome!=='VALIDATED')fail('FINANCIAL_RECEIPT_UNAVAILABLE');children.push({operationId:r.childId,receiptId:f.receiptId});}
+  }
+  const receipts=children.filter(c=>c.receiptId!==null).map(c=>c.receiptId);if(new Set(receipts).size!==receipts.length)fail('FINANCIAL_RECEIPT_UNAVAILABLE');
+  if(local.outcome==='COMMITTED'&&children.some(c=>c.receiptId===null))fail('FINANCIAL_RECEIPT_UNAVAILABLE');
+  return {version:1,origin:rows[0].serviceOrigin,request:structuredClone(rows[0].financialRequest),result:{receiptId:local.receiptId,jobId:job.id,outcome:local.outcome,children}};
+ }
+ reportResult(id,proofs,transport){
+  let p;try{p=freezeData(snapshotData(proofs,{maxBytes:24576,maxKeys:2,maxDepth:1,maxString:8192}));if(!opaque(id)||!exactData(p,['principalToken','entitlementToken'])||!Object.values(p).every(v=>typeof v==='string'&&v.length>0&&v.length<=8192)||!isClientResultTransport(transport))fail('UNAVAILABLE');}catch(error){return Promise.reject(error);}
+  const active=this.#resultReports.get(id);if(active)return active.transport===transport&&equal(active.proofs,p)?active.pending:Promise.reject(Object.assign(Error('RESULT_CONFLICT'),{code:'RESULT_CONFLICT'}));
+  const pending=(async()=>{
+   const prepared=await this.write(async t=>{const job=await this.job(t,id);await this.#resultAuthority(t,job);const evidence=await this.#resultEvidence(t,job);
+    if(evidence.origin!==clientResultTransportOrigin(transport))fail('RESULT_ORIGIN_MISMATCH');
+    if(job.resultReport&&!equal(job.resultReport.evidence,evidence))fail('RESULT_CONFLICT');
+    if(!job.resultReport){job.resultReport={state:'PENDING',evidence};await t.put('organizerJobs',job);}return {evidence,ack:job.resultReport.ack??null};
+   });
+   if(prepared.ack)return structuredClone(prepared.ack);
+   // The saved event exists before sending. A final read transaction serializes
+   // authority with local writes; fetch starts synchronously inside this fence.
+   const sent=await this.read(async t=>{const job=await this.job(t,id);await this.#resultAuthority(t,job);if(!equal(await this.#resultEvidence(t,job),prepared.evidence))fail('RESULT_CONFLICT');await this.#resultAuthority(t,job);return {pending:transport.finalize({request:prepared.evidence.request,...p},prepared.evidence.result)};});
+   const ack=await sent.pending;
+   if(ack.decision!=='finalized')return ack;
+   await this.write(async t=>{const job=await this.job(t,id);if(!equal(job.resultReport?.evidence,prepared.evidence))fail('RESULT_CONFLICT');if(job.resultReport.ack&&!equal(job.resultReport.ack,ack))fail('RESULT_CONFLICT');job.resultReport={...job.resultReport,state:'ACKNOWLEDGED',ack:structuredClone(ack)};await t.put('organizerJobs',job);});return ack;
+  })();
+  const activeReport={pending,transport,proofs:p};this.#resultReports.set(id,activeReport);pending.finally(()=>{if(this.#resultReports.get(id)===activeReport)this.#resultReports.delete(id);}).catch(()=>{});return pending;
+ }
+ async cancelServer(id){
+  await this.cancel(id);
+  const candidates=await this.read(async t=>{const job=await this.job(t,id),rows=[];for(const childId of job.childIds){const row=await t.get('organizerUsage',receiptId(childId));if(row?.executionKind==='server-backed'&&row.state==='CANCELLED_BEFORE_DISPATCH'&&row.attemptCount===0&&!row.financialCancellation)rows.push(row);}return rows;});
+  for(const before of candidates){const provider=this.#serverProviders.get(before.childId)?.deref();if(!provider)continue;const response=await provider.cancelReservation(),observed=provider.cancellation(response);if(!observed||!equal(observed.request,before.financialRequest)||observed.origin!==before.serviceOrigin)continue;
+   await this.write(async t=>{const row=await t.get('organizerUsage',before.id);if(!equal(row,before))fail('RESULT_CONFLICT');await t.put('organizerUsage',{...row,financialCancellation:true,spendState:'RELEASED_SERVICE_BEFORE_DISPATCH'});});
+   this.#serverProviders.delete(before.childId);qwenFoundationProviderData(provider).retire();
+  }
+  return this.status(id);
+ }
  async job(t,id){const job=await t.get('organizerJobs',id);if(!knownJob(job))fail();return job;}
  async status(id){if(!opaque(id))fail();return this.read(async t=>{const job=await this.job(t,id),attempts=[];for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt)attempts.push(receipt);}return {...safeJob(job),attempts};});}
+ async serverRequest(id,childId,bounds){
+  const b=snapshotData(bounds,{maxBytes:256,maxKeys:3,maxDepth:1,maxString:40});
+  if(!exactData(b,['inputTokens','outputCap','maxCompletionTokens'])||!Object.values(b).every(integer))fail();
+  return this.read(async t=>{const j=await this.job(t,id);await this.current(t,j);const index=j.childIds.indexOf(childId);
+   if(index<0||!opaque(j.scopeFingerprint))fail('UNAVAILABLE');
+   return {operationId:childId,jobId:id,...Object.fromEntries(['principalId','libraryId','consentEpoch'].map(k=>[k,j.authority[k]])),scopeFingerprint:j.scopeFingerprint,contractVersion:j.contractVersion,routeVersion:j.routeVersion,jobType:j.type,childIndex:index,childCount:j.childIds.length,...b};
+  });
+ }
+ #assertServerBinding(job,index,data){
+  const r=data?.request;if(!r||r.operationId!==job.childIds[index]||r.jobId!==job.id||r.jobType!==job.type||r.childIndex!==index||r.childCount!==job.childIds.length||r.scopeFingerprint!==job.scopeFingerprint||r.contractVersion!==job.contractVersion||r.routeVersion!==job.routeVersion||['principalId','libraryId','consentEpoch'].some(k=>r[k]!==job.authority[k]))fail('RESULT_BINDING_MISMATCH');
+ }
+ async reserveServer(id,providers){
+  if(!opaque(id)||!Array.isArray(providers)||!providers.length||providers.length>4)fail('UNAVAILABLE');
+  const captured=[...providers],data=captured.map(p=>qwenFoundationProviderData(p));if(data.some(d=>!d)||new Set(data.map(d=>d.origin)).size!==1)fail('UNAVAILABLE');
+  const result=await this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);
+   if(job.state!=='PLANNED'||job.committedCoverage.length||job.childIds.length!==data.length)fail('UNAVAILABLE');
+   for(let i=0;i<data.length;i++){this.#assertServerBinding(job,i,data[i]);data[i].current();const childId=job.childIds[i];
+    if(await t.get('organizerUsage',receiptId(childId))||await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');
+    await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:id,executionKind:'server-backed',sequence:i,state:'RESERVED',stateKey:0,windowIds:[],attemptCount:0,spendState:'RESERVED_SERVICE',effectiveResultCount:0,financialRequest:structuredClone(data[i].request),serviceOrigin:data[i].origin});
+   }
+   job.state='RESERVED';await this.#putJob(t,job);await this.current(t,job);for(const d of data)d.current();return safeJob(job);
+  });
+  // Unsent cancellation handles never keep disposed private owners alive.
+  for(const [id,ref] of this.#serverProviders){const p=ref.deref();if(!p)this.#serverProviders.delete(id);}
+  for(let i=0;i<data.length;i++)this.#serverProviders.set(data[i].request.operationId,new WeakRef(captured[i]));return result;
+ }
  async reserve(id,{reservationId,executionKind='fixture'}={}){
   if(!opaque(id)||!opaque(reservationId)||!['fixture','local'].includes(executionKind))fail('UNAVAILABLE');
   return this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);if(job.state!=='PLANNED')return safeJob(job);
    for(let index=0;index<job.childIds.length;index++){const childId=job.childIds[index],existing=await t.get('organizerUsage',receiptId(childId)),covered=isPrivateResultJob(job)?job.resultCommitted===true:job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));if(covered&&existing?.state==='COMMITTED')continue;if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');if(existing&&(existing.attemptCount!==0||existing.state!=='PLANNED'||existing.executionKind!=='local'))fail('OUTCOME_UNKNOWN');await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:reservationId,executionKind,sequence:index,state:covered?'COMMITTED':'RESERVED',stateKey:covered?1:0,windowIds:[],attemptCount:0,spendState:covered?'NO_PROVIDER_COST':'RESERVED_UNPRICED',effectiveResultCount:0});}
-   job.state='RESERVED';await t.put('organizerJobs',job);return safeJob(job);
+   job.state='RESERVED';await this.#putJob(t,job);return safeJob(job);
   });
  }
  childRequest(job,index){
@@ -208,13 +301,14 @@ export class AIUsageFoundation {
    return {...(isAssistResultJob(job)?{replyObligation:structuredClone(job.replyObligation)}:isHistoricalCandidateJob(job)?{candidateObligation:structuredClone(job.candidateObligation)}:{}),...(job.organizeStyle?{organizeStyle:styleSemantics(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,type:job.type,contractVersion:job.contractVersion,routeVersion:job.routeVersion,coverage,evidence,automaticRetries:0};
  }
  async dispatch(id,childId,provider,execution=null){
-  const descriptor=localProviderDescriptor(provider);if(execution!==null){exact(execution,['signal','timeoutMs']);if(!(execution.signal instanceof AbortSignal)||!integer(execution.timeoutMs)||execution.timeoutMs!==this.s.organizerBudget.limits.timeoutMs)fail();execution=Object.freeze({signal:execution.signal,timeoutMs:execution.timeoutMs});}
+  const server=qwenFoundationProviderData(provider),descriptor=server?provider.describe():localProviderDescriptor(provider);if(execution!==null){exact(execution,['signal','timeoutMs']);if(!(execution.signal instanceof AbortSignal)||!integer(execution.timeoutMs)||execution.timeoutMs!==this.s.organizerBudget.limits.timeoutMs)fail();execution=Object.freeze({signal:execution.signal,timeoutMs:execution.timeoutMs});}
   const prepared=await this.write(async t=>{const job=await this.job(t,id);await this.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage',receiptId(childId));
    if(index<0||!receipt||receipt.jobId!==id||execution!==null&&!isHistoricalCandidateJob(job))fail();
    if(terminal.has(job.state))return {reused:true,state:job.state,childId};
    if((await t.get('meta',job.flightId))?.jobId!==id)fail('REQUEST_ALREADY_IN_FLIGHT');
    if(receipt.state!=='RESERVED')return {reused:true,state:receipt.state,childId};
    if(receipt.executionKind!==descriptor.executionKind)fail('UNAVAILABLE');
+   if(server){this.#assertServerBinding(job,index,server);if(this.#serverProviders.get(childId)?.deref()!==provider||!equal(receipt.financialRequest,server.request)||receipt.serviceOrigin!==server.origin)fail('UNAVAILABLE');server.current();}
    if(await t.get('meta',dispatchFenceId(childId)))fail('OUTCOME_UNKNOWN');
    // Qualification above still covers the entire job. Only the outgoing child
    // metadata is narrowed, with an exact, unambiguous key closure before writes.
@@ -223,20 +317,49 @@ export class AIUsageFoundation {
    // which intentionally clears old transient job/usage rows. It is not a
    // second financial ledger and never grants admission.
    await t.put('meta',{id:dispatchFenceId(childId),version:1,jobId:id,childId});await t.put('meta',{id:job.flightId,jobId:id,dispatched:true});
-   receipt.state='DISPATCHED';receipt.attemptCount=1;receipt.provider=descriptor;receipt.spendState='POSSIBLY_BILLABLE';await t.put('organizerUsage',receipt);job.state='DISPATCHED';await t.put('organizerJobs',job);await count(t,'physicalAttempt');
+   receipt.state='DISPATCHED';receipt.attemptCount=1;receipt.provider=descriptor;receipt.spendState='POSSIBLY_BILLABLE';await t.put('organizerUsage',receipt);job.state='DISPATCHED';await this.#putJob(t,job);await count(t,'physicalAttempt');
    return {request};
   });
   if(prepared.reused)return prepared;
-  // Only the provider-neutral metadata boundary is exercised in this slice.
-  // Actual bounded body assembly remains with the current source gateways and
-  // separately qualified feature owners; no durable prompt/response handoff.
-  let response;try{response=await (execution===null?provider.execute(Object.freeze(structuredClone(prepared.request))):historicalExecution(provider,Object.freeze(structuredClone(prepared.request)),execution));}catch{await this.markUnknown(id,childId);return {state:'OUTCOME_UNKNOWN',childId};}
-  return this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt||receipt.state!=='DISPATCHED')return {state:receipt?.state||'OUTCOME_UNKNOWN',childId};
+  // Bounded body assembly remains with current source gateways and qualified
+  // feature owners. Server-backed providers accept only their private Qwen
+  // binding; no durable prompt/response handoff or provider replay is created.
+  let response;try{
+  try{response=await (execution===null?provider.execute(Object.freeze(structuredClone(prepared.request))):historicalExecution(provider,Object.freeze(structuredClone(prepared.request)),execution));}catch{await this.markUnknown(id,childId);return {state:'OUTCOME_UNKNOWN',childId};}
+  const recorded=await this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));
+   if(server){
+    const observed=qwenFoundationResponse(provider,response);if(!receipt||receipt.executionKind!=='server-backed'||!equal(receipt.financialRequest,server.request))fail('RESULT_BINDING_MISMATCH');
+    if(observed){
+     if(!equal(observed.request,receipt.financialRequest)||observed.origin!==receipt.serviceOrigin)fail('RESULT_BINDING_MISMATCH');
+     if(receipt.financialSettlement&&!equal(receipt.financialSettlement,observed.financialSettlement))fail('RESULT_CONFLICT');
+     receipt.financialSettlement=structuredClone(observed.financialSettlement);receipt.operationReceiptId=observed.financialSettlement.receiptId;receipt.spendState='SETTLED_SERVICE';
+     let live=job.cancelEpoch===0;try{await this.current(t,job);if(execution?.signal.aborted)fail('CANCELLED');server.contentCurrent();}catch{live=false;}
+     receipt.state=live&&receipt.state==='DISPATCHED'?observed.localOutcome:'EXPIRED_UNCOMMITTED';receipt.stateKey=terminal.has(receipt.state)?1:0;
+    }else{receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';}
+    await t.put('organizerUsage',receipt);await this.aggregate(t,job);await this.#putJob(t,job);
+    return {state:receipt.state,childId};
+   }
+   if(!receipt||receipt.state!=='DISPATCHED')return {state:receipt?.state||'OUTCOME_UNKNOWN',childId};
    // Never persist arbitrary provider response/error fields.
    if(response?.accepted!==true||!opaque(response.operationReceiptId)){receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';}
    else{receipt.state='RESPONSE_RECORDED';receipt.operationReceiptId=response.operationReceiptId;receipt.spendState='UNSETTLED';}
-   await t.put('organizerUsage',receipt);job.state=receipt.state;await this.aggregate(t,job);await t.put('organizerJobs',job);return {state:receipt.state,childId};
+   await t.put('organizerUsage',receipt);job.state=receipt.state;await this.aggregate(t,job);await this.#putJob(t,job);return {state:receipt.state,childId};
   });
+  if(server&&recorded.state==='RESPONSE_RECORDED'&&response.accepted===true){
+   // The write promise itself can yield after its transaction callback. Check
+   // the original content-only owner at the actual publication boundary, after
+   // ALL awaits. Successful publication and private retirement are synchronous.
+   try{server.contentCurrent();if(execution?.signal.aborted)fail('CANCELLED');}catch{
+    response=null;
+    return await this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));
+     if(receipt?.state==='RESPONSE_RECORDED'&&receipt.financialSettlement){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;await t.put('organizerUsage',receipt);await this.aggregate(t,job);await this.#putJob(t,job);}
+     return {state:receipt?.state??'OUTCOME_UNKNOWN',childId};
+    });
+   }
+   return {...recorded,value:response.value};
+  }
+  return recorded;
+  }finally{response=null;if(server){this.#serverProviders.delete(childId);server.retire();}}
  }
  async aggregate(t,job){
   const receipts=[];for(const childId of job.childIds)receipts.push(await t.get('organizerUsage',receiptId(childId))||{state:job.cancelEpoch?'CANCELLED_BEFORE_DISPATCH':'PLANNED',attemptCount:0});
@@ -253,22 +376,25 @@ export class AIUsageFoundation {
   else job.state='CANCELLED_BEFORE_DISPATCH';
   job.stateKey=terminal.has(job.state)?1:0;return job;
  }
- async markUnknown(id,childId){return this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt||receipt.jobId!==id||!['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state))fail();receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';job.state='OUTCOME_UNKNOWN';await t.put('organizerUsage',receipt);await t.put('organizerJobs',job);return safeJob(job);});}
- async reconcileInterrupted(id){return this.write(async t=>{const job=await this.job(t,id);let unknown=false;for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.state==='DISPATCHED'){receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';await t.put('organizerUsage',receipt);unknown=true;}}if(unknown){job.state='OUTCOME_UNKNOWN';await t.put('organizerJobs',job);}return safeJob(job);});}
- async cancel(id,{beforeDispatchOnly=false}={}){if(typeof beforeDispatchOnly!=='boolean')fail();return this.write(async t=>{
+ async markUnknown(id,childId){return this.write(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt||receipt.jobId!==id||!['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state))fail();receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';job.state='OUTCOME_UNKNOWN';await t.put('organizerUsage',receipt);await this.#putJob(t,job);return safeJob(job);});}
+ async reconcileInterrupted(id){return this.write(async t=>{const job=await this.job(t,id);let unknown=false;for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(receipt?.state==='DISPATCHED'){receipt.state='OUTCOME_UNKNOWN';receipt.spendState='RESERVATION_RETAINED';await t.put('organizerUsage',receipt);unknown=true;}}if(unknown){job.state='OUTCOME_UNKNOWN';await this.#putJob(t,job);}return safeJob(job);});}
+ async cancel(id,{beforeDispatchOnly=false}={}){if(typeof beforeDispatchOnly!=='boolean')fail();const result=await this.write(async t=>{
   const job=await this.job(t,id);
   // A rejected preflight may release only its still-unsent plan. Qualify in
   // this transaction so a racing sent sibling retains its original identity.
   if(beforeDispatchOnly){if(!['PLANNED','RESERVED'].includes(job.state))return safeJob(job);for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(await t.get('meta',dispatchFenceId(childId))||receipt&&(receipt.attemptCount!==0||receipt.state!=='RESERVED'))return safeJob(job);}}
   return this.#cancelInTransaction(t,job);
- });}
+ });
+  if(result.cancelEpoch>0)for(const childId of result.childIds){const provider=this.#serverProviders.get(childId)?.deref();if(provider)qwenFoundationProviderData(provider).retireContent();}
+  return result;
+ }
  async #cancelInTransaction(t,job){if(terminal.has(job.state))return safeJob(job);job.cancelEpoch++;let dispatched=false,unknown=false;
-  for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt)continue;if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState='RESERVATION_RETAINED';}else{receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';}await t.put('organizerUsage',receipt);}
-  job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;await t.put('organizerJobs',job);return safeJob(job);
+  for(const childId of job.childIds){const receipt=await t.get('organizerUsage',receiptId(childId));if(!receipt)continue;if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState=receipt.financialSettlement?.state==='SETTLED'?'SETTLED_SERVICE':'RESERVATION_RETAINED';}else{receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';}await t.put('organizerUsage',receipt);}
+  job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;await this.#putJob(t,job);return safeJob(job);
  }
  async reconcileOutcome(id,childId,proof){
   if(typeof this.verifyOutcome!=='function')fail('UNAVAILABLE');
-  const saved=await this.read(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!job.childIds.includes(childId)||!receipt||receipt.jobId!==id||receipt.state!=='OUTCOME_UNKNOWN')fail();return receipt;});
+  const saved=await this.read(async t=>{const job=await this.job(t,id),receipt=await t.get('organizerUsage',receiptId(childId));if(!job.childIds.includes(childId)||!receipt||receipt.jobId!==id||receipt.state!=='OUTCOME_UNKNOWN')fail();if(receipt.executionKind==='server-backed')fail('UNAVAILABLE');return receipt;});
   // Verification may query a future trusted service, outside IndexedDB. It
   // cannot dispatch, mint a replacement child or return/persist content.
   const binding={logicalJobId:id,childOperationId:childId,parentReservationId:saved.parentReservationId};
@@ -278,7 +404,7 @@ export class AIUsageFoundation {
    receipt.operationReceiptId=result.operationReceiptId;receipt.outcomeProof=result.outcome;
    receipt.state=result.outcome==='NOT_ACCEPTED'?'REJECTED':job.cancelEpoch?'EXPIRED_UNCOMMITTED':'RESPONSE_RECORDED';receipt.stateKey=['REJECTED','EXPIRED_UNCOMMITTED'].includes(receipt.state)?1:0;
    receipt.spendState=result.outcome==='NOT_ACCEPTED'?'RELEASED_VERIFIED_NOT_ACCEPTED':'UNSETTLED';await t.put('organizerUsage',receipt);
-   job.state=receipt.state;await this.aggregate(t,job);job.stateKey=terminal.has(job.state)?1:0;await t.put('organizerJobs',job);return safeJob(job);
+   job.state=receipt.state;await this.aggregate(t,job);job.stateKey=terminal.has(job.state)?1:0;await this.#putJob(t,job);return safeJob(job);
   });
  }
 
@@ -396,7 +522,7 @@ export class AIUsageFoundation {
    await this.current(t,job);if(result.isCurrent()!==true)fail('STALE_BASE');
    await t.put('organizerWorkItems',{id:'aiu:assist-result:'+id,kind:ASSIST_RESULT_KIND,version:1,jobId:id,childId,state:'ACKNOWLEDGED',stateKey:1,sequence:0,replyObligation:structuredClone(job.replyObligation),outcome:result.outcome,sourceRecordIds:job.sourceRecordIds});
    receipt.state='COMMITTED';receipt.stateKey=1;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
-   job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await t.put('organizerJobs',job);
+   job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await this.#putJob(t,job);
    if(result.isCurrent()!==true)fail('STALE_BASE');return safeJob(job);
   });
  }
@@ -412,7 +538,7 @@ export class AIUsageFoundation {
    await this.current(t,job);if(result.isCurrent()!==true)fail('STALE_BASE');
    await t.put('organizerWorkItems',{id:'aiu:historical-result:'+id,kind:HISTORICAL_CANDIDATE_KIND,version:1,jobId:id,childId,state:'ACKNOWLEDGED',stateKey:1,sequence:0,candidateObligation:structuredClone(job.candidateObligation),outcome:result.outcome,sourceRecordIds:job.sourceRecordIds});
    receipt.state='COMMITTED';receipt.stateKey=1;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
-   job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await t.put('organizerJobs',job);
+   job.resultCommitted=true;job.resultOutcome=result.outcome;job.state='COMMITTED';job.stateKey=1;await this.#putJob(t,job);
    if(result.isCurrent()!==true)fail('STALE_BASE');return safeJob(job);
   });
  }
@@ -461,6 +587,6 @@ export class AIUsageFoundation {
    for(const unit of remaining){const item=job.items.find(i=>i.key===unit.key);await t.put('organizerWorkItems',{id:qualifiedCoverageId(unit,job),kind:KIND,jobId:id,state:'ACKNOWLEDGED',stateKey:1,sequence:index,unit,signature:item.signature,outcome,inputIds:item.descriptor.inputIds,sourceRecordIds:item.descriptor.sourceRecordIds});job.committedCoverage.push(unitKey(unit));}
    if(job.type==='AI_MAINTENANCE')for(const item of job.items){const dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(!dirty||dirty.signature!==item.signature)continue;const pending=[];for(const facet of dirty.pendingFacets||['topic','context']){const requirements=dirty.requirements.map(encoded=>JSON.parse(encoded)).filter(([,f])=>f===facet);let complete=requirements.length>0;for(const [key,f,scope]of requirements){const ack=await t.get('organizerWorkItems',coverId(key,f,scope));if(ack?.signature!==item.signature){complete=false;break;}}if(!complete)pending.push(facet);}if(!pending.length)await t.delete('meta',DIRTY_PREFIX+item.key);else await t.put('meta',{...dirty,pendingFacets:pending});}
    const childComplete=job.childCoverage[index].every(u=>job.committedCoverage.includes(unitKey(u)));receipt.state=childComplete?'COMMITTED':local?'PLANNED':'VALIDATED';receipt.stateKey=childComplete?1:0;receipt.effectiveResultCount=0;await t.put('organizerUsage',receipt);
-   job.state=job.coverage.every(u=>job.committedCoverage.includes(unitKey(u)))?'COMMITTED':'VALIDATED';await this.aggregate(t,job);job.stateKey=job.state==='COMMITTED'?1:0;await t.put('organizerJobs',job);if(outcome==='NO_CHANGE')await count(t,'localResolved');return safeJob(job);
+   job.state=job.coverage.every(u=>job.committedCoverage.includes(unitKey(u)))?'COMMITTED':'VALIDATED';await this.aggregate(t,job);job.stateKey=job.state==='COMMITTED'?1:0;await this.#putJob(t,job);if(outcome==='NO_CHANGE')await count(t,'localResolved');return safeJob(job);
  }
 }

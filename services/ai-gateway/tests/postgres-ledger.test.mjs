@@ -240,11 +240,27 @@ test('new reservations reserve lifecycle headroom and canonical recovery consume
   const seed = protocol(), seedRequest = request('settled-seed');
   await ledger(seed.storage).reserve(seedRequest); await ledger(seed.storage).record(seedRequest, 'DISPATCHED');
   await ledger(seed.storage).settle(seedRequest, evidence(seedRequest, 'FAILED'));
+  // Historical rows are fully finalized; unresolved domain receipts now reserve
+  // their own bounded future bytes even after financial settlement.
+  const seedOwner = ledger(seed.storage);
+  seedOwner.verifyResult = (request, evidence) => ({ verifiedResultFacts: true, request, evidence });
+  await seedOwner.finalizeResult(seedRequest, { receiptId: 'result-settled-seed', jobId: seedRequest.jobId,
+    outcome: 'FAILED', children: [{ operationId: seedRequest.operationId, receiptId: 'receipt-settled-seed' }] });
   const template = seed.saved().rows[0], now = NOW + 31 * 86400000;
   const history = { ...seed.saved(), lastNow: now, rows: Array.from({ length: 4000 }, (_, index) => ({
     ...structuredClone(template), request: request(`history-${index}`),
     settlement: { ...template.settlement, operationId: `history-${index}`, receiptId: `history-receipt-${index}` },
+    resultResolution: { receiptId: `history-result-${index}`, jobId: `job-history-${index}`, outcome: 'FAILED',
+      children: [{ operationId: `history-${index}`, receiptId: `history-receipt-${index}` }] },
   })) };
+  // Same 4,000 historical jobs WITHOUT domain terminal metadata must still
+  // reserve one future result receipt per child-zero job and refuse admission.
+  const unresolved = structuredClone(history);
+  for (const row of unresolved.rows) { delete row.resultResolution; delete row.resultResolvedAt; }
+  assert.ok(recoveryCapacityBytes(unresolved) > MAX_SNAPSHOT_BYTES);
+  const backlog = protocol(); backlog.corrupt(unresolved);
+  await assert.rejects(ledger(backlog.storage, { now }).reserve(request('unresolved-backlog')), /BUDGET_SNAPSHOT_CAPACITY/);
+  assert.equal(backlog.saved().rows.length, 4000);
   const active = protocol(), r = request('near-capacity');
   await ledger(active.storage, { now }).reserve(r);
   const candidate = { ...history, rows: [...history.rows, active.saved().rows[0]] };

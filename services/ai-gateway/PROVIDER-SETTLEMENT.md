@@ -1,3 +1,9 @@
+# Independent closure and actual PostgreSQL evidence — 2026-10-18
+
+Exact f3ad9ad874b302594a1f995781b49959c542ab1a received independent CLEAN review, 150 scoped tests plus seven adversarial probes passing. Integrated 2aa9a6d2 / run 39104795518 attempt 1 now passes all 12 new real PostgreSQL settlement cases and the original ten provider cases, with synthetic HTTPS interception and zero real provider calls. Artifact 12127564944 SHA256 f97bf87858f79ec0549216d76e9bd288e173a24afd33fcd2db13e7972261d0a4 is verified. The separate original-ledger finalizeResult mechanics are integrated, but authentic client-domain reporting and PostgreSQL result-field storage remain successor implementation; schema success does not become effective-result success. Earlier NOT_RUN statements below retain their original pre-evidence scope.
+
+## Preserved original slice records
+
 # Source-only provider usage settlement
 
 This bounded successor starts at `8c78923789737e7f3c08a3fb16b9666bc712fdaa`

@@ -100,6 +100,9 @@ const row = value => object(value, {
 }, {
   window: shaped(windowShape), settlement, unknownReceipt: settlement, resultCommitted: boolean,
   resultCommittedAt: timestamp, resultDayId: metadata, resultTimeZone: metadata,
+  resultResolution: shaped({ receiptId: metadata, jobId: metadata, outcome: oneOf(['COMMITTED', 'FAILED']),
+    children: value => list(value, 4, shaped({ operationId: metadata, receiptId: nullableMetadata })) }),
+  resultResolvedAt: timestamp,
   dispatchedAt: timestamp, dispatchedDayId: metadata, dispatchedTimeZone: metadata, settledAt: timestamp,
 });
 
@@ -139,14 +142,26 @@ function futureRowBytes(value) {
     dispatchedAt: MAX_NUMBER, dispatchedDayId: MAX_METADATA, dispatchedTimeZone: MAX_METADATA,
     settledAt: MAX_NUMBER, resultCommitted: false, resultCommittedAt: MAX_NUMBER,
     resultDayId: MAX_METADATA, resultTimeZone: MAX_METADATA,
-    unknownReceipt: larger(value.unknownReceipt, unknown), settlement: larger(value.settlement, final) };
+    unknownReceipt: larger(value.unknownReceipt, unknown), settlement: larger(value.settlement, final),
+    ...(value.request.childIndex === 0 ? futureResultFields(value) : {}) };
   return Buffer.byteLength(encodeData(future, true), 'utf8');
+}
+function futureResultFields(value) {
+  return { resultResolution: value.resultResolution ?? { receiptId: MAX_METADATA, jobId: value.request.jobId,
+    outcome: 'COMMITTED', children: Array.from({ length: 4 }, () => ({ operationId: MAX_METADATA, receiptId: MAX_METADATA })) },
+    resultResolvedAt: MAX_NUMBER };
 }
 function recoveryFootprint(value, bytes) {
   let reserved = bytes + String(MAX_NUMBER).length - String(value.lastNow).length;
   for (const entry of value.rows) {
     if (!['SETTLED', 'CANCELLED_BEFORE_DISPATCH'].includes(entry.state)) {
       reserved += Math.max(0, futureRowBytes(entry) - Buffer.byteLength(encodeData(entry, true), 'utf8'));
+    } else if (entry.request.childIndex === 0 && !entry.resultResolution && !entry.resultCommitted) {
+      // Known financial settlement can still await the actual domain result.
+      // Reserve its additive receipt even though provider accounting is final.
+      const future = { ...entry, ...futureResultFields(entry), resultCommitted: true,
+        resultCommittedAt: MAX_NUMBER, resultDayId: MAX_METADATA, resultTimeZone: MAX_METADATA };
+      reserved += Math.max(0, Buffer.byteLength(encodeData(future, true), 'utf8') - Buffer.byteLength(encodeData(entry, true), 'utf8'));
     }
   }
   return reserved;
