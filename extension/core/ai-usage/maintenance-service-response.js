@@ -2,30 +2,37 @@ import {createMaintenanceHumanContextResponseMapper} from './maintenance-human-c
 import {decodeMaintenanceTopicWire} from './maintenance-topic-wire.js';
 import {canonical,equal,exact,fail,unitKey,validateCoverage} from './contracts.js';
 import {snapshot} from './qwen-request-data.js';
-import {MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,validateMaintenanceServiceResponse} from './maintenance-service-response-schema.js';
+import {MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_UNAVAILABLE_TOPIC,validateMaintenanceServiceResponse} from './maintenance-service-response-schema.js';
 import {hashText} from '../dedupe.js';
 import {inputProjection} from '../thought-evidence.js';
 import {prefix} from '../thought-model.js';
 import {readContextTopicScope,createContextScopeWorkBudget} from '../context-topic-scope.js';
 import {createContextFreshInputPolicy,hasContextInputLineage,validateContextMaintenanceChange} from '../context-maintenance.js';
 import {readContextCards} from '../context-cards.js';
-import {readMaintenanceExistingContext,resolveMaintenanceExistingContext,assertMaintenanceExistingContext} from './maintenance-existing-context.js';
+import {readMaintenanceExistingContext,resolveMaintenanceExistingContext,assertMaintenanceExistingContext,assertMaintenanceExistingContextEmptyPlan} from './maintenance-existing-context.js';
 import {validContextTemporal} from '../context-temporal.js';
 
 // Bind the negative-only final-owner policy to this exact local adapter. No
 // configuration boolean, model field or cloned JSON can disable or forge it.
-const contextPolicies=new WeakMap(),existingBindings=new WeakMap();
-const existingProfile=schema=>[MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA].includes(schema),topicProfile=schema=>[MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA].includes(schema);
+const contextPolicies=new WeakMap(),existingBindings=new WeakMap(),emptyBindings=new WeakMap();
+const existingProfile=schema=>[MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].includes(schema),topicProfile=schema=>[MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].includes(schema);
 export const maintenanceResponseContextPolicy=adapter=>contextPolicies.get(adapter?.context)??null;
 export function bindMaintenanceResponseExistingContext(adapter,childId,handle){const bindings=existingBindings.get(adapter?.context);if(!bindings)fail('UNAVAILABLE');bindings.set(childId,handle);}
 
+// Only the new combined profile admits an authenticated original empty plan.
+// This is negative-only ADD preparation; the final Context source policy remains
+// mandatory. No model flag, cloned plan or existing-Item update is accepted.
+export function bindMaintenanceResponseEmptyExistingContext(adapter,childId,handle){const owner=emptyBindings.get(adapter?.context);if(!owner||!owner.accepts())return false;assertMaintenanceExistingContextEmptyPlan(owner.store,handle);owner.bindings.set(childId,handle);return true;}
+const humanCoverage=units=>units.length>0&&units.every(u=>u.facet==='context'&&['library_entry','placement','section','topic'].includes(JSON.parse(u.key)[0]));
+const ordinaryCoverage=units=>units.length>0&&units.every(u=>['topic','context'].includes(u.facet)&&JSON.parse(u.key)[0]==='input');
+
 
 // Ephemeral interpretation of one original service cycle. It owns no store,
-// consent, membership, domain ACK or financial writer. Only sent ordinary Input
-// units are supported; other mappings remain unavailable rather than guessed.
+// consent, membership, domain ACK or financial writer. Each exact profile maps
+// only its sent ordinary Input or independently qualified human Context units.
 export function createMaintenanceServiceResponseOwner(store){
  if(!store?.repository||typeof store.uuid!=='function')fail('UNAVAILABLE');
- const children=new Map(),existing=new Map();let disposed=false,profileSchema=MAINTENANCE_SERVICE_RESPONSE_SCHEMA;
+ const children=new Map(),existing=new Map(),emptyExisting=new Map();let disposed=false,profileSchema=MAINTENANCE_SERVICE_RESPONSE_SCHEMA;
  const live=s=>{if(disposed||s.isCurrent()!==true)fail('STALE_BASE');};
  const read=(s,fn)=>{live(s);return store.repository.transaction(false,async t=>{live(s);const value=await fn(t);live(s);return value;});};
  const project=async(s,t,input)=>{
@@ -37,10 +44,10 @@ export function createMaintenanceServiceResponseOwner(store){
  async function bind(payload,isCurrent,{read:originalRead=null,workBudget=null}={}){
   const p=snapshot(payload),material=p.material;
   if(disposed||typeof isCurrent!=='function'||children.has(p.childOperationId)||children.size>=2||p.type!=='AI_MAINTENANCE'||p.automaticRetries!==0)fail('UNAVAILABLE');
-  if(profileSchema===MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA){
+  if(profileSchema===MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA||profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA&&humanCoverage(p.coverage)){
    const units=validateCoverage(p.coverage,'AI_MAINTENANCE');
-   if(typeof originalRead!=='function'||!workBudget||!units.length||units.some(u=>u.facet!=='context'||!['library_entry','placement','section','topic'].includes(JSON.parse(u.key)[0])))fail('UNAVAILABLE');
-   const s={schema:profileSchema,jobId:p.logicalJobId,childId:p.childOperationId,units,isCurrent,responseDigest:null,humanMapper:null};
+   if(typeof originalRead!=='function'||!workBudget||!humanCoverage(units))fail('UNAVAILABLE');
+   const s={schema:profileSchema,jobId:p.logicalJobId,childId:p.childOperationId,units,isCurrent,responseDigest:null,humanMapper:null,combined:profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA};
    live(s);s.humanMapper=createMaintenanceHumanContextResponseMapper(store,{material,coverage:units,read:originalRead,isCurrent:()=>{live(s);return true;},workBudget});
    live(s);children.set(s.childId,s);return;
   }
@@ -55,10 +62,12 @@ export function createMaintenanceServiceResponseOwner(store){
    if(!filterIds.length||filterIds.length>8||!equal(material.filter.candidateIds,filterIds)||!Array.isArray(material.filter.neighborIds)||!material.filter.neighborIds.length||material.filter.neighborIds.length>2||new Set(material.filter.neighborIds).size!==material.filter.neighborIds.length||material.filter.neighborIds.some(id=>!ids.includes(id)||filterIds.includes(id)))fail('UNAVAILABLE');
   }
   const existingHandle=existingProfile(profileSchema)?existing.get(p.childOperationId):null;
-  if(existingProfile(profileSchema)&&!existingHandle)fail('UNAVAILABLE');
-  if(existingHandle?!equal(material.existingContextItems,readMaintenanceExistingContext(existingHandle)):material.existingContextItems!==undefined)fail('UNAVAILABLE');
+  const emptyHandle=profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA?emptyExisting.get(p.childOperationId):null;
+  if(emptyHandle)assertMaintenanceExistingContextEmptyPlan(store,emptyHandle);
+  if(existingProfile(profileSchema)&&!existingHandle&&!emptyHandle)fail('UNAVAILABLE');
+  if(existingHandle?!equal(material.existingContextItems,readMaintenanceExistingContext(existingHandle)):emptyHandle?!equal(material.existingContextItems,[]):material.existingContextItems!==undefined)fail('UNAVAILABLE');
   const topicMaterial=topicProfile(profileSchema)?snapshot(Object.fromEntries(['version','purpose','inputs','entries','identities','sections','constraints'].map(key=>[key,material[key]??(key==='entries'?[]:undefined)]))):null;
-  const s={topicMaterial,existingHandle,schema:profileSchema,filterIds,filterScope:material.filter??null,filterSnapshot:null,jobId:p.logicalJobId,childId:p.childOperationId,units,isCurrent,inputs:[],topicSnapshot:await hashText(canonical({identities:material.identities,sections:material.sections,constraints:material.constraints})),responseDigest:null,groups:null};
+  const s={topicMaterial,existingHandle,emptyHandle,combined:profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA,schema:profileSchema,filterIds,filterScope:material.filter??null,filterSnapshot:null,jobId:p.logicalJobId,childId:p.childOperationId,units,isCurrent,inputs:[],topicSnapshot:await hashText(canonical({identities:material.identities,sections:material.sections,constraints:material.constraints})),responseDigest:null,groups:null};
   for(const [index,input]of material.inputs.entries()){
    exact(input,['ref','inputId','revision','body']);if(input.ref!=='i'+index||typeof input.body!=='string')fail('UNAVAILABLE');
    live(s);const digest=await hashText(input.body),current=await read(s,t=>project(s,t,input));
@@ -72,6 +81,7 @@ export function createMaintenanceServiceResponseOwner(store){
   exact(binding,['logicalJobId','childOperationId','operationReceiptId']);exact(raw,['accepted','operationReceiptId','value']);
   const s=children.get(binding.childOperationId);if(!s||s.jobId!==binding.logicalJobId||raw.accepted!==true||raw.operationReceiptId!==binding.operationReceiptId)fail('STALE_BASE');live(s);
   const value=validateMaintenanceServiceResponse(raw.value,s.schema);
+  if(s.combined&&(s.humanMapper?value.context.length>0||!equal(value.topic,MAINTENANCE_SERVICE_UNAVAILABLE_TOPIC):value.humanContext.length>0||value.topic.kind==='unavailable'))fail('STALE_BASE');
   if(value.logicalJobId!==s.jobId||value.childOperationId!==s.childId)fail('STALE_BASE');
   const responseDigest=await hashText(canonical({value,receipt:binding.operationReceiptId}));live(s);
   if(s.responseDigest!==null&&s.responseDigest!==responseDigest)fail('STALE_BASE');s.responseDigest=responseDigest;return {s,value};
@@ -89,7 +99,7 @@ export function createMaintenanceServiceResponseOwner(store){
  }
  async function context(raw,metadata,binding){
   const {s,value}=await response(raw,binding),units=s.units.filter(u=>u.facet==='context');
-  if(s.humanMapper)return {binding:{...binding},value:await s.humanMapper.decode(value.context,metadata)};
+  if(s.humanMapper)return {binding:{...binding},value:await s.humanMapper.decode(s.combined?value.humanContext:value.context,metadata)};
   exact(metadata,['units','inputIds']);
   if(!equal(validateCoverage(metadata.units,'AI_MAINTENANCE'),units)||!equal([...metadata.inputIds].sort(),s.inputs.map(i=>i.inputId).sort()))fail('STALE_BASE');
   const covered=value.context.flatMap(g=>g.inputIds);
@@ -129,7 +139,11 @@ export function createMaintenanceServiceResponseOwner(store){
   else if(await read(s,async t=>hasContextInputLineage(await readContextCards(t),[...evidence.values()])))fail('STALE_BASE');
   const groups=value.context.map(proposal=>{
    const selected=proposal.inputIds.map(id=>evidence.get(id)),groupUnits=units.filter(u=>proposal.inputIds.some(id=>u.key===JSON.stringify(['input',id])));
-   if(!s.existingHandle){const change={operationId:store.uuid(),epoch:selected[0].expectedTopicBinding.epoch,itemId:store.uuid(),card:proposal.card,expectedRevision:0,body:proposal.body,section:proposal.section,associationIds:[store.uuid()],evidence:selected};validateContextMaintenanceChange(change);return {operation:'ADD',units:groupUnits,change};}
+   if(!s.existingHandle){
+    let temporal=null;
+    if(s.emptyHandle){assertMaintenanceExistingContextEmptyPlan(store,s.emptyHandle);if(proposal.operation!=='ADD'||proposal.ref!==''||proposal.expectedRevision!==0)fail('STALE_BASE');temporal=proposal.temporal.length?Object.fromEntries(Object.entries(proposal.temporal[0]).map(([k,v])=>[k,v||null])):null;if(temporal&&!validContextTemporal(temporal)||proposal.card==='now'&&!temporal?.temporalScope)fail('STALE_BASE');}
+    const change={operationId:store.uuid(),epoch:selected[0].expectedTopicBinding.epoch,itemId:store.uuid(),card:proposal.card,expectedRevision:0,body:proposal.body,section:proposal.section,associationIds:[store.uuid()],evidence:selected,...(temporal?{temporal}:{})};validateContextMaintenanceChange(change);return {operation:'ADD',units:groupUnits,change};
+   }
    const records=readMaintenanceExistingContext(s.existingHandle),operation=proposal.operation;
    let item;
    if(operation==='ADD'){
@@ -162,12 +176,12 @@ export function createMaintenanceServiceResponseOwner(store){
   // This only interprets this exact paid child, without allocating an operation.
   live(s);return {binding:{...binding},value:structuredClone(value.filter)};
  }
- const adapter=Object.freeze({topic,context,filter});contextPolicies.set(context,createContextFreshInputPolicy());existingBindings.set(context,existing);
+ const adapter=Object.freeze({topic,context,filter});contextPolicies.set(context,createContextFreshInputPolicy());existingBindings.set(context,existing);emptyBindings.set(context,{store,bindings:emptyExisting,accepts:()=>!disposed&&profileSchema===MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA});
  return Object.freeze({adapter,bind,
-  assertProfile(manifest){const schema=manifest?.wire?.responseFormat?.json_schema?.schema;profileSchema=[MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA].find(s=>equal(schema,s));if(!profileSchema)fail('UNAVAILABLE');},
-  usesExistingContext(){return existingProfile(profileSchema);},
-  discard(childId){children.get(childId)?.humanMapper?.dispose();children.delete(childId);existing.delete(childId);},
-  release(jobId){for(const [id,s]of children)if(s.jobId===jobId){s.humanMapper?.dispose();children.delete(id);existing.delete(id);}},
-  dispose(){disposed=true;for(const s of children.values())s.humanMapper?.dispose();children.clear();existing.clear();}
+  assertProfile(manifest){const schema=manifest?.wire?.responseFormat?.json_schema?.schema;profileSchema=[MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].find(s=>equal(schema,s));if(!profileSchema)fail('UNAVAILABLE');},
+  usesExistingContext(metadata){return existingProfile(profileSchema)&&(profileSchema!==MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA||metadata===undefined||ordinaryCoverage(metadata.coverage));},
+  discard(childId){children.get(childId)?.humanMapper?.dispose();children.delete(childId);existing.delete(childId);emptyExisting.delete(childId);},
+  release(jobId){for(const [id,s]of children)if(s.jobId===jobId){s.humanMapper?.dispose();children.delete(id);existing.delete(id);emptyExisting.delete(id);}},
+  dispose(){disposed=true;for(const s of children.values())s.humanMapper?.dispose();children.clear();existing.clear();emptyExisting.clear();}
  });
 }

@@ -132,3 +132,69 @@ coverage also remain follow-on source/owner code, not permissions or permanent
 product exclusions. Independent review is required for this successor. No Full,
 native or broad old-suite rerun, paid call, credential/access change, remote
 write, deploy, installation or final acceptance was performed.
+
+## Unified ordinary/human source profile successor — 2026-10-18
+
+Based on pure-human freeze `daba319c3f4026d8bb3bec26bbc6818e28a8bd43` and the
+unchanged original empty-plan prerequisite `0ecae94d` (cherry-picked here as
+`5b10adee`). This successor does not include later selector or human existing-Item
+qualification work.
+
+One new exact `MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA` composes the already
+bounded rich Topic and ordinary typed Context arrays with the existing Human
+Context array. Every field remains required. There is no schema union. The
+actual original PLANNED child's coverage chooses one Context array; the other
+must be empty. Human-only children require the entire rich Topic object to equal
+its exact exported neutral value. No Topic identity, citation or hidden label can
+be carried through that neutral branch. Old profiles retain their exact schemas.
+
+Existing-Item capability is selected from the original child coverage before the
+original resolver: ordinary Input children explicitly request their original
+existingContextItems scope; Human children do not acquire it through an Input
+grant. Only this new profile may bind a genuine same-Store/current-database
+original empty plan privately. Its resolver must still explicitly accept `[]`,
+the sent field must be `[]`, and only ADD is admitted. UPDATE, NO_CHANGE and
+REMOVE_CANDIDATE with invented refs fail. Empty selection neither refreshes a
+sent witness nor weakens original final negative-lineage checks. Nonempty plans
+retain the existing exact witness and original receipt-only Topic transition.
+
+The actual configured two-child tests use the original ordinary Topic phase and
+late Human preparation, not an injected response adapter, new plan or extra
+request. One positive creates the first ordinary Topic and both ordinary/Human
+Items with two physical requests and one original logical result. Another updates
+a nonempty existing Item and observes its committed revision before the Human
+sibling's first material grant. Original 20-Input/two-child/2000-output and byte,
+parser and schema-depth bounds are unchanged. The test is a real small mixed
+plan, not a claimed 20/1 boundary test.
+
+Evidence:
+
+- Initial actual configured positives **0/2**, UNAVAILABLE before wiring:
+  `/tmp/paia-combined-source-red.log`; first implementation **2/2**:
+  `/tmp/paia-combined-source-first.log`.
+- First expanded run **16/17**, retained in
+  `/tmp/paia-combined-source-focused.log`. Its new pre-Topic human-change test
+  incorrectly expected an already committed new Topic. The original shared
+  currentness check refused earlier, preserving only the original Topic. The
+  test now checks that real boundary; a separate post-Topic same-version
+  dependency-drift test demonstrates that the first Topic remains committed and
+  the unsent Human child is refused. A subsequent new fixture initially used
+  nonexistent `result.topicId`; its INVALID_REQUEST is retained in
+  `/tmp/paia-combined-source-resumed.log`. It now reads the original genuine
+  single-element result.topicIds and passed its targeted rerun.
+- Final owning command:
+  `node --test services/ai-gateway/tests/maintenance-source-combined-context.test.mjs extension/tests/ai-cost-03-existing-context-empty-plan.test.mjs`
+  **28/28 PASS** (22 new configured cases plus six original empty-plan cases),
+  zero skips/cancellations, `/tmp/paia-combined-source-freeze-owning.log`.
+  This includes first/second provider ACK loss with exact paid prefix and no
+  replay, first-grant revocation before second send, exact neutral-array/refusal,
+  missing explicit empty-scope grant, both current/read profile mismatches and a
+  real final Context ACK same-lineage insertion rollback with retained charge.
+
+This is a scoped candidate awaiting independent review, not broad acceptance,
+live qualification or a claim that all Maintenance mappings are finished.
+Ordinary multi-membership primary selection, multiple existing registered claims
+sharing one Input, human existing-Item qualification and authentic correction
+witness wiring remain separate original-owner code successors. No helper file
+was modified here, nor any Filter decision, scheduler, money/store/schema owner,
+workflow, permission, paid provider, deployment, installation or remote state.

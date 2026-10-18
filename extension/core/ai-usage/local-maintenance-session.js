@@ -15,7 +15,7 @@ import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService,topicFormationMaintenanceReceipt} from '../topic-formation.js';
 import {ContextMaintenanceService,contextMaintenanceSettlementFence,structuralContextRequestWithinBudget,validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation} from '../context-maintenance.js';
-import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext} from './maintenance-service-response.js';
+import {maintenanceResponseContextPolicy,bindMaintenanceResponseExistingContext,bindMaintenanceResponseEmptyExistingContext} from './maintenance-service-response.js';
 
 const TYPE='AI_MAINTENANCE';
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
@@ -394,12 +394,14 @@ export class LocalMaintenanceSession {
    await this.#foundation.read(t=>this.#checkContextMapping(state,metadata.coverage,t));this.#current(state);
    const payload=createMaintenancePayload(metadata,material,this.#store.organizerBudget.limits,this.#placements(state,metadata.coverage),authored.map(m=>state.authoredMaterial.get(m.entryId)),bound.map(m=>state.boundMaterial.get(boundMaterialKey(m))),this.#structures(state,metadata.coverage).filter(m=>m.kind!=='topic').map(m=>state.structuralMaterial.get(m.recordId)),this.#structures(state,metadata.coverage).filter(m=>m.kind==='topic').map(m=>state.structuralMaterial.get(m.recordId)),this.#contextEdits(state,metadata.coverage).map(m=>{const held=state.contextMaterial.get(m.itemId);return {...contextEditScope(m),fields:held.fields,fieldDigests:held.fieldDigests};}));
    if(existing){
-    let held=state.existingContext.get(metadata.childOperationId);
+    const plan=state.existingPlans.get(metadata.childOperationId),empty=maintenanceExistingContextScope(plan).length===0&&bindMaintenanceResponseEmptyExistingContext(this.#service.responseAdapter,metadata.childOperationId,plan);
+    if(empty)payload.material.existingContextItems=[];
+    else{let held=state.existingContext.get(metadata.childOperationId);
     if(!held){held=await captureMaintenanceExistingContext(this.#store,state.existingPlans.get(metadata.childOperationId),{processingReceipt:processing,assertProcessing:r=>{this.#processingCurrent(state,r);return true;},read:fn=>this.#foundation.read(fn),limits:this.#store.organizerBudget.limits,signal:state.controller.signal});state.existingContext.set(metadata.childOperationId,held);}
     payload.material.existingContextItems=readMaintenanceExistingContext(held);
+    bindMaintenanceResponseExistingContext(this.#service.responseAdapter,metadata.childOperationId,held);}
     const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
     if(bytes(payload.material)>this.#store.organizerBudget.limits.maxContentBytes||bytes(payload)>this.#store.organizerBudget.limits.maxRequestBytes)fail('BUDGET_EXCEEDED');
-    bindMaintenanceResponseExistingContext(this.#service.responseAdapter,metadata.childOperationId,held);
    }
    if(this.#filterEnabled(state)&&metadata.coverage.some(u=>u.facet==='filter')){const key=canonical([metadata.childOperationId,'filter-snapshot']);if(!state.prepared.has(key)){try{const snapshot=await this.#foundation.read(t=>this.#store.maintenanceFilterSnapshot(t,this.#inputs(state,metadata.coverage.filter(u=>u.facet==='filter'))));this.#current(state);state.prepared.set(key,snapshot);}catch(error){this.#current(state);if(!['STALE_BASE','UNAVAILABLE'].includes(error?.code))throw error;state.prepared.set(key,null);}}}
    return {handle,payload,processing};

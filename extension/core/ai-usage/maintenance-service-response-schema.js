@@ -43,6 +43,11 @@ export const MAINTENANCE_SERVICE_EXISTING_TOPIC_INSTRUCTIONS=MAINTENANCE_SERVICE
 // Human Context-only profile. The neutral Topic field cannot carry authority.
 export const MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA=freeze(object({...MAINTENANCE_SERVICE_RESPONSE_SCHEMA.properties,topic:object({kind:text(11,11,['unavailable'])}),context:MAINTENANCE_HUMAN_CONTEXT_RESPONSE_SCHEMA}));
 export const MAINTENANCE_SERVICE_HUMAN_INSTRUCTIONS='Echo logicalJobId and childOperationId exactly. Topic must be {"kind":"unavailable"}; this child has only human Context coverage. '+MAINTENANCE_HUMAN_CONTEXT_INSTRUCTIONS;
+// One finite ordinary/human combination. Absent child facets remain neutral,
+// never schema unions or additional requests chosen by a model.
+export const MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA=freeze(object({...MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA.properties,topic:object({...MAINTENANCE_TOPIC_WIRE_SCHEMA.properties,kind:text(11,1,['object','subject','unresolved','unavailable'])}),humanContext:MAINTENANCE_HUMAN_CONTEXT_RESPONSE_SCHEMA}));
+export const MAINTENANCE_SERVICE_UNAVAILABLE_TOPIC=freeze({version:1,kind:'unavailable',name:'',substance:{reason:'empty',citations:[]},boundary:{reason:'unknown',citations:[]},returnValue:{reason:'none',citations:[]},continuity:{reason:'unknown',citations:[]},evidence:[],relations:[],section:{kind:'default',sectionId:'',name:'',aspectReason:'unknown',aspectCitations:[],returnReason:'none',returnCitations:[]},sectionRelations:[],entries:[],additionalPlacements:[]});
+export const MAINTENANCE_SERVICE_COMBINED_INSTRUCTIONS=MAINTENANCE_SERVICE_EXISTING_TOPIC_INSTRUCTIONS+' '+MAINTENANCE_HUMAN_CONTEXT_INSTRUCTIONS+' The child coverage selects exactly one Context array: ordinary Input coverage uses context and requires humanContext []; human coverage uses humanContext and requires context []. A human-only child has no Topic assessment: return topic exactly '+JSON.stringify(MAINTENANCE_SERVICE_UNAVAILABLE_TOPIC)+'. Never borrow another child scope or proposal. An empty supplied existingContextItems list permits only ADD, not invented existing claims.';
 function matches(s,v){
  switch(s.type){
  case 'object':return v!==null&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===s.required.length&&s.required.every(k=>Object.hasOwn(v,k)&&matches(s.properties[k],v[k]));
@@ -54,5 +59,5 @@ function matches(s,v){
 }
 export function validateMaintenanceServiceResponse(value,schema=MAINTENANCE_SERVICE_RESPONSE_SCHEMA){
  let v;try{v=snapshot(value,{maxBytes:65536,maxKeys:4096,maxDepth:12,maxString:32768});}catch{fail('INVALID_RESPONSE');}
- if(![MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA].includes(schema)||!matches(schema,v))fail('INVALID_RESPONSE');return v;
+ if(![MAINTENANCE_SERVICE_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_FILTER_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_EXISTING_TOPIC_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_HUMAN_RESPONSE_SCHEMA,MAINTENANCE_SERVICE_COMBINED_RESPONSE_SCHEMA].includes(schema)||!matches(schema,v))fail('INVALID_RESPONSE');return v;
 }

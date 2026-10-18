@@ -75,10 +75,10 @@ export function createMaintenanceServiceClient(configuration,store=null){
     current();await foundation.read(t=>preflight(t,null,retainJob));return recovered;
    })();const flight={origin:c.origin,task};recoveries.set(foundation.s,flight);task.finally(()=>{if(recoveries.get(foundation.s)===flight)recoveries.delete(foundation.s);}).catch(()=>{});return task;
   },
-  usesExistingContext(){
+  usesExistingContext(metadata){
    // A current-profile feature probe only. The original readProfile phase stays
    // after Filter preparation and independently binds the exact qualified wire.
-   if(!responses)return false;current();const manifest=snapshot(c.currentProfile());current();responses.assertProfile(manifest);return responses.usesExistingContext();
+   if(!responses)return false;current();const manifest=snapshot(c.currentProfile());current();responses.assertProfile(manifest);return responses.usesExistingContext(metadata);
   },
   async prepareChild(foundation,job,payload,{signal,assertCurrent,assertBeforeSend,isCurrent,workBudget=null}){
    let responseBound=false;try{
