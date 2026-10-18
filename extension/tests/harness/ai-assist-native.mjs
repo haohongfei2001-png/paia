@@ -14,8 +14,8 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   await page.goto('https://chatgpt.com/c/prompt-insertion-fixture');
   await page.waitForFunction(()=>!!globalThis.fixture?.view);
   world=await isolated(page,h.extensionId);
-  const module=await readFile(join(extensionPath,'content/assist-result.js'),'utf8');
-  await world.run(module.replace('export class AssistResultController','globalThis.AssistResultController = class AssistResultController'));
+  const module=await readFile(join(extensionPath,'content/assist-result-runtime.js'),'utf8');
+  await world.run(module+'\nglobalThis.AssistResultController=globalThis.PAIAAssistResultController;');
   await world.run(`globalThis.assistReads=0;globalThis.assistInvalidations=0;
    const reader=new PAIAChatGPTCurrentReplyAdapter(),snapshot=reader.snapshot.bind(reader);
    reader.snapshot=()=>{assistReads++;return snapshot();};
