@@ -59,13 +59,16 @@ export class TopicFormationService {
   const material=await this.#collectMaterial(selected,entries,signal);assertActive(signal);
   const handle=Object.freeze({});this.#materials.set(handle,{...material,signal});return handle;
  }
- async checkMaterial(handle){
+ async checkMaterial(handle,finalRead=null){
+  if(finalRead!==null&&typeof finalRead!=='function')fail();
   const m=this.#materials.get(handle);if(!m)fail();assertActive(m.signal);
   const current=await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,m.topicIds);return readFormationEvidence(this.store,t,m.prepared,m.snapshot.entries.map(e=>e.id));});
   if(!same(current,m.snapshot))fail();await validateFormationSources(current);assertActive(m.signal);
   // Hashes complete outside IDB, then the original authority/identity/restore
   // generation is checked again before releasing any selected Working bytes.
-  await this.read(m.prepared,t=>this.authorizeTopics(t,m.prepared,m.topicIds));assertActive(m.signal);
+  // A trusted caller may join its additional material fence to this exact
+  // final transaction. No separate await may reopen a gap after Input guards.
+  await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,m.topicIds);if(finalRead)await finalRead(t);});assertActive(m.signal);
  }
  async readMaterial(handle){
   await this.checkMaterial(handle);const m=this.#materials.get(handle);assertActive(m.signal);

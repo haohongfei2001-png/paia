@@ -1,3 +1,4 @@
+import {sourceFreeHumanEntryProof} from './context-authored-entry.js';
 import {CONTEXT_CARDS_ROW,validateContextChange,validContextCards} from './context-cards.js';
 import {isBaseNoneEnvelope,validAIPresentationCandidate} from './organizer/ai-candidate.js';
 import {validateRemovalEdit} from './archive-removal.js';
@@ -67,6 +68,7 @@ export async function assessSourcePurge(t,{id,key,record},rawRecovery){
  const sourceList=value=>Array.isArray(value)&&value.length<=1000&&value.every(idOK)&&new Set(value).size===value.length;
  const sameIds=(a,b)=>sourceList(a)&&sourceList(b)&&a.length===b.length&&a.every(id=>b.includes(id));
  for(const item of context?.items||[])if(item.origin==='automatic')for(const evidence of [item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence)){
+  if(evidence.kind==='humanEntry'){const entry=await point('thoughts',evidence.entryId),proof=Object.create(t);proof.count=async(...args)=>{if(--budget<0)unavailable();return t.count(...args);};if(entry?.id!==evidence.entryId||!await sourceFreeHumanEntryProof(proof,entry))gate();continue;}
   if(evidence.sourceIdentityTokens.includes(key)||blocks.has(evidence.inputId)||evidence.sourceRecordIds.some(id=>sourceIds.has(id)))gate();
   for(const sid of evidence.sourceRecordIds){contextSources.add(sid);const families=savedFamilies.get(sid)||[];families.push(evidence.sourceIdentityTokens);savedFamilies.set(sid,families);}
   if(contextInputs.has(evidence.inputId))continue;contextInputs.add(evidence.inputId);

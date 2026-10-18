@@ -139,7 +139,14 @@ export class PromptSurfaceCommands{
    if(!own(c,['type','height',...(hasMinimum?['minimumHeight']:[]),...(hasAppearance?['appearance']:[]),...(hasLanguage?['language']:[])])||!Number.isInteger(c.height)||c.height<1||c.height>4096||hasMinimum&&(!Number.isInteger(c.minimumHeight)||c.minimumHeight<44||c.minimumHeight>1024||c.minimumHeight>c.height))fail();
    await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:r.nonce,height:c.height,...(hasMinimum?{minimumHeight:c.minimumHeight}:{}),...(hasAppearance?{appearance:c.appearance}:{}),...(hasLanguage?{language:c.language}:{})},{frameId:0});return {};
   }
-  if(c.type==='close'&&own(c,['type'])){this.candidates.delete(tab.id);await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});return {};}
+  if(c.type==='close'&&own(c,['type'])){
+   this.candidates.delete(tab.id);
+   const closed=await api.tabs.sendMessage(tab.id,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:r.nonce},{frameId:0});
+   // The original host alone knows whether this exact frame was retained.
+   // A missing/old/foreign ACK cannot authorize focus in a retiring child.
+   if(!own(closed,['closed','nonce','form'])||closed.closed!==true||closed.nonce!==r.nonce||!['orb','capsule'].includes(closed.form))fail();
+   return {closed:true,nonce:r.nonce,form:closed.form};
+  }
   if(c.type==='history_open_paia'){
    if(!own(c,['type','query','searchSnapshot','ref','range'])||!['query','searchSnapshot','ref'].every(key=>Object.hasOwn(c,key))||typeof sender.documentId!=='string'||!sender.documentId||sender.documentLifecycle&&sender.documentLifecycle!=='active')fail();
    if(c.ref!==null)await this.commands.service.resolveSelection(c.ref,c.range??null);else if(c.range!==undefined&&c.range!==null)fail();

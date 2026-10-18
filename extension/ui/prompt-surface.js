@@ -23,7 +23,7 @@ const attempted=new Set();
 
 // Translate only this surface's UI copy. Original authored bodies stay untouched.
 const copy={
- '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用输入':'Expand frequent inputs','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
+ '较长的常用表达':'Long expressions','仅匹配到较长表达，请在 PAIA 中继续查看。':'These matches are longer expressions. Continue in PAIA.','没有可快速复用的表达。':'No quick expressions available.','最多 150 个字符；编辑仍保留。':'At most 150 characters. Your edit is retained.','当前输入框无法原样保留 CRLF 换行，请复制原文。':'This composer cannot preserve CRLF line endings exactly. Copy the original text.','核对全文':'View full text','展开常用表达':'Expand frequent expressions','收起为胶囊':'Collapse to capsule','收起为圆球':'Collapse to orb',
  '为当前任务选择历史候选':'Select historical candidates for this task','采用已准备的历史候选':'Use prepared historical candidates','候选已准备；返回常用输入后可明确采用。':'Candidates are ready. Return to frequent inputs to use them explicitly.','历史候选暂不可用；常用输入和本机搜索仍可使用。':'Historical candidates are unavailable. Frequent inputs and local search remain available.',
  '选择代表原文':'Choose representative original','选择此 Family 的代表原文。':'Choose the original expression that represents this Family.','正在读取当前原文…':'Reading current original expressions…','原文已变化，请取消后重新选择。':'The original expressions changed. Cancel and choose again.',
  '更多列表操作':'More list actions','清除搜索':'Clear search','搜索全部档案':'Search all Archive Inputs','搜索':'Search','返回常用输入':'Back to frequent inputs','上一页':'Previous page','下一页':'Next page','打开 PAIA':'Open PAIA','请输入搜索词。':'Enter a search term.','正在继续搜索本机输入…':'Searching local Inputs…','没有找到匹配内容。':'No matches.','本页结果；还有更多内容。':'This page; more results are available.','档案仍在变化，请重新搜索。':'Archive is still changing. Search again.','当前档案输入':'Current Archive Input','填入选段':'Insert selection','复制选段':'Copy selection','取消选区':'Clear selection','已保存为独立常用表达。':'Saved as an independent expression.',
@@ -48,7 +48,7 @@ function applyDisplay(preferences=displayPreferences){
  for(const [node,entries]of copyBindings){if(!node.isConnected){copyBindings.delete(node);continue;}for(const [attribute,value]of entries){if(attribute)node.setAttribute(attribute,localize(value));else node.textContent=localize(value);}}
  document.title=localize('PAIA 常用输入');scheduleLayout();
 }
-for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#capsule-expand','展开常用输入','aria-label'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
+for(const [selector,label,attribute]of [['#capsule','常用表达','aria-label'],['#capsule-expand','展开常用表达','aria-label'],['#capsule-expand','展开常用表达','title'],['#long-expressions','较长的常用表达'],['#collapse-capsule','收起为胶囊'],['#collapse-orb','收起为圆球'],['#surface-more','更多列表操作','aria-label'],['#search-clear','清除搜索','aria-label'],['#open-search','搜索全部档案','aria-label'],['#leave-search','返回常用输入','aria-label'],['#search-query','搜索全部档案','aria-label'],['#search-query','搜索全部档案','placeholder'],['#search-previous','上一页'],['#search-next','下一页'],['#open-paia','打开 PAIA'],['#card','常用输入','aria-label'],['header span','常用输入'],['#list','Prompt 列表','aria-label'],['#check-text','核对完整表达','aria-label'],['#surface-tools','列表操作','aria-label'],['#new','新建 Prompt','aria-label'],['#refresh','刷新列表','aria-label'],['#hidden','显示隐藏的 Prompt','aria-label'],['#hidden','隐藏项'],['#close','关闭卡片','aria-label']])bindCopy(document.querySelector(selector),label,attribute);
 document.getElementById('open-search').replaceChildren(createIcon('search'));
 systemAppearance.addEventListener('change',()=>applyDisplay());
 
@@ -92,6 +92,7 @@ new MutationObserver(scheduleLayout).observe(document.getElementById('card'),{ch
 const currentItems=()=>mode==='search'?history.items:showOversized?structuredClone(oversizedItems):session.current();
 const selectionRef=item=>item.ref??{kind:item.edited?'manual_reuse':'prompt_family',id:item.id,revision,generation:projectionGeneration};
 function paintCapsule(){
+ document.getElementById('capsule-expand').setAttribute('aria-expanded',String(document.documentElement.dataset.surfaceForm!=='capsule'));
  const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text)),text=document.getElementById('capsule-text'),use=document.getElementById('capsule-use');
  if(!text||!use)return;text.textContent=item?.text||localize('没有可快速复用的表达。');use.disabled=busy||!item||attempted.has(item.id);
 }
@@ -141,7 +142,7 @@ async function insert(item,b,reviewed=false,key=null){
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
  let verified=false;
  try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
- if(verified){const row=original?.closest('.row');if(row)row.dataset.inserted='true';setTimeout(()=>{if(row)delete row.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text))original.disabled=false;paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
+ if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text))original.disabled=false;paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
 function edit(item){
@@ -209,11 +210,18 @@ function render(){
  }
 }
 async function requestClose(event){
- if(composing||event?.isComposing||event?.keyCode===229)return;
+ if(composing||searchComposing||event?.isComposing||event?.keyCode===229)return;
  if(editing){tell('请先保存或取消编辑。');return;}
  if(busy||refreshing||drag)return;
  // Freeze admission while the existing authenticated close RPC is in flight.
- pending(true);try{await rpc({type:'close'});document.documentElement.dataset.surfaceForm='capsule';}catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ let retainedCapsule=false;pending(true);try{
+  const closed=await rpc({type:'close'});
+  if(closed?.closed!==true||closed.nonce!==nonce||!['orb','capsule'].includes(closed.form))throw Error('unconfirmed close');
+  if(closed.form==='capsule'){document.documentElement.dataset.surfaceForm='capsule';document.getElementById('capsule-expand').setAttribute('aria-expanded','false');retainedCapsule=true;}
+ }catch{tell('无法关闭，请稍后重试。');}finally{pending(false);}
+ // Orb retirement already restored the host target. The still-animating child
+ // must not take it back before removal, or the next native Enter/Space is lost.
+ if(retainedCapsule)document.getElementById('capsule-expand').focus();
 }
 function closeSurfaceTools(){document.getElementById('surface-tools').hidden=true;document.getElementById('surface-more').setAttribute('aria-expanded','false');}
 function paintHistoryControls(){

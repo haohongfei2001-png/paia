@@ -1,3 +1,6 @@
+import {readAuthoredEntryContext,authoredContextEvidenceMatches} from '../context-authored-entry.js';
+import {hashText} from '../dedupe.js';
+import {createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {AIUsageFoundation} from './foundation.js';
 import {readMaintenanceBatch,unsupportedMaintenanceCoverage} from './maintenance-batch.js';
 import {createMaintenancePayload} from './maintenance-payload.js';
@@ -39,7 +42,7 @@ export class LocalMaintenanceSession {
  #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;
  constructor(store,{provider=null,service=null,window=null,authority=null,processing=null}={}){
   this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},...(service.filter?{filter:{...service.filter}}:{}),responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
-  this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,qualifyMaintenanceEntries:async(t,request)=>{const entries=await this.#entryMapping(request,t);return request.coverage.filter(u=>['topic','context'].includes(u.facet)&&entries.has(u.key));},qualifyMaintenancePlacements:async(t,request)=>{const placements=await this.#placementMapping(request,t);return request.coverage.filter(u=>u.facet==='context'&&placements.has(u.key));},committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context'),filter:(t,r)=>this.#commit(t,r,'filter')}});
+  this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,qualifyMaintenanceEntries:async(t,request)=>{const entries=await this.#entryMapping(request,t),authored=await this.#authoredMapping(request,t);return request.coverage.filter(u=>['topic','context'].includes(u.facet)&&entries.has(u.key)||u.facet==='context'&&authored.has(u.key));},qualifyMaintenancePlacements:async(t,request)=>{const placements=await this.#placementMapping(request,t);return request.coverage.filter(u=>u.facet==='context'&&placements.has(u.key));},committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context'),filter:(t,r)=>this.#commit(t,r,'filter')}});
   if(service!==null){
    exact(service,['version','topic','context','responseAdapter','filter'],['version','topic','context','responseAdapter']);if(service.filter!==undefined){exact(service.filter,['enabled']);if(service.filter.enabled!==true)fail();}if(service.version!==1)fail();
    exact(service.topic,['resolveProcessing','decisionVersion','parameters']);exact(service.context,['processingVerifier','caller']);
@@ -62,11 +65,12 @@ export class LocalMaintenanceSession {
  #current(state){
   if(!state||state.generation!==this.#generation||this.#jobs.get(state.job.id)!==state||state.controller.signal.aborted||state.grant.revocationSignal.aborted)fail('UNAVAILABLE');
   if(Object.entries(state.grantBinding).some(([key,value])=>state.grant[key]!==value))fail('UNAVAILABLE');syncTrue(this.#window.isCurrent(state.grant));
-  for(const receipt of state.processing.values())try{this.#assertProcessing(receipt);}catch(error){state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();throw error;}
+  for(const receipt of state.processing.values())try{this.#assertProcessing(receipt);}catch(error){state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();throw error;}
  }
  #correlation(a){return {logicalJobId:a.state.job.id,childOperationId:a.childId,operationReceiptId:a.receipt.operationReceiptId};}
  // Only restoration of a current Input-bound Entry is admitted for Topic and Context.
- // Metadata qualification never substitutes authored text or manufactures lineage.
+ // Canonical qualification can inspect body/journal fields, but never retains
+ // material, hashes selected text, substitutes an Input or grants processing.
  async #entryMapping(request,transaction=null){
   const qualify=async t=>{
    const found=new Map();
@@ -98,13 +102,22 @@ export class LocalMaintenanceSession {
    }return found;
   };return transaction?qualify(transaction):this.#foundation.read(qualify);
  }
+ async #authoredMapping(request,transaction=null){
+  const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(d.kind!=='library_entry')continue;const mapped=await readAuthoredEntryContext(this.#store,t,d.entityId,d);if(mapped)found.set(key,mapped);}return found;};
+  return transaction?qualify(transaction):this.#foundation.read(qualify);
+ }
+ #authored(state,units){return units.filter(u=>u.facet==='context'&&state.authoredMapping?.has(u.key)).map(u=>state.authoredMapping.get(u.key));}
+ async #checkAuthoredMapping(state,units,transaction){
+  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);
+  for(const m of this.#authored(state,units)){const item=state.request.items.find(i=>i.descriptor.entityId===m.entryId&&i.descriptor.kind==='library_entry'),now=await readAuthoredEntryContext(this.#store,t,m.entryId,item.descriptor);if(!equal(now,m))fail('STALE_BASE');const held=state.authoredMaterial?.get(m.entryId);if(held&&(await t.get('thoughts',m.entryId))?.thoughtText!==held.body)fail('STALE_BASE');}
+ }
  #placements(state,units){return units.filter(u=>u.facet==='context'&&state.placementMapping?.has(u.key)).map(u=>state.placementMapping.get(u.key));}
  async #checkPlacementMapping(state,units,t){
   const current=await this.#placementMapping(state.request,t);for(const u of units)if(state.placementMapping?.has(u.key)&&!equal(current.get(u.key),state.placementMapping.get(u.key)))fail('STALE_BASE');
  }
  async #checkEntryMapping(state,units,t){
   const mapping=await this.#entryMapping(state.request,t);for(const u of units)if(state.entryMapping?.has(u.key)&&!equal(mapping.get(u.key),state.entryMapping.get(u.key)))fail('STALE_BASE');
-  await this.#checkPlacementMapping(state,units,t);
+  await this.#checkPlacementMapping(state,units,t);await this.#checkAuthoredMapping(state,units,t);
  }
  #entries(state,units){
   const entries=units.filter(u=>['topic','context'].includes(u.facet)&&state.entryMapping?.has(u.key)).map(u=>state.entryMapping.get(u.key));
@@ -115,6 +128,7 @@ export class LocalMaintenanceSession {
   const ids=new Set();for(const u of units){const item=state.request.items.find(i=>i.key===u.key),d=item?.descriptor;
    if(d?.kind==='input'&&d.inputIds.length===1&&d.inputIds[0]===d.entityId)ids.add(d.entityId);
    else if(d?.kind==='library_entry'&&['topic','context'].includes(u.facet)&&state.entryMapping?.has(u.key)){for(const id of state.entryMapping.get(u.key).inputIds)ids.add(id);}
+   else if(d?.kind==='library_entry'&&u.facet==='context'&&state.authoredMapping?.has(u.key))continue;
    else if(d?.kind==='placement'&&u.facet==='context'&&state.placementMapping?.has(u.key))ids.add(state.placementMapping.get(u.key).inputId);
    else return null;
   }return [...ids].sort();
@@ -141,8 +155,8 @@ export class LocalMaintenanceSession {
   if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
   if(!this.#service?.responseAdapter||!this.#provider||typeof this.#window?.acquire!=='function'||typeof this.#window?.isCurrent!=='function')fail('UNAVAILABLE');
   const descriptor=localProviderDescriptor(this.#provider);
-  let entryMapping=await this.#entryMapping(batch.request),placementMapping=await this.#placementMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
-  const unsupported=unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()),new Set(placementMapping.keys()));
+  let entryMapping=await this.#entryMapping(batch.request),placementMapping=await this.#placementMapping(batch.request),authoredMapping=await this.#authoredMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+  const unsupported=unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()),new Set(placementMapping.keys()),new Set(authoredMapping.keys()));
   if(unsupported.length){
    if(batch.activeDeferredUnits+unsupported.length>100)return this.#passiveHandle({...batch,status:'UNAVAILABLE',reason:'DEFER_SCAN_BOUND'},generation);
    const job=await this.#foundation.plan(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
@@ -156,8 +170,8 @@ export class LocalMaintenanceSession {
    // One fresh original qualification; no loop or guessed retry condition.
    batch=await readMaintenanceBatch(this.#foundation,options);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
    if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
-   entryMapping=await this.#entryMapping(batch.request);placementMapping=await this.#placementMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
-   if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()),new Set(placementMapping.keys())).length)fail('UNAVAILABLE');
+   entryMapping=await this.#entryMapping(batch.request);placementMapping=await this.#placementMapping(batch.request);authoredMapping=await this.#authoredMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+   if(unsupportedMaintenanceCoverage(batch.request.items,batch.request.coverage,new Set(entryMapping.keys()),new Set(placementMapping.keys()),new Set(authoredMapping.keys())).length)fail('UNAVAILABLE');
   }
   const request=batch.request;
   // Any Topic facet can affect a human Placement's target, even for another
@@ -165,21 +179,22 @@ export class LocalMaintenanceSession {
   // opportunity instead of refreshing an already authorized snapshot.
   const pendingPlacementUnits=request.coverage.some(u=>u.facet==='topic')
    ?request.coverage.filter(u=>u.facet==='context'&&placementMapping.has(u.key)).length:0;
-  if(pendingPlacementUnits){
-   request.coverage=request.coverage.filter(u=>!(u.facet==='context'&&placementMapping.has(u.key)));
+  const pendingAuthoredUnits=request.coverage.some(u=>u.facet==='topic')?request.coverage.filter(u=>u.facet==='context'&&authoredMapping.has(u.key)).length:0;
+  if(pendingPlacementUnits||pendingAuthoredUnits){
+   request.coverage=request.coverage.filter(u=>!(u.facet==='context'&&(placementMapping.has(u.key)||authoredMapping.has(u.key))));
    request.items=request.items.filter(item=>request.coverage.some(u=>u.key===item.key));
    // Revisit this scan boundary: advancing beyond withheld rows loses work.
    batch={...batch,nextCursor:options.cursor??null,complete:false};
   }
-  const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,...(pendingPlacementUnits?{pendingPlacementUnits}:{}),remainingWork:pendingPlacementUnits>0||deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
+  const progress={deferredUnits,blockedUnits:batch.blockedUnits??0,...(pendingPlacementUnits?{pendingPlacementUnits}:{}),...(pendingAuthoredUnits?{pendingAuthoredUnits}:{}),remainingWork:pendingAuthoredUnits>0||pendingPlacementUnits>0||deferredUnits>0||batch.complete!==true||(batch.blockedUnits??0)>0};
   // Reuse the current Topic identity owner's 20-distinct-Source admission
   // boundary. Keep all remaining facets of each Input in the same child.
   // More than two required partitions is unavailable, never lost coverage.
   const partitions=[];let partition=null;
   for(const item of request.items){const units=request.coverage.filter(u=>u.key===item.key),sources=item.descriptor.sourceRecordIds;
    if(sources.length>20)fail('BUDGET_EXCEEDED');
-   const combined=new Set([...(partition?.sources||[]),...sources]),inputIds=this.#inputs({request,entryMapping,placementMapping},units),combinedInputs=new Set([...(partition?.inputs||[]),...inputIds]);
-   if(!partition||partition.units.length+units.length>50||combinedInputs.size>Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:new Set()};partitions.push(partition);}
+   const combined=new Set([...(partition?.sources||[]),...sources]),inputIds=this.#inputs({request,entryMapping,placementMapping,authoredMapping},units),combinedInputs=new Set([...(partition?.inputs||[]),...inputIds]);
+   if(!partition||partition.units.length+units.length>50||combinedInputs.size+this.#authored({authoredMapping},[...(partition?.units||[]),...units]).length>Math.min(20,this.#store.organizerBudget.limits.maxInputs)||combined.size>20){partition={sources:new Set(),units:[],inputs:new Set()};partitions.push(partition);}
    for(const id of sources)partition.sources.add(id);partition.units.push(...units);for(const id of inputIds)partition.inputs.add(id);
   }
   if(partitions.length>2)fail('BUDGET_EXCEEDED');request.children=partitions.map(p=>validateCoverage(p.units,TYPE));
@@ -193,11 +208,11 @@ export class LocalMaintenanceSession {
   syncTrue(this.#window.isCurrent(grant));
   const job=await this.#foundation.plan(request);
   if(generation!==this.#generation||grant.revocationSignal.aborted)fail('UNAVAILABLE');syncTrue(this.#window.isCurrent(grant));
-  if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const state=pendingPlacementUnits?'PARTIAL':job.state,processed=pendingPlacementUnits?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
+  if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const state=pendingPlacementUnits||pendingAuthoredUnits?'PARTIAL':job.state,processed=pendingPlacementUnits||pendingAuthoredUnits?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
-  const state={progress,request,entryMapping,placementMapping,job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
-  const revoked=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
+  const state={progress,request,entryMapping,placementMapping,authoredMapping,authoredMaterial:new Map(),authoredBudget:createContextScopeWorkBudget({signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),outputs:new Map(),processing:new Map(),processingCleanup:new Set(),completed:false};
+  const revoked=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
  #passiveHandle(batch,generation,deferredUnits=0){
@@ -207,7 +222,7 @@ export class LocalMaintenanceSession {
  #settled(state,facets=[]){
   // Job settlement and scan completion are separate: a committed page may
   // still have a continuation, while deferred facets remain a partial job.
-  const partial=state.progress.deferredUnits>0||state.progress.blockedUnits>0||(state.progress.pendingPlacementUnits??0)>0;
+  const partial=state.progress.deferredUnits>0||state.progress.blockedUnits>0||(state.progress.pendingPlacementUnits??0)>0||(state.progress.pendingAuthoredUnits??0)>0;
   return outcome(partial?'PARTIAL':'COMMITTED',{jobId:state.job.id,facets,nextCursor:state.handle.nextCursor,complete:state.handle.complete,...state.progress,...(partial?{processedState:'COMMITTED'}:{})});
  }
  #response(a){
@@ -231,11 +246,11 @@ export class LocalMaintenanceSession {
  #processingCurrent(state,receipt){this.#current(state);this.#assertProcessing(receipt);}
  async #processingReceipt(state,metadata){
   this.#current(state);if(!this.#processing)fail('UNAVAILABLE');
-  const inputIds=this.#inputs(state,metadata.coverage),entries=this.#entries(state,metadata.coverage);if(!inputIds?.length)fail('UNAVAILABLE');
-  if(entries.length){await this.#foundation.read(t=>this.#checkEntryMapping(state,metadata.coverage,t));this.#current(state);}
+  const inputIds=this.#inputs(state,metadata.coverage),entries=this.#entries(state,metadata.coverage),authoredEntries=this.#authored(state,metadata.coverage);if(!inputIds||!inputIds.length&&!authoredEntries.length)fail('UNAVAILABLE');
+  if(entries.length||authoredEntries.length){await this.#foundation.read(t=>this.#checkEntryMapping(state,metadata.coverage,t));this.#current(state);}
   const receipt=await this.#foundation.read(async t=>{
    const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);this.#current(state);
-   const request={purpose:'ai-maintenance-payload',logicalJobId:job.id,childOperationId:metadata.childOperationId,principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,inputs:inputIds.map(inputId=>({inputId,selectedFields:['body']})),...(entries.length?{entries:entries.map(({entryId,revision})=>({entryId,revision,selectedFields:['body']}))}:{}),...(this.#placements(state,metadata.coverage).length?{placements:structuredClone(this.#placements(state,metadata.coverage))}:{}),facets:[...new Set(metadata.coverage.map(u=>u.facet))].sort(),coverage:structuredClone(metadata.coverage)};
+   const request={purpose:'ai-maintenance-payload',logicalJobId:job.id,childOperationId:metadata.childOperationId,principalId:job.authority.principalId,libraryId:job.authority.libraryId,consentEpoch:job.authority.consentEpoch,inputs:inputIds.map(inputId=>({inputId,selectedFields:['body']})),...(entries.length?{entries:entries.map(({entryId,revision})=>({entryId,revision,selectedFields:['body']}))}:{}),...(this.#placements(state,metadata.coverage).length?{placements:structuredClone(this.#placements(state,metadata.coverage))}:{}),...(authoredEntries.length?{authoredEntries:authoredEntries.map(m=>({...structuredClone(m),selectedFields:['body']}))}:{}),facets:[...new Set(metadata.coverage.map(u=>u.facet))].sort(),coverage:structuredClone(metadata.coverage)};
    const raw=await this.#processing.resolve(t,frozen(structuredClone(request)));this.#current(state);
    exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
    if(Reflect.ownKeys(raw).some(k=>!Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))||raw.version!==1||raw.store!==this.#store||raw.caller!==this.#service.context.caller||!Object.isFrozen(raw.caller)||!opaque(raw.epoch)||raw.processing!==true||!Number.isSafeInteger(raw.expiresAt)||raw.expiresAt<=Date.now()||!(raw.revocationSignal instanceof AbortSignal)||raw.revocationSignal.aborted)fail('UNAVAILABLE');
@@ -244,31 +259,41 @@ export class LocalMaintenanceSession {
   });
   this.#processingCurrent(state,receipt);const prior=state.processing.get(metadata.childOperationId);
   if(prior&&(prior.epoch!==receipt.epoch||prior.expiresAt!==receipt.expiresAt||prior.revocationSignal!==receipt.revocationSignal||!equal(prior.scope,receipt.scope)))fail('UNAVAILABLE');
-  if(!prior){const abort=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();};receipt.revocationSignal.addEventListener('abort',abort,{once:true});state.processingCleanup.add(()=>receipt.revocationSignal.removeEventListener('abort',abort));}
+  if(!prior){const abort=()=>{state.controller.abort();state.outputs.clear();state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();};receipt.revocationSignal.addEventListener('abort',abort,{once:true});state.processingCleanup.add(()=>receipt.revocationSignal.removeEventListener('abort',abort));}
   state.processing.set(metadata.childOperationId,receipt);return receipt;
  }
  async #preparePayload(state,metadata){
-  this.#current(state);const processing=await this.#processingReceipt(state,metadata);const inputIds=this.#inputs(state,metadata.coverage);
-  if(!inputIds?.length)fail('UNAVAILABLE');if(inputIds.length>Math.min(20,this.#store.organizerBudget.limits.maxInputs))fail('BUDGET_EXCEEDED');
-  const handle=await this.#topic.prepareMaterial({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,metadata.coverage).map(e=>e.entryId)},{signal:state.controller.signal});
-  try{this.#current(state);const material=await this.#topic.readMaterial(handle);this.#current(state);
-   const payload=createMaintenancePayload(metadata,material,this.#store.organizerBudget.limits,this.#placements(state,metadata.coverage));
+  this.#current(state);const processing=await this.#processingReceipt(state,metadata),inputIds=this.#inputs(state,metadata.coverage),authored=this.#authored(state,metadata.coverage);
+  if(!inputIds||!inputIds.length&&!authored.length)fail('UNAVAILABLE');if(inputIds.length+authored.length>Math.min(20,this.#store.organizerBudget.limits.maxInputs))fail('BUDGET_EXCEEDED');
+  const handle=inputIds.length?await this.#topic.prepareMaterial({scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']})),entryIds:this.#entries(state,metadata.coverage).map(e=>e.entryId)},{signal:state.controller.signal}):null;
+  try{this.#current(state);const material=handle?await this.#topic.readMaterial(handle):{sourceCount:0,view:{inputs:[],entries:[],identities:[],sections:[],constraints:[]}};this.#current(state);
+   for(const mapping of authored)if(!state.authoredMaterial.has(mapping.entryId)){
+    const body=await this.#foundation.read(async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);await this.#checkAuthoredMapping(state,metadata.coverage,t);return (await t.get('thoughts',mapping.entryId)).thoughtText;});this.#current(state);
+    const retained=[...state.authoredMaterial.values()].reduce((n,v)=>n+new TextEncoder().encode(v.body).length,0);
+    if(state.authoredMaterial.size>=Math.min(20,this.#store.organizerBudget.limits.maxInputs)||retained+new TextEncoder().encode(body).length>this.#store.organizerBudget.limits.maxContentBytes)fail('BUDGET_EXCEEDED');
+    state.authoredBudget.hashBytes+=new TextEncoder().encode(body).length;state.authoredBudget.hashFields++;if(state.authoredBudget.hashBytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes||state.authoredBudget.hashFields>CONTEXT_TOPIC_SCOPE_LIMITS.hashFields)fail('BUDGET_EXCEEDED');
+    const bodyDigest=await hashText(body);this.#current(state);state.authoredMaterial.set(mapping.entryId,{...structuredClone(mapping),body,bodyDigest});
+   }
+   await this.#foundation.read(t=>this.#checkAuthoredMapping(state,metadata.coverage,t));this.#current(state);
+   const payload=createMaintenancePayload(metadata,material,this.#store.organizerBudget.limits,this.#placements(state,metadata.coverage),authored.map(m=>state.authoredMaterial.get(m.entryId)));
    if(this.#filterEnabled(state)&&metadata.coverage.some(u=>u.facet==='filter')){const key=canonical([metadata.childOperationId,'filter-snapshot']);if(!state.prepared.has(key)){try{const snapshot=await this.#foundation.read(t=>this.#store.maintenanceFilterSnapshot(t,this.#inputs(state,metadata.coverage.filter(u=>u.facet==='filter'))));this.#current(state);state.prepared.set(key,snapshot);}catch(error){this.#current(state);if(!['STALE_BASE','UNAVAILABLE'].includes(error?.code))throw error;state.prepared.set(key,null);}}}
    return {handle,payload,processing};
-  }catch(error){this.#topic.releaseMaterial(handle);throw error;}
+  }catch(error){if(handle)this.#topic.releaseMaterial(handle);throw error;}
  }
  async #checkPayload(state,handle,metadata,processing){
-  this.#processingCurrent(state,processing);await this.#processingReceipt(state,metadata);this.#processingCurrent(state,processing);await this.#topic.checkMaterial(handle);this.#current(state);
-  await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);});this.#current(state);
-  // The final material read follows the Foundation await, then the synchronous
-  // host opportunity/abort fence immediately precedes physical invocation.
-  await this.#topic.checkMaterial(handle);this.#processingCurrent(state,processing);
+  this.#processingCurrent(state,processing);await this.#processingReceipt(state,metadata);this.#processingCurrent(state,processing);if(handle)await this.#topic.checkMaterial(handle);this.#current(state);
+  await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);await this.#checkAuthoredMapping(state,metadata.coverage,t);});this.#current(state);
+  // Input and authored material share the original final Topic transaction,
+  // after Input hashes. Pure authored work uses the same complete fence on its
+  // own. Only synchronous host opportunity/abort checks follow this read.
+  const finalRead=async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);await this.#checkAuthoredMapping(state,metadata.coverage,t);};
+  if(handle)await this.#topic.checkMaterial(handle,finalRead);else await this.#foundation.read(finalRead);this.#processingCurrent(state,processing);
  }
  async #preflightPayloads(state){
   const status=await this.#foundation.status(state.job.id);this.#current(state);
   const requests=await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);return job.childIds.map((_,i)=>this.#foundation.childRequest(job,i));});this.#current(state);
   for(const metadata of requests){if(!metadata.coverage.length||status.attempts.some(r=>r.childId===metadata.childOperationId&&r.attemptCount===1))continue;
-   const prepared=await this.#preparePayload(state,metadata);try{await this.#checkPayload(state,prepared.handle,metadata,prepared.processing);}finally{this.#topic.releaseMaterial(prepared.handle);}
+   const prepared=await this.#preparePayload(state,metadata);try{await this.#checkPayload(state,prepared.handle,metadata,prepared.processing);}finally{if(prepared.handle)this.#topic.releaseMaterial(prepared.handle);}
   }
  }
  async #executeBounded(state,provider,request,materialHandle,processing){
@@ -288,12 +313,12 @@ export class LocalMaintenanceSession {
   return {describe:()=>structuredClone(descriptor),execute:async request=>{
    this.#current(state);if(request.logicalJobId!==state.job.id||!state.job.childIds.includes(request.childOperationId))fail('STALE_BASE');
    let response;try{
-    const assembled=await this.#preparePayload(state,request);try{response=responseSnapshot(await this.#executeBounded(state,original,assembled.payload,assembled.handle,assembled.processing),this.#store.organizerBudget.limits.maxOutputBytes);}finally{this.#topic.releaseMaterial(assembled.handle);}this.#current(state);
+    const assembled=await this.#preparePayload(state,request);try{response=responseSnapshot(await this.#executeBounded(state,original,assembled.payload,assembled.handle,assembled.processing),this.#store.organizerBudget.limits.maxOutputBytes);}finally{if(assembled.handle)this.#topic.releaseMaterial(assembled.handle);}this.#current(state);
     if(response?.accepted===true&&opaque(response.operationReceiptId))state.outputs.set(request.childOperationId,{jobId:state.job.id,childId:request.childOperationId,operationReceiptId:response.operationReceiptId,response});
-    else state.outputs.delete(request.childOperationId);
+    else {state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();}
     // Only the existing neutral receipt fields cross the Foundation owner.
     return {accepted:response?.accepted===true,operationReceiptId:response?.operationReceiptId};
-   }catch(e){state.outputs.delete(request.childOperationId);throw e;}
+   }catch(e){state.outputs.delete(request.childOperationId);state.authoredMaterial.clear();throw e;}
   }};
  }
  async #writeDomain(fn,facet){
@@ -336,13 +361,14 @@ export class LocalMaintenanceSession {
   const inputIds=this.#inputs(state,units);if(!inputIds)return [await this.#defer(state,childId,'context',units,'CONTEXT_MAPPING_UNAVAILABLE')];
   const key=canonical([childId,'context']);let groups=state.groups.get(key);
   if(!groups){
-   groups=await this.#decode({state,childId,receipt},'context',Object.freeze({units:structuredClone(units),inputIds:[...inputIds],...(this.#entries(state,units).length?{entries:structuredClone(this.#entries(state,units))}:{}),...(this.#placements(state,units).length?{placements:structuredClone(this.#placements(state,units))}:{})}));this.#current(state);
+   groups=await this.#decode({state,childId,receipt},'context',Object.freeze({units:structuredClone(units),inputIds:[...inputIds],...(this.#entries(state,units).length?{entries:structuredClone(this.#entries(state,units))}:{}),...(this.#placements(state,units).length?{placements:structuredClone(this.#placements(state,units))}:{}),...(this.#authored(state,units).length?{authoredEntries:this.#authored(state,units).map(m=>({...structuredClone(m),bodyDigest:state.authoredMaterial.get(m.entryId)?.bodyDigest}))}:{})}));this.#current(state);
    if(!Array.isArray(groups)||!groups.length||groups.length>units.length)fail('STALE_BASE');
    const all=[];for(const group of groups){exact(group,['units','change','operation'],['units','change']);if(Object.hasOwn(group,'operation')&&!['ADD','UPDATE','REMOVE_CANDIDATE','NO_CHANGE'].includes(group.operation))fail('STALE_BASE');group.units=validateCoverage(group.units,TYPE);if(group.units.some(u=>u.facet!=='context'||!units.some(v=>unitKey(u)===unitKey(v))))fail('STALE_BASE');
     if(group.operation==='NO_CHANGE')validateContextMaintenanceNoChange(group.change);else if(group.operation==='REMOVE_CANDIDATE')validateContextMaintenanceInvalidation(group.change);else validateContextMaintenanceChange(group.change);
     // Explicit adapter intent must agree with the original owner's revision contract.
     if(group.operation==='ADD'&&group.change.expectedRevision!==0||group.operation==='UPDATE'&&group.change.expectedRevision===0)fail('STALE_BASE');const ids=this.#inputs(state,group.units);
-    if(!ids||!equal(ids,[...new Set(group.change.evidence.map(e=>e.inputId))].sort()))fail('STALE_BASE');
+    if(!ids||!equal(ids,[...new Set(group.change.evidence.filter(e=>e.kind!=='humanEntry').map(e=>e.inputId))].sort()))fail('STALE_BASE');
+    const authored=this.#authored(state,group.units),evidence=group.change.evidence.filter(e=>e.kind==='humanEntry');if(authored.length!==evidence.length||authored.some(m=>!evidence.some(e=>authoredContextEvidenceMatches(e,m)&&e.fieldDigests.body===state.authoredMaterial.get(m.entryId)?.bodyDigest)))fail('STALE_BASE');
     for(const p of this.#placements(state,group.units))if(!group.change.evidence.some(e=>e.inputId===p.inputId&&e.topicId===p.topicId))fail('STALE_BASE');all.push(...group.units);
    }
    if(!equal(all.map(unitKey).sort(),units.map(unitKey).sort()))fail('STALE_BASE');state.groups.set(key,groups);if(!this.#filterEnabled(state))state.outputs.delete(childId);
@@ -369,7 +395,7 @@ export class LocalMaintenanceSession {
  }
  async #defer(state,childId,facet,units,retryCondition){await this.#foundation.commitFacet(state.job.id,childId,{facet,units,outcome:'DEFER',retryCondition});this.#current(state);return {facet,units:units.length,state:'DEFERRED'};}
  run(handle){
-  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits,processedState:passive.processedState}:{})}));
+  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits}:{}),...(passive.pendingAuthoredUnits?{pendingAuthoredUnits:passive.pendingAuthoredUnits}:{}),...(passive.processedState?{processedState:passive.processedState}:{})}));
   const state=this.#handles.get(handle);if(!state)return Promise.resolve(outcome('UNAVAILABLE'));
   if(state.completed)return Promise.resolve(state.generation===this.#generation?this.#settled(state):outcome('UNAVAILABLE',{jobId:state.job.id,facets:[]}));
   try{this.#current(state);}catch(e){return Promise.resolve(outcome(safeError(e)));}
@@ -381,14 +407,14 @@ export class LocalMaintenanceSession {
   try{
    const initial=await this.#foundation.status(state.job.id);this.#current(state);
    if(initial.state==='COMMITTED'){state.completed=true;this.#retire(state);return this.#settled(state);}
-   if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state)))return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});
+   if(initial.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){state.outputs.clear();state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id});}
    await this.#preflightPayloads(state);this.#current(state);
    await this.#foundation.reserve(state.job.id,{reservationId:state.grant.reservationId,executionKind:state.grant.kind});this.#current(state);
    const children=[];let topicFailed=false;
    for(const childId of state.job.childIds){
     let status=await this.#foundation.status(state.job.id);this.#current(state);let receipt=status.attempts.find(r=>r.childId===childId);
     if(receipt?.state==='COMMITTED')continue;
-    if(receipt?.state==='RESERVED'){const dispatched=await this.#foundation.dispatch(state.job.id,childId,this.#transport(state));this.#current(state);if(dispatched.state!=='RESPONSE_RECORDED'){state.outputs.delete(childId);return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id,facets:results});}}
+    if(receipt?.state==='RESERVED'){const dispatched=await this.#foundation.dispatch(state.job.id,childId,this.#transport(state));this.#current(state);if(dispatched.state!=='RESPONSE_RECORDED'){state.outputs.delete(childId);state.authoredMaterial.clear();return outcome('OUTCOME_UNKNOWN',{jobId:state.job.id,facets:results});}}
     status=await this.#foundation.status(state.job.id);this.#current(state);receipt=status.attempts.find(r=>r.childId===childId);
     if(!receipt||!['RESPONSE_RECORDED','VALIDATED'].includes(receipt.state))return outcome('UNAVAILABLE',{jobId:state.job.id,facets:results});
     const job=await this.#foundation.read(t=>this.#foundation.job(t,state.job.id));this.#current(state);const coverage=job.childCoverage[job.childIds.indexOf(childId)];children.push({childId,receipt,coverage});
@@ -403,18 +429,18 @@ export class LocalMaintenanceSession {
     for(const {childId,receipt,coverage}of children){
      const latest=await this.#foundation.status(state.job.id);this.#current(state);const units=coverage.filter(u=>u.facet===facet&&!latest.committedCoverage.includes(unitKey(u)));if(!units.length)continue;
      try{if(facet==='context')results.push(...await this.#contextFacet(state,childId,receipt,units));else results.push(await this.#filterFacet(state,childId,receipt,units));}
-     catch(e){this.#current(state);if(facet==='context')state.outputs.delete(childId);results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
+     catch(e){this.#current(state);if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))state.outputs.delete(childId);results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
     }
    }
    const final=await this.#foundation.status(state.job.id);this.#current(state);
    if(final.state==='COMMITTED'){state.completed=true;this.#retire(state);}
    return final.state==='COMMITTED'?this.#settled(state,results):outcome('PARTIAL',{jobId:state.job.id,facets:results,...state.progress,remainingWork:true});
-  }catch(e){state.outputs.clear();return outcome(safeError(e),{jobId:state.job.id,facets:results});}
+  }catch(e){if(!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.outputs.clear();state.authoredMaterial.clear();}else{const current=await this.#foundation.status(state.job.id).catch(()=>null);if(!current||current.attempts.some(r=>['DISPATCHED','OUTCOME_UNKNOWN'].includes(r.state))){state.outputs.clear();state.authoredMaterial.clear();}}return outcome(safeError(e),{jobId:state.job.id,facets:results});}
  }
  // Listener cleanup cannot change an already durable domain outcome.
  #retire(state){
   const errors=[],cleanup=fn=>{try{fn();}catch(error){errors.push(error);}};
-  state.prepared.clear();state.groups.clear();state.outputs.clear();state.processing.clear();
+  state.prepared.clear();state.groups.clear();state.authoredMaterial.clear();state.outputs.clear();state.processing.clear();
   cleanup(state.removeRevocation);for(const clean of state.processingCleanup)cleanup(clean);state.processingCleanup.clear();
   this.#jobs.delete(state.job.id);return errors;
  }

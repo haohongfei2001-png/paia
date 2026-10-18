@@ -2,27 +2,29 @@
 // and output rectangles use layout-viewport CSS pixels, including visual offsets.
 (() => {
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
- const intersects=(a,b)=>a.x<b.right+8&&a.x+a.w>b.left-8&&a.y<b.bottom+8&&a.y+a.h>b.top-8;
  globalThis.PAIAPromptLayout=(width,height,form,position,open=false,measurement={})=>{
   const viewport=measurement.viewport||{left:0,top:0,width,height};
   const left=Math.max(0,viewport.left||0),top=Math.max(0,viewport.top||0),right=Math.min(width,left+viewport.width),bottom=Math.min(height,top+viewport.height);
   const visibleWidth=right-left,w=Math.min(336,visibleWidth-32);
-  if(w<=0||visibleWidth<120||bottom-top<120)return null;
-  const candidates=[{x:form.left-52,y:form.top},{x:form.right+8,y:form.top},{x:right-52,y:form.top-52},{x:right-52,y:form.bottom+8},{x:left+8,y:top+8}];
-  if(position)candidates.unshift({x:position.x*(width-44),y:position.y*(height-44)});
-  const orb=candidates.map(p=>({x:clamp(p.x,left+8,right-52),y:clamp(p.y,top+8,bottom-52),w:44,h:44})).find(p=>!intersects(p,form));
-  if(!orb)return null;
+  if(w<=0||visibleWidth<120)return null;
   const safeTop=Math.max(top,measurement.topControlsBottom??top)+12;
-  const safeBottom=Math.min(bottom-12,form.top-12),available=Math.max(0,safeBottom-safeTop);
-  // Ordinary geometry does not depend on list size, loading, search or details.
-  const intrinsic=312;
-  const minimum=Number.isFinite(measurement.minimumHeight)?measurement.minimumHeight:134;
+  const safeBottom=Math.min(bottom-12,form.top-12);
+  if(safeBottom-safeTop<44)return null;
+  // The entry is the same hit target in every state. Keep compatible saved
+  // position metadata at its original owner, but never let it move this anchor.
+  // Clamp only when required by the viewport: a 390px composer inset by 40px
+  // still has its exact right edge, rather than a spurious extra 2px shift.
+  // No extra right margin: an edge-aligned composer keeps its approved inset
+  // while the whole board fits within the actual visual viewport.
+  const anchorRight=clamp(form.right-(visibleWidth<=530?0:4),left+w,right);
+  const orb={x:anchorRight-44,y:safeBottom-44,w:44,h:44};
+  const available=Math.max(0,orb.y-safeTop),intrinsic=312;
+  const minimum=Number.isFinite(measurement.minimumHeight)?Math.max(88,measurement.minimumHeight):92;
   const h=Math.min(intrinsic,available);
-  const x=clamp((position?position.x*(width-44):orb.x)+44-w,left+16,right-w-16);
-  const card=available>=minimum&&h>=minimum?{x,y:safeBottom-h,w,h}:null;
-  // The open handle stays inside the board's reserved header: no additional
-  // invisible anchor or safe-band exception. Stored x/y remains the same owner.
-  const capsuleWidth=Math.min(272,visibleWidth-32),capsule=available>=44?{x:clamp(orb.x+44-capsuleWidth,left+16,right-capsuleWidth-16),y:safeBottom-44,w:capsuleWidth,h:44}:null;
-  return {capsule,orb:open&&card?{x:card.x+card.w-44,y:card.y,w:44,h:44}:orb,card,safeTop,safeBottom,available};
+  // Board opens above the unchanged target with zero gap. Its sixth row and
+  // the complete composer remain outside the entry's hit area.
+  const card=available>=minimum&&h>=minimum?{x:anchorRight-w,y:orb.y-h,w,h}:null;
+  const capsuleWidth=Math.min(272,visibleWidth-32),capsule={x:anchorRight-capsuleWidth,y:orb.y,w:capsuleWidth,h:44};
+  return {capsule,orb,card,safeTop,safeBottom,available};
  };
 })();

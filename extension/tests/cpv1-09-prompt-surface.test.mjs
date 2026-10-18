@@ -28,7 +28,7 @@ test('position is bounded device-only metadata, with no website or archive body 
 test('safe geometry clamps orb and card, excludes native composer controls at 320px and expanded scale',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,640,1280])for(const height of [500,800])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.9}]){
-  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,44);assert.equal(g.card.y+g.card.h,form.top-12);assert.equal(g.card.w,width<=400?width-32:336);
+  const form={left:8,right:width-8,top:height-140,bottom:height-10},g=sandbox.PAIAPromptLayout(width,height,form,position);assert.ok(g);for(const box of [g.orb,g.card]){assert.ok(box);assert.ok(box.x>=0&&box.y>=0&&box.x+box.w<=width&&box.y+box.h<=height);assert.ok(box.y+box.h<=form.top||box.y>=form.bottom);}assert.equal(g.orb.w,44);assert.equal(g.card.y+g.card.h,form.top-56);assert.equal(g.card.w,width<=400?width-32:336);
  }
 });
 test('surface publishes only one static extension frame, no host library bridge or new privileged host',async()=>{
@@ -53,7 +53,7 @@ test('open geometry uses one visible anchor, projects the attached card into saf
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,390,1280])for(const height of [500,844,900])for(const position of [null,{x:0,y:0},{x:1,y:1},{x:.5,y:.4}]){
   const form={left:16,right:width-16,top:height-140,bottom:height-16},g=sandbox.PAIAPromptLayout(width,height,form,position,true);assert.ok(g?.card);
-  assert.equal(g.orb.x,g.card.x+g.card.w-44);assert.equal(g.orb.y,g.card.y);
+  assert.equal(g.orb.x,g.card.x+g.card.w-44);assert.equal(g.orb.y,g.card.y+g.card.h);
   for(const r of [g.orb,g.card]){assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=height);assert.ok(r.y+r.h<=form.top||r.y>=form.bottom);}
   const saved={x:g.orb.x/(width-44),y:g.orb.y/(height-44)},restored=sandbox.PAIAPromptLayout(width,height,form,saved,true);assert.equal(restored.orb.x,g.orb.x);assert.equal(restored.orb.y,g.orb.y);assert.deepEqual(restored.card,g.card);
  }
@@ -67,15 +67,15 @@ test('SPA geometry save binds the initial sender URL to the exact live document,
  f.api.tabs.sendMessage=async()=>{f.api.tabs.get=async()=>({id:7,url:url+'/navigated'});return {url};};await assert.rejects(()=>f.s.handle(request,sender));assert.equal(f.writes.length,1);assert.equal(f.calls.length,0);
 });
 
-test('open surface retains horizontal position while v4 anchors vertically above the composer',async()=>{
+test('open surface preserves legacy metadata without moving the common composer anchor',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
- const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,400);assert.equal(g.card.y+g.card.h,758);assert.equal(g.orb.y,g.card.y);assert.ok(g.card.x+g.card.w<600);assert.ok(g.card.y+g.card.h<=900);
+ const g=sandbox.PAIAPromptLayout(1280,900,{left:600,right:1264,top:770,bottom:884},{x:400/1236,y:500/856},true);assert.equal(g.orb.x,1216);assert.equal(g.card.y+g.card.h,714);assert.equal(g.orb.y,g.card.y+g.card.h);assert.equal(g.card.x+g.card.w,1260);assert.ok(g.card.y+g.card.h<=900);
 });
 
 test('saved open anchor remains viewport-bounded when scrolling moves the composer outside the viewport',async()=>{
  const sandbox={};vm.runInNewContext(await readFile(new URL('../core/prompt-surface-layout.js',import.meta.url),'utf8'),sandbox);
  for(const width of [320,1280])for(const form of [{left:16,right:width-16,top:940,bottom:1040},{left:16,right:width-16,top:-200,bottom:-20},{left:width+20,right:width+400,top:300,bottom:500},{left:-400,right:-20,top:300,bottom:500}])for(const position of [{x:0,y:0},{x:1,y:1},{x:.5,y:.5}]){
-  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);assert.ok(g);if(form.top<0){assert.equal(g.card,null);continue;}assert.ok(g.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
+  const g=sandbox.PAIAPromptLayout(width,900,form,position,true);if(form.top<0){assert.equal(g,null);continue;}assert.ok(g);assert.ok(g.card);for(const r of [g.orb,g.card])assert.ok(r.x>=0&&r.y>=0&&r.x+r.w<=width&&r.y+r.h<=900,JSON.stringify({form,position,g}));
  }
 });
 
@@ -89,7 +89,7 @@ async function hostFixture({displayPreferences,animationFrame=f=>f()}={}){
    getBoundingClientRect:()=>({...rect}),setPointerCapture(id){this.pointerId=id;},hasPointerCapture(id){return this.pointerId===id;},releasePointerCapture(id){assert.equal(this.pointerId,id);this.pointerId=null;this.releases=(this.releases||0)+1;handlers.get('lostpointercapture')?.({pointerId:id});},focus(){this.focused=true;},closest(){return this;}};nodes.push(node);return node;
  };
  const html=element('html');html.classList={contains:()=>false};
- const document={documentElement:html,createElement:element,addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
+ const document={documentElement:html,createElement:element,createElementNS:(_ns,tag)=>element(tag),addEventListener:(k,f)=>documentHandlers.set(k,f),removeEventListener:k=>documentHandlers.delete(k)};
  const sandbox={document,location:{href:url},innerWidth:1280,innerHeight:900,crypto:{randomUUID:()=>nonce},getComputedStyle:()=>({colorScheme:'light'}),
   matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),MutationObserver:class{observe(){}disconnect(){}},
   requestAnimationFrame:animationFrame,PAIAChatGPTComposerAdapter:class{discover(){return {node:element('form'),status:'visible'};}dispose(){}},
@@ -152,13 +152,14 @@ test('host close request rejects navigation or consent changes during its live p
  const f=fixture();await f.s.handle({type:'PAIA_PROMPT_SURFACE_REQUEST_CLOSE',nonce},{id:'ext',tab:{id:7},frameId:0,url:url+'?initial',documentId:'live-document'});assert.equal(f.calls.length,0);
 });
 
-test('approved smoky-blue frosted presentation removes hard reflection and double rim without changing the accessible owner',async()=>{
+test('approved B presentation uses the exact solid mark and accessible owner',async()=>{
  const f=await hostFixture(),style=f.nodes.find(n=>n.tag==='style').textContent;
- assert.equal(f.orb.getAttribute('aria-label'),'常用 Prompt；拖动或 Alt 加方向键移动');
+ assert.equal(f.orb.getAttribute('aria-label'),'展开常用表达');
  assert.equal(f.orb.getAttribute('aria-expanded'),'false');
  assert.match(style,/width:44px;height:44px/);assert.match(style,/width:40px;height:40px/);
- assert.match(style,/backdrop-filter:blur\(9px\) saturate\(\.88\)/);
- assert.match(style,/filter:blur\(2px\)/);for(const color of ['273a5f','7f91ab','8a8fb8','cbd4e1','f6f7f8'])assert.ok(style.includes('#'+color));
+ assert.doesNotMatch(style,/backdrop-filter|radial-gradient|linear-gradient/);
+ for(const color of ['637397','a2b0d1','ffffff','2b2b2b','e5e5e5','454545'])assert.ok(style.includes('#'+color));
+ assert.equal(f.nodes.filter(n=>n.tag==='path').length,2);assert.match(style,/transition-delay:650ms/);
  assert.doesNotMatch(style,/inset:-3px|width:14px;height:10px|\.reflection|#fffffffa|#c8dcfff0/);
  assert.equal(f.nodes.some(n=>n.className==='reflection'),false);
  assert.match(style,/button:focus-visible\{outline:2px solid/);
@@ -178,7 +179,7 @@ test('approved smoky-blue frosted presentation removes hard reflection and doubl
  const receive=(r,s={id:'ext'})=>f.listeners.get('message')(r,s,()=>{});
  receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'foreign'});receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200},{id:'ext',tab:{id:7}});assert.equal(calls.length,0);
  receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,appearance:'system'});assert.equal(calls.length,0);receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce:'stale',height:200,appearance:'dark'});assert.equal(calls.length,0);
- receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,minimumHeight:150,appearance:'dark',language:'en'});assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(frame.title,'PAIA Frequent inputs');assert.equal(f.nodes.find(n=>n.dataset.paiaPromptSurface!==undefined).dataset.theme,'dark');assert.equal(calls.at(-1).contentHeight,200);assert.equal(calls.at(-1).minimumHeight,150);assert.equal(frame.isConnected,true);assert.equal(f.nodes.filter(n=>n.tag==='iframe').length,1);
+ receive({type:'PAIA_PROMPT_SURFACE_MEASURE',nonce,height:200,minimumHeight:150,appearance:'dark',language:'en'});assert.equal(f.orb.getAttribute('aria-label'),'Collapse frequent expressions');assert.equal(frame.title,'PAIA Frequent inputs');assert.equal(f.nodes.find(n=>n.dataset.paiaPromptSurface!==undefined).dataset.theme,'dark');assert.equal(calls.at(-1).contentHeight,200);assert.equal(calls.at(-1).minimumHeight,150);assert.equal(frame.isConnected,true);assert.equal(f.nodes.filter(n=>n.tag==='iframe').length,1);
  });
 
 test('measure acknowledgements follow layout and cannot authorize a superseded nonce or generation',async()=>{
@@ -217,8 +218,8 @@ test('display-only activation never reinitializes an open private editor; consen
 
 test('initial connected orb already has the saved accessible language and theme before its first animation frame',async()=>{
  const pending=[],f=await hostFixture({displayPreferences:{appearance:'dark',language:'en'},animationFrame:callback=>pending.push(callback)}),host=f.nodes.find(node=>node.dataset.paiaPromptSurface==='');
- assert.equal(host.isConnected,true);assert.ok(pending.length>0);assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');
- while(pending.length)pending.shift()();assert.equal(f.orb.getAttribute('aria-label'),'Frequent inputs; drag or use Alt + arrow keys to move');assert.equal(host.dataset.theme,'dark');assert.equal(f.nodes.some(node=>node.tag==='iframe'),false);assert.equal(f.sent.some(request=>request.state),false);
+ assert.equal(host.isConnected,true);assert.ok(pending.length>0);assert.equal(f.orb.getAttribute('aria-label'),'Expand frequent expressions');assert.equal(host.dataset.theme,'dark');
+ while(pending.length)pending.shift()();assert.equal(f.orb.getAttribute('aria-label'),'Expand frequent expressions');assert.equal(host.dataset.theme,'dark');assert.equal(f.nodes.some(node=>node.tag==='iframe'),false);assert.equal(f.sent.some(request=>request.state),false);
 });
 
 test('only an authenticated private frame selects a strict device-local collapsed form',async()=>{
@@ -231,4 +232,17 @@ test('only an authenticated private frame selects a strict device-local collapse
  await send('board');assert.equal((await f.s.readGeometry()).collapsedForm,'capsule','expanding preserves the selected collapsed form');
  for(const form of ['sidebar','',null,{}])await assert.rejects(send(form),{code:'FORBIDDEN'});
  await assert.rejects(f.s.handle({...f.request,command:{type:'surface_form',form:'orb'}},{...f.sender,frameId:0}),{code:'FORBIDDEN'});
+});
+
+test('private close relays only the original nonce-bound host form, never a child-selected or stale form',async()=>{
+ for(const form of ['orb','capsule']){
+  const f=fixture();f.api.tabs.sendMessage=async(...args)=>{f.sent.push(args);return args[1].type==='PAIA_PROMPT_SURFACE_PROBE'?{open:true,nonce,url}:{closed:true,nonce,form};};
+  assert.deepEqual(await f.s.handle({...f.request,command:{type:'close'}},f.sender),{closed:true,nonce,form});
+  assert.deepEqual(f.sent.at(-1),[7,{type:'PAIA_PROMPT_SURFACE_CLOSE',nonce},{frameId:0}]);assert.equal(f.calls.length,0);assert.equal(f.writes.length,0);
+  await assert.rejects(()=>f.s.handle({...f.request,command:{type:'close',form:'capsule'}},f.sender),e=>e.code==='FORBIDDEN');
+ }
+ for(const ack of [undefined,null,{}, {closed:true},{closed:false,nonce,form:'capsule'},{closed:true,nonce:'stale',form:'capsule'},{closed:true,nonce,form:'board'},{closed:true,nonce,form:'capsule',body:'unrelated'}]){
+  const f=fixture();f.api.tabs.sendMessage=async(_tab,message)=>message.type==='PAIA_PROMPT_SURFACE_PROBE'?{open:true,nonce,url}:ack;
+  await assert.rejects(()=>f.s.handle({...f.request,command:{type:'close'}},f.sender),e=>e.code==='FORBIDDEN');assert.equal(f.calls.length,0);assert.equal(f.writes.length,0);
+ }
 });
