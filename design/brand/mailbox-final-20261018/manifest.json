@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "brand_id": "PAIA-MAILBOX-FINAL-20261018",
+  "owner_instruction": "用它替换掉官网以及 paia 拓展里的所有应用图标",
+  "base_main": "6850b91a09b472de8c6edc31ac9e0764ae32f045",
+  "selected_package_sha256": "fb26a1ac9d012aafc1b894e399c95535416d1cf9a56eb5bbf34a6991d350673a",
+  "selected_master_sha256": "4bd4a255ead14e4d9c45cb892efdc430ea61ebf343bbd7c2abd8bb838e0f81aa",
+  "selection": "Final editable/vector-derived mailbox package; not the generated brand-presentation boards",
+  "sources": {
+    "design/brand/mailbox-final-20261018/png/paia-16.png": {
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "23e1928b2a02c5bf9aa801109f686f7a375bd30a95d7c7807d487b30f7c64aa5"
+    },
+    "design/brand/mailbox-final-20261018/png/paia-32.png": {
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649"
+    },
+    "design/brand/mailbox-final-20261018/png/paia-48.png": {
+      "dimensions": [
+        48,
+        48
+      ],
+      "sha256": "dfdd32ccfd012eddcb19a8e0761f475e8cfd4bb0030b7bd342f11f78f28d260b"
+    },
+    "design/brand/mailbox-final-20261018/png/paia-64.png": {
+      "dimensions": [
+        64,
+        64
+      ],
+      "sha256": "c60ae70b7347285ee1e841fbd07aa9d5e84b4eb3847f26dedf922626f7cae9ac"
+    },
+    "design/brand/mailbox-final-20261018/png/paia-128.png": {
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d"
+    }
+  },
+  "svg_sources": {
+    "design/brand/mailbox-final-20261018/source/app-icon.svg": {
+      "sha256": "336a0f508b99850ebce6f12da49d93066f045a4b295f50aee1f4aa4e4d56ce10",
+      "git_blob": "d7cff219b413161fbef646d0bbd9fefcab46016a"
+    },
+    "design/brand/mailbox-final-20261018/source/app-icon-small.svg": {
+      "sha256": "cedfe27e20202035c1baaee89f2e0e291de7044d24359467b110557c9b066c64",
+      "git_blob": "53b92d6ae041cde67982a1d74e91fd0a2341634b"
+    },
+    "design/brand/mailbox-final-20261018/source/app-icon-micro.svg": {
+      "sha256": "428387620d091a4a311e80d119595bde7c4983cc9cedc10c7000af0bfdd63b0b",
+      "git_blob": "e2eafe68c75734277406dc3c5f989278f2d18199"
+    }
+  },
+  "targets": {
+    "extension/icons/icon16.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-16.png",
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "23e1928b2a02c5bf9aa801109f686f7a375bd30a95d7c7807d487b30f7c64aa5",
+      "method": "byte-exact approved optical PNG"
+    },
+    "assets/icon-16.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-16.png",
+      "dimensions": [
+        16,
+        16
+      ],
+      "sha256": "23e1928b2a02c5bf9aa801109f686f7a375bd30a95d7c7807d487b30f7c64aa5",
+      "method": "byte-exact approved optical PNG"
+    },
+    "extension/icons/icon32.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-32.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649",
+      "method": "byte-exact approved optical PNG"
+    },
+    "extension/ui/assets/paia-logo-32.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-32.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649",
+      "method": "byte-exact approved optical PNG"
+    },
+    "assets/icon-32.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-32.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "7a46a1a3c67b2a193f159ea6295be219ee8aa45be725b058ac0ecfffcf76c649",
+      "method": "byte-exact approved optical PNG"
+    },
+    "extension/icons/icon48.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-48.png",
+      "dimensions": [
+        48,
+        48
+      ],
+      "sha256": "dfdd32ccfd012eddcb19a8e0761f475e8cfd4bb0030b7bd342f11f78f28d260b",
+      "method": "byte-exact approved optical PNG"
+    },
+    "extension/ui/assets/paia-logo-64.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-64.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "sha256": "c60ae70b7347285ee1e841fbd07aa9d5e84b4eb3847f26dedf922626f7cae9ac",
+      "method": "byte-exact approved optical PNG"
+    },
+    "extension/icons/icon128.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-128.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d",
+      "method": "byte-exact approved optical PNG"
+    },
+    "assets/website/brand/paia-icon-v1.png": {
+      "source": "design/brand/mailbox-final-20261018/png/paia-128.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "sha256": "c4f880e066cf483f0b06737e4fde1739740e98481dbef5cf62c2e7c39ad43f7d",
+      "method": "byte-exact approved128px raster; keep existing shared website favicon/touch/product-preview URL"
+    },
+    "assets/favicon.svg": {
+      "source": "design/brand/mailbox-final-20261018/source/app-icon-micro.svg",
+      "sha256": "428387620d091a4a311e80d119595bde7c4983cc9cedc10c7000af0bfdd63b0b",
+      "method": "byte-exact approved micro vector"
+    },
+    "assets/website/favicon.svg": {
+      "source": "design/brand/mailbox-final-20261018/source/app-icon-micro.svg",
+      "sha256": "428387620d091a4a311e80d119595bde7c4983cc9cedc10c7000af0bfdd63b0b",
+      "method": "byte-exact approved micro vector"
+    }
+  },
+  "preserved": [
+    "R3 functional double-card glyphs and all floating controls",
+    "Large original girl/mailbox story artwork",
+    "PAIA wordmark, website cool-neutral finish, copy/layout/interactions",
+    "Third-party brand and all functional icons",
+    "Historical design references and desktop asset manifest",
+    "Extension manifest/version/permissions/data/insertion code",
+    "Retired root PWA PNGs and site.webmanifest: current generated website has no manifest link; not a deployed icon consumer"
+  ],
+  "evidence_boundary": "Active website shared PNG uses the exact128px export; browser scaling is not optical-size switching. The full vector master is checked in. Old unreferenced PWA artifacts are not claimed updated, and cache/store/installed state remains separate."
+}
