@@ -1,6 +1,8 @@
 import {createAIFilterRuntime} from './ai-filter-commands.js';
 import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
 import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
+import {readMaintenanceIdentityCurrentnessEndpoint} from '../core/ai-usage/maintenance-identity-currentness-configuration.js';
+import {withMaintenanceIdentityCurrentness} from '../core/ai-usage/maintenance-identity-currentness.js';
 import {AssistPromptCommands} from './prompt-assist.js';
 import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
@@ -54,7 +56,7 @@ import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
 const store = new IndexedArchiveStore(chrome.storage.local,{aiFilterAuthority:aiFilterRuntime.authority});
-const configuredMaintenance=readMaintenanceServiceConfiguration(store);
+const configuredMaintenance=withMaintenanceIdentityCurrentness(readMaintenanceServiceConfiguration(store),readMaintenanceIdentityCurrentnessEndpoint());
 const maintenanceConfiguration=configuredMaintenance===null?null:{...configuredMaintenance,service:{...configuredMaintenance.service,filter:aiFilterRuntime.serviceFilter}};
 const maintenanceRunner=createMaintenanceRunner(store,maintenanceConfiguration);
 const contextConnections=new ContextConnections(store,chrome);

@@ -1,4 +1,4 @@
-import {isMaintenanceIdentityCurrentness} from './maintenance-identity-currentness.js';
+import {isMaintenanceIdentityCurrentness,prepareMaintenanceIdentityConnection,claimMaintenanceIdentityChannel,disposeUnclaimedMaintenanceIdentityChannel} from './maintenance-identity-currentness.js';
 import {createMaintenanceServiceResponseAdapter,MAINTENANCE_SERVICE_RESPONSE_SCHEMA} from './maintenance-service-response.js';
 import {savedFinancialCancellation} from './domain-result-receipt.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
@@ -35,6 +35,11 @@ export const requireMaintenanceServiceClient=value=>{if(!clients.has(value))fail
 // It supplies NO day/window, tier, quota, allowance or financial reservation.
 // Those facts belong exclusively to the authenticated original service ledger.
 export function createMaintenanceServiceClient(configuration){
+ let result=null;try{return result=createMaintenanceServiceClientOwned(configuration);}finally{
+  if(!result){const d=configuration&&Object.getOwnPropertyDescriptor(configuration,'filterIdentity');if(d&&Object.hasOwn(d,'value'))disposeUnclaimedMaintenanceIdentityChannel(d.value);}
+ }
+}
+function createMaintenanceServiceClientOwned(configuration){
  let c;try{
   if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration)))return null;
   const ds=Object.getOwnPropertyDescriptors(configuration),keys=Reflect.ownKeys(ds),required=['origin','scope','contractVersion','routeVersion','service','processing',...callbacks];
@@ -46,7 +51,7 @@ export function createMaintenanceServiceClient(configuration){
  if([declarations,reservations,results,status].some(x=>!x))return null;
  let service;try{const ds=Object.getOwnPropertyDescriptors(c.service),keys=Reflect.ownKeys(ds);if(![Object.prototype,null].includes(Object.getPrototypeOf(c.service))||keys.some(k=>!['version','topic','context','filter'].includes(k)||!Object.hasOwn(ds[k],'value'))||!['version','topic','context'].every(k=>keys.includes(k)))return null;service=Object.fromEntries(keys.map(k=>[k,ds[k].value]));if(service.filter){const fd=Object.getOwnPropertyDescriptors(service.filter),fk=Reflect.ownKeys(fd),allowed=['enabled','selectScope','captureConsent','isConsentCurrent','authorizeReservation','releaseReservation','retainPublication'];if(![Object.prototype,null].includes(Object.getPrototypeOf(service.filter))||fk.some(k=>!allowed.includes(k)||!Object.hasOwn(fd[k],'value'))||fd.enabled?.value!==true||fk.some(k=>k!=='enabled'&&typeof fd[k].value!=='function'))return null;service.filter=Object.freeze(Object.fromEntries(fk.map(k=>[k,fd[k].value])));}}catch{return null;}
  const responses=createMaintenanceServiceResponseAdapter();
- let disposed=false;const filterChildren=new Map(),retireFilter=childId=>{const state=filterChildren.get(childId);if(state){state.active=false;filterChildren.delete(childId);filterCapabilities.delete(state.capability);try{service.filter?.releaseReservation?.(state.capability);}catch{/* All other private child leases must still be retired. */}finally{state.current=retiredFilterCurrent;state.view=null;state.foundation=null;state.store=null;state.qualification=null;state.qualificationScope=null;state.filterUnits=null;state.profile=null;}}},retireFilters=jobId=>{for(const [id,state]of filterChildren)if(jobId===undefined||state.jobId===jobId)retireFilter(id);};const active=new Set(),opportunities=new WeakSet(),controller=new AbortController(),current=()=>{if(disposed||controller.signal.aborted||c.isCurrent()!==true)fail('UNAVAILABLE');};
+ let disposed=false,releaseIdentity=null;const filterChildren=new Map(),retireFilter=childId=>{const state=filterChildren.get(childId);if(state){state.active=false;filterChildren.delete(childId);filterCapabilities.delete(state.capability);try{service.filter?.releaseReservation?.(state.capability);}catch{/* All other private child leases must still be retired. */}finally{state.current=retiredFilterCurrent;state.view=null;state.foundation=null;state.store=null;state.qualification=null;state.qualificationScope=null;state.filterUnits=null;state.profile=null;}}},retireFilters=jobId=>{for(const [id,state]of filterChildren)if(jobId===undefined||state.jobId===jobId)retireFilter(id);};const active=new Set(),opportunities=new WeakSet(),controller=new AbortController(),current=()=>{if(disposed||controller.signal.aborted||c.isCurrent()!==true)fail('UNAVAILABLE');};
  const window=Object.freeze({acquire:async({jobType,requestDigest})=>{current();if(jobType!=='AI_MAINTENANCE'||!token(requestDigest))fail('UNAVAILABLE');const opportunity=Object.freeze({version:1,kind:'service-opportunity',requestDigest,revocationSignal:controller.signal});opportunities.add(opportunity);return opportunity;},isCurrent:grant=>{try{current();return opportunities.has(grant);}catch{return false;}}});
  async function preflight(t,jobId=null,retainJob=null){
   const previous=await t.get('meta',FLIGHT);if(!previous)return;
@@ -65,7 +70,7 @@ export function createMaintenanceServiceClient(configuration){
   sessionOptions:Object.freeze({authority:c.resolveAuthority,service:Object.freeze({...service,...(service.filter?{filter:Object.freeze({enabled:service.filter.enabled,...(service.filter.selectScope?{selectScope:service.filter.selectScope}:{})})}:{}),responseAdapter:responses.adapter}),processing:c.processing,window}),
   options:Object.freeze({scope:c.scope,contractVersion:c.contractVersion,routeVersion:c.routeVersion}),
   available:()=>{try{current();return true;}catch{return false;}},
-  onInvalidate:fn=>c.onInvalidate(()=>{controller.abort();responses.dispose();retireFilters();fn();}),
+  onInvalidate:fn=>c.onInvalidate(()=>{controller.abort();releaseIdentity?.();responses.dispose();retireFilters();fn();}),
   releaseResponseJob:jobId=>responses.releaseJob(jobId),
   releaseResponseChild:childId=>responses.releaseChild(childId),
   releaseFilterChild:childId=>retireFilter(childId),
@@ -126,7 +131,7 @@ export function createMaintenanceServiceClient(configuration){
     resolveProfile:async q=>{await assertCurrent();const profile=snapshot(await c.readProfile(q));if(!equal(profile.wire?.responseFormat?.json_schema?.schema,MAINTENANCE_SERVICE_RESPONSE_SCHEMA))fail('UNAVAILABLE');return profile;},
     authorizePayload:async q=>{await assertCurrent();if(!live()||!equal(q.childIdentity,childIdentity)||!equal(q.reservationRequest,request)||q.payloadDigest!==payloadDigest)fail('STALE_BASE');return structuredClone(authorization);},
     tokenize:async q=>{await assertCurrent();const v=await c.tokenize(q);if(!equal(v,measurement))fail('STALE_BASE');return v;},
-    readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');const identityTicket=c.filterIdentity?.beginObservation(request)??null;let observation;try{observation=await status.query({request,...proofs},identityTicket);await assertCurrent();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;identityObservation=observedClientOperationStatus(observation,status);c.filterIdentity?.observe(observation,status,identityTicket);}finally{c.filterIdentity?.releaseObservation(identityTicket);}
+    readReservation:async r=>{await assertCurrent();if(!equal(r,request))fail('STALE_BASE');if(filterConsent&&payload.coverage.some(u=>u.facet==='filter')){const connection=prepareMaintenanceIdentityConnection(c.filterIdentity,{request,...proofs});if(connection!==null)await connection;await assertCurrent();}const identityTicket=c.filterIdentity?.beginObservation(request)??null;let observation;try{observation=await status.query({request,...proofs},identityTicket);await assertCurrent();if(!observedClientOperationStatus(observation,status)||!observation.reservation)fail('OUTCOME_UNKNOWN');reservation=observation.reservation;identityObservation=observedClientOperationStatus(observation,status);c.filterIdentity?.observe(observation,status,identityTicket);}finally{c.filterIdentity?.releaseObservation(identityTicket);}
      // Local opt-in/processing can select a Filter facet, but ONLY the signed
      // server's actual reservation can establish its required Pro entitlement.
      if(payload.coverage.some(u=>u.facet==='filter')&&!reservation.window?.windowId?.startsWith('pro:'))fail('UNAVAILABLE');return structuredClone(reservation);},
@@ -164,7 +169,8 @@ export function createMaintenanceServiceClient(configuration){
    }catch(error){if(registered)try{await foundation.cancelServer(job.id);}catch{/* Original hold remains unresolved. */}retireFilter(metadata.childOperationId);operation.dispose();throw error;}
   },
   async report(foundation,job){current();const s=await foundation.status(job.id),request=s.attempts.find(r=>r.financialRequest)?.financialRequest;if(!terminal.has(s.state)||!request)fail('RESULT_PENDING');const proofs=await c.readProofs(structuredClone(request));current();return foundation.reportResult(job.id,proofs,results);},
-  dispose(){disposed=true;controller.abort();responses.dispose();retireFilters();/* In-flight finally retains cancellation proofs until its original cleanup. */}
+  dispose(){disposed=true;controller.abort();releaseIdentity?.();responses.dispose();retireFilters();/* In-flight finally retains cancellation proofs until its original cleanup. */}
  };
+ releaseIdentity=claimMaintenanceIdentityChannel(c.filterIdentity);if(releaseIdentity===false)return null;
  clients.add(client);return Object.freeze(client);
 }
