@@ -4,7 +4,7 @@ import {RawSourceOriginal,rawSourceInputs} from '../ui/raw-source-original.js';
 import {ReadingModalHost} from '../ui/reading-modal.js';
 import {OriginalSurface} from '../ui/original-surface.js';
 import {ArchiveOriginalQuery} from '../core/archive-original-query.js';
-import {setup,inputEdit} from './harness/thought-m1.mjs';
+import {setup,inputEdit,capture} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
 import {PresentationNode as Node} from './harness/presentation-dom.mjs';
 
@@ -77,4 +77,43 @@ test('complete Copy requalifies every Original body read before any clipboard di
  let replacement=false;const f=await fixture(t,async(type,fields)=>{const value=await ordinary(type,fields);if(type==='GET_PAGE'&&fields.page.view==='settings'&&replacement)value.recoveryEpoch='new-epoch';return value;}),copied=[],prior=Object.getOwnPropertyDescriptor(globalThis,'navigator');Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>copied.push(text)}}});t.after(()=>{if(prior)Object.defineProperty(globalThis,'navigator',prior);else delete globalThis.navigator;});
  f.originals.read=async options=>{f.reads.push(options);if(options.limit===100)replacement=true;return {generation:7,records:[{id:'source',originalText:'SYNTHETIC complete original',sourceSentAt:null}],intended:1,unavailable:0,availability:'available',nextCursor:null};};
  await f.open();const copy=f.content.children[3];await copy.onclick();assert.equal(f.reads.length,2);assert.equal(f.reads[1].expectedGeneration,7);assert.deepEqual(copied,[]);assert.doesNotMatch(f.content.textContent,/SYNTHETIC complete original/);assert.match(f.content.textContent,/原文暂时无法读取或已经变化/);
+});
+
+test('real repeated capture after human editing advances only the protected filter metadata generation',async t=>{
+ const {s}=await setup(OrganizerStore);t.after(()=>s.repository.close());const b=(await s.snapshot()).library.blocks[0];
+ await inputEdit(s,b.id,{libraryText:'SYNTHETIC edited Working text'});
+ const before=await s.snapshot(),page=await s.page({view:'archive',documentId:b.documentId}),prior=await s.repository.transaction(false,tx=>tx.get('filterInputs',b.id)),writes=[];
+ const transaction=s.repository.transaction.bind(s.repository);
+ s.repository.transaction=(write,fn,...args)=>transaction(write,async tx=>{const changes=[];if(write){const put=tx.put.bind(tx);tx.put=async(store,value)=>{changes.push({store,key:store==='meta'?value.id:null});return put(store,value);};}const result=await fn(tx);if(changes.length)writes.push(changes);return result;},...args);
+ const result=await s.capture(capture((await s.status()).epoch));s.repository.transaction=transaction;
+ const after=await s.snapshot(),next=await s.repository.transaction(false,tx=>tx.get('filterInputs',b.id));
+ assert.equal(result.added,0);assert.equal(prior.overrideReason,'user_edit');assert.equal(next.overrideReason,'source_user_protected');
+ const generations=writes.filter(rows=>rows.some(row=>row.key==='backup-data-generation'));
+ assert.deepEqual(generations,[[{store:'filterInputs',key:null},{store:'meta',key:'backup-data-generation'}]]);
+ assert.ok(writes.filter(rows=>rows!==generations[0]).flat().every(row=>row.store==='meta'&&['sequence','local-control-publication:revision','local-control-publication:reservation','gate'].includes(row.key)),'other capture publication metadata never changes Source/Working rows or their generation');
+ assert.deepEqual(after.records,before.records);assert.deepEqual(after.library,before.library);
+ const current=await s.page({view:'archive',documentId:b.documentId});assert.equal(current.dataGeneration,page.dataGeneration+1);
+ await assert.rejects(s.page({view:'library',documentId:b.documentId,expectedGeneration:page.dataGeneration}),{code:'BACKUP_CHANGED'});
+});
+
+test('real concurrent recapture refuses stale Original; an explicit fresh user action requalifies without replay',async t=>{
+ const {s}=await setup(OrganizerStore);t.after(()=>s.repository.close());const b=(await s.snapshot()).library.blocks[0];
+ await inputEdit(s,b.id,{libraryText:'SYNTHETIC PRIVATE changed Working body'});
+ const before=await s.snapshot(),first=await s.page({view:'archive',documentId:b.documentId});let captureOnce=true,attempts=0;
+ const request=async(type,fields)=>{
+  if(type==='GET_INPUT')return s.input(fields.id);
+  assert.equal(type,'GET_PAGE');
+  if(fields.page.view==='library'&&captureOnce){captureOnce=false;attempts++;await s.capture(capture((await s.status()).epoch));}
+  return {...await s.page(fields.page),recoveryEpoch:'synthetic-current-epoch'};
+ };
+ const f=await fixture(t,request),query=new ArchiveOriginalQuery(s);
+ f.originals.read=async options=>{f.reads.push(options);return query.page(options);};
+ const open=generation=>f.owner.open({documentId:b.documentId,sourceId:b.provenance[0].sourceRecordId,generation,epoch:'synthetic-current-epoch',trigger:f.trigger,isCurrent:()=>true});
+ assert.equal(await open(first.dataGeneration),false);assert.equal(attempts,1);assert.deepEqual(f.reads,[]);
+ assert.match(f.content.textContent,/关闭后重新核对/);assert.doesNotMatch(f.content.textContent,/Synthetic explicit working input|PRIVATE/);
+ await tick();assert.deepEqual(f.reads,[],'no automatic retry or stale Original publication');
+ f.host.close();const fresh=await s.page({view:'archive',documentId:b.documentId});assert.equal(fresh.dataGeneration,first.dataGeneration+1);
+ assert.equal(await open(fresh.dataGeneration),true);assert.equal(f.reads.length,1);assert.equal(f.reads[0].expectedGeneration,fresh.dataGeneration);
+ assert.match(f.content.textContent,/Synthetic explicit working input/);assert.doesNotMatch(f.content.textContent,/PRIVATE/);
+ assert.deepEqual((await s.snapshot()).records,before.records);assert.deepEqual((await s.snapshot()).library,before.library);
 });

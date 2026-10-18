@@ -13,8 +13,18 @@ export async function rawDocumentMenu(page){
  await button.click();
 }
 export async function openRawDocument(page,documentId){
+ // Current callers enter from an Input Reader or a fresh Archive tab. A
+ // pre-existing Settings route cannot witness a new same-page navigation.
+ assert.notEqual(await page.evaluate(()=>history.state?.paiaReader?.view),'settings','Raw navigation helper must start outside Settings');
  const result=await rpc(page,'GET_PAGE',{page:{view:'archive',documentId,limit:1}}),canonical=result.conversations.find(row=>row.id===documentId);assert.ok(canonical);
- await thoughtPrimary(page,'settings');await page.locator('#settings-panel').waitFor({state:'visible'});const data=page.locator('[data-settings-group="data"]');if(!await data.isVisible()){await page.locator('#ux-settings-group-back').click();await data.waitFor({state:'visible'});}await data.click();await page.locator('#ux-settings-data-group').waitFor({state:'visible'});await page.locator('#settings-source-records').click();
+ await thoughtPrimary(page,'settings');await page.locator('#settings-panel').waitFor({state:'visible'});
+ // Settings renders before its original initialization reads finish. Wait for
+ // that navigation's commit before any group click: changing groups can commit
+ // its own route early and must not stand in for the original read completion.
+ await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='settings'&&history.state?.paiaShell?.view==='settings'),'original Settings navigation commits before selecting Data');
+ const data=page.locator('[data-settings-group="data"]');if(!await data.isVisible()){await page.locator('#ux-settings-group-back').click();await data.waitFor({state:'visible'});}await data.click();await page.locator('#ux-settings-data-group').waitFor({state:'visible'});
+ await eventually(()=>page.evaluate(()=>history.state?.paiaReader?.view==='settings'&&history.state.paiaReader.settingsGroup==='data'&&history.state?.paiaShell?.view==='settings'),'Settings Data selection commits before opening Source records');
+ await page.locator('#settings-source-records').click();
  await eventually(()=>page.locator('body').getAttribute('data-paia-space').then(value=>value==='archive'));
  const window=await waitArchiveWindow(page,{text:canonical.userTitle||canonical.originalConversationTitle});assert.equal(await window.getAttribute('data-document-id'),documentId);await window.click();
  await eventually(async()=>await page.locator('#document-body .original-prose').count()>0&&await page.evaluate(id=>history.state?.paiaReader?.documentId===id,documentId),'same canonical raw Source document is rendered');
@@ -25,7 +35,7 @@ export async function openRawInputOriginal(page,inputId){
  // retry, substituting a target, or weakening the unique Source assertion.
  await page.evaluate(()=>{
   const original=chrome.runtime.sendMessage.bind(chrome.runtime),trace=[];
-  const record=row=>{trace.push(row);if(trace.length>100)trace.shift();};
+  const record=row=>{trace.push({at:Date.now(),...row});if(trace.length>100)trace.shift();};
   const changed=message=>{if(message.type==='ARCHIVE_CHANGED')record({event:message.type,cause:message.cause});};
   const dialog=document.getElementById('info-dialog'),closed=()=>record({event:'dialog.close',surface:dialog.dataset.readingSurface});dialog.addEventListener('close',closed);
   chrome.runtime.onMessage.addListener(changed);
@@ -45,7 +55,7 @@ export async function openRawInputOriginal(page,inputId){
  }catch(error){
   failed=true;try{const evidence=await page.locator('html').evaluate(()=>{const dialog=document.getElementById('info-dialog'),content=document.getElementById('info-content');return {trace:globalThis.__rawOriginalTrace?.trace,route:history.state,dialog:{open:dialog?.open,surface:dialog?.dataset.readingSurface,sources:content?.querySelectorAll('.source-original').length,choices:content?.querySelectorAll('[data-original-input-id]').length,status:content?.querySelector('[role=status]')?.textContent},space:document.body.dataset.paiaSpace};},null,{timeout:1000});
   await mkdir('work/raw-source-original',{recursive:true});await writeFile('work/raw-source-original/failed-navigation-'+Date.now()+'.json',JSON.stringify(evidence,null,2));}catch{}throw error;
- }finally{try{await page.locator('html').evaluate(()=>{const saved=globalThis.__rawOriginalTrace;if(saved){chrome.runtime.sendMessage=saved.original;chrome.runtime.onMessage.removeListener(saved.changed);saved.dialog.removeEventListener('close',saved.closed);delete globalThis.__rawOriginalTrace;}},null,{timeout:1000});}catch(error){if(!failed)throw error;}}
+ }finally{if(process.env.PAIA_RAW_DEVELOPMENT_TRACE==='1')try{const trace=await page.locator('html').evaluate(()=>globalThis.__rawOriginalTrace?.trace,null,{timeout:1000});await mkdir('work/raw-source-original',{recursive:true});await writeFile('work/raw-source-original/navigation-trace.json',JSON.stringify({head:process.env.GITHUB_SHA||null,failed,trace},null,2));}catch{}try{await page.locator('html').evaluate(()=>{const saved=globalThis.__rawOriginalTrace;if(saved){chrome.runtime.sendMessage=saved.original;chrome.runtime.onMessage.removeListener(saved.changed);saved.dialog.removeEventListener('close',saved.closed);delete globalThis.__rawOriginalTrace;}},null,{timeout:1000});}catch(error){if(!failed)throw error;}}
 }
 export async function returnRawToInput(page,inputId){
  await rawDocumentMenu(page);await page.getByRole('menuitem',{name:'定位到 Input Archive',exact:true}).click();

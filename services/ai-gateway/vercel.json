@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci --ignore-scripts --no-audit --no-fund",
+  "buildCommand": "npm run check:deployment-source",
+  "outputDirectory": "public",
+  "functions": {
+    "api/reservations.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,ratebook,usage-normalization}.js}"
+    }
+  }
+}

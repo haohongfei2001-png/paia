@@ -1,5 +1,12 @@
 # Signed AI identity and service admission preflight
 
+For the separate source-level HTTP/atomic reservation composition, see
+[SERVICE-ENTRY.md](SERVICE-ENTRY.md). Its checked-in Vercel entry is closed until
+real issuer, current-authority publishers, configuration and deployment exist.
+The actual source-only deployment bootstrap, strict runtime inputs and monorepo
+build layout are documented in [BOOTSTRAP.md](BOOTSTRAP.md). The preflight
+modules described below remain non-mutating.
+
 Status: local Node implementation, with ephemeral synthetic-key tests. This is
 not a deployed gateway, identity provider, payment/subscription backend, durable
 financial authority, or permission to dispatch a model request. No extension

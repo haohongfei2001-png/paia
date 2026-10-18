@@ -1,3 +1,4 @@
+import {qualifyContextProtectionCorrections,assertContextProtectionCorrections} from './context-correction.js';
 import {inputProjection} from '../thought-evidence.js';
 import {readStructuralContext,structuralContextGroups,structuralContextProperty,structuralContextMaterial,structuralContextEvidence} from './structural-context-mapping.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from '../context-bound-entry.js';
@@ -43,6 +44,7 @@ function responseSnapshot(value,maxBytes){
 // never computes Free/Pro windows, entitlement, refill or financial settlement.
 export class LocalMaintenanceSession {
  #store;#foundation;#provider;#service;#window;#topic;#context;#processing;
+ #localCorrection=null;
  #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;
  constructor(store,{provider=null,service=null,window=null,authority=null,processing=null}={}){
   this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},...(service.filter?{filter:{...service.filter}}:{}),responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
@@ -185,6 +187,20 @@ export class LocalMaintenanceSession {
    if(cleanup.archived){batch=await readMaintenanceBatch(this.#foundation,options);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');}
   }
   if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
+  const localCorrections=await qualifyContextProtectionCorrections(this.#foundation,batch.request.items);
+  if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+  if(localCorrections.size){
+   const coverage=batch.request.coverage.filter(u=>localCorrections.has(u.key)&&['topic','context'].includes(u.facet)),items=batch.request.items.filter(i=>coverage.some(u=>u.key===i.key)),children=[];
+   for(let at=0;at<coverage.length;at+=50)children.push(coverage.slice(at,at+50));
+   if(coverage.length){const request={...batch.request,items,coverage,children},job=await this.#foundation.plan(request);
+    if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+    const owner={job,request,captured:localCorrections,generation,signal};this.#localCorrection=owner;
+    try{if(job.id!==null)await this.#foundation.resolveLocalSubset(job.id,{units:coverage});}finally{if(this.#localCorrection===owner)this.#localCorrection=null;}
+    if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
+    const complete=coverage.length===batch.request.coverage.length&&batch.complete===true,remainingWork=!complete||(batch.blockedUnits??0)>0,progress={localResolvedUnits:coverage.length,remainingWork,blockedUnits:batch.blockedUnits??0,deferredUnits:0},state=remainingWork?'PARTIAL':'COMMITTED';
+    const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:coverage.length===batch.request.coverage.length?batch.nextCursor:options.cursor??null,complete,...progress}));this.#passive.set(handle,{generation,state,...progress});return handle;
+   }
+  }
   if(!this.#service?.responseAdapter||!this.#provider||typeof this.#window?.acquire!=='function'||typeof this.#window?.isCurrent!=='function')fail('UNAVAILABLE');
   const descriptor=localProviderDescriptor(this.#provider);
   let entryMapping=await this.#entryMapping(batch.request),placementMapping=await this.#placementMapping(batch.request),authoredMapping=await this.#authoredMapping(batch.request),boundMapping=await this.#boundMapping(batch.request),structuralMapping=await this.#structuralMapping(batch.request);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
@@ -418,6 +434,14 @@ export class LocalMaintenanceSession {
   if(a.following){for(const [key,value]of a.following.placements)a.state.placementMapping.set(key,value);for(const [key,value]of a.following.authored)a.state.authoredMapping.set(key,value);for(const [key,value]of a.following.bound)a.state.boundMapping.set(key,value);for(const [key,value]of a.following.structures)a.state.structuralMapping.set(key,value);a.state.followingReady=true;}return a.result;
  }
  async #commit(t,r,facet){
+  const local=this.#localCorrection;
+  if(local){
+   const current=()=>local.generation===this.#generation&&!local.signal.aborted;
+   if(!current()||r.logicalJobId!==local.job.id||r.outcome!=='NO_CHANGE'||!['topic','context'].includes(facet)||r.units.some(u=>u.facet!==facet||!local.request.coverage.some(v=>equal(u,v))))fail('STALE_BASE');
+   const abort=()=>{try{t.tx.abort();}catch{}};local.signal.addEventListener('abort',abort,{once:true});const cleanup=()=>local.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
+   await assertContextProtectionCorrections(this.#store,t,local.request.items,local.captured);
+   return {committed:true,coverage:r.units,isCurrent:current,fenceAfterSettlement:async transaction=>{await this.#foundation.current(transaction,await this.#foundation.job(transaction,local.job.id));await assertContextProtectionCorrections(this.#store,transaction,local.request.items,local.captured);return current();}};
+  }
   const a=this.#active;this.#processingCurrent(a?.state,a?.state.processing.get(a.childId));
   if(a?.facet!==facet||typeof a.callback!=='function'||a.entered||r.logicalJobId!==a.state.job.id||r.childOperationId!==a.childId||r.outcome!==a.outcome||!equal(r.units,a.units))fail('STALE_BASE');
   // Revalidate the mapped Entry inside the same original transaction as
@@ -500,7 +524,7 @@ export class LocalMaintenanceSession {
  }
  async #defer(state,childId,facet,units,retryCondition){await this.#foundation.commitFacet(state.job.id,childId,{facet,units,outcome:'DEFER',retryCondition});this.#current(state);return {facet,units:units.length,state:'DEFERRED'};}
  run(handle){
-  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:null,...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits}:{}),...(passive.pendingAuthoredUnits?{pendingAuthoredUnits:passive.pendingAuthoredUnits}:{}),...(passive.pendingBoundUnits?{pendingBoundUnits:passive.pendingBoundUnits}:{}),...(passive.pendingStructuralUnits?{pendingStructuralUnits:passive.pendingStructuralUnits}:{}),...(passive.processedState?{processedState:passive.processedState}:{})}));
+  const passive=this.#passive.get(handle);if(passive)return Promise.resolve(passive.generation!==this.#generation?outcome('UNAVAILABLE'):outcome(passive.state,{jobId:passive.localResolvedUnits?handle.jobId:null,...(passive.localResolvedUnits?{localResolvedUnits:passive.localResolvedUnits}:{}),...(handle.reason?{reason:handle.reason}:{}),nextCursor:handle.nextCursor,complete:handle.complete,deferredUnits:passive.deferredUnits,blockedUnits:passive.blockedUnits,remainingWork:passive.remainingWork,...(passive.pendingPlacementUnits?{pendingPlacementUnits:passive.pendingPlacementUnits}:{}),...(passive.pendingAuthoredUnits?{pendingAuthoredUnits:passive.pendingAuthoredUnits}:{}),...(passive.pendingBoundUnits?{pendingBoundUnits:passive.pendingBoundUnits}:{}),...(passive.pendingStructuralUnits?{pendingStructuralUnits:passive.pendingStructuralUnits}:{}),...(passive.processedState?{processedState:passive.processedState}:{})}));
   const state=this.#handles.get(handle);if(!state)return Promise.resolve(outcome('UNAVAILABLE'));
   if(state.completed)return Promise.resolve(state.generation===this.#generation?this.#settled(state):outcome('UNAVAILABLE',{jobId:state.job.id,facets:[]}));
   try{this.#current(state);}catch(e){return Promise.resolve(outcome(safeError(e)));}

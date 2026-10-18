@@ -342,6 +342,25 @@ export class AIUsageFoundation {
    return this.applyFacet(t,job,index,{facet,units:validated,outcome:'NO_CHANGE',local:true});
   });
  }
+ // Multiple checked local facets publish together. The constructor-owned
+ // committers still prove each exact subset; no provider result is synthesized.
+ async resolveLocalSubset(id,{units}={}){
+  units=structuredClone(units);
+  return this.write(async t=>{const job=await this.job(t,id);if(job.kind!==KIND||job.type!=='AI_MAINTENANCE')fail();await this.current(t,job);const validated=validateCoverage(units,job.type);
+   if(validated.some(u=>!job.coverage.some(v=>equal(u,v))))fail();
+   const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);if(terminal.has(job.state))fail('CANCELLED');
+   for(let index=0;index<job.childIds.length;index++){
+    const selected=remaining.filter(u=>job.childCoverage[index].some(v=>equal(u,v)));if(!selected.length)continue;
+    const childId=job.childIds[index],prior=await t.get('organizerUsage',receiptId(childId));if(await t.get('meta',dispatchFenceId(childId))||prior&&(prior.executionKind!=='local'||prior.attemptCount!==0||prior.state!=='PLANNED'))fail();
+    if(!prior)await t.put('organizerUsage',{id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:'local-no-cost',executionKind:'local',sequence:index,state:'PLANNED',stateKey:0,windowIds:[],attemptCount:0,spendState:'NO_PROVIDER_COST',effectiveResultCount:0});
+    for(const facet of [...new Set(selected.map(u=>u.facet))])await this.applyFacet(t,job,index,{facet,units:selected.filter(u=>u.facet===facet),outcome:'NO_CHANGE',local:true,requireFinalFence:true});
+   }
+   // The last applyFacet already ran current authority followed by the
+   // required exact owner snapshot and synchronous owner fence. No additional
+   // authority await may reopen that final publication boundary.
+   return safeJob(job);
+  });
+ }
  async commitFacet(id,childId,{facet,units,outcome='COMMITTED',retryCondition=null}={}){
   units=structuredClone(units);
   if(!['COMMITTED','NO_CHANGE','DEFER'].includes(outcome)||retryCondition!==null&&!opaque(retryCondition))fail();
@@ -400,7 +419,7 @@ export class AIUsageFoundation {
    return safeJob(job);
   });
  }
- async applyFacet(t,job,index,{facet,units,outcome,retryCondition=null,local=false}){
+ async applyFacet(t,job,index,{facet,units,outcome,retryCondition=null,local=false,requireFinalFence=false}){
    if(atomicJob(job)||isPrivateResultJob(job))fail('INVALID_REQUEST');
    const receipt=await t.get('organizerUsage',receiptId(job.childIds[index])),childId=job.childIds[index],id=job.id;
    const validated=validateCoverage(units,job.type),permitted=new Set(job.childCoverage[index].map(unitKey));if(validated.some(u=>u.facet!==facet||!permitted.has(unitKey(u))))fail();
@@ -409,6 +428,7 @@ export class AIUsageFoundation {
    const commit=this.committers[facet];if(typeof commit!=='function')fail('UNAVAILABLE');
    const result=await commit(t,Object.freeze({...(job.organizeStyle?{organizeStyle:structuredClone(job.organizeStyle),organizeSemanticKey:job.organizeSemanticKey}:{}),logicalJobId:id,childOperationId:childId,units:structuredClone(remaining),outcome}));
    if(result?.committed!==true||!equal((result.coverage||[]).map(unitKey).sort(),remaining.map(unitKey).sort()))fail('STALE_BASE');
+   if(requireFinalFence&&(typeof result.fenceAfterSettlement!=='function'||typeof result.isCurrent!=='function'))fail('STALE_BASE');
    if(job.organizeStyle||job.assistIntent)await this.current(t,job);
    // Optional private owner fence. It is supplied only by a trusted committer,
    // never a request/provider DTO; promises and nonfunctions fail closed.
