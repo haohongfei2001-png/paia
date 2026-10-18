@@ -1,7 +1,8 @@
-import {applyConfirmedPromotion} from './topic-promotion-commit.js';
-import {fail,keys,idOK,revisionOK,same,keyedHash} from './thought-model.js';
+import {applyConfirmedPromotion,promotionEntryFacts} from './topic-promotion-commit.js';
+import {fail,keys,idOK,revisionOK,same,keyedHash,prefix} from './thought-model.js';
 import {hashText} from './dedupe.js';
 import {TopicIdentityRetrieval} from './topic-retrieval.js';
+import {assertPromotionPathRemovalAllowed} from './topic-promotion-access.js';
 import {publicTopicAuthority} from './topic-processing.js';
 import {readFormationEvidence,formationEntryDescriptor,readableFormationSection,validateFormationSources} from './topic-formation-evidence.js';
 import {PromotionSelection,PROMOTION_PAGE_SIZE} from './topic-promotion-selection.js';
@@ -49,7 +50,27 @@ export class SectionPromotionService {
    placements.push(placement);organizations.push({entryId,...promotionOrganization(entry)});
   }
   placements.sort((a,b)=>a.rank<b.rank?-1:a.rank>b.rank?1:a.entryId<b.entryId?-1:a.entryId>b.entryId?1:0);
-  return {topic,section,evidence,placements,organizations};
+  const snapshot={topic,section,evidence,placements,organizations};snapshot.entryFacts=await this.pinEntryFacts(t,snapshot);return snapshot;
+ }
+ async pinEntryFacts(t,snapshot){
+  const facts=[];let bytes=0;for(const p of snapshot.placements){const row=promotionEntryFacts(await t.get('thoughts',p.entryId));bytes+=new TextEncoder().encode(JSON.stringify(row)).length;if(bytes>8*1024*1024)fail();facts.push(structuredClone(row));}return facts;
+ }
+ // Compare the original sent evidence, including every whole-Section page.
+ // Only this owner's selected Entry organization/revision increments are allowed
+ // after promotion; body, direct lineage and Input/Source semantics never refresh.
+ async checkSentEvidence(t,{prepared,snapshot,selectionState},selectedIds=[]){
+  const selected=new Set(selectedIds);if(!selected.size&&snapshot.entryFacts)for(const row of snapshot.entryFacts)if(!same(row,promotionEntryFacts(await t.get('thoughts',row.id))))fail();const guards=selectionState?.guards||[prepared],byInput=new Map(guards.flatMap(g=>g.evidence).map(e=>[e.inputId,e]));
+  for(const guard of guards)await this.retrieval.guard.check(t,guard);
+  for(const page of selectionState?.pages||[{evidence:snapshot.evidence,authored:[]}]){
+   const evidence=page.evidence,p={...prepared,evidence:evidence.inputs.map(i=>byInput.get(i.id))};
+   if(p.evidence.some(e=>!e))fail();
+   const current=await readFormationEvidence(this.store,t,p,evidence.entries.map(e=>e.id)),expected=structuredClone(evidence);
+   for(const e of expected.entries)if(selected.has(e.id)){e.revision++;e.organizationRevision++;}
+   if(!same(current,expected))fail();
+   for(const e of page.authored||[]){const row=await this.store.readableEntry(t,e.id);
+    if(row.lifecycle!=='active'||row.origin!=='user'||row.provenanceType!=='user_created'||row.bodyBinding!=='thought'||row.sourceRecordIds?.length||row.inputRefs?.length||await t.count('dependencies','byTarget',prefix(['entry',e.id]))||await t.count('provenance','byOwner',prefix(['entry',e.id]))||row.thoughtText!==e.body||row.contentRevision!==e.contentRevision||row.revision!==e.revision+(selected.has(e.id)?1:0)||row.organizationRevision!==e.organizationRevision+(selected.has(e.id)?1:0))fail();
+   }
+  }
  }
  async prepare(request,{signal=null}={}){
   this.validateRequest(request);if(!this.#decision||!this.#parameters)fail();active(signal);request=structuredClone(request);
@@ -58,7 +79,7 @@ export class SectionPromotionService {
   do{active(signal);last=await this.retrieval.page({scope:lookupScope,cursor});for(const item of last.items)(item.kind==='identity'?identities:constraints).push(item);cursor=last.nextCursor;}while(cursor);
   const prepared=await this.retrieval.prepareCoverage({scope:lookupScope,coverage:last.coverage}),identityIds=unique(identities.flatMap(row=>[row.id,row.canonicalId]));
   const authoredSelection=!large&&await this.read(prepared,async t=>{await this.authorize(t,prepared,[request.topicId]);for(const id of request.entryIds)if(!await t.count('dependencies','byTarget',IDBKeyRange.bound(['entry',id],['entry',id,[]],false,true)))return true;return false;});
-  const selectionState=large||authoredSelection?await this.selection.collect(request,prepared):null,snapshot=selectionState?.snapshot||await this.read(prepared,t=>this.snapshot(t,prepared,request));await validateFormationSources(snapshot.evidence);
+  const selectionState=large||authoredSelection?await this.selection.collect(request,prepared):null,snapshot=selectionState?.snapshot||await this.read(prepared,t=>this.snapshot(t,prepared,request));if(selectionState)snapshot.entryFacts=await this.read(prepared,t=>this.pinEntryFacts(t,snapshot));await validateFormationSources(snapshot.evidence);
   if(selectionState)await this.read(prepared,t=>this.selection.check(t,selectionState,identityIds));
   const reader=selectionState?this.selection.reader(selectionState,signal,identityIds):null;
   const view=freeze(structuredClone({version:1,selection:request.selection,...(selectionState?{manifest:{count:snapshot.placements.length,pageCount:selectionState.pages.length,digest:snapshot.selection.manifestDigest}}:{}),section:descriptor(snapshot.section),inputs:snapshot.evidence.inputs.map(({sourceIds,...input})=>input),entries:snapshot.evidence.entries.map(entry=>formationEntryDescriptor(entry,snapshot.evidence.inputs)),identities,constraints,parameters:this.#parameters}));
@@ -69,7 +90,7 @@ export class SectionPromotionService {
   const nameToken=await keyedHash(prepared.authority.secret,['personal-topic-name-v1',plan.name.normalize('NFKC').toLocaleLowerCase().trim()]);
   const proof=await this.retrieval.constraintProof(prepared,{nameTokens:[nameToken],relatedTopicIds:[request.topicId]});if(proof.blocked)fail();
   const snapshotDigest=await hashText(JSON.stringify(snapshot));
-  await this.read(prepared,async t=>{await this.authorize(t,prepared,identityIds);if(selectionState)await this.selection.check(t,selectionState,identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,request)))fail();active(signal);});
+  await this.read(prepared,async t=>{await this.authorize(t,prepared,identityIds);if(selectionState)await this.selection.check(t,selectionState,identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,request)))fail();await this.checkSentEvidence(t,{prepared,snapshot,selectionState});active(signal);});
   const handle=freeze({version:1,name:plan.name,sourceTopicId:request.topicId,sourceSectionId:request.sectionId,selection:request.selection,entryIds:plan.entryIds,requestedCount:request.entryIds?.length??snapshot.placements.length,selectedCount:plan.entryIds.length,wholeSection:request.selection==='whole_section',reason:plan.reason,checks:plan.checks,lineage:plan.lineage});
   this.#plans.set(handle,{request,prepared,snapshot,snapshotDigest,identityIds,plan,nameToken,proof,signal,selectionState,cancelled:false});return handle;
  }
@@ -82,7 +103,7 @@ export class SectionPromotionService {
   const signature=await keyedHash(prepared.authority.secret,['confirmed-section-promotion-v1',confirmed]),id=workId(request.operationId);
   return this.store.foundationWrite(async t=>{
    await this.retrieval.guard.check(t,prepared);await this.authorize(t,prepared,identityIds);
-   if(!await this.retrieval.checkConstraintProof(t,prepared,proof)||state.cancelled)fail();if(state.selectionState)await this.selection.check(t,state.selectionState,identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,request)))fail();active(state.signal);
+   if(!await this.retrieval.checkConstraintProof(t,prepared,proof)||state.cancelled)fail();if(state.selectionState)await this.selection.check(t,state.selectionState,identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,request)))fail();await this.checkSentEvidence(t,{prepared,snapshot,selectionState:state.selectionState});active(state.signal);
    const prior=await t.get(TABLE,id);if(prior){this.validateWork(prior);if(!same(prior.confirmed,confirmed)||prior.signature!==signature)fail();return {workId:id,state:prior.state,revision:prior.revision};}
    if(await t.get('operationReceipts',request.operationId))fail();
    await t.put(TABLE,{id,kind:'personal_topic_promotion',version:1,state:'confirmed',stateKey:1,revision:0,offset:0,confirmed,signature,sourceRecordIds:confirmed.sourceRecordIds,inputIds:confirmed.inputIds});
@@ -102,13 +123,13 @@ export class SectionPromotionService {
   if(!same(c.authority,publicTopicAuthority(prepared.authority))||c.expiresAt<=Date.parse(this.store.clock())||row.signature!==await keyedHash(prepared.authority.secret,['confirmed-section-promotion-v1',c]))fail();
   const large=c.manifestSelection,selectionState=large?await this.selection.collect(c.request,prepared):null;
   const snapshot=selectionState?.snapshot||await this.read(prepared,async t=>{await this.authorize(t,prepared,c.identityIds);if(!await this.retrieval.checkConstraintProof(t,prepared,c.proof))fail();return this.snapshot(t,prepared,c.request);});
-  if(await hashText(JSON.stringify(snapshot))!==c.snapshotDigest)fail();
+  if(selectionState)snapshot.entryFacts=await this.read(prepared,t=>this.pinEntryFacts(t,snapshot));if(await hashText(JSON.stringify(snapshot))!==c.snapshotDigest)fail();
   return {row,prepared,snapshot,selectionState};
  }
  async check(t,{row,prepared,snapshot,selectionState}){
   await this.retrieval.guard.check(t,prepared);await this.authorize(t,prepared,row.confirmed.identityIds);
   if(!same(row,await t.get(TABLE,row.id))||row.confirmed.expiresAt<=Date.parse(this.store.clock()))fail();
-  if(selectionState)await this.selection.check(t,selectionState,row.confirmed.identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,row.confirmed.request)))fail();
+  if(selectionState)await this.selection.check(t,selectionState,row.confirmed.identityIds);else if(!same(snapshot,await this.snapshot(t,prepared,row.confirmed.request)))fail();await this.checkSentEvidence(t,{prepared,snapshot,selectionState});
  }
  async stage(id,{limit=PROMOTION_LIMITS.batch}={}){
   if(!Number.isSafeInteger(limit)||limit<1||limit>PROMOTION_LIMITS.batch)fail();const state=await this.resume(id),{row,snapshot}=state,c=row.confirmed;
@@ -141,7 +162,7 @@ export class SectionPromotionService {
     const staged=await t.get(TABLE,itemId(id,i)),entryId=c.plan.entryIds[i];
     if(!staged||staged.kind!=='personal_topic_promotion_placement'||staged.parentId!==id||staged.index!==i||staged.entryId!==entryId||!same(staged.placement,placements.get(entryId))||!same(staged.organization,organizations.get(entryId)))fail();
    }
-   return applyConfirmedPromotion(this.store,t,{snapshot,confirmed:c,request,digest,id,itemId,origin:'ai',authorizeTarget:async topicId=>{for(const guard of state.selectionState?.guards||[prepared])await this.authorize(t,guard,[topicId]);}});
+   return applyConfirmedPromotion(this.store,t,{snapshot,confirmed:c,request,digest,id,itemId,origin:'ai',finalFence:async targetId=>{await this.checkSentEvidence(t,state,c.plan.entryIds);if(!await this.retrieval.checkConstraintProof(t,prepared,c.proof))fail();await assertPromotionPathRemovalAllowed(t,snapshot.topic.id,[snapshot.section.sectionId]);for(const guard of state.selectionState?.guards||[prepared])await this.authorize(t,guard,unique([...c.identityIds,snapshot.topic.id,targetId]));if(c.expiresAt<=Date.parse(this.store.clock()))fail();},authorizeTarget:async topicId=>{for(const guard of state.selectionState?.guards||[prepared])await this.authorize(t,guard,[topicId]);}});
   });
  }
  async result(operationId){
