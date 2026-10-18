@@ -1,34 +1,36 @@
-# Floating input — selected final double-card reference
+# Floating input — approved R3 source and visual reference
 
-**PAIA-FLOAT-UI-1.2 / OWNER_APPROVED / 2026-10-18.** The only current visual target is the **last** `PAIA_三态悬浮入口_最终精修.png` selected in the owner conversation. The instruction was “把这一版写进 github，修改开发计划”. Read [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md) and [PLAN](NARROW_INPUT_BOARD_V4_PLAN.md).
+**PAIA-FLOAT-UI-1.3 / R3 / OWNER_APPROVED / 2026-10-18.** The owner accepted the delivered R3 with “可以，把这一版写进 github，修改开发计划”. Current choice: one shared skin, original quarter-circle as the board control corner, existing tools relocated to the bottom, no hover hints. The old source ID `PAIA-FLOAT-UI-1.2-R3` is preserved; canonical1.3 adopts the same bytes.
 
-## 1. Checked-in component reference
+![Approved R3 component overview — downscaled preview, not native-size verification](design/narrow-input-board-v4/adopted-r3-2026-10-18/three-states-light-preview.webp)
 
-![Approved final PAIA collapsed circle, recommendation capsule and expanded board](PAIA_FLOAT_UI_1_2_APPROVED_COMPONENTS.webp)
+## Exact checked-in source
 
-The repository image is a faithful **cropped, downsampled, lossy WebP derivative** of the selected final PNG, not a new drawing and not the original PNG bytes. It preserves all three controls, the complete six-row board, their composer relationship and state captions. The irrelevant upper host page is omitted. Exact derivation and both file identities are recorded in [the manifest](PAIA_FLOAT_UI_1_2_REFERENCE_MANIFEST.json).
+The full30-file [R3 source directory](design/narrow-input-board-v4/fusion-r3-2026-10-18/README.md) is incorporated byte-for-byte from PR299 commit `b807ebfb814bbcdbf3997039fd5c949d0fe1eff9`, subtree **`62dd8636f3325ed0a699d0d79983827fc37f9cda`**. It contains HTML/CSS/JS sources, nine SVGs, tokens, inheritance/review/integration records and reproducible checks. No rejected design replaces those files.
 
-| Identity | Value |
+- [Interactive entry](design/narrow-input-board-v4/fusion-r3-2026-10-18/index.html) with adjacent sources; [build.py](design/narrow-input-board-v4/fusion-r3-2026-10-18/build.py) generates the self-contained HTML without external dependencies.
+- [R3 tokens](design/narrow-input-board-v4/fusion-r3-2026-10-18/tokens.json), [fusion CSS](design/narrow-input-board-v4/fusion-r3-2026-10-18/fusion.css), [fusion layout](design/narrow-input-board-v4/fusion-r3-2026-10-18/fusion.js), [board skin](design/narrow-input-board-v4/fusion-r3-2026-10-18/assets/skin-board.svg) and exact card SVGs under assets govern appearance.
+- [Original evidence manifest](design/narrow-input-board-v4/fusion-r3-2026-10-18/evidence/manifest.json), [prototype verification summary](design/narrow-input-board-v4/fusion-r3-2026-10-18/evidence/verification-summary.json) and [design decision](design/narrow-input-board-v4/fusion-r3-2026-10-18/REVIEW.md) retain their original evidence scope.
+
+Frozen source README/token text saying independent, unmerged or not-canonical records the pre-approval delivery, not a competing present authority. This document and ADOPTION record its subsequent approval. Only R1 glyph/palette and other explicitly nonconflicting roles in tokens-r1 are inherited; old neck/board/tooltip values are not current tokens.
+
+## Artifact identity and publication boundaries
+
+[Adoption manifest](design/narrow-input-board-v4/adopted-r3-2026-10-18/manifest.json) records the source integrity check, deterministic rebuild and thumbnail derivation. All18 artifacts listed in the original source manifest were checked against the delivered ZIP's byte lengths and SHA256 values during adoption. The30 source files independently reproduced the selected Git subtree.
+
+| Original delivered artifact | SHA256 |
 |---|---|
-| Selected original | `PAIA_三态悬浮入口_最终精修.png`,3072×2048,1454460bytes |
-| Original SHA-256 | `dec1e0d19d373a0a6ae4219514bf9dc183f5ebe84773c8b7512f5ff96aa69c0e` |
-| Checked-in derivative | `PAIA_FLOAT_UI_1_2_APPROVED_COMPONENTS.webp`,1536×520,21154bytes |
-| Derivative SHA-256 | `fd0c56cba50817374fba40a60c1b24e9e5de72312d7e5daf9ac999ab41799293` |
-| Derivative Git blob | `ab05f04b049e4f148070577a21010bdc68dc71cb` |
-| Transformation | RGB; source crop left0/top900/right3072/bottom1940, right/bottom exclusive; LANCZOS resize1536×520; WebP quality75/method6 |
+| Self-contained HTML,59718 bytes | `fd8c886ad8e106b30adf096fe8cc3ec0357c493e207c5ec339239e9b2f949c22` |
+| Light three-state PNG,1440×999 | `1acc39593b89426b2cdd801d643c6c9b6d5410d5a6182bb0e8522c72d0e62cdc` |
+| Dark three-state PNG,1440×999 | `878e11b97ac2b5836024f6235b0cc1920f3642eeb8b84c2d9b6961361e0ba42f` |
+| Fused-corner PNG,582×384 | `4463d0936adfa1a2f684ad7799d85ff8f4cc436709967b69bba2d704a353854e` |
 
-The original PNG remains the approved source, identified by its hash; this adoption does **not** claim that its full bytes are stored in GitHub. Do not relabel a resized/cropped file as the original. Small border/material details lost by compression are interpreted with the owner's explicit double-card constraints, not invented as exact design tokens. SPEC's CSS starting values are implementation calibration, not falsely measured source parameters.
+The original generated HTML/PNGs/full reports remain identified conversation deliverables and reproducible outputs, **not falsely claimed stored as full binary originals in this repository**. The new checked-in light preview is a crop(0,400,1440,850), RGB, LANCZOS resize720×225, WebP quality78/method6;4444 bytes, SHA256 `7795e1ad48a3a696711535a89d08da23d86e2f2b791535e3d2ab6bf9c2e711a2`, blob `bf3f7f01948244a9dab9ca6af401a909f039ace5`. It is lossy/downscaled and serves navigation, not tiny-material or actual-size acceptance.
 
-## 2. Selected and superseded
+## Selected, historical and private scope
 
-Selected: fixed persistent white circular control; two equal horizontal, front-facing translucent gray-blue/slightly lavender cards; fixed foreground; high-overlap horizontal default; larger left-only offset in capsule; tiny upper-left offset in board; preserved capsule neck; refined lower-right board/circle junction. The circle's position and size are shared across states. Keep the approved quiet six-expression presentation and unchanged host context.
+Selected: R3's complete shared corner and useful bottom toolbar, unchanged double cards/unified capsule, light/dark roles and no extra hints. Rejected A/C geometries, R2's separation, R1's neck, old B and earlier posters are history. They are not appearance options; do not reinterpret comparison-render scripts as a product theme picker.
 
-Not selected: B「句瓣」 solid quote/petal mark; diagonal or portrait double cards; the older glass-poster/lens/smoke explorations; intermediate generated showcase boards with colored row icons, arrows, technical insets, altered host composition or different button positions. Do not blend these into the final reference. No global PAIA rebrand or host redesign is authorized.
+The entire former references document remains byte-identical in [PRE_R3](NARROW_INPUT_BOARD_V4_REFERENCES_PRE_R3_2026-10-18.md), blob `b1cf021d8f3c9a4fc25ed83f0a82de6987b86ec0`, with its original image/hash and older history. It no longer controls the current shell pairing or toolbar position.
 
-The complete preceding reference document is preserved byte-for-byte in [PRE_DOUBLE_CARD](NARROW_INPUT_BOARD_V4_REFERENCES_PRE_DOUBLE_CARD_2026-10-18.md), blob `56c3236f7cb08bc140a84e4f5f2a30e90d33192e`. Its original B prototype, SVGs, JSON, nine screenshots, hashes and earlier PRE_JUBAN/PRE_FIXED links remain historical evidence. Those exact B assets no longer control the new entry appearance or pairing. Their nonconflicting functional/domain evidence remains under ADOPTION's finite ledger.
-
-## 3. Production and privacy boundary
-
-This is a selected synthetic visual mockup, not a screenshot of an installed extension, a current authenticated ChatGPT session or a validated browser interaction. Its English expressions are sample text, not a dataset or a required production ranking. Reuse current real candidate, layout, private-frame, target and insertion owners. Do not copy host DOM, model/sidebar labels, mock data, global styling, sample controls or prototype textarea writers into production.
-
-The checked-in crop contains only the necessary synthetic design surface; no private Drive document, real archive, account/profile, credentials, cookies or session material is published. Native-size light/dark fidelity, accessibility, actual insertion/privacy/undo, cold/warm latency, physical120Hz, sustained comfort and installation require their own evidence. The selected source is light mode only; dark adaptations are not already approved dark reference renders.
+All published material is synthetic design context. No private Drive document, user archive, credentials, cookies, identifying conversation or actual account screenshot is added. The demonstration ChatGPT-like host is not a current-host specification. Do not copy host CSS/DOM, fixture ranking/data or textarea writes into production. Offline prototype checks, including the explicitly blocked direct-file probe, do not certify installed extension, real receiver/undo/privacy, physical120Hz, actual latency, OS IME/screen reader, provider quality or sustained comfort.

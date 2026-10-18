@@ -210,3 +210,11 @@ test('source build check resolves full monorepo and rejects a standalone api/ser
  const detached=spawnSync(process.execPath,[join(target,'check-deployment-source.mjs')],{env:{},encoding:'utf8'});
  assert.notEqual(detached.status,0);assert.match(detached.stderr,/ERR_MODULE_NOT_FOUND/);
 });
+
+test('shared lifecycle retains original reserve/cancel entry and expired-grant hold semantics',async t=>{
+ const h=harness(t),bundle=h.p.admit(request('lifecycle-parity'));
+ assert.equal((await h.gateway.fetch(http(bundle))).status,200);
+ const body=JSON.stringify({action:'cancel',...bundle});
+ const before=h.p.saved();h.p.setClock(h.f.now+60000);
+ const response=await h.gateway.fetch(http(bundle,{body}));assert.equal(response.status,503);noAuthority(await response.json());assert.deepEqual(h.p.saved(),before);assert.equal(h.p.saved().rows[0].state,'RESERVED');
+});

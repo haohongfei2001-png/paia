@@ -154,7 +154,7 @@ function securityState(value, config, now, principal, entitlement) {
 export function createSignedIdentityVerifier({config, clock, readSecurityState} = {}) {
   let trust=null, lastNow=-1;
   try {trust=compile(config);} catch {/* Unconfigured factories stay closed. */}
-  return Object.freeze({verify(bundle) {
+  const verify = (bundle, includeValidity) => {
     try {
       if (!trust || typeof clock !== 'function' || typeof readSecurityState !== 'function') reject('IDENTITY_UNCONFIGURED');
       exactData(bundle,['request','principalToken','entitlementToken']);
@@ -167,10 +167,20 @@ export function createSignedIdentityVerifier({config, clock, readSecurityState} 
       // or an async fetch whose result is called current after an await.
       const state=requireSynchronous(readSecurityState(Object.freeze({principalId:request.principalId,libraryId:request.libraryId})));
       securityState(state,trust,now,principal,entitlement);
-      return Object.freeze({principalId:request.principalId,libraryId:request.libraryId,operationId:request.operationId,jobType:request.jobType,tier:entitlement.claims.tier,principalGeneration:principal.claims.generation,entitlementGeneration:entitlement.claims.generation});
+      const identity={principalId:request.principalId,libraryId:request.libraryId,operationId:request.operationId,jobType:request.jobType,tier:entitlement.claims.tier,principalGeneration:principal.claims.generation,entitlementGeneration:entitlement.claims.generation};
+      // Only authenticated claims, pinned verified keys and the checked current
+      // security snapshot contribute to this exclusive millisecond bound. Never
+      // decode an unverified token expiry as publication authority.
+      if (includeValidity) identity.verifiedUntil=Math.min(Number.MAX_SAFE_INTEGER,1000*Math.min(
+        principal.claims.exp,entitlement.claims.exp,
+        trust.principal.keys.get(principal.kid).notAfter,trust.entitlement.keys.get(entitlement.kid).notAfter,
+        state.expiresAt,state.observedAt+trust.maxSecurityStateAgeSeconds));
+      return Object.freeze(identity);
     } catch (error) {
       if (error instanceof IdentityVerificationError) throw error;
       reject(); // Never include token, claims, parser or upstream error details.
     }
-  }});
+  };
+  // Preserve the established verify() result shape for all existing consumers.
+  return Object.freeze({verify:bundle=>verify(bundle,false),verifyValidity:bundle=>verify(bundle,true)});
 }

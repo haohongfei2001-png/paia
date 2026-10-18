@@ -1,61 +1,50 @@
-# Narrow Input Board — existing plan with final double-card visual delta
+# Narrow Input Board — execute the approved R3 fusion delta
 
-**PAIA-FLOAT-UI-1.2 / OWNER_APPROVED / PLAN_UPDATED / 2026-10-18.** The owner selected the last `PAIA_三态悬浮入口_最终精修.png` and requested “把这一版写进 github，修改开发计划”. Implement the approved fixed circle and horizontal translucent double cards through the existing Prompt lane. Do not continue B「句瓣」 as the current visual target.
+**PAIA-FLOAT-UI-1.3 / R3 / OWNER_APPROVED / PLAN_UPDATED / 2026-10-18.** The owner approved the delivered R3 and requested GitHub/plan adoption. **The next scoped Prompt presentation outcome is the R3 shared surface, fused control corner, bottom tools and no hover hints.** Do not implement another connection study or continue B/R1/R2 as current fidelity targets.
 
-Current [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md) govern. The entire preceding PLAN is preserved byte-for-byte in [PRE_DOUBLE_CARD](NARROW_INPUT_BOARD_V4_PLAN_PRE_DOUBLE_CARD_2026-10-18.md), blob `5a5b3a698aff7a251b47648761aa87ee87df05cf`. All nonconflicting tasks, module owners, dependency gates, complete manual work, verification and earlier history remain incorporated.
+Read current [SPEC](NARROW_INPUT_BOARD_V4_SPEC.md), [ADOPTION](NARROW_INPUT_BOARD_V4_ADOPTION.md), [REFERENCES](NARROW_INPUT_BOARD_V4_REFERENCES.md), [ACCEPTANCE](NARROW_INPUT_BOARD_V4_ACCEPTANCE.md) and [INTEGRATION](NARROW_INPUT_BOARD_V4_INTEGRATION.md). The complete preceding PLAN is retained byte-for-byte in [PRE_R3](NARROW_INPUT_BOARD_V4_PLAN_PRE_R3_2026-10-18.md), blob `9d7e8e8d7288aaec18b57d0855d5fb5ed1213132`; all nonconflicting tasks, ownership, dependencies, manual-work and evidence requirements remain incorporated.
 
-## 0. Keep the programme and actual progress
+## 0. Preserve actual progress and one programme
 
-Keep **PAIA-CONSUMER-PRODUCT-v1 / Prompt / CPV1-NIBV4 S0–S4**, the original current STATUS scheduling and one writer per shared boundary. No eighth plan, separate scheduler or repeated design approval. Preserve existing S0/S1/S2/provider-disabled S3 and S4 receipts, later integrations, failed runs and unresolved findings. A new appearance does not reset whole stages to NOT_STARTED or claim an installation.
+Keep **PAIA-CONSUMER-PRODUCT-v1 / Prompt / CPV1-NIBV4 S0–S4**, existing current STATUS scheduling and one writer per shared boundary. This updates the existing Prompt plan, not an eighth plan or independent queue. Completed fixed-anchor, Family/search/insertion/manual/privacy work is KEEP. The new visual approval neither resets whole stages to NOT_STARTED nor claims that R3 is installed.
 
-Existing dependency order remains S0 → S1 → S2 → S4-local. S3 depends on qualified AI-COST/real service and requires its S4-Pro supplement; missing live evidence does not block independent local work. Preserve TOPIC, CTX4, SET2, IAH, AI-COST, saved Now, authored Entry and paused Sync outcomes.
+At adoption, main is `34f5188d52ada449b99ac88fb6451db8dabcea6f`; selected PR299 is `b807ebfb814bbcdbf3997039fd5c949d0fe1eff9`. PR295 was read open at `545aa4a6c2307bdbc4440b1af82b84397679b8bc`. These are dated identities, not future current-head instructions. Re-read main, active PR changes and current owners before runtime work. Preserve authored Entry, saved Now, other seven-lane work, unresolved findings and paused new Sync features.
 
-At the inspected main `6cc5bd682076bd98b64421c69310eca750f7b806`, PR #295 (`codex/authored-juban-integration-20261018`, observed head `6edf1ae00b9691d2eaebbe1a602683b8f37afad8`) already contains a fixed-anchor B implementation alongside authored Entry work. This is a dated observation, not a permanent current-head instruction. Re-read main, STATUS, active PRs and changed paths before implementation. **KEEP correct fixed-anchor/input/privacy work; REPLACE only its old visual target and any incompatible shell geometry.** Do not overwrite the active branch or restart the authored work.
+## 1. One coherent implementation outcome at the existing boundary
 
-## 1. Next bounded Prompt outcome
+Extract the approved R3 presentation through the current Prompt layout/private-frame/UI owners. Inventory existing code as KEEP / REQUIRED_R3_DELTA / ACTUAL_COMPATIBILITY_GAP. Do not require another design approval, rewrite correct foundations or interrupt unrelated development. The following steps are dependency-ordered within one coherent batch, not compulsory separate PRs.
 
-Apply the selected double-card design to the existing implementation at its current owner-controlled integration boundary. This is one coherent visual outcome, not a new concept exploration or a demand for separate PRs per substep. The owner already approved the direction; engineering calibration and actual-size fidelity checking do not require another aesthetic selection round.
+### S0 — shared skin, fused corner and the existing toolbar
 
-Read the checked-in component image and its provenance before editing. Inventory KEEP / VISUAL_DELTA / ACTUAL_COMPATIBILITY_GAP against the existing implementation. Unsupported service or device claims remain separately open. Do not stop other safe work while those external gates are unavailable.
+Use the current `core/prompt-surface-layout.js`, `content/prompt-surface.js` and `ui/prompt-surface.html/css/js` responsibilities; resolve any writer-owned file through its current owner.
 
-## 2. S0 — fixed circle, three card states and joined shells
+1. Keep the exact48×48 interaction rectangle and horizontal double cards. Implement one skin: circle48×48; capsule272×48/radius24; board336×328/radii18/18/24/18. Keep the original right/bottom edges and quarter-arc center. Remove the separate ring, neck, board gap and duplicate border/shadow.
+2. Relocate the existing title/search/more/header to the useful48px bottom row, including DOM/tab order. Preserve six full equal44px rows with7px breathing space above/below and protected right control space. Do not append another footer, keep a duplicate top toolbar, shorten the sixth row or cover editor actions.
+3. Remove custom tooltip DOM/delayed CSS/update logic and native-title hover hints from all ordinary surface states and re-renders. Keep aria names/control state, hover/press/focus, deliberate content and real error/dirty-work handling.
+4. Reuse the original composer-relative safe layout with the new336×328 envelope. Share120/80ms timing and content clipping without moving target/front card; preserve0ms reduced motion. No frame remount, artificial host height, new scheduler or privacy shortcut.
 
-Use the existing `core/prompt-surface-layout.js`, `content/prompt-surface.js`, `ui/prompt-surface.html`, `.css` and `.js` owners; do not add a second layout service, frame, state owner or preference store.
+S0 acceptance uses revised G01–G03, F01–F03/F08/F10/F13/F15–F17 plus retained applicable geometry/lifecycle/private-frame evidence. Compare actual CSS-size light/dark source and built release to the exact R3 component, not an older B visual oracle or the downscaled preview image.
 
-- Replace the B quote/petal mark with exactly two equal horizontal translucent cards inside a persistent circular button. Keep the foreground fixed; rear offsets are horizontal-only in collapsed/capsule and extremely slightly upper-left in board. Fix orientation/count/relative positions in an executable component, not three disconnected bitmap icons. SPEC's nominal48px circle and21×14px cards are calibration starting values, not claimed exact raster measurements.
-- Keep the circle's center, diameter, target rectangle and pointer action identical across states. Preserve composer-relative outside placement, safe gap/inset, composer growth tracking and recovery. Inspect PR #295's existing same-point work first and retain it where correct.
-- Preserve the approved capsule's shape and circle neck. Refine the board's lower-right junction into a small continuous transition, with one coherent edge/shadow treatment and an unobstructed circle. Board unfolds upper-left; the capsule unfolds left. Do not translate the anchor during reveal.
-- Reconcile visible circle, pill, board body and private-frame envelope once at native size. Existing272×44/336×312 geometry is the starting implementation, not the new raster's exact specification. Keep fixed ordinary sizing, six default rows, original interior views and safe overflow; modify only what the approved pairing requires. No host height cap or count-driven board growth.
-- Tune transparency, exposed edges, muted gray-blue/lavender and soft shadows in actual44–50px entry sizes. Keep readable panels and text; do not use decorative blur, bright halo, per-row icons or host recoloring. Preserve dark/forced-color/reduced-transparency/keyboard-focus fallbacks through existing owners.
+### S1 / S2 — retain reuse, search and all manual work
 
-S0 exit: revised G01–G03 and F01–F03/F08/F10/F13, with retained G04–G08, lifecycle/private-frame/source-release coverage. Capture actual-size three-state views at the same composer geometry and demonstrate unchanged toggle bounds before/after expansion. A geometry pass is not a material/fidelity pass.
+No backend or data rewrite is selected. Keep current shared<=150-grapheme eligibility, first-click complete insertion, full-history query then quick projection, later-page/long-only/partial truth, stable IDs/order and exact Back. Preserve create/edit/delete/pin/order/hide/restore/split/representative/retained-expression capabilities, long originals and human intent.
 
-## 3. S1 / S2 — retain correct reuse and manual foundations
+Retest only actual dependencies changed by the bottom-tool relocation, focus order, clipping, hint removal and frame geometry. Retain current target/content/revision/permission checks, IME, selected wording with insertion at selection end, native undo, held-key/double-click suppression, UNKNOWN/no replay, no-send and no default clipboard fallback. Insertion returns composer focus but leaves the board open and order unchanged. Existing Q/U/M and F04–F07/F11/F12 remain mandatory.
 
-No rewrite is selected for already-correct insertion, Family, search or management. Fix only actual integration regressions caused by the visual delta.
+### S4-local — real composition and selected-design fidelity
 
-Preserve shared <=150-grapheme admission/final-use eligibility,150/151 boundary, complete eligible direct insertion without mandatory CHECK_TEXT, full-history query before quick projection, later-page/long-only/partial handling and PAIA continuation. Preserve long originals, human edits, IDs and all manual create/edit/delete/pin/order/hide/show/split/representative/retained-expression capabilities in the same board. Do not substitute a sample array, new store/index/ranking or fake six-item data cap.
+At the existing integration boundary, verify source/release parity on the actual private-frame/layout/receiver composition. Check same-point toggle through every state and during frame resize; all text/toggle/editor target corners; bottom search/Back/tab flow; absence of custom/native tooltips after long hover and re-render; six-row equal widths; growing composer; narrow/short space; enlarged text; dark/forced-color/reduced-motion fallbacks; necessary errors without blocked Save/Cancel; and original no-send/privacy/undo guards.
 
-Preserve the single insertion arbiter, typed current body/receiver/permission validation, caret/prefix/suffix, selected wording with insertion at selection end, IME/dirty work, held-key/double-click suppression, no-send, no default clipboard fallback, UNKNOWN/no replay and actual native undo/readback. Successful insertion returns host focus but leaves the board open and order stable. Circle close returns to the preceding collapsed form.
+Compare actual full-window and native-size screenshots with the R3 source and selected light/dark renders. Separate visual fidelity from geometric assertions. Retain current cold/warm latency and long-tail measurement, physical120Hz and roughly15-minute repeated-use/occlusion review as separately evidenced gates. A prototype pass is not their substitute. Reuse unchanged qualified evidence with its original identity; do not weaken thresholds, timeouts, corpora, privacy or caller checks to obtain green status.
 
-S1/S2 exit retains all nonconflicting Q/U/M cases and F04–F07/F11/F12. Retest the affected control/focus/frame boundaries in the existing coherent batch. Do not rerun or rebuild every completed foundation solely because a visual authority changed.
+Retain original S4 E01–E08 entry-replacement and onboarding/fault/update/permission reachability. No restored retired Popup, new Side Panel, extra carrier or toolbar architecture is introduced by this visual adoption.
 
-## 4. S4-local — integrate appearance and verify real use
+## 2. S3 / S4-Pro remains dependency-gated
 
-Produce the actual source/release component with the same approved proportions, two-card material and pairing. Keep the circle and foreground fixed during motion; reuse restrained existing120ms/80ms timing without copying old whole-carrier translation. Reduced motion removes nonessential movement; clicks never await animation. Preserve local inserted feedback and accessible status without new persistent clutter.
+Keep S0→S1→S2→S4-local and original S3 live-service/AI-COST dependencies. Preserve processing scope, current historical-ID admission, entitlement/budget/provider validation, human protection, revocation and independent Stage3A boundaries. No new model, paid call, credential, capture scope or background cadence is authorized. Missing provider evidence blocks that dependent capability, not independent local presentation work.
 
-Check native-size light/dark/complex-host screenshots; DPR1/2; composer growth; narrow/short viewport; text enlargement; focus/IME; circle/capsule-body/neck target separation; rapid toggle/insert; same-point close; stale target/revision/permission; no-send and source/private-frame isolation. Preserve original necessary independent and native gates at changed boundaries. Do not lower assertions, thresholds, timeouts or coverage to obtain green results.
+## 3. Delivery and completion
 
-Retain cold/warm open and insertion measurements, representative corpus size and truthful failure/long-tail reporting. Warm p95<=50ms remains an optimization target, not an observed result; physical120Hz and actual roughly15-minute repeated-use comfort remain separate human/device evidence. Record occlusion, accidental activation and recognition at normal size, not only an enlarged design board.
+For the implementation batch record current base/head/tree, changed owners, source/release hashes, retained/new/revised checks, failures, actual-size light/dark screenshots, same-point target evidence, no-hint and bottom-tool paths, current latency/host/privacy limitations and installation status. Formal acceptance is against **PAIA-FLOAT-UI-1.3 / R3**, not merely source/release equality on older visuals.
 
-All original S4 entry-replacement E01–E08 requirements remain: keep existing onboarding/fault/update/permission reachability and current toolbar ownership. Do not restore a retired Popup or introduce a new Side Panel/carrier from this image. Retest changed dependencies; reuse unchanged qualified evidence with its original identity.
-
-## 5. S3 / S4-Pro — unchanged dependencies
-
-Retain historical-ID admission, processing scope, entitlement, budget, provider validation, abstention, human protection and revocation gates; apply the same current-body length policy without AI shortening. No new models, paid calls, credentials, broader assistant-content reading or background cadence are authorized. The final image is not a provider or evidence of recommendation usefulness.
-
-## 6. Delivery and honest completion
-
-The implementation receipt must identify actual base/head/tree, changed owners, source/release identities, retained/revised checks, failures and unresolved observations; show normal-size and enlarged three-state evidence with fixed-circle bounds; identify any fallback and actual installation status. Compare against **PAIA-FLOAT-UI-1.2**, not B's old SVG/JSON or an intermediate generated showcase.
-
-For this adoption itself: **DESIGN_APPROVED / PLAN_UPDATED / RUNTIME_FIDELITY_NOT_VERIFIED**. Only canonical documents, exact predecessor archives, index pointer and a reference derivative/manifest change. No runtime task, new production PASS, package version, deployment or whole S0–S4 completion is claimed. Continue ordinary implementation through the current owner under existing authorization rather than repeating approval or creating another plan.
+**This adoption is DESIGN_APPROVED / PLAN_UPDATED / REFERENCE_SOURCE_INTEGRATED. Production R3 implementation and runtime fidelity are not verified by this commit.** No production, package/manifest version, test/CI, website, data, permission, installation or deployment change is performed now. Proceed with the bounded R3 delta through the current owner under the existing implementation authorization; do not reopen aesthetic selection or repeat already-correct stages.

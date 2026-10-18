@@ -14,14 +14,15 @@
   // viewport can constrain its composer-relative target; the body yields first.
   const anchorRight=clamp(form.right-(visibleWidth<=530?0:4),left+diameter,right);
   const orb={x:anchorRight-diameter,y:safeBottom-diameter,w:diameter,h:diameter};
-  const available=Math.max(0,orb.y+24-safeTop),intrinsic=312;
-  const minimum=Number.isFinite(measurement.minimumHeight)?Math.max(88,measurement.minimumHeight):92;
-  const h=Math.min(intrinsic,available),w=Math.min(336,visibleWidth-32,anchorRight-left-36);
-  // The board's lower-right quarter joins the fixed circle. Its content has a
-  // matching 12px right clearance so no expression or action sits under it.
-  const card=w>=88&&h>=minimum?{x:anchorRight-36-w,y:orb.y+24-h,w,h}:null;
-  const capsuleWidth=Math.min(224,orb.x-left),capsule=capsuleWidth>=44?{x:orb.x-capsuleWidth,y:orb.y+2,w:capsuleWidth,h:44}:null;
-  const front={x:15,y:17,w:21,h:14,r:3},mark={front,rear:{...front,dx:open?-5:measurement.form==='capsule'?-4.5:-2,dy:open?-1.5:0}};
+  const available=Math.max(0,orb.y+48-safeTop),intrinsic=328;
+  const minimum=Number.isFinite(measurement.minimumHeight)?Math.max(108,measurement.minimumHeight):108;
+  const h=Math.min(intrinsic,available),w=Math.min(336,visibleWidth-32,anchorRight-left);
+  // R3 shares the anchor's right/bottom edges. Tools reserve its full target;
+  // only the body yields to a genuine space shortage, never the anchor.
+  const card=w>=224&&h>=minimum?{x:anchorRight-w,y:safeBottom-h,w,h}:null;
+  const capsule=anchorRight-left>=272?{x:anchorRight-272,y:orb.y,w:272,h:48}:null;
+  const boardVisible=open&&!!card,capsuleVisible=!open&&measurement.form==='capsule'&&!!capsule;
+  const front={x:14.75,y:17,w:21,h:14,r:3.25},mark={front,rear:{...front,dx:boardVisible?-5.25:capsuleVisible?-5:-2.5,dy:boardVisible?-1.5:0}};
   return {capsule,orb,card,mark,safeTop,safeBottom,available};
  };
 })();
