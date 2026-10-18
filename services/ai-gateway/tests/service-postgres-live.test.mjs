@@ -133,3 +133,33 @@ test('runtime cannot mint authority or provider evidence; unsafe permission chan
  await query(`GRANT UPDATE(enabled) ON paia_ai_private.service_control TO ${role}`);
  try{assert.equal((await service(pool).reserve(b)).reason,'AUTHORITY_UNSAFE_ROLE_OR_SCHEMA');assert.equal(await read(),null);}finally{await query(`REVOKE UPDATE(enabled) ON paia_ai_private.service_control FROM ${role}`);}
 });
+test('real cancellation releases only the old unsent row after content revocation and spending disablement',async()=>{
+ const r=request('cancel-revoked-content'),b=await admit(r),s=service(makePool());await s.reserve(b);const before=structuredClone((await read()).rows[0]);
+ await query('UPDATE paia_ai_private.request_authority SET authorized=false, expires_at_ms=$1',[f.now]);
+ await query('DELETE FROM paia_ai_private.route_authority');
+ await query('UPDATE paia_ai_private.service_control SET enabled=false, day_limit_micros=0, month_limit_micros=0, expires_at_ms=$1',[f.now]);
+ const answer=await s.cancel(b);assert.equal(answer.decision,'cancelled');assert.equal(answer.state,'CANCELLED_BEFORE_DISPATCH');assert.deepEqual((await read()).rows,[{...before,state:'CANCELLED_BEFORE_DISPATCH'}]);
+ assert.equal((await s.reserve(b)).decision,'deny','cancel authority must never establish new spend authority');
+});
+test('real cancellation does not require retaining an expired content declaration row',async()=>{
+ const r=request('cancel-absent-content'),b=await admit(r),s=service(makePool());await s.reserve(b);
+ await query('DELETE FROM paia_ai_private.request_authority');await query('DELETE FROM paia_ai_private.route_authority');
+ assert.equal((await s.cancel(b)).state,'CANCELLED_BEFORE_DISPATCH');assert.equal((await s.cancel(b)).state,'CANCELLED_BEFORE_DISPATCH');assert.equal((await read()).rows.length,1);
+});
+test('principal revocation committed while cancellation waits still blocks the financial change',async()=>{
+ const r=request('cancel-revoked-principal'),b=await admit(r),s=service(makePool());await s.reserve(b);const before=await read(),revoker=await admin.connect();let attempt;
+ try{
+  await revoker.query('BEGIN');await revoker.query("UPDATE paia_ai_private.principal_authority SET security=jsonb_set(security,'{principalActive}','false')");
+  attempt=service(makePool()).cancel(b);await blocked('principal_authority');await revoker.query('COMMIT');
+  assert.equal((await attempt).decision,'deny');assert.deepEqual(await read(),before);
+ }finally{await revoker.query('ROLLBACK');revoker.release();if(attempt)await attempt;}
+});
+test('real cancellation after content withdrawal serializes with a concurrent provider event insertion',async()=>{
+ const r=request('cancel-withdrawn-race'),b=await admit(r),s=service(makePool());await s.reserve(b);
+ await query('UPDATE paia_ai_private.request_authority SET authorized=false');const held=signal(),release=signal();let clocks=0;
+ const pool=makePool(async(sql,args,run)=>{if(sql.startsWith('SELECT floor')&&++clocks===2){held.resolve();await release.promise;}return run();});
+ const cancel=service(pool).cancel(b);await held.promise;const publishing=event(r,'after-withdrawal-cancel','DISPATCHED');
+ try{await blocked('INSERT INTO paia_ai_private.operation_evidence');}finally{release.resolve();}
+ assert.equal((await cancel).state,'CANCELLED_BEFORE_DISPATCH');await publishing;assert.equal((await read()).rows[0].state,'CANCELLED_BEFORE_DISPATCH');
+ assert.equal((await s.record(b,'after-withdrawal-cancel')).decision,'deny');
+});

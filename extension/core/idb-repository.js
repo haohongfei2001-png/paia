@@ -45,6 +45,20 @@ const nativeTransactionEvidence=transaction=>{
   return {database:nativeTransactionDb.call(transaction),mode:nativeTransactionMode.call(transaction)};
  }catch{return null;}
 };
+// Process-local refusal fence only. No row cache, durable generation, native
+// proof or financial authority. Any original write admission invalidates prior
+// observations, even if it later aborts; pending writers cannot be observed as
+// quiescent. Readonly Source probes do not invalidate this owner.
+const repositoryWrites=new WeakMap(),repositoryWriteObservations=new WeakMap();
+export function observeRepositoryWriteFence(repository){
+ const state=repositoryWrites.get(repository);if(!state||state.active!==0||!repository.db)throw new ArchiveError('STALE_BASE');
+ const token=Object.freeze({});repositoryWriteObservations.set(token,{repository,state,generation:state.generation,db:repository.db,factory:repository.factory,name:repository.name});return token;
+}
+export function requireRepositoryWriteFence(repository,token){
+ const observed=repositoryWriteObservations.get(token),state=repositoryWrites.get(repository);
+ if(!observed||observed.repository!==repository||observed.state!==state||state.active!==0||observed.generation!==state.generation||observed.db!==repository.db||observed.factory!==repository.factory||observed.name!==repository.name)throw new ArchiveError('STALE_BASE');
+ return true;
+}
 const repositoryScopes=new WeakMap();
 const originalOwnDescriptor=Object.getOwnPropertyDescriptor;
 const originalPrototypeOf=Object.getPrototypeOf;
@@ -220,7 +234,7 @@ const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
 const originalDataMethods=Object.freeze(['get','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
 
 export class ArchiveRepository {
- constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};}
+ constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};repositoryWrites.set(this,{generation:Object.freeze({}),active:0});}
  async open(){
   if(this.db)return; if(!this.factory)throw fail();
   this.db=await new Promise((resolve,reject)=>{
@@ -247,6 +261,9 @@ export class ArchiveRepository {
   });
  }
  async transaction(write,fn,stores=this.stores){
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
+  if(write){writeState.generation=Object.freeze({});writeState.active++;}
+  try{
   await this.open();if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
@@ -273,6 +290,7 @@ export class ArchiveRepository {
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
   try{const result=await fn(scope);if(write)await flushNavigationWrites(scope);if(write)await flushSemanticWrites(scope);if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}await done;record.originalSuccess=true;return result;}catch(e){try{tx.abort();}catch{}await done.catch(()=>{});if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{record.unwound=true;maybeRelease();}
+  }finally{if(write)writeState.active--;}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
@@ -344,7 +362,7 @@ export class ArchiveRepository {
   return {schemaVersion:5,library:{documents:libraryDocuments,blocks,classificationRules:control.classificationRules,filterRules:control.filterRules},memoryAccessPolicy:control.memoryAccessPolicy,settings:control.settings,records,tombstones,sourceTimes,diagnostics:control.diagnostics,conversations:documents,preferences:control.preferences};
  });}
  async tombstones(){return this.transaction(false,async t=>(await t.all('tombstones')).map(r=>r.value));}
- async close(){this.db?.close();this.db=null;}
+ async close(){const state=repositoryWrites.get(this);if(state)state.generation=Object.freeze({});this.db?.close();this.db=null;}
 }
 export function recordIndex(r,sequence){return {id:r.id,sequence,sourceKey:r.sourceKey,sourceMessageId:r.sourceMessageId,chatKey:chatOf(r),legacyChat:r.sourceKey?undefined:chatOf(r),dedupeKey:r.dedupeKey,contentHash:r.contentHash,listKey:[chatOf(r),r.hidden||r.deletedAt?1:0,...sortOf(r)],sort:sortOf(r),sourceSentAt:r.sourceSentAt,conversationOrder:r.conversationOrder,hidden:r.hidden,deletedAt:r.deletedAt,trashKey:r.deletedAt?1:0,hiddenKey:r.hidden&&!r.deletedAt?1:0,visibleKey:r.hidden||r.deletedAt?1:0,known:r.sourceSentAt?0:1};}
 export function blockIndex(b,sequence,records){const r=records.find(r=>r.id===b.sourceRecordId);return {id:b.id,sequence,documentId:b.documentId,recordIds:b.provenance.map(p=>p.sourceRecordId),attachedDocument:b.provenance.length?b.documentId:undefined,sourceRecordId:b.sourceRecordId,excluded:b.excluded,excludedKey:b.excluded?1:0,known:r?.sourceSentAt?0:1,stamp:r?.sourceSentAt||'',listKey:[b.documentId,b.excluded?1:0,...sortOf({...r,id:b.id})],sort:sortOf({...r,id:b.id}),sourceSentAt:r?.sourceSentAt||null,conversationOrder:r?.conversationOrder??null};}

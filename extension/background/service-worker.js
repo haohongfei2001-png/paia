@@ -1,7 +1,7 @@
 import {ContextReadService} from '../core/context-read.js';
 import {TopicSectionPromotionCommands} from './topic-section-promotion-commands.js';
 import {installToolbarEntry} from './toolbar-entry.js';
-import {HistoricalCandidateSession} from '../core/ai-usage/historical-candidate-session.js';
+import {createConfiguredHistoricalCandidateSession} from '../core/ai-usage/configured-historical-session.js';
 import {ArchiveArrival} from './archive-arrival.js';
 import {NextPromptCommands} from './prompt-next.js';
 import {readSettingsUpdateStatus} from '../core/settings-update-status.js';
@@ -52,7 +52,7 @@ const contextScopePreview=new ContextReadService(store,{localPreviewCapability:l
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
 const sectionPromotion=new TopicSectionPromotionCommands(store,chrome);
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
-const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:new HistoricalCandidateSession(store)}),chrome);
+const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
 const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
 const promptSurface = new PromptSurfaceCommands(promptReuse,chrome,{openArchiveArrival:(descriptor,source)=>archiveArrival.open(descriptor,source)});
 const promptNext = new NextPromptCommands(promptReuse.service,chrome,promptSurface);

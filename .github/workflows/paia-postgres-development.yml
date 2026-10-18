@@ -82,7 +82,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p evidence
-          node --test --test-reporter=tap tests/request-entry.test.mjs tests/reservation-service.test.mjs ../../extension/tests/ai-service-identity.test.mjs 2>&1 | tee evidence/service-protocol.tap
+          node --test --test-reporter=tap tests/request-entry.test.mjs tests/reservation-service.test.mjs tests/reservation-cancellation.test.mjs ../../extension/tests/ai-service-identity.test.mjs 2>&1 | tee evidence/service-protocol.tap
       - name: Actual service authority and publication concurrency
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
@@ -150,6 +150,12 @@ jobs:
           set -o pipefail
           mkdir -p evidence
           node tests/run-operation-status-postgres-tests.mjs 2>&1 | tee evidence/operation-status-postgres.tap
+      - name: Original historical action through synthetic service protocols
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          mkdir -p evidence
+          npm run test:historical 2>&1 | tee evidence/historical-client-protocol.tap
       - name: Retain exact-head development test evidence
         if: always()
         uses: actions/upload-artifact@v4

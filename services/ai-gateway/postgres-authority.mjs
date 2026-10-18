@@ -49,14 +49,17 @@ export class PostgresRequestAuthority {
   // it updates more than one owner. A row UPDATE/DELETE waits for these locks.
   const control=await one(client,CONTROL_SQL);
   const principal=await one(client,PRINCIPAL_SQL,[r.principalId,r.libraryId]);
-  const route=await one(client,ROUTE_SQL,[r.routeVersion]);
-  const grant=await one(client,REQUEST_SQL,[r.operationId]);
+  // Cancellation cannot authorize content or a paid attempt. The original
+  // ledger binds its exact historical request; withdrawn/expired declarations
+  // must not prevent releasing a provably unsent reservation.
+  const route=this.#action==='cancel'?null:await one(client,ROUTE_SQL,[r.routeVersion]);
+  const grant=this.#action==='cancel'?null:await one(client,REQUEST_SQL,[r.operationId]);
   const event=this.#eventId?await one(client,EVENT_SQL,[this.#eventId]):null;
   // An independently recorded provider fact is already reason to retain the
   // hold, even if original ledger reconciliation has not completed. INSERT's
   // mandatory trigger locks the same global ledger, so no phantom can race us.
   if(this.#action==='cancel'&&(await client.query(CANCEL_EVENTS_SQL,[r.operationId])).rows.length)fail('OUTCOME_OR_ATTEMPT_PENDING');
-  const tables=['service_control','principal_authority','route_authority','request_authority',...((event||this.#action==='cancel')?['operation_evidence']:[])];
+  const tables=['service_control','principal_authority',...(this.#action==='cancel'?[]:['route_authority','request_authority']),...((event||this.#action==='cancel')?['operation_evidence']:[])];
   const access=await client.query(ACCESS_SQL,[tables]);
   if(access.rows.length!==tables.length||new Set(access.rows.map(row=>row.relname)).size!==tables.length||access.rows.some(row=>!tables.includes(row.relname)||row.relrowsecurity!==true||row.relforcerowsecurity!==true||row.rolsuper!==false||row.rolbypassrls!==false||row.is_owner!==false||row.can_mutate!==false))fail('AUTHORITY_UNSAFE_ROLE_OR_SCHEMA');
   this.#locked={control,principal,route,grant,event,now:await now(client)};
@@ -67,7 +70,16 @@ export class PostgresRequestAuthority {
  #verify(at){
   const {control,principal,route,grant,event}=this.#locked,r=this.#bundle.request;
   exactData(control,['profile_id','identity_config_hash','generation','enabled','day_limit_micros','month_limit_micros','expires_at_ms']);
-  exactData(principal,['security','time_zone']);exactData(route,['generation','facts','expires_at_ms']);
+  exactData(principal,['security','time_zone']);
+  if(this.#action==='cancel'){
+   if(control.profile_id!==this.#profile||control.identity_config_hash!==identityConfigHash(this.#config)||!text(control.generation)||typeof control.enabled!=='boolean'||!text(principal.time_zone))fail('SERVICE_PROFILE_UNQUALIFIED');
+   for(const field of ['day_limit_micros','month_limit_micros','expires_at_ms'])millis(control[field]);
+   const identity=createSignedIdentityVerifier({config:this.#config,clock:()=>at,readSecurityState:()=>principal.security}).verifyValidity(this.#bundle);
+   // Current authenticated identity remains mandatory. These facts can reach
+   // only record(CANCELLED_BEFORE_DISPATCH), never reserve/dispatch/settlement.
+   return {authorized:true,verifiedServiceFacts:true,request:r,tier:identity.tier,timeZone:principal.time_zone,verifiedUntil:identity.verifiedUntil};
+  }
+  exactData(route,['generation','facts','expires_at_ms']);
   exactData(grant,['request_hash','request','generation','authorized','issued_at_ms','expires_at_ms']);
   if(control.profile_id!==this.#profile||control.identity_config_hash!==identityConfigHash(this.#config)||!text(control.generation)||control.enabled!==true)fail('SERVICE_PROFILE_UNQUALIFIED');
   if(![control,route,grant].every(row=>millis(row.expires_at_ms)>at)||!text(route.generation)||!text(grant.generation))fail('AUTHORITY_EXPIRED');
@@ -92,8 +104,8 @@ export class PostgresRequestAuthority {
   if(!this.#locked)fail('AUTHORITY_MISSING');
   const at=await now(client);
   if(at<this.#locked.now)fail('CLOCK_ROLLBACK');
-  this.#verify(at); // All actual authority rows remain SHARE locked until COMMIT.
-  const expiresAt=Math.min(at+1000,this.#locked.window.endsAt);
+  const facts=this.#verify(at); // All actual authority rows remain SHARE locked until COMMIT.
+  const expiresAt=Math.min(at+1000,this.#action==='cancel'?facts.verifiedUntil:this.#locked.window.endsAt);
   if(expiresAt<=at)fail('AUTHORITY_EXPIRED');
   // Prove the complete bundle remains valid throughout the SQL publication
   // interval, rather than parsing an unsigned token expiry as authorization.
