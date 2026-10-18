@@ -1,8 +1,11 @@
 // Dormant LOCAL binding mechanics, not a deployed qualification/trust root.
 // Constructor callbacks are existing-owner integration seams; request booleans,
 // profile names, digest equality and fixture callbacks establish no live trust.
-// No network, credential, Archive reader, ledger write or dispatch is present.
+// Explicit metadata-only declaration transport is optional. No Archive read,
+// provider dispatch, credential issuer or financial reservation is present.
 import {canonical} from './contracts.js';
+import {clientDeclarationData,clientDeclarationCanonical,CLIENT_DECLARATION_REQUEST_FIELDS as REQUEST} from './client-declaration.js';
+import {isClientDeclarationTransport} from './client-declaration-transport.js';
 import {hashText} from '../dedupe.js';
 import {ENVELOPES} from './admission-policy.js';
 import {ROUTE_FIELDS,quoteRequestBound} from './ratebook.js';
@@ -10,7 +13,6 @@ import {createQwenRequestProfileCompiler} from './qwen-request-profile.js';
 import {boundedSchema,exact,failureReason,freeze,integer,snapshot,stop,token} from './qwen-request-data.js';
 
 const CHILD=['logicalJobId','childOperationId','type','contractVersion','routeVersion','automaticRetries'];
-const REQUEST=['operationId','jobId','principalId','libraryId','scopeFingerprint','contractVersion','routeVersion','consentEpoch','jobType','childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'];
 const NUMERIC=['childIndex','childCount','inputTokens','outputCap','maxCompletionTokens'];
 const LIMITS=Object.freeze({profiles:16,operations:128,inFlight:8,wireBytes:262144,validityMs:86400000});
 const encoder=new TextEncoder(),same=(a,b)=>canonical(a)===canonical(b);
@@ -37,8 +39,8 @@ export function createQwenQualifiedRequestOwner(options){
   if(!options||![Object.prototype,null].includes(Object.getPrototypeOf(options))||Reflect.ownKeys(options).length!==keys.length)stop('OWNER_UNAVAILABLE');
   const callbacks=keys.map(k=>{const d=Object.getOwnPropertyDescriptor(options,k);if(!d||!Object.hasOwn(d,'value')||typeof d.value!=='function')stop('OWNER_UNAVAILABLE');return d.value;});
   [clock,resolveProfile,authorizePayload,tokenize,readReservation,readCurrentBinding]=callbacks;
- }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),revoke:()=>false,dispose(){}});}
- const profiles=new Map(),operations=new Map(),handles=new WeakMap();let disposed=false,lastNow=0,inFlight=0;
+ }catch{return Object.freeze({bind:async()=>unavailable('OWNER_UNAVAILABLE'),revalidate:async()=>unavailable('OWNER_UNAVAILABLE'),prepareDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),publishDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revokeDeclaration:async()=>unavailable('OWNER_UNAVAILABLE'),revoke:()=>false,dispose(){}});}
+ const profiles=new Map(),operations=new Map(),handles=new WeakMap(),declarations=new WeakMap(),declarationOperations=new Map();let disposed=false,lastNow=0,inFlight=0;
  function now(){if(disposed)stop('OWNER_DISPOSED');const n=clock();if(!integer(n)||n<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=n;return n;}
  function active(entry){const n=now();if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,n);return n;}
  async function profile(c,r,stream){
@@ -91,24 +93,23 @@ export function createQwenQualifiedRequestOwner(options){
   active(entry);
   const current=snapshot(readCurrentBinding(freeze({childIdentity:clone(c),reservationRequest:clone(r),profileId:entry.manifest.profile.id,payloadDigest,requestDigest})),{allowUndefined:true});
   if(!exact(current,['now','profile','authorization','tokenizer','reservation']))stop('CURRENTNESS_UNAVAILABLE');
-  if(disposed)stop('OWNER_DISPOSED');const at=current.now;
+  if(disposed)stop('OWNER_DISPOSED');
+  const declared=declarationOperations.get(r.operationId);
+  if(declared?.revoked)stop('DECLARATION_REVOKED');
+  if(declared&&(!same(declared.r,r)||declared.payloadDigest!==payloadDigest||!same(declared.auth,auth)))stop('OPERATION_REBOUND');
+  const at=current.now;
   if(!integer(at)||at<lastNow)stop('CLOCK_UNAVAILABLE');lastNow=at;
   if(entry.revoked)stop('PROFILE_REVOKED');validity(entry.manifest.profile.validity,at);
   if(current.profile?.profile?.id===entry.manifest.profile.id&&current.profile.profile.validity?.revoked===true){entry.revoked=true;stop('PROFILE_REVOKED');}
   if(!same(current.profile,entry.manifest))stop('PROFILE_AUTHORITY_CHANGED');
   if(!same(current.authorization,auth))stop('PAYLOAD_AUTHORITY_CHANGED');
   if(!same(current.tokenizer,measurement))stop('TOKENIZER_AUTHORITY_CHANGED');
-  if(!same(current.reservation,financial.row))stop('RESERVATION_CHANGED');
+  if(financial&&!same(current.reservation,financial.row))stop('RESERVATION_CHANGED');
   authorization(auth,c,r,payloadDigest,at);
   if(at>=measurement.expiresAt)stop('BINDING_EXPIRED');
-  checkReservation(current.reservation,r,entry,at);return at;
+  if(financial)checkReservation(current.reservation,r,entry,at);return at;
  }
- const owner={
-  async bind(value){
-   let entered=false;
-   try{
-    now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;const o=snapshot(value);
-    if(!exact(o,['childIdentity','reservationRequest','payload','stream'])||typeof o.stream!=='boolean'||!o.payload||Array.isArray(o.payload)||typeof o.payload!=='object')stop('REQUEST_UNAVAILABLE');
+ async function prepareMaterial(o){
     const c=o.childIdentity,r=o.reservationRequest;identities(c,r);
     const {entry,compiled}=await profile(c,r,o.stream),m=entry.manifest;
     const payloadDigest=await hashText(canonical(o.payload));active(entry);
@@ -122,6 +123,24 @@ export function createQwenQualifiedRequestOwner(options){
     const measurement=snapshot(await tokenize(freeze({profileId:m.profile.id,tokenizerProfileId:m.tokenizer.profileId,qualificationRef:m.tokenizer.qualificationRef,requestDigest,envelope:clone(envelope)})));
     const at=active(entry);
     if(!exact(measurement,['profileId','tokenizerProfileId','qualificationRef','requestDigest','contentTokens','protocolOverheadTokens','inputTokens','expiresAt'])||measurement.profileId!==m.profile.id||measurement.tokenizerProfileId!==m.tokenizer.profileId||measurement.qualificationRef!==m.tokenizer.qualificationRef||measurement.requestDigest!==requestDigest||!['contentTokens','protocolOverheadTokens','inputTokens','expiresAt'].every(k=>integer(measurement[k]))||measurement.protocolOverheadTokens!==m.tokenizer.protocolOverheadTokens||measurement.inputTokens!==measurement.contentTokens+measurement.protocolOverheadTokens||measurement.inputTokens!==r.inputTokens||measurement.expiresAt<=at||measurement.expiresAt>m.profile.validity.expiresAt)stop('TOKENIZER_BINDING_MISMATCH');
+  return {c,r,entry,compiled,payloadDigest,auth,envelope,requestDigest,measurement};
+ }
+ function declarationResult(status,reason='NONE',extra={}){return freeze({status,reason,...authority,...extra});}
+ function invalidateDeclaration(h){
+  if(!h)return;h.revoked=true;
+  if(h.transport&&h.proofs&&!h.revokePromise){
+   // This is the same exact declaration/operation. Never remint or retry a send.
+   h.revokePromise=h.transport.revoke({request:h.r,...h.proofs},h.declaration).catch(()=>({decision:'outcome_unknown'}));
+  }
+ }
+ const owner={
+  async bind(value){
+   let entered=false;
+   try{
+    now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;const o=snapshot(value);
+    if(!exact(o,['childIdentity','reservationRequest','payload','stream'])||typeof o.stream!=='boolean'||!o.payload||Array.isArray(o.payload)||typeof o.payload!=='object')stop('REQUEST_UNAVAILABLE');
+    const {c,r,entry,compiled,payloadDigest,auth,envelope,requestDigest,measurement}=await prepareMaterial(o),m=entry.manifest;
+    const declared=declarationOperations.get(r.operationId);if(declared&&(declared.revoked||declared.payloadDigest!==payloadDigest))stop(declared.revoked?'DECLARATION_REVOKED':'OPERATION_REBOUND');
     const financial=await reservation(r,entry);
     // Re-read the owning authorities after asynchronous token/financial work.
     // These are read-only seams; no attempt or financial reservation is minted.
@@ -140,11 +159,63 @@ export function createQwenQualifiedRequestOwner(options){
     handles.set(result,{entry,c,r,auth,measurement,financial,stream:o.stream,identityDigest});return result;
    }catch(e){return unavailable(failureReason(e));}finally{if(entered)inFlight--;}
   },
+  async prepareDeclaration(value){
+   let entered=false;
+   try{
+    now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;const o=snapshot(value);
+    if(!exact(o,['childIdentity','reservationRequest','payload','stream'])||typeof o.stream!=='boolean'||!o.payload||Array.isArray(o.payload)||typeof o.payload!=='object')stop('REQUEST_UNAVAILABLE');
+    const h=await prepareMaterial(o),{c,r,entry,auth,measurement,payloadDigest,requestDigest}=h;
+    const checked=await profile(c,r,o.stream);if(checked.entry!==entry)stop('PROFILE_REBOUND');
+    const again=await authorize(c,r,o.payload,payloadDigest,entry);if(!same(again,auth))stop('PAYLOAD_AUTHORITY_CHANGED');
+    const requestHash=await hashText(canonical(r));
+    // Job fingerprint stays job-level. Child scope/payload are separately bound.
+    const scopeDigest=await hashText(canonical({childIdentity:c,reservationRequest:r,authorizationId:auth.authorizationId}));
+    const declaration=clientDeclarationData({version:1,requestHash,payloadDigest,scopeDigest,contentGeneration:payloadDigest,consentEpoch:r.consentEpoch,authorizationId:auth.authorizationId,expiresAt:Math.min(auth.expiresAt,measurement.expiresAt,entry.manifest.profile.validity.expiresAt)});
+    const declarationDigest=await hashText(clientDeclarationCanonical(declaration));
+    const old=declarationOperations.get(r.operationId);if(old&&(old.declarationDigest!==declarationDigest||old.revoked))stop(old.revoked?'DECLARATION_REVOKED':'OPERATION_REBOUND');
+    if(!old&&declarationOperations.size>=LIMITS.operations)stop('OPERATION_CAPACITY');
+    // Reuse the same coherent source fence; this stage claims NO reservation.
+    const checkedAt=finalFence(entry,c,r,auth,measurement,null,payloadDigest,requestDigest);
+    const handle=freeze(declarationResult('DECLARED_LOCAL','NONE',{request:clone(r),declaration,declarationDigest,checkedAt}));
+    const state=old??{c,r,entry,auth,measurement,payloadDigest,requestDigest,declaration,declarationDigest,revoked:false,publication:null,transport:null,proofs:null,revokePromise:null};
+    declarations.set(handle,state);declarationOperations.set(r.operationId,state);return handle;
+   }catch(e){return declarationResult('UNAVAILABLE',failureReason(e));}finally{if(entered)inFlight--;}
+  },
+  async publishDeclaration(handle,proofs,transport){
+   const h=declarations.get(handle);
+   try{
+    if(!h)stop('DECLARATION_UNAVAILABLE');if(h.revoked)stop('DECLARATION_REVOKED');
+    const p=snapshot(proofs,{maxBytes:32768,maxKeys:2,maxDepth:1,maxString:8192});
+    if(!exact(p,['principalToken','entitlementToken'])||!Object.values(p).every(v=>typeof v==='string'&&v.length>0&&v.length<=8192)||!isClientDeclarationTransport(transport))stop('TRANSPORT_UNAVAILABLE');
+    if(h.publication&& (h.transport!==transport||!same(h.proofs,p)))stop('OPERATION_REBOUND');
+    // All token/transport parsing precedes the original synchronous owner fence.
+    finalFence(h.entry,h.c,h.r,h.auth,h.measurement,null,h.payloadDigest,h.requestDigest);
+    if(h.publication)return await h.publication;
+    h.transport=transport;h.proofs=freeze(p);
+    // Fixed transport invokes fetch synchronously, before the first await.
+    let settle;h.publication=new Promise(resolve=>{settle=resolve;});
+    const pending=transport.publish({request:h.r,...p},h.declaration);
+    Promise.resolve(pending).then(receipt=>{
+     try{if(h.revoked)stop('DECLARATION_REVOKED');finalFence(h.entry,h.c,h.r,h.auth,h.measurement,null,h.payloadDigest,h.requestDigest);}
+     catch{invalidateDeclaration(h);return declarationResult('UNAVAILABLE','DECLARATION_REVOKED');}
+     if(receipt.decision==='published'&&receipt.generation===h.declarationDigest&&receipt.requestHash===h.declaration.requestHash)return declarationResult('PUBLISHED_CLIENT_DECLARATION','NONE',{declarationDigest:h.declarationDigest,expiresAt:receipt.expiresAt});
+     if(receipt.decision==='outcome_unknown')return declarationResult('PUBLICATION_UNKNOWN','COMMIT_OUTCOME_UNKNOWN');
+     return declarationResult('UNAVAILABLE','PUBLICATION_DENIED');
+    },()=>declarationResult('PUBLICATION_UNKNOWN','TRANSPORT_OUTCOME_UNKNOWN')).then(settle);
+    return await h.publication;
+   }catch(e){invalidateDeclaration(h);return declarationResult('UNAVAILABLE',failureReason(e));}
+  },
+  async revokeDeclaration(handle){
+   const h=declarations.get(handle);if(!h)return declarationResult('UNAVAILABLE','DECLARATION_UNAVAILABLE');
+   invalidateDeclaration(h);if(!h.revokePromise)return declarationResult('REVOKED_LOCAL');
+   const receipt=await h.revokePromise;
+   return receipt.decision==='revoked'&&receipt.generation===h.declarationDigest&&receipt.requestHash===h.declaration.requestHash?declarationResult('REVOKED_CLIENT_DECLARATION'):declarationResult('REVOCATION_UNKNOWN');
+  },
   async revalidate(result){
    let entered=false;
    try{
     now();if(inFlight>=LIMITS.inFlight)stop('OWNER_BUSY');inFlight++;entered=true;
-    const h=handles.get(result);if(!h)stop('BINDING_UNAVAILABLE');const at=active(h.entry);if(at>=result.expiresAt)stop('BINDING_EXPIRED');
+    const h=handles.get(result);if(!h)stop('BINDING_UNAVAILABLE');const declared=declarationOperations.get(h.r.operationId);if(declared?.revoked)stop('DECLARATION_REVOKED');const at=active(h.entry);if(at>=result.expiresAt)stop('BINDING_EXPIRED');
     const checked=await profile(h.c,h.r,h.stream);if(checked.entry!==h.entry)stop('PROFILE_REBOUND');
     const row=await reservation(h.r,h.entry);if(!same(row.proof,result.identity.reservation)||operations.get(h.r.operationId)!==h.identityDigest)stop('RESERVATION_CHANGED');
     const payload=snapshot(JSON.parse(JSON.parse(result.envelope.body).messages[1].content));
@@ -158,10 +229,10 @@ export function createQwenQualifiedRequestOwner(options){
   },
   revoke(id){
    if(disposed||!token(id))return false;const entry=profiles.get(id);
-   if(entry){entry.revoked=true;return true;}
+   if(entry){entry.revoked=true;for(const h of declarationOperations.values())if(h.entry===entry)invalidateDeclaration(h);return true;}
    if(profiles.size>=LIMITS.profiles)return false;profiles.set(id,{revoked:true});return true;
   },
-  dispose(){disposed=true;profiles.clear();operations.clear();}
+  dispose(){disposed=true;for(const h of declarationOperations.values())invalidateDeclaration(h);profiles.clear();operations.clear();declarationOperations.clear();}
  };
  return Object.freeze(owner);
 }

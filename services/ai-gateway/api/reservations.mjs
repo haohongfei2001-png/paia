@@ -1,7 +1,7 @@
-import {createGatewayHandler} from '../request-entry.mjs';
+import {createDeploymentGateway} from '../deployment-bootstrap.mjs';
 
-// Vercel Node Web Standard entry. Intentionally no ambient DATABASE_URL,
-// identity issuer, self-signed root, budget or provider. A separately reviewed
-// deployment composition must supply its configured reservation service.
-// The shipped entry genuinely parses requests and refuses unconfigured traffic.
-export default Object.freeze({fetch:createGatewayHandler()});
+// Vercel Node 22 Web Standard entry, never Edge. Lazy runtime-only deployment
+// configuration; source/import alone never opens a socket or supplies authority.
+const gateway=createDeploymentGateway();
+export const closeReservationGateway=()=>gateway.close();
+export default Object.freeze({fetch:request=>gateway.fetch(request)});

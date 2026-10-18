@@ -1,8 +1,9 @@
-import {validBoundFields} from './context-bound-entry.js';
-import {validAuthoredFields} from './context-authored-entry.js';
+import {validStructuralContextEvidence,structuralContextGroups,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
+import {validBoundFields,boundContextEvidence} from './context-bound-entry.js';
+import {validAuthoredFields,authoredSelectedFields,authoredContextEvidence} from './context-authored-entry.js';
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
-import {validContextTemporal} from './context-temporal.js';
+import {validContextTemporal,CONTEXT_TEMPORAL_TEXT_LIMIT} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
@@ -11,31 +12,59 @@ import {lineagePlain as plain,lineageExact as exact,lineageArray as array,validC
 // Structural owner only. No runtime instantiation, caller authentication,
 // extractor, provider, transport, background job, worker route or processing grant exists.
 export const CONTEXT_MAINTENANCE_LIMITS=Object.freeze({requestBytes:96*1024,pending:64,verificationMs:1000,requestMs:10000});
-const PREFIX='context-maintenance:',NAMESPACE='context-maintenance';
+const PREFIX='context-maintenance:',NAMESPACE='context-maintenance',SECTION_LIMIT=80;
+const requestWithinBudget=c=>new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes;
 const attempts=new WeakMap();
 const fail=(code='CONTEXT_INVALIDATED')=>{throw new ArchiveError(code);};
 const need=(x,code)=>{if(!x)fail(code);};
 const bounded=(x,n)=>typeof x==='string'&&x.length>0&&x.length<=n&&!x.includes('\0');
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function structuralClosureCovered(old,live,scope){
+ const selected=old.humanTopic||old.humanSection;if(!selected)return true;
+ const property=structuralContextProperty(selected),current=live?.[property],granted=scope[property==='humanTopic'?'structuralTopics':'structuralSections'];
+ // Re-evaluation may change selected meaning, never erase or substitute its
+ // original Topic/Section owner. Current proof and its independent grant must
+ // cover that same selection before novelty or any receipt can be published.
+ return !!current&&current.topicId===selected.topicId&&(property==='humanTopic'||current.sectionId===selected.sectionId)&&selected.selectedFields.every(f=>current.selectedFields.includes(f))&&!!granted?.some(s=>same(s,current));
+}
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
 const opaque=x=>bounded(x,200);
 const signalOK=x=>typeof AbortSignal!=='undefined'&&x instanceof AbortSignal;
-function scopeFor(c){return {card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)),...(c.evidence.some(e=>e.kind==='humanEntry')?{authoredEntries:c.evidence.filter(e=>e.kind==='humanEntry').map(e=>({entryId:e.entryId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{}),...(c.evidence.some(e=>e.kind==='boundEntry')?{boundEntries:c.evidence.filter(e=>e.kind==='boundEntry').map(e=>({entryId:e.entryId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{})};}
+function scopeFor(c){return {...structuralContextGroups([...new Map(c.evidence.filter(e=>e.humanSection||e.humanTopic).map(e=>[JSON.stringify(e.humanSection||e.humanTopic),e.humanSection||e.humanTopic])).values()],m=>structuredClone(m)),card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)),...(c.evidence.some(e=>e.kind==='humanEntry')?{authoredEntries:c.evidence.filter(e=>e.kind==='humanEntry').map(e=>({entryId:e.entryId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{}),...(c.evidence.some(e=>e.kind==='boundEntry')?{boundEntries:c.evidence.filter(e=>e.kind==='boundEntry').map(e=>({entryId:e.entryId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{})};}
 function validScope(x){
- const authored=Object.hasOwn(x||{},'authoredEntries'),bound=Object.hasOwn(x||{},'boundEntries');
- return exact(x,['card','topics','inputs',...(authored?['authoredEntries']:[]),...(bound?['boundEntries']:[])])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,authored?0:1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length)&&(!authored||array(x.authoredEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.authoredEntries.map(e=>e?.entryId)).size===x.authoredEntries.length&&x.authoredEntries.every(e=>exact(e,['entryId','selectedFields'])&&idOK(e.entryId)&&validAuthoredFields(e.selectedFields)))&&(!bound||array(x.boundEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.boundEntries.map(e=>e?.entryId)).size===x.boundEntries.length&&x.boundEntries.every(e=>exact(e,['entryId','inputId','selectedFields'])&&idOK(e.entryId)&&validBoundFields(e.selectedFields)&&x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body'))))&&x.inputs.length+(x.authoredEntries?.length||0)+(x.boundEntries?.length||0)<=CONTEXT_LINEAGE_LIMITS.inputs;
+ const authored=Object.hasOwn(x||{},'authoredEntries'),bound=Object.hasOwn(x||{},'boundEntries'),structural=Object.hasOwn(x||{},'structuralSections'),topicStructural=Object.hasOwn(x||{},'structuralTopics');
+ return exact(x,['card','topics','inputs',...(authored?['authoredEntries']:[]),...(bound?['boundEntries']:[]),...(structural?['structuralSections']:[]),...(topicStructural?['structuralTopics']:[])])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,authored?0:1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length)&&(!authored||array(x.authoredEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.authoredEntries.map(e=>e?.entryId)).size===x.authoredEntries.length&&x.authoredEntries.every(e=>exact(e,['entryId','selectedFields'])&&idOK(e.entryId)&&validAuthoredFields(e.selectedFields)))&&(!bound||array(x.boundEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.boundEntries.map(e=>e?.entryId)).size===x.boundEntries.length&&x.boundEntries.every(e=>exact(e,['entryId','inputId','selectedFields'])&&idOK(e.entryId)&&validBoundFields(e.selectedFields)&&x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body'))))&&(!structural||array(x.structuralSections,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralSections.every(s=>s?.kind!=='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&(!topicStructural||array(x.structuralTopics,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralTopics.every(s=>s?.kind==='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&x.inputs.length+(x.authoredEntries?.length||0)+(x.boundEntries?.length||0)<=CONTEXT_LINEAGE_LIMITS.inputs;
+}
+
+// A negative-only pre-dispatch byte check, never evidence or processing authority.
+// Reserve the largest legal command text (including six-byte JSON escapes),
+// association list, optional temporal text and binding metadata. Complete
+// membership repeats once per Input in the existing original owner schema;
+// a large Section may therefore remain pending even with short Input bodies.
+export function structuralContextRequestWithinBudget(sections,{inputIds=[],authoredEntries=[],boundEntries=[]}={}){
+ if(!array(sections,CONTEXT_LINEAGE_LIMITS.inputs,1)||!sections.every(validStructuralContextEvidence)||!array(inputIds,20)||!inputIds.every(idOK)||!array(authoredEntries,20)||!array(boundEntries,20))return false;
+ const escaped=n=>'\u0001'.repeat(n),id='00000000-0000-0000-0000-000000000000',hash='0'.repeat(64),maximum=Number.MAX_SAFE_INTEGER,evidence=[],binding=topicId=>({topicId,epoch:id,createdAt:escaped(64),layoutGeneration:maximum,removalOperationId:escaped(200),organizationOperationId:escaped(200),organizationOperationSequence:maximum,organizationOperationDigest:hash});
+ for(const section of sections)for(const inputId of new Set(section.entries.map(e=>e.inputId)))evidence.push({topicId:section.topicId,inputId,selectedFields:['body'],fieldDigests:{body:hash},expectedRemovalSequence:maximum,[structuralContextProperty(section)]:{...section,topicRevision:maximum,topicOrganizationRevision:maximum},expectedTopicBinding:binding(section.topicId)});
+ // The adapter may combine every Context unit in this child into one command.
+ // Account for nonstructural Inputs and the original authored/bound projections;
+ // never assume it will split the result or omit independently required fields.
+ const included=new Set(evidence.map(e=>e.inputId));
+ for(const inputId of inputIds)if(!included.has(inputId)){included.add(inputId);evidence.push({topicId:escaped(200),inputId,selectedFields:['body','note'],fieldDigests:{body:hash,note:hash},expectedRemovalSequence:maximum,expectedTopicBinding:binding(escaped(200))});}
+ try{for(const entry of authoredEntries)evidence.push(authoredContextEvidence(entry,binding(entry.topicId),Object.fromEntries(authoredSelectedFields(entry).map(f=>[f,hash]))));for(const entry of boundEntries)evidence.push(boundContextEvidence(entry,binding(entry.topicId),Object.fromEntries(entry.selectedFields.map(f=>[f,hash]))));}catch{return false;}
+ if(evidence.length>CONTEXT_LINEAGE_LIMITS.inputs||new Set(evidence.map(contextEvidenceKey)).size!==evidence.length)return false;
+ return requestWithinBudget({operationId:id,epoch:id,itemId:id,card:'rules',expectedRevision:maximum,body:escaped(CONTEXT_LIMITS.body),section:escaped(SECTION_LIMIT),associationIds:Array(CONTEXT_LINEAGE_LIMITS.associations).fill(id),evidence,temporal:{temporalScope:escaped(CONTEXT_TEMPORAL_TEXT_LIMIT),uncertainty:escaped(CONTEXT_TEMPORAL_TEXT_LIMIT),validUntil:'+275760-09-13T00:00:00.000Z'}});
 }
 
 export function validateContextMaintenanceChange(c){
- need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence',...(Object.hasOwn(c||{},'temporal')?['temporal']:[])])&&(!Object.hasOwn(c,'temporal')||validContextTemporal(c.temporal))&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,80)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
- need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
+ need(exact(c,['operationId','epoch','itemId','card','expectedRevision','body','section','associationIds','evidence',...(Object.hasOwn(c||{},'temporal')?['temporal']:[])])&&(!Object.hasOwn(c,'temporal')||validContextTemporal(c.temporal))&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&bounded(c.body,CONTEXT_LIMITS.body)&&c.body.trim()&&bounded(c.section,SECTION_LIMIT)&&c.section.trim()&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
+ need(requestWithinBudget(c),'INVALID_REQUEST');return c;
 }
 // A declared local-domain outcome, not an inferred equality or model wire.
 export function validateContextMaintenanceNoChange(c){return validateContextMaintenanceOutcome(c,'NO_CHANGE');}
 export function validateContextMaintenanceInvalidation(c){return validateContextMaintenanceOutcome(c,'REMOVE_CANDIDATE');}
 function validateContextMaintenanceOutcome(c,operation){
  need(exact(c,['operation','operationId','epoch','itemId','card','expectedRevision','associationIds','evidence'])&&c.operation===operation&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&c.expectedRevision>0&&array(c.associationIds,CONTEXT_LINEAGE_LIMITS.associations,1)&&c.associationIds.every(uuid)&&new Set(c.associationIds).size===c.associationIds.length&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
- need(new TextEncoder().encode(JSON.stringify(c)).byteLength<=CONTEXT_MAINTENANCE_LIMITS.requestBytes,'INVALID_REQUEST');return c;
+ need(requestWithinBudget(c),'INVALID_REQUEST');return c;
 }
 function validResult(x){
  return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change','invalidated'].includes(x.disposition)&&x.externalAllowed===false;
@@ -150,13 +179,17 @@ export class ContextMaintenanceService {
    const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];let item=associated||target,outcome;
    if(associated&&target&&associated.id!==target.id)return conflict();
    if(item?.origin==='manual'||item&&(item.card!==c.card||!associated))return conflict();
-   if(item&&(c.operation==='REMOVE_CANDIDATE'||item.lifecycle==='invalidated')){
+   if(item){
     // A known association/revision is not processing authority. The explicit
     // verified request must cover the target's entire old lineage as well as
     // any newly supplied correction; no hidden whole-profile read is added.
+    // Active UPDATE must also retain selected structural interpretation; a
+    // prior stripping step cannot bypass closure. NO_CHANGE only checks its
+    // declared subset and never replaces the existing provenance.
     for(const provenance of [item.maintenance.provenance,item.maintenance.invalidation].filter(Boolean))for(const old of provenance.evidence){
+     if(c.operation!=='REMOVE_CANDIDATE'&&item.lifecycle!=='invalidated'&&(c.operation==='NO_CHANGE'||!old.humanTopic&&!old.humanSection))continue;
      const authored=old.kind==='humanEntry',bound=old.kind==='boundEntry',scoped=authored?current.scope.authoredEntries?.find(x=>x.entryId===old.entryId):bound?current.scope.boundEntries?.find(x=>x.entryId===old.entryId&&x.inputId===old.inputId):current.scope.inputs.find(x=>x.inputId===old.inputId),live=captured.provenance.evidence.find(x=>contextEvidenceKey(x)===contextEvidenceKey(old)&&x.topicId===old.topicId);
-     if(!current.scope.topics.includes(old.topicId)||!scoped||!old.selectedFields.every(f=>scoped.selectedFields.includes(f))||!live||!old.selectedFields.every(f=>live.selectedFields.includes(f))||(authored||bound?old.entryCreatedAt!==live.entryCreatedAt||old.birthOperationId!==live.birthOperationId||bound&&(old.inputId!==live.inputId||!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id))):!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id))))return conflict();
+     if(!structuralClosureCovered(old,live,current.scope)||!current.scope.topics.includes(old.topicId)||!scoped||!old.selectedFields.every(f=>scoped.selectedFields.includes(f))||!live||!old.selectedFields.every(f=>live.selectedFields.includes(f))||(authored||bound?old.entryCreatedAt!==live.entryCreatedAt||old.birthOperationId!==live.birthOperationId||bound&&(old.inputId!==live.inputId||!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id))):!old.sourceRecordIds.every(id=>live.sourceRecordIds.includes(id))||!old.sourceIdentityTokens.every(id=>live.sourceIdentityTokens.includes(id))))return conflict();
     }
    }
    if(c.operation==='REMOVE_CANDIDATE'){
@@ -193,9 +226,10 @@ export class ContextMaintenanceService {
    }
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
    await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
-   // Bound human fields and their original Input/source authority settle in
-   // this same transaction, after both the Item and receipt have been staged.
-   if(c.evidence.some(e=>e.kind==='boundEntry'))await fenceContextLineage(this.#s,captured.captured,{transaction:t});
+   // Bound human fields and selected Topic/Section interpretation settle with their
+   // original Input/Source authority after both Item and receipt are staged.
+   // This owner also serves direct callers without a session settlement guard.
+   if(c.evidence.some(e=>e.kind==='boundEntry'||e.humanSection||e.humanTopic))await fenceContextLineage(this.#s,captured.captured,{transaction:t});
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);return outcome;
   });}finally{clearTimeout(expiryTimer);transaction=null;for(const value of signals)value.removeEventListener('abort',abort);}
   }finally{releaseContextLineage(captured?.captured);clearTimeout(phaseTimer);for(const source of phaseSources)source.removeEventListener('abort',cancelPhase);}

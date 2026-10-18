@@ -1,3 +1,4 @@
+import {prepareContextProtectionCorrection,recordContextProtectionCorrection} from './ai-usage/context-correction.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedText} from './context-authored-entry.js';
 import {ArchiveError,CONSENT_VERSION} from './constants.js';
@@ -127,7 +128,8 @@ export class ContextCardsService {
   // The existing journal proves only single-Item immutable-order chains.
   // Reject before preparing or writing; local ordering cannot weaken restore.
   if(['reorder','move'].includes(c.kind)&&this.syncJournal)fail('FEATURE_UNAVAILABLE');
-  let staged=null;
+  let staged=null,correction=null;
+  if(c.kind==='put'&&c.expectedRevision>0){const before=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return (await this.row(t)).items.find(x=>x.id===c.itemId);}));correction=await prepareContextProtectionCorrection(before,c,digest);}
   if(this.syncJournal){
    const captured=await this.s.run(()=>this.s.repository.transaction(false,async t=>{await this.admitted(t,c.epoch);return {row:await this.row(t),receipt:await t.get('operationReceipts','context:'+c.operationId)};}));
    if(captured.receipt){const r=captured.receipt;if(r.namespace!=='context-cards'||r.digest!==digest||r.epoch!==c.epoch)fail();return r.result;}
@@ -142,12 +144,15 @@ export class ContextCardsService {
    const row=await this.row(t);
    if(staged&&JSON.stringify(row)!==staged.before)fail('CONTEXT_INVALIDATED');
    const priorMove=c.kind==='move'&&c.undoOf?await t.get('operationReceipts','context:'+c.undoOf):null;
+   const correctionBefore=correction?structuredClone(row.items.find(x=>x.id===c.itemId)):null;
    const result=applyContextChange(row,c,staged?()=>staged.at:()=>this.s.clock(),priorMove);
    if(!result.ok)return result;
    await t.put('meta',row);
    if(staged&&staged.prepared!==null)await this.syncJournal.commit(t,staged.prepared);
    // Receipt contains no second body. Only a committed transaction can return it.
-   await t.put('operationReceipts',{id:'context:'+c.operationId,namespace:'context-cards',schemaVersion:1,ownerId:c.itemId||c.key,createdAt:this.s.clock(),digest,epoch:c.epoch,result});
+   const committedReceipt={id:'context:'+c.operationId,namespace:'context-cards',schemaVersion:1,ownerId:c.itemId||c.key,createdAt:this.s.clock(),digest,epoch:c.epoch,result};
+   await t.put('operationReceipts',committedReceipt);
+   if(correction)await recordContextProtectionCorrection(t,correction,correctionBefore,row.items.find(x=>x.id===c.itemId),committedReceipt);
    return result;
   });
  }

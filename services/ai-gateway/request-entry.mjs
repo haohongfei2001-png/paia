@@ -1,15 +1,15 @@
-import {exactData, snapshotRequest} from './signed-identity.mjs';
+import {exactData, snapshotRequest, requireSynchronous} from './signed-identity.mjs';
 import {isReservationService} from './reservation-service.mjs';
 
 export const MAX_REQUEST_BYTES = 24576;
 const READ_DEADLINE_MS = 5000;
-class HttpError extends Error { constructor(status, code) {super(code); this.status=status; this.code=code;} }
+export class HttpError extends Error { constructor(status, code) {super(code); this.status=status; this.code=code;} }
 const fail = (code='HTTP_REQUEST_INVALID',status=400) => {throw new HttpError(status,code);};
 const decoder = new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
 
 // Exactly two object levels, no arrays, and duplicate detection BEFORE JSON.parse
 // can discard names. Tokens remain strings in memory only. No request logging.
-function parse(text) {
+function parse(text,maxMembers) {
  let at=0, members=0;
  const space=()=>{while (/[\x20\t\r\n]/.test(text[at]??'\0')) at++;};
  const string=()=>{const start=at++; while(at<text.length){const c=text[at++];if(c==='\\'){at++;continue;}if(c==='"'){const value=JSON.parse(text.slice(start,at));if(!value.isWellFormed())fail();return value;}}fail();};
@@ -17,7 +17,7 @@ function parse(text) {
   space();if(text[at]==='"')return string();
   if(text[at]==='{'){
    if(depth>1)fail();at++;space();const out=Object.create(null),seen=new Set();
-   if(text[at]!=='}')while(true){if(text[at]!=='"'||++members>20)fail();const key=string();if(seen.has(key))fail();seen.add(key);space();if(text[at++]!==':')fail();out[key]=value(depth+1);space();if(text[at]!==',')break;at++;space();}
+   if(text[at]!=='}')while(true){if(text[at]!=='"'||++members>maxMembers)fail();const key=string();if(seen.has(key))fail();seen.add(key);space();if(text[at++]!==':')fail();out[key]=value(depth+1);space();if(text[at]!==',')break;at++;space();}
    if(text[at++]!=='}')fail();return out;
   }
   const token=/^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/.exec(text.slice(at));
@@ -30,12 +30,12 @@ export function snapshotBundle(input) {
  if(!['principalToken','entitlementToken'].every(key=>typeof input[key]==='string'&&input[key].length>0&&input[key].length<=8192))fail();
  return Object.freeze({request:snapshotRequest(input.request),principalToken:input.principalToken,entitlementToken:input.entitlementToken});
 }
-export async function parseHttpRequest(request) {
+export async function parseMetadataRequest(request,{pathname,maxMembers=20}={}) {
  let reader,timer,abort;
  try {
   if(!(request instanceof Request)||request.signal.aborted)fail();
   const url=new URL(request.url);
-  if(url.pathname!=='/api/reservations'||url.search||url.hash)fail('HTTP_ROUTE_INVALID',404);
+  if(url.pathname!==pathname||url.search||url.hash)fail('HTTP_ROUTE_INVALID',404);
   if(request.method!=='POST')fail('HTTP_METHOD_INVALID',405);
   if(!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type')??'')||
      ![null,'identity'].includes(request.headers.get('content-encoding')))fail('HTTP_MEDIA_TYPE_INVALID',415);
@@ -55,23 +55,34 @@ export async function parseHttpRequest(request) {
   }
   if(!size||length!==null&&size!==Number(length))fail();
   const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-  const input=parse(decoder.decode(bytes));exactData(input,['action','request','principalToken','entitlementToken']);
-  if(!['reserve','cancel'].includes(input.action))fail();
-  const {action,...bundle}=input;
-  return Object.freeze({action,...snapshotBundle(bundle)});
+  return parse(decoder.decode(bytes),maxMembers);
  }catch(error){if(error instanceof HttpError)throw error;fail();}
  finally{clearTimeout(timer);if(abort)request?.signal?.removeEventListener('abort',abort);if(reader){reader.cancel().catch(()=>{});reader.releaseLock();}}
 }
+export async function parseHttpRequest(request) {
+ try{
+  const input=await parseMetadataRequest(request,{pathname:'/api/reservations',maxMembers:20});
+  exactData(input,['action','request','principalToken','entitlementToken']);
+  if(!['reserve','cancel'].includes(input.action))fail();
+  const {action,...bundle}=input;return Object.freeze({action,...snapshotBundle(bundle)});
+ }catch(error){if(error instanceof HttpError)throw error;fail();}
+}
 const deny = reason=>({decision:'deny',reason,financialAuthority:false,dispatchAllowed:false,retryAllowed:false});
 // Called once by a service-owned module, never with anything from request JSON.
-export function createGatewayHandler({service}={}) {
+export function createGatewayHandler({service,resolveService}={}) {
  const configured=isReservationService(service);
  return async request=>{
   let status=200,result;
   try{
    const {action,...bundle}=await parseHttpRequest(request);
-   if(!configured){status=503;result=deny('SERVICE_UNCONFIGURED');}
-   else {result=await service[action](bundle);if(result.decision==='deny')status=result.reason==='AUTHORIZATION'?403:503;else if(result.decision==='outcome_unknown')status=503;}
+   // Resolver is a constructor-only server closure, never supplied by HTTP.
+   // Invalid bodies finish above before configuration/Pool/SQL work begins.
+   const selected=typeof resolveService==='function'?await resolveService():null;
+   const active=typeof resolveService==='function'?selected?.service:service;
+   const current=typeof resolveService==='function'?isReservationService(active)&&typeof selected?.isCurrent==='function'&&requireSynchronous(selected.isCurrent())===true:configured;
+   if(request.signal.aborted)fail('HTTP_REQUEST_ABORTED');
+   if(!current){status=503;result=deny('SERVICE_UNCONFIGURED');}
+   else {result=await active[action](bundle);if(result.decision==='deny')status=result.reason==='AUTHORIZATION'?403:503;else if(result.decision==='outcome_unknown')status=503;}
   }catch(error){status=error instanceof HttpError?error.status:503;result=deny(error instanceof HttpError?error.code:'SERVICE_UNAVAILABLE');}
   return Response.json(result,{status,headers:{'cache-control':'no-store','content-type':'application/json; charset=utf-8','x-content-type-options':'nosniff'}});
  };

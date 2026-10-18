@@ -8,21 +8,16 @@ There is no provider transport, issuer, subscription backend, permission bridge,
 production resource, deployment, approved spending amount, or configured root.
 
 The checked-in `api/reservations.mjs` exports `fetch(Request) -> Response` and is
-closed with `SERVICE_UNCONFIGURED`. A separately reviewed service-owned deployment
-module can create `createPostgresReservationService({pool, identityConfig,
-profileId})` and pass that service to `createGatewayHandler({service})`. The pool
-must use the approved least-privilege server identity and verified TLS. There is
-no ambient DATABASE_URL, client configuration, dynamic JWKS, local signing key,
-default region, default issuer, or default budget. No setup runs on import.
-The entry requires Vercel's Node runtime, not its Edge runtime; no framework or
-additional package is required by the Web Standard handler.
-
-The default entry does NOT yet contain a deployment bootstrap that parses a
-configuration file/environment, creates a TLS-qualified Pool, loads public
-issuer keys/profile, or performs startup readiness. Supplying environment values
-alone cannot enable it. Those source wiring steps, Vercel project-root/bundling
-configuration and approved-resource setup are distinct remaining work. The
-factory-to-PG composition is implemented and tested; the bootstrap is not.
+closed with `SERVICE_UNCONFIGURED` by default. The source-only bootstrap in
+[BOOTSTRAP.md](BOOTSTRAP.md) now consumes explicit service-owned deployment
+configuration, creates one bounded verified-TLS Pool, checks original storage
+readiness and composes `createPostgresReservationService({pool, identityConfig,
+profileId})` with the bounded handler. No setup or deployment-input read runs on
+import. There is no ambient DATABASE_URL, client configuration, dynamic JWKS,
+local signing key, default region, issuer or budget. The Node 22 Vercel root and
+monorepo include configuration is checked in; actual build, resources, credentials,
+authority owners and deployment remain separate gates. Earlier bootstrap-absent
+evidence describes the preceding source candidate, not current wiring.
 
 ## HTTP contract and limits
 
