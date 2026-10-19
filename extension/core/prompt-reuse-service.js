@@ -5,8 +5,7 @@ import {NextFamilyView} from './next-family-view.js';
 import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
-import {inputProjection} from './thought-evidence.js';
-import {materialRead} from './manual-materials.js';
+import {readPromptReuseMaterial} from './manual-materials.js';
 import {memoryRange,validateMemoryRow} from './memory/model.js';
 import {projectPromptFamilies} from './prompt-family.js';
 import {PROMPT_REUSE_ROW,own,validPromptText,quickPromptEligible,readPromptPreferences,validPromptPreferences} from './prompt-reuse-preferences.js';
@@ -29,18 +28,7 @@ export class PromptReuseService{
     const memory={s:this.s,state:async()=>({rows})},filter=await t.get('meta','smart-filter');
     const batch=await t.page('inputStates',{after,limit:100}),items=[];
     for(const {value:m}of batch.rows){
-     const p=await inputProjection(this.s,t,m.id);if(!p||!p.sourceRecordIds.length||await this.s.isFiltered(t,p.block,filter))continue;
-     let allowed=true,conversation=null,at=null;
-     // Capture and official import admit user-only source rows. Explicit contrary
-     // role/quotation evidence always vetoes reuse, including future adapters.
-     for(const sourceId of p.sourceRecordIds){const r=(await t.get('records',sourceId))?.value,ix=await t.get('recordIndex',sourceId);
-      if(!r||!ix||r.hidden||r.deletedAt||r.role&&r.role!=='user'||r.author?.role&&r.author.role!=='user'||r.authorship&&r.authorship!=='user')allowed=false;
-      if(conversation&&conversation!==ix?.chatKey)allowed=false;
-      conversation=ix?.chatKey;const stamp=Date.parse(ix?.sourceSentAt);if(Number.isFinite(stamp))at=Math.max(at||0,stamp);
-     }
-     if(!allowed||!conversation||p.block.role&&p.block.role!=='user')continue;
-     try{await materialRead(memory,t,{kind:'input',id:m.id,revision:p.contentRevision});}catch(error){if(['MEMORY_DENIED','MEMORY_UNAVAILABLE'].includes(error.code))continue;throw error;}
-     items.push({id:p.inputId,conversation,at,text:p.body,role:'user',eligible:true});
+     const item=await readPromptReuseMaterial(memory,t,m.id,filter);if(item)items.push(item);
     }
     return {items,next:batch.next,current,prefs};
    }));
