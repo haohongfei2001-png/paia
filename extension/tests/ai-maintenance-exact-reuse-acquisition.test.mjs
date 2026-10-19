@@ -20,8 +20,20 @@ test('eight cancelled original acquisitions retain slots until actual settle; ni
  // refreshed selection, new grant, or follow-on task is manufactured.
  pending[0].release();await tick(0);assert.equal(calls(),8);const entered=next(),controller=new AbortController(),promise=acquire(controller.signal);await entered;assert.equal(calls(),9);controller.abort();await assert.rejects(promise);await f.s.run(()=>f.s.repository.transaction(false,tx=>tx.get('meta','gate')));
 }));
-test('original exact acquisition first finite deadline releases Store queue and denies late transaction reads',async t=>selectionFixture(t,async({f,pending,acquire,calls,next})=>{
- f.s.organizerBudget.limits.timeoutMs=25;const entered=next(),promise=acquire(new AbortController().signal);await entered;await assert.rejects(promise);assert.equal(calls(),1);await f.s.run(()=>f.s.repository.transaction(false,tx=>tx.get('meta','gate')));await assert.rejects(pending[0].tx.get('meta','gate'));pending[0].release();await tick(0);assert.equal(calls(),1);
+test('original exact acquisition first finite deadline releases Store queue and denies late transaction reads',async t=>selectionFixture(t,async({f,pending,acquire,calls,next,observePromise})=>{
+ // The production deadline intentionally has an unref timer. Keep this isolated
+ // Node test alive, and fail explicitly if the original 25ms deadline stalls.
+ // The watchdog is outside assert.rejects, so its failure cannot satisfy it.
+ let timer,issuerPromise;const controller=new AbortController();observePromise(p=>{issuerPromise=p;});
+ const watchdog=new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Original 25ms exact acquisition deadline did not settle within the test watchdog')),2000);});
+ f.s.organizerBudget.limits.timeoutMs=25;const entered=next(),promise=acquire(controller.signal);
+ try{
+  await Promise.race([entered,promise.then(()=>assert.fail('unexpected exact qualification'),error=>{throw error;}),watchdog]);
+  await Promise.race([assert.rejects(promise,{code:'UNAVAILABLE'}),watchdog]);assert.equal(controller.signal.aborted,false);assert.equal(calls(),1);
+  await f.s.run(()=>f.s.repository.transaction(false,tx=>tx.get('meta','gate')));await assert.rejects(pending[0].tx.get('meta','gate'));pending[0].release();await tick(0);assert.equal(calls(),1);
+ }finally{
+  controller.abort();for(const held of pending)held.release();await Promise.allSettled([promise,...(issuerPromise?[issuerPromise]:[])]);clearTimeout(timer);
+ }
 }));
 for(const phase of ['before issuer','after issuer'])test('cancelled exact metadata '+phase+' performs no following underlying read',async t=>selectionFixture(t,async({f,old,pending,acquire,calls,next})=>{
  const controller=new AbortController(),original=f.s.repository.transaction.bind(f.s.repository);let fired=false,following=0,afterIssuer=false;

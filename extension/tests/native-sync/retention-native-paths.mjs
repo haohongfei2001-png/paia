@@ -176,6 +176,7 @@ export const RETENTION_RUNTIME_PATHS=Object.freeze([
   "core/context-bound-entry.js",
   "core/context-cards.js",
   "core/context-item-lineage.js",
+  "core/context-limits.js",
   "core/context-maintenance.js",
   "core/context-mcp-adapter.js",
   "core/context-package.js",

@@ -201,7 +201,13 @@ export function createMaintenanceServiceResponseAdapter(){
   let value;
   if(facet==='topic')value=topicValue(v.topic,payload.material,m,v.citations);
   else if(facet==='filter'){
-   requireFact(sameIds(v.filter.decisions.map(d=>d.inputId),m.inputIds));for(const d of v.filter.decisions)requireFact(payload.material.inputs.some(i=>i.inputId===d.inputId));value=v.filter.decisions;
+   const selected=units.map(u=>{const key=JSON.parse(u.key);requireFact(key[0]==='input');return key[1];});
+   requireFact(sameIds(m.inputIds,selected),'STALE_BASE');for(const id of selected)requireFact(payload.material.inputs.some(i=>i.inputId===id));
+   // Only the Filter semantic ID set can defer after the complete same-child
+   // wire, receipt, coverage and original caller metadata have passed. Keep
+   // the original private DEFER path; no shared validation error is converted.
+   if(!sameIds(v.filter.decisions.map(d=>d.inputId),selected))defer(correlation,'filter',units);
+   value=v.filter.decisions;
   }else value=await contextValue(held,v.context,m,correlation,units,current,qualification);
   current(held);consumed(held,facet);return {binding:correlation,value};
   }catch(error){if(readMaintenanceResponseDefer(error)){current(held);consumed(held,facet);}else if(!['STORAGE_FAILED','STORAGE_FULL'].includes(error?.code))releaseChild(correlation.childOperationId);throw error;}

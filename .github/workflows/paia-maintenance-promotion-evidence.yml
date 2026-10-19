@@ -54,7 +54,7 @@ jobs:
           node --version
           npm --prefix services/ai-gateway ls --all
           sha256sum services/ai-gateway/scripts/maintenance-source-roots.json services/ai-gateway/scripts/run-maintenance-source-evidence.mjs
-      - name: Validate all 51 roots and run the complete original shard
+      - name: Validate all 52 roots and run the complete original shard
         run: node services/ai-gateway/scripts/run-maintenance-source-evidence.mjs ${{ matrix.shard }}
 
   original-native-maintenance:

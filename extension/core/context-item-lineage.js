@@ -1,3 +1,5 @@
+import {CONTEXT_LINEAGE_LIMITS} from './context-limits.js';
+export {CONTEXT_LINEAGE_LIMITS} from './context-limits.js';
 import {validStructuralContextEvidence,readStructuralContextEvidence,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
 import {readBoundEntryContext,validBoundContextEvidence,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
 import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from './context-authored-entry.js';
@@ -15,7 +17,7 @@ import {contextTopicEpoch,contextTopicDigest,contextTopicOperationId,validContex
 // Shared automatic-Item source eligibility, never processing permission. There
 // is no source-text cache or persisted read grant. Manual Items bypass this
 // owner because their existing contract is independent, source-free human work.
-export const CONTEXT_LINEAGE_LIMITS=Object.freeze({topics:8,inputs:16,associations:16,sources:128,readTopics:32,readInputs:256,hashBytes:8*1024*1024});
+
 export const lineagePlain=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&[Object.prototype,null].includes(Object.getPrototypeOf(x));
 export const lineageExact=(x,keys)=>lineagePlain(x)&&Reflect.ownKeys(x).length===keys.length&&keys.every(k=>Object.hasOwn(x,k));
 export const lineageArray=(x,max,min=0)=>Array.isArray(x)&&x.length>=min&&x.length<=max&&Reflect.ownKeys(x).length===x.length+1&&Array.from({length:x.length},(_,i)=>Object.hasOwn(x,i)).every(Boolean);

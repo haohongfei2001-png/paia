@@ -10,8 +10,8 @@ import {strict as assert} from 'node:assert';
 export function partitionSourceRoots(roots, count = 4) {
   assert.equal(count, 4);
   assert.ok(Array.isArray(roots));
-  assert.equal(roots.length, 51);
-  assert.equal(new Set(roots).size, 51);
+  assert.equal(roots.length, 52);
+  assert.equal(new Set(roots).size, 52);
   assert.deepEqual(roots, [...roots].sort());
   for (const path of roots) assert.match(path, /^services\/ai-gateway\/tests\/[a-z0-9-]+\.test\.mjs$/);
   const shards = Array.from({length: count}, (_, i) => roots.filter((_, n) => n % count === i));
@@ -40,7 +40,7 @@ async function main() {
   const root = fileURLToPath(new URL('../../../', import.meta.url));
   const roots = JSON.parse(await readFile(new URL('./maintenance-source-roots.json', import.meta.url), 'utf8'));
   const inspected = await inspectSourceRoots(root, roots), shard = Number(args[0]);
-  console.log(JSON.stringify({scope:'offline original source client regressions', shard, shardCount:4, fullCount:51, selected:inspected.shards[shard-1], files:inspected.files}));
+  console.log(JSON.stringify({scope:'offline original source client regressions', shard, shardCount:4, fullCount:52, selected:inspected.shards[shard-1], files:inspected.files}));
   const child = spawn(process.execPath, ['--test', '--test-concurrency=1', '--test-reporter=tap', ...inspected.shards[shard-1]], {cwd:inspected.root, stdio:'inherit'});
   const code = await new Promise((resolve, reject) => {child.once('error', reject); child.once('exit', (code, signal) => signal ? reject(new Error(`test process terminated by ${signal}`)) : resolve(code));});
   if (code !== 0) process.exitCode = code || 1;

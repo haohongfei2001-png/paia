@@ -1,3 +1,5 @@
+import {CONTEXT_READ_LIMITS} from './context-limits.js';
+export {CONTEXT_READ_LIMITS} from './context-limits.js';
 import {readableContextItems} from './context-item-lineage.js';
 import {contextTemporalProjection} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_ITEM_CARDS} from './context-cards.js';
@@ -15,7 +17,7 @@ import {ArchiveError} from './constants.js';
 // Original read domain. The separate source-owned ContextConnections host
 // supplies authenticated capabilities; default configuration remains null.
 // This domain never installs a transport or creates credentials.
-export const CONTEXT_READ_LIMITS=Object.freeze({page:20,scan:20,chunk:8192,outputBytes:256*1024,materialBytes:8*1024*1024,cursors:64,cursorMs:300000,verificationMs:1000,requestMs:10000});
+
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
 const only=(x,keys)=>plain(x)&&Reflect.ownKeys(x).every(k=>keys.includes(k));
 const exact=(x,keys)=>only(x,keys)&&keys.every(k=>Object.hasOwn(x,k));

@@ -166,6 +166,7 @@ export const HUMAN_WITNESS_PATHS=Object.freeze([
   'core/context-bound-entry.js',
   'core/context-cards.js',
   'core/context-item-lineage.js',
+  'core/context-limits.js',
   'core/context-maintenance.js',
   'core/context-read.js',
   'core/context-temporal.js',
