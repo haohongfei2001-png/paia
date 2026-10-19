@@ -17,6 +17,7 @@ import {KNOWN_PREFIX} from './delta.js';
 import {ASSIST_LIMITS} from './assist-response.js';
 import {matchAssistSectionLabels} from './assist-section-relevance.js';
 import {canonical,equal,exact,opaque,fail} from './contracts.js';
+import {snapshot as ownDataSnapshot} from './qwen-request-data.js';
 
 // Local, source-owned relevance and qualification. Rules are behavioral Context;
 // Info/Now use exact current-conversation Source metadata and one-hop original
@@ -42,45 +43,7 @@ function metadata(item){
  return m;
 }
 function state(handle){const h=held.get(handle);need(h&&!h.released,'UNAVAILABLE');return h;}
-const receiptRecords=new WeakMap(),receiptKeys=['version','store','scope','epoch','processing','expiresAt','revocationSignal'];
-const nativeAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
-const descriptor=(value,key)=>{const d=Object.getOwnPropertyDescriptor(value,key);need(d&&Object.hasOwn(d,'value'),'UNAVAILABLE');return d;};
-const descriptorEqual=(a,b)=>Object.is(a.value,b.value)&&a.enumerable===b.enumerable&&a.configurable===b.configurable&&a.writable===b.writable;
-// Preserve the original issuer's object identity. Independently retain only
-// closed descriptor facts; a mutable alias must never refresh a captured scope.
-function receiptScope(value){
- const seen=new WeakSet(),nodes=[],encoder=new TextEncoder();let size=0,count=0;
- const charge=n=>{size+=n;need(size<=32768,'RESOURCE_LIMIT');};
- const walk=(value,depth)=>{
-  need(depth<=16,'UNAVAILABLE');
-  if(value===null||typeof value==='boolean'||typeof value==='number'&&Number.isFinite(value)){charge(24);return value;}
-  if(typeof value==='string'){need(value.length<=32768,'UNAVAILABLE');charge(encoder.encode(JSON.stringify(value)).length);return value;}
-  need(value&&typeof value==='object'&&!seen.has(value),'UNAVAILABLE');seen.add(value);
-  const isArray=Array.isArray(value),prototype=Object.getPrototypeOf(value),keys=Reflect.ownKeys(value);need(isArray?prototype===Array.prototype:prototype===Object.prototype||prototype===null,'UNAVAILABLE');need(keys.every(k=>typeof k==='string')&&(count+=keys.length)<=4096,'UNAVAILABLE');
-  if(isArray){const length=descriptor(value,'length').value;need(Number.isSafeInteger(length)&&length>=0&&length<=4096&&keys.length===length+1&&keys.every(k=>k==='length'||/^(0|[1-9][0-9]*)$/.test(k)&&Number(k)<length),'UNAVAILABLE');}
-  charge(2+keys.length);const out=isArray?[]:Object.create(null),fields=keys.map(key=>({key,descriptor:descriptor(value,key)}));nodes.push({value,prototype,keys,fields,immutable:Object.isFrozen(value)});
-  for(const {key,descriptor:d}of fields){if(isArray&&key==='length')continue;need(d.enumerable&&key.length<=32768,'UNAVAILABLE');charge(encoder.encode(JSON.stringify(key)).length);out[key]=walk(d.value,depth+1);}
-  return Object.freeze(out);
- };return {snapshot:walk(value,0),nodes};
-}
-function receiptFacts(raw,capability,h,now=Date.now()){
- const r=receiptRecords.get(raw);
- try{
-  need(r&&!r.retired&&r.store===h.store&&r.repository===h.store.repository&&r.database===h.database&&r.database===r.repository.db&&r.resolve===capability.resolve&&r.current===capability.isCurrent,'UNAVAILABLE');
-  need(Number.isSafeInteger(now)&&now>=r.lastNow&&now<r.expiresAt&&!nativeAborted.call(r.signal),'UNAVAILABLE');r.lastNow=now;
-  for(const node of r.nodes){if(node.immutable)continue;need(Object.getPrototypeOf(node.value)===node.prototype,'UNAVAILABLE');const keys=Reflect.ownKeys(node.value);need(keys.length===node.keys.length&&keys.every((key,i)=>key===node.keys[i]),'UNAVAILABLE');for(const field of node.fields)need(descriptorEqual(descriptor(node.value,field.key),field.descriptor),'UNAVAILABLE');}
-  return r;
- }catch(error){if(r)r.retired=true;throw error;}
-}
-function alive(h){
- need(!h.released&&h.store.repository.db===h.database&&!nativeAborted.call(h.signal)&&h.isCurrent()===true,'UNAVAILABLE');
- const selected=[[h.receipt,h.processing],[h.discoveryReceipt,h.discovery]].filter(([receipt])=>receipt);
- for(const [receipt,capability]of selected){const r=receiptFacts(receipt,capability,h);let value;try{value=capability.isCurrent(receipt,h.store);}catch{r.retired=true;fail('UNAVAILABLE');}if(value!==true){r.retired=true;Promise.resolve(value).catch(()=>{});fail('UNAVAILABLE');}}
- // A later issuer may synchronously revoke an earlier receipt or this handle.
- // After callbacks, sweep all original facts without invoking another issuer.
- const now=Date.now();for(const [receipt,capability]of selected)receiptFacts(receipt,capability,h,now);
- need(!h.released&&h.store.repository.db===h.database&&!nativeAborted.call(h.signal),'UNAVAILABLE');
-}
+function alive(h){need(!h.released&&h.store.repository.db===h.database&&!h.signal?.aborted&&h.isCurrent()===true,'UNAVAILABLE');for(const [receipt,capability]of [[h.receipt,h.processing],[h.discoveryReceipt,h.discovery]])if(receipt){need(receipt.expiresAt>Date.now()&&!receipt.revocationSignal.aborted,'UNAVAILABLE');let value;try{value=capability.isCurrent(receipt,h.store);}catch{fail('UNAVAILABLE');}if(value!==true){Promise.resolve(value).catch(()=>{});fail('UNAVAILABLE');}}}
 async function read(h,fn){alive(h);const result=await h.read(t=>fn(contextScopeTransactionReader(h.store,t,h.budget)));alive(h);return result;}
 function itemScope(m){return {itemId:m.id,revision:m.revision,card:m.card,origin:m.origin,protected:m.protected,userEdited:m.userEdited,lifecycle:m.lifecycle,selectedFields:['body','section',...(m.hasTemporal?['temporal']:[])]};}
 function evidenceSpec(e){if(entryEvidence(e))return copy(e);const {contentRevision,sourceRecordIds,sourceIdentityTokens,...spec}=e;return copy(spec);}
@@ -155,7 +118,7 @@ async function buildScope(h,t,candidates){
  const scope={purpose:'assist-context-processing',version:1,binding:copy(h.binding),contextItems:candidates.map(itemScope),inputs,entries,structuralTopics:structures.filter(x=>x.kind==='topic'),structuralSections:structures.filter(x=>x.kind!=='topic'),sourceRecordIds:sources};need(bytes(scope)<=32768,'RESOURCE_LIMIT');h.selected=candidates;h.evidence=evidence;h.graph=closure;h.scope=scope;
 }
 function capability(value){if(value===null)return null;need(value&&[Object.prototype,null].includes(Object.getPrototypeOf(value)),'UNAVAILABLE');const ds=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(ds);need(keys.length===2&&['resolve','isCurrent'].every(k=>keys.includes(k)&&Object.hasOwn(ds[k],'value')&&typeof ds[k].value==='function'),'UNAVAILABLE');return Object.freeze({resolve:ds.resolve.value,isCurrent:ds.isCurrent.value});}
-function trackReceipt(h,handle,receipt,{discovery=false}={}){const receiptKey=discovery?'discoveryReceipt':'receipt',removeKey=discovery?'removeDiscoveryAbort':'removeAbort',timerKey=discovery?'discoveryExpiryTimer':'expiryTimer';h[removeKey]?.();clearTimeout(h[timerKey]);h[receiptKey]=receipt;const captured=receiptRecords.get(receipt);need(captured&&!captured.retired,'UNAVAILABLE');const {signal,expiresAt}=captured;const abort=()=>{try{h.onRevoke?.();}finally{releaseAssistContext(handle);}};EventTarget.prototype.addEventListener.call(signal,'abort',abort,{once:true});h[removeKey]=()=>EventTarget.prototype.removeEventListener.call(signal,'abort',abort);const schedule=()=>{if(Date.now()>=expiresAt){abort();return;}h[timerKey]=setTimeout(schedule,Math.min(expiresAt-Date.now(),2147483647));h[timerKey]?.unref?.();};schedule();}
+function trackReceipt(h,handle,receipt,{discovery=false}={}){const receiptKey=discovery?'discoveryReceipt':'receipt',removeKey=discovery?'removeDiscoveryAbort':'removeAbort',timerKey=discovery?'discoveryExpiryTimer':'expiryTimer';h[removeKey]?.();clearTimeout(h[timerKey]);h[receiptKey]=receipt;const abort=()=>{try{h.onRevoke?.();}finally{releaseAssistContext(handle);}};receipt.revocationSignal.addEventListener('abort',abort,{once:true});h[removeKey]=()=>receipt.revocationSignal.removeEventListener('abort',abort);const schedule=()=>{if(Date.now()>=receipt.expiresAt){abort();return;}h[timerKey]=setTimeout(schedule,Math.min(receipt.expiresAt-Date.now(),2147483647));h[timerKey]?.unref?.();};schedule();}
 // Reply normalization is local to its original independently granted lease.
 const normalized=s=>s.normalize('NFKC').replace(/\s+/gu,' ').trim().toLowerCase();
 async function discover(h,t,handle,base){
@@ -172,18 +135,8 @@ async function discover(h,t,handle,base){
 }
 function entrySpecsFields(entry,evidence){return [...new Set(['body','title','note',...evidence.filter(e=>entryEvidence(e)&&e.entryId===entry.id).flatMap(e=>e.selectedFields)])].sort();}
 export function assistContextScope(handle){return copy(state(handle).scope);}
-function grant(h,raw,scope=h.scope){
- const capability=scope.purpose==='assist-context-discovery'?h.discovery:h.processing;
- need(raw&&typeof raw==='object'&&[Object.prototype,null].includes(Object.getPrototypeOf(raw)),'UNAVAILABLE');
- const prior=receiptRecords.get(raw);if(prior){receiptFacts(raw,capability,h);need(equal(prior.scope,scope),'UNAVAILABLE');return raw;}
- const keys=Reflect.ownKeys(raw);need(keys.length===receiptKeys.length&&keys.every(k=>receiptKeys.includes(k)),'UNAVAILABLE');
- const fields=keys.map(key=>({key,descriptor:descriptor(raw,key)})),values=Object.fromEntries(fields.map(f=>[f.key,f.descriptor.value])),now=Date.now();
- need(fields.every(f=>f.descriptor.enumerable)&&values.version===1&&values.store===h.store&&opaque(values.epoch)&&values.processing===true&&Number.isSafeInteger(values.expiresAt)&&values.expiresAt>now&&values.revocationSignal instanceof AbortSignal&&!nativeAborted.call(values.revocationSignal),'UNAVAILABLE');
- const captured=receiptScope(values.scope);need(equal(captured.snapshot,scope),'UNAVAILABLE');
- receiptRecords.set(raw,{store:h.store,repository:h.store.repository,database:h.database,scope:captured.snapshot,epoch:values.epoch,resolve:capability.resolve,current:capability.isCurrent,expiresAt:values.expiresAt,signal:values.revocationSignal,lastNow:now,retired:false,nodes:[{value:raw,prototype:Object.getPrototypeOf(raw),keys,fields,immutable:Object.isFrozen(raw)},...captured.nodes]});
- receiptFacts(raw,capability,h);return raw;
-}
-async function authorize(h,t){alive(h);if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await h.processing.resolve(t,copy(h.scope)));if(h.receipt){const prior=receiptFacts(h.receipt,h.processing,h),next=receiptFacts(current,h.processing,h);need(next.epoch===prior.epoch&&next.expiresAt===prior.expiresAt&&next.signal===prior.signal&&equal(next.scope,prior.scope),'UNAVAILABLE');}else h.receipt=current;alive(h);}
+function grant(h,raw,scope=h.scope){const keys=['version','store','scope','epoch','processing','expiresAt','revocationSignal'];exact(raw,keys);need([Object.prototype,null].includes(Object.getPrototypeOf(raw))&&Reflect.ownKeys(raw).length===keys.length&&Reflect.ownKeys(raw).every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))&&raw.version===1&&raw.store===h.store&&opaque(raw.epoch)&&raw.processing===true&&Number.isSafeInteger(raw.expiresAt)&&raw.expiresAt>Date.now()&&raw.revocationSignal instanceof AbortSignal&&!raw.revocationSignal.aborted,'UNAVAILABLE');let actualScope;try{actualScope=ownDataSnapshot(raw.scope,{maxBytes:32768});}catch{fail('UNAVAILABLE');}need(equal(actualScope,scope),'UNAVAILABLE');return Object.freeze({...raw,scope:copy(scope)});}
+async function authorize(h,t){alive(h);if(!h.selected.length)return;need(h.processing&&typeof h.processing.resolve==='function'&&typeof h.processing.isCurrent==='function','UNAVAILABLE');const current=grant(h,await h.processing.resolve(t,copy(h.scope)));if(h.receipt)need(current.epoch===h.receipt.epoch&&current.expiresAt===h.receipt.expiresAt&&current.revocationSignal===h.receipt.revocationSignal&&equal(current.scope,h.receipt.scope),'UNAVAILABLE');else h.receipt=current;alive(h);}
 async function material(h,t){
  if(!h.evidence.length)return null;
  const inputs=[],sources=[],entries=[],structures=[],memory=new MemoryService(h.store),filter=await t.get('meta','smart-filter');let retained=0;const retain=value=>{retained+=bytes(value);need(retained<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes,'RESOURCE_LIMIT');return value;};
@@ -208,5 +161,5 @@ export async function captureAssistContext(store,handle,{read:reader,processing=
 }
 export async function assertAssistContext(store,t,handle){const h=state(handle);need(h.store===store&&h.captured,'UNAVAILABLE');alive(h);const reader=contextScopeTransactionReader(store,t,h.budget);await authorize(h,reader);const now=await contextLineageAdmission(store,reader,h.admission.epoch);need(now.gate===h.admission.gate);need(equal(await discover(h,reader,handle,await candidatesIn(reader,h.relevance)),h.selection));const row=await reader.get('meta',CONTEXT_CARDS_ROW);for(const x of h.items){const item=row?.items.find(i=>i.id===x.original.id);need(item&&equal(item,x.original)&&equal(contextTemporalProjection(item),x.temporal));if(x.item){const known=await reader.get('meta',KNOWN_PREFIX+x.item.key);need(known&&equal({key:x.item.key,signature:known.signature,descriptor:known.descriptor},x.item));}}need(equal(await graph(h,reader,h.evidence),h.graph)&&equal(await material(h,reader),h.snapshots));alive(h);return true;}
 export function assistContextCurrent(handle){try{alive(state(handle));return true;}catch{return false;}}
-export function assistContextValue(handle){const h=state(handle);alive(h);need(h.captured,'UNAVAILABLE');return {items:h.items.filter(x=>x.item).map(x=>copy(x.item)),context:h.items.map(x=>x.context),dependencies:{items:h.items.map(x=>({itemId:x.original.id,revision:x.original.revision,card:x.original.card,origin:x.original.origin,protected:x.original.protected,temporal:x.temporal})),processing:h.receipt?{epoch:receiptRecords.get(h.receipt).epoch}:null,evidence:copy(h.evidence)}};}
+export function assistContextValue(handle){const h=state(handle);alive(h);need(h.captured,'UNAVAILABLE');return {items:h.items.filter(x=>x.item).map(x=>copy(x.item)),context:h.items.map(x=>x.context),dependencies:{items:h.items.map(x=>({itemId:x.original.id,revision:x.original.revision,card:x.original.card,origin:x.original.origin,protected:x.original.protected,temporal:x.temporal})),processing:h.receipt?{epoch:h.receipt.epoch}:null,evidence:copy(h.evidence)}};}
 export function releaseAssistContext(handle){const h=held.get(handle);if(!h)return;h.released=true;h.controller.abort();h.removeSignal();h.removeAbort?.();h.removeDiscoveryAbort?.();clearTimeout(h.expiryTimer);clearTimeout(h.discoveryExpiryTimer);for(const capture of h.lineages)releaseContextLineage(capture);h.lineages.length=0;h.items.length=0;h.selected.length=0;h.snapshots=null;h.graph=null;h.scope=null;h.selection=null;h.evidence=null;h.receipt=null;h.discoveryReceipt=null;h.replyText=null;h.onRevoke=null;h.read=null;held.delete(handle);}

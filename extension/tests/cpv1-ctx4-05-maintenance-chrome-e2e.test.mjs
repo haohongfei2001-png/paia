@@ -891,6 +891,9 @@ async function maintenanceFixture({inputs=1,tier='free',providerMode='valid',ada
 async function installRepositoryTerminal(page){
  await page.evaluate(async()=>{
   const {ArchiveRepository,registerRepositoryFinalReadFence}=await import(chrome.runtime.getURL('core/idb-repository.js'));
+  const {TopicProcessingGuard}=await import(chrome.runtime.getURL('core/topic-processing.js'));
+  const {TopicProcessingAuthority}=await import(chrome.runtime.getURL('core/topic-processing-authority.js'));
+  const {createContextScopeWorkBudget}=await import(chrome.runtime.getURL('core/context-topic-scope.js'));
   const check=(ok,label)=>{if(!ok)throw Error(label);},same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   globalThis.__repositoryTerminalNative=async mode=>{
    check(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'original native IndexedDB required');
@@ -925,6 +928,27 @@ async function installRepositoryTerminal(page){
     else{check(rejected&&aborted&&!completed,'closed terminal refusal aborted original native transaction');check(same(after,before),'all native stores rolled back');if(mode==='caught-terminal-write')check(caught,'second fence caught the write rejection but could not commit');}
     return {passed:true,nativeFactory:true,mode,rejected,completed,aborted,caught,firstChecked};
    }finally{await repository.close();await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase(name);request.onsuccess=resolve;request.onerror=()=>reject(Error('terminal fixture cleanup'));request.onblocked=()=>reject(Error('terminal fixture cleanup blocked'));});}
+  };
+  // These source-owner capability controls are separate from the original
+  // Repository-only leaves. Each issuer brands its own exact raw receipt.
+  // No model, configured production issuer or field permission is simulated.
+  globalThis.__repositoryCollectionsNative=async mode=>{
+   const run=async(abortAt=Infinity)=>{
+    check(indexedDB instanceof IDBFactory&&/\[native code\]/.test(IDBFactory.prototype.open.toString()),'original native IndexedDB required');
+    const name='paia-terminal-collections-'+crypto.randomUUID(),repository=new ArchiveRepository({},{indexedDB,name});await repository.open();
+    const store={repository},budget=createContextScopeWorkBudget({database:repository.db}),signals=[new AbortController(),new AbortController()],owners=[],states=[{checks:0},{checks:0}],scope=[{inputId:'synthetic-selected-input',role:'primary',selectedFields:['body']}];let revoked=0,completed=false,aborted=false,rejected=false;
+    const make=i=>{const caller=Object.freeze({id:crypto.randomUUID()}),receipts=new WeakSet(),processing={resolve:async(_t,selected)=>{const receipt=Object.freeze({version:1,store,caller,scope:selected,epoch:'synthetic-independent-'+i,processing:true,expiresAt:Date.now()+60000,revocationSignal:signals[i].signal});receipts.add(receipt);return receipt;},isCurrent:receipt=>{states[i].checks++;if(i===1&&states[i].checks===abortAt){revoked++;signals[0].abort();}return receipts.has(receipt);}},owner=new TopicProcessingAuthority(store,{caller,processing,binding:{operationId:crypto.randomUUID()},workBudget:budget});owners.push(owner);return new TopicProcessingGuard(store,{resolveProcessing:(t,request)=>owner.authorize(t,request)});};
+    const guards=[make(0),make(1)],snapshot=()=>repository.transaction(false,async t=>Object.fromEntries(await Promise.all(repository.stores.map(async table=>[table,await t.all(table)])))),before=await snapshot();
+    try{
+     try{await repository.transaction(true,async t=>{check(t.tx instanceof IDBTransaction,'original transaction');t.tx.addEventListener('complete',()=>{completed=true;},{once:true});t.tx.addEventListener('abort',()=>{aborted=true;},{once:true});for(const guard of guards)await guard.processing(t,scope);await t.put('operationReceipts',{id:'synthetic-collection-result',result:{state:'committed'}});for(const guard of guards)guard.registerProcessingFinalFence(t);});}catch{rejected=true;}
+     const after=await snapshot(),persisted=after.operationReceipts.some(row=>row.id==='synthetic-collection-result'),unchanged=same(before,after);
+     if(abortAt===Infinity)check(!rejected&&completed&&!aborted&&persisted,'unchanged two genuine owners commit');
+     else{check(revoked===1&&states[1].checks===abortAt,'last original issuer performed exact earlier-signal revocation');check(rejected&&aborted&&!completed&&!persisted&&unchanged,'all native stores roll back after last independent issuer revokes earlier original use');}
+     return {rejected,completed,aborted,persisted,unchanged,revoked,checks:states[1].checks};
+    }finally{for(const owner of owners)owner.release();await repository.close();await new Promise((resolve,reject)=>{const request=indexedDB.deleteDatabase(name);request.onsuccess=resolve;request.onerror=()=>reject(Error('collection fixture cleanup'));request.onblocked=()=>reject(Error('collection fixture cleanup blocked'));});}
+   };
+   const positive=await run();check(positive.checks>1,'actual final original issuer count observed');const negative=mode==='last-owner-revoke'?await run(positive.checks):null;
+   return {passed:true,nativeFactory:true,mode,positive,negative};
   };
  });
 }
@@ -963,6 +987,7 @@ for(const variant of ['source','release'])test('CTX4-05 native '+variant+' dorma
   });
   await installRepositoryTerminal(page);
   for(const mode of ['complete','finalizer-source','finalizer-revoke','finalizer-expiry','caught-terminal-write','non-idb-promise','second-fence-revoke','native-auto-complete-control'])await t.test('repository-terminal-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryTerminalNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-terminal-'+mode+'.json'),JSON.stringify(report,null,2));});
+  for(const mode of ['complete','last-owner-revoke'])await t.test('repository-collections-'+mode,{timeout:20000},async()=>{const report=await page.evaluate(mode=>globalThis.__repositoryCollectionsNative(mode),mode);assert.equal(report.passed,true);await writeFile(join(output,'repository-collections-'+mode+'.json'),JSON.stringify(report,null,2));});
   assert.deepEqual(await page.evaluate(()=>chrome.storage.local.get(null)),appSettings,'Isolated fixtures preserve actual app settings');
   assert.equal(harness.extensionNetworkRequests,0);assert.equal(harness.externalRequests,0);assert.equal(harness.deepSeekRequests.length,0);
   assert.deepEqual(harness.errors,[]);

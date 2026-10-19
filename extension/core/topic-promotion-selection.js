@@ -1,5 +1,4 @@
 import {fail,prefix,same,keys,idOK} from './thought-model.js';
-import {hashText} from './dedupe.js';
 import {publicTopicAuthority} from './topic-processing.js';
 import {readFormationEvidence,formationEntryDescriptor,readableFormationSection,validateFormationSources} from './topic-formation-evidence.js';
 import {promotionPlacementId,promotionSectionId,promotionOrganization} from './topic-promotion-policy.js';
@@ -50,16 +49,16 @@ export class PromotionSelection {
   const pages=[],manifestPages=[];
   const pending=[...grouped];
   while(pending.length){const group=pending.shift(),index=pages.length;
-   const prepared=group.scope.length?await prepare(group.scope):authoredGuard,read=await svc.read(prepared,async t=>{await svc.authorize(t,prepared,[request.topicId]);const backed=group.entryIds.filter(id=>!authoredIds.has(id)),evidence=backed.length?await readFormationEvidence(this.store,t,prepared,backed):{inputs:[],sources:[],entries:[]},authored=[];for(const id of group.entryIds.filter(id=>authoredIds.has(id))){const row=await authoredEntry(t,id);authored.push({id:row.id,body:row.thoughtText,bodyBinding:row.bodyBinding,revision:row.revision,contentRevision:row.contentRevision,organizationRevision:row.organizationRevision,evidenceKind:'independent_user_entry',sourceRecordIds:[],dependencies:[],references:[]});}return {evidence,authored};}),{evidence,authored}=read;await validateFormationSources(evidence);
+   const prepared=group.scope.length?await prepare(group.scope):authoredGuard,read=await svc.read(prepared,async t=>{await svc.authorize(t,prepared,[request.topicId]);const backed=group.entryIds.filter(id=>!authoredIds.has(id)),evidence=backed.length?await readFormationEvidence(this.store,t,prepared,backed):{inputs:[],sources:[],entries:[]},authored=[];for(const id of group.entryIds.filter(id=>authoredIds.has(id))){const row=await authoredEntry(t,id);authored.push({id:row.id,body:row.thoughtText,bodyBinding:row.bodyBinding,revision:row.revision,contentRevision:row.contentRevision,organizationRevision:row.organizationRevision,evidenceKind:'independent_user_entry',sourceRecordIds:[],dependencies:[],references:[]});}return {evidence,authored};}),{evidence,authored}=read;await validateFormationSources(evidence,{store:this.store,qualification:svc.retrieval.guard.qualification()});
    const limits=this.store.organizerBudget?.limits,view={inputs:evidence.inputs.map(({sourceIds,...input})=>input),entries:[...evidence.entries.map(e=>formationEntryDescriptor(e,evidence.inputs)),...authored]};
    if(limits&&(new TextEncoder().encode(JSON.stringify(view.inputs)).length>limits.maxContentBytes||new TextEncoder().encode(JSON.stringify(view)).length>limits.maxRequestBytes)){
     if(group.entryIds.length===1)fail();const middle=Math.ceil(group.entryIds.length/2),parts=[group.entryIds.slice(0,middle),group.entryIds.slice(middle)].map(entryIds=>({entryIds,scope:[...new Map(entryIds.flatMap(id=>scopeByEntry.get(id)).map(s=>[s.inputId,s])).values()]}));pending.unshift(...parts);continue;
    }
-   const evidenceDigest=await hashText(JSON.stringify({evidence,authored}));
+   const evidenceDigest=await svc.hash({evidence,authored});
    pages.push({index,evidence,authored});manifestPages.push({index,entryIds:group.entryIds,scope:group.scope,evidenceDigest});
   }
   const manifest={version:1,selection:request.selection,topicId:base.topic.id,sectionId:base.section.sectionId,generation:base.topic.activeLayoutGeneration,count:placements.length,entryIds:placements.map(p=>p.entryId),pages:manifestPages};
-  const manifestDigest=await hashText(JSON.stringify(manifest));
+  const manifestDigest=await svc.hash(manifest);
   const sourceRecordIds=unique([...guards.flatMap(g=>g.evidence.flatMap(e=>e.sourceRecordIds)),...(base.topic.sourceRecordIds||[]),...(base.section.sourceRecordIds||[]),...pages.flatMap(p=>p.evidence.entries.flatMap(e=>e.sourceRecordIds))]);
   const anchor=pages.find(p=>p.evidence.entries.length);if(!anchor)fail();
   const snapshot={...base,evidence:anchor.evidence,placements,organizations,selection:{manifest,manifestDigest,sourceRecordIds}};

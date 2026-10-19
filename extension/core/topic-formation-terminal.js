@@ -30,15 +30,44 @@ export async function captureTopicFormationTerminal(store,t,evidence,{retain,cur
  }
  current();return facts;
 }
-export function registerTopicFormationTerminal(store,t,{facts,intents,baselines,root,qualification,current,compatibilityRecheck}){
+export function registerTopicFormationTerminal(store,t,{facts,intents,baselines,root,members=[],qualification,current,compatibilityRecheck}){
  const expectedRoot=structuredClone(root);if(t.backupChanged)expectedRoot[5]=(expectedRoot[5]||0)+1;const writes=[...intents.values()].map(x=>structuredClone(x)),expected=new Map((baselines||[]).map(row=>[row.id,row]));for(const w of writes)if(w.store==='organizerWorkItems'&&expected.has(w.id))expected.set(w.id,w.value);
  const check=()=>{current();if(qualification)assertMaintenanceQualification(qualification,store);return true;};
+ const charge=()=>{check();if(qualification){const budget=maintenanceQualificationWorkBudget(qualification,store);if(budget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail();budget.reads++;}};
+ const count=function*(table,index,key){charge();const value=yield {method:'count',table,index,key};check();return value;};
  const get=function*(table,key){check();if(qualification){const budget=maintenanceQualificationWorkBudget(qualification,store);if(budget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail();budget.reads++;}const row=yield {method:'get',table,key};check();if(qualification&&row){const budget=maintenanceQualificationWorkBudget(qualification,store),ids=budget.seen.get(table)||new Set();ids.add(own(row,'id'));if(ids.size>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail();budget.seen.set(table,ids);}return row;};
  registerRepositoryFinalReadFence(store.repository,t,{isCurrent:check,compatibilityRecheck,plan:function*(){
   const actual=[];for(const id of rootIds)actual.push((yield*get('meta',id))?.value??null);const f=yield*get('meta','smart-filter');actual.push(['mode','phase','policyEpoch','decisionSequence','filterVersion','policyVersion','classifierVersion'].map(k=>f?.[k]??null));if(!same(actual,expectedRoot))fail();
   for(const fact of facts)if(!same(fact.project(yield*get(fact.table,fact.key),check),fact.expected))fail();
   for(const [id,row]of expected)if(!sameTopicWriteData((yield*get('organizerWorkItems',id))??null,row))fail();
   for(const {store:table,id,value}of writes)if(!sameTopicWriteData((yield*get(table,id))??null,value))fail();
+  for(const {entryId,collections}of members)for(const {table,rows}of collections){const {index,key}=topicFormationMemberRange(table,entryId);if((yield*count(table,index,key))!==rows.length)fail();for(const expected of rows)if(!sameTopicWriteData(topicFormationMemberProjection(table,yield*get(table,expected.id)),expected))fail();}
   return true;
  }});
+}
+
+// Complete selected-Entry metadata collections, held by the original prepare.
+// These positive projections never acquire future semantic fields or getters.
+const memberFields={placements:['id','topicId','layoutGeneration','entryId','sectionId','rank','sectionRank','revision','activeKey','lifecycle','membershipAuthorship','sectionProtection','orderProtection','excludedByUser','removedWithTopicOperationId','membershipOperationId'],dependencies:['id','inputId','inputList','thoughtId','targetKind','targetId','eligibilityEpochAtUse','basedOnContentRevision','selectedFields','fieldDigests','validatedAgainstContentRevision','status','roles','sourceRecordIds','scopeToken','versionToken','lastEventSequence'],provenance:['id','ownerKind','ownerId','generationId','inputId','basedOnContentRevision','actualVersion','role','contributionType','formation','generatedAt','generator','inputAuthorshipAtUse','entryFieldAuthorshipAtCommit','sourceRecordIds','sourceIdentityTokens','scopeToken','versionToken','availability','contributionKey','span']};
+const memberNested={fieldDigests:['body','note','title'],actualVersion:['inputRevision','projectionVersion','selectedFields','fieldDigests'],generator:['providerId','providerVersion','modelVersion','taskSchemaVersion','promptTemplateVersion','policyVersion'],span:['inputId','field','start','end','full']};
+const memberLists=new Set(['inputList','selectedFields','roles','sourceRecordIds','sourceIdentityTokens']);
+function memberValue(value,key){
+ if(value===null||value===undefined)return value;
+ if(memberLists.has(key)){if(!Array.isArray(value)||value.length>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail();return Array.from({length:value.length},(_,i)=>memberScalar(own(value,String(i))));}
+ if(memberNested[key]){if(typeof value!=='object'||Array.isArray(value))fail();return Object.fromEntries(memberNested[key].filter(k=>Object.hasOwn(value,k)).map(k=>[k,memberValue(own(value,k),k)]));}
+ return memberScalar(value);
+}
+function memberScalar(value){scalar(value);if(typeof value==='number'&&!Number.isFinite(value)||typeof value==='string'&&value.length>65536)fail();return value;}
+export function topicFormationMemberProjection(table,row){if(!row)return null;const fields=memberFields[table];if(!fields)fail();return Object.fromEntries(fields.filter(k=>Object.hasOwn(row,k)).map(k=>[k,memberValue(own(row,k),k)]));}
+export function topicFormationMemberOwner(table,row){if(!row)return null;if(table==='thoughts')return own(row,'id');if(table==='placements')return own(row,'entryId');if(table==='dependencies')return own(row,'targetKind')==='entry'?own(row,'targetId'):null;if(table==='provenance')return own(row,'ownerKind')==='entry'?own(row,'ownerId'):null;return null;}
+export function topicFormationMemberRange(table,entryId){if(table==='placements')return {index:'byEntry',key:IDBKeyRange.bound([entryId],[entryId,[]],false,true)};if(table==='dependencies')return {index:'byTarget',key:IDBKeyRange.bound(['entry',entryId],['entry',entryId,[]],false,true)};if(table==='provenance')return {index:'byOwner',key:IDBKeyRange.bound(['entry',entryId],['entry',entryId,[]],false,true)};fail();}
+export async function captureTopicFormationMembers(t,entryIds,{charge=null}={}){
+ if(!Array.isArray(entryIds)||entryIds.length>100||new Set(entryIds).size!==entryIds.length)fail();const members=[],counts=new Map();let bytes=0;
+ for(const entryId of entryIds){const collections=[];for(const table of Object.keys(memberFields)){const {index,key}=topicFormationMemberRange(table,entryId),count=await t.count(table,index,key);if(!Number.isSafeInteger(count)||count<0||count>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail();const rows=(await t.all(table,index,key,CONTEXT_TOPIC_SCOPE_LIMITS.refs+1)).map(row=>topicFormationMemberProjection(table,row)).sort((a,b)=>a.id.localeCompare(b.id));if(rows.length!==count||rows.some(row=>topicFormationMemberOwner(table,row)!==entryId))fail();counts.set(table,(counts.get(table)||0)+count);if(counts.get(table)>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail();const text=JSON.stringify(rows);bytes+=new TextEncoder().encode(text).length;if(bytes>CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes)fail();if(charge)charge(text);collections.push({table,rows});}members.push({entryId,collections});}return members;
+}
+export function expectedTopicFormationMembers(before,intents){
+ return before.map(member=>({entryId:member.entryId,collections:member.collections.map(({table,rows})=>{const expected=new Map(rows.map(row=>[row.id,row]));for(const intent of intents.values())if(intent.store===table){expected.delete(intent.id);if(topicFormationMemberOwner(table,intent.value)===member.entryId)expected.set(intent.id,topicFormationMemberProjection(table,intent.value));}if(expected.size>CONTEXT_TOPIC_SCOPE_LIMITS.refs)fail();return {table,rows:[...expected.values()].sort((a,b)=>a.id.localeCompare(b.id))};})}));
+}
+export async function assertTopicFormationMembers(t,members){
+ for(const {entryId,collections}of members)for(const {table,rows}of collections){const {index,key}=topicFormationMemberRange(table,entryId);if(await t.count(table,index,key)!==rows.length)fail();for(const expected of rows)if(!sameTopicWriteData(topicFormationMemberProjection(table,await t.get(table,expected.id)),expected))fail();}return true;
 }

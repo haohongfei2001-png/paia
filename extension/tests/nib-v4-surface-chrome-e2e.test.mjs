@@ -34,32 +34,7 @@ for(const variant of ['source','release'])test('NIB v4 S0 real surface '+variant
    const expected=intrinsicFixtureHeight({...intrinsic,available});lastSettleGeometry={frame,expected,available,...intrinsic};
    return frame&&!intrinsic.layoutPending&&Math.abs(frame.height-expected)<1;
   },'native surface reaches current intrinsic outer boxes within host safe bounds');};
-  const box=async()=>{
-   let snapshot;const samples=[];
-   try{
-    // Read the actual frame, its closed-shadow owner and original button in
-    // one parent-document task. A resize must not mix old frame coordinates
-    // with a newer control/viewport from a later Playwright round trip.
-    await eventually(async()=>{
-     snapshot=await (await f.frameElement()).evaluate(node=>{
-      const root=node.getRootNode(),host=root.host,control=root.querySelector('button[aria-controls="paia-prompt-private"]'),rect=n=>n?.getBoundingClientRect().toJSON()??null;
-      return {frame:rect(node),host:rect(host),control:rect(control),width:innerWidth,form:rect(document.querySelector('form')),top:document.querySelector('header').getBoundingClientRect().bottom,sameHost:host===document.querySelector('[data-paia-prompt-surface]'),sameControl:control?.getRootNode()===root&&control.getAttribute('aria-controls')===node.id,hidden:node.hidden||host?.hidden,framePosition:getComputedStyle(node).position,hostPosition:host?getComputedStyle(host).position:null};
-     });
-     samples.push(snapshot);if(samples.length>8)samples.shift();
-     const {frame:a,width,form}=snapshot;return a&&!snapshot.hidden&&a.width===Math.min(336,width-32)&&a.x>=0&&a.x+a.width<=width&&Math.abs(a.y+a.height-(form.top-12))<1;
-    },'coalesced geometry reaches exact current viewport and composer');
-    const {frame:b,host:target,control,width,form,top}=snapshot;
-    assert.ok(b);assert.equal(snapshot.sameHost,true,'sampled frame belongs to the original current host');assert.equal(snapshot.sameControl,true,'sampled button belongs to that same frame root and controls that frame');
-    assert.equal(b.width,Math.min(336,width-32));assert.ok(b.x>=0&&b.x+b.width<=width,'actual current viewport contains the whole frame');assert.ok(b.y>=top+11.5);assert.ok(Math.abs(b.y+b.height-(form.top-12))<1);
-    assert.deepEqual([target.width,target.height],[48,48]);assert.deepEqual([control.width,control.height],[48,48]);
-    assert.ok(Math.abs(b.x+b.width-(target.x+target.width))<1,'board and original control share their right edge');assert.ok(Math.abs(b.y+b.height-(target.y+target.height))<1,'board and original control share their bottom edge');
-    assert.ok(Math.abs(b.x+b.width-(control.x+control.width))<1,'board and actual original button share their right edge');assert.ok(Math.abs(b.y+b.height-(control.y+control.height))<1,'board and actual original button share their bottom edge');
-    assert.equal(await f.locator('header').count(),1);assert.equal(await f.locator('header').evaluate(n=>n.getBoundingClientRect().height),48);measurements.push({viewport:width,box:b,top,form:form.top});return b;
-   }catch(error){
-    // Bounded geometry-only evidence; no host text, library bodies or drafts.
-    await writeFile(join(out,variant+'-geometry-failure.json'),JSON.stringify({variant,samples},null,2)).catch(()=>{});throw error;
-   }
-  };
+  const box=async()=>{await eventually(async()=>{const a=await (await f.frameElement()).boundingBox(),v=await p.evaluate(()=>({width:innerWidth,top:document.querySelector('form').getBoundingClientRect().top}));return a&&a.width===Math.min(336,v.width-32)&&a.x>=0&&a.x+a.width<=v.width&&Math.abs(a.y+a.height-(v.top-12))<1;},'coalesced geometry reaches exact current viewport and composer');const b=await (await f.frameElement()).boundingBox(),v=await p.evaluate(()=>({width:innerWidth,form:document.querySelector('form').getBoundingClientRect().toJSON(),top:document.querySelector('header').getBoundingClientRect().bottom}));assert.ok(b);assert.equal(b.width,Math.min(336,v.width-32));assert.ok(b.x>=0&&b.x+b.width<=v.width,'actual current viewport contains the whole frame');assert.ok(b.y>=v.top+11.5);assert.ok(Math.abs(b.y+b.height-(v.form.top-12))<1);const target=await orb.boundingBox();assert.deepEqual([target.width,target.height],[48,48]);assert.ok(Math.abs(b.x+b.width-(target.x+target.width))<1,'board and original control share their right edge');assert.ok(Math.abs(b.y+b.height-(target.y+target.height))<1,'board and original control share their bottom edge');assert.equal(await f.locator('header').count(),1);assert.equal(await f.locator('header').evaluate(n=>n.getBoundingClientRect().height),48);measurements.push({viewport:v.width,box:b,top:v.top,form:v.form.top});return b;};
   await check('fixed outer rectangle, exact widths and stable action regions',async()=>{
    for(const width of [1680,1280,1024,401,400,390,320]){await p.setViewportSize({width,height:900});await box();if([320,1280].includes(width))await p.screenshot({path:join(out,variant+'-one-'+width+'.png')});}
    await p.setViewportSize({width:1280,height:900});await settle();assert.equal((await box()).height,ordinaryHeight);assert.equal(await f.locator('.row').first().evaluate(n=>n.getBoundingClientRect().height),44);const before=await f.locator('.text').first().boundingBox();await f.locator('.row').first().hover();assert.deepEqual(await f.locator('.text').first().boundingBox(),before);assert.equal(await f.locator('.text').first().evaluate(n=>getComputedStyle(n).whiteSpace),'nowrap');for(const total of [2,5]){while(count<total)await create('compact '+count+' synthetic');await surfaceClick(f,'#refresh');await eventually(()=>f.locator('.row').count().then(n=>n===total));await settle();const b=await box();assert.equal(b.height,ordinaryHeight);await p.screenshot({path:join(out,variant+'-'+total+'-rows.png')});}

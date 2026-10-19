@@ -26,7 +26,7 @@ import {createOperationStatusHandler} from '../operation-status-entry.mjs';
 import {createPostgresOperationStatusService} from '../operation-status-service.mjs';
 // Actual signed identity/declaration/HTTP/ledger/provider/domain owners. Only
 // SQL transactions and Qwen HTTPS are simulated; not live PostgreSQL evidence.
-export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null,transformResponse=null,exposeRemote=false,filterNeighborSource=null,reuseLocal=null}={}){
+export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null,configureManifest=null,transformResponse=null,exposeRemote=false,filterNeighborSource=null,reuseLocal=null}={}){
  let local,filterRuntime=reuseLocal?.filterRuntime??null,filterConsent=reuseLocal?.filterConsent??null;const consentData={};
  if(filter&&!reuseLocal){filterConsent=new AIFilterConsent({storage:{session:{async get(k){return {[k]:structuredClone(consentData[k])};},async set(v){Object.assign(consentData,structuredClone(v));}}}},{consented:async()=>true});const before=await filterConsent.status();await filterConsent.configure({optIn:true,remoteProcessing:true,expectedGeneration:before.generation});filterRuntime=createAIFilterAuthority({getStore:()=>local?.s,consent:filterConsent,policy:{version:'pro-ambiguous-1',qualificationId:'SYNTHETIC_NOT_PRODUCTION_QUALIFICATION'}});}
  local=reuseLocal??(filter?await filterMaintenanceFixture({aiFilterAuthority:filterRuntime.authority,neighborSource:filterNeighborSource}):mixed?await mixedMaintenanceFixture():await localMaintenanceFixture({inputs}));local.session.dispose();
@@ -37,6 +37,8 @@ export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=f
  manifest.profile.jobType='AI_MAINTENANCE';manifest.known.jobType='AI_MAINTENANCE';manifest.profile.contractVersion='synthetic-aiu-1';manifest.known.contractVersion='synthetic-aiu-1';manifest.profile.routeVersion='synthetic-maintenance-1';manifest.known.routeVersion='synthetic-maintenance-1';
  manifest.wire.responseFormat.json_schema.schema=schema;manifest.profile.responseSchemaDigest=await hashText(canonical(schema));manifest.known.responseSchemaDigest=manifest.profile.responseSchemaDigest;
  manifest.profile.qualifiedLimits.inputTokens=12000;manifest.profile.qualifiedLimits.billableOutputCap=2000;manifest.profile.thinking.requestedMaxCompletionTokens=1990;
+ // Test-only setup before source owners capture the manifest; normal configure remains later.
+ await configureManifest?.({local,server});
  const publisher=publication.publisher(),runner=server.runner(),resultService=createPostgresResultService({...server.config,pool:server.reservationPool}),statusService=createPostgresOperationStatusService({...server.config,pool:server.reservationPool});
  const handlers={'/api/declarations':createDeclarationHandler({publisher}),'/api/reservations':createGatewayHandler({service:server.service}),'/api/provider':createProviderHandler({resolveRunner:()=>({runner,isCurrent:()=>true})}),'/api/results':createResultHandler({service:resultService}),'/api/operation-status':createOperationStatusHandler({service:statusService})};
  t.mock.method(https,'request',(options,callback)=>{

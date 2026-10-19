@@ -79,7 +79,7 @@
   if(r.type==='PAIA_PROMPT_NEXT_INSERT'){
    const ticket=epoch;
    // Recheck with the worker immediately before the synchronous native edit.
-   (async()=>{const state=await rpc('STATUS');if(r.sourceType==='PROMPT_FAMILY'){const qualified=await rpc('INSERT_CURRENT',{id:r.id,operationId:r.operationId,choiceId:r.choiceId});if(!qualified.current)throw Error('stale_family');}return state;})().then(state=>{
+   (async()=>{const state=await rpc('STATUS');if(r.sourceType==='PROMPT_FAMILY'){const qualified=await rpc('PRESENT',{id:r.id});if(!qualified.safe)throw Error('stale_family');}return state;})().then(state=>{
     scan();
     if(ticket!==epoch||!state.enabled||state.generation!==authorization||r.authorization!==authorization||r.id!==candidate||!same(r.binding,binding))return {status:'failed',reason:'stale_candidate'};
     inserting=true;return composer.insert({text:r.text,operationId:r.operationId,url:r.binding.url,guard:()=>{const pending=observer.takeRecords();scan(replyMutation(pending));return ticket===epoch&&r.authorization===authorization&&r.id===candidate&&same(r.binding,binding);}}).finally(()=>{inserting=false;});

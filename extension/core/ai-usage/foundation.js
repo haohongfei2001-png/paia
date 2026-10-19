@@ -25,6 +25,16 @@ export function readMaintenanceFilterSettlement(token,foundation,publication){
  try{requireRepositoryTransactionSucceeded(held.repository,held.transaction);}catch{return null;}
  return structuredClone(held.data);
 }
+// A result is branded only at the original successful server publication
+// boundary. The immutable value already belongs to Qwen's bounded response;
+// this proof keeps no additional body copy and is consumed exactly once.
+const maintenancePaidResponses=new WeakMap(),nativeSignalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
+export function takeMaintenancePaidResponse(result,foundation,provider=null){
+ const held=maintenancePaidResponses.get(result);if(!held||held.foundation!==foundation||provider!==null&&held.provider!==provider)fail('UNAVAILABLE');
+ maintenancePaidResponses.delete(result);
+ if(held.store!==foundation.s||held.repository!==foundation.s.repository||held.database!==held.repository.db||held.signal&&nativeSignalAborted.call(held.signal))fail('STALE_BASE');
+ return held.value;
+}
 const KIND='ai_usage_v1',COUNTERS='aiu:counters:v1',HISTORICAL_FLIGHT='aiu:historical-service-preflight:v1',ASSIST_FLIGHT='aiu:assist-service-preflight:v1';
 const terminal=new Set(['COMMITTED','CANCELLED_BEFORE_DISPATCH','REJECTED','EXPIRED_UNCOMMITTED']);
 const coverId=(key,facet,scope)=>'aiu:coverage:'+canonical([key,facet,scope]);
@@ -55,13 +65,15 @@ export class AIUsageFoundation {
  constructor(store,{resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,fn));}
  async write(fn){return this.s.foundationWrite(fn);}
- async authority(t,type,scope){
+ async authority(t,type,scope,signal=null){
+  // Cancellation only narrows this original authority read. It grants no scope.
+  const check=()=>{if(signal!==null){let aborted;try{aborted=nativeSignalAborted.call(signal);}catch{fail('UNAVAILABLE');}if(aborted)fail('UNAVAILABLE');}},read=async key=>{check();const row=await t.get('meta',key);check();return row;};check();
   if(typeof this.resolveAuthority!=='function')fail('UNAVAILABLE');
-  const request={purpose:'ai-usage',jobType:type,evidenceKeys:scope.items.map(i=>i.key).sort(),coverage:scope.coverage},resolved=await this.resolveAuthority(t,request);
+  const request={purpose:'ai-usage',jobType:type,evidenceKeys:scope.items.map(i=>i.key).sort(),coverage:scope.coverage},resolved=await this.resolveAuthority(t,request);check();
   if(!equal(resolved?.scope,{evidenceKeys:request.evidenceKeys,coverage:request.coverage}))fail('UNAVAILABLE');
-  const {scope:approvedScope,...answer}=resolved,authority=validateAuthority(answer,type),gate=await t.get('meta','gate');
-  if(gate?.enabled!==true||(await t.get('meta','thought-library'))?.sealed)fail('UNAVAILABLE');
-  return {...authority,gateEpoch:gate.epoch,restoreEpoch:(await t.get('meta','recovery-restore-epoch'))?.value??'initial',humanFence:type==='AI_ASSIST'&&(scope.assistIntent||scope.historicalIntent)?null:(await t.get('meta',HUMAN_FENCE))?.value??0};
+  const {scope:approvedScope,...answer}=resolved,authority=validateAuthority(answer,type),gate=await read('gate');
+  if(gate?.enabled!==true||(await read('thought-library'))?.sealed)fail('UNAVAILABLE');
+  const result={...authority,gateEpoch:gate.epoch,restoreEpoch:(await read('recovery-restore-epoch'))?.value??'initial',humanFence:type==='AI_ASSIST'&&(scope.assistIntent||scope.historicalIntent)?null:(await read(HUMAN_FENCE))?.value??0};check();return result;
  }
  async collect({cursor=null,limit=25,facets=['topic','context','filter']}={}){
   if(!Array.isArray(facets)||!facets.length||facets.some(f=>!['topic','context','filter'].includes(f))||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith(DIRTY_PREFIX)))fail();
@@ -771,7 +783,9 @@ export class AIUsageFoundation {
      return {state:receipt?.state??'OUTCOME_UNKNOWN',childId};
     });
    }
-   return {...recorded,value:response.value};
+   const result={...recorded,value:response.value};
+   if(server.request.jobType==='AI_MAINTENANCE')maintenancePaidResponses.set(result,{foundation:this,provider,store:this.s,repository:this.s.repository,database:this.s.repository.db,signal:execution?.signal??null,value:Object.freeze({binding:Object.freeze({logicalJobId:id,childOperationId:childId,operationReceiptId:response.operationReceiptId}),request:server.request,origin:server.origin,payloadDigest:server.payloadDigest,response})});
+   return result;
   }
   return recorded;
   }finally{response=null;if(server){this.#serverProviders.delete(childId);server.retire();}}

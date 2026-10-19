@@ -147,6 +147,9 @@ export class BackupService {
    if(['replace','merge'].includes(mode)){
     if(((await t.get('meta','backup-data-generation'))?.value||0)!==targetGeneration)backupError('BACKUP_CHANGED');
     if(mode==='replace')for(const name of REPLACE_CLEAR_STORES)await t.clear(name);
+    // Local recovery locators belong to the work and restore epoch replaced
+    // by this same transaction. They are never portable Backup state.
+    if(mode==='replace')await t.delete('meta','section-promotion-recovery-locators:v1');
     if(mode==='replace')for(const row of await t.all('meta'))
      if(backupMetaAllowed(row.id)&&![CAPTURE_POLICY_ROW,REVISIT_POLICY_ROW].includes(row.id))
       await t.delete('meta',row.id);

@@ -1,3 +1,10 @@
+import {assertTopicFormationMembers} from '../topic-formation-terminal.js';
+import {requireRepositoryTransactionScope} from '../idb-repository.js';
+import {qualifiedCoverageId} from './assist-intent-binding.js';
+import {TopicProcessingAuthority} from '../topic-processing-authority.js';
+import {MaintenanceSectionPromotionTasks,findMaintenanceSectionPromotionOffer,resultMaintenanceSectionPromotion,resumeMaintenanceSectionPromotion,releaseMaintenanceSectionPromotionOffer,readMaintenanceSectionPromotionOwnerState,disposeMaintenanceSectionPromotionOwner,assertMaintenanceSectionPromotionTaskFacts} from './maintenance-section-promotion-session.js';
+import {planMaintenanceSectionPromotion,maintenanceSectionPromotionQualification,releaseMaintenanceSectionPromotion} from './maintenance-section-promotion.js';
+import {createMaintenanceSectionPromotionPermission,releaseMaintenanceSectionPromotionPermission} from './maintenance-section-promotion-permission.js';
 import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt} from './maintenance-processing-receipt.js';
 import {selectMaintenanceTopicCandidates,maintenanceTopicCandidateScope,maintenanceTopicCandidateSummary,maintenanceTopicCandidateQualificationRequest,captureMaintenanceTopicCandidates,maintenanceTopicCandidateMaterial,maintenanceTopicCandidateOperation,readMaintenanceTopicCandidateOperation,assertMaintenanceTopicCandidateSelection,releaseMaintenanceTopicCandidates} from './maintenance-topic-candidates.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
@@ -7,6 +14,9 @@ import {selectMaintenanceExistingContext,maintenanceExistingContextScope,mainten
 import {observeRepositoryWriteFence,requireRepositoryWriteFence} from '../idb-repository.js';
 import {readMaintenanceResponseDefer} from './maintenance-service-response.js';
 import {requireMaintenanceServiceClient} from './maintenance-service-client.js';
+import * as maintenanceClientSource from './maintenance-service-client.js';
+import {readSectionPromotionRecoveryLocator} from './section-promotion-checkpoint.js';
+import {readSectionPromotionRecoveryAuthority,assertSectionPromotionRecoveryAuthorityFacts,takeSectionPromotionRecoveryRetirementOutcome} from './section-promotion-recovery-authority.js';
 import {assertStructuralTopicAssessment,assertStructuralTopicResult} from './structural-topic-reconciliation.js';
 import {qualifyContextProtectionCorrections,assertContextProtectionCorrections,readContextEditMapping,contextEditScope,contextEditEvidence,captureContextEditMaterial,assertContextEditMaterial,releaseContextEditMaterial} from './context-correction.js';
 import {inputProjection} from '../thought-evidence.js';
@@ -22,7 +32,28 @@ import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localP
 import {TopicFormationService,readTopicFormationPublication} from '../topic-formation.js';
 import {ContextMaintenanceService,readContextMaintenancePublication,structuralContextRequestWithinBudget,validateContextMaintenanceChange,validateContextMaintenanceNoChange,validateContextMaintenanceInvalidation} from '../context-maintenance.js';
 
+const promotionSessions=new WeakMap(),promotionHandoffs=new WeakMap(),promotionDeliveries=new WeakMap();
+const deliveryData=(object,key)=>{const d=Object.getOwnPropertyDescriptor(object,key);if(!d||!Object.hasOwn(d,'value'))fail('UNAVAILABLE');return d.value;};
+function promotionSession(session,store){const r=promotionSessions.get(session);if(!r||r.store!==store||r.repository!==store.repository||r.database!==null&&r.database!==store.repository.db)fail('UNAVAILABLE');return r;}
+export function getMaintenanceSectionPromotion(session,store,request){return promotionSession(session,store).get(request);}
+export function maintenanceSectionPromotionResult(session,store,operationId,options){return promotionSession(session,store).result(operationId,options);}
+export function maintenanceSectionPromotionResume(session,store,operationId,options){return promotionSession(session,store).resume(operationId,options);}
+export function assertMaintenanceSectionPromotionRecoveryAuthority(session,store,sourceAuthority){return promotionSession(session,store).assertAuthority(sourceAuthority);}
+export function maintenanceSectionPromotionCheckpointResult(session,store,checkpoint){return promotionSession(session,store).checkpointResult(checkpoint);}
+export function maintenanceSectionPromotionCheckpointResume(session,store,checkpoint){return promotionSession(session,store).checkpointResume(checkpoint);}
+// Deny-only lifetime witness for an already-starting original operation. It
+// cannot open a locator, read work, confirm, recover or provide processing rights.
+export function captureMaintenanceSectionPromotionDelivery(session,store){const r=promotionSessions.get(session);if(!r||r.store!==store)fail('UNAVAILABLE');return r.captureDelivery();}
+export function assertMaintenanceSectionPromotionDeliveryFacts(cap,session,store){
+ const r=promotionDeliveries.get(cap);if(!r||r.session!==session||r.store!==store)fail('UNAVAILABLE');
+ try{if(!r.active||promotionSessions.get(session)!==r.registration||deliveryData(store,'repository')!==r.repository||deliveryData(r.repository,'db')!==r.database||r.registration.database!==r.database||r.registration.repository!==r.repository||r.sameGeneration()!==true)fail('UNAVAILABLE');
+  const check=maintenanceClientSource.assertMaintenanceServiceLifecycleFacts;if(typeof check!=='function'||check(r.sourceCap,r.source,store)!==true)fail('UNAVAILABLE');return true;
+ }catch(error){r.active=false;throw error;}
+}
+export function readMaintenanceSectionPromotionHandoff(token,store){const r=promotionHandoffs.get(token);if(!r||r.store!==store||r.repository!==store.repository||r.database!==store.repository.db)fail('UNAVAILABLE');promotionHandoffs.delete(token);r.current();return r.value;}
 const TYPE='AI_MAINTENANCE';
+const recoveryAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
+function recoveryAwait(promise,signal){return new Promise((resolve,reject)=>{const stop=()=>{clean();reject(Object.assign(new Error('UNAVAILABLE'),{code:'UNAVAILABLE'}));},clean=()=>EventTarget.prototype.removeEventListener.call(signal,'abort',stop);EventTarget.prototype.addEventListener.call(signal,'abort',stop,{once:true});Promise.resolve(promise).then(value=>{clean();if(recoveryAborted.call(signal))stop();else resolve(value);},error=>{clean();reject(error);});if(recoveryAborted.call(signal))stop();});}
 const outcome=(state,extra={})=>({state,dispatchAllowed:false,financialAuthority:false,...extra});
 const reasons=new Set(['UNAVAILABLE','BUDGET_EXCEEDED','CANCELLED','STALE_BASE','OUTCOME_UNKNOWN','INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED','REQUEST_ALREADY_IN_FLIGHT','DOMAIN_REPLAY_UNACKNOWLEDGED','MAINTENANCE_CADENCE']);
 const safeError=e=>reasons.has(e?.code)?e.code:'UNAVAILABLE';
@@ -54,19 +85,22 @@ function responseSnapshot(value,maxBytes){
 // The host's window owner supplies/consumes an opportunity; the device clock
 // never computes Free/Pro windows, entitlement, refill or financial settlement.
 export class LocalMaintenanceSession {
- #store;#foundation;#provider;#service;#window;#topic;#context;#processing;#remote;#unsubscribe=null;
- #localCorrection=null;#materialOwner=null;
+ #store;#foundation;#provider;#service;#window;#topic;#context;#processing;#remote;#independentFilter=false;#unsubscribe=null;
+ #localCorrection=null;#materialOwner=null;#promotionOwners=new Set();#promotionRecovery=null;#promotionRecoveryControllers=new Set();#promotionAuthorityPending=new Set();
  #handles=new WeakMap();#passive=new WeakMap();#jobs=new Map();#preparing=null;#active=null;#running=null;#generation=0;
  constructor(store,{provider=null,service=null,window=null,authority=null,processing=null,remote=null}={}){
   this.#remote=remote===null?null:requireMaintenanceServiceClient(remote);if(this.#remote&&provider!==null)fail('UNAVAILABLE');
   this.#store=store;this.#provider=provider;this.#service=service===null?null:{...service,topic:{...service.topic},context:{...service.context},...(service.filter?{filter:{...service.filter}}:{}),responseAdapter:service.responseAdapter===null?null:{...service.responseAdapter}};this.#window=window;this.#processing=processing===null?null:Object.freeze({...processing});if(processing!==null){exact(processing,['resolve','isCurrent']);if(typeof processing.resolve!=='function'||typeof processing.isCurrent!=='function')fail();}
+  // Early decode is safe only for this branded client's exact, frozen source
+  // adapter methods. A genuine remote cannot endorse a substituted callback.
+  this.#independentFilter=!!this.#remote&&['topic','context','filter','topicCandidate'].every(facet=>this.#service?.responseAdapter?.[facet]===this.#remote.sessionOptions.service.responseAdapter[facet]);
   this.#foundation=new AIUsageFoundation(store,{resolveAuthority:authority,qualifyMaintenanceEntries:async(t,request)=>{const entries=await this.#entryMapping(request,t),authored=await this.#authoredMapping(request,t),bound=await this.#boundMapping(request,t);return request.coverage.filter(u=>request.items.find(i=>i.key===u.key)?.descriptor.kind==='library_entry'&&(['topic','context'].includes(u.facet)&&entries.has(u.key)||u.facet==='context'&&(authored.has(u.key)||bound.has(u.key))));},qualifyMaintenancePlacements:async(t,request)=>{const placements=await this.#placementMapping(request,t),bound=await this.#boundMapping(request,t);return request.coverage.filter(u=>request.items.find(i=>i.key===u.key)?.descriptor.kind==='placement'&&u.facet==='context'&&(placements.has(u.key)||bound.has(u.key)));},qualifyMaintenanceStructures:async(t,request)=>{const mapping=await this.#structuralMapping(request,t);return request.coverage.filter(u=>mapping.has(u.key)&&(u.facet==='context'||u.facet==='topic'&&this.#structuralTopicCapable(mapping.get(u.key))));},qualifyMaintenanceContextEdits:async(t,request)=>{const mapping=await this.#contextMapping(request,t);return request.coverage.filter(u=>u.facet==='context'&&mapping.has(u.key));},committers:{topic:(t,r)=>this.#commit(t,r,'topic'),context:(t,r)=>this.#commit(t,r,'context'),filter:(t,r)=>this.#commit(t,r,'filter')}});
   if(service!==null){
    exact(service,['version','topic','context','responseAdapter','filter'],['version','topic','context','responseAdapter']);if(service.filter!==undefined){exact(service.filter,['enabled','selectScope'],['enabled']);if(service.filter.enabled!==true||service.filter.selectScope!==undefined&&typeof service.filter.selectScope!=='function')fail();}if(service.version!==1)fail();
    // A declared adapter route capability, not a provider field or a grant.
    // Legacy Context-only routes leave human Topic facets pending.
    exact(service.topic,['resolveProcessing','decisionVersion','parameters','reconcileHumanNames','reconcileHumanSections'],['resolveProcessing','decisionVersion','parameters']);for(const capability of ['reconcileHumanNames','reconcileHumanSections'])if(service.topic[capability]!==undefined&&typeof service.topic[capability]!=='boolean')fail();exact(service.context,['processingVerifier','caller']);
-   const adapter=service.responseAdapter;if(adapter!==null){exact(adapter,['topic','context','filter','topicCandidate'],['topic','context']);if(adapter.topicCandidate!==undefined&&typeof adapter.topicCandidate!=='function')fail();if(adapter.filter!==undefined&&typeof adapter.filter!=='function')fail();if(typeof adapter.topic!=='function'||typeof adapter.context!=='function')fail();}
+   const adapter=service.responseAdapter;if(adapter!==null){exact(adapter,['topic','context','filter','topicCandidate','sectionPromotion'],['topic','context']);if(adapter.sectionPromotion!==undefined&&typeof adapter.sectionPromotion!=='function')fail();if(adapter.topicCandidate!==undefined&&typeof adapter.topicCandidate!=='function')fail();if(adapter.filter!==undefined&&typeof adapter.filter!=='function')fail();if(typeof adapter.topic!=='function'||typeof adapter.context!=='function')fail();}
    this.#topic=new TopicFormationService(store,{resolveQualification:()=>this.#ownerQualification('topic'),resolveProcessing:service.topic.resolveProcessing,parameters:service.topic.parameters,decision:adapter===null?null:{version:service.topic.decisionVersion,assess:async view=>{
     const a=this.#active;this.#current(a?.state);if(a?.facet!=='topic')fail('UNAVAILABLE');
     let assessed;try{assessed=await this.#decode(a,'topic',view);}catch(error){if(this.#adapterDefer(a,'topic',error))a.adapterDeferred=error;throw error;}this.#current(a.state);
@@ -83,6 +117,7 @@ export class LocalMaintenanceSession {
    this.#context=new ContextMaintenanceService(store,{resolveQualification:()=>this.#ownerQualification(),processingVerifier:service.context.processingVerifier,writeTransaction:(fn,finalFence,expectedTarget,publication)=>this.#writeDomain(fn,'context',finalFence,expectedTarget,publication)});
   }
   if(this.#remote)this.#unsubscribe=this.#remote.onInvalidate(()=>this.dispose());
+  if(this.#remote)promotionSessions.set(this,{store,repository:store.repository,database:null,captureDelivery:()=>this.#capturePromotionDelivery(),assertAuthority:a=>this.#promotionRecoveryAuthority(a),checkpointResult:c=>this.#promotionRecoveryCheckpoint('result',c),checkpointResume:c=>this.#promotionRecoveryCheckpoint('resume',c),get:r=>this.#promotionOffer(r),result:(id,o)=>this.#promotionRecoveryOperation('result',id,o),resume:(id,o)=>this.#promotionRecoveryOperation('resume',id,o)});
  }
  available(){return this.#remote?.available()===true;}
  async opportunity(){if(!this.available())return outcome('UNAVAILABLE');const retained=this.#jobs.values().next().value;if(retained)return this.run(retained.handle);const handle=await this.prepare(this.#remote.options);return this.run(handle);}
@@ -147,7 +182,113 @@ export class LocalMaintenanceSession {
  #releaseExistingContext(state,childId=null){
   for(const [id,handle]of state?.existingContext||[])if(childId===null||id===childId){releaseMaintenanceExistingContext(handle);state.existingContext.delete(id);state.existingSettled.delete(id);state.existingPublicationStart.delete(id);}
  }
- #releaseTopicCandidates(state,childId=null){for(const [id,handle]of state?.topicCandidates||[])if(childId===null||id===childId){if(handle)releaseMaintenanceTopicCandidates(handle);releaseMaintenanceQualification(state.candidateQualifications.get(id));state.candidateQualifications.delete(id);state.topicCandidates.delete(id);state.topicCandidateSummaries.delete(id);state.candidatePublicationStart.delete(id);state.candidateOperations.delete(id);}}
+ #releaseTopicCandidates(state,childId=null){this.#releasePromotions(state,childId);for(const [id,handle]of state?.topicCandidates||[])if(childId===null||id===childId){if(handle)releaseMaintenanceTopicCandidates(handle);releaseMaintenanceQualification(state.candidateQualifications.get(id));state.candidateQualifications.delete(id);state.topicCandidates.delete(id);state.topicCandidateSummaries.delete(id);state.candidatePublicationStart.delete(id);state.candidateOperations.delete(id);}}
+ #promotionSourceCurrent(generation){const r=promotionSessions.get(this);if(!r||generation!==this.#generation||this.#remote?.available()!==true)return false;return promotionSessions.get(this)===r&&generation===this.#generation&&r.repository===this.#store.repository&&(r.database===null||r.database===this.#store.repository.db);}
+ #bindPromotionScope(t){
+  const r=promotionSessions.get(this);if(!r||!this.#promotionSourceCurrent(this.#generation))fail('UNAVAILABLE');const repository=this.#store.repository,identity=requireRepositoryTransactionScope(repository,t);if(!identity.database||identity.database!==repository.db||r.repository!==repository||r.database!==null&&r.database!==identity.database)fail('UNAVAILABLE');r.repository=repository;r.database=identity.database;
+ }
+ async #bindPromotionSession(){
+  const r=promotionSessions.get(this),generation=this.#generation;if(!r||!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');if(r.database!==null)return;
+  await this.#foundation.read(t=>{if(promotionSessions.get(this)!==r||!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');this.#bindPromotionScope(t);});
+  if(!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');
+ }
+ async #capturePromotionDelivery(){
+  const registration=promotionSessions.get(this),generation=this.#generation,source=this.#remote;
+  if(!registration||registration.store!==this.#store||!source)fail('UNAVAILABLE');
+  const repository=deliveryData(this.#store,'repository'),database=deliveryData(repository,'db'),capture=maintenanceClientSource.captureMaintenanceServiceLifecycle;
+  if(registration.repository!==repository||!database||typeof capture!=='function')fail('UNAVAILABLE');
+  // The source witness precedes the first await as well. A later generation
+  // cannot be captured after binding and laundered into this original attempt.
+  const sourceCap=capture(source,this.#store);
+  await this.#bindPromotionSession();
+  if(promotionSessions.get(this)!==registration||generation!==this.#generation||this.#remote!==source||deliveryData(this.#store,'repository')!==repository||deliveryData(repository,'db')!==database||registration.database!==database)fail('UNAVAILABLE');
+  const cap=Object.freeze(Object.create(null));
+  promotionDeliveries.set(cap,{active:true,session:this,store:this.#store,registration,generation,repository,database,source,sourceCap,sameGeneration:()=>generation===this.#generation&&this.#remote===source});
+  assertMaintenanceSectionPromotionDeliveryFacts(cap,this,this.#store);return cap;
+ }
+ async #promotionRecoveryAuthority(sourceAuthority){
+  const expected=responseSnapshot(sourceAuthority,2048);exact(expected,['principalId','libraryId','restoreEpoch']);if(!opaque(expected.principalId)||!opaque(expected.libraryId)||expected.restoreEpoch!==null&&!['string','number'].includes(typeof expected.restoreEpoch))fail('UNAVAILABLE');
+  const generation=this.#generation,source=this.#remote?.sessionOptions.authority;if(typeof source!=='function'||this.#foundation.resolveAuthority!==source||!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');
+  const timeoutMs=this.#store.organizerBudget.limits.timeoutMs;if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||this.#promotionAuthorityPending.size>=8)fail('UNAVAILABLE');
+  const controller=new AbortController();this.#promotionRecoveryControllers.add(controller);this.#promotionAuthorityPending.add(controller);let issued=false;const timer=setTimeout(()=>controller.abort(),timeoutMs),check=()=>{if(recoveryAborted.call(controller.signal)||this.#foundation.resolveAuthority!==source||!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');};
+  try{
+   await recoveryAwait(this.#bindPromotionSession(),controller.signal);check();
+   await recoveryAwait(this.#foundation.read(async t=>{check();this.#bindPromotionScope(t);check();issued=true;const pending=this.#foundation.authority(t,TYPE,{items:[],coverage:[]},controller.signal);Promise.resolve(pending).then(()=>this.#promotionAuthorityPending.delete(controller),()=>this.#promotionAuthorityPending.delete(controller));const authority=await recoveryAwait(pending,controller.signal);check();if(!equal({...expected,restoreEpoch:expected.restoreEpoch??'initial'},Object.fromEntries(['principalId','libraryId','restoreEpoch'].map(k=>[k,authority[k]]))))fail('UNAVAILABLE');check();}),controller.signal);
+   check();return true;
+  }finally{clearTimeout(timer);controller.abort();this.#promotionRecoveryControllers.delete(controller);if(!issued)this.#promotionAuthorityPending.delete(controller);}
+ }
+ async #promotionRecoveryCheckpoint(kind,locator){
+  const generation=this.#generation,registered=promotionSession(this,this.#store),open=maintenanceClientSource.openMaintenanceSectionPromotionRecoveryAuthority,close=maintenanceClientSource.closeMaintenanceSectionPromotionRecoveryAuthority;
+  if(typeof open!=='function'||typeof close!=='function'||!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');
+  const source=this.#remote,sourceLifetime=maintenanceClientSource.captureMaintenanceServiceLifecycle(source,this.#store);
+  const controller=new AbortController();this.#promotionRecoveryControllers.add(controller);let cap=null;
+  const facts=()=>{maintenanceClientSource.assertMaintenanceServiceLifecycleFacts(sourceLifetime,source,this.#store);if(recoveryAborted.call(controller.signal)||generation!==this.#generation||promotionSessions.get(this)!==registered||registered.repository!==this.#store.repository||registered.database===null||registered.database!==this.#store.repository.db)fail('UNAVAILABLE');};
+  try{
+   await this.#bindPromotionSession();facts();const original=readSectionPromotionRecoveryLocator(locator,this.#store);
+   cap=await open(this.#remote,this.#store,locator,{signal:controller.signal});facts();if(!cap)fail('UNAVAILABLE');
+   if(!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');const proof=readSectionPromotionRecoveryAuthority(cap,this.#store,locator);facts();
+   if(proof.operationId!==original.operationId||!equal(proof.sourceAuthority,original.sourceAuthority)||!equal(proof.paidBinding,original.paidBinding))fail('UNAVAILABLE');
+   const owner=this.#promotionRecoveryOwner(),options={recoveryAuthority:cap,locator,signal:controller.signal};
+   const result=await (kind==='result'?resultMaintenanceSectionPromotion(owner,this.#store,original.operationId,options):resumeMaintenanceSectionPromotion(owner,this.#store,original.operationId,options));
+   if(!this.#promotionSourceCurrent(generation))fail('UNAVAILABLE');facts();
+   // Only the original committed outcome can replace the retired live proof.
+   // Closing it may synchronously invalidate this operation's source lifetime.
+   const historical=takeSectionPromotionRecoveryRetirementOutcome(cap,this.#store,locator,result);
+   if(historical!==null){facts();return historical;}
+   readSectionPromotionRecoveryAuthority(cap,this.#store,locator);facts();assertSectionPromotionRecoveryAuthorityFacts(cap,this.#store,locator);facts();
+   close(source,this.#store,cap);cap=null;facts();return result;
+  }finally{try{if(cap)close(this.#remote,this.#store,cap);}finally{controller.abort();this.#promotionRecoveryControllers.delete(controller);}}
+ }
+ async #promotionRecoveryOperation(kind,id,options){await this.#bindPromotionSession();const owner=this.#promotionRecoveryOwner();return kind==='result'?resultMaintenanceSectionPromotion(owner,this.#store,id,options):resumeMaintenanceSectionPromotion(owner,this.#store,id,options);} 
+ #promotionRecoveryOwner(){
+  if(!this.#promotionSourceCurrent(this.#generation))fail('UNAVAILABLE');
+  if(!this.#promotionRecovery){const generation=this.#generation;this.#promotionRecovery=new MaintenanceSectionPromotionTasks(this.#store,{resolveProcessing:()=>{fail('UNAVAILABLE');},parameters:this.#service.topic.parameters,decisionVersion:this.#service.topic.decisionVersion,isCurrent:()=>this.#promotionSourceCurrent(generation),confirmation:{caller:this.#service.context.caller,processing:this.#processing,identityProcessing:this.#processing}});}
+  return this.#promotionRecovery;
+ }
+ #promotionOwnerCurrent(generation){return ()=>this.#promotionSourceCurrent(generation);}
+ #createPromotionOwner(identity,generation){return new MaintenanceSectionPromotionTasks(this.#store,{resolveProcessing:(t,r)=>identity.authorize(t,r),parameters:this.#service.topic.parameters,decisionVersion:this.#service.topic.decisionVersion,isCurrent:this.#promotionOwnerCurrent(generation),confirmation:{caller:this.#service.context.caller,processing:this.#processing,identityProcessing:this.#processing}});}
+ #prunePromotionOwners(){for(const owner of [...this.#promotionOwners])try{const status=readMaintenanceSectionPromotionOwnerState(owner,this.#store);if(!status.tasks&&!status.offers&&!status.confirming){disposeMaintenanceSectionPromotionOwner(owner,this.#store);this.#promotionOwners.delete(owner);}}catch{disposeMaintenanceSectionPromotionOwner(owner,this.#store);this.#promotionOwners.delete(owner);}}
+ #promotionOffer(request){
+  if(!this.#promotionSourceCurrent(this.#generation))fail('UNAVAILABLE');exact(request,['topicId','sectionId']);if(!opaque(request.topicId)||!opaque(request.sectionId))fail('UNAVAILABLE');if(promotionSessions.get(this).database===null)return null;
+  this.#prunePromotionOwners();const found=[];for(const owner of [...this.#promotionOwners])try{const handle=findMaintenanceSectionPromotionOffer(owner,this.#store,request);if(handle)found.push(Object.freeze({owner,handle}));}catch{disposeMaintenanceSectionPromotionOwner(owner,this.#store);this.#promotionOwners.delete(owner);}return found.length===1?found[0]:null;
+ }
+ #releasePromotions(state,childId=null){for(const [id,held]of state?.promotions||[])if(childId===null||id===childId){if(held){if(held.task)releaseMaintenanceSectionPromotionOffer(held.owner,this.#store,held.task);releaseMaintenanceQualification(held.qualification);held.identity?.release();if(held.permission)releaseMaintenanceSectionPromotionPermission(held.permission);if(held.plan)releaseMaintenanceSectionPromotion(held.plan);if(!held.offer){disposeMaintenanceSectionPromotionOwner(held.owner,this.#store);this.#promotionOwners.delete(held.owner);}}state.promotions.delete(id);}if(![...(state?.promotions?.values()||[])].some(Boolean)&&state?.domainSettlements)state.domainSettlements.length=0;}
+ async #preparePromotion(state,metadata,processing){
+  const childId=metadata.childOperationId;if(state.promotions.has(childId))return state.promotions.get(childId);
+  state.promotions.set(childId,null);this.#prunePromotionOwners();
+  if(!this.#independentFilter||this.#service.responseAdapter.sectionPromotion!==this.#remote?.sessionOptions.service.responseAdapter.sectionPromotion||this.#remote.sectionPromotionAvailable?.()!==true||this.#promotionOwners.size>=8)return null;
+  const selected=[...this.#entries(state,metadata.coverage).map(e=>e.entryId),...this.#authored(state,metadata.coverage).map(e=>e.entryId),...this.#bound(state,metadata.coverage).map(e=>e.entryId),...this.#placements(state,metadata.coverage).map(e=>e.entryId),...this.#structures(state,metadata.coverage).flatMap(m=>m.entries.map(e=>e.entryId))],entryIds=[...new Set(selected)],inputIds=this.#inputs(state,metadata.coverage);
+  if(!entryIds.length||entryIds.length>16||!inputIds?.length||inputIds.length>20)return null;
+  const generation=this.#generation,binding=Object.freeze({logicalJobId:state.job.id,childOperationId:childId,proposalOperationId:crypto.randomUUID(),sectionRef:'s0'}),current=()=>{this.#processingCurrent(state,processing);return true;};let plan,qualification,permission,identity,owner,task;
+  try{
+   plan=await this.#foundation.read(async tx=>{this.#bindPromotionScope(tx);const t=contextScopeTransactionReader(this.#store,tx,state.qualificationBudget),topics=new Set();for(const entryId of entryIds){const range=IDBKeyRange.bound([entryId],[entryId,[]],false,true),count=await t.count('placements','byEntry',range);if(count>8)fail('BUDGET_EXCEEDED');for(const row of await t.all('placements','byEntry',range))if(row.lifecycle==='active')topics.add(row.topicId);}if(!topics.size||topics.size>8)return null;return planMaintenanceSectionPromotion(this.#store,t,{topicIds:[...topics],entryIds,scope:inputIds.map(inputId=>({inputId,role:'primary',selectedFields:['body']}))},{workBudget:state.qualificationBudget});});current();
+   if(!plan)return null;const selection=maintenanceSectionPromotionQualification(plan,this.#store);if(!selection){releaseMaintenanceSectionPromotion(plan);return null;}
+   permission=await createMaintenanceSectionPromotionPermission(this.#store,plan,{processing:this.#processing,caller:this.#service.context.caller,parent:processing,binding,isCurrent:current,signal:state.controller.signal});current();
+   qualification=await this.#foundation.read(t=>createMaintenanceQualification(this.#store,t,{items:[],coverage:[]},{processing:this.#processing,caller:this.#service.context.caller,parent:processing,binding,phase:'section-promotion',selection,workBudget:state.qualificationBudget,signal:state.controller.signal,isCurrent:current}));current();
+   identity=new TopicProcessingAuthority(this.#store,{processing:this.#processing,caller:this.#service.context.caller,binding:{jobId:state.job.id,childId,proposalOperationId:binding.proposalOperationId},workBudget:state.qualificationBudget,signal:state.controller.signal});
+   owner=this.#createPromotionOwner(identity,generation);this.#promotionOwners.add(owner);
+   task=owner.begin(plan,binding,{qualification,signal:state.controller.signal,payloadPermission:permission});const payload=await owner.ready(task);current();const held={parent:processing,plan,qualification,permission,identity,owner,task,payload,binding,publicationStart:state.publications.length,result:null,resultBinding:null,offer:null,phase:'waiting'};state.promotions.set(childId,held);return held;
+  }catch(error){if(task)releaseMaintenanceSectionPromotionOffer(owner,this.#store,task);if(owner)disposeMaintenanceSectionPromotionOwner(owner,this.#store);if(owner)this.#promotionOwners.delete(owner);identity?.release();releaseMaintenanceQualification(qualification);if(permission)releaseMaintenanceSectionPromotionPermission(permission);if(plan)releaseMaintenanceSectionPromotion(plan);this.#current(state);if(!['UNAVAILABLE','STALE_BASE','BUDGET_EXCEEDED','SECTION_PROMOTION_UNAVAILABLE'].includes(error?.code))throw error;return null;}
+ }
+ async #checkPromotion(state,childId){const held=state.promotions.get(childId);if(held?.phase==='waiting'){await held.owner.check(held.task);this.#current(state);}}
+ async #settlePromotion(state,metadata,result,receipt){
+  const held=state.promotions.get(metadata.childOperationId);if(!held)return;
+  const binding=Object.freeze({logicalJobId:state.job.id,childOperationId:metadata.childOperationId,operationReceiptId:receipt.operationReceiptId}),cap=await this.#service.responseAdapter.sectionPromotion(result,binding);this.#current(state);
+  const settled=await held.owner.settle(held.task,cap);this.#current(state);held.payload=null;held.permission=null;held.plan=null;
+  if(settled.status==='DEFER'){this.#releasePromotions(state,metadata.childOperationId);return;}
+  if(settled.status!=='PROPOSE')fail('STALE_BASE');held.result=cap;held.resultBinding=binding;held.phase='accepted';
+ }
+ async #finishPromotion(state,childId,coverage){
+  const held=state.promotions.get(childId);if(!held||held.phase!=='accepted'||state.failedChildren.has(childId))return;
+  try{
+   await this.#foundation.read(async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);const index=job.childIds.indexOf(childId),receipt=await t.get('organizerUsage','aiu:attempt:'+childId);if(index<0||!equal(job.childCoverage[index],coverage)||receipt?.operationReceiptId!==held.resultBinding.operationReceiptId||receipt.executionKind!=='server-backed'||receipt.financialSettlement?.state!=='SETTLED'||!['RESPONSE_RECORDED','VALIDATED','COMMITTED'].includes(receipt.state))fail('STALE_BASE');
+    for(const unit of coverage){const settlement=state.domainSettlements.find(x=>x.childId===childId&&x.units.some(u=>equal(u,unit)));if(!settlement)fail('STALE_BASE');const committed=settlement.outcome!=='DEFER',row=await t.get('organizerWorkItems',committed?qualifiedCoverageId(unit,job):'aiu:defer:'+canonical([job.id,unitKey(unit)]));if(!row||row.jobId!==job.id||row.sequence!==index||!equal(row.unit,unit)||row.signature!==job.items.find(i=>i.key===unit.key)?.signature||row.state!==(committed?'ACKNOWLEDGED':'DEFERRED')||committed&&(!job.committedCoverage.includes(unitKey(unit))||row.outcome!==settlement.outcome))fail('STALE_BASE');}
+   });this.#current(state);
+   const publications=state.publications.slice(held.publicationStart);for(const token of publications)if(!state.domainSettlements.some(x=>x.publication===token&&x.outcome!=='DEFER'))fail('STALE_BASE');
+   const handoff=Object.freeze(Object.create(null));promotionHandoffs.set(handoff,{store:this.#store,repository:this.#store.repository,database:this.#store.repository.db,current:()=>this.#current(state),value:Object.freeze({binding:held.resultBinding,publicationStart:held.publicationStart,publications:Object.freeze(publications),proposalResult:held.result})});
+   try{held.offer=await held.owner.finish(held.task,handoff);this.#current(state);held.task=null;held.result=null;held.phase='offered';}finally{promotionHandoffs.delete(handoff);}
+  }catch{this.#current(state);this.#releasePromotions(state,childId);}
+ }
  async #checkTopicCandidates(state,childId,t,publication=null){const handle=state.topicCandidates.get(childId);if(handle)await assertMaintenanceTopicCandidateSelection(this.#store,t,handle,{publications:[...state.publications.slice(state.candidatePublicationStart.get(childId)),...(publication?[publication]:[])]});}
  async #candidateQualification(state,metadata){
   const handle=state.topicCandidates.get(metadata.childOperationId);if(!handle)return null;let token=state.candidateQualifications.get(metadata.childOperationId);
@@ -160,14 +301,14 @@ export class LocalMaintenanceSession {
   if(expected&&maintenanceExistingContextScope(handle).some(item=>item.itemId===expected.itemId))settled.set(expected.itemId,expected);
   await assertMaintenanceExistingContext(this.#store,t,handle,{phase,settledItems:[...settled.values()],publications:[...state.publications.slice(state.existingPublicationStart.get(childId)||0),...(publication?[publication]:[])]});
  }
- #releaseConsumedChild(state,childId){
+ #releaseConsumedChild(state,childId,{filterContinuation=false}={}){
   // A fully ACKed/DEFERred child can retain body-free job accounting, but no
   // provider output, prepared domain handle or selected content. Siblings keep
   // only the exact material still needed for their admitted local continuation.
-  state.releasedChildren.add(childId);for(const map of [state.qualifications,state.postTopicQualifications]){releaseMaintenanceQualification(map.get(childId));map.delete(childId);}state.topicPublications.delete(childId);state.qualificationPublicationStart.delete(childId);this.#releaseFilters(state,childId);state.filterHandles.delete(childId);
+  if(!filterContinuation)state.releasedChildren.add(childId);for(const map of [state.qualifications,state.postTopicQualifications]){releaseMaintenanceQualification(map.get(childId));map.delete(childId);}state.topicPublications.delete(childId);state.qualificationPublicationStart.delete(childId);if(!filterContinuation){this.#releaseFilters(state,childId);state.filterHandles.delete(childId);}
   state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);this.#releaseExistingContext(state,childId);this.#releaseTopicCandidates(state,childId);
-  for(const collection of [state.prepared,state.groups,state.contextDeferred])for(const key of collection.keys())if(JSON.parse(key)[0]===childId)collection.delete(key);
-  const remaining=state.request.children.flatMap((coverage,index)=>state.releasedChildren.has(state.job.childIds[index])?[]:coverage);
+  for(const collection of [state.prepared,state.groups,state.contextDeferred])for(const key of collection.keys()){const [owner,facet]=JSON.parse(key);if(owner!==childId||filterContinuation&&facet==='filter-snapshot')continue;if(filterContinuation&&collection===state.prepared&&facet==='topic')try{this.#topic.cancel(collection.get(key));}catch{/* Original handle retirement is best effort; no retry is retained. */}collection.delete(key);}
+  const remaining=state.request.children.flatMap((coverage,index)=>state.releasedChildren.has(state.job.childIds[index])||filterContinuation&&state.job.childIds[index]===childId?[]:coverage);
   const authored=new Set(this.#authored(state,remaining).map(m=>m.entryId)),bound=new Set(this.#bound(state,remaining).map(boundMaterialKey)),structures=this.#structures(state,remaining),records=new Set(structures.map(m=>m.recordId)),inputs=new Set(structures.flatMap(m=>m.entries.map(e=>e.inputId))),corrections=new Set(this.#contextEdits(state,remaining).map(m=>m.itemId));
   for(const key of state.authoredMaterial.keys())if(!authored.has(key))state.authoredMaterial.delete(key);
   for(const key of state.boundMaterial.keys())if(!bound.has(key))state.boundMaterial.delete(key);
@@ -354,7 +495,7 @@ export class LocalMaintenanceSession {
   if(job.id===null||['NO_DELTA','COMMITTED'].includes(job.state)){const partial=(batch.pendingBatchUnits??0)>0||pendingPlacementUnits||pendingAuthoredUnits||pendingBoundUnits||pendingStructuralUnits,state=partial?'PARTIAL':job.state,processed=partial?{processedState:job.state}:{};const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:batch.nextCursor,complete:batch.complete,...progress,...processed}));this.#passive.set(handle,{generation,state,...progress,...processed});return handle;}
   if(this.#jobs.has(job.id))return this.#jobs.get(job.id).handle;
   const handle=Object.freeze(outcome(job.state,{jobId:job.id,childCount:job.childIds.length,nextCursor:batch.nextCursor,complete:batch.complete,...progress}));
-  const state={progress,request,entryMapping,placementMapping,authoredMapping,boundMapping,structuralMapping,contextMapping,contextMaterial:new Map(),topicCandidates:new Map(),topicCandidateSummaries:new Map(),candidateQualifications:new Map(),candidatePublicationStart:new Map(),candidateOperations:new Map(),existingContext:new Map(),existingSettled:new Map(),existingPublicationStart:new Map(),publications:[],topicPublications:new Map(),qualifications:new Map(),qualificationPublicationStart:new Map(),postTopicQualifications:new Map(),releasedChildren:new Set(),failedChildren:new Set(),followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),boundMaterial:new Map(),structuralMaterial:new Map(),structuralInputs:new Map(),qualificationBudget:this.#preparing.workBudget,qualificationRequest:this.#preparing.requestIdentity,authoredBudget:forkContextScopeWorkBudget(this.#preparing.workBudget,{signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),filterHandles:new Map(),filterQualifications:new Map(),filterPublications:new Map(),outputs:new Map(),topicResults:new Map(),contextDeferred:new Map(),deferredUnits:new Set(),processing:new Map(),processingCleanup:new Set(),completed:false};
+  const state={promotions:new Map(),domainSettlements:[],progress,request,entryMapping,placementMapping,authoredMapping,boundMapping,structuralMapping,contextMapping,contextMaterial:new Map(),topicCandidates:new Map(),topicCandidateSummaries:new Map(),candidateQualifications:new Map(),candidatePublicationStart:new Map(),candidateOperations:new Map(),existingContext:new Map(),existingSettled:new Map(),existingPublicationStart:new Map(),publications:[],topicPublications:new Map(),qualifications:new Map(),qualificationPublicationStart:new Map(),postTopicQualifications:new Map(),releasedChildren:new Set(),failedChildren:new Set(),failedFacets:new Set(),followingKeys,followingReady:request.coverage.filter(u=>u.facet==='topic').every(u=>job.committedCoverage.includes(unitKey(u))),authoredMaterial:new Map(),boundMaterial:new Map(),structuralMaterial:new Map(),structuralInputs:new Map(),qualificationBudget:this.#preparing.workBudget,qualificationRequest:this.#preparing.requestIdentity,authoredBudget:forkContextScopeWorkBudget(this.#preparing.workBudget,{signal}),job,handle,generation,grant,grantBinding:Object.freeze({...grant}),controller:new AbortController(),running:null,groups:new Map(),prepared:new Map(),filterHandles:new Map(),filterCommands:new Map(),filterRetryChildren:new Set(),filterQualifications:new Map(),filterPublications:new Map(),outputs:new Map(),topicResults:new Map(),contextDeferred:new Map(),deferredUnits:new Set(),processing:new Map(),processingCleanup:new Set(),completed:false};
   const revoked=()=>{this.#releaseFilters(state);state.controller.abort();state.outputs.clear();this.#remote?.releaseResponseJob(state.job.id);state.topicResults.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);this.#releaseTopicCandidates(state);state.processing.clear();};grant.revocationSignal.addEventListener('abort',revoked,{once:true});state.removeRevocation=()=>grant.revocationSignal.removeEventListener('abort',revoked);
   this.#jobs.set(job.id,state);this.#handles.set(handle,state);return handle;
  }
@@ -458,7 +599,7 @@ export class LocalMaintenanceSession {
     for(const [key,mapping]of state.authoredMapping)if(topicIds.has(mapping.topicId)){const row=await t.get('thoughts',mapping.entryId);if(!row||row.revision!==mapping.entryRevision||!state.request.items.some(i=>i.key===key&&i.descriptor.kind==='library_entry'&&i.descriptor.entityId===mapping.entryId))fail('STALE_BASE');ids.add(mapping.entryId);}
     for(const write of publication.writes.filter(w=>w.store==='thoughts'&&w.value)){const e=write.value;if(e.bodyBinding!=='input'||e.provenanceType!=='input_original'||!inputIds.includes(e.workingInputId))fail('UNAVAILABLE');
      const current=await t.get('thoughts',e.id),keys=Object.keys(e).filter(k=>!['thoughtText','title','note'].includes(k)),actual=Object.fromEntries(keys.map(k=>[k,current?.[k]])),expected=Object.fromEntries(keys.map(k=>[k,e[k]]));if(!equal(actual,expected))fail('STALE_BASE');
-     for(const [table,index,range,ownerKey]of [['placements','byEntry',IDBKeyRange.bound([e.id],[e.id,[]],false,true),'entryId'],['dependencies','byTarget',IDBKeyRange.bound(['entry',e.id],['entry',e.id,[]],false,true),'targetId'],['provenance','byOwner',IDBKeyRange.bound(['entry',e.id],['entry',e.id,[]],false,true),'ownerId']]){const rows=await t.all(table,index,range),expected=publication.writes.filter(w=>w.store===table&&w.value?.[ownerKey]===e.id).map(w=>w.value);if(!equal(rows.sort((a,b)=>a.id.localeCompare(b.id)),expected.sort((a,b)=>a.id.localeCompare(b.id))))fail('STALE_BASE');}
+     const members=publication.members?.find(x=>x.entryId===e.id);if(!members)fail('STALE_BASE');await assertTopicFormationMembers(t,[members]);
      ids.add(e.id);
     }
    }
@@ -515,9 +656,10 @@ export class LocalMaintenanceSession {
     if(!summaryAllowed)remaining.maxContentBytes=remaining.maxRequestBytes=0;
     await captureMaintenanceExistingContext(this.#store,existing,{qualification:state.qualifications.get(metadata.childOperationId),read:fn=>this.#foundation.read(fn),signal:state.controller.signal,assertProcessing:()=>{this.#processingCurrent(state,processing);return true;},scope:processing.scope,material:{inputs:material.view.inputs,authoredEntries:authored.map(m=>state.authoredMaterial.get(m.entryId)),boundEntries:bound.map(m=>state.boundMaterial.get(boundMaterialKey(m))),structuralTopics:this.#structures(state,metadata.coverage).filter(m=>m.kind==='topic').map(m=>state.structuralMaterial.get(m.recordId)),structuralSections:this.#structures(state,metadata.coverage).filter(m=>m.kind!=='topic').map(m=>state.structuralMaterial.get(m.recordId))},limits:remaining,publications:state.publications.slice(state.existingPublicationStart.get(metadata.childOperationId)||0),settledItems:[...(state.existingSettled.get(metadata.childOperationId)?.values()||[])]});
    }
-   const payload=createMaintenancePayload(...args,existing?maintenanceExistingContextPayload(existing):[],existing&&summaryAllowed?maintenanceExistingContextSummary(existing):null,candidateMaterial,candidateSummary);
+   let payload=createMaintenancePayload(...args,existing?maintenanceExistingContextPayload(existing):[],existing&&summaryAllowed?maintenanceExistingContextSummary(existing):null,candidateMaterial,candidateSummary);
+   const promotion=await this.#preparePromotion(state,metadata,processing);if(promotion){try{payload=createMaintenancePayload(...args,existing?maintenanceExistingContextPayload(existing):[],existing&&summaryAllowed?maintenanceExistingContextSummary(existing):null,candidateMaterial,candidateSummary,promotion.payload);}catch(error){this.#releasePromotions(state,metadata.childOperationId);state.promotions.set(metadata.childOperationId,null);if(error?.code!=='BUDGET_EXCEEDED')throw error;}}
    if(this.#filterEnabled(state)&&metadata.coverage.some(u=>u.facet==='filter')){const key=canonical([metadata.childOperationId,'filter-snapshot']);if(!state.prepared.has(key)){try{const snapshot=await this.#foundation.read(t=>this.#store.maintenanceFilterSnapshot(t,this.#inputs(state,metadata.coverage.filter(u=>u.facet==='filter'))));this.#current(state);state.prepared.set(key,snapshot);}catch(error){this.#current(state);if(!['STALE_BASE','UNAVAILABLE'].includes(error?.code))throw error;state.prepared.set(key,null);}}}
-   return {handle,payload,processing};
+   return {handle,payload,processing:state.promotions.get(metadata.childOperationId)?.parent??processing};
   }catch(error){if(handle)this.#topic.releaseMaterial(handle);throw error;}
  }
  async #checkPayload(state,handle,metadata,processing){const prior=this.#materialOwner;this.#materialOwner={state,childId:metadata.childOperationId};try{return await this.#verifyPayload(state,handle,metadata,processing);}finally{this.#materialOwner=prior;}}
@@ -528,7 +670,7 @@ export class LocalMaintenanceSession {
   // after Input hashes. Pure authored work uses the same complete fence on its
   // own. Only synchronous host opportunity/abort checks follow this read.
   const finalRead=async t=>{const job=await this.#foundation.job(t,state.job.id);await this.#foundation.current(t,job);await this.#checkAuthoredMapping(state,metadata.coverage,t);await this.#checkBoundMapping(state,metadata.coverage,t);await this.#checkStructuralMapping(state,metadata.coverage,t);await this.#checkContextMapping(state,metadata.coverage,t);await this.#checkExistingContext(state,metadata.childOperationId,t,'prepared');await this.#checkTopicCandidates(state,metadata.childOperationId,t);};
-  if(handle)await this.#topic.checkMaterial(handle,finalRead);else await this.#foundation.read(finalRead);this.#processingCurrent(state,processing);
+  await this.#checkPromotion(state,metadata.childOperationId);if(handle)await this.#topic.checkMaterial(handle,finalRead);else await this.#foundation.read(finalRead);this.#processingCurrent(state,processing);
  }
  async #preflightPayloads(state){
   const status=await this.#foundation.status(state.job.id);this.#current(state);
@@ -602,6 +744,7 @@ export class LocalMaintenanceSession {
  }
  #releaseFilters(state,childId=null){
   if(!state?.filterHandles)return;
+  if(childId===null){state.filterCommands.clear();state.filterRetryChildren.clear();}else{state.filterCommands.delete(childId);state.filterRetryChildren.delete(childId);}
   if(childId===null)state.filterPublications.clear();else state.filterPublications.delete(childId);
   for(const [id,qualification]of state.filterQualifications)if(childId===null||id===childId){qualification.remove();state.filterQualifications.delete(id);}
   for(const [id,prepared]of state.filterHandles)if(childId===null||id===childId){if(prepared)this.#store.releaseAIMaintenanceFilter(prepared.handle);state.filterHandles.set(id,null);}
@@ -635,7 +778,7 @@ export class LocalMaintenanceSession {
    // A false post-response content check releases private material, but must
    // not win the original execution race over an already observed financial
    // settlement. Explicit revoke/timeout signals still cancel immediately.
-   prepared=await this.#remote.prepareChild(this.#foundation,state.job,payload,{processing,signal:controller.signal,assertCurrent,isCurrent:()=>{try{check({abort:false});return true;}catch{return false;}},assertBeforeSend:async()=>{const repository=this.#store.repository,token=observeRepositoryWriteFence(repository);await assertCurrent();return ()=>{check();if(this.#store.repository!==repository)fail('STALE_BASE');requireRepositoryWriteFence(repository,token);};}});
+   prepared=await this.#remote.prepareChild(this.#foundation,state.job,payload,{processing,promotionTask:state.promotions.get(metadata.childOperationId)?.task??null,signal:controller.signal,assertCurrent,isCurrent:()=>{try{check({abort:false});return true;}catch{return false;}},assertBeforeSend:async()=>{const repository=this.#store.repository,token=observeRepositoryWriteFence(repository);await assertCurrent();return ()=>{check();if(this.#store.repository!==repository)fail('STALE_BASE');requireRepositoryWriteFence(repository,token);const task=state.promotions.get(metadata.childOperationId)?.task;if(task)assertMaintenanceSectionPromotionTaskFacts(task,this.#store);};}});
    // Keep the exact already-tokenized payload and original deadline. Positive
    // Filter preparation follows real reservation, before any physical send.
    await this.#preparePositiveFilter(state,metadata,payload,processing,{check,stopped,authorizeFilter:prepared.authorizeFilter});
@@ -645,6 +788,7 @@ export class LocalMaintenanceSession {
     if(!receipt||receipt.executionKind!=='server-backed'||!opaque(receipt.operationReceiptId)||receipt.financialSettlement?.state!=='SETTLED')fail('OUTCOME_UNKNOWN');
     const response=responseSnapshot({accepted:true,operationReceiptId:receipt.operationReceiptId,value:result.value},this.#store.organizerBudget.limits.maxOutputBytes);
     state.outputs.set(metadata.childOperationId,{jobId:state.job.id,childId:metadata.childOperationId,operationReceiptId:receipt.operationReceiptId,response});
+    await this.#settlePromotion(state,metadata,result,receipt);
    }
    return result;
   }catch(error){this.#releaseFilters(state,metadata.childOperationId);this.#remote.releaseResponseChild(metadata.childOperationId);try{await this.#foundation.cancelServer(state.job.id);}catch{/* Unknown/cancellation ACK loss retains original holds. */}throw error;}
@@ -667,6 +811,7 @@ export class LocalMaintenanceSession {
   a.callback=fn;
   await this.#foundation.commitFacet(a.state.job.id,a.childId,{facet,units:a.units,outcome:a.outcome});this.#current(a.state);
   if(!a.entered||a.result===null)fail('DOMAIN_REPLAY_UNACKNOWLEDGED');if(a.publication){const token=a.publication();if(!token)fail('STALE_BASE');a.state.publications.push(token);if(facet==='topic')a.state.topicPublications.set(a.childId,token);}
+  if([...a.state.promotions.values()].some(Boolean))a.state.domainSettlements.push({childId:a.childId,facet,units:structuredClone(a.units),outcome:a.outcome,publication:a.publication?.()??null});
   if(facet==='topic')a.state.topicResults.set(a.childId,frozen({outcome:a.result.outcome,topicIds:[...a.result.topicIds]}));
   if(facet==='context'&&a.state.existingContext.has(a.childId)){const expected=a.expectedTarget?.();if(expected&&maintenanceExistingContextScope(a.state.existingContext.get(a.childId)).some(item=>item.itemId===expected.itemId)){const settled=a.state.existingSettled.get(a.childId)||new Map();settled.set(expected.itemId,frozen(expected));a.state.existingSettled.set(a.childId,settled);}}
   // Publish the unsent child's new metadata only after this original Topic
@@ -777,22 +922,35 @@ export class LocalMaintenanceSession {
   this.#processingCurrent(state,receipt);const signal=receipt.revocationSignal,abort=()=>this.#releaseFilters(state,metadata.childOperationId),remove=()=>signal.removeEventListener('abort',abort);signal.addEventListener('abort',abort,{once:true});state.filterQualifications.set(metadata.childOperationId,{receipt,remove});this.#assertProcessing(receipt);return receipt;
  }
  #filterEnabled(state){return (this.#remote!==null||state.grant.tier==='pro')&&this.#service.filter?.enabled===true&&typeof this.#service.responseAdapter?.filter==='function';}
- async #filterFacet(state,childId,receipt,units){
+ async #filterCommand(state,childId,receipt,units){
   const expected=state.prepared.get(canonical([childId,'filter-snapshot'])),positive=state.filterHandles.get(childId);
-  if(!this.#filterEnabled(state)||!expected||typeof this.#service.filter.selectScope==='function'&&!positive)return this.#defer(state,childId,'filter',units,'FILTER_OWNER_UNAVAILABLE');
+  if(!this.#filterEnabled(state)||!expected||typeof this.#service.filter.selectScope==='function'&&!positive)return null;
+  const base=state.processing.get(childId),qualification=state.filterQualifications.get(childId)?.receipt??null,binding=this.#correlation({state,childId,receipt});
+  this.#processingCurrent(state,base);if(qualification)this.#assertProcessing(qualification);
+  let command=state.filterCommands.get(childId);
+  if(command){if(command.expected!==expected||command.positive!==positive||command.base!==base||command.qualification!==qualification||!equal(command.binding,binding)||!equal(command.units,units)||!['RESPONSE_RECORDED','VALIDATED'].includes(receipt.state))fail('STALE_BASE');return command;}
   const inputIds=this.#inputs(state,units);if(!inputIds||!equal(inputIds,expected.items.map(i=>i.inputId)))fail('STALE_BASE');
-  const key=canonical([childId,'filter']);let decisions=state.groups.get(key);
-  if(!decisions){decisions=await this.#decode({state,childId,receipt,units},'filter',Object.freeze({inputIds:[...inputIds],units:structuredClone(units)}));this.#current(state);
-   if(!Array.isArray(decisions)||decisions.length!==inputIds.length)fail('STALE_BASE');
-   for(const d of decisions){exact(d,['inputId','decision']);if(!(positive?['FILTER','KEEP','INSUFFICIENT']:['KEEP','INSUFFICIENT']).includes(d.decision))fail('STALE_BASE');}
-   if(!equal(decisions.map(d=>d.inputId).sort(),inputIds))fail('STALE_BASE');state.groups.set(key,frozen(decisions));state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);
-  }
+  let decisions,deferred=null;
+  try{decisions=await this.#decode({state,childId,receipt,units},'filter',Object.freeze({inputIds:[...inputIds],units:structuredClone(units)}));}
+  catch(error){deferred=this.#adapterDefer({state,childId,receipt,units},'filter',error);if(!deferred)throw error;}
+  this.#processingCurrent(state,base);if(qualification)this.#assertProcessing(qualification);
+  if(!deferred){if(!Array.isArray(decisions)||decisions.length!==inputIds.length)fail('STALE_BASE');for(const d of decisions){exact(d,['inputId','decision']);if(!(positive?['FILTER','KEEP','INSUFFICIENT']:['KEEP','INSUFFICIENT']).includes(d.decision))fail('STALE_BASE');}if(!equal(decisions.map(d=>d.inputId).sort(),inputIds))fail('STALE_BASE');}
+  // Only the original decoder's complete same-response/coverage validation can
+  // create this private, body-free command. No raw response is retained here.
+  command=Object.freeze({expected,positive,base,qualification,binding:frozen(binding),units:frozen(structuredClone(units)),decisions:deferred?null:frozen(decisions),deferred:deferred?frozen(structuredClone({units:deferred.units,retryCondition:deferred.retryCondition})):null});state.filterCommands.set(childId,command);return command;
+ }
+ async #filterFacet(state,childId,receipt,units){
+  const command=await this.#filterCommand(state,childId,receipt,units);
+  if(!command)return this.#defer(state,childId,'filter',units,'FILTER_OWNER_UNAVAILABLE');
+  state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);
+  if(command.deferred)return this.#defer(state,childId,'filter',command.deferred.units,command.deferred.retryCondition);
+  const {expected,positive,decisions}=command;
   if(positive)return this.#invoke(state,childId,receipt,'filter',units,()=>this.#writeDomain(t=>this.#store.commitAIMaintenanceFilter(t,positive.handle,decisions),'filter'),decisions.some(d=>d.decision==='FILTER')?'COMMITTED':'NO_CHANGE');
   return this.#invoke(state,childId,receipt,'filter',units,()=>this.#writeDomain(t=>this.#store.noChangeMaintenanceFilter(t,expected,decisions),'filter'),'NO_CHANGE');
  }
  async #defer(state,childId,facet,units,retryCondition){
   this.#current(state);const keys=units.map(u=>canonical([childId,unitKey(u)])),remaining=units.filter((_,i)=>!state.deferredUnits.has(keys[i]));
-  if(remaining.length){await this.#foundation.commitFacet(state.job.id,childId,{facet,units:remaining,outcome:'DEFER',retryCondition});this.#current(state);for(const key of keys)state.deferredUnits.add(key);state.progress.deferredUnits+=remaining.length;state.progress.remainingWork=true;}
+  if(remaining.length){await this.#foundation.commitFacet(state.job.id,childId,{facet,units:remaining,outcome:'DEFER',retryCondition});this.#current(state);if([...state.promotions.values()].some(Boolean))state.domainSettlements.push({childId,facet,units:structuredClone(remaining),outcome:'DEFER',publication:null});for(const key of keys)state.deferredUnits.add(key);state.progress.deferredUnits+=remaining.length;state.progress.remainingWork=true;}
   return {facet,units:units.length,state:'DEFERRED'};
  }
  run(handle){
@@ -842,7 +1000,12 @@ export class LocalMaintenanceSession {
     if(!receipt||!['RESPONSE_RECORDED','VALIDATED'].includes(receipt.state))return outcome('UNAVAILABLE',{jobId:state.job.id,facets:results});
     const job=await this.#foundation.read(t=>this.#foundation.job(t,state.job.id));this.#current(state);const coverage=job.childCoverage[job.childIds.indexOf(childId)];children.push({childId,receipt,coverage});
     const units=coverage.filter(u=>u.facet==='topic'&&!status.committedCoverage.includes(unitKey(u))&&!state.deferredUnits.has(canonical([childId,unitKey(u)])));
-    if(units.length&&!state.releasedChildren.has(childId))try{results.push(await this.#topicFacet(state,childId,receipt,units));}catch(e){this.#current(state);const deferred=this.#adapterDefer({state,childId,receipt,units},'topic',e);if(deferred){results.push(await this.#defer(state,childId,'topic',deferred.units,deferred.retryCondition));continue;}if(!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);}results.push({facet:'topic',units:units.length,state:'FAILED',reason:safeError(e)});topicFailed=true;}
+    if(units.length&&!state.releasedChildren.has(childId)){
+     if(state.failedFacets.has(canonical([childId,'topic']))&&state.filterCommands.has(childId)){topicFailed=true;continue;}
+     const filterUnits=coverage.filter(u=>u.facet==='filter'&&!status.committedCoverage.includes(unitKey(u))&&!state.deferredUnits.has(canonical([childId,unitKey(u)])));
+     if(this.#independentFilter&&filterUnits.length)try{await this.#filterCommand(state,childId,receipt,filterUnits);}catch(error){this.#current(state);state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);}
+    }
+    if(units.length&&!state.releasedChildren.has(childId))try{results.push(await this.#topicFacet(state,childId,receipt,units));}catch(e){this.#current(state);const deferred=this.#adapterDefer({state,childId,receipt,units},'topic',e);if(deferred){results.push(await this.#defer(state,childId,'topic',deferred.units,deferred.retryCondition));continue;}if(!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);state.failedFacets.add(canonical([childId,'topic']));state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);if(state.filterCommands.has(childId))this.#releaseConsumedChild(state,childId,{filterContinuation:true});}results.push({facet:'topic',units:units.length,state:'FAILED',reason:safeError(e)});topicFailed=true;}
    }
    // A later child's provider/Topic stage sees current existing identities.
    // Only after every Topic phase succeeds do Context operations capture final
@@ -850,14 +1013,15 @@ export class LocalMaintenanceSession {
    for(const facet of ['context','filter']){
     if(facet==='context'&&topicFailed)continue;
     for(const {childId,receipt,coverage}of children){
-     if(state.releasedChildren.has(childId))continue;
+     if(state.releasedChildren.has(childId)||state.failedFacets.has(canonical([childId,facet])))continue;
      const latest=await this.#foundation.status(state.job.id);this.#current(state);const units=coverage.filter(u=>u.facet===facet&&!latest.committedCoverage.includes(unitKey(u))&&!state.deferredUnits.has(canonical([childId,unitKey(u)])));if(!units.length)continue;
-     try{if(facet==='context')results.push(...await this.#contextFacet(state,childId,receipt,units));else results.push(await this.#filterFacet(state,childId,receipt,units));}
-     catch(e){this.#current(state);const deferred=this.#adapterDefer({state,childId,receipt,units},facet,e);if(deferred){results.push(await this.#defer(state,childId,facet,deferred.units,deferred.retryCondition));continue;}if(facet==='filter'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);this.#releaseFilters(state,childId);}if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);}results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
+     try{if(facet==='context')results.push(...await this.#contextFacet(state,childId,receipt,units));else{results.push(await this.#filterFacet(state,childId,receipt,units));state.filterRetryChildren.delete(childId);}}
+     catch(e){this.#current(state);if(facet==='filter'&&['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)&&state.filterCommands.has(childId))state.filterRetryChildren.add(childId);const deferred=this.#adapterDefer({state,childId,receipt,units},facet,e);if(deferred){results.push(await this.#defer(state,childId,facet,deferred.units,deferred.retryCondition));continue;}if(facet==='filter'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);this.#releaseFilters(state,childId);}if(facet==='context'&&!['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code)){state.failedChildren.add(childId);state.failedFacets.add(canonical([childId,facet]));state.outputs.delete(childId);this.#remote?.releaseResponseChild(childId);state.topicResults.delete(childId);if(state.filterCommands.has(childId))this.#releaseConsumedChild(state,childId,{filterContinuation:true});}results.push({facet,units:units.length,state:'FAILED',reason:safeError(e)});}
     }
    }
    const final=await this.#foundation.status(state.job.id);this.#current(state);await this.#publishFilterVisibility(state,final);this.#current(state);
-   for(const {childId,coverage}of children)if(state.failedChildren.has(childId)||coverage.every(u=>final.committedCoverage.includes(unitKey(u))||state.deferredUnits.has(canonical([childId,unitKey(u)]))))this.#releaseConsumedChild(state,childId);
+   for(const {childId,coverage}of children)if(coverage.every(u=>final.committedCoverage.includes(unitKey(u))||state.deferredUnits.has(canonical([childId,unitKey(u)]))))await this.#finishPromotion(state,childId,coverage);
+   for(const {childId,coverage}of children)if(state.failedChildren.has(childId)&&!state.filterRetryChildren.has(childId)||coverage.every(u=>final.committedCoverage.includes(unitKey(u))||state.deferredUnits.has(canonical([childId,unitKey(u)]))))this.#releaseConsumedChild(state,childId);
    if(this.#remote&&['COMMITTED','EXPIRED_UNCOMMITTED','REJECTED','CANCELLED_BEFORE_DISPATCH'].includes(final.state))try{await this.#remote.report(this.#foundation,state.job);}catch{/* Durable body-free result remains pending; no paid retry. */}
    this.#current(state);
    if(final.state==='COMMITTED'){state.completed=true;this.#retire(state);}
@@ -868,12 +1032,12 @@ export class LocalMaintenanceSession {
  // Listener cleanup cannot change an already durable domain outcome.
  #retire(state){
   const errors=[],cleanup=fn=>{try{fn();}catch(error){errors.push(error);}};
-  cleanup(()=>this.#releaseFilters(state));cleanup(()=>this.#remote?.releaseResponseJob(state.job.id));state.filterHandles.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);this.#releaseTopicCandidates(state);state.outputs.clear();state.topicResults.clear();state.processing.clear();for(const map of [state.qualifications,state.postTopicQualifications]){for(const token of map.values())releaseMaintenanceQualification(token);map.clear();}state.topicPublications.clear();state.publications.length=0;
+  cleanup(()=>this.#releaseFilters(state));cleanup(()=>this.#remote?.releaseResponseJob(state.job.id));state.filterHandles.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();state.deferredUnits.clear();state.authoredMaterial.clear();state.boundMaterial.clear();state.structuralMaterial.clear();state.structuralInputs.clear();state.prepared.clear();state.groups.clear();state.contextDeferred.clear();this.#releaseContextEdits(state);this.#releaseExistingContext(state);this.#releaseTopicCandidates(state);state.outputs.clear();state.topicResults.clear();state.processing.clear();for(const map of [state.qualifications,state.postTopicQualifications]){for(const token of map.values())releaseMaintenanceQualification(token);map.clear();}state.topicPublications.clear();state.publications.length=0;state.domainSettlements.length=0;
   cleanup(state.removeRevocation);for(const clean of state.processingCleanup)cleanup(clean);state.processingCleanup.clear();
   this.#jobs.delete(state.job.id);return errors;
  }
  dispose(){
-  this.#generation++;this.#preparing?.controller.abort();const errors=[];
+  this.#generation++;for(const controller of this.#promotionRecoveryControllers)controller.abort();this.#promotionRecoveryControllers.clear();promotionSessions.delete(this);if(this.#promotionRecovery)disposeMaintenanceSectionPromotionOwner(this.#promotionRecovery,this.#store);this.#promotionRecovery=null;for(const owner of this.#promotionOwners)disposeMaintenanceSectionPromotionOwner(owner,this.#store);this.#promotionOwners.clear();this.#preparing?.controller.abort();const errors=[];
   for(const state of this.#jobs.values()){
    // Physical cancellation and private-data retirement must survive host cleanup errors.
    state.controller.abort();errors.push(...this.#retire(state));

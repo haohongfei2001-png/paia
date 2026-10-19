@@ -197,3 +197,10 @@ test('owner handle is released if its original read transaction fails after prep
  f.s.repository.transaction=async(write,fn,stores)=>{const result=await transaction(write,fn,stores);if(!write&&f.filterState.prepared.length&&!failed){failed=true;throw Object.assign(Error('SYNTHETIC_PREPARED_READ_FAILURE'),{code:'STORAGE_FAILED'});}return result;};
  const result=await f.session.run(await f.session.prepare(options));f.s.repository.transaction=transaction;assert.equal(failed,true);assert.equal(result.state,'OUTCOME_UNKNOWN');assert.equal(f.calls.length,0);assert.equal(f.filterState.prepared.length,1);assert.equal(f.filterState.released.length,1);assert.equal((await filterAck(f)).length,0);assert.equal(await visible(f),true);f.session.dispose();
 });
+
+
+test('an unbranded local adapter keeps original Topic-first refusal and cannot mint an early Filter continuation',async t=>{
+ const f=await fixture(),{TopicFormationService}=await import('../core/topic-formation.js');let topicAttempts=0;t.after(()=>f.session.dispose());
+ t.mock.method(TopicFormationService.prototype,'commit',async()=>{topicAttempts++;throw Object.assign(Error('SYNTHETIC local Topic domain refusal'),{code:'UNAVAILABLE'});});
+ const handle=await f.session.prepare(options),result=await f.session.run(handle);assert.equal(result.state,'PARTIAL');assert.equal(f.filterState.decoded,0);assert.equal((await filterAck(f)).length,0);assert.equal(f.filterState.released.length,1);assert.equal(topicAttempts,1);assert.equal(f.calls.length,1);await f.session.run(handle);assert.equal(topicAttempts,1);assert.equal(f.filterState.released.length,1);assert.equal(f.calls.length,1);
+});

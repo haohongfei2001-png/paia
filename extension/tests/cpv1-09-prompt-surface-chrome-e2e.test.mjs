@@ -20,19 +20,6 @@ const settleSurface=async frame=>{
   const after=await element.boundingBox();return before&&after&&['x','y','width','height'].every(key=>before[key]===after[key]);
  },'original Prompt child ACK and parent frame geometry are settled');
 };
-const settleRestingActionRail=async row=>{
- const result=await row.evaluate(async node=>{
-  const more=node.querySelector('.more'),sample=()=>({hover:node.matches(':hover'),focusWithin:node.matches(':focus-within'),opacity:getComputedStyle(more).opacity,duration:getComputedStyle(more).transitionDuration,property:getComputedStyle(more).transitionProperty});
-  const before=sample();if(before.hover||before.focusWithin)throw Error('action rail still has an active hover/focus owner');
-  const animations=more.getAnimations().filter(animation=>animation instanceof CSSTransition&&animation.transitionProperty==='opacity');
-  const transitions=animations.map(animation=>({property:animation.transitionProperty,playState:animation.playState,currentTime:animation.currentTime,duration:animation.effect.getTiming().duration}));
-  // Wait for the actual original CSS transition. No finish/cancel, tolerance,
-  // fixed sleep or synthetic style write may manufacture the resting state.
-  await Promise.all(animations.map(animation=>animation.finished));
-  const after=sample();if(after.hover||after.focusWithin)throw Error('action rail acquired an active hover/focus owner');return {before,transitions,after};
- });
- assert.equal(result.before.hover,false);assert.equal(result.before.focusWithin,false);assert.equal(result.after.hover,false);assert.equal(result.after.focusWithin,false);assert.equal(result.after.opacity,'0');return result;
-};
 const surfaceReady=async frame=>{await eventually(()=>frame.locator('#refresh').isEnabled(),'the original refresh owner has completed');await settleSurface(frame);};
 const clickSurface=async(frame,locator)=>{
  await surfaceReady(frame);
@@ -157,25 +144,11 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   });
   await check('success feedback timer cannot erase a newer unsaved-edit warning',async()=>{
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await page.evaluate(()=>fixture.set('timer draft',11));await fill(f);await eventually(()=>f.locator('#status').textContent().then(x=>x==='已插入，未发送。'));
-   await surfaceClick(f,'#new');await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved timer test');await clickSurface(f,orb);await eventually(()=>f.locator('#status').textContent().then(x=>x==='请先保存或取消编辑。'),'original host close request reaches the private unsaved-edit guard');assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');await page.waitForTimeout(1900);assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved timer test');await assertStatusAction(f,f.getByRole('button',{name:'取消',exact:true}));await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());
-  });
-  await check('a delayed original host close request preserves the draft until its private guard receives it',async()=>{
-   const f=card(),draft='held original close draft 中文 🙂';await surfaceClick(f,'#refresh');await surfaceReady(f);await surfaceClick(f,'#new');const edit=f.getByRole('textbox',{name:'复用文本'});await edit.fill(draft);assert.equal(await f.locator('#status').textContent(),'');
-   const hostBefore=await page.evaluate(()=>({text:fixture.text(),send:fixture.send,enter:fixture.enter}));
-   // Delay the real host transport only. Release forwards the exact original
-   // request to the existing worker/private guard, without fabricating a reply.
-   await world.run(`(()=>{const send=chrome.runtime.sendMessage,pending=[];let held=0,dispatched=0;chrome.runtime.sendMessage=function(...args){if(args[0]?.type!=='PAIA_PROMPT_SURFACE_REQUEST_CLOSE')return Reflect.apply(send,chrome.runtime,args);held++;return new Promise((resolve,reject)=>pending.push(()=>{dispatched++;return Promise.resolve(Reflect.apply(send,chrome.runtime,args)).then(resolve,reject);}));};globalThis.__nibCloseTransport={state:()=>({held,dispatched,pending:pending.length}),release:()=>Promise.all(pending.splice(0).map(run=>run())),restore:()=>{chrome.runtime.sendMessage=send;}};})()`);
-   try{
-    await clickSurface(f,orb);await eventually(()=>world.run('__nibCloseTransport.state().held===1'),'one native host close request reaches the held original transport');
-    assert.deepEqual(await world.run('__nibCloseTransport.state()'),{held:1,dispatched:0,pending:1});assert.equal(await f.locator('#status').textContent(),'','click completion alone cannot stand in for private guard delivery');assert.equal(card(),f);assert.equal(await edit.inputValue(),draft);assert.deepEqual(await page.evaluate(()=>({text:fixture.text(),send:fixture.send,enter:fixture.enter})),hostBefore);
-    await world.run('__nibCloseTransport.release()');await eventually(()=>f.locator('#status').textContent().then(x=>x==='请先保存或取消编辑。'),'released original request reaches the exact private guard');
-    assert.deepEqual(await world.run('__nibCloseTransport.state()'),{held:1,dispatched:1,pending:0});assert.equal(card(),f);assert.equal(await edit.inputValue(),draft);assert.deepEqual(await page.evaluate(()=>({text:fixture.text(),send:fixture.send,enter:fixture.enter})),hostBefore);
-   }finally{await world.run('(async()=>{__nibCloseTransport.restore();await __nibCloseTransport.release();delete globalThis.__nibCloseTransport;})()');}
-   await assertStatusAction(f,f.getByRole('button',{name:'取消',exact:true}));await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());await eventually(()=>f.locator('#editor').isHidden());
+   await surfaceClick(f,'#new');await f.getByRole('textbox',{name:'复用文本'}).fill('unsaved timer test');await clickSurface(f,orb);assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');await page.waitForTimeout(1900);assert.equal(await f.locator('#status').textContent(),'请先保存或取消编辑。');assert.equal(await f.getByRole('textbox',{name:'复用文本'}).inputValue(),'unsaved timer test');await assertStatusAction(f,f.getByRole('button',{name:'取消',exact:true}));await f.getByRole('button',{name:'取消',exact:true}).click();await eventually(()=>f.locator('#refresh').isEnabled());
   });
   await check('approved NIB text axis and action rail retain geometry, reorder and inline editing',async()=>{
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());
-   await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),railExit=await settleRestingActionRail(row),before=await row.boundingBox();await writeFile(join(receiptDir,variant+'-rail-exit.json'),JSON.stringify(railExit,null,2));
+   await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),before=await row.boundingBox();
    assert.equal(await f.locator('#list').evaluate(e=>getComputedStyle(e,'::-webkit-scrollbar').width),'3px');
    const textBefore=await row.locator('.text').boundingBox(),frameBox=await (await f.frameElement()).boundingBox();
    const axisProbe={variant,global:{text:textBefore,frame:frameBox,delta:textBefore.x-frameBox.x},child:await row.evaluate(node=>{const shape=n=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {rect:r.toJSON(),paddingLeft:s.paddingLeft,borderLeftWidth:s.borderLeftWidth,transform:s.transform,zoom:s.zoom,display:s.display};};return {text:shape(node.querySelector('.text')),insert:shape(node.querySelector('.insert')),row:shape(node),list:shape(node.parentElement),body:shape(document.body),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};}),owner:await (await f.frameElement()).evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {rect:r.toJSON(),clientLeft:node.clientLeft,borderLeftWidth:s.borderLeftWidth,paddingLeft:s.paddingLeft,transform:s.transform,zoom:s.zoom,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};})};

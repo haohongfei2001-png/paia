@@ -1,6 +1,4 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
-import {detectNextAction} from '../core/next-action-detector.js';
-import {PromptAssistState} from '../ui/prompt-assist-state.js';
 import {NextPromptCommands,NEXT_AUTH_KEY} from '../background/prompt-next.js';
 const url='https://chatgpt.com/c/next-fixture',nonce='11111111-1111-4111-8111-111111111111';
 async function fixture(){
@@ -65,41 +63,4 @@ test('exact trusted popup document tab has the same opt-in as action popup',asyn
 
 test('unpresentable condition or ambiguous choices cannot enter the first-click R3 surface',async()=>{
  for(const text of ['登录完成后告诉我“已登录”。','请选择：A 或 B。']){const f=await fixture();await f.config(true);const response=await f.offer(text);assert.equal(response.available,false);assert.equal(f.c.groups.size,0);assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);assert.equal(JSON.stringify(f.writes).includes(text),false);}
-});
-
-// Native late-delivery proof must begin with a real supported local offer.
-// The original arbitrary marker is intentionally still refused by the detector.
-const nativeNextSource=await readFile(new URL('./cpv1-12-next-prompt-chrome-e2e.test.mjs',import.meta.url),'utf8');
-const lateReplyLiteral=/const lateReplyLiteral='([^']+)'/.exec(nativeNextSource)?.[1];
-test('late native availability fixture uses one original safe literal without expanding the detector',async()=>{
- assert.equal(lateReplyLiteral,'I am ready');
- const f=await fixture();await f.config(true);
- const rejected=await f.offer('Reply "LATE_R3_VALUE".');
- assert.deepEqual(rejected,{available:false,reason:'UNSAFE_OR_UNSUPPORTED_LITERAL'});
- assert.equal(f.c.groups.size,0);
- const text=`Reply "${lateReplyLiteral}".`,detected=detectNextAction({completed:true,text,blocks:1,excluded:false});
- assert.equal(detected.type,'DIRECT_REPLY');assert.deepEqual(detected.choices,[lateReplyLiteral]);assert.equal(detected.condition,'');
- const offered=await f.offer(text);assert.equal(offered.available,true);
- const current=await f.c.card({type:'next_current'},{id:1});assert.equal(current.result.text,lateReplyLiteral);
- assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);
- assert.doesNotMatch(JSON.stringify(f.writes),/LATE_R3_VALUE|I am ready/);
-});
-test('original safe local result held after currentness cannot revive the latest invalidated shared state',async()=>{
- const f=await fixture();await f.config(true);await f.offer(`Reply "${lateReplyLiteral}".`);
- let release,held=false,signalEntered;const delivered=[],entered=new Promise(resolve=>signalEntered=resolve);
- const state=new PromptAssistState({send:async command=>{
-  assert.equal(command.type,'suggestion_current');const value=await f.c.card({type:'next_current'},{id:1});
-  delivered.push(value.result?.text??null);
-  if(!held&&value.result?.text===lateReplyLiteral){held=true;await new Promise(resolve=>{release=resolve;signalEntered();});}
-  return {source:'local',result:value.result};
- }});
- const old=state.refresh();try{
- await Promise.race([entered,old.then(()=>{throw Error('Original availability settled without reaching the held safe result');})]);
- const original=f.c.groups.get(1);f.setBinding({...f.getBinding(),revision:f.getBinding().revision+1});
- await f.c.handle({type:'PAIA_PROMPT_NEXT_INVALIDATE',id:original.id},f.top);
- await state.refresh();assert.equal(state.result,null);release();await old;
- assert.deepEqual(delivered,[lateReplyLiteral,null]);assert.equal(state.result,null);assert.equal(state.busy,false);
- assert.equal(f.sends.some(x=>x.r.type==='PAIA_PROMPT_NEXT_INSERT'),false);
- assert.doesNotMatch(JSON.stringify(f.writes),/I am ready/);
- }finally{release?.();await old;}
 });

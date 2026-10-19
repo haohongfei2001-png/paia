@@ -34,7 +34,7 @@ export async function settingsPromptPositionEvidence({h,page,card,orb,rpc,engine
  await eventually(async()=>{
   const anchor=await orb.boundingBox(),state=await saved(),viewport=await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
   return anchor&&anchorBeforeKey&&anchor.x===anchorBeforeKey.x&&anchor.y===anchorBeforeKey.y&&state?.position
-   &&state.position.x===anchor.x/(viewport.width-48)&&state.position.y===anchor.y/(viewport.height-48);
+   &&state.position.x===anchor.x/(viewport.width-44)&&state.position.y===anchor.y/(viewport.height-44);
  },'Settings reset starts from native AltLeft metadata at the unchanged anchor');
  assert.notDeepEqual((await saved()).position,metadataBeforeKey);assert.deepEqual(await orb.boundingBox(),anchorBeforeKey);
  const before=await saved(),f=card(),draft='Settings reset keeps this unsaved card draft 中文 🙂';let cdp;

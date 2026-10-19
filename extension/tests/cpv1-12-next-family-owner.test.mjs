@@ -52,7 +52,7 @@ test('actual content insert handshake checks Family after STATUS yields, before 
  const {readFile}=await import('node:fs/promises'),vm=await import('node:vm'),source=await readFile(new URL('../content/prompt-next.js',import.meta.url),'utf8');
  const start=source.indexOf("  if(r.type==='PAIA_PROMPT_NEXT_INSERT'){");const body=source.slice(start,source.indexOf('\n };',start));
  const started=deferred(),held=deferred(),done=deferred();let eligible=true,edits=0;
- const context={epoch:1,authorization:'auth',candidate:'candidate',binding:{url},inserting:false,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),scan(){},replyMutation:()=>false,observer:{takeRecords:()=>[]},rpc:async type=>{if(type==='STATUS'){started.resolve();await held.promise;return {enabled:true,generation:'auth'};}if(type==='INSERT_CURRENT'){if(!eligible)throw Error('stale');return {current:true};}throw Error(type);},composer:{insert:async()=>{edits++;return {status:'inserted',verified:true};}}};
+ const context={epoch:1,authorization:'auth',candidate:'candidate',binding:{url},inserting:false,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),scan(){},replyMutation:()=>false,observer:{takeRecords:()=>[]},rpc:async type=>{if(type==='STATUS'){started.resolve();await held.promise;return {enabled:true,generation:'auth'};}if(type==='PRESENT'){if(!eligible)throw Error('stale');return {safe:true};}throw Error(type);},composer:{insert:async()=>{edits++;return {status:'inserted',verified:true};}}};
  vm.default.createContext(context);const handle=vm.default.runInContext('(r,s,reply)=>{'+body+'}',context);
  handle({type:'PAIA_PROMPT_NEXT_INSERT',sourceType:'PROMPT_FAMILY',id:'candidate',text:'Explain sorting',operationId:'synthetic',authorization:'auth',binding:{url}},null,done.resolve);
  await started.promise;eligible=false;held.resolve();const result=await done.promise;assert.equal(edits,0);assert.equal(result.status,'failed');
@@ -76,55 +76,3 @@ for(const boundary of ['nonce','frame','document','authorization','reply','extra
  await assert.rejects(()=>f.commands.handle(request,sender));assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_HIDE'),false);
 });
 
-
-// R3 click is busy; display-idle is not insertion qualification.
-async function contentFamilyInsert(f,{beforeCurrent=async()=>{},alterRequest=x=>x}={}){
- const {readFile}=await import('node:fs/promises'),vm=await import('node:vm');
- const source=await readFile(new URL('../content/prompt-next.js',import.meta.url),'utf8');
- const start=source.indexOf("  if(r.type==='PAIA_PROMPT_NEXT_INSERT'){");
- const body=source.slice(start,source.indexOf('\n };',start)),g=f.commands.groups.get(1);let edits=0,draft='FAMILY_DRAFT',requests=[];
- const top={id:'extension',url,tab:{id:1},frameId:0,documentId:'host-doc'};
- const context={epoch:1,authorization:g.authorization,candidate:g.id,binding:g.binding,inserting:false,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),scan(){},replyMutation:()=>false,observer:{takeRecords:()=>[]},rpc:async(type,fields={})=>{if(type==='PRESENT'||type==='INSERT_CURRENT')await beforeCurrent();const request=alterRequest({type:'PAIA_PROMPT_NEXT_'+type,...fields});requests.push(request);return f.commands.handle(request,top);},composer:{insert:async request=>{assert.equal(request.guard(),true);edits++;draft+=request.text;return {status:'inserted',verified:true};}}};
- vm.default.createContext(context);const handle=vm.default.runInContext('(r,s,reply)=>{'+body+'}',context),send=f.api.tabs.sendMessage;
- f.api.tabs.sendMessage=(id,r,...args)=>r.type==='PAIA_PROMPT_NEXT_INSERT'?new Promise(resolve=>handle(r,null,resolve)):send(id,r,...args);
- return {edits:()=>edits,draft:()=>draft,requests,top};
-}
-test('R3 actual Family owner plus content inserts once while original surface is intentionally busy',async()=>{
- const f=await fixture();await f.warm();await f.offer();const c=await contentFamilyInsert(f),view=await f.commands.card({type:'next_current'},{id:1});
- f.commands.surface.isIdle=async()=>false;
- const result=await f.commands.card({type:'next_insert',id:view.result.id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1});
- assert.deepEqual(result,{status:'inserted',verified:true});assert.equal(c.edits(),1);assert.equal(c.draft(),'FAMILY_DRAFTExplain sorting');assert.equal(f.requests.length,0);
-});
-for(const boundary of ['operation','choice','group','extra','revoke','reply','edit','hide','purge','replacement'])test('busy Family click rejects '+boundary+' before its original native edit',async()=>{
- const f=await fixture(),q=await f.warm();await f.offer();const view=await f.commands.card({type:'next_current'},{id:1});let changed=false;
- const c=await contentFamilyInsert(f,{beforeCurrent:async()=>{if(changed)return;changed=true;if(boundary==='revoke')await f.commands.configure(false);if(boundary==='reply')f.replaceReply();if(boundary==='replacement')await f.offer();if(['edit','hide'].includes(boundary))await f.service.change({action:boundary,id:q.items[0].id,revision:q.revision,...(boundary==='edit'?{text:'Explain graphs'}:{})});if(boundary==='purge')for(const row of await rows(f.s,'records'))await f.s.permanentDelete(row.id);},alterRequest:request=>{if(request.type!=='PAIA_PROMPT_NEXT_INSERT_CURRENT')return request;return {...request,...(boundary==='operation'?{operationId:crypto.randomUUID()}:boundary==='choice'?{choiceId:crypto.randomUUID()}:boundary==='group'?{id:crypto.randomUUID()}:boundary==='extra'?{extra:true}:{})};}});
- f.commands.surface.isIdle=async()=>false;
- assert.deepEqual(await f.commands.card({type:'next_insert',id:view.result.id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1}),{status:'failed',verified:false});assert.equal(c.edits(),0);assert.equal(c.draft(),'FAMILY_DRAFT');assert.equal(f.requests.length,0);
-});
-test('original accepted Family operation qualification is single-use and cannot be replayed after settlement',async()=>{
- const f=await fixture();await f.warm();await f.offer();const c=await contentFamilyInsert(f),view=await f.commands.card({type:'next_current'},{id:1});f.commands.surface.isIdle=async()=>false;
- assert.equal((await f.commands.card({type:'next_insert',id:view.result.id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1})).verified,true);
- const request=c.requests.find(x=>x.type==='PAIA_PROMPT_NEXT_INSERT_CURRENT');assert.ok(request);await assert.rejects(()=>f.commands.handle(request,c.top));assert.equal(c.edits(),1);
- await assert.rejects(()=>f.commands.card({type:'next_insert',id:view.result.id,operationId:request.operationId,conditionPresented:true},{id:1}));assert.equal(c.edits(),1);
-});
-test('original legacy Family dispatch retains real same-operation requalification',async()=>{
- const f=await fixture();await f.warm();await f.offer();const c=await contentFamilyInsert(f),view=await f.rpc({type:'get'});f.commands.surface.isIdle=async()=>false;
- assert.deepEqual(await f.rpc({type:'insert',id:view.choices[0].id,operationId:crypto.randomUUID()}),{status:'inserted',verified:true});assert.equal(c.edits(),1);assert.equal(c.draft(),'FAMILY_DRAFTExplain sorting');
-});
-test('content cannot register a Family insertion merely by reporting an operation and choice',async()=>{
- const f=await fixture();await f.warm();const offered=await f.offer(),g=f.commands.groups.get(1);await assert.rejects(()=>f.commands.handle({type:'PAIA_PROMPT_NEXT_INSERT_CURRENT',id:offered.id,operationId:crypto.randomUUID(),choiceId:g.choices[0].id},{id:'extension',url,tab:{id:1},frameId:0,documentId:'host-doc'}));assert.equal(g.attempted.size,0);assert.equal(f.sends.some(x=>x.type==='PAIA_PROMPT_NEXT_INSERT'),false);
-});
-for(const boundary of ['revoke','reply','replacement'])test('held same-operation Family qualification rejects final '+boundary+' after its original resolve await',async()=>{
- const f=await fixture();await f.warm();await f.offer();const view=await f.commands.card({type:'next_current'},{id:1}),started=deferred(),held=deferred();let armed=false;
- const resolve=f.service.resolve.bind(f.service);f.service.resolve=async value=>{const result=await resolve(value);if(armed){armed=false;started.resolve();await held.promise;}return result;};
- const c=await contentFamilyInsert(f,{beforeCurrent:async()=>{armed=true;}});f.commands.surface.isIdle=async()=>false;
- const task=f.commands.card({type:'next_insert',id:view.result.id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1});await started.promise;
- if(boundary==='revoke')await f.commands.configure(false);if(boundary==='reply')f.replaceReply();if(boundary==='replacement')await f.offer();held.resolve();
- assert.deepEqual(await task,{status:'failed',verified:false});assert.equal(c.edits(),0);assert.equal(c.draft(),'FAMILY_DRAFT');
-});
-test('late qualification after original two-second UNKNOWN cannot revive an expired native insertion',async()=>{
- const f=await fixture();await f.warm();await f.offer();const view=await f.commands.card({type:'next_current'},{id:1}),started=deferred(),held=deferred();let armed=false;
- const resolve=f.service.resolve.bind(f.service);f.service.resolve=async value=>{const result=await resolve(value);if(armed){armed=false;started.resolve();await held.promise;}return result;};
- const c=await contentFamilyInsert(f,{beforeCurrent:async()=>{armed=true;}});f.commands.surface.isIdle=async()=>false;
- const task=f.commands.card({type:'next_insert',id:view.result.id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1});await started.promise;assert.deepEqual(await task,{status:'uncertain',verified:false});held.resolve();await new Promise(resolve=>setTimeout(resolve,20));assert.equal(c.edits(),0);assert.equal(c.draft(),'FAMILY_DRAFT');assert.equal(f.commands.groups.get(1).attempted.size,1);
-});

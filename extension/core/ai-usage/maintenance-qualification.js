@@ -1,3 +1,4 @@
+import {readPromotionQualifiedMutation,assertPromotionQualifiedOwnRow} from '../topic-promotion-commit.js';
 import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt,assertMaintenanceProcessingReceiptFacts} from './maintenance-processing-receipt.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
 import {createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
@@ -164,14 +165,29 @@ function strictTopicIdentityRow(row){
  for(const field of ['name','nameKey']){const descriptor=Object.getOwnPropertyDescriptor(row,field);if(descriptor)Object.defineProperty(projected,field,{...descriptor,configurable:true});}
  return projected;
 }
-function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t}={}){
- const wrap=(table,row)=>{current();if(!row)return row;if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
-  if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected)need(equal(entryMetadata(row),expected),'STALE_BASE');row=textGuard(row,textFields.thoughts,()=>!!expected,current);}
-  else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected)need(equal(structureMetadata(row),expected.metadata),'STALE_BASE');row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
+// The original Promotion writer alone can attest a same-transaction metadata
+// advance. Its pre-put before must match this held grant, and its unchanged
+// semantic data must still match the actual row before any text getter runs.
+function ownMetadata(t,table,row,expected,project,fields,{ownMutation,store,qualification},current){
+ current();const actual=project(row),publication=ownMutation===null||ownMutation===undefined?null:readPromotionQualifiedMutation(ownMutation,store,t,qualification),intent=publication?.rows.find(x=>x.table===table&&x.key===own(row,'id'));
+ if(!intent){need(equal(actual,expected),'STALE_BASE');return false;}
+ need(equal(project(intent.before),expected)&&equal(project(intent.after),actual),'STALE_BASE');
+ // The issuer may run code. Recheck the complete row projection and all
+ // selected data descriptors together after the last callback, without
+ // calling an issuer between fields or acquiring any semantic getter.
+ current();need(equal(project(row),project(intent.after)),'STALE_BASE');
+ for(const field of fields){const a=Object.getOwnPropertyDescriptor(intent.before,field),b=Object.getOwnPropertyDescriptor(intent.after,field),c=Object.getOwnPropertyDescriptor(row,field);need((!a&&!b&&!c)||(a&&b&&c&&Object.hasOwn(a,'value')&&Object.hasOwn(b,'value')&&Object.hasOwn(c,'value')&&Object.is(a.value,b.value)&&Object.is(b.value,c.value)),'STALE_BASE');}
+ assertPromotionQualifiedOwnRow(ownMutation,store,t,qualification,table,row);return true;
+}
+function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t,ownMutation=null,store,qualification}={}){
+ const context={ownMutation,store,qualification};
+ const wrap=(table,row)=>{current();if(!row)return row;const original=row;let fieldCurrent=current;const mutationCurrent=()=>{current();assertPromotionQualifiedOwnRow(ownMutation,store,t,qualification,table,original);};if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
+  if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected&&ownMetadata(t,table,original,expected,entryMetadata,textFields.thoughts,context,current))fieldCurrent=mutationCurrent;row=textGuard(row,textFields.thoughts,()=>!!expected,fieldCurrent);}
+  else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected&&ownMetadata(t,table,original,expected.metadata,structureMetadata,expected.selectedFields.flatMap(f=>f==='name'?['name','nameKey']:[f]),context,current))fieldCurrent=mutationCurrent;row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),fieldCurrent);}
   else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey','summary'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
   else if(table==='blocks'||table==='records'){const selected=table==='blocks'?held.inputs.has(row.id):held.sources.has(row.id);row={...row,value:textGuard(row.value,textFields[table],field=>selected&&(table==='blocks'?['libraryText','note'].includes(field):field==='originalText'),current)};}
   else if(table==='inputStates'&&held.inputs.has(row.id))need(equal(pick(row,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),held.inputs.get(row.id)),'STALE_BASE');
-  current();return row;
+  fieldCurrent();return row;
  };
  const checked=async table=>{current();if(['thoughts','blocks','records','revisions'].includes(table))await assertLocalClosures(metadataReader,held);current();};
  const reader=Object.create(t);reader.get=async(...args)=>{current();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{current();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
@@ -216,7 +232,7 @@ export function maintenanceQualificationReader(token,store,t,{account=true,...op
  // owner accounts its own point read. Reuse only this exact branded reader's
  // underlying metadata facade, preventing recursive qualification wrappers.
  let ancestor=t,metadataReader=null;for(let depth=0;ancestor&&depth<16;depth++,ancestor=Object.getPrototypeOf(ancestor)){const held=qualificationReaders.get(ancestor);if(held?.record===r){metadataReader=held.metadataReader;break;}}
- metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader});qualificationReaders.set(reader,{record:r,metadataReader});return reader;
+ metadataReader??=contextScopeTransactionReader(store,t,r.workBudget);const reader=qualifiedReader(account?contextScopeTransactionReader(store,t,r.workBudget):t,r.held,r.current,{...options,metadataReader,store,qualification:token});qualificationReaders.set(reader,{record:r,metadataReader});return reader;
 }
 export function maintenanceQualificationWorkBudget(token,store){return qualified(token,store).workBudget;}
 export function chargeMaintenanceQualificationHash(token,store,text){const r=qualified(token,store);need(typeof text==='string');const bytes=new TextEncoder().encode(text).length;need(r.workBudget.hashBytes+bytes<=CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields+1<=CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');r.workBudget.hashBytes+=bytes;r.workBudget.hashFields++;r.current();return true;}

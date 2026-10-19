@@ -83,7 +83,7 @@ const refuse=reason=>{throw Object.assign(new Error('Context Topic scope unavail
 const requireFact=(condition,reason='invalid_facts')=>{if(!condition)refuse(reason);};
 // Trusted capability, kept outside the budget DTO. Every awaited row boundary
 // rechecks synchronously; a Promise or truthy object is never current authority.
-function currentWork(budget){const parent=workParents.get(budget);if(parent)currentWork(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);if(budget.signal?.aborted)refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
+function currentWork(budget){const parent=workParents.get(budget);if(parent)currentWork(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);if((budget.signal!==null&&signalAborted.call(budget.signal)))refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
 function add(set,id){requireFact(idOK(id));set.add(id);if(set.size>MAX_REFS)refuse('scope_budget');}
 function validIds(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');requireFact(value.every(idOK)&&new Set(value).size===value.length);return value;}
 function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');return value;}
@@ -294,9 +294,9 @@ async function scopeMetadata(store,t,topicId,admitted){
 
 async function scopeRead(store,budget,fn,stores){
  const database=budget.database||store.repository.db;
- requireFact(database&&store.repository.db===database&&!budget.signal?.aborted,'not_ready');
- const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!budget.signal?.aborted,'not_ready');return fn(t);},stores);
- requireFact(store.repository.db===database&&!budget.signal?.aborted,'not_ready');return result;
+ requireFact(database&&store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');
+ const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return fn(t);},stores);
+ requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return result;
 }
 
 export async function readContextTopicScope(store,options={},workBudget=null){

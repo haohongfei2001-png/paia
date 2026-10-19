@@ -158,7 +158,6 @@ export function selectedStates(value){
  return STATES.filter(name=>ids.includes(name.slice(0,2)));
 }
 export function rgb(hex){assert.match(hex,/^#[a-f0-9]{6}$/i);return `rgb(${[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')})`;}
-const opaqueHex=value=>{assert.equal(typeof value,'string');const hex=value.trim().toLowerCase();assert.match(hex,/^#(?:[a-f0-9]{3}|[a-f0-9]{6})$/,'exact opaque hex color');return hex.length===4?'#'+[...hex.slice(1)].map(char=>char+char).join(''):hex;};
 export function assertGlyphAndMotion(runtime,authority){
  assertProductionR3(runtime);
  const r=authority.r3,g=authority.r1.cards;
@@ -199,7 +198,7 @@ export function assertThemePalette(computed,theme,tokens){
 }
 export function assertComputed(computed,theme,tokens){
  assertThemePalette(computed,theme,tokens);const palette=tokens[theme],type=tokens.typography;
- for(const [variable,key] of Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}))assert.equal(opaqueHex(computed.variables[variable]),opaqueHex(palette[key]),variable);
+ for(const [variable,key] of Object.entries({'--line':'border','--hover':'hover','--active':'active','--focus':'brand','--panel':'surface','--muted':'muted','--inserted':'inserted_surface','--inserted-text':'inserted_text'}))assert.equal(computed.variables[variable].trim().toLowerCase(),palette[key],variable);
  near(computed.fontSize,type.candidate_and_capsule_font_size,'candidate font');near(computed.lineHeight,type.candidate_line_height,'candidate line height');near(computed.headerFontSize,type.header_font_size,'header font');
  near(computed.headerHeight,tokens.geometry.header_height,'header height');
  for(const h of computed.rowHeights)near(h,tokens.geometry.candidate_row_height,'candidate row height');
@@ -208,7 +207,7 @@ export function assertComputed(computed,theme,tokens){
 }
 export function assertEntryComputed(computed,theme,tokens){
  const palette=tokens[theme];assert.ok(palette);
- for(const [variable,key] of Object.entries({'--brand':'brand','--surface':'surface','--line':'border','--hover':'hover','--active':'active','--muted':'muted'}))assert.equal(opaqueHex(computed[variable]),opaqueHex(palette[key]),'actual entry '+variable);
+ for(const [variable,key] of Object.entries({'--brand':'brand','--surface':'surface','--line':'border','--hover':'hover','--active':'active','--muted':'muted'}))assert.equal(computed[variable].trim().toLowerCase(),palette[key],'actual entry '+variable);
 }
 export function measuredCrop(screen,padding=24){
  const boxes=[screen.orb,screen.card].filter(Boolean),v=screen.viewport;
