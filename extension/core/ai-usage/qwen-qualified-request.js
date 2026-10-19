@@ -253,7 +253,7 @@ export function createQwenQualifiedRequestOwner(options){
     const current=()=>{if(retired)stop('OWNER_DISPOSED');finalFence(h.entry,h.c,h.r,h.auth,h.measurement,h.financial,payloadDigest,requestDigest);return true;};
     const retireContent=()=>{retired=true;body=null;d.retired=true;};
     const retire=()=>{retireContent();transport=null;d.proofs=null;d.transport=null;d.reservationTransport=null;d.serviceReservation=null;d.foundationProvider=null;d.providerTransport=null;d.retireContent=null;providerRetirements.delete(retire);};
-    const metadata=freeze({request:clone(h.r),origin:reserved.origin,current,contentCurrent,retireContent,retire});
+    const metadata=freeze({request:clone(h.r),origin:reserved.origin,payloadDigest,current,contentCurrent,retireContent,retire});
     provider=Object.freeze({
      describe:()=>({providerId:'qwen-service',version:'1',executionKind:'server-backed'}),
      execute(request){

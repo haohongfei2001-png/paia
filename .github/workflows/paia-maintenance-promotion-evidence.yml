@@ -1,0 +1,121 @@
+name: PAIA Maintenance Promotion Evidence
+
+# Additional exact source-client and native coverage. The original Full gate
+# remains mandatory and unchanged; a partial or timed-out shard is not a pass.
+on:
+  push:
+    branches: ['codex/maintenance-promotion-current-20261019', 'main']
+    paths:
+      - 'extension/core/**'
+      - 'extension/background/**'
+      - 'extension/tests/**'
+      - 'extension/scripts/**'
+      - 'extension/package.json'
+      - 'extension/manifest.json'
+      - 'services/ai-gateway/**'
+      - '.github/workflows/paia-maintenance-promotion-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-maintenance-promotion-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  original-source-clients:
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install original locked gateway dependencies without scripts
+        working-directory: services/ai-gateway
+        run: npm ci --registry=https://registry.npmjs.org --ignore-scripts --no-audit --no-fund
+      - name: Record exact identity and original dependency resolution
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- services/ai-gateway/package.json services/ai-gateway/package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          printf 'tree=%s\n' "$(git rev-parse HEAD^{tree})"
+          node --version
+          npm --prefix services/ai-gateway ls --all
+          sha256sum services/ai-gateway/scripts/maintenance-source-roots.json services/ai-gateway/scripts/run-maintenance-source-evidence.mjs
+      - name: Validate all 51 roots and run the complete original shard
+        run: node services/ai-gateway/scripts/run-maintenance-source-evidence.mjs ${{ matrix.shard }}
+
+  original-native-maintenance:
+    if: github.repository == 'haohongfei2001-png/paia' && github.event.repository.private == false && (github.ref == 'refs/heads/codex/maintenance-promotion-current-20261019' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: extension
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_MODULE: playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact direct extension versions without scripts
+        # The existing extension has no tracked lock. Transitive versions are
+        # not fully locked; record their actual resolution below.
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Install original locked gateway dependencies without scripts
+        working-directory: services/ai-gateway
+        run: npm ci --registry=https://registry.npmjs.org --ignore-scripts --no-audit --no-fund
+      - name: Use only existing Chrome and record exact runtime identity
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          "$CHROME_BIN" --version
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code -- package.json ../services/ai-gateway/package.json ../services/ai-gateway/package-lock.json
+          test ! -e package-lock.json
+          printf 'head=%s\n' "$GITHUB_SHA"
+          printf 'tree=%s\n' "$(git rev-parse HEAD^{tree})"
+          node --version
+          npm ls --all
+          npm --prefix ../services/ai-gateway ls --all
+          sha256sum tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs core/idb-repository.js core/ai-usage/local-maintenance-session.js core/ai-usage/maintenance-service-response.js
+          printf '%s\n' 'scope=complete original offline synthetic Source/release Maintenance native file; no real provider/database/deployment or visual qualification'
+      - name: Run the full original Source and release native file
+        run: node --test --test-reporter=tap tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs
+      - name: Preserve body-free mechanism records in ordinary job log
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {readdir, readFile} from 'node:fs/promises';
+          for (const variant of ['source', 'release']) {
+            const directory = `work/ctx4-05/${variant}`;
+            let names;
+            try { names = await readdir(directory); }
+            catch (error) { if (error.code === 'ENOENT') { console.log(`${variant}: no completed mechanism evidence`); continue; } throw error; }
+            for (const name of names.filter(name => name.endsWith('.json')).sort()) {
+              console.log(`${variant}/${name}`);
+              console.log(await readFile(`${directory}/${name}`, 'utf8'));
+            }
+          }
+          JS
+      # No artifact/cache upload, service container, secrets or deployment.

@@ -3,7 +3,7 @@ import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.
 import {readMaintenanceServiceConfiguration} from '../core/ai-usage/maintenance-service-configuration.js';
 import {readMaintenanceIdentityCurrentnessEndpoint} from '../core/ai-usage/maintenance-identity-currentness-configuration.js';
 import {AssistPromptCommands} from './prompt-assist.js';
-import {createMaintenanceRunner} from '../core/ai-usage/maintenance-runner.js';
+import {createMaintenanceRunner,readMaintenanceRunnerSession} from '../core/ai-usage/maintenance-runner.js';
 import {ContextReadService} from '../core/context-read.js';
 import {ContextConnections} from './context-connections.js';
 import {installContextConnectionLifecycle} from './context-connection-lifecycle.js';
@@ -62,7 +62,7 @@ const contextConnections=new ContextConnections(store,chrome);
 const localScopePreviewCapability=Object.freeze({});
 const contextScopePreview=new ContextReadService(store,{localPreviewCapability:localScopePreviewCapability});
 const thoughtLibraryRead=new ThoughtLibraryReadModel(store);
-const sectionPromotion=new TopicSectionPromotionCommands(store,chrome);
+const sectionPromotion=new TopicSectionPromotionCommands(store,chrome,{promotionSession:readMaintenanceRunnerSession(maintenanceRunner,store),checkpointStorage:{session:chrome.storage.session||null}});
 const thoughtSectionReading=new ThoughtSectionReading(thoughtLibraryRead);
 const promptReuse = new PromptReuseCommands(new PromptReuseService(store,{historyCandidates:createConfiguredHistoricalCandidateSession(store)}),chrome);
 const archiveArrival = new ArchiveArrival(promptReuse.service,chrome);
@@ -571,7 +571,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   handle(request, sender)
     .then(async data => {
       const archiveMutation=request.type==='CAPTURE'?(Number(data?.added)>0||data?.timeChanged===true):request.type==='ENRICH_SOURCE_METADATA'?Number(data?.enriched)>0:request.type==='OBSERVE_SOURCE_STRUCTURE'?false:true;
-      if(request.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['confirm','resume','restore'].includes(request.command)&&data?.state==='committed')void notifyArchiveChanged(request.type);
+      if(request.type==='PAIA_LIBRARY_SECTION_PROMOTION'&&['confirm','resume','proposal_resume','restore'].includes(request.command)&&data?.state==='committed')void notifyArchiveChanged(request.type);
       if(request.type==='PURGE_SOURCE')await notifyArchiveChanged(request.type);
       if(['PAIA_CONTEXT_CARDS_CHANGE','PAIA_CONTEXT_TOPICS_CHANGE'].includes(request.type)&&data?.ok===true)await promptAssist.contextChanged();
       sendResponse({ ok: true, data });

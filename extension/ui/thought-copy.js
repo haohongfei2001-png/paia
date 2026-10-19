@@ -1,5 +1,12 @@
 // Copy for UX-R3 surfaces. User-authored text never passes through this map.
 const english={
+ '已核对原请求，确认未写入。':'The original request was checked. Confirmation did not write.',
+ 'AI 提议，确认后才会移动。':'AI proposal. Nothing moves until you confirm.',
+ '提议依据：':'Proposal basis: ',
+ '已有内容直接命名了独立主题。':'Existing content directly names an independent Topic.',
+ '已有输入直接支持独立主题。':'Existing Inputs directly support an independent Topic.',
+ '已有内容包含独立目标。':'Existing content contains an independent goal.',
+ '已有内容具有独立复用价值。':'Existing content has independent reuse value.',
  "确认未写入，名称仍保留。再次选择提升可重新预览。":"Confirmation did not write. The name is retained; choose promotion again to preview it.",
  "提升为独立主题":"Promote to an independent Topic",
  "新主题名称":"New Topic name",

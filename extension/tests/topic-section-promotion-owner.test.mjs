@@ -143,3 +143,8 @@ test('manual gateway atomically bounds nine concurrent original prepares and rel
  const outcomes=await finished;assert.equal(outcomes.filter(result=>result.status==='fulfilled').length,8);for(const result of outcomes)if(result.status==='fulfilled')await call(f,'cancel',{token:result.value.token});assert.deepEqual(await snapshot(f),before);
  f.adapter.service.prepare=async()=>{throw new ArchiveError('INVALID_REQUEST');};for(let i=0;i<10;i++)await rejects(prepare(f),'INVALID_REQUEST');f.adapter.service.prepare=original;const p=await prepare(f);await call(f,'cancel',{token:p.token});assert.deepEqual(await snapshot(f),before);
 });
+
+test('installed metadata checkpoint lookup preserves the original paused-capture manual Section action',async t=>{
+ const f=await fixture(t);await f.s.setEnabled(false);await f.s.run(()=>undefined);f.adapter=new TopicSectionPromotionCommands(f.s,f.api,{checkpointStorage:{session:null}});
+ assert.deepEqual(await call(f,'proposal',{request:{topicId:f.parent.id,sectionId:f.section.sectionId}}),{state:'none'});const prepared=await prepare(f),result=await call(f,'confirm',{token:prepared.token,confirmed:true});assert.equal(result.state,'committed');assert.equal(result.operationId,prepared.operationId);assert.equal((await f.s.status()).enabled,false);
+});
