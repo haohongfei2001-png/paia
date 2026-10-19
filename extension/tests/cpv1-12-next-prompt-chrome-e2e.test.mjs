@@ -43,7 +43,24 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
   const noCapsule=async()=>await form()!=='capsule';
   const toggle=async()=>{const b=await orb.boundingBox();assert.equal(b.width,48);assert.equal(b.height,48);await page.mouse.click(b.x+b.width/2,b.y+b.height/2);};
   const openBoard=async()=>{if(await form()!=='board')await toggle();await eventually(async()=>await form()==='board'&&!!card(),'original right48 control opens board');await settledOrdinarySurface(card());return card();};
-  const closeBoard=async()=>{if(await form()==='board')await toggle();await eventually(async()=>await form()!=='board','original same-point close is acknowledged');};
+  const closeBoard=async()=>{
+   const deadline=Date.now()+14000;
+   if(await form()==='board'){
+    const frame=card();assert.ok(frame);
+    // Cancel starts the original asynchronous QUERY. Its pending owner rejects
+    // Close, so wait for that exact private frame before one host gesture.
+    const element=await frame.frameElement();try{
+     await eventually(async()=>{
+      if(!await frame.evaluate(()=>document.querySelector('#editor').hidden&&!document.querySelector('#list').hidden&&!document.querySelector('#close').disabled&&!document.documentElement.hasAttribute('data-layout-pending')))return false;
+      return element.evaluate(async n=>{const rect=()=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};const before=rect();await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);return n.isConnected&&before[2]>0&&before[3]>0&&before.every((x,i)=>x===rect()[i]);});
+     },'original Cancel refresh and same-frame layout are settled before Close',Math.max(0,deadline-Date.now()));
+     assert.equal(card(),frame,'the same original private frame remains current');
+     diagnostics.push({event:'close-ready',value:await frame.evaluate(()=>({editorHidden:document.querySelector('#editor').hidden,listHidden:document.querySelector('#list').hidden,closeDisabled:document.querySelector('#close').disabled,layoutPending:document.documentElement.hasAttribute('data-layout-pending')}))});
+     if(await form()==='board')await toggle();
+    }finally{await element.dispose();}
+   }
+   await eventually(async()=>await form()!=='board','original same-point close is acknowledged',Math.max(0,deadline-Date.now()));
+  };
   const configurePopup=async enabled=>{
    await popup.bringToFront();const control=popup.locator('#next-enabled');
    await eventually(async()=>!await control.isDisabled()&&await control.isChecked()===!enabled,'the retained popup acknowledges the prior preference before one native change');assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,!enabled);
