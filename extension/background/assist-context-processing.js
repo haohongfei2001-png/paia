@@ -25,7 +25,7 @@ function permitted(p){
  const topics=new Set(p.topicIds),inputs=new Set((s.inputs||[]).map(x=>x.inputId)),entries=new Set((s.entries||[]).map(x=>x.entryId)),sections=new Set(p.sections.map(x=>JSON.stringify([x.topicId,x.sectionId]))),byId=new Map(p.topics.map(x=>[x.id,x]));
  for(const m of p.metadata)for(const e of m.maintenance?.provenance.evidence||[]){topics.add(e.topicId);if(e.inputId)inputs.add(e.inputId);if(e.entryId)entries.add(e.entryId);}
  for(const row of p.restrictions){
-  need(!(row.kind==='config'&&(row.localOnly===true||row.userTouched===true&&row.externalAccess===false)));
+  need(!(row.kind==='config'&&row.localOnly===true));
   need(!(row.kind==='input'&&inputs.has(row.inputId)||row.kind==='entry'&&entries.has(row.entryId)||row.kind==='section'&&sections.has(JSON.stringify([row.topicId,row.sectionId]))));
   if(topics.size&&(row.kind==='topic'&&['denied','never'].includes(row.decision)||row.kind==='section')){
    let id=row.topicId;const seen=new Set();for(;;){need(!seen.has(id)&&seen.size<32);seen.add(id);const t=byId.get(id);need(t);if(!t.redirectTo){need(t.lifecycle!=='merged');break;}need(['active','merged'].includes(t.lifecycle));id=t.redirectTo;}
