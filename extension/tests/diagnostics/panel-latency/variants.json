@@ -1,0 +1,16 @@
+{
+  "schema": "paia-panel-latency-variants-v1",
+  "commonDiagnosticBaselineHead": "90d485549a9cf18bec0ce1839565234fb6560788",
+  "order": ["baseline", "candidate"],
+  "allowedRuntimeDifferences": ["core/manual-materials.js", "core/prompt-reuse-service.js"],
+  "baseline": {
+    "core/manual-materials.js": "3cb98a2981dc2c1662c9d3aa94572ea3946b3cea3b3053e1c864d6fa884e22ae",
+    "core/prompt-reuse-service.js": "2a619906f846572dd8939e2944647d6c970b731a6d0f80a36f2ff5fc001dc384",
+    "background/prompt-surface.js": "ed43a96f6d740aea7921486ea2979673156dec8c4e2804984babbb77473c7117"
+  },
+  "candidate": {
+    "core/manual-materials.js": "6c580ef2514efa9e97139fa819f2735d4058afac9c9981428a152729d355c87b",
+    "core/prompt-reuse-service.js": "610acab4a86931e2b97ddb70717e0caa137a1154bf6a54bac43abd7ac55e5729",
+    "background/prompt-surface.js": "ed43a96f6d740aea7921486ea2979673156dec8c4e2804984babbb77473c7117"
+  }
+}

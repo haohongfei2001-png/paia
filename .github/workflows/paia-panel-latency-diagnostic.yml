@@ -1,4 +1,4 @@
-name: PAIA Panel Latency Diagnostic
+name: PAIA Paired Panel Latency Diagnostic
 
 # Isolated synthetic measurement, never a replacement for original safety gates.
 on:
@@ -57,25 +57,38 @@ jobs:
         run: |
           set -euo pipefail
           HARNESS=extension/tests/diagnostics/panel-latency
-          node --test --test-reporter=tap "$HARNESS/validator-selftest.mjs"
+          node --test --test-reporter=tap "$HARNESS/validator-selftest.mjs" "$HARNESS/pair-selftest.mjs"
           python3 "$HARNESS/instrument-selftest.py" --baseline extension
+          python3 "$HARNESS/pair-selftest.py" --baseline extension
           python3 "$HARNESS/instrument.py" --extension extension --check
-      - name: Measure original cold-frame and warm-capsule read paths
+      - name: Measure fixed baseline then candidate in independent browser contexts
         run: |
           set -euo pipefail
           HARNESS="$GITHUB_WORKSPACE/extension/tests/diagnostics/panel-latency"
-          RUN="$(mktemp -d "$RUNNER_TEMP/paia-panel-latency-XXXX")"
-          cp -a extension "$RUN/extension"
-          python3 "$HARNESS/instrument.py" --extension "$RUN/extension"
-          PAIA_LATENCY_AUTORUN=1 PAIA_LATENCY_EXTENSION_PATH="$RUN/extension" node "$HARNESS/panel-latency.mjs"
-          node "$HARNESS/check-result.mjs" "$PAIA_LATENCY_OUTPUT"
+          PARENT="$(mktemp -d "$RUNNER_TEMP/paia-panel-pair-XXXX")"
+          RUN="$PARENT/run"
+          echo "PAIA_LATENCY_PAIR_OUTPUT=$RUN" >> "$GITHUB_ENV"
+          python3 "$HARNESS/prepare-pair.py" --baseline extension --candidate-runtime "$HARNESS/candidate" --output "$RUN"
+          python3 "$HARNESS/instrument.py" --extension "$RUN/baseline/extension" --check
+          python3 "$HARNESS/instrument-candidate.py" --extension "$RUN/candidate/extension" --check
+          # Fixed order is disclosed; no claim that ordering or this CI host is a user's Mac.
+          python3 "$HARNESS/instrument.py" --extension "$RUN/baseline/extension"
+          PAIA_LATENCY_AUTORUN=1 PAIA_LATENCY_EXTENSION_PATH="$RUN/baseline/extension" PAIA_LATENCY_OUTPUT="$RUN/baseline-evidence.json" node "$HARNESS/panel-latency.mjs"
+          node "$HARNESS/check-result.mjs" "$RUN/baseline-evidence.json"
+          python3 "$HARNESS/instrument-candidate.py" --extension "$RUN/candidate/extension"
+          PAIA_LATENCY_AUTORUN=1 PAIA_LATENCY_EXTENSION_PATH="$RUN/candidate/extension" PAIA_LATENCY_OUTPUT="$RUN/candidate-evidence.json" node "$HARNESS/panel-latency.mjs"
+          node "$HARNESS/check-result.mjs" "$RUN/candidate-evidence.json"
+          node "$HARNESS/compare-pair.mjs" "$RUN/baseline-evidence.json" "$RUN/candidate-evidence.json" "$RUN/assembly.json"
           git diff --exit-code
       - name: Preserve complete or failed body-free evidence in the job log
         if: always()
         run: |
-          if test -f "$RUNNER_TEMP/panel-latency-evidence.json"; then
-            cat "$RUNNER_TEMP/panel-latency-evidence.json"
-          else
-            printf '%s\n' 'No native measurement evidence was produced.'
-          fi
+          for NAME in baseline candidate; do
+            if test -n "${PAIA_LATENCY_PAIR_OUTPUT:-}" && test -f "$PAIA_LATENCY_PAIR_OUTPUT/$NAME-evidence.json"; then
+              printf '\nvariant=%s\n' "$NAME"
+              cat "$PAIA_LATENCY_PAIR_OUTPUT/$NAME-evidence.json"
+            else
+              printf 'variant=%s: no native measurement evidence was produced.\n' "$NAME"
+            fi
+          done
       # No artifacts, cache, secrets, service containers, provider or deployment.
