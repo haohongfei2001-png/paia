@@ -42,3 +42,33 @@ test('known failed edit retains original one-attempt and checked-copy policy rat
 test('a held original PRESENT cannot publish its old offer after the reply changes',async()=>{const f=await fixture();try{const send=f.api.tabs.sendMessage;let release,held=false;f.api.tabs.sendMessage=async(id,r,o)=>{const value=await send(id,r,o);if(r.type==='PAIA_PROMPT_NEXT_PROBE'&&!held){held=true;await new Promise(resolve=>release=resolve);}return value;};await f.advance(850);assert.ok(release);assert.equal(f.host.dataset.surfaceForm,'orb');const reads=f.snapshots();f.mutateReply();release();await flush();await f.advance(850);assert.equal(f.host.dataset.surfaceForm,'orb');assert.equal(f.snapshots(),reads);assert.equal(f.calls.filter(x=>x.type==='PAIA_PROMPT_NEXT_OFFER').length,1);assert.equal(f.inserts.length,0);}finally{f.dispose();}});
 test('transport rejection retires one UNKNOWN attempt and gives body-free draft inspection feedback',async()=>{const f=await fixture();try{await f.advance(850);const send=f.api.tabs.sendMessage;f.api.tabs.sendMessage=(id,r,o)=>r.type==='PAIA_PROMPT_NEXT_INSERT'?Promise.reject(Error('synthetic lost transport')):send(id,r,o);assert.equal((await f.insert()).status,'uncertain');await f.advance(850);assert.equal(f.host.dataset.surfaceForm,'orb');assert.equal(f.notice().hidden,false);assert.match(f.notice().textContent,/unconfirmed/);assert.equal(f.inserts.length,0);assert.equal(f.group().attempted.size,1);}finally{f.dispose();}});
 test('a pending live reply change cannot accept an old consumed status before its DOM notification',async()=>{const f=await fixture();try{await f.advance(850);const g=f.group(),reads=f.snapshots();f.mutateReply();const value=await f.dispatch({type:'PAIA_PROMPT_NEXT_CONSUMED',id:g.id,binding:g.binding,authorization:g.authorization,status:'uncertain'});assert.equal(value.retired,false);assert.equal(f.notice().hidden,true);assert.equal(f.host.dataset.surfaceForm,'orb');assert.equal(f.snapshots(),reads);assert.equal(f.inserts.length,0);}finally{f.dispose();}});
+
+// The original native input retires the frame before the worker's separate
+// body-free CONSUMED message has crossed the extension transport boundary.
+test('original UNKNOWN notice is delivered after the original host has already retired to orb',async()=>{
+ const f=await fixture({status:'uncertain'});let release,delivery;try{
+  await f.advance(850);assert.equal(f.host.dataset.surfaceForm,'capsule');
+  const notice=f.notice(),host=f.host,group=f.group(),send=f.api.tabs.sendMessage;
+  const held=new Promise(resolve=>{release=resolve;});
+  f.api.tabs.sendMessage=(id,message,options)=>{
+   if(message.type!=='PAIA_PROMPT_NEXT_CONSUMED')return send(id,message,options);
+   assert.equal(delivery,undefined,'one body-free consumption notification');
+   assert.deepEqual(Object.keys(message).sort(),['authorization','binding','id','status','type']);
+   assert.equal(message.status,'uncertain');assert.equal(message.id,group.id);
+   delivery=held.then(()=>send(id,message,options));return delivery;
+  };
+  const result=await f.insert();await flush();
+  assert.equal(result.status,'uncertain');assert.ok(delivery);
+  assert.equal(f.host,host);assert.equal(f.notice(),notice);assert.equal(host.dataset.surfaceForm,'orb');
+  assert.equal(notice.hidden,true,'orb retirement does not acknowledge the separate CONSUMED delivery');
+  assert.equal(f.inserts.length,1);assert.equal(f.draft(),'kept draft:continue');
+  release();assert.deepEqual(structuredClone(await delivery),{retired:true});await flush();
+  assert.equal(f.host,host);assert.equal(f.notice(),notice);assert.equal(host.dataset.surfaceForm,'orb');
+  assert.equal(notice.hidden,false);assert.equal(notice.getAttribute('role'),'status');
+  assert.equal(notice.textContent,'Insertion is unconfirmed. Check your draft first. It will not retry automatically.');
+  assert.equal((await f.owner.card({type:'next_current'},{id:1})).result,null);
+  await assert.rejects(()=>f.owner.card({type:'next_insert',id:group.choices[0].id,operationId:crypto.randomUUID(),conditionPresented:true},{id:1}));
+  await f.advance(850);assert.equal(f.inserts.length,1);assert.equal(f.draft(),'kept draft:continue');
+  assert.equal(f.calls.filter(x=>x.type==='PAIA_PROMPT_NEXT_OFFER').length,1);
+ }finally{release?.();if(delivery)await delivery;f.dispose();}
+});
