@@ -1,0 +1,38 @@
+{
+  "schema": "paia-panel-latency-variants-v2",
+  "commonDiagnosticBaselineHead": "a7d22aa6b1d644d0c6dd7dfe4d5723480fe7cf58",
+  "commonDiagnosticBaselineTree": "80efecdafaefcf90d209b879dd95c0ab84aed502",
+  "order": [
+    "baseline",
+    "candidate"
+  ],
+  "allowedRuntimeDifferences": [
+    "core/ia-store.js",
+    "core/idb-repository.js",
+    "core/indexed-store.js",
+    "core/manual-materials.js",
+    "core/prompt-reuse-service.js",
+    "core/smart-filter-store.js",
+    "core/thought-store.js"
+  ],
+  "baseline": {
+    "core/ia-store.js": "87f5699dbcb631b2389e887aa5ae1deb0d1ebfbe31bf1324d1df73518f8d0e05",
+    "core/idb-repository.js": "9d280288a0201be8842bf16a22f981feb6d22ca5336c52a7eee9f3964c4e521a",
+    "core/indexed-store.js": "d30528aab204a034165cae0c99d4254d60fe59a5aedf9f9742db36f5f2e2884c",
+    "core/manual-materials.js": "6c580ef2514efa9e97139fa819f2735d4058afac9c9981428a152729d355c87b",
+    "core/prompt-reuse-service.js": "610acab4a86931e2b97ddb70717e0caa137a1154bf6a54bac43abd7ac55e5729",
+    "core/smart-filter-store.js": "224880a922de184b35dc23b222433de73b73265580a796ecd6e41791590edb92",
+    "core/thought-store.js": "d073825c0d9e20d770887c6457c4638b6d9f4a63cef8e84c5b7b166a12de6172",
+    "background/prompt-surface.js": "ed43a96f6d740aea7921486ea2979673156dec8c4e2804984babbb77473c7117"
+  },
+  "candidate": {
+    "core/ia-store.js": "f6ab17908cb65f6e2c8221277e9a7efe0a67ce0cd714d21d8713f8498dcee283",
+    "core/idb-repository.js": "f963e59c37b21be0edff2d7f897deda409a2a9fa0ac73ca74d2defa531916f9f",
+    "core/indexed-store.js": "c300f106e25f00d8a209bd5954a8aa3de48148ff59617ca94bc6fca624803490",
+    "core/manual-materials.js": "10fd069e360f73a82f0db277843d59f6f17a6bb7ed0a9f29b088fc0b8ca01af4",
+    "core/prompt-reuse-service.js": "bc48bdf70895db38fb1252378e7d522a47aad4c925916dd0bfe41df8c798649f",
+    "core/smart-filter-store.js": "89b98d84799a4deb4b15974e6487c395d42371baa4eaef2a1721754e78e4e7b0",
+    "core/thought-store.js": "3e17140c3b5a425ead5dddaf9e22ec652ec89d200300c4e1f134d4e6a6e17e3c",
+    "background/prompt-surface.js": "ed43a96f6d740aea7921486ea2979673156dec8c4e2804984babbb77473c7117"
+  }
+}

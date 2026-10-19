@@ -1,0 +1,29 @@
+# Same-job pending Prompt read comparison
+
+Native measurement status: UNRUN. Local contract results are recorded separately after actual execution. This successor preserves the original 22 observations per variant, two fresh Direct/Family traces and two original reply-retirement controls. Earlier 0738 CI and Node performance results retain their own source identities; none is relabeled as this candidate's browser result.
+
+## Exact scope
+
+The independent diagnostic branch is codex/prompt-panel-pending-read-20261019. Its sole commit must have parent a7d22aa6b1d644d0c6dd7dfe4d5723480fe7cf58, tree 80efecdafaefcf90d209b879dd95c0ab84aed502. Checkout depth 2 and exact full Git path comparison reject any production or other workflow change. The ordinary Full production candidate and reserved v0.55.4 are separate. Both temporary trees retain a7d metadata/UI and original harness dependencies. Only the seven runtime files in variants.json differ before instrumentation. Candidate payload bytes are the reviewed sixth slice.
+
+One existing public standard Ubuntu job, installed official Chrome, Node 22, exact direct npm versions, original 12-minute limit, stdout only, no artifacts/cache/provider/deployment. Transitive dependencies are not lockfile-pinned. Baseline runs first. Separate Node processes call original FakeChatGPT.start for fresh browser/profile/context/database fixtures; original finally-close completes before candidate starts. No local browser launch is authorized.
+
+Workflow literal SHA256 anchors authenticate harness-pins.json and its verifier before executing diagnostic code. The verifier checks every harness/payload path, bytes and SHA, rejecting extras, missing paths and symlinks. prepare-pair.py checks eight original and candidate source pins, complete two-tree inventories, and exactly seven runtime differences. Instrumentation validates all eight source pins and unique anchors before staging, revalidates all pins before replacing, and edits only service, manual-materials and Surface in temporary copies. Neither production source nor original Full workflow is edited.
+
+## Pending reuse evidence
+
+Both variants count Source references with one private closure per snapshot and one pure callback per filter-qualified Input. Counts describe original Source references, not total IDB requests. Both record numeric service/call/read/epoch/frame identities, original snapshot phases and original Surface/RPC intervals. RPC ends come after the actual original awaited response. No body, raw document ID, URL, nonce, credential or record identity enters the evidence. Numeric frame mapping consumes only the original authenticated source; no extra getContexts, host RPC, timer or scheduling wait is introduced.
+
+Each operation captures its current trace-array reference and epoch at entry. Old warm/Direct operations that finish later cannot append to a new epoch. A candidate pendingReused event occurs only after the existing last readStillCurrent call, whose synchronous tail checks the common permanent ownerChanged lock, immediately before returning the private copy. No authority call, caller callback or body getter is introduced at that point. Join/attempt/static/decline events are not success. Decline carries no material.
+
+Baseline Family always requires at least two complete scans. Candidate Family may have one only when a unique final reuse event links its leader and joiner to the same service/read/epoch, exactly one QUERY and one resolve, their completed actual Surface calls, both completed RPCs, and the exact currently rebuilt frame. The join must occur before original scan settlement; reuse must follow the original scan and precede delivery. A decline, failed/unfinished guard, wrong frame/epoch/service/read/call, old warm result, ambiguous overlapping RPC or absent final event rejects single-scan evidence. Without reuse, candidate keeps at least two scans and reports a miss. Direct cannot supply a Family success.
+
+## Native execution and output
+
+The dedicated workflow is the executable interface. Its preflight runs only Node/Python contracts, then prepares and instruments temporary trees. PAIA_LATENCY_VARIANT is explicitly baseline or candidate. check-result.mjs requires that same expected variant; compare-pair.mjs independently validates both exact 22-observation results and the assembly receipt. Preserve complete or failed JSON verbatim in stdout. Do not silently replay a failed observation or replace a failed variant. A paired result requires both complete original matrices, original retirement controls, zero external/extension/provider network, zero Send, unchanged draft, correct source counts and successful current-frame RPCs.
+
+Original first-content and double-RAF timestamps remain unchanged. The summary reports all six recreated-iframe values per size, descriptive distributions, and each fresh suggestion's first-content timing, scan count and authenticated hit/miss. Warm capsule expansion keeps original pre-click content timestamps and reports only its post-click observation bound, never invented new rendering latency.
+
+## Limits
+
+The fixed baseline-first order does not eliminate runner/order effects. Six recreated-iframe observations per size in an already running browser/worker do not establish cold startup, tail latency, physical paint or the user's Mac performance. Numeric tracing has measurement cost on both sides, not subtracted from results. This original 44 matrix uses Filter off; it cannot certify dynamic AI fallback. Historical sixth Node measurements found static 500-Input two-read work reduction but additional single-QUERY metadata/latency and AI-last-page latency regression. Those negatives remain. Native results are required before any browser-performance claim, and do not replace ordinary Full/Prompt/Sync integration gates.

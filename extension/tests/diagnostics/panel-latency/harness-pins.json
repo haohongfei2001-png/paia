@@ -1,0 +1,89 @@
+{
+  "schema": "paia-panel-pending-read-harness-v1",
+  "files": {
+    "README.md": {
+      "bytes": 5842,
+      "sha256": "ceb987319c8e17a7badc92f175f8907a9583249b6882244beedcea8467121f56"
+    },
+    "candidate/core/ia-store.js": {
+      "bytes": 28044,
+      "sha256": "f6ab17908cb65f6e2c8221277e9a7efe0a67ce0cd714d21d8713f8498dcee283"
+    },
+    "candidate/core/idb-repository.js": {
+      "bytes": 46952,
+      "sha256": "f963e59c37b21be0edff2d7f897deda409a2a9fa0ac73ca74d2defa531916f9f"
+    },
+    "candidate/core/indexed-store.js": {
+      "bytes": 51867,
+      "sha256": "c300f106e25f00d8a209bd5954a8aa3de48148ff59617ca94bc6fca624803490"
+    },
+    "candidate/core/manual-materials.js": {
+      "bytes": 10411,
+      "sha256": "10fd069e360f73a82f0db277843d59f6f17a6bb7ed0a9f29b088fc0b8ca01af4"
+    },
+    "candidate/core/prompt-reuse-service.js": {
+      "bytes": 24844,
+      "sha256": "bc48bdf70895db38fb1252378e7d522a47aad4c925916dd0bfe41df8c798649f"
+    },
+    "candidate/core/smart-filter-store.js": {
+      "bytes": 38896,
+      "sha256": "89b98d84799a4deb4b15974e6487c395d42371baa4eaef2a1721754e78e4e7b0"
+    },
+    "candidate/core/thought-store.js": {
+      "bytes": 38258,
+      "sha256": "3e17140c3b5a425ead5dddaf9e22ec652ec89d200300c4e1f134d4e6a6e17e3c"
+    },
+    "check-result.mjs": {
+      "bytes": 488,
+      "sha256": "cbc296f7a1b630cb16132d60eeed04754377339d0eefe2133e4adb5e9e575d71"
+    },
+    "compare-pair.mjs": {
+      "bytes": 6749,
+      "sha256": "47a5c54736be288781a093968cd475a4b532b21719f00d3b58e8ec4a2cdfa239"
+    },
+    "instrument-candidate.py": {
+      "bytes": 27894,
+      "sha256": "4ea5c335a120cbe80f6488a33cb1f4bf8c5c1bb59396374496f8c00b167bc49f"
+    },
+    "instrument-selftest.py": {
+      "bytes": 2593,
+      "sha256": "8ae452144ad4221115b906105bc04ffd87aaae473ef16dd38853291d2a204371"
+    },
+    "instrument.py": {
+      "bytes": 16562,
+      "sha256": "c665e09cdf1517ad90d6f42753a5c57fbeeefc946d9c807c2cec2eb15574c3c9"
+    },
+    "pair-selftest.mjs": {
+      "bytes": 5027,
+      "sha256": "674d5aa60e9839432b1f1fb19af5551849d4767c111bd592001be1c13c0de16b"
+    },
+    "pair-selftest.py": {
+      "bytes": 7215,
+      "sha256": "0352787de084553fc8fd5102ceea7ff75709f862602f3fac2f55cb39b74c1964"
+    },
+    "panel-latency.mjs": {
+      "bytes": 17081,
+      "sha256": "a8fc20793500c1cc63af77f887e4ff836f877212e1b6e0223a839f6315e4bef3"
+    },
+    "prepare-pair.py": {
+      "bytes": 4146,
+      "sha256": "b46e73d413a19d1af4963f0fdd93012b9e306c48dc19b88cc3deadc3d1af94af"
+    },
+    "validate-evidence.mjs": {
+      "bytes": 11535,
+      "sha256": "cb7e0127a10656499f8f86230ab4ecc2072607d3dbd7f3b41973d48b4c5895c5"
+    },
+    "validator-selftest.mjs": {
+      "bytes": 9985,
+      "sha256": "d83ba8c4658d5040de49cd293766993ab38f6c16294d9ffb6056111873e62113"
+    },
+    "variants.json": {
+      "bytes": 2135,
+      "sha256": "74f6f714f574649c28472c58dc4e22c837d4f903bc46412433e682bb02400f39"
+    },
+    "verify-harness-pins.py": {
+      "bytes": 1283,
+      "sha256": "c236ec903792791c89c4ebe37fcd7398c3613b97b525713a3cac893700a8cd9e"
+    }
+  }
+}
