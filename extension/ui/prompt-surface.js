@@ -100,9 +100,15 @@ new ResizeObserver(scheduleLayout).observe(document.getElementById('card'));
 new MutationObserver(scheduleLayout).observe(document.getElementById('card'),{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden','style']});
 const currentItems=()=>mode==='search'?history.items:showOversized?structuredClone(oversizedItems):session.current();
 const selectionRef=item=>item.ref??{kind:item.edited?'manual_reuse':'prompt_family',id:item.id,revision,generation:projectionGeneration};
+// A completion may change eligibility while another original action owns pending.
+// Update its saved state without enabling the control before that action's ACK.
+function setPendingEligibility(control,disabled){
+ if('pendingDisabled' in control.dataset){control.dataset.pendingDisabled=disabled?'1':'0';control.disabled=true;}
+ else control.disabled=busy||refreshing||disabled;
+}
 function paintCapsule(){
  const item=session.current().find(row=>!row.hidden&&quickPromptEligible(row.text)),text=document.getElementById('capsule-text'),use=document.getElementById('capsule-use');
- if(!text||!use)return;const suggestion=assistSurface?.state.result;if(suggestion&&quickPromptEligible(suggestion.text)){text.textContent=suggestion.text;use.disabled=busy||assistSurface.state.busy||assistSurface.state.attempted;assistSurface.state.markPresented(suggestion);use.dataset.suggestion='true';return;}delete use.dataset.suggestion;text.textContent=automaticSuggestion?'':item?.text||localize('没有可快速复用的表达。');use.disabled=busy||automaticSuggestion||!item||attempted.has(item.id);
+ if(!text||!use)return;const suggestion=assistSurface?.state.result;if(suggestion&&quickPromptEligible(suggestion.text)){text.textContent=suggestion.text;setPendingEligibility(use,assistSurface.state.busy||assistSurface.state.attempted);assistSurface.state.markPresented(suggestion);use.dataset.suggestion='true';return;}delete use.dataset.suggestion;text.textContent=automaticSuggestion?'':item?.text||localize('没有可快速复用的表达。');setPendingEligibility(use,automaticSuggestion||!item||attempted.has(item.id));
 }
 async function setSurfaceForm(form){
  if(editing||checking||busy||refreshing||drag||composing||searchComposing)return;
@@ -150,7 +156,7 @@ async function insert(item,b,reviewed=false,key=null){
  attempted.add(item.id);const original=list.querySelector(`[data-id="${item.id}"] .insert`);if(original)original.disabled=true;b.disabled=true;pending(true);tell('正在插入…');
  let verified=false;
  try{const typed=true;const r=await rpc(typed?{type:'PAIA_PROMPT_SELECTION_INSERT',...(key?{activationKey:key}:{}),ref:checking?.item===item?checking.ref:selectionRef(item),range:checking?.item===item?checking.range:null,target:checking?.item===item?checking.target:mode==='search'?history.target:candidateTarget,operationId:crypto.randomUUID()}:{type:'PAIA_PROMPT_INSERT',id:item.id,text:item.text,operationId:crypto.randomUUID()});verified=r.status==='inserted'&&r.verified===true;tell(verified?'已插入，未发送。':r.reason==='unsupported_line_endings'?'当前输入框无法原样保留 CRLF 换行，请复制原文。':r.status==='uncertain'||r.status==='inserted'?'插入结果未确认。请先检查草稿，不会自动重试。':'无法安全插入；请检查输入框或手动复制。',verified);}catch{tell('插入结果未确认。请先检查草稿，不会自动重试。');}finally{pending(false);}
- if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text))original.disabled=false;paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
+ if(verified){const feedback=b.id==='capsule-use'?b:original?.closest('.row');if(feedback)feedback.dataset.inserted='true';setTimeout(()=>{if(feedback)delete feedback.dataset.inserted;attempted.delete(item.id);if(original&&currentItems().some(current=>current.id===item.id&&current.text===item.text&&!current.hidden&&quickPromptEligible(current.text)))setPendingEligibility(original,false);paintCapsule();},480);paintCapsule();leaveCheck(false);return;}
  const copy=button('复制',()=>copyWhole(item,true));status.append(copy);
 }
 function edit(item){

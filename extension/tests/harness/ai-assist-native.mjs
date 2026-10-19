@@ -3,11 +3,13 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {routeComposer,isolated} from './prompt-composer.mjs';
 import {eventually} from './fake-chatgpt.mjs';
+import {installAssistDeadlineFixture} from './assist-deadline-fixture.mjs';
 
 // Explicit private test host: real isolated reply/composer owners communicate
 // with a real extension-origin IndexedDB session through this offline bridge.
 // The bridge is not a production RPC or a cross-process atomicity claim.
-export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,label}) {
+export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,label,phase=()=>{}}) {
+ phase('setup');
  await routeComposer(h.context,dependencyRoot,{signature:'current'});
  const page=await h.context.newPage();let world,qualifyBinding;
  try {
@@ -31,6 +33,8 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
    fixture.start=()=>{fixture.round++;fixture.user();const stop=document.createElement('button');stop.dataset.testid='stop-button';stop.textContent='Stop';document.querySelector('form').append(stop);fixture.latest=fixture.reply('assist-reply-'+fixture.round,'ASSIST_NATIVE_CURRENT_ONLY',false);history.append(fixture.latest);};
    fixture.finish=()=>{document.querySelector('[data-testid="stop-button"]')?.remove();const b=document.createElement('button');b.dataset.testid='copy-turn-action-button';b.textContent='Copy';fixture.latest.append(b);};
   });
+  await h.archive.exposeFunction('__privateAssistPhase',name=>{if(!/^(?:before-provider-deadline|provider-(?:timeout|dispose|dismiss|revoke)-(?:resolve|reject)-(?:qualifying|entered))$/.test(name))throw Error('invalid body-free Assist phase');phase(name);});
+  await h.archive.evaluate(installAssistDeadlineFixture);
   await h.archive.exposeFunction('__privateAssistProbe',async request=>world.run(`privateAssist.probe(${JSON.stringify(request)})`));
   // Explicit test-only, context-bound bridge: final content qualification
   // invokes the original session callback, never a constant authorization.
@@ -69,6 +73,7 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   await page.evaluate(()=>fixture.start());await world.run('privateAssist.scan()');
   assert.equal(await world.run('privateAssist.probe().ready===true'),false,'streaming reply cannot qualify');
   await page.evaluate(()=>fixture.finish());await eventually(()=>world.run('privateAssist.probe().ready===true'),'actual prospective completed reply qualifies');
+  phase('pipeline');
   const pipeline=await h.archive.evaluate(async()=>{
    const f=__assistNative;f.before=await f.snapshot();f.cap=await f.lease.observe(f.sender);
    const handles=await Promise.all(Array.from({length:10},()=>f.session.prepare({lease:f.cap})));f.handle=handles[0];
@@ -77,26 +82,49 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
    return {native:indexedDB instanceof IDBFactory,same:new Set(handles).size,calls:f.calls(),result:results[0],jobs:rows.organizerJobs.length,children:rows.organizerJobs[0].childIds.length,dependencies:rows.organizerJobs[0].items.length,state:rows.organizerJobs[0].state,attempts:rows.organizerUsage.map(x=>x.attemptCount),bodyFree:!JSON.stringify(rows).includes('ASSIST_NATIVE_CURRENT_ONLY')&&!JSON.stringify(rows).includes('Explain next.'),exactReply:f.payload().reply.trim()==='ASSIST_NATIVE_CURRENT_ONLY',context:f.payload().context};
   });
   assert.deepEqual(pipeline,{native:true,same:1,calls:1,result:{version:1,kind:'SUGGESTION',text:'Explain next.',condition:'After checking the prerequisite'},jobs:1,children:1,dependencies:0,state:'COMMITTED',attempts:[1],bodyFree:true,exactReply:true,context:[]});
+  phase('before-provider-deadline');
+  const beforeProvider=await h.archive.evaluate(async label=>{
+   const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{AssistReplyLease}=await import(chrome.runtime.getURL('background/assist-reply-lease.js')),{LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js'));
+   const storage={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},s=new OrganizerStore(storage,{name:'assist-before-provider-'+label});await s.consent(true);s.organizerBudget.limits={...s.organizerBudget.limits,timeoutMs:25};
+   let mirror=null,calls=0,release,ready,finished;const held=new Promise(r=>release=r),qualifying=new Promise(r=>ready=r),completed=new Promise(r=>finished=r);
+   const lease=new AssistReplyLease({runtimeId:chrome.runtime.id,tabs:{get:id=>chrome.tabs.get(id)},probe:async(_host,request)=>{const result=await __privateAssistProbe(request);mirror=result?.binding;return result;},current:(_host,b)=>JSON.stringify(mirror)===JSON.stringify(b)});lease.configure({replyAccess:true,remoteProcessing:true});
+   const session=new LocalAssistSession(s,{lease,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async()=>{calls++;return JSON.stringify({version:1,kind:'SUGGESTION',text:'MUST_NOT_ENTER_PROVIDER',condition:''});}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+   try{
+    const cap=await lease.observe(__assistNative.sender),handle=await session.prepare({lease:cap}),snapshot=lease.snapshot.bind(lease);let snapshots=0;
+    lease.snapshot=async(...args)=>{snapshots++;if(snapshots!==3)return snapshot(...args);ready();try{await held;return await snapshot(...args);}finally{finished();}};
+    const run=session.run(handle).then(()=>({published:true}),error=>({code:error.code}));
+    const first=await Promise.race([qualifying.then(()=>({qualifying:true})),run.then(outcome=>({outcome}))]);if(!first.qualifying)throw Error('Assist stopped before held final qualification '+JSON.stringify(first));
+    const outcome=await run,all=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)])))),before=await all();
+    release();await completed;await Promise.resolve();const after=await all();let resultDenied=false;try{await session.result(handle);}catch{resultDenied=true;}
+    return {calls,code:outcome.code,published:outcome.published===true,resultDenied,unchanged:JSON.stringify(before)===JSON.stringify(after),jobs:after.organizerJobs.map(j=>j.state),attempts:after.organizerUsage.map(r=>[r.state,r.attemptCount,r.spendState]),acks:after.organizerWorkItems.filter(r=>r.state==='ACKNOWLEDGED').length,bodyFree:!JSON.stringify(after).includes('MUST_NOT_ENTER_PROVIDER')};
+   }finally{release();session.dispose();lease.dispose();await s.repository.close();}
+  },label);
+  assert.deepEqual(beforeProvider,{calls:0,code:'OUTCOME_UNKNOWN',published:false,resultDenied:true,unchanged:true,jobs:['OUTCOME_UNKNOWN'],attempts:[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']],acks:0,bodyFree:true});
   const bounded=await h.archive.evaluate(async label=>{
    const {OrganizerStore}=await import(chrome.runtime.getURL('core/organizer/store.js')),{AssistReplyLease}=await import(chrome.runtime.getURL('background/assist-reply-lease.js')),{LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js'));
    const results=[];
    for(const stop of ['timeout','dispose','dismiss','revoke'])for(const late of ['resolve','reject']){
+    await __privateAssistPhase('provider-'+stop+'-'+late+'-qualifying');
     const storage={v:{},async get(k){return {[k]:this.v[k]};},async set(v){Object.assign(this.v,v);}},s=new OrganizerStore(storage,{name:'assist-bounded-'+label+'-'+stop+'-'+late});await s.consent(true);s.organizerBudget.limits={...s.organizerBudget.limits,timeoutMs:25};
-    let mirror=null,calls=0,signal,finish,started,physical;const entered=new Promise(r=>started=r);
+    let mirror=null,calls=0,signal,deadline,finish,started,physical;const entered=new Promise(r=>started=r);
     const lease=new AssistReplyLease({runtimeId:chrome.runtime.id,tabs:{get:id=>chrome.tabs.get(id)},probe:async(_host,request)=>{const result=await __privateAssistProbe(request);mirror=result?.binding;return result;},current:(_host,b)=>JSON.stringify(mirror)===JSON.stringify(b)});lease.configure({replyAccess:true,remoteProcessing:true});
-    const session=new LocalAssistSession(s,{lease,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async(_payload,options)=>{calls++;signal=options?.signal;started();physical=new Promise((resolve,reject)=>{finish=()=>late==='resolve'?resolve(JSON.stringify({version:1,kind:'SUGGESTION',text:'LATE_MUST_NOT_PUBLISH',condition:''})):reject(Error('synthetic late rejection'));});return physical;}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
-    try{
-     const cap=await lease.observe(__assistNative.sender),handle=await session.prepare({lease:cap}),run=session.run(handle).then(()=>({published:true}),e=>({code:e.code}));await entered;
+    const session=new LocalAssistSession(s,{lease,provider:{describe:()=>({providerId:'synthetic',version:'1',executionKind:'fixture'}),execute:async(_payload,options)=>{calls++;signal=options?.signal;deadline=options?.timeoutMs;started();physical=new Promise((resolve,reject)=>{finish=()=>late==='resolve'?resolve(JSON.stringify({version:1,kind:'SUGGESTION',text:'LATE_MUST_NOT_PUBLISH',condition:''})):reject(Error('synthetic late rejection'));});return physical;}},resolveAuthority:async(_t,r)=>({allowed:true,principalId:'synthetic',libraryId:'synthetic',consentEpoch:'synthetic',jobTypes:['AI_ASSIST'],scope:{evidenceKeys:r.evidenceKeys,coverage:r.coverage}})});
+    let timer,run;try{
+     const cap=await lease.observe(__assistNative.sender),handle=await session.prepare({lease:cap});timer=__controlAssistProviderDeadline(25);
+     run=session.run(handle).then(()=>({published:true}),e=>({code:e.code}));
+     const first=await Promise.race([entered.then(()=>({entered:true})),run.then(outcome=>({outcome}))]);if(!first.entered)throw Error('Assist settled before provider entry '+JSON.stringify({stop,late,...first}));
+     await __privateAssistPhase('provider-'+stop+'-'+late+'-entered');timer.arm();
      if(stop==='dispose')session.dispose();if(stop==='dismiss')session.dismiss(handle);if(stop==='revoke')lease.configure({replyAccess:true,remoteProcessing:false});
      const outcome=await run,all=()=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all([...t.tx.objectStoreNames].map(async n=>[n,await t.all(n)])))),before=await all();finish();await physical.catch(()=>{});const after=await all();
      let resultDenied=false,inserts=0;try{await session.result(handle);}catch{resultDenied=true;}try{await session.insert(handle,{controller:{insert:()=>{inserts++;}},operationId:'synthetic-late-operation',conditionPresented:true});}catch{}
-     results.push({stop,late,calls,aborted:signal instanceof AbortSignal&&signal.aborted,published:outcome.published===true,code:outcome.code,resultDenied,inserts,unchanged:JSON.stringify(before)===JSON.stringify(after),jobs:after.organizerJobs.map(j=>j.state),attempts:after.organizerUsage.map(r=>[r.state,r.attemptCount,r.spendState]),acks:after.organizerWorkItems.filter(r=>r.state==='ACKNOWLEDGED').length,bodyFree:!JSON.stringify(after).includes('LATE_MUST_NOT_PUBLISH')});
-    }finally{session.dispose();lease.dispose();await s.repository.close();}
+     results.push({stop,late,calls,deadline,timer:timer.state(),aborted:signal instanceof AbortSignal&&signal.aborted,published:outcome.published===true,code:outcome.code,resultDenied,inserts,unchanged:JSON.stringify(before)===JSON.stringify(after),jobs:after.organizerJobs.map(j=>j.state),attempts:after.organizerUsage.map(r=>[r.state,r.attemptCount,r.spendState]),acks:after.organizerWorkItems.filter(r=>r.state==='ACKNOWLEDGED').length,bodyFree:!JSON.stringify(after).includes('LATE_MUST_NOT_PUBLISH')});
+    }finally{session.dispose();try{await run;}finally{timer?.restore();lease.dispose();await s.repository.close();}}
    }return {nativeFactory:indexedDB instanceof IDBFactory,results};
   },label);
   assert.equal(bounded.nativeFactory,true);assert.equal(bounded.results.length,8);
-  for(const r of bounded.results){assert.equal(r.calls,1);assert.equal(r.aborted,true);assert.equal(r.published,false);assert.equal(r.code,r.stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(r.resultDenied,true);assert.equal(r.inserts,0);assert.equal(r.unchanged,true);assert.deepEqual(r.jobs,['OUTCOME_UNKNOWN']);assert.deepEqual(r.attempts,[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']]);assert.equal(r.acks,0);assert.equal(r.bodyFree,true);}
+  for(const r of bounded.results){assert.equal(r.calls,1);assert.equal(r.deadline,25);assert.deepEqual(r.timer,{captured:true,armed:true,cancelled:true});assert.equal(r.aborted,true);assert.equal(r.published,false);assert.equal(r.code,r.stop==='timeout'?'OUTCOME_UNKNOWN':'STALE_BASE');assert.equal(r.resultDenied,true);assert.equal(r.inserts,0);assert.equal(r.unchanged,true);assert.deepEqual(r.jobs,['OUTCOME_UNKNOWN']);assert.deepEqual(r.attempts,[['OUTCOME_UNKNOWN',1,'RESERVATION_RETAINED']]);assert.equal(r.acks,0);assert.equal(r.bodyFree,true);}
   console.log('AI_NATIVE_BOUNDED_ASSIST',label,JSON.stringify(bounded));
+  phase('insertion');
   const insert=async(operationId,conditionPresented)=>h.archive.evaluate(async({operationId,conditionPresented})=>{
    const f=__assistNative;return f.session.insert(f.handle,{operationId,conditionPresented,controller:{insert:async request=>{
     if(request.isCurrent()!==true)return {status:'failed',reason:'stale_assist'};
@@ -133,6 +161,7 @@ export async function verifyPrivateAssistNative(h,{extensionPath,dependencyRoot,
   // Selected Context changes after session.result() but before the actual
   // isolated content owner's qualification must never enter the composer.
   const retainedDraft=await page.evaluate(()=>fixture.text());
+  phase('insertion-authority');
   const finalAuthority=await h.archive.evaluate(async()=>{
    const {ContextCardsService}=await import(chrome.runtime.getURL('core/context-cards.js')),
     {LocalAssistSession}=await import(chrome.runtime.getURL('core/ai-usage/local-assist-session.js')),

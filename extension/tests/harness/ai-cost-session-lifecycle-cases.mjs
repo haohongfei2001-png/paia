@@ -23,7 +23,7 @@ for(const label of ['source','release'])test(`AI-COST-05/06 ${label} complete Or
   phase('browser-start');h=await FakeChatGPT.start({extensionPath:release||source,onboarding:true});
   phase('organize-lifecycle');await verifyOrganizeLifecycleNative(h.archive,label);
   phase('organize-provider');await verifyOrganizeProviderNative(h.archive,label);
-  phase('private-assist');await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label});
+  phase('private-assist');await verifyPrivateAssistNative(h,{extensionPath:release||source,dependencyRoot:source,label,phase:name=>phase(`private-assist:${name}`)});
   phase('network-invariants');assert.equal(h.extensionNetworkRequests,0);assert.equal(h.externalRequests,0);assert.equal(h.deepSeekRequests.length,0);assert.deepEqual(h.errors,[]);
   record(active,'end');active=null;record('body','verified');
  }catch(error){try{if(active)record(active,'failed');}catch{}active=null;throw error;}
