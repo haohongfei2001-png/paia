@@ -20,6 +20,19 @@ const settleSurface=async frame=>{
   const after=await element.boundingBox();return before&&after&&['x','y','width','height'].every(key=>before[key]===after[key]);
  },'original Prompt child ACK and parent frame geometry are settled');
 };
+const settleRestingActionRail=async row=>{
+ const result=await row.evaluate(async node=>{
+  const more=node.querySelector('.more'),sample=()=>({hover:node.matches(':hover'),focusWithin:node.matches(':focus-within'),opacity:getComputedStyle(more).opacity,duration:getComputedStyle(more).transitionDuration,property:getComputedStyle(more).transitionProperty});
+  const before=sample();if(before.hover||before.focusWithin)throw Error('action rail still has an active hover/focus owner');
+  const animations=more.getAnimations().filter(animation=>animation instanceof CSSTransition&&animation.transitionProperty==='opacity');
+  const transitions=animations.map(animation=>({property:animation.transitionProperty,playState:animation.playState,currentTime:animation.currentTime,duration:animation.effect.getTiming().duration}));
+  // Wait for the actual original CSS transition. No finish/cancel, tolerance,
+  // fixed sleep or synthetic style write may manufacture the resting state.
+  await Promise.all(animations.map(animation=>animation.finished));
+  const after=sample();if(after.hover||after.focusWithin)throw Error('action rail acquired an active hover/focus owner');return {before,transitions,after};
+ });
+ assert.equal(result.before.hover,false);assert.equal(result.before.focusWithin,false);assert.equal(result.after.hover,false);assert.equal(result.after.focusWithin,false);assert.equal(result.after.opacity,'0');return result;
+};
 const surfaceReady=async frame=>{await eventually(()=>frame.locator('#refresh').isEnabled(),'the original refresh owner has completed');await settleSurface(frame);};
 const clickSurface=async(frame,locator)=>{
  await surfaceReady(frame);
@@ -162,7 +175,7 @@ for(const variant of ['source','release'])test('CPV1-09 surface '+variant+' isol
   });
   await check('approved NIB text axis and action rail retain geometry, reorder and inline editing',async()=>{
    const f=card();if(await f.locator('#check-text').isVisible())await f.getByRole('button',{name:'返回',exact:true}).click();await surfaceClick(f,'#refresh');await eventually(()=>f.locator('#refresh').isEnabled());
-   await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),before=await row.boundingBox();
+   await page.locator('#blur').focus();await page.mouse.move(2,2);const row=f.locator('.row').first(),railExit=await settleRestingActionRail(row),before=await row.boundingBox();await writeFile(join(receiptDir,variant+'-rail-exit.json'),JSON.stringify(railExit,null,2));
    assert.equal(await f.locator('#list').evaluate(e=>getComputedStyle(e,'::-webkit-scrollbar').width),'3px');
    const textBefore=await row.locator('.text').boundingBox(),frameBox=await (await f.frameElement()).boundingBox();
    const axisProbe={variant,global:{text:textBefore,frame:frameBox,delta:textBefore.x-frameBox.x},child:await row.evaluate(node=>{const shape=n=>{const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {rect:r.toJSON(),paddingLeft:s.paddingLeft,borderLeftWidth:s.borderLeftWidth,transform:s.transform,zoom:s.zoom,display:s.display};};return {text:shape(node.querySelector('.text')),insert:shape(node.querySelector('.insert')),row:shape(node),list:shape(node.parentElement),body:shape(document.body),viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};}),owner:await (await f.frameElement()).evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {rect:r.toJSON(),clientLeft:node.clientLeft,borderLeftWidth:s.borderLeftWidth,paddingLeft:s.paddingLeft,transform:s.transform,zoom:s.zoom,viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio,scrollX,scrollY}};})};

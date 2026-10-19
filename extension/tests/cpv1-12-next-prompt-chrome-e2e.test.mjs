@@ -43,8 +43,19 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
   const toggle=async()=>{const b=await orb.boundingBox();assert.equal(b.width,48);assert.equal(b.height,48);await page.mouse.click(b.x+b.width/2,b.y+b.height/2);};
   const openBoard=async()=>{if(await form()!=='board')await toggle();await eventually(async()=>await form()==='board'&&!!card(),'original right48 control opens board');await settledOrdinarySurface(card());return card();};
   const closeBoard=async()=>{if(await form()==='board')await toggle();await eventually(async()=>await form()!=='board','original same-point close is acknowledged');};
-  const enable=async()=>{await popup.bringToFront();await popup.locator('#next-enabled').check();await eventually(async()=>(await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled===true);await page.bringToFront();await page.waitForTimeout(150);};
-  const disable=async()=>{await popup.bringToFront();await popup.locator('#next-enabled').uncheck();await eventually(async()=>(await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled===false);await page.bringToFront();await eventually(noCapsule);};
+  const configurePopup=async enabled=>{
+   await popup.bringToFront();const control=popup.locator('#next-enabled');
+   await eventually(async()=>!await control.isDisabled()&&await control.isChecked()===!enabled,'the retained popup acknowledges the prior preference before one native change');assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,!enabled);
+   await popup.evaluate(()=>{const original=chrome.runtime.sendMessage;globalThis.__popupNextConfigure={original,values:[]};chrome.runtime.sendMessage=function(message,...args){if(message?.type==='PAIA_PROMPT_NEXT_CONFIGURE')__popupNextConfigure.values.push(message.enabled);return original.call(this,message,...args);};});
+   try{
+    // This controlled checkbox deliberately retains its last ACK while saving.
+    // Native check/uncheck asserts the target immediately after clicking,
+    // rather than awaiting the ACK. One click preserves both owner checks.
+    await control.click();await eventually(async()=>(await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled===enabled&&await control.isChecked()===enabled&&!await control.isDisabled(),'the original preference owner and same popup control confirm the requested state');assert.deepEqual(await popup.evaluate(()=>__popupNextConfigure.values),[enabled],'one native change sends exactly one configure');
+   }finally{await popup.evaluate(()=>{chrome.runtime.sendMessage=__popupNextConfigure.original;delete globalThis.__popupNextConfigure;});}
+  };
+  const enable=async()=>{await configurePopup(true);await page.bringToFront();await page.waitForTimeout(150);};
+  const disable=async()=>{await configurePopup(false);await page.bringToFront();await eventually(noCapsule);};
   const cycle=async(text='回复“继续”')=>{await page.evaluate(x=>fixture.start(x),text);await page.waitForTimeout(120);await page.evaluate(()=>fixture.finish());};
   const shown=async(expected)=>{let f;try{await eventually(async()=>{f=card();return await form()==='capsule'&&!!f&&await f.locator('#capsule-text').textContent().then(text=>expected?text===expected:!!text);},'new final reply produces complete text in the original R3 capsule');}catch(error){throw Error(error.message+' '+JSON.stringify(await world.run('({reads:nextReads,observed:nextObserve,trace:nextTrace})')));}
    await settledOrdinarySurface(f);assert.equal(page.frames().filter(x=>x.url().includes('/ui/prompt-surface.html#')).length,1);assert.equal(page.frames().some(x=>x.url().includes('#next-')),false);

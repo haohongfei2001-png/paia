@@ -42,7 +42,8 @@ async function fixture(){
  f.controlStates=[];let checked=f.control.checked,disabled=f.control.disabled;Object.defineProperties(f.control,{checked:{get:()=>checked,set:value=>{checked=value;f.controlStates.push({checked,disabled});}},disabled:{get:()=>disabled,set:value=>{disabled=value;f.controlStates.push({checked,disabled});}}});
  f.statusReads=()=>calls.filter(c=>c.type==='PAIA_PROMPT_NEXT_STATUS').length;
  f.configures=()=>calls.filter(c=>c.type==='PAIA_PROMPT_NEXT_CONFIGURE');
- f.check=async(enabled,{trusted=true}={})=>{if(f.control.disabled||f.control.checked===enabled)return;f.control.focus();f.control.checked=enabled;await f.control.listeners.get('change')({target:f.control,isTrusted:trusted});};
+ f.change=(enabled,{trusted=true}={})=>{if(f.control.disabled||f.control.checked===enabled)return;f.control.focus();f.control.checked=enabled;return f.control.listeners.get('change')({target:f.control,isTrusted:trusted});};
+ f.check=async(enabled,options)=>{await f.change(enabled,options);};
  f.settings=async enabled=>{const value=await owner.handle({type:'PAIA_PROMPT_NEXT_CONFIGURE',enabled},settingsSender);await flush();return value;};
  return f;
 }
@@ -104,4 +105,24 @@ test('a lost enable ACK is reread without a replacement write or false disabled 
 
 test('legacy session notices and untrusted changes cannot configure or refresh the persistent preference',async()=>{
  const f=await fixture(),reads=f.statusReads();f.storageChanged.emit({promptNextAuthorizationV1:{newValue:{enabled:true}}},'session');f.runtimeChanged.emit({type:'OTHER'});await flush();assert.equal(f.statusReads(),reads);await f.check(true,{trusted:false});assert.equal(f.control.checked,false);assert.equal(f.configures().length,0);assert.equal(f.writes.length,0);assert.equal((await f.owner.authorization()).enabled,false);
+});
+
+for(const enabled of [true,false])test('one trusted popup change keeps the acknowledged value disabled until '+(enabled?'enable':'disable')+' is confirmed',async()=>{
+ const f=await fixture();if(!enabled)await f.check(true);
+ const beforeWrites=f.writes.length,beforeConfigures=f.configures().length,before=await f.owner.authorization(),sent=deferred(),ack=deferred();let accepted=false;
+ f.writeHook=async(fields,write)=>{await sent.promise;const value=await write();accepted=true;await ack.promise;return value;};
+ const pending=f.change(enabled);
+ // The change listener's synchronous phase has returned. A native .check() /
+ // .uncheck() post-click assertion would inspect this acknowledged old value,
+ // rather than await this async listener's returned promise.
+ assert.equal(f.control.checked,before.enabled,'an intent is not an acknowledged preference');assert.equal(f.control.disabled,true);assert.equal(f.status.textContent,'正在保存…');assert.equal(f.configures().length,beforeConfigures+1);assert.equal(f.writes.length,beforeWrites);assert.equal((await f.owner.authorization()).enabled,before.enabled);
+ await f.check(enabled);assert.equal(f.configures().length,beforeConfigures+1,'disabled controls never resend the intent');
+ sent.resolve();await flush();assert.equal(accepted,true);assert.equal((await f.owner.authorization()).enabled,enabled);assert.equal(f.writes.length,beforeWrites+1);assert.equal(f.control.checked,before.enabled,'a held ACK cannot claim the new value');assert.equal(f.control.disabled,true);
+ ack.resolve();await pending;await flush();assert.equal(f.control.checked,enabled);assert.equal(f.control.disabled,false);assert.equal(f.configures().length,beforeConfigures+1);assert.equal(f.writes.length,beforeWrites+1);
+});
+
+for(const enabled of [true,false])test('one rejected popup '+(enabled?'enable':'disable')+' retains the original preference without a replacement write',async()=>{
+ const f=await fixture();if(!enabled)await f.check(true);const before=await f.owner.authorization(),writes=f.writes.length,configures=f.configures().length,held=deferred();
+ f.writeHook=async()=>{await held.promise;throw Error('SYNTHETIC_WRITE_REJECTED');};const pending=f.change(enabled);assert.equal(f.control.checked,before.enabled);assert.equal(f.control.disabled,true);held.resolve();await pending;
+ assert.equal(f.control.checked,before.enabled);assert.equal(f.control.disabled,false);assert.match(f.status.textContent,/保存未获确认/);assert.deepEqual(await f.owner.authorization(),before);assert.equal(f.writes.length,writes);assert.equal(f.configures().length,configures+1);
 });

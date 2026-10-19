@@ -97,12 +97,46 @@ test('R3 scoped material retains exact light/dark roles and stationary matched c
 
 test('verified insertion tints only its original row or capsule and keeps unconfirmed outcomes unchanged',async()=>{
  const insertSource=uiSource.slice(uiSource.indexOf('async function insert('),uiSource.indexOf('\nfunction edit('));
+ const eligibilitySource=uiSource.slice(uiSource.indexOf('function setPendingEligibility('),uiSource.indexOf('\nfunction paintCapsule('));
  for(const capsule of [false,true])for(const verified of [false,true]){
-  const row={dataset:{}},original={disabled:false,closest:()=>row},button={id:capsule?'capsule-use':'',disabled:false,dataset:{}},item={id:'synthetic',text:'exact expression'},timers=[],calls=[];
-  const context=vm.createContext({editing:false,busy:false,drag:null,composing:false,checking:null,attempted:new Set(),list:{querySelector:()=>original},quickPromptEligible:()=>true,pending(){},tell(){},selectionRef:()=>({id:item.id}),mode:'candidates',candidateTarget:{nonce},crypto:{randomUUID:()=>nonce},rpc:async command=>{calls.push(command);return {status:verified?'inserted':'uncertain',verified};},setTimeout:(fn,ms)=>timers.push({fn,ms}),currentItems:()=>[item],paintCapsule(){},leaveCheck(){},button:()=>({}),status:{append(){}},copyWhole(){}});
-  vm.runInContext(insertSource,context);await context.insert(item,button);
+  const row={dataset:{}},original={disabled:false,dataset:{},closest:()=>row},button={id:capsule?'capsule-use':'',disabled:false,dataset:{}},item={id:'synthetic',text:'exact expression'},timers=[],calls=[];
+  const context=vm.createContext({editing:false,busy:false,refreshing:false,drag:null,composing:false,checking:null,attempted:new Set(),list:{querySelector:()=>original},quickPromptEligible:()=>true,pending(){},tell(){},selectionRef:()=>({id:item.id}),mode:'candidates',candidateTarget:{nonce},crypto:{randomUUID:()=>nonce},rpc:async command=>{calls.push(command);return {status:verified?'inserted':'uncertain',verified};},setTimeout:(fn,ms)=>timers.push({fn,ms}),currentItems:()=>[item],paintCapsule(){},leaveCheck(){},button:()=>({}),status:{append(){}},copyWhole(){}});
+  vm.runInContext(eligibilitySource+'\n'+insertSource,context);await context.insert(item,button);
   assert.equal(calls.length,1);assert.equal(calls[0].type,'PAIA_PROMPT_SELECTION_INSERT');assert.equal(row.dataset.inserted,verified&&!capsule?'true':undefined);assert.equal(button.dataset.inserted,verified&&capsule?'true':undefined);
   if(verified){assert.equal(timers.length,1);assert.equal(timers[0].ms,480);timers[0].fn();assert.equal(row.dataset.inserted,undefined);assert.equal(button.dataset.inserted,undefined);}else assert.equal(timers.length,0,'UNKNOWN never gets success feedback or an automatic retry');
+  assert.equal(original.disabled,!verified);assert.equal(context.attempted.has(item.id),!verified);
+  if(!verified)await context.insert(item,button);
+  assert.equal(calls.length,1,'feedback expiry and UNKNOWN never dispatch another insertion');
+ }
+});
+
+test('verified insertion expiry keeps the original row disabled until a later pending owner settles',async()=>{
+ const section=(from,to)=>{const start=uiSource.indexOf(from),end=uiSource.indexOf(to,start);assert.ok(start>=0&&end>start);return uiSource.slice(start,end);};
+ const source=section('function pending(value)','\nlet feedbackTimer')+'\n'+section('function setPendingEligibility(','\nfunction paintCapsule(')+'\n'+section('async function insert(','\nfunction edit(');
+ for(const capsule of [false,true])for(const refreshing of [false,true])for(const current of [true,false]){
+  const row={dataset:{}},original={disabled:false,dataset:{},closest:()=>row},button={id:capsule?'capsule-use':'',disabled:false,dataset:{}},item={id:'synthetic',text:'exact expression'},timers=[],calls=[];
+  let items=[item];
+  const context=vm.createContext({editing:false,busy:false,refreshing:false,drag:null,composing:false,checking:null,attempted:new Set(),document:{querySelectorAll:()=>[original,button]},searchInput:null,list:{querySelector:()=>original},quickPromptEligible:()=>true,tell(){},selectionRef:()=>({id:item.id}),mode:'candidates',candidateTarget:{nonce},crypto:{randomUUID:()=>nonce},rpc:async command=>{calls.push(command);return {status:'inserted',verified:true};},setTimeout:(fn,ms)=>timers.push({fn,ms}),currentItems:()=>items,paintCapsule(){},leaveCheck(){}});
+  vm.runInContext(source,context);await context.insert(item,button);
+  assert.equal(calls.length,1);assert.equal(calls[0].type,'PAIA_PROMPT_SELECTION_INSERT');assert.equal(timers.length,1);assert.equal(timers[0].ms,480);
+  assert.equal(row.dataset.inserted,capsule?undefined:'true');assert.equal(button.dataset.inserted,capsule?'true':undefined);
+  context.refreshing=refreshing;context.pending(true);assert.equal(context.busy,true);assert.equal(original.dataset.pendingDisabled,'1');
+  if(!current)items=[];
+  timers[0].fn();
+  assert.equal(row.dataset.inserted,undefined);assert.equal(button.dataset.inserted,undefined);assert.equal(context.attempted.has(item.id),false);
+  assert.equal(original.disabled,true,'feedback cannot enable the original row while another action owns pending');
+  assert.equal(original.dataset.pendingDisabled,current?'0':'1','only a still-current original row may update its saved eligibility');
+  await context.insert(item,button);assert.equal(calls.length,1,'a gesture during pending cannot insert again');
+  context.refreshing=false;context.pending(false);
+  assert.equal(original.disabled,!current);assert.equal(Object.hasOwn(original.dataset,'pendingDisabled'),false);assert.equal(calls.length,1);
+ }
+});
+
+test('original pending eligibility honors busy and refreshing even before a control has a saved pending state',()=>{
+ const source=uiSource.slice(uiSource.indexOf('function setPendingEligibility('),uiSource.indexOf('\nfunction paintCapsule('));
+ for(const busy of [false,true])for(const refreshing of [false,true])for(const disabled of [false,true]){
+  const control={dataset:{},disabled:true},context=vm.createContext({busy,refreshing});vm.runInContext(source,context);context.setPendingEligibility(control,disabled);
+  assert.equal(control.disabled,busy||refreshing||disabled);assert.equal(Object.hasOwn(control.dataset,'pendingDisabled'),false);
  }
 });
 
