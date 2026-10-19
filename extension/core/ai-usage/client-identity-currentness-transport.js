@@ -5,7 +5,7 @@ import {hashText} from '../dedupe.js';
 import {parseQwenWireJson} from './qwen-wire-primitives.js';
 // A dedicated, bounded metadata stream. A pulse confirms transport liveness;
 // it NEVER extends the single original signed snapshot's identity lifetime.
-const transports=new WeakMap(),connections=new WeakMap(),reservations=new WeakMap();
+const transports=new WeakMap(),connections=new WeakMap(),connectionFacts=new WeakMap(),reservations=new WeakMap();
 // Source-only pre-acquisition tickets count against the SAME eight transport
 // slots while a fresh issuer proof is pending. Copying a ticket cannot open it.
 export const reserveClientIdentityCurrentnessTransport=t=>transports.get(t)?.reserve()??null;
@@ -72,7 +72,7 @@ export function createClientIdentityCurrentnessTransport(options){
        const i=v.identity;if(!exact(i,fields)||i.version!==1||!['principalId','libraryId','operationId','jobType'].every(k=>i[k]===request[k])||!['free','pro'].includes(i.tier)||!['principalGeneration','entitlementGeneration','authorityGeneration'].every(k=>opaque(i[k]))||i.requestHash!==requestHash||!integer(i.observedAt)||!integer(i.verifiedUntil)||i.observedAt>at||i.verifiedUntil<=at||i.verifiedUntil-i.observedAt>60000)throw Error();
        identity=freeze(i);lastPulse=at;ready=true;
        connection=Object.freeze({isCurrent:live,onInvalidate(fn){if(typeof fn!=='function')return null;if(closed){fn();return ()=>{};}listeners.add(fn);return ()=>listeners.delete(fn);},close});
-       connections.set(connection,freeze({transport,origin,request,identity}));resolveReady(connection);
+       connections.set(connection,freeze({transport,origin,request,identity}));connectionFacts.set(connection,at=>!disposed&&!closed&&ready&&!abort.signal.aborted&&active.has(close)&&occupied.has(close)&&integer(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&at-lastPulse<3000);resolveReady(connection);
       }else if(!exact(v,['version','type','sequence'])||v.type!=='pulse'||!live())throw Error();
       lastPulse=at;arm(Math.min(3000,identity.verifiedUntil-at));
      }
@@ -87,8 +87,12 @@ export function createClientIdentityCurrentnessTransport(options){
 }
 // Status identity may be observed after the channel's snapshot. It must still
 // name exactly that connection's request and all authenticated generations.
-export function identityMatchesCurrentnessConnection(connection,transport,identity){
- const m=readClientIdentityCurrentnessConnection(connection,transport),i=m?.identity;
+function matchesIdentity(m,identity){
+ const i=m?.identity;
  return !!i&&identity&&['principalId','libraryId','operationId','jobType','tier','principalGeneration','entitlementGeneration','authorityGeneration','requestHash'].every(k=>identity[k]===i[k])&&
   integer(identity.observedAt)&&identity.observedAt>=i.observedAt&&integer(identity.verifiedUntil)&&identity.verifiedUntil<=i.verifiedUntil&&identity.verifiedUntil>identity.observedAt;
 }
+
+export function identityMatchesCurrentnessConnection(connection,transport,identity){return matchesIdentity(readClientIdentityCurrentnessConnection(connection,transport),identity);}
+// Tail-only local facts; full original clock/pulse qualification runs first.
+export function identityMatchesCurrentnessConnectionFacts(connection,transport,identity,at){const m=connections.get(connection);return m?.transport===transport&&connectionFacts.get(connection)?.(at)===true&&matchesIdentity(m,identity);}

@@ -1,11 +1,14 @@
 import {observedClientOperationStatus} from './client-operation-status-transport.js';
 import {equal} from './contracts.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
-import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,readClientIdentityCurrentnessConnection,identityMatchesCurrentnessConnection} from './client-identity-currentness-transport.js';
+import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,readClientIdentityCurrentnessConnection,identityMatchesCurrentnessConnection,identityMatchesCurrentnessConnectionFacts} from './client-identity-currentness-transport.js';
 // Transport observations and connection liveness are separate facts. A fresh
 // connection contains no identity until its own original status query succeeds.
 // Revoke is deny-only; reconnect never revives an old operation or old receipt.
-const owners=new WeakSet(),preparations=new WeakMap(),lifecycles=new WeakMap();
+const owners=new WeakSet(),preparations=new WeakMap(),lifecycles=new WeakMap(),currentnessFacts=new WeakMap();
+// A callback-free final local fence. This does not authenticate a neutral
+// connection or turn its synthetic protocol owner into a production channel.
+export const maintenanceIdentityCurrentnessFacts=(owner,identity,at)=>currentnessFacts.get(owner)?.(identity,at)===true;
 export const isMaintenanceIdentityCurrentness=value=>owners.has(value);
 function createCurrentness({origin,clock=()=>NaN,transport=null,ownTransport=true,onDisposed=null}={}){
  const channels=new Map(),spent=new Set();let disposeCalled=false;
@@ -25,12 +28,12 @@ function createCurrentness({origin,clock=()=>NaN,transport=null,ownTransport=tru
    for(const l of leases.values())if(generation(l.identity)!==generation(i)){revoked.add(generation(l.identity));clear();if(revoked.size>32){disposed=true;disconnect();return false;}break;}
    for(const [key,l]of leases)if(l.identity.verifiedUntil<=now)leases.delete(key);
    const prior=leases.get(i.operationId);if(prior&&!equal(prior.identity,i)||!prior&&leases.size>=8)return false;
-   leases.set(i.operationId,{identity:i,serial});seen.set(observation,serial);return true;
+   leases.set(i.operationId,{identity:i,serial,connectionEpoch});seen.set(observation,serial);return true;
   },
   isCurrent(identity){if(!live())return false;const l=leases.get(identity?.operationId),now=time();return !!l&&l.identity===identity&&l.serial===serial&&!revoked.has(generation(identity))&&now!==null&&now>=identity.observedAt&&now<identity.verifiedUntil&&(!transport||identityMatchesCurrentnessConnection(channels.get(identity.operationId)?.connection,transport,identity));},
   revoke(identity){const l=leases.get(identity?.operationId);if(!l||l.identity!==identity)return false;revoked.add(generation(identity));clear();if(revoked.size>32){disposed=true;disconnect();}return true;},
   dispose(){if(disposeCalled)return;disposeCalled=true;disposed=true;disconnect();revoked.clear();spent.clear();if(ownTransport)transport?.dispose();onDisposed?.();}
- });owners.add(owner);
+ });owners.add(owner);currentnessFacts.set(owner,(identity,at)=>{const l=leases.get(identity?.operationId);return !disposed&&connected!==null&&!!l&&l.identity===identity&&l.serial===serial&&l.connectionEpoch===connectionEpoch&&!revoked.has(generation(identity))&&Number.isSafeInteger(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&(!transport||identityMatchesCurrentnessConnectionFacts(channels.get(identity.operationId)?.connection,transport,identity,at));});
  if(transport)lifecycles.set(owner,{claimed:false,isDisposed:()=>disposed,dispose:()=>owner.dispose()});
  if(transport)preparations.set(owner,async bundle=>{
   let request;try{request=clientDeclarationRequestData(bundle?.request);}catch{return false;}

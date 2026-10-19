@@ -1,6 +1,8 @@
 import {ArchiveError} from '../core/constants.js';
 export const AI_FILTER_CONSENT_KEY='aiFilterAuthorizationV1';
-const consentEpochReaders=new WeakMap();
+const consentEpochReaders=new WeakMap(),consentSnapshotFacts=new WeakMap();
+// Final local facts only: no injected callback, storage read or new receipt.
+export const isAIFilterConsentSnapshotCurrent=snapshot=>consentSnapshotFacts.get(snapshot)?.()===true;
 // Stable only within the stored browser-session opt-in generation. This reader
 // accepts an original current snapshot; a DTO or a copied owner cannot use it.
 export const readAIFilterConsentEpoch=(owner,snapshot)=>consentEpochReaders.get(owner)?.(snapshot)??null;
@@ -19,9 +21,10 @@ export class AIFilterConsent {
  onInvalidate(fn){if(typeof fn!=='function'||this.#listeners.size>=8)fail('RESOURCE_LIMIT');this.#listeners.add(fn);return ()=>this.#listeners.delete(fn);}
  #revoke(){this.#serial++;this.#value=null;for(const fn of this.#listeners)try{fn();}catch{/* One listener cannot preserve another lease. */}}
  invalidate(){this.#writes++;this.#revoke();}
- #snapshot(){const enabled=!this.#disposed&&!this.#changing&&!this.#blocked,value=Object.freeze({optIn:enabled&&this.#value?.optIn===true,remoteProcessing:enabled&&this.#value?.remoteProcessing===true,generation:this.#instance+':'+this.#serial+':'+(this.#observed?.generation||'off')});this.#snapshots.set(value,this.#serial);return value;}
+ #snapshot(){const enabled=!this.#disposed&&!this.#changing&&!this.#blocked,value=Object.freeze({optIn:enabled&&this.#value?.optIn===true,remoteProcessing:enabled&&this.#value?.remoteProcessing===true,generation:this.#instance+':'+this.#serial+':'+(this.#observed?.generation||'off')});this.#snapshots.set(value,this.#serial);consentSnapshotFacts.set(value,()=>this.#current(value));return value;}
  capture(){const value=this.#snapshot();return this.isCurrent(value)?value:null;}
- isCurrent(value){return !this.#disposed&&!this.#changing&&!this.#blocked&&this.#snapshots.get(value)===this.#serial&&value.optIn===true&&value.remoteProcessing===true&&this.#value?.optIn===true&&this.#value?.remoteProcessing===true&&value.generation===this.#snapshot().generation;}
+ #current(value){return !this.#disposed&&!this.#changing&&!this.#blocked&&this.#snapshots.get(value)===this.#serial&&value.optIn===true&&value.remoteProcessing===true&&this.#value?.optIn===true&&this.#value?.remoteProcessing===true&&value.generation===this.#instance+':'+this.#serial+':'+(this.#observed?.generation||'off');}
+ isCurrent(value){return this.#current(value);}
  async status(){
   const serial=this.#serial;if(this.#disposed||this.#changing||!this.#api.storage?.session)return this.#snapshot();
   let value,consented;try{value=(await this.#api.storage.session.get(AI_FILTER_CONSENT_KEY))[AI_FILTER_CONSENT_KEY]??null;consented=await this.#consented();}catch{if(serial===this.#serial)this.invalidate();return this.#snapshot();}

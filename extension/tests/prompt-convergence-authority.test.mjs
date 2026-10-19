@@ -121,3 +121,12 @@ test('R3 receipts reject the previous B contract and preserve exact inherited as
 for(const [name,mutate] of [
  ['second outline envelope',v=>v.capsule.width=276],['narrowed text target',v=>v.use.width=216],['moved right control',v=>v.anchor.x++],['occluded corner',v=>v.hitCorners[3]=false],['second-step insertion',v=>v.insertion='DETAIL_ONLY'],['automatic Send',v=>v.send=1],['replacement iframe',v=>v.privateFrameRetained=false],
 ])test('R3 capsule rejects '+name,()=>{const value=capsuleReceipt('light');mutate(value);assert.throws(()=>assertCapsuleReceipt(value));});
+
+// Chrome keeps the authored shorthand in custom-property values.
+test('actual entry accepts only identical three-digit and six-digit opaque hex colors',()=>{
+ const palette=tokens.light,entry=Object.fromEntries(Object.entries({'--brand':'brand','--surface':'surface','--line':'border','--hover':'hover','--active':'active','--muted':'muted'}).map(([variable,key])=>[variable,palette[key]]));
+ assertEntryComputed({...entry,'--surface':' #FfF '},'light',tokens);
+ for(const value of ['#ffe','#fffffe','#ffff','#ffffffff','white','rgb(255, 255, 255)','var(--surface)','#ff',''])assert.throws(()=>assertEntryComputed({...entry,'--surface':value},'light',tokens));
+ const board=computed('light');board.variables['--panel']='#fff';assertComputed(board,'light',tokens);
+ board.variables['--panel']='#ffe';assert.throws(()=>assertComputed(board,'light',tokens));
+});
