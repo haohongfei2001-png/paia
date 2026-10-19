@@ -41,6 +41,9 @@
  function close(focus=false){releaseDrag();open=false;resumeSuggestion();if(collapsedForm!=='capsule'&&!automaticSuggestion)retireFrame();orb?.setAttribute('aria-expanded','false');layout();if(focus&&orb&&!orb.hidden)orb.focus();save();}
  function expand(expanded=true){
   if(!enabled)return;retiringFrame?.remove();retiringFrame=null;if(frame){open=expanded;layout();save();return;}
+  // A new private frame resolves display preferences for itself. Its retired
+  // predecessor must not seed the new iframe's inherited color scheme.
+  resolvedAppearance=null;resolvedLanguage=null;
   nonce=crypto.randomUUID();frame=document.createElement('iframe');frame.id='paia-prompt-private';frame.allow='clipboard-write';labelHost();
   frame.src=chrome.runtime.getURL('ui/prompt-surface.html')+'#'+nonce;root.append(frame);frame.getBoundingClientRect();open=expanded;orb.setAttribute('aria-expanded',String(open));layout();save();
  }

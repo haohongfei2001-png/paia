@@ -79,12 +79,15 @@ function flowHeight(node){
  return node.getBoundingClientRect().height+(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0);
 }
 function measureLayout(){
- layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card');if(!card.clientWidth)return;
- const header=document.querySelector('header'),content=checking?checkText:editing&&list.hidden?editor:list;
- const chrome=flowHeight(header)+flowHeight(status);
- const row=list.querySelector('.row'),line=Math.max(44,row?.getBoundingClientRect().height||0,parseFloat(getComputedStyle(card).fontSize)*1.55);
- const minimumHeight=Math.min(1024,Math.ceil(chrome+line+16));
- const height=Math.max(328,minimumHeight);
+ layoutScheduled=false;if(disposed)return;if(layoutPending||pointerGesture){layoutDirty=true;return;}const card=document.getElementById('card'),visible=card.clientWidth>0;if(!visible&&document.documentElement.dataset.surfaceForm!=='capsule')return;
+ // The R3 capsule hides the board, not its display owner. Publish appearance
+ // and language with the last valid envelope; hidden boxes cannot remeasure it.
+ let minimumHeight=lastMinimumHeight||108,height=lastMeasuredHeight||328;
+ if(visible){
+  const header=document.querySelector('header'),chrome=flowHeight(header)+flowHeight(status);
+  const row=list.querySelector('.row'),line=Math.max(44,row?.getBoundingClientRect().height||0,parseFloat(getComputedStyle(card).fontSize)*1.55);
+  minimumHeight=Math.min(1024,Math.ceil(chrome+line+16));height=Math.max(328,minimumHeight);
+ }
  const appearance=document.documentElement.dataset.paiaTheme||resolveAppearance(displayPreferences.appearance,systemAppearance.matches);
  if(height===lastMeasuredHeight&&minimumHeight===lastMinimumHeight&&appearance===lastAppearance&&language===lastLanguage){restoreListReturn();return;}lastMeasuredHeight=height;lastMinimumHeight=minimumHeight;lastAppearance=appearance;lastLanguage=language;
  const ticket=++layoutTicket;let acknowledged=false;layoutPending=true;document.documentElement.setAttribute('data-layout-pending','');
