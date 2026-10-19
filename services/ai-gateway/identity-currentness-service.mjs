@@ -1,5 +1,5 @@
 import {Pool} from 'pg';
-import {createSignedIdentityVerifier,exactData,requestBindingHash} from './signed-identity.mjs';
+import {createSignedIdentityVerifier,createSignedFilterReadIdentityVerifier,snapshotFilterReadBundle,filterReadRequestBindingHash,exactData,requestBindingHash} from './signed-identity.mjs';
 import {snapshotResultBundle} from './result-declaration.mjs';
 import {identityConfigHash} from './postgres-authority.mjs';
 
@@ -60,10 +60,9 @@ export const isIdentityCurrentnessConnection=c=>connections.has(c);
 export function createPostgresIdentityCurrentnessService({pool,identityConfig,profileId}={}){
  let config=null,disposed=false;const active=new Set(),occupied=new Set();
  try{if(!(pool instanceof Pool)||!text(profileId))throw Error();config=structuredClone(identityConfig);identityConfigHash(config);}catch{}
- const service=Object.freeze({
-  async open(input,{signal}={}){
+ async function open(input,{signal}={},readPurpose=false){
    if(!config||disposed||occupied.size>=8||!(signal instanceof AbortSignal)||signal.aborted)return null;
-   let bundle;try{bundle=snapshotResultBundle(input);}catch{return null;}
+   let bundle;try{bundle=readPurpose?snapshotFilterReadBundle(input):snapshotResultBundle(input);}catch{return null;}
    let client=null,ready=false,closed=false,busy=true,acquiring=true,timer=null,expiry=null,identity=null,deadline=0;
    const listeners=new Set();let stop;const stopped=new Promise((_,reject)=>{stop=()=>reject(Error('IDENTITY_CHANNEL_CLOSED'));});stopped.catch(()=>{});
    const release=()=>{if(closed&&client&&!busy){const c=client;client=null;try{c.release(true);}catch{}}};
@@ -88,14 +87,15 @@ export function createPostgresIdentityCurrentnessService({pool,identityConfig,pr
     exactData(control,['profile_id','identity_config_hash','generation','enabled','expires_at_ms']);exactData(principal,['security']);
     if(control.profile_id!==profileId||control.identity_config_hash!==identityConfigHash(config)||control.enabled!==true||!text(control.generation))fail('IDENTITY_CHANNEL_AUTHORITY');
     const first=millis((await query(CLOCK)).rows?.[0]?.now_ms);
-    const verifier=createSignedIdentityVerifier({config,clock:()=>first,readSecurityState:()=>principal.security});
+    const factory=readPurpose?createSignedFilterReadIdentityVerifier:createSignedIdentityVerifier;
+    const verifier=factory({config,clock:()=>first,readSecurityState:()=>principal.security});
     const verified=verifier.verifyValidity(bundle),until=Math.min(verified.verifiedUntil,millis(control.expires_at_ms),first+60000);
     if(until<=first)fail('IDENTITY_CHANNEL_EXPIRED');
     const finalStarted=performance.now(),final=millis((await query(CLOCK)).rows?.[0]?.now_ms);if(final<first||final>=until)fail('IDENTITY_CHANNEL_CLOCK');
     // Re-run original cryptography/current snapshot at the final DB clock, not
     // an unsigned decoded expiry. All authority row locks still exist here.
-    createSignedIdentityVerifier({config,clock:()=>final,readSecurityState:()=>principal.security}).verifyValidity(bundle);
-    identity=Object.freeze({version:1,...verified,verifiedUntil:until,authorityGeneration:control.generation,observedAt:final,requestHash:requestBindingHash(bundle.request)});
+    factory({config,clock:()=>final,readSecurityState:()=>principal.security}).verifyValidity(bundle);
+    identity=Object.freeze({version:1,...verified,verifiedUntil:until,authorityGeneration:control.generation,observedAt:final,...(readPurpose?{readRequestHash:filterReadRequestBindingHash(bundle.request)}:{requestHash:requestBindingHash(bundle.request)})});
     await query('COMMIT');if(closed)fail('IDENTITY_CHANNEL_CLOSED');
     deadline=finalStarted+until-final;if(performance.now()>=deadline)fail('IDENTITY_CHANNEL_EXPIRED');
     busy=false;ready=true;clearTimeout(timer);expiry=setTimeout(close,deadline-performance.now());expiry.unref?.();
@@ -107,7 +107,8 @@ export function createPostgresIdentityCurrentnessService({pool,identityConfig,pr
     connections.add(connection);return connection;
    }catch{close();return null;}
    finally{bundle=null;busy=false;release();}
-  },
+  }
+ const service=Object.freeze({open:(input,options)=>open(input,options,false),openFilterRead:(input,options)=>open(input,options,true),
   dispose(){disposed=true;for(const close of [...active])close();}
  });services.add(service);return service;
 }

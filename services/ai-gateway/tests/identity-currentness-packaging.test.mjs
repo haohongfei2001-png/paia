@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 const service=fileURLToPath(new URL('../',import.meta.url)),root=fileURLToPath(new URL('../../../',import.meta.url));
-const files=['extension/package.json','extension/core/constants.js','extension/core/dedupe.js',...['admission-policy','atomic-reservation','budget-window-policy','budget-window-reservation','contracts','ratebook','result-finalization','usage-normalization'].map(n=>'extension/core/ai-usage/'+n+'.js')];
+const files=['extension/package.json','extension/core/constants.js','extension/core/dedupe.js',...['admission-policy','atomic-reservation','budget-window-policy','budget-window-reservation','contracts','filter-read-identity-data','qwen-request-data','ratebook','result-finalization','usage-normalization'].map(n=>'extension/core/ai-usage/'+n+'.js')];
 // This additional set belongs to the unchanged old declaration/provider API
 // entries imported by the complete original build checker, not to new access.
 const previous=['client-declaration','client-declaration-transport','client-gateway-http','client-provider-transport','client-reservation-transport','qwen-bpe-counter','qwen-profile-source-adapter','qwen-source-profile','qwen-source-profile-installations','qwen-wire-counter','qwen-json-decoder','qwen-qualified-request','qwen-request-data','qwen-request-profile','qwen-sse-decoder','qwen-usage-parser','qwen-wire-primitives'].map(n=>'extension/core/ai-usage/'+n+'.js');
@@ -34,7 +34,7 @@ test('new currentness function uses the exact existing metadata owner includeFil
 test('isolated packaged actual API closure loads under the complete build checker without config or network',async t=>{
  const {target}=await packaged(t),result=isolatedCheck(target);assert.equal(result.status,0,result.stderr);assert.match(result.stdout,/SOURCE_GRAPH_OK/);assert.match(result.stdout,/ISOLATED_CURRENTNESS_GRAPH_NO_IO/);
 });
-for(const omit of ['identity-currentness.mjs','extension/core/ai-usage/contracts.js','extension/package.json'])test('isolated packaging refuses missing '+omit,async t=>{
+for(const omit of ['identity-currentness.mjs','extension/core/ai-usage/contracts.js','extension/core/ai-usage/filter-read-identity-data.js','extension/package.json'])test('isolated packaging refuses missing '+omit,async t=>{
  const {target}=await packaged(t,{omit}),result=isolatedCheck(target);assert.notEqual(result.status,0);assert.doesNotMatch(result.stdout,/SOURCE_GRAPH_OK/);
 });
 test('checker refuses a weaker new API timeout or an independently broadened file graph',async t=>{

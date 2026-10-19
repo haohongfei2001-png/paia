@@ -1,3 +1,4 @@
+import {assertMaintenanceQualification,chargeMaintenanceQualificationHash} from './ai-usage/maintenance-qualification.js';
 import {fail,keys,idOK,keyedHash,same} from './thought-model.js';
 import {resolveTopicIdentity,identityMetadata} from './topic-identity.js';
 import {TopicProcessingGuard,publicTopicAuthority} from './topic-processing.js';
@@ -24,17 +25,18 @@ async function eligibleLabel(store,t,topic){
 // it does not turn a lexical shortlist, exact name, or absence into identity.
 export class TopicIdentityRetrieval {
  constructor(store,options={}){this.store=store;this.guard=new TopicProcessingGuard(store,options);}
+ async hash(secret,value){const qualification=this.guard.strictQualification?this.guard.qualification():null;if(qualification)chargeMaintenanceQualificationHash(qualification,this.store,JSON.stringify(value));const result=await keyedHash(secret,value);if(qualification)assertMaintenanceQualification(qualification,this.store);return result;}
  async prepare({scope,names=[]}){
   validateTopicLookupNames(names);const prepared=await this.guard.prepare(scope),secret=prepared.authority.secret;
-  const nameTokens=await Promise.all(names.map(name=>keyedHash(secret,['personal-topic-name-v1',normalize(name)])));
-  return {...prepared,names:names.map(normalize),nameTokens,requestKey:await keyedHash(secret,['topic-lookup-scope-v1',prepared.evidence,nameTokens])};
+  const nameTokens=await Promise.all(names.map(name=>this.hash(secret,['personal-topic-name-v1',normalize(name)])));
+  return {...prepared,names:names.map(normalize),nameTokens,requestKey:await this.hash(secret,['topic-lookup-scope-v1',prepared.evidence,nameTokens])};
  }
- async sign(prepared,state){return {...state,signature:await keyedHash(prepared.authority.secret,['topic-lookup-cursor-v1',state])};}
+ async sign(prepared,state){return {...state,signature:await this.hash(prepared.authority.secret,['topic-lookup-cursor-v1',state])};}
  async verify(prepared,proof,{complete=false}={}){
   keys(proof,['version','authority','requestKey','phase','after','visited','unavailable','removedNameMatch','signature'],['version','authority','requestKey','phase','after','visited','unavailable','removedNameMatch','signature']);
   const {signature,...state}=proof;
   if(state.version!==VERSION||!['topics','constraints','complete'].includes(state.phase)||!cursorKeyOK(state)||!Number.isSafeInteger(state.visited)||state.visited<0||!Number.isSafeInteger(state.unavailable)||state.unavailable<0||typeof state.removedNameMatch!=='boolean'||!signatureOK(signature)||complete&&(state.phase!=='complete'||state.unavailable!==0)||!same(state.authority,publicTopicAuthority(prepared.authority))||state.requestKey!==prepared.requestKey)fail();
-  if(await keyedHash(prepared.authority.secret,['topic-lookup-cursor-v1',state])!==signature)fail();
+  if(await this.hash(prepared.authority.secret,['topic-lookup-cursor-v1',state])!==signature)fail();
   return state;
  }
  async page({scope,names=[],cursor=null,limit=50}={}){
@@ -43,7 +45,7 @@ export class TopicIdentityRetrieval {
   const state=cursor?await this.verify(prepared,cursor):{version:VERSION,authority:publicTopicAuthority(prepared.authority),requestKey:prepared.requestKey,phase:'topics',after:null,visited:0,unavailable:0,removedNameMatch:false};
   if(state.phase==='complete')fail();
   const result=await this.store.run(()=>this.store.repository.transaction(false,async t=>{
-   await this.guard.check(t,prepared);const items=[];let unavailable=state.unavailable,removedNameMatch=state.removedNameMatch;
+   await this.guard.check(t,prepared);t=this.guard.reader(t);const items=[];let unavailable=state.unavailable,removedNameMatch=state.removedNameMatch;
    const page=state.phase==='topics'?await t.page('topics',{after:state.after??undefined,limit}):await t.primaryRangePage('meta',{prefix:PAIR_PREFIX,after:state.after,limit});
    const topicIds=new Set(page.rows.flatMap(({value:row})=>state.phase==='topics'?[row.id]:[row.sourceId,row.targetId]));
    if(await this.guard.processing(t,prepared.evidence,[...topicIds])!==prepared.authority.processingEpoch)fail();
@@ -76,7 +78,7 @@ export class TopicIdentityRetrieval {
  async prepareCoverage({scope,names=[],coverage}){const prepared=await this.prepare({scope,names});const verified=await this.verify(prepared,coverage,{complete:true});return {...prepared,removedNameMatch:verified.removedNameMatch};}
  async constraintProof(prepared,{nameTokens=[],relatedTopicIds=[]}={}){
   if(!Array.isArray(nameTokens)||nameTokens.length>8||nameTokens.some(x=>!signatureOK(x))||!Array.isArray(relatedTopicIds)||relatedTopicIds.length>20||relatedTopicIds.some(x=>!idOK(x)))fail();
-  const read=fn=>this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);return fn(t);}));
+  const read=fn=>this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);return fn(this.guard.reader(t));}));
   const resolve=async(t,ids)=>{const authorized=new Set(ids),resolver={get:async(name,id)=>{if(name==='topics')authorized.add(id);return t.get(name,id);}},rows=[];for(const id of ids)rows.push(await resolveTopicIdentity(resolver,id));if(await this.guard.processing(t,prepared.evidence,[...authorized])!==prepared.authority.processingEpoch)fail();return {rows,authorizedTopicIds:[...authorized]};};
   const initial=await read(t=>resolve(t,relatedTopicIds)),targets=new Set(initial.rows.map(row=>row.id));
   let blocked=prepared.removedNameMatch===true||initial.rows.some(row=>!['active','dormant'].includes(row.lifecycle)||row.layoutJobId),after=null,topicRows=0,constraintRows=0;
@@ -84,7 +86,7 @@ export class TopicIdentityRetrieval {
   // pages so an unmapped legacy removal is fenced without a migration/index.
   if(nameTokens.length)do{
    const page=await read(async t=>{const page=await t.page('topics',{after:after??undefined,limit:100});if(await this.guard.processing(t,prepared.evidence,page.rows.map(x=>x.value.id))!==prepared.authority.processingEpoch)fail();return page;});
-   const matching=[];for(const {value:row}of page.rows){const identity=identityMetadata(row),tokens=[identity.nameToken,...identity.aliases.map(x=>x.token),await keyedHash(prepared.authority.secret,['personal-topic-name-v1',normalize(row.name)])];if(tokens.some(token=>nameTokens.includes(token)))matching.push(row.id);}
+   const matching=[];for(const {value:row}of page.rows){const identity=identityMetadata(row),tokens=[identity.nameToken,...identity.aliases.map(x=>x.token),await this.hash(prepared.authority.secret,['personal-topic-name-v1',normalize(row.name)])];if(tokens.some(token=>nameTokens.includes(token)))matching.push(row.id);}
    const matched=await read(t=>resolve(t,matching));if(matched.rows.some(row=>['removed','candidate'].includes(row.lifecycle)))blocked=true;
    topicRows+=page.rows.length;after=page.next;await this.store.repository.checkpoint('topic-constraints-page');
   }while(after);

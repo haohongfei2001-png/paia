@@ -26,10 +26,10 @@ import {createOperationStatusHandler} from '../operation-status-entry.mjs';
 import {createPostgresOperationStatusService} from '../operation-status-service.mjs';
 // Actual signed identity/declaration/HTTP/ledger/provider/domain owners. Only
 // SQL transactions and Qwen HTTPS are simulated; not live PostgreSQL evidence.
-export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null,transformResponse=null,exposeRemote=false,filterNeighborSource=null}={}){
- let local,filterRuntime=null,filterConsent=null;const consentData={};
- if(filter){filterConsent=new AIFilterConsent({storage:{session:{async get(k){return {[k]:structuredClone(consentData[k])};},async set(v){Object.assign(consentData,structuredClone(v));}}}},{consented:async()=>true});const before=await filterConsent.status();await filterConsent.configure({optIn:true,remoteProcessing:true,expectedGeneration:before.generation});filterRuntime=createAIFilterAuthority({getStore:()=>local?.s,consent:filterConsent,policy:{version:'pro-ambiguous-1',qualificationId:'SYNTHETIC_NOT_PRODUCTION_QUALIFICATION'}});}
- local=(filter?await filterMaintenanceFixture({aiFilterAuthority:filterRuntime.authority,neighborSource:filterNeighborSource}):mixed?await mixedMaintenanceFixture():await localMaintenanceFixture({inputs}));local.session.dispose();
+export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=false,tier=filter?'pro':'free',loseReservation=false,loseProvider=false,loseResult=false,beforeSend=null,afterResponse=null,malformed=false,configure=null,transformResponse=null,exposeRemote=false,filterNeighborSource=null,reuseLocal=null}={}){
+ let local,filterRuntime=reuseLocal?.filterRuntime??null,filterConsent=reuseLocal?.filterConsent??null;const consentData={};
+ if(filter&&!reuseLocal){filterConsent=new AIFilterConsent({storage:{session:{async get(k){return {[k]:structuredClone(consentData[k])};},async set(v){Object.assign(consentData,structuredClone(v));}}}},{consented:async()=>true});const before=await filterConsent.status();await filterConsent.configure({optIn:true,remoteProcessing:true,expectedGeneration:before.generation});filterRuntime=createAIFilterAuthority({getStore:()=>local?.s,consent:filterConsent,policy:{version:'pro-ambiguous-1',qualificationId:'SYNTHETIC_NOT_PRODUCTION_QUALIFICATION'}});}
+ local=reuseLocal??(filter?await filterMaintenanceFixture({aiFilterAuthority:filterRuntime.authority,neighborSource:filterNeighborSource}):mixed?await mixedMaintenanceFixture():await localMaintenanceFixture({inputs}));local.session.dispose();
  const server=providerFixture(),publication=publicationProtocol(server),calls=[];let live=true,listener=null,physical=0;
  const schema=structuredClone(MAINTENANCE_SERVICE_RESPONSE_SCHEMA),manifest=server.manifest;
  manifest.wire.instructions=MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS;
@@ -43,7 +43,7 @@ export async function maintenanceServiceFixture(t,{inputs=1,mixed=false,filter=f
   physical++;assert.equal(options.hostname,manifest.profile.endpoint.host);const req=new EventEmitter();let done=false;
   req.destroy=e=>{if(!done){done=true;queueMicrotask(()=>{req.emit('error',e);req.emit('close');});}return req;};
   req.end=body=>{const payload=JSON.parse(JSON.parse(body).messages[1].content);queueMicrotask(async()=>{try{await beforeSend?.({payload,local,server});if(done)return;const original=await local.provider.execute(payload),value=maintenanceSourceResponse(payload,original);if(malformed)value.citations[0].inputId='SYNTHETIC-unknown-input';await transformResponse?.({value,payload,local,server});done=true;
-   const incoming=Readable.from([Buffer.from(JSON.stringify(completion({choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]})))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>req.emit('close'));}catch(error){req.destroy(error);}});};
+   const incoming=Readable.from([Buffer.from(JSON.stringify(completion({...(reuseLocal?{id:'SYNTHETIC-response-'+payload.childOperationId}:{}),choices:[{index:0,message:{role:'assistant',content:JSON.stringify(value)},finish_reason:'stop'}]})))]);incoming.statusCode=200;incoming.headers={'content-type':'application/json'};callback(incoming);incoming.once('close',()=>req.emit('close'));}catch(error){req.destroy(error);}});};
   options.signal.addEventListener('abort',()=>req.destroy(Error('SYNTHETIC abort')),{once:true});return req;
  });
  const {responseAdapter:unusedAdapter,...service}=local.service;if(filter)service.filter=filterRuntime.serviceFilter;

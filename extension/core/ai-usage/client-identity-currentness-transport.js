@@ -1,3 +1,4 @@
+import {snapshotFilterReadRequest,filterReadRequestBindingData} from './filter-read-identity-data.js';
 import {snapshot,exact,freeze,integer} from './qwen-request-data.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {canonical,opaque} from './contracts.js';
@@ -10,12 +11,15 @@ const transports=new WeakMap(),connections=new WeakMap(),connectionFacts=new Wea
 // slots while a fresh issuer proof is pending. Copying a ticket cannot open it.
 export const reserveClientIdentityCurrentnessTransport=t=>transports.get(t)?.reserve()??null;
 export const releaseClientIdentityCurrentnessTransport=(t,r)=>transports.get(t)?.release(r)??false;
-export const openReservedClientIdentityCurrentnessTransport=(t,r,b)=>transports.get(t)?.openReserved(r,b)??Promise.resolve(null);
+export const openReservedClientIdentityCurrentnessTransport=(t,r,b)=>transports.get(t)?.openReserved(r,b,false)??Promise.resolve(null);
+export const openReservedClientFilterReadIdentityTransport=(t,r,b)=>transports.get(t)?.openReserved(r,b,true)??Promise.resolve(null);
 const fields=['version','principalId','libraryId','operationId','jobType','tier','principalGeneration','entitlementGeneration','authorityGeneration','observedAt','verifiedUntil','requestHash'];
+const readFields=['version','purpose','principalId','libraryId','readerSessionId','consentEpoch','localBindingHash','policyId','tier','principalGeneration','entitlementGeneration','authorityGeneration','observedAt','verifiedUntil','readRequestHash'];
 const flags=['financialAuthority','dispatchAllowed','retryAllowed'];
 export const clientIdentityCurrentnessTransportDrained=t=>transports.get(t)?.drained()===true;
 export const clientIdentityCurrentnessTransportOrigin=t=>transports.get(t)?.origin??null;
-export const readClientIdentityCurrentnessConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&value.isCurrent()?m:null;};
+export const readClientIdentityCurrentnessConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='financial'&&value.isCurrent()?m:null;};
+export const readClientFilterReadIdentityConnection=(value,transport)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='filter-read'&&value.isCurrent()?m:null;};
 export function createClientIdentityCurrentnessTransport(options){
  let endpoint,origin,send,clock;
  try{
@@ -29,13 +33,13 @@ export function createClientIdentityCurrentnessTransport(options){
  const active=new Set(),occupied=new Set();let disposed=false,transport,opening=0;
  const reserve=()=>{if(disposed||occupied.size+opening>=8)return null;const ticket=Object.freeze(Object.create(null));opening++;reservations.set(ticket,{transport,active:true});return ticket;};
  const release=ticket=>{const held=reservations.get(ticket);if(!held||held.transport!==transport||!held.active)return false;held.active=false;opening--;return true;};
- async function open(input,ticket=null){
+ async function open(input,ticket=null,readPurpose=false){
   if(ticket!==null){const held=reservations.get(ticket);if(!held||held.transport!==transport||!held.active)return null;held.active=false;if(disposed){opening--;return null;}}
   else {if(disposed||occupied.size+opening>=8)return null;opening++;}
   let bundle,requestHash;
   try{bundle=snapshot(input,{maxBytes:24576,maxKeys:32,maxDepth:2,maxString:8192});
    if(!exact(bundle,['request','principalToken','entitlementToken'])||!['principalToken','entitlementToken'].every(k=>typeof bundle[k]==='string'&&bundle[k].length>0&&bundle[k].length<=8192))return null;
-   bundle.request=clientDeclarationRequestData(bundle.request);requestHash=await hashText(canonical(bundle.request));
+   bundle.request=readPurpose?snapshotFilterReadRequest(bundle.request):clientDeclarationRequestData(bundle.request);requestHash=await hashText(readPurpose?filterReadRequestBindingData(bundle.request):canonical(bundle.request));
   }catch{return null;}finally{opening--;}
   if(disposed||occupied.size>=8)return null;
   const request=freeze(structuredClone(bundle.request)),abort=new AbortController(),listeners=new Set();
@@ -46,7 +50,7 @@ export function createClientIdentityCurrentnessTransport(options){
   const live=()=>{if(closed||!ready)return false;const n=now();if(n===null||n<identity.observedAt||n>=identity.verifiedUntil||n-lastPulse>=3000){close();return false;}return true;};
   const arm=ms=>{clearTimeout(timer);timer=setTimeout(close,ms);timer.unref?.();};
   active.add(close);occupied.add(close);arm(5000);
-  let body=JSON.stringify({action:'observe',...bundle});bundle=null;
+  let body=JSON.stringify({action:readPurpose?'observe-filter-read':'observe',...bundle});bundle=null;
   let outgoing=new Request(endpoint,{method:'POST',headers:{'content-type':'application/json'},body,credentials:'omit',redirect:'error',cache:'no-store',referrerPolicy:'no-referrer',signal:abort.signal});body=null;
   // Consume independently of the caller, so revocation/EOF takes effect even
   // while the original Filter owner is performing a local storage retry.
@@ -69,10 +73,10 @@ export function createClientIdentityCurrentnessTransport(options){
       if(at===null||v.version!==1||v.sequence!==frames++)throw Error();
       if(!ready){
        if(!exact(v,['version','type','sequence','identity',...flags])||v.type!=='ready'||v.sequence!==0||!flags.every(k=>v[k]===false))throw Error();
-       const i=v.identity;if(!exact(i,fields)||i.version!==1||!['principalId','libraryId','operationId','jobType'].every(k=>i[k]===request[k])||!['free','pro'].includes(i.tier)||!['principalGeneration','entitlementGeneration','authorityGeneration'].every(k=>opaque(i[k]))||i.requestHash!==requestHash||!integer(i.observedAt)||!integer(i.verifiedUntil)||i.observedAt>at||i.verifiedUntil<=at||i.verifiedUntil-i.observedAt>60000)throw Error();
+       const i=v.identity;if(!exact(i,readPurpose?readFields:fields)||i.version!==1||!(readPurpose?['purpose','principalId','libraryId','readerSessionId','consentEpoch','localBindingHash','policyId']:['principalId','libraryId','operationId','jobType']).every(k=>i[k]===request[k])||!['free','pro'].includes(i.tier)||!['principalGeneration','entitlementGeneration','authorityGeneration'].every(k=>opaque(i[k]))||i[readPurpose?'readRequestHash':'requestHash']!==requestHash||!integer(i.observedAt)||!integer(i.verifiedUntil)||i.observedAt>at||i.verifiedUntil<=at||i.verifiedUntil-i.observedAt>60000)throw Error();
        identity=freeze(i);lastPulse=at;ready=true;
        connection=Object.freeze({isCurrent:live,onInvalidate(fn){if(typeof fn!=='function')return null;if(closed){fn();return ()=>{};}listeners.add(fn);return ()=>listeners.delete(fn);},close});
-       connections.set(connection,freeze({transport,origin,request,identity}));connectionFacts.set(connection,at=>!disposed&&!closed&&ready&&!abort.signal.aborted&&active.has(close)&&occupied.has(close)&&integer(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&at-lastPulse<3000);resolveReady(connection);
+       connections.set(connection,freeze({transport,origin,request,identity,profile:readPurpose?'filter-read':'financial'}));connectionFacts.set(connection,at=>!disposed&&!closed&&ready&&!abort.signal.aborted&&active.has(close)&&occupied.has(close)&&integer(at)&&at>=last&&at>=identity.observedAt&&at<identity.verifiedUntil&&at-lastPulse<3000);resolveReady(connection);
       }else if(!exact(v,['version','type','sequence'])||v.type!=='pulse'||!live())throw Error();
       lastPulse=at;arm(Math.min(3000,identity.verifiedUntil-at));
      }
@@ -83,7 +87,7 @@ export function createClientIdentityCurrentnessTransport(options){
   })();
   return result;
  }
- transport=Object.freeze({open,dispose(){disposed=true;for(const close of [...active])close();}});transports.set(transport,{origin,reserve,release,drained:()=>occupied.size+opening===0,openReserved:(ticket,bundle)=>open(bundle,ticket)});return transport;
+ transport=Object.freeze({open:input=>open(input,null,false),openFilterRead:input=>open(input,null,true),dispose(){disposed=true;for(const close of [...active])close();}});transports.set(transport,{origin,reserve,release,drained:()=>occupied.size+opening===0,openReserved:(ticket,bundle,readPurpose)=>open(bundle,ticket,readPurpose)});return transport;
 }
 // Status identity may be observed after the channel's snapshot. It must still
 // name exactly that connection's request and all authenticated generations.
@@ -94,5 +98,10 @@ function matchesIdentity(m,identity){
 }
 
 export function identityMatchesCurrentnessConnection(connection,transport,identity){return matchesIdentity(readClientIdentityCurrentnessConnection(connection,transport),identity);}
-// Tail-only local facts; full original clock/pulse qualification runs first.
-export function identityMatchesCurrentnessConnectionFacts(connection,transport,identity,at){const m=connections.get(connection);return m?.transport===transport&&connectionFacts.get(connection)?.(at)===true&&matchesIdentity(m,identity);}
+// This tail fence only reads this transport's original private connection state.
+// Full clock/pulse qualification must already have run through isCurrent.
+export function identityMatchesCurrentnessConnectionFacts(connection,transport,identity,at){const m=connections.get(connection);return m?.transport===transport&&m.profile==='financial'&&connectionFacts.get(connection)?.(at)===true&&matchesIdentity(m,identity);}
+
+// Final sampled-clock facts; these readers never invoke connection.isCurrent.
+export const readClientIdentityCurrentnessConnectionFacts=(value,transport,at)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='financial'&&connectionFacts.get(value)?.(at)===true?m:null;};
+export const readClientFilterReadIdentityConnectionFacts=(value,transport,at)=>{const m=connections.get(value);return m?.transport===transport&&m.profile==='filter-read'&&connectionFacts.get(value)?.(at)===true?m:null;};

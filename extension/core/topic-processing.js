@@ -7,9 +7,9 @@ import {checkEvidenceInTransaction} from './thought-evidence.js';
 // No production resolver is installed by this slice. A future trusted service
 // must authorize the exact bounded Input scope and return its current epoch.
 export class TopicProcessingGuard {
- constructor(store,{resolveProcessing=null,resolveQualification=null}={}){if(resolveQualification!==null&&typeof resolveQualification!=='function')fail();this.store=store;this.resolveProcessing=resolveProcessing;this.resolveQualification=resolveQualification;}
- qualification(){if(this.resolveQualification===null)return null;const token=this.resolveQualification();assertMaintenanceQualification(token,this.store);return token;}
- reader(t){const token=this.qualification();return token===null?t:maintenanceQualificationReader(token,this.store,t,{topicLabels:true});}
+ constructor(store,{resolveProcessing=null,resolveQualification=null,strictQualification=false}={}){if(typeof strictQualification!=='boolean')fail();Object.defineProperty(this,'strictQualification',{value:strictQualification});if(resolveQualification!==null&&typeof resolveQualification!=='function')fail();this.store=store;this.resolveProcessing=resolveProcessing;this.resolveQualification=resolveQualification;}
+ qualification(){if(this.resolveQualification===null){if(this.strictQualification)fail();return null;}const token=this.resolveQualification();assertMaintenanceQualification(token,this.store);return token;}
+ reader(t){const token=this.qualification();return token===null?t:maintenanceQualificationReader(token,this.store,t,{topicLabels:!this.strictQualification,strictTopicIdentity:this.strictQualification});}
  async processing(t,evidence,topicIds=[]){
   if(typeof this.resolveProcessing!=='function')fail();
   const request=Object.freeze({purpose:'personal-topic-identity',inputIds:Object.freeze(evidence.map(e=>e.inputId)),topicIds:Object.freeze([...topicIds])});

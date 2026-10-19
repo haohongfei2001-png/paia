@@ -227,7 +227,7 @@ export class ContextReadService {
    items.push(item);outputBytes+=size;return true;
   };
   if(kind==='shallow'){
-   const effective=await readableContextItems(this.#s,captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled),{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:JSON.stringify(captured.cards)});
+   const effective=await readableContextItems(this.#s,captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled),{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:JSON.stringify(captured.cards),isCurrent:()=>{if(attempt.expired||!this.#access.ready())return false;if(!preview)this.#current(caller,receipt);return true;}});
    need(!effective.automaticEvaluation,'content_unavailable');
    const open=effective.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled).sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
    for(const x of open.slice(position.index,position.index+o.limit)){if(!append({itemId:x.id,card:x.card,role:roles[x.card],authority:'data',origin:x.origin,revision:x.revision,section:x.section,text:x.body,...contextTemporalProjection(x)}))break;temporalItems.set(x.id,x);}

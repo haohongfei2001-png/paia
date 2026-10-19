@@ -1,4 +1,5 @@
-import {assertMaintenanceQualification,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
+import {requireRepositoryTransactionScope} from './idb-repository.js';
+import {assertMaintenanceQualification,assertMaintenanceQualificationFacts,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
 import {readAuthoredEntryContext} from './context-authored-entry.js';
 import {ContextCardsService} from './context-cards.js';
 import {hashText} from './dedupe.js';
@@ -22,15 +23,53 @@ import {idOK,revisionOK,prefix,validateFields,ENTRY_FIELDS} from './thought-mode
 export const CONTEXT_TOPIC_SCOPE_LIMITS=Object.freeze({refs:4096,page:100,reads:131072,hashFields:8192,hashBytes:8*1024*1024});
 export const CONTEXT_PROCESSING_PREFLIGHT_LIMITS=Object.freeze({inputs:CONTEXT_TOPIC_SCOPE_LIMITS.refs});
 const {refs:MAX_REFS,page:PAGE,reads:MAX_READS,hashFields:MAX_HASH_FIELDS,hashBytes:MAX_HASH_BYTES}=CONTEXT_TOPIC_SCOPE_LIMITS;
-const workBudgets=new WeakSet(),workCurrent=new WeakMap(),workQualification=new WeakMap(),workRoots=new WeakMap(),workParents=new WeakMap();
-export function createContextScopeWorkBudget({signal=null,database=null,isCurrent=null,qualification=null}={}){if(isCurrent!==null&&typeof isCurrent!=='function')refuse('stale_authority');const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);if(isCurrent)workCurrent.set(value,isCurrent);if(qualification!==null){assertMaintenanceQualification(qualification);workQualification.set(value,qualification);}return value;}
+const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
+const workBudgets=new WeakSet(),workCurrent=new WeakMap(),workQualification=new WeakMap(),workRoots=new WeakMap(),workParents=new WeakMap(),workFacts=new WeakMap();
+const processingMetadata=new WeakMap();
+export function createContextScopeWorkBudget({signal=null,database=null,isCurrent=null,qualification=null}={}){if(isCurrent!==null&&typeof isCurrent!=='function')refuse('stale_authority');const value={reads:0,seen:new Map(),hashBytes:0,hashFields:0,signal,database};workBudgets.add(value);workFacts.set(value,{signal,database,seen:value.seen,counters:null});if(isCurrent)workCurrent.set(value,isCurrent);if(qualification!==null){assertMaintenanceQualification(qualification);workQualification.set(value,qualification);}return value;}
 // Different original owner phases retain their own signal/currentness fence,
 // while these aliases share one exact request ledger. No phase resets work.
 export function forkContextScopeWorkBudget(parent,{signal=parent?.signal??null,database=parent?.database??null,isCurrent=null,qualification=null}={}){
  requireFact(budgetValid(parent)&&database===parent.database,'scope_budget');currentWork(parent);
  const value=createContextScopeWorkBudget({signal,database,isCurrent,qualification}),root=workRoots.get(parent)||parent;
  for(const field of ['reads','hashBytes','hashFields'])Object.defineProperty(value,field,{enumerable:true,configurable:false,get:()=>root[field],set:n=>{root[field]=n;}});
- value.seen=root.seen;workRoots.set(value,root);workParents.set(value,parent);return value;
+ value.seen=root.seen;workRoots.set(value,root);workParents.set(value,parent);workFacts.set(value,{signal,database,seen:root.seen,counters:Object.fromEntries(['reads','hashBytes','hashFields'].map(key=>[key,Object.getOwnPropertyDescriptor(value,key)]))});return value;
+}
+// Callback-free terminal facts of this exact branded ledger and all forks.
+// Active owner/issuer callbacks are checked separately before this last pass.
+export function assertContextScopeWorkBudgetFacts(budget,{database}={}){
+ const visit=value=>{
+  const held=workFacts.get(value);requireFact(workBudgets.has(value)&&held,'scope_budget');
+  const data=key=>{const d=Object.getOwnPropertyDescriptor(value,key);requireFact(d&&Object.hasOwn(d,'value')&&d.enumerable&&d.configurable&&d.writable,'scope_budget');return d.value;};
+  requireFact(data('signal')===held.signal&&data('database')===held.database&&data('seen')===held.seen&&(database===undefined||held.database===database),'stale_authority');
+  requireFact(held.signal===null||held.signal instanceof AbortSignal&&!signalAborted.call(held.signal),'stale_authority');
+  const parent=workParents.get(value);if(parent)visit(parent);
+  for(const [key,limit]of [['reads',MAX_READS],['hashBytes',MAX_HASH_BYTES],['hashFields',MAX_HASH_FIELDS]]){
+   if(held.counters){const d=Object.getOwnPropertyDescriptor(value,key),old=held.counters[key];requireFact(d&&d.get===old.get&&d.set===old.set&&d.enumerable===old.enumerable&&d.configurable===old.configurable&&!Object.hasOwn(d,'value'),'scope_budget');}
+   else{const n=data(key);requireFact(Number.isSafeInteger(n)&&n>=0&&n<=limit,'scope_budget');}
+  }
+  const qualification=workQualification.get(value);if(qualification)assertMaintenanceQualificationFacts(qualification);
+ };
+ visit(budget);return true;
+}
+// Body-free preparation hint from this owner's actual completed admission.
+// It is not a grant or a current hidden decision. Consumers must compare the
+// captured authority in their original metadata transaction before warming,
+// then repeat the original scope checks after that transaction-external await.
+// The producing preflight can validate authored body/history fields under its
+// original qualification; its complete execution is not metadata-only.
+export function readContextProcessingMetadata(result,store,workBudget){
+ const held=processingMetadata.get(result);
+ if(!held||held.store!==store||held.repository!==store?.repository||held.database!==store.repository.db||held.budget!==workBudget)return null;
+ const same=(value,expected)=>{
+  const keys=Reflect.ownKeys(value);if(keys.length!==Reflect.ownKeys(expected).length)return false;
+  return keys.every(key=>{const d=Object.getOwnPropertyDescriptor(value,key),old=expected[key];return old&&d&&Object.hasOwn(d,'value')&&d.value===old.value&&d.enumerable===old.enumerable&&d.configurable===old.configurable&&d.writable===old.writable;});
+ };
+ try{
+  assertContextScopeWorkBudgetFacts(workBudget,{database:held.database});
+  if(!same(result,held.resultFacts)||!same(held.binding,held.bindingFacts))throw Error('Changed original preflight result');
+  return held.metadata;
+ }catch{processingMetadata.delete(result);return null;}
 }
 const budgetValid=x=>workBudgets.has(x)&&Number.isSafeInteger(x.reads)&&x.reads>=0&&x.reads<=MAX_READS&&Number.isSafeInteger(x.hashBytes)&&x.hashBytes>=0&&x.hashBytes<=MAX_HASH_BYTES&&Number.isSafeInteger(x.hashFields)&&x.hashFields>=0&&x.hashFields<=MAX_HASH_FIELDS;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
@@ -53,12 +92,27 @@ function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_RE
 // transaction facade so their exact eligibility semantics remain the authority
 // without allowing an unbounded getAll. It retains no body cache. All pages and
 // point reads count against real per-store and total-work limits; no truncation.
-const budgetReaders=new WeakMap();
+const budgetReaders=new WeakMap(),budgetOrigins=new WeakMap();
+// This is only an original transaction-origin proof. It returns no native
+// transaction or reader and conveys no processing or Filter permission.
+// Actual reads still use this exact bounded/qualified facade and its guards.
+export function assertContextScopeTransactionOrigin(transaction,repository,workBudget=null){return checkContextScopeTransactionOrigin(transaction,repository,workBudget,true);}
+function checkContextScopeTransactionOrigin(transaction,repository,workBudget,checkCurrent){
+ const first=budgetOrigins.get(transaction);requireFact(first&&first.repository===repository&&(workBudget===null||workBudget===first.budget),'stale_authority');
+ const chain=[],seen=new Set();
+ const descriptors=(row,held)=>{const keys=Reflect.ownKeys(row),old=Reflect.ownKeys(held);return keys.length===old.length&&keys.every(key=>{const a=Object.getOwnPropertyDescriptor(row,key),b=held[key];return a&&b&&a.value===b.value&&a.get===b.get&&a.set===b.set&&a.enumerable===b.enumerable&&a.configurable===b.configurable&&a.writable===b.writable;});};
+ const collect=row=>{const h=budgetOrigins.get(row);requireFact(h&&!h.revoked&&!seen.has(row),'stale_authority');seen.add(row);if(h.parent)collect(h.parent);chain.push([row,h]);};
+ const facts=()=>{for(const [row,h]of chain){requireFact(!h.revoked&&h.repository===repository&&h.store.repository===repository&&repository.db===h.database&&Object.getPrototypeOf(row)===h.prototype&&descriptors(row,h.methods)&&descriptors(h.prototype,h.prototypeFacts),'stale_authority');assertContextScopeWorkBudgetFacts(h.budget,{database:h.database});requireRepositoryTransactionScope(repository,h.original);}};
+ const checked=new Set(),current=budget=>{if(checked.has(budget))return;checked.add(budget);const parent=workParents.get(budget);if(parent)current(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);const check=workCurrent.get(budget);if(check){let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}};
+ try{collect(transaction);facts();if(checkCurrent)for(const [,held]of chain)current(held.budget);facts();return true;}catch(error){first.revoked=true;throw error;}
+}
+
 export function contextScopeTransactionReader(store,transaction,budget){
  requireFact(budgetValid(budget),'scope_budget');currentWork(budget);
  return budgetReaders.get(transaction)===budget?transaction:reader(transaction,store.repository.factory.cmp.bind(store.repository.factory),budget,store);
 }
 function reader(transaction,compare,budget,store){
+ const incoming=transaction;
  let ancestor=transaction,alreadyAccounted=false;for(let depth=0;ancestor&&depth<16;depth++,ancestor=Object.getPrototypeOf(ancestor)){const held=budgetReaders.get(ancestor);if(held&&(workRoots.get(held)||held)===(workRoots.get(budget)||budget)){alreadyAccounted=true;break;}}
  const qualification=workQualification.get(budget);if(qualification)transaction=maintenanceQualificationReader(qualification,store,transaction,{account:false});
  const {seen}=budget;
@@ -67,7 +121,7 @@ function reader(transaction,compare,budget,store){
  t.get=async(store,id)=>{currentWork(budget);if(!alreadyAccounted&&budget.reads>=MAX_READS)refuse('scope_budget');const row=await transaction.get(store,id);account(store,row);currentWork(budget);return row;};
  t.has=async(store,id)=>{currentWork(budget);if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');const result=await transaction.has(store,id);currentWork(budget);return result;};
  t.edge=async(...args)=>{currentWork(budget);if(!alreadyAccounted&&budget.reads>=MAX_READS)refuse('scope_budget');const row=await transaction.edge(...args);account(args[0],row);currentWork(budget);return row;};
- t.rangePage=async(...args)=>{currentWork(budget);if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction.rangePage(...args);currentWork(budget);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);currentWork(budget);return page;};
+ for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])t[method]=async(...args)=>{currentWork(budget);if(!alreadyAccounted&&++budget.reads>MAX_READS)refuse('scope_budget');const page=await transaction[method](...args);currentWork(budget);if(!Array.isArray(page?.rows)||page.rows.length>PAGE)refuse('incomplete_page');for(const {value}of page.rows)account(args[0],value);currentWork(budget);return page;};
  t.count=async(store,index,range)=>{
   currentWork(budget);if((!alreadyAccounted||!index&&range!==undefined)&&++budget.reads>MAX_READS)refuse('scope_budget');
   // Repository.count's primary-store overload counts the whole store. Keep
@@ -96,7 +150,16 @@ function reader(transaction,compare,budget,store){
  t.scanPrimary=(store,keyPrefix,consume)=>scan(store,null,IDBKeyRange.bound(keyPrefix,keyPrefix+'\uffff',false,true),after=>transaction.primaryRangePage(store,{prefix:keyPrefix,after,limit:PAGE}),consume);
  t.scanRange=(store,index,range,consume)=>scan(store,index,range,after=>transaction.rangePage(store,index,range,after,PAGE),consume);
  t.all=async(store,index,range)=>{const rows=[];await t.scanRange(store,index,range,row=>rows.push(row));return rows;};
- budgetReaders.set(t,budget);return t;
+ budgetReaders.set(t,budget);
+ // Only an original Repository scope or another exact adapter minted here
+ // can carry this optional origin proof. Unknown wrappers get no new brand.
+ try{
+  const parent=budgetOrigins.has(incoming)?incoming:null,original=parent?budgetOrigins.get(parent).original:incoming;
+  if(parent)checkContextScopeTransactionOrigin(parent,store.repository,null,false);
+  assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});requireRepositoryTransactionScope(store.repository,original);
+  budgetOrigins.set(t,{store,repository:store.repository,database:store.repository.db,budget,original,parent,prototype:transaction,prototypeFacts:Object.getOwnPropertyDescriptors(transaction),methods:Object.getOwnPropertyDescriptors(t),revoked:false});
+ }catch{/* Legacy readers retain their original behavior without a new proof. */}
+ return t;
 }
 function topicProjection(row){
  requireFact(plain(row)&&idOK(row.id)&&stamp(row.createdAt)&&revisionOK(row.revision)&&revisionOK(row.organizationRevision)&&revisionOK(row.activeLayoutGeneration)&&row.activeLayoutGeneration>0&&['candidate','active','dormant','merged','removed'].includes(row.lifecycle),'topic_unavailable');
@@ -316,7 +379,7 @@ export async function readContextProcessingPreflight(store,options={},workBudget
  if(options.entryIds!==undefined&&(!Array.isArray(options.entryIds)||!options.entryIds.length||options.entryIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.entryIds).length!==options.entryIds.length||!options.entryIds.every(idOK)||new Set(options.entryIds).size!==options.entryIds.length))return denied('invalid_request');
  if(!store?.repository?.db||!store.controlCache)return denied('not_ready');
  if(workBudget!==null&&!budgetValid(workBudget))return denied('scope_budget');
- const budget=workBudget||createContextScopeWorkBudget({database:store.repository.db});let captured,reason='invalid_facts';
+ const budget=workBudget||createContextScopeWorkBudget({database:store.repository.db});let captured,metadataInputs,reason='invalid_facts';
  try{
   const result=await scopeRead(store,budget,async tx=>{
    try{
@@ -338,9 +401,18 @@ export async function readContextProcessingPreflight(store,options={},workBudget
     requireFact(!await store.isFiltered(t,{id,excluded:false,provenance:state.sourceRecordIds.map(sourceRecordId=>({sourceRecordId}))},a.filter),'input_unavailable');
    }
    const binding=contextTopicSelectionBinding(m.target,a.epoch,m.reservations.get(m.target.protections.organization?.operationId)??null);requireFact(binding,'organization_unavailable');
+   // The bounded preparation API never truncates an original complete scope.
+   // Larger scopes retain the unchanged preflight result but have no hint.
+   metadataInputs=m.inputIds.size<=200?[...m.inputIds].sort():null;
    return {available:true,kind:'processing_preflight',reason:'metadata_admitted',externalAllowed:false,bodyEligibility:'not_checked',binding};
    }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
   });
-  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);return result;
+  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);
+  if(workBudget!==null&&metadataInputs)try{
+   assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});
+   const binding=result.binding,metadata=Object.freeze({inputIds:Object.freeze(metadataInputs),binding:Object.freeze({...binding}),authority:captured.authority});
+   processingMetadata.set(result,{store,repository:store.repository,database:store.repository.db,budget,binding,resultFacts:Object.getOwnPropertyDescriptors(result),bindingFacts:Object.getOwnPropertyDescriptors(binding),metadata});
+  }catch{/* An optional hint cannot change the original legacy preflight result. */}
+  return result;
  }catch(error){return denied(unavailableReasons.has(error?.scopeReason)?error.scopeReason:reason);}
 }

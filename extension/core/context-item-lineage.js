@@ -1,3 +1,4 @@
+import {createContextFilterVisibilityScope} from './ai-usage/filter-visibility-consumer-scope.js';
 import {validStructuralContextEvidence,readStructuralContextEvidence,structuralContextProperty} from './ai-usage/structural-context-mapping.js';
 import {readBoundEntryContext,validBoundContextEvidence,boundContextEvidenceMatches,boundSelectedText} from './context-bound-entry.js';
 import {readAuthoredEntryContext,validAuthoredContextEvidence,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from './context-authored-entry.js';
@@ -99,7 +100,7 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
  if(expectedAuthority!==null)need(captured.authority===expectedAuthority);
  const specs=groups.flatMap(g=>g.evidence),topics=[...new Set(specs.map(s=>s.topicId))],inputs=[...new Set(specs.filter(inputEvidence).map(s=>s.inputId))],entryIds=[...new Set(specs.filter(entryEvidence).map(s=>s.entryId))];
  if(topics.length>CONTEXT_LINEAGE_LIMITS.readTopics||inputs.length+entryIds.length>CONTEXT_LINEAGE_LIMITS.readInputs)fail('budget_exceeded');
- const scopes=new Map();
+ const scopes=new Map(),preflights=[];
  for(const topicId of topics){
   need(!workBudget.signal?.aborted);const requested=specs.filter(s=>s.topicId===topicId);
   // Canonical eligibility validation may aggregate accepted Items up to its existing
@@ -110,6 +111,12 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
    if(!preflight.available&&!['input_unavailable','entry_unavailable','topic_unavailable','legacy_restricted','content_unavailable'].includes(preflight.reason))fail();
    scopes.set(topicId,null);continue;
   }
+  preflights.push({topicId,preflight});
+ }
+ const readMaterial=async()=>{
+ for(const {topicId}of preflights){
+  // This is the original full scope owner after optional transaction-external
+  // history preparation. It rechecks the same authority, never a fresh baseline.
   const scope=await readContextTopicScope(store,{topicId,expectedAuthority:captured.authority},workBudget);
   if(!scope.available&&['scope_budget','hash_budget'].includes(scope.reason))fail('budget_exceeded');
   if(!scope.available)fail();
@@ -171,6 +178,9 @@ async function assess(store,groups,{epoch,expectedAuthority=null,workBudget=crea
   });
   return {captured,results};
  }catch(error){releaseContextLineage(captured);throw error;}finally{for(const row of material.rows.values())if(row)row.text={};}
+ };
+ const visibility=createContextFilterVisibilityScope(store,preflights.map(x=>x.preflight),workBudget);
+ return visibility&&typeof store.withAIFilterVisibilityScope==='function'?store.withAIFilterVisibilityScope(visibility,readMaterial):readMaterial();
 }
 export async function captureContextEvidence(store,evidence,{epoch,expectedAuthority=null,signal=null,workBudget=null}={}){
  need(validContextEvidenceSpecs(evidence));
@@ -181,12 +191,15 @@ export async function captureContextEvidence(store,evidence,{epoch,expectedAutho
  const result=await assess(store,[{epoch,evidence}],{epoch,expectedAuthority,workBudget:workBudget??createContextScopeWorkBudget({signal,database:store.repository.db})});if(!result.results[0].eligible){releaseContextLineage(result.captured);fail();}
  return {captured:result.captured,provenance:{epoch,evidence:result.results[0].evidence}};
 }
-export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null,retainAuthoredCapture=false}={}){
+export async function readableContextItems(store,items,{epoch,expectedAuthority=null,rowSerialized=null,retainAuthoredCapture=false,isCurrent=null}={}){
  items=items.filter(item=>item.lifecycle==='active');
  const automatic=items.filter(x=>x.origin==='automatic'&&x.maintenance.provenance.epoch===epoch),manual=items.filter(x=>x.origin!=='automatic');
  if(!automatic.length)return {items:manual,captured:null};
  need(automatic.every(x=>validContextMaintenance(x.maintenance)));
- const allowed=new Set(),workBudget=createContextScopeWorkBudget({database:store.repository.db});let captured=null;
+ // An original consumer may add its existing synchronous denial fence. It
+ // supplies no scope or grant, and shares this same ledger across preparation
+ // and original material reads; no new allowance is created after an await.
+ const allowed=new Set(),workBudget=createContextScopeWorkBudget({database:store.repository.db,isCurrent});let captured=null;
  try{
   // Each batch has bounded retained material; every scope, point read and hash
   // consumes one request-wide budget. No durable Item capacity is reduced.

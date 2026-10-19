@@ -2,7 +2,7 @@ import {generateKeyPairSync,sign} from 'node:crypto';
 import {EventEmitter} from 'node:events';
 import {Pool} from 'pg';
 import {identityConfigHash} from '../postgres-authority.mjs';
-import {requestBindingHash} from '../signed-identity.mjs';
+import {requestBindingHash,filterReadRequestBindingHash} from '../signed-identity.mjs';
 import {createPostgresReservationService} from '../reservation-service.mjs';
 import {ROUTE_FIELDS} from '../../../extension/core/ai-usage/ratebook.js';
 import {request,evidence} from './postgres-fixtures.mjs';
@@ -24,7 +24,14 @@ export function fixture(at=Date.UTC(2026,0,1)){
   const raw=[{alg:'RS256',typ:`paia-${kind}+jwt`,kid:kind},claims].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.');
   return [kind+'Token',raw+'.'+sign('RSA-SHA256',Buffer.from(raw),keys[kind].privateKey).toString('base64url')];
  }))});
- return {now,identityConfig,profileId,control,principal,grant,routeRow,bundle};
+ // A distinct test-only issuer profile. The original financial bundle above
+ // remains byte-for-byte unchanged; no automatic purpose fallback is offered.
+ const readBundle=(r,patch={})=>({request:r,...Object.fromEntries(['principal','entitlement'].map(kind=>{
+  const claims={iss:identityConfig[kind].issuer,aud:identityConfig[kind].audience,sub:r.principalId,iat:now/1000,nbf:now/1000,exp:now/1000+120,jti:`SYNTHETIC-${kind}-read-token`,library_id:r.libraryId,purpose:'AI_FILTER_VISIBILITY',read_session_id:r.readerSessionId,read_request_hash:filterReadRequestBindingHash(r),generation:`SYNTHETIC-${kind}-generation`,...(kind==='entitlement'?{principal_issuer:identityConfig.principal.issuer,tier:'free',entitlements:['AI_FILTER_VISIBILITY']}:{}),...(patch[kind]??{})};
+  const raw=[{alg:'RS256',typ:`paia-${kind}-filter-read+jwt`,kid:kind},claims].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.');
+  return [kind+'Token',raw+'.'+sign('RSA-SHA256',Buffer.from(raw),keys[kind].privateKey).toString('base64url')];
+ }))});
+ return {now,identityConfig,profileId,control,principal,grant,routeRow,bundle,readBundle};
 }
 export function protocol(f=fixture(),{hook}={}){
  let saved=null,clock=f.now,connected=0;

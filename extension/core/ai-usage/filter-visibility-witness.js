@@ -1,3 +1,4 @@
+import {validFilterVisibilityHistoryData} from './filter-visibility-history-data.js';
 import {readMaintenanceFilterCapability} from './maintenance-service-client.js';
 import {readMaintenanceFilterSettlement} from './foundation.js';
 import {readAIMaintenanceFilterVisibility} from './ai-filter-owner.js';
@@ -20,7 +21,7 @@ async function base(store){
  if(store.repository!==repository||repository.db!==database)deny();return {...result,repository,database};
 }
 const sameBase=(a,b)=>a.repository===b.repository&&a.database===b.database&&a.databaseId===b.databaseId&&a.restoreEpoch===b.restoreEpoch&&equal(a.secret,b.secret);
-function remember(store,envelope){const token=Object.freeze(Object.create(null));receipts.set(token,{store,repository:store.repository,database:store.repository.db,envelope:freeze(bounded(envelope))});return token;}
+function remember(store,envelope,fresh=false){const token=Object.freeze(Object.create(null));receipts.set(token,{fresh,store,repository:store.repository,database:store.repository.db,envelope:freeze(bounded(envelope))});return token;}
 // This function accepts only the original live capability plus the SAME original
 // writer publication and Foundation joined-ACK token. Live rows cannot recreate
 // those private objects. Crypto runs after the original transaction has ended.
@@ -31,11 +32,12 @@ export async function sealAIFilterVisibilityWitness({foundation,publication,sett
  const initial=await base(store),identity=Object.fromEntries(IDENTITY_FIELDS.map(k=>[k,view.identity[k]]));
  if(initial.restoreEpoch!==published.proof.restore||view.identity.tier!=='pro'||!equal(published.epochs,{entitlement:'service:'+view.identity.requestHash,optIn:view.consent.generation,processing:view.processingEpoch,userRead:view.userReadEpoch}))deny();
  const data=bounded({version:1,kind:'ai-filter-joined-visibility-v1',databaseId:initial.databaseId,restoreEpoch:initial.restoreEpoch,origin:view.origin,request:view.request,identity,consentEpoch,publication:published,settlement:joined});
+ if(!validFilterVisibilityHistoryData(data))deny();
  const signature=await keyedHash(initial.secret,['ai-filter-joined-visibility-witness-v1',canonical(data)]);
  if(!sameBase(initial,await base(store)))deny();
  // A witness is historical evidence only. Revocation or a later Keep may make
  // it ineligible immediately; no lease or hidden flag is created by signing it.
- return remember(store,{data,signature});
+ return remember(store,{data,signature},true);
 }
 export function serializeAIFilterVisibilityWitness(token,store){const r=receipts.get(token);return r?.store===store&&r.repository===store.repository&&r.database===store.repository.db?structuredClone(r.envelope):null;}
 export function readAIFilterVisibilityWitness(token,store){return serializeAIFilterVisibilityWitness(token,store)?.data??null;}
@@ -44,9 +46,13 @@ export function readAIFilterVisibilityWitness(token,store){return serializeAIFil
 export async function openAIFilterVisibilityWitness(store,input){
  try{
   const envelope=bounded(input);if(!exact(envelope,['data','signature'])||!hex(envelope.signature)||envelope.data?.version!==1||envelope.data.kind!=='ai-filter-joined-visibility-v1')return null;
-  const initial=await base(store),d=envelope.data;if(d.databaseId!==initial.databaseId||d.restoreEpoch!==initial.restoreEpoch||d.publication?.proof?.restore!==initial.restoreEpoch||d.settlement?.outcome!=='COMMITTED')return null;
+  const d=envelope.data;if(!validFilterVisibilityHistoryData(d))return null;const initial=await base(store);if(d.databaseId!==initial.databaseId||d.restoreEpoch!==initial.restoreEpoch||d.publication?.proof?.restore!==initial.restoreEpoch||d.settlement?.outcome!=='COMMITTED')return null;
   const signature=await keyedHash(initial.secret,['ai-filter-joined-visibility-witness-v1',canonical(d)]);if(signature!==envelope.signature||!sameBase(initial,await base(store)))return null;
   return remember(store,envelope);
  }catch{return null;}
 }
 export async function aiFilterVisibilityWitnessDigest(token,store){const data=readAIFilterVisibilityWitness(token,store);return data?hashText(canonical(data)):null;}
+
+// Only a newly sealed original joined ACK may create durable history. Opening
+// an envelope authenticates old history, but cannot republish a missing row.
+export function readFreshAIFilterVisibilityWitness(token,store){return receipts.get(token)?.fresh===true?serializeAIFilterVisibilityWitness(token,store):null;}

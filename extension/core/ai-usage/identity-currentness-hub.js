@@ -1,4 +1,4 @@
-import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,clientIdentityCurrentnessTransportDrained,reserveClientIdentityCurrentnessTransport,releaseClientIdentityCurrentnessTransport,openReservedClientIdentityCurrentnessTransport,readClientIdentityCurrentnessConnection} from './client-identity-currentness-transport.js';
+import {createClientIdentityCurrentnessTransport,clientIdentityCurrentnessTransportOrigin,clientIdentityCurrentnessTransportDrained,reserveClientIdentityCurrentnessTransport,releaseClientIdentityCurrentnessTransport,openReservedClientIdentityCurrentnessTransport,readClientIdentityCurrentnessConnection,openReservedClientFilterReadIdentityTransport,readClientFilterReadIdentityConnection,readClientIdentityCurrentnessConnectionFacts,readClientFilterReadIdentityConnectionFacts} from './client-identity-currentness-transport.js';
 import {createSharedMaintenanceIdentityChannelCurrentness} from './maintenance-identity-currentness.js';
 const hubs=new WeakMap(),tickets=new WeakMap();
 // One worker-owned transport budget spans BOTH paid clients and read-only
@@ -21,3 +21,15 @@ export async function openHubIdentityObservation(hub,ticket,bundle){
  const connection=await openReservedClientIdentityCurrentnessTransport(h.transport,r.slot,bundle);if(!h.current()){connection?.close();return null;}return connection;
 }
 export const readHubIdentityObservation=(hub,connection)=>{const h=hubs.get(hub);return h?.current()?readClientIdentityCurrentnessConnection(connection,h.transport):null;};
+
+// New read-purpose observations never enter the financial/paid-client reader.
+// They consume the SAME hub tickets, including proof-await and held-fetch time.
+export async function openHubFilterReadIdentityObservation(hub,ticket,bundle){
+ const h=hubs.get(hub),r=tickets.get(ticket);if(!h||!r||r.hub!==hub||!r.active)return null;r.active=false;
+ if(!h.current()){releaseClientIdentityCurrentnessTransport(h.transport,r.slot);return null;}
+ const connection=await openReservedClientFilterReadIdentityTransport(h.transport,r.slot,bundle);if(!h.current()){connection?.close();return null;}return connection;
+}
+export const readHubFilterReadIdentityObservation=(hub,connection)=>{const h=hubs.get(hub);return h?.current()?readClientFilterReadIdentityConnection(connection,h.transport):null;};
+
+export const readHubIdentityObservationFacts=(hub,connection,at)=>{const h=hubs.get(hub);return h?.current()?readClientIdentityCurrentnessConnectionFacts(connection,h.transport,at):null;};
+export const readHubFilterReadIdentityObservationFacts=(hub,connection,at)=>{const h=hubs.get(hub);return h?.current()?readClientFilterReadIdentityConnectionFacts(connection,h.transport,at):null;};

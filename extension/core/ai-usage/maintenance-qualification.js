@@ -1,9 +1,11 @@
+import {captureMaintenanceProcessingReceipt,assertMaintenanceProcessingReceipt,assertMaintenanceProcessingReceiptFacts} from './maintenance-processing-receipt.js';
 import {rootReadAuthority} from '../organizer/root-read.js';
 import {createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {prefix,idOK,revisionOK} from '../thought-model.js';
 import {canonical,digest,equal,exact,fail,opaque} from './contracts.js';
 const freeze=value=>{if(value&&typeof value==='object'){for(const x of Object.values(value))freeze(x);Object.freeze(value);}return value;};
 const size=x=>new TextEncoder().encode(JSON.stringify(x)).length;
+const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
 const need=(x,code='UNAVAILABLE')=>{if(!x)fail(code);};
 const ENTRY_FIELDS=['body','title','note'],capabilities=new WeakMap(),requestIdentities=new WeakMap(),qualificationReaders=new WeakMap();
 const own=(row,key)=>{const d=Object.getOwnPropertyDescriptor(row||{},key);need(!d||Object.hasOwn(d,'value'));return d?.value;};
@@ -38,7 +40,7 @@ const placementMetadata=row=>pick(row,['id','topicId','layoutGeneration','entryI
 const dependencyMetadata=row=>pick(row,['id','inputId','inputList','thoughtId','targetKind','targetId','eligibilityEpochAtUse','basedOnContentRevision','selectedFields','fieldDigests','validatedAgainstContentRevision','status','roles','sourceRecordIds','scopeToken','versionToken']);
 const provenanceMetadata=row=>pick(row,['id','ownerKind','ownerId','generationId','inputId','basedOnContentRevision','actualVersion','role','contributionType','formation','generatedAt','generator','inputAuthorshipAtUse','entryFieldAuthorshipAtCommit','sourceRecordIds','sourceIdentityTokens','scopeToken','versionToken','availability','contributionKey','span']);
 const sorted=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
-const textFields={thoughts:['thoughtText','title','note'],topics:['name','nameKey'],sections:['title'],blocks:['libraryText','note'],records:['originalText','note','editedText','chatTitle']};
+const textFields={thoughts:['thoughtText','title','note'],topics:['name','nameKey','summary'],sections:['title'],blocks:['libraryText','note'],records:['originalText','note','editedText','chatTitle']};
 
 // A separately granted, current-session local closure. It is never sent as
 // model evidence and never adds coverage. Only unchanged source-free human
@@ -81,13 +83,14 @@ async function metadataClosure(store,t,request,selection={}){
   if(d.kind==='placement'){const row=await t.get('placements',d.recordId||d.entityId);if(row?.id===d.entityId&&idOK(row.entryId)){await addEntry(row.entryId);historyEntries.add(row.entryId);}}
   if(['topic','section'].includes(d.kind)){
    const table=d.kind==='topic'?'topics':'sections',row=await t.get(table,d.recordId||d.entityId);if(!row)continue;
-   structures.set(JSON.stringify([table,row.id]),{table,metadata:structureMetadata(row),selectedFields:[d.kind==='topic'?'name':'title']});
+   const fields=d.kind==='topic'?['name','summary']:['title'];
+   structures.set(JSON.stringify([table,row.id]),{table,metadata:structureMetadata(row),selectedFields:fields});
    const range=d.kind==='topic'?prefix([row.id,row.activeLayoutGeneration,0]):prefix([row.topicId,row.layoutGeneration,row.sectionId,0]),index=d.kind==='topic'?'byTopicOrder':'bySectionOrder',count=await t.count('placements',index,range);
    need(Number.isSafeInteger(count)&&count>=0,'BUDGET_EXCEEDED');
    // The unchanged original structural validator rejects an oversized count
    // before reading any Entry. Do not grant or acquire a truncated subset.
    if(count<=Math.min(16,store.organizerBudget.limits.maxInputs))for(const p of await t.all('placements',index,range))if(p.lifecycle==='active'&&!p.excludedByUser)await addEntry(p.entryId);
-   const j=await t.get('revisions',d.journalId);if(j){const metadata=journalMetadata(j);need(metadata.kind===d.kind&&metadata.entityId===d.entityId);journals.set(j.id,{metadata,selectedFields:[d.kind==='topic'?'name':'title']});}
+   const j=await t.get('revisions',d.journalId);if(j){const metadata=journalMetadata(j);need(metadata.kind===d.kind&&metadata.entityId===d.entityId);journals.set(j.id,{metadata,selectedFields:fields});}
   }
  }
  // Only exact Topics already selected by an original mapping or authenticated
@@ -148,18 +151,31 @@ function textGuard(object,fields,allowed,current){
   Object.defineProperty(object,field,{enumerable:d.enumerable,configurable:true,get(){current();need(allowed(field));const value=Object.hasOwn(d,'value')?d.value:d.get?.call(object);current();return value;}});
  }return object;
 }
-function qualifiedReader(t,held,current,{topicLabels=false,metadataReader=t}={}){
- const wrap=(table,row)=>{current();if(!row)return row;
+// Strict identity consumers have a separately granted label universe. Keep
+// only the original identity metadata schema; unknown semantic objects cannot
+// be acquired by identityMetadata() or the original Source sanitizer clone.
+function strictTopicIdentityRow(row){
+ const projected=pick(row,['id','revision','organizationRevision','activeLayoutGeneration','defaultSectionId','lifecycle','redirectTo','layoutJobId','sourceRecordIds','createdAt','createdBy','updatedAt','pinKey','pinRank']);
+ if(Object.hasOwn(row,'protections'))projected.protections=named(own(row,'protections'),['name','title','keep','lifecycle','organization'],v=>named(v,['locked','reason','operationId','at']));
+ if(Object.hasOwn(row,'identity')){
+  const identity=own(row,'identity');need(identity&&typeof identity==='object'&&!Array.isArray(identity));need(own(identity,'scope')===null);
+  projected.identity=named(identity,['version','revision','origin','scope','legacy','noRecreation','nameToken','aliases','lifecycleIntent'],(value,key)=>key==='aliases'?list(value,v=>named(v,['token','actor','revision','operationId','at'])):key==='lifecycleIntent'?named(value,['actor','operationId','at','previous','to']):scalar(value));
+ }
+ for(const field of ['name','nameKey']){const descriptor=Object.getOwnPropertyDescriptor(row,field);if(descriptor)Object.defineProperty(projected,field,{...descriptor,configurable:true});}
+ return projected;
+}
+function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t}={}){
+ const wrap=(table,row)=>{current();if(!row)return row;if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
   if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected)need(equal(entryMetadata(row),expected),'STALE_BASE');row=textGuard(row,textFields.thoughts,()=>!!expected,current);}
   else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected)need(equal(structureMetadata(row),expected.metadata),'STALE_BASE');row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
-  else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
+  else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey','summary'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
   else if(table==='blocks'||table==='records'){const selected=table==='blocks'?held.inputs.has(row.id):held.sources.has(row.id);row={...row,value:textGuard(row.value,textFields[table],field=>selected&&(table==='blocks'?['libraryText','note'].includes(field):field==='originalText'),current)};}
   else if(table==='inputStates'&&held.inputs.has(row.id))need(equal(pick(row,['id','contentRevision','lastRemovalSequence','sourceRecordIds','removalState','sourcePurged']),held.inputs.get(row.id)),'STALE_BASE');
   current();return row;
  };
  const checked=async table=>{current();if(['thoughts','blocks','records','revisions'].includes(table))await assertLocalClosures(metadataReader,held);current();};
  const reader=Object.create(t);reader.get=async(...args)=>{current();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{current();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
- reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};reader.rangePage=async(...args)=>{current();const page=await t.rangePage(...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
+ reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])reader[method]=async(...args)=>{current();const page=await t[method](...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
  return reader;
 }
 // Mint outside a transaction. The digest binds the complete original metadata
@@ -183,13 +199,16 @@ export async function createMaintenanceQualification(store,transaction,request,{
  const scope=freeze({purpose:'ai-maintenance-qualification',phase,binding:structuredClone(binding),batchFingerprint:requestFingerprint(request,requestIdentity),restoreEpoch:restore,rootAuthority:authority,...held.scope});need(size(scope)<=32768,'BUDGET_EXCEEDED');check();
  const raw=await processing.resolve(t,scope);check();exact(raw,['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal']);
  need(Reflect.ownKeys(raw).every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(raw,k),'value'))&&raw.version===1&&raw.store===store&&raw.caller===caller&&Object.isFrozen(caller)&&opaque(raw.epoch)&&raw.processing===true&&Number.isSafeInteger(raw.expiresAt)&&raw.expiresAt>Date.now()&&raw.revocationSignal instanceof AbortSignal&&!raw.revocationSignal.aborted&&equal(scopeData(raw.scope),scope));
- if(parent)need(parent.store===store&&parent.caller===caller&&parent.epoch===raw.epoch&&parent.revocationSignal===raw.revocationSignal&&parent.expiresAt>=raw.expiresAt);
- const receipt=Object.freeze({...raw,scope}),record={store,database,held,receipt,workBudget:budget,released:false,current:null};
- record.current=()=>{check();need(!record.released&&!receipt.revocationSignal.aborted&&Date.now()<receipt.expiresAt&&processing.isCurrent(receipt,store)===true);};record.current();need(await rootReadAuthority(t)===authority,'STALE_BASE');record.current();
+ if(parent){assertMaintenanceProcessingReceipt(parent,processing,store);need(parent.store===store&&parent.caller===caller&&parent.epoch===raw.epoch&&parent.revocationSignal===raw.revocationSignal&&parent.expiresAt>=raw.expiresAt);}
+ const receipt=captureMaintenanceProcessingReceipt(raw,{processing,store,caller,scope}),record={store,repository:store.repository,database,requestSignal:signal,held,receipt,workBudget:budget,released:false,current:null};
+ record.current=()=>{check();need(!record.released);assertMaintenanceProcessingReceipt(receipt,processing,store);};record.current();need(await rootReadAuthority(t)===authority,'STALE_BASE');record.current();
  const token=Object.freeze({});capabilities.set(token,record);return token;
 }
 function qualified(token,store){const record=capabilities.get(token);need(record&&record.store===store&&record.database===store.repository.db);record.current();return record;}
 export function assertMaintenanceQualification(token,store=null){const r=capabilities.get(token);need(r);qualified(token,store??r.store);return true;}
+// Only the originally captured facts, with no host/issuer callback. A caller
+// must first perform the normal active qualification/identity checks.
+export function assertMaintenanceQualificationFacts(token,store=null){const r=capabilities.get(token);need(r&&!r.released&&(store===null||r.store===store)&&r.store.repository===r.repository&&r.repository.db===r.database&&(r.requestSignal===null||r.requestSignal instanceof AbortSignal&&!signalAborted.call(r.requestSignal)));assertMaintenanceProcessingReceiptFacts(r.receipt,r.store);return true;}
 export function maintenanceQualificationReceipt(token,store){return qualified(token,store).receipt;}
 export function maintenanceQualificationReader(token,store,t,{account=true,...options}={}){
  const r=qualified(token,store);need(r.workBudget.reads<CONTEXT_TOPIC_SCOPE_LIMITS.reads&&r.workBudget.hashBytes<CONTEXT_TOPIC_SCOPE_LIMITS.hashBytes&&r.workBudget.hashFields<CONTEXT_TOPIC_SCOPE_LIMITS.hashFields,'BUDGET_EXCEEDED');

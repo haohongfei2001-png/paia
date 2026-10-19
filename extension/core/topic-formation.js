@@ -1,8 +1,10 @@
+import {captureTopicFormationTerminal,registerTopicFormationTerminal,sameTopicWriteData} from './topic-formation-terminal.js';
+import {readMaintenanceTopicCandidateOperation,assertMaintenanceTopicCandidateOperation} from './ai-usage/maintenance-topic-candidates.js';
 import {rootReadAuthority} from './organizer/root-read.js';
 import {CONTEXT_LINEAGE_LIMITS} from './context-item-lineage.js';
 import {fail,keys,idOK,prefix,same,keyedHash,protections,rankBetween} from './thought-model.js';
 import {TopicIdentityRetrieval} from './topic-retrieval.js';
-import {HiddenTopicCandidates} from './topic-candidates.js';
+import {HiddenTopicCandidates,TOPIC_CANDIDATE_PREFIX} from './topic-candidates.js';
 import {initializeTopicIdentity,registerTopicName,setTopicLifecycle,resolveTopicIdentity} from './topic-identity.js';
 import {automaticMembershipAllowed} from './topic-intent.js';
 import {journal,receipt,saveReceipt} from './thought-journal.js';
@@ -16,6 +18,7 @@ import {evaluateTopicFormation,formationParameters} from './topic-formation-poli
 // bounded metadata write intents, never provider proposals or refreshed rows.
 const publications=new WeakMap(),rootIds=['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','recovery-restore-epoch','backup-data-generation'];
 const graphStores=new Set(['topics','sections','thoughts','placements','dependencies','provenance']);
+const candidateIntent=(store,id,value)=>store==='organizerWorkItems'&&typeof id==='string'&&id.startsWith(TOPIC_CANDIDATE_PREFIX)&&(value===null||value?.kind==='personal_topic_candidate');
 const entryMetadata=['id','revision','lifecycle','freshness','staleReasons','bodyBinding','workingInputId','bindingRevision','bindingLength','sourceRecordIds','inputRefs','provenanceType','integrity'];
 export function readTopicFormationPublication(token,store,{transaction=null}={}){
  const p=publications.get(token);if(!p||p.store!==store||p.database!==store.repository.db||!p.frozen||(!p.committed&&transaction!==p.transaction))return null;
@@ -88,17 +91,22 @@ export class TopicFormationService {
   return {view:structuredClone(m.decisionInput),sourceCount:new Set(m.snapshot.inputs.flatMap(i=>i.sourceIds)).size};
  }
  releaseMaterial(handle){this.#materials.delete(handle);}
- async prepare(request,{signal=null}={}){
+ async prepare(request,{signal=null,maintenanceCandidate=null}={}){
   keys(request,['scope','operationId','entryIds','candidateId','expectedCandidateRevision'],['scope','operationId']);
   if(!idOK(request.operationId)||request.operationId.length<8||!this.#decision||!this.#parameters||request.entryIds!==undefined&&(!Array.isArray(request.entryIds)||request.entryIds.length>FORMATION_WORK_LIMITS.entries||new Set(request.entryIds).size!==request.entryIds.length||request.entryIds.some(x=>!idOK(x))))fail();
   if(request.candidateId!==undefined&&(!idOK(request.candidateId)||!Number.isSafeInteger(request.expectedCandidateRevision)||request.expectedCandidateRevision<0)||request.candidateId===undefined&&request.expectedCandidateRevision!==undefined)fail();
   assertActive(signal);request=structuredClone(request);
+  const candidateOperation=maintenanceCandidate===null?null:readMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});
+  if(candidateOperation){if(!same(request.scope,candidateOperation.scope)||request.candidateId!==undefined&&request.candidateId!==candidateOperation.candidateId||request.expectedCandidateRevision!==undefined&&request.expectedCandidateRevision!==candidateOperation.candidateRevision)fail();if(candidateOperation.candidateId)Object.assign(request,{candidateId:candidateOperation.candidateId,expectedCandidateRevision:candidateOperation.candidateRevision});await this.store.run(()=>this.store.repository.transaction(false,t=>assertMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,t,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()})));}
   const operation={kind:'personal-topic-formation',...request,decisionVersion:this.#decision.version,parameters:this.#parameters};
   const initial=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
-  if(prior){await this.read(initial,t=>this.authorizeTopics(t,initial,prior.topicIds||[]));assertActive(signal);const handle=freeze({...prior,replayed:true});this.#plans.set(handle,{request,operation,signal,prior});return handle;}
+  if(prior){await this.read(initial,t=>this.authorizeTopics(t,initial,prior.topicIds||[]));assertActive(signal);const handle=freeze({...prior,replayed:true});this.#plans.set(handle,{request,operation,signal,prior,maintenanceCandidate,candidateOperation});return handle;}
   const {prepared,topicIds,snapshot,identities,sections,constraints,decisionInput}=await this.#collectMaterial(request.scope,request.entryIds||[],signal);
   assertActive(signal);let assessment;try{assessment=freeze(structuredClone(await this.#decision.assess(decisionInput)));}catch{fail();}assertActive(signal);
   const plan=evaluateTopicFormation(assessment,snapshot,identities,sections,this.#parameters);
+  // Historical primary roles remain evidence roles. The independent source
+  // capability, not the assessor, fixes this child's permitted Entry mutations.
+  if(candidateOperation&&(plan.entries.some(e=>!candidateOperation.mutationInputIds.includes(e.span.inputId))||candidateOperation.candidate&&plan.boundaryKey!==null))fail();
   const nameTokens=['create','candidate'].includes(plan.outcome)&&plan.name?[await keyedHash(prepared.authority.secret,['personal-topic-name-v1',plan.name.normalize('NFKC').toLocaleLowerCase().trim()])]:[];
   // Coverage establishes which identities were considered, never their meaning.
   // Recheck its generation and separate negative-intent proof at final write.
@@ -119,32 +127,38 @@ export class TopicFormationService {
   let candidatePlan=null,consumePlan=null;
   if(plan.outcome==='candidate'){
    const names=plan.name?[plan.name]:[];let namedCursor=null,namedPage;do{assertActive(signal);namedPage=await this.retrieval.page({scope:request.scope,names,cursor:namedCursor});namedCursor=namedPage.nextCursor;}while(namedCursor);
-   candidatePlan=await this.candidates.prepareRecord({scope:request.scope,names,coverage:namedPage.coverage,...(plan.boundaryKey?{boundaryKey:plan.boundaryKey}:{}),...(request.candidateId?{candidateId:request.candidateId,expectedRevision:request.expectedCandidateRevision}:{})});
+   candidatePlan=await this.candidates.prepareRecord({scope:request.scope,names,coverage:namedPage.coverage,...(!candidateOperation?.candidate&&plan.boundaryKey?{boundaryKey:plan.boundaryKey}:{}),...(request.candidateId?{candidateId:request.candidateId,expectedRevision:request.expectedCandidateRevision}:{})},{candidate:candidateOperation?.candidate??null});
   }
   if(request.candidateId&&['create','reuse'].includes(plan.outcome)){
-   const candidate=await this.candidates.read(request.candidateId);if(!candidate||candidate.revision!==request.expectedCandidateRevision)fail();
+   const candidate=candidateOperation?.candidate?this.candidates.selectionMetadata(candidateOperation.candidate):await this.candidates.read(request.candidateId);if(!candidate||candidate.revision!==request.expectedCandidateRevision)fail();
    const complete=candidate.evidence.every(e=>e.selectedFields.every(field=>{const input=snapshot.inputs.find(x=>x.id===e.inputId),spans=assessment.evidence.filter(c=>c.inputId===e.inputId&&c.field===field).sort((a,b)=>a.start-b.start);let end=0;for(const span of spans){if(span.start>end)return false;end=Math.max(end,span.end);}return input&&end===input.fields[field].length;}));
-   if(complete)consumePlan=await this.candidates.prepareConsume({candidateId:request.candidateId,expectedRevision:request.expectedCandidateRevision,scope:request.scope,boundaryKey:plan.boundaryKey});
+   if(complete)consumePlan=await this.candidates.prepareConsume({candidateId:request.candidateId,expectedRevision:request.expectedCandidateRevision,scope:request.scope,boundaryKey:candidateOperation?.candidate?null:plan.boundaryKey},{candidate:candidateOperation?.candidate??null});
   }
   await this.read(prepared,async t=>{await this.authorizeTopics(t,prepared,topicIds);assertActive(signal);});
-  const handle=freeze({...publicReport(plan),decisionVersion:this.#decision.version});this.#plans.set(handle,{request,operation,signal,prepared,plan,projection,entryPlans,snapshot:finalSnapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan});return handle;
+  if(candidateOperation)readMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});
+  const handle=freeze({...publicReport(plan),decisionVersion:this.#decision.version});this.#plans.set(handle,{request,operation,signal,prepared,plan,projection,entryPlans,snapshot:finalSnapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan,maintenanceCandidate,candidateOperation});return handle;
  }
  cancel(handle){const state=this.#plans.get(handle);if(!state)fail();state.cancelled=true;}
  async commit(handle){
   const state=this.#plans.get(handle);if(!state||state.cancelled)fail();assertActive(state.signal);
-  const {request,operation}=state,current=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
+  const {request,operation}=state;
+  const candidateOperation=state.maintenanceCandidate===null||state.maintenanceCandidate===undefined?null:readMaintenanceTopicCandidateOperation(state.maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});
+  if(!same(candidateOperation,state.candidateOperation??null))fail();
+  const current=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
   if(prior){await this.read(current,t=>this.authorizeTopics(t,current,prior.topicIds||[]));assertActive(state.signal);if(state.cancelled)fail();return prior;}
   if(state.prior)fail();
   const {prepared,plan,projection,entryPlans,snapshot,topicIds,nameTokens,proof,candidatePlan,consumePlan}=state,digest=await hashText(JSON.stringify(operation));
-  let transaction=null,committedTopicIds=[],publication=null,publicationState=null,recording=false,depth=0,rootExpected=null,retained=0;const intents=new Map();
+  let transaction=null,committedTopicIds=[],publication=null,publicationState=null,recording=false,depth=0,rootExpected=null,terminalFacts=null,retained=new TextEncoder().encode(JSON.stringify(candidateOperation?.baselines||[])).length;const intents=new Map();if(retained>CONTEXT_LINEAGE_LIMITS.hashBytes)fail();
   const publicationToken=()=>publication;
-  const record=(store,id,value)=>{if(!recording||depth)return;if(graphStores.has(store)){const key=JSON.stringify([store,id]),prior=intents.get(key);retained-=prior?new TextEncoder().encode(JSON.stringify(prior)).length:0;const next={store,id,value:value===null?null:structuredClone(value)};retained+=new TextEncoder().encode(JSON.stringify(next)).length;if(retained>CONTEXT_LINEAGE_LIMITS.hashBytes)fail();intents.set(key,next);}if(store==='meta'){const index=rootIds.indexOf(id);if(index>=0)rootExpected[index]=value?.value??null;else if(id==='smart-filter')rootExpected[6]=['mode','phase','policyEpoch','decisionSequence','filterVersion','policyVersion','classifierVersion'].map(key=>value?.[key]??null);}};
-  const seal=()=>{recording=false;publicationState.stagedAuthority=JSON.stringify(rootExpected);const after=structuredClone(rootExpected);if(transaction.backupChanged)after[5]=(after[5]||0)+1;publicationState.afterAuthority=JSON.stringify(after);publicationState.writes=[...intents.values()].filter(x=>['thoughts','placements','dependencies','provenance'].includes(x.store)).map(x=>({...x,value:x.store==='thoughts'&&x.value?Object.fromEntries(entryMetadata.filter(k=>Object.hasOwn(x.value,k)).map(k=>[k,structuredClone(x.value[k])])):structuredClone(x.value)}));publicationState.frozen=true;};
+  const retainTerminal=value=>{const bytes=new TextEncoder().encode(JSON.stringify(value)).length;retained+=bytes;if(retained>CONTEXT_LINEAGE_LIMITS.hashBytes)fail();return structuredClone(value);};
+  const terminalCurrent=()=>{assertActive(state.signal);if(state.cancelled||publicationState&&publicationState.database!==this.store.repository.db)fail();return true;};
+  const record=(store,id,value)=>{if(!recording||depth)return;if(graphStores.has(store)||candidateIntent(store,id,value)){const key=JSON.stringify([store,id]),prior=intents.get(key);retained-=prior?new TextEncoder().encode(JSON.stringify(prior)).length:0;const next={store,id,value:value===null?null:structuredClone(value)};retained+=new TextEncoder().encode(JSON.stringify(next)).length;if(retained>CONTEXT_LINEAGE_LIMITS.hashBytes)fail();intents.set(key,next);}if(store==='meta'){const index=rootIds.indexOf(id);if(index>=0)rootExpected[index]=value?.value??null;else if(id==='smart-filter')rootExpected[6]=['mode','phase','policyEpoch','decisionSequence','filterVersion','policyVersion','classifierVersion'].map(key=>value?.[key]??null);}};
+  const seal=()=>{recording=false;publicationState.stagedAuthority=JSON.stringify(rootExpected);const after=structuredClone(rootExpected);if(transaction.backupChanged)after[5]=(after[5]||0)+1;publicationState.afterAuthority=JSON.stringify(after);publicationState.writes=[...intents.values()].filter(x=>['thoughts','placements','dependencies','provenance'].includes(x.store)||candidateIntent(x.store,x.id,x.value)).map(x=>({...x,value:x.store==='thoughts'&&x.value?Object.fromEntries(entryMetadata.filter(k=>Object.hasOwn(x.value,k)).map(k=>[k,structuredClone(x.value[k])])):structuredClone(x.value)}));publicationState.frozen=true;registerTopicFormationTerminal(this.store,transaction,{facts:terminalFacts,intents,baselines:candidateOperation?.baselines,root:rootExpected,qualification:this.retrieval.guard.qualification(),current:terminalCurrent,compatibilityRecheck:async()=>{if(await this.retrieval.guard.processing(transaction,prepared.evidence,[])!==prepared.authority.processingEpoch)fail();await this.authorizeTopics(transaction,prepared,unique([...topicIds,...committedTopicIds]));terminalCurrent();}});};
   // Original owner capability, never provider/schema data. A joined owner may
   // recheck this exact processing/evidence grant after staging its own ACK.
-  const finalFence=async t=>{if(t!==transaction)fail();await this.retrieval.guard.check(t,prepared);const source=await readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared);if(!same(source.inputs,snapshot.inputs)||!same(source.sources,snapshot.sources))fail();await this.authorizeTopics(t,prepared,unique([...topicIds,...committedTopicIds]));assertActive(state.signal);if(state.cancelled)fail();if(rootExpected&&await rootReadAuthority(t)!==JSON.stringify(rootExpected))fail();for(const {store,id,value}of intents.values())if(!same((await t.get(store,id))??null,value))fail();return true;};
+  const finalFence=async t=>{if(t!==transaction)fail();if(candidateOperation){readMaintenanceTopicCandidateOperation(state.maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});for(const row of candidateOperation.baselines){const intent=intents.get(JSON.stringify(['organizerWorkItems',row.id])),expected=intent?intent.value:row;if(!sameTopicWriteData((await t.get('organizerWorkItems',row.id))??null,expected))fail();}}await this.retrieval.guard.check(t,prepared);const source=await readFormationEvidence(this.store,this.retrieval.guard.reader(t),prepared);if(!same(source.inputs,snapshot.inputs)||!same(source.sources,snapshot.sources))fail();await this.authorizeTopics(t,prepared,unique([...topicIds,...committedTopicIds]));assertActive(state.signal);if(state.cancelled)fail();if(rootExpected&&await rootReadAuthority(t)!==JSON.stringify(rootExpected))fail();for(const {store,id,value}of intents.values())if(!sameTopicWriteData((await t.get(store,id))??null,value))fail();return true;};
   try{const result=await this.#writeTransaction(async t=>{
-   transaction=t;const originalGet=t.get.bind(t),qualifiedRead=this.retrieval.guard.reader(Object.assign(Object.create(t),{get:originalGet}));t.get=(table,id)=>['blocks','records','inputStates'].includes(table)?qualifiedRead.get(table,id):originalGet(table,id);publication=Object.freeze({});const beforeAuthority=await rootReadAuthority(t);rootExpected=JSON.parse(beforeAuthority);publicationState={store:this.store,database:this.store.repository.db,transaction:t,operationId:operation.operationId,beforeAuthority,stagedAuthority:null,afterAuthority:null,writes:[],frozen:false,committed:false};publications.set(publication,publicationState);recording=true;
+   transaction=t;if(candidateOperation)await assertMaintenanceTopicCandidateOperation(state.maintenanceCandidate,this.store,t,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});const originalGet=t.get.bind(t),qualifiedRead=this.retrieval.guard.reader(Object.assign(Object.create(t),{get:originalGet}));t.get=(table,id)=>['blocks','records','inputStates'].includes(table)?qualifiedRead.get(table,id):originalGet(table,id);publication=Object.freeze({});const beforeAuthority=await rootReadAuthority(t);rootExpected=JSON.parse(beforeAuthority);publicationState={store:this.store,database:this.store.repository.db,transaction:t,operationId:operation.operationId,beforeAuthority,stagedAuthority:null,afterAuthority:null,writes:[],frozen:false,committed:false};publications.set(publication,publicationState);terminalFacts=await captureTopicFormationTerminal(this.store,this.retrieval.guard.reader(t),prepared.evidence,{retain:retainTerminal,current:terminalCurrent});recording=true;
    const put=t.put.bind(t),remove=t.delete.bind(t);t.put=async(store,value,key)=>{record(store,key===undefined?value?.id:key,value);depth++;try{return await put(store,value,key);}finally{depth--;}};t.delete=async(store,id)=>{record(store,id,null);depth++;try{return await remove(store,id);}finally{depth--;}};
    const replay=await receipt(t,operation,digest);if(replay){await this.retrieval.guard.check(t,current);await this.authorizeTopics(t,current,replay.topicIds||[]);assertActive(state.signal);if(state.cancelled)fail();committedTopicIds=[...(replay.topicIds||[])];await finalFence(t);seal();return replay;}
    const active=()=>{assertActive(state.signal);if(state.cancelled)fail();};active();

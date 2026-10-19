@@ -1,4 +1,5 @@
 import {createHash, createPublicKey, constants, verify as verifySignature} from 'node:crypto';
+import {snapshotFilterReadRequest,filterReadRequestBindingData,FILTER_READ_IDENTITY_PURPOSE} from '../../extension/core/ai-usage/filter-read-identity-data.js';
 import {ENVELOPES} from '../../extension/core/ai-usage/admission-policy.js';
 
 // A deliberately narrow JWT application profile, not an OAuth/OIDC client or an
@@ -183,4 +184,52 @@ export function createSignedIdentityVerifier({config, clock, readSecurityState} 
   };
   // Preserve the established verify() result shape for all existing consumers.
   return Object.freeze({verify:bundle=>verify(bundle,false),verifyValidity:bundle=>verify(bundle,true)});
+}
+
+// A separate application profile for current identity while READ-qualifying
+// already joined/ACKed Filter history. It conveys no financial operation,
+// content permission, write eligibility, historical ACK, or decision validity.
+// Do not add a financial-token fallback: both typ and the closed claim set are
+// purpose-specific, even when the same pinned issuer keys sign both profiles.
+const FILTER_READ_CLAIMS=['iss','aud','sub','iat','nbf','exp','jti','library_id','purpose','read_session_id','read_request_hash','generation'];
+export {snapshotFilterReadRequest};
+export function filterReadRequestBindingHash(value){return createHash('sha256').update(filterReadRequestBindingData(value),'utf8').digest('hex');}
+export function snapshotFilterReadBundle(value){
+ exactData(value,['request','principalToken','entitlementToken']);
+ if(!['principalToken','entitlementToken'].every(k=>typeof value[k]==='string'&&value[k].length>0&&value[k].length<=MAX_TOKEN))reject();
+ return Object.freeze({request:snapshotFilterReadRequest(value.request),principalToken:value.principalToken,entitlementToken:value.entitlementToken});
+}
+function verifyFilterReadToken(token,kind,config,request,now){
+ if(typeof token!=='string'||token.length>MAX_TOKEN)reject();
+ const parts=token.split('.');if(parts.length!==3)reject();
+ const header=parseProfileObject(decoder.decode(decode(parts[0],1024)));
+ exactData(header,['alg','typ','kid']);
+ if(header.alg!=='RS256'||header.typ!==`paia-${kind}-filter-read+jwt`||!identifier(header.kid))reject();
+ const authority=config[kind],key=authority.keys.get(header.kid);
+ if(!key||key.revoked||now<key.notBefore||now>=key.notAfter)reject('IDENTITY_REVOKED');
+ const signature=decode(parts[2],MAX_SIGNATURE_BYTES);
+ if(signature.length!==key.size||!verifySignature('RSA-SHA256',Buffer.from(`${parts[0]}.${parts[1]}`,'ascii'),{key:key.key,padding:constants.RSA_PKCS1_PADDING},signature))reject();
+ const claims=parseProfileObject(decoder.decode(decode(parts[1],4096)));
+ exactData(claims,kind==='principal'?FILTER_READ_CLAIMS:[...FILTER_READ_CLAIMS,'principal_issuer','tier','entitlements']);
+ if(claims.iss!==authority.issuer||claims.aud!==authority.audience||!boundedString(claims.sub)||!identifier(claims.jti)||!identifier(claims.generation))reject();
+ if(!['iat','nbf','exp'].every(k=>integer(claims[k]))||claims.iat>now||claims.nbf>now||claims.exp<=now||claims.nbf<claims.iat||claims.nbf>=claims.exp||claims.exp-claims.iat>config.maxTokenAgeSeconds||now-claims.iat>config.maxTokenAgeSeconds||claims.iat<key.notBefore||claims.exp>key.notAfter)reject('IDENTITY_TIME_INVALID');
+ if(claims.sub!==request.principalId||claims.library_id!==request.libraryId||claims.purpose!==FILTER_READ_IDENTITY_PURPOSE||claims.read_session_id!==request.readerSessionId||claims.read_request_hash!==filterReadRequestBindingHash(request))reject('IDENTITY_BINDING');
+ if(kind==='entitlement'&&(claims.principal_issuer!==config.principal.issuer||!['free','pro'].includes(claims.tier)||!Array.isArray(claims.entitlements)||claims.entitlements.length!==1||claims.entitlements[0]!==FILTER_READ_IDENTITY_PURPOSE))reject('ENTITLEMENT_INVALID');
+ return {claims,kid:header.kid};
+}
+export function createSignedFilterReadIdentityVerifier({config,clock,readSecurityState}={}){
+ let trust=null,lastNow=-1;try{trust=compile(config);}catch{}
+ const verify=bundle=>{
+  try{
+   if(!trust||typeof clock!=='function'||typeof readSecurityState!=='function')reject('IDENTITY_UNCONFIGURED');
+   const b=snapshotFilterReadBundle(bundle),request=b.request,millis=clock();
+   if(!integer(millis)||millis<lastNow)reject('UNTRUSTED_CLOCK');lastNow=millis;const now=Math.floor(millis/1000);
+   const principal=verifyFilterReadToken(b.principalToken,'principal',trust,request,now),entitlement=verifyFilterReadToken(b.entitlementToken,'entitlement',trust,request,now);
+   const state=requireSynchronous(readSecurityState(Object.freeze({principalId:request.principalId,libraryId:request.libraryId})));
+   securityState(state,trust,now,principal,entitlement);
+   return Object.freeze({...request,tier:entitlement.claims.tier,principalGeneration:principal.claims.generation,entitlementGeneration:entitlement.claims.generation,
+    verifiedUntil:Math.min(Number.MAX_SAFE_INTEGER,1000*Math.min(principal.claims.exp,entitlement.claims.exp,trust.principal.keys.get(principal.kid).notAfter,trust.entitlement.keys.get(entitlement.kid).notAfter,state.expiresAt,state.observedAt+trust.maxSecurityStateAgeSeconds))});
+  }catch(error){if(error instanceof IdentityVerificationError)throw error;reject();}
+ };
+ return Object.freeze({verifyValidity:verify});
 }

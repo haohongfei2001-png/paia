@@ -4,7 +4,7 @@ import {bindingRead} from './thought-binding.js';
 import {readDependencyInputs,dependencyLifecycle} from './thought-evidence.js';
 import {entryMatchesProvider} from './thought-source-scope.js';
 import {validProvider} from './read-projection-keys.js';
-import {boundedThoughtRead,thoughtReadTopic,thoughtReadSection,thoughtReadPlacement} from './thought-library-read-model.js';
+import {boundedThoughtRead,thoughtSectionTransactionReader,prepareThoughtSectionVisibility,thoughtReadTopic,thoughtReadSection,thoughtReadPlacement} from './thought-library-read-model.js';
 import {thoughtTopicGenerationMatches,thoughtTopicExpressionPage} from './thought-read-index.js';
 import {descriptorReader} from './organizer/topic-reading.js';
 
@@ -21,20 +21,30 @@ const sameBody=(entry,ref)=>entry.id===ref.entryRef.id&&entry.revision===ref.ent
 const normalized=value=>String(value??'').normalize('NFKC').toLocaleLowerCase();
 const sameTopic=(a,b)=>a?.id===b?.id&&a?.revision===b?.revision&&a?.organizationRevision===b?.organizationRevision&&a?.activeLayoutGeneration===b?.activeLayoutGeneration;
 
+
+const filterSelections=new WeakMap();
+function filterSelection(model,result,refs,sections){
+ const topic=result.topic,entries=refs.map(ref=>Object.freeze({id:ref.entryRef.id,revision:ref.entryRef.revision,contentRevision:ref.entryRef.contentRevision,placementRevision:ref.placement.revision,sectionId:ref.placement.sectionId})),sectionIds=[...new Set([...sections.map(section=>section.id??section.sectionId),...entries.map(entry=>entry.sectionId)])];
+ if(entries.length>40||sectionIds.length>100||entries.some(entry=>!idOK(entry.id))||sectionIds.some(id=>!idOK(id))||new Set(entries.map(entry=>entry.id)).size!==entries.length)unavailable();
+ const token=Object.freeze({});filterSelections.set(token,{model,result,selection:Object.freeze({topicId:topic.id,revision:topic.revision,organizationRevision:topic.organizationRevision,layoutGeneration:topic.layoutGeneration,entries:Object.freeze(entries),sectionIds:Object.freeze(sectionIds)})});return token;
+}
+// Only actual original Section page selection can produce this one-use hint.
+export function readSectionFilterVisibilitySelection(token,model,result){const r=filterSelections.get(token);filterSelections.delete(token);return r&&r.model===model&&r.result===result?r.selection:null;}
+
 // Reuse the actual canonical body/binding/chronology owners, but make their
 // foundation and transaction boundaries strictly read-only. No run() migration,
 // chronology maintenance, alternate body store or swallowed read error.
 // Canonical local Thought readability preserves existing human work. Smart
 // Filter qualification of generated labels remains the 05.1 owner's stricter
 // policy; this local reader never grants processing or external access.
-function readOwner(model){
+function readOwner(model,result){
  const source=model.s,owner=Object.create(source);
  owner.run=work=>work();
  owner.finishFoundation=async()=>{if(!model.ready())unavailable();};
  owner.repository=Object.create(source.repository);
  owner.repository.transaction=(write,work,stores)=>{
   if(write)unavailable();
-  return source.repository.transaction(false,t=>work(boundedThoughtRead(t)),stores);
+  return source.repository.transaction(false,t=>work(thoughtSectionTransactionReader(model,result,t)),stores);
  };
  return owner;
 }
@@ -113,7 +123,7 @@ export class ThoughtSectionReading{
    return {raw,topic,recoveryEpoch,prior,tracked:await trackedReferences(s,t,trackedEntryIds)};
   },async result=>{
    if(!result.raw)return result;
-   const {raw,topic,recoveryEpoch,prior,tracked,authority}=result,canonical=new Map(),owner=Object.create(s),reader=readOwner(model);
+   const {raw,topic,recoveryEpoch,prior,tracked,authority}=result,canonical=new Map(),owner=Object.create(s),reader=readOwner(model,result);
    // The lexical owner may maintain its original descriptor index. Use the
    // actual store queue so this adapter cannot fork tail/control publication
    // state while capture, filtering or preferences use that same store.
@@ -133,10 +143,10 @@ export class ThoughtSectionReading{
    const generation=lexicalGeneration?this.generation(JSON.stringify(['section_query',authority,topicId,query,providerKey,lexicalGeneration])):null;
    if(expectedReadGeneration!==null&&expectedReadGeneration!==generation||prior&&prior.generation!==generation)return stale();
    if(!Array.isArray(page.items)||page.items.length>limit)unavailable();
-   const qualified=await s.repository.transaction(false,async tx=>{
-    const t=boundedThoughtRead(tx),current=await t.get('topics',topicId);
+   const qualify=()=>s.repository.transaction(false,async tx=>{
+    const t=thoughtSectionTransactionReader(model,result,tx),current=await t.get('topics',topicId);
     if(!sameTopic(raw,current)||!await thoughtReadTopic(s,t,current))return null;
-    const items=[],sections=new Map();
+    const items=[],sections=new Map(),refs=[];
     for(const item of page.items){
      const e=canonical.get(item.entry?.id),p=await t.get('placements',JSON.stringify([topicId,current.activeLayoutGeneration,item.entry?.id]));
      const ref=p?await thoughtReadPlacement(s,t,current,p):null;
@@ -147,17 +157,20 @@ export class ThoughtSectionReading{
      // An excluded generated Section title cannot be the sole lexical match.
      // Canonical local Thought body/title/note visibility remains unchanged.
      if(![e.body,e.title,e.note,ref.section.title].some(value=>normalized(value).includes(query)))continue;
-     items.push({entry:item.entry.large?{...item.entry,...entryIdentity(e)}:item.entry,placement:ref.placement});sections.set(ref.section.id,sectionDTO(ref.section));
+     items.push({entry:item.entry.large?{...item.entry,...entryIdentity(e)}:item.entry,placement:ref.placement});sections.set(ref.section.id,sectionDTO(ref.section));refs.push(ref);
     }
-    return {items,sections:[...sections.values()]};
+    return {items,sections:[...sections.values()],refs,topic:await thoughtReadTopic(s,t,current)};
    });
+   let qualified=await qualify();if(!qualified)return stale();
+   if(!await prepareThoughtSectionVisibility(model,result,filterSelection(model,result,qualified.refs,qualified.sections)))return stale();
+   qualified=await qualify();
    if(!qualified||!await thoughtTopicGenerationMatches(reader,{topicId,generation:page.coverage?.activeGeneration,viewKey:page.coverage?.activeKey,currentKey:page.coverage?.currentKey,indexing:page.indexing===true}))return stale();
    lexicalFence={topicId,generation:lexicalGeneration,viewKey:page.coverage?.activeKey,currentKey:page.coverage?.currentKey,indexing:page.indexing===true};
    // Preserve actual consumed lexical boundaries, including empty match pages.
    // No counts, Section overview, AI fields or descriptor internals cross out.
    const issue=(direction,value)=>value?model.issue({...scope,direction},{cursor:value,generation,lexicalGeneration},authority):null;
    const nextCursor=issue('next',page.nextCursor),previousCursor=issue('prev',page.previousCursor),complete=page.indexing!==true&&page.complete===true;
-   return {version:1,kind:'section_reading',topic,recoveryEpoch,tracked,...qualified,currentCursor:cursor,nextCursor,previousCursor,sectionCursor:null,
+   return {version:1,kind:'section_reading',topic:qualified.topic,recoveryEpoch,tracked,items:qualified.items,sections:qualified.sections,currentCursor:cursor,nextCursor,previousCursor,sectionCursor:null,
     query,sort:'asc',providerKey,complete,indexing:page.indexing===true,readingStructure:{kind:'derivative_reading',state:'not_projected'},
     coverage:{activeGeneration:generation,complete,start:!page.indexing&&!previousCursor,end:!page.indexing&&!nextCursor},
     operations:{hydratedEntries:canonical.size},authority};
@@ -186,10 +199,10 @@ export class ThoughtSectionReading{
    return {raw,topic,prior,recoveryEpoch,selectedSection,tracked:await trackedReferences(s,t,trackedEntryIds)};
   },async result=>{
    if(!result.raw)return result;
-   const {raw,topic,prior,authority,recoveryEpoch,tracked,selectedSection}=result;
+   const {raw,topic,prior,authority,recoveryEpoch,tracked}=result;let selectedSection=result.selectedSection,safeTopic=topic;
    // Only the existing descriptor owner maintains its original derived index.
    // The Section adapter qualifies metadata before counting or hydrating it.
-   const describe=descriptorReader(s),reader=readOwner(model),selected=scopeSectionId??sectionId,effectiveAnchor=prior?.anchorId??anchorId;
+   const describe=descriptorReader(s),reader=readOwner(model,result),selected=scopeSectionId??sectionId,effectiveAnchor=prior?.anchorId??anchorId;
    const stale=(anchorUnavailable=false)=>({...empty({cursorInvalid:true,anchorUnavailable}),authority});
    const descriptor=async args=>{
     const page=await thoughtTopicExpressionPage(s,{topicId,sort,providerKey,describe,...args});
@@ -197,7 +210,7 @@ export class ThoughtSectionReading{
     return page;
    };
    const qualified=async rows=>s.repository.transaction(false,async tx=>{
-    const t=boundedThoughtRead(tx),current=await t.get('topics',topicId);
+    const t=thoughtSectionTransactionReader(model,result,tx),current=await t.get('topics',topicId);
     if(!sameTopic(raw,current)||!await thoughtReadTopic(s,t,current))return null;
     const refs=[];
     for(const d of rows){
@@ -211,16 +224,21 @@ export class ThoughtSectionReading{
     }
     return refs;
    });
+   const warm=async refs=>{
+    if(!await prepareThoughtSectionVisibility(model,result,filterSelection(model,result,refs,refs.map(ref=>ref.section).concat(selectedSection?[selectedSection]:[]))))return false;
+    const labels=await s.repository.transaction(false,async tx=>{const t=thoughtSectionTransactionReader(model,result,tx),current=await t.get('topics',topicId);if(!sameTopic(raw,current))return null;const topic=await thoughtReadTopic(s,t,current),section=selected===null?null:await thoughtReadSection(s,t,current,await t.get('sections',JSON.stringify([topicId,current.activeLayoutGeneration,selected])));return topic&&(selected===null||section)?{topic,section}:null;});
+    if(!labels)return false;safeTopic=labels.topic;selectedSection=labels.section;return true;
+   };
    let counts={...(prior?.counts||{})},metadataComplete=prior?.metadataComplete===true,chosen=prior?.chosen??year,generation=prior?.generation??null,indexGeneration=prior?.indexGeneration??null;
    const issue=(dir,key)=>model.issue({...scope,direction:dir},{counts,metadataComplete,chosen,generation,indexGeneration,anchorId:effectiveAnchor,...key},authority);
-   const base=()=>({version:1,kind:'section_reading',topic,recoveryEpoch,tracked,sections:selectedSection?[sectionDTO(selectedSection)]:[],items:[],currentCursor:cursor,sectionCursor:null,query:'',chronology:'expression',sort,providerKey,year:chosen,readingStructure:{kind:'derivative_reading',state:'not_projected'},authority});
+   const base=()=>({version:1,kind:'section_reading',topic:safeTopic,recoveryEpoch,tracked,sections:selectedSection?[sectionDTO(selectedSection)]:[],items:[],currentCursor:cursor,sectionCursor:null,query:'',chronology:'expression',sort,providerKey,year:chosen,readingStructure:{kind:'derivative_reading',state:'not_projected'},authority});
    if(!metadataComplete){
     const scan=await descriptor({limit:40,cursor:prior?.metadataCursor??null,expectedReadGeneration:indexGeneration});
     if(scan.cursorInvalid)return stale();
     indexGeneration=scan.coverage.activeGeneration;
     generation=indexGeneration?this.generation(JSON.stringify([authority,topicId,selected,providerKey,sort,indexGeneration])):null;
     if(expectedReadGeneration!==null&&generation!==expectedReadGeneration||prior?.generation&&prior.generation!==generation)return stale();
-    if(scan.indexing)return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:null}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false}};
+    if(scan.indexing){if(!await warm([]))return stale();return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:null}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false}};}
     // A bounded worker-local preparation cache contains only fully qualified
     // year counts. Current authority and original index identity are reread
     // before reuse; no body, grant or durable domain truth is cached here.
@@ -231,7 +249,7 @@ export class ThoughtSectionReading{
      const refs=await qualified(scan.items);if(!refs)return stale();
      for(const {ref} of refs){const key=Number.isInteger(ref.expressionTime.year)?String(ref.expressionTime.year):'unknown';counts[key]=(counts[key]||0)+1;}
      metadataComplete=!scan.nextCursor;
-     if(!metadataComplete)return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:scan.nextCursor}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false},operations:{...scan.operations,hydratedEntries:0}};
+     if(!metadataComplete){if(!await warm(refs.map(value=>value.ref)))return stale();return {...base(),indexing:true,complete:false,nextCursor:issue('next',{metadataCursor:scan.nextCursor}),previousCursor:null,yearMetadata:{pending:true,complete:false},coverage:{activeGeneration:generation,complete:false},operations:{...scan.operations,hydratedEntries:0}};}
      preparedMetadata={key:cacheKey,counts:{...counts}};
     }
    }
@@ -245,9 +263,11 @@ export class ThoughtSectionReading{
     chosen=Number.isInteger(refs[0].ref.expressionTime.year)?refs[0].ref.expressionTime.year:'unknown';
    }
    const yearMetadata={pending:false,complete:true};
-   if(chosen===null)return {...base(),nextCursor:null,previousCursor:null,nextYear:null,yearMetadata,complete:true,coverage:{activeGeneration:generation,complete:true,start:true,end:true},operations:{hydratedEntries:0}};
+   if(chosen===null){if(!await warm([]))return stale();return {...base(),nextCursor:null,previousCursor:null,nextYear:null,yearMetadata,complete:true,coverage:{activeGeneration:generation,complete:true,start:true,end:true},operations:{hydratedEntries:0}};}
    const page=await descriptor({year:chosen,limit,direction,cursor:prior?.bodyCursor??null,anchorId:prior?.bodyCursor?null:effectiveAnchor,expectedReadGeneration:indexGeneration});
-   if(page.cursorInvalid||page.indexing)return stale();const refs=await qualified(page.items);if(!refs)return stale();
+   if(page.cursorInvalid||page.indexing)return stale();let refs=await qualified(page.items);if(!refs)return stale();
+   if(!await warm(refs.map(value=>value.ref)))return stale();
+   refs=await qualified(page.items);if(!refs)return stale();
    const eligible=new Map(refs.map(value=>[value.d.entryId,value.ref])),items=[],sections=new Map(selectedSection?[[selectedSection.id,sectionDTO(selectedSection)]]:[]);let lastConsumed=null,stopped=false,hydrated=0;
    const ordered=direction==='prev'?[...page.items].reverse():page.items;
    for(const d of ordered){
@@ -269,7 +289,7 @@ export class ThoughtSectionReading{
    if(direction==='prev')items.reverse();
    const nextCursor=next?issue('next',{bodyCursor:next}):null,previousCursor=previous?issue('prev',{bodyCursor:previous}):null;
    const complete=direction==='next'?!nextCursor:!previousCursor,at=years.indexOf(chosen),nextYear=!nextCursor&&at>=0?years[at+1]??null:null;
-   return {...base(),items,sections:[...sections.values()],nextCursor,previousCursor,nextYear,yearMetadata,complete,coverage:{activeGeneration:generation,complete,start:!previousCursor,end:!nextCursor},operations:{...page.operations,hydratedEntries:hydrated}};
+   return {...base(),topic:safeTopic,items,sections:[...sections.values()],nextCursor,previousCursor,nextYear,yearMetadata,complete,coverage:{activeGeneration:generation,complete,start:!previousCursor,end:!nextCursor},operations:{...page.operations,hydratedEntries:hydrated}};
   },t=>{
    if(!fence)return true;const owner=Object.create(s);owner.run=work=>work();owner.repository={transaction:(write,work)=>{if(write)unavailable();return work(t);}};
    return thoughtTopicGenerationMatches(owner,fence);
@@ -333,7 +353,18 @@ export class ThoughtSectionReading{
    return {topic,generation,recoveryEpoch,events,before,after,tracked:await trackedReferences(s,t,trackedEntryIds),operations:{placementCandidates:placements,sectionStarts:headers,hydratedEntries:0}};
   },async result=>{
    if(!result.events)return result;
-   const {topic,generation,recoveryEpoch,events,before,after,tracked,operations,authority}=result,owner=readOwner(model),items=[],sections=new Map(),consumed=[];
+   const selectedEvents=result.events,selection=filterSelection(model,result,selectedEvents.filter(event=>event.ref).map(event=>event.ref),selectedEvents.filter(event=>event.section).map(event=>event.section));
+   if(!await prepareThoughtSectionVisibility(model,result,selection))return {...empty({cursorInvalid:true}),authority:result.authority};
+   const refreshed=await s.repository.transaction(false,async tx=>{
+    const t=thoughtSectionTransactionReader(model,result,tx),raw=await t.get('topics',topicId),topic=await thoughtReadTopic(s,t,raw);if(!topic||topic.revision!==result.topic.revision||topic.organizationRevision!==result.topic.organizationRevision||topic.layoutGeneration!==result.topic.layoutGeneration)return null;
+    const events=[];for(const event of selectedEvents){let ref=null,section=null;
+     if(event.ref){const p=await t.get('placements',event.ref.placement.id);ref=p?await thoughtReadPlacement(s,t,raw,p):null;if(!ref||ref.entryRef.id!==event.ref.entryRef.id||ref.entryRef.revision!==event.ref.entryRef.revision||ref.entryRef.contentRevision!==event.ref.entryRef.contentRevision||JSON.stringify(ref.placement)!==JSON.stringify(event.ref.placement))return null;section=ref.section;}
+     else if(event.section){section=await thoughtReadSection(s,t,raw,await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,event.section.id])));if(!section||section.revision!==event.section.revision)return null;}
+     events.push({...event,ref,section});
+    }return {topic,events};
+   });
+   if(!refreshed)return {...empty({cursorInvalid:true}),authority:result.authority};
+   const {generation,recoveryEpoch,before,after,tracked,operations,authority}=result,{topic,events}=refreshed,owner=readOwner(model,result),items=[],sections=new Map(),consumed=[];
    let stopped=false;
    const base={version:1,kind:'section_reading',topic,recoveryEpoch,tracked,currentCursor:cursor,sectionCursor:null,query:'',sort:'asc',providerKey,readingStructure:{kind:'derivative_reading',state:'not_projected'},coverage:{activeGeneration:generation,complete:false},operations,authority};
    for(const event of events){

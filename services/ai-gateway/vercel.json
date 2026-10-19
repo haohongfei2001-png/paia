@@ -7,27 +7,27 @@
   "functions": {
     "api/reservations.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,filter-read-identity-data,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
     },
     "api/declarations.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,client-declaration,contracts,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,client-declaration,contracts,filter-read-identity-data,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
     },
     "api/provider.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,client-declaration,client-declaration-transport,client-gateway-http,client-provider-transport,client-reservation-transport,contracts,qwen-bpe-counter,qwen-profile-source-adapter,qwen-source-profile,qwen-source-profile-installations,qwen-wire-counter,qwen-json-decoder,qwen-qualified-request,qwen-request-data,qwen-request-profile,qwen-sse-decoder,qwen-usage-parser,qwen-wire-primitives,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,client-declaration,client-declaration-transport,client-gateway-http,client-provider-transport,client-reservation-transport,contracts,filter-read-identity-data,qwen-bpe-counter,qwen-profile-source-adapter,qwen-source-profile,qwen-source-profile-installations,qwen-wire-counter,qwen-json-decoder,qwen-qualified-request,qwen-request-data,qwen-request-profile,qwen-sse-decoder,qwen-usage-parser,qwen-wire-primitives,ratebook,result-finalization,usage-normalization}.js}"
     },
     "api/results.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,filter-read-identity-data,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
     },
     "api/operation-status.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,filter-read-identity-data,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
     },
     "api/identity-currentness.mjs": {
       "maxDuration": 60,
-      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,ratebook,result-finalization,usage-normalization}.js}"
+      "includeFiles": "../../extension/{package.json,core/constants.js,core/dedupe.js,core/ai-usage/{admission-policy,atomic-reservation,budget-window-policy,budget-window-reservation,contracts,filter-read-identity-data,qwen-request-data,ratebook,result-finalization,usage-normalization}.js}"
     }
   }
 }

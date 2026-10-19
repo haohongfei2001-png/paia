@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {captureMaintenanceProcessingReceipt as capture,assertMaintenanceProcessingReceipt as current} from '../core/ai-usage/maintenance-processing-receipt.js';
+function fixture({frozen=false}={}){
+ const store={repository:{db:{}}},caller=Object.freeze({}),controller=new AbortController(),scope={purpose:'SYNTHETIC qualification',inputs:[{inputId:'SYNTHETIC selected',selectedFields:['body','note']}]},expected=structuredClone(scope),issued=new WeakSet();
+ const raw={version:1,store,caller,scope,epoch:'SYNTHETIC original epoch',processing:true,expiresAt:Date.now()+600000,revocationSignal:controller.signal};if(frozen)Object.freeze(raw);issued.add(raw);let enabled=true,hook=null,calls=0;
+ const processing={resolve:async()=>raw,isCurrent:(receipt,s)=>{calls++;assert.equal(receipt,raw);hook?.();return enabled&&issued.has(receipt)&&s===store&&!controller.signal.aborted;}};
+ return {raw,store,caller,scope,expected,controller,processing,capture:()=>capture(raw,{processing,store,caller,scope:expected}),current:()=>current(raw,processing,store),hook:fn=>{hook=fn;},revoke:()=>{enabled=false;},calls:()=>calls};
+}
+test('capture preserves original privately branded raw and accepts the same callbacks through the original wrapper',()=>{const f=fixture();assert.equal(f.capture(),f.raw);assert.equal(current(f.raw,Object.freeze({...f.processing}),f.store),true);assert.equal(f.calls(),2);});
+for(const kind of ['copy','unseen','foreign store','foreign issuer'])test(kind+' cannot use a captured processing receipt',()=>{const f=fixture();f.capture();assert.throws(()=>current(kind==='copy'?{...f.raw}:kind==='unseen'?{}:f.raw,kind==='foreign issuer'?{...f.processing,isCurrent:()=>true}:f.processing,kind==='foreign store'?{repository:f.store.repository}:f.store),{code:'UNAVAILABLE'});});
+for(const kind of ['raw getter','scope getter','nested getter','nested equal replacement','scope equal replacement','epoch','deadline extension','revocation signal','processing false','new scope property','database','repository'])test('current rejects '+kind+' without reading changed accessors',()=>{const f=fixture();f.capture();let reads=0;
+ if(kind==='raw getter')Object.defineProperty(f.raw,'processing',{get(){reads++;return true;}});
+ if(kind==='scope getter')Object.defineProperty(f.raw,'scope',{get(){reads++;return f.scope;}});
+ if(kind==='nested getter')Object.defineProperty(f.scope.inputs[0],'selectedFields',{get(){reads++;return ['body','note'];}});
+ if(kind==='nested equal replacement')f.scope.inputs[0]=structuredClone(f.scope.inputs[0]);
+ if(kind==='scope equal replacement')f.raw.scope=structuredClone(f.scope);
+ if(kind==='epoch')f.raw.epoch+=' changed';
+ if(kind==='deadline extension')f.raw.expiresAt++;
+ if(kind==='revocation signal')f.raw.revocationSignal=new AbortController().signal;
+ if(kind==='processing false')f.raw.processing=false;
+ if(kind==='new scope property')f.scope.extra='SYNTHETIC foreign field';
+ if(kind==='database')f.store.repository.db={};
+ if(kind==='repository')f.store.repository={db:f.store.repository.db};
+ assert.throws(f.current,{code:'UNAVAILABLE'});assert.equal(reads,0);assert.equal(f.calls(),1,'changed receipt is rejected before issuer invocation');
+});
+test('a frozen outer raw never makes mutable nested scope trusted',()=>{const f=fixture({frozen:true});f.capture();let reads=0;Object.defineProperty(f.scope.inputs[0],'selectedFields',{get(){reads++;return ['body','note'];}});assert.throws(f.current,{code:'UNAVAILABLE'});assert.equal(reads,0);});
+for(const kind of ['nested getter','expiry','revocation','currentness false'])test('original issuer '+kind+' mutation is rejected again after the synchronous callback',t=>{const f=fixture();f.capture();let reads=0;f.hook(()=>{if(kind==='nested getter')Object.defineProperty(f.scope.inputs[0],'selectedFields',{get(){reads++;return ['body','note'];}});if(kind==='expiry')t.mock.method(Date,'now',()=>f.raw.expiresAt);if(kind==='revocation')f.controller.abort();if(kind==='currentness false')f.revoke();});assert.throws(f.current,{code:'UNAVAILABLE'});assert.equal(reads,0);});
+for(const value of [false,undefined,Promise.resolve(true)])test('original currentness must synchronously return true: '+String(value),()=>{const f=fixture();f.processing.isCurrent=()=>value;assert.throws(f.capture,{code:'UNAVAILABLE'});});
+for(const kind of ['top accessor','nested accessor','too deep','too many keys','too many bytes'])test('initial '+kind+' is refused without acquiring a getter',()=>{const f=fixture();let reads=0;if(kind==='top accessor')Object.defineProperty(f.raw,'processing',{get(){reads++;return true;}});if(kind==='nested accessor')Object.defineProperty(f.scope.inputs[0],'selectedFields',{get(){reads++;return ['body','note'];}});if(kind==='too deep'){let node=f.scope;for(let i=0;i<18;i++)node=node.child={};}if(kind==='too many keys')f.scope.inputs=Array.from({length:4100},(_,i)=>i);if(kind==='too many bytes')f.scope.extra='x'.repeat(32769);assert.throws(f.capture,{code:'UNAVAILABLE'});assert.equal(reads,0);assert.equal(f.calls(),0);});
+test('recapturing the same original receipt cannot refresh its modified scope',()=>{const f=fixture();f.capture();f.scope.inputs[0].inputId='SYNTHETIC replacement';assert.throws(()=>capture(f.raw,{processing:f.processing,store:f.store,caller:f.caller,scope:structuredClone(f.scope)}),{code:'UNAVAILABLE'});});
+for(const target of ['inputs','selectedFields'])test('closed receipt scope rejects an extra own data key on '+target+' array',()=>{const f=fixture(),array=target==='inputs'?f.scope.inputs:f.scope.inputs[0].selectedFields;array.extra='SYNTHETIC unauthorized array property';assert.throws(f.capture,{code:'UNAVAILABLE'});assert.equal(f.calls(),0);});
+import {assertMaintenanceProcessingReceipts as currentGroup} from '../core/ai-usage/maintenance-processing-receipt.js';
+for(const mutation of ['none','earlier epoch','earlier accessor','later accessor'])test('two original receipt issuers end with one closed descriptor-only group check: '+mutation,()=>{
+ const f=fixture(),first=f.raw,second={...first,scope:{purpose:'SYNTHETIC second qualification',inputs:[]}},issued=new WeakSet([first,second]);let armed=false,reads=0,calls=0;
+ f.processing.isCurrent=raw=>{assert.ok(issued.has(raw));calls++;if(armed&&mutation!=='none'&&(mutation==='later accessor'?raw===first:raw===second)){if(mutation==='earlier epoch')first.epoch+=' changed';else Object.defineProperty(mutation==='later accessor'?second:first,'scope',{enumerable:true,configurable:true,get(){reads++;return {};}});}return true;};
+ f.capture();capture(second,{processing:f.processing,store:f.store,caller:f.caller,scope:structuredClone(second.scope)});armed=true;calls=0;
+ if(mutation==='none'){assert.equal(currentGroup([first,second],f.processing,f.store),true);assert.equal(calls,2);}else assert.throws(()=>currentGroup([first,second],f.processing,f.store),{code:'UNAVAILABLE'});assert.equal(reads,0);assert.ok(calls<=2,'no repeated issuer callbacks can hide the terminal group check');
+});
+for(const kind of ['empty','duplicate','too many','foreign'])test('receipt currentness group rejects '+kind,()=>{const f=fixture();f.capture();const values=kind==='empty'?[]:kind==='duplicate'?[f.raw,f.raw]:kind==='too many'?[f.raw,{},{}]:[f.raw,{}];assert.throws(()=>currentGroup(values,f.processing,f.store),{code:'UNAVAILABLE'});});

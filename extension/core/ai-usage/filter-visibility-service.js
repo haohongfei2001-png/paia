@@ -16,7 +16,9 @@ export function createAIFilterServiceAssembly({getStore,consent,policy,authority
   if(!raw.service||![Object.prototype,null].includes(Object.getPrototypeOf(raw.service))||Reflect.ownKeys(raw.service).some(k=>typeof k!=='string'||!Object.hasOwn(Object.getOwnPropertyDescriptor(raw.service,k),'value'))||typeof raw.isCurrent!=='function'||typeof raw.onInvalidate!=='function'||typeof raw.clock!=='function'){retire();return null;}
   const same=state=>state&&state.endpoint===endpoint&&Object.keys(raw).length===Object.keys(state.raw).length&&Object.keys(raw).every(k=>raw[k]===state.raw[k]);
   if(active&&(!same(active)||!active.live)){retire();}
-  const ordinary={...raw,service:{...raw.service,filter:authority.serviceFilter}};
+  const {readFilterReadProofs:readOnlyProofs,...paid}=raw;
+  if(readOnlyProofs!==undefined&&readOnlyProofs!==null&&typeof readOnlyProofs!=='function'){retire();return null;}
+  const ordinary={...paid,service:{...raw.service,filter:authority.serviceFilter}};
   if(endpoint===null){retire();return ordinary;}
   // Cancel is not physical settlement. A late fetch or fresh-proof promise in
   // the old pool keeps its slot and blocks construction of a replacement pool.
@@ -26,14 +28,14 @@ export function createAIFilterServiceAssembly({getStore,consent,policy,authority
    if(!hub||identityCurrentnessHubOrigin(hub)!==raw.origin){hub?.dispose();return ordinary;}
    const state={raw,endpoint,hub,live:true,listeners:new Set(),remove:null,readOnly:null};
    const current=()=>{try{return state.live&&raw.isCurrent()===true;}catch{return false;}};
-   state.configuration={...ordinary,isCurrent:current,onInvalidate(fn){if(typeof fn!=='function'||state.listeners.size>=8)throw Error('UNAVAILABLE');if(!current()){fn();return ()=>{};}state.listeners.add(fn);return ()=>state.listeners.delete(fn);}};
+   state.configuration={...ordinary,...(typeof readOnlyProofs==='function'?{readFilterReadProofs:readOnlyProofs}:{}),isCurrent:current,onInvalidate(fn){if(typeof fn!=='function'||state.listeners.size>=8)throw Error('UNAVAILABLE');if(!current()){fn();return ()=>{};}state.listeners.add(fn);return ()=>state.listeners.delete(fn);}};
    state.readOnly=createAIFilterVisibilityOwner({getStore,consent,policy,configuration:state.configuration,hub,storage});
    try{state.remove=raw.onInvalidate(()=>{stop(state);authority.invalidate();});if(typeof state.remove!=='function'||!current())throw Error();}catch{stop(state);retiring=state;return null;}
    active=state;authority.configureVisibility(state.readOnly);
    // Both storage/HMAC recovery and issuer admission remain outside IDB reads.
    state.readOnly?.load().catch(()=>{});
   }
-  const identity=createHubMaintenanceIdentity(active.hub);return identity?{...active.configuration,filterIdentity:identity}:null;
+  const identity=createHubMaintenanceIdentity(active.hub),{readFilterReadProofs:unusedReadOnly,...financialConfiguration}=active.configuration;return identity?{...financialConfiguration,filterIdentity:identity}:null;
  }
  return Object.freeze({configure:select,invalidate(){active?.readOnly?.invalidate();active?.hub.invalidate();},dispose(){if(disposed)return;disposed=true;retire();removeConsent();}});
 }

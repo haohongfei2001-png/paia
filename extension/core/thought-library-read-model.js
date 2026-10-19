@@ -1,3 +1,4 @@
+import {readSectionFilterVisibilitySelection} from './thought-section-reading.js';
 import {ArchiveError,CONSENT_VERSION,STORAGE_KEY} from './constants.js';
 import {idOK,prefix} from './thought-model.js';
 import {safeOrganization} from './organizer/metadata.js';
@@ -8,6 +9,8 @@ import {inputProjection,readDependencyInputs,dependencyLifecycle,dependencyState
 import {bindingRead} from './thought-binding.js';
 import {exactExcerpt} from './organizer/topic-excerpt.js';
 import {AI_FIELDS} from './organizer/ai-contract.js';
+import {requireRepositoryTransactionScope} from './idb-repository.js';
+import {createThoughtFilterVisibilityScope} from './ai-usage/filter-visibility-consumer-scope.js';
 
 // TOPIC-05.1 local read facade. No worker/UI integration, external authorization,
 // body store, chronology maintenance or AI-heading synthesis. Root metadata
@@ -33,15 +36,118 @@ const empty=(kind,fields={})=>({version:1,kind,items:[],nextCursor:null,complete
 // Existing owner helpers get the real transaction through a bounded read-only
 // adapter. Oversized legacy/corrupt dependencies refuse instead of being clipped
 // into false eligibility. It never delegates a mutating operation.
-function bounded(t){
- let remaining=10000;
- const spend=n=>{remaining-=n;if(remaining<0)unavailable();};
+const readBudgets=new WeakSet(),readOrigins=new WeakMap(),visibilityAdmissions=new WeakMap(),visibilityPreparations=new WeakMap();
+function readBudget(){const value=Object.seal({remaining:10000});readBudgets.add(value);return value;}
+function budgetFacts(value){const d=value&&Object.getOwnPropertyDescriptor(value,'remaining');if(!readBudgets.has(value)||!d||!Object.hasOwn(d,'value')||d.configurable||!Number.isSafeInteger(d.value)||d.value<0||d.value>10000)unavailable();return true;}
+function bounded(t,budget=readBudget(),store=null){
+ budgetFacts(budget);
+ const spend=n=>{budgetFacts(budget);budget.remaining-=n;if(budget.remaining<0)unavailable();};
  const view=Object.create(t);
  for(const name of ['get','has','edge'])view[name]=async(...args)=>{spend(1);return t[name](...args);};
  view.all=async(store,index,key,limit)=>{const max=limit===undefined?200:Math.min(limit,200);const rows=await t.all(store,index,key,max+1);spend(rows.length);if(rows.length>max)unavailable();return rows;};
  for(const name of ['rangePage','page','indexPrimaryPage'])view[name]=async(...args)=>{const result=await t[name](...args);spend(result.rows.length);return result;};
  for(const name of ['put','delete','clear','putDerivedSearchRow','putDerivedTopicCount','putDerivedTopicRead'])view[name]=unavailable;
+ if(store?.repository?.db){
+  try{requireRepositoryTransactionScope(store.repository,t);readOrigins.set(view,{store,repository:store.repository,database:store.repository.db,original:t,budget,prototype:Object.getPrototypeOf(view),methods:Object.getOwnPropertyDescriptors(view),originalPrototype:Object.getPrototypeOf(t),originalMethods:Object.getOwnPropertyDescriptors(t)});}catch{/* An unknown wrapper never receives an origin proof. */}
+ }
  return view;
+}
+function sameDescriptors(value,expected){
+ const keys=Reflect.ownKeys(value),old=Reflect.ownKeys(expected);return keys.length===old.length&&keys.every(key=>{const a=Object.getOwnPropertyDescriptor(value,key),b=expected[key];return !!a&&!!b&&a.value===b.value&&a.get===b.get&&a.set===b.set&&a.enumerable===b.enumerable&&a.configurable===b.configurable&&a.writable===b.writable;});
+}
+function cursorFacts(value){
+ const nodes=[];let keys=0;
+ const visit=(row,depth)=>{if(row===null||typeof row!=='object'){if(!['string','number','boolean'].includes(typeof row)&&row!==null)unavailable();return;}if(depth>6||nodes.some(x=>x.row===row)||![Object.prototype,null,Array.prototype].includes(Object.getPrototypeOf(row)))unavailable();const descriptors=Object.getOwnPropertyDescriptors(row),names=Reflect.ownKeys(descriptors);keys+=names.length;if(keys>100||names.some(k=>typeof k!=='string'||!Object.hasOwn(descriptors[k],'value')))unavailable();nodes.push({row,prototype:Object.getPrototypeOf(row),descriptors});for(const key of names)visit(descriptors[key].value,depth+1);};
+ visit(value,0);return ()=>nodes.every(({row,prototype,descriptors})=>Object.getPrototypeOf(row)===prototype&&sameDescriptors(row,descriptors));
+}
+export function assertThoughtReadTransactionOrigin(view,repository){
+ const h=readOrigins.get(view);if(!h||h.repository!==repository||h.store.repository!==repository||repository.db!==h.database||Object.getPrototypeOf(view)!==h.prototype)unavailable();
+ const keys=Reflect.ownKeys(view),old=Reflect.ownKeys(h.methods);if(keys.length!==old.length||keys.some(key=>{const a=Object.getOwnPropertyDescriptor(view,key),b=h.methods[key];return !a||!b||a.value!==b.value||a.get!==b.get||a.set!==b.set||a.enumerable!==b.enumerable||a.configurable!==b.configurable||a.writable!==b.writable;}))unavailable();
+ if(Object.getPrototypeOf(h.original)!==h.originalPrototype||!sameDescriptors(h.original,h.originalMethods))unavailable();
+ budgetFacts(h.budget);requireRepositoryTransactionScope(repository,h.original);return true;
+}
+export function readThoughtFilterVisibilityMetadata(token,store,budget){const h=visibilityAdmissions.get(token);if(!h||h.store!==store||h.repository!==store.repository||h.database!==store.repository.db||h.budget!==budget)return null;try{budgetFacts(budget);return h.metadata;}catch{return null;}}
+export function thoughtFilterVisibilityTransactionReader(store,transaction,token,budget){if(!readThoughtFilterVisibilityMetadata(token,store,budget))unavailable();return bounded(transaction,budget,store);}
+
+// Only original Entry-page structural metadata selects this finite preparation
+// scope. Names, titles and bodies never choose candidates. The actual original
+// label and Entry owners run after preparation, against the same page again.
+async function entryVisibilityMetadata(s,t,options,key){
+ const {topicId,sectionId,limit}=options,topic=await t.get('topics',topicId);
+ if(!visible(topic)||!idOK(topic.id)||!idOK(topic.defaultSectionId)||!revision(topic.revision)||!revision(topic.organizationRevision)||!Number.isSafeInteger(topic.activeLayoutGeneration)||topic.activeLayoutGeneration<1)return null;
+ const sections=new Map(),facts=[],sources=new Set();
+ const organization=(kind,row)=>{
+  if(labelProtected(row,kind==='topic'?'name':'title'))return true;
+  if(row.sourceRecordIds===undefined)return true;
+  if(!Array.isArray(row.sourceRecordIds)||row.sourceRecordIds.length>20||!row.sourceRecordIds.every(idOK)||new Set(row.sourceRecordIds).size!==row.sourceRecordIds.length)return false;
+  for(const id of row.sourceRecordIds)sources.add(id);return sources.size<=200;
+ };
+ if(!organization('topic',topic))return null;
+ const section=async id=>{
+  if(sections.has(id))return sections.get(id);
+  const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,id]));
+  if(!row||row.lifecycle!=='active'||row.redirectTo||row.topicId!==topic.id||row.layoutGeneration!==topic.activeLayoutGeneration||row.sectionId!==id||!revision(row.revision)||!rank(row.rank)||row.isDefault===true&&id!==topic.defaultSectionId||!organization('section',row))return null;
+  sections.set(id,row);return row;
+ };
+ if(sectionId!==null&&!await section(sectionId))return null;
+ const scope=sectionId===null?[topicId,topic.activeLayoutGeneration,0]:[topicId,topic.activeLayoutGeneration,sectionId,0],page=await t.rangePage('placements',sectionId===null?'byTopicOrder':'bySectionOrder',prefix(scope),key,limit);
+ if(!page||!Array.isArray(page.rows)||page.rows.length>limit||page.next!==null&&page.rows.length===0)return null;
+ let previous=key;const entries=new Set();
+ for(const row of page.rows){
+  const p=row.value;if(!p||previous!==null&&s.repository.factory.cmp(previous,row.key)>=0||entries.has(p.entryId))return null;previous=row.key;entries.add(p.entryId);
+  if(p.lifecycle!=='active'||p.excludedByUser===true)continue;
+  if(p.topicId!==topic.id||p.layoutGeneration!==topic.activeLayoutGeneration||sectionId!==null&&p.sectionId!==sectionId||!idOK(p.entryId)||p.id!==JSON.stringify([topic.id,topic.activeLayoutGeneration,p.entryId])||!revision(p.revision)||!rank(p.rank)||!rank(p.sectionRank))return null;
+  const sec=await section(p.sectionId);if(!sec||p.sectionRank!==sec.rank)return null;
+  const e=await t.get('thoughts',p.entryId);if(!e||e.storageSchema!==2||e.lifecycle!=='active'||e.quarantineSealed)continue;
+  if(e.id!==p.entryId||!revision(e.revision)||!revision(e.contentRevision))return null;
+  facts.push([row.key,p.id,p.revision,p.sectionId,p.rank,p.sectionRank,e.id,e.revision,e.contentRevision,e.bodyBinding,e.workingInputId??null]);
+ }
+ if(page.next!==null&&s.repository.factory.cmp(page.next,previous)!==0)return null;
+ const inputIds=new Set(),sourceFacts=[];
+ for(const sourceId of [...sources].sort()){
+  const source=await t.get('recordIndex',sourceId),page=await t.indexPrimaryPage('blockIndex','byRecord',sourceId,{limit:20});
+  if(!source||source.hidden||source.deletedAt||page.next||!page.rows.length)return null;
+  const ids=[];for(const {value:ix}of page.rows){if(!ix||!idOK(ix.id)||ix.excluded!==false)return null;inputIds.add(ix.id);ids.push(ix.id);if(inputIds.size>200)return null;}sourceFacts.push([sourceId,ids]);
+ }
+ return {inputIds:[...inputIds].sort(),page:[topic.id,topic.revision,topic.organizationRevision,topic.activeLayoutGeneration,topic.defaultSectionId,...[...sections.values()].map(row=>[row.sectionId,row.revision,row.rank]),facts,page.next,sourceFacts]};
+}
+
+
+const activeSectionReads=new WeakMap();
+function activeSection(model,result){
+ const r=activeSectionReads.get(result);if(!r||!r.active||r.model!==model||r.store!==model.s||r.repository!==model.s.repository||r.database!==r.repository.db||!r.cursorCurrent()||!model.ready())unavailable();budgetFacts(r.budget);return r;
+}
+export function thoughtSectionTransactionReader(model,result,transaction){const r=activeSection(model,result);return bounded(transaction,r.budget,r.store);}
+async function selectedSectionVisibilityMetadata(s,t,selection){
+ const topic=await t.get('topics',selection.topicId);
+ if(!visible(topic)||topic.revision!==selection.revision||topic.organizationRevision!==selection.organizationRevision||topic.activeLayoutGeneration!==selection.layoutGeneration)return null;
+ const sources=new Set(),sections=new Map(),facts=[];
+ const organization=(kind,row)=>{if(labelProtected(row,kind==='topic'?'name':'title'))return true;const ids=row.sourceRecordIds;if(ids===undefined)return true;if(!Array.isArray(ids)||ids.length>20||ids.some(id=>!idOK(id))||new Set(ids).size!==ids.length)return false;for(const id of ids)sources.add(id);return sources.size<=200;};
+ if(!organization('topic',topic))return null;
+ for(const id of selection.sectionIds){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,id]));if(!row||row.lifecycle!=='active'||row.redirectTo||row.topicId!==topic.id||row.layoutGeneration!==topic.activeLayoutGeneration||row.sectionId!==id||!revision(row.revision)||!rank(row.rank)||!organization('section',row))return null;sections.set(id,row);}
+ for(const ref of selection.entries){const p=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,ref.id])),e=await t.get('thoughts',ref.id);
+  if(!p||p.lifecycle!=='active'||p.excludedByUser===true||p.revision!==ref.placementRevision||p.sectionId!==ref.sectionId||!sections.has(p.sectionId)||p.sectionRank!==sections.get(p.sectionId).rank||!e||e.storageSchema!==2||e.lifecycle!=='active'||e.quarantineSealed||e.revision!==ref.revision||e.contentRevision!==ref.contentRevision)return null;
+  facts.push([p.id,p.revision,p.sectionId,p.rank,p.sectionRank,e.id,e.revision,e.contentRevision,e.bodyBinding,e.workingInputId??null]);
+ }
+ const inputs=new Set(),sourceFacts=[];
+ for(const sourceId of [...sources].sort()){const source=await t.get('recordIndex',sourceId),page=await t.indexPrimaryPage('blockIndex','byRecord',sourceId,{limit:20});if(!source||source.hidden||source.deletedAt||page.next||!page.rows.length)return null;const ids=[];for(const {value:ix}of page.rows){if(!ix||!idOK(ix.id)||ix.excluded!==false)return null;inputs.add(ix.id);ids.push(ix.id);if(inputs.size>200)return null;}sourceFacts.push([sourceId,ids]);}
+ return {inputIds:[...inputs].sort(),page:[topic.id,topic.revision,topic.organizationRevision,topic.activeLayoutGeneration,...[...sections.values()].map(row=>[row.sectionId,row.revision,row.rank]),facts,sourceFacts]};
+}
+// The Section owner supplies an opaque token for its already selected original
+// page. A copied result, arbitrary IDs or a later lexical page cannot use it.
+export async function prepareThoughtSectionVisibility(model,result,token){
+ const r=activeSection(model,result);if(r.prepared)unavailable();r.prepared=true;
+ const selection=readSectionFilterVisibilitySelection(token,model,result);if(!selection)unavailable();
+ if(!model.s.canPrepareAIFilterVisibility?.())return true;
+ await model.consent();activeSection(model,result);
+ const selected=await r.repository.transaction(false,async tx=>{const t=bounded(tx,r.budget,r.store);if(await rootReadAuthority(t)!==r.authority)return {stale:true};return selectedSectionVisibilityMetadata(r.store,t,selection);});
+ activeSection(model,result);if(selected?.stale)return false;if(!selected?.inputIds.length)return true;
+ const admission=Object.freeze({});visibilityAdmissions.set(admission,{store:r.store,repository:r.repository,database:r.database,budget:r.budget,metadata:Object.freeze({authority:r.authority,inputIds:Object.freeze(selected.inputIds)})});
+ const scope=createThoughtFilterVisibilityScope(r.store,admission,r.budget);if(!scope)return true;
+ const page=await r.store.prepareAIFilterVisibilityScope(scope);if(page)r.pages.push(page);
+ await model.consent();activeSection(model,result);
+ const valid=await r.repository.transaction(false,async tx=>{const t=bounded(tx,r.budget,r.store);return await rootReadAuthority(t)===r.authority&&JSON.stringify(await selectedSectionVisibilityMetadata(r.store,t,selection))===JSON.stringify(selected);});
+ activeSection(model,result);return valid;
 }
 
 // dependencyState owns selected-field digest/freshness resolution and hashes
@@ -49,7 +155,7 @@ function bounded(t){
 // initialization-capable run() path. The outer authority fence covers all reads.
 function dependencyReader(s){return {
  run:work=>work(),
- repository:{transaction:(write,work,stores)=>{if(write)unavailable();return s.repository.transaction(false,t=>work(bounded(t)),stores);}},
+ repository:{transaction:(write,work,stores)=>{if(write)unavailable();return s.repository.transaction(false,t=>work(bounded(t,readBudget(),s)),stores);}},
  readableEntry:(t,id)=>s.readableEntry(t,id)
 };}
 
@@ -131,32 +237,53 @@ export class ThoughtLibraryReadModel{
   for(let i=0;i<peers.length-128;i++)this.cursors.delete(peers[i][0]);
   return token;
  }
- async read(scope,cursor,work,resolve=value=>value,qualifyCurrent=()=>true){
+ async read(scope,cursor,work,resolve=value=>value,qualifyCurrent=()=>true,preparation=null){
   if(!cursorOK(cursor))invalid();
   if(!this.ready())return empty(scope.kind,{unavailable:true,reason:'foundation_not_ready'});
   await this.consent();
   const prior=cursor===null?null:this.cursors.get(cursor);
+  let priorCurrent=()=>true;try{if(prior)priorCurrent=cursorFacts(prior);}catch{return empty(scope.kind,{cursorInvalid:true});}
   if(cursor!==null&&(!prior||prior.scope!==JSON.stringify(scope)))return empty(scope.kind,{cursorInvalid:true});
-  let result=await this.s.repository.transaction(false,async raw=>{
-   const t=bounded(raw),authority=await rootReadAuthority(t,{search:scope.kind==='search'});
-   const foundation=await t.get('meta','thought-library'),binding=await t.get('meta','thought-binding:v1'),documents=await t.get('meta','library-documents-compat-v2');
-   if(foundation?.phase!=='active'||binding?.complete!==true||documents?.complete!==true)return empty(scope.kind,{unavailable:true,reason:'foundation_not_ready'});
-   if(prior&&prior.authority!==authority)return empty(scope.kind,{cursorInvalid:true});
-   return {...await work(t,prior?.key??null,authority),authority};
-  });
-  if(result.authority){
-   result=await resolve(result);
-   // A separate current read catches edits/purge/restore queued between owner
-   // resolution and publication. Consent is also asynchronous, so it must finish
-   // before this last authority read; no awaited work follows the comparison.
-   await this.consent();
-   const current=await this.s.repository.transaction(false,async raw=>{
-    const t=bounded(raw),authority=await rootReadAuthority(t,{search:scope.kind==='search'});
-    return {authority,qualified:await qualifyCurrent(t)};
+  const cursorCurrent=()=>priorCurrent()&&(cursor===null||this.cursors.get(cursor)===prior);
+  const selected=visibilityPreparations.get(preparation);visibilityPreparations.delete(preparation);
+  const prepare=selected?.model===this&&selected.scope===JSON.stringify(scope)&&this.s.canPrepareAIFilterVisibility?.()===true?selected.select:null,sectionRead=['section_reading','section_query','section_expression'].includes(scope.kind),budget=prepare||sectionRead?readBudget():null;
+  let prepared=null,visibility=null;
+  if(prepare){
+   prepared=await this.s.repository.transaction(false,async raw=>{
+    const t=bounded(raw,budget,this.s),authority=await rootReadAuthority(t,{search:scope.kind==='search'}),foundation=await t.get('meta','thought-library'),binding=await t.get('meta','thought-binding:v1'),documents=await t.get('meta','library-documents-compat-v2');
+    if(!cursorCurrent()||foundation?.phase!=='active'||binding?.complete!==true||documents?.complete!==true||prior&&prior.authority!==authority)return null;
+    const metadata=await prepare(t,prior?.key??null);if(!metadata)return null;
+    return {authority,selection:JSON.stringify(metadata),inputIds:Object.freeze(metadata.inputIds)};
    });
-   if(current.authority!==result.authority||!current.qualified||!this.ready())return empty(scope.kind,{cursorInvalid:true});
+   if(prepared?.inputIds.length){const token=Object.freeze({});visibilityAdmissions.set(token,{store:this.s,repository:this.s.repository,database:this.s.repository.db,budget,metadata:Object.freeze({authority:prepared.authority,inputIds:prepared.inputIds})});visibility=createThoughtFilterVisibilityScope(this.s,token,budget);}
   }
-  return result;
+  const content=async()=>{
+   if(prepare)await this.consent();
+   let result=await this.s.repository.transaction(false,async raw=>{
+    const t=bounded(raw,budget??readBudget(),this.s),authority=await rootReadAuthority(t,{search:scope.kind==='search'});
+    const foundation=await t.get('meta','thought-library'),binding=await t.get('meta','thought-binding:v1'),documents=await t.get('meta','library-documents-compat-v2');
+    if(foundation?.phase!=='active'||binding?.complete!==true||documents?.complete!==true)return empty(scope.kind,{unavailable:true,reason:'foundation_not_ready'});
+    if(!cursorCurrent()||prior&&prior.authority!==authority||prepared&&(prepared.authority!==authority||JSON.stringify(await prepare(t,prior?.key??null))!==prepared.selection))return empty(scope.kind,{cursorInvalid:true});
+    return {...await work(t,prior?.key??null,authority),authority};
+   });
+   if(result.authority){
+    const originalResult=result,held=sectionRead?{model:this,store:this.s,repository:this.s.repository,database:this.s.repository.db,budget,authority:result.authority,cursorCurrent,active:true,prepared:false,pages:[]}:null;
+    if(held)activeSectionReads.set(originalResult,held);
+    try{
+    result=await resolve(result);
+    // Original async owner resolution is followed by its consent and current
+    // authority fence. Preparation never updates this page's old baseline.
+    await this.consent();
+    const current=await this.s.repository.transaction(false,async raw=>{
+     const t=bounded(raw,budget??readBudget(),this.s),authority=await rootReadAuthority(t,{search:scope.kind==='search'});
+     return {authority,qualified:await qualifyCurrent(t)};
+    });
+    if(!cursorCurrent()||current.authority!==result.authority||!current.qualified||!this.ready())return empty(scope.kind,{cursorInvalid:true});
+    }finally{if(held){held.active=false;activeSectionReads.delete(originalResult);for(const page of held.pages)page.release?.();held.pages.length=0;}}
+   }
+   return result;
+  };
+  return visibility?this.s.withAIFilterVisibilityScope(visibility,content):content();
  }
  topicReadingMetadata(options={}){
   if(!exact(options,['id'])||!idOK(options.id))invalid();
@@ -301,7 +428,8 @@ export class ThoughtLibraryReadModel{
   if(!exact(options,['topicId','sectionId','cursor','limit']))invalid();
   const {topicId,sectionId=null,cursor=null,limit=40}=options;
   if(!idOK(topicId)||sectionId!==null&&!idOK(sectionId)||!limitOK(limit,40))invalid();
-  return this.read({kind:'entries',topicId,sectionId},cursor,async(t,key,authority)=>{
+  const scope={kind:'entries',topicId,sectionId},preparation=Object.freeze({});visibilityPreparations.set(preparation,{model:this,scope:JSON.stringify(scope),select:(t,key)=>entryVisibilityMetadata(this.s,t,{topicId,sectionId,limit},key)});
+  return this.read(scope,cursor,async(t,key,authority)=>{
    const raw=await t.get('topics',topicId),topic=await topicMetadata(this.s,t,raw);
    if(!topic)return empty('entries',{unavailable:true,reason:'topic_unavailable'});
    if(sectionId!==null&&!await sectionMetadata(this.s,t,raw,await t.get('sections',JSON.stringify([topicId,raw.activeLayoutGeneration,sectionId]))))return empty('entries',{unavailable:true,reason:'section_unavailable'});
@@ -322,6 +450,6 @@ export class ThoughtLibraryReadModel{
     if(current?.lifecycle==='active')items.push({...item,source:sourceMetadata(current)});
    }
    return {...page,items};
-  });
+  },()=>true,preparation);
  }
 }

@@ -1,3 +1,5 @@
+import {filterVisibilityPageInputIds} from './ai-usage/filter-visibility-read-page.js';
+import {takeFilterVisibilityConsumerOperations} from './ai-usage/filter-visibility-consumer-scope.js';
 import {AIMaintenanceFilterOwner} from './ai-usage/ai-filter-owner.js';
 import {advanceArchiveYearIndex,archiveYearKey,archiveYearPrefix} from './archive-year-index.js';
 import {inputProjection} from './thought-evidence.js';
@@ -22,8 +24,28 @@ const authored=(b,m)=>b.libraryText!==null||!!b.note||b.editedAt!==null||m?.cont
 export function planInitialFilter(b,m,legacy=false){return {id:b.id,documentId:b.documentId,authorship:legacy?'legacy_unknown':authored(b,m)?'user_edited':'untouched',userEdited:authored(b,m),filterOverride:authored(b,m)?'keep':'none',presence:null,evaluationRevision:0,pendingKey:0,decision:'uncertain',reasonCode:'metadata_unknown',...FILTER_VERSIONS,basedOnContentRevision:m?.contentRevision??0};}
 
 export class SmartFilterStore extends IAStore {
- #aiFilter;
- constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,options.aiFilterAuthority??null);}
+ #aiFilter;#aiFilterAuthority;
+ constructor(local,options={}){super(local,{...options,smartFilter:true});this.filterLoaded=false;this.filterMutation=0;this.inputSearchCache=null;this.filterIntentJournal=options.filterIntentJournal??null;this.#aiFilterAuthority=options.aiFilterAuthority??null;this.#aiFilter=new AIMaintenanceFilterOwner(this,this.#aiFilterAuthority);}
+ async #withAIFilterVisibility(select,read){
+  if(this.#aiFilterAuthority?.canPrepareVisibility?.()!==true)return read();let prepared=null;
+  try{const ids=await this.repository.transaction(false,async t=>{if((await t.get('meta','smart-filter'))?.mode!=='light')return [];const selected=[...new Set(await select(t))];if(selected.length>200||selected.some(x=>!idOK(x)))return [];const operations=new Set();for(const inputId of selected){const row=await t.get('filterInputs',inputId);if(idOK(row?.aiOperationId)&&row.aiDecision?.version===1)operations.add(row.aiOperationId);}return [...operations];},['meta','blockIndex','filterInputs']);if(ids.length)prepared=await this.#aiFilterAuthority.prepareVisibility(ids);}catch{/* Optional read admission fails open. The original read still validates. */}
+  try{return await read();}finally{prepared?.release?.();}
+ }
+ // Internal consumers pass only a one-use original metadata admission. The
+ // callback must repeat its original scope/cursor/authority checks before text.
+ // Preparation is outside both metadata and content transactions and conveys
+ // no eligibility result; the original Filter owner remains the read authority.
+ canPrepareAIFilterVisibility(){try{return this.#aiFilterAuthority?.canPrepareVisibility?.()===true;}catch{return false;}}
+ async prepareAIFilterVisibilityScope(scope){
+  if(!this.canPrepareAIFilterVisibility())return null;
+  try{const ids=await this.repository.transaction(false,t=>takeFilterVisibilityConsumerOperations(this,scope,t),['meta','filterInputs']);return ids?.length?await this.#aiFilterAuthority.prepareVisibility(ids):null;}catch{return null;}
+ }
+ async withAIFilterVisibilityScope(scope,read){
+  if(typeof read!=='function')invalid();
+  const prepared=await this.prepareAIFilterVisibilityScope(scope);
+  try{return await read();}finally{prepared?.release?.();}
+ }
+
  write(fn,onCommitted=null,prepare=null){this.filterMutation++;return super.write(fn,onCommitted,prepare).finally(()=>{this.filterMutation++;});}
  run(fn){return super.run(async()=>{if(!this.filterLoaded){await this.initializeFilter();this.filterLoaded=true;}return fn();});}
  async initializeFilter(){
@@ -88,7 +110,7 @@ export class SmartFilterStore extends IAStore {
   for(let attempt=0;attempt<3;attempt++){
    await this.run(()=>Promise.resolve());const generation=this.filterMutation;
    const totals={active:0,checked:0,pending:0,keep:0,filter:0,uncertain:0,userProtected:0,failed:0};const reasonCounts=Object.fromEntries(Object.keys(FILTER_REASONS).map(k=>[k,0])),uncertainReasonCounts=Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,0]));let cursor=null,state,canonicalGeneration=null,canonicalChanged=false;
-   do{cursor=await this.run(()=>this.repository.transaction(false,async t=>{
+   do{cursor=await this.run(()=>this.#withAIFilterVisibility(async t=>(await t.page('blockIndex',{index:'bySequence',after:cursor??undefined,limit:100})).rows.filter(x=>!x.value.excluded).map(x=>x.value.id),()=>this.repository.transaction(false,async t=>{
     const currentGeneration=(await t.get('meta','backup-data-generation'))?.value||0;if(canonicalGeneration===null)canonicalGeneration=currentGeneration;else if(canonicalGeneration!==currentGeneration){canonicalChanged=true;return null;}
     state=await t.get('meta','smart-filter');const page=await t.page('blockIndex',{index:'bySequence',after:cursor??undefined,limit:100});
     for(const {value:ix}of page.rows){if(ix.excluded)continue;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.branchStatus)continue;totals.active++;
@@ -99,7 +121,7 @@ export class SmartFilterStore extends IAStore {
      if(!valid){totals.pending++;if(row?.failed)totals.failed++;continue;}
      const reason=Object.hasOwn(FILTER_REASONS,row.reasonCode)?row.reasonCode:'other';reasonCounts[reason]++;if(row.decision==='uncertain')uncertainReasonCounts[UNCERTAIN_REASONS.includes(reason)?reason:'other']++;totals.checked++;if(await this.isFiltered(t,b,{mode:'light'}))totals.filter++;else if(row.decision==='keep')totals.keep++;else totals.uncertain++;
     }return page.next;
-   }));}while(cursor!==null&&generation===this.filterMutation);
+   })));}while(cursor!==null&&generation===this.filterMutation);
    if(!canonicalChanged&&generation===this.filterMutation)return {...totals,previousReasonState:state.previousReasonState==='available'?'available':'not_captured',previousReasonPolicyVersion:Number.isSafeInteger(state.previousReasonPolicyVersion)?state.previousReasonPolicyVersion:0,previousUncertainReasonCounts:Object.fromEntries(UNCERTAIN_REASONS.map(k=>[k,Number.isSafeInteger(state.previousUncertainReasons?.[k])&&state.previousUncertainReasons[k]>=0?state.previousUncertainReasons[k]:0])),reasonCounts,uncertainReasonCounts,reasonTaxonomyVersion:2,mode:state.mode==='off'?'off':'light',filterRatio:totals.active?totals.filter/totals.active:0,filterVersion:FILTER_VERSIONS.filterVersion,policyVersion:FILTER_VERSIONS.policyVersion,classifierVersion:FILTER_VERSIONS.classifierVersion,lastCheckedAt:Number.isFinite(state.lastCheckedAt)?state.lastCheckedAt:0,taskState:state.mode==='off'?'paused':['idle','running','failed'].includes(state.taskState)?state.taskState:'idle'};
   }throw new ArchiveError('STORAGE_FAILED');
  }
@@ -185,7 +207,7 @@ export class SmartFilterStore extends IAStore {
   return true;
  }
  page(options={}){return options.searchContext!==undefined?prepareInputSearchArrival(this,options).then(arrival=>this.pageRead(options,arrival)):this.pageRead(options);}
- async pageRead(options={},arrival=null){if(options.contextPositionOnly!==undefined&&typeof options.contextPositionOnly!=='boolean'||options.contextPositionOnly===true&&((options.view??'library')!=='library'||!idOK(options.contextInputId)||!idOK(options.documentId)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));if(options.qualifyContext!==undefined&&typeof options.qualifyContext!=='boolean'||options.qualifyContext===true&&((options.view??'library')!=='library'||!idOK(options.contextInputId)||!idOK(options.documentId)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));if(options.includeFiltered!==undefined&&typeof options.includeFiltered!=='boolean')return Promise.reject(new ArchiveError('INVALID_REQUEST'));const annual=options.yearReading&&(options.view??'library')==='library'&&idOK(options.documentId),ready=annual?await advanceArchiveYearIndex(this,options.documentId):true;if(annual&&options.cursor?.[0]==='archive-year-build')options={...options,cursor:null};return this.run(()=>this.repository.transaction(false,async t=>{
+ async pageRead(options={},arrival=null){if(options.contextPositionOnly!==undefined&&typeof options.contextPositionOnly!=='boolean'||options.contextPositionOnly===true&&((options.view??'library')!=='library'||!idOK(options.contextInputId)||!idOK(options.documentId)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));if(options.qualifyContext!==undefined&&typeof options.qualifyContext!=='boolean'||options.qualifyContext===true&&((options.view??'library')!=='library'||!idOK(options.contextInputId)||!idOK(options.documentId)))return Promise.reject(new ArchiveError('INVALID_REQUEST'));if(options.includeFiltered!==undefined&&typeof options.includeFiltered!=='boolean')return Promise.reject(new ArchiveError('INVALID_REQUEST'));const annual=options.yearReading&&(options.view??'library')==='library'&&idOK(options.documentId),ready=annual?await advanceArchiveYearIndex(this,options.documentId):true;if(annual&&options.cursor?.[0]==='archive-year-build')options={...options,cursor:null};return this.run(()=>this.#withAIFilterVisibility(t=>filterVisibilityPageInputIds(t,options,ready),()=>this.repository.transaction(false,async t=>{
   const state=await t.get('meta','smart-filter');const snapshot=options.readingSnapshot??{mode:state.mode,sequence:state.decisionSequence};
   if(!snapshot||!['light','off'].includes(snapshot.mode)||!Number.isSafeInteger(snapshot.sequence)||snapshot.sequence<0)invalid();
   let queryOptions=options,contextUnavailable=false;const qualifiedContext=options.qualifyContext?await inputProjection(this,t,options.contextInputId):null;const scopeAvailable=!qualifiedContext||await matchesInputSearchArrival(this,t,qualifiedContext,arrival,state);
@@ -194,7 +216,7 @@ export class SmartFilterStore extends IAStore {
   if((options.view??'library')==='library'&&options.documentId){const visible=[],filtered=[];for(const id of result.pageItemIds){const b=result.library.blocks.find(b=>b.id===id);if(!b)continue;if(await this.isFiltered(t,b,state,snapshot)){filtered.push(id);if(options.includeFiltered||!options.contextPositionOnly&&id===options.contextInputId)visible.push(id);}else visible.push(id);}result.filteredPageItemIds=filtered;result.pageItemIds=visible;}
   if(options.qualifyContext){result.contextInputRevision=contextUnavailable?null:qualifiedContext.contentRevision;if(contextUnavailable){result.pageItemIds=[];result.nextCursor=null;}}
   return result;
- }));}
+ })));}
  async scopeSearchToProject(result,selectedProject){
   if(!selectedProject||!result.items.length)return result;
   const ids=[...new Set(result.items.map(item=>item.documentId))];
@@ -258,12 +280,12 @@ export class SmartFilterStore extends IAStore {
     if(this.inputSearchCache?.generation!==generation)this.inputSearchCache=await buildInputSearchCache(this.repository,generation);
     if(this.inputSearchCache&&!this.inputSearchCache.unavailable){
      const found=lookupInputSearchCache(this.inputSearchCache,{needle,cursor,limit,providerKey,dateFrom,dateTo});
-     const result=await this.repository.transaction(false,async t=>{
+     const result=await this.#withAIFilterVisibility(async()=>found.items.map(x=>x.id),()=>this.repository.transaction(false,async t=>{
       if(((await t.get('meta','backup-data-generation'))?.value||0)!==generation)return null;
       const state=await t.get('meta','smart-filter'),items=[];
       for(const row of found.items){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus)continue;const filtered=await this.isFiltered(t,b,state);if(filtered&&!includeFiltered)continue;items.push({id:row.id,documentId:row.documentId,text:row.text,title:row.title,rank:row.rank,sourceSentAt:row.sourceSentAt,filtered});}
       return {items:rankSearchPage(items),nextCursor:found.nextCursor};
-     });
+     }));
      if(result)return this.scopeSearchToProject(result,selectedProject);
      this.inputSearchCache=null;
     }
@@ -271,23 +293,23 @@ export class SmartFilterStore extends IAStore {
   }
   return this.scopeSearchToProject(await this.searchInputsScan({query,cursor,limit,ranked,providerKey,includeFiltered,dateFrom,dateTo}),selectedProject);
  });}
- searchInputsScan({query='',cursor=null,limit=50,ranked=false,providerKey=null,includeFiltered=true,dateFrom='',dateTo=''}={}){return this.repository.transaction(false,async t=>{
+ searchInputsScan({query='',cursor=null,limit=50,ranked=false,providerKey=null,includeFiltered=true,dateFrom='',dateTo=''}={}){return this.#withAIFilterVisibility(async t=>(await t.page('blockIndex',{index:'bySequence',after:(ranked?cursor?.offset:cursor)??undefined,limit:200})).rows.filter(x=>!x.value.excluded).map(x=>x.value.id),()=>this.repository.transaction(false,async t=>{
   const state=await t.get('meta','smart-filter'),needle=query.normalize('NFKC').trim().toLocaleLowerCase(),items=[],documents=new Map(),phase=ranked?(cursor?.phase||0):null,offset=ranked?cursor?.offset:cursor;const next=offset=>ranked?(offset!==null?{phase,offset}:phase<2?{phase:phase+1,offset:null}:null):offset;if(!needle)return {items,nextCursor:null};const page=await t.page('blockIndex',{index:'bySequence',after:offset??undefined,limit:200});let last=offset;
   for(const {key,value:ix}of page.rows){last=key;if(ix.excluded)continue;if(!documents.has(ix.documentId))documents.set(ix.documentId,(await t.get('documents',ix.documentId))?.value);const doc=documents.get(ix.documentId);if(!doc||providerKey&&doc.platform!==providerKey||!matchesSourceDate(ix.sourceSentAt,dateFrom,dateTo))continue;const title=doc.userTitle||doc.originalConversationTitle,titleRank=searchRank(needle,title);if(ranked&&(phase<2?titleRank!==phase:titleRank>=0))continue;const b=(await t.get('blocks',ix.id))?.value;if(!b||b.branchStatus)continue;const r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null,text=b.libraryText??r?.originalText??'';
    const rank=searchRank(needle,title,text+' '+(b.note||''));if(rank<0||ranked&&rank!==phase)continue;
    const filtered=await this.isFiltered(t,b,state);if(filtered&&!includeFiltered)continue;items.push({id:b.id,documentId:b.documentId,text,title,rank,sourceSentAt:ix.sourceSentAt,filtered});if(items.length===limit)return {items:rankSearchPage(items),nextCursor:next(last)};
   }return {items:rankSearchPage(items),nextCursor:next(page.next)};
- });}
- recentFiltered({cursor=null,limit=50,query=''}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(!Array.isArray(cursor)||cursor.length!==3||cursor[0]!==0||!Number.isSafeInteger(cursor[1])||!idOK(cursor[2])))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
+ }));}
+ recentFiltered({cursor=null,limit=50,query=''}={}){if(typeof query!=='string'||query.length>1000||!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&(!Array.isArray(cursor)||cursor.length!==3||cursor[0]!==0||!Number.isSafeInteger(cursor[1])||!idOK(cursor[2])))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.#withAIFilterVisibility(async t=>(await t.rangePage('filterInputs','byFiltered',prefix([0]),cursor,limit)).rows.map(x=>x.value.id),()=>this.repository.transaction(false,async t=>{
   const page=await t.rangePage('filterInputs','byFiltered',prefix([0]),cursor,limit),items=[];
   for(const {value:row}of page.rows){const b=(await t.get('blocks',row.id))?.value;if(!b||b.excluded||b.branchStatus||!await this.isFiltered(t,b,{mode:'light'}))continue;const doc=(await t.get('documents',b.documentId))?.value,r=b.originalTextReference?(await t.get('records',b.originalTextReference))?.value:null;const text=b.libraryText??r?.originalText??'',title=doc?.userTitle||doc?.originalConversationTitle||'';if(query.trim()&&![text,title].some(v=>v.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())))continue;items.push({id:b.id,documentId:b.documentId,text,title,sourceSentAt:r?.sourceSentAt??null,evaluatedAt:row.evaluatedAt,reason:FILTER_REASONS[row.reasonCode]||FILTER_REASONS.uncertain});}
   return {items,nextCursor:page.next};
- }));}
+ })));}
  // Internal candidate/context contract only; no Organizer or public Memory endpoint.
  async validateThoughtInput(t,b){if(await this.isFiltered(t,b,await t.get('meta','smart-filter')))invalid();}
- inputEligibility(id,{contextOnly=false,anchorId=null}={}){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.repository.transaction(false,async t=>{
+ inputEligibility(id,{contextOnly=false,anchorId=null}={}){if(!idOK(id))return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.run(()=>this.#withAIFilterVisibility(async()=>[id,...(contextOnly&&idOK(anchorId)?[anchorId]:[])],()=>this.repository.transaction(false,async t=>{
   const b=(await t.get('blocks',id))?.value;if(!b||b.excluded||b.branchStatus)return {eligible:false};const state=await t.get('meta','smart-filter'),filtered=await this.isFiltered(t,b,state);
   if(contextOnly){if(!idOK(anchorId)||anchorId===id)return {eligible:false};const anchor=(await t.get('blocks',anchorId))?.value;if(!anchor||anchor.excluded||anchor.branchStatus||anchor.documentId!==b.documentId||await this.isFiltered(t,anchor,state))return {eligible:false};const a=await t.get('blockIndex',anchorId),x=await t.get('blockIndex',id);const cmp=this.repository.factory.cmp(a.listKey,x.listKey),range=IDBKeyRange.bound(cmp<0?a.listKey:x.listKey,cmp<0?x.listKey:a.listKey);if(await t.count('blockIndex','byList',range)>3)return {eligible:false};}
   return {eligible:!filtered||contextOnly,role:contextOnly?'context_only':'primary',contentRevision:(await t.get('inputStates',id))?.contentRevision};
- }));}
+ })));}
 }
