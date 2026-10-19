@@ -1,0 +1,81 @@
+name: PAIA Panel Latency Diagnostic
+
+# Isolated synthetic measurement, never a replacement for original safety gates.
+on:
+  push:
+    branches: ['codex/prompt-panel-latency-20261019']
+    paths:
+      - 'extension/tests/diagnostics/panel-latency/**'
+      - '.github/workflows/paia-panel-latency-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: paia-panel-latency-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  synthetic-panel-latency:
+    if: github.ref == 'refs/heads/codex/prompt-panel-latency-20261019' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CI: '1'
+      PAIA_HEADLESS: '1'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing exact direct versions from the official registry
+        working-directory: extension
+        # Existing extension dependencies have exact direct versions, no lock.
+        # No claim of fully locked transitive dependencies.
+        run: npm install --registry=https://registry.npmjs.org --package-lock=false --ignore-scripts --no-audit --no-fund
+      - name: Record exact original baseline and standard runner Chrome
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+          test ! -e extension/package-lock.json
+          CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_MODULE=$GITHUB_WORKSPACE/extension/node_modules/playwright" >> "$GITHUB_ENV"
+          echo "PAIA_LATENCY_OUTPUT=$RUNNER_TEMP/panel-latency-evidence.json" >> "$GITHUB_ENV"
+          printf 'head=%s\ntree=%s\nrunner=%s/%s\n' "$GITHUB_SHA" "$(git rev-parse HEAD^{tree})" "$RUNNER_OS" "$RUNNER_ARCH"
+          "$CHROME_BIN" --version
+          node --version
+          npm ls --prefix extension --depth=0
+          sha256sum extension/core/prompt-reuse-service.js extension/background/prompt-surface.js
+      - name: Check diagnostic contracts before starting the browser
+        run: |
+          set -euo pipefail
+          HARNESS=extension/tests/diagnostics/panel-latency
+          node --test --test-reporter=tap "$HARNESS/validator-selftest.mjs"
+          python3 "$HARNESS/instrument-selftest.py" --baseline extension
+          python3 "$HARNESS/instrument.py" --extension extension --check
+      - name: Measure original cold-frame and warm-capsule read paths
+        run: |
+          set -euo pipefail
+          HARNESS="$GITHUB_WORKSPACE/extension/tests/diagnostics/panel-latency"
+          RUN="$(mktemp -d "$RUNNER_TEMP/paia-panel-latency-XXXX")"
+          cp -a extension "$RUN/extension"
+          python3 "$HARNESS/instrument.py" --extension "$RUN/extension"
+          PAIA_LATENCY_AUTORUN=1 PAIA_LATENCY_EXTENSION_PATH="$RUN/extension" node "$HARNESS/panel-latency.mjs"
+          node "$HARNESS/check-result.mjs" "$PAIA_LATENCY_OUTPUT"
+          git diff --exit-code
+      - name: Preserve complete or failed body-free evidence in the job log
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/panel-latency-evidence.json"; then
+            cat "$RUNNER_TEMP/panel-latency-evidence.json"
+          else
+            printf '%s\n' 'No native measurement evidence was produced.'
+          fi
+      # No artifacts, cache, secrets, service containers, provider or deployment.
