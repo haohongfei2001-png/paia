@@ -148,8 +148,21 @@ function textGuard(object,fields,allowed,current){
   Object.defineProperty(object,field,{enumerable:d.enumerable,configurable:true,get(){current();need(allowed(field));const value=Object.hasOwn(d,'value')?d.value:d.get?.call(object);current();return value;}});
  }return object;
 }
-function qualifiedReader(t,held,current,{topicLabels=false,metadataReader=t}={}){
- const wrap=(table,row)=>{current();if(!row)return row;
+// Strict identity consumers have a separately granted label universe. Keep
+// only the original identity metadata schema; unknown semantic objects cannot
+// be acquired by identityMetadata() or the original Source sanitizer clone.
+function strictTopicIdentityRow(row){
+ const projected=pick(row,['id','revision','organizationRevision','activeLayoutGeneration','defaultSectionId','lifecycle','redirectTo','layoutJobId','sourceRecordIds','createdAt','createdBy','updatedAt','pinKey','pinRank']);
+ if(Object.hasOwn(row,'protections'))projected.protections=named(own(row,'protections'),['name','title','keep','lifecycle','organization'],v=>named(v,['locked','reason','operationId','at']));
+ if(Object.hasOwn(row,'identity')){
+  const identity=own(row,'identity');need(identity&&typeof identity==='object'&&!Array.isArray(identity));need(own(identity,'scope')===null);
+  projected.identity=named(identity,['version','revision','origin','scope','legacy','noRecreation','nameToken','aliases','lifecycleIntent'],(value,key)=>key==='aliases'?list(value,v=>named(v,['token','actor','revision','operationId','at'])):key==='lifecycleIntent'?named(value,['actor','operationId','at','previous','to']):scalar(value));
+ }
+ for(const field of ['name','nameKey']){const descriptor=Object.getOwnPropertyDescriptor(row,field);if(descriptor)Object.defineProperty(projected,field,{...descriptor,configurable:true});}
+ return projected;
+}
+function qualifiedReader(t,held,current,{topicLabels=false,strictTopicIdentity=false,metadataReader=t}={}){
+ const wrap=(table,row)=>{current();if(!row)return row;if(strictTopicIdentity&&table==='topics')row=strictTopicIdentityRow(row);
   if(table==='thoughts'){const expected=held.entries.get(row.id);if(expected)need(equal(entryMetadata(row),expected),'STALE_BASE');row=textGuard(row,textFields.thoughts,()=>!!expected,current);}
   else if((table==='topics'||table==='sections')&&!topicLabels){const expected=held.structures.get(JSON.stringify([table,row.id]));if(expected)need(equal(structureMetadata(row),expected.metadata),'STALE_BASE');row=textGuard(row,textFields[table],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
   else if(table==='revisions'){const expected=held.journals.get(row.id);if(expected)need(equal(journalMetadata(row),expected.metadata),'STALE_BASE');row={...row};for(const side of ['before','after'])row[side]=textGuard(row[side],['body','title','note','name','nameKey'],field=>!!expected&&expected.selectedFields.includes(field==='nameKey'?'name':field),current);}
@@ -159,7 +172,7 @@ function qualifiedReader(t,held,current,{topicLabels=false,metadataReader=t}={})
  };
  const checked=async table=>{current();if(['thoughts','blocks','records','revisions'].includes(table))await assertLocalClosures(metadataReader,held);current();};
  const reader=Object.create(t);reader.get=async(...args)=>{current();const row=await t.get(...args);await checked(args[0]);return wrap(args[0],row);};reader.edge=async(...args)=>{current();const row=await t.edge(...args);await checked(args[0]);return wrap(args[0],row);};
- reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};reader.rangePage=async(...args)=>{current();const page=await t.rangePage(...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
+ reader.all=async(...args)=>{current();const rows=await t.all(...args);await checked(args[0]);return rows.map(row=>wrap(args[0],row));};for(const method of ['rangePage','page','primaryRangePage','indexPrimaryPage'])reader[method]=async(...args)=>{current();const page=await t[method](...args);await checked(args[0]);for(const row of page.rows)row.value=wrap(args[0],row.value);return page;};
  return reader;
 }
 // Mint outside a transaction. The digest binds the complete original metadata
