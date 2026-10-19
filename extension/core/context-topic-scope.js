@@ -1,3 +1,7 @@
+import {readOriginalControlSettings,assertOriginalControlSettingsFacts} from './indexed-store.js';
+import {readContextCardsMetadata,readContextChoicesMetadata,readContextLegacyMetadata,contextReadMetadataRow,validContextReadEntryMetadata} from './context-read-preflight-metadata.js';
+import {CONTEXT_CARDS_ROW} from './context-cards.js';
+import {CONTEXT_TOPIC_ACCESS_ROW,sameContextTopicBinding} from './context-topic-preferences.js';
 import {requireRepositoryTransactionScope} from './idb-repository.js';
 import {assertMaintenanceQualification,assertMaintenanceQualificationFacts,maintenanceQualificationReader} from './ai-usage/maintenance-qualification.js';
 import {readAuthoredEntryContext} from './context-authored-entry.js';
@@ -83,7 +87,7 @@ const refuse=reason=>{throw Object.assign(new Error('Context Topic scope unavail
 const requireFact=(condition,reason='invalid_facts')=>{if(!condition)refuse(reason);};
 // Trusted capability, kept outside the budget DTO. Every awaited row boundary
 // rechecks synchronously; a Promise or truthy object is never current authority.
-function currentWork(budget){const parent=workParents.get(budget);if(parent)currentWork(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);if(budget.signal?.aborted)refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
+function currentWork(budget){const parent=workParents.get(budget);if(parent)currentWork(parent);const qualification=workQualification.get(budget);if(qualification)assertMaintenanceQualification(qualification);if((budget.signal!==null&&signalAborted.call(budget.signal)))refuse('stale_authority');const check=workCurrent.get(budget);if(!check)return;let value;try{value=check();}catch{refuse('stale_authority');}if(value!==true){Promise.resolve(value).catch(()=>{});refuse('stale_authority');}}
 function add(set,id){requireFact(idOK(id));set.add(id);if(set.size>MAX_REFS)refuse('scope_budget');}
 function validIds(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');requireFact(value.every(idOK)&&new Set(value).size===value.length);return value;}
 function bounded(value){requireFact(Array.isArray(value));if(value.length>MAX_REFS)refuse('scope_budget');return value;}
@@ -199,28 +203,29 @@ function dependencyValid(dep,entryId){
 
 // Validate every serialized scalar before constructing a freshness token. The
 // final call uses only meta, including the same current consent/gate contract.
-async function admission(store,t){
+async function admission(store,t,{controlScope=null,controlSnapshot=null}={}){
+ const controlOwner=controlScope?{control:async transaction=>{const snapshot=readOriginalControlSettings(store,controlScope,controlSnapshot);controlSnapshot=snapshot;const gate=await transaction.get('meta','gate');readOriginalControlSettings(store,controlScope,snapshot);requireFact(snapshot.settings.enabled===true&&gate?.enabled===snapshot.settings.enabled&&gate?.epoch===snapshot.settings.epoch,'consent_unavailable');return snapshot;}}:store;
  for(const id of ['thought-sequence','thought-epoch','input-delta-sequence','revision-sequence','backup-data-generation']){const row=await t.get('meta',id);requireFact(!row||revisionOK(row.value),'authority_unavailable');}
  const restore=await t.get('meta','recovery-restore-epoch');requireFact(!restore||typeof restore.value==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(restore.value),'authority_unavailable');
- const gate=await t.get('meta','gate'),control=await store.control(t);
+ const gate=await t.get('meta','gate'),control=await controlOwner.control(t);
  requireFact(plain(control?.settings)&&gate&&revisionOK(gate.epoch)&&typeof gate.enabled==='boolean'&&gate.epoch===control.settings.epoch&&gate.enabled===control.settings.enabled,'consent_unavailable');
- const cards=new ContextCardsService(store);let epoch;
+ const cards=new ContextCardsService(controlOwner);let epoch;
  try{epoch=await cards.admitted(t);}catch{refuse('consent_unavailable');}
  requireFact(typeof epoch==='string'&&epoch.length>0&&epoch.length<=128,'authority_unavailable');
  const foundation=await t.get('meta','thought-library'),bindings=await t.get('meta',BINDING_ROW),filter=await t.get('meta','smart-filter');
  requireFact(foundation?.phase==='active'&&foundation.verified===true&&foundation.sealed===0&&bindings?.version===1&&bindings.complete===true,'not_ready');
  requireFact(filter?.phase==='active'&&['off','light'].includes(filter.mode)&&Object.entries(FILTER_VERSIONS).every(([k,v])=>filter[k]===v)&&revisionOK(filter.policyEpoch)&&revisionOK(filter.decisionSequence),'filter_unavailable');
  const authority=await rootReadAuthority(t);requireFact(token(authority),'authority_unavailable');
- return {authority,epoch,filter,gate:JSON.stringify([gate.epoch,gate.enabled,control.settings.consentVersion])};
+ if(controlScope)requireFact(controlSnapshot.restoreEpoch===(restore?.value??null),'stale_authority');return {authority,epoch,filter,gate:JSON.stringify([gate.epoch,gate.enabled,control.settings.consentVersion]),...(controlScope?{controlSnapshot}:{})};
 }
 
 
 // Shared complete membership/negative-restriction facts. This phase never reads
 // blocks/records/Input fields and never hashes. Full eligibility remains below.
-async function scopeMetadata(store,t,topicId,admitted){
+async function scopeMetadata(store,t,topicId,admitted,{metadataOnly=false,contextMetadata=null}={}){
  const {epoch,authority:currentAuthority}=admitted;
    const cards=new ContextCardsService(store);
-   let contextRow;try{contextRow=await cards.row(t);}catch{refuse('context_unavailable');}
+   let contextRow;try{contextRow=metadataOnly?(contextMetadata??readContextCardsMetadata(await t.get('meta',CONTEXT_CARDS_ROW))):await cards.row(t);}catch{refuse('context_unavailable');}
    const context={version:1,epoch,access:structuredClone(contextRow.access)},topics=new Map(),reservations=new Map(),legacyRows=[];
    const readTopic=async id=>{
     if(topics.has(id))return topics.get(id);
@@ -242,6 +247,7 @@ async function scopeMetadata(store,t,topicId,admitted){
    // never silently replaced by its survivor and grants never follow redirects.
    const ancestry=async id=>{const proxy=Object.create(t);proxy.get=async(name,key)=>name==='topics'?readTopic(key):t.get(name,key);try{return await resolveTopicIdentity(proxy,id);}catch(error){if(error?.scopeReason)throw error;refuse('legacy_unavailable');}};
    await t.scanPrimary('meta','memory:',row=>{
+    if(metadataOnly){const projected=readContextLegacyMetadata(row);if(projected)legacyRows.push(projected);return;}
     requireFact(validateMemoryRow(row),'legacy_unavailable');
     if(['config','topic','section','entry','input'].includes(row.kind))legacyRows.push(structuredClone(row));
    });
@@ -270,7 +276,7 @@ async function scopeMetadata(store,t,topicId,admitted){
      add(topicIds,topic.id);requireFact(!topic.layoutJobId&&!topic.identity.noRecreation,'topic_unavailable');
      const section=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,p.sectionId]));await addSection(section,topic);
     });
-    const raw=await t.get('thoughts',entryId);entryValid(raw);
+    const raw=await t.get('thoughts',entryId);if(metadataOnly)validContextReadEntryMetadata(raw);else entryValid(raw);
     for(const ref of raw.inputRefs)add(inputIds,ref.inputBlockId);
     if(raw.bodyBinding==='input')add(inputIds,raw.workingInputId);
     // Bound/validate dependency and provenance collections before eligibility
@@ -294,9 +300,9 @@ async function scopeMetadata(store,t,topicId,admitted){
 
 async function scopeRead(store,budget,fn,stores){
  const database=budget.database||store.repository.db;
- requireFact(database&&store.repository.db===database&&!budget.signal?.aborted,'not_ready');
- const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!budget.signal?.aborted,'not_ready');return fn(t);},stores);
- requireFact(store.repository.db===database&&!budget.signal?.aborted,'not_ready');return result;
+ requireFact(database&&store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');
+ const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return fn(t);},stores);
+ requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return result;
 }
 
 export async function readContextTopicScope(store,options={},workBudget=null){
@@ -415,4 +421,41 @@ export async function readContextProcessingPreflight(store,options={},workBudget
   }catch{/* An optional hint cannot change the original legacy preflight result. */}
   return result;
  }catch(error){return denied(unavailableReasons.has(error?.scopeReason)?error.scopeReason:reason);}
+}
+
+
+// Original external deep-read metadata admission. No canonical Entry validator,
+// Item text, label, legacy Profile instruction, Input or Source body is read.
+// Its hint only permits bounded history preparation; full scope/field access
+// still belongs to the original later reader and its independent permissions.
+export async function readContextReadPreflight(store,options={},workBudget=null){
+ const denied=reason=>({available:false,kind:'read_preflight',reason,externalAllowed:false,bodyEligibility:'not_checked'});
+ if(!plain(options)||Object.keys(options).sort().join(',')!=='expectedAuthority,topicId'||!idOK(options.topicId)||!token(options.expectedAuthority))return denied('invalid_request');
+ if(!store?.repository?.db||!store.controlCache)return denied('not_ready');if(workBudget!==null)try{assertContextScopeWorkBudgetFacts(workBudget,{database:store.repository.db});}catch(error){return denied(unavailableReasons.has(error?.scopeReason)?error.scopeReason:'scope_budget');}
+ const budget=workBudget||createContextScopeWorkBudget({database:store.repository.db});let captured,metadataInputs,capturedPolicy,reason='storage_unavailable';
+ const known=error=>['global_off','inputs_off','topic_off','selection_stale'].includes(error?.scopeReason)||unavailableReasons.has(error?.scopeReason)?error.scopeReason:null;
+ const step=(stores,fn)=>scopeRead(store,budget,async transaction=>{try{return await fn(transaction);}catch(error){reason=known(error)||'invalid_facts';throw error;}},stores);
+ try{
+  const result=await step(undefined,async original=>{
+   // Project before the bounded reader inspects any row arrays. This private
+   // facade is not exported or granted an original transaction-origin brand.
+   const projected=Object.create(original);projected.get=async(table,key)=>contextReadMetadataRow(table,await original.get(table,key));
+   for(const method of ['rangePage','primaryRangePage'])projected[method]=async(table,...args)=>{const page=await original[method](table,...args);return {...page,rows:page.rows.map(item=>({...item,value:contextReadMetadataRow(table,item.value)}))};};
+   const t=reader(projected,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t,{controlScope:original});captured=a;requireFact(a.authority===options.expectedAuthority,'stale_authority');
+   const context=readContextCardsMetadata(await t.get('meta',CONTEXT_CARDS_ROW));requireFact(context.access.global.enabled,'global_off');requireFact(context.access.inputs.enabled,'inputs_off');
+   const choices=readContextChoicesMetadata(await t.get('meta',CONTEXT_TOPIC_ACCESS_ROW)),choice=choices.choices.find(c=>c.topicId===options.topicId);requireFact(choice?.enabled===true,'topic_off');capturedPolicy=JSON.stringify({context,choice});
+   const m=await scopeMetadata(store,t,options.topicId,a,{metadataOnly:true,contextMetadata:context});requireFact(m.inputIds.size<=200,'scope_budget');requireFact(m.eligible,'content_unavailable');
+   const binding=contextTopicSelectionBinding(m.target,a.epoch,m.reservations.get(m.target.protections.organization?.operationId)??null);requireFact(binding,'organization_unavailable');requireFact(sameContextTopicBinding(choice.binding,binding),'selection_stale');
+   const scope={complete:true,legacyComplete:true,eligibility:'unknown',topicIds:[...m.topicIds],entryIds:[...m.entryIds],inputIds:[...m.inputIds],sections:[...m.sections.values()]};
+   const verdict=evaluateContextTopicAccess({context:m.context,topics:[...m.topics.values()],topicId:m.target.id,selection:{...choice.binding,enabled:true},legacyRows:m.legacyRows,scope,capturedAuthority:a.authority,currentAuthority:a.authority,organizationReservations:[...m.reservations.values()]});
+   requireFact(verdict.reason==='content_unavailable',verdict.reason==='legacy_restricted'?'legacy_restricted':'invalid_facts');
+   const memory=new MemoryService(store);for(const id of m.inputIds){const state=await t.get('inputStates',id),index=await t.get('blockIndex',id);requireFact(state?.id===id&&index?.id===id&&state.removalState==='active'&&!state.sourcePurged&&index.excluded===false,'input_unavailable');validIds(state.sourceRecordIds);requireFact(state.sourceRecordIds.length&&await t.has('blocks',id)&&await memory.safeSources(t,state.sourceRecordIds),'input_unavailable');}
+   currentWork(budget);assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});metadataInputs=[...m.inputIds].sort();
+   return {available:true,kind:'read_preflight',reason:'metadata_admitted',externalAllowed:false,bodyEligibility:'not_checked',binding};
+  });
+  await step(['meta'],async original=>{const t=reader(original,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t,{controlScope:original,controlSnapshot:captured.controlSnapshot});requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');const context=readContextCardsMetadata(await t.get('meta',CONTEXT_CARDS_ROW));requireFact(context.access.global.enabled,'global_off');requireFact(context.access.inputs.enabled,'inputs_off');const choice=readContextChoicesMetadata(await t.get('meta',CONTEXT_TOPIC_ACCESS_ROW)).choices.find(c=>c.topicId===options.topicId);requireFact(choice?.enabled&&sameContextTopicBinding(choice.binding,result.binding)&&JSON.stringify({context,choice})===capturedPolicy,'selection_stale');});
+  currentWork(budget);assertOriginalControlSettingsFacts(store,captured.controlSnapshot);assertContextScopeWorkBudgetFacts(budget,{database:store.repository.db});
+  if(workBudget!==null){const binding=result.binding,metadata=Object.freeze({inputIds:Object.freeze(metadataInputs),binding:Object.freeze({...binding}),authority:captured.authority});processingMetadata.set(result,{store,repository:store.repository,database:store.repository.db,budget,binding,resultFacts:Object.getOwnPropertyDescriptors(result),bindingFacts:Object.getOwnPropertyDescriptors(binding),metadata});}
+  return result;
+ }catch(error){return denied(known(error)||reason);}
 }

@@ -1,8 +1,9 @@
+import {createContextFilterVisibilityScope,FILTER_VISIBILITY_CONSUMER_LIMITS} from './ai-usage/filter-visibility-consumer-scope.js';
 import {readableContextItems} from './context-item-lineage.js';
 import {contextTemporalProjection} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_ITEM_CARDS} from './context-cards.js';
 import {ContextTopicAccessService} from './context-topic-access.js';
-import {readContextTopicScope,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
+import {readContextTopicScope,readContextReadPreflight,readContextProcessingMetadata,createContextScopeWorkBudget,contextScopeTransactionReader,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
 import {evaluateContextTopicAccess} from './context-topic-access-policy.js';
 import {rootReadAuthority} from './organizer/root-read.js';
 import {bindingSource} from './thought-binding.js';
@@ -166,17 +167,17 @@ export class ContextReadService {
   need(Number.isInteger(o.chunkSize)&&o.chunkSize>=2&&o.chunkSize<=CONTEXT_READ_LIMITS.chunk,'invalid_request');
   return o;
  }
- async #scope(topicId,captured){
+ async #scope(topicId,captured,workBudget=null){
   const choice=captured.choices.choices.find(x=>x.topicId===topicId&&x.enabled);
   need(choice,'topic_unavailable');
-  const scope=await readContextTopicScope(this.#s,{topicId,expectedAuthority:captured.authority});
+  const scope=await readContextTopicScope(this.#s,{topicId,expectedAuthority:captured.authority},workBudget);
   if(!scope.available){if(scope.reason==='hash_budget')refuse('scope_budget');if(['not_ready','stale_authority','scope_budget','incomplete_page','topic_unavailable'].includes(scope.reason))refuse(scope.reason);refuse('storage_unavailable');}
   const decision=evaluateContextTopicAccess({...scope.snapshot,selection:{...choice.binding,enabled:true}});
   if(!decision.policyAllowed)refuse(['legacy_restricted','content_unavailable','selection_stale','topic_unavailable'].includes(decision.reason)?'topic_unavailable':'storage_unavailable');return scope;
  }
- async #inputs(scope,captured){
+ async #inputs(scope,captured,workBudget=null){
   return this.#read(async transaction=>{
-   const t=boundedReader(transaction,(a,b)=>this.#s.repository.factory.cmp(a,b));
+   const t=workBudget?contextScopeTransactionReader(this.#s,transaction,workBudget):boundedReader(transaction,(a,b)=>this.#s.repository.factory.cmp(a,b));
    need((await this.#snapshot(true,t)).fence===captured.fence,'stale_authority');
    const whole=new Set(),inputs=new Map(),memory=new MemoryService(this.#s);let materialBytes=0;
    for(const entryId of scope.scope.entryIds){
@@ -205,7 +206,7 @@ export class ContextReadService {
  async #run(kind,caller,input,preview=false){
   let timer;const attempt={expired:false};
   try{return await Promise.race([this.#execute(kind,caller,input,attempt,preview),new Promise(resolve=>{timer=setTimeout(()=>{attempt.expired=true;resolve(unavailable('timeout'));},CONTEXT_READ_LIMITS.requestMs);})]);}
-  catch(error){return failure(error);}
+  catch(error){return failure(attempt.currentFailure||error);}
   finally{clearTimeout(timer);}
  }
  async #execute(kind,caller,input,attempt,preview){
@@ -216,7 +217,15 @@ export class ContextReadService {
   const receipt=preview?null:await this.#verify(caller);if(!preview)this.#current(caller,receipt);
   if(previous)need(previous.connection===(preview?'local_scope_preview':identity(receipt)),'stale_cursor');
   need(this.#access.ready(),'not_ready');
-  const captured=await this.#read(t=>this.#snapshot(deep,t,preview),['meta']);
+  // The original caller is a deny-only veto throughout the shared ledger.
+  // Retain its exact refusal if the lower-level budget wraps that exception.
+  const deepCurrent=()=>{
+   if(attempt.currentFailure)throw attempt.currentFailure;
+   try{need(!attempt.expired,'timeout');need(this.#access.ready(),'not_ready');if(!preview)this.#current(caller,receipt);return true;}
+   catch(error){attempt.currentFailure=error;throw error;}
+  };
+  const deepBudget=deep?createContextScopeWorkBudget({database:this.#s.repository.db,isCurrent:deepCurrent}):null,discovered=new Set();
+  const captured=await this.#read(t=>this.#snapshot(deep,deepBudget?contextScopeTransactionReader(this.#s,t,deepBudget):t,preview),['meta']);
   if(previous)need(previous.fence===captured.fence,'stale_cursor');
   need(captured.cards.access.global.enabled,'global_off');
   if(deep)need(captured.cards.access.inputs.enabled,'inputs_off');
@@ -225,6 +234,17 @@ export class ContextReadService {
    const size=bytes(JSON.stringify(item))+(items.length?1:0);
    if(outputBytes+size>CONTEXT_READ_LIMITS.outputBytes){need(items.length>0,'output_budget');return false;}
    items.push(item);outputBytes+=size;return true;
+  };
+  // Only the original metadata preflight may supply this one-use hint. The
+  // page keeps its original root and complete union; warming grants no text.
+  const readDeepTopic=async(topicId,consume)=>{
+   deepCurrent();need(captured.choices.choices.some(x=>x.topicId===topicId&&x.enabled),'topic_unavailable');
+   const admitted=await readContextReadPreflight(this.#s,{topicId,expectedAuthority:captured.authority},deepBudget);deepCurrent();
+   if(!admitted.available){if(['scope_budget','hash_budget'].includes(admitted.reason))refuse('scope_budget');if(['global_off','inputs_off','not_ready','stale_authority','incomplete_page'].includes(admitted.reason))refuse(admitted.reason);if(['topic_off','selection_stale','topic_unavailable','legacy_restricted','content_unavailable'].includes(admitted.reason))refuse('topic_unavailable');refuse('storage_unavailable');}
+   const metadata=readContextProcessingMetadata(admitted,this.#s,deepBudget);need(metadata,'scope_budget');for(const inputId of metadata.inputIds){discovered.add(inputId);need(discovered.size<=FILTER_VISIBILITY_CONSUMER_LIMITS.inputs,'scope_budget');}
+   const scopeToken=createContextFilterVisibilityScope(this.#s,[admitted],deepBudget);need(scopeToken,'scope_budget');
+   const content=async()=>{deepCurrent();const latest=await this.#read(t=>this.#snapshot(true,contextScopeTransactionReader(this.#s,t,deepBudget),preview),['meta']);deepCurrent();need(latest.fence===captured.fence,'stale_authority');const scope=await this.#scope(topicId,captured,deepBudget);deepCurrent();return consume(scope);};
+   return typeof this.#s.withAIFilterVisibilityScope==='function'?this.#s.withAIFilterVisibilityScope(scopeToken,content):content();
   };
   if(kind==='shallow'){
    const effective=await readableContextItems(this.#s,captured.cards.items.filter(x=>x.lifecycle==='active'&&CONTEXT_ITEM_CARDS.includes(x.card)&&captured.cards.access[x.card].enabled),{epoch:captured.epoch,expectedAuthority:captured.authority,rowSerialized:JSON.stringify(captured.cards),isCurrent:()=>{if(attempt.expired||!this.#access.ready())return false;if(!preview)this.#current(caller,receipt);return true;}});
@@ -237,18 +257,17 @@ export class ContextReadService {
    let index=position.index,scanned=0;
    while(index<choices.length&&items.length<o.limit&&scanned++<CONTEXT_READ_LIMITS.scan){
     const choice=choices[index++];
-    try{await this.#scope(choice.topicId,captured);}catch(error){if(error?.readReason==='topic_unavailable')continue;throw error;}
-    const item=await this.#read(async t=>{
-     need((await this.#snapshot(true,t)).fence===captured.fence,'stale_authority');
+    let item;try{item=await readDeepTopic(choice.topicId,()=>this.#read(async transaction=>{
+     const t=contextScopeTransactionReader(this.#s,transaction,deepBudget);need((await this.#snapshot(true,t)).fence===captured.fence,'stale_authority');
      const topic=await t.get('topics',choice.topicId),memory=new MemoryService(this.#s);
      need(topic&&typeof topic.name==='string'&&topic.name.length<=300,'topic_unavailable');
      return {topicId:topic.id,name:await memory.safeLabel(t,topic,'name'),revision:topic.revision,role:'topic_directory',authority:'data'};
-    });
+    }));}catch(error){if(error?.readReason==='topic_unavailable')continue;throw error;}
     if(!o.query||normalizeSearch(item.name).includes(normalizeSearch(o.query)))items.push(item);
    }
    position={index,field:0,offset:0};complete=index===choices.length;
   }else{
-   const scope=await this.#scope(o.topicId,captured),inputs=await this.#inputs(scope,captured);
+   const inputs=await readDeepTopic(o.topicId,scope=>this.#inputs(scope,captured,deepBudget));
    if(kind==='searchTopic'){
     const q=normalizeSearch(o.query),hits=inputs.filter(x=>normalizeSearch(x.body).includes(q)||normalizeSearch(x.note).includes(q));
     items=hits.slice(position.index,position.index+o.limit).map(x=>{
@@ -275,7 +294,7 @@ export class ContextReadService {
   // return. Late verifier callbacks cannot release a timed-out attempt.
   const scopeVersion=preview?Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(captured.fence))),x=>x.toString(16).padStart(2,'0')).join(''):null;
   const current=preview?null:await this.#verify(caller);if(!preview)need(identity(current)===identity(receipt),'connection_changed');
-  const latest=await this.#read(t=>this.#snapshot(deep,t,preview),['meta']);
+  const latest=await this.#read(t=>this.#snapshot(deep,deepBudget?contextScopeTransactionReader(this.#s,t,deepBudget):t,preview),['meta']);
   need(latest.fence===captured.fence,'stale_authority');need(!attempt.expired,'timeout');if(!preview)this.#current(caller,current);
   // Recompute only after the original final authority/connection fence. Time
   // changes annotate the same permitted rows; they never filter or grant them.
