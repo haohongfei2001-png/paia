@@ -1,3 +1,4 @@
+import * as organizeRead from '../../background/organize-processing-policy.js';
 import {ArchiveError} from '../constants.js';
 import {canonical,equal} from './contracts.js';
 import {snapshot,freeze,exact,integer,token} from './qwen-request-data.js';
@@ -10,6 +11,20 @@ const signalAborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'abort
 const LIMITS=Object.freeze({cache:64,pending:8,pageOperations:200,pages:8,pageLeaseMs:60000,cacheBytes:48*1024*1024,admissionMs:5000,cooldownMs:5000}),fail=()=>{throw new ArchiveError('UNAVAILABLE');};
 const own=(o,keys)=>!!o&&[Object.prototype,null].includes(Object.getPrototypeOf(o))&&Reflect.ownKeys(o).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(o,k)||{},'value'));
 const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
+const ownValue=(value,key)=>{const d=Object.getOwnPropertyDescriptor(value??{},key);return d&&Object.hasOwn(d,'value')?d.value:undefined;};
+// Only this original source owner can mint a historical read capability. Its
+// original processing lease already covers the exact historical Input scope;
+// the Organize admission contributes only its own selected Input and lifetime.
+const historicalReaderOwners=new WeakMap(),historicalReaderCaps=new WeakMap();
+export function captureAIFilterHistoricalReader(owner,store,admission){const capture=historicalReaderOwners.get(owner);if(!capture)fail();return capture(store,admission);}
+function historicalReader(cap,store,admission){const r=historicalReaderCaps.get(cap);if(!r||r.store!==store||r.admission!==admission)fail();return r;}
+export function readAIFilterHistoricalReaderBinding(cap,store){const r=historicalReaderCaps.get(cap);if(!r||r.store!==store)fail();r.current();return Object.freeze({admission:r.admission,scope:r.view});}
+export function readAIFilterHistoricalReaderScope(cap,store,admission){const r=historicalReader(cap,store,admission);r.current();return r.view;}
+export function assertAIFilterHistoricalReaderCurrent(cap,store,admission){return historicalReader(cap,store,admission).current();}
+export function assertAIFilterHistoricalReaderFacts(cap,store,admission){return historicalReader(cap,store,admission).facts();}
+// Fixed internal projection input. No Source/Input text is retained in this
+// original closed history proof. The cap never leaves the boolean consumer.
+export function readAIFilterHistoricalReaderProof(cap,store,admission){const r=historicalReader(cap,store,admission);r.facts();return r.proof;}
 const sharedResources=new WeakMap();
 const resourcesFor=hub=>{let r=sharedResources.get(hub);if(!r){r={pending:0,pages:0,seals:0,cacheBytes:0,pinned:new Map()};sharedResources.set(hub,r);}return r;};
 const receiptFields=['version','store','caller','scope','epoch','processing','expiresAt','revocationSignal'];
@@ -31,10 +46,10 @@ export function createAIFilterReadSession({getStore,consent,policy,configuration
  const closeLease=id=>{const l=leases.get(id);if(l){leases.delete(id);l.processing.snapshot.revocationSignal.removeEventListener('abort',l.abort);}};
  const dropIdentity=()=>{clearTimeout(identityTimer);identityTimer=null;const old=session;session=null;old?.remove?.();old?.connection.close();for(const id of [...leases.keys()])closeLease(id);};
  const invalidate=()=>{serial++;for(const timer of scheduled.values())clearTimeout(timer);scheduled.clear();for(const handle of [...pages.keys()])releasePage(handle);dropIdentity();};
- const currentStore=()=>{const s=getStore();if(disposed||!s?.repository?.db||c.isCurrent()!==true)fail();if(store&&store!==s){invalidate();history?.dispose();history=null;cleanupCursor=null;clearCache();}store=s;history??=createAIFilterVisibilityHistory(s);if(!history)fail();return s;};
+ const currentStore=()=>{const s=getStore(),repository=ownValue(s,'repository'),database=ownValue(repository,'db');if(disposed||!database||c.isCurrent()!==true||ownValue(s,'repository')!==repository||ownValue(repository,'db')!==database)fail();if(store&&store!==s){invalidate();history?.dispose();history=null;cleanupCursor=null;clearCache();}store=s;history??=createAIFilterVisibilityHistory(s);if(!history)fail();return s;};
  const now=()=>{const at=c.clock();if(!integer(at)||at<last){invalidate();fail();}last=at;return at;};
  const consentNow=()=>{const receipt=consent.capture();return receipt&&readAIFilterConsentEpoch(consent,receipt)?receipt:null;};
- const identityCurrent=s=>{try{return !!s&&!disposed&&s.serial===serial&&currentStore()===s.store&&s.store.repository===s.repository&&s.repository.db===s.database&&readFilterReadIdentityBinding(s.binding,s.store)!==null&&readHubFilterReadIdentityObservation(hub,s.connection)?.identity===s.identity&&s.identity.tier==='pro'&&now()<s.identity.verifiedUntil;}catch{return false;}};
+ const identityCurrent=s=>{try{return !!s&&!disposed&&s.serial===serial&&currentStore()===s.store&&ownValue(s.store,'repository')===s.repository&&ownValue(s.repository,'db')===s.database&&readFilterReadIdentityBinding(s.binding,s.store)!==null&&readHubFilterReadIdentityObservation(hub,s.connection)?.identity===s.identity&&s.identity.tier==='pro'&&now()<s.identity.verifiedUntil;}catch{return false;}};
  // Preserve the issuer's private receipt identity. Frozen local facts are a CAS
  // snapshot, never a replacement authority passed back to a branded issuer.
  const receiptFacts=(held,s,scope)=>{const r=held?.original,v=held?.snapshot;return own(r,receiptFields)&&!!v&&receiptFields.filter(k=>k!=='scope').every(k=>r[k]===v[k])&&sameReceiptScope(r.scope,v.scope)&&v.version===1&&v.store===s&&v.caller===caller&&Object.isFrozen(v.caller)&&token(v.epoch)&&v.processing===true&&integer(v.expiresAt)&&v.expiresAt>nativeNow()&&v.revocationSignal instanceof AbortSignal&&!signalAborted.call(v.revocationSignal)&&sameReceiptScope(v.scope,scope);};
@@ -42,7 +57,7 @@ export function createAIFilterReadSession({getStore,consent,policy,configuration
  // A synchronous issuer may trigger another original capability's revocation.
  // Its listeners tear down these private identities immediately. Recheck them
  // after the issuer without calling it (or another mutable verifier) again.
- const heldLease=l=>!disposed&&leases.get(l.id)===l&&cache.get(l.id)===l.history&&session===l.session&&l.session.serial===serial&&store===l.store&&l.store.repository===l.session.repository&&l.session.repository.db===l.session.database;
+ const heldLease=l=>!disposed&&leases.get(l.id)===l&&cache.get(l.id)===l.history&&session===l.session&&l.session.serial===serial&&store===l.store&&ownValue(l.store,'repository')===l.session.repository&&ownValue(l.session.repository,'db')===l.session.database;
  const current=l=>{try{if(!heldLease(l)||!identityCurrent(l.session)||!validReceipt(l.processing,l.store,l.scope))return false;const at=now();return heldLease(l)&&readFilterReadIdentityBindingFacts(l.session.binding,l.store)===l.session.request&&readHubFilterReadIdentityObservationFacts(hub,l.session.connection,at)?.identity===l.session.identity&&receiptFacts(l.processing,l.store,l.scope);}catch{return false;}};
  function forget(id){const h=cache.get(id);if(!h)return;closeLease(id);cache.delete(id);h.resource.cacheBytes-=h.bytes;}
  function clearCache(){for(const id of [...cache.keys()])forget(id);}
@@ -60,7 +75,7 @@ export function createAIFilterReadSession({getStore,consent,policy,configuration
   const work=Promise.resolve().then(async()=>{try{check();const binding=await createFilterReadIdentityBinding({getStore,consent,witness:h.witness,policy:selectedPolicy,configuration:c});check();const request=readFilterReadIdentityBinding(binding,s);if(!request)fail();
    const raw=await c.readFilterReadProofs(structuredClone(request));check();const proofs=snapshot(raw,{maxBytes:24576,maxDepth:1,maxKeys:2,maxString:8192});if(!exact(proofs,['principalToken','entitlementToken'])||Object.values(proofs).some(x=>typeof x!=='string'||!x.length||x.length>8192))fail();
    if(!readFilterReadIdentityBinding(binding,s))fail();connection=await openHubFilterReadIdentityObservation(hub,ticket,{request,...proofs});held=false;check();const observed=readHubFilterReadIdentityObservation(hub,connection);if(!observed||!equal(observed.request,request)||observed.identity.tier!=='pro')fail();
-   const next={serial:version,store:s,repository:s.repository,database:s.repository.db,binding,request,identity:observed.identity,connection,remove:null};if(!identityCurrent(next))fail();session=next;next.remove=connection.onInvalidate(()=>{if(session===next)dropIdentity();});
+   const next={serial:version,store:s,repository:ownValue(s,'repository'),database:ownValue(ownValue(s,'repository'),'db'),binding,request,identity:observed.identity,connection,remove:null};if(!identityCurrent(next))fail();session=next;next.remove=connection.onInvalidate(()=>{if(session===next)dropIdentity();});
    identityTimer=setTimeout(()=>{const ids=[...leases.keys()];dropIdentity();if(disposed||!ids.length)return;refresh(ids).catch(()=>{});},Math.max(1,Math.min(45000,next.identity.verifiedUntil-now()-2000)));identityTimer.unref?.();accepted=false;return next;
   }catch{connection?.close();return null;}finally{clearTimeout(timeout);if(held)releaseHubIdentityObservation(hub,ticket);identityWork=null;}});
   const result=Promise.race([work,deadline]);identityWork={work,result};return result;
@@ -94,5 +109,29 @@ export function createAIFilterReadSession({getStore,consent,policy,configuration
   isCurrent:grant=>current(grants.get(grant)),async settled(){await Promise.allSettled([...seals]);},isDrained:()=>!identityWork&&!cleanupWork&&pages.size===0&&pending.size===0&&seals.size===0&&scheduled.size===0&&(!history||history.isDrained()),
   status:()=>({history:cache.size,active:[...leases.values()].filter(current).length,pending:pending.size,scheduled:scheduled.size,pages:pages.size,pinned:pinned.size,identity:identityCurrent(session)?1:0}),invalidate,
   dispose(){if(disposed)return;disposed=true;invalidate();for(const handle of [...pages.keys()])releasePage(handle);history?.dispose();clearCache();remove?.();}
- });const remove=consent.onInvalidate(invalidate);return owner;
+ });
+ const consumerCaps=new WeakMap();
+ historicalReaderOwners.set(owner,(requestedStore,admission)=>{
+  if(typeof organizeRead.readOriginalOrganizeFilterAdmission!=='function'||typeof organizeRead.assertOriginalOrganizeFilterAdmissionFacts!=='function')fail();
+  const selected=organizeRead.readOriginalOrganizeFilterAdmission(admission,requestedStore);
+  if(!selected||!Object.isFrozen(selected)||!id(selected.inputId)||!id(selected.operationId)||selected.decisionVersion!==1||currentStore()!==requestedStore)fail();
+  const previous=consumerCaps.get(admission);if(previous){assertAIFilterHistoricalReaderCurrent(previous,requestedStore,admission);return previous;}
+  const l=leases.get(selected.operationId),h=cache.get(selected.operationId),p=h?.data.publication,item=p?.filtered.find(x=>x.inputId===selected.inputId);
+  if(!l||l.history!==h||!item||!current(l))fail();
+  const sources=[...p.proof.snapshot.items,...p.proof.neighbors].map(x=>Object.freeze({inputId:x.inputId,recordId:x.sourceRecordIds[0],sourceKey:x.identities[0]}));
+  const view=freeze({inputId:selected.inputId,operationId:selected.operationId,candidateIds:[...p.scope.candidateIds],neighborIds:[...p.scope.neighborIds],sources,restoreEpoch:h.data.restoreEpoch});
+  let active=true,sample=null,sampleSerial=0;
+  const local=()=>{
+   if(!active||!sample||!heldLease(l)||l.store!==requestedStore||cache.get(selected.operationId)!==h||!organizeRead.assertOriginalOrganizeFilterAdmissionFacts(admission,requestedStore)||readFilterReadIdentityBindingFacts(l.session.binding,l.store)!==l.session.request||readHubFilterReadIdentityObservationFacts(hub,l.session.connection,sample.at)?.identity!==l.session.identity||!receiptFacts(l.processing,l.store,l.scope))fail();
+   return true;
+  };
+  const facts=()=>{try{return local();}catch(error){active=false;sample=null;throw error;}};
+  const currentConsumer=()=>{try{
+   if(!active)fail();const next=organizeRead.readOriginalOrganizeFilterAdmission(admission,requestedStore);
+   if(next.inputId!==selected.inputId||next.operationId!==selected.operationId||next.decisionVersion!==1||!current(l))fail();
+   const serial=++sampleSerial;sample={at:last};queueMicrotask(()=>{if(sampleSerial===serial)sample=null;});return local();
+  }catch(error){active=false;sample=null;throw error;}};
+  const cap=Object.freeze({});historicalReaderCaps.set(cap,{store:requestedStore,admission,view,proof:freeze(p.proof),current:currentConsumer,facts});consumerCaps.set(admission,cap);currentConsumer();return cap;
+ });
+ const remove=consent.onInvalidate(invalidate);return owner;
 }

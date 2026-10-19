@@ -1,3 +1,5 @@
+import {captureOriginalOrganizeFilterAdmission} from '../background/organize-processing-policy.js';
+import {captureAIFilterQualifiedRead} from './ai-usage/ai-filter-authority.js';
 import {filterVisibilityPageInputIds} from './ai-usage/filter-visibility-read-page.js';
 import {takeFilterVisibilityConsumerOperations} from './ai-usage/filter-visibility-consumer-scope.js';
 import {AIMaintenanceFilterOwner} from './ai-usage/ai-filter-owner.js';
@@ -200,6 +202,8 @@ export class SmartFilterStore extends IAStore {
  async isFiltered(t,b,state,snapshot){
   if(b.excluded||b.branchStatus)return false;
   if((snapshot?.mode??state.mode)!=='light')return false;
+  const pendingAdmission=captureOriginalOrganizeFilterAdmission(t,this,b.id);
+  if(pendingAdmission!==undefined){const admission=await pendingAdmission;if(admission!==null){const cap=captureAIFilterQualifiedRead(this.#aiFilterAuthority,this,admission);return this.#aiFilter.hiddenQualified(t,b.id,cap,snapshot);}}
   const row=await t.get('filterInputs',b.id),meta=await t.get('inputStates',b.id);
   if(!validFilterDecision(row,meta))return this.#aiFilter.hidden(t,b,row,meta,snapshot);
   if(snapshot&&row.decisionSequence>snapshot.sequence)return false;

@@ -1,9 +1,12 @@
+import {captureAIFilterHistoricalReader} from './filter-visibility-read-session.js';
 import {isAIFilterVisibilityOwner} from './filter-visibility-owner.js';
 import {ArchiveError} from '../constants.js';
 import {equal} from './contracts.js';
 import {readMaintenanceFilterCapability} from './maintenance-service-client.js';
 import * as originalFilter from './ai-filter-owner.js';
 import {createAIFilterScopeSelector} from './ai-filter-scope.js';
+const qualifiedReadCaptures=new WeakMap();
+export function captureAIFilterQualifiedRead(authority,store,admission){const capture=qualifiedReadCaptures.get(authority);if(!capture)throw new ArchiveError('UNAVAILABLE');return capture(store,admission);}
 const fail=(code='UNAVAILABLE')=>{throw new ArchiveError(code);};
 const exact=(x,keys)=>!!x&&[Object.prototype,null].includes(Object.getPrototypeOf(x))&&Reflect.ownKeys(x).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptor(x,k)||{},'value'));
 const validPolicy=p=>exact(p,['version','qualificationId'])&&p.version==='pro-ambiguous-1'&&typeof p.qualificationId==='string'&&p.qualificationId.length>0&&p.qualificationId.length<=200;
@@ -28,6 +31,7 @@ export function createAIFilterAuthority({getStore=()=>null,consent,policy=null}=
   async resolveVisibility(t,request){sweep();if(!exact(request,['purpose','candidateIds','neighborIds','operationId','inputId','decision'])||request.purpose!=='ai-maintenance-filter-visibility')fail();const b=visibility.get(request.operationId);if(!b||!visibleCurrent(b)){if(readOnly)return readOnly.resolveVisibility(t,request);fail();}if(!equal(b.publication.scope,{candidateIds:request.candidateIds,neighborIds:request.neighborIds})||!b.publication.filtered.some(i=>i.inputId===request.inputId&&equal({version:1,policy:b.publication.policy,authority:b.publication.epochs,scope:b.publication.scope,proof:b.publication.proof,sequence:i.sequence},request.decision)))fail();return issue(b,true);},
   isCurrent(raw){const known=grants.get(raw);return known?(known.visibilityOnly?visibleCurrent(known.binding):live(known.binding)):readOnly?.isCurrent(raw)===true;}
  });
+ qualifiedReadCaptures.set(authority,(requestedStore,admission)=>{if(disposed||currentStore()!==requestedStore||!readOnly)fail();return captureAIFilterHistoricalReader(readOnly,requestedStore,admission);});
  const serviceFilter=Object.freeze({enabled:true,captureConsent:()=>consent?.capture?.()??null,isConsentCurrent:r=>consent?.isCurrent(r)===true,
   async selectScope(request){const s=currentStore();if(!selectedPolicy||!consent?.capture?.())fail();selector??=createAIFilterScopeSelector(s,{isCurrent:()=>!disposed&&getStore()===s&&!!consent?.capture?.()});return selector.selectScope(request);},
   authorizeReservation(capability,scope){sweep();const s=currentStore(),view=readMaintenanceFilterCapability(capability,s);if(!selectedPolicy||!view||!view.qualityReceiptRefs.includes(selectedPolicy.qualificationId)||!consent.isCurrent(view.consent)||bindings.size>=4&&!bindings.has(capability))fail();if(!exact(scope,['candidateIds','neighborIds'])||!Array.isArray(scope.candidateIds)||scope.candidateIds.length>8||!equal([...scope.candidateIds].sort(),view.candidateIds)||!Array.isArray(scope.neighborIds)||scope.neighborIds.length<1||scope.neighborIds.length>2||new Set(scope.neighborIds).size!==scope.neighborIds.length||scope.neighborIds.some(id=>!view.inputIds.includes(id)||scope.candidateIds.includes(id)))fail('INVALID_REQUEST');const prior=bindings.get(capability);if(prior&&!equal(prior.scope,scope))fail('STALE_BASE');if(!prior){const b={serial,store:s,capability,view,scope:structuredClone(scope)};b.grant=grantFor(view,b.scope);bindings.set(capability,b);}return true;},

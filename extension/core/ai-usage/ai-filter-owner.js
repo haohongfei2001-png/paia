@@ -8,6 +8,7 @@ import {requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded}
 import {ArchiveError,CONSENT_VERSION} from '../constants.js';
 import {inputProjection} from '../thought-evidence.js';
 import {normalizePresence,validFilterDecision,FILTER_VERSIONS} from '../smart-filter.js';
+import {readAIFilterQualifiedConsumer,assertAIFilterQualifiedConsumerCurrent,assertAIFilterQualifiedConsumerFacts} from './filter-visibility-qualified-reader.js';
 const fail=(code='UNAVAILABLE')=>{throw new ArchiveError(code);};
 const id=x=>typeof x==='string'&&x.length>0&&x.length<=200;
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
@@ -97,7 +98,7 @@ export class AIMaintenanceFilterOwner {
    if(!state.active||this.#time()>=state.created+300000)fail('STALE_BASE');
   }catch(error){this.#retire(state);throw error;}
  }
- async #read(t,s,previous=null,guard=raw=>{if(raw)this.#current(raw);},visibility=null){
+ async #read(t,s,previous=null,guard=raw=>{if(raw)this.#current(raw);},visibility=null,qualifiedSettings=null){
   this.#ready();guard();const readOnly=visibility!==null&&typeof this.#authority.resolveVisibility==='function',raw=await (readOnly?this.#authority.resolveVisibility(t,freeze({...request(s),purpose:'ai-maintenance-filter-visibility',...visibility})):this.#authority.resolve(t,Object.freeze(request(s))));guard(raw);
   const grant=permission(raw,s);if(previous&&!same(previous,grant))fail('STALE_BASE');
   let retainedBytes=0;const charge=held=>{const size=bytes(JSON.stringify(held));if(size>AI_FILTER_FACT_LIMITS.rowBytes||retainedBytes+size>AI_FILTER_FACT_LIMITS.totalBytes)fail('BUDGET_EXCEEDED');retainedBytes+=size;};
@@ -109,7 +110,7 @@ export class AIMaintenanceFilterOwner {
   // Only rows already read by the original exact 8-candidate/2-neighbor
   // qualification are retained. Final checks acquire no new input or source.
   const g={get:guarded('get'),count:guarded('count')};
-  const gate=await g.get('meta','gate'),control=await this.#store.control(g),library=await g.get('meta','thought-library'),restore=await g.get('meta','recovery-restore-epoch');check();
+  const gate=await g.get('meta','gate'),control=qualifiedSettings===null?await this.#store.control(g):{settings:qualifiedSettings},library=await g.get('meta','thought-library'),restore=await g.get('meta','recovery-restore-epoch');check();
   if(gate?.enabled!==true||control.settings?.enabled!==true||control.settings.consentVersion!==CONSENT_VERSION||control.settings.epoch!==gate.epoch||!integer(gate.epoch)||library?.phase!=='active'||library.schemaVersion!==1||library.verified!==true||library.sealed!==0||restore&&!id(restore.value))fail('STALE_BASE');
   const snapshot=await this.#store.maintenanceFilterSnapshot(g,s.candidateIds,{contentBounds:true});check();
   const neighbors=[];let total=0;
@@ -165,6 +166,32 @@ export class AIMaintenanceFilterOwner {
   for(const {store,value}of writes){current();await t.put(store,structuredClone(value));current();}
   await fenceAfterSettlement(t);current();
   return {ok:true,disposition:filtered?'committed':'no_change',inputIds:[...saved.scope.candidateIds],filtered,visibilityPublication:publication,fenceAfterSettlement,isCurrent:()=>{try{current();return true;}catch{return false;}}};
+ }
+ async hiddenQualified(consumerReader,inputId,cap,readingSnapshot=null){
+  // Only the original consumer admission and historical read lease can supply
+  // this private reader. Never obtain full Filter proof or neighboring text
+  // from the consumer's ordinary field-qualified reader.
+  if(!id(inputId))fail('INVALID_REQUEST');
+  const {reader,settings}=readAIFilterQualifiedConsumer(cap,this.#store,consumerReader,inputId);
+  const guard=raw=>{
+   if(raw)this.#current(raw);
+   assertAIFilterQualifiedConsumerCurrent(cap,this.#store,consumerReader,inputId);
+   assertAIFilterQualifiedConsumerFacts(cap,this.#store,consumerReader,inputId);
+  };
+  const get=async(table,key)=>{guard();const value=await reader.get(table,key);guard();return value;};
+  const b=(await get('blocks',inputId))?.value,meta=await get('inputStates',inputId),row=await get('filterInputs',inputId);
+  if(!b||b.id!==inputId||!meta||meta.id!==inputId||!row||row.id!==inputId)fail();
+  const done=value=>{guard();return value;},d=row.aiDecision;
+  if(b.excluded||b.branchStatus||!d)return done(false);
+  if(d.version!==1||!integer(d.sequence))fail();
+  if(readingSnapshot&&d.sequence>readingSnapshot.sequence||row.basedOnContentRevision!==meta.contentRevision)return done(false);
+  const s=scope(d.scope);
+  if(!s.candidateIds.includes(inputId))fail();
+  const read=await this.#read(reader,s,null,guard,{operationId:row.aiOperationId,inputId,decision:structuredClone(d)},settings);
+  const hidden=same(read.grant.policy,d.policy)&&same(read.grant.epochs,d.authority)&&same(read.proof,d.proof);
+  // Grant, storage and currentness failures propagate. Only a successfully
+  // checked original proof can establish visibility or non-hiding here.
+  read.check();return hidden;
  }
  async hidden(t,b,row,meta,readingSnapshot){
   const d=row?.aiDecision;if(!d||d.version!==1||!integer(d.sequence)||readingSnapshot&&d.sequence>readingSnapshot.sequence||row.basedOnContentRevision!==meta?.contentRevision)return false;
