@@ -340,11 +340,17 @@ export class TopicController {
  async renderTopicReader(anchor=null,restore=null,{preserveLiveAnchor=false,beforePaint=null,publicationOwner=null}={}){
   const reader=this.topicReader,serial=this.serial,windowRevision=reader?.windowRevision,cueEpoch=this.rootCueEpoch||0,intent=this.openIntent,view=this.view;if(!reader||reader.publicationOwner&&reader.publicationOwner!==publicationOwner)return false;
   const deferred=reader.pendingInitialPublication;if(deferred&&!deferred.isCurrent()){this.retirePendingTopicPosition(reader);return false;}
-  const current=()=>{
+  const ownsCurrent=()=>{
    if(this.actions?.surface?.workspace){this.actions.onDeferredRead?.();return false;}
    const valid=!this.sectionEndWriter?.hasDraft()&&reader===this.topicReader&&serial===this.serial&&windowRevision===reader.windowRevision&&cueEpoch===(this.rootCueEpoch||0)&&intent===this.openIntent&&view===this.view;
    if(!valid&&cueEpoch!==(this.rootCueEpoch||0))reader.invalidate({cursorInvalid:true});return valid;
   };
+  // A refused reader has no publishable body/Section authority. Its cleared
+  // metadata must never turn into a successful empty legacy Topic fallback.
+  let stalePublication=false;
+  const current=()=>{if(!ownsCurrent())return false;if(reader.stale){stalePublication=true;throw Error('TOPIC_READING_CHANGED');}return true;};
+  try{
+  if(!current())return false;
   const ready=await reader.hydrateWindow();
   if(!current()||this.sectionEndWriter?.hasDraft())return false;if(!ready){this.updateTopicContinuous();return false;}
   const page=this.topicPageFromReader();if(!page?.topic)return false;
@@ -393,6 +399,12 @@ export class TopicController {
    finally{this.retirePendingTopicPosition(reader);}
   }else if(!pendingPosition)delete reader.pendingInitialPublication;
   this.admitTopicContinuation(reader);return true;
+  }catch(error){
+   // Preserve the original purge/removal owner before retaining any live DOM.
+   // A newer route owns its own read; never publish this refusal into it.
+   if(stalePublication&&ownsCurrent()){await this.checkAllTracked(serial);if(!ownsCurrent())return false;}
+   throw error;
+  }
  }
  admitReadingSnapshot(){
   this.snapshotKey=this.readKey();this.snapshotRoute=this.id||'home';if(!this.id)this.homeLoaded=true;
