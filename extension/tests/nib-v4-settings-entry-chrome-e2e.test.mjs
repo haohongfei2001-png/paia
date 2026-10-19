@@ -16,6 +16,19 @@ const paths=['ui/settings-about.js','ui/settings-preferences.js','ui/installatio
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const hashes=async base=>Object.fromEntries(await Promise.all(paths.map(async path=>[path,sha(await readFile(join(base,path)))])));
 const rpc=async(page,type,fields={})=>{const r=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type,...fields});assert.equal(r.ok,true,JSON.stringify(r));return r.data;};
+// Capture pause/resume can wake original maintenance between the two original
+// snapshot transactions. A stale snapshot grants nothing; retry only that exact
+// read refusal inside the existing eventually deadline, never any mutation.
+async function readRetainedPrompt(page){
+ let current;
+ await eventually(async()=>{
+  const result=await page.evaluate(message=>chrome.runtime.sendMessage(message),{type:'PAIA_PROMPT_QUERY',includeHidden:true});
+  if(result?.ok===false&&result.error==='MEMORY_STALE')return false;
+  assert.equal(result?.ok,true,JSON.stringify(result));current=result.data;return true;
+ },'original Prompt snapshot settles with current generation');
+ return current;
+}
+
 
 // Install before the original page modules mount. Only the browser update API's
 // callback is controlled. Status reads complete through the genuine worker;
@@ -234,7 +247,7 @@ for(const variant of ['source','release'])test(`NIB S4 Settings current-install 
     const retained=async()=>{
      assert.deepEqual(await rpc(settings,'GET_INPUT',{id:first.id}),inputBefore,'capture control cannot overwrite manual Working body/revision');
      assert.deepEqual((await controls.state()).records,recordsBeforePause,'pause/resume keeps every original Source record');
-     const current=await rpc(settings,'PAIA_PROMPT_QUERY',{includeHidden:true});
+     const current=await readRetainedPrompt(settings);
      // This is the original whole-dataset backup freshness fence, not the
      // manual preferences revision. SET_ENABLED wakes original maintenance;
      // backup-allowed writes may advance it while all manual work stays exact.
